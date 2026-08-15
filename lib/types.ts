@@ -6,7 +6,8 @@ export type PieceOutline =
   | { kind: "polygon"; points: string }
   | { kind: "path"; d: string };
 
-export type GarmentType = "blusa" | "vestido" | "saia";
+export type GarmentType = "blusa" | "vestido" | "saia" | "camiseta";
+export type Sexo = "fem" | "masc";
 export type Decote = "reto" | "V" | "redondo";
 export type MangaLen = "sem" | "curta" | "longa";
 export type SaiaSilhueta = "reta" | "evase" | "gode" | "meia-roda" | "circulo";
@@ -23,6 +24,7 @@ export interface GarmentStyle {
 
 export interface GarmentSpec {
   tipo: GarmentType;
+  sexo?: Sexo;
   measurementOverrides: Record<string, number>;
   style: GarmentStyle;
 }
