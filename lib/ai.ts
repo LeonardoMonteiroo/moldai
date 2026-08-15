@@ -24,8 +24,6 @@ export interface AiDecision {
   assistantMessage: string;
 }
 
-const client = new Anthropic();
-
 const TOOL: Anthropic.Tool = {
   name: "propose_pattern_change",
   description:
@@ -92,7 +90,8 @@ function buildSystem(state: EditorState): string {
   ].join("\n");
 }
 
-export async function proposePatternChange(state: EditorState, message: string): Promise<AiDecision> {
+export async function proposePatternChange(state: EditorState): Promise<AiDecision> {
+  const client = new Anthropic();
   const history = state.chat.slice(-10).map((m) => ({
     role: m.author === "user" ? ("user" as const) : ("assistant" as const),
     content: m.text,
@@ -104,7 +103,7 @@ export async function proposePatternChange(state: EditorState, message: string):
     system: buildSystem(state),
     tools: [TOOL],
     tool_choice: { type: "tool", name: "propose_pattern_change" },
-    messages: [...history, { role: "user", content: message }],
+    messages: history,
   });
 
   const block = resp.content.find((b) => b.type === "tool_use");

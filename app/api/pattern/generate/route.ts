@@ -29,16 +29,16 @@ export async function POST(request: Request) {
   debitCredits(cost);
 
   try {
-    const decision = await proposePatternChange(getState(), trimmed);
+    const decision = await proposePatternChange(getState());
 
     if (decision.decision === "decline") {
-      refundCredits(cost);
       addMessage({
         id: `msg-${Date.now()}-ai`,
         author: "ai",
         text: decision.assistantMessage || decision.declineReason || "Não consegui aplicar esse pedido.",
         createdAt: Date.now(),
       });
+      refundCredits(cost);
       return NextResponse.json({ status: "declined", state: getState() });
     }
 
