@@ -1,26 +1,54 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --font-sans: var(--font-archivo);
+  --font-display: var(--font-bricolage);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* MoldAI design tokens — see design_handoff_moldai/README.md */
+  --color-ink: #1c1c19;
+  --color-paper: #f4f2ec;
+  --color-surface: #ffffff;
+  --color-surface-alt: #fcfbf7;
+  --color-border: #ded9cc;
+  --color-line: #f0ece1;
+  --color-grid-line: #e8e4d8;
+  --color-olive: #4a5a3a;
+  --color-olive-dark: #38452c;
+  --color-olive-tint: #eaeee2;
+  --color-olive-border: #d7ddc9;
+  --color-amber-bg: #fdf3d8;
+  --color-amber-border: #f0dfa8;
+  --color-amber-text: #7a5f14;
+  --color-muted: #8b8779;
+  --color-muted-2: #5a564a;
+  --color-placeholder: #a29e91;
+  --color-disabled: #b8b3a4;
+  --color-disabled-border: #ece8dd;
+  --color-pattern-guide: #b3ab93;
+  --color-alert: #b5502f;
+  --color-track: #ece8dd;
+  --color-overlay: rgba(28, 28, 25, 0.28);
+
+  --radius-chip: 6.5px;
+  --radius-btn: 9.5px;
+  --radius-item: 11px;
+  --radius-card: 13.5px;
+  --radius-modal: 16px;
+  --radius-pill: 20px;
+
+  --shadow-card: 0 2px 10px rgba(28, 28, 25, 0.07);
+  --shadow-modal: 0 12px 34px rgba(28, 28, 25, 0.22);
+  --shadow-plan: 0 3px 14px rgba(74, 90, 58, 0.13);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+.pattern-grid {
+  background-image:
+    linear-gradient(var(--color-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-grid-line) 1px, transparent 1px);
+  background-size: 26px 26px;
 }
