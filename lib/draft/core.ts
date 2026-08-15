@@ -10,6 +10,7 @@ export interface DraftedPiece {
   name: string;
   qty: number;
   outlineCm: Pt[];
+  curvedSpans?: [number, number][];
   guideCm?: Pt[];
   grainlineCm?: [Pt, Pt];
   dartCm?: Pt[];
@@ -30,23 +31,31 @@ export function polyPath(ptsCm: Pt[]): PieceOutline {
   return { kind: "polygon", points };
 }
 
-// Catmull-Rom -> Bézier suave. `closed` liga o último ao primeiro ponto.
-export function smoothPath(ptsCm: Pt[], closed: boolean): PieceOutline {
+// Desenha um contorno fechado: reta (L) em cada aresta, exceto nas arestas
+// cobertas por um curvedSpan, onde emite Catmull-Rom->Bézier com as tangentes
+// travadas nas bordas do span (não puxa para os pontos retos vizinhos).
+export function outlinePath(ptsCm: Pt[], curvedSpans: [number, number][] = []): PieceOutline {
   const p = ptsCm.map(([x, y]) => [PX(x), PX(y)] as Pt);
   const n = p.length;
   if (n < 3) return polyPath(ptsCm);
   const at = (i: number) => p[(i + n) % n];
-  let d = `M${at(0)[0]} ${at(0)[1]} `;
-  const last = closed ? n : n - 1;
-  for (let i = 0; i < last; i++) {
+  const spanFor = (i: number) => curvedSpans.find(([a, b]) => i >= a && i + 1 <= b);
+  let d = `M${at(0)[0].toFixed(1)} ${at(0)[1].toFixed(1)} `;
+  for (let i = 0; i < n; i++) {
     const p1 = at(i), p2 = at(i + 1);
-    const p0 = (!closed && i === 0) ? p1 : at(i - 1);
-    const p3 = (!closed && i === last - 1) ? p2 : at(i + 2);
+    const span = spanFor(i);
+    if (!span) {
+      d += `L${p2[0].toFixed(1)} ${p2[1].toFixed(1)} `;
+      continue;
+    }
+    const [a, b] = span;
+    const p0 = i === a ? p1 : at(i - 1);
+    const p3 = i + 1 === b ? p2 : at(i + 2);
     const c1x = p1[0] + (p2[0] - p0[0]) / 6, c1y = p1[1] + (p2[1] - p0[1]) / 6;
     const c2x = p2[0] - (p3[0] - p1[0]) / 6, c2y = p2[1] - (p3[1] - p1[1]) / 6;
     d += `C${c1x.toFixed(1)} ${c1y.toFixed(1)} ${c2x.toFixed(1)} ${c2y.toFixed(1)} ${p2[0].toFixed(1)} ${p2[1].toFixed(1)} `;
   }
-  if (closed) d += "Z";
+  d += "Z";
   return { kind: "path", d: d.trim() };
 }
 
@@ -68,8 +77,9 @@ function translateOutline(o: PieceOutline, dx: number, dy: number): PieceOutline
 }
 
 // Constrói a Piece final aplicando outline/guia/grainline/dart com deslocamento (dx,dy) em px.
-function place(dp: DraftedPiece, dxPx: number, dyPx: number, curved: boolean): Piece {
-  const outline = curved ? smoothPath(dp.outlineCm, true) : polyPath(dp.outlineCm);
+function place(dp: DraftedPiece, dxPx: number, dyPx: number): Piece {
+  const spans = dp.curvedSpans ?? [];
+  const outline = spans.length ? outlinePath(dp.outlineCm, spans) : polyPath(dp.outlineCm);
   const piece: Piece = {
     id: dp.id,
     name: dp.name,
@@ -95,7 +105,6 @@ function place(dp: DraftedPiece, dxPx: number, dyPx: number, curved: boolean): P
 export function autoLayout(
   drafted: DraftedPiece[],
   gapCm = 8,
-  curvedIds: string[] = [],
 ): { pieces: Piece[]; viewBox: { w: number; h: number } } {
   const pad = PX(6);
   const gap = PX(gapCm);
@@ -106,7 +115,7 @@ export function autoLayout(
     const b = bbox(dp.outlineCm);
     const dx = cursorX - PX(b.minX);
     const dy = pad - PX(b.minY);
-    pieces.push(place(dp, dx, dy, curvedIds.includes(dp.id)));
+    pieces.push(place(dp, dx, dy));
     cursorX += PX(b.w) + gap;
     maxH = Math.max(maxH, PX(b.h));
   }

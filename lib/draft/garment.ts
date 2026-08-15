@@ -62,6 +62,6 @@ export function draftGarment(spec: GarmentSpec, size: SizeLabel) {
     drafted.push(draftSaia(measurements, spec.style));
   }
 
-  const { pieces, viewBox } = autoLayout(drafted, 8, ["corpo-frente", "corpo-costas", "manga"]);
+  const { pieces, viewBox } = autoLayout(drafted, 8);
   return { pieces, viewBox, measurements, armholeLenCm };
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { autoLayout, bbox, polyPath, smoothPath, PX, DraftedPiece } from "./core";
+import { autoLayout, bbox, polyPath, outlinePath, DraftedPiece } from "./core";
 
 const rect = (id: string, w: number, h: number): DraftedPiece => ({
   id, name: id, qty: 1,
@@ -13,8 +13,7 @@ describe("core drafting", () => {
   });
 
   it("polyPath fecha o polígono", () => {
-    const o = polyPath([[0, 0], [1, 0], [1, 1]]);
-    expect(o.kind).toBe("polygon");
+    expect(polyPath([[0, 0], [1, 0], [1, 1]]).kind).toBe("polygon");
   });
 
   it("autoLayout empilha peças lado a lado e calcula viewBox > 0", () => {
@@ -22,39 +21,33 @@ describe("core drafting", () => {
     expect(pieces).toHaveLength(2);
     expect(viewBox.w).toBeGreaterThan(0);
     expect(viewBox.h).toBeGreaterThan(0);
-    // segunda peça começa depois da primeira + gap (em px)
     const ax = (pieces[0].outline as { points: string }).points.split(" ")[0];
     const bx = (pieces[1].outline as { points: string }).points.split(" ")[0];
     expect(parseFloat(bx)).toBeGreaterThan(parseFloat(ax));
   });
 
-  describe("smoothPath", () => {
-    it("closed curve starts with M and ends with Z", () => {
-      const result = smoothPath([[0, 0], [10, 0], [10, 10]], true);
-      expect(result.kind).toBe("path");
-      const pathResult = result as { kind: "path"; d: string };
-      expect(pathResult.d).toMatch(/^M\d+\.?\d*\s+\d+\.?\d*/);
-      expect(pathResult.d).toMatch(/Z$/);
+  describe("outlinePath", () => {
+    it("sem spans: só retas (L), nenhum C, fecha com Z", () => {
+      const o = outlinePath([[0, 0], [10, 0], [10, 10], [0, 10]], []) as { kind: "path"; d: string };
+      expect(o.kind).toBe("path");
+      expect(o.d).not.toMatch(/C/);
+      expect(o.d).toMatch(/L/);
+      expect(o.d).toMatch(/Z$/);
     });
 
-    it("open curve starts with M and does not end with Z", () => {
-      const result = smoothPath([[0, 0], [10, 0], [10, 10]], false);
-      expect(result.kind).toBe("path");
-      const pathResult = result as { kind: "path"; d: string };
-      expect(pathResult.d).toMatch(/^M\d+\.?\d*\s+\d+\.?\d*/);
-      expect(pathResult.d).not.toMatch(/Z$/);
+    it("com span: as arestas do span viram C; as de fora seguem L", () => {
+      // quadrado; curva só a aresta entre v1 e v2 (span [1,2])
+      const o = outlinePath([[0, 0], [10, 0], [10, 10], [0, 10]], [[1, 2]]) as { kind: "path"; d: string };
+      expect(o.d).toMatch(/C/);
+      expect(o.d).toMatch(/L/);
+      expect(o.d).toMatch(/Z$/);
     });
 
-    it("open 4-point curve has finite first control point within start region", () => {
-      const result = smoothPath([[0, 0], [10, 0], [20, 0], [30, 0]], false);
-      expect(result.kind).toBe("path");
-      const pathResult = result as { kind: "path"; d: string };
-      // Parse first C command: "C<x1> <y1> <x2> <y2> <x> <y> ..."
-      const cMatch = pathResult.d.match(/C([\d.]+)\s+([\d.]+)/);
-      expect(cMatch).not.toBeNull();
-      const firstControlPointX = parseFloat(cMatch![1]);
-      expect(firstControlPointX).toBeGreaterThanOrEqual(0);
-      expect(firstControlPointX).toBeLessThanOrEqual(PX(30));
+    it("span de fechamento [k,n] curva a aresta que volta ao vértice 0", () => {
+      const pts: [number, number][] = [[0, 0], [10, 0], [10, 10], [0, 10]];
+      const o = outlinePath(pts, [[3, 4]]) as { kind: "path"; d: string };
+      // 4 vértices; span [3,4] cobre a aresta 3->0 (fechamento)
+      expect(o.d).toMatch(/C[^Z]*Z$/);
     });
   });
 });
