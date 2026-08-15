@@ -39,7 +39,9 @@ export function smoothPath(ptsCm: Pt[], closed: boolean): PieceOutline {
   let d = `M${at(0)[0]} ${at(0)[1]} `;
   const last = closed ? n : n - 1;
   for (let i = 0; i < last; i++) {
-    const p0 = at(i - 1), p1 = at(i), p2 = at(i + 1), p3 = at(i + 2);
+    const p1 = at(i), p2 = at(i + 1);
+    const p0 = (!closed && i === 0) ? p1 : at(i - 1);
+    const p3 = (!closed && i === last - 1) ? p2 : at(i + 2);
     const c1x = p1[0] + (p2[0] - p0[0]) / 6, c1y = p1[1] + (p2[1] - p0[1]) / 6;
     const c2x = p2[0] - (p3[0] - p1[0]) / 6, c2y = p2[1] - (p3[1] - p1[1]) / 6;
     d += `C${c1x.toFixed(1)} ${c1y.toFixed(1)} ${c2x.toFixed(1)} ${c2y.toFixed(1)} ${p2[0].toFixed(1)} ${p2[1].toFixed(1)} `;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { autoLayout, bbox, polyPath, DraftedPiece } from "./core";
+import { autoLayout, bbox, polyPath, smoothPath, PX, DraftedPiece } from "./core";
 
 const rect = (id: string, w: number, h: number): DraftedPiece => ({
   id, name: id, qty: 1,
@@ -26,5 +26,35 @@ describe("core drafting", () => {
     const ax = (pieces[0].outline as { points: string }).points.split(" ")[0];
     const bx = (pieces[1].outline as { points: string }).points.split(" ")[0];
     expect(parseFloat(bx)).toBeGreaterThan(parseFloat(ax));
+  });
+
+  describe("smoothPath", () => {
+    it("closed curve starts with M and ends with Z", () => {
+      const result = smoothPath([[0, 0], [10, 0], [10, 10]], true);
+      expect(result.kind).toBe("path");
+      const pathResult = result as { kind: "path"; d: string };
+      expect(pathResult.d).toMatch(/^M\d+\.?\d*\s+\d+\.?\d*/);
+      expect(pathResult.d).toMatch(/Z$/);
+    });
+
+    it("open curve starts with M and does not end with Z", () => {
+      const result = smoothPath([[0, 0], [10, 0], [10, 10]], false);
+      expect(result.kind).toBe("path");
+      const pathResult = result as { kind: "path"; d: string };
+      expect(pathResult.d).toMatch(/^M\d+\.?\d*\s+\d+\.?\d*/);
+      expect(pathResult.d).not.toMatch(/Z$/);
+    });
+
+    it("open 4-point curve has finite first control point within start region", () => {
+      const result = smoothPath([[0, 0], [10, 0], [20, 0], [30, 0]], false);
+      expect(result.kind).toBe("path");
+      const pathResult = result as { kind: "path"; d: string };
+      // Parse first C command: "C<x1> <y1> <x2> <y2> <x> <y> ..."
+      const cMatch = pathResult.d.match(/C([\d.]+)\s+([\d.]+)/);
+      expect(cMatch).not.toBeNull();
+      const firstControlPointX = parseFloat(cMatch![1]);
+      expect(firstControlPointX).toBeGreaterThanOrEqual(0);
+      expect(firstControlPointX).toBeLessThanOrEqual(PX(30));
+    });
   });
 });
