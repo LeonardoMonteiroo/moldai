@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { resolveMeasurements } from "@/lib/measurements";
 import { draftCorpo } from "./corpo";
-import { bbox } from "./core";
+import { bbox, Pt } from "./core";
 
 const M = resolveMeasurements("M", {});
 
@@ -13,12 +13,27 @@ describe("draftCorpo", () => {
   });
 
   it("decote V aprofunda mais que reto", () => {
+    const deepestNeck = (pts: Pt[]) => {
+      const b = bbox(pts);
+      const cx = (b.minX + b.maxX) / 2;
+      const central = pts.filter((p) => p[1] < b.h * 0.5 && Math.abs(p[0] - cx) < b.w * 0.35);
+      return Math.max(...central.map((p) => p[1]));
+    };
+
     const reto = draftCorpo(M, { decote: "reto" });
     const v = draftCorpo(M, { decote: "V", decoteProfundidadeCm: 8 });
-    // o ponto mais alto do decote em V desce mais (maior y no topo central)
-    const topReto = Math.min(...reto.frente.outlineCm.map((p) => p[1]));
-    const topV = Math.min(...v.frente.outlineCm.map((p) => p[1]));
-    expect(topV).toBeGreaterThanOrEqual(topReto);
+
+    // Na frente V, o decote é mais profundo que nas costas
+    expect(deepestNeck(v.frente.outlineCm)).toBeGreaterThan(
+      deepestNeck(v.costas.outlineCm)
+    );
+
+    // V costas também é mais profundo que reto costas (porque V adiciona profundidade)
+    expect(deepestNeck(v.costas.outlineCm)).toBeGreaterThan(
+      deepestNeck(reto.costas.outlineCm)
+    );
+
+    // V frente contém detalhamento de decote
     expect(v.frente.detailRows.some((r) => /decote/i.test(r.label))).toBe(true);
   });
 
