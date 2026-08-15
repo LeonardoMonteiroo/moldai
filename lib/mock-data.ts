@@ -5,61 +5,29 @@ import {
   EditorState,
   Pattern,
   Piece,
+  PieceParams,
 } from "./types";
-import { defaultParams } from "./geometry";
+import { clampParams, computeGeometry, defaultParams, deriveDetails } from "./geometry";
 
-const frente: Piece = {
-  id: "frente",
-  name: "Frente",
-  qty: 1,
-  params: defaultParams("frente"),
-  outline: { kind: "polygon", points: "55,30 165,30 182,180 150,350 48,350 34,180" },
-  guideOutline: { kind: "polygon", points: "46,22 174,22 191,182 158,360 39,360 24,182" },
-  grainline: { x1: 105, y1: 34, x2: 97, y2: 346 },
-  dart: { d: "M110 30 L128 96 L92 96 Z" },
-  label: { x: 55, y: 368 },
-  details: {
-    folgaCostura: "1,0 cm",
-    penceBusto: "2,5 cm",
-    cava: "21,4 cm",
-    fio: "reto",
-    consumo: "1,85 m",
-  },
-};
+function makePiece(id: string, name: string, qty: number, params: PieceParams): Piece {
+  const g = computeGeometry(id, params);
+  return {
+    id,
+    name,
+    qty,
+    params,
+    outline: g.outline,
+    guideOutline: g.guideOutline,
+    grainline: g.grainline,
+    dart: g.dart,
+    label: g.label,
+    details: deriveDetails(id, params),
+  };
+}
 
-const costas: Piece = {
-  id: "costas",
-  name: "Costas",
-  qty: 1,
-  params: defaultParams("costas"),
-  outline: { kind: "polygon", points: "215,30 325,30 342,180 310,350 208,350 194,180" },
-  guideOutline: { kind: "polygon", points: "206,22 334,22 351,182 318,360 199,360 184,182" },
-  grainline: { x1: 265, y1: 34, x2: 257, y2: 346 },
-  label: { x: 215, y: 368 },
-  details: {
-    folgaCostura: "1,0 cm",
-    penceBusto: "—",
-    cava: "20,1 cm",
-    fio: "reto",
-    consumo: "1,60 m",
-  },
-};
-
-const manga: Piece = {
-  id: "manga",
-  name: "Manga",
-  qty: 2,
-  params: defaultParams("manga"),
-  outline: { kind: "path", d: "M395 42 q72 12 82 72 l-18 186 h-108 l-18 -186 q12 -60 62 -72z" },
-  label: { x: 368, y: 368 },
-  details: {
-    folgaCostura: "1,0 cm",
-    penceBusto: "—",
-    cava: "19,6 cm",
-    fio: "reto",
-    consumo: "0,45 m",
-  },
-};
+const frente = makePiece("frente", "Frente", 1, defaultParams("frente"));
+const costas = makePiece("costas", "Costas", 1, defaultParams("costas"));
+const manga = makePiece("manga", "Manga", 2, defaultParams("manga"));
 
 function seedPattern(): Pattern {
   return {
@@ -164,6 +132,27 @@ export function setConflict(conflict: ConflictInfo | null) {
   state.conflict = conflict;
 }
 
+export function updatePieceParams(pieceId: string, partial: PieceParams) {
+  state.pattern = {
+    ...state.pattern,
+    pieces: state.pattern.pieces.map((pc) => {
+      if (pc.id !== pieceId) return pc;
+      const merged = clampParams(pieceId, { ...pc.params, ...partial });
+      const g = computeGeometry(pieceId, merged);
+      return {
+        ...pc,
+        params: merged,
+        outline: g.outline,
+        guideOutline: g.guideOutline,
+        grainline: g.grainline,
+        dart: g.dart,
+        label: g.label,
+        details: deriveDetails(pieceId, merged),
+      };
+    }),
+  };
+}
+
 export function applySizes(sizes: string[]) {
   const applied = new Set(state.pattern.sizesApplied);
   const pending = state.pattern.sizesPending.filter((s) => {
@@ -194,19 +183,35 @@ export function applyPurchase(type: "topup" | "subscribe") {
   }
 }
 
-export function buildConflict(): ConflictInfo {
+const LANDMARKS: Record<string, { cx: number; cy: number }> = {
+  frente: { cx: 110, cy: 60 },
+  costas: { cx: 270, cy: 60 },
+  manga: { cx: 430, cy: 78 },
+};
+
+export interface ConflictInput {
+  pieceAId: string;
+  pieceBId: string;
+  diffCm: number;
+  title: string;
+  description: string;
+  suggestion: string;
+}
+
+export function buildConflict(input: ConflictInput): ConflictInfo {
+  const a = LANDMARKS[input.pieceAId] ?? { cx: 110, cy: 60 };
+  const b = LANDMARKS[input.pieceBId] ?? { cx: 430, cy: 78 };
   return {
     id: `conflict-${Date.now()}`,
-    title: "Cava frente ↔ manga",
-    description:
-      "A cava da frente ficou 1,8 cm maior que a da manga. As costuras não fecham.",
-    diffCm: 1.8,
-    suggestion: "Sugestão: abrir 1,8 cm na copa da manga.",
-    pieceAId: "frente",
-    pieceBId: "manga",
+    title: input.title,
+    description: input.description,
+    diffCm: input.diffCm,
+    suggestion: input.suggestion,
+    pieceAId: input.pieceAId,
+    pieceBId: input.pieceBId,
     markers: [
-      { cx: 110, cy: 60, r: 20 },
-      { cx: 430, cy: 78, r: 20 },
+      { cx: a.cx, cy: a.cy, r: 20 },
+      { cx: b.cx, cy: b.cy, r: 20 },
     ],
   };
 }
