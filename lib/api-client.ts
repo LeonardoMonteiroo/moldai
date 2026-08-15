@@ -22,6 +22,10 @@ export function generate(message: string): Promise<GenerateResult> {
   return postJson<GenerateResult>("/api/pattern/generate", { message });
 }
 
+export function resetPattern(): Promise<{ status: "ok"; state: EditorState }> {
+  return postJson<{ status: "ok"; state: EditorState }>("/api/pattern/reset", {});
+}
+
 export function graduate(sizes: string[]): Promise<GenerateResult> {
   return postJson<GenerateResult>("/api/pattern/graduate", { sizes });
 }

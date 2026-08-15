@@ -40,6 +40,7 @@ interface EditorStore {
 
   init: () => Promise<void>;
   sendMessage: (message: string) => Promise<void>;
+  resetPattern: () => Promise<void>;
   cancelGeneration: () => void;
   graduateSizes: (sizes: string[]) => Promise<void>;
   resolveConflict: (action: "fix" | "ignore") => Promise<void>;
@@ -136,6 +137,23 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       chat: s.chat.filter((m) => !m.id.startsWith("optimistic-")),
       credits: s.credits ? { ...s.credits, balance: s.credits.balance + COSTS.adjust } : s.credits,
     }));
+  },
+
+  resetPattern: async () => {
+    // Bump the request id first so any in-flight generation is treated as
+    // canceled (its result is ignored when it resolves).
+    set((s) => ({ generationRequestId: s.generationRequestId + 1 }));
+    const result = await api.resetPattern();
+    applyState(set, result.state);
+    set({
+      selectedPieceId: null,
+      detailsPanelOpen: true,
+      activeTab: "molde2d",
+      activeTool: "medir",
+      generationStatus: "idle",
+      generationStepIndex: 0,
+      paywall: { open: false, required: 0, balance: 0, actionLabel: "", retry: null },
+    });
   },
 
   graduateSizes: async (sizes: string[]) => {
