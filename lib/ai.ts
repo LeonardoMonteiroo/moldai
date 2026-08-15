@@ -1,67 +1,66 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { EditorState } from "./types";
-import { PIECE_PARAM_SCHEMA } from "./geometry";
-
-export interface PieceChange {
-  pieceId: string;
-  params: Record<string, number>;
-}
-
-export interface AiConflict {
-  pieceAId: string;
-  pieceBId: string;
-  diffCm: number;
-  title: string;
-  description: string;
-  suggestion: string;
-}
+import { EditorState, GarmentSpec } from "./types";
+import { validateSpec } from "@/lib/draft/garment";
+import { MEASUREMENT_RANGES, SIZE_TABLE } from "@/lib/measurements";
 
 export interface AiDecision {
-  decision: "apply" | "conflict" | "decline";
-  pieceChanges: PieceChange[];
-  conflict?: AiConflict;
+  decision: "apply" | "decline";
+  spec: GarmentSpec;
+  declineReason?: string;
+  assistantMessage: string;
+}
+
+// Raw shape as returned by the model's tool_use block, before validation —
+// `spec` here is untrusted/unknown-shaped input, not yet a GarmentSpec.
+interface RawToolInput {
+  decision: "apply" | "decline";
+  spec?: unknown;
   declineReason?: string;
   assistantMessage: string;
 }
 
 const TOOL: Anthropic.Tool = {
-  name: "propose_pattern_change",
+  name: "propose_garment",
   description:
-    "Decide como o pedido do usuário altera o molde. Escolha SEMPRE uma decisão e escreva assistantMessage em português do Brasil.",
+    "Decide como o pedido do usuário se traduz em uma GarmentSpec (especificação da peça de roupa). Escolha SEMPRE uma decisão e escreva assistantMessage em português do Brasil.",
   input_schema: {
     type: "object",
     properties: {
       decision: {
         type: "string",
-        enum: ["apply", "conflict", "decline"],
+        enum: ["apply", "decline"],
         description:
-          "apply = ajuste válido sem conflito; conflict = o ajuste faz duas peças não fecharem na costura; decline = o pedido não é um ajuste de molde mapeável.",
+          "apply = o pedido é uma roupa/ajuste que a spec consegue representar; decline = o pedido está fora do escopo (ex.: calça, acessório, algo que não é uma peça modelável por esta spec).",
       },
-      pieceChanges: {
-        type: "array",
-        description:
-          "Peças a alterar e os DELTAS de parâmetros (em px, relativos ao valor atual). Vazio se decision=decline.",
-        items: {
-          type: "object",
-          properties: {
-            pieceId: { type: "string", enum: ["frente", "costas", "manga"] },
-            params: { type: "object", additionalProperties: { type: "number" } },
-          },
-          required: ["pieceId", "params"],
-        },
-      },
-      conflict: {
+      spec: {
         type: "object",
-        description: "Preencha SOMENTE quando decision=conflict.",
+        description:
+          "A GarmentSpec COMPLETA e ATUALIZADA (não só o delta). Preencha SEMPRE que decision=apply — inclua tudo que já existia mais as mudanças pedidas.",
         properties: {
-          pieceAId: { type: "string", enum: ["frente", "costas", "manga"] },
-          pieceBId: { type: "string", enum: ["frente", "costas", "manga"] },
-          diffCm: { type: "number" },
-          title: { type: "string" },
-          description: { type: "string" },
-          suggestion: { type: "string" },
+          tipo: { type: "string", enum: ["blusa", "vestido", "saia"] },
+          measurementOverrides: {
+            type: "object",
+            description:
+              "Overrides numéricos (cm) de medidas do corpo, por nome de medida. Só inclua o que o pedido pede explicitamente ajustar; o resto vem da tabela de tamanhos.",
+            properties: Object.fromEntries(
+              Object.keys(MEASUREMENT_RANGES).map((k) => [k, { type: "number" }]),
+            ),
+            additionalProperties: { type: "number" },
+          },
+          style: {
+            type: "object",
+            properties: {
+              decote: { type: "string", enum: ["reto", "V", "redondo"] },
+              decoteProfundidadeCm: { type: "number" },
+              manga: { type: "string", enum: ["sem", "curta", "longa"] },
+              saia: { type: "string", enum: ["reta", "evase", "gode", "meia-roda", "circulo"] },
+              compSaiaCm: { type: "number" },
+              pences: { type: "boolean" },
+              folgaCosturaCm: { type: "number" },
+            },
+          },
         },
-        required: ["pieceAId", "pieceBId", "diffCm", "title", "description", "suggestion"],
+        required: ["tipo", "measurementOverrides", "style"],
       },
       declineReason: { type: "string", description: "Preencha SOMENTE quando decision=decline." },
       assistantMessage: {
@@ -69,33 +68,31 @@ const TOOL: Anthropic.Tool = {
         description: "Resposta curta ao usuário no chat, em português, descrevendo o que foi feito ou por que não.",
       },
     },
-    required: ["decision", "pieceChanges", "assistantMessage"],
+    required: ["decision", "assistantMessage"],
   },
 };
 
 function buildSystem(state: EditorState): string {
-  const current = state.pattern.pieces.map((p) => ({ pieceId: p.id, name: p.name, params: p.params }));
-  const isEmpty = current.length === 0;
+  const currentSpec = state.pattern.spec;
+  const isEmpty = state.pattern.pieces.length === 0;
   return [
-    "Você é o motor de modelagem da MoldAI. Recebe pedidos em linguagem natural sobre um molde de vestuário e traduz em ALTERAÇÕES DE PARÂMETROS das peças.",
-    "O modelo só conhece três peças: frente, costas e manga. Você só pode criar/alterar essas peças.",
-    "Todos os parâmetros são DELTAS em pixels, relativos ao valor ATUAL da peça (positivo aumenta, negativo diminui). Devolva apenas os parâmetros que mudam. Para uma peça que ainda não existe, o valor atual é a forma base (tudo 0), então os deltas são medidos a partir de 0.",
-    "Convenções: caseDepth = profundidade da cava; necklineDepth (só frente) = decote em V (0 = sem decote); length = comprimento; sleeveLength = comprimento da manga; seamAllowance = folga de costura; dartSize = pence; shoulderWidth/hemWidth/sleeveWidth = larguras.",
+    "Você é o motor de modelagem da MoldAI. Recebe pedidos em linguagem natural sobre uma peça de roupa e traduz em uma GarmentSpec (tipo + medidas + estilo).",
+    "A GarmentSpec tem: tipo (blusa | vestido | saia); measurementOverrides (medidas do corpo em cm, sobrepõem a tabela de tamanhos); style (decote, decoteProfundidadeCm, manga, saia, compSaiaCm, pences, folgaCosturaCm).",
+    "Catálogo de estilos válidos: decote em reto|V|redondo; manga em sem|curta|longa; saia (silhueta) em reta|evase|gode|meia-roda|circulo.",
     isEmpty
-      ? "ESTADO ATUAL: molde EM BRANCO, nenhuma peça criada ainda. Este é um pedido do zero: GERE as peças que a roupa pedida precisa (escolha entre frente, costas e manga) definindo os parâmetros necessários em pieceChanges, e use decision=apply. Ex.: um vestido/blusa com manga => crie frente, costas e manga; uma peça sem manga => crie apenas frente e costas. Uma peça recém-criada com params vazios já sai na forma base — só inclua deltas para o que o pedido pede explicitamente."
-      : "As peças abaixo já existem: ajuste os parâmetros delas conforme o pedido (ou crie uma peça que ainda falte, se o pedido pedir).",
-    "Regra de conflito: a cava (caseDepth) da frente e da manga precisam casar. Se um ajuste fizer a diferença passar de ~1 cm entre as peças que se costuram, use decision=conflict, explique e sugira a correção. 1 cm ≈ 5 px.",
-    "Se o pedido não for um ajuste de molde mapeável nesses parâmetros (ex.: pergunta genérica, pedido impossível), use decision=decline e explique gentilmente em assistantMessage.",
+      ? "ESTADO ATUAL: molde EM BRANCO, nenhuma peça criada ainda. Este é um pedido do zero: gere a GarmentSpec inteira que a roupa pedida precisa, e use decision=apply."
+      : "Já existe uma spec aplicada (abaixo). Um pedido de ajuste deve devolver a SPEC INTEIRA ATUALIZADA (não só o delta): parta da spec atual e aplique as mudanças pedidas.",
+    "Se o pedido não for uma peça de roupa que esta spec consegue representar (ex.: calça, acessório, pedido genérico sem relação com uma peça modelável), use decision=decline e explique gentilmente em assistantMessage. Não preencha spec nesse caso.",
     "",
-    "Esquema de parâmetros (name, min, max em px) por peça:",
-    JSON.stringify(PIECE_PARAM_SCHEMA),
+    "Tabela de tamanhos (medidas base por tamanho, em cm):",
+    JSON.stringify(SIZE_TABLE),
     "",
-    "Estado atual das peças (params atuais):",
-    JSON.stringify(current),
+    "Spec atual do molde:",
+    JSON.stringify(currentSpec ?? null),
   ].join("\n");
 }
 
-export async function proposePatternChange(state: EditorState): Promise<AiDecision> {
+export async function proposeGarment(state: EditorState): Promise<AiDecision> {
   const client = new Anthropic();
   const history = state.chat.slice(-10).map((m) => ({
     role: m.author === "user" ? ("user" as const) : ("assistant" as const),
@@ -107,7 +104,7 @@ export async function proposePatternChange(state: EditorState): Promise<AiDecisi
     max_tokens: 1024,
     system: buildSystem(state),
     tools: [TOOL],
-    tool_choice: { type: "tool", name: "propose_pattern_change" },
+    tool_choice: { type: "tool", name: "propose_garment" },
     messages: history,
   });
 
@@ -115,5 +112,14 @@ export async function proposePatternChange(state: EditorState): Promise<AiDecisi
   if (!block || block.type !== "tool_use") {
     throw new Error("Model did not return a tool_use block");
   }
-  return block.input as AiDecision;
+  const input = block.input as RawToolInput;
+
+  // Never trust the model's spec directly — always run it through validateSpec
+  // so enums/ranges are enforced server-side regardless of what the AI returned.
+  return {
+    decision: input.decision,
+    spec: validateSpec(input.spec),
+    declineReason: input.declineReason,
+    assistantMessage: input.assistantMessage,
+  };
 }

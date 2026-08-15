@@ -1,16 +1,14 @@
 import { NextResponse } from "next/server";
 import {
   addMessage,
+  applyGarmentSpec,
   bumpVersion,
-  buildConflict,
   debitCredits,
   getState,
   refundCredits,
-  setConflict,
-  updatePieceParams,
 } from "@/lib/mock-data";
 import { COSTS } from "@/lib/types";
-import { proposePatternChange } from "@/lib/ai";
+import { proposeGarment } from "@/lib/ai";
 
 export async function POST(request: Request) {
   const { message } = (await request.json()) as { message: string };
@@ -29,7 +27,7 @@ export async function POST(request: Request) {
   debitCredits(cost);
 
   try {
-    const decision = await proposePatternChange(getState());
+    const decision = await proposeGarment(getState());
 
     if (decision.decision === "decline") {
       addMessage({
@@ -42,24 +40,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ status: "declined", state: getState() });
     }
 
-    for (const change of decision.pieceChanges) {
-      updatePieceParams(change.pieceId, change.params);
-    }
-
-    if (decision.decision === "conflict" && decision.conflict) {
-      setConflict(buildConflict(decision.conflict));
-      bumpVersion();
-      addMessage({
-        id: `msg-${Date.now()}-ai`,
-        author: "ai",
-        text: decision.assistantMessage,
-        tone: "conflict",
-        chips: [{ label: `−${cost} crédito`, tone: "credit" }],
-        createdAt: Date.now(),
-      });
-      return NextResponse.json({ status: "conflict", state: getState() });
-    }
-
+    applyGarmentSpec(decision.spec);
     bumpVersion();
     addMessage({
       id: `msg-${Date.now()}-ai`,
