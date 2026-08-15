@@ -10,7 +10,7 @@ import {
   updatePieceParams,
 } from "@/lib/mock-data";
 import { COSTS } from "@/lib/types";
-import { proposePatternChange, AiDecision } from "@/lib/ai";
+import { proposePatternChange } from "@/lib/ai";
 
 export async function POST(request: Request) {
   const { message } = (await request.json()) as { message: string };
@@ -28,50 +28,49 @@ export async function POST(request: Request) {
   addMessage({ id: `msg-${Date.now()}-u`, author: "user", text: trimmed, createdAt: Date.now() });
   debitCredits(cost);
 
-  let decision: AiDecision;
   try {
-    decision = await proposePatternChange(getState(), trimmed);
-  } catch {
-    refundCredits(cost);
-    return NextResponse.json({ status: "error", state: getState() });
-  }
+    const decision = await proposePatternChange(getState(), trimmed);
 
-  if (decision.decision === "decline") {
-    refundCredits(cost);
-    addMessage({
-      id: `msg-${Date.now()}-ai`,
-      author: "ai",
-      text: decision.assistantMessage || decision.declineReason || "Não consegui aplicar esse pedido.",
-      createdAt: Date.now(),
-    });
-    return NextResponse.json({ status: "declined", state: getState() });
-  }
+    if (decision.decision === "decline") {
+      refundCredits(cost);
+      addMessage({
+        id: `msg-${Date.now()}-ai`,
+        author: "ai",
+        text: decision.assistantMessage || decision.declineReason || "Não consegui aplicar esse pedido.",
+        createdAt: Date.now(),
+      });
+      return NextResponse.json({ status: "declined", state: getState() });
+    }
 
-  for (const change of decision.pieceChanges) {
-    updatePieceParams(change.pieceId, change.params);
-  }
+    for (const change of decision.pieceChanges) {
+      updatePieceParams(change.pieceId, change.params);
+    }
 
-  if (decision.decision === "conflict" && decision.conflict) {
-    setConflict(buildConflict(decision.conflict));
+    if (decision.decision === "conflict" && decision.conflict) {
+      setConflict(buildConflict(decision.conflict));
+      bumpVersion();
+      addMessage({
+        id: `msg-${Date.now()}-ai`,
+        author: "ai",
+        text: decision.assistantMessage,
+        tone: "conflict",
+        chips: [{ label: `−${cost} crédito`, tone: "credit" }],
+        createdAt: Date.now(),
+      });
+      return NextResponse.json({ status: "conflict", state: getState() });
+    }
+
     bumpVersion();
     addMessage({
       id: `msg-${Date.now()}-ai`,
       author: "ai",
       text: decision.assistantMessage,
-      tone: "conflict",
       chips: [{ label: `−${cost} crédito`, tone: "credit" }],
       createdAt: Date.now(),
     });
-    return NextResponse.json({ status: "conflict", state: getState() });
+    return NextResponse.json({ status: "ok", state: getState() });
+  } catch {
+    refundCredits(cost);
+    return NextResponse.json({ status: "error", state: getState() });
   }
-
-  bumpVersion();
-  addMessage({
-    id: `msg-${Date.now()}-ai`,
-    author: "ai",
-    text: decision.assistantMessage,
-    chips: [{ label: `−${cost} crédito`, tone: "credit" }],
-    createdAt: Date.now(),
-  });
-  return NextResponse.json({ status: "ok", state: getState() });
 }
