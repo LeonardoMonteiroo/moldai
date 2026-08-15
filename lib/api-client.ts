@@ -1,7 +1,7 @@
 import { EditorState } from "./types";
 
 export type GenerateResult =
-  | { status: "ok" | "conflict" | "error"; state: EditorState }
+  | { status: "ok" | "conflict" | "error" | "declined"; state: EditorState }
   | { status: "insufficient_credits"; required: number; balance: number };
 
 async function postJson<T>(url: string, body: unknown): Promise<T> {
