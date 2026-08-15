@@ -6,11 +6,13 @@ import {
   Pattern,
   Piece,
 } from "./types";
+import { defaultParams } from "./geometry";
 
 const frente: Piece = {
   id: "frente",
   name: "Frente",
   qty: 1,
+  params: defaultParams("frente"),
   outline: { kind: "polygon", points: "55,30 165,30 182,180 150,350 48,350 34,180" },
   guideOutline: { kind: "polygon", points: "46,22 174,22 191,182 158,360 39,360 24,182" },
   grainline: { x1: 105, y1: 34, x2: 97, y2: 346 },
@@ -29,6 +31,7 @@ const costas: Piece = {
   id: "costas",
   name: "Costas",
   qty: 1,
+  params: defaultParams("costas"),
   outline: { kind: "polygon", points: "215,30 325,30 342,180 310,350 208,350 194,180" },
   guideOutline: { kind: "polygon", points: "206,22 334,22 351,182 318,360 199,360 184,182" },
   grainline: { x1: 265, y1: 34, x2: 257, y2: 346 },
@@ -46,6 +49,7 @@ const manga: Piece = {
   id: "manga",
   name: "Manga",
   qty: 2,
+  params: defaultParams("manga"),
   outline: { kind: "path", d: "M395 42 q72 12 82 72 l-18 186 h-108 l-18 -186 q12 -60 62 -72z" },
   label: { x: 368, y: 368 },
   details: {

@@ -4,6 +4,8 @@ export type PieceOutline =
   | { kind: "polygon"; points: string }
   | { kind: "path"; d: string };
 
+export type PieceParams = Record<string, number>;
+
 export interface PieceDetails {
   folgaCostura: string;
   penceBusto: string;
@@ -16,6 +18,7 @@ export interface Piece {
   id: string;
   name: string;
   qty: number;
+  params: PieceParams;
   outline: PieceOutline;
   guideOutline?: PieceOutline;
   grainline?: { x1: number; y1: number; x2: number; y2: number };
