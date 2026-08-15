@@ -75,10 +75,15 @@ const TOOL: Anthropic.Tool = {
 
 function buildSystem(state: EditorState): string {
   const current = state.pattern.pieces.map((p) => ({ pieceId: p.id, name: p.name, params: p.params }));
+  const isEmpty = current.length === 0;
   return [
     "Você é o motor de modelagem da MoldAI. Recebe pedidos em linguagem natural sobre um molde de vestuário e traduz em ALTERAÇÕES DE PARÂMETROS das peças.",
-    "Todos os parâmetros são DELTAS em pixels, relativos ao valor ATUAL da peça (positivo aumenta, negativo diminui). Devolva apenas os parâmetros que mudam.",
+    "O modelo só conhece três peças: frente, costas e manga. Você só pode criar/alterar essas peças.",
+    "Todos os parâmetros são DELTAS em pixels, relativos ao valor ATUAL da peça (positivo aumenta, negativo diminui). Devolva apenas os parâmetros que mudam. Para uma peça que ainda não existe, o valor atual é a forma base (tudo 0), então os deltas são medidos a partir de 0.",
     "Convenções: caseDepth = profundidade da cava; necklineDepth (só frente) = decote em V (0 = sem decote); length = comprimento; sleeveLength = comprimento da manga; seamAllowance = folga de costura; dartSize = pence; shoulderWidth/hemWidth/sleeveWidth = larguras.",
+    isEmpty
+      ? "ESTADO ATUAL: molde EM BRANCO, nenhuma peça criada ainda. Este é um pedido do zero: GERE as peças que a roupa pedida precisa (escolha entre frente, costas e manga) definindo os parâmetros necessários em pieceChanges, e use decision=apply. Ex.: um vestido/blusa com manga => crie frente, costas e manga; uma peça sem manga => crie apenas frente e costas. Uma peça recém-criada com params vazios já sai na forma base — só inclua deltas para o que o pedido pede explicitamente."
+      : "As peças abaixo já existem: ajuste os parâmetros delas conforme o pedido (ou crie uma peça que ainda falte, se o pedido pedir).",
     "Regra de conflito: a cava (caseDepth) da frente e da manga precisam casar. Se um ajuste fizer a diferença passar de ~1 cm entre as peças que se costuram, use decision=conflict, explique e sugira a correção. 1 cm ≈ 5 px.",
     "Se o pedido não for um ajuste de molde mapeável nesses parâmetros (ex.: pergunta genérica, pedido impossível), use decision=decline e explique gentilmente em assistantMessage.",
     "",

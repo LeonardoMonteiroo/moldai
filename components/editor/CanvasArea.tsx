@@ -55,7 +55,20 @@ export function CanvasArea() {
             onSelectPiece={selectPiece}
             dimmed={isGenerating}
           />
-          {!isGenerating && <FloatingToolbar activeTool={activeTool} onSelect={setActiveTool} />}
+          {!isGenerating && pattern.pieces.length === 0 && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center px-6 pointer-events-none">
+              <span className="font-display text-[18px] font-semibold text-muted-2">
+                Molde em branco
+              </span>
+              <span className="text-[12.5px] text-muted max-w-[300px]">
+                Descreva a peça que você quer no chat ao lado — a IA gera seu primeiro
+                molde do zero.
+              </span>
+            </div>
+          )}
+          {!isGenerating && pattern.pieces.length > 0 && (
+            <FloatingToolbar activeTool={activeTool} onSelect={setActiveTool} />
+          )}
           {!isGenerating && conflict && <ConflictInfoCard conflict={conflict} />}
           {!isGenerating && !conflict && detailsPanelOpen && selectedPiece && (
             <PieceDetailsPanel

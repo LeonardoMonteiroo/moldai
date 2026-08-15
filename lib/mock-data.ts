@@ -25,56 +25,36 @@ function makePiece(id: string, name: string, qty: number, params: PieceParams): 
   };
 }
 
-const frente = makePiece("frente", "Frente", 1, defaultParams("frente"));
-const costas = makePiece("costas", "Costas", 1, defaultParams("costas"));
-const manga = makePiece("manga", "Manga", 2, defaultParams("manga"));
+// The parametric model only knows these three pieces. `updatePieceParams`
+// creates any referenced piece that doesn't exist yet using this metadata,
+// so the AI can generate a molde from scratch on the first request.
+const PIECE_META: Record<string, { name: string; qty: number }> = {
+  frente: { name: "Frente", qty: 1 },
+  costas: { name: "Costas", qty: 1 },
+  manga: { name: "Manga", qty: 2 },
+};
 
+// Canonical left-to-right order on the canvas (also keeps LANDMARKS aligned).
+const PIECE_ORDER = ["frente", "costas", "manga"];
+
+// The editor opens on a blank molde: no pieces, no chat. The first generation
+// creates the pieces the garment needs.
 function seedPattern(): Pattern {
   return {
     id: "demo",
-    name: "Vestido evasê midi",
-    version: 5,
-    savedAgo: "salvo há 2 min",
+    name: "Novo molde",
+    version: 0,
+    savedAgo: "ainda não salvo",
     baseSize: "M",
     unit: "cm",
-    sizesApplied: ["PP", "P", "M"],
-    sizesPending: ["G", "GG"],
-    pieces: [frente, costas, manga],
+    sizesApplied: [],
+    sizesPending: ["PP", "P", "M", "G", "GG"],
+    pieces: [],
   };
 }
 
 function seedChat(): ChatMessage[] {
-  return [
-    {
-      id: "m1",
-      author: "user",
-      text: "Vestido evasê, manga curta, decote V, comprimento midi. Tamanho base 40.",
-      createdAt: Date.now() - 1000 * 60 * 5,
-    },
-    {
-      id: "m2",
-      author: "ai",
-      text: "Gerei frente, costas e manga. Transferi a pence de busto para o ombro.",
-      chips: [
-        { label: "3 peças", tone: "neutral" },
-        { label: "−4 créditos", tone: "credit" },
-      ],
-      createdAt: Date.now() - 1000 * 60 * 4,
-    },
-    {
-      id: "m3",
-      author: "user",
-      text: "Aumenta 2 cm na cava",
-      createdAt: Date.now() - 1000 * 60 * 2,
-    },
-    {
-      id: "m4",
-      author: "ai",
-      text: "Cava da frente e da manga ajustadas juntas.",
-      chips: [{ label: "−1 crédito", tone: "credit" }],
-      createdAt: Date.now() - 1000 * 60 * 2,
-    },
-  ];
+  return [];
 }
 
 function seedCredits(): Credits {
@@ -133,6 +113,24 @@ export function setConflict(conflict: ConflictInfo | null) {
 }
 
 export function updatePieceParams(pieceId: string, partial: PieceParams) {
+  const exists = state.pattern.pieces.some((pc) => pc.id === pieceId);
+
+  // Create-on-first-reference: if the piece doesn't exist yet (blank molde),
+  // instantiate it from default params + the proposed deltas. The AI's params
+  // are always deltas relative to the current value, which for a new piece is
+  // the base shape (all zeros).
+  if (!exists) {
+    const meta = PIECE_META[pieceId];
+    if (!meta) return; // unknown piece id — ignore
+    const merged = clampParams(pieceId, { ...defaultParams(pieceId), ...partial });
+    const created = makePiece(pieceId, meta.name, meta.qty, merged);
+    const pieces = [...state.pattern.pieces, created].sort(
+      (a, b) => PIECE_ORDER.indexOf(a.id) - PIECE_ORDER.indexOf(b.id),
+    );
+    state.pattern = { ...state.pattern, pieces };
+    return;
+  }
+
   state.pattern = {
     ...state.pattern,
     pieces: state.pattern.pieces.map((pc) => {

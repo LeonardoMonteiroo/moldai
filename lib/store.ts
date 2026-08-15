@@ -122,7 +122,11 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     }
 
     applyState(set, result.state);
-    set({ generationStatus: result.status === "error" ? "error" : "idle" });
+    const shouldSelectFirst = !get().selectedPieceId && result.state.pattern.pieces.length > 0;
+    set({
+      generationStatus: result.status === "error" ? "error" : "idle",
+      ...(shouldSelectFirst ? { selectedPieceId: result.state.pattern.pieces[0].id } : {}),
+    });
   },
 
   cancelGeneration: () => {
