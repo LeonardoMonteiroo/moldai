@@ -1,3 +1,5 @@
+import type { Measurements } from "./measurements";
+
 export type SizeLabel = "PP" | "P" | "M" | "G" | "GG";
 
 export type PieceOutline =
@@ -14,6 +16,32 @@ export interface PieceDetails {
   consumo: string;
 }
 
+export type GarmentType = "blusa" | "vestido" | "saia";
+export type Decote = "reto" | "V" | "redondo";
+export type MangaLen = "sem" | "curta" | "longa";
+export type SaiaSilhueta = "reta" | "evase" | "gode" | "meia-roda" | "circulo";
+
+export interface GarmentStyle {
+  decote?: Decote;
+  decoteProfundidadeCm?: number;
+  manga?: MangaLen;
+  saia?: SaiaSilhueta;
+  compSaiaCm?: number;
+  pences?: boolean;
+  folgaCosturaCm?: number;
+}
+
+export interface GarmentSpec {
+  tipo: GarmentType;
+  measurementOverrides: Record<string, number>;
+  style: GarmentStyle;
+}
+
+export interface DetailRow {
+  label: string;
+  value: string;
+}
+
 export interface Piece {
   id: string;
   name: string;
@@ -25,6 +53,7 @@ export interface Piece {
   dart?: { d: string };
   label: { x: number; y: number };
   details: PieceDetails;
+  detailRows?: DetailRow[];
 }
 
 export interface ChatChip {
@@ -79,6 +108,9 @@ export interface Pattern {
   sizesApplied: SizeLabel[];
   sizesPending: SizeLabel[];
   pieces: Piece[];
+  spec?: GarmentSpec;
+  viewBox?: { w: number; h: number };
+  baseMeasurements?: Measurements;
 }
 
 export interface EditorState {
