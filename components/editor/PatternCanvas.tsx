@@ -21,16 +21,18 @@ export function PatternCanvas({
   conflict,
   onSelectPiece,
   dimmed,
+  viewBox,
 }: {
   pieces: Piece[];
   selectedPieceId: string | null;
   conflict: ConflictInfo | null;
   onSelectPiece: (id: string) => void;
   dimmed?: boolean;
+  viewBox: { w: number; h: number };
 }) {
   return (
     <svg
-      viewBox="0 0 620 380"
+      viewBox={`0 0 ${viewBox.w} ${viewBox.h}`}
       className="w-full h-full transition-opacity duration-300"
       style={{ opacity: dimmed ? 0.4 : 1 }}
     >

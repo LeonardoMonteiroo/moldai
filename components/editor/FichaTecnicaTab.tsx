@@ -1,14 +1,5 @@
 import { Pattern } from "@/lib/types";
 
-const COLUMNS = [
-  { key: "qty", label: "Qtd" },
-  { key: "folgaCostura", label: "Folga de costura" },
-  { key: "penceBusto", label: "Pence" },
-  { key: "cava", label: "Cava" },
-  { key: "fio", label: "Fio" },
-  { key: "consumo", label: "Consumo" },
-] as const;
-
 export function FichaTecnicaTab({ pattern }: { pattern: Pattern }) {
   return (
     <div className="flex-1 overflow-auto p-[22px]">
@@ -18,32 +9,35 @@ export function FichaTecnicaTab({ pattern }: { pattern: Pattern }) {
           {pattern.name} · base {pattern.baseSize} · unidade {pattern.unit}
         </span>
       </div>
-      <div className="border border-border rounded-card overflow-hidden bg-surface">
-        <table className="w-full text-[12.5px] border-collapse">
-          <thead>
-            <tr className="bg-surface-alt text-muted text-[11px] uppercase tracking-[.4px]">
-              <th className="text-left px-3 py-[9px] font-semibold">Peça</th>
-              {COLUMNS.map((col) => (
-                <th key={col.key} className="text-left px-3 py-[9px] font-semibold">
-                  {col.label}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {pattern.pieces.map((piece) => (
-              <tr key={piece.id} className="border-t border-line">
-                <td className="px-3 py-[9px] font-medium">{piece.name}</td>
-                <td className="px-3 py-[9px]">{piece.qty}×</td>
-                <td className="px-3 py-[9px]">{piece.details.folgaCostura}</td>
-                <td className="px-3 py-[9px]">{piece.details.penceBusto}</td>
-                <td className="px-3 py-[9px]">{piece.details.cava}</td>
-                <td className="px-3 py-[9px]">{piece.details.fio}</td>
-                <td className="px-3 py-[9px]">{piece.details.consumo}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="flex flex-col gap-3">
+        {pattern.pieces.map((piece) => {
+          const detailRows = piece.detailRows ?? [];
+          return (
+            <div
+              key={piece.id}
+              className="border border-border rounded-card overflow-hidden bg-surface"
+            >
+              <div className="flex items-baseline gap-2 px-3 py-[9px] bg-surface-alt border-b border-line">
+                <span className="text-[13px] font-semibold">{piece.name}</span>
+                <span className="text-[12px] text-muted">{piece.qty}×</span>
+              </div>
+              {detailRows.length > 0 ? (
+                <table className="w-full text-[12.5px] border-collapse">
+                  <tbody>
+                    {detailRows.map((row, i) => (
+                      <tr key={row.label} className={i > 0 ? "border-t border-line" : undefined}>
+                        <td className="px-3 py-[7px] text-muted w-1/2">{row.label}</td>
+                        <td className="px-3 py-[7px] font-medium">{row.value}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div className="px-3 py-[9px] text-[12px] text-muted">Sem detalhes.</div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

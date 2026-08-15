@@ -1,13 +1,5 @@
 import { ALL_SIZES, COSTS, Pattern, Piece } from "@/lib/types";
 
-const DETAIL_ROWS: { key: keyof Piece["details"]; label: string }[] = [
-  { key: "folgaCostura", label: "Folga de costura" },
-  { key: "penceBusto", label: "Pence de busto" },
-  { key: "cava", label: "Cava" },
-  { key: "fio", label: "Fio" },
-  { key: "consumo", label: "Consumo" },
-];
-
 export function PieceDetailsPanel({
   piece,
   pattern,
@@ -19,6 +11,8 @@ export function PieceDetailsPanel({
   onClose: () => void;
   onGraduate: (sizes: string[]) => void;
 }) {
+  const detailRows = piece.detailRows ?? [];
+
   return (
     <div className="absolute right-5 top-5 bottom-5 w-[230px] bg-surface border border-border rounded-card p-[14px] flex flex-col gap-[11px] shadow-card">
       <div className="flex items-center">
@@ -33,17 +27,19 @@ export function PieceDetailsPanel({
 
       <div className="font-display text-[16px] font-semibold">{piece.name}</div>
 
-      <div className="flex flex-col gap-2 text-[12.5px]">
-        {DETAIL_ROWS.map((row, i) => (
-          <div key={row.key}>
-            <div className="flex justify-between">
-              <span className="text-muted">{row.label}</span>
-              <span className="font-medium">{piece.details[row.key]}</span>
+      {detailRows.length > 0 && (
+        <div className="flex flex-col gap-2 text-[12.5px]">
+          {detailRows.map((row, i) => (
+            <div key={row.label}>
+              <div className="flex justify-between">
+                <span className="text-muted">{row.label}</span>
+                <span className="font-medium">{row.value}</span>
+              </div>
+              {i < detailRows.length - 1 && <div className="h-px bg-line mt-2" />}
             </div>
-            {i < DETAIL_ROWS.length - 1 && <div className="h-px bg-line mt-2" />}
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       <div className="text-[11px] font-semibold tracking-[.8px] uppercase text-muted mt-[2px]">
         Graduação

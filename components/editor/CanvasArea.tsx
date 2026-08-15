@@ -54,6 +54,7 @@ export function CanvasArea() {
             conflict={conflict}
             onSelectPiece={selectPiece}
             dimmed={isGenerating}
+            viewBox={pattern.viewBox ?? { w: 620, h: 380 }}
           />
           {!isGenerating && pattern.pieces.length === 0 && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center px-6 pointer-events-none">
