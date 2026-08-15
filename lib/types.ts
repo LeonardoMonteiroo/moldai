@@ -6,16 +6,6 @@ export type PieceOutline =
   | { kind: "polygon"; points: string }
   | { kind: "path"; d: string };
 
-export type PieceParams = Record<string, number>;
-
-export interface PieceDetails {
-  folgaCostura: string;
-  penceBusto: string;
-  cava: string;
-  fio: string;
-  consumo: string;
-}
-
 export type GarmentType = "blusa" | "vestido" | "saia";
 export type Decote = "reto" | "V" | "redondo";
 export type MangaLen = "sem" | "curta" | "longa";
@@ -46,14 +36,12 @@ export interface Piece {
   id: string;
   name: string;
   qty: number;
-  params: PieceParams;
   outline: PieceOutline;
   guideOutline?: PieceOutline;
   grainline?: { x1: number; y1: number; x2: number; y2: number };
   dart?: { d: string };
   label: { x: number; y: number };
-  details: PieceDetails;
-  detailRows?: DetailRow[];
+  detailRows: DetailRow[];
 }
 
 export interface ChatChip {

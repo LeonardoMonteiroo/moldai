@@ -74,11 +74,9 @@ function place(dp: DraftedPiece, dxPx: number, dyPx: number, curved: boolean): P
     id: dp.id,
     name: dp.name,
     qty: dp.qty,
-    params: {},
     outline: translateOutline(outline, dxPx, dyPx),
     detailRows: dp.detailRows,
     label: { x: dxPx + 6, y: dyPx + PX(bbox(dp.outlineCm).h) - 6 },
-    details: { folgaCostura: "", penceBusto: "", cava: "", fio: "", consumo: "" },
   };
   if (dp.guideCm) piece.guideOutline = translateOutline(polyPath(dp.guideCm), dxPx, dyPx);
   if (dp.grainlineCm) {
