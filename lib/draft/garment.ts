@@ -1,6 +1,6 @@
 import { MEASUREMENT_RANGES, Measurements, resolveMeasurements } from "@/lib/measurements";
 import {
-  Decote, GarmentSpec, GarmentStyle, GarmentType, MangaLen, Piece, SaiaSilhueta, SizeLabel,
+  Decote, GarmentSpec, GarmentStyle, GarmentType, MangaLen, SaiaSilhueta, SizeLabel,
 } from "@/lib/types";
 import { autoLayout, DraftedPiece } from "./core";
 import { draftCorpo } from "./corpo";
@@ -14,6 +14,10 @@ const SAIAS: SaiaSilhueta[] = ["reta", "evase", "gode", "meia-roda", "circulo"];
 
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 const pick = <T,>(v: unknown, allowed: T[], def: T): T => (allowed.includes(v as T) ? (v as T) : def);
+const num = (v: unknown, def: number) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : def;
+};
 
 export function validateSpec(raw: unknown): GarmentSpec {
   const r = (raw ?? {}) as Record<string, unknown>;
@@ -28,9 +32,9 @@ export function validateSpec(raw: unknown): GarmentSpec {
     decote: style.decote !== undefined ? pick(style.decote, DECOTES, "reto") : undefined,
     manga: style.manga !== undefined ? pick(style.manga, MANGAS, "sem") : undefined,
     saia: style.saia !== undefined ? pick(style.saia, SAIAS, "reta") : undefined,
-    decoteProfundidadeCm: style.decoteProfundidadeCm !== undefined ? clamp(Number(style.decoteProfundidadeCm) || 0, 0, 15) : undefined,
-    compSaiaCm: style.compSaiaCm !== undefined ? clamp(Number(style.compSaiaCm) || 60, 25, 120) : undefined,
-    folgaCosturaCm: style.folgaCosturaCm !== undefined ? clamp(Number(style.folgaCosturaCm) || 1, 0, 4) : undefined,
+    decoteProfundidadeCm: style.decoteProfundidadeCm !== undefined ? clamp(num(style.decoteProfundidadeCm, 0), 0, 15) : undefined,
+    compSaiaCm: style.compSaiaCm !== undefined ? clamp(num(style.compSaiaCm, 60), 25, 120) : undefined,
+    folgaCosturaCm: style.folgaCosturaCm !== undefined ? clamp(num(style.folgaCosturaCm, 1), 0, 4) : undefined,
     pences: typeof style.pences === "boolean" ? style.pences : undefined,
   };
   return { tipo: pick(r.tipo, TIPOS, "blusa"), measurementOverrides: overrides, style: outStyle };

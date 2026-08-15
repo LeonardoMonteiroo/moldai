@@ -4,11 +4,27 @@ import { validateSpec, draftGarment } from "./garment";
 describe("validateSpec", () => {
   it("cai para defaults em enums inválidos e clampa faixas", () => {
     const s = validateSpec({ tipo: "foo", style: { saia: "xxx", compSaiaCm: 999, decoteProfundidadeCm: -5 }, measurementOverrides: { cintura: 70, hack: 1 } });
-    expect(["blusa", "vestido", "saia"]).toContain(s.tipo);
+    expect(s.tipo).toBe("blusa");
+    expect(s.style.saia).toBe("reta");
     expect(s.style.compSaiaCm).toBeLessThanOrEqual(120);
     expect(s.style.decoteProfundidadeCm).toBeGreaterThanOrEqual(0);
     expect(s.measurementOverrides.hack).toBeUndefined();
     expect(s.measurementOverrides.cintura).toBe(70);
+  });
+
+  it("preserva zero válido em folgaCosturaCm", () => {
+    const s = validateSpec({ tipo: "saia", style: { folgaCosturaCm: 0 }, measurementOverrides: {} });
+    expect(s.style.folgaCosturaCm).toBe(0);
+  });
+
+  it("clampa zero inválido em compSaiaCm para limite inferior", () => {
+    const s = validateSpec({ tipo: "saia", style: { compSaiaCm: 0 }, measurementOverrides: {} });
+    expect(s.style.compSaiaCm).toBe(25);
+  });
+
+  it("usa default para valores não-finitos", () => {
+    const s = validateSpec({ tipo: "saia", style: { compSaiaCm: "xxx" as unknown as number }, measurementOverrides: {} });
+    expect(s.style.compSaiaCm).toBe(60);
   });
 });
 
