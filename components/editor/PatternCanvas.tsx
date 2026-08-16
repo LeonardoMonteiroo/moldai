@@ -57,6 +57,7 @@ export function PatternCanvas({
   const [cursor, setCursor] = useState<Point | null>(null);
   const [snap, setSnap] = useState<Point | null>(null);
   const drag = useRef<{ x: number; y: number } | null>(null);
+  const dragStart = useRef<{ x: number; y: number } | null>(null);
   const moved = useRef(false);
 
   const snapPoints = useMemo(() => pieces.flatMap((p) => p.vertices ?? []), [pieces]);
@@ -97,6 +98,7 @@ export function PatternCanvas({
   const handlePointerDown = (e: React.PointerEvent) => {
     if (activeTool !== "cursor") return;
     drag.current = { x: e.clientX, y: e.clientY };
+    dragStart.current = { x: e.clientX, y: e.clientY };
     moved.current = false;
     svgRef.current?.setPointerCapture(e.pointerId);
   };
@@ -106,9 +108,14 @@ export function PatternCanvas({
       if (!drag.current) return;
       const dx = e.clientX - drag.current.x;
       const dy = e.clientY - drag.current.y;
-      if (Math.abs(dx) + Math.abs(dy) > 3) moved.current = true;
       onPan(dx, dy);
       drag.current = { x: e.clientX, y: e.clientY };
+      if (
+        dragStart.current &&
+        Math.abs(e.clientX - dragStart.current.x) + Math.abs(e.clientY - dragStart.current.y) > 3
+      ) {
+        moved.current = true;
+      }
       return;
     }
     // medir: preview + snap
@@ -121,6 +128,7 @@ export function PatternCanvas({
   const handlePointerUp = (e: React.PointerEvent) => {
     if (activeTool === "cursor") {
       drag.current = null;
+      dragStart.current = null;
       svgRef.current?.releasePointerCapture(e.pointerId);
     }
   };
