@@ -6,6 +6,7 @@ import { exportPattern, ExportFormat } from "@/lib/export";
 
 const FORMATS: { id: ExportFormat; label: string }[] = [
   { id: "svg", label: "SVG · 1:1 (plotter)" },
+  { id: "dxf", label: "DXF · geometria 1:1 (CAD)" },
 ];
 
 export function Footer({
