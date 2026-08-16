@@ -53,6 +53,7 @@ export function toDxf(model: ExportModel): string {
 
   // HEADER
   p(0, "SECTION"); p(2, "HEADER");
+  p(9, "$ACADVER"); p(1, "AC1014");  // R14 — necessário p/ LWPOLYLINE em leitores estritos
   p(9, "$INSUNITS"); p(70, 4);       // 4 = milímetros
   p(9, "$MEASUREMENT"); p(70, 1);    // 1 = métrico
   p(0, "ENDSEC");

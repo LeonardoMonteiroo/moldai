@@ -136,6 +136,7 @@ const cubicModel: ExportModel = {
 describe("toDxf", () => {
   it("cabeçalho: $INSUNITS = 4 (mm) e comentário 999 com tamanho/folga", () => {
     const dxf = toDxf(squareModel);
+    expect(dxf).toMatch(/\$ACADVER\n1\nAC1014/);
     expect(dxf).toMatch(/\$INSUNITS\n70\n4/);
     expect(dxf).toContain("999");
     expect(dxf).toContain("tam M");
