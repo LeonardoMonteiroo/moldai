@@ -109,16 +109,47 @@ export function autoLayout(
 ): { pieces: Piece[]; viewBox: { w: number; h: number } } {
   const pad = PX(6);
   const gap = PX(gapCm);
-  let cursorX = pad;
-  let maxH = 0;
-  const pieces: Piece[] = [];
-  for (const dp of drafted) {
+
+  // bbox + dimensões em px de cada peça, preservando a ordem original de `drafted`.
+  const items = drafted.map((dp) => {
     const b = bbox(dp.outlineCm);
-    const dx = cursorX - PX(b.minX);
-    const dy = pad - PX(b.minY);
-    pieces.push(place(dp, dx, dy));
-    cursorX += PX(b.w) + gap;
-    maxH = Math.max(maxH, PX(b.h));
+    return { dp, b, w: PX(b.w), h: PX(b.h), ox: pad, oy: pad };
+  });
+
+  // Empacotamento em prateleiras (mesma técnica do export em lib/export/model.ts):
+  // em vez de uma única fila horizontal — que espalhava as peças e as deixava
+  // pequenas dentro de um viewBox largo e baixo — embrulha as peças em linhas
+  // com uma largura-alvo quase quadrada. A bounding box fica mais compacta, então
+  // o canvas escala as peças maiores. Ordena por altura desc para prateleiras
+  // justas; a ordem do array de saída segue a ordem original de `drafted`.
+  const widest = items.reduce((m, it) => Math.max(m, it.w), 0);
+  const totalArea = items.reduce((s, it) => s + it.w * it.h, 0);
+  const targetW = Math.max(widest, Math.sqrt(totalArea * 1.4));
+
+  const order = [...items].sort((a, b) => b.h - a.h);
+  let cursorX = pad;
+  let cursorY = pad;
+  let rowH = 0;
+  let sheetRight = pad;
+  for (const it of order) {
+    if (cursorX > pad && cursorX - pad + it.w > targetW) {
+      cursorY += rowH + gap; // nova prateleira
+      cursorX = pad;
+      rowH = 0;
+    }
+    it.ox = cursorX;
+    it.oy = cursorY;
+    cursorX += it.w + gap;
+    rowH = Math.max(rowH, it.h);
+    sheetRight = Math.max(sheetRight, cursorX - gap);
   }
-  return { pieces, viewBox: { w: Math.round(cursorX - gap + pad), h: Math.round(maxH + pad * 2) } };
+
+  const pieces: Piece[] = items.map((it) =>
+    place(it.dp, it.ox - PX(it.b.minX), it.oy - PX(it.b.minY)),
+  );
+
+  return {
+    pieces,
+    viewBox: { w: Math.round(sheetRight + pad), h: Math.round(cursorY + rowH + pad) },
+  };
 }

@@ -16,14 +16,32 @@ describe("core drafting", () => {
     expect(polyPath([[0, 0], [1, 0], [1, 1]]).kind).toBe("polygon");
   });
 
-  it("autoLayout empilha peças lado a lado e calcula viewBox > 0", () => {
+  it("autoLayout empacota peças sem sobreposição dentro do viewBox", () => {
     const { pieces, viewBox } = autoLayout([rect("a", 10, 20), rect("b", 30, 40)], 5);
     expect(pieces).toHaveLength(2);
     expect(viewBox.w).toBeGreaterThan(0);
     expect(viewBox.h).toBeGreaterThan(0);
-    const ax = (pieces[0].outline as { points: string }).points.split(" ")[0];
-    const bx = (pieces[1].outline as { points: string }).points.split(" ")[0];
-    expect(parseFloat(bx)).toBeGreaterThan(parseFloat(ax));
+    const rects = pieces.map((p) => {
+      const xs = p.vertices!.map((v) => v.x);
+      const ys = p.vertices!.map((v) => v.y);
+      return {
+        minX: Math.min(...xs), maxX: Math.max(...xs),
+        minY: Math.min(...ys), maxY: Math.max(...ys),
+      };
+    });
+    // toda peça cabe dentro do viewBox empacotado
+    for (const r of rects) {
+      expect(r.minX).toBeGreaterThanOrEqual(0);
+      expect(r.minY).toBeGreaterThanOrEqual(0);
+      expect(r.maxX).toBeLessThanOrEqual(viewBox.w + 1e-6);
+      expect(r.maxY).toBeLessThanOrEqual(viewBox.h + 1e-6);
+    }
+    // as duas peças nunca se sobrepõem (retângulos disjuntos)
+    const [a, b] = rects;
+    const disjoint =
+      a.maxX <= b.minX + 1e-6 || b.maxX <= a.minX + 1e-6 ||
+      a.maxY <= b.minY + 1e-6 || b.maxY <= a.minY + 1e-6;
+    expect(disjoint).toBe(true);
   });
 
   describe("outlinePath", () => {
