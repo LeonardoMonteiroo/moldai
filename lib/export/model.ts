@@ -31,6 +31,26 @@ export interface ExportModel {
 
 const P = (p: Pt): ExPt => ({ x: p[0], y: p[1] });
 
+const round2 = (n: number) => (Math.round(n * 100) / 100).toString();
+
+// Constrói o atributo `d` de um contorno fechado (start + segs) aplicando as
+// transformações de coordenada tx/ty. Compartilhado pelo serializer SVG
+// (lib/export/svg.ts, escala mm) e pelo preview do plano de corte (escala cm).
+export function buildPathD(
+  start: ExPt,
+  segs: ExSeg[],
+  tx: (x: number) => number,
+  ty: (y: number) => number,
+): string {
+  let d = `M${round2(tx(start.x))} ${round2(ty(start.y))}`;
+  for (const s of segs) {
+    if (s.kind === "line") d += ` L${round2(tx(s.to.x))} ${round2(ty(s.to.y))}`;
+    else
+      d += ` C${round2(tx(s.c1.x))} ${round2(ty(s.c1.y))} ${round2(tx(s.c2.x))} ${round2(ty(s.c2.y))} ${round2(tx(s.to.x))} ${round2(ty(s.to.y))}`;
+  }
+  return d + " Z";
+}
+
 export function outlineSegments(
   ptsCm: Pt[],
   curvedSpans: [number, number][] = [],
