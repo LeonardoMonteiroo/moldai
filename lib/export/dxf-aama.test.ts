@@ -8,7 +8,8 @@ function firstPolylineXs(dxf: string): number[] {
   const start = lines.indexOf("POLYLINE");
   const end = lines.indexOf("SEQEND", start);
   const xs: number[] = [];
-  for (let k = start; k < end; k++) if (lines[k] === "10") xs.push(Number(lines[k + 1]));
+  for (let k = start; k < end; k++)
+    if (lines[k] === "10") xs.push(Number(lines[k + 1]));
   return xs;
 }
 
@@ -35,7 +36,10 @@ const squareModel: ExportModel = {
           { kind: "line", to: { x: 0, y: 0 } },
         ],
       },
-      grainline: [{ x: 5, y: 1 }, { x: 5, y: 9 }],
+      grainline: [
+        { x: 5, y: 1 },
+        { x: 5, y: 9 },
+      ],
       originCm: { x: 2, y: 2 },
     },
   ],
@@ -48,7 +52,11 @@ const dartModel: ExportModel = {
       ...squareModel.pieces[0],
       id: "costas",
       name: "Costas",
-      dart: [{ x: 3, y: 2 }, { x: 4, y: 6 }, { x: 5, y: 2 }],
+      dart: [
+        { x: 3, y: 2 },
+        { x: 4, y: 6 },
+        { x: 5, y: 2 },
+      ],
     },
   ],
 };

@@ -24,15 +24,15 @@
 
 ## File Structure
 
-| Arquivo | Responsabilidade | Task |
-|---|---|---|
-| `.dockerignore` | Contexto de build enxuto; exclui segredos/artefatos | 1 |
-| `Dockerfile` | Multi-stage: `deps` → `dev` / `build` → `runner` | 2 |
-| `docker-entrypoint.sh` | Espera db, `migrate deploy` + seed, `exec` no CMD | 2 |
-| `docker-compose.yml` | Dev: `db` (healthcheck) + `app` (dev, bind mount, polling) | 3 |
-| `docker-compose.prod.yml` | Override: `app` target runner, sem bind mount | 4 |
-| `package.json` | Scripts `docker:up` / `docker:prod` | 3 e 4 |
-| `CLAUDE.md` | Documenta o workflow dockerizado | 5 |
+| Arquivo                   | Responsabilidade                                           | Task  |
+| ------------------------- | ---------------------------------------------------------- | ----- |
+| `.dockerignore`           | Contexto de build enxuto; exclui segredos/artefatos        | 1     |
+| `Dockerfile`              | Multi-stage: `deps` → `dev` / `build` → `runner`           | 2     |
+| `docker-entrypoint.sh`    | Espera db, `migrate deploy` + seed, `exec` no CMD          | 2     |
+| `docker-compose.yml`      | Dev: `db` (healthcheck) + `app` (dev, bind mount, polling) | 3     |
+| `docker-compose.prod.yml` | Override: `app` target runner, sem bind mount              | 4     |
+| `package.json`            | Scripts `docker:up` / `docker:prod`                        | 3 e 4 |
+| `CLAUDE.md`               | Documenta o workflow dockerizado                           | 5     |
 
 ---
 
@@ -50,11 +50,13 @@ git branch --show-current   # → feat/dockerize-app
 ## Task 1: `.dockerignore`
 
 **Files:**
+
 - Create: `.dockerignore`
 
 - [ ] **Step 1: Create .dockerignore**
 
 `.dockerignore`:
+
 ```
 node_modules
 .next
@@ -75,9 +77,11 @@ coverage
 - [ ] **Step 2: Verify it excludes secrets and heavy dirs**
 
 Run:
+
 ```bash
 grep -qx ".env*" .dockerignore && grep -qx "node_modules" .dockerignore && grep -qx ".git" .dockerignore && echo OK
 ```
+
 Expected: `OK` (secrets and heavy dirs excluded from the build context).
 
 - [ ] **Step 3: Commit**
@@ -92,14 +96,17 @@ git commit -m "chore(docker): .dockerignore (contexto enxuto, sem segredos)"
 ## Task 2: `Dockerfile` + `docker-entrypoint.sh`
 
 **Files:**
+
 - Create: `Dockerfile`, `docker-entrypoint.sh`
 
 **Interfaces:**
+
 - Produces: build targets `dev` and `runner`; a shared entrypoint that runs migrate+seed then execs the CMD.
 
 - [ ] **Step 1: Create the entrypoint script**
 
 `docker-entrypoint.sh`:
+
 ```sh
 #!/bin/sh
 set -e
@@ -127,6 +134,7 @@ exec "$@"
 - [ ] **Step 2: Create the Dockerfile**
 
 `Dockerfile`:
+
 ```dockerfile
 # syntax=docker/dockerfile:1
 
@@ -203,15 +211,18 @@ git commit -m "feat(docker): Dockerfile multi-stage (dev/runner) + entrypoint (m
 ## Task 3: `docker-compose.yml` (dev) + `docker:up` script
 
 **Files:**
+
 - Modify: `docker-compose.yml` (add `app` service + db healthcheck)
 - Modify: `package.json` (add `docker:up` script)
 
 **Interfaces:**
+
 - Consumes: build target `dev` (Task 2); `.env.local` (secrets).
 
 - [ ] **Step 1: Rewrite docker-compose.yml (dev = default)**
 
 `docker-compose.yml` (full replacement):
+
 ```yaml
 services:
   db:
@@ -261,6 +272,7 @@ volumes:
 - [ ] **Step 2: Add the docker:up script to package.json**
 
 Add to `"scripts"`:
+
 ```json
 "docker:up": "docker compose up --build"
 ```
@@ -268,15 +280,18 @@ Add to `"scripts"`:
 - [ ] **Step 3: Ensure host port 3000 is free**
 
 The docker app publishes `3000:3000`; a host `next dev` on 3000 would collide. Confirm nothing is listening on 3000 before the smoke:
+
 ```bash
 curl -s -o /dev/null -w "%{http_code}" http://localhost:3000 && echo " (algo respondendo em 3000 — pare-o antes do smoke)" || echo "3000 livre"
 ```
+
 If something is responding, stop that host process first (it's a dev server started for testing).
 
 - [ ] **Step 4: Bring the stack up (detached) and wait**
 
 Run: `docker compose up -d --build`
 Then wait for readiness (poll the app logs up to ~2 min):
+
 ```bash
 for i in $(seq 1 40); do
   docker compose logs app 2>&1 | grep -qiE "Ready|started server|Local:" && { echo READY; break; }
@@ -284,6 +299,7 @@ for i in $(seq 1 40); do
 done
 docker compose logs app 2>&1 | tail -20
 ```
+
 Expected: entrypoint logs show "Postgres pronto", "aplicando migrações", "seed (idempotente)", then Next dev "Ready".
 
 - [ ] **Step 5: Smoke — redirect + 401 + seeded login**
@@ -294,6 +310,7 @@ echo "GET /api/pattern ->"; curl -s -o /dev/null -w "%{http_code}\n" http://loca
 echo "GET /login ->"; curl -s -o /dev/null -w "%{http_code}\n" http://localhost:3000/login
 docker compose exec -T db psql -U moldai -d moldai -c 'select email from "User" order by email;'
 ```
+
 Expected: `/` → `307 redir=…/login`; `/api/pattern` → `401`; `/login` → `200`; psql lists `atelier@moldai.local` and `dev@moldai.local` (migrate+seed ran inside the container against the compose db).
 
 - [ ] **Step 6: Tear down**
@@ -318,15 +335,18 @@ git commit -m "feat(docker): compose dev (app+db, hot reload, healthcheck) + scr
 ## Task 4: `docker-compose.prod.yml` (override) + `docker:prod` script
 
 **Files:**
+
 - Create: `docker-compose.prod.yml`
 - Modify: `package.json` (add `docker:prod` script)
 
 **Interfaces:**
+
 - Consumes: build target `runner` (Task 2); the base `docker-compose.yml` (Task 3).
 
 - [ ] **Step 1: Create the prod override**
 
 `docker-compose.prod.yml`:
+
 ```yaml
 # Override de produção: docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build
 # Builda o target `runner` (next start) e remove os bind mounts de dev.
@@ -342,11 +362,13 @@ services:
       CHOKIDAR_USEPOLLING: "false"
       DATABASE_URL: postgresql://moldai:moldai@db:5432/moldai?schema=public
 ```
+
 (`!reset []` limpa a lista de volumes herdada do base — só assim os bind mounts de dev somem no prod. Requer Compose ≥ 2.24, presente no Docker atual.)
 
 - [ ] **Step 2: Add the docker:prod script**
 
 Add to `"scripts"`:
+
 ```json
 "docker:prod": "docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build"
 ```
@@ -361,6 +383,7 @@ for i in $(seq 1 40); do
 done
 docker compose -f docker-compose.yml -f docker-compose.prod.yml logs app 2>&1 | tail -20
 ```
+
 Expected: entrypoint runs migrate+seed, then `next start` logs "Ready"/"started server".
 
 - [ ] **Step 4: Smoke the prod stack**
@@ -369,6 +392,7 @@ Expected: entrypoint runs migrate+seed, then `next start` logs "Ready"/"started 
 echo "GET / ->"; curl -s -o /dev/null -w "%{http_code} redir=%{redirect_url}\n" http://localhost:3000/
 echo "GET /login ->"; curl -s -o /dev/null -w "%{http_code}\n" http://localhost:3000/login
 ```
+
 Expected: `/` → `307 …/login`; `/login` → `200`.
 
 - [ ] **Step 5: Tear down**
@@ -388,16 +412,19 @@ git commit -m "feat(docker): override de produção (runner/next start) + script
 ## Task 5: Docs (CLAUDE.md + README.md)
 
 **Files:**
+
 - Modify: `CLAUDE.md`
 - Modify: `README.md` (substituição completa — hoje é boilerplate do create-next-app, impreciso)
 
 - [ ] **Step 1: Add a docker note to CLAUDE.md's Commands section**
 
 No bloco de comandos do `CLAUDE.md` (junto de `npm run dev`, `db:up`, etc.), acrescentar:
+
 ```
 npm run docker:up     # sobe app + Postgres juntos no Docker (dev, hot reload) em http://localhost:3000
 npm run docker:prod   # sobe a imagem de produção (next start) + Postgres
 ```
+
 E uma frase curta explicando que o fluxo host (`npm run dev` + `docker compose up -d` só do db) continua válido; no container o app fala com o Postgres em `db:5432`, no host em `localhost:5433`; segredos vêm de `.env.local` em runtime (nunca embutidos na imagem).
 
 - [ ] **Step 2: Verify the CLAUDE.md note is present and accurate**
@@ -408,6 +435,7 @@ Expected: matches confirming the new note (docker:up/docker:prod scripts and the
 - [ ] **Step 3: Replace README.md with a MoldAI-accurate version**
 
 `README.md` (full replacement — verbatim):
+
 ````markdown
 # MoldAI
 
@@ -479,4 +507,5 @@ git commit -m "docs: CLAUDE.md + README documentam o workflow dockerizado (docke
 - Nenhum `.env*` nas camadas da imagem (excluído no `.dockerignore`; segredos só via `env_file` em runtime).
 
 ## Notes / não implementar nesta fase
+
 - Deploy em nuvem/registry, otimização de tamanho da imagem prod (separar migrate/seed do runtime), multi-arch — fora de escopo.

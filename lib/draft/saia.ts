@@ -5,10 +5,14 @@ import { DraftedPiece, Pt } from "./core";
 const cm = (v: number) => `${v.toFixed(1).replace(".", ",")} cm`;
 
 // setor anelar (arco de cintura e de barra) amostrado em pontos
-function radialSkirt(cintura: number, comp: number, denom: number): { pts: Pt[]; r: number } {
-  const r = cintura / denom;             // raio interno (cintura)
-  const R = r + comp;                    // raio externo (barra)
-  const sweep = (Math.PI * 2) / denom;   // ângulo de UM quarto de peça (peça cortada 4x/2x)
+function radialSkirt(
+  cintura: number,
+  comp: number,
+  denom: number,
+): { pts: Pt[]; r: number } {
+  const r = cintura / denom; // raio interno (cintura)
+  const R = r + comp; // raio externo (barra)
+  const sweep = (Math.PI * 2) / denom; // ângulo de UM quarto de peça (peça cortada 4x/2x)
   const half = sweep / 2;
   const steps = 12;
   const inner: Pt[] = [];
@@ -36,7 +40,11 @@ export function draftSaia(m: Measurements, style: GarmentStyle): DraftedPiece {
     { label: "Fio", value: "reto" },
   ];
 
-  if (silhueta === "circulo" || silhueta === "gode" || silhueta === "meia-roda") {
+  if (
+    silhueta === "circulo" ||
+    silhueta === "gode" ||
+    silhueta === "meia-roda"
+  ) {
     const denom = silhueta === "meia-roda" ? Math.PI : 2 * Math.PI;
     const { pts, r } = radialSkirt(m.cintura, comp, denom);
     detailRows.splice(1, 0, { label: "Raio da cintura", value: cm(r) });
@@ -47,9 +55,18 @@ export function draftSaia(m: Measurements, style: GarmentStyle): DraftedPiece {
     const steps = 12; // igual ao usado em radialSkirt
     const waistSpan: [number, number] = [0, steps];
     const hemSpan: [number, number] = [steps + 1, 2 * steps + 1];
-    return { id: "saia", name: "Saia", qty: silhueta === "meia-roda" ? 1 : 2, outlineCm,
+    return {
+      id: "saia",
+      name: "Saia",
+      qty: silhueta === "meia-roda" ? 1 : 2,
+      outlineCm,
       curvedSpans: [waistSpan, hemSpan],
-      grainlineCm: [[cxTop, 4], [cxTop, comp]], detailRows };
+      grainlineCm: [
+        [cxTop, 4],
+        [cxTop, comp],
+      ],
+      detailRows,
+    };
   }
 
   // reta / evasê: trapézio (¼ quadril na cintura, barra igual ou mais larga)
@@ -57,12 +74,24 @@ export function draftSaia(m: Measurements, style: GarmentStyle): DraftedPiece {
   const flare = silhueta === "evase" ? 12 : 0;
   const hemHalf = waistHalf + flare;
   const outlineCm: Pt[] = [
-    [waistHalf === hemHalf ? 0 : (hemHalf - waistHalf), 0],
-    [(hemHalf - waistHalf) + waistHalf * 2, 0],
+    [waistHalf === hemHalf ? 0 : hemHalf - waistHalf, 0],
+    [hemHalf - waistHalf + waistHalf * 2, 0],
     [hemHalf * 2, comp],
     [0, comp],
   ];
-  detailRows.splice(1, 0, { label: "Cintura (painel)", value: cm(waistHalf * 2) });
-  return { id: "saia", name: "Saia", qty: 2, outlineCm,
-    grainlineCm: [[hemHalf, 4], [hemHalf, comp - 4]], detailRows };
+  detailRows.splice(1, 0, {
+    label: "Cintura (painel)",
+    value: cm(waistHalf * 2),
+  });
+  return {
+    id: "saia",
+    name: "Saia",
+    qty: 2,
+    outlineCm,
+    grainlineCm: [
+      [hemHalf, 4],
+      [hemHalf, comp - 4],
+    ],
+    detailRows,
+  };
 }

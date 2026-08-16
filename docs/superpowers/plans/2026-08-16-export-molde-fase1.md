@@ -39,10 +39,12 @@
 ## Task 1: Expor `draftPiecesCm` (refactor de `garment.ts`)
 
 **Files:**
+
 - Modify: `lib/draft/garment.ts:75-104`
 - Test: `lib/draft/garment.test.ts`
 
 **Interfaces:**
+
 - Consumes: `resolveMeasurements`, `Measurements` (`@/lib/measurements`); `DraftedPiece`, `autoLayout` (`./core`); `BlockOpts`, `draftCorpo` (`./corpo`); `draftManga`; `draftSaia`.
 - Produces: `draftPiecesCm(spec: GarmentSpec, size: SizeLabel): DraftedPiece[]` — as peças em cm, antes do `autoLayout`. `draftGarment(spec, size)` mantém a mesma assinatura e retorno `{ pieces, viewBox, measurements, armholeLenCm }`.
 
@@ -59,7 +61,11 @@ describe("draftPiecesCm", () => {
       { tipo: "camiseta", sexo: "masc", measurementOverrides: {}, style: {} },
       "M",
     );
-    expect(pcs.map((p) => p.id)).toEqual(["corpo-frente", "corpo-costas", "manga"]);
+    expect(pcs.map((p) => p.id)).toEqual([
+      "corpo-frente",
+      "corpo-costas",
+      "manga",
+    ]);
     const frente = pcs[0];
     // outlineCm em cm reais: largura da frente na casa de dezenas de cm, não centenas (px)
     const xs = frente.outlineCm.map(([x]) => x);
@@ -80,27 +86,48 @@ Expected: FAIL — `draftPiecesCm is not a function` / import não resolve.
 Substituir o corpo de `draftGarment` (linhas 75-104) por um helper compartilhado mais dois wrappers. Confirmar que `Measurements` já está importado (linha 1) — está.
 
 ```ts
-function draftAll(spec: GarmentSpec, size: SizeLabel): {
+function draftAll(
+  spec: GarmentSpec,
+  size: SizeLabel,
+): {
   drafted: DraftedPiece[];
   measurements: Measurements;
   armholeLenCm?: number;
 } {
   const sexo: Sexo = spec.sexo ?? "fem";
-  const measurements: Measurements = resolveMeasurements(size, spec.measurementOverrides, sexo);
+  const measurements: Measurements = resolveMeasurements(
+    size,
+    spec.measurementOverrides,
+    sexo,
+  );
   const drafted: DraftedPiece[] = [];
   let armholeLenCm: number | undefined;
 
-  const isCorpo = spec.tipo === "blusa" || spec.tipo === "vestido" || spec.tipo === "camiseta";
+  const isCorpo =
+    spec.tipo === "blusa" ||
+    spec.tipo === "vestido" ||
+    spec.tipo === "camiseta";
   if (isCorpo) {
     const knit = spec.tipo === "camiseta";
-    const lengthCm = spec.tipo === "vestido"
-      ? measurements.comprimentoCostas
-      : measurements.comprimentoCostas + measurements.alturaQuadril + 5;
+    const lengthCm =
+      spec.tipo === "vestido"
+        ? measurements.comprimentoCostas
+        : measurements.comprimentoCostas + measurements.alturaQuadril + 5;
     const opts: BlockOpts = { sexo, knit, lengthCm };
-    const style: GarmentStyle = spec.tipo === "camiseta"
-      ? { ...spec.style, decote: spec.style.decote ?? "redondo", pences: false, manga: spec.style.manga ?? "curta" }
-      : spec.style;
-    const { frente, costas, armholeLenCm: a } = draftCorpo(measurements, style, opts);
+    const style: GarmentStyle =
+      spec.tipo === "camiseta"
+        ? {
+            ...spec.style,
+            decote: spec.style.decote ?? "redondo",
+            pences: false,
+            manga: spec.style.manga ?? "curta",
+          }
+        : spec.style;
+    const {
+      frente,
+      costas,
+      armholeLenCm: a,
+    } = draftCorpo(measurements, style, opts);
     armholeLenCm = a;
     drafted.push(frente, costas);
     const manga = draftManga(measurements, style, a, opts);
@@ -113,7 +140,10 @@ function draftAll(spec: GarmentSpec, size: SizeLabel): {
   return { drafted, measurements, armholeLenCm };
 }
 
-export function draftPiecesCm(spec: GarmentSpec, size: SizeLabel): DraftedPiece[] {
+export function draftPiecesCm(
+  spec: GarmentSpec,
+  size: SizeLabel,
+): DraftedPiece[] {
   return draftAll(spec, size).drafted;
 }
 
@@ -141,10 +171,12 @@ git commit -m "refactor(draft): expõe draftPiecesCm (geometria cm) sem mudar dr
 ## Task 2: `ExportModel` + `outlineSegments` + `buildExportModel` (`lib/export/model.ts`)
 
 **Files:**
+
 - Create: `lib/export/model.ts`
 - Test: `lib/export/model.test.ts`
 
 **Interfaces:**
+
 - Consumes: `draftPiecesCm` (Task 1); `DraftedPiece`, `Pt`, `bbox` (`@/lib/draft/core`); `Pattern`, `SizeLabel` (`@/lib/types`).
 - Produces:
   - `type ExPt = { x: number; y: number }`
@@ -166,7 +198,12 @@ import type { Pattern } from "@/lib/types";
 
 describe("outlineSegments", () => {
   it("emite line em aresta fora de span e cubic dentro de span", () => {
-    const pts: Pt[] = [[0, 0], [10, 0], [10, 10], [0, 10]];
+    const pts: Pt[] = [
+      [0, 0],
+      [10, 0],
+      [10, 10],
+      [0, 10],
+    ];
     const { start, segs } = outlineSegments(pts, [[1, 2]]); // curva só na aresta 1->2
     expect(start).toEqual({ x: 0, y: 0 });
     expect(segs).toHaveLength(4); // uma por aresta (fechado)
@@ -177,7 +214,10 @@ describe("outlineSegments", () => {
   });
 
   it("cai para polilinha de lines quando < 3 pontos", () => {
-    const { segs } = outlineSegments([[0, 0], [5, 5]]);
+    const { segs } = outlineSegments([
+      [0, 0],
+      [5, 5],
+    ]);
     expect(segs.every((s) => s.kind === "line")).toBe(true);
   });
 });
@@ -199,8 +239,7 @@ import { draftPiecesCm } from "@/lib/draft/garment";
 
 export type ExPt = { x: number; y: number };
 export type ExSeg =
-  | { kind: "line"; to: ExPt }
-  | { kind: "cubic"; c1: ExPt; c2: ExPt; to: ExPt };
+  { kind: "line"; to: ExPt } | { kind: "cubic"; c1: ExPt; c2: ExPt; to: ExPt };
 
 export interface ExportPiece {
   id: string;
@@ -238,10 +277,12 @@ export function outlineSegments(
     return { start: P(p[0] ?? [0, 0]), segs };
   }
   const at = (i: number) => p[((i % n) + n) % n];
-  const spanFor = (i: number) => curvedSpans.find(([a, b]) => i >= a && i + 1 <= b);
+  const spanFor = (i: number) =>
+    curvedSpans.find(([a, b]) => i >= a && i + 1 <= b);
   const segs: ExSeg[] = [];
   for (let i = 0; i < n; i++) {
-    const p1 = at(i), p2 = at(i + 1);
+    const p1 = at(i),
+      p2 = at(i + 1);
     const span = spanFor(i);
     if (!span) {
       segs.push({ kind: "line", to: P(p2) });
@@ -250,8 +291,14 @@ export function outlineSegments(
     const [a, b] = span;
     const p0 = i === a ? p1 : at(i - 1);
     const p3 = i + 1 === b ? p2 : at(i + 2);
-    const c1: ExPt = { x: p1[0] + (p2[0] - p0[0]) / 6, y: p1[1] + (p2[1] - p0[1]) / 6 };
-    const c2: ExPt = { x: p2[0] - (p3[0] - p1[0]) / 6, y: p2[1] - (p3[1] - p1[1]) / 6 };
+    const c1: ExPt = {
+      x: p1[0] + (p2[0] - p0[0]) / 6,
+      y: p1[1] + (p2[1] - p0[1]) / 6,
+    };
+    const c2: ExPt = {
+      x: p2[0] - (p3[0] - p1[0]) / 6,
+      y: p2[1] - (p3[1] - p1[1]) / 6,
+    };
     segs.push({ kind: "cubic", c1, c2, to: P(p2) });
   }
   return { start: P(at(0)), segs };
@@ -278,8 +325,22 @@ function fakePattern(): Pattern {
     unit: "cm",
     sizesApplied: [],
     sizesPending: [],
-    pieces: [{ id: "x", name: "x", qty: 1, outline: { kind: "polygon", points: "0,0" }, label: { x: 0, y: 0 }, detailRows: [] }],
-    spec: { tipo: "camiseta", sexo: "masc", measurementOverrides: {}, style: { folgaCosturaCm: 1.5 } },
+    pieces: [
+      {
+        id: "x",
+        name: "x",
+        qty: 1,
+        outline: { kind: "polygon", points: "0,0" },
+        label: { x: 0, y: 0 },
+        detailRows: [],
+      },
+    ],
+    spec: {
+      tipo: "camiseta",
+      sexo: "masc",
+      measurementOverrides: {},
+      style: { folgaCosturaCm: 1.5 },
+    },
   };
 }
 
@@ -294,7 +355,9 @@ describe("buildExportModel", () => {
     expect(m.pieces.length).toBeGreaterThanOrEqual(2);
     // origens crescem em x (peças lado a lado, sem sobreposição de origem)
     for (let i = 1; i < m.pieces.length; i++) {
-      expect(m.pieces[i].originCm.x).toBeGreaterThan(m.pieces[i - 1].originCm.x);
+      expect(m.pieces[i].originCm.x).toBeGreaterThan(
+        m.pieces[i - 1].originCm.x,
+      );
     }
     // outline fechado começa no start e tem uma segmento por aresta
     const f = m.pieces[0];
@@ -347,7 +410,8 @@ export function buildExportModel(pattern: Pattern): ExportModel {
       const [g1, g2] = dp.grainlineCm;
       ep.grainline = [P(shift(g1)), P(shift(g2))];
     }
-    if (dp.dartCm && dp.dartCm.length >= 3) ep.dart = dp.dartCm.map((pt) => P(shift(pt)));
+    if (dp.dartCm && dp.dartCm.length >= 3)
+      ep.dart = dp.dartCm.map((pt) => P(shift(pt)));
     cursorX += b.w + gapCm;
     maxH = Math.max(maxH, b.h);
     return ep;
@@ -382,10 +446,12 @@ git commit -m "feat(export): núcleo ExportModel + outlineSegments + buildExport
 ## Task 3: Serializer SVG 1:1 (`lib/export/svg.ts`)
 
 **Files:**
+
 - Create: `lib/export/svg.ts`
 - Test: `lib/export/svg.test.ts`
 
 **Interfaces:**
+
 - Consumes: `ExportModel`, `ExPt`, `ExSeg` (`./model`).
 - Produces: `toSvg(model: ExportModel): string`.
 
@@ -422,7 +488,10 @@ const model: ExportModel = {
           { kind: "line", to: { x: 0, y: 0 } },
         ],
       },
-      grainline: [{ x: 5, y: 1 }, { x: 5, y: 9 }],
+      grainline: [
+        { x: 5, y: 1 },
+        { x: 5, y: 9 },
+      ],
       originCm: { x: 2, y: 2 },
     },
   ],
@@ -469,7 +538,10 @@ const MM = 10; // cm -> mm (1:1)
 const f = (n: number) => (Math.round(n * 100) / 100).toString();
 
 function escapeXml(s: string): string {
-  return s.replace(/[<>&"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c]!));
+  return s.replace(
+    /[<>&"]/g,
+    (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" })[c]!,
+  );
 }
 
 function pathD(start: ExPt, segs: ExSeg[], ox: number, oy: number): string {
@@ -478,7 +550,8 @@ function pathD(start: ExPt, segs: ExSeg[], ox: number, oy: number): string {
   let d = `M${X(start.x)} ${Y(start.y)}`;
   for (const s of segs) {
     if (s.kind === "line") d += ` L${X(s.to.x)} ${Y(s.to.y)}`;
-    else d += ` C${X(s.c1.x)} ${Y(s.c1.y)} ${X(s.c2.x)} ${Y(s.c2.y)} ${X(s.to.x)} ${Y(s.to.y)}`;
+    else
+      d += ` C${X(s.c1.x)} ${Y(s.c1.y)} ${X(s.c2.x)} ${Y(s.c2.y)} ${X(s.to.x)} ${Y(s.to.y)}`;
   }
   return d + " Z";
 }
@@ -504,8 +577,12 @@ export function toSvg(model: ExportModel): string {
       );
     }
     if (p.dart && p.dart.length >= 3) {
-      const dd = p.dart.map((pt, i) => `${i === 0 ? "M" : "L"}${X(pt.x)} ${Y(pt.y)}`).join(" ");
-      parts.push(`<path d="${dd} Z" fill="none" stroke="#4a5a3a" stroke-width="0.3"/>`);
+      const dd = p.dart
+        .map((pt, i) => `${i === 0 ? "M" : "L"}${X(pt.x)} ${Y(pt.y)}`)
+        .join(" ");
+      parts.push(
+        `<path d="${dd} Z" fill="none" stroke="#4a5a3a" stroke-width="0.3"/>`,
+      );
     }
     parts.push(
       `<text x="${X(p.outline.start.x)}" y="${Y(p.heightCm)}" font-family="sans-serif" font-size="6" fill="#5a564a">${escapeXml(p.name.toUpperCase())} · ${p.qty}x</text>`,
@@ -539,10 +616,12 @@ git commit -m "feat(export): serializer SVG 1:1 em mm (toSvg)"
 ## Task 4: Download + fachada (`lib/export/download.ts`, `lib/export/index.ts`)
 
 **Files:**
+
 - Create: `lib/export/download.ts`
 - Create: `lib/export/index.ts`
 
 **Interfaces:**
+
 - Consumes: `buildExportModel` (`./model`), `toSvg` (`./svg`), `Pattern` (`@/lib/types`).
 - Produces:
   - `slug(name: string): string`
@@ -568,7 +647,11 @@ export function slug(name: string): string {
   return s || "molde";
 }
 
-export function downloadFile(filename: string, mime: string, data: string | Uint8Array): void {
+export function downloadFile(
+  filename: string,
+  mime: string,
+  data: string | Uint8Array,
+): void {
   const blob = new Blob([data], { type: mime });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -620,9 +703,11 @@ git commit -m "feat(export): download client-side + fachada exportPattern"
 ## Task 5: Menu de formato no `Footer`
 
 **Files:**
+
 - Modify: `components/editor/Footer.tsx` (arquivo inteiro)
 
 **Interfaces:**
+
 - Consumes: `exportPattern`, `ExportFormat` (`@/lib/export`); `Pattern` (`@/lib/types`).
 - Produces: nenhuma nova API — só comportamento de UI.
 
@@ -652,7 +737,8 @@ export function Footer({
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const pieceCount = pattern.pieces.reduce((sum, p) => sum + p.qty, 0);
-  const exportDisabled = exportBlocked || pattern.pieces.length === 0 || !pattern.spec;
+  const exportDisabled =
+    exportBlocked || pattern.pieces.length === 0 || !pattern.spec;
 
   const handleExport = (format: ExportFormat) => {
     exportPattern(pattern, format);
@@ -660,8 +746,8 @@ export function Footer({
   };
 
   return (
-    <div className="flex items-center gap-[10px] px-4 py-3 bg-surface border-t border-border">
-      <span className="text-[12px] text-muted">
+    <div className="bg-surface border-border flex items-center gap-[10px] border-t px-4 py-3">
+      <span className="text-muted text-[12px]">
         {exportBlocked
           ? `v${pattern.version} · não exportável com conflito`
           : `${pieceCount} peças · base ${pattern.baseSize} · unidade ${pattern.unit}`}
@@ -673,7 +759,7 @@ export function Footer({
           type="button"
           disabled={exportDisabled}
           onClick={() => setMenuOpen((o) => !o)}
-          className="text-[12.5px] font-medium px-[14px] py-2 rounded-btn border transition-colors disabled:cursor-not-allowed disabled:text-disabled disabled:border-disabled-border enabled:border-border enabled:hover:bg-surface-alt"
+          className="rounded-btn disabled:text-disabled disabled:border-disabled-border enabled:border-border enabled:hover:bg-surface-alt border px-[14px] py-2 text-[12.5px] font-medium transition-colors disabled:cursor-not-allowed"
         >
           Exportar
         </button>
@@ -685,13 +771,13 @@ export function Footer({
               className="fixed inset-0 z-10 cursor-default"
               onClick={() => setMenuOpen(false)}
             />
-            <div className="absolute bottom-full right-0 mb-1 z-20 min-w-[180px] py-1 bg-surface border border-border rounded-item shadow-card">
+            <div className="bg-surface border-border rounded-item shadow-card absolute right-0 bottom-full z-20 mb-1 min-w-[180px] border py-1">
               {FORMATS.map((fmt) => (
                 <button
                   key={fmt.id}
                   type="button"
                   onClick={() => handleExport(fmt.id)}
-                  className="block w-full text-left text-[12.5px] px-3 py-2 hover:bg-surface-alt transition-colors"
+                  className="hover:bg-surface-alt block w-full px-3 py-2 text-left text-[12.5px] transition-colors"
                 >
                   {fmt.label}
                 </button>
@@ -703,7 +789,7 @@ export function Footer({
 
       <button
         type="button"
-        className="text-[12.5px] font-semibold px-4 py-2 rounded-btn bg-olive text-[#f7f7f2] hover:bg-olive-dark transition-colors"
+        className="rounded-btn bg-olive hover:bg-olive-dark px-4 py-2 text-[12.5px] font-semibold text-[#f7f7f2] transition-colors"
       >
         Salvar versão
       </button>
@@ -732,6 +818,7 @@ git commit -m "feat(export): botão Exportar vira menu de formato (SVG)"
 ## Task 6: Documentar no `CLAUDE.md` + verificação manual
 
 **Files:**
+
 - Modify: `CLAUDE.md` (parágrafo de arquitetura sobre drafting/pieces)
 
 **Interfaces:** nenhuma (docs).

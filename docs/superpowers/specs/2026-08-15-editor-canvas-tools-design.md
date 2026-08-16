@@ -65,12 +65,15 @@ O `activeTool` continua no store (já existe).
 ### 1. Tipos (`lib/types.ts`)
 
 ```ts
-export interface Point { x: number; y: number } // px no espaço do SVG
+export interface Point {
+  x: number;
+  y: number;
+} // px no espaço do SVG
 
 export interface Measurement {
   id: string;
-  a: Point;   // px
-  b: Point;   // px
+  a: Point; // px
+  b: Point; // px
 }
 ```
 
@@ -84,7 +87,10 @@ mesmo conjunto serve para contorno reto e curvo.)
 para px pelo mesmo `(dxPx, dyPx)` usado no outline:
 
 ```ts
-piece.vertices = dp.outlineCm.map(([x, y]) => ({ x: PX(x) + dxPx, y: PX(y) + dyPx }));
+piece.vertices = dp.outlineCm.map(([x, y]) => ({
+  x: PX(x) + dxPx,
+  y: PX(y) + dyPx,
+}));
 ```
 
 Nenhum drafter individual (`corpo`, `manga`, `saia`) é tocado — a mudança é só no

@@ -7,7 +7,10 @@ const tx = {
   // INSERT ... ON CONFLICT DO NOTHING (materializa seed) e o UPDATE final —
   // ambos chamados como tagged template: (strings, ...valores interpolados).
   $executeRaw: vi.fn(
-    async (_strings: TemplateStringsArray, ..._vals: unknown[]): Promise<number> => 0,
+    async (
+      _strings: TemplateStringsArray,
+      ..._vals: unknown[]
+    ): Promise<number> => 0,
   ),
   // SELECT data ... FOR UPDATE — devolve a linha atual (após o insert-if-absent).
   $queryRaw: vi.fn(async (): Promise<{ data: unknown }[]> => []),
@@ -22,15 +25,21 @@ vi.mock("@/lib/db/prisma", () => ({
         const data = store.get(where.userId);
         return data === undefined ? null : { userId: where.userId, data };
       }),
-      upsert: vi.fn(async ({ where, create, update }: {
-        where: { userId: string };
-        create: { userId: string; data: unknown };
-        update: { data: unknown };
-      }) => {
-        const exists = store.has(where.userId);
-        store.set(where.userId, exists ? update.data : create.data);
-        return { userId: where.userId, data: store.get(where.userId) };
-      }),
+      upsert: vi.fn(
+        async ({
+          where,
+          create,
+          update,
+        }: {
+          where: { userId: string };
+          create: { userId: string; data: unknown };
+          update: { data: unknown };
+        }) => {
+          const exists = store.has(where.userId);
+          store.set(where.userId, exists ? update.data : create.data);
+          return { userId: where.userId, data: store.get(where.userId) };
+        },
+      ),
     },
   },
 }));
@@ -53,7 +62,8 @@ function wireTx() {
       const sql = Array.isArray(strings) ? strings.join("") : String(strings);
       if (sql.includes("UPDATE")) {
         const jsonStr = vals.find(
-          (v): v is string => typeof v === "string" && v.trimStart().startsWith("{"),
+          (v): v is string =>
+            typeof v === "string" && v.trimStart().startsWith("{"),
         );
         if (jsonStr) store.set(uid, JSON.parse(jsonStr));
       }
@@ -78,12 +88,16 @@ describe("withMolde", () => {
 
   it("semeia o blank molde no primeiro acesso e passa ao fn", async () => {
     let seen: number | null = null;
-    await withMolde("u1", (state) => { seen = state.credits.balance; });
+    await withMolde("u1", (state) => {
+      seen = state.credits.balance;
+    });
     expect(seen).toBe(320);
   });
 
   it("persiste as mutações do fn (débito sobrevive)", async () => {
-    await withMolde("u1", (state) => { debitCredits(state, 4); });
+    await withMolde("u1", (state) => {
+      debitCredits(state, 4);
+    });
     const s = store.get("u1") as ReturnType<typeof seedState>;
     expect(s.credits.balance).toBe(316);
     expect(tx.$executeRaw).toHaveBeenCalled();
@@ -96,14 +110,17 @@ describe("withMolde", () => {
 });
 
 describe("loadMolde", () => {
-  beforeEach(() => { store.clear(); });
+  beforeEach(() => {
+    store.clear();
+  });
   it("devolve seed sem gravar quando não há linha", async () => {
     const s = await loadMolde("novo");
     expect(s.credits.balance).toBe(320);
     expect(store.has("novo")).toBe(false); // read-only: nada foi persistido
   });
   it("devolve o estado persistido quando existe", async () => {
-    const seeded = seedState(); seeded.credits.balance = 7;
+    const seeded = seedState();
+    seeded.credits.balance = 7;
     store.set("u1", seeded);
     const s = await loadMolde("u1");
     expect(s.credits.balance).toBe(7);
@@ -111,13 +128,19 @@ describe("loadMolde", () => {
 });
 
 describe("resetMolde", () => {
-  beforeEach(() => { store.clear(); });
+  beforeEach(() => {
+    store.clear();
+  });
   it("sobrescreve com o blank molde e persiste", async () => {
-    const dirty = seedState(); dirty.credits.balance = 0; dirty.pattern.version = 9;
+    const dirty = seedState();
+    dirty.credits.balance = 0;
+    dirty.pattern.version = 9;
     store.set("u1", dirty);
     const s = await resetMolde("u1");
     expect(s.credits.balance).toBe(320);
     expect(s.pattern.version).toBe(0);
-    expect((store.get("u1") as ReturnType<typeof seedState>).pattern.version).toBe(0);
+    expect(
+      (store.get("u1") as ReturnType<typeof seedState>).pattern.version,
+    ).toBe(0);
   });
 });

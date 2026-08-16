@@ -13,7 +13,7 @@ Este design substitui, na prática, todo o miolo de `lib/geometry.ts` e o contra
 1. **Fidelidade:** modelagem por medidas reais (engine de drafting), não mais deltas sobre forma pronta.
 2. **Primeiro corte de peças:** saia (reta / evasê / godê / meia-roda / círculo) **+ refazer frente/costas/manga por medidas**, tudo no mesmo engine (nada de dois motores convivendo).
 3. **Fonte das medidas:** tabela padrão por tamanho (PP–GG, base ABNT) preenche o default; o usuário/IA pode **sobrescrever medidas específicas pelo chat**.
-4. **Operação da IA:** **spec-based re-draft** — a IA sempre devolve a *especificação desejada* (tipo + overrides de medida + estilo) e o engine re-traça tudo. Ajustes são uma nova spec derivada da spec atual + pedido. (Delta-based foi rejeitado.)
+4. **Operação da IA:** **spec-based re-draft** — a IA sempre devolve a _especificação desejada_ (tipo + overrides de medida + estilo) e o engine re-traça tudo. Ajustes são uma nova spec derivada da spec atual + pedido. (Delta-based foi rejeitado.)
 
 ## Escopo
 
@@ -26,21 +26,23 @@ Este design substitui, na prática, todo o miolo de `lib/geometry.ts` e o contra
 ## 1. Modelo de dados (`lib/types.ts`)
 
 ### Measurements (nível do pattern — um corpo por molde)
+
 ```ts
 interface Measurements {
-  busto: number;             // circunferência do busto (cm)
-  cintura: number;           // circunferência da cintura (cm)
-  quadril: number;           // circunferência do quadril (cm)
-  alturaQuadril: number;     // cintura → quadril (cm)
+  busto: number; // circunferência do busto (cm)
+  cintura: number; // circunferência da cintura (cm)
+  quadril: number; // circunferência do quadril (cm)
+  alturaQuadril: number; // cintura → quadril (cm)
   comprimentoCostas: number; // nuca → cintura (cm)
-  ombro: number;             // largura do ombro (cm)
-  compSaia: number;          // comprimento default da saia (cm)
-  compMangaCurta: number;    // (cm)
-  compMangaLonga: number;    // (cm)
+  ombro: number; // largura do ombro (cm)
+  compSaia: number; // comprimento default da saia (cm)
+  compMangaCurta: number; // (cm)
+  compMangaLonga: number; // (cm)
 }
 ```
 
 ### GarmentSpec (o que a IA controla e o que o pattern guarda)
+
 ```ts
 type GarmentType = "blusa" | "vestido" | "saia";
 type Decote = "reto" | "V" | "redondo";
@@ -49,10 +51,10 @@ type SaiaSilhueta = "reta" | "evase" | "gode" | "meia-roda" | "circulo";
 
 interface GarmentStyle {
   decote?: Decote;
-  decoteProfundidadeCm?: number;   // clampado por bloco
+  decoteProfundidadeCm?: number; // clampado por bloco
   manga?: MangaLen;
   saia?: SaiaSilhueta;
-  compSaiaCm?: number;             // override do comprimento da saia
+  compSaiaCm?: number; // override do comprimento da saia
   pences?: boolean;
   folgaCosturaCm?: number;
 }
@@ -65,13 +67,17 @@ interface GarmentSpec {
 ```
 
 ### Piece — deixa de ter `params`
+
 Passa a guardar a geometria **traçada** (`outline`, `guideOutline?`, `grainline?`, `dart?`, `label`) e as medidas resolvidas que a geraram. `PieceDetails` deixa de ser fixo:
+
 ```ts
 type PieceDetails = { rows: { label: string; value: string }[] };
 ```
+
 (A saia reporta comprimento/roda/cós; o corpo reporta cava/pence/decote — cada bloco decide suas linhas.)
 
 ### Pattern
+
 Ganha `baseMeasurements: Measurements` (linha resolvida do tamanho-base + overrides) e `spec: GarmentSpec`. As peças são derivadas de `spec` + `baseMeasurements`.
 
 ## 2. Engine de drafting (`lib/blocks/*` + `lib/geometry.ts`)
@@ -79,13 +85,16 @@ Ganha `baseMeasurements: Measurements` (linha resolvida do tamanho-base + overri
 Cada bloco é uma função pura `draft(m: Measurements, style: GarmentStyle) → DraftedPiece` que produz **pontos em cm** num sistema de coordenadas natural da peça (origem no canto sup. esq. da peça), além de guias/grainline/pence/rótulo e as `PieceDetails.rows`.
 
 `lib/geometry.ts` deixa de ter geometria hardcoded e passa a ser a camada de **composição**:
+
 - `draftGarment(spec, measurements) → Piece[]` — resolve o arquétipo do `tipo` (quais blocos), chama cada `draft`, converte cm→px (`PX_PER_CM`), e faz **auto-layout**: posiciona cada peça por bounding-box numa fileira com espaçamento fixo e calcula o `viewBox` resultante (largura = soma das larguras + gaps; altura = maior peça). Acaba a posição chumbada.
 - Helpers de curva (Bézier a partir de pontos + tensão) para cava, decote e copa de manga.
 
 ### Fórmulas (das fontes pesquisadas)
+
 As fórmulas abaixo são o alvo; valores exatos de folga/constantes serão fixados no plano com base nas fontes. `¼X` = X/4.
 
 **Base do corpo (frente/costas)** — modelagem plana feminina (UDESC / Marlene Mukai):
+
 - Largura do quarto: frente ≈ `¼busto + 1 + folga`; costas ≈ `¼busto − 1 + folga`.
 - Altura total do corpo até a cintura = `comprimentoCostas`.
 - Degolo (base do decote) = `1/6·comprimentoCostas + 0,5`; decote frente = `degolo + 1`.
@@ -99,6 +108,7 @@ As fórmulas abaixo são o alvo; valores exatos de folga/constantes serão fixad
 **Saia reta** — retângulo largura = `¼quadril + folga`, altura = `compSaia`; linha de quadril em `alturaQuadril`; redução de cintura `(quadril − cintura)` dividida entre curva lateral (metade) e pences (restante); pence até a linha do quadril.
 
 **Saia godê/círculo** (matemática real):
+
 - raio da cintura `r = cintura / (2π)` (godê total / círculo); meia-roda `r = cintura / π`.
 - raio externo `R = r + compSaia`.
 - **evasê** = interpolação entre a saia reta e o godê (fator de amplitude).
@@ -108,13 +118,13 @@ As fórmulas abaixo são o alvo; valores exatos de folga/constantes serão fixad
 
 Tabela-semente (ABNT-based, passo ~4 cm em busto/cintura/quadril):
 
-| Tam | BR | Busto | Cintura | Quadril | Costas(nuca→cint.) | Cint→Quadril | Ombro |
-|-----|----|-------|---------|---------|--------------------|--------------|-------|
-| PP | 36 | 84 | 66 | 92 | 40,0 | 20,0 | 11,5 |
-| P  | 38 | 88 | 70 | 96 | 40,5 | 20,3 | 11,8 |
-| M  | 40 | 92 | 74 | 100 | 41,0 | 20,6 | 12,0 |
-| G  | 42 | 96 | 78 | 104 | 41,5 | 21,0 | 12,3 |
-| GG | 44 | 100 | 82 | 108 | 42,0 | 21,3 | 12,5 |
+| Tam | BR  | Busto | Cintura | Quadril | Costas(nuca→cint.) | Cint→Quadril | Ombro |
+| --- | --- | ----- | ------- | ------- | ------------------ | ------------ | ----- |
+| PP  | 36  | 84    | 66      | 92      | 40,0               | 20,0         | 11,5  |
+| P   | 38  | 88    | 70      | 96      | 40,5               | 20,3         | 11,8  |
+| M   | 40  | 92    | 74      | 100     | 41,0               | 20,6         | 12,0  |
+| G   | 42  | 96    | 78      | 104     | 41,5               | 21,0         | 12,3  |
+| GG  | 44  | 100   | 82      | 108     | 42,0               | 21,3         | 12,5  |
 
 Comprimentos default (constantes): `compSaia` midi = 60; `compMangaCurta` = 18; `compMangaLonga` = 58.
 
@@ -124,9 +134,11 @@ Comprimentos default (constantes): `compSaia` midi = 60; `compMangaCurta` = 18; 
 ## 4. Contrato da IA (`lib/ai.ts`)
 
 Tool nova, forçada (`tool_choice`): a IA devolve
+
 ```ts
 { decision: "apply" | "decline"; spec?: GarmentSpec; declineReason?: string; assistantMessage: string }
 ```
+
 - O **system prompt** recebe: a tabela de medidas, a `spec` atual (para ajustes), e o catálogo de estilos válidos (enums de `tipo`/`decote`/`manga`/`saia`).
 - Ajustes ("deixa a saia mais rodada", "aprofunda o decote") = a IA devolve a `spec` inteira atualizada; o engine re-traça.
 - **Servidor valida/clampa** `spec` (tipo/estilos ∈ enums; medidas e profundidades dentro de faixas por bloco) antes de traçar. A IA nunca emite geometria/px.
@@ -138,6 +150,7 @@ Tool nova, forçada (`tool_choice`): a IA devolve
 **Conflito:** com drafting real a cava do corpo e a copa da manga casam por construção, então o conflito raramente dispara. Mantém-se um **check no servidor** após o traçado (comprimento da cava vs comprimento da copa, tolerância ~1 cm) que só vira `ConflictInfo` se um override de estilo quebrar o casamento. Os `markers` passam a ser **computados dos pontos reais da cava** traçada, não de `LANDMARKS` chumbados. A UI de conflito (card + Export desabilitado) é preservada.
 
 **Componentes:**
+
 - `PatternCanvas` — usa o `viewBox` dinâmico do auto-layout.
 - `PieceDetailsPanel` e `FichaTecnicaTab` — renderizam `PieceDetails.rows` (label/valor) em vez das colunas fixas atuais (cava/pence/…).
 - `PlanoCorteTab`/consumo — derivam da área traçada da peça.
@@ -146,7 +159,7 @@ Tool nova, forçada (`tool_choice`): a IA devolve
 
 ## 6. Riscos assumidos
 
-- É modelagem **simplificada e ilustrativa em fidelidade de curvas**: cava/decote/copa plausíveis, não industriais. Sem validação de um modelista, algumas curvas podem sair "toscas". O objetivo é *coerente e derivado de medidas reais*, não pronto para produção.
+- É modelagem **simplificada e ilustrativa em fidelidade de curvas**: cava/decote/copa plausíveis, não industriais. Sem validação de um modelista, algumas curvas podem sair "toscas". O objetivo é _coerente e derivado de medidas reais_, não pronto para produção.
 - As constantes de folga/proporção das fórmulas serão fixadas no plano a partir das fontes; pequenos ajustes visuais podem ser necessários após ver o resultado renderizado.
 
 ## Fontes

@@ -43,11 +43,13 @@
 ## Task 1: Tipos + `validateQuestions` (trust boundary)
 
 **Files:**
+
 - Modify: `lib/types.ts`
 - Modify: `lib/draft/garment.ts`
 - Test: `lib/draft/garment.test.ts`
 
 **Interfaces:**
+
 - Consumes: nada.
 - Produces:
   - `interface ClarifyQuestion { id: string; label: string; options: string[]; allowOther: boolean }` (em `lib/types.ts`).
@@ -73,7 +75,10 @@ describe("validateQuestions", () => {
     expect(qs[0].allowOther).toBe(true);
   });
   it("limita a 4 perguntas", () => {
-    const raw = Array.from({ length: 7 }, (_, i) => ({ label: `P${i}`, options: ["a", "b"] }));
+    const raw = Array.from({ length: 7 }, (_, i) => ({
+      label: `P${i}`,
+      options: ["a", "b"],
+    }));
     expect(validateQuestions(raw)).toHaveLength(4);
   });
   it("descarta pergunta com menos de 2 opções ou label vazio", () => {
@@ -86,7 +91,10 @@ describe("validateQuestions", () => {
   });
   it("corta em 6 opções e limpa strings vazias/duplicadas", () => {
     const qs = validateQuestions([
-      { label: "Muitas", options: ["a", "a", "", "b", "c", "d", "e", "f", "g"] },
+      {
+        label: "Muitas",
+        options: ["a", "a", "", "b", "c", "d", "e", "f", "g"],
+      },
     ]);
     expect(qs[0].options).toEqual(["a", "b", "c", "d", "e", "f"]);
   });
@@ -145,7 +153,12 @@ export function validateQuestions(raw: unknown): ClarifyQuestion[] {
       if (options.length === 6) break;
     }
     if (options.length < 2) continue;
-    out.push({ id: `q${out.length}`, label, options, allowOther: q.allowOther === true });
+    out.push({
+      id: `q${out.length}`,
+      label,
+      options,
+      allowOther: q.allowOther === true,
+    });
   }
   return out;
 }
@@ -170,10 +183,12 @@ git commit -m "feat(types): ClarifyQuestion + validateQuestions (trust boundary)
 ## Task 2: Camada de IA — decisão `ask`
 
 **Files:**
+
 - Modify: `lib/ai.ts`
 - Test: `lib/ai.test.ts` (create)
 
 **Interfaces:**
+
 - Consumes: `validateQuestions` e `validateSpec` de `@/lib/draft/garment`; `ClarifyQuestion` de `@/lib/types`.
 - Produces:
   - `AiDecision` agora: `{ decision: "apply" | "decline" | "ask"; spec: GarmentSpec; questions?: ClarifyQuestion[]; declineReason?: string; assistantMessage: string }`.
@@ -195,7 +210,11 @@ import Anthropic from "@anthropic-ai/sdk";
 import { proposeGarment } from "./ai";
 
 // handle compartilhado do mock (a factory reusa a mesma fn create)
-const create = (new (Anthropic as unknown as new () => { messages: { create: ReturnType<typeof vi.fn> } })()).messages.create;
+const create = new (
+  Anthropic as unknown as new () => {
+    messages: { create: ReturnType<typeof vi.fn> };
+  }
+)().messages.create;
 
 function toolResp(input: unknown) {
   return { content: [{ type: "tool_use", name: "propose_garment", input }] };
@@ -214,7 +233,9 @@ describe("proposeGarment", () => {
       toolResp({
         decision: "ask",
         assistantMessage: "Me conta mais:",
-        questions: [{ label: "Gola", options: ["redonda", "V"], allowOther: true }],
+        questions: [
+          { label: "Gola", options: ["redonda", "V"], allowOther: true },
+        ],
       }),
     );
     const d = await proposeGarment(baseState, false);
@@ -225,7 +246,17 @@ describe("proposeGarment", () => {
 
   it("degrada ask sem perguntas válidas para apply", async () => {
     create.mockResolvedValue(
-      toolResp({ decision: "ask", assistantMessage: "x", questions: [], spec: { tipo: "camiseta", sexo: "masc", style: {}, measurementOverrides: {} } }),
+      toolResp({
+        decision: "ask",
+        assistantMessage: "x",
+        questions: [],
+        spec: {
+          tipo: "camiseta",
+          sexo: "masc",
+          style: {},
+          measurementOverrides: {},
+        },
+      }),
     );
     const d = await proposeGarment(baseState, false);
     expect(d.decision).toBe("apply");
@@ -233,7 +264,11 @@ describe("proposeGarment", () => {
 
   it("answering=true força apply mesmo se a IA responder ask", async () => {
     create.mockResolvedValue(
-      toolResp({ decision: "ask", assistantMessage: "x", questions: [{ label: "Gola", options: ["a", "b"] }] }),
+      toolResp({
+        decision: "ask",
+        assistantMessage: "x",
+        questions: [{ label: "Gola", options: ["a", "b"] }],
+      }),
     );
     const d = await proposeGarment(baseState, true);
     expect(d.decision).toBe("apply");
@@ -329,7 +364,10 @@ Adicionar estas duas linhas ao array de instruções (antes da linha `"",` que p
 Trocar a assinatura, a chamada a `buildSystem`, e o mapeamento final:
 
 ```ts
-export async function proposeGarment(state: EditorState, answering: boolean): Promise<AiDecision> {
+export async function proposeGarment(
+  state: EditorState,
+  answering: boolean,
+): Promise<AiDecision> {
   const client = new Anthropic();
   const history = state.chat.slice(-10).map((m) => ({
     role: m.author === "user" ? ("user" as const) : ("assistant" as const),
@@ -363,7 +401,11 @@ export async function proposeGarment(state: EditorState, answering: boolean): Pr
       };
     }
     // sem pergunta aproveitável → desenha com defaults
-    return { decision: "apply", spec: validateSpec(input.spec), assistantMessage: input.assistantMessage };
+    return {
+      decision: "apply",
+      spec: validateSpec(input.spec),
+      assistantMessage: input.assistantMessage,
+    };
   }
 
   const decision = input.decision === "ask" ? "apply" : input.decision;
@@ -393,11 +435,13 @@ git commit -m "feat(ai): decisão ask com perguntas validadas e guard answering"
 ## Task 3: Rota `generate` — caminho `ask` (estorno + clarify)
 
 **Files:**
+
 - Modify: `app/api/pattern/generate/route.ts`
 - Modify: `vitest.config.ts`
 - Test: `app/api/pattern/generate/route.test.ts` (create)
 
 **Interfaces:**
+
 - Consumes: `proposeGarment(state, answering)` de `@/lib/ai`; `resetState`, `getState` de `@/lib/mock-data`.
 - Produces: resposta JSON `{ status: "clarify", state }` quando a IA pergunta; body de entrada aceita `answering?: boolean`.
 
@@ -441,8 +485,20 @@ describe("POST /api/pattern/generate — ask", () => {
     const versionBefore = getState().pattern.version;
     mockPropose.mockResolvedValue({
       decision: "ask",
-      spec: { tipo: "camiseta", sexo: "masc", style: {}, measurementOverrides: {} },
-      questions: [{ id: "q0", label: "Gola", options: ["redonda", "V"], allowOther: true }],
+      spec: {
+        tipo: "camiseta",
+        sexo: "masc",
+        style: {},
+        measurementOverrides: {},
+      },
+      questions: [
+        {
+          id: "q0",
+          label: "Gola",
+          options: ["redonda", "V"],
+          allowOther: true,
+        },
+      ],
       assistantMessage: "Me conta mais:",
     });
 
@@ -461,7 +517,12 @@ describe("POST /api/pattern/generate — ask", () => {
   it("repassa answering ao proposeGarment", async () => {
     mockPropose.mockResolvedValue({
       decision: "apply",
-      spec: { tipo: "camiseta", sexo: "masc", style: {}, measurementOverrides: {} },
+      spec: {
+        tipo: "camiseta",
+        sexo: "masc",
+        style: {},
+        measurementOverrides: {},
+      },
       assistantMessage: "Pronto",
     });
     await POST(req({ message: "gola redonda, manga curta", answering: true }));
@@ -493,19 +554,31 @@ import { COSTS } from "@/lib/types";
 import { proposeGarment } from "@/lib/ai";
 
 export async function POST(request: Request) {
-  const { message, answering } = (await request.json()) as { message: string; answering?: boolean };
+  const { message, answering } = (await request.json()) as {
+    message: string;
+    answering?: boolean;
+  };
   const trimmed = message.trim();
   const state = getState();
   const cost = COSTS.adjust;
 
   if (state.credits.balance < cost) {
     return NextResponse.json(
-      { status: "insufficient_credits", required: cost, balance: state.credits.balance },
+      {
+        status: "insufficient_credits",
+        required: cost,
+        balance: state.credits.balance,
+      },
       { status: 402 },
     );
   }
 
-  addMessage({ id: `msg-${Date.now()}-u`, author: "user", text: trimmed, createdAt: Date.now() });
+  addMessage({
+    id: `msg-${Date.now()}-u`,
+    author: "user",
+    text: trimmed,
+    createdAt: Date.now(),
+  });
   debitCredits(cost);
 
   try {
@@ -515,7 +588,8 @@ export async function POST(request: Request) {
       addMessage({
         id: `msg-${Date.now()}-ai`,
         author: "ai",
-        text: decision.assistantMessage || "Pra acertar a modelagem, me responde:",
+        text:
+          decision.assistantMessage || "Pra acertar a modelagem, me responde:",
         questions: decision.questions,
         createdAt: Date.now(),
       });
@@ -527,7 +601,10 @@ export async function POST(request: Request) {
       addMessage({
         id: `msg-${Date.now()}-ai`,
         author: "ai",
-        text: decision.assistantMessage || decision.declineReason || "Não consegui aplicar esse pedido.",
+        text:
+          decision.assistantMessage ||
+          decision.declineReason ||
+          "Não consegui aplicar esse pedido.",
         createdAt: Date.now(),
       });
       refundCredits(cost);
@@ -568,11 +645,13 @@ git commit -m "feat(api): generate trata ask (estorno + clarify) e repassa answe
 ## Task 4: Cliente — `api-client` + `store`
 
 **Files:**
+
 - Modify: `lib/api-client.ts`
 - Modify: `lib/store.ts`
 - Test: `lib/store.test.ts` (create)
 
 **Interfaces:**
+
 - Consumes: `POST /api/pattern/generate` com `{ message, answering }`; `status:"clarify"` na resposta.
 - Produces:
   - `generate(message: string, answering?: boolean): Promise<GenerateResult>`.
@@ -601,9 +680,35 @@ const genMock = api.generate as unknown as ReturnType<typeof vi.fn>;
 
 function emptyState(): EditorState {
   return {
-    pattern: { id: "p", name: "Novo molde", version: 0, savedAgo: "", baseSize: "M", unit: "cm", sizesApplied: [], sizesPending: [], pieces: [] },
-    chat: [{ id: "m1", author: "ai", text: "Me conta mais:", questions: [{ id: "q0", label: "Gola", options: ["a", "b"], allowOther: false }], createdAt: 1 }],
-    credits: { plan: "atelier", planLabel: "Ateliê", balance: 100, total: 500, renewsInDays: 10 },
+    pattern: {
+      id: "p",
+      name: "Novo molde",
+      version: 0,
+      savedAgo: "",
+      baseSize: "M",
+      unit: "cm",
+      sizesApplied: [],
+      sizesPending: [],
+      pieces: [],
+    },
+    chat: [
+      {
+        id: "m1",
+        author: "ai",
+        text: "Me conta mais:",
+        questions: [
+          { id: "q0", label: "Gola", options: ["a", "b"], allowOther: false },
+        ],
+        createdAt: 1,
+      },
+    ],
+    credits: {
+      plan: "atelier",
+      planLabel: "Ateliê",
+      balance: 100,
+      total: 500,
+      renewsInDays: 10,
+    },
     conflict: null,
   };
 }
@@ -611,12 +716,17 @@ function emptyState(): EditorState {
 describe("store.sendMessage", () => {
   beforeEach(() => {
     genMock.mockReset();
-    useEditorStore.setState({ selectedPieceId: null, generationStatus: "idle" });
+    useEditorStore.setState({
+      selectedPieceId: null,
+      generationStatus: "idle",
+    });
   });
 
   it("repassa answering e trata clarify sem erro nem seleção de peça", async () => {
     genMock.mockResolvedValue({ status: "clarify", state: emptyState() });
-    await useEditorStore.getState().sendMessage("gola redonda", { answering: true });
+    await useEditorStore
+      .getState()
+      .sendMessage("gola redonda", { answering: true });
 
     expect(genMock).toHaveBeenCalledWith("gola redonda", true);
     expect(useEditorStore.getState().generationStatus).toBe("idle");
@@ -638,13 +748,22 @@ Trocar o tipo `GenerateResult` e a função `generate`:
 
 ```ts
 export type GenerateResult =
-  | { status: "ok" | "conflict" | "error" | "declined" | "clarify"; state: EditorState }
+  | {
+      status: "ok" | "conflict" | "error" | "declined" | "clarify";
+      state: EditorState;
+    }
   | { status: "insufficient_credits"; required: number; balance: number };
 ```
 
 ```ts
-export function generate(message: string, answering?: boolean): Promise<GenerateResult> {
-  return postJson<GenerateResult>("/api/pattern/generate", { message, answering });
+export function generate(
+  message: string,
+  answering?: boolean,
+): Promise<GenerateResult> {
+  return postJson<GenerateResult>("/api/pattern/generate", {
+    message,
+    answering,
+  });
 }
 ```
 
@@ -653,7 +772,7 @@ export function generate(message: string, answering?: boolean): Promise<Generate
 Trocar a assinatura na interface `EditorStore`:
 
 ```ts
-  sendMessage: (message: string, opts?: { answering?: boolean }) => Promise<void>;
+sendMessage: (message: string, opts?: { answering?: boolean }) => Promise<void>;
 ```
 
 Trocar a implementação de `sendMessage` (o `result` de `clarify` já traz o `state` com o card no chat; tratamos como sucesso sem selecionar peça):
@@ -723,11 +842,13 @@ git commit -m "feat(store): sendMessage aceita answering e trata clarify"
 ## Task 5: UI — `ClarifyCard` + integração no chat
 
 **Files:**
+
 - Create: `components/editor/ClarifyCard.tsx`
 - Modify: `components/editor/ChatBubble.tsx`
 - Modify: `components/editor/ChatPanel.tsx`
 
 **Interfaces:**
+
 - Consumes: `ChatMessage.questions` (Task 1); `sendMessage(message, { answering: true })` (Task 4).
 - Produces: card interativo renderizado dentro da bolha da IA quando `message.questions` e a bolha é a ativa.
 
@@ -762,17 +883,22 @@ export function ClarifyCard({ questions }: { questions: ClarifyQuestion[] }) {
   const allAnswered = questions.every((q) => answerFor(q) !== null);
 
   const gerar = () => {
-    const frase = questions.map((q) => `${q.label}: ${answerFor(q)}`).join(", ");
+    const frase = questions
+      .map((q) => `${q.label}: ${answerFor(q)}`)
+      .join(", ");
     void sendMessage(frase, { answering: true });
   };
 
-  const gerarAssimMesmo = () => void sendMessage("pode gerar com os padrões", { answering: true });
+  const gerarAssimMesmo = () =>
+    void sendMessage("pode gerar com os padrões", { answering: true });
 
   return (
-    <div className="max-w-[92%] bg-surface border border-border rounded-[12px_12px_12px_3px] p-[13px] flex flex-col gap-[14px]">
+    <div className="bg-surface border-border flex max-w-[92%] flex-col gap-[14px] rounded-[12px_12px_12px_3px] border p-[13px]">
       {questions.map((q) => (
         <div key={q.id} className="flex flex-col gap-[7px]">
-          <span className="text-[12.5px] font-semibold text-ink">{q.label}</span>
+          <span className="text-ink text-[12.5px] font-semibold">
+            {q.label}
+          </span>
           <div className="flex flex-wrap gap-[6px]">
             {q.options.map((opt) => {
               const sel = choice[q.id] === opt;
@@ -781,8 +907,10 @@ export function ClarifyCard({ questions }: { questions: ClarifyQuestion[] }) {
                   key={opt}
                   onClick={() => setChoice((s) => ({ ...s, [q.id]: opt }))}
                   className={[
-                    "text-[12px] px-[10px] py-[5px] rounded-pill border transition-colors",
-                    sel ? "bg-olive-tint border-olive-border text-olive-dark" : "bg-surface border-border text-muted-2 hover:bg-surface-alt",
+                    "rounded-pill border px-[10px] py-[5px] text-[12px] transition-colors",
+                    sel
+                      ? "bg-olive-tint border-olive-border text-olive-dark"
+                      : "bg-surface border-border text-muted-2 hover:bg-surface-alt",
                   ].join(" ")}
                 >
                   {opt}
@@ -793,8 +921,10 @@ export function ClarifyCard({ questions }: { questions: ClarifyQuestion[] }) {
               <button
                 onClick={() => setChoice((s) => ({ ...s, [q.id]: OTHER }))}
                 className={[
-                  "text-[12px] px-[10px] py-[5px] rounded-pill border transition-colors",
-                  choice[q.id] === OTHER ? "bg-olive-tint border-olive-border text-olive-dark" : "bg-surface border-border text-muted-2 hover:bg-surface-alt",
+                  "rounded-pill border px-[10px] py-[5px] text-[12px] transition-colors",
+                  choice[q.id] === OTHER
+                    ? "bg-olive-tint border-olive-border text-olive-dark"
+                    : "bg-surface border-border text-muted-2 hover:bg-surface-alt",
                 ].join(" ")}
               >
                 outro
@@ -805,9 +935,11 @@ export function ClarifyCard({ questions }: { questions: ClarifyQuestion[] }) {
             <input
               autoFocus
               value={other[q.id] ?? ""}
-              onChange={(e) => setOther((s) => ({ ...s, [q.id]: e.target.value }))}
+              onChange={(e) =>
+                setOther((s) => ({ ...s, [q.id]: e.target.value }))
+              }
               placeholder="descreva…"
-              className="text-[12.5px] px-[9px] py-[6px] rounded-item border border-border bg-surface-alt outline-none focus:border-olive-border"
+              className="rounded-item border-border bg-surface-alt focus:border-olive-border border px-[9px] py-[6px] text-[12.5px] outline-none"
             />
           )}
         </div>
@@ -817,13 +949,18 @@ export function ClarifyCard({ questions }: { questions: ClarifyQuestion[] }) {
           disabled={!allAnswered}
           onClick={gerar}
           className={[
-            "text-[13px] font-semibold px-[14px] py-[8px] rounded-btn transition-colors",
-            allAnswered ? "bg-olive text-[#f7f7f2] hover:bg-olive-dark" : "bg-disabled-border text-disabled cursor-not-allowed",
+            "rounded-btn px-[14px] py-[8px] text-[13px] font-semibold transition-colors",
+            allAnswered
+              ? "bg-olive hover:bg-olive-dark text-[#f7f7f2]"
+              : "bg-disabled-border text-disabled cursor-not-allowed",
           ].join(" ")}
         >
           Gerar molde
         </button>
-        <button onClick={gerarAssimMesmo} className="text-[12px] text-muted hover:text-muted-2 underline underline-offset-2">
+        <button
+          onClick={gerarAssimMesmo}
+          className="text-muted hover:text-muted-2 text-[12px] underline underline-offset-2"
+        >
           gerar assim mesmo
         </button>
       </div>
@@ -875,13 +1012,15 @@ export function ChatBubble({ message, active = false }: { message: ChatMessage; 
 Em `components/editor/ChatPanel.tsx`, no `.map`, marcar como ativa apenas a última mensagem quando não está gerando:
 
 ```tsx
-        {chat.map((message, i) => (
-          <ChatBubble
-            key={message.id}
-            message={message}
-            active={i === chat.length - 1 && generationStatus !== "generating"}
-          />
-        ))}
+{
+  chat.map((message, i) => (
+    <ChatBubble
+      key={message.id}
+      message={message}
+      active={i === chat.length - 1 && generationStatus !== "generating"}
+    />
+  ));
+}
 ```
 
 - [ ] **Step 4: Verificar build, lint e types**
@@ -892,6 +1031,7 @@ Expected: sem erros de ESLint; build TypeScript verde.
 - [ ] **Step 5: Verificação manual (registrar no relatório, não automatizar)**
 
 `npm run dev`, abrir `http://localhost:3000`:
+
 - "quero uma camiseta masculina" → aparece o card (sem debitar crédito); escolher opções habilita "Gerar molde"; gerar desenha o molde e debita 1.
 - "gerar assim mesmo" → desenha com defaults.
 - Pedido detalhado ("camiseta masculina M gola redonda manga curta") → desenha direto, sem card.
@@ -908,9 +1048,11 @@ git commit -m "feat(ui): ClarifyCard interativo no chat"
 ## Task 6: Docs + verificação final
 
 **Files:**
+
 - Modify: `CLAUDE.md`
 
 **Interfaces:**
+
 - Consumes: tudo das tasks anteriores.
 - Produces: documentação alinhada ao comportamento novo.
 
@@ -937,6 +1079,7 @@ git commit -m "docs: caminho ask (perguntas de esclarecimento) no generate"
 ## Self-Review (autor do plano)
 
 **Cobertura da spec:**
+
 - Gatilho "sempre que faltar detalhe" (criação ou ajuste) → Task 2 (instrução do prompt, sem restrição a molde vazio). ✅
 - Perguntar é de graça (estorno) → Task 3 (`refundCredits` no `ask`). ✅
 - Card 1–4 perguntas, escolha única + "outro" + "Gerar molde"/"gerar assim mesmo" → Task 5. ✅

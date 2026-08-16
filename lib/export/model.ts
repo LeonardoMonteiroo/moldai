@@ -4,8 +4,7 @@ import { draftPiecesCm } from "@/lib/draft/garment";
 
 export type ExPt = { x: number; y: number };
 export type ExSeg =
-  | { kind: "line"; to: ExPt }
-  | { kind: "cubic"; c1: ExPt; c2: ExPt; to: ExPt };
+  { kind: "line"; to: ExPt } | { kind: "cubic"; c1: ExPt; c2: ExPt; to: ExPt };
 
 export interface ExportPiece {
   id: string;
@@ -63,10 +62,12 @@ export function outlineSegments(
     return { start: P(p[0] ?? [0, 0]), segs };
   }
   const at = (i: number) => p[((i % n) + n) % n];
-  const spanFor = (i: number) => curvedSpans.find(([a, b]) => i >= a && i + 1 <= b);
+  const spanFor = (i: number) =>
+    curvedSpans.find(([a, b]) => i >= a && i + 1 <= b);
   const segs: ExSeg[] = [];
   for (let i = 0; i < n; i++) {
-    const p1 = at(i), p2 = at(i + 1);
+    const p1 = at(i),
+      p2 = at(i + 1);
     const span = spanFor(i);
     if (!span) {
       segs.push({ kind: "line", to: P(p2) });
@@ -75,8 +76,14 @@ export function outlineSegments(
     const [a, b] = span;
     const p0 = i === a ? p1 : at(i - 1);
     const p3 = i + 1 === b ? p2 : at(i + 2);
-    const c1: ExPt = { x: p1[0] + (p2[0] - p0[0]) / 6, y: p1[1] + (p2[1] - p0[1]) / 6 };
-    const c2: ExPt = { x: p2[0] - (p3[0] - p1[0]) / 6, y: p2[1] - (p3[1] - p1[1]) / 6 };
+    const c1: ExPt = {
+      x: p1[0] + (p2[0] - p0[0]) / 6,
+      y: p1[1] + (p2[1] - p0[1]) / 6,
+    };
+    const c2: ExPt = {
+      x: p2[0] - (p3[0] - p1[0]) / 6,
+      y: p2[1] - (p3[1] - p1[1]) / 6,
+    };
     segs.push({ kind: "cubic", c1, c2, to: P(p2) });
   }
   return { start: P(at(0)), segs };
@@ -108,7 +115,8 @@ export function buildExportModel(pattern: Pattern): ExportModel {
       const [g1, g2] = dp.grainlineCm;
       ep.grainline = [P(shift(g1)), P(shift(g2))];
     }
-    if (dp.dartCm && dp.dartCm.length >= 3) ep.dart = dp.dartCm.map((pt) => P(shift(pt)));
+    if (dp.dartCm && dp.dartCm.length >= 3)
+      ep.dart = dp.dartCm.map((pt) => P(shift(pt)));
     return ep;
   });
 

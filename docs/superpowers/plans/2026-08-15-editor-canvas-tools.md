@@ -23,6 +23,7 @@
 ## File Structure
 
 **Criados:**
+
 - `lib/canvas/viewport.ts` — math puro do viewport (zoom-ao-ponto, fit, clamp, pan).
 - `lib/canvas/viewport.test.ts` — testes do math do viewport.
 - `lib/canvas/measure.ts` — math puro de medição (snap, distância cm).
@@ -33,6 +34,7 @@
 - `components/editor/MeasureLayer.tsx` — camada SVG de medições/preview/snap.
 
 **Modificados:**
+
 - `lib/types.ts` — `Point`, `Measurement`, `Piece.vertices?`.
 - `lib/draft/core.ts` — `place()` anexa `piece.vertices`.
 - `lib/draft/core.test.ts` — teste de `vertices`.
@@ -46,11 +48,13 @@
 ## Task 1: Tipos + vértices de snap no draft
 
 **Files:**
+
 - Modify: `lib/types.ts` (após a linha 7, e no `interface Piece`)
 - Modify: `lib/draft/core.ts` (dentro de `place`, ~linha 83-90)
 - Test: `lib/draft/core.test.ts`
 
 **Interfaces:**
+
 - Produces: `interface Point { x: number; y: number }`, `interface Measurement { id: string; a: Point; b: Point }`, campo `Piece.vertices?: Point[]`.
 
 - [ ] **Step 1: Write the failing test**
@@ -58,17 +62,19 @@
 Adicionar ao final do `describe("core drafting", ...)` em `lib/draft/core.test.ts` (antes do fechamento do describe na linha 52):
 
 ```ts
-  it("autoLayout anexa vertices alinhados aos cantos do outline", () => {
-    const { pieces } = autoLayout([rect("a", 10, 20)], 5);
-    const p = pieces[0];
-    expect(p.vertices).toBeDefined();
-    expect(p.vertices).toHaveLength(4);
-    // primeiro vértice = primeiro par "x,y" do polygon
-    const [px, py] = (p.outline as { points: string }).points
-      .split(" ")[0].split(",").map(Number);
-    expect(p.vertices![0].x).toBeCloseTo(px, 1);
-    expect(p.vertices![0].y).toBeCloseTo(py, 1);
-  });
+it("autoLayout anexa vertices alinhados aos cantos do outline", () => {
+  const { pieces } = autoLayout([rect("a", 10, 20)], 5);
+  const p = pieces[0];
+  expect(p.vertices).toBeDefined();
+  expect(p.vertices).toHaveLength(4);
+  // primeiro vértice = primeiro par "x,y" do polygon
+  const [px, py] = (p.outline as { points: string }).points
+    .split(" ")[0]
+    .split(",")
+    .map(Number);
+  expect(p.vertices![0].x).toBeCloseTo(px, 1);
+  expect(p.vertices![0].y).toBeCloseTo(py, 1);
+});
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
@@ -104,7 +110,10 @@ E no `interface Piece` (linha 44-54), adicionar o campo opcional após `label`:
 Em `lib/draft/core.ts`, dentro de `place()`, logo após o objeto `const piece: Piece = { ... };` (linha 90) e antes do `if (dp.guideCm)`:
 
 ```ts
-  piece.vertices = dp.outlineCm.map(([x, y]) => ({ x: PX(x) + dxPx, y: PX(y) + dyPx }));
+piece.vertices = dp.outlineCm.map(([x, y]) => ({
+  x: PX(x) + dxPx,
+  y: PX(y) + dyPx,
+}));
 ```
 
 - [ ] **Step 5: Run tests to verify they pass**
@@ -124,10 +133,12 @@ git commit -m "feat(draft): expõe vertices das peças para snap de medição"
 ## Task 2: Math puro do viewport
 
 **Files:**
+
 - Create: `lib/canvas/viewport.ts`
 - Test: `lib/canvas/viewport.test.ts`
 
 **Interfaces:**
+
 - Consumes: `Point` de `@/lib/types` (Task 1).
 - Produces: `interface Viewport { x:number; y:number; w:number; h:number }`, `interface Size { w:number; h:number }`, consts `MIN_SCALE=0.25`, `MAX_SCALE=10`, `ZOOM_STEP=1.1`, e funções `scaleOf(vp,natural)`, `clampScale(s)`, `zoomAt(vp,focus,factor,natural)`, `zoomByCenter(vp,factor,natural)`, `panBy(vp,dxUser,dyUser)`, `fit(natural,padPx?)`.
 
@@ -137,13 +148,25 @@ Criar `lib/canvas/viewport.test.ts`:
 
 ```ts
 import { describe, it, expect } from "vitest";
-import { zoomAt, fit, scaleOf, zoomByCenter, panBy, MAX_SCALE } from "./viewport";
+import {
+  zoomAt,
+  fit,
+  scaleOf,
+  zoomByCenter,
+  panBy,
+  MAX_SCALE,
+} from "./viewport";
 
 const natural = { w: 100, h: 100 };
 
 describe("viewport math", () => {
   it("fit centraliza com padding", () => {
-    expect(fit({ w: 100, h: 50 }, 24)).toEqual({ x: -24, y: -24, w: 148, h: 98 });
+    expect(fit({ w: 100, h: 50 }, 24)).toEqual({
+      x: -24,
+      y: -24,
+      w: 148,
+      h: 98,
+    });
   });
 
   it("scaleOf: viewport natural = escala 1; menor = zoom maior", () => {
@@ -168,7 +191,12 @@ describe("viewport math", () => {
   });
 
   it("panBy desloca o viewBox no sentido oposto ao arrasto", () => {
-    expect(panBy({ x: 10, y: 10, w: 100, h: 100 }, 5, -3)).toEqual({ x: 5, y: 13, w: 100, h: 100 });
+    expect(panBy({ x: 10, y: 10, w: 100, h: 100 }, 5, -3)).toEqual({
+      x: 5,
+      y: 13,
+      w: 100,
+      h: 100,
+    });
   });
 });
 ```
@@ -211,7 +239,12 @@ export function clampScale(s: number): number {
 }
 
 // zoom ao redor de `focus` (coords SVG), mantendo o ponto sob o cursor fixo
-export function zoomAt(vp: Viewport, focus: Point, factor: number, natural: Size): Viewport {
+export function zoomAt(
+  vp: Viewport,
+  focus: Point,
+  factor: number,
+  natural: Size,
+): Viewport {
   const current = scaleOf(vp, natural);
   const target = clampScale(current * factor);
   const applied = target / current; // fator efetivo após clamp
@@ -222,8 +255,17 @@ export function zoomAt(vp: Viewport, focus: Point, factor: number, natural: Size
   return { x, y, w, h };
 }
 
-export function zoomByCenter(vp: Viewport, factor: number, natural: Size): Viewport {
-  return zoomAt(vp, { x: vp.x + vp.w / 2, y: vp.y + vp.h / 2 }, factor, natural);
+export function zoomByCenter(
+  vp: Viewport,
+  factor: number,
+  natural: Size,
+): Viewport {
+  return zoomAt(
+    vp,
+    { x: vp.x + vp.w / 2, y: vp.y + vp.h / 2 },
+    factor,
+    natural,
+  );
 }
 
 // desloca o viewBox no sentido oposto ao arrasto (conteúdo segue o cursor)
@@ -233,7 +275,12 @@ export function panBy(vp: Viewport, dxUser: number, dyUser: number): Viewport {
 
 // viewBox natural da peça com padding (usado por "ajustar à tela")
 export function fit(natural: Size, padPx = 24): Viewport {
-  return { x: -padPx, y: -padPx, w: natural.w + padPx * 2, h: natural.h + padPx * 2 };
+  return {
+    x: -padPx,
+    y: -padPx,
+    w: natural.w + padPx * 2,
+    h: natural.h + padPx * 2,
+  };
 }
 ```
 
@@ -254,10 +301,12 @@ git commit -m "feat(canvas): math puro de viewport (zoom-ao-ponto, fit, pan, cla
 ## Task 3: Math puro de medição
 
 **Files:**
+
 - Create: `lib/canvas/measure.ts`
 - Test: `lib/canvas/measure.test.ts`
 
 **Interfaces:**
+
 - Consumes: `Point` de `@/lib/types` (Task 1); `SCALE` de `@/lib/draft/core`.
 - Produces: `distancePx(a,b)`, `distanceCm(a,b)`, `nearestSnap(p, vertices, thresholdPx)`.
 
@@ -276,7 +325,11 @@ describe("measure math", () => {
   });
 
   it("nearestSnap acha o vértice mais próximo dentro do limiar", () => {
-    const verts = [{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 100, y: 100 }];
+    const verts = [
+      { x: 0, y: 0 },
+      { x: 100, y: 0 },
+      { x: 100, y: 100 },
+    ];
     expect(nearestSnap({ x: 96, y: 3 }, verts, 10)).toEqual({ x: 100, y: 0 });
   });
 
@@ -309,7 +362,11 @@ export function distanceCm(a: Point, b: Point): number {
 }
 
 // vértice mais próximo de `p` dentro de `thresholdPx`; null se nenhum
-export function nearestSnap(p: Point, vertices: Point[], thresholdPx: number): Point | null {
+export function nearestSnap(
+  p: Point,
+  vertices: Point[],
+  thresholdPx: number,
+): Point | null {
   let best: Point | null = null;
   let bestD = thresholdPx;
   for (const v of vertices) {
@@ -342,11 +399,13 @@ git commit -m "feat(canvas): math puro de medição (snap ao vértice, distânci
 Mudança do union `EditorTool` e a `FloatingToolbar` andam juntas para o build não quebrar.
 
 **Files:**
+
 - Modify: `lib/store.ts`
 - Modify: `components/editor/FloatingToolbar.tsx`
 - Test: `lib/store.test.ts` (criar)
 
 **Interfaces:**
+
 - Consumes: `Measurement` de `@/lib/types` (Task 1).
 - Produces: `EditorTool = "cursor" | "medir"`; store expõe `measurements: Measurement[]`, `addMeasurement(m)`, `removeMeasurement(id)`, `clearMeasurements()`.
 
@@ -368,7 +427,9 @@ describe("editor store — ferramenta e medições", () => {
   });
 
   it("addMeasurement acrescenta", () => {
-    useEditorStore.getState().addMeasurement({ id: "m1", a: { x: 0, y: 0 }, b: { x: 4, y: 0 } });
+    useEditorStore
+      .getState()
+      .addMeasurement({ id: "m1", a: { x: 0, y: 0 }, b: { x: 4, y: 0 } });
     expect(useEditorStore.getState().measurements).toHaveLength(1);
   });
 
@@ -377,11 +438,15 @@ describe("editor store — ferramenta e medições", () => {
     s.addMeasurement({ id: "m1", a: { x: 0, y: 0 }, b: { x: 4, y: 0 } });
     s.addMeasurement({ id: "m2", a: { x: 0, y: 0 }, b: { x: 8, y: 0 } });
     useEditorStore.getState().removeMeasurement("m1");
-    expect(useEditorStore.getState().measurements.map((m) => m.id)).toEqual(["m2"]);
+    expect(useEditorStore.getState().measurements.map((m) => m.id)).toEqual([
+      "m2",
+    ]);
   });
 
   it("clearMeasurements esvazia", () => {
-    useEditorStore.getState().addMeasurement({ id: "m1", a: { x: 0, y: 0 }, b: { x: 4, y: 0 } });
+    useEditorStore
+      .getState()
+      .addMeasurement({ id: "m1", a: { x: 0, y: 0 }, b: { x: 4, y: 0 } });
     useEditorStore.getState().clearMeasurements();
     expect(useEditorStore.getState().measurements).toEqual([]);
   });
@@ -400,7 +465,16 @@ Em `lib/store.ts`:
 (a) Trocar o import de tipos (linha 3) para incluir `Measurement`:
 
 ```ts
-import { ChatMessage, Credits, EditorState, GenerationStatus, Pattern, ConflictInfo, COSTS, Measurement } from "./types";
+import {
+  ChatMessage,
+  Credits,
+  EditorState,
+  GenerationStatus,
+  Pattern,
+  ConflictInfo,
+  COSTS,
+  Measurement,
+} from "./types";
 ```
 
 (b) Trocar o tipo `EditorTool` (linha 6):
@@ -433,25 +507,31 @@ e adicionar, junto aos outros setters (após `setActiveTool` na linha 53):
 (e) Em `sendMessage`, no ramo de sucesso (linhas 125-130), capturar a versão anterior e limpar medições quando a peça for regerada. Substituir:
 
 ```ts
-    applyState(set, result.state);
-    const shouldSelectFirst = !get().selectedPieceId && result.state.pattern.pieces.length > 0;
-    set({
-      generationStatus: result.status === "error" ? "error" : "idle",
-      ...(shouldSelectFirst ? { selectedPieceId: result.state.pattern.pieces[0].id } : {}),
-    });
+applyState(set, result.state);
+const shouldSelectFirst =
+  !get().selectedPieceId && result.state.pattern.pieces.length > 0;
+set({
+  generationStatus: result.status === "error" ? "error" : "idle",
+  ...(shouldSelectFirst
+    ? { selectedPieceId: result.state.pattern.pieces[0].id }
+    : {}),
+});
 ```
 
 por:
 
 ```ts
-    const prevVersion = get().pattern?.version;
-    applyState(set, result.state);
-    const shouldSelectFirst = !get().selectedPieceId && result.state.pattern.pieces.length > 0;
-    set({
-      generationStatus: result.status === "error" ? "error" : "idle",
-      ...(shouldSelectFirst ? { selectedPieceId: result.state.pattern.pieces[0].id } : {}),
-      ...(result.state.pattern.version !== prevVersion ? { measurements: [] } : {}),
-    });
+const prevVersion = get().pattern?.version;
+applyState(set, result.state);
+const shouldSelectFirst =
+  !get().selectedPieceId && result.state.pattern.pieces.length > 0;
+set({
+  generationStatus: result.status === "error" ? "error" : "idle",
+  ...(shouldSelectFirst
+    ? { selectedPieceId: result.state.pattern.pieces[0].id }
+    : {}),
+  ...(result.state.pattern.version !== prevVersion ? { measurements: [] } : {}),
+});
 ```
 
 (f) Em `resetPattern`, no `set({...})` (linhas 148-156), trocar `activeTool: "medir",` por `activeTool: "cursor",` e acrescentar `measurements: [],`.
@@ -484,15 +564,17 @@ export function FloatingToolbar({
   onSelect: (tool: EditorTool) => void;
 }) {
   return (
-    <div className="absolute left-5 top-5 bg-surface border border-border rounded-item p-[7px] flex flex-col gap-1 shadow-card">
+    <div className="bg-surface border-border rounded-item shadow-card absolute top-5 left-5 flex flex-col gap-1 border p-[7px]">
       {TOOLS.map((tool) => (
         <button
           key={tool.id}
           title={tool.label}
           onClick={() => onSelect(tool.id)}
           className={[
-            "w-[30px] h-[30px] rounded-[7px] flex items-center justify-center text-[14px] transition-colors",
-            tool.id === activeTool ? "bg-olive-tint text-olive" : "text-muted-2 hover:bg-surface-alt",
+            "flex h-[30px] w-[30px] items-center justify-center rounded-[7px] text-[14px] transition-colors",
+            tool.id === activeTool
+              ? "bg-olive-tint text-olive"
+              : "text-muted-2 hover:bg-surface-alt",
           ].join(" ")}
         >
           {tool.icon}
@@ -528,9 +610,11 @@ git commit -m "feat(store): ferramenta cursor|medir + slice de medições; toolb
 ## Task 5: Hook do viewport
 
 **Files:**
+
 - Create: `lib/canvas/useCanvasViewport.ts`
 
 **Interfaces:**
+
 - Consumes: `Point` (`@/lib/types`); `Viewport`, `Size`, `fit`, `zoomAt`, `zoomByCenter`, `panBy`, `scaleOf`, `ZOOM_STEP` (`./viewport`).
 - Produces: `useCanvasViewport(svgRef, natural, patternVersion)` → `{ viewport, zoomAtScreen(clientX,clientY,factor), panByScreen(dxScreen,dyScreen), zoomIn(), zoomOut(), fitToScreen(), scale, screenToUser(clientX,clientY): Point }`.
 
@@ -541,7 +625,16 @@ Criar `lib/canvas/useCanvasViewport.ts`:
 ```ts
 import { RefObject, useCallback, useEffect, useState } from "react";
 import type { Point } from "@/lib/types";
-import { Viewport, Size, fit, zoomAt, zoomByCenter, panBy, scaleOf, ZOOM_STEP } from "./viewport";
+import {
+  Viewport,
+  Size,
+  fit,
+  zoomAt,
+  zoomByCenter,
+  panBy,
+  scaleOf,
+  ZOOM_STEP,
+} from "./viewport";
 
 function toUser(svg: SVGSVGElement, clientX: number, clientY: number): Point {
   const ctm = svg.getScreenCTM();
@@ -584,8 +677,14 @@ export function useCanvasViewport(
     [svgRef],
   );
 
-  const zoomIn = useCallback(() => setViewport((vp) => zoomByCenter(vp, ZOOM_STEP, natural)), [natural]);
-  const zoomOut = useCallback(() => setViewport((vp) => zoomByCenter(vp, 1 / ZOOM_STEP, natural)), [natural]);
+  const zoomIn = useCallback(
+    () => setViewport((vp) => zoomByCenter(vp, ZOOM_STEP, natural)),
+    [natural],
+  );
+  const zoomOut = useCallback(
+    () => setViewport((vp) => zoomByCenter(vp, 1 / ZOOM_STEP, natural)),
+    [natural],
+  );
   const fitToScreen = useCallback(() => setViewport(fit(natural)), [natural]);
 
   const screenToUser = useCallback(
@@ -626,9 +725,11 @@ git commit -m "feat(canvas): hook useCanvasViewport (tela<->SVG, zoom/pan/fit)"
 ## Task 6: Widget de zoom
 
 **Files:**
+
 - Create: `components/editor/ZoomControls.tsx`
 
 **Interfaces:**
+
 - Produces: `ZoomControls({ scale, onZoomIn, onZoomOut, onFit })`.
 
 - [ ] **Step 1: Write the component**
@@ -648,25 +749,25 @@ export function ZoomControls({
   onFit: () => void;
 }) {
   return (
-    <div className="absolute right-5 bottom-5 bg-surface border border-border rounded-item p-[7px] flex items-center gap-1 shadow-card">
+    <div className="bg-surface border-border rounded-item shadow-card absolute right-5 bottom-5 flex items-center gap-1 border p-[7px]">
       <button
         title="Diminuir zoom"
         onClick={onZoomOut}
-        className="w-[30px] h-[30px] rounded-[7px] flex items-center justify-center text-[16px] text-muted-2 hover:bg-surface-alt transition-colors"
+        className="text-muted-2 hover:bg-surface-alt flex h-[30px] w-[30px] items-center justify-center rounded-[7px] text-[16px] transition-colors"
       >
         −
       </button>
       <button
         title="Ajustar à tela"
         onClick={onFit}
-        className="min-w-[54px] h-[30px] px-2 rounded-[7px] flex items-center justify-center text-[12px] text-muted-2 hover:bg-surface-alt transition-colors tabular-nums"
+        className="text-muted-2 hover:bg-surface-alt flex h-[30px] min-w-[54px] items-center justify-center rounded-[7px] px-2 text-[12px] tabular-nums transition-colors"
       >
         {Math.round(scale * 100)}%
       </button>
       <button
         title="Aumentar zoom"
         onClick={onZoomIn}
-        className="w-[30px] h-[30px] rounded-[7px] flex items-center justify-center text-[16px] text-muted-2 hover:bg-surface-alt transition-colors"
+        className="text-muted-2 hover:bg-surface-alt flex h-[30px] w-[30px] items-center justify-center rounded-[7px] text-[16px] transition-colors"
       >
         +
       </button>
@@ -692,9 +793,11 @@ git commit -m "feat(canvas): widget de zoom (- / % / + / ajustar)"
 ## Task 7: Camada de medição
 
 **Files:**
+
 - Create: `components/editor/MeasureLayer.tsx`
 
 **Interfaces:**
+
 - Consumes: `Measurement`, `Point` (`@/lib/types`); `distanceCm` (`@/lib/canvas/measure`).
 - Produces: `MeasureLayer({ measurements, pending, cursor, snap, scale, onRemove })`.
 
@@ -727,7 +830,10 @@ export function MeasureLayer({
 }) {
   const fs = 12 / scale; // font-size constante em tela
   const r = 3 / scale; // raio dos ticks constante em tela
-  const mid = (a: Point, b: Point) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+  const mid = (a: Point, b: Point) => ({
+    x: (a.x + b.x) / 2,
+    y: (a.y + b.y) / 2,
+  });
 
   return (
     <g>
@@ -795,7 +901,7 @@ export function MeasureLayer({
           cx={snap.x}
           cy={snap.y}
           r={5 / scale}
-          className="fill-none stroke-olive"
+          className="stroke-olive fill-none"
           style={{ strokeWidth: 1.5 }}
           vectorEffect="non-scaling-stroke"
         />
@@ -824,10 +930,12 @@ git commit -m "feat(canvas): camada SVG de medições (linhas, rótulos cm, prev
 Rewrite do `PatternCanvas` e fiação no `CanvasArea` andam juntos (contrato de props). Ao fim, verificação no app rodando.
 
 **Files:**
+
 - Modify: `components/editor/PatternCanvas.tsx` (rewrite)
 - Modify: `components/editor/CanvasArea.tsx`
 
 **Interfaces:**
+
 - Consumes: `Viewport` (`@/lib/canvas/viewport`); `nearestSnap` (`@/lib/canvas/measure`); `ZOOM_STEP` (`@/lib/canvas/viewport`); `useCanvasViewport` (`@/lib/canvas/useCanvasViewport`); `ZoomControls`, `MeasureLayer`; store `measurements`/`addMeasurement`/`removeMeasurement`/`clearMeasurements`; `Point`, `Measurement`, `Piece`, `ConflictInfo` (`@/lib/types`); `EditorTool` (`@/lib/store`).
 
 - [ ] **Step 1: Rewrite PatternCanvas**
@@ -836,7 +944,13 @@ Substituir todo `components/editor/PatternCanvas.tsx` por:
 
 ```tsx
 import { RefObject, useEffect, useMemo, useRef, useState } from "react";
-import { ConflictInfo, Piece, PieceOutline, Point, Measurement } from "@/lib/types";
+import {
+  ConflictInfo,
+  Piece,
+  PieceOutline,
+  Point,
+  Measurement,
+} from "@/lib/types";
 import { EditorTool } from "@/lib/store";
 import { Viewport, ZOOM_STEP } from "@/lib/canvas/viewport";
 import { nearestSnap } from "@/lib/canvas/measure";
@@ -852,7 +966,9 @@ function OutlineShape({
   style?: React.CSSProperties;
 }) {
   if (outline.kind === "polygon") {
-    return <polygon points={outline.points} className={className} style={style} />;
+    return (
+      <polygon points={outline.points} className={className} style={style} />
+    );
   }
   return <path d={outline.d} className={className} style={style} />;
 }
@@ -896,7 +1012,10 @@ export function PatternCanvas({
   const drag = useRef<{ x: number; y: number } | null>(null);
   const moved = useRef(false);
 
-  const snapPoints = useMemo(() => pieces.flatMap((p) => p.vertices ?? []), [pieces]);
+  const snapPoints = useMemo(
+    () => pieces.flatMap((p) => p.vertices ?? []),
+    [pieces],
+  );
 
   // limiar de snap ~10px de tela convertido p/ unidades de usuário
   const thresholdUser = () => {
@@ -980,7 +1099,7 @@ export function PatternCanvas({
     <svg
       ref={svgRef}
       viewBox={`${viewport.x} ${viewport.y} ${viewport.w} ${viewport.h}`}
-      className="w-full h-full transition-opacity duration-300"
+      className="h-full w-full transition-opacity duration-300"
       style={{
         opacity: dimmed ? 0.4 : 1,
         cursor: activeTool === "medir" ? "crosshair" : "grab",
@@ -997,20 +1116,25 @@ export function PatternCanvas({
           <g
             key={piece.id}
             onClick={() => {
-              if (activeTool === "cursor" && !moved.current) onSelectPiece(piece.id);
+              if (activeTool === "cursor" && !moved.current)
+                onSelectPiece(piece.id);
             }}
             className={activeTool === "cursor" ? "cursor-pointer" : undefined}
           >
             {piece.guideOutline && (
               <OutlineShape
                 outline={piece.guideOutline}
-                className="fill-none stroke-pattern-guide"
+                className="stroke-pattern-guide fill-none"
                 style={{ strokeWidth: 1.1, strokeDasharray: "5 4" }}
               />
             )}
             <OutlineShape
               outline={piece.outline}
-              className={isSelected ? "fill-olive-tint stroke-ink" : "fill-white stroke-ink"}
+              className={
+                isSelected
+                  ? "fill-olive-tint stroke-ink"
+                  : "stroke-ink fill-white"
+              }
               style={{ strokeWidth: 1.7 }}
             />
             {piece.grainline && (
@@ -1024,9 +1148,18 @@ export function PatternCanvas({
               />
             )}
             {piece.dart && (
-              <path d={piece.dart.d} className="fill-none stroke-olive" style={{ strokeWidth: 1.2 }} />
+              <path
+                d={piece.dart.d}
+                className="stroke-olive fill-none"
+                style={{ strokeWidth: 1.2 }}
+              />
             )}
-            <text x={piece.label.x} y={piece.label.y} className="fill-muted" style={{ fontSize: 11 }}>
+            <text
+              x={piece.label.x}
+              y={piece.label.y}
+              className="fill-muted"
+              style={{ fontSize: 11 }}
+            >
               {piece.name.toUpperCase()} · {piece.qty}×
             </text>
           </g>
@@ -1040,7 +1173,7 @@ export function PatternCanvas({
             cx={marker.cx}
             cy={marker.cy}
             r={marker.r}
-            className="fill-none stroke-alert"
+            className="stroke-alert fill-none"
             style={{ strokeWidth: 2, strokeDasharray: "4 3" }}
           />
         ))}
@@ -1108,13 +1241,17 @@ export function CanvasArea() {
 
   if (!pattern) return null;
   const isGenerating = generationStatus === "generating";
-  const selectedPiece = pattern.pieces.find((p) => p.id === selectedPieceId) ?? null;
+  const selectedPiece =
+    pattern.pieces.find((p) => p.id === selectedPieceId) ?? null;
   const hasPieces = pattern.pieces.length > 0;
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 min-h-0">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       {isGenerating ? (
-        <GeneratingOverlay stepIndex={generationStepIndex} onCancel={cancelGeneration} />
+        <GeneratingOverlay
+          stepIndex={generationStepIndex}
+          onCancel={cancelGeneration}
+        />
       ) : (
         <TabBar
           activeTab={activeTab}
@@ -1127,7 +1264,7 @@ export function CanvasArea() {
       )}
 
       {activeTab === "molde2d" && (
-        <div className="flex-1 relative pattern-grid bg-paper p-[22px] min-h-[300px] overflow-hidden">
+        <div className="pattern-grid bg-paper relative min-h-[300px] flex-1 overflow-hidden p-[22px]">
           <PatternCanvas
             pieces={pattern.pieces}
             selectedPieceId={selectedPieceId}
@@ -1142,17 +1279,19 @@ export function CanvasArea() {
             onWheelZoom={vp.zoomAtScreen}
             onPan={vp.panByScreen}
             screenToUser={vp.screenToUser}
-            onAddMeasurement={(a, b) => addMeasurement({ id: crypto.randomUUID(), a, b })}
+            onAddMeasurement={(a, b) =>
+              addMeasurement({ id: crypto.randomUUID(), a, b })
+            }
             onRemoveMeasurement={removeMeasurement}
           />
           {!isGenerating && !hasPieces && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center px-6 pointer-events-none">
-              <span className="font-display text-[18px] font-semibold text-muted-2">
+            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-center">
+              <span className="font-display text-muted-2 text-[18px] font-semibold">
                 Molde em branco
               </span>
-              <span className="text-[12.5px] text-muted max-w-[300px]">
-                Descreva a peça que você quer no chat ao lado — a IA gera seu primeiro
-                molde do zero.
+              <span className="text-muted max-w-[300px] text-[12.5px]">
+                Descreva a peça que você quer no chat ao lado — a IA gera seu
+                primeiro molde do zero.
               </span>
             </div>
           )}
@@ -1170,12 +1309,14 @@ export function CanvasArea() {
           {!isGenerating && hasPieces && measurements.length > 0 && (
             <button
               onClick={clearMeasurements}
-              className="absolute left-5 bottom-5 bg-surface border border-border rounded-item px-3 h-[34px] text-[12px] text-muted-2 hover:bg-surface-alt shadow-card transition-colors"
+              className="bg-surface border-border rounded-item text-muted-2 hover:bg-surface-alt shadow-card absolute bottom-5 left-5 h-[34px] border px-3 text-[12px] transition-colors"
             >
               Limpar medições
             </button>
           )}
-          {!isGenerating && conflict && <ConflictInfoCard conflict={conflict} />}
+          {!isGenerating && conflict && (
+            <ConflictInfoCard conflict={conflict} />
+          )}
           {!isGenerating && !conflict && detailsPanelOpen && selectedPiece && (
             <PieceDetailsPanel
               piece={selectedPiece}
@@ -1207,6 +1348,7 @@ Expected: PASS (toda a suíte).
 Run: `npm run dev` e abrir `http://localhost:3000`.
 
 Verificar manualmente:
+
 1. Gerar um molde pelo chat (ex.: "blusa feminina tamanho M"). A toolbar mostra só **cursor** e **medir**; cursor é a ferramenta inicial.
 2. **Cursor**: roda do mouse dá zoom apontando pro cursor; arrastar move a tela; clicar (sem arrastar) numa peça abre os detalhes; o widget inferior-direito mostra `%` e os botões `−`/`+`/`ajustar à tela` funcionam.
 3. **Medir**: cursor vira cruz; passar perto de um vértice mostra o realce (snap); 1º clique fixa o ponto A (linha-fantasma segue o cursor com a distância em cm); 2º clique grava a medição. Várias medições coexistem. `Esc` cancela um ponto A pendente.
@@ -1225,6 +1367,7 @@ git commit -m "feat(canvas): pan/zoom no cursor e medição com snap no PatternC
 ## Self-Review
 
 **Spec coverage:**
+
 - Modelo de coordenadas (px, `/SCALE`) → Task 3 (`distanceCm`), Global Constraints.
 - Cursor: scroll-zoom-ao-cursor, pan-arrasto, clique-seleciona, widget fit/reset → Tasks 2, 5, 6, 8.
 - Medir: 2 cliques, cm, snap nos vértices, persistente, limpar/remover, Esc → Tasks 1, 3, 4, 7, 8.

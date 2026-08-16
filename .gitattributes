@@ -1,3 +1,4 @@
 # Shell scripts precisam permanecer LF para o shebang funcionar no container Alpine
 # (core.autocrlf=true converteria para CRLF no checkout e quebraria /bin/sh).
 *.sh text eol=lf
+.husky/* text eol=lf

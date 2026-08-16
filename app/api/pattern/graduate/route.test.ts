@@ -5,10 +5,16 @@ import type { EditorState } from "@/lib/types";
 let state: EditorState = seedState();
 
 vi.mock("@/lib/auth/guard", () => ({
-  requireUser: vi.fn(async () => ({ id: "u1", email: "dev@moldai.local", name: null })),
+  requireUser: vi.fn(async () => ({
+    id: "u1",
+    email: "dev@moldai.local",
+    name: null,
+  })),
 }));
 vi.mock("@/lib/db/molde", () => ({
-  withMolde: vi.fn(async (_userId: string, fn: (s: EditorState) => unknown) => fn(state)),
+  withMolde: vi.fn(async (_userId: string, fn: (s: EditorState) => unknown) =>
+    fn(state),
+  ),
   loadMolde: vi.fn(async () => state),
   resetMolde: vi.fn(async () => (state = seedState())),
 }));
@@ -28,7 +34,11 @@ function req(body: unknown) {
 describe("POST /api/pattern/graduate", () => {
   beforeEach(() => {
     state = seedState();
-    vi.mocked(requireUser).mockResolvedValue({ id: "u1", email: "dev@moldai.local", name: null });
+    vi.mocked(requireUser).mockResolvedValue({
+      id: "u1",
+      email: "dev@moldai.local",
+      name: null,
+    });
   });
 
   it("gradua tamanhos válidos (2 tamanhos), debita 6, versiona e retorna mensagem formatada", async () => {
@@ -37,7 +47,9 @@ describe("POST /api/pattern/graduate", () => {
     const json = await res.json();
     expect(json.status).toBe("ok");
     expect(state.credits.balance).toBe(balanceBefore - 6);
-    expect(state.pattern.sizesApplied).toEqual(expect.arrayContaining(["PP", "P"]));
+    expect(state.pattern.sizesApplied).toEqual(
+      expect.arrayContaining(["PP", "P"]),
+    );
     const lastMsg = state.chat[state.chat.length - 1];
     expect(lastMsg.author).toBe("ai");
     expect(lastMsg.text).toBe("Graduação aplicada para PP e P.");
@@ -49,7 +61,9 @@ describe("POST /api/pattern/graduate", () => {
     const json = await res.json();
     expect(json.status).toBe("ok");
     expect(state.credits.balance).toBe(balanceBefore - 6);
-    expect(state.pattern.sizesApplied).toEqual(expect.arrayContaining(["PP", "P", "G"]));
+    expect(state.pattern.sizesApplied).toEqual(
+      expect.arrayContaining(["PP", "P", "G"]),
+    );
     const lastMsg = state.chat[state.chat.length - 1];
     expect(lastMsg.author).toBe("ai");
     expect(lastMsg.text).toBe("Graduação aplicada para PP, P e G.");

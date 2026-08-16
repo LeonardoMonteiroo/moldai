@@ -10,25 +10,25 @@ export function ZoomControls({
   onFit: () => void;
 }) {
   return (
-    <div className="absolute right-5 bottom-5 bg-surface border border-border rounded-item p-[7px] flex items-center gap-1 shadow-card">
+    <div className="bg-surface border-border rounded-item shadow-card absolute right-5 bottom-5 flex items-center gap-1 border p-[7px]">
       <button
         title="Diminuir zoom"
         onClick={onZoomOut}
-        className="w-[30px] h-[30px] rounded-[7px] flex items-center justify-center text-[16px] text-muted-2 hover:bg-surface-alt transition-colors"
+        className="text-muted-2 hover:bg-surface-alt flex h-[30px] w-[30px] items-center justify-center rounded-[7px] text-[16px] transition-colors"
       >
         −
       </button>
       <button
         title="Ajustar à tela"
         onClick={onFit}
-        className="min-w-[54px] h-[30px] px-2 rounded-[7px] flex items-center justify-center text-[12px] text-muted-2 hover:bg-surface-alt transition-colors tabular-nums"
+        className="text-muted-2 hover:bg-surface-alt flex h-[30px] min-w-[54px] items-center justify-center rounded-[7px] px-2 text-[12px] tabular-nums transition-colors"
       >
         {Math.round(scale * 100)}%
       </button>
       <button
         title="Aumentar zoom"
         onClick={onZoomIn}
-        className="w-[30px] h-[30px] rounded-[7px] flex items-center justify-center text-[16px] text-muted-2 hover:bg-surface-alt transition-colors"
+        className="text-muted-2 hover:bg-surface-alt flex h-[30px] w-[30px] items-center justify-center rounded-[7px] text-[16px] transition-colors"
       >
         +
       </button>

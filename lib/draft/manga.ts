@@ -22,20 +22,32 @@ export function draftManga(
   // 4 -> 5 barra dir (reta) -> 6 barra esq (reta) -> 0 (reta)
   const outlineCm: Pt[] = [
     [0, capH],
-    [bicep * 0.20, capH * 0.30],
+    [bicep * 0.2, capH * 0.3],
     [cxTop, 0],
-    [bicep * 0.80, capH * 0.30],
+    [bicep * 0.8, capH * 0.3],
     [bicep, capH],
     [cxTop + hemHalf, capH + len],
     [cxTop - hemHalf, capH + len],
   ];
   const curvedSpans: [number, number][] = [[0, 4]];
-  const grainlineCm: [Pt, Pt] = [[cxTop, 3], [cxTop, capH + len - 3]];
+  const grainlineCm: [Pt, Pt] = [
+    [cxTop, 3],
+    [cxTop, capH + len - 3],
+  ];
   const detailRows: DetailRow[] = [
     { label: "Tipo", value: style.manga === "longa" ? "longa" : "curta" },
     { label: "Comprimento", value: cm(capH + len) },
     { label: "Cava (copa)", value: cm(armholeLenCm) },
     { label: "Fio", value: "reto" },
   ];
-  return { id: "manga", name: "Manga", qty: 2, outlineCm, curvedSpans, grainlineCm, detailRows, armholeLenCm };
+  return {
+    id: "manga",
+    name: "Manga",
+    qty: 2,
+    outlineCm,
+    curvedSpans,
+    grainlineCm,
+    detailRows,
+    armholeLenCm,
+  };
 }

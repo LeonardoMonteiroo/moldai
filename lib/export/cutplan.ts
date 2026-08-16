@@ -30,7 +30,10 @@ export interface CutPlan {
 // cada peça pela quantidade a cortar e empacota as cópias em prateleiras dentro de uma
 // faixa da LARGURA DO TECIDO. O fio fica travado (sem rotação): a peça mantém a
 // orientação em que foi modelada, então a copa/decote continuam alinhados ao urdume.
-export function planCutLayout(pattern: Pattern, fabricWidthCm: number): CutPlan {
+export function planCutLayout(
+  pattern: Pattern,
+  fabricWidthCm: number,
+): CutPlan {
   const model = buildExportModel(pattern);
 
   // expande qty: cada cópia é uma instância a cortar
@@ -66,8 +69,19 @@ export function planCutLayout(pattern: Pattern, fabricWidthCm: number): CutPlan 
   }
 
   const lengthCm = (instances.length ? cursorY + rowH : 0) + PAD_CM;
-  const usedAreaCm2 = instances.reduce((s, it) => s + it.widthCm * it.heightCm, 0);
-  const efficiency = lengthCm > 0 ? usedAreaCm2 / (fabricWidthCm * lengthCm) : 0;
+  const usedAreaCm2 = instances.reduce(
+    (s, it) => s + it.widthCm * it.heightCm,
+    0,
+  );
+  const efficiency =
+    lengthCm > 0 ? usedAreaCm2 / (fabricWidthCm * lengthCm) : 0;
 
-  return { fabricWidthCm, lengthCm, usedAreaCm2, efficiency, instances, overflow };
+  return {
+    fabricWidthCm,
+    lengthCm,
+    usedAreaCm2,
+    efficiency,
+    instances,
+    overflow,
+  };
 }

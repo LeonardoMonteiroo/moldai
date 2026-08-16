@@ -2,14 +2,18 @@ import { ConflictInfo } from "@/lib/types";
 
 export function ConflictInfoCard({ conflict }: { conflict: ConflictInfo }) {
   return (
-    <div className="absolute right-5 top-5 w-[172px] bg-surface border border-border rounded-card p-3 flex flex-col gap-[7px] shadow-card">
-      <span className="text-[11px] font-semibold tracking-[.8px] uppercase text-muted">
+    <div className="bg-surface border-border rounded-card shadow-card absolute top-5 right-5 flex w-[172px] flex-col gap-[7px] border p-3">
+      <span className="text-muted text-[11px] font-semibold tracking-[.8px] uppercase">
         Conflito
       </span>
       <span className="text-[12.5px] font-semibold">{conflict.title}</span>
-      <span className="text-[12px] text-alert">diferença {conflict.diffCm.toString().replace(".", ",")} cm</span>
-      <div className="h-px bg-line" />
-      <span className="text-[11.5px] text-muted-2 leading-[1.45]">{conflict.suggestion}</span>
+      <span className="text-alert text-[12px]">
+        diferença {conflict.diffCm.toString().replace(".", ",")} cm
+      </span>
+      <div className="bg-line h-px" />
+      <span className="text-muted-2 text-[11.5px] leading-[1.45]">
+        {conflict.suggestion}
+      </span>
     </div>
   );
 }

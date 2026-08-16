@@ -1,10 +1,16 @@
 import { ChatMessage } from "@/lib/types";
 import { ClarifyCard } from "./ClarifyCard";
 
-export function ChatBubble({ message, active = false }: { message: ChatMessage; active?: boolean }) {
+export function ChatBubble({
+  message,
+  active = false,
+}: {
+  message: ChatMessage;
+  active?: boolean;
+}) {
   if (message.author === "user") {
     return (
-      <div className="self-end max-w-[88%] bg-olive text-[#f7f7f2] text-[13px] leading-[1.45] px-[13px] py-[10px] rounded-[12px_12px_3px_12px]">
+      <div className="bg-olive max-w-[88%] self-end rounded-[12px_12px_3px_12px] px-[13px] py-[10px] text-[13px] leading-[1.45] text-[#f7f7f2]">
         {message.text}
       </div>
     );
@@ -13,13 +19,15 @@ export function ChatBubble({ message, active = false }: { message: ChatMessage; 
   if (message.questions && message.questions.length > 0) {
     return (
       <div className="flex flex-col gap-[8px]">
-        <div className="max-w-[92%] text-[13px] leading-[1.45] px-[13px] py-[10px] rounded-[12px_12px_12px_3px] border bg-paper border-border">
+        <div className="bg-paper border-border max-w-[92%] rounded-[12px_12px_12px_3px] border px-[13px] py-[10px] text-[13px] leading-[1.45]">
           {message.text}
         </div>
         {active ? (
           <ClarifyCard questions={message.questions} />
         ) : (
-          <div className="max-w-[92%] text-[12px] text-muted italic px-[13px]">Perguntas respondidas.</div>
+          <div className="text-muted max-w-[92%] px-[13px] text-[12px] italic">
+            Perguntas respondidas.
+          </div>
         )}
       </div>
     );
@@ -30,7 +38,7 @@ export function ChatBubble({ message, active = false }: { message: ChatMessage; 
   return (
     <div
       className={[
-        "max-w-[92%] text-[13px] leading-[1.45] px-[13px] py-[10px] rounded-[12px_12px_12px_3px] border",
+        "max-w-[92%] rounded-[12px_12px_12px_3px] border px-[13px] py-[10px] text-[13px] leading-[1.45]",
         isConflict
           ? "bg-amber-bg border-amber-border text-amber-text"
           : "bg-paper border-border",
@@ -38,12 +46,12 @@ export function ChatBubble({ message, active = false }: { message: ChatMessage; 
     >
       {message.text}
       {message.chips && message.chips.length > 0 && (
-        <div className="flex gap-[6px] mt-[9px] flex-wrap">
+        <div className="mt-[9px] flex flex-wrap gap-[6px]">
           {message.chips.map((chip) => (
             <span
               key={chip.label}
               className={[
-                "text-[11px] px-2 py-[3px] rounded-pill border",
+                "rounded-pill border px-2 py-[3px] text-[11px]",
                 chip.tone === "credit"
                   ? "bg-amber-bg border-amber-border text-amber-text"
                   : "bg-surface border-border",

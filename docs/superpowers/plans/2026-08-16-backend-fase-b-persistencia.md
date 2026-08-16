@@ -12,7 +12,7 @@
 
 - **Prisma pinado em v6** (`^6`). NÃO subir para v7 (removeu `datasource { url = env(...) }`).
 - **Model id da IA deve ser EXATAMENTE `claude-sonnet-5`** — não tocar em `lib/ai.ts` além do necessário (esta fase não muda a IA).
-- **Fluxo de crédito inalterado:** debit-then-draft, refund em decline/clarify/erro, 402 (sem débito, sem chamada à IA) em saldo insuficiente. Só muda o *onde* o estado vive.
+- **Fluxo de crédito inalterado:** debit-then-draft, refund em decline/clarify/erro, 402 (sem débito, sem chamada à IA) em saldo insuficiente. Só muda o _onde_ o estado vive.
 - **Saída da IA nunca é confiada para geometria** — `validateSpec`/`validateQuestions` seguem clampando (em `lib/ai.ts`/`lib/draft/garment.ts`, não mexer).
 - **Contrato JSON das respostas inalterado:** `{ status, state }`, códigos 400/402/401, e o shape do `EditorState`. O cliente (Zustand) não muda.
 - **`npm test` NÃO pode exigir Postgres rodando** — testes mockam `@/lib/db/*` e `@/lib/auth/guard`.
@@ -41,10 +41,12 @@
 ## Task 1: Model Prisma `Molde` + migração
 
 **Files:**
+
 - Modify: `prisma/schema.prisma`
 - Create: `prisma/migrations/<timestamp>_add_molde/migration.sql` (gerado)
 
 **Interfaces:**
+
 - Consumes: model `User` existente (`id String @id @default(cuid())`).
 - Produces: tabela `Molde { userId String @id, data Json, updatedAt DateTime }`; tipo Prisma `Molde` e `prisma.molde` no client.
 
@@ -99,12 +101,14 @@ EOF
 ## Task 2: `lib/editor/state.ts` — operações puras (portadas do mock)
 
 **Files:**
+
 - Create: `lib/editor/state.ts`
 - Create: `lib/editor/state.test.ts`
 
 Nota: `lib/mock-data.ts` permanece intacto nesta task (as rotas ainda o usam; será removido na Task 5). As novas funções têm assinaturas diferentes (recebem `state`), então não colidem.
 
 **Interfaces:**
+
 - Consumes: `draftGarment`, `seamCheck` de `@/lib/draft/garment`; `resolveMeasurements` de `@/lib/measurements`; tipos de `@/lib/types` (`EditorState`, `ChatMessage`, `ConflictInfo`, `Credits`, `GarmentSpec`, `Pattern`, `Piece`, `SizeLabel`).
 - Produces (todas exportadas de `lib/editor/state.ts`):
   - `seedState(): EditorState`
@@ -126,8 +130,17 @@ Create `lib/editor/state.test.ts`:
 ```ts
 import { describe, it, expect } from "vitest";
 import {
-  seedState, addMessage, debitCredits, refundCredits, bumpVersion,
-  setConflict, applyGarmentSpec, refitManga, getSpec, applySizes, applyPurchase,
+  seedState,
+  addMessage,
+  debitCredits,
+  refundCredits,
+  bumpVersion,
+  setConflict,
+  applyGarmentSpec,
+  refitManga,
+  getSpec,
+  applySizes,
+  applyPurchase,
 } from "./state";
 
 describe("seedState", () => {
@@ -142,7 +155,8 @@ describe("seedState", () => {
     expect(s.credits.plan).toBe("atelier");
   });
   it("cada chamada devolve um estado independente (sem alias)", () => {
-    const a = seedState(); const b = seedState();
+    const a = seedState();
+    const b = seedState();
     a.credits.balance = 0;
     expect(b.credits.balance).toBe(320);
   });
@@ -151,8 +165,10 @@ describe("seedState", () => {
 describe("créditos e versão", () => {
   it("debit/refund ajustam o saldo", () => {
     const s = seedState();
-    debitCredits(s, 4); expect(s.credits.balance).toBe(316);
-    refundCredits(s, 4); expect(s.credits.balance).toBe(320);
+    debitCredits(s, 4);
+    expect(s.credits.balance).toBe(316);
+    refundCredits(s, 4);
+    expect(s.credits.balance).toBe(320);
   });
   it("bumpVersion incrementa e marca salvo agora", () => {
     const s = seedState();
@@ -171,23 +187,42 @@ describe("créditos e versão", () => {
 describe("applyGarmentSpec / conflito / refit", () => {
   it("drafta uma saia e guarda no pattern", () => {
     const s = seedState();
-    applyGarmentSpec(s, { tipo: "saia", measurementOverrides: {}, style: { saia: "circulo" } });
+    applyGarmentSpec(s, {
+      tipo: "saia",
+      measurementOverrides: {},
+      style: { saia: "circulo" },
+    });
     expect(s.pattern.pieces.length).toBe(1);
     expect(s.pattern.pieces[0].id).toBe("saia");
     expect(s.pattern.viewBox!.w).toBeGreaterThan(0);
   });
   it("cavaAjusteCm anexa conflito; sem ajuste não há conflito", () => {
     const s = seedState();
-    applyGarmentSpec(s, { tipo: "blusa", sexo: "fem", measurementOverrides: {}, style: { manga: "curta" } });
+    applyGarmentSpec(s, {
+      tipo: "blusa",
+      sexo: "fem",
+      measurementOverrides: {},
+      style: { manga: "curta" },
+    });
     expect(s.conflict).toBeNull();
-    applyGarmentSpec(s, { tipo: "blusa", sexo: "fem", measurementOverrides: {}, style: { manga: "curta", cavaAjusteCm: 2 } });
+    applyGarmentSpec(s, {
+      tipo: "blusa",
+      sexo: "fem",
+      measurementOverrides: {},
+      style: { manga: "curta", cavaAjusteCm: 2 },
+    });
     expect(s.conflict).not.toBeNull();
     expect(s.conflict!.diffCm).toBeGreaterThan(1);
     expect(s.conflict!.pieceBId).toBe("manga");
   });
   it("refitManga refaz a copa e limpa o conflito", () => {
     const s = seedState();
-    applyGarmentSpec(s, { tipo: "blusa", sexo: "fem", measurementOverrides: {}, style: { manga: "curta", cavaAjusteCm: 2 } });
+    applyGarmentSpec(s, {
+      tipo: "blusa",
+      sexo: "fem",
+      measurementOverrides: {},
+      style: { manga: "curta", cavaAjusteCm: 2 },
+    });
     expect(s.conflict).not.toBeNull();
     refitManga(s);
     expect(s.conflict).toBeNull();
@@ -198,7 +233,12 @@ describe("applyGarmentSpec / conflito / refit", () => {
 describe("setConflict / applySizes / applyPurchase", () => {
   it("setConflict(null) limpa o aviso", () => {
     const s = seedState();
-    applyGarmentSpec(s, { tipo: "blusa", sexo: "fem", measurementOverrides: {}, style: { manga: "curta", cavaAjusteCm: 2 } });
+    applyGarmentSpec(s, {
+      tipo: "blusa",
+      sexo: "fem",
+      measurementOverrides: {},
+      style: { manga: "curta", cavaAjusteCm: 2 },
+    });
     setConflict(s, null);
     expect(s.conflict).toBeNull();
   });
@@ -210,8 +250,10 @@ describe("setConflict / applySizes / applyPurchase", () => {
   });
   it("applyPurchase topup soma 100; subscribe reseta plano Ateliê", () => {
     const s = seedState();
-    applyPurchase(s, "topup"); expect(s.credits.balance).toBe(420);
-    const s2 = seedState(); s2.credits.balance = 10;
+    applyPurchase(s, "topup");
+    expect(s.credits.balance).toBe(420);
+    const s2 = seedState();
+    s2.credits.balance = 10;
     applyPurchase(s2, "subscribe");
     expect(s2.credits.balance).toBe(510);
     expect(s2.credits.total).toBe(500);
@@ -244,13 +286,16 @@ import { resolveMeasurements } from "@/lib/measurements";
 
 // Marca (círculo tracejado) na região da cava de uma peça, a partir da bbox
 // dos seus vértices em px. Ilustrativa — aponta a costura em conflito no canvas.
-function cavaMarker(piece: Piece | undefined): { cx: number; cy: number; r: number } | null {
+function cavaMarker(
+  piece: Piece | undefined,
+): { cx: number; cy: number; r: number } | null {
   const vs = piece?.vertices;
   if (!vs || vs.length === 0) return null;
   const xs = vs.map((v) => v.x);
   const ys = vs.map((v) => v.y);
   const maxX = Math.max(...xs);
-  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  const minY = Math.min(...ys),
+    maxY = Math.max(...ys);
   return { cx: maxX - 6, cy: minY + (maxY - minY) * 0.28, r: 14 };
 }
 
@@ -274,7 +319,8 @@ function detectConflict(
     title: "Cava e manga não batem",
     description: `A cava do corpo ficou ${seam.diffCm} cm ${maior ? "maior" : "menor"} que a copa da manga — as costuras não vão fechar.`,
     diffCm: seam.diffCm,
-    suggestion: "“Corrigir manga” refaz a copa para a cava ajustada, sem custo.",
+    suggestion:
+      "“Corrigir manga” refaz a copa para a cava ajustada, sem custo.",
     pieceAId: "corpo-frente",
     pieceBId: "manga",
     markers,
@@ -283,7 +329,12 @@ function detectConflict(
 
 function seedPattern(): Pattern {
   const baseSize = "M" as const;
-  const spec: GarmentSpec = { tipo: "blusa", sexo: "fem", measurementOverrides: {}, style: {} };
+  const spec: GarmentSpec = {
+    tipo: "blusa",
+    sexo: "fem",
+    measurementOverrides: {},
+    style: {},
+  };
   return {
     id: "demo",
     name: "Novo molde",
@@ -301,12 +352,23 @@ function seedPattern(): Pattern {
 }
 
 function seedCredits(): Credits {
-  return { plan: "atelier", planLabel: "Ateliê", balance: 320, total: 500, renewsInDays: 12 };
+  return {
+    plan: "atelier",
+    planLabel: "Ateliê",
+    balance: 320,
+    total: 500,
+    renewsInDays: 12,
+  };
 }
 
 // O blank molde inicial de cada usuário.
 export function seedState(): EditorState {
-  return { pattern: seedPattern(), chat: [], credits: seedCredits(), conflict: null };
+  return {
+    pattern: seedPattern(),
+    chat: [],
+    credits: seedCredits(),
+    conflict: null,
+  };
 }
 
 export function addMessage(state: EditorState, message: ChatMessage): void {
@@ -322,23 +384,44 @@ export function refundCredits(state: EditorState, amount: number): void {
 }
 
 export function bumpVersion(state: EditorState): void {
-  state.pattern = { ...state.pattern, version: state.pattern.version + 1, savedAgo: "salvo agora" };
+  state.pattern = {
+    ...state.pattern,
+    version: state.pattern.version + 1,
+    savedAgo: "salvo agora",
+  };
 }
 
-export function setConflict(state: EditorState, conflict: ConflictInfo | null): void {
+export function setConflict(
+  state: EditorState,
+  conflict: ConflictInfo | null,
+): void {
   state.conflict = conflict;
 }
 
 export function getSpec(state: EditorState): GarmentSpec {
-  return state.pattern.spec ?? { tipo: "blusa", sexo: "fem", measurementOverrides: {}, style: {} };
+  return (
+    state.pattern.spec ?? {
+      tipo: "blusa",
+      sexo: "fem",
+      measurementOverrides: {},
+      style: {},
+    }
+  );
 }
 
 // Drafta o garment a partir de um spec validado e guarda pieces/viewBox/spec no
 // pattern; anexa (ou limpa) o conflito de costura (apply-with-warning).
 export function applyGarmentSpec(state: EditorState, spec: GarmentSpec): void {
   const size = state.pattern.baseSize;
-  const { pieces, viewBox, measurements, armholeLenCm, mangaArmholeCm } = draftGarment(spec, size);
-  state.pattern = { ...state.pattern, pieces, viewBox, spec, baseMeasurements: measurements };
+  const { pieces, viewBox, measurements, armholeLenCm, mangaArmholeCm } =
+    draftGarment(spec, size);
+  state.pattern = {
+    ...state.pattern,
+    pieces,
+    viewBox,
+    spec,
+    baseMeasurements: measurements,
+  };
   state.conflict = detectConflict(pieces, armholeLenCm, mangaArmholeCm);
 }
 
@@ -346,7 +429,10 @@ export function applyGarmentSpec(state: EditorState, spec: GarmentSpec): void {
 // ajustada, as costuras batem e detectConflict devolve null.
 export function refitManga(state: EditorState): void {
   const spec = getSpec(state);
-  applyGarmentSpec(state, { ...spec, style: { ...spec.style, mangaRefit: true } });
+  applyGarmentSpec(state, {
+    ...spec,
+    style: { ...spec.style, mangaRefit: true },
+  });
 }
 
 export function applySizes(state: EditorState, sizes: string[]): void {
@@ -365,7 +451,10 @@ export function applySizes(state: EditorState, sizes: string[]): void {
   };
 }
 
-export function applyPurchase(state: EditorState, type: "topup" | "subscribe"): void {
+export function applyPurchase(
+  state: EditorState,
+  type: "topup" | "subscribe",
+): void {
   if (type === "topup") {
     state.credits = { ...state.credits, balance: state.credits.balance + 100 };
   } else {
@@ -406,10 +495,12 @@ EOF
 ## Task 3: `lib/db/molde.ts` — repositório (transação + lock)
 
 **Files:**
+
 - Create: `lib/db/molde.ts`
 - Create: `lib/db/molde.test.ts`
 
 **Interfaces:**
+
 - Consumes: `prisma` de `@/lib/db/prisma`; `seedState` de `@/lib/editor/state`; tipo `EditorState` de `@/lib/types`.
 - Produces (exportadas de `lib/db/molde.ts`):
   - `withMolde<T>(userId: string, fn: (state: EditorState) => T | Promise<T>): Promise<T>`
@@ -442,15 +533,21 @@ vi.mock("@/lib/db/prisma", () => ({
         const data = store.get(where.userId);
         return data === undefined ? null : { userId: where.userId, data };
       }),
-      upsert: vi.fn(async ({ where, create, update }: {
-        where: { userId: string };
-        create: { userId: string; data: unknown };
-        update: { data: unknown };
-      }) => {
-        const exists = store.has(where.userId);
-        store.set(where.userId, exists ? update.data : create.data);
-        return { userId: where.userId, data: store.get(where.userId) };
-      }),
+      upsert: vi.fn(
+        async ({
+          where,
+          create,
+          update,
+        }: {
+          where: { userId: string };
+          create: { userId: string; data: unknown };
+          update: { data: unknown };
+        }) => {
+          const exists = store.has(where.userId);
+          store.set(where.userId, exists ? update.data : create.data);
+          return { userId: where.userId, data: store.get(where.userId) };
+        },
+      ),
     },
   },
 }));
@@ -479,12 +576,16 @@ describe("withMolde", () => {
 
   it("semeia o blank molde no primeiro acesso e passa ao fn", async () => {
     let seen: number | null = null;
-    await withMolde("u1", (state) => { seen = state.credits.balance; });
+    await withMolde("u1", (state) => {
+      seen = state.credits.balance;
+    });
     expect(seen).toBe(320);
   });
 
   it("persiste as mutações do fn (débito sobrevive)", async () => {
-    await withMolde("u1", (state) => { debitCredits(state, 4); });
+    await withMolde("u1", (state) => {
+      debitCredits(state, 4);
+    });
     const s = store.get("u1") as ReturnType<typeof seedState>;
     expect(s.credits.balance).toBe(316);
   });
@@ -496,14 +597,17 @@ describe("withMolde", () => {
 });
 
 describe("loadMolde", () => {
-  beforeEach(() => { store.clear(); });
+  beforeEach(() => {
+    store.clear();
+  });
   it("devolve seed sem gravar quando não há linha", async () => {
     const s = await loadMolde("novo");
     expect(s.credits.balance).toBe(320);
     expect(store.has("novo")).toBe(false); // read-only: nada foi persistido
   });
   it("devolve o estado persistido quando existe", async () => {
-    const seeded = seedState(); seeded.credits.balance = 7;
+    const seeded = seedState();
+    seeded.credits.balance = 7;
     store.set("u1", seeded);
     const s = await loadMolde("u1");
     expect(s.credits.balance).toBe(7);
@@ -511,14 +615,20 @@ describe("loadMolde", () => {
 });
 
 describe("resetMolde", () => {
-  beforeEach(() => { store.clear(); });
+  beforeEach(() => {
+    store.clear();
+  });
   it("sobrescreve com o blank molde e persiste", async () => {
-    const dirty = seedState(); dirty.credits.balance = 0; dirty.pattern.version = 9;
+    const dirty = seedState();
+    dirty.credits.balance = 0;
+    dirty.pattern.version = 9;
     store.set("u1", dirty);
     const s = await resetMolde("u1");
     expect(s.credits.balance).toBe(320);
     expect(s.pattern.version).toBe(0);
-    expect((store.get("u1") as ReturnType<typeof seedState>).pattern.version).toBe(0);
+    expect(
+      (store.get("u1") as ReturnType<typeof seedState>).pattern.version,
+    ).toBe(0);
   });
 });
 ```
@@ -620,6 +730,7 @@ EOF
 ## Task 4: Refatorar as 6 rotas para usar o repositório
 
 **Files:**
+
 - Modify: `app/api/pattern/route.ts`
 - Modify: `app/api/pattern/generate/route.ts`
 - Modify: `app/api/pattern/graduate/route.ts`
@@ -630,6 +741,7 @@ EOF
 - Modify: `app/api/pattern/graduate/route.test.ts`
 
 **Interfaces:**
+
 - Consumes: `withMolde`, `loadMolde`, `resetMolde` de `@/lib/db/molde`; ops de `@/lib/editor/state`; `requireUser` de `@/lib/auth/guard` (devolve `SessionUser` com `.id` ou `NextResponse`).
 - Produces: as rotas passam a persistir por `userId`; contrato JSON inalterado.
 
@@ -646,11 +758,17 @@ let state: EditorState = seedState();
 
 vi.mock("@/lib/ai", () => ({ proposeGarment: vi.fn() }));
 vi.mock("@/lib/auth/guard", () => ({
-  requireUser: vi.fn(async () => ({ id: "u1", email: "dev@moldai.local", name: null })),
+  requireUser: vi.fn(async () => ({
+    id: "u1",
+    email: "dev@moldai.local",
+    name: null,
+  })),
 }));
 vi.mock("@/lib/db/molde", () => ({
   // Executa o fn sobre o state em memória (imita withMolde sem DB).
-  withMolde: vi.fn(async (_userId: string, fn: (s: EditorState) => unknown) => fn(state)),
+  withMolde: vi.fn(async (_userId: string, fn: (s: EditorState) => unknown) =>
+    fn(state),
+  ),
   loadMolde: vi.fn(async () => state),
   resetMolde: vi.fn(async () => (state = seedState())),
 }));
@@ -674,7 +792,11 @@ describe("POST /api/pattern/generate", () => {
   beforeEach(() => {
     state = seedState();
     mockPropose.mockReset();
-    vi.mocked(requireUser).mockResolvedValue({ id: "u1", email: "dev@moldai.local", name: null });
+    vi.mocked(requireUser).mockResolvedValue({
+      id: "u1",
+      email: "dev@moldai.local",
+      name: null,
+    });
   });
 
   it("ask estorna o crédito, não desenha nem versiona, e devolve clarify", async () => {
@@ -682,8 +804,20 @@ describe("POST /api/pattern/generate", () => {
     const versionBefore = state.pattern.version;
     mockPropose.mockResolvedValue({
       decision: "ask",
-      spec: { tipo: "camiseta", sexo: "masc", style: {}, measurementOverrides: {} },
-      questions: [{ id: "q0", label: "Gola", options: ["redonda", "V"], allowOther: true }],
+      spec: {
+        tipo: "camiseta",
+        sexo: "masc",
+        style: {},
+        measurementOverrides: {},
+      },
+      questions: [
+        {
+          id: "q0",
+          label: "Gola",
+          options: ["redonda", "V"],
+          allowOther: true,
+        },
+      ],
       assistantMessage: "Me conta mais:",
     });
     const res = await POST(req({ message: "quero uma camiseta" }));
@@ -701,7 +835,12 @@ describe("POST /api/pattern/generate", () => {
     const balanceBefore = state.credits.balance;
     mockPropose.mockResolvedValue({
       decision: "apply",
-      spec: { tipo: "camiseta", sexo: "masc", style: {}, measurementOverrides: {} },
+      spec: {
+        tipo: "camiseta",
+        sexo: "masc",
+        style: {},
+        measurementOverrides: {},
+      },
       assistantMessage: "Pronto",
     });
     const res = await POST(req({ message: "camiseta masc" }));
@@ -723,7 +862,12 @@ describe("POST /api/pattern/generate", () => {
   it("repassa answering ao proposeGarment", async () => {
     mockPropose.mockResolvedValue({
       decision: "apply",
-      spec: { tipo: "camiseta", sexo: "masc", style: {}, measurementOverrides: {} },
+      spec: {
+        tipo: "camiseta",
+        sexo: "masc",
+        style: {},
+        measurementOverrides: {},
+      },
       assistantMessage: "Pronto",
     });
     await POST(req({ message: "gola redonda", answering: true }));
@@ -761,7 +905,13 @@ Substituir o conteúdo por (guard fora da transação; validação de corpo fora
 ```ts
 import { NextResponse } from "next/server";
 import { withMolde } from "@/lib/db/molde";
-import { addMessage, applyGarmentSpec, bumpVersion, debitCredits, refundCredits } from "@/lib/editor/state";
+import {
+  addMessage,
+  applyGarmentSpec,
+  bumpVersion,
+  debitCredits,
+  refundCredits,
+} from "@/lib/editor/state";
 import { COSTS } from "@/lib/types";
 import { proposeGarment } from "@/lib/ai";
 import { requireUser } from "@/lib/auth/guard";
@@ -774,11 +924,17 @@ export async function POST(request: Request) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ status: "error", error: "Corpo inválido." }, { status: 400 });
+    return NextResponse.json(
+      { status: "error", error: "Corpo inválido." },
+      { status: 400 },
+    );
   }
   const trimmed = typeof body.message === "string" ? body.message.trim() : "";
   if (!trimmed) {
-    return NextResponse.json({ status: "error", error: "Mensagem obrigatória." }, { status: 400 });
+    return NextResponse.json(
+      { status: "error", error: "Mensagem obrigatória." },
+      { status: 400 },
+    );
   }
   const answering = body.answering === true;
   const cost = COSTS.adjust;
@@ -786,12 +942,21 @@ export async function POST(request: Request) {
   return withMolde(gate.id, async (state) => {
     if (state.credits.balance < cost) {
       return NextResponse.json(
-        { status: "insufficient_credits", required: cost, balance: state.credits.balance },
+        {
+          status: "insufficient_credits",
+          required: cost,
+          balance: state.credits.balance,
+        },
         { status: 402 },
       );
     }
 
-    addMessage(state, { id: `msg-${Date.now()}-u`, author: "user", text: trimmed, createdAt: Date.now() });
+    addMessage(state, {
+      id: `msg-${Date.now()}-u`,
+      author: "user",
+      text: trimmed,
+      createdAt: Date.now(),
+    });
     debitCredits(state, cost);
 
     try {
@@ -801,7 +966,9 @@ export async function POST(request: Request) {
         addMessage(state, {
           id: `msg-${Date.now()}-ai`,
           author: "ai",
-          text: decision.assistantMessage || "Pra acertar a modelagem, me responde:",
+          text:
+            decision.assistantMessage ||
+            "Pra acertar a modelagem, me responde:",
           questions: decision.questions,
           createdAt: Date.now(),
         });
@@ -813,7 +980,10 @@ export async function POST(request: Request) {
         addMessage(state, {
           id: `msg-${Date.now()}-ai`,
           author: "ai",
-          text: decision.assistantMessage || decision.declineReason || "Não consegui aplicar esse pedido.",
+          text:
+            decision.assistantMessage ||
+            decision.declineReason ||
+            "Não consegui aplicar esse pedido.",
           createdAt: Date.now(),
         });
         refundCredits(state, cost);
@@ -826,7 +996,9 @@ export async function POST(request: Request) {
       addMessage(state, {
         id: `msg-${Date.now()}-ai`,
         author: "ai",
-        text: conflict ? `${decision.assistantMessage} ⚠️ ${conflict.description}` : decision.assistantMessage,
+        text: conflict
+          ? `${decision.assistantMessage} ⚠️ ${conflict.description}`
+          : decision.assistantMessage,
         chips: [{ label: `−${cost} crédito`, tone: "credit" }],
         tone: conflict ? "conflict" : undefined,
         createdAt: Date.now(),
@@ -871,10 +1043,16 @@ import type { EditorState } from "@/lib/types";
 let state: EditorState = seedState();
 
 vi.mock("@/lib/auth/guard", () => ({
-  requireUser: vi.fn(async () => ({ id: "u1", email: "dev@moldai.local", name: null })),
+  requireUser: vi.fn(async () => ({
+    id: "u1",
+    email: "dev@moldai.local",
+    name: null,
+  })),
 }));
 vi.mock("@/lib/db/molde", () => ({
-  withMolde: vi.fn(async (_userId: string, fn: (s: EditorState) => unknown) => fn(state)),
+  withMolde: vi.fn(async (_userId: string, fn: (s: EditorState) => unknown) =>
+    fn(state),
+  ),
   loadMolde: vi.fn(async () => state),
   resetMolde: vi.fn(async () => (state = seedState())),
 }));
@@ -894,7 +1072,11 @@ function req(body: unknown) {
 describe("POST /api/pattern/graduate", () => {
   beforeEach(() => {
     state = seedState();
-    vi.mocked(requireUser).mockResolvedValue({ id: "u1", email: "dev@moldai.local", name: null });
+    vi.mocked(requireUser).mockResolvedValue({
+      id: "u1",
+      email: "dev@moldai.local",
+      name: null,
+    });
   });
 
   it("gradua tamanhos válidos, debita 6 e versiona", async () => {
@@ -903,7 +1085,9 @@ describe("POST /api/pattern/graduate", () => {
     const json = await res.json();
     expect(json.status).toBe("ok");
     expect(state.credits.balance).toBe(balanceBefore - 6);
-    expect(state.pattern.sizesApplied).toEqual(expect.arrayContaining(["PP", "P"]));
+    expect(state.pattern.sizesApplied).toEqual(
+      expect.arrayContaining(["PP", "P"]),
+    );
   });
 
   it("nenhum tamanho válido retorna 400", async () => {
@@ -931,7 +1115,12 @@ describe("POST /api/pattern/graduate", () => {
 ```ts
 import { NextResponse } from "next/server";
 import { withMolde } from "@/lib/db/molde";
-import { addMessage, applySizes, bumpVersion, debitCredits } from "@/lib/editor/state";
+import {
+  addMessage,
+  applySizes,
+  bumpVersion,
+  debitCredits,
+} from "@/lib/editor/state";
 import { ALL_SIZES, COSTS, SizeLabel } from "@/lib/types";
 import { formatList } from "@/lib/format";
 import { requireUser } from "@/lib/auth/guard";
@@ -944,10 +1133,15 @@ export async function POST(request: Request) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ status: "error", error: "Corpo inválido." }, { status: 400 });
+    return NextResponse.json(
+      { status: "error", error: "Corpo inválido." },
+      { status: 400 },
+    );
   }
   const sizes = Array.isArray(body.sizes)
-    ? body.sizes.filter((s): s is SizeLabel => (ALL_SIZES as string[]).includes(s as string))
+    ? body.sizes.filter((s): s is SizeLabel =>
+        (ALL_SIZES as string[]).includes(s as string),
+      )
     : [];
   if (sizes.length === 0) {
     return NextResponse.json(
@@ -960,7 +1154,11 @@ export async function POST(request: Request) {
   return withMolde(gate.id, (state) => {
     if (state.credits.balance < cost) {
       return NextResponse.json(
-        { status: "insufficient_credits", required: cost, balance: state.credits.balance },
+        {
+          status: "insufficient_credits",
+          required: cost,
+          balance: state.credits.balance,
+        },
         { status: 402 },
       );
     }
@@ -984,7 +1182,12 @@ export async function POST(request: Request) {
 ```ts
 import { NextResponse } from "next/server";
 import { withMolde } from "@/lib/db/molde";
-import { addMessage, bumpVersion, refitManga, setConflict } from "@/lib/editor/state";
+import {
+  addMessage,
+  bumpVersion,
+  refitManga,
+  setConflict,
+} from "@/lib/editor/state";
 import { requireUser } from "@/lib/auth/guard";
 
 export async function POST(request: Request) {
@@ -996,7 +1199,10 @@ export async function POST(request: Request) {
     const body = (await request.json()) as { action?: unknown };
     if (body.action === "fix") action = "fix";
   } catch {
-    return NextResponse.json({ status: "error", error: "Corpo inválido." }, { status: 400 });
+    return NextResponse.json(
+      { status: "error", error: "Corpo inválido." },
+      { status: 400 },
+    );
   }
 
   return withMolde(gate.id, (state) => {
@@ -1080,11 +1286,13 @@ EOF
 ## Task 5: Remover o mock, ajustar UI e docs, verificação final
 
 **Files:**
+
 - Delete: `lib/mock-data.ts`, `lib/mock-data.test.ts`
 - Modify: `app/login/page.tsx`
 - Modify: `CLAUDE.md`
 
 **Interfaces:**
+
 - Consumes: nada novo. Confirma que nenhum módulo ainda importa `@/lib/mock-data`.
 - Produces: árvore sem o mock; nota de login atualizada; CLAUDE.md refletindo a persistência.
 
@@ -1104,19 +1312,19 @@ git rm lib/mock-data.ts lib/mock-data.test.ts
 Em `app/login/page.tsx`, substituir o parágrafo final:
 
 ```tsx
-        <p className="mt-4 text-[11px] text-muted">
-          Criar conta — <span className="font-medium">em breve</span>. Nesta fase o molde é
-          compartilhado entre contas; molde por usuário vem na próxima fase.
-        </p>
+<p className="text-muted mt-4 text-[11px]">
+  Criar conta — <span className="font-medium">em breve</span>. Nesta fase o
+  molde é compartilhado entre contas; molde por usuário vem na próxima fase.
+</p>
 ```
 
 por:
 
 ```tsx
-        <p className="mt-4 text-[11px] text-muted">
-          Criar conta — <span className="font-medium">em breve</span>. Cada conta tem o seu próprio
-          molde, salvo automaticamente.
-        </p>
+<p className="text-muted mt-4 text-[11px]">
+  Criar conta — <span className="font-medium">em breve</span>. Cada conta tem o
+  seu próprio molde, salvo automaticamente.
+</p>
 ```
 
 - [ ] **Step 4: Atualizar a arquitetura no CLAUDE.md**
@@ -1162,6 +1370,7 @@ EOF
 **Files:** nenhum (verificação manual/observacional).
 
 **Interfaces:**
+
 - Consumes: stack Docker de prod (`npm run docker:prod` ou o dev `npm run docker:up`), contas seed.
 
 - [ ] **Step 1: Aplicar migração no ambiente Docker**

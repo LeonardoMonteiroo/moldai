@@ -1,7 +1,16 @@
 import { describe, it, expect } from "vitest";
 import {
-  seedState, addMessage, debitCredits, refundCredits, bumpVersion,
-  setConflict, applyGarmentSpec, refitManga, getSpec, applySizes, applyPurchase,
+  seedState,
+  addMessage,
+  debitCredits,
+  refundCredits,
+  bumpVersion,
+  setConflict,
+  applyGarmentSpec,
+  refitManga,
+  getSpec,
+  applySizes,
+  applyPurchase,
 } from "./state";
 
 describe("seedState", () => {
@@ -16,7 +25,8 @@ describe("seedState", () => {
     expect(s.credits.plan).toBe("atelier");
   });
   it("cada chamada devolve um estado independente (sem alias)", () => {
-    const a = seedState(); const b = seedState();
+    const a = seedState();
+    const b = seedState();
     a.credits.balance = 0;
     expect(b.credits.balance).toBe(320);
   });
@@ -25,8 +35,10 @@ describe("seedState", () => {
 describe("créditos e versão", () => {
   it("debit/refund ajustam o saldo", () => {
     const s = seedState();
-    debitCredits(s, 4); expect(s.credits.balance).toBe(316);
-    refundCredits(s, 4); expect(s.credits.balance).toBe(320);
+    debitCredits(s, 4);
+    expect(s.credits.balance).toBe(316);
+    refundCredits(s, 4);
+    expect(s.credits.balance).toBe(320);
   });
   it("bumpVersion incrementa e marca salvo agora", () => {
     const s = seedState();
@@ -45,16 +57,30 @@ describe("créditos e versão", () => {
 describe("applyGarmentSpec / conflito / refit", () => {
   it("drafta uma saia e guarda no pattern", () => {
     const s = seedState();
-    applyGarmentSpec(s, { tipo: "saia", measurementOverrides: {}, style: { saia: "circulo" } });
+    applyGarmentSpec(s, {
+      tipo: "saia",
+      measurementOverrides: {},
+      style: { saia: "circulo" },
+    });
     expect(s.pattern.pieces.length).toBe(1);
     expect(s.pattern.pieces[0].id).toBe("saia");
     expect(s.pattern.viewBox!.w).toBeGreaterThan(0);
   });
   it("cavaAjusteCm anexa conflito; sem ajuste não há conflito", () => {
     const s = seedState();
-    applyGarmentSpec(s, { tipo: "blusa", sexo: "fem", measurementOverrides: {}, style: { manga: "curta" } });
+    applyGarmentSpec(s, {
+      tipo: "blusa",
+      sexo: "fem",
+      measurementOverrides: {},
+      style: { manga: "curta" },
+    });
     expect(s.conflict).toBeNull();
-    applyGarmentSpec(s, { tipo: "blusa", sexo: "fem", measurementOverrides: {}, style: { manga: "curta", cavaAjusteCm: 2 } });
+    applyGarmentSpec(s, {
+      tipo: "blusa",
+      sexo: "fem",
+      measurementOverrides: {},
+      style: { manga: "curta", cavaAjusteCm: 2 },
+    });
     expect(s.conflict).not.toBeNull();
     expect(s.conflict!.diffCm).toBeGreaterThan(1);
     expect(s.conflict!.pieceBId).toBe("manga");
@@ -62,15 +88,27 @@ describe("applyGarmentSpec / conflito / refit", () => {
   });
   it("EditorState com pieces sobrevive a um round-trip JSON (persistência JSONB)", () => {
     const s = seedState();
-    applyGarmentSpec(s, { tipo: "blusa", sexo: "fem", measurementOverrides: {}, style: { manga: "curta" } });
+    applyGarmentSpec(s, {
+      tipo: "blusa",
+      sexo: "fem",
+      measurementOverrides: {},
+      style: { manga: "curta" },
+    });
     const round = JSON.parse(JSON.stringify(s)) as typeof s;
-    expect(round.pattern.pieces.map((p) => p.id).sort()).toEqual(s.pattern.pieces.map((p) => p.id).sort());
+    expect(round.pattern.pieces.map((p) => p.id).sort()).toEqual(
+      s.pattern.pieces.map((p) => p.id).sort(),
+    );
     expect(round.pattern.viewBox).toEqual(s.pattern.viewBox);
     expect(round).toEqual(s); // nenhum campo perdido (sem Date/undefined/NaN/Map/Set)
   });
   it("refitManga refaz a copa e limpa o conflito", () => {
     const s = seedState();
-    applyGarmentSpec(s, { tipo: "blusa", sexo: "fem", measurementOverrides: {}, style: { manga: "curta", cavaAjusteCm: 2 } });
+    applyGarmentSpec(s, {
+      tipo: "blusa",
+      sexo: "fem",
+      measurementOverrides: {},
+      style: { manga: "curta", cavaAjusteCm: 2 },
+    });
     expect(s.conflict).not.toBeNull();
     refitManga(s);
     expect(s.conflict).toBeNull();
@@ -81,7 +119,12 @@ describe("applyGarmentSpec / conflito / refit", () => {
 describe("setConflict / applySizes / applyPurchase", () => {
   it("setConflict(null) limpa o aviso", () => {
     const s = seedState();
-    applyGarmentSpec(s, { tipo: "blusa", sexo: "fem", measurementOverrides: {}, style: { manga: "curta", cavaAjusteCm: 2 } });
+    applyGarmentSpec(s, {
+      tipo: "blusa",
+      sexo: "fem",
+      measurementOverrides: {},
+      style: { manga: "curta", cavaAjusteCm: 2 },
+    });
     setConflict(s, null);
     expect(s.conflict).toBeNull();
   });
@@ -93,8 +136,10 @@ describe("setConflict / applySizes / applyPurchase", () => {
   });
   it("applyPurchase topup soma 100; subscribe reseta plano Ateliê", () => {
     const s = seedState();
-    applyPurchase(s, "topup"); expect(s.credits.balance).toBe(420);
-    const s2 = seedState(); s2.credits.balance = 10;
+    applyPurchase(s, "topup");
+    expect(s.credits.balance).toBe(420);
+    const s2 = seedState();
+    s2.credits.balance = 10;
     applyPurchase(s2, "subscribe");
     expect(s2.credits.balance).toBe(510);
     expect(s2.credits.total).toBe(500);

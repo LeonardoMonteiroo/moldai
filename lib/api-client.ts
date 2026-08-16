@@ -1,7 +1,10 @@
 import { EditorState } from "./types";
 
 export type GenerateResult =
-  | { status: "ok" | "conflict" | "error" | "declined" | "clarify"; state: EditorState }
+  | {
+      status: "ok" | "conflict" | "error" | "declined" | "clarify";
+      state: EditorState;
+    }
   | { status: "insufficient_credits"; required: number; balance: number };
 
 async function postJson<T>(url: string, body: unknown): Promise<T> {
@@ -18,19 +21,30 @@ export async function fetchPattern(): Promise<EditorState> {
   return (await res.json()) as EditorState;
 }
 
-export function generate(message: string, answering?: boolean): Promise<GenerateResult> {
-  return postJson<GenerateResult>("/api/pattern/generate", { message, answering });
+export function generate(
+  message: string,
+  answering?: boolean,
+): Promise<GenerateResult> {
+  return postJson<GenerateResult>("/api/pattern/generate", {
+    message,
+    answering,
+  });
 }
 
 export function resetPattern(): Promise<{ status: "ok"; state: EditorState }> {
-  return postJson<{ status: "ok"; state: EditorState }>("/api/pattern/reset", {});
+  return postJson<{ status: "ok"; state: EditorState }>(
+    "/api/pattern/reset",
+    {},
+  );
 }
 
 export function graduate(sizes: string[]): Promise<GenerateResult> {
   return postJson<GenerateResult>("/api/pattern/graduate", { sizes });
 }
 
-export function resolveConflict(action: "fix" | "ignore"): Promise<GenerateResult> {
+export function resolveConflict(
+  action: "fix" | "ignore",
+): Promise<GenerateResult> {
   return postJson<GenerateResult>("/api/pattern/conflict/resolve", { action });
 }
 

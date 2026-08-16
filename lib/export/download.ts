@@ -9,7 +9,11 @@ export function slug(name: string): string {
   return s || "molde";
 }
 
-export function downloadFile(filename: string, mime: string, data: string | Uint8Array): void {
+export function downloadFile(
+  filename: string,
+  mime: string,
+  data: string | Uint8Array,
+): void {
   const blob = new Blob([data as BlobPart], { type: mime });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");

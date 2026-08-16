@@ -9,7 +9,8 @@ export async function authorizeUser(
   creds: Record<string, unknown> | undefined,
   deps: AuthorizeDeps,
 ): Promise<{ id: string; email: string; name: string | null } | null> {
-  const email = typeof creds?.email === "string" ? creds.email.trim().toLowerCase() : "";
+  const email =
+    typeof creds?.email === "string" ? creds.email.trim().toLowerCase() : "";
   const password = typeof creds?.password === "string" ? creds.password : "";
   if (!email || !password) return null;
 

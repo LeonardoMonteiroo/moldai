@@ -11,6 +11,7 @@ Hoje o molde (pattern/peças/chat/créditos/conflito) vive num **singleton in-me
 ## Escopo
 
 **Dentro:**
+
 - Um molde por usuário (espelha a UI atual, que não tem lista de moldes).
 - Persistir o `EditorState` inteiro (pattern/peças/chat/créditos/conflito) no Postgres.
 - Seed lazy: no primeiro acesso de um usuário sem molde, cria o blank molde + créditos padrão e persiste.
@@ -18,6 +19,7 @@ Hoje o molde (pattern/peças/chat/créditos/conflito) vive num **singleton in-me
 - Atomicidade do fluxo de crédito via transação com lock de linha por usuário.
 
 **Fora (não fazer nesta fase):**
+
 - Múltiplos moldes por usuário, listagem, criar/trocar/excluir.
 - Histórico de versões / "Salvar versão" (segue **"em breve"**; o número `version` já incrementa a cada geração).
 - Extrair créditos para tabela própria / ledger — isso é **Fase C** (billing real). Nesta fase os créditos ficam dentro do blob.
@@ -56,6 +58,7 @@ Uma linha por usuário. `onDelete: Cascade` remove o molde se a conta for apagad
 ## Estrutura de módulos (espelha a Fase A: lógica pura ↔ DB)
 
 ### `lib/editor/state.ts` — operações puras, DB-free
+
 Extrai de `lib/mock-data.ts` toda a lógica de manipulação do estado, convertida de "mutar o global" para **receber/retornar/mutar um `EditorState` passado como argumento**:
 
 - `seedState(): EditorState` — o blank molde (sem peças, chat vazio, "Novo molde", `version: 0`) + créditos padrão (Ateliê, 320/500, renova em 12 dias). Junta o que hoje são `seedPattern`/`seedChat`/`seedCredits`.
@@ -67,6 +70,7 @@ Extrai de `lib/mock-data.ts` toda a lógica de manipulação do estado, converti
 Sem estado de módulo. Testável no Vitest sem Postgres (como `lib/auth/authorize.ts`).
 
 ### `lib/db/molde.ts` — repositório (única camada que toca o DB)
+
 - `withMolde<T>(userId, fn: (state: EditorState) => T | Promise<T>): Promise<T>` — abre uma **transação interativa**, faz **`SELECT … FOR UPDATE`** da linha do molde do usuário (via `tx.$queryRaw`), carrega/parseia o `EditorState` (ou `seedState()` se não existir), executa `fn(state)` (que muta o `state` e devolve o payload da resposta), **persiste o `state` (upsert do blob) dentro da mesma transação** e retorna o valor de `fn`. Garante atomicidade do débito.
 - `loadMolde(userId): Promise<EditorState>` — leitura **read-only** (para o `GET /api/pattern`), sem efeito colateral: se não houver linha, devolve `seedState()` **sem gravar**. A materialização da linha acontece na primeira mutação (via `withMolde`), mantendo o GET idempotente e livre de escrita.
 - `resetMolde(userId): Promise<EditorState>` — sobrescreve com `seedState()` e persiste.
@@ -74,6 +78,7 @@ Sem estado de módulo. Testável no Vitest sem Postgres (como `lib/auth/authoriz
 O parse do blob faz um cast único `data as unknown as EditorState` na borda; nenhum outro módulo importa Prisma.
 
 ### `lib/mock-data.ts` — **removido**
+
 O nome não faz mais sentido (o molde deixa de ser mock). As rotas passam a importar de `lib/editor/state.ts` (operações) e `lib/db/molde.ts` (persistência).
 
 ## Fluxo nas rotas
@@ -116,6 +121,7 @@ return withMolde(gate.id, async (state) => {
 **Nota de atomicidade da resposta 402:** o 402 (saldo insuficiente) retorna de dentro de `withMolde` **sem ter mutado o state** → nada é persistido de fato (upsert idempotente do mesmo valor). Nenhum débito, nenhuma chamada à IA — igual hoje.
 
 Rotas afetadas (todas gated por `requireUser`):
+
 - `GET  /api/pattern` → `loadMolde(userId)`.
 - `POST /api/pattern/generate` → `withMolde`.
 - `POST /api/pattern/graduate` → `withMolde` (débito 6 / 402).

@@ -1,6 +1,15 @@
 import { create } from "zustand";
 import * as api from "./api-client";
-import { ChatMessage, Credits, EditorState, GenerationStatus, Pattern, ConflictInfo, COSTS, Measurement } from "./types";
+import {
+  ChatMessage,
+  Credits,
+  EditorState,
+  GenerationStatus,
+  Pattern,
+  ConflictInfo,
+  COSTS,
+  Measurement,
+} from "./types";
 
 export type EditorTab = "molde2d" | "prova3d" | "ficha" | "corte";
 export type EditorTool = "cursor" | "medir";
@@ -40,7 +49,10 @@ interface EditorStore {
   paywall: PaywallState;
 
   init: () => Promise<void>;
-  sendMessage: (message: string, opts?: { answering?: boolean }) => Promise<void>;
+  sendMessage: (
+    message: string,
+    opts?: { answering?: boolean },
+  ) => Promise<void>;
   resetPattern: () => Promise<void>;
   cancelGeneration: () => void;
   graduateSizes: (sizes: string[]) => Promise<void>;
@@ -57,7 +69,10 @@ interface EditorStore {
   clearMeasurements: () => void;
 }
 
-function applyState(set: (partial: Partial<EditorStore>) => void, state: EditorState) {
+function applyState(
+  set: (partial: Partial<EditorStore>) => void,
+  state: EditorState,
+) {
   set({
     pattern: state.pattern,
     chat: state.chat,
@@ -83,7 +98,13 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   generationStepIndex: 0,
   generationRequestId: 0,
 
-  paywall: { open: false, required: 0, balance: 0, actionLabel: "", retry: null },
+  paywall: {
+    open: false,
+    required: 0,
+    balance: 0,
+    actionLabel: "",
+    retry: null,
+  },
 
   init: async () => {
     const state = await api.fetchPattern();
@@ -100,11 +121,21 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       generationRequestId: requestId,
       chat: [
         ...s.chat,
-        { id: `optimistic-${requestId}`, author: "user", text: message, createdAt: Date.now() },
+        {
+          id: `optimistic-${requestId}`,
+          author: "user",
+          text: message,
+          createdAt: Date.now(),
+        },
       ],
     }));
     const stepTimer = setInterval(() => {
-      set((s) => ({ generationStepIndex: Math.min(s.generationStepIndex + 1, GENERATION_STEPS.length - 1) }));
+      set((s) => ({
+        generationStepIndex: Math.min(
+          s.generationStepIndex + 1,
+          GENERATION_STEPS.length - 1,
+        ),
+      }));
     }, 320);
 
     const result = await api.generate(message, opts?.answering);
@@ -129,11 +160,16 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
     const prevVersion = get().pattern?.version;
     applyState(set, result.state);
-    const shouldSelectFirst = !get().selectedPieceId && result.state.pattern.pieces.length > 0;
+    const shouldSelectFirst =
+      !get().selectedPieceId && result.state.pattern.pieces.length > 0;
     set({
       generationStatus: result.status === "error" ? "error" : "idle",
-      ...(shouldSelectFirst ? { selectedPieceId: result.state.pattern.pieces[0].id } : {}),
-      ...(result.state.pattern.version !== prevVersion ? { measurements: [] } : {}),
+      ...(shouldSelectFirst
+        ? { selectedPieceId: result.state.pattern.pieces[0].id }
+        : {}),
+      ...(result.state.pattern.version !== prevVersion
+        ? { measurements: [] }
+        : {}),
     });
   },
 
@@ -142,7 +178,9 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       generationStatus: "idle",
       generationRequestId: s.generationRequestId + 1,
       chat: s.chat.filter((m) => !m.id.startsWith("optimistic-")),
-      credits: s.credits ? { ...s.credits, balance: s.credits.balance + COSTS.adjust } : s.credits,
+      credits: s.credits
+        ? { ...s.credits, balance: s.credits.balance + COSTS.adjust }
+        : s.credits,
     }));
   },
 
@@ -160,7 +198,13 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       measurements: [],
       generationStatus: "idle",
       generationStepIndex: 0,
-      paywall: { open: false, required: 0, balance: 0, actionLabel: "", retry: null },
+      paywall: {
+        open: false,
+        required: 0,
+        balance: 0,
+        actionLabel: "",
+        retry: null,
+      },
     });
   },
 
@@ -190,19 +234,38 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     const result = await api.purchase(type);
     if ("state" in result) applyState(set, result.state);
     const retry = get().paywall.retry;
-    set({ paywall: { open: false, required: 0, balance: 0, actionLabel: "", retry: null } });
+    set({
+      paywall: {
+        open: false,
+        required: 0,
+        balance: 0,
+        actionLabel: "",
+        retry: null,
+      },
+    });
     retry?.();
   },
 
   closePaywall: () =>
-    set({ paywall: { open: false, required: 0, balance: 0, actionLabel: "", retry: null } }),
+    set({
+      paywall: {
+        open: false,
+        required: 0,
+        balance: 0,
+        actionLabel: "",
+        retry: null,
+      },
+    }),
 
   setActiveTab: (tab) => set({ activeTab: tab }),
-  selectPiece: (id) => set({ selectedPieceId: id, detailsPanelOpen: id !== null }),
-  toggleDetailsPanel: () => set((s) => ({ detailsPanelOpen: !s.detailsPanelOpen })),
+  selectPiece: (id) =>
+    set({ selectedPieceId: id, detailsPanelOpen: id !== null }),
+  toggleDetailsPanel: () =>
+    set((s) => ({ detailsPanelOpen: !s.detailsPanelOpen })),
   setActiveTool: (tool) => set({ activeTool: tool }),
   addMeasurement: (m) => set((s) => ({ measurements: [...s.measurements, m] })),
-  removeMeasurement: (id) => set((s) => ({ measurements: s.measurements.filter((m) => m.id !== id) })),
+  removeMeasurement: (id) =>
+    set((s) => ({ measurements: s.measurements.filter((m) => m.id !== id) })),
   clearMeasurements: () => set({ measurements: [] }),
 }));
 

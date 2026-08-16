@@ -10,7 +10,11 @@ export function distanceCm(a: Point, b: Point): number {
 }
 
 // vértice mais próximo de `p` dentro de `thresholdPx`; null se nenhum
-export function nearestSnap(p: Point, vertices: Point[], thresholdPx: number): Point | null {
+export function nearestSnap(
+  p: Point,
+  vertices: Point[],
+  thresholdPx: number,
+): Point | null {
   let best: Point | null = null;
   let bestD = thresholdPx;
   for (const v of vertices) {

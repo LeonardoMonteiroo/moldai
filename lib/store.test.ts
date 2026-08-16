@@ -17,9 +17,35 @@ const genMock = api.generate as unknown as ReturnType<typeof vi.fn>;
 
 function emptyState(): EditorState {
   return {
-    pattern: { id: "p", name: "Novo molde", version: 0, savedAgo: "", baseSize: "M", unit: "cm", sizesApplied: [], sizesPending: [], pieces: [] },
-    chat: [{ id: "m1", author: "ai", text: "Me conta mais:", questions: [{ id: "q0", label: "Gola", options: ["a", "b"], allowOther: false }], createdAt: 1 }],
-    credits: { plan: "atelier", planLabel: "Ateliê", balance: 100, total: 500, renewsInDays: 10 },
+    pattern: {
+      id: "p",
+      name: "Novo molde",
+      version: 0,
+      savedAgo: "",
+      baseSize: "M",
+      unit: "cm",
+      sizesApplied: [],
+      sizesPending: [],
+      pieces: [],
+    },
+    chat: [
+      {
+        id: "m1",
+        author: "ai",
+        text: "Me conta mais:",
+        questions: [
+          { id: "q0", label: "Gola", options: ["a", "b"], allowOther: false },
+        ],
+        createdAt: 1,
+      },
+    ],
+    credits: {
+      plan: "atelier",
+      planLabel: "Ateliê",
+      balance: 100,
+      total: 500,
+      renewsInDays: 10,
+    },
     conflict: null,
   };
 }
@@ -27,12 +53,17 @@ function emptyState(): EditorState {
 describe("store.sendMessage", () => {
   beforeEach(() => {
     genMock.mockReset();
-    useEditorStore.setState({ selectedPieceId: null, generationStatus: "idle" });
+    useEditorStore.setState({
+      selectedPieceId: null,
+      generationStatus: "idle",
+    });
   });
 
   it("repassa answering e trata clarify sem erro nem seleção de peça", async () => {
     genMock.mockResolvedValue({ status: "clarify", state: emptyState() });
-    await useEditorStore.getState().sendMessage("gola redonda", { answering: true });
+    await useEditorStore
+      .getState()
+      .sendMessage("gola redonda", { answering: true });
 
     expect(genMock).toHaveBeenCalledWith("gola redonda", true);
     expect(useEditorStore.getState().generationStatus).toBe("idle");
@@ -52,7 +83,9 @@ describe("editor store — ferramenta e medições", () => {
   });
 
   it("addMeasurement acrescenta", () => {
-    useEditorStore.getState().addMeasurement({ id: "m1", a: { x: 0, y: 0 }, b: { x: 4, y: 0 } });
+    useEditorStore
+      .getState()
+      .addMeasurement({ id: "m1", a: { x: 0, y: 0 }, b: { x: 4, y: 0 } });
     expect(useEditorStore.getState().measurements).toHaveLength(1);
   });
 
@@ -61,11 +94,15 @@ describe("editor store — ferramenta e medições", () => {
     s.addMeasurement({ id: "m1", a: { x: 0, y: 0 }, b: { x: 4, y: 0 } });
     s.addMeasurement({ id: "m2", a: { x: 0, y: 0 }, b: { x: 8, y: 0 } });
     useEditorStore.getState().removeMeasurement("m1");
-    expect(useEditorStore.getState().measurements.map((m) => m.id)).toEqual(["m2"]);
+    expect(useEditorStore.getState().measurements.map((m) => m.id)).toEqual([
+      "m2",
+    ]);
   });
 
   it("clearMeasurements esvazia", () => {
-    useEditorStore.getState().addMeasurement({ id: "m1", a: { x: 0, y: 0 }, b: { x: 4, y: 0 } });
+    useEditorStore
+      .getState()
+      .addMeasurement({ id: "m1", a: { x: 0, y: 0 }, b: { x: 4, y: 0 } });
     useEditorStore.getState().clearMeasurements();
     expect(useEditorStore.getState().measurements).toEqual([]);
   });

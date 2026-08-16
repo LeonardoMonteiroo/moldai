@@ -60,7 +60,10 @@ Expor o intermediário cm:
 
 ```ts
 // lib/draft/garment.ts
-export function draftPiecesCm(spec: GarmentSpec, size: SizeLabel): DraftedPiece[];
+export function draftPiecesCm(
+  spec: GarmentSpec,
+  size: SizeLabel,
+): DraftedPiece[];
 ```
 
 `draftGarment` passa a chamar `draftPiecesCm` internamente (refactor sem mudança
@@ -71,28 +74,27 @@ já existe em `lib/draft/core.ts` e carrega `outlineCm`, `curvedSpans`,
 ### 2. Núcleo — `ExportModel` (`lib/export/model.ts`)
 
 ```ts
-export type ExPt = { x: number; y: number };        // cm, origem no canto da peça
+export type ExPt = { x: number; y: number }; // cm, origem no canto da peça
 export type ExSeg =
-  | { kind: "line"; to: ExPt }
-  | { kind: "cubic"; c1: ExPt; c2: ExPt; to: ExPt };
+  { kind: "line"; to: ExPt } | { kind: "cubic"; c1: ExPt; c2: ExPt; to: ExPt };
 
 export interface ExportPiece {
   id: string;
   name: string;
   qty: number;
   widthCm: number;
-  heightCm: number;                       // bbox da peça
+  heightCm: number; // bbox da peça
   outline: { start: ExPt; segs: ExSeg[] }; // contorno fechado; preserva Bézier
   grainline?: [ExPt, ExPt];
   dart?: ExPt[];
-  originCm: ExPt;                          // canto sup-esq da peça no sheet
+  originCm: ExPt; // canto sup-esq da peça no sheet
 }
 
 export interface ExportModel {
   patternName: string;
   size: SizeLabel;
   unit: "cm";
-  seamAllowanceCm: number | null;         // só anotação (net line exportada)
+  seamAllowanceCm: number | null; // só anotação (net line exportada)
   sheetWidthCm: number;
   sheetHeightCm: number;
   pieces: ExportPiece[];
@@ -102,6 +104,7 @@ export function buildExportModel(pattern: Pattern): ExportModel;
 ```
 
 `buildExportModel`:
+
 - Lê `pattern.spec` e `pattern.baseSize`, chama `draftPiecesCm`.
 - Converte cada `DraftedPiece`:
   - `outline` via `outlineSegments(outlineCm, curvedSpans)` (ver abaixo).
@@ -138,7 +141,11 @@ export function toSvg(model: ExportModel): string;
 ### 4. Download (`lib/export/download.ts`)
 
 ```ts
-export function downloadFile(filename: string, mime: string, data: string | Uint8Array): void;
+export function downloadFile(
+  filename: string,
+  mime: string,
+  data: string | Uint8Array,
+): void;
 ```
 
 `Blob` + `URL.createObjectURL` + `<a download>` sintético + `revokeObjectURL`.
@@ -158,6 +165,7 @@ export function exportPattern(pattern: Pattern, format: ExportFormat): void;
 `Footer.tsx`: o botão "Exportar" vira um disparador de **menu de formato**
 (fase 1 lista só SVG; DXF e PDF entram nas fases 2 e 3). Estado local do
 aberto/fechado (sem store). Item clicado → `exportPattern(pattern, format)`.
+
 - Desabilitado quando `exportBlocked` (conflito, comportamento atual) **ou**
   `pattern.pieces.length === 0` (molde em branco).
 - Sem mutação de estado, sem chamada de servidor — não passa por `api-client`
@@ -166,6 +174,7 @@ aberto/fechado (sem store). Item clicado → `exportPattern(pattern, format)`.
 ### 6. DXF (fase 2) — `lib/export/dxf.ts`
 
 `export function toDxf(model: ExportModel): string;` — DXF-AAMA/ASTM mínimo:
+
 - Achata cada `cubic` em polilinha por amostragem (N segmentos por curva).
 - `LWPOLYLINE` fechada por contorno; unidade mm (coords × 10).
 - Camadas por tipo de linha: contorno, grainline, texto/anotação.
@@ -175,6 +184,7 @@ aberto/fechado (sem store). Item clicado → `exportPattern(pattern, format)`.
 
 `export function toPdf(model: ExportModel): Uint8Array;` — dependência nova
 `pdf-lib`:
+
 - Fatia o sheet (mm) em páginas A4 retrato com sobreposição de colagem.
 - Marcas de corte/colagem nas bordas + numeração de linha/coluna das folhas.
 - Um quadrado-régua de calibração de 5 cm na primeira folha (confere escala na
@@ -196,6 +206,7 @@ aberto/fechado (sem store). Item clicado → `exportPattern(pattern, format)`.
 ## Testes (vitest, node — sem DOM)
 
 Fase 1:
+
 - `draftPiecesCm`: retorna `DraftedPiece[]` com `outlineCm` em cm coerente com o
   tamanho (ex.: largura da frente ≈ derivada do busto); `draftGarment` continua
   produzindo o mesmo resultado px de antes (refactor sem regressão).
@@ -209,6 +220,7 @@ Fase 1:
   cabeçalho com tamanho e folga.
 
 Fases 2–3 (testam nas suas fases):
+
 - `toDxf`: contém `LWPOLYLINE`, `$INSUNITS` mm, N vértices por curva achatada,
   camadas nomeadas.
 - `toPdf`: retorna PDF válido (magic `%PDF`), nº de páginas = tiles esperados

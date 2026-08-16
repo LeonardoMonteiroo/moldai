@@ -12,13 +12,16 @@ import { resolveMeasurements } from "@/lib/measurements";
 
 // Marca (círculo tracejado) na região da cava de uma peça, a partir da bbox
 // dos seus vértices em px. Ilustrativa — aponta a costura em conflito no canvas.
-function cavaMarker(piece: Piece | undefined): { cx: number; cy: number; r: number } | null {
+function cavaMarker(
+  piece: Piece | undefined,
+): { cx: number; cy: number; r: number } | null {
   const vs = piece?.vertices;
   if (!vs || vs.length === 0) return null;
   const xs = vs.map((v) => v.x);
   const ys = vs.map((v) => v.y);
   const maxX = Math.max(...xs);
-  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  const minY = Math.min(...ys),
+    maxY = Math.max(...ys);
   return { cx: maxX - 6, cy: minY + (maxY - minY) * 0.28, r: 14 };
 }
 
@@ -42,7 +45,8 @@ function detectConflict(
     title: "Cava e manga não batem",
     description: `A cava do corpo ficou ${seam.diffCm} cm ${maior ? "maior" : "menor"} que a copa da manga — as costuras não vão fechar.`,
     diffCm: seam.diffCm,
-    suggestion: "“Corrigir manga” refaz a copa para a cava ajustada, sem custo.",
+    suggestion:
+      "“Corrigir manga” refaz a copa para a cava ajustada, sem custo.",
     pieceAId: "corpo-frente",
     pieceBId: "manga",
     markers,
@@ -51,7 +55,12 @@ function detectConflict(
 
 function seedPattern(): Pattern {
   const baseSize = "M" as const;
-  const spec: GarmentSpec = { tipo: "blusa", sexo: "fem", measurementOverrides: {}, style: {} };
+  const spec: GarmentSpec = {
+    tipo: "blusa",
+    sexo: "fem",
+    measurementOverrides: {},
+    style: {},
+  };
   return {
     id: "demo",
     name: "Novo molde",
@@ -69,12 +78,23 @@ function seedPattern(): Pattern {
 }
 
 function seedCredits(): Credits {
-  return { plan: "atelier", planLabel: "Ateliê", balance: 320, total: 500, renewsInDays: 12 };
+  return {
+    plan: "atelier",
+    planLabel: "Ateliê",
+    balance: 320,
+    total: 500,
+    renewsInDays: 12,
+  };
 }
 
 // O blank molde inicial de cada usuário.
 export function seedState(): EditorState {
-  return { pattern: seedPattern(), chat: [], credits: seedCredits(), conflict: null };
+  return {
+    pattern: seedPattern(),
+    chat: [],
+    credits: seedCredits(),
+    conflict: null,
+  };
 }
 
 export function addMessage(state: EditorState, message: ChatMessage): void {
@@ -90,23 +110,44 @@ export function refundCredits(state: EditorState, amount: number): void {
 }
 
 export function bumpVersion(state: EditorState): void {
-  state.pattern = { ...state.pattern, version: state.pattern.version + 1, savedAgo: "salvo agora" };
+  state.pattern = {
+    ...state.pattern,
+    version: state.pattern.version + 1,
+    savedAgo: "salvo agora",
+  };
 }
 
-export function setConflict(state: EditorState, conflict: ConflictInfo | null): void {
+export function setConflict(
+  state: EditorState,
+  conflict: ConflictInfo | null,
+): void {
   state.conflict = conflict;
 }
 
 export function getSpec(state: EditorState): GarmentSpec {
-  return state.pattern.spec ?? { tipo: "blusa", sexo: "fem", measurementOverrides: {}, style: {} };
+  return (
+    state.pattern.spec ?? {
+      tipo: "blusa",
+      sexo: "fem",
+      measurementOverrides: {},
+      style: {},
+    }
+  );
 }
 
 // Drafta o garment a partir de um spec validado e guarda pieces/viewBox/spec no
 // pattern; anexa (ou limpa) o conflito de costura (apply-with-warning).
 export function applyGarmentSpec(state: EditorState, spec: GarmentSpec): void {
   const size = state.pattern.baseSize;
-  const { pieces, viewBox, measurements, armholeLenCm, mangaArmholeCm } = draftGarment(spec, size);
-  state.pattern = { ...state.pattern, pieces, viewBox, spec, baseMeasurements: measurements };
+  const { pieces, viewBox, measurements, armholeLenCm, mangaArmholeCm } =
+    draftGarment(spec, size);
+  state.pattern = {
+    ...state.pattern,
+    pieces,
+    viewBox,
+    spec,
+    baseMeasurements: measurements,
+  };
   state.conflict = detectConflict(pieces, armholeLenCm, mangaArmholeCm);
 }
 
@@ -114,7 +155,10 @@ export function applyGarmentSpec(state: EditorState, spec: GarmentSpec): void {
 // ajustada, as costuras batem e detectConflict devolve null.
 export function refitManga(state: EditorState): void {
   const spec = getSpec(state);
-  applyGarmentSpec(state, { ...spec, style: { ...spec.style, mangaRefit: true } });
+  applyGarmentSpec(state, {
+    ...spec,
+    style: { ...spec.style, mangaRefit: true },
+  });
 }
 
 export function applySizes(state: EditorState, sizes: string[]): void {
@@ -133,7 +177,10 @@ export function applySizes(state: EditorState, sizes: string[]): void {
   };
 }
 
-export function applyPurchase(state: EditorState, type: "topup" | "subscribe"): void {
+export function applyPurchase(
+  state: EditorState,
+  type: "topup" | "subscribe",
+): void {
   if (type === "topup") {
     state.credits = { ...state.credits, balance: state.credits.balance + 100 };
   } else {

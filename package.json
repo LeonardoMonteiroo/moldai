@@ -7,8 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "typecheck": "next build",
     "db:up": "docker compose up -d db",
     "docker:up": "docker compose up --build",
     "docker:prod": "docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build",
@@ -16,10 +19,19 @@
     "db:seed": "dotenv -e .env.local -- prisma db seed",
     "smoke": "node scripts/smoke-prod.mjs",
     "smoke:prod": "docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build && node scripts/smoke-prod.mjs",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "prepare": "husky"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write",
+      "vitest related --run"
+    ],
+    "*.{js,mjs,cjs,json,css,md}": "prettier --write"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.117.1",
@@ -40,6 +52,12 @@
     "dotenv-cli": "^11.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.3.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.9.6",
+    "prettier-plugin-tailwindcss": "^0.8.1",
     "prisma": "^6.19.3",
     "tailwindcss": "^4",
     "tsx": "^4.23.12",

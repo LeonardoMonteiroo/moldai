@@ -22,7 +22,10 @@ export function MeasureLayer({
 }) {
   const fs = 12 / scale; // font-size constante em tela
   const r = 3 / scale; // raio dos ticks constante em tela
-  const mid = (a: Point, b: Point) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+  const mid = (a: Point, b: Point) => ({
+    x: (a.x + b.x) / 2,
+    y: (a.y + b.y) / 2,
+  });
 
   return (
     <g>
@@ -94,7 +97,7 @@ export function MeasureLayer({
           cx={snap.x}
           cy={snap.y}
           r={5 / scale}
-          className="fill-none stroke-olive"
+          className="stroke-olive fill-none"
           style={{ strokeWidth: 1.5 }}
           vectorEffect="non-scaling-stroke"
         />

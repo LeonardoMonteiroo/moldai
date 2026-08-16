@@ -4,7 +4,7 @@
 
 **Goal:** Make the editor chat actually alter the rendered molde — `POST /api/pattern/generate` calls the Anthropic API, which proposes parameter changes to the pattern pieces; deterministic code clamps and re-renders them.
 
-**Architecture:** Piece geometry becomes *parametric*: every piece stores a `params` map of numeric deltas (all zero at seed → visually identical to today), and a pure `computeGeometry(pieceId, params)` derives the SVG outline/guide/grainline/dart/label + human-readable details. The generate route sends the current params + a param schema + recent chat to Claude via forced tool-use; the model returns `{ decision, pieceChanges, conflict?, declineReason?, assistantMessage }`. The server clamps every returned value to each param's `[min, max]`, recomputes geometry, and mutates the in-memory mock store. Conflict marker coordinates are computed server-side from fixed per-piece landmarks, never trusted from the model.
+**Architecture:** Piece geometry becomes _parametric_: every piece stores a `params` map of numeric deltas (all zero at seed → visually identical to today), and a pure `computeGeometry(pieceId, params)` derives the SVG outline/guide/grainline/dart/label + human-readable details. The generate route sends the current params + a param schema + recent chat to Claude via forced tool-use; the model returns `{ decision, pieceChanges, conflict?, declineReason?, assistantMessage }`. The server clamps every returned value to each param's `[min, max]`, recomputes geometry, and mutates the in-memory mock store. Conflict marker coordinates are computed server-side from fixed per-piece landmarks, never trusted from the model.
 
 **Tech Stack:** Next.js 16 (App Router, Node route handlers), TypeScript, Zustand (unchanged), `@anthropic-ai/sdk`, model `claude-sonnet-5`.
 
@@ -26,10 +26,12 @@ This repo has no test framework (per CLAUDE.md, "There is no test suite configur
 ### Task 1: Parametric geometry module
 
 **Files:**
+
 - Create: `lib/geometry.ts`
 - Modify: `lib/types.ts` (add `PieceParams` type + `params` field on `Piece`)
 
 **Interfaces:**
+
 - Consumes: `PieceOutline`, `PieceDetails` from `lib/types.ts`.
 - Produces:
   - `type PieceParams = Record<string, number>` (declared in `lib/types.ts`)
@@ -80,26 +82,122 @@ export interface ParamSpec {
 // All params are DELTAS from the base shape, in SVG pixels. Default 0 => base shape.
 export const PIECE_PARAM_SCHEMA: Record<string, ParamSpec[]> = {
   frente: [
-    { name: "length", label: "comprimento (barra para baixo)", unit: "px", min: -120, max: 160 },
-    { name: "hemWidth", label: "largura da barra", unit: "px", min: -40, max: 90 },
-    { name: "shoulderWidth", label: "largura do ombro", unit: "px", min: -30, max: 50 },
-    { name: "caseDepth", label: "profundidade da cava", unit: "px", min: -40, max: 70 },
-    { name: "necklineDepth", label: "profundidade do decote em V", unit: "px", min: 0, max: 90 },
-    { name: "dartSize", label: "tamanho da pence", unit: "px", min: -10, max: 30 },
-    { name: "seamAllowance", label: "folga de costura", unit: "px", min: -3, max: 20 },
+    {
+      name: "length",
+      label: "comprimento (barra para baixo)",
+      unit: "px",
+      min: -120,
+      max: 160,
+    },
+    {
+      name: "hemWidth",
+      label: "largura da barra",
+      unit: "px",
+      min: -40,
+      max: 90,
+    },
+    {
+      name: "shoulderWidth",
+      label: "largura do ombro",
+      unit: "px",
+      min: -30,
+      max: 50,
+    },
+    {
+      name: "caseDepth",
+      label: "profundidade da cava",
+      unit: "px",
+      min: -40,
+      max: 70,
+    },
+    {
+      name: "necklineDepth",
+      label: "profundidade do decote em V",
+      unit: "px",
+      min: 0,
+      max: 90,
+    },
+    {
+      name: "dartSize",
+      label: "tamanho da pence",
+      unit: "px",
+      min: -10,
+      max: 30,
+    },
+    {
+      name: "seamAllowance",
+      label: "folga de costura",
+      unit: "px",
+      min: -3,
+      max: 20,
+    },
   ],
   costas: [
-    { name: "length", label: "comprimento (barra para baixo)", unit: "px", min: -120, max: 160 },
-    { name: "hemWidth", label: "largura da barra", unit: "px", min: -40, max: 90 },
-    { name: "shoulderWidth", label: "largura do ombro", unit: "px", min: -30, max: 50 },
-    { name: "caseDepth", label: "profundidade da cava", unit: "px", min: -40, max: 70 },
-    { name: "seamAllowance", label: "folga de costura", unit: "px", min: -3, max: 20 },
+    {
+      name: "length",
+      label: "comprimento (barra para baixo)",
+      unit: "px",
+      min: -120,
+      max: 160,
+    },
+    {
+      name: "hemWidth",
+      label: "largura da barra",
+      unit: "px",
+      min: -40,
+      max: 90,
+    },
+    {
+      name: "shoulderWidth",
+      label: "largura do ombro",
+      unit: "px",
+      min: -30,
+      max: 50,
+    },
+    {
+      name: "caseDepth",
+      label: "profundidade da cava",
+      unit: "px",
+      min: -40,
+      max: 70,
+    },
+    {
+      name: "seamAllowance",
+      label: "folga de costura",
+      unit: "px",
+      min: -3,
+      max: 20,
+    },
   ],
   manga: [
-    { name: "sleeveLength", label: "comprimento da manga", unit: "px", min: -80, max: 260 },
-    { name: "sleeveWidth", label: "largura da manga", unit: "px", min: -40, max: 80 },
-    { name: "caseDepth", label: "profundidade da copa/cava", unit: "px", min: -40, max: 70 },
-    { name: "seamAllowance", label: "folga de costura", unit: "px", min: -3, max: 20 },
+    {
+      name: "sleeveLength",
+      label: "comprimento da manga",
+      unit: "px",
+      min: -80,
+      max: 260,
+    },
+    {
+      name: "sleeveWidth",
+      label: "largura da manga",
+      unit: "px",
+      min: -40,
+      max: 80,
+    },
+    {
+      name: "caseDepth",
+      label: "profundidade da copa/cava",
+      unit: "px",
+      min: -40,
+      max: 70,
+    },
+    {
+      name: "seamAllowance",
+      label: "folga de costura",
+      unit: "px",
+      min: -3,
+      max: 20,
+    },
   ],
 };
 
@@ -167,7 +265,9 @@ function frenteGeometry(p: PieceParams): ComputedGeometry {
   ]);
   const grainline = { x1: 105, y1: 34, x2: 97, y2: 346 + p.length };
   const halfDart = 18 + p.dartSize;
-  const dart = { d: `M110 30 L${round(110 + halfDart)} 96 L${round(110 - halfDart)} 96 Z` };
+  const dart = {
+    d: `M110 30 L${round(110 + halfDart)} 96 L${round(110 - halfDart)} 96 Z`,
+  };
   const label = { x: 55, y: 368 + p.length };
   return { outline, guideOutline, grainline, dart, label };
 }
@@ -218,7 +318,10 @@ function mangaGeometry(p: PieceParams): ComputedGeometry {
   return { outline: { kind: "path", d }, label };
 }
 
-export function computeGeometry(pieceId: string, raw: PieceParams): ComputedGeometry {
+export function computeGeometry(
+  pieceId: string,
+  raw: PieceParams,
+): ComputedGeometry {
   const p = clampParams(pieceId, raw);
   if (pieceId === "frente") return frenteGeometry(p);
   if (pieceId === "costas") return costasGeometry(p);
@@ -298,9 +401,11 @@ hand-authored geometry exactly."
 ### Task 2: Wire the mock store to computed geometry
 
 **Files:**
+
 - Modify: `lib/mock-data.ts`
 
 **Interfaces:**
+
 - Consumes: `computeGeometry`, `deriveDetails`, `defaultParams`, `clampParams` from `lib/geometry.ts`; `PieceParams` from `lib/types.ts`.
 - Produces:
   - `updatePieceParams(pieceId: string, partial: PieceParams): void` — merges deltas onto a piece, clamps, recomputes geometry + details.
@@ -321,9 +426,19 @@ import {
   Piece,
   PieceParams,
 } from "./types";
-import { clampParams, computeGeometry, defaultParams, deriveDetails } from "./geometry";
+import {
+  clampParams,
+  computeGeometry,
+  defaultParams,
+  deriveDetails,
+} from "./geometry";
 
-function makePiece(id: string, name: string, qty: number, params: PieceParams): Piece {
+function makePiece(
+  id: string,
+  name: string,
+  qty: number,
+  params: PieceParams,
+): Piece {
   const g = computeGeometry(id, params);
   return {
     id,
@@ -413,6 +528,7 @@ Note: `generate/route.ts` currently calls `buildConflict()` with no args and won
 - [ ] **Step 4: Verify base reproduction live**
 
 Run the dev server (`npm run dev`), then in a browser or via fetch inspect `http://localhost:3000/api/pattern`. Confirm the JSON matches the documented base values exactly:
+
 - `pattern.pieces[0].outline.points === "55,30 165,30 182,180 150,350 48,350 34,180"`
 - `pattern.pieces[0].details.cava === "21,4 cm"`
 - `pattern.pieces[2].outline.d === "M395 42 Q467 54 477 114 L459 300 L351 300 L333 114 Q345 54 395 42 Z"`
@@ -434,11 +550,13 @@ mutation. buildConflict computes markers from fixed per-piece landmarks."
 ### Task 3: Anthropic AI proposal module
 
 **Files:**
+
 - Create: `lib/ai.ts`
 - Create: `.env.local` (not committed)
 - Modify: `package.json` (adds `@anthropic-ai/sdk` dependency)
 
 **Interfaces:**
+
 - Consumes: `EditorState` from `lib/types.ts`; `PIECE_PARAM_SCHEMA` from `lib/geometry.ts`.
 - Produces:
   - `interface AiDecision { decision: "apply" | "conflict" | "decline"; pieceChanges: { pieceId: string; params: Record<string, number> }[]; conflict?: { pieceAId: string; pieceBId: string; diffCm: number; title: string; description: string; suggestion: string }; declineReason?: string; assistantMessage: string }`
@@ -511,7 +629,10 @@ const TOOL: Anthropic.Tool = {
           type: "object",
           properties: {
             pieceId: { type: "string", enum: ["frente", "costas", "manga"] },
-            params: { type: "object", additionalProperties: { type: "number" } },
+            params: {
+              type: "object",
+              additionalProperties: { type: "number" },
+            },
           },
           required: ["pieceId", "params"],
         },
@@ -527,12 +648,23 @@ const TOOL: Anthropic.Tool = {
           description: { type: "string" },
           suggestion: { type: "string" },
         },
-        required: ["pieceAId", "pieceBId", "diffCm", "title", "description", "suggestion"],
+        required: [
+          "pieceAId",
+          "pieceBId",
+          "diffCm",
+          "title",
+          "description",
+          "suggestion",
+        ],
       },
-      declineReason: { type: "string", description: "Preencha SOMENTE quando decision=decline." },
+      declineReason: {
+        type: "string",
+        description: "Preencha SOMENTE quando decision=decline.",
+      },
       assistantMessage: {
         type: "string",
-        description: "Resposta curta ao usuário no chat, em português, descrevendo o que foi feito ou por que não.",
+        description:
+          "Resposta curta ao usuário no chat, em português, descrevendo o que foi feito ou por que não.",
       },
     },
     required: ["decision", "pieceChanges", "assistantMessage"],
@@ -540,7 +672,11 @@ const TOOL: Anthropic.Tool = {
 };
 
 function buildSystem(state: EditorState): string {
-  const current = state.pattern.pieces.map((p) => ({ pieceId: p.id, name: p.name, params: p.params }));
+  const current = state.pattern.pieces.map((p) => ({
+    pieceId: p.id,
+    name: p.name,
+    params: p.params,
+  }));
   return [
     "Você é o motor de modelagem da MoldAI. Recebe pedidos em linguagem natural sobre um molde de vestuário e traduz em ALTERAÇÕES DE PARÂMETROS das peças.",
     "Todos os parâmetros são DELTAS em pixels, relativos ao valor ATUAL da peça (positivo aumenta, negativo diminui). Devolva apenas os parâmetros que mudam.",
@@ -556,7 +692,10 @@ function buildSystem(state: EditorState): string {
   ].join("\n");
 }
 
-export async function proposePatternChange(state: EditorState, message: string): Promise<AiDecision> {
+export async function proposePatternChange(
+  state: EditorState,
+  message: string,
+): Promise<AiDecision> {
   const history = state.chat.slice(-10).map((m) => ({
     role: m.author === "user" ? ("user" as const) : ("assistant" as const),
     content: m.text,
@@ -599,10 +738,12 @@ claude-sonnet-5 via forced tool-use and returns a validated decision."
 ### Task 4: Rewrite the generate route to use the AI
 
 **Files:**
+
 - Modify: `app/api/pattern/generate/route.ts` (full rewrite)
 - Modify: `lib/api-client.ts` (add `"declined"` to the status union)
 
 **Interfaces:**
+
 - Consumes: `proposePatternChange` from `lib/ai.ts`; `updatePieceParams`, `buildConflict` (new signature) from `lib/mock-data.ts`.
 - Produces: `POST /api/pattern/generate` returning one of `{ status: "ok" | "conflict" | "error" | "declined", state }` or `{ status: "insufficient_credits", required, balance }` (402).
 
@@ -631,12 +772,21 @@ export async function POST(request: Request) {
 
   if (state.credits.balance < cost) {
     return NextResponse.json(
-      { status: "insufficient_credits", required: cost, balance: state.credits.balance },
+      {
+        status: "insufficient_credits",
+        required: cost,
+        balance: state.credits.balance,
+      },
       { status: 402 },
     );
   }
 
-  addMessage({ id: `msg-${Date.now()}-u`, author: "user", text: trimmed, createdAt: Date.now() });
+  addMessage({
+    id: `msg-${Date.now()}-u`,
+    author: "user",
+    text: trimmed,
+    createdAt: Date.now(),
+  });
   debitCredits(cost);
 
   let decision: AiDecision;
@@ -652,7 +802,10 @@ export async function POST(request: Request) {
     addMessage({
       id: `msg-${Date.now()}-ai`,
       author: "ai",
-      text: decision.assistantMessage || decision.declineReason || "Não consegui aplicar esse pedido.",
+      text:
+        decision.assistantMessage ||
+        decision.declineReason ||
+        "Não consegui aplicar esse pedido.",
       createdAt: Date.now(),
     });
     return NextResponse.json({ status: "declined", state: getState() });
@@ -724,6 +877,7 @@ Removes the old keyword-scripted (cava/erro) branches."
 ### Task 5: Update CLAUDE.md to reflect real AI + computed geometry
 
 **Files:**
+
 - Modify: `CLAUDE.md`
 
 The user confirmed CLAUDE.md should be updated. Two claims are now false and must be corrected: "There is no real AI, no real pattern-geometry engine" and "Pieces are illustrative, not computed."
@@ -806,6 +960,7 @@ Confirm no browser console errors during the flows, and that `npm run build` and
 ## Self-Review
 
 **Spec coverage:**
+
 - Parametric geometry model (spec §1) → Task 1 (params, schema, computeGeometry, deriveDetails) + Task 2 (seed/update wiring). ✓ Per-piece param lists match the spec exactly.
 - AI request/response contract (spec §2) → Task 3 (`lib/ai.ts`, tool schema, `@anthropic-ai/sdk`, `claude-sonnet-5`, last ~10 messages, clamp) + Task 4 (route applies + clamps). ✓
 - Conflict handling & rendering (spec §3) → Task 2 (`LANDMARKS`, `buildConflict`) + Task 4 (model decides conflict; markers code-computed). Old `"cava"` keyword branch removed. ✓

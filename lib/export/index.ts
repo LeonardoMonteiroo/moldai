@@ -49,12 +49,16 @@ export function exportPattern(
     case "pdf-a4":
       // toPdf é async (pdf-lib); fire-and-forget — não muda a assinatura void
       toPdf(model, "a4")
-        .then((bytes) => downloadFile(`${base}-a4.pdf`, "application/pdf", bytes))
+        .then((bytes) =>
+          downloadFile(`${base}-a4.pdf`, "application/pdf", bytes),
+        )
         .catch(fail);
       return;
     case "pdf-single":
       toPdf(model, "single")
-        .then((bytes) => downloadFile(`${base}-folha.pdf`, "application/pdf", bytes))
+        .then((bytes) =>
+          downloadFile(`${base}-folha.pdf`, "application/pdf", bytes),
+        )
         .catch(fail);
       return;
     default: {

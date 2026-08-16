@@ -11,20 +11,21 @@
 - **Dois modos:** dev (padrão, hot reload) e produção (override opcional).
 
 ### Fora de escopo
+
 - Deploy em nuvem / registry / orquestração. Continua local-real.
 - Mudar a lógica do app, auth, crédito ou o mock in-memory (Fase B/C intocadas).
 
 ## 2. Arquivos
 
-| Arquivo | Responsabilidade |
-|---|---|
-| `Dockerfile` | Multi-stage `node:22-alpine`: `deps` (npm ci + prisma generate) → `dev` target (hot reload, source bind-montado) / `build` (next build) → `runner` target (prod: `.next` + node_modules + `next start`) |
-| `docker-entrypoint.sh` | Espera o db, roda `prisma migrate deploy` + seed (idempotente), depois `exec` no CMD |
-| `docker-compose.yml` | Padrão = dev: `db` (com healthcheck `pg_isready`) + `app` (target dev, bind mount, volumes anônimos p/ node_modules e .next, `depends_on` db healthy, porta 3000) |
-| `docker-compose.prod.yml` | Override: `app` builda o target `runner`, sem bind mount, `next start` |
-| `.dockerignore` | Exclui `node_modules`, `.next`, `.git`, `.env*`, `.superpowers`, `docs`, etc. (contexto enxuto; segredos nunca em camadas de imagem) |
-| `package.json` | Scripts `docker:up` e `docker:prod` |
-| `CLAUDE.md` | Documenta o workflow dockerizado |
+| Arquivo                   | Responsabilidade                                                                                                                                                                                        |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Dockerfile`              | Multi-stage `node:22-alpine`: `deps` (npm ci + prisma generate) → `dev` target (hot reload, source bind-montado) / `build` (next build) → `runner` target (prod: `.next` + node_modules + `next start`) |
+| `docker-entrypoint.sh`    | Espera o db, roda `prisma migrate deploy` + seed (idempotente), depois `exec` no CMD                                                                                                                    |
+| `docker-compose.yml`      | Padrão = dev: `db` (com healthcheck `pg_isready`) + `app` (target dev, bind mount, volumes anônimos p/ node_modules e .next, `depends_on` db healthy, porta 3000)                                       |
+| `docker-compose.prod.yml` | Override: `app` builda o target `runner`, sem bind mount, `next start`                                                                                                                                  |
+| `.dockerignore`           | Exclui `node_modules`, `.next`, `.git`, `.env*`, `.superpowers`, `docs`, etc. (contexto enxuto; segredos nunca em camadas de imagem)                                                                    |
+| `package.json`            | Scripts `docker:up` e `docker:prod`                                                                                                                                                                     |
+| `CLAUDE.md`               | Documenta o workflow dockerizado                                                                                                                                                                        |
 
 ## 3. Dockerfile (multi-stage)
 
@@ -36,6 +37,7 @@
 ## 4. docker-entrypoint.sh (turnkey)
 
 Compartilhado por dev e prod. Passos:
+
 1. Espera o Postgres aceitar conexão (loop `pg_isready`/tentativa de conexão — o `depends_on: condition: service_healthy` já cobre, o wait é cinto-e-suspensório).
 2. `prisma migrate deploy` (aplica as migrações commitadas — NÃO `migrate dev`, que é interativo/cria migração).
 3. Roda o seed (`prisma db seed`), **idempotente** (`upsert` por email → sem duplicar, sem quebrar em re-run).

@@ -24,17 +24,22 @@ export function ClarifyCard({ questions }: { questions: ClarifyQuestion[] }) {
   const allAnswered = questions.every((q) => answerFor(q) !== null);
 
   const gerar = () => {
-    const frase = questions.map((q) => `${q.label}: ${answerFor(q)}`).join(", ");
+    const frase = questions
+      .map((q) => `${q.label}: ${answerFor(q)}`)
+      .join(", ");
     void sendMessage(frase, { answering: true });
   };
 
-  const gerarAssimMesmo = () => void sendMessage("pode gerar com os padrões", { answering: true });
+  const gerarAssimMesmo = () =>
+    void sendMessage("pode gerar com os padrões", { answering: true });
 
   return (
-    <div className="max-w-[92%] bg-surface border border-border rounded-[12px_12px_12px_3px] p-[13px] flex flex-col gap-[14px]">
+    <div className="bg-surface border-border flex max-w-[92%] flex-col gap-[14px] rounded-[12px_12px_12px_3px] border p-[13px]">
       {questions.map((q) => (
         <div key={q.id} className="flex flex-col gap-[7px]">
-          <span className="text-[12.5px] font-semibold text-ink">{q.label}</span>
+          <span className="text-ink text-[12.5px] font-semibold">
+            {q.label}
+          </span>
           <div className="flex flex-wrap gap-[6px]">
             {q.options.map((opt) => {
               const sel = choice[q.id] === opt;
@@ -43,8 +48,10 @@ export function ClarifyCard({ questions }: { questions: ClarifyQuestion[] }) {
                   key={opt}
                   onClick={() => setChoice((s) => ({ ...s, [q.id]: opt }))}
                   className={[
-                    "text-[12px] px-[10px] py-[5px] rounded-pill border transition-colors",
-                    sel ? "bg-olive-tint border-olive-border text-olive-dark" : "bg-surface border-border text-muted-2 hover:bg-surface-alt",
+                    "rounded-pill border px-[10px] py-[5px] text-[12px] transition-colors",
+                    sel
+                      ? "bg-olive-tint border-olive-border text-olive-dark"
+                      : "bg-surface border-border text-muted-2 hover:bg-surface-alt",
                   ].join(" ")}
                 >
                   {opt}
@@ -55,8 +62,10 @@ export function ClarifyCard({ questions }: { questions: ClarifyQuestion[] }) {
               <button
                 onClick={() => setChoice((s) => ({ ...s, [q.id]: OTHER }))}
                 className={[
-                  "text-[12px] px-[10px] py-[5px] rounded-pill border transition-colors",
-                  choice[q.id] === OTHER ? "bg-olive-tint border-olive-border text-olive-dark" : "bg-surface border-border text-muted-2 hover:bg-surface-alt",
+                  "rounded-pill border px-[10px] py-[5px] text-[12px] transition-colors",
+                  choice[q.id] === OTHER
+                    ? "bg-olive-tint border-olive-border text-olive-dark"
+                    : "bg-surface border-border text-muted-2 hover:bg-surface-alt",
                 ].join(" ")}
               >
                 outro
@@ -65,11 +74,12 @@ export function ClarifyCard({ questions }: { questions: ClarifyQuestion[] }) {
           </div>
           {q.allowOther && choice[q.id] === OTHER && (
             <input
-              autoFocus
               value={other[q.id] ?? ""}
-              onChange={(e) => setOther((s) => ({ ...s, [q.id]: e.target.value }))}
+              onChange={(e) =>
+                setOther((s) => ({ ...s, [q.id]: e.target.value }))
+              }
               placeholder="descreva…"
-              className="text-[12.5px] px-[9px] py-[6px] rounded-item border border-border bg-surface-alt outline-none focus:border-olive-border"
+              className="rounded-item border-border bg-surface-alt focus:border-olive-border border px-[9px] py-[6px] text-[12.5px] outline-none"
             />
           )}
         </div>
@@ -79,13 +89,18 @@ export function ClarifyCard({ questions }: { questions: ClarifyQuestion[] }) {
           disabled={!allAnswered}
           onClick={gerar}
           className={[
-            "text-[13px] font-semibold px-[14px] py-[8px] rounded-btn transition-colors",
-            allAnswered ? "bg-olive text-[#f7f7f2] hover:bg-olive-dark" : "bg-disabled-border text-disabled cursor-not-allowed",
+            "rounded-btn px-[14px] py-[8px] text-[13px] font-semibold transition-colors",
+            allAnswered
+              ? "bg-olive hover:bg-olive-dark text-[#f7f7f2]"
+              : "bg-disabled-border text-disabled cursor-not-allowed",
           ].join(" ")}
         >
           Gerar molde
         </button>
-        <button onClick={gerarAssimMesmo} className="text-[12px] text-muted hover:text-muted-2 underline underline-offset-2">
+        <button
+          onClick={gerarAssimMesmo}
+          className="text-muted hover:text-muted-2 text-[12px] underline underline-offset-2"
+        >
           gerar assim mesmo
         </button>
       </div>

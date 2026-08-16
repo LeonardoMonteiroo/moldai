@@ -16,7 +16,8 @@ const archivo = Archivo({
 
 export const metadata: Metadata = {
   title: "MoldAI — Editor de molde",
-  description: "MoldAI gera moldes de vestuário a partir de linguagem natural, foto, croqui ou tabela de medidas.",
+  description:
+    "MoldAI gera moldes de vestuário a partir de linguagem natural, foto, croqui ou tabela de medidas.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -25,7 +26,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="pt-BR"
       className={`${bricolage.variable} ${archivo.variable} h-full antialiased`}
     >
-      <body className="h-screen flex flex-col overflow-hidden font-sans bg-paper text-ink">
+      <body className="bg-paper text-ink flex h-screen flex-col overflow-hidden font-sans">
         {children}
       </body>
     </html>
