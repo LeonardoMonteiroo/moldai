@@ -62,10 +62,6 @@ export function PatternCanvas({
 
   const snapPoints = useMemo(() => pieces.flatMap((p) => p.vertices ?? []), [pieces]);
 
-  // escala real de tela (px de tela por unidade de usuário) — o CTM é uniforme sob
-  // preserveAspectRatio="xMidYMid meet", então ctm.a === ctm.d
-  const screenScale = svgRef.current?.getScreenCTM()?.a ?? scale;
-
   // limiar de snap ~10px de tela convertido p/ unidades de usuário, lido no CTM no
   // momento do evento (exato, não o valor de render)
   const thresholdUser = () => {
@@ -226,7 +222,7 @@ export function PatternCanvas({
         pending={pending}
         cursor={cursor}
         snap={snap}
-        scale={screenScale}
+        scale={scale}
         onRemove={activeTool === "medir" ? onRemoveMeasurement : undefined}
       />
     </svg>
