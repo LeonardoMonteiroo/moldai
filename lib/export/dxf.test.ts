@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { flattenCubic, TOL_CM } from "./dxf";
+import { flattenCubic, TOL_CM, flattenOutlineCm } from "./dxf";
 import type { ExPt } from "./model";
 
 // avalia a cúbica verdadeira em t
@@ -173,5 +173,42 @@ describe("toDxf", () => {
   it("folga nula vira 0cm no comentário", () => {
     const dxf = toDxf(cubicModel);
     expect(dxf).toContain("folga 0cm (net line)");
+  });
+});
+
+describe("flattenOutlineCm", () => {
+  it("contorno só de retas: vértices dos cantos, sem duplicar o de fechamento", () => {
+    const out = flattenOutlineCm(
+      {
+        start: { x: 0, y: 0 },
+        segs: [
+          { kind: "line", to: { x: 10, y: 0 } },
+          { kind: "line", to: { x: 10, y: 10 } },
+          { kind: "line", to: { x: 0, y: 10 } },
+          { kind: "line", to: { x: 0, y: 0 } },
+        ],
+      },
+      TOL_CM,
+    );
+    expect(out).toEqual([
+      { x: 0, y: 0 },
+      { x: 10, y: 0 },
+      { x: 10, y: 10 },
+      { x: 0, y: 10 },
+    ]);
+  });
+
+  it("contorno com cubic: achatamento insere vértices (mais que o nº de segs)", () => {
+    const out = flattenOutlineCm(
+      {
+        start: { x: 0, y: 0 },
+        segs: [
+          { kind: "cubic", c1: { x: 0, y: 10 }, c2: { x: 10, y: 10 }, to: { x: 10, y: 0 } },
+          { kind: "line", to: { x: 0, y: 0 } },
+        ],
+      },
+      TOL_CM,
+    );
+    expect(out.length).toBeGreaterThan(2);
   });
 });

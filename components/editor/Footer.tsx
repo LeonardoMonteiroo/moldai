@@ -7,6 +7,8 @@ import { exportPattern, ExportFormat } from "@/lib/export";
 const FORMATS: { id: ExportFormat; label: string }[] = [
   { id: "svg", label: "SVG · 1:1 (plotter)" },
   { id: "dxf", label: "DXF · geometria 1:1 (CAD)" },
+  { id: "pdf-a4", label: "PDF · A4 (colar em casa)" },
+  { id: "pdf-single", label: "PDF · folha única (plotter)" },
 ];
 
 export function Footer({
