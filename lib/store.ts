@@ -1,9 +1,9 @@
 import { create } from "zustand";
 import * as api from "./api-client";
-import { ChatMessage, Credits, EditorState, GenerationStatus, Pattern, ConflictInfo, COSTS } from "./types";
+import { ChatMessage, Credits, EditorState, GenerationStatus, Pattern, ConflictInfo, COSTS, Measurement } from "./types";
 
 export type EditorTab = "molde2d" | "prova3d" | "ficha" | "corte";
-export type EditorTool = "medir" | "cortar" | "girar" | "marcar";
+export type EditorTool = "cursor" | "medir";
 
 const GENERATION_STEPS = [
   { label: "passo 1/4 · silhueta", pieceProgress: "traçando peças" },
@@ -31,6 +31,7 @@ interface EditorStore {
   selectedPieceId: string | null;
   detailsPanelOpen: boolean;
   activeTool: EditorTool;
+  measurements: Measurement[];
 
   generationStatus: GenerationStatus;
   generationStepIndex: number;
@@ -51,6 +52,9 @@ interface EditorStore {
   selectPiece: (id: string | null) => void;
   toggleDetailsPanel: () => void;
   setActiveTool: (tool: EditorTool) => void;
+  addMeasurement: (m: Measurement) => void;
+  removeMeasurement: (id: string) => void;
+  clearMeasurements: () => void;
 }
 
 function applyState(set: (partial: Partial<EditorStore>) => void, state: EditorState) {
@@ -72,7 +76,8 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   activeTab: "molde2d",
   selectedPieceId: null,
   detailsPanelOpen: true,
-  activeTool: "medir",
+  activeTool: "cursor",
+  measurements: [],
 
   generationStatus: "idle",
   generationStepIndex: 0,
@@ -122,11 +127,13 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       return;
     }
 
+    const prevVersion = get().pattern?.version;
     applyState(set, result.state);
     const shouldSelectFirst = !get().selectedPieceId && result.state.pattern.pieces.length > 0;
     set({
       generationStatus: result.status === "error" ? "error" : "idle",
       ...(shouldSelectFirst ? { selectedPieceId: result.state.pattern.pieces[0].id } : {}),
+      ...(result.state.pattern.version !== prevVersion ? { measurements: [] } : {}),
     });
   },
 
@@ -149,7 +156,8 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       selectedPieceId: null,
       detailsPanelOpen: true,
       activeTab: "molde2d",
-      activeTool: "medir",
+      activeTool: "cursor",
+      measurements: [],
       generationStatus: "idle",
       generationStepIndex: 0,
       paywall: { open: false, required: 0, balance: 0, actionLabel: "", retry: null },
@@ -193,6 +201,9 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   selectPiece: (id) => set({ selectedPieceId: id, detailsPanelOpen: id !== null }),
   toggleDetailsPanel: () => set((s) => ({ detailsPanelOpen: !s.detailsPanelOpen })),
   setActiveTool: (tool) => set({ activeTool: tool }),
+  addMeasurement: (m) => set((s) => ({ measurements: [...s.measurements, m] })),
+  removeMeasurement: (id) => set((s) => ({ measurements: s.measurements.filter((m) => m.id !== id) })),
+  clearMeasurements: () => set({ measurements: [] }),
 }));
 
 export { GENERATION_STEPS };
