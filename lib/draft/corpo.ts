@@ -23,11 +23,13 @@ function bodice(
   id: string,
   name: string,
   frontish: boolean,
-): { piece: DraftedPiece; armholeLenCm: number } {
+): { piece: DraftedPiece; armholeLenCm: number; armholeBaseLenCm: number } {
   const folga = style.folgaCosturaCm ?? 1;
   const folgaVestir = opts.knit ? 0 : 2;
   const halfChest = m.busto / 4 + folgaVestir;
-  const armholeDepth = m.busto / 8 + (opts.sexo === "masc" ? 10.5 : 9.5);
+  const cavaAjuste = Math.max(0, style.cavaAjusteCm ?? 0);
+  const armholeDepthBase = m.busto / 8 + (opts.sexo === "masc" ? 10.5 : 9.5);
+  const armholeDepth = armholeDepthBase + cavaAjuste; // cava aprofundada visível no contorno
   const caimentoOmbro = opts.sexo === "masc" ? 4.5 : 4.0;
   const neckHalf = m.busto / 14 + (opts.sexo === "masc" ? 0.8 : 0);
   const ombro = m.ombro;
@@ -74,6 +76,9 @@ function bodice(
   spans.push([hpsR, pts.length]);                        // decote dir + fechamento (curvo)
 
   const armholeLenCm = Math.hypot(halfChest - ombro, armholeDepth - caimentoOmbro) * 1.08;
+  // Cava "base" (sem o ajuste) — é a que a copa da manga usa enquanto não é refeita;
+  // a divergência entre esta e armholeLenCm é o que o seamCheck detecta.
+  const armholeBaseLenCm = Math.hypot(halfChest - ombro, armholeDepthBase - caimentoOmbro) * 1.08;
 
   const detailRows: DetailRow[] = [
     { label: "Folga de costura", value: cm(folga) },
@@ -95,11 +100,17 @@ function bodice(
   return {
     piece: { id, name, qty: 1, outlineCm: pts, curvedSpans: spans, grainlineCm, dartCm, detailRows, armholeLenCm },
     armholeLenCm,
+    armholeBaseLenCm,
   };
 }
 
 export function draftCorpo(m: Measurements, style: GarmentStyle, opts: BlockOpts = defaultOpts(m)) {
   const f = bodice(m, style, opts, "corpo-frente", "Frente", true);
   const c = bodice(m, style, opts, "corpo-costas", "Costas", false);
-  return { frente: f.piece, costas: c.piece, armholeLenCm: f.armholeLenCm };
+  return {
+    frente: f.piece,
+    costas: c.piece,
+    armholeLenCm: f.armholeLenCm,
+    armholeBaseLenCm: f.armholeBaseLenCm,
+  };
 }

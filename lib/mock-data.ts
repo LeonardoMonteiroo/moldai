@@ -5,9 +5,49 @@ import {
   EditorState,
   GarmentSpec,
   Pattern,
+  Piece,
 } from "./types";
-import { draftGarment } from "@/lib/draft/garment";
+import { draftGarment, seamCheck } from "@/lib/draft/garment";
 import { resolveMeasurements } from "@/lib/measurements";
+
+// Marca (círculo tracejado) na região da cava de uma peça, a partir da bbox dos
+// seus vértices em px. Ilustrativa — aponta a costura em conflito no canvas.
+function cavaMarker(piece: Piece | undefined): { cx: number; cy: number; r: number } | null {
+  const vs = piece?.vertices;
+  if (!vs || vs.length === 0) return null;
+  const xs = vs.map((v) => v.x);
+  const ys = vs.map((v) => v.y);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  return { cx: maxX - 6, cy: minY + (maxY - minY) * 0.28, r: 14 };
+}
+
+// Detecta divergência de costura entre a cava do corpo e a copa da manga
+// (seamCheck determinístico) e monta o ConflictInfo com marcas no canvas.
+function detectConflict(
+  pieces: Piece[],
+  armholeLenCm?: number,
+  mangaArmholeCm?: number,
+): ConflictInfo | null {
+  const seam = seamCheck(armholeLenCm, mangaArmholeCm);
+  if (!seam) return null;
+  const frente = pieces.find((p) => p.id === "corpo-frente");
+  const manga = pieces.find((p) => p.id === "manga");
+  const markers = [cavaMarker(frente), cavaMarker(manga)].filter(
+    (m): m is { cx: number; cy: number; r: number } => m !== null,
+  );
+  const maior = (armholeLenCm ?? 0) > (mangaArmholeCm ?? 0);
+  return {
+    id: `conf-${Date.now()}`,
+    title: "Cava e manga não batem",
+    description: `A cava do corpo ficou ${seam.diffCm} cm ${maior ? "maior" : "menor"} que a copa da manga — as costuras não vão fechar.`,
+    diffCm: seam.diffCm,
+    suggestion: "“Corrigir manga” refaz a copa para a cava ajustada, sem custo.",
+    pieceAId: "corpo-frente",
+    pieceBId: "manga",
+    markers,
+  };
+}
 
 // The editor opens on a blank molde: no pieces, no chat. The first generation
 // creates the pieces the garment needs.
@@ -95,9 +135,18 @@ export function setConflict(conflict: ConflictInfo | null) {
 // they always match by construction — there's nothing to flag yet.
 export function applyGarmentSpec(spec: GarmentSpec): void {
   const size = state.pattern.baseSize;
-  const { pieces, viewBox, measurements } = draftGarment(spec, size);
+  const { pieces, viewBox, measurements, armholeLenCm, mangaArmholeCm } = draftGarment(spec, size);
   state.pattern = { ...state.pattern, pieces, viewBox, spec, baseMeasurements: measurements };
-  state.conflict = null;
+  // Apply-with-warning: a geração aplica normalmente; se as costuras divergirem,
+  // o conflito é anexado (Export bloqueia até resolver). Sem impacto no crédito.
+  state.conflict = detectConflict(pieces, armholeLenCm, mangaArmholeCm);
+}
+
+// "Corrigir manga": marca mangaRefit e re-drafta — a copa passa a usar a cava
+// ajustada, as costuras batem e detectConflict devolve null (conflito some).
+export function refitManga(): void {
+  const spec = getSpec();
+  applyGarmentSpec({ ...spec, style: { ...spec.style, mangaRefit: true } });
 }
 
 export function getSpec(): GarmentSpec {

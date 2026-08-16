@@ -38,6 +38,13 @@ export interface GarmentStyle {
   compSaiaCm?: number;
   pences?: boolean;
   folgaCosturaCm?: number;
+  // Aprofundamento da cava do corpo (cm), settável pela IA e clampado em
+  // validateSpec. Ao mexer só no corpo, a copa da manga (dimensionada pela cava
+  // base) deixa de bater → conflito de costura detectado por seamCheck.
+  cavaAjusteCm?: number;
+  // Interno (NÃO settável pela IA — validateSpec o descarta): marcado por
+  // "Corrigir manga" no resolver, refaz a copa para a cava ajustada.
+  mangaRefit?: boolean;
 }
 
 export interface GarmentSpec {
