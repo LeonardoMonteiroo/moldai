@@ -74,7 +74,6 @@ export function ClarifyCard({ questions }: { questions: ClarifyQuestion[] }) {
           </div>
           {q.allowOther && choice[q.id] === OTHER && (
             <input
-              autoFocus
               value={other[q.id] ?? ""}
               onChange={(e) =>
                 setOther((s) => ({ ...s, [q.id]: e.target.value }))

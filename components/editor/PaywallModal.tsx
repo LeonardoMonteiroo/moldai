@@ -12,7 +12,12 @@ export function PaywallModal() {
 
   return (
     <div className="absolute inset-0 z-20 flex items-start justify-center pt-[52px]">
-      <div className="bg-overlay absolute inset-0" onClick={close} />
+      <button
+        type="button"
+        aria-label="Fechar"
+        onClick={close}
+        className="bg-overlay absolute inset-0 cursor-default border-0"
+      />
       <div className="bg-surface border-border rounded-modal shadow-modal relative flex w-[470px] flex-col gap-[13px] border p-[22px]">
         <div className="flex items-center gap-[9px]">
           <span className="bg-amber-bg border-amber-border text-amber-text flex h-[26px] w-[26px] items-center justify-center rounded-full border text-[12px]">
