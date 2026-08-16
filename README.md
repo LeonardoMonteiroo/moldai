@@ -19,6 +19,8 @@ npm run docker:prod   # imagem de produção (next start)
 
 Um comando sobe o app e o Postgres; o entrypoint aplica as migrações e semeia as contas dev. No container o app fala com o Postgres em `db:5432`; os segredos vêm de `.env.local` em runtime (nunca embutidos na imagem).
 
+> Após mudar dependências (`package.json`), recrie o volume anônimo de `node_modules`: `docker compose down -v` (ou `docker compose up --build --renew-anon-volumes`).
+
 ## Rodar no host (sem containerizar o app)
 
 ```bash

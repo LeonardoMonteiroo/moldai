@@ -43,6 +43,7 @@ COPY --from=build /app/next.config.ts ./next.config.ts
 COPY --from=build /app/prisma ./prisma
 # lib/ é necessário pelo prisma/seed.ts (importa ../lib/auth/hash) no entrypoint
 COPY --from=build /app/lib ./lib
+COPY --from=build /app/tsconfig.json ./tsconfig.json
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 EXPOSE 3000
