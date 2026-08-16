@@ -1,4 +1,4 @@
-import type { ExPt, ExportModel } from "./model";
+import type { ExPt, ExSeg, ExportModel } from "./model";
 
 export const TOL_CM = 0.02; // 0,2 mm
 const MAX_DEPTH = 16;
@@ -36,6 +36,31 @@ export function flattenCubic(
   };
   recurse(p0, c1, c2, p3, 0);
   return out;
+}
+
+// Contorno achatado em cm: line -> 1 vértice, cubic -> pontos de flattenCubic.
+// Fechado; remove o vértice final se coincidir com o inicial (dedup).
+export function flattenOutlineCm(
+  outline: { start: ExPt; segs: ExSeg[] },
+  tolCm: number,
+): ExPt[] {
+  const verts: ExPt[] = [outline.start];
+  let prev = outline.start;
+  for (const s of outline.segs) {
+    if (s.kind === "line") {
+      verts.push(s.to);
+      prev = s.to;
+    } else {
+      verts.push(...flattenCubic(prev, s.c1, s.c2, s.to, tolCm));
+      prev = s.to;
+    }
+  }
+  const first = verts[0];
+  const last = verts[verts.length - 1];
+  if (verts.length > 1 && Math.abs(first.x - last.x) < 1e-6 && Math.abs(first.y - last.y) < 1e-6) {
+    verts.pop();
+  }
+  return verts;
 }
 
 const MM = 10; // cm -> mm (1:1)
@@ -76,24 +101,8 @@ export function toDxf(model: ExportModel): string {
     // Y invertido: DXF tem +Y pra cima; ExportModel tem +Y pra baixo.
     const Y = (y: number) => f((model.sheetHeightCm - (oy + y)) * MM);
 
-    // contorno -> vértices achatados
-    const verts: ExPt[] = [piece.outline.start];
-    let prev = piece.outline.start;
-    for (const s of piece.outline.segs) {
-      if (s.kind === "line") {
-        verts.push(s.to);
-        prev = s.to;
-      } else {
-        verts.push(...flattenCubic(prev, s.c1, s.c2, s.to, TOL_CM));
-        prev = s.to;
-      }
-    }
-    // a polilinha fecha via flag 70=1; remove o vértice final se coincidir com o inicial
-    const first = verts[0];
-    const last = verts[verts.length - 1];
-    if (verts.length > 1 && Math.abs(first.x - last.x) < 1e-6 && Math.abs(first.y - last.y) < 1e-6) {
-      verts.pop();
-    }
+    // contorno -> vértices achatados (helper compartilhado com o PDF)
+    const verts = flattenOutlineCm(piece.outline, TOL_CM);
 
     p(0, "LWPOLYLINE"); p(8, "CONTORNO"); p(90, verts.length); p(70, 1);
     for (const v of verts) {
