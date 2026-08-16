@@ -65,8 +65,8 @@ export default function LoginPage() {
           </button>
         </form>
         <p className="mt-4 text-[11px] text-muted">
-          Criar conta — <span className="font-medium">em breve</span>. Nesta fase o molde é
-          compartilhado entre contas; molde por usuário vem na próxima fase.
+          Criar conta — <span className="font-medium">em breve</span>. Cada conta tem o seu próprio
+          molde, salvo automaticamente.
         </p>
       </div>
     </div>
