@@ -1,6 +1,6 @@
 import { MEASUREMENT_RANGES, Measurements, resolveMeasurements } from "@/lib/measurements";
 import {
-  Decote, GarmentSpec, GarmentStyle, GarmentType, MangaLen, SaiaSilhueta, Sexo, SizeLabel,
+  ClarifyQuestion, Decote, GarmentSpec, GarmentStyle, GarmentType, MangaLen, SaiaSilhueta, Sexo, SizeLabel,
 } from "@/lib/types";
 import { autoLayout, DraftedPiece } from "./core";
 import { BlockOpts, draftCorpo } from "./corpo";
@@ -44,6 +44,26 @@ export function validateSpec(raw: unknown): GarmentSpec {
     measurementOverrides: overrides,
     style: outStyle,
   };
+}
+
+export function validateQuestions(raw: unknown): ClarifyQuestion[] {
+  if (!Array.isArray(raw)) return [];
+  const out: ClarifyQuestion[] = [];
+  for (const item of raw.slice(0, 4)) {
+    const q = (item ?? {}) as Record<string, unknown>;
+    const label = typeof q.label === "string" ? q.label.trim() : "";
+    if (!label) continue;
+    const optsRaw = Array.isArray(q.options) ? q.options : [];
+    const options: string[] = [];
+    for (const o of optsRaw) {
+      const s = typeof o === "string" ? o.trim() : "";
+      if (s && !options.includes(s)) options.push(s);
+      if (options.length === 6) break;
+    }
+    if (options.length < 2) continue;
+    out.push({ id: `q${out.length}`, label, options, allowOther: q.allowOther === true });
+  }
+  return out;
 }
 
 export function seamCheck(armholeLenCm?: number, mangaCavaCm?: number): { diffCm: number } | null {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { validateSpec, draftGarment } from "./garment";
+import { validateSpec, draftGarment, validateQuestions } from "./garment";
 
 describe("validateSpec", () => {
   it("cai para defaults em enums inválidos e clampa faixas", () => {
@@ -51,5 +51,44 @@ describe("draftGarment", () => {
     const ids = pieces.map((p) => p.id);
     expect(ids).toContain("saia");
     expect(ids).toContain("corpo-frente");
+  });
+});
+
+describe("validateQuestions", () => {
+  it("mantém pergunta válida e deriva id estável", () => {
+    const qs = validateQuestions([
+      { label: "Gola", options: ["redonda", "V", "careca"], allowOther: true },
+    ]);
+    expect(qs).toHaveLength(1);
+    expect(qs[0].id).toBe("q0");
+    expect(qs[0].label).toBe("Gola");
+    expect(qs[0].options).toEqual(["redonda", "V", "careca"]);
+    expect(qs[0].allowOther).toBe(true);
+  });
+  it("limita a 4 perguntas", () => {
+    const raw = Array.from({ length: 7 }, (_, i) => ({ label: `P${i}`, options: ["a", "b"] }));
+    expect(validateQuestions(raw)).toHaveLength(4);
+  });
+  it("descarta pergunta com menos de 2 opções ou label vazio", () => {
+    const qs = validateQuestions([
+      { label: "", options: ["a", "b"] },
+      { label: "Ok", options: ["só uma"] },
+      { label: "Boa", options: ["a", "b"] },
+    ]);
+    expect(qs.map((q) => q.label)).toEqual(["Boa"]);
+  });
+  it("corta em 6 opções e limpa strings vazias/duplicadas", () => {
+    const qs = validateQuestions([
+      { label: "Muitas", options: ["a", "a", "", "b", "c", "d", "e", "f", "g"] },
+    ]);
+    expect(qs[0].options).toEqual(["a", "b", "c", "d", "e", "f"]);
+  });
+  it("degrada para lista vazia quando nada é aproveitável", () => {
+    expect(validateQuestions("lixo")).toEqual([]);
+    expect(validateQuestions([{ label: "x", options: [] }])).toEqual([]);
+  });
+  it("allowOther default false quando ausente/inválido", () => {
+    const qs = validateQuestions([{ label: "P", options: ["a", "b"] }]);
+    expect(qs[0].allowOther).toBe(false);
   });
 });

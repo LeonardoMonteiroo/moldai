@@ -12,6 +12,13 @@ export type Decote = "reto" | "V" | "redondo";
 export type MangaLen = "sem" | "curta" | "longa";
 export type SaiaSilhueta = "reta" | "evase" | "gode" | "meia-roda" | "circulo";
 
+export interface ClarifyQuestion {
+  id: string;
+  label: string;
+  options: string[];
+  allowOther: boolean;
+}
+
 export interface GarmentStyle {
   decote?: Decote;
   decoteProfundidadeCm?: number;
@@ -56,6 +63,7 @@ export interface ChatMessage {
   author: "user" | "ai";
   text: string;
   chips?: ChatChip[];
+  questions?: ClarifyQuestion[];
   tone?: "neutral" | "conflict";
   createdAt: number;
 }
