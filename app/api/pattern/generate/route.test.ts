@@ -1,15 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { seedState } from "@/lib/editor/state";
+import type { EditorState } from "@/lib/types";
+
+let state: EditorState = seedState();
 
 vi.mock("@/lib/ai", () => ({ proposeGarment: vi.fn() }));
 vi.mock("@/lib/auth/guard", () => ({
   requireUser: vi.fn(async () => ({ id: "u1", email: "dev@moldai.local", name: null })),
+}));
+vi.mock("@/lib/db/molde", () => ({
+  // Executa o fn sobre o state em memória (imita withMolde sem DB).
+  withMolde: vi.fn(async (_userId: string, fn: (s: EditorState) => unknown) => fn(state)),
+  loadMolde: vi.fn(async () => state),
+  resetMolde: vi.fn(async () => (state = seedState())),
 }));
 
 import { POST } from "./route";
 import { proposeGarment } from "@/lib/ai";
 import { requireUser } from "@/lib/auth/guard";
 import { unauthorized } from "@/lib/auth/session";
-import { resetState, getState } from "@/lib/mock-data";
 
 const mockPropose = proposeGarment as unknown as ReturnType<typeof vi.fn>;
 
@@ -21,39 +30,53 @@ function req(body: unknown) {
   });
 }
 
-describe("POST /api/pattern/generate — ask", () => {
+describe("POST /api/pattern/generate", () => {
   beforeEach(() => {
-    resetState();
+    state = seedState();
     mockPropose.mockReset();
+    vi.mocked(requireUser).mockResolvedValue({ id: "u1", email: "dev@moldai.local", name: null });
   });
 
   it("ask estorna o crédito, não desenha nem versiona, e devolve clarify", async () => {
-    const balanceBefore = getState().credits.balance;
-    const versionBefore = getState().pattern.version;
+    const balanceBefore = state.credits.balance;
+    const versionBefore = state.pattern.version;
     mockPropose.mockResolvedValue({
       decision: "ask",
       spec: { tipo: "camiseta", sexo: "masc", style: {}, measurementOverrides: {} },
       questions: [{ id: "q0", label: "Gola", options: ["redonda", "V"], allowOther: true }],
       assistantMessage: "Me conta mais:",
     });
-
     const res = await POST(req({ message: "quero uma camiseta" }));
     const json = await res.json();
-
     expect(json.status).toBe("clarify");
-    expect(getState().credits.balance).toBe(balanceBefore); // debitou e estornou
-    expect(getState().pattern.version).toBe(versionBefore); // sem bump
-    expect(getState().pattern.pieces).toHaveLength(0); // nada desenhado
-    const last = getState().chat[getState().chat.length - 1];
+    expect(state.credits.balance).toBe(balanceBefore);
+    expect(state.pattern.version).toBe(versionBefore);
+    expect(state.pattern.pieces).toHaveLength(0);
+    const last = state.chat[state.chat.length - 1];
     expect(last.author).toBe("ai");
     expect(last.questions).toHaveLength(1);
   });
 
+  it("apply debita, desenha e versiona", async () => {
+    const balanceBefore = state.credits.balance;
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: { tipo: "camiseta", sexo: "masc", style: {}, measurementOverrides: {} },
+      assistantMessage: "Pronto",
+    });
+    const res = await POST(req({ message: "camiseta masc" }));
+    const json = await res.json();
+    expect(json.status).toBe("ok");
+    expect(state.credits.balance).toBe(balanceBefore - 1);
+    expect(state.pattern.version).toBe(1);
+    expect(state.pattern.pieces.length).toBeGreaterThan(0);
+  });
+
   it("mensagem vazia retorna 400 sem debitar nem chamar a IA", async () => {
-    const balanceBefore = getState().credits.balance;
+    const balanceBefore = state.credits.balance;
     const res = await POST(req({ message: "   " }));
     expect(res.status).toBe(400);
-    expect(getState().credits.balance).toBe(balanceBefore);
+    expect(state.credits.balance).toBe(balanceBefore);
     expect(mockPropose).not.toHaveBeenCalled();
   });
 
@@ -63,16 +86,24 @@ describe("POST /api/pattern/generate — ask", () => {
       spec: { tipo: "camiseta", sexo: "masc", style: {}, measurementOverrides: {} },
       assistantMessage: "Pronto",
     });
-    await POST(req({ message: "gola redonda, manga curta", answering: true }));
+    await POST(req({ message: "gola redonda", answering: true }));
     expect(mockPropose).toHaveBeenCalledWith(expect.anything(), true);
   });
 
   it("sem sessão retorna 401 sem debitar nem chamar a IA", async () => {
     vi.mocked(requireUser).mockResolvedValueOnce(unauthorized());
-    const balanceBefore = getState().credits.balance;
+    const balanceBefore = state.credits.balance;
     const res = await POST(req({ message: "quero uma camiseta" }));
     expect(res.status).toBe(401);
-    expect(getState().credits.balance).toBe(balanceBefore);
+    expect(state.credits.balance).toBe(balanceBefore);
+    expect(mockPropose).not.toHaveBeenCalled();
+  });
+
+  it("saldo insuficiente retorna 402 sem debitar nem chamar a IA", async () => {
+    state.credits.balance = 0;
+    const res = await POST(req({ message: "camiseta" }));
+    expect(res.status).toBe(402);
+    expect(state.credits.balance).toBe(0);
     expect(mockPropose).not.toHaveBeenCalled();
   });
 });

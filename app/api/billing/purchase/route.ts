@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { applyPurchase, getState } from "@/lib/mock-data";
+import { withMolde } from "@/lib/db/molde";
+import { applyPurchase } from "@/lib/editor/state";
 import { requireUser } from "@/lib/auth/guard";
 
 export async function POST(request: Request) {
@@ -7,6 +8,8 @@ export async function POST(request: Request) {
   if (gate instanceof NextResponse) return gate;
 
   const { type } = (await request.json()) as { type: "topup" | "subscribe" };
-  applyPurchase(type);
-  return NextResponse.json({ status: "ok", state: getState() });
+  return withMolde(gate.id, (state) => {
+    applyPurchase(state, type);
+    return NextResponse.json({ status: "ok", state });
+  });
 }

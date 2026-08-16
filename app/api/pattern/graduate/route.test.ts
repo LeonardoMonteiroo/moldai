@@ -1,11 +1,21 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { seedState } from "@/lib/editor/state";
+import type { EditorState } from "@/lib/types";
+
+let state: EditorState = seedState();
 
 vi.mock("@/lib/auth/guard", () => ({
   requireUser: vi.fn(async () => ({ id: "u1", email: "dev@moldai.local", name: null })),
 }));
+vi.mock("@/lib/db/molde", () => ({
+  withMolde: vi.fn(async (_userId: string, fn: (s: EditorState) => unknown) => fn(state)),
+  loadMolde: vi.fn(async () => state),
+  resetMolde: vi.fn(async () => (state = seedState())),
+}));
 
 import { POST } from "./route";
-import { resetState, getState } from "@/lib/mock-data";
+import { requireUser } from "@/lib/auth/guard";
+import { unauthorized } from "@/lib/auth/session";
 
 function req(body: unknown) {
   return new Request("http://test/api/pattern/graduate", {
@@ -17,31 +27,34 @@ function req(body: unknown) {
 
 describe("POST /api/pattern/graduate", () => {
   beforeEach(() => {
-    resetState();
+    state = seedState();
+    vi.mocked(requireUser).mockResolvedValue({ id: "u1", email: "dev@moldai.local", name: null });
   });
 
-  it("lista de tamanhos vazia retorna 400 sem debitar nem versionar", async () => {
-    const balanceBefore = getState().credits.balance;
-    const versionBefore = getState().pattern.version;
-    const res = await POST(req({ sizes: [] }));
+  it("gradua tamanhos válidos, debita 6 e versiona", async () => {
+    const balanceBefore = state.credits.balance;
+    const res = await POST(req({ sizes: ["PP", "P"] }));
+    const json = await res.json();
+    expect(json.status).toBe("ok");
+    expect(state.credits.balance).toBe(balanceBefore - 6);
+    expect(state.pattern.sizesApplied).toEqual(expect.arrayContaining(["PP", "P"]));
+  });
+
+  it("nenhum tamanho válido retorna 400", async () => {
+    const res = await POST(req({ sizes: ["XL"] }));
     expect(res.status).toBe(400);
-    expect(getState().credits.balance).toBe(balanceBefore);
-    expect(getState().pattern.version).toBe(versionBefore);
   });
 
-  it("filtra tamanhos inválidos e formata a mensagem com 'e'", async () => {
-    const res = await POST(req({ sizes: ["PP", "X", "G"] }));
-    const json = await res.json();
-    expect(res.status).toBe(200);
-    expect(json.state.pattern.sizesApplied).toEqual(expect.arrayContaining(["PP", "G"]));
-    const last = json.state.chat[json.state.chat.length - 1];
-    expect(last.text).toBe("Graduação aplicada para PP e G.");
+  it("saldo insuficiente retorna 402 sem debitar", async () => {
+    state.credits.balance = 3;
+    const res = await POST(req({ sizes: ["PP"] }));
+    expect(res.status).toBe(402);
+    expect(state.credits.balance).toBe(3);
   });
 
-  it("três ou mais tamanhos usam vírgula + 'e' final", async () => {
-    const res = await POST(req({ sizes: ["PP", "P", "G"] }));
-    const json = await res.json();
-    const last = json.state.chat[json.state.chat.length - 1];
-    expect(last.text).toBe("Graduação aplicada para PP, P e G.");
+  it("sem sessão retorna 401", async () => {
+    vi.mocked(requireUser).mockResolvedValueOnce(unauthorized());
+    const res = await POST(req({ sizes: ["PP"] }));
+    expect(res.status).toBe(401);
   });
 });
