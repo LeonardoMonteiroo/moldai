@@ -31,18 +31,37 @@ describe("POST /api/pattern/graduate", () => {
     vi.mocked(requireUser).mockResolvedValue({ id: "u1", email: "dev@moldai.local", name: null });
   });
 
-  it("gradua tamanhos válidos, debita 6 e versiona", async () => {
+  it("gradua tamanhos válidos (2 tamanhos), debita 6, versiona e retorna mensagem formatada", async () => {
     const balanceBefore = state.credits.balance;
     const res = await POST(req({ sizes: ["PP", "P"] }));
     const json = await res.json();
     expect(json.status).toBe("ok");
     expect(state.credits.balance).toBe(balanceBefore - 6);
     expect(state.pattern.sizesApplied).toEqual(expect.arrayContaining(["PP", "P"]));
+    const lastMsg = state.chat[state.chat.length - 1];
+    expect(lastMsg.author).toBe("ai");
+    expect(lastMsg.text).toBe("Graduação aplicada para PP e P.");
   });
 
-  it("nenhum tamanho válido retorna 400", async () => {
+  it("gradua tamanhos válidos (3 tamanhos) retorna mensagem com formatList", async () => {
+    const balanceBefore = state.credits.balance;
+    const res = await POST(req({ sizes: ["PP", "P", "G"] }));
+    const json = await res.json();
+    expect(json.status).toBe("ok");
+    expect(state.credits.balance).toBe(balanceBefore - 6);
+    expect(state.pattern.sizesApplied).toEqual(expect.arrayContaining(["PP", "P", "G"]));
+    const lastMsg = state.chat[state.chat.length - 1];
+    expect(lastMsg.author).toBe("ai");
+    expect(lastMsg.text).toBe("Graduação aplicada para PP, P e G.");
+  });
+
+  it("nenhum tamanho válido retorna 400 sem mutar estado", async () => {
+    const balanceBefore = state.credits.balance;
+    const versionBefore = state.pattern.version;
     const res = await POST(req({ sizes: ["XL"] }));
     expect(res.status).toBe(400);
+    expect(state.credits.balance).toBe(balanceBefore);
+    expect(state.pattern.version).toBe(versionBefore);
   });
 
   it("saldo insuficiente retorna 402 sem debitar", async () => {
