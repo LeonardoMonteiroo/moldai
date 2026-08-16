@@ -2,8 +2,10 @@
 
 import { Credits, Pattern } from "@/lib/types";
 import { useEditorStore } from "@/lib/store";
+import { signOut } from "next-auth/react";
+import { initialsFromEmail } from "@/lib/format";
 
-export function Topbar({ pattern, credits }: { pattern: Pattern; credits: Credits }) {
+export function Topbar({ pattern, credits, userEmail }: { pattern: Pattern; credits: Credits; userEmail: string }) {
   const pct = Math.round((credits.balance / credits.total) * 100);
   const resetPattern = useEditorStore((s) => s.resetPattern);
 
@@ -47,8 +49,19 @@ export function Topbar({ pattern, credits }: { pattern: Pattern; credits: Credit
       <button className="text-[12px] font-medium px-[13px] py-[7px] border border-border rounded-btn bg-surface hover:bg-surface-alt transition-colors">
         Comprar créditos
       </button>
-      <div className="w-[30px] h-[30px] rounded-full bg-olive-tint border border-olive-border flex items-center justify-center text-[12px] font-semibold text-olive">
-        LU
+      <div className="flex items-center gap-2">
+        <div
+          title={userEmail}
+          className="w-[30px] h-[30px] rounded-full bg-olive-tint border border-olive-border flex items-center justify-center text-[12px] font-semibold text-olive"
+        >
+          {initialsFromEmail(userEmail)}
+        </div>
+        <button
+          onClick={() => signOut({ callbackUrl: "/login" })}
+          className="text-[12px] font-medium px-[11px] py-[6px] border border-border rounded-btn bg-surface text-muted-2 hover:bg-surface-alt transition-colors"
+        >
+          Sair
+        </button>
       </div>
     </div>
   );
