@@ -5,7 +5,7 @@ import { bbox } from "./core";
 
 const M = resolveMeasurements("M", {});
 
-describe("draftManga", () => {
+describe("draftManga copa em sino", () => {
   it("retorna null quando manga=sem", () => {
     expect(draftManga(M, { manga: "sem" }, 22)).toBeNull();
   });
@@ -18,5 +18,9 @@ describe("draftManga", () => {
     const estreita = draftManga(M, { manga: "curta" }, 18)!;
     const larga = draftManga(M, { manga: "curta" }, 30)!;
     expect(bbox(larga.outlineCm).w).toBeGreaterThan(bbox(estreita.outlineCm).w);
+  });
+  it("marca a copa como curvedSpan", () => {
+    const mg = draftManga(M, { manga: "curta" }, 22)!;
+    expect((mg.curvedSpans ?? []).length).toBeGreaterThanOrEqual(1);
   });
 });
