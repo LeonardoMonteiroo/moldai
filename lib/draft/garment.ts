@@ -72,7 +72,11 @@ export function seamCheck(armholeLenCm?: number, mangaCavaCm?: number): { diffCm
   return diff > 1 ? { diffCm: Math.round(diff * 10) / 10 } : null;
 }
 
-export function draftGarment(spec: GarmentSpec, size: SizeLabel) {
+function draftAll(spec: GarmentSpec, size: SizeLabel): {
+  drafted: DraftedPiece[];
+  measurements: Measurements;
+  armholeLenCm?: number;
+} {
   const sexo: Sexo = spec.sexo ?? "fem";
   const measurements: Measurements = resolveMeasurements(size, spec.measurementOverrides, sexo);
   const drafted: DraftedPiece[] = [];
@@ -99,6 +103,15 @@ export function draftGarment(spec: GarmentSpec, size: SizeLabel) {
     drafted.push(draftSaia(measurements, spec.style));
   }
 
+  return { drafted, measurements, armholeLenCm };
+}
+
+export function draftPiecesCm(spec: GarmentSpec, size: SizeLabel): DraftedPiece[] {
+  return draftAll(spec, size).drafted;
+}
+
+export function draftGarment(spec: GarmentSpec, size: SizeLabel) {
+  const { drafted, measurements, armholeLenCm } = draftAll(spec, size);
   const { pieces, viewBox } = autoLayout(drafted, 8);
   return { pieces, viewBox, measurements, armholeLenCm };
 }
