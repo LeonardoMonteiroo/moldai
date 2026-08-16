@@ -2,10 +2,11 @@ import type { Pattern } from "@/lib/types";
 import { buildExportModel } from "./model";
 import { toSvg } from "./svg";
 import { toDxf } from "./dxf";
+import { toDxfAama } from "./dxf-aama";
 import { toPdf } from "./pdf";
 import { downloadFile, slug } from "./download";
 
-export type ExportFormat = "svg" | "dxf" | "pdf-a4" | "pdf-single";
+export type ExportFormat = "svg" | "dxf" | "dxf-aama" | "pdf-a4" | "pdf-single";
 
 export function exportPattern(
   pattern: Pattern,
@@ -34,6 +35,13 @@ export function exportPattern(
     case "dxf":
       try {
         downloadFile(`${base}.dxf`, "image/vnd.dxf", toDxf(model));
+      } catch {
+        fail();
+      }
+      return;
+    case "dxf-aama":
+      try {
+        downloadFile(`${base}-aama.dxf`, "image/vnd.dxf", toDxfAama(model));
       } catch {
         fail();
       }
