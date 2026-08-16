@@ -1,4 +1,4 @@
-import { DetailRow, Piece, PieceOutline } from "@/lib/types";
+import { DetailRow, Piece, PieceOutline, Point } from "@/lib/types";
 
 export const SCALE = 4; // px por cm
 export const PX = (cm: number) => Math.round(cm * SCALE * 10) / 10;
@@ -88,6 +88,7 @@ function place(dp: DraftedPiece, dxPx: number, dyPx: number): Piece {
     detailRows: dp.detailRows,
     label: { x: dxPx + 6, y: dyPx + PX(bbox(dp.outlineCm).h) - 6 },
   };
+  piece.vertices = dp.outlineCm.map(([x, y]) => ({ x: PX(x) + dxPx, y: PX(y) + dyPx }));
   if (dp.guideCm) piece.guideOutline = translateOutline(polyPath(dp.guideCm), dxPx, dyPx);
   if (dp.grainlineCm) {
     const [[x1, y1], [x2, y2]] = dp.grainlineCm;
