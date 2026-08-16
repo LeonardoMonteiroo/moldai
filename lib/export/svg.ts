@@ -1,4 +1,4 @@
-import type { ExportModel, ExPt, ExSeg } from "./model";
+import { buildPathD, type ExportModel, type ExPt, type ExSeg } from "./model";
 
 const MM = 10; // cm -> mm (1:1)
 const f = (n: number) => (Math.round(n * 100) / 100).toString();
@@ -8,14 +8,7 @@ function escapeXml(s: string): string {
 }
 
 function pathD(start: ExPt, segs: ExSeg[], ox: number, oy: number): string {
-  const X = (x: number) => f((ox + x) * MM);
-  const Y = (y: number) => f((oy + y) * MM);
-  let d = `M${X(start.x)} ${Y(start.y)}`;
-  for (const s of segs) {
-    if (s.kind === "line") d += ` L${X(s.to.x)} ${Y(s.to.y)}`;
-    else d += ` C${X(s.c1.x)} ${Y(s.c1.y)} ${X(s.c2.x)} ${Y(s.c2.y)} ${X(s.to.x)} ${Y(s.to.y)}`;
-  }
-  return d + " Z";
+  return buildPathD(start, segs, (x) => (ox + x) * MM, (y) => (oy + y) * MM);
 }
 
 export function toSvg(model: ExportModel): string {
