@@ -142,7 +142,9 @@ O contrato JSON de resposta (`{ status, state }`, códigos 400/402, formato do `
 
 - **Geometria salva pode envelhecer:** se `draftGarment` mudar num deploy futuro, as peças já salvas ficam com a geometria antiga até a próxima geração. Aceitável — é o que o usuário viu por último; a próxima geração re-drafta.
 - **Corrida multi-request:** resolvida por transação+lock por usuário (não é limitação).
+- **Lock mantido durante a chamada à IA:** `withMolde` mantém a transação (e o lock da linha) aberta enquanto `proposeGarment` roda (~5–12s), porque é justamente isso que serializa os requests do usuário e mantém o débito correto. Consequências que a implementação DEVE tratar: (a) o **timeout da transação interativa precisa ser elevado** (`{ timeout: 30_000, maxWait: 10_000 }`) — o default de 5s do Prisma estouraria no meio da chamada à IA; (b) sob carga alta isso segura conexão do pool por request. Aceitável para um-molde-por-usuário nesta escala; revisitar em Fase C/escala se necessário.
 - **Créditos no blob:** sem ledger/auditoria; a Fase C (billing) extrai créditos para estrutura própria quando precisar de transações de compra/renovação reais.
+- **Race no primeiro acesso:** `withMolde` faz `INSERT … ON CONFLICT (userId) DO NOTHING` (materializa o seed) **antes** do `SELECT … FOR UPDATE`, garantindo que exista linha para travar mesmo no primeiríssimo request concorrente.
 
 ## Verificação (aceite)
 
