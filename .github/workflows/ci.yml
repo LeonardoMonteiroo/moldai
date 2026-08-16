@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+      - run: npm run format:check
+      - run: npx eslint app lib components
+      - run: npx vitest run
+      - name: Build (typecheck)
+        run: npm run build
+        env:
+          # Dummies não-secretos: o build importa rotas que instanciam PrismaClient
+          # (lib/db/prisma.ts) e o NextAuth, que exigem estas envs no import — mas o
+          # build NÃO conecta em nada. Nunca colocar segredos reais aqui.
+          DATABASE_URL: "postgresql://user:pass@localhost:5432/db?schema=public"
+          AUTH_SECRET: "ci-dummy-not-a-real-secret"
+          ANTHROPIC_API_KEY: "sk-ci-dummy"
