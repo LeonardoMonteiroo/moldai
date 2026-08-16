@@ -1,4 +1,4 @@
-import { RefObject, useCallback, useEffect, useState } from "react";
+import { RefObject, useCallback, useState } from "react";
 import type { Point } from "@/lib/types";
 import { Viewport, Size, fit, zoomAt, zoomByCenter, panBy, scaleOf, ZOOM_STEP } from "./viewport";
 
@@ -14,13 +14,13 @@ export function useCanvasViewport(
   natural: Size,
 ) {
   const [viewport, setViewport] = useState<Viewport>(() => fit(natural));
-
-  // reseta o enquadramento sempre que o tamanho natural (viewBox) muda — não a cada versão,
-  // já que graduar tamanho pode bumpar a versão sem mudar a geometria
-  useEffect(() => {
+  // reseta o enquadramento quando o tamanho natural da peça muda (nova peça),
+  // mas não em bumps de versão que não mexem na geometria (ex.: graduar tamanho)
+  const [prevSize, setPrevSize] = useState({ w: natural.w, h: natural.h });
+  if (prevSize.w !== natural.w || prevSize.h !== natural.h) {
+    setPrevSize({ w: natural.w, h: natural.h });
     setViewport(fit(natural));
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- depende só de w/h, não da identidade do objeto
-  }, [natural.w, natural.h]);
+  }
 
   const zoomAtScreen = useCallback(
     (clientX: number, clientY: number, factor: number) => {

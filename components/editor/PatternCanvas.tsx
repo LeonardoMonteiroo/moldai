@@ -83,11 +83,17 @@ export function PatternCanvas({
     return () => svg.removeEventListener("wheel", onWheel);
   }, [svgRef, onWheelZoom]);
 
-  // trocar de ferramenta limpa preview; Esc cancela o ponto pendente na medição
-  useEffect(() => {
+  // trocar de ferramenta limpa o preview (padrão "ajustar estado ao mudar de prop")
+  const [prevTool, setPrevTool] = useState(activeTool);
+  if (prevTool !== activeTool) {
+    setPrevTool(activeTool);
     setPending(null);
     setSnap(null);
     setCursor(null);
+  }
+
+  // Esc cancela o ponto pendente enquanto a ferramenta medir está ativa
+  useEffect(() => {
     if (activeTool !== "medir") return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setPending(null);

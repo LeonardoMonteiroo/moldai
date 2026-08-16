@@ -1,4 +1,4 @@
-import { DetailRow, Piece, PieceOutline, Point } from "@/lib/types";
+import { DetailRow, Piece, PieceOutline } from "@/lib/types";
 
 export const SCALE = 4; // px por cm
 export const PX = (cm: number) => Math.round(cm * SCALE * 10) / 10;
