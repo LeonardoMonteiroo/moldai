@@ -13,4 +13,12 @@ model User {
   passwordHash String
   name         String?
   createdAt    DateTime @default(now())
+  molde        Molde?
+}
+
+model Molde {
+  userId    String   @id
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  data      Json
+  updatedAt DateTime @updatedAt
 }
