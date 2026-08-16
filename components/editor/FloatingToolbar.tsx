@@ -1,10 +1,8 @@
 import { EditorTool } from "@/lib/store";
 
 const TOOLS: { id: EditorTool; icon: string; label: string }[] = [
+  { id: "cursor", icon: "↖", label: "Cursor (mover e zoom)" },
   { id: "medir", icon: "↔", label: "Medir" },
-  { id: "cortar", icon: "✂", label: "Corte" },
-  { id: "girar", icon: "⟲", label: "Girar" },
-  { id: "marcar", icon: "⌗", label: "Marcação" },
 ];
 
 export function FloatingToolbar({

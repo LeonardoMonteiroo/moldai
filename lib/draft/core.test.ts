@@ -50,4 +50,16 @@ describe("core drafting", () => {
       expect(o.d).toMatch(/C[^Z]*Z$/);
     });
   });
+
+  it("autoLayout anexa vertices alinhados aos cantos do outline", () => {
+    const { pieces } = autoLayout([rect("a", 10, 20)], 5);
+    const p = pieces[0];
+    expect(p.vertices).toBeDefined();
+    expect(p.vertices).toHaveLength(4);
+    // primeiro vértice = primeiro par "x,y" do polygon
+    const [px, py] = (p.outline as { points: string }).points
+      .split(" ")[0].split(",").map(Number);
+    expect(p.vertices![0].x).toBeCloseTo(px, 1);
+    expect(p.vertices![0].y).toBeCloseTo(py, 1);
+  });
 });

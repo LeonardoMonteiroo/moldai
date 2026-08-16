@@ -1,4 +1,9 @@
-import { ConflictInfo, Piece, PieceOutline } from "@/lib/types";
+import { RefObject, useEffect, useMemo, useRef, useState } from "react";
+import { ConflictInfo, Piece, PieceOutline, Point, Measurement } from "@/lib/types";
+import { EditorTool } from "@/lib/store";
+import { Viewport, ZOOM_STEP } from "@/lib/canvas/viewport";
+import { nearestSnap } from "@/lib/canvas/measure";
+import { MeasureLayer } from "./MeasureLayer";
 
 function OutlineShape({
   outline,
@@ -19,30 +24,160 @@ export function PatternCanvas({
   pieces,
   selectedPieceId,
   conflict,
-  onSelectPiece,
   dimmed,
-  viewBox,
+  viewport,
+  scale,
+  activeTool,
+  measurements,
+  svgRef,
+  onSelectPiece,
+  onWheelZoom,
+  onPan,
+  screenToUser,
+  onAddMeasurement,
+  onRemoveMeasurement,
 }: {
   pieces: Piece[];
   selectedPieceId: string | null;
   conflict: ConflictInfo | null;
-  onSelectPiece: (id: string) => void;
   dimmed?: boolean;
-  viewBox: { w: number; h: number };
+  viewport: Viewport;
+  scale: number;
+  activeTool: EditorTool;
+  measurements: Measurement[];
+  svgRef: RefObject<SVGSVGElement | null>;
+  onSelectPiece: (id: string) => void;
+  onWheelZoom: (clientX: number, clientY: number, factor: number) => void;
+  onPan: (dxScreen: number, dyScreen: number) => void;
+  screenToUser: (clientX: number, clientY: number) => Point;
+  onAddMeasurement: (a: Point, b: Point) => void;
+  onRemoveMeasurement: (id: string) => void;
 }) {
+  const [pending, setPending] = useState<Point | null>(null);
+  const [cursor, setCursor] = useState<Point | null>(null);
+  const [snap, setSnap] = useState<Point | null>(null);
+  const drag = useRef<{ x: number; y: number } | null>(null);
+  const dragStart = useRef<{ x: number; y: number } | null>(null);
+  const moved = useRef(false);
+
+  const snapPoints = useMemo(() => pieces.flatMap((p) => p.vertices ?? []), [pieces]);
+
+  // limiar de snap ~10px de tela convertido p/ unidades de usuário, lido no CTM no
+  // momento do evento (exato, não o valor de render)
+  const thresholdUser = () => {
+    const svg = svgRef.current;
+    const ctm = svg?.getScreenCTM();
+    return ctm ? 10 / ctm.a : (10 * viewport.w) / (svg?.clientWidth || viewport.w);
+  };
+
+  // roda do mouse = zoom-ao-cursor (ambas as ferramentas); listener não-passivo p/ preventDefault
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const factor = e.deltaY < 0 ? ZOOM_STEP : 1 / ZOOM_STEP;
+      onWheelZoom(e.clientX, e.clientY, factor);
+    };
+    svg.addEventListener("wheel", onWheel, { passive: false });
+    return () => svg.removeEventListener("wheel", onWheel);
+  }, [svgRef, onWheelZoom]);
+
+  // trocar de ferramenta limpa o preview (padrão "ajustar estado ao mudar de prop")
+  const [prevTool, setPrevTool] = useState(activeTool);
+  if (prevTool !== activeTool) {
+    setPrevTool(activeTool);
+    setPending(null);
+    setSnap(null);
+    setCursor(null);
+  }
+
+  // Esc cancela o ponto pendente enquanto a ferramenta medir está ativa
+  useEffect(() => {
+    if (activeTool !== "medir") return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setPending(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [activeTool]);
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (activeTool !== "cursor") return;
+    drag.current = { x: e.clientX, y: e.clientY };
+    dragStart.current = { x: e.clientX, y: e.clientY };
+    moved.current = false;
+    svgRef.current?.setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (activeTool === "cursor") {
+      if (!drag.current) return;
+      const dx = e.clientX - drag.current.x;
+      const dy = e.clientY - drag.current.y;
+      onPan(dx, dy);
+      drag.current = { x: e.clientX, y: e.clientY };
+      if (
+        dragStart.current &&
+        Math.abs(e.clientX - dragStart.current.x) + Math.abs(e.clientY - dragStart.current.y) > 3
+      ) {
+        moved.current = true;
+      }
+      return;
+    }
+    // medir: preview + snap
+    const u = screenToUser(e.clientX, e.clientY);
+    const s = nearestSnap(u, snapPoints, thresholdUser());
+    setSnap(s);
+    setCursor(s ?? u);
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (activeTool === "cursor") {
+      drag.current = null;
+      dragStart.current = null;
+      svgRef.current?.releasePointerCapture(e.pointerId);
+    }
+  };
+
+  // clique no fundo do SVG: na medição, coloca/finaliza pontos
+  const handleClick = (e: React.MouseEvent) => {
+    if (activeTool !== "medir") return;
+    const u = screenToUser(e.clientX, e.clientY);
+    const s = nearestSnap(u, snapPoints, thresholdUser());
+    const point = s ?? u;
+    if (!pending) {
+      setPending(point);
+    } else {
+      onAddMeasurement(pending, point);
+      setPending(null);
+    }
+  };
+
   return (
     <svg
-      viewBox={`0 0 ${viewBox.w} ${viewBox.h}`}
+      ref={svgRef}
+      viewBox={`${viewport.x} ${viewport.y} ${viewport.w} ${viewport.h}`}
       className="w-full h-full transition-opacity duration-300"
-      style={{ opacity: dimmed ? 0.4 : 1 }}
+      style={{
+        opacity: dimmed ? 0.4 : 1,
+        cursor: activeTool === "medir" ? "crosshair" : "grab",
+        touchAction: "none",
+      }}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onClick={handleClick}
     >
       {pieces.map((piece) => {
         const isSelected = piece.id === selectedPieceId;
         return (
           <g
             key={piece.id}
-            onClick={() => onSelectPiece(piece.id)}
-            className="cursor-pointer"
+            onClick={() => {
+              if (activeTool === "cursor" && !moved.current) onSelectPiece(piece.id);
+            }}
+            className={activeTool === "cursor" ? "cursor-pointer" : undefined}
           >
             {piece.guideOutline && (
               <OutlineShape
@@ -87,6 +222,15 @@ export function PatternCanvas({
             style={{ strokeWidth: 2, strokeDasharray: "4 3" }}
           />
         ))}
+
+      <MeasureLayer
+        measurements={measurements}
+        pending={pending}
+        cursor={cursor}
+        snap={snap}
+        scale={scale}
+        onRemove={activeTool === "medir" ? onRemoveMeasurement : undefined}
+      />
     </svg>
   );
 }

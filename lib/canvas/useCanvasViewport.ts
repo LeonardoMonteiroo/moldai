@@ -1,0 +1,68 @@
+import { RefObject, useCallback, useState } from "react";
+import type { Point } from "@/lib/types";
+import { Viewport, Size, fit, zoomAt, zoomByCenter, panBy, scaleOf, ZOOM_STEP } from "./viewport";
+
+function toUser(svg: SVGSVGElement, clientX: number, clientY: number): Point {
+  const ctm = svg.getScreenCTM();
+  if (!ctm) return { x: 0, y: 0 };
+  const p = new DOMPoint(clientX, clientY).matrixTransform(ctm.inverse());
+  return { x: p.x, y: p.y };
+}
+
+export function useCanvasViewport(
+  svgRef: RefObject<SVGSVGElement | null>,
+  natural: Size,
+) {
+  const [viewport, setViewport] = useState<Viewport>(() => fit(natural));
+  // reseta o enquadramento quando o tamanho natural da peça muda (nova peça),
+  // mas não em bumps de versão que não mexem na geometria (ex.: graduar tamanho)
+  const [prevSize, setPrevSize] = useState({ w: natural.w, h: natural.h });
+  if (prevSize.w !== natural.w || prevSize.h !== natural.h) {
+    setPrevSize({ w: natural.w, h: natural.h });
+    setViewport(fit(natural));
+  }
+
+  const zoomAtScreen = useCallback(
+    (clientX: number, clientY: number, factor: number) => {
+      const svg = svgRef.current;
+      if (!svg) return;
+      const focus = toUser(svg, clientX, clientY);
+      setViewport((vp) => zoomAt(vp, focus, factor, natural));
+    },
+    [svgRef, natural],
+  );
+
+  const panByScreen = useCallback(
+    (dxScreen: number, dyScreen: number) => {
+      const svg = svgRef.current;
+      if (!svg) return;
+      const ctm = svg.getScreenCTM();
+      const s = ctm && ctm.a ? ctm.a : 1; // px de tela por unidade de usuário
+      setViewport((vp) => panBy(vp, dxScreen / s, dyScreen / s));
+    },
+    [svgRef],
+  );
+
+  const zoomIn = useCallback(() => setViewport((vp) => zoomByCenter(vp, ZOOM_STEP, natural)), [natural]);
+  const zoomOut = useCallback(() => setViewport((vp) => zoomByCenter(vp, 1 / ZOOM_STEP, natural)), [natural]);
+  const fitToScreen = useCallback(() => setViewport(fit(natural)), [natural]);
+
+  const screenToUser = useCallback(
+    (clientX: number, clientY: number): Point => {
+      const svg = svgRef.current;
+      return svg ? toUser(svg, clientX, clientY) : { x: 0, y: 0 };
+    },
+    [svgRef],
+  );
+
+  return {
+    viewport,
+    zoomAtScreen,
+    panByScreen,
+    zoomIn,
+    zoomOut,
+    fitToScreen,
+    scale: scaleOf(viewport, natural),
+    screenToUser,
+  };
+}

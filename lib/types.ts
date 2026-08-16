@@ -6,6 +6,17 @@ export type PieceOutline =
   | { kind: "polygon"; points: string }
   | { kind: "path"; d: string };
 
+export interface Point {
+  x: number;
+  y: number;
+}
+
+export interface Measurement {
+  id: string;
+  a: Point;
+  b: Point;
+}
+
 export type GarmentType = "blusa" | "vestido" | "saia" | "camiseta";
 export type Sexo = "fem" | "masc";
 export type Decote = "reto" | "V" | "redondo";
@@ -50,6 +61,7 @@ export interface Piece {
   grainline?: { x1: number; y1: number; x2: number; y2: number };
   dart?: { d: string };
   label: { x: number; y: number };
+  vertices?: Point[]; // âncoras do outline em px, p/ snap da ferramenta medir
   detailRows: DetailRow[];
 }
 
