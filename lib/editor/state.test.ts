@@ -58,7 +58,15 @@ describe("applyGarmentSpec / conflito / refit", () => {
     expect(s.conflict).not.toBeNull();
     expect(s.conflict!.diffCm).toBeGreaterThan(1);
     expect(s.conflict!.pieceBId).toBe("manga");
-    expect(s.conflict!.suggestion).toMatch(/Corrigir manga.*refaz a copa/);
+    expect(s.conflict!.suggestion).toContain("“Corrigir manga”");
+  });
+  it("EditorState com pieces sobrevive a um round-trip JSON (persistência JSONB)", () => {
+    const s = seedState();
+    applyGarmentSpec(s, { tipo: "blusa", sexo: "fem", measurementOverrides: {}, style: { manga: "curta" } });
+    const round = JSON.parse(JSON.stringify(s)) as typeof s;
+    expect(round.pattern.pieces.map((p) => p.id).sort()).toEqual(s.pattern.pieces.map((p) => p.id).sort());
+    expect(round.pattern.viewBox).toEqual(s.pattern.viewBox);
+    expect(round).toEqual(s); // nenhum campo perdido (sem Date/undefined/NaN/Map/Set)
   });
   it("refitManga refaz a copa e limpa o conflito", () => {
     const s = seedState();
