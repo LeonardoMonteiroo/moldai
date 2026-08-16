@@ -337,10 +337,12 @@ git commit -m "feat(auth): lógica pura de authorize e sessão (injetável, test
 
 - [ ] **Step 1: Install Prisma + client + tsx**
 
+**Pin Prisma to v6** — Prisma 7 removed schema-level `datasource { url = env(...) }` (it now requires a `prisma.config.ts` + driver adapter), which the schema/singleton below rely on. Use the 6.x line:
 ```bash
-npm install --legacy-peer-deps @prisma/client
-npm install --legacy-peer-deps -D prisma tsx
+npm install --legacy-peer-deps "@prisma/client@^6"
+npm install --legacy-peer-deps -D "prisma@^6" tsx
 ```
+Verify after install: `node -e "console.log(require('prisma/package.json').version)"` → must print a `6.x` version (not 7.x). If a prior attempt left 7.x installed, this reinstall downgrades it.
 
 - [ ] **Step 2: Create docker-compose.yml**
 
@@ -356,7 +358,7 @@ services:
       POSTGRES_PASSWORD: moldai
       POSTGRES_DB: moldai
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - moldai-pgdata:/var/lib/postgresql/data
 
@@ -390,8 +392,9 @@ model User {
 
 Append to `.env.local`:
 ```
-DATABASE_URL="postgresql://moldai:moldai@localhost:5432/moldai?schema=public"
+DATABASE_URL="postgresql://moldai:moldai@localhost:5433/moldai?schema=public"
 ```
+(Host port 5433 — 5432 is left free to avoid colliding with other local Postgres instances; the container still listens on 5432 internally.)
 Then generate the auth secret (writes `AUTH_SECRET` into `.env.local`):
 ```bash
 npx auth secret
@@ -541,7 +544,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token;
     },
     session({ session, token }) {
-      if (token.uid && session.user) session.user.id = token.uid;
+      // Narrow explicitly instead of relying on the JWT module augmentation —
+      // it doesn't merge reliably across next-auth v5 betas (token.uid can type
+      // as `{}`), so a runtime typeof guard is what keeps this both correct and
+      // type-safe regardless of the beta.
+      const uid = token.uid;
+      if (typeof uid === "string" && session.user) session.user.id = uid;
       return session;
     },
   },
