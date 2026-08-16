@@ -60,6 +60,11 @@ const TOOL: Anthropic.Tool = {
               compSaiaCm: { type: "number" },
               pences: { type: "boolean" },
               folgaCosturaCm: { type: "number" },
+              cavaAjusteCm: {
+                type: "number",
+                description:
+                  "Aprofundar a cava do corpo em X cm (0 a 6). Use quando o usuário pedir para aumentar/aprofundar/baixar a cava (ex.: 'aumenta 2cm na cava'). Mexe só no corpo — a manga pode precisar de ajuste depois.",
+              },
             },
           },
         },
@@ -94,7 +99,8 @@ function buildSystem(state: EditorState, answering: boolean): string {
   const isEmpty = state.pattern.pieces.length === 0;
   return [
     "Você é o motor de modelagem da MoldAI. Recebe pedidos em linguagem natural sobre uma peça de roupa e traduz em uma GarmentSpec (tipo + medidas + estilo).",
-    "A GarmentSpec tem: tipo (blusa | vestido | saia | camiseta); sexo (fem | masc); measurementOverrides (medidas do corpo em cm, sobrepõem a tabela de tamanhos); style (decote, decoteProfundidadeCm, manga, saia, compSaiaCm, pences, folgaCosturaCm).",
+    "A GarmentSpec tem: tipo (blusa | vestido | saia | camiseta); sexo (fem | masc); measurementOverrides (medidas do corpo em cm, sobrepõem a tabela de tamanhos); style (decote, decoteProfundidadeCm, manga, saia, compSaiaCm, pences, folgaCosturaCm, cavaAjusteCm).",
+    "cavaAjusteCm aprofunda a cava do corpo (0 a 6 cm): use quando pedirem para aumentar/baixar a cava. Como mexe só no corpo, a copa da manga pode ficar diferente e gerar um aviso de costura — isso é esperado, o usuário resolve com 'Corrigir manga'.",
     "camiseta = peça de malha (gola redonda, manga montada curta por padrão, sem pences, caimento justo); blusa = tecido plano (pode ter pences, decote reto/V/redondo). Escolha camiseta para t-shirt/camiseta e blusa para blusa/camisa social.",
     "Catálogo de estilos válidos: decote em reto|V|redondo; manga em sem|curta|longa; saia (silhueta) em reta|evase|gode|meia-roda|circulo.",
     "Infira sexo do pedido ('masculina'->masc, 'feminina'->fem, sem pista->fem).",

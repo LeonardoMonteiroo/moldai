@@ -37,6 +37,8 @@ export function validateSpec(raw: unknown): GarmentSpec {
     compSaiaCm: style.compSaiaCm !== undefined ? clamp(num(style.compSaiaCm, 60), 25, 120) : undefined,
     folgaCosturaCm: style.folgaCosturaCm !== undefined ? clamp(num(style.folgaCosturaCm, 1), 0, 4) : undefined,
     pences: typeof style.pences === "boolean" ? style.pences : undefined,
+    cavaAjusteCm: style.cavaAjusteCm !== undefined ? clamp(num(style.cavaAjusteCm, 0), 0, 6) : undefined,
+    // mangaRefit é interno (só o resolver de conflito o define); nunca vem da IA.
   };
   return {
     tipo: pick(r.tipo, TIPOS, "blusa"),
@@ -76,11 +78,13 @@ function draftAll(spec: GarmentSpec, size: SizeLabel): {
   drafted: DraftedPiece[];
   measurements: Measurements;
   armholeLenCm?: number;
+  mangaArmholeCm?: number;
 } {
   const sexo: Sexo = spec.sexo ?? "fem";
   const measurements: Measurements = resolveMeasurements(size, spec.measurementOverrides, sexo);
   const drafted: DraftedPiece[] = [];
   let armholeLenCm: number | undefined;
+  let mangaArmholeCm: number | undefined;
 
   const isCorpo = spec.tipo === "blusa" || spec.tipo === "vestido" || spec.tipo === "camiseta";
   if (isCorpo) {
@@ -93,17 +97,24 @@ function draftAll(spec: GarmentSpec, size: SizeLabel): {
     const style: GarmentStyle = spec.tipo === "camiseta"
       ? { ...spec.style, decote: spec.style.decote ?? "redondo", pences: false, manga: spec.style.manga ?? "curta" }
       : spec.style;
-    const { frente, costas, armholeLenCm: a } = draftCorpo(measurements, style, opts);
+    const { frente, costas, armholeLenCm: a, armholeBaseLenCm } = draftCorpo(measurements, style, opts);
     armholeLenCm = a;
     drafted.push(frente, costas);
-    const manga = draftManga(measurements, style, a, opts);
-    if (manga) drafted.push(manga);
+    // A copa da manga é dimensionada pela cava BASE (não ajustada) — a menos que
+    // já tenha sido refeita ("Corrigir manga" seta style.mangaRefit). Assim um
+    // ajuste de cava só no corpo faz as costuras divergirem → conflito real.
+    const mangaCava = style.mangaRefit ? a : armholeBaseLenCm;
+    const manga = draftManga(measurements, style, mangaCava, opts);
+    if (manga) {
+      drafted.push(manga);
+      mangaArmholeCm = mangaCava;
+    }
   }
   if (spec.tipo === "saia" || spec.tipo === "vestido") {
     drafted.push(draftSaia(measurements, spec.style));
   }
 
-  return { drafted, measurements, armholeLenCm };
+  return { drafted, measurements, armholeLenCm, mangaArmholeCm };
 }
 
 export function draftPiecesCm(spec: GarmentSpec, size: SizeLabel): DraftedPiece[] {
@@ -111,7 +122,7 @@ export function draftPiecesCm(spec: GarmentSpec, size: SizeLabel): DraftedPiece[
 }
 
 export function draftGarment(spec: GarmentSpec, size: SizeLabel) {
-  const { drafted, measurements, armholeLenCm } = draftAll(spec, size);
+  const { drafted, measurements, armholeLenCm, mangaArmholeCm } = draftAll(spec, size);
   const { pieces, viewBox } = autoLayout(drafted, 8);
-  return { pieces, viewBox, measurements, armholeLenCm };
+  return { pieces, viewBox, measurements, armholeLenCm, mangaArmholeCm };
 }

@@ -63,14 +63,20 @@ export async function POST(request: Request) {
 
     applyGarmentSpec(decision.spec);
     bumpVersion();
+    // apply-with-warning: se as costuras divergirem, applyGarmentSpec anexou um
+    // conflito — a geração aplica mesmo assim, mas a mensagem sinaliza o aviso.
+    const conflict = getState().conflict;
     addMessage({
       id: `msg-${Date.now()}-ai`,
       author: "ai",
-      text: decision.assistantMessage,
+      text: conflict
+        ? `${decision.assistantMessage} ⚠️ ${conflict.description}`
+        : decision.assistantMessage,
       chips: [{ label: `−${cost} crédito`, tone: "credit" }],
+      tone: conflict ? "conflict" : undefined,
       createdAt: Date.now(),
     });
-    return NextResponse.json({ status: "ok", state: getState() });
+    return NextResponse.json({ status: conflict ? "conflict" : "ok", state: getState() });
   } catch {
     refundCredits(cost);
     return NextResponse.json({ status: "error", state: getState() });

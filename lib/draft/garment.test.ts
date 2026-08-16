@@ -26,6 +26,14 @@ describe("validateSpec", () => {
   it("usa default para valores não-finitos", () => {
     expect(validateSpec({ tipo: "saia", style: { compSaiaCm: "xxx" as unknown as number }, measurementOverrides: {} }).style.compSaiaCm).toBe(60);
   });
+  it("clampa cavaAjusteCm a 0..6 e descarta mangaRefit vindo da IA", () => {
+    const s = validateSpec({ tipo: "blusa", style: { cavaAjusteCm: 99, mangaRefit: true }, measurementOverrides: {} });
+    expect(s.style.cavaAjusteCm).toBe(6);
+    expect(s.style.mangaRefit).toBeUndefined();
+  });
+  it("clampa cavaAjusteCm negativo para 0", () => {
+    expect(validateSpec({ tipo: "blusa", style: { cavaAjusteCm: -3 }, measurementOverrides: {} }).style.cavaAjusteCm).toBe(0);
+  });
 });
 
 describe("draftGarment", () => {
@@ -51,6 +59,27 @@ describe("draftGarment", () => {
     const ids = pieces.map((p) => p.id);
     expect(ids).toContain("saia");
     expect(ids).toContain("corpo-frente");
+  });
+  it("cavaAjusteCm faz a cava do corpo divergir da copa da manga (dispara seamCheck)", () => {
+    const { armholeLenCm, mangaArmholeCm } = draftGarment(
+      { tipo: "blusa", sexo: "fem", measurementOverrides: {}, style: { manga: "curta", cavaAjusteCm: 2 } },
+      "M",
+    );
+    expect(armholeLenCm! - mangaArmholeCm!).toBeGreaterThan(1);
+  });
+  it("sem ajuste de cava, corpo e manga batem por construção (sem conflito)", () => {
+    const { armholeLenCm, mangaArmholeCm } = draftGarment(
+      { tipo: "blusa", sexo: "fem", measurementOverrides: {}, style: { manga: "curta" } },
+      "M",
+    );
+    expect(Math.abs(armholeLenCm! - mangaArmholeCm!)).toBeLessThan(1e-6);
+  });
+  it("mangaRefit refaz a copa para a cava ajustada (costuras voltam a bater)", () => {
+    const { armholeLenCm, mangaArmholeCm } = draftGarment(
+      { tipo: "blusa", sexo: "fem", measurementOverrides: {}, style: { manga: "curta", cavaAjusteCm: 2, mangaRefit: true } },
+      "M",
+    );
+    expect(Math.abs(armholeLenCm! - mangaArmholeCm!)).toBeLessThan(1e-6);
   });
 });
 
