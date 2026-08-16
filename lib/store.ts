@@ -39,7 +39,7 @@ interface EditorStore {
   paywall: PaywallState;
 
   init: () => Promise<void>;
-  sendMessage: (message: string) => Promise<void>;
+  sendMessage: (message: string, opts?: { answering?: boolean }) => Promise<void>;
   resetPattern: () => Promise<void>;
   cancelGeneration: () => void;
   graduateSizes: (sizes: string[]) => Promise<void>;
@@ -86,7 +86,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set({ ready: true, selectedPieceId: state.pattern.pieces[0]?.id ?? null });
   },
 
-  sendMessage: async (message: string) => {
+  sendMessage: async (message: string, opts?: { answering?: boolean }) => {
     if (!message.trim()) return;
     const requestId = get().generationRequestId + 1;
     set((s) => ({
@@ -102,7 +102,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       set((s) => ({ generationStepIndex: Math.min(s.generationStepIndex + 1, GENERATION_STEPS.length - 1) }));
     }, 320);
 
-    const result = await api.generate(message);
+    const result = await api.generate(message, opts?.answering);
     clearInterval(stepTimer);
 
     if (get().generationRequestId !== requestId) return; // canceled
@@ -116,7 +116,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
           required: result.required,
           balance: result.balance,
           actionLabel: "esse ajuste",
-          retry: () => get().sendMessage(message),
+          retry: () => get().sendMessage(message, opts),
         },
       }));
       return;
