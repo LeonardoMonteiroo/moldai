@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { validateSpec, draftGarment, validateQuestions } from "./garment";
+import { validateSpec, draftGarment, validateQuestions, draftPiecesCm } from "./garment";
 
 describe("validateSpec", () => {
   it("cai para defaults em enums inválidos e clampa faixas", () => {
@@ -51,6 +51,22 @@ describe("draftGarment", () => {
     const ids = pieces.map((p) => p.id);
     expect(ids).toContain("saia");
     expect(ids).toContain("corpo-frente");
+  });
+});
+
+describe("draftPiecesCm", () => {
+  it("devolve peças em cm (frente/costas/manga) para camiseta", () => {
+    const pcs = draftPiecesCm(
+      { tipo: "camiseta", sexo: "masc", measurementOverrides: {}, style: {} },
+      "M",
+    );
+    expect(pcs.map((p) => p.id)).toEqual(["corpo-frente", "corpo-costas", "manga"]);
+    const frente = pcs[0];
+    // outlineCm em cm reais: largura da frente na casa de dezenas de cm, não centenas (px)
+    const xs = frente.outlineCm.map(([x]) => x);
+    const largura = Math.max(...xs) - Math.min(...xs);
+    expect(largura).toBeGreaterThan(20);
+    expect(largura).toBeLessThan(80);
   });
 });
 
