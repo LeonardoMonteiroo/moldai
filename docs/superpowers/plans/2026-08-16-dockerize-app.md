@@ -106,7 +106,9 @@ set -e
 
 if [ -n "$DATABASE_URL" ]; then
   echo "[entrypoint] aguardando o Postgres..."
-  until pg_isready -d "$DATABASE_URL" >/dev/null 2>&1; do
+  # pg_isready rejeita a query string (?schema=public); Prisma aceita.
+  DB_URL_NOQ="${DATABASE_URL%%\?*}"
+  until pg_isready -d "$DB_URL_NOQ" >/dev/null 2>&1; do
     sleep 1
   done
   echo "[entrypoint] Postgres pronto."
@@ -169,6 +171,8 @@ COPY --from=build /app/public ./public
 COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/next.config.ts ./next.config.ts
 COPY --from=build /app/prisma ./prisma
+# lib/ é necessário pelo prisma/seed.ts (importa ../lib/auth/hash) no entrypoint
+COPY --from=build /app/lib ./lib
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 EXPOSE 3000
@@ -381,12 +385,13 @@ git commit -m "feat(docker): override de produção (runner/next start) + script
 
 ---
 
-## Task 5: Docs (CLAUDE.md)
+## Task 5: Docs (CLAUDE.md + README.md)
 
 **Files:**
 - Modify: `CLAUDE.md`
+- Modify: `README.md` (substituição completa — hoje é boilerplate do create-next-app, impreciso)
 
-- [ ] **Step 1: Add a docker note to the Commands section**
+- [ ] **Step 1: Add a docker note to CLAUDE.md's Commands section**
 
 No bloco de comandos do `CLAUDE.md` (junto de `npm run dev`, `db:up`, etc.), acrescentar:
 ```
@@ -395,16 +400,73 @@ npm run docker:prod   # sobe a imagem de produção (next start) + Postgres
 ```
 E uma frase curta explicando que o fluxo host (`npm run dev` + `docker compose up -d` só do db) continua válido; no container o app fala com o Postgres em `db:5432`, no host em `localhost:5433`; segredos vêm de `.env.local` em runtime (nunca embutidos na imagem).
 
-- [ ] **Step 2: Verify the note is present and accurate**
+- [ ] **Step 2: Verify the CLAUDE.md note is present and accurate**
 
 Run: `grep -nE "docker:up|docker:prod|db:5432|localhost:5433" CLAUDE.md`
 Expected: matches confirming the new note (docker:up/docker:prod scripts and the dual DATABASE_URL host explanation).
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 3: Replace README.md with a MoldAI-accurate version**
+
+`README.md` (full replacement — verbatim):
+````markdown
+# MoldAI
+
+Editor de moldes 2D com IA (chat → GarmentSpec → peças de costura). Next.js 16 (App Router) + TypeScript, auth real (Auth.js v5 + Postgres/Prisma). O backend de molde/chat/créditos ainda é um mock in-memory (Fase B pendente).
+
+## Pré-requisitos
+
+- Node 22 (fluxo host) e/ou Docker Desktop (fluxo em container).
+- `.env.local` na raiz com:
+  - `ANTHROPIC_API_KEY` — chave da API Anthropic (o chat usa `claude-sonnet-5`).
+  - `AUTH_SECRET` — segredo do Auth.js (`npx auth secret` ou `openssl rand -base64 32`).
+  - `DATABASE_URL` — `postgresql://moldai:moldai@localhost:5433/moldai?schema=public` (fluxo host).
+
+## Rodar com Docker (app + Postgres juntos)
 
 ```bash
-git add CLAUDE.md
-git commit -m "docs: CLAUDE.md documenta o workflow dockerizado (docker:up/docker:prod)"
+npm run docker:up     # dev, hot reload — http://localhost:3000
+npm run docker:prod   # imagem de produção (next start)
+```
+
+Um comando sobe o app e o Postgres; o entrypoint aplica as migrações e semeia as contas dev. No container o app fala com o Postgres em `db:5432`; os segredos vêm de `.env.local` em runtime (nunca embutidos na imagem).
+
+## Rodar no host (sem containerizar o app)
+
+```bash
+npm run db:up        # sobe só o Postgres (Docker), porta host 5433
+npm run db:migrate   # aplica migrações Prisma
+npm run db:seed      # semeia contas dev
+npm run dev          # app em http://localhost:3000
+```
+
+## Login (contas dev semeadas)
+
+`dev@moldai.local` / `moldai-dev`. Self-signup ainda não existe ("em breve").
+
+## Testes e build
+
+```bash
+npm test             # vitest (não precisa de Postgres rodando)
+npm run build        # build de produção + checagem TypeScript
+```
+
+## Arquitetura
+
+Veja `CLAUDE.md` para as decisões de arquitetura. Auth e usuários são reais (Postgres/Prisma); molde/chat/créditos são um mock in-memory até a Fase B.
+````
+
+- [ ] **Step 4: Verify README is accurate (no stale boilerplate)**
+
+Run: `grep -niE "create-next-app|geist|vercel" README.md || echo "sem boilerplate"`
+Expected: `sem boilerplate` (o texto padrão do create-next-app foi removido).
+Run: `grep -nE "docker:up|docker:prod|dev@moldai.local" README.md`
+Expected: matches confirmando o novo conteúdo.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add CLAUDE.md README.md
+git commit -m "docs: CLAUDE.md + README documentam o workflow dockerizado (docker:up/docker:prod)"
 ```
 
 ---
