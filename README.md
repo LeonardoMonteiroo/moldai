@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MoldAI
 
-## Getting Started
+Editor de moldes 2D com IA (chat → GarmentSpec → peças de costura). Next.js 16 (App Router) + TypeScript, auth real (Auth.js v5 + Postgres/Prisma). O backend de molde/chat/créditos ainda é um mock in-memory (Fase B pendente).
 
-First, run the development server:
+## Pré-requisitos
+
+- Node 22 (fluxo host) e/ou Docker Desktop (fluxo em container).
+- `.env.local` na raiz com:
+  - `ANTHROPIC_API_KEY` — chave da API Anthropic (o chat usa `claude-sonnet-5`).
+  - `AUTH_SECRET` — segredo do Auth.js (`npx auth secret` ou `openssl rand -base64 32`).
+  - `DATABASE_URL` — `postgresql://moldai:moldai@localhost:5433/moldai?schema=public` (fluxo host).
+
+## Rodar com Docker (app + Postgres juntos)
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run docker:up     # dev, hot reload — http://localhost:3000
+npm run docker:prod   # imagem de produção (next start)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Um comando sobe o app e o Postgres; o entrypoint aplica as migrações e semeia as contas dev. No container o app fala com o Postgres em `db:5432`; os segredos vêm de `.env.local` em runtime (nunca embutidos na imagem).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+> Após mudar dependências (`package.json`), recrie o volume anônimo de `node_modules`: `docker compose down -v` (ou `docker compose up --build --renew-anon-volumes`).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Rodar no host (sem containerizar o app)
 
-## Learn More
+```bash
+npm run db:up        # sobe só o Postgres (Docker), porta host 5433
+npm run db:migrate   # aplica migrações Prisma
+npm run db:seed      # semeia contas dev
+npm run dev          # app em http://localhost:3000
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Login (contas dev semeadas)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+`dev@moldai.local` / `moldai-dev`. Self-signup ainda não existe ("em breve").
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Testes e build
 
-## Deploy on Vercel
+```bash
+npm test             # vitest (não precisa de Postgres rodando)
+npm run build        # build de produção + checagem TypeScript
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Arquitetura
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Veja `CLAUDE.md` para as decisões de arquitetura. Auth e usuários são reais (Postgres/Prisma); molde/chat/créditos são um mock in-memory até a Fase B.
