@@ -44,7 +44,11 @@ export function draftSaia(m: Measurements, style: GarmentStyle): DraftedPiece {
     const minX = Math.min(...pts.map((p) => p[0]));
     const outlineCm = pts.map(([x, y]) => [x - minX, y] as Pt);
     const cxTop = -minX; // aproximação do centro no topo
+    const steps = 12; // igual ao usado em radialSkirt
+    const waistSpan: [number, number] = [0, steps];
+    const hemSpan: [number, number] = [steps + 1, 2 * steps + 1];
     return { id: "saia", name: "Saia", qty: silhueta === "meia-roda" ? 1 : 2, outlineCm,
+      curvedSpans: [waistSpan, hemSpan],
       grainlineCm: [[cxTop, 4], [cxTop, comp]], detailRows };
   }
 
