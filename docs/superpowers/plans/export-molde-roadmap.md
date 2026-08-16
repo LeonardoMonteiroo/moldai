@@ -23,23 +23,43 @@ Cada fase é shippable e revisável sozinha; o `ExportModel` e a fachada
 - [ ] Minor: `escapeXml` não neutraliza `--` dentro do comentário `<!-- -->` (patternName com `--` gera XML de comentário tecnicamente malformado). Fix: mover a anotação pra `<title>`/`<desc>` (já cobertos por `escapeXml`) ou colapsar `-` no comentário
 - [ ] Minor: caminho `seamAllowanceCm === null` (`?? 0` no header do SVG) não coberto por teste (inalcançável em produção, código defensivo)
 - [ ] Minor: reclicar o gatilho "Exportar" com o menu aberto fecha via backdrop em vez de alternar (UX cosmética)
-- [ ] Minor: `exportPattern` no-op silencioso para formato não tratado — trocar o `if (format === "svg")` por `switch` exaustivo com default `never` quando um 2º formato entrar (vira erro de compilação, não silêncio)
+- [x] Minor: `exportPattern` no-op silencioso para formato não tratado — resolvido na Fase 2 (Task 3): `switch`/`never` exaustivo em `lib/export/index.ts`
 
 ---
 
-## ⬜ Fase 2 — DXF (AAMA/ASTM), padrão CAD/Audaces
+## ✅ Fase 2 — DXF geometria 1:1 (CAD) (mergeada em `main`, 177bcf5)
 
-Objetivo: `lib/export/dxf.ts` → `toDxf(model: ExportModel): string`; importa no
-Audaces/Gerber/Lectra mantendo escala. Tamanho base só (sem grade graduada).
+Spec: `docs/superpowers/specs/2026-08-16-export-molde-dxf-fase2-design.md`.
+Plano: `docs/superpowers/plans/2026-08-16-export-molde-dxf-fase2.md`.
+DXF **de geometria pragmático** (não AAMA/ASTM estrito) — abre 1:1 em qualquer
+leitor DXF e entra no Audaces como vetor real na escala certa.
 
-- [ ] Brainstorm/spec curta da Fase 2 (decisões: quantos segmentos por curva no achatamento; quais camadas; ASCII DXF mínimo vs. biblioteca)
-- [ ] Plano de implementação (writing-plans) a partir da spec
-- [ ] Achatar cada `cubic` do `ExportModel` em polilinha por amostragem (N segmentos/curva) — helper testável isolado
-- [ ] `toDxf`: `LWPOLYLINE` fechada por contorno; unidade mm (coords × 10); cabeçalho `$INSUNITS = 4` (mm)
-- [ ] Camadas por tipo de linha: contorno / grainline / texto-anotação
-- [ ] Adicionar `"dxf"` a `ExportFormat` e ao menu do `Footer`; converter o dispatch de `exportPattern` para `switch`/`never` (resolve o Minor da Fase 1)
-- [ ] Testes: contém `LWPOLYLINE`, `$INSUNITS` mm, N vértices por curva achatada, camadas nomeadas
-- [ ] Verificação manual: importar o `.dxf` no Audaces (ou visualizador DXF) e conferir escala/peças
+- [x] Spec + plano (brainstorm → writing-plans)
+- [x] `flattenCubic` — De Casteljau **adaptativo** por tolerância (0,2mm), helper testável isolado (`lib/export/dxf.ts`)
+- [x] `toDxf`: `LWPOLYLINE` fechada por contorno + `LINE` (fio) + `TEXT` (rótulo); mm (coords × 10); `$INSUNITS=4` + `$ACADVER=AC1014`; **Y invertido** (eixo +Y do DXF)
+- [x] Camadas nomeadas: `CONTORNO` / `INTERNO` (dart) / `GRAINLINE` / `TEXTO`
+- [x] `"dxf"` em `ExportFormat` e no menu do `Footer`; dispatch `switch`/`never` (resolveu o Minor da Fase 1)
+- [x] Testes: `flattenCubic` (erro curva→polilinha ≤ tol) + `toDxf` ($INSUNITS/$ACADVER, 4 layers, LWPOLYLINE/LINE/TEXT, 1:1, achatamento insere vértices); suíte 80/80
+- [x] Doc no `CLAUDE.md`; review de branch inteira (opus) = Ready to merge
+
+### Pendências herdadas da Fase 2 (não bloqueiam)
+
+- [ ] **Verificação manual:** `npm run dev` → gerar molde → "Exportar" → DXF → abrir no LibreCAD e conferir 1:1, orientação (não espelhada), curvas suaves, layers
+- [ ] Minor: sem teste dedicado pro fallback de corda degenerada (`p0≈p3`) em `flattenCubic` (path defensivo)
+- [ ] Minor: `·` (U+00B7) em `TEXT`/`999` herdado do SVG — validar charset ao importar no Audaces (Fase 2.5)
+
+---
+
+## ⬜ Fase 2.5 — DXF AAMA/ASTM D6673 estrito (quando houver Audaces pra validar)
+
+Objetivo: camadas numéricas do padrão + semântica de peça de produção
+(piques/notches, grain reconhecido) que o Audaces/Gerber/Lectra importam como
+peça pronta — não só geometria. Requer o Audaces em mãos pra verificar de verdade.
+
+- [ ] Brainstorm/spec do mapeamento de camadas numéricas (ASTM D6673) e entidades exigidas
+- [ ] Plano + implementação (novo serializer ou modo do `toDxf`)
+- [ ] Piques/notches semânticos; grain como entidade reconhecida
+- [ ] Verificação manual: importar no Audaces como peça de produção
 - [ ] Review + merge
 
 ---
