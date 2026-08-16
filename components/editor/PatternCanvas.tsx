@@ -62,11 +62,16 @@ export function PatternCanvas({
 
   const snapPoints = useMemo(() => pieces.flatMap((p) => p.vertices ?? []), [pieces]);
 
-  // limiar de snap ~10px de tela convertido p/ unidades de usuário
+  // escala real de tela (px de tela por unidade de usuário) — o CTM é uniforme sob
+  // preserveAspectRatio="xMidYMid meet", então ctm.a === ctm.d
+  const screenScale = svgRef.current?.getScreenCTM()?.a ?? scale;
+
+  // limiar de snap ~10px de tela convertido p/ unidades de usuário, lido no CTM no
+  // momento do evento (exato, não o valor de render)
   const thresholdUser = () => {
     const svg = svgRef.current;
-    const w = svg?.clientWidth ?? 0;
-    return w ? (10 * viewport.w) / w : 10;
+    const ctm = svg?.getScreenCTM();
+    return ctm ? 10 / ctm.a : (10 * viewport.w) / (svg?.clientWidth || viewport.w);
   };
 
   // roda do mouse = zoom-ao-cursor (ambas as ferramentas); listener não-passivo p/ preventDefault
@@ -221,8 +226,8 @@ export function PatternCanvas({
         pending={pending}
         cursor={cursor}
         snap={snap}
-        scale={scale}
-        onRemove={onRemoveMeasurement}
+        scale={screenScale}
+        onRemove={activeTool === "medir" ? onRemoveMeasurement : undefined}
       />
     </svg>
   );

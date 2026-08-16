@@ -38,8 +38,7 @@ export function CanvasArea() {
   const vbW = pattern?.viewBox?.w;
   const vbH = pattern?.viewBox?.h;
   const natural = useMemo(() => ({ w: vbW ?? 620, h: vbH ?? 380 }), [vbW, vbH]);
-  const version = pattern?.version ?? 0;
-  const vp = useCanvasViewport(svgRef, natural, version);
+  const vp = useCanvasViewport(svgRef, natural);
 
   if (!pattern) return null;
   const isGenerating = generationStatus === "generating";

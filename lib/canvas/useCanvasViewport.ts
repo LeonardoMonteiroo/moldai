@@ -12,15 +12,15 @@ function toUser(svg: SVGSVGElement, clientX: number, clientY: number): Point {
 export function useCanvasViewport(
   svgRef: RefObject<SVGSVGElement | null>,
   natural: Size,
-  patternVersion: number,
 ) {
   const [viewport, setViewport] = useState<Viewport>(() => fit(natural));
 
-  // reseta o enquadramento sempre que a peça muda (nova geração / reset)
+  // reseta o enquadramento sempre que o tamanho natural (viewBox) muda — não a cada versão,
+  // já que graduar tamanho pode bumpar a versão sem mudar a geometria
   useEffect(() => {
     setViewport(fit(natural));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [patternVersion]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- depende só de w/h, não da identidade do objeto
+  }, [natural.w, natural.h]);
 
   const zoomAtScreen = useCallback(
     (clientX: number, clientY: number, factor: number) => {

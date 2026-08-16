@@ -18,7 +18,7 @@ export function MeasureLayer({
   cursor: Point | null;
   snap: Point | null;
   scale: number;
-  onRemove: (id: string) => void;
+  onRemove?: (id: string) => void;
 }) {
   const fs = 12 / scale; // font-size constante em tela
   const r = 3 / scale; // raio dos ticks constante em tela
@@ -31,11 +31,15 @@ export function MeasureLayer({
         return (
           <g
             key={m.id}
-            onClick={(e) => {
-              e.stopPropagation();
-              onRemove(m.id);
-            }}
-            className="cursor-pointer"
+            onClick={
+              onRemove
+                ? (e) => {
+                    e.stopPropagation();
+                    onRemove(m.id);
+                  }
+                : undefined
+            }
+            className={onRemove ? "cursor-pointer" : undefined}
           >
             <line
               x1={m.a.x}
