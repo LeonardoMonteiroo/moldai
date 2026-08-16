@@ -11,8 +11,17 @@ import { COSTS } from "@/lib/types";
 import { proposeGarment } from "@/lib/ai";
 
 export async function POST(request: Request) {
-  const { message, answering } = (await request.json()) as { message: string; answering?: boolean };
-  const trimmed = message.trim();
+  let body: { message?: unknown; answering?: unknown };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ status: "error", error: "Corpo inválido." }, { status: 400 });
+  }
+  const trimmed = typeof body.message === "string" ? body.message.trim() : "";
+  if (!trimmed) {
+    return NextResponse.json({ status: "error", error: "Mensagem obrigatória." }, { status: 400 });
+  }
+  const answering = body.answering === true;
   const state = getState();
   const cost = COSTS.adjust;
 
@@ -27,7 +36,7 @@ export async function POST(request: Request) {
   debitCredits(cost);
 
   try {
-    const decision = await proposeGarment(getState(), answering === true);
+    const decision = await proposeGarment(getState(), answering);
 
     if (decision.decision === "ask") {
       addMessage({

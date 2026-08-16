@@ -1,9 +1,24 @@
 import { NextResponse } from "next/server";
 import { addMessage, applySizes, bumpVersion, debitCredits, getState } from "@/lib/mock-data";
-import { COSTS } from "@/lib/types";
+import { ALL_SIZES, COSTS, SizeLabel } from "@/lib/types";
+import { formatList } from "@/lib/format";
 
 export async function POST(request: Request) {
-  const { sizes } = (await request.json()) as { sizes: string[] };
+  let body: { sizes?: unknown };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ status: "error", error: "Corpo inválido." }, { status: 400 });
+  }
+  const sizes = Array.isArray(body.sizes)
+    ? (body.sizes.filter((s): s is SizeLabel => (ALL_SIZES as string[]).includes(s as string)))
+    : [];
+  if (sizes.length === 0) {
+    return NextResponse.json(
+      { status: "error", error: "Nenhum tamanho válido para graduar." },
+      { status: 400 },
+    );
+  }
   const state = getState();
   const cost = COSTS.graduate;
 
@@ -20,7 +35,7 @@ export async function POST(request: Request) {
   addMessage({
     id: `msg-${Date.now()}-ai`,
     author: "ai",
-    text: `Graduação aplicada para ${sizes.join(" e ")}.`,
+    text: `Graduação aplicada para ${formatList(sizes)}.`,
     chips: [{ label: `−${cost} créditos`, tone: "credit" }],
     createdAt: Date.now(),
   });

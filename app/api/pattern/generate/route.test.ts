@@ -44,6 +44,14 @@ describe("POST /api/pattern/generate — ask", () => {
     expect(last.questions).toHaveLength(1);
   });
 
+  it("mensagem vazia retorna 400 sem debitar nem chamar a IA", async () => {
+    const balanceBefore = getState().credits.balance;
+    const res = await POST(req({ message: "   " }));
+    expect(res.status).toBe(400);
+    expect(getState().credits.balance).toBe(balanceBefore);
+    expect(mockPropose).not.toHaveBeenCalled();
+  });
+
   it("repassa answering ao proposeGarment", async () => {
     mockPropose.mockResolvedValue({
       decision: "apply",
