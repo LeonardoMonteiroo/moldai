@@ -45,10 +45,31 @@ describe("buildExportModel", () => {
     expect(m.sheetWidthCm).toBeGreaterThan(0);
     expect(m.sheetHeightCm).toBeGreaterThan(0);
     expect(m.pieces.length).toBeGreaterThanOrEqual(2);
-    // origens crescem em x (peças lado a lado, sem sobreposição de origem)
-    for (let i = 1; i < m.pieces.length; i++) {
-      expect(m.pieces[i].originCm.x).toBeGreaterThan(m.pieces[i - 1].originCm.x);
+    // Empacotamento em prateleiras: nenhuma peça sai da folha…
+    for (const p of m.pieces) {
+      expect(p.originCm.x).toBeGreaterThanOrEqual(0);
+      expect(p.originCm.y).toBeGreaterThanOrEqual(0);
+      expect(p.originCm.x + p.widthCm).toBeLessThanOrEqual(m.sheetWidthCm + 1e-6);
+      expect(p.originCm.y + p.heightCm).toBeLessThanOrEqual(m.sheetHeightCm + 1e-6);
     }
+    // …e duas peças nunca se sobrepõem (retângulos disjuntos).
+    for (let i = 0; i < m.pieces.length; i++) {
+      for (let j = i + 1; j < m.pieces.length; j++) {
+        const a = m.pieces[i];
+        const b = m.pieces[j];
+        const disjoint =
+          a.originCm.x + a.widthCm <= b.originCm.x + 1e-6 ||
+          b.originCm.x + b.widthCm <= a.originCm.x + 1e-6 ||
+          a.originCm.y + a.heightCm <= b.originCm.y + 1e-6 ||
+          b.originCm.y + b.heightCm <= a.originCm.y + 1e-6;
+        expect(disjoint).toBe(true);
+      }
+    }
+    // A folha deve ser bem menos extrema que a fila única (aspecto < ~4:1).
+    const aspect =
+      Math.max(m.sheetWidthCm, m.sheetHeightCm) /
+      Math.min(m.sheetWidthCm, m.sheetHeightCm);
+    expect(aspect).toBeLessThan(4);
     // outline fechado começa no start e tem uma segmento por aresta
     const f = m.pieces[0];
     expect(f.widthCm).toBeGreaterThan(0);

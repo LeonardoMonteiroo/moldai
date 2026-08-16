@@ -44,6 +44,9 @@ export function CanvasArea() {
   const isGenerating = generationStatus === "generating";
   const selectedPiece = pattern.pieces.find((p) => p.id === selectedPieceId) ?? null;
   const hasPieces = pattern.pieces.length > 0;
+  // Um painel flutuante ocupa o canto direito do canvas (conflito ou detalhes).
+  // Reservamos essa faixa pro desenho não ficar escondido atrás dele.
+  const rightOverlayOpen = !isGenerating && (!!conflict || (detailsPanelOpen && !!selectedPiece));
 
   return (
     <div className="flex-1 flex flex-col min-w-0 min-h-0">
@@ -62,23 +65,30 @@ export function CanvasArea() {
 
       {activeTab === "molde2d" && (
         <div className="flex-1 relative pattern-grid bg-paper p-[22px] min-h-[300px] overflow-hidden">
-          <PatternCanvas
-            pieces={pattern.pieces}
-            selectedPieceId={selectedPieceId}
-            conflict={conflict}
-            dimmed={isGenerating}
-            viewport={vp.viewport}
-            scale={vp.scale}
-            activeTool={activeTool}
-            measurements={measurements}
-            svgRef={svgRef}
-            onSelectPiece={selectPiece}
-            onWheelZoom={vp.zoomAtScreen}
-            onPan={vp.panByScreen}
-            screenToUser={vp.screenToUser}
-            onAddMeasurement={(a, b) => addMeasurement({ id: crypto.randomUUID(), a, b })}
-            onRemoveMeasurement={removeMeasurement}
-          />
+          <div
+            className={[
+              "absolute top-[22px] bottom-[22px] left-[22px] transition-[right] duration-200",
+              rightOverlayOpen ? "right-[268px]" : "right-[22px]",
+            ].join(" ")}
+          >
+            <PatternCanvas
+              pieces={pattern.pieces}
+              selectedPieceId={selectedPieceId}
+              conflict={conflict}
+              dimmed={isGenerating}
+              viewport={vp.viewport}
+              scale={vp.scale}
+              activeTool={activeTool}
+              measurements={measurements}
+              svgRef={svgRef}
+              onSelectPiece={selectPiece}
+              onWheelZoom={vp.zoomAtScreen}
+              onPan={vp.panByScreen}
+              screenToUser={vp.screenToUser}
+              onAddMeasurement={(a, b) => addMeasurement({ id: crypto.randomUUID(), a, b })}
+              onRemoveMeasurement={removeMeasurement}
+            />
+          </div>
           {!isGenerating && !hasPieces && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center px-6 pointer-events-none">
               <span className="font-display text-[18px] font-semibold text-muted-2">
