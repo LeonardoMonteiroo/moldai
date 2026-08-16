@@ -1,11 +1,12 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { EditorState, GarmentSpec } from "./types";
-import { validateSpec } from "@/lib/draft/garment";
+import { EditorState, GarmentSpec, ClarifyQuestion } from "./types";
+import { validateSpec, validateQuestions } from "@/lib/draft/garment";
 import { MEASUREMENT_RANGES, SIZE_TABLE, SIZE_TABLE_MASC } from "@/lib/measurements";
 
 export interface AiDecision {
-  decision: "apply" | "decline";
+  decision: "apply" | "decline" | "ask";
   spec: GarmentSpec;
+  questions?: ClarifyQuestion[];
   declineReason?: string;
   assistantMessage: string;
 }
@@ -13,8 +14,9 @@ export interface AiDecision {
 // Raw shape as returned by the model's tool_use block, before validation —
 // `spec` here is untrusted/unknown-shaped input, not yet a GarmentSpec.
 interface RawToolInput {
-  decision: "apply" | "decline";
+  decision: "apply" | "decline" | "ask";
   spec?: unknown;
+  questions?: unknown;
   declineReason?: string;
   assistantMessage: string;
 }
@@ -28,9 +30,9 @@ const TOOL: Anthropic.Tool = {
     properties: {
       decision: {
         type: "string",
-        enum: ["apply", "decline"],
+        enum: ["apply", "decline", "ask"],
         description:
-          "apply = o pedido é uma roupa/ajuste que a spec consegue representar; decline = o pedido está fora do escopo (ex.: calça, acessório, algo que não é uma peça modelável por esta spec).",
+          "apply = dá pra modelar já; decline = fora do escopo (calça, acessório…); ask = falta detalhe relevante, faça perguntas antes de desenhar.",
       },
       spec: {
         type: "object",
@@ -63,6 +65,20 @@ const TOOL: Anthropic.Tool = {
         },
         required: ["tipo", "sexo", "measurementOverrides", "style"],
       },
+      questions: {
+        type: "array",
+        description:
+          "Preencha SOMENTE quando decision=ask. 1 a 4 perguntas objetivas de escolha única, opções vindas do catálogo válido. Não invente medidas nem desenhe.",
+        items: {
+          type: "object",
+          properties: {
+            label: { type: "string", description: "Pergunta curta em pt-BR (ex.: 'Gola')." },
+            options: { type: "array", items: { type: "string" }, description: "2 a 6 opções de escolha única." },
+            allowOther: { type: "boolean", description: "true se fizer sentido um campo 'outro' de texto livre." },
+          },
+          required: ["label", "options"],
+        },
+      },
       declineReason: { type: "string", description: "Preencha SOMENTE quando decision=decline." },
       assistantMessage: {
         type: "string",
@@ -73,7 +89,7 @@ const TOOL: Anthropic.Tool = {
   },
 };
 
-function buildSystem(state: EditorState): string {
+function buildSystem(state: EditorState, answering: boolean): string {
   const currentSpec = state.pattern.spec;
   const isEmpty = state.pattern.pieces.length === 0;
   return [
@@ -86,6 +102,9 @@ function buildSystem(state: EditorState): string {
       ? "ESTADO ATUAL: molde EM BRANCO, nenhuma peça criada ainda. Este é um pedido do zero: gere a GarmentSpec inteira que a roupa pedida precisa, e use decision=apply."
       : "Já existe uma spec aplicada (abaixo). Um pedido de ajuste deve devolver a SPEC INTEIRA ATUALIZADA (não só o delta): parta da spec atual e aplique as mudanças pedidas.",
     "Se o pedido não for uma peça de roupa que esta spec consegue representar (ex.: calça, acessório, pedido genérico sem relação com uma peça modelável), use decision=decline e explique gentilmente em assistantMessage. Não preencha spec nesse caso.",
+    answering
+      ? "O usuário ACABOU de responder às suas perguntas (as respostas estão na última mensagem do usuário). NÃO use decision=ask de novo — use apply (ou decline se for fora de escopo) com o melhor entendimento das respostas."
+      : "Se faltar detalhe relevante pra modelar corretamente (gola, manga, caimento, comprimento, tamanho…), use decision=ask com 1 a 4 perguntas objetivas de escolha única, opções do catálogo válido; não invente medidas nem desenhe nesse caso. Só use apply quando já tiver o suficiente.",
     "",
     "Tabela de tamanhos feminina (cm):",
     JSON.stringify(SIZE_TABLE),
@@ -97,7 +116,7 @@ function buildSystem(state: EditorState): string {
   ].join("\n");
 }
 
-export async function proposeGarment(state: EditorState): Promise<AiDecision> {
+export async function proposeGarment(state: EditorState, answering: boolean): Promise<AiDecision> {
   const client = new Anthropic();
   const history = state.chat.slice(-10).map((m) => ({
     role: m.author === "user" ? ("user" as const) : ("assistant" as const),
@@ -107,7 +126,7 @@ export async function proposeGarment(state: EditorState): Promise<AiDecision> {
   const resp = await client.messages.create({
     model: "claude-sonnet-5",
     max_tokens: 1024,
-    system: buildSystem(state),
+    system: buildSystem(state, answering),
     tools: [TOOL],
     tool_choice: { type: "tool", name: "propose_garment" },
     messages: history,
@@ -119,10 +138,24 @@ export async function proposeGarment(state: EditorState): Promise<AiDecision> {
   }
   const input = block.input as RawToolInput;
 
-  // Never trust the model's spec directly — always run it through validateSpec
-  // so enums/ranges are enforced server-side regardless of what the AI returned.
+  // Guard redundante à instrução do prompt: respondendo, nunca voltar a perguntar.
+  if (input.decision === "ask" && !answering) {
+    const questions = validateQuestions(input.questions);
+    if (questions.length > 0) {
+      return {
+        decision: "ask",
+        spec: validateSpec(input.spec),
+        questions,
+        assistantMessage: input.assistantMessage,
+      };
+    }
+    // sem pergunta aproveitável → desenha com defaults
+    return { decision: "apply", spec: validateSpec(input.spec), assistantMessage: input.assistantMessage };
+  }
+
+  const decision = input.decision === "ask" ? "apply" : input.decision;
   return {
-    decision: input.decision,
+    decision,
     spec: validateSpec(input.spec),
     declineReason: input.declineReason,
     assistantMessage: input.assistantMessage,
