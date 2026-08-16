@@ -2,8 +2,12 @@ import { NextResponse } from "next/server";
 import { addMessage, applySizes, bumpVersion, debitCredits, getState } from "@/lib/mock-data";
 import { ALL_SIZES, COSTS, SizeLabel } from "@/lib/types";
 import { formatList } from "@/lib/format";
+import { requireUser } from "@/lib/auth/guard";
 
 export async function POST(request: Request) {
+  const gate = await requireUser();
+  if (gate instanceof NextResponse) return gate;
+
   let body: { sizes?: unknown };
   try {
     body = await request.json();

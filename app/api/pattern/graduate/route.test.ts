@@ -1,4 +1,8 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+
+vi.mock("@/lib/auth/guard", () => ({
+  requireUser: vi.fn(async () => ({ id: "u1", email: "dev@moldai.local", name: null })),
+}));
 
 import { POST } from "./route";
 import { resetState, getState } from "@/lib/mock-data";

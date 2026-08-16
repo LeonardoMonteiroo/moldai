@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { addMessage, bumpVersion, getState, refitManga, setConflict } from "@/lib/mock-data";
+import { requireUser } from "@/lib/auth/guard";
 
 export async function POST(request: Request) {
+  const gate = await requireUser();
+  if (gate instanceof NextResponse) return gate;
+
   let action: "fix" | "ignore" = "ignore";
   try {
     const body = (await request.json()) as { action?: unknown };
