@@ -11,7 +11,7 @@ import { COSTS } from "@/lib/types";
 import { proposeGarment } from "@/lib/ai";
 
 export async function POST(request: Request) {
-  const { message } = (await request.json()) as { message: string };
+  const { message, answering } = (await request.json()) as { message: string; answering?: boolean };
   const trimmed = message.trim();
   const state = getState();
   const cost = COSTS.adjust;
@@ -27,7 +27,19 @@ export async function POST(request: Request) {
   debitCredits(cost);
 
   try {
-    const decision = await proposeGarment(getState());
+    const decision = await proposeGarment(getState(), answering === true);
+
+    if (decision.decision === "ask") {
+      addMessage({
+        id: `msg-${Date.now()}-ai`,
+        author: "ai",
+        text: decision.assistantMessage || "Pra acertar a modelagem, me responde:",
+        questions: decision.questions,
+        createdAt: Date.now(),
+      });
+      refundCredits(cost);
+      return NextResponse.json({ status: "clarify", state: getState() });
+    }
 
     if (decision.decision === "decline") {
       addMessage({
