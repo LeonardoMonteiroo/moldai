@@ -47,10 +47,11 @@ export async function loadMolde(userId: string): Promise<EditorState> {
 // Reseta o molde do usuário para o blank molde e persiste.
 export async function resetMolde(userId: string): Promise<EditorState> {
   const state = seedState();
+  const data = state as unknown as Prisma.InputJsonValue;
   await prisma.molde.upsert({
     where: { userId },
-    create: { userId, data: state as unknown as Prisma.InputJsonValue },
-    update: { data: state as unknown as Prisma.InputJsonValue },
+    create: { userId, data },
+    update: { data },
   });
   return state;
 }

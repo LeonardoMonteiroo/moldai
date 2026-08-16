@@ -4,8 +4,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const store = new Map<string, unknown>();
 
 const tx = {
-  // INSERT ... ON CONFLICT DO NOTHING (materializa seed) — só cria se ausente.
-  $executeRaw: vi.fn(async () => 0),
+  // INSERT ... ON CONFLICT DO NOTHING (materializa seed) e o UPDATE final —
+  // ambos chamados como tagged template: (strings, ...valores interpolados).
+  $executeRaw: vi.fn(
+    async (_strings: TemplateStringsArray, ..._vals: unknown[]): Promise<number> => 0,
+  ),
   // SELECT data ... FOR UPDATE — devolve a linha atual (após o insert-if-absent).
   $queryRaw: vi.fn(async (): Promise<{ data: unknown }[]> => []),
 };
@@ -35,14 +38,33 @@ vi.mock("@/lib/db/prisma", () => ({
 import { withMolde, loadMolde, resetMolde } from "./molde";
 import { seedState, debitCredits } from "@/lib/editor/state";
 
-// Faz $executeRaw materializar o seed (INSERT-if-absent) e $queryRaw devolver a
-// linha atual, imitando INSERT ON CONFLICT DO NOTHING + SELECT FOR UPDATE.
+// Faz $executeRaw materializar o seed (INSERT-if-absent) e persistir o UPDATE
+// final, e $queryRaw devolver uma CÓPIA da linha atual — imitando de verdade
+// INSERT ON CONFLICT DO NOTHING + SELECT FOR UPDATE + UPDATE.
+//
+// A cópia em $queryRaw é essencial: withMolde não clona o `data` lido, então
+// se devolvêssemos a própria referência do `store`, uma mutação in-place do
+// fn (ex. debitCredits) apareceria no store por aliasing — mesmo que o
+// UPDATE nunca rodasse. Com a cópia, só o UPDATE grava a mutação de volta.
 function wireTx() {
-  tx.$executeRaw.mockImplementation(async () => 0); // no-op; o seed é semeado abaixo
+  const uid = "u1";
+  tx.$executeRaw.mockImplementation(
+    async (strings: TemplateStringsArray, ...vals: unknown[]) => {
+      const sql = Array.isArray(strings) ? strings.join("") : String(strings);
+      if (sql.includes("UPDATE")) {
+        const jsonStr = vals.find(
+          (v): v is string => typeof v === "string" && v.trimStart().startsWith("{"),
+        );
+        if (jsonStr) store.set(uid, JSON.parse(jsonStr));
+      }
+      // INSERT ... ON CONFLICT DO NOTHING também passa por aqui; o seed é
+      // materializado abaixo em $queryRaw, então isso é no-op para o INSERT.
+      return 0;
+    },
+  );
   tx.$queryRaw.mockImplementation(async () => {
-    const uid = "u1";
     if (!store.has(uid)) store.set(uid, seedState());
-    return [{ data: store.get(uid) }];
+    return [{ data: JSON.parse(JSON.stringify(store.get(uid))) }];
   });
 }
 
@@ -64,6 +86,7 @@ describe("withMolde", () => {
     await withMolde("u1", (state) => { debitCredits(state, 4); });
     const s = store.get("u1") as ReturnType<typeof seedState>;
     expect(s.credits.balance).toBe(316);
+    expect(tx.$executeRaw).toHaveBeenCalled();
   });
 
   it("retorna o valor devolvido pelo fn", async () => {
