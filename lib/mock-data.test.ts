@@ -11,4 +11,13 @@ describe("applyGarmentSpec", () => {
     expect(state.pattern.pieces[0].id).toBe("saia");
     expect(state.pattern.viewBox!.w).toBeGreaterThan(0);
   });
+
+  it("drafts a camiseta masculina from a spec", () => {
+    resetState();
+    applyGarmentSpec({ tipo: "camiseta", sexo: "masc", measurementOverrides: {}, style: {} });
+    const state = getState();
+    const ids = state.pattern.pieces.map((p) => p.id).sort();
+    expect(ids).toEqual(["corpo-costas", "corpo-frente", "manga"]);
+    expect(state.pattern.spec!.sexo).toBe("masc");
+  });
 });

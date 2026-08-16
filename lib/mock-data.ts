@@ -13,7 +13,7 @@ import { resolveMeasurements } from "@/lib/measurements";
 // creates the pieces the garment needs.
 function seedPattern(): Pattern {
   const baseSize = "M" as const;
-  const spec: GarmentSpec = { tipo: "blusa", measurementOverrides: {}, style: {} };
+  const spec: GarmentSpec = { tipo: "blusa", sexo: "fem", measurementOverrides: {}, style: {} };
   return {
     id: "demo",
     name: "Novo molde",
@@ -25,7 +25,7 @@ function seedPattern(): Pattern {
     sizesPending: ["PP", "P", "M", "G", "GG"],
     pieces: [],
     spec,
-    baseMeasurements: resolveMeasurements(baseSize, {}),
+    baseMeasurements: resolveMeasurements(baseSize, {}, "fem"),
     viewBox: { w: 620, h: 380 },
   };
 }
@@ -102,7 +102,7 @@ export function applyGarmentSpec(spec: GarmentSpec): void {
 
 export function getSpec(): GarmentSpec {
   return (
-    state.pattern.spec ?? { tipo: "blusa", measurementOverrides: {}, style: {} }
+    state.pattern.spec ?? { tipo: "blusa", sexo: "fem", measurementOverrides: {}, style: {} }
   );
 }
 
