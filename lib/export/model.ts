@@ -69,9 +69,8 @@ export function buildExportModel(pattern: Pattern): ExportModel {
 
   const padCm = 6;
   const gapCm = 8;
-  let cursorX = padCm;
-  let maxH = 0;
 
+  // 1) Normaliza cada peça para o seu próprio bbox (geometria local) e guarda w/h.
   const pieces: ExportPiece[] = drafted.map((dp) => {
     const b = bbox(dp.outlineCm);
     const shift = (pt: Pt): Pt => [pt[0] - b.minX, pt[1] - b.minY];
@@ -83,25 +82,49 @@ export function buildExportModel(pattern: Pattern): ExportModel {
       widthCm: b.w,
       heightCm: b.h,
       outline: outlineSegments(local, dp.curvedSpans ?? []),
-      originCm: { x: cursorX, y: padCm },
+      originCm: { x: padCm, y: padCm }, // posição definida no empacotamento abaixo
     };
     if (dp.grainlineCm) {
       const [g1, g2] = dp.grainlineCm;
       ep.grainline = [P(shift(g1)), P(shift(g2))];
     }
     if (dp.dartCm && dp.dartCm.length >= 3) ep.dart = dp.dartCm.map((pt) => P(shift(pt)));
-    cursorX += b.w + gapCm;
-    maxH = Math.max(maxH, b.h);
     return ep;
   });
+
+  // 2) Shelf-packing (prateleiras): em vez de uma única fila horizontal — que
+  // gerava folhas de vários metros de largura e muitas páginas A4 — embrulha as
+  // peças em linhas com uma largura-alvo quase quadrada. Reduz a bounding box
+  // (menos folhas na impressão A4) sem sobrepor peças. Ordena por altura desc
+  // para prateleiras mais justas; a ordem do array retornado é preservada.
+  const widest = pieces.reduce((m, p) => Math.max(m, p.widthCm), 0);
+  const totalArea = pieces.reduce((s, p) => s + p.widthCm * p.heightCm, 0);
+  const targetW = Math.max(widest, Math.sqrt(totalArea * 1.4));
+
+  const order = [...pieces].sort((a, b) => b.heightCm - a.heightCm);
+  let cursorX = padCm;
+  let cursorY = padCm;
+  let rowH = 0;
+  let sheetRight = padCm;
+  for (const p of order) {
+    if (cursorX > padCm && cursorX - padCm + p.widthCm > targetW) {
+      cursorY += rowH + gapCm; // nova prateleira
+      cursorX = padCm;
+      rowH = 0;
+    }
+    p.originCm = { x: cursorX, y: cursorY };
+    cursorX += p.widthCm + gapCm;
+    rowH = Math.max(rowH, p.heightCm);
+    sheetRight = Math.max(sheetRight, cursorX - gapCm);
+  }
 
   return {
     patternName: pattern.name,
     size: pattern.baseSize,
     unit: "cm",
     seamAllowanceCm: spec.style.folgaCosturaCm ?? 1,
-    sheetWidthCm: cursorX - gapCm + padCm,
-    sheetHeightCm: maxH + padCm * 2,
+    sheetWidthCm: sheetRight + padCm,
+    sheetHeightCm: cursorY + rowH + padCm,
     pieces,
   };
 }
