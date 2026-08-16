@@ -9,11 +9,13 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "db:up": "docker compose up -d",
+    "db:up": "docker compose up -d db",
     "docker:up": "docker compose up --build",
     "docker:prod": "docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build",
     "db:migrate": "dotenv -e .env.local -- prisma migrate dev",
     "db:seed": "dotenv -e .env.local -- prisma db seed",
+    "smoke": "node scripts/smoke-prod.mjs",
+    "smoke:prod": "docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build && node scripts/smoke-prod.mjs",
     "postinstall": "prisma generate"
   },
   "prisma": {

@@ -39,7 +39,11 @@ npm run dev          # app em http://localhost:3000
 ```bash
 npm test             # vitest (não precisa de Postgres rodando)
 npm run build        # build de produção + checagem TypeScript
+npm run smoke:prod   # sobe o stack de produção e faz login de verdade (smoke de auth)
+npm run smoke        # só o checador de login, contra um servidor já no ar (SMOKE_URL=...)
 ```
+
+O `smoke` faz o fluxo de login completo (CSRF → credentials → sessão) e exige uma sessão válida no fim — pega regressões que um "a home respondeu 200" não pega (ex.: o `trustHost`/`UntrustedHost` que só quebra em produção).
 
 ## Arquitetura
 

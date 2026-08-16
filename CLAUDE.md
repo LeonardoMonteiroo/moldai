@@ -19,11 +19,13 @@ npm run dev      # start dev server (Turbopack) at http://localhost:3000
 npm run build    # production build (also runs the TypeScript check)
 npm run lint     # eslint
 npm test         # vitest run — unit tests for lib/measurements.ts and lib/draft/*
-docker compose up -d   # sobe o Postgres local (npm run db:up)
+npm run db:up          # sobe só o Postgres local (docker compose up -d db), porta host 5433
 npm run db:migrate     # aplica migrações Prisma
 npm run db:seed        # semeia contas dev (dev@moldai.local / moldai-dev)
 npm run docker:up     # sobe app + Postgres juntos no Docker (dev, hot reload) em http://localhost:3000
 npm run docker:prod   # sobe a imagem de produção (next start) + Postgres
+npm run smoke:prod    # sobe o stack de prod e faz LOGIN de verdade (pega regressão tipo UntrustedHost)
+npm run smoke         # só o checador HTTP de login, contra um servidor já no ar (SMOKE_URL)
 ```
 
 **Docker vs host:** No container, o app fala com o Postgres em `db:5432` (DNS do Docker Compose); no host em `localhost:5433`. Segredos (`.env.local`) vêm via `env_file` em runtime — nunca embutidos na imagem.
