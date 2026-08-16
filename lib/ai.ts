@@ -4,7 +4,7 @@ import { validateSpec, validateQuestions } from "@/lib/draft/garment";
 import {
   MEASUREMENT_RANGES,
   SIZE_TABLE,
-  SIZE_TABLE_MASC,
+  SIZE_TABLE_MALE,
 } from "@/lib/measurements";
 
 export interface AiDecision {
@@ -148,7 +148,7 @@ function buildSystem(state: EditorState, answering: boolean): string {
     "Tabela de tamanhos feminina (cm):",
     JSON.stringify(SIZE_TABLE),
     "Tabela de tamanhos masculina (cm):",
-    JSON.stringify(SIZE_TABLE_MASC),
+    JSON.stringify(SIZE_TABLE_MALE),
     "",
     "Spec atual do molde:",
     JSON.stringify(currentSpec ?? null),

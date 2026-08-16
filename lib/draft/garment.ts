@@ -140,8 +140,8 @@ function draftAll(
     const knit = spec.tipo === "camiseta";
     const lengthCm =
       spec.tipo === "vestido"
-        ? measurements.comprimentoCostas
-        : measurements.comprimentoCostas + measurements.alturaQuadril + 5;
+        ? measurements.backLength
+        : measurements.backLength + measurements.hipHeight + 5;
     const opts: BlockOpts = { sexo, knit, lengthCm };
     // Arquétipo camiseta: gola redonda, sem pences, manga curta por padrão.
     const style: GarmentStyle =

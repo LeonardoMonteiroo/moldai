@@ -14,7 +14,7 @@ function defaultOpts(m: Measurements): BlockOpts {
   return {
     sexo: "fem",
     knit: false,
-    lengthCm: m.comprimentoCostas + m.alturaQuadril + 5,
+    lengthCm: m.backLength + m.hipHeight + 5,
   };
 }
 
@@ -30,15 +30,15 @@ function bodice(
 ): { piece: DraftedPiece; armholeLenCm: number; armholeBaseLenCm: number } {
   const folga = style.folgaCosturaCm ?? 1;
   const folgaVestir = opts.knit ? 0 : 2;
-  const halfChest = m.busto / 4 + folgaVestir;
+  const halfChest = m.bust / 4 + folgaVestir;
   const cavaAjuste = Math.max(0, style.cavaAjusteCm ?? 0);
-  const armholeDepthBase = m.busto / 8 + (opts.sexo === "masc" ? 10.5 : 9.5);
+  const armholeDepthBase = m.bust / 8 + (opts.sexo === "masc" ? 10.5 : 9.5);
   const armholeDepth = armholeDepthBase + cavaAjuste; // cava aprofundada visível no contorno
   const caimentoOmbro = opts.sexo === "masc" ? 4.5 : 4.0;
-  const neckHalf = m.busto / 14 + (opts.sexo === "masc" ? 0.8 : 0);
-  const ombro = m.ombro;
+  const neckHalf = m.bust / 14 + (opts.sexo === "masc" ? 0.8 : 0);
+  const shoulderHalf = m.shoulder;
   const len = opts.lengthCm;
-  const hemHalf = m.quadril / 4 + folgaVestir;
+  const hemHalf = m.hip / 4 + folgaVestir;
 
   const backNeckDrop = 2.0;
   let frontNeckDrop: number;
@@ -50,15 +50,15 @@ function bodice(
   const neckDrop = frontish ? frontNeckDrop : backNeckDrop;
 
   const fitted = !!style.pences && !opts.knit;
-  const waistY = m.comprimentoCostas;
+  const waistY = m.backLength;
   const waistHalf = Math.max(
-    halfChest - (m.quadril / 4 - m.cintura / 4),
+    halfChest - (m.hip / 4 - m.waist / 4),
     halfChest - 3,
   );
 
-  const cx = Math.max(ombro, halfChest, hemHalf);
+  const cx = Math.max(shoulderHalf, halfChest, hemHalf);
   const midArmY = caimentoOmbro + (armholeDepth - caimentoOmbro) * 0.55;
-  const armCtrlX = (ombro + halfChest) / 2 - 1; // distância do centro
+  const armCtrlX = (shoulderHalf + halfChest) / 2 - 1; // distância do centro
 
   const pts: Pt[] = [];
   const spans: [number, number][] = [];
@@ -68,7 +68,7 @@ function bodice(
   push([cx - neckHalf * 0.6, neckDrop * 0.55]); // ctrl decote esq
   const hpsL = push([cx - neckHalf, 0]); // HPS esq
   spans.push([cf, hpsL]); // decote esq (curvo)
-  const shL = push([cx - ombro, caimentoOmbro]); // ombro esq (reta hpsL->shL)
+  const shL = push([cx - shoulderHalf, caimentoOmbro]); // ombro esq (reta hpsL->shL)
   push([cx - armCtrlX, midArmY]); // ctrl cava esq
   const uaL = push([cx - halfChest, armholeDepth]); // axila esq
   spans.push([shL, uaL]); // cava esq (curva)
@@ -78,18 +78,19 @@ function bodice(
   if (fitted) push([cx + waistHalf, waistY]); // cintura dir
   const uaR = push([cx + halfChest, armholeDepth]); // axila dir
   push([cx + armCtrlX, midArmY]); // ctrl cava dir
-  const shR = push([cx + ombro, caimentoOmbro]); // ombro dir
+  const shR = push([cx + shoulderHalf, caimentoOmbro]); // ombro dir
   spans.push([uaR, shR]); // cava dir (curva)
   const hpsR = push([cx + neckHalf, 0]); // HPS dir (reta shR->hpsR)
   push([cx + neckHalf * 0.6, neckDrop * 0.55]); // ctrl decote dir
   spans.push([hpsR, pts.length]); // decote dir + fechamento (curvo)
 
   const armholeLenCm =
-    Math.hypot(halfChest - ombro, armholeDepth - caimentoOmbro) * 1.08;
+    Math.hypot(halfChest - shoulderHalf, armholeDepth - caimentoOmbro) * 1.08;
   // Cava "base" (sem o ajuste) — é a que a copa da manga usa enquanto não é refeita;
   // a divergência entre esta e armholeLenCm é o que o seamCheck detecta.
   const armholeBaseLenCm =
-    Math.hypot(halfChest - ombro, armholeDepthBase - caimentoOmbro) * 1.08;
+    Math.hypot(halfChest - shoulderHalf, armholeDepthBase - caimentoOmbro) *
+    1.08;
 
   const detailRows: DetailRow[] = [
     { label: "Folga de costura", value: cm(folga) },
@@ -102,7 +103,7 @@ function bodice(
 
   let dartCm: Pt[] | undefined;
   if (fitted) {
-    const dartW = Math.max(1.5, (m.quadril / 4 - m.cintura / 4) * 0.5);
+    const dartW = Math.max(1.5, (m.hip / 4 - m.waist / 4) * 0.5);
     dartCm = [
       [cx - dartW, waistY],
       [cx, waistY - 12],

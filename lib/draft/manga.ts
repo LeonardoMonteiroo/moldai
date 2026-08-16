@@ -14,7 +14,8 @@ export function draftManga(
   if (style.manga === "sem" || !style.manga) return null;
   const bicep = armholeLenCm * 0.9;
   const capH = armholeLenCm / 3;
-  const len = style.manga === "longa" ? m.compMangaLonga : m.compMangaCurta;
+  const len =
+    style.manga === "longa" ? m.longSleeveLength : m.shortSleeveLength;
   const hemHalf = (bicep / 2) * (style.manga === "longa" ? 0.7 : 0.9);
   const cxTop = bicep / 2;
 

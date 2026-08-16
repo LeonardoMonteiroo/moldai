@@ -6,11 +6,11 @@ const cm = (v: number) => `${v.toFixed(1).replace(".", ",")} cm`;
 
 // setor anelar (arco de cintura e de barra) amostrado em pontos
 function radialSkirt(
-  cintura: number,
+  waist: number,
   comp: number,
   denom: number,
 ): { pts: Pt[]; r: number } {
-  const r = cintura / denom; // raio interno (cintura)
+  const r = waist / denom; // raio interno (cintura)
   const R = r + comp; // raio externo (barra)
   const sweep = (Math.PI * 2) / denom; // ângulo de UM quarto de peça (peça cortada 4x/2x)
   const half = sweep / 2;
@@ -32,7 +32,7 @@ function radialSkirt(
 export function draftSaia(m: Measurements, style: GarmentStyle): DraftedPiece {
   const silhueta: SaiaSilhueta = style.saia ?? "reta";
   const folga = style.folgaCosturaCm ?? 1;
-  const comp = style.compSaiaCm ?? m.compSaia;
+  const comp = style.compSaiaCm ?? m.skirtLength;
   const detailRows: DetailRow[] = [
     { label: "Silhueta", value: silhueta },
     { label: "Comprimento", value: cm(comp) },
@@ -46,7 +46,7 @@ export function draftSaia(m: Measurements, style: GarmentStyle): DraftedPiece {
     silhueta === "meia-roda"
   ) {
     const denom = silhueta === "meia-roda" ? Math.PI : 2 * Math.PI;
-    const { pts, r } = radialSkirt(m.cintura, comp, denom);
+    const { pts, r } = radialSkirt(m.waist, comp, denom);
     detailRows.splice(1, 0, { label: "Raio da cintura", value: cm(r) });
     // desloca para x>=0
     const minX = Math.min(...pts.map((p) => p[0]));
@@ -70,7 +70,7 @@ export function draftSaia(m: Measurements, style: GarmentStyle): DraftedPiece {
   }
 
   // reta / evasê: trapézio (¼ quadril na cintura, barra igual ou mais larga)
-  const waistHalf = m.quadril / 4 + folga; // usa quadril como largura de referência do painel
+  const waistHalf = m.hip / 4 + folga; // usa quadril como largura de referência do painel
   const flare = silhueta === "evase" ? 12 : 0;
   const hemHalf = waistHalf + flare;
   const outlineCm: Pt[] = [

@@ -7,7 +7,7 @@ const M = resolveMeasurements("M", {});
 const optsM: BlockOpts = {
   sexo: "fem",
   knit: false,
-  lengthCm: M.comprimentoCostas + M.alturaQuadril + 5,
+  lengthCm: M.backLength + M.hipHeight + 5,
 };
 
 // menor y central = base do decote (frente/costas)

@@ -12,7 +12,7 @@ describe("validateSpec", () => {
       tipo: "foo",
       sexo: "xx",
       style: { saia: "xxx", compSaiaCm: 999, decoteProfundidadeCm: -5 },
-      measurementOverrides: { cintura: 70, hack: 1 },
+      measurementOverrides: { waist: 70, hack: 1 },
     });
     expect(s.tipo).toBe("blusa");
     expect(s.sexo).toBe("fem");
@@ -20,7 +20,7 @@ describe("validateSpec", () => {
     expect(s.style.compSaiaCm).toBeLessThanOrEqual(120);
     expect(s.style.decoteProfundidadeCm).toBeGreaterThanOrEqual(0);
     expect(s.measurementOverrides.hack).toBeUndefined();
-    expect(s.measurementOverrides.cintura).toBe(70);
+    expect(s.measurementOverrides.waist).toBe(70);
   });
   it("aceita tipo camiseta e sexo masc", () => {
     const s = validateSpec({
