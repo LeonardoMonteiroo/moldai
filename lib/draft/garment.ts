@@ -1,13 +1,14 @@
 import { MEASUREMENT_RANGES, Measurements, resolveMeasurements } from "@/lib/measurements";
 import {
-  Decote, GarmentSpec, GarmentStyle, GarmentType, MangaLen, SaiaSilhueta, SizeLabel,
+  Decote, GarmentSpec, GarmentStyle, GarmentType, MangaLen, SaiaSilhueta, Sexo, SizeLabel,
 } from "@/lib/types";
 import { autoLayout, DraftedPiece } from "./core";
-import { draftCorpo } from "./corpo";
+import { BlockOpts, draftCorpo } from "./corpo";
 import { draftManga } from "./manga";
 import { draftSaia } from "./saia";
 
-const TIPOS: GarmentType[] = ["blusa", "vestido", "saia"];
+const TIPOS: GarmentType[] = ["blusa", "vestido", "saia", "camiseta"];
+const SEXOS: Sexo[] = ["fem", "masc"];
 const DECOTES: Decote[] = ["reto", "V", "redondo"];
 const MANGAS: MangaLen[] = ["sem", "curta", "longa"];
 const SAIAS: SaiaSilhueta[] = ["reta", "evase", "gode", "meia-roda", "circulo"];
@@ -37,7 +38,12 @@ export function validateSpec(raw: unknown): GarmentSpec {
     folgaCosturaCm: style.folgaCosturaCm !== undefined ? clamp(num(style.folgaCosturaCm, 1), 0, 4) : undefined,
     pences: typeof style.pences === "boolean" ? style.pences : undefined,
   };
-  return { tipo: pick(r.tipo, TIPOS, "blusa"), measurementOverrides: overrides, style: outStyle };
+  return {
+    tipo: pick(r.tipo, TIPOS, "blusa"),
+    sexo: pick(r.sexo, SEXOS, "fem"),
+    measurementOverrides: overrides,
+    style: outStyle,
+  };
 }
 
 export function seamCheck(armholeLenCm?: number, mangaCavaCm?: number): { diffCm: number } | null {
@@ -47,15 +53,26 @@ export function seamCheck(armholeLenCm?: number, mangaCavaCm?: number): { diffCm
 }
 
 export function draftGarment(spec: GarmentSpec, size: SizeLabel) {
-  const measurements: Measurements = resolveMeasurements(size, spec.measurementOverrides);
+  const sexo: Sexo = spec.sexo ?? "fem";
+  const measurements: Measurements = resolveMeasurements(size, spec.measurementOverrides, sexo);
   const drafted: DraftedPiece[] = [];
   let armholeLenCm: number | undefined;
 
-  if (spec.tipo === "blusa" || spec.tipo === "vestido") {
-    const { frente, costas, armholeLenCm: a } = draftCorpo(measurements, spec.style);
+  const isCorpo = spec.tipo === "blusa" || spec.tipo === "vestido" || spec.tipo === "camiseta";
+  if (isCorpo) {
+    const knit = spec.tipo === "camiseta";
+    const lengthCm = spec.tipo === "vestido"
+      ? measurements.comprimentoCostas
+      : measurements.comprimentoCostas + measurements.alturaQuadril + 5;
+    const opts: BlockOpts = { sexo, knit, lengthCm };
+    // Arquétipo camiseta: gola redonda, sem pences, manga curta por padrão.
+    const style: GarmentStyle = spec.tipo === "camiseta"
+      ? { ...spec.style, decote: spec.style.decote ?? "redondo", pences: false, manga: spec.style.manga ?? "curta" }
+      : spec.style;
+    const { frente, costas, armholeLenCm: a } = draftCorpo(measurements, style, opts);
     armholeLenCm = a;
     drafted.push(frente, costas);
-    const manga = draftManga(measurements, spec.style, a);
+    const manga = draftManga(measurements, style, a, opts);
     if (manga) drafted.push(manga);
   }
   if (spec.tipo === "saia" || spec.tipo === "vestido") {
