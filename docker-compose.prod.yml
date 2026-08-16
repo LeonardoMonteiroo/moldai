@@ -1,0 +1,13 @@
+# Override de produção: docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build
+# Builda o target `runner` (next start) e remove os bind mounts de dev.
+services:
+  app:
+    build:
+      target: runner
+    restart: unless-stopped
+    volumes: !reset []
+    environment:
+      NODE_ENV: production
+      WATCHPACK_POLLING: "false"
+      CHOKIDAR_USEPOLLING: "false"
+      DATABASE_URL: postgresql://moldai:moldai@db:5432/moldai?schema=public
