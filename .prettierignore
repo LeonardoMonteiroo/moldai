@@ -1,0 +1,9 @@
+.next/
+node_modules/
+build/
+out/
+coverage/
+prisma/migrations/
+.claude/
+AGENTS.md
+package-lock.json
