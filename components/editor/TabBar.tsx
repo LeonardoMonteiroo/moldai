@@ -1,5 +1,8 @@
+"use client";
+
+import { useState } from "react";
 import { EditorTab } from "@/lib/store";
-import { SizeLabel } from "@/lib/types";
+import { ALL_SIZES, SizeLabel } from "@/lib/types";
 
 const TABS: { id: EditorTab; label: string }[] = [
   { id: "molde2d", label: "Molde 2D" },
@@ -7,6 +10,54 @@ const TABS: { id: EditorTab; label: string }[] = [
   { id: "ficha", label: "Ficha técnica" },
   { id: "corte", label: "Plano de corte" },
 ];
+
+function SizeSelector({ baseSize }: { baseSize: SizeLabel }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="text-[12px] text-muted-2 px-[11px] py-[6px] border border-border rounded-btn bg-surface hover:bg-surface-alt transition-colors"
+      >
+        Tamanho {baseSize} ▾
+      </button>
+      {open && (
+        <>
+          <button
+            type="button"
+            aria-label="Fechar seletor de tamanho"
+            className="fixed inset-0 z-10 cursor-default"
+            onClick={() => setOpen(false)}
+          />
+          <div className="absolute top-full right-0 mt-1 z-20 min-w-[190px] p-2 bg-surface border border-border rounded-item shadow-card">
+            <div className="flex gap-[5px] text-[11.5px] px-1 pb-2">
+              {ALL_SIZES.map((size) => (
+                <span
+                  key={size}
+                  className={[
+                    "px-[7px] py-[3px] rounded-[6px] font-semibold",
+                    size === baseSize ? "bg-olive-tint text-olive" : "text-placeholder",
+                  ].join(" ")}
+                >
+                  {size}
+                </span>
+              ))}
+            </div>
+            <div className="flex items-center gap-[6px] border-t border-line pt-2 px-1">
+              <span className="text-[10px] font-semibold uppercase tracking-[.6px] text-olive bg-olive-tint rounded-[5px] px-[6px] py-[2px]">
+                em breve
+              </span>
+              <span className="text-[11px] text-muted leading-tight">
+                Trocar o tamanho-base sem regerar
+              </span>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 export function TabBar({
   activeTab,
@@ -42,9 +93,7 @@ export function TabBar({
         ))}
       </div>
       <div className="flex-1" />
-      <span className="text-[12px] text-muted-2 px-[11px] py-[6px] border border-border rounded-btn bg-surface">
-        Tamanho {baseSize} ▾
-      </span>
+      <SizeSelector baseSize={baseSize} />
       {activeTab === "molde2d" && (
         <button
           onClick={onToggleDetails}

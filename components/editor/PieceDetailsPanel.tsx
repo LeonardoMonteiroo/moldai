@@ -1,4 +1,5 @@
 import { ALL_SIZES, COSTS, Pattern, Piece } from "@/lib/types";
+import { formatList } from "@/lib/format";
 
 export function PieceDetailsPanel({
   piece,
@@ -12,6 +13,8 @@ export function PieceDetailsPanel({
   onGraduate: (sizes: string[]) => void;
 }) {
   const detailRows = piece.detailRows ?? [];
+  // O tamanho-base já é o tamanho desenhado — não precisa (nem pode) ser graduado.
+  const gradable = pattern.sizesPending.filter((s) => s !== pattern.baseSize);
 
   return (
     <div className="absolute right-5 top-5 bottom-5 w-[230px] bg-surface border border-border rounded-card p-[14px] flex flex-col gap-[11px] shadow-card">
@@ -47,13 +50,16 @@ export function PieceDetailsPanel({
       <div className="border border-dashed border-pattern-guide rounded-item p-[10px] bg-surface-alt">
         <div className="flex gap-[5px] text-[11.5px]">
           {ALL_SIZES.map((size) => {
-            const applied = pattern.sizesApplied.includes(size);
+            const isBase = size === pattern.baseSize;
+            const active = isBase || pattern.sizesApplied.includes(size);
             return (
               <span
                 key={size}
+                title={isBase ? "tamanho base" : undefined}
                 className={[
                   "px-[7px] py-[3px] rounded-[6px] font-semibold",
-                  applied ? "bg-olive-tint text-olive" : "text-placeholder",
+                  active ? "bg-olive-tint text-olive" : "text-placeholder",
+                  isBase ? "ring-1 ring-olive-border" : "",
                 ].join(" ")}
               >
                 {size}
@@ -62,23 +68,23 @@ export function PieceDetailsPanel({
           })}
         </div>
         <div className="text-[11.5px] text-muted mt-2">
-          {pattern.sizesPending.length > 0
-            ? `Graduar ${pattern.sizesPending.join(" e ")} · ${COSTS.graduate} créditos`
+          {gradable.length > 0
+            ? `Graduar ${formatList(gradable)} · ${COSTS.graduate} créditos`
             : "Todos os tamanhos graduados"}
         </div>
       </div>
 
       <button
-        disabled={pattern.sizesPending.length === 0}
-        onClick={() => onGraduate(pattern.sizesPending)}
+        disabled={gradable.length === 0}
+        onClick={() => onGraduate(gradable)}
         className="border border-border rounded-btn py-[9px] text-center text-[12.5px] font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-surface-alt transition-colors"
       >
         Graduar
       </button>
 
       <div className="flex-1" />
-      <span className="text-[11.5px] text-olive underline cursor-pointer">
-        Glossário: o que é pence?
+      <span className="text-[11.5px] text-muted" title="Glossário de modelagem chega em breve">
+        Glossário: o que é pence? · em breve
       </span>
     </div>
   );

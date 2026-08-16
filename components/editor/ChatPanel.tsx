@@ -63,12 +63,16 @@ export function ChatPanel() {
               {step.label}
               <div className="h-[6px] rounded-full bg-track overflow-hidden mt-[7px]">
                 <div
-                  className="h-full bg-ink transition-all duration-300"
-                  style={{ width: `${((generationStepIndex + 1) / GENERATION_STEPS.length) * 100}%` }}
+                  className="h-full bg-ink transition-all duration-300 animate-pulse"
+                  style={{
+                    // Nunca chega a 100% enquanto a IA responde — deixa headroom
+                    // e pulsa pra não parecer "concluído" parado no último passo.
+                    width: `${Math.min(92, ((generationStepIndex + 1) / (GENERATION_STEPS.length + 0.5)) * 100)}%`,
+                  }}
                 />
               </div>
             </div>
-            <span className="text-[11px] text-muted">−{COSTS.adjust} crédito · ~2 s</span>
+            <span className="text-[11px] text-muted">−{COSTS.adjust} crédito · gerando…</span>
             <div className="flex items-center gap-[10px]">
               <div className="flex-1 bg-disabled-border text-disabled rounded-item py-[11px] text-center text-[13px] font-semibold">
                 Gerar

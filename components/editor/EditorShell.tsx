@@ -39,7 +39,11 @@ export function EditorShell() {
           <ChatPanel />
           <CanvasArea />
         </div>
-        <Footer pattern={pattern} exportBlocked={conflict !== null || generationStatus === "generating"} />
+        <Footer
+          pattern={pattern}
+          conflictActive={conflict !== null}
+          generating={generationStatus === "generating"}
+        />
       </div>
       <PaywallModal />
     </div>
