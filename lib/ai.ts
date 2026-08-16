@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { EditorState, GarmentSpec } from "./types";
 import { validateSpec } from "@/lib/draft/garment";
-import { MEASUREMENT_RANGES, SIZE_TABLE } from "@/lib/measurements";
+import { MEASUREMENT_RANGES, SIZE_TABLE, SIZE_TABLE_MASC } from "@/lib/measurements";
 
 export interface AiDecision {
   decision: "apply" | "decline";
@@ -37,7 +37,8 @@ const TOOL: Anthropic.Tool = {
         description:
           "A GarmentSpec COMPLETA e ATUALIZADA (não só o delta). Preencha SEMPRE que decision=apply — inclua tudo que já existia mais as mudanças pedidas.",
         properties: {
-          tipo: { type: "string", enum: ["blusa", "vestido", "saia"] },
+          tipo: { type: "string", enum: ["blusa", "vestido", "saia", "camiseta"] },
+          sexo: { type: "string", enum: ["fem", "masc"], description: "Sexo/base de medidas. Infira de pistas como 'masculina'/'feminina'/'unissex'. Default fem." },
           measurementOverrides: {
             type: "object",
             description:
@@ -60,7 +61,7 @@ const TOOL: Anthropic.Tool = {
             },
           },
         },
-        required: ["tipo", "measurementOverrides", "style"],
+        required: ["tipo", "sexo", "measurementOverrides", "style"],
       },
       declineReason: { type: "string", description: "Preencha SOMENTE quando decision=decline." },
       assistantMessage: {
@@ -77,15 +78,19 @@ function buildSystem(state: EditorState): string {
   const isEmpty = state.pattern.pieces.length === 0;
   return [
     "Você é o motor de modelagem da MoldAI. Recebe pedidos em linguagem natural sobre uma peça de roupa e traduz em uma GarmentSpec (tipo + medidas + estilo).",
-    "A GarmentSpec tem: tipo (blusa | vestido | saia); measurementOverrides (medidas do corpo em cm, sobrepõem a tabela de tamanhos); style (decote, decoteProfundidadeCm, manga, saia, compSaiaCm, pences, folgaCosturaCm).",
+    "A GarmentSpec tem: tipo (blusa | vestido | saia | camiseta); sexo (fem | masc); measurementOverrides (medidas do corpo em cm, sobrepõem a tabela de tamanhos); style (decote, decoteProfundidadeCm, manga, saia, compSaiaCm, pences, folgaCosturaCm).",
+    "camiseta = peça de malha (gola redonda, manga montada curta por padrão, sem pences, caimento justo); blusa = tecido plano (pode ter pences, decote reto/V/redondo). Escolha camiseta para t-shirt/camiseta e blusa para blusa/camisa social.",
     "Catálogo de estilos válidos: decote em reto|V|redondo; manga em sem|curta|longa; saia (silhueta) em reta|evase|gode|meia-roda|circulo.",
+    "Infira sexo do pedido ('masculina'->masc, 'feminina'->fem, sem pista->fem).",
     isEmpty
       ? "ESTADO ATUAL: molde EM BRANCO, nenhuma peça criada ainda. Este é um pedido do zero: gere a GarmentSpec inteira que a roupa pedida precisa, e use decision=apply."
       : "Já existe uma spec aplicada (abaixo). Um pedido de ajuste deve devolver a SPEC INTEIRA ATUALIZADA (não só o delta): parta da spec atual e aplique as mudanças pedidas.",
     "Se o pedido não for uma peça de roupa que esta spec consegue representar (ex.: calça, acessório, pedido genérico sem relação com uma peça modelável), use decision=decline e explique gentilmente em assistantMessage. Não preencha spec nesse caso.",
     "",
-    "Tabela de tamanhos (medidas base por tamanho, em cm):",
+    "Tabela de tamanhos feminina (cm):",
     JSON.stringify(SIZE_TABLE),
+    "Tabela de tamanhos masculina (cm):",
+    JSON.stringify(SIZE_TABLE_MASC),
     "",
     "Spec atual do molde:",
     JSON.stringify(currentSpec ?? null),
