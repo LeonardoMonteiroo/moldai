@@ -59,4 +59,28 @@ describe("draftCorpo sloper", () => {
   it("gera pence quando pences=true (não-knit)", () => {
     expect(draftCorpo(M, { pences: true }, optsM).frente.dartCm?.length).toBeGreaterThanOrEqual(3);
   });
+
+  it("barra reta e há arestas retas (invariante anti-balão)", () => {
+    const { frente } = draftCorpo(M, {}, optsM);
+    const pts = frente.outlineCm;
+    const spans = frente.curvedSpans ?? [];
+    const n = pts.length;
+    const edgeCurved = (i: number) => spans.some(([a, b]) => i >= a && i + 1 <= b);
+
+    // nem tudo é curva: existem arestas retas
+    const curvedCount = Array.from({ length: n }, (_, i) => edgeCurved(i)).filter(Boolean).length;
+    expect(curvedCount).toBeGreaterThan(0);
+    expect(curvedCount).toBeLessThan(n);
+
+    // a barra (aresta entre os dois pontos de y máximo, consecutivos) é reta
+    const b = bbox(pts);
+    const hemIdx = pts
+      .map((p, i) => ({ i, y: p[1] }))
+      .filter((o) => Math.abs(o.y - b.maxY) < 0.01)
+      .map((o) => o.i)
+      .sort((a, c) => a - c);
+    expect(hemIdx).toHaveLength(2);
+    expect(hemIdx[1] - hemIdx[0]).toBe(1);
+    expect(edgeCurved(hemIdx[0])).toBe(false);
+  });
 });
