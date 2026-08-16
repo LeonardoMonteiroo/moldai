@@ -6,9 +6,14 @@ import { exportPattern, ExportFormat } from "@/lib/export";
 import { buildExportModel } from "@/lib/export/model";
 import { planTiles } from "@/lib/export/pdf";
 
-const FORMATS: { id: ExportFormat; label: string }[] = [
+const FORMATS: { id: ExportFormat; label: string; note?: string }[] = [
   { id: "svg", label: "SVG · 1:1 (plotter)" },
-  { id: "dxf", label: "DXF · geometria 1:1 (CAD)" },
+  { id: "dxf", label: "DXF · genérico 1:1 (CAD)" },
+  {
+    id: "dxf-aama",
+    label: "DXF · Audaces/AAMA-ASTM · beta",
+    note: "Camadas numeradas D6673. Ainda sem piques/furos/linha de costura.",
+  },
   { id: "pdf-a4", label: "PDF · A4 (colar em casa)" },
   { id: "pdf-single", label: "PDF · folha única (plotter)" },
 ];
@@ -96,6 +101,11 @@ export function Footer({
                   {fmt.id === "pdf-a4" && a4Pages > 0 && (
                     <span className="block text-[11px] text-muted">
                       ~{a4Pages} folha{a4Pages === 1 ? "" : "s"} A4
+                    </span>
+                  )}
+                  {fmt.note && (
+                    <span className="block text-[11px] text-muted leading-snug">
+                      {fmt.note}
                     </span>
                   )}
                 </button>
