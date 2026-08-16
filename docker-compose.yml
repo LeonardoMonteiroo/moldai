@@ -1,0 +1,17 @@
+services:
+  db:
+    image: postgres:16
+    container_name: moldai-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: moldai
+      POSTGRES_PASSWORD: moldai
+      POSTGRES_DB: moldai
+    ports:
+      # host 5433 (não 5432) para não colidir com outro Postgres local
+      - "5433:5432"
+    volumes:
+      - moldai-pgdata:/var/lib/postgresql/data
+
+volumes:
+  moldai-pgdata:

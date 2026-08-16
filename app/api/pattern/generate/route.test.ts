@@ -1,9 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@/lib/ai", () => ({ proposeGarment: vi.fn() }));
+vi.mock("@/lib/auth/guard", () => ({
+  requireUser: vi.fn(async () => ({ id: "u1", email: "dev@moldai.local", name: null })),
+}));
 
 import { POST } from "./route";
 import { proposeGarment } from "@/lib/ai";
+import { requireUser } from "@/lib/auth/guard";
+import { unauthorized } from "@/lib/auth/session";
 import { resetState, getState } from "@/lib/mock-data";
 
 const mockPropose = proposeGarment as unknown as ReturnType<typeof vi.fn>;
@@ -60,5 +65,14 @@ describe("POST /api/pattern/generate — ask", () => {
     });
     await POST(req({ message: "gola redonda, manga curta", answering: true }));
     expect(mockPropose).toHaveBeenCalledWith(expect.anything(), true);
+  });
+
+  it("sem sessão retorna 401 sem debitar nem chamar a IA", async () => {
+    vi.mocked(requireUser).mockResolvedValueOnce(unauthorized());
+    const balanceBefore = getState().credits.balance;
+    const res = await POST(req({ message: "quero uma camiseta" }));
+    expect(res.status).toBe(401);
+    expect(getState().credits.balance).toBe(balanceBefore);
+    expect(mockPropose).not.toHaveBeenCalled();
   });
 });

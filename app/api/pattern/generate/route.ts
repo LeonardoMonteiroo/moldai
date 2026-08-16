@@ -9,8 +9,12 @@ import {
 } from "@/lib/mock-data";
 import { COSTS } from "@/lib/types";
 import { proposeGarment } from "@/lib/ai";
+import { requireUser } from "@/lib/auth/guard";
 
 export async function POST(request: Request) {
+  const gate = await requireUser();
+  if (gate instanceof NextResponse) return gate;
+
   let body: { message?: unknown; answering?: unknown };
   try {
     body = await request.json();

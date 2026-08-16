@@ -8,7 +8,7 @@ import { CanvasArea } from "./CanvasArea";
 import { Footer } from "./Footer";
 import { PaywallModal } from "./PaywallModal";
 
-export function EditorShell() {
+export function EditorShell({ userEmail }: { userEmail: string }) {
   const ready = useEditorStore((s) => s.ready);
   const pattern = useEditorStore((s) => s.pattern);
   const credits = useEditorStore((s) => s.credits);
@@ -34,7 +34,7 @@ export function EditorShell() {
       <div
         className={paywallOpen ? "flex-1 flex flex-col min-h-0 opacity-30 blur-[1.2px] pointer-events-none" : "flex-1 flex flex-col min-h-0"}
       >
-        <Topbar pattern={pattern} credits={credits} />
+        <Topbar pattern={pattern} credits={credits} userEmail={userEmail} />
         <div className="flex flex-1 min-h-0">
           <ChatPanel />
           <CanvasArea />
