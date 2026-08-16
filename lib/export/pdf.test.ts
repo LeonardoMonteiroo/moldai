@@ -37,3 +37,59 @@ describe("rulerTicksCm", () => {
     expect(rulerTicksCm(10)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
   });
 });
+
+import { toPdf } from "./pdf";
+import type { ExportModel } from "./model";
+import { PDFDocument } from "pdf-lib";
+
+function modelOf(sheetWcm: number, sheetHcm: number): ExportModel {
+  return {
+    patternName: "Camiseta",
+    size: "M",
+    unit: "cm",
+    seamAllowanceCm: 1,
+    sheetWidthCm: sheetWcm,
+    sheetHeightCm: sheetHcm,
+    pieces: [
+      {
+        id: "frente",
+        name: "Frente",
+        qty: 2,
+        widthCm: 10,
+        heightCm: 10,
+        outline: {
+          start: { x: 0, y: 0 },
+          segs: [
+            { kind: "line", to: { x: 10, y: 0 } },
+            { kind: "cubic", c1: { x: 10, y: 5 }, c2: { x: 5, y: 10 }, to: { x: 0, y: 10 } },
+            { kind: "line", to: { x: 0, y: 0 } },
+          ],
+        },
+        grainline: [{ x: 5, y: 1 }, { x: 5, y: 9 }],
+        originCm: { x: 2, y: 2 },
+      },
+    ],
+  };
+}
+
+const PT_POR_CM = 72 / 2.54;
+
+describe("toPdf", () => {
+  it("a4: PDF válido (%PDF) e nº de páginas = planTiles", async () => {
+    const model = modelOf(50, 40);
+    const bytes = await toPdf(model, "a4");
+    expect(new TextDecoder().decode(bytes.slice(0, 5))).toBe("%PDF-");
+    const doc = await PDFDocument.load(bytes);
+    expect(doc.getPageCount()).toBe(6); // planTiles(50,40,"a4") = 6
+  });
+
+  it("single: 1 página do tamanho do molde (1:1)", async () => {
+    const model = modelOf(20, 30);
+    const bytes = await toPdf(model, "single");
+    const doc = await PDFDocument.load(bytes);
+    expect(doc.getPageCount()).toBe(1);
+    const { width, height } = doc.getPage(0).getSize();
+    expect(width).toBeCloseTo(21.6 * PT_POR_CM, 1);  // (20+1.6) cm em pt
+    expect(height).toBeCloseTo(31.6 * PT_POR_CM, 1); // (30+1.6) cm em pt
+  });
+});
