@@ -36,8 +36,12 @@ export function ChatPanel() {
       </div>
 
       <div ref={listRef} className="flex-1 p-4 flex flex-col gap-3 overflow-y-auto">
-        {chat.map((message) => (
-          <ChatBubble key={message.id} message={message} />
+        {chat.map((message, i) => (
+          <ChatBubble
+            key={message.id}
+            message={message}
+            active={i === chat.length - 1 && generationStatus !== "generating"}
+          />
         ))}
         {conflict && (
           <ConflictActions
