@@ -17,13 +17,16 @@ export function PieceDetailsPanel({
   const gradable = pattern.sizesPending.filter((s) => s !== pattern.baseSize);
 
   return (
-    <div className="absolute right-5 top-5 bottom-5 w-[230px] bg-surface border border-border rounded-card p-[14px] flex flex-col gap-[11px] shadow-card">
+    <div className="bg-surface border-border rounded-card shadow-card absolute top-5 right-5 bottom-5 flex w-[230px] flex-col gap-[11px] border p-[14px]">
       <div className="flex items-center">
-        <span className="text-[11px] font-semibold tracking-[.8px] uppercase text-muted">
+        <span className="text-muted text-[11px] font-semibold tracking-[.8px] uppercase">
           Peça selecionada
         </span>
         <div className="flex-1" />
-        <button onClick={onClose} className="text-[13px] text-placeholder hover:text-muted-2">
+        <button
+          onClick={onClose}
+          className="text-placeholder hover:text-muted-2 text-[13px]"
+        >
           ✕
         </button>
       </div>
@@ -38,16 +41,18 @@ export function PieceDetailsPanel({
                 <span className="text-muted">{row.label}</span>
                 <span className="font-medium">{row.value}</span>
               </div>
-              {i < detailRows.length - 1 && <div className="h-px bg-line mt-2" />}
+              {i < detailRows.length - 1 && (
+                <div className="bg-line mt-2 h-px" />
+              )}
             </div>
           ))}
         </div>
       )}
 
-      <div className="text-[11px] font-semibold tracking-[.8px] uppercase text-muted mt-[2px]">
+      <div className="text-muted mt-[2px] text-[11px] font-semibold tracking-[.8px] uppercase">
         Graduação
       </div>
-      <div className="border border-dashed border-pattern-guide rounded-item p-[10px] bg-surface-alt">
+      <div className="border-pattern-guide rounded-item bg-surface-alt border border-dashed p-[10px]">
         <div className="flex gap-[5px] text-[11.5px]">
           {ALL_SIZES.map((size) => {
             const isBase = size === pattern.baseSize;
@@ -57,9 +62,9 @@ export function PieceDetailsPanel({
                 key={size}
                 title={isBase ? "tamanho base" : undefined}
                 className={[
-                  "px-[7px] py-[3px] rounded-[6px] font-semibold",
+                  "rounded-[6px] px-[7px] py-[3px] font-semibold",
                   active ? "bg-olive-tint text-olive" : "text-placeholder",
-                  isBase ? "ring-1 ring-olive-border" : "",
+                  isBase ? "ring-olive-border ring-1" : "",
                 ].join(" ")}
               >
                 {size}
@@ -67,7 +72,7 @@ export function PieceDetailsPanel({
             );
           })}
         </div>
-        <div className="text-[11.5px] text-muted mt-2">
+        <div className="text-muted mt-2 text-[11.5px]">
           {gradable.length > 0
             ? `Graduar ${formatList(gradable)} · ${COSTS.graduate} créditos`
             : "Todos os tamanhos graduados"}
@@ -77,13 +82,16 @@ export function PieceDetailsPanel({
       <button
         disabled={gradable.length === 0}
         onClick={() => onGraduate(gradable)}
-        className="border border-border rounded-btn py-[9px] text-center text-[12.5px] font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-surface-alt transition-colors"
+        className="border-border rounded-btn hover:bg-surface-alt border py-[9px] text-center text-[12.5px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40"
       >
         Graduar
       </button>
 
       <div className="flex-1" />
-      <span className="text-[11.5px] text-muted" title="Glossário de modelagem chega em breve">
+      <span
+        className="text-muted text-[11.5px]"
+        title="Glossário de modelagem chega em breve"
+      >
         Glossário: o que é pence? · em breve
       </span>
     </div>

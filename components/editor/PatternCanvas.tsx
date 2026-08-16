@@ -1,5 +1,11 @@
 import { RefObject, useEffect, useMemo, useRef, useState } from "react";
-import { ConflictInfo, Piece, PieceOutline, Point, Measurement } from "@/lib/types";
+import {
+  ConflictInfo,
+  Piece,
+  PieceOutline,
+  Point,
+  Measurement,
+} from "@/lib/types";
 import { EditorTool } from "@/lib/store";
 import { Viewport, ZOOM_STEP } from "@/lib/canvas/viewport";
 import { nearestSnap } from "@/lib/canvas/measure";
@@ -15,7 +21,9 @@ function OutlineShape({
   style?: React.CSSProperties;
 }) {
   if (outline.kind === "polygon") {
-    return <polygon points={outline.points} className={className} style={style} />;
+    return (
+      <polygon points={outline.points} className={className} style={style} />
+    );
   }
   return <path d={outline.d} className={className} style={style} />;
 }
@@ -60,14 +68,19 @@ export function PatternCanvas({
   const dragStart = useRef<{ x: number; y: number } | null>(null);
   const moved = useRef(false);
 
-  const snapPoints = useMemo(() => pieces.flatMap((p) => p.vertices ?? []), [pieces]);
+  const snapPoints = useMemo(
+    () => pieces.flatMap((p) => p.vertices ?? []),
+    [pieces],
+  );
 
   // limiar de snap ~10px de tela convertido p/ unidades de usuário, lido no CTM no
   // momento do evento (exato, não o valor de render)
   const thresholdUser = () => {
     const svg = svgRef.current;
     const ctm = svg?.getScreenCTM();
-    return ctm ? 10 / ctm.a : (10 * viewport.w) / (svg?.clientWidth || viewport.w);
+    return ctm
+      ? 10 / ctm.a
+      : (10 * viewport.w) / (svg?.clientWidth || viewport.w);
   };
 
   // roda do mouse = zoom-ao-cursor (ambas as ferramentas); listener não-passivo p/ preventDefault
@@ -119,7 +132,9 @@ export function PatternCanvas({
       drag.current = { x: e.clientX, y: e.clientY };
       if (
         dragStart.current &&
-        Math.abs(e.clientX - dragStart.current.x) + Math.abs(e.clientY - dragStart.current.y) > 3
+        Math.abs(e.clientX - dragStart.current.x) +
+          Math.abs(e.clientY - dragStart.current.y) >
+          3
       ) {
         moved.current = true;
       }
@@ -158,7 +173,7 @@ export function PatternCanvas({
     <svg
       ref={svgRef}
       viewBox={`${viewport.x} ${viewport.y} ${viewport.w} ${viewport.h}`}
-      className="w-full h-full transition-opacity duration-300"
+      className="h-full w-full transition-opacity duration-300"
       style={{
         opacity: dimmed ? 0.4 : 1,
         cursor: activeTool === "medir" ? "crosshair" : "grab",
@@ -175,20 +190,25 @@ export function PatternCanvas({
           <g
             key={piece.id}
             onClick={() => {
-              if (activeTool === "cursor" && !moved.current) onSelectPiece(piece.id);
+              if (activeTool === "cursor" && !moved.current)
+                onSelectPiece(piece.id);
             }}
             className={activeTool === "cursor" ? "cursor-pointer" : undefined}
           >
             {piece.guideOutline && (
               <OutlineShape
                 outline={piece.guideOutline}
-                className="fill-none stroke-pattern-guide"
+                className="stroke-pattern-guide fill-none"
                 style={{ strokeWidth: 1.1, strokeDasharray: "5 4" }}
               />
             )}
             <OutlineShape
               outline={piece.outline}
-              className={isSelected ? "fill-olive-tint stroke-ink" : "fill-white stroke-ink"}
+              className={
+                isSelected
+                  ? "fill-olive-tint stroke-ink"
+                  : "stroke-ink fill-white"
+              }
               style={{ strokeWidth: 1.7 }}
             />
             {piece.grainline && (
@@ -202,9 +222,18 @@ export function PatternCanvas({
               />
             )}
             {piece.dart && (
-              <path d={piece.dart.d} className="fill-none stroke-olive" style={{ strokeWidth: 1.2 }} />
+              <path
+                d={piece.dart.d}
+                className="stroke-olive fill-none"
+                style={{ strokeWidth: 1.2 }}
+              />
             )}
-            <text x={piece.label.x} y={piece.label.y} className="fill-muted" style={{ fontSize: 11 }}>
+            <text
+              x={piece.label.x}
+              y={piece.label.y}
+              className="fill-muted"
+              style={{ fontSize: 11 }}
+            >
               {piece.name.toUpperCase()} · {piece.qty}×
             </text>
           </g>
@@ -218,7 +247,7 @@ export function PatternCanvas({
             cx={marker.cx}
             cy={marker.cy}
             r={marker.r}
-            className="fill-none stroke-alert"
+            className="stroke-alert fill-none"
             style={{ strokeWidth: 2, strokeDasharray: "4 3" }}
           />
         ))}

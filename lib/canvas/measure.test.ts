@@ -8,7 +8,11 @@ describe("measure math", () => {
   });
 
   it("nearestSnap acha o vértice mais próximo dentro do limiar", () => {
-    const verts = [{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 100, y: 100 }];
+    const verts = [
+      { x: 0, y: 0 },
+      { x: 100, y: 0 },
+      { x: 100, y: 100 },
+    ];
     expect(nearestSnap({ x: 96, y: 3 }, verts, 10)).toEqual({ x: 100, y: 0 });
   });
 

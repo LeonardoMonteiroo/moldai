@@ -23,19 +23,23 @@ export function EditorShell({ userEmail }: { userEmail: string }) {
 
   if (!ready || !pattern || !credits) {
     return (
-      <div className="flex-1 flex items-center justify-center text-[13px] text-muted">
+      <div className="text-muted flex flex-1 items-center justify-center text-[13px]">
         Carregando molde…
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col relative overflow-hidden min-h-0">
+    <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
       <div
-        className={paywallOpen ? "flex-1 flex flex-col min-h-0 opacity-30 blur-[1.2px] pointer-events-none" : "flex-1 flex flex-col min-h-0"}
+        className={
+          paywallOpen
+            ? "pointer-events-none flex min-h-0 flex-1 flex-col opacity-30 blur-[1.2px]"
+            : "flex min-h-0 flex-1 flex-col"
+        }
       >
         <Topbar pattern={pattern} credits={credits} userEmail={userEmail} />
-        <div className="flex flex-1 min-h-0">
+        <div className="flex min-h-0 flex-1">
           <ChatPanel />
           <CanvasArea />
         </div>

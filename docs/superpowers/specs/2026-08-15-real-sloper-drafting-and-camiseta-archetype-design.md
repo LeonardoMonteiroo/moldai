@@ -17,13 +17,13 @@ Duas causas de raiz:
 
 1. **Suavização do contorno inteiro.** `autoLayout(..., curvedIds=[...])` faz
    `place()` rodar `smoothPath(outline, closed)` sobre o polígono fechado
-   inteiro — Catmull-Rom arredonda *todos* os vértices, inclusive os que
+   inteiro — Catmull-Rom arredonda _todos_ os vértices, inclusive os que
    deveriam ser retos (ombro, lateral, barra, centro). Num molde real só o
    decote e a cava são curvos.
 2. **Geometria de bloco ingênua.** `bodice()` traça ~8 pontos que vão do ombro
    direto ao ponto de cava na largura cheia do busto (sem curva de cava, sem
    trecho reto de lateral), sem caimento de ombro, e a peça termina na cintura
-   (`comprimentoCostas` ≈ 41 cm) — ou seja, um corpo *cropped*, não uma peça
+   (`comprimentoCostas` ≈ 41 cm) — ou seja, um corpo _cropped_, não uma peça
    que vai até o quadril. Curto + largo + suavizado = o blob.
 
 Além disso há descasamento de arquétipo: a referência é uma **camiseta
@@ -59,7 +59,7 @@ export type Sexo = "fem" | "masc";
 
 export interface GarmentSpec {
   tipo: GarmentType;
-  sexo: Sexo;                              // NOVO — default "fem"
+  sexo: Sexo; // NOVO — default "fem"
   measurementOverrides: Record<string, number>;
   style: GarmentStyle;
 }
@@ -94,10 +94,14 @@ Novo construtor de path (substitui o uso de `smoothPath` em `place`):
 // Constrói o `d` de um contorno fechado desenhando reta em cada aresta,
 // exceto nas arestas cobertas por um curvedSpan, onde emite Catmull-Rom->Bézier
 // com as tangentes travadas nas bordas do span (não puxa para os pontos retos vizinhos).
-export function outlinePath(ptsCm: Pt[], curvedSpans: [number, number][]): PieceOutline
+export function outlinePath(
+  ptsCm: Pt[],
+  curvedSpans: [number, number][],
+): PieceOutline;
 ```
 
 Regras:
+
 - Uma aresta `i -> i+1` (índices módulo n) é curva sse existe um span `[a,b]`
   com `a <= i` e `i+1 <= b` (ambos os vértices dentro do mesmo span).
 - Aresta curva: cubic Catmull-Rom usando vizinhos, com clamp igual ao fix de
@@ -123,14 +127,18 @@ não "largura de um ombro" solta. `busto` = circunferência de tórax/peito
 Duas tabelas:
 
 ```ts
-export const SIZE_TABLE: Record<SizeLabel, Measurements> = { /* feminina, ombro recalibrado */ };
-export const SIZE_TABLE_MASC: Record<SizeLabel, Measurements> = { /* masculina */ };
+export const SIZE_TABLE: Record<SizeLabel, Measurements> = {
+  /* feminina, ombro recalibrado */
+};
+export const SIZE_TABLE_MASC: Record<SizeLabel, Measurements> = {
+  /* masculina */
+};
 ```
 
 Valores (feminina — `ombro` recalibrado para meia-largura; demais mantidos):
 
 | tam | busto | cintura | quadril | altQuadril | compCostas | ombro |
-|-----|-------|---------|---------|------------|------------|-------|
+| --- | ----- | ------- | ------- | ---------- | ---------- | ----- |
 | PP  | 84    | 66      | 92      | 20.0       | 40.0       | 17.5  |
 | P   | 88    | 70      | 96      | 20.3       | 40.5       | 18.0  |
 | M   | 92    | 74      | 100     | 20.6       | 41.0       | 18.5  |
@@ -140,7 +148,7 @@ Valores (feminina — `ombro` recalibrado para meia-largura; demais mantidos):
 Valores (masculina):
 
 | tam | busto | cintura | quadril | altQuadril | compCostas | ombro |
-|-----|-------|---------|---------|------------|------------|-------|
+| --- | ----- | ------- | ------- | ---------- | ---------- | ----- |
 | PP  | 92    | 80      | 92      | 21.0       | 43.0       | 21.0  |
 | P   | 96    | 84      | 96      | 21.3       | 43.5       | 21.5  |
 | M   | 100   | 88      | 100     | 21.6       | 44.0       | 22.0  |
@@ -155,7 +163,11 @@ semântica de meia-largura); `comprimentoCostas` para `{ min: 34, max: 50 }`
 (mantém). Demais iguais.
 
 ```ts
-export function resolveMeasurements(size: SizeLabel, overrides: Partial<Measurements>, sexo: Sexo = "fem"): Measurements
+export function resolveMeasurements(
+  size: SizeLabel,
+  overrides: Partial<Measurements>,
+  sexo: Sexo = "fem",
+): Measurements;
 ```
 
 Escolhe `SIZE_TABLE_MASC` quando `sexo === "masc"`, senão `SIZE_TABLE`, e
@@ -169,14 +181,15 @@ drafters:
 ```ts
 interface BlockOpts {
   sexo: Sexo;
-  knit: boolean;      // true para camiseta (malha) -> folga de vestir 0
-  lengthCm: number;   // comprimento do corpo, em cm de HPS/ombro até a barra:
-                      //   blusa/camiseta -> comprimentoCostas + alturaQuadril + 5 (quadril)
-                      //   vestido        -> comprimentoCostas (linha da cintura; a saia continua abaixo)
+  knit: boolean; // true para camiseta (malha) -> folga de vestir 0
+  lengthCm: number; // comprimento do corpo, em cm de HPS/ombro até a barra:
+  //   blusa/camiseta -> comprimentoCostas + alturaQuadril + 5 (quadril)
+  //   vestido        -> comprimentoCostas (linha da cintura; a saia continua abaixo)
 }
 ```
 
 Constantes derivadas dentro dos drafters (a partir de `BlockOpts.sexo`):
+
 - `caimentoOmbro` (queda do ombro abaixo da HPS): fem 4.0 cm, masc 4.5 cm.
 - `folgaVestir` no quarto de tórax: `knit ? 0 : 2` cm.
 - `neckHalf` (meia-largura do decote): `busto / 14 + (sexo==="masc" ? 0.8 : 0)`.
@@ -186,31 +199,38 @@ Constantes derivadas dentro dos drafters (a partir de `BlockOpts.sexo`):
 Assinatura nova:
 
 ```ts
-export function draftCorpo(m: Measurements, style: GarmentStyle, opts: BlockOpts): {
-  frente: DraftedPiece; costas: DraftedPiece; armholeLenCm: number;
-}
+export function draftCorpo(
+  m: Measurements,
+  style: GarmentStyle,
+  opts: BlockOpts,
+): {
+  frente: DraftedPiece;
+  costas: DraftedPiece;
+  armholeLenCm: number;
+};
 ```
 
 Construção da meia-peça (centro em `cx`, `y=0` na linha HPS/ombro), espelhada
 para peça inteira. Pontos e formulas (valores de exemplo para masc M:
 busto 100, ombro 22, compCostas 44, altQuadril 21.6):
 
-| símbolo | fórmula | masc M |
-|---------|---------|--------|
-| `halfChest` | `busto/4 + folgaVestir` | 25 + 0 = 25 |
-| `armholeDepth` (HPS→axila) | `busto/8 + (sexo==="masc" ? 10.5 : 9.5)` | 12.5 + 10.5 = 23 |
-| `caimentoOmbro` | const por sexo | 4.5 |
-| `neckHalf` | `busto/14 + (masc?0.8:0)` | 7.14 + 0.8 = 7.9 |
-| `frontNeckDrop` | ver decote abaixo | — |
-| `backNeckDrop` | `2.0` (fixo) | 2.0 |
-| `lengthCm` | passado em opts | 44 + 21.6 + 5 = 70.6 |
-| `hemHalf` | `quadril/4 + folgaVestir` | 25 + 0 = 25 |
+| símbolo                    | fórmula                                  | masc M               |
+| -------------------------- | ---------------------------------------- | -------------------- |
+| `halfChest`                | `busto/4 + folgaVestir`                  | 25 + 0 = 25          |
+| `armholeDepth` (HPS→axila) | `busto/8 + (sexo==="masc" ? 10.5 : 9.5)` | 12.5 + 10.5 = 23     |
+| `caimentoOmbro`            | const por sexo                           | 4.5                  |
+| `neckHalf`                 | `busto/14 + (masc?0.8:0)`                | 7.14 + 0.8 = 7.9     |
+| `frontNeckDrop`            | ver decote abaixo                        | —                    |
+| `backNeckDrop`             | `2.0` (fixo)                             | 2.0                  |
+| `lengthCm`                 | passado em opts                          | 44 + 21.6 + 5 = 70.6 |
+| `hemHalf`                  | `quadril/4 + folgaVestir`                | 25 + 0 = 25          |
 
 Decote (profundidade do centro-frente a partir da HPS):
+
 - `redondo`: `frontNeckDrop = neckHalf + (knit ? 2.0 : 1.0)`
 - `V`: `frontNeckDrop = neckHalf + max(0, decoteProfundidadeCm ?? 6)`
 - `reto`: `frontNeckDrop = neckHalf * 0.7`
-Costas sempre `backNeckDrop = 2.0` (decote raso), independentemente do estilo.
+  Costas sempre `backNeckDrop = 2.0` (decote raso), independentemente do estilo.
 
 Vértices da **meia-peça esquerda** da frente, no sentido do centro-decote →
 ombro → cava → lateral → barra → centro-barra (índices para os spans):
@@ -251,10 +271,16 @@ ombro → cava → lateral → barra → centro-barra (índices para os spans):
 Assinatura nova:
 
 ```ts
-export function draftManga(m: Measurements, style: GarmentStyle, armholeLenCm: number, opts: BlockOpts): DraftedPiece | null
+export function draftManga(
+  m: Measurements,
+  style: GarmentStyle,
+  armholeLenCm: number,
+  opts: BlockOpts,
+): DraftedPiece | null;
 ```
 
 `null` quando `style.manga === "sem"`. Copa em sino acoplada à cava:
+
 - `bicep = armholeLenCm * 0.9` (largura do topo; mantém acoplamento p/ costura
   casar por construção — `seamCheck` segue no-op).
 - `capH = armholeLenCm / 3` (altura da copa).
@@ -328,8 +354,8 @@ Novos/atualizados em `lib/**/*.test.ts`:
    `C` e as de fora seguem `L`. Vértice de reta preservado exatamente.
 2. **corpo — estrutura do sloper:** ombro tem caimento (`y` da ponta do ombro
    > `y` da HPS); lateral do não-fitted é reta (x da axila ≈ x da barra dentro
-   de tolerância quando `quadril≈busto`); comprimento chega ao quadril
-   (`maxY ≈ compCostas + altQuadril + 5`).
+   > de tolerância quando `quadril≈busto`); comprimento chega ao quadril
+   > (`maxY ≈ compCostas + altQuadril + 5`).
 3. **corpo — decote:** `frontNeckDrop` (frente) > `backNeckDrop` (costas) para
    todo decote; `V` mais fundo que `redondo` mais fundo que `reto`.
 4. **corpo — cava:** o span de cava produz arestas `C`; `armholeLenCm` > corda

@@ -6,19 +6,21 @@
 
 ## 1. Contexto e mudança de arquitetura
 
-Hoje o CLAUDE.md documenta, como decisão fonte-da-verdade: *"Everything server-side is a mock… there is no database… there is no auth."* Esta fase **reverte deliberadamente a parte de auth e introduz um banco real**, com a aprovação do usuário. O restante do backend (patterns, chat, créditos) **permanece mock in-memory** até a Fase B.
+Hoje o CLAUDE.md documenta, como decisão fonte-da-verdade: _"Everything server-side is a mock… there is no database… there is no auth."_ Esta fase **reverte deliberadamente a parte de auth e introduz um banco real**, com a aprovação do usuário. O restante do backend (patterns, chat, créditos) **permanece mock in-memory** até a Fase B.
 
 Alvo de realidade: **local-real (dev)** — banco e auth de verdade, rodando na máquina do desenvolvedor, sem nuvem, sem custo, sem deploy.
 
 ## 2. Escopo
 
 ### A Fase A entrega
+
 - Um store real de usuários em **Postgres** (via Prisma).
 - **Login / logout** via Auth.js v5 (NextAuth), com contas **semeadas** (seed).
 - O editor **atrás de autenticação**: usuário não logado é redirecionado para `/login`.
 - Rotas de API mutantes protegidas (401 sem sessão).
 
 ### Fora de escopo da Fase A (adiado)
+
 - **Auto-cadastro (signup)** — exibido na UI como "em breve".
 - **Reset de senha** (exigiria serviço de email; não há no local).
 - **Molde por usuário** — os dados de molde/chat/créditos continuam num estado global in-memory (`lib/mock-data.ts`). Logar **não** dá a cada usuário seu próprio molde ainda. → Fase B.
@@ -26,24 +28,27 @@ Alvo de realidade: **local-real (dev)** — banco e auth de verdade, rodando na 
 - **OAuth / provedores sociais.**
 
 ### Limitação obrigatória na UI
-Conforme regra do CLAUDE.md (*surface feature limitations on-screen*): o fato de o molde ainda ser compartilhado/global (não por usuário) e o cadastro ainda não existir devem aparecer explicitamente na tela — cadastro marcado **"em breve"**, e uma nota discreta de que o molde é compartilhado até a Fase B.
+
+Conforme regra do CLAUDE.md (_surface feature limitations on-screen_): o fato de o molde ainda ser compartilhado/global (não por usuário) e o cadastro ainda não existir devem aparecer explicitamente na tela — cadastro marcado **"em breve"**, e uma nota discreta de que o molde é compartilhado até a Fase B.
 
 ## 3. Stack e decisões
 
-| Decisão | Escolha | Porquê |
-|---|---|---|
-| Banco | **Postgres**, local via **Docker Compose** | Isolado, reproduzível, não polui a máquina. `DATABASE_URL` no `.env.local`. |
-| ORM | **Prisma** | Caminho mais batido no ecossistema Next; schema declarativo + migrations; cresce bem na Fase B. |
-| Auth | **Auth.js v5** (`next-auth@beta`), **Credentials provider** + **estratégia de sessão JWT** | Credentials não suporta sessão em DB no Auth.js → JWT em cookie httpOnly assinado. Sem PrismaAdapter (não usamos tabelas de OAuth/DB-session). |
-| Hash de senha | **bcryptjs** (JS puro) | Sem build nativo → sem atrito com Turbopack/Windows. |
+| Decisão       | Escolha                                                                                    | Porquê                                                                                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Banco         | **Postgres**, local via **Docker Compose**                                                 | Isolado, reproduzível, não polui a máquina. `DATABASE_URL` no `.env.local`.                                                                    |
+| ORM           | **Prisma**                                                                                 | Caminho mais batido no ecossistema Next; schema declarativo + migrations; cresce bem na Fase B.                                                |
+| Auth          | **Auth.js v5** (`next-auth@beta`), **Credentials provider** + **estratégia de sessão JWT** | Credentials não suporta sessão em DB no Auth.js → JWT em cookie httpOnly assinado. Sem PrismaAdapter (não usamos tabelas de OAuth/DB-session). |
+| Hash de senha | **bcryptjs** (JS puro)                                                                     | Sem build nativo → sem atrito com Turbopack/Windows.                                                                                           |
 
 ### Compatibilidade Next 16 (verificada)
+
 - Auth.js v5 suporta Next ≥14; 16 está na faixa.
 - Instalar com `--legacy-peer-deps` (a faixa de peer-deps do Auth.js atrasa em relação ao Next 16).
 - Next 16 renomeou `middleware.ts` → **`proxy.ts`**. A convenção exata será confirmada em `node_modules/next/dist/docs/` no momento do plano.
 - **Gate primário = checagens `auth()`** no server component da página e nas rotas de API. `proxy.ts` entra apenas como reforço opcional — é a superfície menos provada de Auth.js + Next 16, então não dependemos dela.
 
 ### Dependências novas
+
 - Runtime: `next-auth@beta`, `@prisma/client`, `bcryptjs`.
 - Dev: `prisma`, `@types/bcryptjs`.
 
@@ -86,21 +91,21 @@ Sem `Account` / `Session` / `VerificationToken` — essas são tabelas de adapte
 
 ## 7. Estrutura de arquivos
 
-| Arquivo | Responsabilidade |
-|---|---|
-| `docker-compose.yml` | serviço Postgres local |
-| `prisma/schema.prisma` | datasource postgres + model `User` |
-| `prisma/seed.ts` | insere 1–2 usuários dev com senha hasheada |
-| `lib/db/prisma.ts` | singleton `PrismaClient` (evita vazamento no hot-reload) |
-| `lib/db/users.ts` | repo tipado: `getUserByEmail(email)` |
-| `lib/auth/hash.ts` | `hashPassword` / `verifyPassword` (bcryptjs) |
-| `auth.ts` | setup `NextAuth()` (Credentials + JWT) |
-| `app/api/auth/[...nextauth]/route.ts` | reexporta `handlers` |
-| `lib/auth/guard.ts` | `requireUser()` p/ rotas de API (401) |
-| `app/login/page.tsx` | tela de login |
-| `app/page.tsx` | gate server-side + passa user p/ Topbar |
-| `components/editor/Topbar.tsx` | user + "Sair" |
-| `proxy.ts` | redirect de reforço (opcional) |
+| Arquivo                               | Responsabilidade                                         |
+| ------------------------------------- | -------------------------------------------------------- |
+| `docker-compose.yml`                  | serviço Postgres local                                   |
+| `prisma/schema.prisma`                | datasource postgres + model `User`                       |
+| `prisma/seed.ts`                      | insere 1–2 usuários dev com senha hasheada               |
+| `lib/db/prisma.ts`                    | singleton `PrismaClient` (evita vazamento no hot-reload) |
+| `lib/db/users.ts`                     | repo tipado: `getUserByEmail(email)`                     |
+| `lib/auth/hash.ts`                    | `hashPassword` / `verifyPassword` (bcryptjs)             |
+| `auth.ts`                             | setup `NextAuth()` (Credentials + JWT)                   |
+| `app/api/auth/[...nextauth]/route.ts` | reexporta `handlers`                                     |
+| `lib/auth/guard.ts`                   | `requireUser()` p/ rotas de API (401)                    |
+| `app/login/page.tsx`                  | tela de login                                            |
+| `app/page.tsx`                        | gate server-side + passa user p/ Topbar                  |
+| `components/editor/Topbar.tsx`        | user + "Sair"                                            |
+| `proxy.ts`                            | redirect de reforço (opcional)                           |
 
 ## 8. Config e segredos
 
@@ -109,12 +114,14 @@ Sem `Account` / `Session` / `VerificationToken` — essas são tabelas de adapte
 - Scripts em `package.json`: `db:up` (compose up), `db:migrate`, `db:seed`.
 
 ### Credenciais dev semeadas (local-only)
+
 - `dev@moldai.local` / senha `moldai-dev` (documentado; ambiente local apenas).
 - (opcional) `atelier@moldai.local` / senha `moldai-dev`.
 
 ## 9. Testes (vitest, sem DB vivo)
 
 Lógica pura/isolada testada com o repo de usuários **mockado** — `npm test` **nunca** precisa de Postgres rodando:
+
 - `hash.ts`: hash ≠ plaintext; `verifyPassword` true/false.
 - `authorize()`: credencial válida → user; senha errada → null; email desconhecido → null.
 - `requireUser()`: sessão presente → passa; ausente → 401.

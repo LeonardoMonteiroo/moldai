@@ -11,6 +11,7 @@ Estabelecer as ferramentas de qualidade e os portões (gates) do repositório **
 ## Escopo
 
 **Dentro:**
+
 - **Prettier** como autoridade única de formatação, integrado ao ESLint (sem conflito de regras) e com ordenação de classes Tailwind v4.
 - **ESLint** mais rígido em acessibilidade (jsx-a11y strict) sobre a base do `eslint-config-next` (que já traz TS/React/hooks/a11y).
 - **Husky + lint-staged** com split pre-commit (rápido) / pre-push (pesado).
@@ -19,6 +20,7 @@ Estabelecer as ferramentas de qualidade e os portões (gates) do repositório **
 - Um **commit de baseline** que aplica o Prettier a todo o repo (antes de ligar os hooks).
 
 **Fora (não fazer neste subsistema):**
+
 - Rename de arquivos/identificadores/valores para inglês → **subsistema 2**.
 - i18n / extração de strings → **subsistema 3**.
 - `commitlint`/conventional-commits e threshold de cobertura Vitest → opcionais, deixados de fora (podem virar follow-up).
@@ -35,6 +37,7 @@ Estabelecer as ferramentas de qualidade e os portões (gates) do repositório **
 ## Ferramentas e configuração
 
 ### Prettier
+
 - Deps (dev): `prettier`, `eslint-config-prettier`, `prettier-plugin-tailwindcss`.
 - **`.prettierrc`** (raiz), explícito e mínimo — os defaults do Prettier + o plugin do Tailwind:
   ```json
@@ -49,6 +52,7 @@ Estabelecer as ferramentas de qualidade e os portões (gates) do repositório **
   - `"format:check": "prettier --check ."`
 
 ### ESLint (endurecimento a11y)
+
 - Dep (dev): `eslint-plugin-jsx-a11y`.
 - No `eslint.config.mjs` (flat config já existente):
   - Adicionar o preset **`jsx-a11y` strict** (via `plugin.flatConfigs.strict` do pacote).
@@ -57,6 +61,7 @@ Estabelecer as ferramentas de qualidade e os portões (gates) do repositório **
 - Sem mudar o comando `lint` (bare `eslint`) — mas o **pre-push e o CI usam `eslint app lib components`** (escopado), porque bare `eslint` na raiz varre `.claude/worktrees` e dá falso-alarme.
 
 ### Husky + lint-staged
+
 - Deps (dev): `husky`, `lint-staged`.
 - `husky init` cria `.husky/`; `"prepare": "husky"` no package.json.
 - **`.husky/pre-commit`** → `npx lint-staged`.
@@ -76,6 +81,7 @@ Estabelecer as ferramentas de qualidade e os portões (gates) do repositório **
   `next build` **não** entra no pre-push (lento + o build de fontes pode flakar sem rede); typecheck fica no CI.
 
 ### CI — GitHub Actions
+
 - Arquivo: `.github/workflows/ci.yml`.
 - Dispara em `push` e `pull_request`.
 - Node 20 (alinha com `@types/node ^20`); `npm ci --legacy-peer-deps`.
@@ -89,6 +95,7 @@ Estabelecer as ferramentas de qualidade e os portões (gates) do repositório **
 - Caveat de fontes: `next build` busca Bricolage/Archivo via `next/font/google` pela rede — o runner tem rede, então ok; se flakar, é retry (já documentado no workflow do Docker).
 
 ### Extras
+
 - **`.editorconfig`** (raiz): `charset=utf-8`, `end_of_line=lf`, `insert_final_newline=true`, `indent_style=space`, `indent_size=2`; override `*.sh` → `end_of_line=lf` (coerente com `.gitattributes` que já trava isso).
 - Script **`"typecheck": "next build"`** — pra CI e uso manual, deixando explícito que é o typecheck do projeto.
 
@@ -104,6 +111,7 @@ Estabelecer as ferramentas de qualidade e os portões (gates) do repositório **
 ## Testes / verificação
 
 Este subsistema é tooling — a "verificação" é operacional, não unit:
+
 - `npm run format:check` limpo após o baseline.
 - `npx eslint app lib components` sem erros (a11y strict pode acusar itens reais → corrigir no próprio subsistema; se algum for inviável agora, rebaixar aquela regra específica com justificativa inline, não desligar o preset).
 - `npm run build` verde (typecheck).

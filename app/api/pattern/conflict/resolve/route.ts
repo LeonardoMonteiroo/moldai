@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { withMolde } from "@/lib/db/molde";
-import { addMessage, bumpVersion, refitManga, setConflict } from "@/lib/editor/state";
+import {
+  addMessage,
+  bumpVersion,
+  refitManga,
+  setConflict,
+} from "@/lib/editor/state";
 import { requireUser } from "@/lib/auth/guard";
 
 export async function POST(request: Request) {
@@ -12,7 +17,10 @@ export async function POST(request: Request) {
     const body = (await request.json()) as { action?: unknown };
     if (body.action === "fix") action = "fix";
   } catch {
-    return NextResponse.json({ status: "error", error: "Corpo inválido." }, { status: 400 });
+    return NextResponse.json(
+      { status: "error", error: "Corpo inválido." },
+      { status: 400 },
+    );
   }
 
   return withMolde(gate.id, (state) => {

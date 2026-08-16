@@ -1,6 +1,15 @@
 import { RefObject, useCallback, useState } from "react";
 import type { Point } from "@/lib/types";
-import { Viewport, Size, fit, zoomAt, zoomByCenter, panBy, scaleOf, ZOOM_STEP } from "./viewport";
+import {
+  Viewport,
+  Size,
+  fit,
+  zoomAt,
+  zoomByCenter,
+  panBy,
+  scaleOf,
+  ZOOM_STEP,
+} from "./viewport";
 
 function toUser(svg: SVGSVGElement, clientX: number, clientY: number): Point {
   const ctm = svg.getScreenCTM();
@@ -43,8 +52,14 @@ export function useCanvasViewport(
     [svgRef],
   );
 
-  const zoomIn = useCallback(() => setViewport((vp) => zoomByCenter(vp, ZOOM_STEP, natural)), [natural]);
-  const zoomOut = useCallback(() => setViewport((vp) => zoomByCenter(vp, 1 / ZOOM_STEP, natural)), [natural]);
+  const zoomIn = useCallback(
+    () => setViewport((vp) => zoomByCenter(vp, ZOOM_STEP, natural)),
+    [natural],
+  );
+  const zoomOut = useCallback(
+    () => setViewport((vp) => zoomByCenter(vp, 1 / ZOOM_STEP, natural)),
+    [natural],
+  );
   const fitToScreen = useCallback(() => setViewport(fit(natural)), [natural]);
 
   const screenToUser = useCallback(

@@ -26,7 +26,12 @@ export function clampScale(s: number): number {
 }
 
 // zoom ao redor de `focus` (coords SVG), mantendo o ponto sob o cursor fixo
-export function zoomAt(vp: Viewport, focus: Point, factor: number, natural: Size): Viewport {
+export function zoomAt(
+  vp: Viewport,
+  focus: Point,
+  factor: number,
+  natural: Size,
+): Viewport {
   const current = scaleOf(vp, natural);
   const target = clampScale(current * factor);
   const applied = target / current; // fator efetivo após clamp
@@ -37,8 +42,17 @@ export function zoomAt(vp: Viewport, focus: Point, factor: number, natural: Size
   return { x, y, w, h };
 }
 
-export function zoomByCenter(vp: Viewport, factor: number, natural: Size): Viewport {
-  return zoomAt(vp, { x: vp.x + vp.w / 2, y: vp.y + vp.h / 2 }, factor, natural);
+export function zoomByCenter(
+  vp: Viewport,
+  factor: number,
+  natural: Size,
+): Viewport {
+  return zoomAt(
+    vp,
+    { x: vp.x + vp.w / 2, y: vp.y + vp.h / 2 },
+    factor,
+    natural,
+  );
 }
 
 // desloca o viewBox no sentido oposto ao arrasto (conteúdo segue o cursor)
@@ -48,5 +62,10 @@ export function panBy(vp: Viewport, dxUser: number, dyUser: number): Viewport {
 
 // viewBox natural da peça com padding (usado por "ajustar à tela")
 export function fit(natural: Size, padPx = 24): Viewport {
-  return { x: -padPx, y: -padPx, w: natural.w + padPx * 2, h: natural.h + padPx * 2 };
+  return {
+    x: -padPx,
+    y: -padPx,
+    w: natural.w + padPx * 2,
+    h: natural.h + padPx * 2,
+  };
 }

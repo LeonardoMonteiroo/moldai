@@ -21,21 +21,25 @@ export function PlanoCorteTab({ pattern }: { pattern: Pattern }) {
   }, [pattern, fabricWidthCm]);
 
   return (
-    <div className="flex-1 overflow-auto p-[22px] flex flex-col gap-4">
+    <div className="flex flex-1 flex-col gap-4 overflow-auto p-[22px]">
       <div className="flex items-baseline gap-2">
-        <span className="font-display text-[19px] font-semibold">Plano de corte</span>
-        <span className="text-[12px] text-muted">{pattern.name}</span>
+        <span className="font-display text-[19px] font-semibold">
+          Plano de corte
+        </span>
+        <span className="text-muted text-[12px]">{pattern.name}</span>
       </div>
 
       {!plan ? (
-        <div className="flex-1 border border-dashed border-pattern-guide rounded-card bg-surface-alt flex items-center justify-center min-h-[200px]">
-          <span className="text-[12.5px] text-muted">Gere um molde para ver o plano de corte.</span>
+        <div className="border-pattern-guide rounded-card bg-surface-alt flex min-h-[200px] flex-1 items-center justify-center border border-dashed">
+          <span className="text-muted text-[12.5px]">
+            Gere um molde para ver o plano de corte.
+          </span>
         </div>
       ) : (
         <>
           {/* seletor de largura de tecido */}
           <div className="flex flex-col gap-[6px]">
-            <span className="text-[11px] font-semibold tracking-[.8px] uppercase text-muted">
+            <span className="text-muted text-[11px] font-semibold tracking-[.8px] uppercase">
               Largura do tecido
             </span>
             <div className="flex gap-[6px]">
@@ -45,7 +49,7 @@ export function PlanoCorteTab({ pattern }: { pattern: Pattern }) {
                   type="button"
                   onClick={() => setFabricWidthCm(w)}
                   className={[
-                    "text-[12.5px] px-[13px] py-[6px] rounded-btn border transition-colors",
+                    "rounded-btn border px-[13px] py-[6px] text-[12.5px] transition-colors",
                     w === fabricWidthCm
                       ? "border-olive text-olive bg-olive-tint font-semibold"
                       : "border-border bg-surface hover:bg-surface-alt",
@@ -58,8 +62,12 @@ export function PlanoCorteTab({ pattern }: { pattern: Pattern }) {
           </div>
 
           {/* métricas */}
-          <div className="flex gap-3 flex-wrap">
-            <Metric label="Consumo" value={meters(plan.lengthCm)} hint="comprimento no tecido" />
+          <div className="flex flex-wrap gap-3">
+            <Metric
+              label="Consumo"
+              value={meters(plan.lengthCm)}
+              hint="comprimento no tecido"
+            />
             <Metric
               label="Aproveitamento"
               value={`${Math.round(plan.efficiency * 100)}%`}
@@ -75,17 +83,18 @@ export function PlanoCorteTab({ pattern }: { pattern: Pattern }) {
           {plan.overflow && (
             <span
               role="alert"
-              className="text-[11.5px] text-alert bg-amber-bg border border-amber-border rounded-item px-[10px] py-[6px]"
+              className="text-alert bg-amber-bg border-amber-border rounded-item border px-[10px] py-[6px] text-[11.5px]"
             >
-              Alguma peça é mais larga que o tecido — use um tecido mais largo ou reduza a peça.
+              Alguma peça é mais larga que o tecido — use um tecido mais largo
+              ou reduza a peça.
             </span>
           )}
 
           {/* prévia do encaixe */}
-          <div className="border border-border rounded-card bg-surface-alt p-3 overflow-auto">
+          <div className="border-border rounded-card bg-surface-alt overflow-auto border p-3">
             <svg
               viewBox={`0 0 ${fabricWidthCm} ${plan.lengthCm}`}
-              className="w-full h-auto"
+              className="h-auto w-full"
               style={{ maxHeight: 460 }}
               preserveAspectRatio="xMidYMin meet"
             >
@@ -127,10 +136,11 @@ export function PlanoCorteTab({ pattern }: { pattern: Pattern }) {
             </svg>
           </div>
 
-          <p className="text-[10.5px] text-muted leading-snug">
-            Encaixe automático first-fit (não ótimo) · fio travado, sem rotação das peças ·
-            cada peça repetida pela quantidade a cortar. Linha líquida — sem margem de costura.
-            Encaixe manual e otimizado <span className="text-olive font-semibold">em breve</span>.
+          <p className="text-muted text-[10.5px] leading-snug">
+            Encaixe automático first-fit (não ótimo) · fio travado, sem rotação
+            das peças · cada peça repetida pela quantidade a cortar. Linha
+            líquida — sem margem de costura. Encaixe manual e otimizado{" "}
+            <span className="text-olive font-semibold">em breve</span>.
           </p>
         </>
       )}
@@ -138,12 +148,22 @@ export function PlanoCorteTab({ pattern }: { pattern: Pattern }) {
   );
 }
 
-function Metric({ label, value, hint }: { label: string; value: string; hint: string }) {
+function Metric({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: string;
+  hint: string;
+}) {
   return (
-    <div className="border border-border rounded-card bg-surface p-[14px] flex flex-col gap-1 min-w-[150px]">
-      <span className="text-[11px] font-semibold tracking-[.8px] uppercase text-muted">{label}</span>
+    <div className="border-border rounded-card bg-surface flex min-w-[150px] flex-col gap-1 border p-[14px]">
+      <span className="text-muted text-[11px] font-semibold tracking-[.8px] uppercase">
+        {label}
+      </span>
       <span className="font-display text-[19px] font-semibold">{value}</span>
-      <span className="text-[10.5px] text-muted">{hint}</span>
+      <span className="text-muted text-[10.5px]">{hint}</span>
     </div>
   );
 }

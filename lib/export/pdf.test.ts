@@ -61,11 +61,19 @@ function modelOf(sheetWcm: number, sheetHcm: number): ExportModel {
           start: { x: 0, y: 0 },
           segs: [
             { kind: "line", to: { x: 10, y: 0 } },
-            { kind: "cubic", c1: { x: 10, y: 5 }, c2: { x: 5, y: 10 }, to: { x: 0, y: 10 } },
+            {
+              kind: "cubic",
+              c1: { x: 10, y: 5 },
+              c2: { x: 5, y: 10 },
+              to: { x: 0, y: 10 },
+            },
             { kind: "line", to: { x: 0, y: 0 } },
           ],
         },
-        grainline: [{ x: 5, y: 1 }, { x: 5, y: 9 }],
+        grainline: [
+          { x: 5, y: 1 },
+          { x: 5, y: 9 },
+        ],
         originCm: { x: 2, y: 2 },
       },
     ],
@@ -89,7 +97,7 @@ describe("toPdf", () => {
     const doc = await PDFDocument.load(bytes);
     expect(doc.getPageCount()).toBe(1);
     const { width, height } = doc.getPage(0).getSize();
-    expect(width).toBeCloseTo(21.6 * PT_POR_CM, 1);  // (20+1.6) cm em pt
+    expect(width).toBeCloseTo(21.6 * PT_POR_CM, 1); // (20+1.6) cm em pt
     expect(height).toBeCloseTo(31.6 * PT_POR_CM, 1); // (30+1.6) cm em pt
   });
 });

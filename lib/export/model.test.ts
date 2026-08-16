@@ -5,7 +5,12 @@ import type { Pattern } from "@/lib/types";
 
 describe("outlineSegments", () => {
   it("emite line em aresta fora de span e cubic dentro de span", () => {
-    const pts: Pt[] = [[0, 0], [10, 0], [10, 10], [0, 10]];
+    const pts: Pt[] = [
+      [0, 0],
+      [10, 0],
+      [10, 10],
+      [0, 10],
+    ];
     const { start, segs } = outlineSegments(pts, [[1, 2]]); // curva só na aresta 1->2
     expect(start).toEqual({ x: 0, y: 0 });
     expect(segs).toHaveLength(4); // uma por aresta (fechado)
@@ -16,7 +21,10 @@ describe("outlineSegments", () => {
   });
 
   it("cai para polilinha de lines quando < 3 pontos", () => {
-    const { segs } = outlineSegments([[0, 0], [5, 5]]);
+    const { segs } = outlineSegments([
+      [0, 0],
+      [5, 5],
+    ]);
     expect(segs.every((s) => s.kind === "line")).toBe(true);
   });
 });
@@ -31,8 +39,22 @@ function fakePattern(): Pattern {
     unit: "cm",
     sizesApplied: [],
     sizesPending: [],
-    pieces: [{ id: "x", name: "x", qty: 1, outline: { kind: "polygon", points: "0,0" }, label: { x: 0, y: 0 }, detailRows: [] }],
-    spec: { tipo: "camiseta", sexo: "masc", measurementOverrides: {}, style: { folgaCosturaCm: 1.5 } },
+    pieces: [
+      {
+        id: "x",
+        name: "x",
+        qty: 1,
+        outline: { kind: "polygon", points: "0,0" },
+        label: { x: 0, y: 0 },
+        detailRows: [],
+      },
+    ],
+    spec: {
+      tipo: "camiseta",
+      sexo: "masc",
+      measurementOverrides: {},
+      style: { folgaCosturaCm: 1.5 },
+    },
   };
 }
 
@@ -49,8 +71,12 @@ describe("buildExportModel", () => {
     for (const p of m.pieces) {
       expect(p.originCm.x).toBeGreaterThanOrEqual(0);
       expect(p.originCm.y).toBeGreaterThanOrEqual(0);
-      expect(p.originCm.x + p.widthCm).toBeLessThanOrEqual(m.sheetWidthCm + 1e-6);
-      expect(p.originCm.y + p.heightCm).toBeLessThanOrEqual(m.sheetHeightCm + 1e-6);
+      expect(p.originCm.x + p.widthCm).toBeLessThanOrEqual(
+        m.sheetWidthCm + 1e-6,
+      );
+      expect(p.originCm.y + p.heightCm).toBeLessThanOrEqual(
+        m.sheetHeightCm + 1e-6,
+      );
     }
     // …e duas peças nunca se sobrepõem (retângulos disjuntos).
     for (let i = 0; i < m.pieces.length; i++) {

@@ -1,11 +1,23 @@
 import { describe, it, expect } from "vitest";
-import { zoomAt, fit, scaleOf, zoomByCenter, panBy, MAX_SCALE } from "./viewport";
+import {
+  zoomAt,
+  fit,
+  scaleOf,
+  zoomByCenter,
+  panBy,
+  MAX_SCALE,
+} from "./viewport";
 
 const natural = { w: 100, h: 100 };
 
 describe("viewport math", () => {
   it("fit centraliza com padding", () => {
-    expect(fit({ w: 100, h: 50 }, 24)).toEqual({ x: -24, y: -24, w: 148, h: 98 });
+    expect(fit({ w: 100, h: 50 }, 24)).toEqual({
+      x: -24,
+      y: -24,
+      w: 148,
+      h: 98,
+    });
   });
 
   it("scaleOf: viewport natural = escala 1; menor = zoom maior", () => {
@@ -30,6 +42,11 @@ describe("viewport math", () => {
   });
 
   it("panBy desloca o viewBox no sentido oposto ao arrasto", () => {
-    expect(panBy({ x: 10, y: 10, w: 100, h: 100 }, 5, -3)).toEqual({ x: 5, y: 13, w: 100, h: 100 });
+    expect(panBy({ x: 10, y: 10, w: 100, h: 100 }, 5, -3)).toEqual({
+      x: 5,
+      y: 13,
+      w: 100,
+      h: 100,
+    });
   });
 });

@@ -19,23 +19,29 @@ export function ChatPanel() {
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
+    listRef.current?.scrollTo({
+      top: listRef.current.scrollHeight,
+      behavior: "smooth",
+    });
   }, [chat.length, generationStatus]);
 
   const isGenerating = generationStatus === "generating";
   const step = GENERATION_STEPS[generationStepIndex];
 
   return (
-    <div className="w-[312px] shrink-0 bg-surface border-r border-border flex flex-col min-h-0">
-      <div className="px-4 py-[13px] border-b border-line flex items-center gap-2">
-        <span className="text-[11px] font-semibold tracking-[.8px] uppercase text-muted">
+    <div className="bg-surface border-border flex min-h-0 w-[312px] shrink-0 flex-col border-r">
+      <div className="border-line flex items-center gap-2 border-b px-4 py-[13px]">
+        <span className="text-muted text-[11px] font-semibold tracking-[.8px] uppercase">
           Conversa
         </span>
         <div className="flex-1" />
-        <span className="text-[11px] text-muted">MoldAI v2 Pro</span>
+        <span className="text-muted text-[11px]">MoldAI v2 Pro</span>
       </div>
 
-      <div ref={listRef} className="flex-1 p-4 flex flex-col gap-3 overflow-y-auto">
+      <div
+        ref={listRef}
+        className="flex flex-1 flex-col gap-3 overflow-y-auto p-4"
+      >
         {chat.map((message, i) => (
           <ChatBubble
             key={message.id}
@@ -50,20 +56,20 @@ export function ChatPanel() {
           />
         )}
         {generationStatus === "error" && (
-          <div className="max-w-[92%] bg-amber-bg border border-amber-border text-amber-text text-[13px] leading-[1.45] px-[13px] py-[10px] rounded-[12px_12px_12px_3px]">
+          <div className="bg-amber-bg border-amber-border text-amber-text max-w-[92%] rounded-[12px_12px_12px_3px] border px-[13px] py-[10px] text-[13px] leading-[1.45]">
             A geração falhou. Seus créditos foram devolvidos — tente novamente.
           </div>
         )}
       </div>
 
-      <div className="px-4 py-[14px] border-t border-line flex flex-col gap-[10px]">
+      <div className="border-line flex flex-col gap-[10px] border-t px-4 py-[14px]">
         {isGenerating ? (
           <>
-            <div className="border border-dashed border-disabled-border rounded-item p-2 text-[12.5px] text-muted-2 bg-surface-alt">
+            <div className="border-disabled-border rounded-item text-muted-2 bg-surface-alt border border-dashed p-2 text-[12.5px]">
               {step.label}
-              <div className="h-[6px] rounded-full bg-track overflow-hidden mt-[7px]">
+              <div className="bg-track mt-[7px] h-[6px] overflow-hidden rounded-full">
                 <div
-                  className="h-full bg-ink transition-all duration-300 animate-pulse"
+                  className="bg-ink h-full animate-pulse transition-all duration-300"
                   style={{
                     // Nunca chega a 100% enquanto a IA responde — deixa headroom
                     // e pulsa pra não parecer "concluído" parado no último passo.
@@ -72,14 +78,16 @@ export function ChatPanel() {
                 />
               </div>
             </div>
-            <span className="text-[11px] text-muted">−{COSTS.adjust} crédito · gerando…</span>
+            <span className="text-muted text-[11px]">
+              −{COSTS.adjust} crédito · gerando…
+            </span>
             <div className="flex items-center gap-[10px]">
-              <div className="flex-1 bg-disabled-border text-disabled rounded-item py-[11px] text-center text-[13px] font-semibold">
+              <div className="bg-disabled-border text-disabled rounded-item flex-1 py-[11px] text-center text-[13px] font-semibold">
                 Gerar
               </div>
               <button
                 onClick={cancelGeneration}
-                className="text-[12px] px-3 py-2 border border-border rounded-btn text-muted-2 hover:bg-surface-alt transition-colors"
+                className="border-border rounded-btn text-muted-2 hover:bg-surface-alt border px-3 py-2 text-[12px] transition-colors"
               >
                 Cancelar
               </button>

@@ -24,17 +24,27 @@ Formas do `ExportModel` (de `lib/export/model.ts`, não alterar):
 
 ```ts
 export type ExPt = { x: number; y: number };
-export type ExSeg = { kind: "line"; to: ExPt } | { kind: "cubic"; c1: ExPt; c2: ExPt; to: ExPt };
+export type ExSeg =
+  { kind: "line"; to: ExPt } | { kind: "cubic"; c1: ExPt; c2: ExPt; to: ExPt };
 export interface ExportPiece {
-  id: string; name: string; qty: number;
-  widthCm: number; heightCm: number;
+  id: string;
+  name: string;
+  qty: number;
+  widthCm: number;
+  heightCm: number;
   outline: { start: ExPt; segs: ExSeg[] };
-  grainline?: [ExPt, ExPt]; dart?: ExPt[]; originCm: ExPt;
+  grainline?: [ExPt, ExPt];
+  dart?: ExPt[];
+  originCm: ExPt;
 }
 export interface ExportModel {
-  patternName: string; size: SizeLabel; unit: "cm";
+  patternName: string;
+  size: SizeLabel;
+  unit: "cm";
   seamAllowanceCm: number | null;
-  sheetWidthCm: number; sheetHeightCm: number; pieces: ExportPiece[];
+  sheetWidthCm: number;
+  sheetHeightCm: number;
+  pieces: ExportPiece[];
 }
 ```
 
@@ -45,10 +55,12 @@ Coords das peças: `outline`/`grainline`/`dart` são LOCAIS ao bbox da peça; `p
 ### Task 1: Extrair `flattenOutlineCm` (DRY com o DXF)
 
 **Files:**
+
 - Modify: `lib/export/dxf.ts` (extrair helper + refatorar `toDxf`)
 - Test: `lib/export/dxf.test.ts` (adicionar `describe("flattenOutlineCm")`)
 
 **Interfaces:**
+
 - Consumes: `flattenCubic`, `TOL_CM` (mesmo arquivo); `ExPt`, `ExSeg` de `./model`.
 - Produces: `export function flattenOutlineCm(outline: { start: ExPt; segs: ExSeg[] }, tolCm: number): ExPt[]` — contorno achatado em cm, fechado, com o vértice final duplicado (== inicial) removido.
 
@@ -86,7 +98,12 @@ describe("flattenOutlineCm", () => {
       {
         start: { x: 0, y: 0 },
         segs: [
-          { kind: "cubic", c1: { x: 0, y: 10 }, c2: { x: 10, y: 10 }, to: { x: 10, y: 0 } },
+          {
+            kind: "cubic",
+            c1: { x: 0, y: 10 },
+            c2: { x: 10, y: 10 },
+            to: { x: 10, y: 0 },
+          },
           { kind: "line", to: { x: 0, y: 0 } },
         ],
       },
@@ -138,7 +155,11 @@ export function flattenOutlineCm(
   }
   const first = verts[0];
   const last = verts[verts.length - 1];
-  if (verts.length > 1 && Math.abs(first.x - last.x) < 1e-6 && Math.abs(first.y - last.y) < 1e-6) {
+  if (
+    verts.length > 1 &&
+    Math.abs(first.x - last.x) < 1e-6 &&
+    Math.abs(first.y - last.y) < 1e-6
+  ) {
     verts.pop();
   }
   return verts;
@@ -148,31 +169,35 @@ export function flattenOutlineCm(
 Agora refatorar `toDxf` pra usar o helper: substituir o bloco (linhas ~79-96 do arquivo atual)
 
 ```ts
-    // contorno -> vértices achatados
-    const verts: ExPt[] = [piece.outline.start];
-    let prev = piece.outline.start;
-    for (const s of piece.outline.segs) {
-      if (s.kind === "line") {
-        verts.push(s.to);
-        prev = s.to;
-      } else {
-        verts.push(...flattenCubic(prev, s.c1, s.c2, s.to, TOL_CM));
-        prev = s.to;
-      }
-    }
-    // a polilinha fecha via flag 70=1; remove o vértice final se coincidir com o inicial
-    const first = verts[0];
-    const last = verts[verts.length - 1];
-    if (verts.length > 1 && Math.abs(first.x - last.x) < 1e-6 && Math.abs(first.y - last.y) < 1e-6) {
-      verts.pop();
-    }
+// contorno -> vértices achatados
+const verts: ExPt[] = [piece.outline.start];
+let prev = piece.outline.start;
+for (const s of piece.outline.segs) {
+  if (s.kind === "line") {
+    verts.push(s.to);
+    prev = s.to;
+  } else {
+    verts.push(...flattenCubic(prev, s.c1, s.c2, s.to, TOL_CM));
+    prev = s.to;
+  }
+}
+// a polilinha fecha via flag 70=1; remove o vértice final se coincidir com o inicial
+const first = verts[0];
+const last = verts[verts.length - 1];
+if (
+  verts.length > 1 &&
+  Math.abs(first.x - last.x) < 1e-6 &&
+  Math.abs(first.y - last.y) < 1e-6
+) {
+  verts.pop();
+}
 ```
 
 por:
 
 ```ts
-    // contorno -> vértices achatados (helper compartilhado com o PDF)
-    const verts = flattenOutlineCm(piece.outline, TOL_CM);
+// contorno -> vértices achatados (helper compartilhado com o PDF)
+const verts = flattenOutlineCm(piece.outline, TOL_CM);
 ```
 
 - [ ] **Step 4: Run tests to verify they pass**
@@ -192,10 +217,12 @@ git commit -m "refactor(export): extrai flattenOutlineCm de toDxf (DRY p/ o PDF)
 ### Task 2: Helpers puros `planTiles` + `rulerTicksCm`
 
 **Files:**
+
 - Create: `lib/export/pdf.ts`
 - Test: `lib/export/pdf.test.ts`
 
 **Interfaces:**
+
 - Consumes: `ExPt` de `./model`.
 - Produces:
   - `export type PdfMode = "a4" | "single";`
@@ -276,7 +303,11 @@ export interface TilePlan {
   pages: { row: number; col: number; originCm: ExPt }[];
 }
 
-export function planTiles(sheetWcm: number, sheetHcm: number, mode: PdfMode): TilePlan {
+export function planTiles(
+  sheetWcm: number,
+  sheetHcm: number,
+  mode: PdfMode,
+): TilePlan {
   if (mode === "single") {
     const marginCm = A4.marginCm;
     return {
@@ -328,11 +359,13 @@ git commit -m "feat(export): planTiles + rulerTicksCm (grade de páginas do PDF)
 ### Task 3: Serializer `toPdf` (pdf-lib, dynamic import)
 
 **Files:**
+
 - Modify: `package.json` (adicionar dep `pdf-lib`)
 - Modify: `lib/export/pdf.ts` (adicionar `toPdf`)
 - Test: `lib/export/pdf.test.ts` (adicionar `describe("toPdf")`)
 
 **Interfaces:**
+
 - Consumes: `planTiles`, `rulerTicksCm`, `PdfMode` (mesmo arquivo); `flattenOutlineCm` de `./dxf`; `ExportModel` de `./model`; `pdf-lib` via `import()` dinâmico.
 - Produces: `export async function toPdf(model: ExportModel, mode: PdfMode): Promise<Uint8Array>`
 
@@ -369,11 +402,19 @@ function modelOf(sheetWcm: number, sheetHcm: number): ExportModel {
           start: { x: 0, y: 0 },
           segs: [
             { kind: "line", to: { x: 10, y: 0 } },
-            { kind: "cubic", c1: { x: 10, y: 5 }, c2: { x: 5, y: 10 }, to: { x: 0, y: 10 } },
+            {
+              kind: "cubic",
+              c1: { x: 10, y: 5 },
+              c2: { x: 5, y: 10 },
+              to: { x: 0, y: 10 },
+            },
             { kind: "line", to: { x: 0, y: 0 } },
           ],
         },
-        grainline: [{ x: 5, y: 1 }, { x: 5, y: 9 }],
+        grainline: [
+          { x: 5, y: 1 },
+          { x: 5, y: 9 },
+        ],
         originCm: { x: 2, y: 2 },
       },
     ],
@@ -397,7 +438,7 @@ describe("toPdf", () => {
     const doc = await PDFDocument.load(bytes);
     expect(doc.getPageCount()).toBe(1);
     const { width, height } = doc.getPage(0).getSize();
-    expect(width).toBeCloseTo(21.6 * PT_POR_CM, 1);  // (20+1.6) cm em pt
+    expect(width).toBeCloseTo(21.6 * PT_POR_CM, 1); // (20+1.6) cm em pt
     expect(height).toBeCloseTo(31.6 * PT_POR_CM, 1); // (30+1.6) cm em pt
   });
 });
@@ -431,7 +472,10 @@ E adicionar:
 const PT_POR_CM = 72 / 2.54; // pontos PDF por cm (1:1 físico)
 const TOL_CM = 0.02; // achatamento de curvas (mesma tolerância do DXF)
 
-export async function toPdf(model: ExportModel, mode: PdfMode): Promise<Uint8Array> {
+export async function toPdf(
+  model: ExportModel,
+  mode: PdfMode,
+): Promise<Uint8Array> {
   const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
   const plan = planTiles(model.sheetWidthCm, model.sheetHeightCm, mode);
   const doc = await PDFDocument.create();
@@ -443,10 +487,16 @@ export async function toPdf(model: ExportModel, mode: PdfMode): Promise<Uint8Arr
   const TXT = rgb(0.35, 0.34, 0.29);
 
   // achata cada contorno uma vez (reusado em todas as páginas/tiles)
-  const outlines = model.pieces.map((pc) => ({ pc, pts: flattenOutlineCm(pc.outline, TOL_CM) }));
+  const outlines = model.pieces.map((pc) => ({
+    pc,
+    pts: flattenOutlineCm(pc.outline, TOL_CM),
+  }));
 
   plan.pages.forEach((tile, pageIndex) => {
-    const page = doc.addPage([plan.pageWcm * PT_POR_CM, plan.pageHcm * PT_POR_CM]);
+    const page = doc.addPage([
+      plan.pageWcm * PT_POR_CM,
+      plan.pageHcm * PT_POR_CM,
+    ]);
 
     // coord de sheet (cm, +Y p/ baixo) -> ponto de página (pt, +Y p/ cima), transladada pela janela do tile
     const map = (sx: number, sy: number) => ({
@@ -455,7 +505,8 @@ export async function toPdf(model: ExportModel, mode: PdfMode): Promise<Uint8Arr
     });
 
     for (const { pc, pts } of outlines) {
-      const P = (lx: number, ly: number) => map(pc.originCm.x + lx, pc.originCm.y + ly);
+      const P = (lx: number, ly: number) =>
+        map(pc.originCm.x + lx, pc.originCm.y + ly);
 
       // contorno (polilinha fechada)
       for (let i = 0; i < pts.length; i++) {
@@ -466,19 +517,34 @@ export async function toPdf(model: ExportModel, mode: PdfMode): Promise<Uint8Arr
       // fio (tracejado)
       if (pc.grainline) {
         const [g1, g2] = pc.grainline;
-        page.drawLine({ start: P(g1.x, g1.y), end: P(g2.x, g2.y), thickness: 0.5, color: OLIVE, dashArray: [4, 3] });
+        page.drawLine({
+          start: P(g1.x, g1.y),
+          end: P(g2.x, g2.y),
+          thickness: 0.5,
+          color: OLIVE,
+          dashArray: [4, 3],
+        });
       }
       // dart (polilinha fechada)
       if (pc.dart && pc.dart.length >= 3) {
         for (let i = 0; i < pc.dart.length; i++) {
           const a = P(pc.dart[i].x, pc.dart[i].y);
-          const b = P(pc.dart[(i + 1) % pc.dart.length].x, pc.dart[(i + 1) % pc.dart.length].y);
+          const b = P(
+            pc.dart[(i + 1) % pc.dart.length].x,
+            pc.dart[(i + 1) % pc.dart.length].y,
+          );
           page.drawLine({ start: a, end: b, thickness: 0.5, color: OLIVE });
         }
       }
       // rótulo
       const lbl = P(0, pc.heightCm);
-      page.drawText(`${pc.name.toUpperCase()} · ${pc.qty}x`, { x: lbl.x, y: lbl.y, size: 8, font, color: TXT });
+      page.drawText(`${pc.name.toUpperCase()} · ${pc.qty}x`, {
+        x: lbl.x,
+        y: lbl.y,
+        size: 8,
+        font,
+        color: TXT,
+      });
     }
 
     if (mode === "a4") {
@@ -492,13 +558,16 @@ export async function toPdf(model: ExportModel, mode: PdfMode): Promise<Uint8Arr
         borderWidth: 0.5,
         borderDashArray: [3, 2],
       });
-      page.drawText(`Linha ${tile.row + 1} · Coluna ${tile.col + 1} de ${plan.rows}x${plan.cols}`, {
-        x: plan.marginCm * PT_POR_CM,
-        y: plan.marginCm * 0.3 * PT_POR_CM,
-        size: 7,
-        font,
-        color: TXT,
-      });
+      page.drawText(
+        `Linha ${tile.row + 1} · Coluna ${tile.col + 1} de ${plan.rows}x${plan.cols}`,
+        {
+          x: plan.marginCm * PT_POR_CM,
+          y: plan.marginCm * 0.3 * PT_POR_CM,
+          size: 7,
+          font,
+          color: TXT,
+        },
+      );
     }
 
     // régua de calibração de 10 cm — 1ª página (a4) ou a página única (single)
@@ -514,12 +583,28 @@ export async function toPdf(model: ExportModel, mode: PdfMode): Promise<Uint8Arr
         opacity: 0.85,
       });
       const y0 = (boxYcm + 0.2) * PT_POR_CM;
-      page.drawLine({ start: { x: baseXcm * PT_POR_CM, y: y0 }, end: { x: (baseXcm + 10) * PT_POR_CM, y: y0 }, thickness: 0.75, color: INK });
+      page.drawLine({
+        start: { x: baseXcm * PT_POR_CM, y: y0 },
+        end: { x: (baseXcm + 10) * PT_POR_CM, y: y0 },
+        thickness: 0.75,
+        color: INK,
+      });
       for (const t of rulerTicksCm(10)) {
         const x = (baseXcm + t) * PT_POR_CM;
-        page.drawLine({ start: { x, y: y0 }, end: { x, y: y0 + 0.35 * PT_POR_CM }, thickness: 0.75, color: INK });
+        page.drawLine({
+          start: { x, y: y0 },
+          end: { x, y: y0 + 0.35 * PT_POR_CM },
+          thickness: 0.75,
+          color: INK,
+        });
       }
-      page.drawText("10 cm - confira a escala", { x: baseXcm * PT_POR_CM, y: (boxYcm + 0.7) * PT_POR_CM, size: 7, font, color: TXT });
+      page.drawText("10 cm - confira a escala", {
+        x: baseXcm * PT_POR_CM,
+        y: (boxYcm + 0.7) * PT_POR_CM,
+        size: 7,
+        font,
+        color: TXT,
+      });
     }
   });
 
@@ -544,11 +629,13 @@ git commit -m "feat(export): serializer toPdf (tiling A4 + folha única, pdf-lib
 ### Task 4: Ligar PDF na fachada e no Footer (+ doc)
 
 **Files:**
+
 - Modify: `lib/export/index.ts`
 - Modify: `components/editor/Footer.tsx:7-10`
 - Modify: `CLAUDE.md` (parágrafo do export)
 
 **Interfaces:**
+
 - Consumes: `toPdf` de `./pdf`; tipo `ExportFormat` de `@/lib/export`.
 - Produces: `ExportFormat = "svg" | "dxf" | "pdf-a4" | "pdf-single"`; `exportPattern` despacha por `switch` exaustivo, cases PDF fire-and-forget.
 
@@ -580,12 +667,16 @@ export function exportPattern(pattern: Pattern, format: ExportFormat): void {
     case "pdf-a4":
       // toPdf é async (pdf-lib); fire-and-forget — não muda a assinatura void
       toPdf(model, "a4")
-        .then((bytes) => downloadFile(`${base}-a4.pdf`, "application/pdf", bytes))
+        .then((bytes) =>
+          downloadFile(`${base}-a4.pdf`, "application/pdf", bytes),
+        )
         .catch(() => {});
       return;
     case "pdf-single":
       toPdf(model, "single")
-        .then((bytes) => downloadFile(`${base}-folha.pdf`, "application/pdf", bytes))
+        .then((bytes) =>
+          downloadFile(`${base}-folha.pdf`, "application/pdf", bytes),
+        )
         .catch(() => {});
       return;
     default: {

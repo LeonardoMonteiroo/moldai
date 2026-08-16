@@ -27,21 +27,26 @@ Todo requisito de cada tarefa inclui implicitamente esta seção:
 ### Task 1: Vitest + módulo de medidas
 
 **Files:**
+
 - Modify: `package.json` (scripts + devDependency)
 - Create: `vitest.config.ts`
 - Create: `lib/measurements.ts`
 - Test: `lib/measurements.test.ts`
 
 **Interfaces:**
+
 - Produces: `Measurements` (interface), `SizeLabel` (reuso de `lib/types.ts`), `SIZE_TABLE: Record<SizeLabel, Measurements>`, `resolveMeasurements(size: SizeLabel, overrides: Partial<Measurements>): Measurements`, `MEASUREMENT_RANGES: Record<keyof Measurements, {min:number; max:number}>`.
 
 - [ ] **Step 1: Adicionar Vitest**
 
 Instalar dev dep e scripts:
+
 ```bash
 npm install -D vitest@^2
 ```
+
 `package.json` → em `"scripts"` adicionar:
+
 ```json
 "test": "vitest run",
 "test:watch": "vitest"
@@ -50,6 +55,7 @@ npm install -D vitest@^2
 - [ ] **Step 2: Config do Vitest**
 
 Create `vitest.config.ts`:
+
 ```ts
 import { defineConfig } from "vitest/config";
 import path from "node:path";
@@ -63,6 +69,7 @@ export default defineConfig({
 - [ ] **Step 3: Teste que falha (tabela + resolução)**
 
 Create `lib/measurements.test.ts`:
+
 ```ts
 import { describe, it, expect } from "vitest";
 import { SIZE_TABLE, resolveMeasurements } from "./measurements";
@@ -101,26 +108,79 @@ Expected: FAIL (módulo `./measurements` não existe).
 import { SizeLabel } from "./types";
 
 export interface Measurements {
-  busto: number;             // circunferência do busto (cm)
-  cintura: number;           // circunferência da cintura (cm)
-  quadril: number;           // circunferência do quadril (cm)
-  alturaQuadril: number;     // cintura → quadril (cm)
+  busto: number; // circunferência do busto (cm)
+  cintura: number; // circunferência da cintura (cm)
+  quadril: number; // circunferência do quadril (cm)
+  alturaQuadril: number; // cintura → quadril (cm)
   comprimentoCostas: number; // nuca → cintura (cm)
-  ombro: number;             // largura de um ombro (cm)
-  compSaia: number;          // comprimento default da saia (cm)
-  compMangaCurta: number;    // (cm)
-  compMangaLonga: number;    // (cm)
+  ombro: number; // largura de um ombro (cm)
+  compSaia: number; // comprimento default da saia (cm)
+  compMangaCurta: number; // (cm)
+  compMangaLonga: number; // (cm)
 }
 
 export const SIZE_TABLE: Record<SizeLabel, Measurements> = {
-  PP: { busto: 84, cintura: 66, quadril: 92,  alturaQuadril: 20.0, comprimentoCostas: 40.0, ombro: 11.5, compSaia: 60, compMangaCurta: 18, compMangaLonga: 58 },
-  P:  { busto: 88, cintura: 70, quadril: 96,  alturaQuadril: 20.3, comprimentoCostas: 40.5, ombro: 11.8, compSaia: 60, compMangaCurta: 18, compMangaLonga: 58 },
-  M:  { busto: 92, cintura: 74, quadril: 100, alturaQuadril: 20.6, comprimentoCostas: 41.0, ombro: 12.0, compSaia: 60, compMangaCurta: 18, compMangaLonga: 58 },
-  G:  { busto: 96, cintura: 78, quadril: 104, alturaQuadril: 21.0, comprimentoCostas: 41.5, ombro: 12.3, compSaia: 60, compMangaCurta: 18, compMangaLonga: 58 },
-  GG: { busto: 100, cintura: 82, quadril: 108, alturaQuadril: 21.3, comprimentoCostas: 42.0, ombro: 12.5, compSaia: 60, compMangaCurta: 18, compMangaLonga: 58 },
+  PP: {
+    busto: 84,
+    cintura: 66,
+    quadril: 92,
+    alturaQuadril: 20.0,
+    comprimentoCostas: 40.0,
+    ombro: 11.5,
+    compSaia: 60,
+    compMangaCurta: 18,
+    compMangaLonga: 58,
+  },
+  P: {
+    busto: 88,
+    cintura: 70,
+    quadril: 96,
+    alturaQuadril: 20.3,
+    comprimentoCostas: 40.5,
+    ombro: 11.8,
+    compSaia: 60,
+    compMangaCurta: 18,
+    compMangaLonga: 58,
+  },
+  M: {
+    busto: 92,
+    cintura: 74,
+    quadril: 100,
+    alturaQuadril: 20.6,
+    comprimentoCostas: 41.0,
+    ombro: 12.0,
+    compSaia: 60,
+    compMangaCurta: 18,
+    compMangaLonga: 58,
+  },
+  G: {
+    busto: 96,
+    cintura: 78,
+    quadril: 104,
+    alturaQuadril: 21.0,
+    comprimentoCostas: 41.5,
+    ombro: 12.3,
+    compSaia: 60,
+    compMangaCurta: 18,
+    compMangaLonga: 58,
+  },
+  GG: {
+    busto: 100,
+    cintura: 82,
+    quadril: 108,
+    alturaQuadril: 21.3,
+    comprimentoCostas: 42.0,
+    ombro: 12.5,
+    compSaia: 60,
+    compMangaCurta: 18,
+    compMangaLonga: 58,
+  },
 };
 
-export const MEASUREMENT_RANGES: Record<keyof Measurements, { min: number; max: number }> = {
+export const MEASUREMENT_RANGES: Record<
+  keyof Measurements,
+  { min: number; max: number }
+> = {
   busto: { min: 70, max: 140 },
   cintura: { min: 55, max: 130 },
   quadril: { min: 78, max: 150 },
@@ -136,7 +196,10 @@ function clamp(v: number, min: number, max: number) {
   return Math.min(max, Math.max(min, v));
 }
 
-export function resolveMeasurements(size: SizeLabel, overrides: Partial<Measurements>): Measurements {
+export function resolveMeasurements(
+  size: SizeLabel,
+  overrides: Partial<Measurements>,
+): Measurements {
   const base = { ...SIZE_TABLE[size] };
   for (const k of Object.keys(overrides) as (keyof Measurements)[]) {
     const v = overrides[k];
@@ -165,11 +228,13 @@ git commit -m "feat: vitest + tabela de medidas ABNT (PP-GG) e resolveMeasuremen
 ### Task 2: Tipos da spec + primitivos de drafting e auto-layout
 
 **Files:**
+
 - Modify: `lib/types.ts` (adicionar tipos novos, sem remover os antigos)
 - Create: `lib/draft/core.ts`
 - Test: `lib/draft/core.test.ts`
 
 **Interfaces:**
+
 - Consumes: `PieceOutline` de `lib/types.ts`.
 - Produces (em `lib/types.ts`): `GarmentType`, `Decote`, `MangaLen`, `SaiaSilhueta`, `GarmentStyle`, `GarmentSpec`, `DetailRow`, e campos **novos/opcionais** em `Piece`: `detailRows?: DetailRow[]`. Também `Pattern.spec?: GarmentSpec`, `Pattern.baseMeasurements?: Measurements`, `Pattern.viewBox?: { w: number; h: number }`.
 - Produces (em `lib/draft/core.ts`): `SCALE = 4`, `PX(cm)`, `Pt = [number, number]`, `DraftedPiece` (`{ id; name; qty; outlineCm: Pt[]; guideCm?: Pt[]; grainlineCm?: [Pt, Pt]; dartCm?: Pt[]; detailRows: DetailRow[]; armholeLenCm?: number }`), `polyPath(pts: Pt[]): PieceOutline`, `smoothPath(pts: Pt[], closed: boolean): PieceOutline` (Catmull-Rom→Bézier), `bbox(pts: Pt[])`, `autoLayout(pieces: DraftedPiece[], gapCm?: number): { pieces: Piece[]; viewBox: {w:number;h:number} }`.
@@ -177,6 +242,7 @@ git commit -m "feat: vitest + tabela de medidas ABNT (PP-GG) e resolveMeasuremen
 - [ ] **Step 1: Tipos novos em `lib/types.ts` (aditivo)**
 
 Adicionar (não remover nada ainda):
+
 ```ts
 export type GarmentType = "blusa" | "vestido" | "saia";
 export type Decote = "reto" | "V" | "redondo";
@@ -199,36 +265,61 @@ export interface GarmentSpec {
   style: GarmentStyle;
 }
 
-export interface DetailRow { label: string; value: string; }
+export interface DetailRow {
+  label: string;
+  value: string;
+}
 ```
+
 Em `Piece` adicionar campo opcional `detailRows?: DetailRow[];` (manter `details`, `params` como estão por ora).
 Em `Pattern` adicionar opcionais `spec?: GarmentSpec; viewBox?: { w: number; h: number };` (e importar `Measurements` para `baseMeasurements?: Measurements;`). Import: `import type { Measurements } from "./measurements";`.
 
 - [ ] **Step 2: Teste que falha (layout + curva)**
 
 Create `lib/draft/core.test.ts`:
+
 ```ts
 import { describe, it, expect } from "vitest";
 import { autoLayout, bbox, polyPath, DraftedPiece } from "./core";
 
 const rect = (id: string, w: number, h: number): DraftedPiece => ({
-  id, name: id, qty: 1,
-  outlineCm: [[0, 0], [w, 0], [w, h], [0, h]],
+  id,
+  name: id,
+  qty: 1,
+  outlineCm: [
+    [0, 0],
+    [w, 0],
+    [w, h],
+    [0, h],
+  ],
   detailRows: [],
 });
 
 describe("core drafting", () => {
   it("bbox mede a peça", () => {
-    expect(bbox([[2, 3], [10, 3], [10, 20]])).toEqual({ minX: 2, minY: 3, maxX: 10, maxY: 20, w: 8, h: 17 });
+    expect(
+      bbox([
+        [2, 3],
+        [10, 3],
+        [10, 20],
+      ]),
+    ).toEqual({ minX: 2, minY: 3, maxX: 10, maxY: 20, w: 8, h: 17 });
   });
 
   it("polyPath fecha o polígono", () => {
-    const o = polyPath([[0, 0], [1, 0], [1, 1]]);
+    const o = polyPath([
+      [0, 0],
+      [1, 0],
+      [1, 1],
+    ]);
     expect(o.kind).toBe("polygon");
   });
 
   it("autoLayout empilha peças lado a lado e calcula viewBox > 0", () => {
-    const { pieces, viewBox } = autoLayout([rect("a", 10, 20), rect("b", 30, 40)], 5);
+    const { pieces, viewBox } = autoLayout(
+      [rect("a", 10, 20), rect("b", 30, 40)],
+      5,
+    );
     expect(pieces).toHaveLength(2);
     expect(viewBox.w).toBeGreaterThan(0);
     expect(viewBox.h).toBeGreaterThan(0);
@@ -269,8 +360,10 @@ export interface DraftedPiece {
 export function bbox(pts: Pt[]) {
   const xs = pts.map((p) => p[0]);
   const ys = pts.map((p) => p[1]);
-  const minX = Math.min(...xs), maxX = Math.max(...xs);
-  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  const minX = Math.min(...xs),
+    maxX = Math.max(...xs);
+  const minY = Math.min(...ys),
+    maxY = Math.max(...ys);
   return { minX, minY, maxX, maxY, w: maxX - minX, h: maxY - minY };
 }
 
@@ -288,35 +381,56 @@ export function smoothPath(ptsCm: Pt[], closed: boolean): PieceOutline {
   let d = `M${at(0)[0]} ${at(0)[1]} `;
   const last = closed ? n : n - 1;
   for (let i = 0; i < last; i++) {
-    const p0 = at(i - 1), p1 = at(i), p2 = at(i + 1), p3 = at(i + 2);
-    const c1x = p1[0] + (p2[0] - p0[0]) / 6, c1y = p1[1] + (p2[1] - p0[1]) / 6;
-    const c2x = p2[0] - (p3[0] - p1[0]) / 6, c2y = p2[1] - (p3[1] - p1[1]) / 6;
+    const p0 = at(i - 1),
+      p1 = at(i),
+      p2 = at(i + 1),
+      p3 = at(i + 2);
+    const c1x = p1[0] + (p2[0] - p0[0]) / 6,
+      c1y = p1[1] + (p2[1] - p0[1]) / 6;
+    const c2x = p2[0] - (p3[0] - p1[0]) / 6,
+      c2y = p2[1] - (p3[1] - p1[1]) / 6;
     d += `C${c1x.toFixed(1)} ${c1y.toFixed(1)} ${c2x.toFixed(1)} ${c2y.toFixed(1)} ${p2[0].toFixed(1)} ${p2[1].toFixed(1)} `;
   }
   if (closed) d += "Z";
   return { kind: "path", d: d.trim() };
 }
 
-function translateOutline(o: PieceOutline, dx: number, dy: number): PieceOutline {
+function translateOutline(
+  o: PieceOutline,
+  dx: number,
+  dy: number,
+): PieceOutline {
   if (o.kind === "polygon") {
-    const points = o.points.split(" ").map((pair) => {
-      const [x, y] = pair.split(",").map(Number);
-      return `${(x + dx).toFixed(1)},${(y + dy).toFixed(1)}`;
-    }).join(" ");
+    const points = o.points
+      .split(" ")
+      .map((pair) => {
+        const [x, y] = pair.split(",").map(Number);
+        return `${(x + dx).toFixed(1)},${(y + dy).toFixed(1)}`;
+      })
+      .join(" ");
     return { kind: "polygon", points };
   }
   // path: só temos comandos absolutos M/C/L/Z gerados aqui; transladamos números em pares após M/C/L.
   const d = o.d.replace(/([MCL])([^MCLZ]*)/g, (_, cmd, nums) => {
     const parts = nums.trim().split(/\s+/).map(Number);
-    const shifted = parts.map((v: number, i: number) => (i % 2 === 0 ? v + dx : v + dy).toFixed(1));
+    const shifted = parts.map((v: number, i: number) =>
+      (i % 2 === 0 ? v + dx : v + dy).toFixed(1),
+    );
     return `${cmd}${shifted.join(" ")} `;
   });
   return { kind: "path", d: d.trim() };
 }
 
 // Constrói a Piece final aplicando outline/guia/grainline/dart com deslocamento (dx,dy) em px.
-function place(dp: DraftedPiece, dxPx: number, dyPx: number, curved: boolean): Piece {
-  const outline = curved ? smoothPath(dp.outlineCm, true) : polyPath(dp.outlineCm);
+function place(
+  dp: DraftedPiece,
+  dxPx: number,
+  dyPx: number,
+  curved: boolean,
+): Piece {
+  const outline = curved
+    ? smoothPath(dp.outlineCm, true)
+    : polyPath(dp.outlineCm);
   const piece: Piece = {
     id: dp.id,
     name: dp.name,
@@ -325,18 +439,33 @@ function place(dp: DraftedPiece, dxPx: number, dyPx: number, curved: boolean): P
     outline: translateOutline(outline, dxPx, dyPx),
     detailRows: dp.detailRows,
     label: { x: dxPx + 6, y: dyPx + PX(bbox(dp.outlineCm).h) - 6 },
-    details: { folgaCostura: "", penceBusto: "", cava: "", fio: "", consumo: "" },
+    details: {
+      folgaCostura: "",
+      penceBusto: "",
+      cava: "",
+      fio: "",
+      consumo: "",
+    },
   };
-  if (dp.guideCm) piece.guideOutline = translateOutline(polyPath(dp.guideCm), dxPx, dyPx);
+  if (dp.guideCm)
+    piece.guideOutline = translateOutline(polyPath(dp.guideCm), dxPx, dyPx);
   if (dp.grainlineCm) {
     const [[x1, y1], [x2, y2]] = dp.grainlineCm;
-    piece.grainline = { x1: PX(x1) + dxPx, y1: PX(y1) + dyPx, x2: PX(x2) + dxPx, y2: PX(y2) + dyPx };
+    piece.grainline = {
+      x1: PX(x1) + dxPx,
+      y1: PX(y1) + dyPx,
+      x2: PX(x2) + dxPx,
+      y2: PX(y2) + dyPx,
+    };
   }
   if (dp.dartCm && dp.dartCm.length >= 3) {
     const dd = (polyPath(dp.dartCm) as { points: string }).points
-      .split(" ").map((p) => p.split(",").map(Number));
+      .split(" ")
+      .map((p) => p.split(",").map(Number));
     const [a, b, c] = dd;
-    piece.dart = { d: `M${a[0] + dxPx} ${a[1] + dyPx} L${b[0] + dxPx} ${b[1] + dyPx} L${c[0] + dxPx} ${c[1] + dyPx} Z` };
+    piece.dart = {
+      d: `M${a[0] + dxPx} ${a[1] + dyPx} L${b[0] + dxPx} ${b[1] + dyPx} L${c[0] + dxPx} ${c[1] + dyPx} Z`,
+    };
   }
   return piece;
 }
@@ -359,7 +488,13 @@ export function autoLayout(
     cursorX += PX(b.w) + gap;
     maxH = Math.max(maxH, PX(b.h));
   }
-  return { pieces, viewBox: { w: Math.round(cursorX - gap + pad), h: Math.round(maxH + pad * 2) } };
+  return {
+    pieces,
+    viewBox: {
+      w: Math.round(cursorX - gap + pad),
+      h: Math.round(maxH + pad * 2),
+    },
+  };
 }
 ```
 
@@ -379,10 +514,12 @@ git commit -m "feat: tipos GarmentSpec + primitivos de drafting (SCALE/curva/aut
 ### Task 3: Bloco do corpo (frente e costas)
 
 **Files:**
+
 - Create: `lib/draft/corpo.ts`
 - Test: `lib/draft/corpo.test.ts`
 
 **Interfaces:**
+
 - Consumes: `Measurements` (`lib/measurements.ts`), `GarmentStyle`, `DetailRow` (`lib/types.ts`), `DraftedPiece`, `Pt` (`lib/draft/core.ts`).
 - Produces: `draftCorpo(m: Measurements, style: GarmentStyle): { frente: DraftedPiece; costas: DraftedPiece; armholeLenCm: number }`.
 
@@ -391,6 +528,7 @@ Convenção: cada peça é traçada em cm no seu espaço local (origem no topo-e
 - [ ] **Step 1: Teste que falha**
 
 Create `lib/draft/corpo.test.ts`:
+
 ```ts
 import { describe, it, expect } from "vitest";
 import { resolveMeasurements } from "@/lib/measurements";
@@ -403,7 +541,9 @@ describe("draftCorpo", () => {
   it("frente mais larga que altura razoável e escala com o busto", () => {
     const small = draftCorpo(resolveMeasurements("PP", {}), {});
     const big = draftCorpo(resolveMeasurements("GG", {}), {});
-    expect(bbox(big.frente.outlineCm).w).toBeGreaterThan(bbox(small.frente.outlineCm).w);
+    expect(bbox(big.frente.outlineCm).w).toBeGreaterThan(
+      bbox(small.frente.outlineCm).w,
+    );
   });
 
   it("decote V aprofunda mais que reto", () => {
@@ -422,7 +562,9 @@ describe("draftCorpo", () => {
   });
 
   it("gera pence quando pences=true", () => {
-    expect(draftCorpo(M, { pences: true }).frente.dartCm?.length).toBeGreaterThanOrEqual(3);
+    expect(
+      draftCorpo(M, { pences: true }).frente.dartCm?.length,
+    ).toBeGreaterThanOrEqual(3);
   });
 });
 ```
@@ -441,53 +583,66 @@ import { DraftedPiece, Pt } from "./core";
 const cm = (v: number) => `${v.toFixed(1).replace(".", ",")} cm`;
 
 // Traça meio-corpo espelhado -> peça inteira. `frontish` controla decote (frente mais fundo).
-function bodice(m: Measurements, style: GarmentStyle, id: string, name: string, frontish: boolean): {
+function bodice(
+  m: Measurements,
+  style: GarmentStyle,
+  id: string,
+  name: string,
+  frontish: boolean,
+): {
   piece: DraftedPiece;
   armholeLenCm: number;
 } {
   const folga = style.folgaCosturaCm ?? 1;
   const quarter = m.busto / 4;
-  const halfW = quarter + folga;        // meia largura (centro -> lateral) no busto
-  const len = m.comprimentoCostas;      // ombro/nuca -> cintura
+  const halfW = quarter + folga; // meia largura (centro -> lateral) no busto
+  const len = m.comprimentoCostas; // ombro/nuca -> cintura
   const neckHalf = m.comprimentoCostas / 6 + 0.5 + (frontish ? 0.5 : 0); // meia largura do decote
   const shoulder = m.ombro;
   const armholeDepth = quarter * 0.5 + 2; // altura de cava a partir da linha de ombro
   const baseDrop = frontish ? neckHalf + 1 : neckHalf * 0.5; // profundidade base do decote
-  const extra = style.decote && style.decote !== "reto" ? Math.max(0, style.decoteProfundidadeCm ?? 4) : 0;
+  const extra =
+    style.decote && style.decote !== "reto"
+      ? Math.max(0, style.decoteProfundidadeCm ?? 4)
+      : 0;
   const neckDrop = baseDrop + (frontish ? extra : extra * 0.3);
-  const waistHalf = halfW - 1;          // leve afunilamento na cintura
+  const waistHalf = halfW - 1; // leve afunilamento na cintura
 
   // centro em x = halfW; y=0 na linha de ombro
   const cx = halfW;
   const shoulderY = 0;
   const top: Pt[] = [];
   // ombro esquerdo -> decote -> ombro direito
-  top.push([cx - shoulder, shoulderY + 1.5]);          // ponta de ombro esq
-  top.push([cx - neckHalf, shoulderY]);                // base pescoço esq
+  top.push([cx - shoulder, shoulderY + 1.5]); // ponta de ombro esq
+  top.push([cx - neckHalf, shoulderY]); // base pescoço esq
   if (style.decote === "V") {
-    top.push([cx, shoulderY + neckDrop]);              // bico do V
+    top.push([cx, shoulderY + neckDrop]); // bico do V
   } else if (style.decote === "redondo") {
     top.push([cx - neckHalf * 0.5, shoulderY + neckDrop * 0.7]);
     top.push([cx, shoulderY + neckDrop]);
     top.push([cx + neckHalf * 0.5, shoulderY + neckDrop * 0.7]);
   } else {
-    top.push([cx, shoulderY + baseDrop * 0.4]);        // reto suave
+    top.push([cx, shoulderY + baseDrop * 0.4]); // reto suave
   }
-  top.push([cx + neckHalf, shoulderY]);                // base pescoço dir
-  top.push([cx + shoulder, shoulderY + 1.5]);          // ponta de ombro dir
+  top.push([cx + neckHalf, shoulderY]); // base pescoço dir
+  top.push([cx + shoulder, shoulderY + 1.5]); // ponta de ombro dir
 
   const outlineCm: Pt[] = [
     ...top,
-    [cx + halfW, shoulderY + armholeDepth],            // cava dir
-    [cx + waistHalf, len],                             // cintura dir
-    [cx - waistHalf, len],                             // cintura esq
-    [cx - halfW, shoulderY + armholeDepth],            // cava esq
+    [cx + halfW, shoulderY + armholeDepth], // cava dir
+    [cx + waistHalf, len], // cintura dir
+    [cx - waistHalf, len], // cintura esq
+    [cx - halfW, shoulderY + armholeDepth], // cava esq
   ];
 
   // comprimento aproximado da cava (ombro -> lateral do busto), por lado
-  const armholeLenCm = Math.hypot(halfW - shoulder, armholeDepth - 1.5) + armholeDepth * 0.15;
+  const armholeLenCm =
+    Math.hypot(halfW - shoulder, armholeDepth - 1.5) + armholeDepth * 0.15;
 
-  const grainlineCm: [Pt, Pt] = [[cx, shoulderY + 3], [cx, len - 3]];
+  const grainlineCm: [Pt, Pt] = [
+    [cx, shoulderY + 3],
+    [cx, len - 3],
+  ];
   const detailRows: DetailRow[] = [
     { label: "Folga de costura", value: cm(folga) },
     { label: "Largura (busto)", value: cm(halfW * 2) },
@@ -501,12 +656,25 @@ function bodice(m: Measurements, style: GarmentStyle, id: string, name: string, 
   if (style.pences) {
     const dartW = Math.max(1.5, (m.quadril / 4 - m.cintura / 4) * 0.5);
     const dy = len - 6;
-    dartCm = [[cx - dartW, len], [cx, dy - 12], [cx + dartW, len]];
+    dartCm = [
+      [cx - dartW, len],
+      [cx, dy - 12],
+      [cx + dartW, len],
+    ];
     detailRows.splice(4, 0, { label: "Pence", value: cm(dartW * 2) });
   }
 
   return {
-    piece: { id, name, qty: 1, outlineCm, grainlineCm, dartCm, detailRows, armholeLenCm },
+    piece: {
+      id,
+      name,
+      qty: 1,
+      outlineCm,
+      grainlineCm,
+      dartCm,
+      detailRows,
+      armholeLenCm,
+    },
     armholeLenCm,
   };
 }
@@ -534,10 +702,12 @@ git commit -m "feat: bloco de corpo (frente/costas) por medidas"
 ### Task 4: Bloco de manga
 
 **Files:**
+
 - Create: `lib/draft/manga.ts`
 - Test: `lib/draft/manga.test.ts`
 
 **Interfaces:**
+
 - Consumes: `Measurements`, `GarmentStyle`, `DraftedPiece`, `Pt`.
 - Produces: `draftManga(m: Measurements, style: GarmentStyle, armholeLenCm: number): DraftedPiece | null` (null quando `style.manga === "sem"`).
 
@@ -546,6 +716,7 @@ Copa dimensionada pela cava: bicep base ≈ `armholeLenCm * 0.9`, altura de copa
 - [ ] **Step 1: Teste que falha**
 
 Create `lib/draft/manga.test.ts`:
+
 ```ts
 import { describe, it, expect } from "vitest";
 import { resolveMeasurements } from "@/lib/measurements";
@@ -582,32 +753,47 @@ import { DraftedPiece, Pt } from "./core";
 
 const cm = (v: number) => `${v.toFixed(1).replace(".", ",")} cm`;
 
-export function draftManga(m: Measurements, style: GarmentStyle, armholeLenCm: number): DraftedPiece | null {
+export function draftManga(
+  m: Measurements,
+  style: GarmentStyle,
+  armholeLenCm: number,
+): DraftedPiece | null {
   if (style.manga === "sem" || !style.manga) return null;
-  const bicep = armholeLenCm * 0.9;         // largura no topo
-  const capH = armholeLenCm * 0.4;          // altura da copa
+  const bicep = armholeLenCm * 0.9; // largura no topo
+  const capH = armholeLenCm * 0.4; // altura da copa
   const len = style.manga === "longa" ? m.compMangaLonga : m.compMangaCurta;
   const hemHalf = (bicep / 2) * (style.manga === "longa" ? 0.7 : 0.92); // afunila na manga longa
 
   const cxTop = bicep / 2;
   // copa: dois picos suaves (frente/costas) -> lateral
   const outlineCm: Pt[] = [
-    [cxTop, 0],                       // topo central da copa
+    [cxTop, 0], // topo central da copa
     [bicep * 0.78, capH * 0.55],
-    [bicep, capH],                    // axila dir
-    [cxTop + hemHalf, capH + len],    // barra dir
-    [cxTop - hemHalf, capH + len],    // barra esq
-    [0, capH],                        // axila esq
+    [bicep, capH], // axila dir
+    [cxTop + hemHalf, capH + len], // barra dir
+    [cxTop - hemHalf, capH + len], // barra esq
+    [0, capH], // axila esq
     [bicep * 0.22, capH * 0.55],
   ];
-  const grainlineCm: [Pt, Pt] = [[cxTop, 3], [cxTop, capH + len - 3]];
+  const grainlineCm: [Pt, Pt] = [
+    [cxTop, 3],
+    [cxTop, capH + len - 3],
+  ];
   const detailRows: DetailRow[] = [
     { label: "Tipo", value: style.manga === "longa" ? "longa" : "curta" },
     { label: "Comprimento", value: cm(capH + len) },
     { label: "Cava (copa)", value: cm(armholeLenCm) },
     { label: "Fio", value: "reto" },
   ];
-  return { id: "manga", name: "Manga", qty: 2, outlineCm, grainlineCm, detailRows, armholeLenCm };
+  return {
+    id: "manga",
+    name: "Manga",
+    qty: 2,
+    outlineCm,
+    grainlineCm,
+    detailRows,
+    armholeLenCm,
+  };
 }
 ```
 
@@ -625,10 +811,12 @@ git commit -m "feat: bloco de manga casando a copa com a cava"
 ### Task 5: Bloco de saia (reta/evasê/godê/meia-roda/círculo)
 
 **Files:**
+
 - Create: `lib/draft/saia.ts`
 - Test: `lib/draft/saia.test.ts`
 
 **Interfaces:**
+
 - Consumes: `Measurements`, `GarmentStyle`, `SaiaSilhueta`, `DraftedPiece`, `Pt`.
 - Produces: `draftSaia(m: Measurements, style: GarmentStyle): DraftedPiece`.
 
@@ -637,6 +825,7 @@ Fórmula real (círculo/godê): raio da cintura `r = cintura / (2π)` (círculo/
 - [ ] **Step 1: Teste que falha**
 
 Create `lib/draft/saia.test.ts`:
+
 ```ts
 import { describe, it, expect } from "vitest";
 import { resolveMeasurements } from "@/lib/measurements";
@@ -679,10 +868,14 @@ import { DraftedPiece, Pt } from "./core";
 const cm = (v: number) => `${v.toFixed(1).replace(".", ",")} cm`;
 
 // setor anelar (arco de cintura e de barra) amostrado em pontos
-function radialSkirt(cintura: number, comp: number, denom: number): { pts: Pt[]; r: number } {
-  const r = cintura / denom;             // raio interno (cintura)
-  const R = r + comp;                    // raio externo (barra)
-  const sweep = (Math.PI * 2) / denom;   // ângulo de UM quarto de peça (peça cortada 4x/2x)
+function radialSkirt(
+  cintura: number,
+  comp: number,
+  denom: number,
+): { pts: Pt[]; r: number } {
+  const r = cintura / denom; // raio interno (cintura)
+  const R = r + comp; // raio externo (barra)
+  const sweep = (Math.PI * 2) / denom; // ângulo de UM quarto de peça (peça cortada 4x/2x)
   const half = sweep / 2;
   const steps = 12;
   const inner: Pt[] = [];
@@ -710,7 +903,11 @@ export function draftSaia(m: Measurements, style: GarmentStyle): DraftedPiece {
     { label: "Fio", value: "reto" },
   ];
 
-  if (silhueta === "circulo" || silhueta === "gode" || silhueta === "meia-roda") {
+  if (
+    silhueta === "circulo" ||
+    silhueta === "gode" ||
+    silhueta === "meia-roda"
+  ) {
     const denom = silhueta === "meia-roda" ? Math.PI : 2 * Math.PI;
     const { pts, r } = radialSkirt(m.cintura, comp, denom);
     detailRows.splice(1, 0, { label: "Raio da cintura", value: cm(r) });
@@ -718,8 +915,17 @@ export function draftSaia(m: Measurements, style: GarmentStyle): DraftedPiece {
     const minX = Math.min(...pts.map((p) => p[0]));
     const outlineCm = pts.map(([x, y]) => [x - minX, y] as Pt);
     const cxTop = -minX; // aproximação do centro no topo
-    return { id: "saia", name: "Saia", qty: silhueta === "meia-roda" ? 1 : 2, outlineCm,
-      grainlineCm: [[cxTop, 4], [cxTop, comp]], detailRows };
+    return {
+      id: "saia",
+      name: "Saia",
+      qty: silhueta === "meia-roda" ? 1 : 2,
+      outlineCm,
+      grainlineCm: [
+        [cxTop, 4],
+        [cxTop, comp],
+      ],
+      detailRows,
+    };
   }
 
   // reta / evasê: trapézio (¼ quadril na cintura, barra igual ou mais larga)
@@ -727,14 +933,26 @@ export function draftSaia(m: Measurements, style: GarmentStyle): DraftedPiece {
   const flare = silhueta === "evase" ? 12 : 0;
   const hemHalf = waistHalf + flare;
   const outlineCm: Pt[] = [
-    [waistHalf === hemHalf ? 0 : (hemHalf - waistHalf), 0],
-    [(hemHalf - waistHalf) + waistHalf * 2, 0],
+    [waistHalf === hemHalf ? 0 : hemHalf - waistHalf, 0],
+    [hemHalf - waistHalf + waistHalf * 2, 0],
     [hemHalf * 2, comp],
     [0, comp],
   ];
-  detailRows.splice(1, 0, { label: "Cintura (painel)", value: cm(waistHalf * 2) });
-  return { id: "saia", name: "Saia", qty: 2, outlineCm,
-    grainlineCm: [[hemHalf, 4], [hemHalf, comp - 4]], detailRows };
+  detailRows.splice(1, 0, {
+    label: "Cintura (painel)",
+    value: cm(waistHalf * 2),
+  });
+  return {
+    id: "saia",
+    name: "Saia",
+    qty: 2,
+    outlineCm,
+    grainlineCm: [
+      [hemHalf, 4],
+      [hemHalf, comp - 4],
+    ],
+    detailRows,
+  };
 }
 ```
 
@@ -752,10 +970,12 @@ git commit -m "feat: bloco de saia (reta/evasê/godê/meia-roda/círculo) com ra
 ### Task 6: Composição do vestuário + validação da spec
 
 **Files:**
+
 - Create: `lib/draft/garment.ts`
 - Test: `lib/draft/garment.test.ts`
 
 **Interfaces:**
+
 - Consumes: tudo de `lib/draft/*`, `resolveMeasurements`, `MEASUREMENT_RANGES`, tipos de spec.
 - Produces:
   - `validateSpec(raw: unknown): GarmentSpec` — força enums válidos, clampa `decoteProfundidadeCm`∈[0,15], `compSaiaCm`∈[25,120], `folgaCosturaCm`∈[0,4], filtra `measurementOverrides` para chaves conhecidas.
@@ -767,13 +987,18 @@ Nota de curva: a saia radial (círculo/godê) já vem como polígono amostrado d
 - [ ] **Step 1: Teste que falha**
 
 Create `lib/draft/garment.test.ts`:
+
 ```ts
 import { describe, it, expect } from "vitest";
 import { validateSpec, draftGarment } from "./garment";
 
 describe("validateSpec", () => {
   it("cai para defaults em enums inválidos e clampa faixas", () => {
-    const s = validateSpec({ tipo: "foo", style: { saia: "xxx", compSaiaCm: 999, decoteProfundidadeCm: -5 }, measurementOverrides: { cintura: 70, hack: 1 } });
+    const s = validateSpec({
+      tipo: "foo",
+      style: { saia: "xxx", compSaiaCm: 999, decoteProfundidadeCm: -5 },
+      measurementOverrides: { cintura: 70, hack: 1 },
+    });
     expect(["blusa", "vestido", "saia"]).toContain(s.tipo);
     expect(s.style.compSaiaCm).toBeLessThanOrEqual(120);
     expect(s.style.decoteProfundidadeCm).toBeGreaterThanOrEqual(0);
@@ -784,17 +1009,34 @@ describe("validateSpec", () => {
 
 describe("draftGarment", () => {
   it("blusa gera frente, costas e manga", () => {
-    const { pieces } = draftGarment({ tipo: "blusa", measurementOverrides: {}, style: { manga: "curta", decote: "V" } }, "M");
+    const { pieces } = draftGarment(
+      {
+        tipo: "blusa",
+        measurementOverrides: {},
+        style: { manga: "curta", decote: "V" },
+      },
+      "M",
+    );
     const ids = pieces.map((p) => p.id).sort();
     expect(ids).toEqual(["corpo-costas", "corpo-frente", "manga"]);
   });
   it("saia gera só a peça de saia e viewBox > 0", () => {
-    const { pieces, viewBox } = draftGarment({ tipo: "saia", measurementOverrides: {}, style: { saia: "gode" } }, "M");
+    const { pieces, viewBox } = draftGarment(
+      { tipo: "saia", measurementOverrides: {}, style: { saia: "gode" } },
+      "M",
+    );
     expect(pieces.map((p) => p.id)).toEqual(["saia"]);
     expect(viewBox.w).toBeGreaterThan(0);
   });
   it("vestido combina corpo + saia", () => {
-    const { pieces } = draftGarment({ tipo: "vestido", measurementOverrides: {}, style: { manga: "sem", saia: "evase" } }, "M");
+    const { pieces } = draftGarment(
+      {
+        tipo: "vestido",
+        measurementOverrides: {},
+        style: { manga: "sem", saia: "evase" },
+      },
+      "M",
+    );
     expect(pieces.map((p) => p.id)).toContain("saia");
     expect(pieces.map((p) => p.id)).toContain("corpo-frente");
   });
@@ -806,9 +1048,20 @@ describe("draftGarment", () => {
 - [ ] **Step 3: Implementar `lib/draft/garment.ts`**
 
 ```ts
-import { MEASUREMENT_RANGES, Measurements, resolveMeasurements } from "@/lib/measurements";
 import {
-  Decote, GarmentSpec, GarmentStyle, GarmentType, MangaLen, Piece, SaiaSilhueta, SizeLabel,
+  MEASUREMENT_RANGES,
+  Measurements,
+  resolveMeasurements,
+} from "@/lib/measurements";
+import {
+  Decote,
+  GarmentSpec,
+  GarmentStyle,
+  GarmentType,
+  MangaLen,
+  Piece,
+  SaiaSilhueta,
+  SizeLabel,
 } from "@/lib/types";
 import { autoLayout, DraftedPiece } from "./core";
 import { draftCorpo } from "./corpo";
@@ -820,8 +1073,10 @@ const DECOTES: Decote[] = ["reto", "V", "redondo"];
 const MANGAS: MangaLen[] = ["sem", "curta", "longa"];
 const SAIAS: SaiaSilhueta[] = ["reta", "evase", "gode", "meia-roda", "circulo"];
 
-const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
-const pick = <T,>(v: unknown, allowed: T[], def: T): T => (allowed.includes(v as T) ? (v as T) : def);
+const clamp = (v: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, v));
+const pick = <T>(v: unknown, allowed: T[], def: T): T =>
+  allowed.includes(v as T) ? (v as T) : def;
 
 export function validateSpec(raw: unknown): GarmentSpec {
   const r = (raw ?? {}) as Record<string, unknown>;
@@ -833,30 +1088,58 @@ export function validateSpec(raw: unknown): GarmentSpec {
     if (typeof v === "number" && Number.isFinite(v)) overrides[k] = v; // faixa é aplicada em resolveMeasurements
   }
   const outStyle: GarmentStyle = {
-    decote: style.decote !== undefined ? pick(style.decote, DECOTES, "reto") : undefined,
-    manga: style.manga !== undefined ? pick(style.manga, MANGAS, "sem") : undefined,
-    saia: style.saia !== undefined ? pick(style.saia, SAIAS, "reta") : undefined,
-    decoteProfundidadeCm: style.decoteProfundidadeCm !== undefined ? clamp(Number(style.decoteProfundidadeCm) || 0, 0, 15) : undefined,
-    compSaiaCm: style.compSaiaCm !== undefined ? clamp(Number(style.compSaiaCm) || 60, 25, 120) : undefined,
-    folgaCosturaCm: style.folgaCosturaCm !== undefined ? clamp(Number(style.folgaCosturaCm) || 1, 0, 4) : undefined,
+    decote:
+      style.decote !== undefined
+        ? pick(style.decote, DECOTES, "reto")
+        : undefined,
+    manga:
+      style.manga !== undefined ? pick(style.manga, MANGAS, "sem") : undefined,
+    saia:
+      style.saia !== undefined ? pick(style.saia, SAIAS, "reta") : undefined,
+    decoteProfundidadeCm:
+      style.decoteProfundidadeCm !== undefined
+        ? clamp(Number(style.decoteProfundidadeCm) || 0, 0, 15)
+        : undefined,
+    compSaiaCm:
+      style.compSaiaCm !== undefined
+        ? clamp(Number(style.compSaiaCm) || 60, 25, 120)
+        : undefined,
+    folgaCosturaCm:
+      style.folgaCosturaCm !== undefined
+        ? clamp(Number(style.folgaCosturaCm) || 1, 0, 4)
+        : undefined,
     pences: typeof style.pences === "boolean" ? style.pences : undefined,
   };
-  return { tipo: pick(r.tipo, TIPOS, "blusa"), measurementOverrides: overrides, style: outStyle };
+  return {
+    tipo: pick(r.tipo, TIPOS, "blusa"),
+    measurementOverrides: overrides,
+    style: outStyle,
+  };
 }
 
-export function seamCheck(armholeLenCm?: number, mangaCavaCm?: number): { diffCm: number } | null {
+export function seamCheck(
+  armholeLenCm?: number,
+  mangaCavaCm?: number,
+): { diffCm: number } | null {
   if (armholeLenCm == null || mangaCavaCm == null) return null;
   const diff = Math.abs(armholeLenCm - mangaCavaCm);
   return diff > 1 ? { diffCm: Math.round(diff * 10) / 10 } : null;
 }
 
 export function draftGarment(spec: GarmentSpec, size: SizeLabel) {
-  const measurements: Measurements = resolveMeasurements(size, spec.measurementOverrides);
+  const measurements: Measurements = resolveMeasurements(
+    size,
+    spec.measurementOverrides,
+  );
   const drafted: DraftedPiece[] = [];
   let armholeLenCm: number | undefined;
 
   if (spec.tipo === "blusa" || spec.tipo === "vestido") {
-    const { frente, costas, armholeLenCm: a } = draftCorpo(measurements, spec.style);
+    const {
+      frente,
+      costas,
+      armholeLenCm: a,
+    } = draftCorpo(measurements, spec.style);
     armholeLenCm = a;
     drafted.push(frente, costas);
     const manga = draftManga(measurements, spec.style, a);
@@ -866,7 +1149,11 @@ export function draftGarment(spec: GarmentSpec, size: SizeLabel) {
     drafted.push(draftSaia(measurements, spec.style));
   }
 
-  const { pieces, viewBox } = autoLayout(drafted, 8, ["corpo-frente", "corpo-costas", "manga"]);
+  const { pieces, viewBox } = autoLayout(drafted, 8, [
+    "corpo-frente",
+    "corpo-costas",
+    "manga",
+  ]);
   return { pieces, viewBox, measurements, armholeLenCm };
 }
 ```
@@ -885,12 +1172,14 @@ git commit -m "feat: composição do vestuário (draftGarment) + validação/cla
 ### Task 7: Ligar backend ao fluxo spec-based (mock-data + IA + rota)
 
 **Files:**
+
 - Modify: `lib/mock-data.ts`
 - Modify: `lib/ai.ts`
 - Modify: `app/api/pattern/generate/route.ts`
 - Test: `lib/draft/garment.test.ts` (adicionar caso de aplicação via mock-data) — ou novo `lib/mock-data.test.ts`
 
 **Interfaces:**
+
 - Consumes: `draftGarment`, `validateSpec`, `seamCheck`.
 - Produces (mock-data): `applyGarmentSpec(spec: GarmentSpec): { conflict: ConflictInfo | null }` — resolve tamanho-base do pattern, chama `draftGarment`, grava `pieces`/`viewBox`/`spec`/`baseMeasurements`, e calcula conflito via `seamCheck` (markers dos pontos reais da cava). `getSpec(): GarmentSpec`.
 - Produces (ai): `proposeGarment(state): Promise<{ decision: "apply" | "decline"; spec?: GarmentSpec; declineReason?: string; assistantMessage: string }>`.
@@ -899,16 +1188,24 @@ git commit -m "feat: composição do vestuário (draftGarment) + validação/cla
 
 - `seedPattern()`: continua em branco (`version: 0`, `pieces: []`), `spec: { tipo: "blusa", measurementOverrides: {}, style: {} }` como base neutra, `baseMeasurements: resolveMeasurements(baseSize, {})`, `viewBox: { w: 620, h: 380 }`.
 - Adicionar `applyGarmentSpec` (não importar `seamCheck` aqui — no primeiro corte a copa deriva da cava, então nunca há mismatch; `seamCheck` fica em `garment.ts` para evolução futura, e um export não usado não gera erro de lint, ao contrário de um import não usado):
+
 ```ts
 export function applyGarmentSpec(spec: GarmentSpec): void {
   const size = state.pattern.baseSize;
   const { pieces, viewBox, measurements } = draftGarment(spec, size);
   // Conflito de costura fica desligado no primeiro corte: a copa da manga é
   // dimensionada a partir da cava do corpo, logo casam por construção.
-  state.pattern = { ...state.pattern, pieces, viewBox, spec, baseMeasurements: measurements };
+  state.pattern = {
+    ...state.pattern,
+    pieces,
+    viewBox,
+    spec,
+    baseMeasurements: measurements,
+  };
   state.conflict = null;
 }
 ```
+
 - Import em `mock-data.ts`: `import { draftGarment } from "@/lib/draft/garment";` (só isto do engine — nada de `seamCheck`).
 - Remover do caminho ativo: `updatePieceParams`, `PIECE_META`, `PIECE_ORDER`, `buildConflict`/`LANDMARKS`, `makePiece` (não mais usados). Manter `addMessage/debit/refund/bumpVersion/applySizes/applyPurchase`.
 
@@ -929,9 +1226,11 @@ Em `lib/mock-data.test.ts` (novo), importar `getState/applyGarmentSpec/resetStat
 - [ ] **Step 5: Rodar testes + build + smoke curl**
 
 `npm test` PASS; `npm run build`/`lint` limpos. Subir `npm run dev` e:
+
 ```bash
 curl -s -XPOST localhost:3000/api/pattern/generate -H 'content-type: application/json' -d '{"message":"quero uma saia godê midi"}' | head -c 400
 ```
+
 Esperado: `status:"ok"`, peça `saia` no state. (Requer `ANTHROPIC_API_KEY`.)
 
 - [ ] **Step 6: Commit**
@@ -946,6 +1245,7 @@ git commit -m "feat: fluxo spec-based (mock-data applyGarmentSpec + IA propose_g
 ### Task 8: Componentes — detalhes flexíveis + viewBox dinâmico
 
 **Files:**
+
 - Modify: `components/editor/PatternCanvas.tsx`
 - Modify: `components/editor/CanvasArea.tsx` (passar viewBox)
 - Modify: `components/editor/PieceDetailsPanel.tsx`
@@ -953,11 +1253,12 @@ git commit -m "feat: fluxo spec-based (mock-data applyGarmentSpec + IA propose_g
 - Modify: `components/editor/PlanoCorteTab.tsx` (consumo a partir de área/px, sem `details.consumo`)
 
 **Interfaces:**
+
 - Consumes: `pattern.viewBox`, `piece.detailRows`.
 
 - [ ] **Step 1: `PatternCanvas` usa viewBox dinâmico**
 
-Aceitar prop `viewBox: { w:number; h:number }` e usar `viewBox={\`0 0 ${w} ${h}\`}`. `CanvasArea` passa `pattern.viewBox ?? {w:620,h:380}`.
+Aceitar prop `viewBox: { w:number; h:number }` e usar `viewBox={\`0 0 ${w} ${h}\`}`. `CanvasArea`passa`pattern.viewBox ?? {w:620,h:380}`.
 
 - [ ] **Step 2: `PieceDetailsPanel` renderiza `detailRows`**
 
@@ -987,6 +1288,7 @@ git commit -m "feat: canvas com viewBox dinâmico + ficha de detalhes flexível"
 ### Task 9: Limpeza de código morto + CLAUDE.md
 
 **Files:**
+
 - Modify: `lib/geometry.ts` (remover se totalmente morto, ou reduzir a re-exports), `lib/types.ts` (remover `params` de `Piece`, `PieceDetails` antigo/`details`), `lib/store.ts` (remover `updatePieceParams`/GENERATION_STEPS "3 peças" se preso a 3), `lib/mock-data.ts` (remover restos)
 - Modify: `CLAUDE.md`
 

@@ -42,16 +42,21 @@ export function CanvasArea() {
 
   if (!pattern) return null;
   const isGenerating = generationStatus === "generating";
-  const selectedPiece = pattern.pieces.find((p) => p.id === selectedPieceId) ?? null;
+  const selectedPiece =
+    pattern.pieces.find((p) => p.id === selectedPieceId) ?? null;
   const hasPieces = pattern.pieces.length > 0;
   // Um painel flutuante ocupa o canto direito do canvas (conflito ou detalhes).
   // Reservamos essa faixa pro desenho não ficar escondido atrás dele.
-  const rightOverlayOpen = !isGenerating && (!!conflict || (detailsPanelOpen && !!selectedPiece));
+  const rightOverlayOpen =
+    !isGenerating && (!!conflict || (detailsPanelOpen && !!selectedPiece));
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 min-h-0">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       {isGenerating ? (
-        <GeneratingOverlay stepIndex={generationStepIndex} onCancel={cancelGeneration} />
+        <GeneratingOverlay
+          stepIndex={generationStepIndex}
+          onCancel={cancelGeneration}
+        />
       ) : (
         <TabBar
           activeTab={activeTab}
@@ -64,7 +69,7 @@ export function CanvasArea() {
       )}
 
       {activeTab === "molde2d" && (
-        <div className="flex-1 relative pattern-grid bg-paper p-[22px] min-h-[300px] overflow-hidden">
+        <div className="pattern-grid bg-paper relative min-h-[300px] flex-1 overflow-hidden p-[22px]">
           <div
             className={[
               "absolute top-[22px] bottom-[22px] left-[22px] transition-[right] duration-200",
@@ -85,18 +90,20 @@ export function CanvasArea() {
               onWheelZoom={vp.zoomAtScreen}
               onPan={vp.panByScreen}
               screenToUser={vp.screenToUser}
-              onAddMeasurement={(a, b) => addMeasurement({ id: crypto.randomUUID(), a, b })}
+              onAddMeasurement={(a, b) =>
+                addMeasurement({ id: crypto.randomUUID(), a, b })
+              }
               onRemoveMeasurement={removeMeasurement}
             />
           </div>
           {!isGenerating && !hasPieces && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center px-6 pointer-events-none">
-              <span className="font-display text-[18px] font-semibold text-muted-2">
+            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-center">
+              <span className="font-display text-muted-2 text-[18px] font-semibold">
                 Molde em branco
               </span>
-              <span className="text-[12.5px] text-muted max-w-[300px]">
-                Descreva a peça que você quer no chat ao lado — a IA gera seu primeiro
-                molde do zero.
+              <span className="text-muted max-w-[300px] text-[12.5px]">
+                Descreva a peça que você quer no chat ao lado — a IA gera seu
+                primeiro molde do zero.
               </span>
             </div>
           )}
@@ -114,12 +121,14 @@ export function CanvasArea() {
           {!isGenerating && hasPieces && measurements.length > 0 && (
             <button
               onClick={clearMeasurements}
-              className="absolute left-5 bottom-5 bg-surface border border-border rounded-item px-3 h-[34px] text-[12px] text-muted-2 hover:bg-surface-alt shadow-card transition-colors"
+              className="bg-surface border-border rounded-item text-muted-2 hover:bg-surface-alt shadow-card absolute bottom-5 left-5 h-[34px] border px-3 text-[12px] transition-colors"
             >
               Limpar medições
             </button>
           )}
-          {!isGenerating && conflict && <ConflictInfoCard conflict={conflict} />}
+          {!isGenerating && conflict && (
+            <ConflictInfoCard conflict={conflict} />
+          )}
           {!isGenerating && !conflict && detailsPanelOpen && selectedPiece && (
             <PieceDetailsPanel
               piece={selectedPiece}

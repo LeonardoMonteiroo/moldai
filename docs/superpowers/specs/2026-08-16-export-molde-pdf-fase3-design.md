@@ -63,7 +63,7 @@ inicial). PDF precisa exatamente do mesmo. Extrair:
 export function flattenOutlineCm(
   outline: { start: ExPt; segs: ExSeg[] },
   tolCm: number,
-): ExPt[];   // pontos em cm, contorno fechado, sem o vértice final duplicado
+): ExPt[]; // pontos em cm, contorno fechado, sem o vértice final duplicado
 ```
 
 `toDxf` passa a chamar `flattenOutlineCm` no lugar do loop inline (refatoração
@@ -75,7 +75,7 @@ vértices código 90, guardam a paridade). `toPdf` usa o mesmo helper.
 ```ts
 export type PdfMode = "a4" | "single";
 export interface TilePlan {
-  pageWcm: number;   // dimensão da página (cm)
+  pageWcm: number; // dimensão da página (cm)
   pageHcm: number;
   marginCm: number;
   overlapCm: number; // 0 em "single"
@@ -83,7 +83,11 @@ export interface TilePlan {
   rows: number;
   pages: { row: number; col: number; originCm: ExPt }[]; // janela no sheet
 }
-export function planTiles(sheetWcm: number, sheetHcm: number, mode: PdfMode): TilePlan;
+export function planTiles(
+  sheetWcm: number,
+  sheetHcm: number,
+  mode: PdfMode,
+): TilePlan;
 ```
 
 - **`a4`:** `pageWcm = 21`, `pageHcm = 29.7`, `marginCm = 0.8`, `overlapCm = 1`.
@@ -140,15 +144,26 @@ export function exportPattern(pattern: Pattern, format: ExportFormat): void {
   const model = buildExportModel(pattern);
   const base = `${slug(pattern.name)}-${model.size}`;
   switch (format) {
-    case "svg":  downloadFile(`${base}.svg`, "image/svg+xml", toSvg(model)); return;
-    case "dxf":  downloadFile(`${base}.dxf`, "image/vnd.dxf", toDxf(model)); return;
+    case "svg":
+      downloadFile(`${base}.svg`, "image/svg+xml", toSvg(model));
+      return;
+    case "dxf":
+      downloadFile(`${base}.dxf`, "image/vnd.dxf", toDxf(model));
+      return;
     case "pdf-a4":
-      toPdf(model, "a4").then((b) => downloadFile(`${base}-a4.pdf`, "application/pdf", b)).catch(() => {});
+      toPdf(model, "a4")
+        .then((b) => downloadFile(`${base}-a4.pdf`, "application/pdf", b))
+        .catch(() => {});
       return;
     case "pdf-single":
-      toPdf(model, "single").then((b) => downloadFile(`${base}-folha.pdf`, "application/pdf", b)).catch(() => {});
+      toPdf(model, "single")
+        .then((b) => downloadFile(`${base}-folha.pdf`, "application/pdf", b))
+        .catch(() => {});
       return;
-    default: { const _exhaustive: never = format; return _exhaustive; }
+    default: {
+      const _exhaustive: never = format;
+      return _exhaustive;
+    }
   }
 }
 ```
@@ -175,7 +190,7 @@ export function exportPattern(pattern: Pattern, format: ExportFormat): void {
 - **`planTiles`**: `single` → 1 página com `pageWcm = sheetWcm + 2*margin`;
   `a4` de um sheet pequeno (< área útil) → `cols = rows = 1`; `a4` de um sheet
   grande → `cols/rows` = o `ceil` esperado com o overlap, e `pages.length =
-  cols*rows`; `originCm` crescente com passo `printable - overlap`.
+cols*rows`; `originCm` crescente com passo `printable - overlap`.
 - **`flattenOutlineCm`**: contorno só de retas → mesmos vértices (dedup do final);
   contorno com `cubic` → mais vértices que segs (achatamento).
 - **`rulerTicksCm`**: `rulerTicksCm(10)` → `[0..10]` (11 ticks).

@@ -11,7 +11,11 @@ import Anthropic from "@anthropic-ai/sdk";
 import { proposeGarment } from "./ai";
 
 // handle compartilhado do mock (a factory reusa a mesma fn create)
-const create = (new (Anthropic as unknown as new () => { messages: { create: ReturnType<typeof vi.fn> } })()).messages.create;
+const create = new (
+  Anthropic as unknown as new () => {
+    messages: { create: ReturnType<typeof vi.fn> };
+  }
+)().messages.create;
 
 function toolResp(input: unknown) {
   return { content: [{ type: "tool_use", name: "propose_garment", input }] };
@@ -30,7 +34,9 @@ describe("proposeGarment", () => {
       toolResp({
         decision: "ask",
         assistantMessage: "Me conta mais:",
-        questions: [{ label: "Gola", options: ["redonda", "V"], allowOther: true }],
+        questions: [
+          { label: "Gola", options: ["redonda", "V"], allowOther: true },
+        ],
       }),
     );
     const d = await proposeGarment(baseState, false);
@@ -41,7 +47,17 @@ describe("proposeGarment", () => {
 
   it("degrada ask sem perguntas válidas para apply", async () => {
     create.mockResolvedValue(
-      toolResp({ decision: "ask", assistantMessage: "x", questions: [], spec: { tipo: "camiseta", sexo: "masc", style: {}, measurementOverrides: {} } }),
+      toolResp({
+        decision: "ask",
+        assistantMessage: "x",
+        questions: [],
+        spec: {
+          tipo: "camiseta",
+          sexo: "masc",
+          style: {},
+          measurementOverrides: {},
+        },
+      }),
     );
     const d = await proposeGarment(baseState, false);
     expect(d.decision).toBe("apply");
@@ -49,7 +65,11 @@ describe("proposeGarment", () => {
 
   it("answering=true força apply mesmo se a IA responder ask", async () => {
     create.mockResolvedValue(
-      toolResp({ decision: "ask", assistantMessage: "x", questions: [{ label: "Gola", options: ["a", "b"] }] }),
+      toolResp({
+        decision: "ask",
+        assistantMessage: "x",
+        questions: [{ label: "Gola", options: ["a", "b"] }],
+      }),
     );
     const d = await proposeGarment(baseState, true);
     expect(d.decision).toBe("apply");

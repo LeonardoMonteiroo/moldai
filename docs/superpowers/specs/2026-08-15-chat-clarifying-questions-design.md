@@ -46,10 +46,10 @@ e reentra no mesmo fluxo com `answering=true`.
 
 ```ts
 export interface ClarifyQuestion {
-  id: string;         // slug estável p/ key/rótulo, ex.: "gola"
-  label: string;      // pergunta curta em pt-BR
-  options: string[];  // 2–6 opções de escolha única
-  allowOther: boolean;// mostra campo "outro" de texto livre
+  id: string; // slug estável p/ key/rótulo, ex.: "gola"
+  label: string; // pergunta curta em pt-BR
+  options: string[]; // 2–6 opções de escolha única
+  allowOther: boolean; // mostra campo "outro" de texto livre
 }
 ```
 
@@ -63,12 +63,12 @@ export interface ClarifyQuestion {
 - Tool schema (`propose_garment`): enum de `decision` ganha `"ask"`; novo campo
   `questions` (array de objetos `{ label, options[], allowOther }`).
 - `proposeGarment(state, answering: boolean)`:
-  - `buildSystem` recebe `answering`. Instrução nova: *"Se faltar detalhe
+  - `buildSystem` recebe `answering`. Instrução nova: _"Se faltar detalhe
     relevante pra modelar corretamente (gola, manga, caimento, comprimento,
     tamanho…), use `decision=ask` com 1 a 4 perguntas objetivas de escolha única,
-    com opções do catálogo válido; não invente medidas nem desenhe."* Quando
-    `answering=true`: *"O usuário já respondeu às perguntas; NÃO pergunte de novo
-    — use `apply` (ou `decline` se for fora de escopo) com o melhor entendimento."*
+    com opções do catálogo válido; não invente medidas nem desenhe."_ Quando
+    `answering=true`: _"O usuário já respondeu às perguntas; NÃO pergunte de novo
+    — use `apply` (ou `decline` se for fora de escopo) com o melhor entendimento."_
   - O histórico enviado à IA continua sendo `state.chat` (as respostas já entraram
     como mensagem do usuário antes do request, como hoje).
 - **Trust boundary:** a saída da IA nunca é confiada crua. Um `validateQuestions`
@@ -90,7 +90,7 @@ export interface ClarifyQuestion {
 ### 4. Cliente (`lib/api-client.ts`, `lib/store.ts`)
 
 - `api-client`: `generate(message, answering?: boolean)` manda `{ message,
-  answering }`. `GenerateResult` ganha o status `"clarify"` (carrega `state`).
+answering }`. `GenerateResult` ganha o status `"clarify"` (carrega `state`).
 - `store.sendMessage(message: string, opts?: { answering?: boolean })`:
   - Repassa `opts.answering` pro `api.generate`.
   - `"clarify"` é tratado como sucesso silencioso: aplica `state` (o card já vem
@@ -114,7 +114,7 @@ export interface ClarifyQuestion {
     (juntando as respostas; usa o texto do "outro" quando essa opção estiver
     marcada) e chama `sendMessage(frase, { answering: true })`.
   - "gerar assim mesmo": `sendMessage("pode gerar com os padrões", { answering:
-    true })`.
+true })`.
   - Só habilita "Gerar molde" quando toda pergunta tem resposta (ou "outro"
     preenchido); "gerar assim mesmo" está sempre disponível.
 - O card usa os mesmos tokens do design (surface/border/olive/olive-tint); não

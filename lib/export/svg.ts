@@ -4,11 +4,19 @@ const MM = 10; // cm -> mm (1:1)
 const f = (n: number) => (Math.round(n * 100) / 100).toString();
 
 function escapeXml(s: string): string {
-  return s.replace(/[<>&"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c]!));
+  return s.replace(
+    /[<>&"]/g,
+    (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" })[c]!,
+  );
 }
 
 function pathD(start: ExPt, segs: ExSeg[], ox: number, oy: number): string {
-  return buildPathD(start, segs, (x) => (ox + x) * MM, (y) => (oy + y) * MM);
+  return buildPathD(
+    start,
+    segs,
+    (x) => (ox + x) * MM,
+    (y) => (oy + y) * MM,
+  );
 }
 
 export function toSvg(model: ExportModel): string {
@@ -32,8 +40,12 @@ export function toSvg(model: ExportModel): string {
       );
     }
     if (p.dart && p.dart.length >= 3) {
-      const dd = p.dart.map((pt, i) => `${i === 0 ? "M" : "L"}${X(pt.x)} ${Y(pt.y)}`).join(" ");
-      parts.push(`<path d="${dd} Z" fill="none" stroke="#4a5a3a" stroke-width="0.3"/>`);
+      const dd = p.dart
+        .map((pt, i) => `${i === 0 ? "M" : "L"}${X(pt.x)} ${Y(pt.y)}`)
+        .join(" ");
+      parts.push(
+        `<path d="${dd} Z" fill="none" stroke="#4a5a3a" stroke-width="0.3"/>`,
+      );
     }
     parts.push(
       `<text x="${X(p.outline.start.x)}" y="${Y(p.heightCm)}" font-family="sans-serif" font-size="6" fill="#5a564a">${escapeXml(p.name.toUpperCase())} · ${p.qty}x</text>`,

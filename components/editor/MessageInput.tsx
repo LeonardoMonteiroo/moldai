@@ -28,17 +28,17 @@ export function MessageInput({
           if (e.key === "Enter") submit();
         }}
         placeholder="Descreva o ajuste…"
-        className="border border-border rounded-item px-[13px] py-[11px] text-[13px] bg-surface-alt placeholder:text-placeholder disabled:opacity-60 outline-none focus:border-olive-border"
+        className="border-border rounded-item bg-surface-alt placeholder:text-placeholder focus:border-olive-border border px-[13px] py-[11px] text-[13px] outline-none disabled:opacity-60"
       />
       <div className="flex items-center gap-[10px]">
         <button
           onClick={submit}
           disabled={disabled || !value.trim()}
-          className="flex-1 bg-ink text-white rounded-item py-[11px] text-[13px] font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
+          className="bg-ink rounded-item flex-1 py-[11px] text-[13px] font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
         >
           Gerar
         </button>
-        <span className="text-[12px] text-muted">{COSTS.adjust} crédito</span>
+        <span className="text-muted text-[12px]">{COSTS.adjust} crédito</span>
       </div>
     </div>
   );

@@ -7,7 +7,7 @@ export default async function Home() {
   if (!session?.user?.email) redirect("/login");
 
   return (
-    <div className="flex flex-col flex-1 min-h-0">
+    <div className="flex min-h-0 flex-1 flex-col">
       <EditorShell userEmail={session.user.email} />
     </div>
   );

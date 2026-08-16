@@ -14,9 +14,21 @@ function fakePattern(): Pattern {
     sizesApplied: [],
     sizesPending: [],
     pieces: [
-      { id: "x", name: "x", qty: 1, outline: { kind: "polygon", points: "0,0" }, label: { x: 0, y: 0 }, detailRows: [] },
+      {
+        id: "x",
+        name: "x",
+        qty: 1,
+        outline: { kind: "polygon", points: "0,0" },
+        label: { x: 0, y: 0 },
+        detailRows: [],
+      },
     ],
-    spec: { tipo: "camiseta", sexo: "masc", measurementOverrides: {}, style: { folgaCosturaCm: 1 } },
+    spec: {
+      tipo: "camiseta",
+      sexo: "masc",
+      measurementOverrides: {},
+      style: { folgaCosturaCm: 1 },
+    },
   };
 }
 
@@ -34,7 +46,9 @@ describe("planCutLayout", () => {
     expect(plan.overflow).toBe(false);
     for (const it of plan.instances) {
       expect(it.originCm.x).toBeGreaterThanOrEqual(0);
-      expect(it.originCm.x + it.widthCm).toBeLessThanOrEqual(plan.fabricWidthCm + 1e-6);
+      expect(it.originCm.x + it.widthCm).toBeLessThanOrEqual(
+        plan.fabricWidthCm + 1e-6,
+      );
     }
   });
 

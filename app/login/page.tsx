@@ -15,7 +15,11 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
-    const res = await signIn("credentials", { email, password, redirect: false });
+    const res = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
     setLoading(false);
     if (res?.error) {
       setError("Email ou senha inválidos.");
@@ -26,14 +30,14 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-paper px-4">
-      <div className="w-full max-w-[380px] bg-surface border border-border rounded-card shadow-card p-7">
-        <span className="font-display font-bold text-[22px] tracking-[-0.4px]">
+    <div className="bg-paper flex min-h-screen items-center justify-center px-4">
+      <div className="bg-surface border-border rounded-card shadow-card w-full max-w-[380px] border p-7">
+        <span className="font-display text-[22px] font-bold tracking-[-0.4px]">
           Mold<span className="text-olive">AI</span>
         </span>
         <h1 className="mt-4 text-[15px] font-semibold">Entrar</h1>
         <form onSubmit={onSubmit} className="mt-4 flex flex-col gap-3">
-          <label className="flex flex-col gap-1 text-[12px] text-muted-2">
+          <label className="text-muted-2 flex flex-col gap-1 text-[12px]">
             Email
             <input
               type="email"
@@ -41,10 +45,10 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               autoComplete="username"
-              className="px-3 py-2 border border-border rounded-btn bg-surface-alt text-[13px] text-ink focus:outline-none focus:border-olive"
+              className="border-border rounded-btn bg-surface-alt text-ink focus:border-olive border px-3 py-2 text-[13px] focus:outline-none"
             />
           </label>
-          <label className="flex flex-col gap-1 text-[12px] text-muted-2">
+          <label className="text-muted-2 flex flex-col gap-1 text-[12px]">
             Senha
             <input
               type="password"
@@ -52,21 +56,21 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               autoComplete="current-password"
-              className="px-3 py-2 border border-border rounded-btn bg-surface-alt text-[13px] text-ink focus:outline-none focus:border-olive"
+              className="border-border rounded-btn bg-surface-alt text-ink focus:border-olive border px-3 py-2 text-[13px] focus:outline-none"
             />
           </label>
-          {error && <p className="text-[12px] text-alert">{error}</p>}
+          {error && <p className="text-alert text-[12px]">{error}</p>}
           <button
             type="submit"
             disabled={loading}
-            className="mt-1 px-4 py-2 rounded-btn bg-olive text-white text-[13px] font-semibold hover:bg-olive-dark disabled:opacity-50 transition-colors"
+            className="rounded-btn bg-olive hover:bg-olive-dark mt-1 px-4 py-2 text-[13px] font-semibold text-white transition-colors disabled:opacity-50"
           >
             {loading ? "Entrando…" : "Entrar"}
           </button>
         </form>
-        <p className="mt-4 text-[11px] text-muted">
-          Criar conta — <span className="font-medium">em breve</span>. Cada conta tem o seu próprio
-          molde, salvo automaticamente.
+        <p className="text-muted mt-4 text-[11px]">
+          Criar conta — <span className="font-medium">em breve</span>. Cada
+          conta tem o seu próprio molde, salvo automaticamente.
         </p>
       </div>
     </div>

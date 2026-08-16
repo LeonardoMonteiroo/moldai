@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { withMolde } from "@/lib/db/molde";
-import { addMessage, applyGarmentSpec, bumpVersion, debitCredits, refundCredits } from "@/lib/editor/state";
+import {
+  addMessage,
+  applyGarmentSpec,
+  bumpVersion,
+  debitCredits,
+  refundCredits,
+} from "@/lib/editor/state";
 import { COSTS } from "@/lib/types";
 import { proposeGarment } from "@/lib/ai";
 import { requireUser } from "@/lib/auth/guard";
@@ -13,11 +19,17 @@ export async function POST(request: Request) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ status: "error", error: "Corpo inválido." }, { status: 400 });
+    return NextResponse.json(
+      { status: "error", error: "Corpo inválido." },
+      { status: 400 },
+    );
   }
   const trimmed = typeof body.message === "string" ? body.message.trim() : "";
   if (!trimmed) {
-    return NextResponse.json({ status: "error", error: "Mensagem obrigatória." }, { status: 400 });
+    return NextResponse.json(
+      { status: "error", error: "Mensagem obrigatória." },
+      { status: 400 },
+    );
   }
   const answering = body.answering === true;
   const cost = COSTS.adjust;
@@ -25,12 +37,21 @@ export async function POST(request: Request) {
   return withMolde(gate.id, async (state) => {
     if (state.credits.balance < cost) {
       return NextResponse.json(
-        { status: "insufficient_credits", required: cost, balance: state.credits.balance },
+        {
+          status: "insufficient_credits",
+          required: cost,
+          balance: state.credits.balance,
+        },
         { status: 402 },
       );
     }
 
-    addMessage(state, { id: `msg-${Date.now()}-u`, author: "user", text: trimmed, createdAt: Date.now() });
+    addMessage(state, {
+      id: `msg-${Date.now()}-u`,
+      author: "user",
+      text: trimmed,
+      createdAt: Date.now(),
+    });
     debitCredits(state, cost);
 
     try {
@@ -40,7 +61,9 @@ export async function POST(request: Request) {
         addMessage(state, {
           id: `msg-${Date.now()}-ai`,
           author: "ai",
-          text: decision.assistantMessage || "Pra acertar a modelagem, me responde:",
+          text:
+            decision.assistantMessage ||
+            "Pra acertar a modelagem, me responde:",
           questions: decision.questions,
           createdAt: Date.now(),
         });
@@ -52,7 +75,10 @@ export async function POST(request: Request) {
         addMessage(state, {
           id: `msg-${Date.now()}-ai`,
           author: "ai",
-          text: decision.assistantMessage || decision.declineReason || "Não consegui aplicar esse pedido.",
+          text:
+            decision.assistantMessage ||
+            decision.declineReason ||
+            "Não consegui aplicar esse pedido.",
           createdAt: Date.now(),
         });
         refundCredits(state, cost);
@@ -65,7 +91,9 @@ export async function POST(request: Request) {
       addMessage(state, {
         id: `msg-${Date.now()}-ai`,
         author: "ai",
-        text: conflict ? `${decision.assistantMessage} ⚠️ ${conflict.description}` : decision.assistantMessage,
+        text: conflict
+          ? `${decision.assistantMessage} ⚠️ ${conflict.description}`
+          : decision.assistantMessage,
         chips: [{ label: `−${cost} crédito`, tone: "credit" }],
         tone: conflict ? "conflict" : undefined,
         createdAt: Date.now(),

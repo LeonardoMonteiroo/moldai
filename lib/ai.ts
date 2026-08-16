@@ -1,7 +1,11 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { EditorState, GarmentSpec, ClarifyQuestion } from "./types";
 import { validateSpec, validateQuestions } from "@/lib/draft/garment";
-import { MEASUREMENT_RANGES, SIZE_TABLE, SIZE_TABLE_MASC } from "@/lib/measurements";
+import {
+  MEASUREMENT_RANGES,
+  SIZE_TABLE,
+  SIZE_TABLE_MASC,
+} from "@/lib/measurements";
 
 export interface AiDecision {
   decision: "apply" | "decline" | "ask";
@@ -39,14 +43,25 @@ const TOOL: Anthropic.Tool = {
         description:
           "A GarmentSpec COMPLETA e ATUALIZADA (não só o delta). Preencha SEMPRE que decision=apply — inclua tudo que já existia mais as mudanças pedidas.",
         properties: {
-          tipo: { type: "string", enum: ["blusa", "vestido", "saia", "camiseta"] },
-          sexo: { type: "string", enum: ["fem", "masc"], description: "Sexo/base de medidas. Infira de pistas como 'masculina'/'feminina'/'unissex'. Default fem." },
+          tipo: {
+            type: "string",
+            enum: ["blusa", "vestido", "saia", "camiseta"],
+          },
+          sexo: {
+            type: "string",
+            enum: ["fem", "masc"],
+            description:
+              "Sexo/base de medidas. Infira de pistas como 'masculina'/'feminina'/'unissex'. Default fem.",
+          },
           measurementOverrides: {
             type: "object",
             description:
               "Overrides numéricos (cm) de medidas do corpo, por nome de medida. Só inclua o que o pedido pede explicitamente ajustar; o resto vem da tabela de tamanhos.",
             properties: Object.fromEntries(
-              Object.keys(MEASUREMENT_RANGES).map((k) => [k, { type: "number" }]),
+              Object.keys(MEASUREMENT_RANGES).map((k) => [
+                k,
+                { type: "number" },
+              ]),
             ),
             additionalProperties: { type: "number" },
           },
@@ -56,7 +71,10 @@ const TOOL: Anthropic.Tool = {
               decote: { type: "string", enum: ["reto", "V", "redondo"] },
               decoteProfundidadeCm: { type: "number" },
               manga: { type: "string", enum: ["sem", "curta", "longa"] },
-              saia: { type: "string", enum: ["reta", "evase", "gode", "meia-roda", "circulo"] },
+              saia: {
+                type: "string",
+                enum: ["reta", "evase", "gode", "meia-roda", "circulo"],
+              },
               compSaiaCm: { type: "number" },
               pences: { type: "boolean" },
               folgaCosturaCm: { type: "number" },
@@ -77,17 +95,32 @@ const TOOL: Anthropic.Tool = {
         items: {
           type: "object",
           properties: {
-            label: { type: "string", description: "Pergunta curta em pt-BR (ex.: 'Gola')." },
-            options: { type: "array", items: { type: "string" }, description: "2 a 6 opções de escolha única." },
-            allowOther: { type: "boolean", description: "true se fizer sentido um campo 'outro' de texto livre." },
+            label: {
+              type: "string",
+              description: "Pergunta curta em pt-BR (ex.: 'Gola').",
+            },
+            options: {
+              type: "array",
+              items: { type: "string" },
+              description: "2 a 6 opções de escolha única.",
+            },
+            allowOther: {
+              type: "boolean",
+              description:
+                "true se fizer sentido um campo 'outro' de texto livre.",
+            },
           },
           required: ["label", "options"],
         },
       },
-      declineReason: { type: "string", description: "Preencha SOMENTE quando decision=decline." },
+      declineReason: {
+        type: "string",
+        description: "Preencha SOMENTE quando decision=decline.",
+      },
       assistantMessage: {
         type: "string",
-        description: "Resposta curta ao usuário no chat, em português, descrevendo o que foi feito ou por que não.",
+        description:
+          "Resposta curta ao usuário no chat, em português, descrevendo o que foi feito ou por que não.",
       },
     },
     required: ["decision", "assistantMessage"],
@@ -122,7 +155,10 @@ function buildSystem(state: EditorState, answering: boolean): string {
   ].join("\n");
 }
 
-export async function proposeGarment(state: EditorState, answering: boolean): Promise<AiDecision> {
+export async function proposeGarment(
+  state: EditorState,
+  answering: boolean,
+): Promise<AiDecision> {
   const client = new Anthropic();
   const history = state.chat.slice(-10).map((m) => ({
     role: m.author === "user" ? ("user" as const) : ("assistant" as const),
@@ -156,7 +192,11 @@ export async function proposeGarment(state: EditorState, answering: boolean): Pr
       };
     }
     // sem pergunta aproveitável → desenha com defaults
-    return { decision: "apply", spec: validateSpec(input.spec), assistantMessage: input.assistantMessage };
+    return {
+      decision: "apply",
+      spec: validateSpec(input.spec),
+      assistantMessage: input.assistantMessage,
+    };
   }
 
   const decision = input.decision === "ask" ? "apply" : input.decision;

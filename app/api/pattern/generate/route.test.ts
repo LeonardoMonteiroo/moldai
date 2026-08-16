@@ -6,11 +6,17 @@ let state: EditorState = seedState();
 
 vi.mock("@/lib/ai", () => ({ proposeGarment: vi.fn() }));
 vi.mock("@/lib/auth/guard", () => ({
-  requireUser: vi.fn(async () => ({ id: "u1", email: "dev@moldai.local", name: null })),
+  requireUser: vi.fn(async () => ({
+    id: "u1",
+    email: "dev@moldai.local",
+    name: null,
+  })),
 }));
 vi.mock("@/lib/db/molde", () => ({
   // Executa o fn sobre o state em memória (imita withMolde sem DB).
-  withMolde: vi.fn(async (_userId: string, fn: (s: EditorState) => unknown) => fn(state)),
+  withMolde: vi.fn(async (_userId: string, fn: (s: EditorState) => unknown) =>
+    fn(state),
+  ),
   loadMolde: vi.fn(async () => state),
   resetMolde: vi.fn(async () => (state = seedState())),
 }));
@@ -34,7 +40,11 @@ describe("POST /api/pattern/generate", () => {
   beforeEach(() => {
     state = seedState();
     mockPropose.mockReset();
-    vi.mocked(requireUser).mockResolvedValue({ id: "u1", email: "dev@moldai.local", name: null });
+    vi.mocked(requireUser).mockResolvedValue({
+      id: "u1",
+      email: "dev@moldai.local",
+      name: null,
+    });
   });
 
   it("ask estorna o crédito, não desenha nem versiona, e devolve clarify", async () => {
@@ -42,8 +52,20 @@ describe("POST /api/pattern/generate", () => {
     const versionBefore = state.pattern.version;
     mockPropose.mockResolvedValue({
       decision: "ask",
-      spec: { tipo: "camiseta", sexo: "masc", style: {}, measurementOverrides: {} },
-      questions: [{ id: "q0", label: "Gola", options: ["redonda", "V"], allowOther: true }],
+      spec: {
+        tipo: "camiseta",
+        sexo: "masc",
+        style: {},
+        measurementOverrides: {},
+      },
+      questions: [
+        {
+          id: "q0",
+          label: "Gola",
+          options: ["redonda", "V"],
+          allowOther: true,
+        },
+      ],
       assistantMessage: "Me conta mais:",
     });
     const res = await POST(req({ message: "quero uma camiseta" }));
@@ -61,7 +83,12 @@ describe("POST /api/pattern/generate", () => {
     const balanceBefore = state.credits.balance;
     mockPropose.mockResolvedValue({
       decision: "apply",
-      spec: { tipo: "camiseta", sexo: "masc", style: {}, measurementOverrides: {} },
+      spec: {
+        tipo: "camiseta",
+        sexo: "masc",
+        style: {},
+        measurementOverrides: {},
+      },
       assistantMessage: "Pronto",
     });
     const res = await POST(req({ message: "camiseta masc" }));
@@ -83,7 +110,12 @@ describe("POST /api/pattern/generate", () => {
   it("repassa answering ao proposeGarment", async () => {
     mockPropose.mockResolvedValue({
       decision: "apply",
-      spec: { tipo: "camiseta", sexo: "masc", style: {}, measurementOverrides: {} },
+      spec: {
+        tipo: "camiseta",
+        sexo: "masc",
+        style: {},
+        measurementOverrides: {},
+      },
       assistantMessage: "Pronto",
     });
     await POST(req({ message: "gola redonda", answering: true }));

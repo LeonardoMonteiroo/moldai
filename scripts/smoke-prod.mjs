@@ -13,7 +13,10 @@
 //   SMOKE_URL=http://host:3000 node scripts/smoke-prod.mjs
 // Env: SMOKE_URL, SMOKE_EMAIL, SMOKE_PASSWORD, SMOKE_READY_TIMEOUT_MS
 
-const BASE = (process.env.SMOKE_URL ?? "http://localhost:3000").replace(/\/$/, "");
+const BASE = (process.env.SMOKE_URL ?? "http://localhost:3000").replace(
+  /\/$/,
+  "",
+);
 const EMAIL = process.env.SMOKE_EMAIL ?? "dev@moldai.local";
 const PASSWORD = process.env.SMOKE_PASSWORD ?? "moldai-dev";
 const READY_TIMEOUT_MS = Number(process.env.SMOKE_READY_TIMEOUT_MS ?? 120000);
@@ -40,7 +43,11 @@ function cookieHeader() {
 async function req(path, init = {}) {
   const headers = { ...(init.headers ?? {}) };
   if (jar.size) headers.cookie = cookieHeader();
-  const res = await fetch(BASE + path, { redirect: "manual", ...init, headers });
+  const res = await fetch(BASE + path, {
+    redirect: "manual",
+    ...init,
+    headers,
+  });
   storeCookies(res);
   return res;
 }
@@ -66,7 +73,9 @@ async function waitReady() {
     }
     await new Promise((r) => setTimeout(r, 2000));
   }
-  fail(`servidor não ficou pronto em ${BASE} (${READY_TIMEOUT_MS}ms) — último: ${last}`);
+  fail(
+    `servidor não ficou pronto em ${BASE} (${READY_TIMEOUT_MS}ms) — último: ${last}`,
+  );
 }
 
 async function main() {
@@ -77,15 +86,22 @@ async function main() {
   // Endpoint de auth precisa estar de pé — 500 aqui é o sintoma do UntrustedHost.
   const providers = await req("/api/auth/providers");
   if (providers.status !== 200) {
-    fail(`GET /api/auth/providers → ${providers.status} (500 = trustHost/UntrustedHost)`);
+    fail(
+      `GET /api/auth/providers → ${providers.status} (500 = trustHost/UntrustedHost)`,
+    );
   }
   ok("GET /api/auth/providers → 200");
 
   // Raiz sem sessão deve mandar para /login.
   const anon = await req("/");
   const anonLoc = anon.headers.get("location") ?? "";
-  if (![301, 302, 307, 308].includes(anon.status) || !anonLoc.includes("/login")) {
-    fail(`GET / (anônimo) → ${anon.status} loc="${anonLoc}" (esperado redirect p/ /login)`);
+  if (
+    ![301, 302, 307, 308].includes(anon.status) ||
+    !anonLoc.includes("/login")
+  ) {
+    fail(
+      `GET / (anônimo) → ${anon.status} loc="${anonLoc}" (esperado redirect p/ /login)`,
+    );
   }
   ok("GET / (anônimo) → redirect /login");
 
@@ -109,7 +125,9 @@ async function main() {
     body,
   });
   if (login.status >= 500) {
-    fail(`POST login → ${login.status} (5xx: provável UntrustedHost/trustHost)`);
+    fail(
+      `POST login → ${login.status} (5xx: provável UntrustedHost/trustHost)`,
+    );
   }
   const loginLoc = login.headers.get("location") ?? "";
   if (/[?&]error=/.test(loginLoc)) {
@@ -133,7 +151,9 @@ async function main() {
   }
   ok("GET / (autenticado) → 200 (editor)");
 
-  console.log("\n✓ smoke de produção OK — login real funciona no stack next start");
+  console.log(
+    "\n✓ smoke de produção OK — login real funciona no stack next start",
+  );
 }
 
 main().catch((e) => fail(e?.stack ?? String(e)));

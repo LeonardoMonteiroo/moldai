@@ -26,7 +26,10 @@ const model: ExportModel = {
           { kind: "line", to: { x: 0, y: 0 } },
         ],
       },
-      grainline: [{ x: 5, y: 1 }, { x: 5, y: 9 }],
+      grainline: [
+        { x: 5, y: 1 },
+        { x: 5, y: 9 },
+      ],
       originCm: { x: 2, y: 2 },
     },
   ],

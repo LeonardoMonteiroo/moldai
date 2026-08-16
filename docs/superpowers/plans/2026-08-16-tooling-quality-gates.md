@@ -25,20 +25,24 @@
 ### Task 1: Config de formatação (Prettier + editorconfig)
 
 **Files:**
+
 - Modify: `package.json` (devDeps + scripts `format`/`format:check`)
 - Create: `.prettierrc`
 - Create: `.prettierignore`
 - Create: `.editorconfig`
 
 **Interfaces:**
+
 - Produces: scripts `npm run format` (`prettier --write .`) e `npm run format:check` (`prettier --check .`), consumidos pelo baseline (Task 2), lint-staged (Task 4) e CI (Task 5).
 
 - [ ] **Step 1: Instalar devDeps do Prettier**
 
 Run:
+
 ```bash
 npm install -D --legacy-peer-deps prettier prettier-plugin-tailwindcss eslint-config-prettier
 ```
+
 Expected: instala sem erro; `package.json` ganha as 3 devDeps; `package-lock.json` atualizado.
 
 - [ ] **Step 2: Criar `.prettierrc`**
@@ -83,6 +87,7 @@ trim_trailing_whitespace = false
 - [ ] **Step 5: Adicionar scripts `format`/`format:check` ao `package.json`**
 
 No bloco `"scripts"`, adicionar:
+
 ```json
 "format": "prettier --write .",
 "format:check": "prettier --check ."
@@ -107,9 +112,11 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ### Task 2: Baseline de formatação (commit isolado)
 
 **Files:**
+
 - Modify: todo o repo formatável (saída mecânica do `prettier --write`) — **sem mudança de lógica**.
 
 **Interfaces:**
+
 - Consumes: scripts `format`/`format:check` (Task 1).
 - Produces: um repo 100% formatado; `format:check` limpo — pré-requisito pro subsistema 2 (rename) assentar por cima sem diff-ruído.
 
@@ -141,6 +148,7 @@ git commit -m "style: aplica Prettier ao repositório (baseline de formatação)
 
 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
+
 Nota ao revisor: este commit é 100% saída do `prettier --write`; a verificação é `format:check` limpo + testes/build verdes, não leitura linha-a-linha do diff.
 
 ---
@@ -148,11 +156,13 @@ Nota ao revisor: este commit é 100% saída do `prettier --write`; a verificaç�
 ### Task 3: Endurecer ESLint (jsx-a11y strict + eslint-config-prettier)
 
 **Files:**
+
 - Modify: `eslint.config.mjs`
 - Modify: `package.json` (adicionar `eslint-plugin-jsx-a11y` como devDep explícito)
 - Modify: arquivos em `app/`/`components/` que o a11y strict acusar (correções reais)
 
 **Interfaces:**
+
 - Consumes: flat-config existente (`eslint-config-next/core-web-vitals` + `typescript`).
 - Produces: `npx eslint app lib components` limpo com a11y strict — base pro pre-push (Task 4) e CI (Task 5).
 
@@ -179,7 +189,10 @@ const eslintConfig = defineConfig([
   globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
   {
     rules: {
-      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
     },
   },
   eslintConfigPrettier,
@@ -189,9 +202,13 @@ export default eslintConfig;
 ```
 
 **Caveat de integração (provável):** `eslint-config-next/core-web-vitals` já registra o plugin `jsx-a11y` (no nível `recommended`). Espalhar `jsxA11y.flatConfigs.strict` — que re-registra `plugins: { "jsx-a11y": ... }` — pode disparar `ConfigError: Config … Cannot redefine plugin "jsx-a11y"` no ESLint 9. Se isso ocorrer no Step 3, **não** espalhar o preset inteiro; em vez disso adicionar um config-object que só sobe as REGRAS strict sem re-registrar o plugin, ex.:
+
 ```js
-{ rules: jsxA11y.flatConfigs.strict.rules }
+{
+  rules: jsxA11y.flatConfigs.strict.rules;
+}
 ```
+
 (pega apenas o mapa de regras do preset strict, reusando o plugin já registrado pelo Next). Verificar com o Step 3 que passa a valer o nível strict.
 
 - [ ] **Step 3: Rodar o lint escopado e enumerar achados**
@@ -227,22 +244,26 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ### Task 4: Husky + lint-staged (pre-commit / pre-push)
 
 **Files:**
+
 - Modify: `package.json` (devDeps `husky`/`lint-staged`, script `prepare`, bloco `lint-staged`)
 - Create: `.husky/pre-commit`
 - Create: `.husky/pre-push`
 - Modify: `.gitattributes` (força LF nos hooks)
 
 **Interfaces:**
+
 - Consumes: scripts/configs das Tasks 1–3 (`prettier`, `eslint`, `vitest`).
 - Produces: hooks locais de pre-commit (rápido, staged) e pre-push (pesado).
 
 - [ ] **Step 1: Instalar Husky + lint-staged e inicializar**
 
 Run:
+
 ```bash
 npm install -D --legacy-peer-deps husky lint-staged
 npx husky init
 ```
+
 Expected: cria `.husky/` (com um `pre-commit` placeholder) e adiciona `"prepare": "husky"` em `scripts`. (Se o `husky init` sobrescrever/mexer em outros scripts, reverter essas mudanças não intencionais.)
 
 - [ ] **Step 2: Adicionar o bloco `lint-staged` ao `package.json`**
@@ -257,6 +278,7 @@ Expected: cria `.husky/` (com um `pre-commit` placeholder) e adiciona `"prepare"
 - [ ] **Step 3: Escrever `.husky/pre-commit`**
 
 Conteúdo (Husky v9 — script direto, sem shebang de sourcing):
+
 ```sh
 npx lint-staged
 ```
@@ -271,6 +293,7 @@ npx eslint app lib components
 - [ ] **Step 5: Forçar LF nos hooks via `.gitattributes`**
 
 Adicionar ao `.gitattributes` (hooks não têm extensão `.sh`, então a regra atual não os cobre — CRLF quebraria a execução):
+
 ```
 .husky/* text eol=lf
 ```
@@ -278,9 +301,10 @@ Adicionar ao `.gitattributes` (hooks não têm extensão `.sh`, então a regra a
 - [ ] **Step 6: Provar o pre-commit — bloqueia erro e formata**
 
 Teste manual:
+
 1. Introduzir num arquivo `.tsx` sob `components/` um erro de lint deliberado (ex.: `<img>` sem `alt`) e desformatar uma linha.
 2. `git add` desse arquivo e tentar `git commit -m "teste"`.
-Expected: o hook roda `lint-staged`, o Prettier reformata, e o `eslint --fix`/regra a11y **bloqueia o commit** (código ≠ 0). Desfazer o erro deliberado; confirmar que aí o commit passa (e o arquivo saiu formatado). Confirmar que `git commit --no-verify` burla (documentado: gate real é o CI).
+   Expected: o hook roda `lint-staged`, o Prettier reformata, e o `eslint --fix`/regra a11y **bloqueia o commit** (código ≠ 0). Desfazer o erro deliberado; confirmar que aí o commit passa (e o arquivo saiu formatado). Confirmar que `git commit --no-verify` burla (documentado: gate real é o CI).
 
 - [ ] **Step 7: Commit**
 
@@ -296,10 +320,12 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ### Task 5: CI (GitHub Actions) + script typecheck
 
 **Files:**
+
 - Create: `.github/workflows/ci.yml`
 - Modify: `package.json` (script `typecheck`)
 
 **Interfaces:**
+
 - Consumes: `format:check`, `eslint`, `vitest`, `build` das tasks anteriores.
 - Produces: gate de CI em push/PR.
 

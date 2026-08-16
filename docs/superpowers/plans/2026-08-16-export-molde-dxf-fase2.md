@@ -26,20 +26,25 @@ Referência de formas do `ExportModel` (de `lib/export/model.ts`, não alterar):
 ```ts
 export type ExPt = { x: number; y: number };
 export type ExSeg =
-  | { kind: "line"; to: ExPt }
-  | { kind: "cubic"; c1: ExPt; c2: ExPt; to: ExPt };
+  { kind: "line"; to: ExPt } | { kind: "cubic"; c1: ExPt; c2: ExPt; to: ExPt };
 export interface ExportPiece {
-  id: string; name: string; qty: number;
-  widthCm: number; heightCm: number;
+  id: string;
+  name: string;
+  qty: number;
+  widthCm: number;
+  heightCm: number;
   outline: { start: ExPt; segs: ExSeg[] };
   grainline?: [ExPt, ExPt];
   dart?: ExPt[];
   originCm: ExPt;
 }
 export interface ExportModel {
-  patternName: string; size: SizeLabel; unit: "cm";
+  patternName: string;
+  size: SizeLabel;
+  unit: "cm";
   seamAllowanceCm: number | null;
-  sheetWidthCm: number; sheetHeightCm: number;
+  sheetWidthCm: number;
+  sheetHeightCm: number;
   pieces: ExportPiece[];
 }
 ```
@@ -51,10 +56,12 @@ O contorno de `outlineSegments` é fechado: a última `seg` volta ao `outline.st
 ### Task 1: Helper de achatamento de Bézier (`flattenCubic`)
 
 **Files:**
+
 - Create: `lib/export/dxf.ts`
 - Test: `lib/export/dxf.test.ts`
 
 **Interfaces:**
+
 - Consumes: `ExPt` de `./model`.
 - Produces: `export function flattenCubic(p0: ExPt, c1: ExPt, c2: ExPt, p3: ExPt, tolCm: number): ExPt[]` — subdivisão adaptativa; retorna os pontos on-curve DEPOIS de `p0` (não inclui `p0`, inclui `p3`). Reta → `[p3]`. Também exporta `const TOL_CM = 0.02`.
 
@@ -70,7 +77,10 @@ import type { ExPt } from "./model";
 // avalia a cúbica verdadeira em t
 function cubicAt(p0: ExPt, c1: ExPt, c2: ExPt, p3: ExPt, t: number): ExPt {
   const u = 1 - t;
-  const b0 = u * u * u, b1 = 3 * u * u * t, b2 = 3 * u * t * t, b3 = t * t * t;
+  const b0 = u * u * u,
+    b1 = 3 * u * u * t,
+    b2 = 3 * u * t * t,
+    b3 = t * t * t;
   return {
     x: b0 * p0.x + b1 * c1.x + b2 * c2.x + b3 * p3.x,
     y: b0 * p0.y + b1 * c1.y + b2 * c2.y + b3 * p3.y,
@@ -79,7 +89,8 @@ function cubicAt(p0: ExPt, c1: ExPt, c2: ExPt, p3: ExPt, t: number): ExPt {
 
 // distância do ponto q ao segmento a→b
 function distToSegment(q: ExPt, a: ExPt, b: ExPt): number {
-  const dx = b.x - a.x, dy = b.y - a.y;
+  const dx = b.x - a.x,
+    dy = b.y - a.y;
   const len2 = dx * dx + dy * dy;
   if (len2 < 1e-12) return Math.hypot(q.x - a.x, q.y - a.y);
   let t = ((q.x - a.x) * dx + (q.y - a.y) * dy) / len2;
@@ -88,13 +99,20 @@ function distToSegment(q: ExPt, a: ExPt, b: ExPt): number {
 }
 
 // maior distância da curva verdadeira (amostrada densa) à polilinha [p0, ...pts]
-function maxCurveError(p0: ExPt, c1: ExPt, c2: ExPt, p3: ExPt, pts: ExPt[]): number {
+function maxCurveError(
+  p0: ExPt,
+  c1: ExPt,
+  c2: ExPt,
+  p3: ExPt,
+  pts: ExPt[],
+): number {
   const poly = [p0, ...pts];
   let worst = 0;
   for (let k = 0; k <= 400; k++) {
     const c = cubicAt(p0, c1, c2, p3, k / 400);
     let best = Infinity;
-    for (let s = 0; s + 1 < poly.length; s++) best = Math.min(best, distToSegment(c, poly[s], poly[s + 1]));
+    for (let s = 0; s + 1 < poly.length; s++)
+      best = Math.min(best, distToSegment(c, poly[s], poly[s + 1]));
     worst = Math.max(worst, best);
   }
   return worst;
@@ -102,13 +120,19 @@ function maxCurveError(p0: ExPt, c1: ExPt, c2: ExPt, p3: ExPt, pts: ExPt[]): num
 
 describe("flattenCubic", () => {
   it("cúbica praticamente reta vira um único ponto (p3)", () => {
-    const p0 = { x: 0, y: 0 }, c1 = { x: 3, y: 0 }, c2 = { x: 7, y: 0 }, p3 = { x: 10, y: 0 };
+    const p0 = { x: 0, y: 0 },
+      c1 = { x: 3, y: 0 },
+      c2 = { x: 7, y: 0 },
+      p3 = { x: 10, y: 0 };
     const out = flattenCubic(p0, c1, c2, p3, TOL_CM);
     expect(out).toEqual([{ x: 10, y: 0 }]);
   });
 
   it("cúbica curva: a polilinha aproxima a curva dentro da tolerância e termina em p3", () => {
-    const p0 = { x: 0, y: 0 }, c1 = { x: 0, y: 10 }, c2 = { x: 10, y: 10 }, p3 = { x: 10, y: 0 };
+    const p0 = { x: 0, y: 0 },
+      c1 = { x: 0, y: 10 },
+      c2 = { x: 10, y: 10 },
+      p3 = { x: 10, y: 0 };
     const out = flattenCubic(p0, c1, c2, p3, TOL_CM);
     expect(out.length).toBeGreaterThan(1);
     // a curva verdadeira nunca se afasta da polilinha mais que a tolerância
@@ -133,7 +157,10 @@ import type { ExPt } from "./model";
 export const TOL_CM = 0.02; // 0,2 mm
 const MAX_DEPTH = 16;
 
-const mid = (a: ExPt, b: ExPt): ExPt => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+const mid = (a: ExPt, b: ExPt): ExPt => ({
+  x: (a.x + b.x) / 2,
+  y: (a.y + b.y) / 2,
+});
 
 // distância perpendicular de p à reta a→b (em cm); corda degenerada → distância a `a`
 function distToLine(p: ExPt, a: ExPt, b: ExPt): number {
@@ -154,12 +181,18 @@ export function flattenCubic(
 ): ExPt[] {
   const out: ExPt[] = [];
   const recurse = (a: ExPt, b: ExPt, c: ExPt, d: ExPt, depth: number): void => {
-    if (depth >= MAX_DEPTH || (distToLine(b, a, d) <= tolCm && distToLine(c, a, d) <= tolCm)) {
+    if (
+      depth >= MAX_DEPTH ||
+      (distToLine(b, a, d) <= tolCm && distToLine(c, a, d) <= tolCm)
+    ) {
       out.push({ x: d.x, y: d.y });
       return;
     }
-    const ab = mid(a, b), bc = mid(b, c), cd = mid(c, d);
-    const abc = mid(ab, bc), bcd = mid(bc, cd);
+    const ab = mid(a, b),
+      bc = mid(b, c),
+      cd = mid(c, d);
+    const abc = mid(ab, bc),
+      bcd = mid(bc, cd);
     const m = mid(abc, bcd);
     recurse(a, ab, abc, m, depth + 1);
     recurse(m, bcd, cd, d, depth + 1);
@@ -186,10 +219,12 @@ git commit -m "feat(export): flattenCubic (De Casteljau adaptativo) p/ DXF"
 ### Task 2: Serializer `toDxf`
 
 **Files:**
+
 - Modify: `lib/export/dxf.ts` (adicionar `toDxf` no mesmo arquivo do `flattenCubic`)
 - Test: `lib/export/dxf.test.ts` (adicionar bloco `describe("toDxf")`)
 
 **Interfaces:**
+
 - Consumes: `flattenCubic`, `TOL_CM` (mesmo arquivo); `ExportModel`, `ExPt`, `ExSeg` de `./model`.
 - Produces: `export function toDxf(model: ExportModel): string` — DXF ASCII 1:1 em mm.
 
@@ -247,7 +282,10 @@ const squareModel: ExportModel = {
           { kind: "line", to: { x: 0, y: 0 } },
         ],
       },
-      grainline: [{ x: 5, y: 1 }, { x: 5, y: 9 }],
+      grainline: [
+        { x: 5, y: 1 },
+        { x: 5, y: 9 },
+      ],
       originCm: { x: 2, y: 2 },
     },
   ],
@@ -270,7 +308,12 @@ const cubicModel: ExportModel = {
       outline: {
         start: { x: 0, y: 0 },
         segs: [
-          { kind: "cubic", c1: { x: 0, y: 10 }, c2: { x: 10, y: 10 }, to: { x: 10, y: 0 } },
+          {
+            kind: "cubic",
+            c1: { x: 0, y: 10 },
+            c2: { x: 10, y: 10 },
+            to: { x: 10, y: 0 },
+          },
           { kind: "line", to: { x: 0, y: 0 } },
         ],
       },
@@ -355,25 +398,39 @@ export function toDxf(model: ExportModel): string {
   };
 
   // comentário nativo DXF (código 999) — sem o problema do "--" do comentário XML
-  p(999, `MoldAI · ${model.patternName} · tam ${model.size} · folga ${model.seamAllowanceCm ?? 0}cm (net line)`);
+  p(
+    999,
+    `MoldAI · ${model.patternName} · tam ${model.size} · folga ${model.seamAllowanceCm ?? 0}cm (net line)`,
+  );
 
   // HEADER
-  p(0, "SECTION"); p(2, "HEADER");
-  p(9, "$INSUNITS"); p(70, 4);       // 4 = milímetros
-  p(9, "$MEASUREMENT"); p(70, 1);    // 1 = métrico
+  p(0, "SECTION");
+  p(2, "HEADER");
+  p(9, "$INSUNITS");
+  p(70, 4); // 4 = milímetros
+  p(9, "$MEASUREMENT");
+  p(70, 1); // 1 = métrico
   p(0, "ENDSEC");
 
   // TABLES / LAYER
-  p(0, "SECTION"); p(2, "TABLES");
-  p(0, "TABLE"); p(2, "LAYER"); p(70, LAYERS.length);
+  p(0, "SECTION");
+  p(2, "TABLES");
+  p(0, "TABLE");
+  p(2, "LAYER");
+  p(70, LAYERS.length);
   for (const name of LAYERS) {
-    p(0, "LAYER"); p(2, name); p(70, 0); p(62, 7); p(6, "CONTINUOUS");
+    p(0, "LAYER");
+    p(2, name);
+    p(70, 0);
+    p(62, 7);
+    p(6, "CONTINUOUS");
   }
   p(0, "ENDTAB");
   p(0, "ENDSEC");
 
   // ENTITIES
-  p(0, "SECTION"); p(2, "ENTITIES");
+  p(0, "SECTION");
+  p(2, "ENTITIES");
   for (const piece of model.pieces) {
     const ox = piece.originCm.x;
     const oy = piece.originCm.y;
@@ -396,31 +453,48 @@ export function toDxf(model: ExportModel): string {
     // a polilinha fecha via flag 70=1; remove o vértice final se coincidir com o inicial
     const first = verts[0];
     const last = verts[verts.length - 1];
-    if (verts.length > 1 && Math.abs(first.x - last.x) < 1e-6 && Math.abs(first.y - last.y) < 1e-6) {
+    if (
+      verts.length > 1 &&
+      Math.abs(first.x - last.x) < 1e-6 &&
+      Math.abs(first.y - last.y) < 1e-6
+    ) {
       verts.pop();
     }
 
-    p(0, "LWPOLYLINE"); p(8, "CONTORNO"); p(90, verts.length); p(70, 1);
+    p(0, "LWPOLYLINE");
+    p(8, "CONTORNO");
+    p(90, verts.length);
+    p(70, 1);
     for (const v of verts) {
-      p(10, X(v.x)); p(20, Y(v.y));
+      p(10, X(v.x));
+      p(20, Y(v.y));
     }
 
     if (piece.grainline) {
       const [a, b] = piece.grainline;
-      p(0, "LINE"); p(8, "GRAINLINE");
-      p(10, X(a.x)); p(20, Y(a.y));
-      p(11, X(b.x)); p(21, Y(b.y));
+      p(0, "LINE");
+      p(8, "GRAINLINE");
+      p(10, X(a.x));
+      p(20, Y(a.y));
+      p(11, X(b.x));
+      p(21, Y(b.y));
     }
 
     if (piece.dart && piece.dart.length >= 3) {
-      p(0, "LWPOLYLINE"); p(8, "INTERNO"); p(90, piece.dart.length); p(70, 1);
+      p(0, "LWPOLYLINE");
+      p(8, "INTERNO");
+      p(90, piece.dart.length);
+      p(70, 1);
       for (const d of piece.dart) {
-        p(10, X(d.x)); p(20, Y(d.y));
+        p(10, X(d.x));
+        p(20, Y(d.y));
       }
     }
 
-    p(0, "TEXT"); p(8, "TEXTO");
-    p(10, X(piece.outline.start.x)); p(20, Y(piece.heightCm));
+    p(0, "TEXT");
+    p(8, "TEXTO");
+    p(10, X(piece.outline.start.x));
+    p(20, Y(piece.heightCm));
     p(40, 6); // altura do texto em mm
     p(1, `${piece.name.toUpperCase()} · ${piece.qty}x`);
   }
@@ -450,11 +524,13 @@ git commit -m "feat(export): serializer toDxf (LWPOLYLINE/LINE/TEXT, 1:1 mm, Y i
 ### Task 3: Ligar DXF na fachada e no Footer (+ doc)
 
 **Files:**
+
 - Modify: `lib/export/index.ts`
 - Modify: `components/editor/Footer.tsx:7-9`
 - Modify: `CLAUDE.md` (parágrafo do export)
 
 **Interfaces:**
+
 - Consumes: `toDxf` de `./dxf`; tipo `ExportFormat` de `@/lib/export`.
 - Produces: `ExportFormat = "svg" | "dxf"`; `exportPattern` despacha por `switch` exaustivo.
 

@@ -3,8 +3,7 @@ import type { Measurements } from "./measurements";
 export type SizeLabel = "PP" | "P" | "M" | "G" | "GG";
 
 export type PieceOutline =
-  | { kind: "polygon"; points: string }
-  | { kind: "path"; d: string };
+  { kind: "polygon"; points: string } | { kind: "path"; d: string };
 
 export interface Point {
   x: number;

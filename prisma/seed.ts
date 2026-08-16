@@ -13,12 +13,19 @@ async function main() {
     await prisma.user.upsert({
       where: { email: u.email },
       update: {},
-      create: { email: u.email, name: u.name, passwordHash: await hashPassword(u.password) },
+      create: {
+        email: u.email,
+        name: u.name,
+        passwordHash: await hashPassword(u.password),
+      },
     });
   }
   console.log("Seed concluído:", USERS.map((u) => u.email).join(", "));
 }
 
 main()
-  .catch((e) => { console.error(e); process.exit(1); })
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
   .finally(() => prisma.$disconnect());

@@ -60,7 +60,11 @@ Assinatura (em `lib/export/dxf.ts`):
 
 ```ts
 export function flattenCubic(
-  p0: ExPt, c1: ExPt, c2: ExPt, p3: ExPt, tolCm: number,
+  p0: ExPt,
+  c1: ExPt,
+  c2: ExPt,
+  p3: ExPt,
+  tolCm: number,
 ): ExPt[];
 ```
 
@@ -108,7 +112,7 @@ Estrutura de seções DXF (grupos código/valor, uma por linha):
     posicionado como no SVG (início do contorno, base em `heightCm`).
 - Cabeçalho de metadados via par **código `999`** (comentário DXF nativo — não
   tem o problema do `--` do comentário XML): `MoldAI · {nome} · tam {size} ·
-  folga {seamAllowanceCm ?? 0}cm (net line)`.
+folga {seamAllowanceCm ?? 0}cm (net line)`.
 - Fecha com `ENDSEC` de cada seção e `EOF`.
 
 ### 3. Fachada + UI

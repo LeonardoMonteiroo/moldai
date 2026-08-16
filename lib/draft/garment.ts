@@ -1,6 +1,18 @@
-import { MEASUREMENT_RANGES, Measurements, resolveMeasurements } from "@/lib/measurements";
 import {
-  ClarifyQuestion, Decote, GarmentSpec, GarmentStyle, GarmentType, MangaLen, SaiaSilhueta, Sexo, SizeLabel,
+  MEASUREMENT_RANGES,
+  Measurements,
+  resolveMeasurements,
+} from "@/lib/measurements";
+import {
+  ClarifyQuestion,
+  Decote,
+  GarmentSpec,
+  GarmentStyle,
+  GarmentType,
+  MangaLen,
+  SaiaSilhueta,
+  Sexo,
+  SizeLabel,
 } from "@/lib/types";
 import { autoLayout, DraftedPiece } from "./core";
 import { BlockOpts, draftCorpo } from "./corpo";
@@ -13,8 +25,10 @@ const DECOTES: Decote[] = ["reto", "V", "redondo"];
 const MANGAS: MangaLen[] = ["sem", "curta", "longa"];
 const SAIAS: SaiaSilhueta[] = ["reta", "evase", "gode", "meia-roda", "circulo"];
 
-const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
-const pick = <T,>(v: unknown, allowed: T[], def: T): T => (allowed.includes(v as T) ? (v as T) : def);
+const clamp = (v: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, v));
+const pick = <T>(v: unknown, allowed: T[], def: T): T =>
+  allowed.includes(v as T) ? (v as T) : def;
 const num = (v: unknown, def: number) => {
   const n = Number(v);
   return Number.isFinite(n) ? n : def;
@@ -30,14 +44,31 @@ export function validateSpec(raw: unknown): GarmentSpec {
     if (typeof v === "number" && Number.isFinite(v)) overrides[k] = v; // faixa é aplicada em resolveMeasurements
   }
   const outStyle: GarmentStyle = {
-    decote: style.decote !== undefined ? pick(style.decote, DECOTES, "reto") : undefined,
-    manga: style.manga !== undefined ? pick(style.manga, MANGAS, "sem") : undefined,
-    saia: style.saia !== undefined ? pick(style.saia, SAIAS, "reta") : undefined,
-    decoteProfundidadeCm: style.decoteProfundidadeCm !== undefined ? clamp(num(style.decoteProfundidadeCm, 0), 0, 15) : undefined,
-    compSaiaCm: style.compSaiaCm !== undefined ? clamp(num(style.compSaiaCm, 60), 25, 120) : undefined,
-    folgaCosturaCm: style.folgaCosturaCm !== undefined ? clamp(num(style.folgaCosturaCm, 1), 0, 4) : undefined,
+    decote:
+      style.decote !== undefined
+        ? pick(style.decote, DECOTES, "reto")
+        : undefined,
+    manga:
+      style.manga !== undefined ? pick(style.manga, MANGAS, "sem") : undefined,
+    saia:
+      style.saia !== undefined ? pick(style.saia, SAIAS, "reta") : undefined,
+    decoteProfundidadeCm:
+      style.decoteProfundidadeCm !== undefined
+        ? clamp(num(style.decoteProfundidadeCm, 0), 0, 15)
+        : undefined,
+    compSaiaCm:
+      style.compSaiaCm !== undefined
+        ? clamp(num(style.compSaiaCm, 60), 25, 120)
+        : undefined,
+    folgaCosturaCm:
+      style.folgaCosturaCm !== undefined
+        ? clamp(num(style.folgaCosturaCm, 1), 0, 4)
+        : undefined,
     pences: typeof style.pences === "boolean" ? style.pences : undefined,
-    cavaAjusteCm: style.cavaAjusteCm !== undefined ? clamp(num(style.cavaAjusteCm, 0), 0, 6) : undefined,
+    cavaAjusteCm:
+      style.cavaAjusteCm !== undefined
+        ? clamp(num(style.cavaAjusteCm, 0), 0, 6)
+        : undefined,
     // mangaRefit é interno (só o resolver de conflito o define); nunca vem da IA.
   };
   return {
@@ -63,41 +94,71 @@ export function validateQuestions(raw: unknown): ClarifyQuestion[] {
       if (options.length === 6) break;
     }
     if (options.length < 2) continue;
-    out.push({ id: `q${out.length}`, label, options, allowOther: q.allowOther === true });
+    out.push({
+      id: `q${out.length}`,
+      label,
+      options,
+      allowOther: q.allowOther === true,
+    });
   }
   return out;
 }
 
-export function seamCheck(armholeLenCm?: number, mangaCavaCm?: number): { diffCm: number } | null {
+export function seamCheck(
+  armholeLenCm?: number,
+  mangaCavaCm?: number,
+): { diffCm: number } | null {
   if (armholeLenCm == null || mangaCavaCm == null) return null;
   const diff = Math.abs(armholeLenCm - mangaCavaCm);
   return diff > 1 ? { diffCm: Math.round(diff * 10) / 10 } : null;
 }
 
-function draftAll(spec: GarmentSpec, size: SizeLabel): {
+function draftAll(
+  spec: GarmentSpec,
+  size: SizeLabel,
+): {
   drafted: DraftedPiece[];
   measurements: Measurements;
   armholeLenCm?: number;
   mangaArmholeCm?: number;
 } {
   const sexo: Sexo = spec.sexo ?? "fem";
-  const measurements: Measurements = resolveMeasurements(size, spec.measurementOverrides, sexo);
+  const measurements: Measurements = resolveMeasurements(
+    size,
+    spec.measurementOverrides,
+    sexo,
+  );
   const drafted: DraftedPiece[] = [];
   let armholeLenCm: number | undefined;
   let mangaArmholeCm: number | undefined;
 
-  const isCorpo = spec.tipo === "blusa" || spec.tipo === "vestido" || spec.tipo === "camiseta";
+  const isCorpo =
+    spec.tipo === "blusa" ||
+    spec.tipo === "vestido" ||
+    spec.tipo === "camiseta";
   if (isCorpo) {
     const knit = spec.tipo === "camiseta";
-    const lengthCm = spec.tipo === "vestido"
-      ? measurements.comprimentoCostas
-      : measurements.comprimentoCostas + measurements.alturaQuadril + 5;
+    const lengthCm =
+      spec.tipo === "vestido"
+        ? measurements.comprimentoCostas
+        : measurements.comprimentoCostas + measurements.alturaQuadril + 5;
     const opts: BlockOpts = { sexo, knit, lengthCm };
     // Arquétipo camiseta: gola redonda, sem pences, manga curta por padrão.
-    const style: GarmentStyle = spec.tipo === "camiseta"
-      ? { ...spec.style, decote: spec.style.decote ?? "redondo", pences: false, manga: spec.style.manga ?? "curta" }
-      : spec.style;
-    const { frente, costas, armholeLenCm: a, armholeBaseLenCm } = draftCorpo(measurements, style, opts);
+    const style: GarmentStyle =
+      spec.tipo === "camiseta"
+        ? {
+            ...spec.style,
+            decote: spec.style.decote ?? "redondo",
+            pences: false,
+            manga: spec.style.manga ?? "curta",
+          }
+        : spec.style;
+    const {
+      frente,
+      costas,
+      armholeLenCm: a,
+      armholeBaseLenCm,
+    } = draftCorpo(measurements, style, opts);
     armholeLenCm = a;
     drafted.push(frente, costas);
     // A copa da manga é dimensionada pela cava BASE (não ajustada) — a menos que
@@ -117,12 +178,18 @@ function draftAll(spec: GarmentSpec, size: SizeLabel): {
   return { drafted, measurements, armholeLenCm, mangaArmholeCm };
 }
 
-export function draftPiecesCm(spec: GarmentSpec, size: SizeLabel): DraftedPiece[] {
+export function draftPiecesCm(
+  spec: GarmentSpec,
+  size: SizeLabel,
+): DraftedPiece[] {
   return draftAll(spec, size).drafted;
 }
 
 export function draftGarment(spec: GarmentSpec, size: SizeLabel) {
-  const { drafted, measurements, armholeLenCm, mangaArmholeCm } = draftAll(spec, size);
+  const { drafted, measurements, armholeLenCm, mangaArmholeCm } = draftAll(
+    spec,
+    size,
+  );
   const { pieces, viewBox } = autoLayout(drafted, 8);
   return { pieces, viewBox, measurements, armholeLenCm, mangaArmholeCm };
 }
