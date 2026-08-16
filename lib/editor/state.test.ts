@@ -58,6 +58,7 @@ describe("applyGarmentSpec / conflito / refit", () => {
     expect(s.conflict).not.toBeNull();
     expect(s.conflict!.diffCm).toBeGreaterThan(1);
     expect(s.conflict!.pieceBId).toBe("manga");
+    expect(s.conflict!.suggestion).toMatch(/Corrigir manga.*refaz a copa/);
   });
   it("refitManga refaz a copa e limpa o conflito", () => {
     const s = seedState();

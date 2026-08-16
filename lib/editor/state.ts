@@ -42,7 +42,7 @@ function detectConflict(
     title: "Cava e manga não batem",
     description: `A cava do corpo ficou ${seam.diffCm} cm ${maior ? "maior" : "menor"} que a copa da manga — as costuras não vão fechar.`,
     diffCm: seam.diffCm,
-    suggestion: '"Corrigir manga" refaz a copa para a cava ajustada, sem custo.',
+    suggestion: "“Corrigir manga” refaz a copa para a cava ajustada, sem custo.",
     pieceAId: "corpo-frente",
     pieceBId: "manga",
     markers,
