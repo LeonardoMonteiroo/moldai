@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:up": "docker compose up -d",
+    "docker:up": "docker compose up --build",
     "db:migrate": "dotenv -e .env.local -- prisma migrate dev",
     "db:seed": "dotenv -e .env.local -- prisma db seed",
     "postinstall": "prisma generate"
