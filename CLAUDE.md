@@ -22,7 +22,11 @@ npm test         # vitest run — unit tests for lib/measurements.ts and lib/dra
 docker compose up -d   # sobe o Postgres local (npm run db:up)
 npm run db:migrate     # aplica migrações Prisma
 npm run db:seed        # semeia contas dev (dev@moldai.local / moldai-dev)
+npm run docker:up     # sobe app + Postgres juntos no Docker (dev, hot reload) em http://localhost:3000
+npm run docker:prod   # sobe a imagem de produção (next start) + Postgres
 ```
+
+**Docker vs host:** No container, o app fala com o Postgres em `db:5432` (DNS do Docker Compose); no host em `localhost:5433`. Segredos (`.env.local`) vêm via `env_file` em runtime — nunca embutidos na imagem.
 
 ## What this is
 
