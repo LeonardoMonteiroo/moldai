@@ -18,12 +18,11 @@
 
 | Arquivo | Responsabilidade |
 |---|---|
-| `Dockerfile` | Multi-stage `node:22-alpine`: `deps` (npm ci + prisma generate) → `dev` target (hot reload, source bind-montado) / `build` (next build standalone) → `runner` target (prod enxuto) |
+| `Dockerfile` | Multi-stage `node:22-alpine`: `deps` (npm ci + prisma generate) → `dev` target (hot reload, source bind-montado) / `build` (next build) → `runner` target (prod: `.next` + node_modules + `next start`) |
 | `docker-entrypoint.sh` | Espera o db, roda `prisma migrate deploy` + seed (idempotente), depois `exec` no CMD |
 | `docker-compose.yml` | Padrão = dev: `db` (com healthcheck `pg_isready`) + `app` (target dev, bind mount, volumes anônimos p/ node_modules e .next, `depends_on` db healthy, porta 3000) |
 | `docker-compose.prod.yml` | Override: `app` builda o target `runner`, sem bind mount, `next start` |
 | `.dockerignore` | Exclui `node_modules`, `.next`, `.git`, `.env*`, `.superpowers`, `docs`, etc. (contexto enxuto; segredos nunca em camadas de imagem) |
-| `next.config.ts` | Adiciona `output: "standalone"` (imagem prod enxuta; não afeta dev) |
 | `package.json` | Scripts `docker:up` e `docker:prod` |
 | `CLAUDE.md` | Documenta o workflow dockerizado |
 
@@ -31,8 +30,8 @@
 
 - `base`/`deps`: copia `package*.json` + `prisma/`, `npm ci` (o `postinstall` roda `prisma generate` — schema já presente).
 - `dev` (target): imagem com deps + Prisma CLI. O código-fonte vem por **bind mount** em runtime → hot reload. CMD roda o entrypoint e depois `npm run dev`.
-- `build` (stage): `next build` com `output: "standalone"`. Não precisa de segredos nem de DB em build (rotas são dinâmicas: `app/page.tsx` chama `auth()` em request-time). Se o build reclamar de `DATABASE_URL`, passar um valor placeholder só no build.
-- `runner` (target): copia o output standalone + estáticos; roda o entrypoint e depois `node server.js`.
+- `build` (stage): `next build`. Não precisa de segredos nem de DB em build (rotas são dinâmicas: `app/page.tsx` chama `auth()` em request-time). Se o build reclamar de `DATABASE_URL`/`AUTH_SECRET`, passar valores placeholder só no build.
+- `runner` (target): copia `node_modules` (completo, do `deps`), `.next`, `public`, `package.json`, `next.config.ts` e `prisma/`; roda o entrypoint e depois `next start`. O toolchain completo (Prisma CLI + `tsx` + `bcryptjs`) fica na imagem para o entrypoint rodar migrate+seed — por isso não usamos `output: standalone` (a minimalidade seria anulada). Imagem maior porém robusta; aceitável para local-real. Otimização futura: separar migrate/seed do runtime.
 
 ## 4. docker-entrypoint.sh (turnkey)
 
@@ -40,7 +39,7 @@ Compartilhado por dev e prod. Passos:
 1. Espera o Postgres aceitar conexão (loop `pg_isready`/tentativa de conexão — o `depends_on: condition: service_healthy` já cobre, o wait é cinto-e-suspensório).
 2. `prisma migrate deploy` (aplica as migrações commitadas — NÃO `migrate dev`, que é interativo/cria migração).
 3. Roda o seed (`prisma db seed`), **idempotente** (`upsert` por email → sem duplicar, sem quebrar em re-run).
-4. `exec "$@"` (o CMD: dev = `npm run dev`; prod = `node server.js`).
+4. `exec "$@"` (o CMD: dev = `next dev --hostname 0.0.0.0`; prod = `next start --hostname 0.0.0.0`).
 
 Efeito: `docker compose up` deixa o banco criado, migrado e semeado, sem passo manual.
 
