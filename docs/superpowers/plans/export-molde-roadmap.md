@@ -64,21 +64,28 @@ peça pronta — não só geometria. Requer o Audaces em mãos pra verificar de 
 
 ---
 
-## ⬜ Fase 3 — PDF tiling (impressão caseira, estilo Molde.me)
+## ✅ Fase 3 — PDF tiling (impressão caseira + folha única) (mergeada em `main`, cac2662)
 
-Objetivo: `lib/export/pdf.ts` → `toPdf(model: ExportModel): Uint8Array`; peça
-real fatiada em A4 com marcas de colagem e régua de calibração.
+Spec: `docs/superpowers/specs/2026-08-16-export-molde-pdf-fase3-design.md`.
+Plano: `docs/superpowers/plans/2026-08-16-export-molde-pdf-fase3.md`.
+PDF 1:1 em **dois modos**: `PDF · A4 (colar em casa)` (fatiado) e
+`PDF · folha única (plotter)` (uma página do tamanho do molde).
 
-- [ ] Brainstorm/spec curta da Fase 3 (decisões: A4 retrato vs. A0; margem de colagem; conteúdo da régua)
-- [ ] Plano de implementação (writing-plans)
-- [ ] Adicionar dependência `pdf-lib` (única dep nova do feature inteiro)
-- [ ] Lógica de tiling: fatiar o sheet (mm) em páginas A4 com sobreposição de colagem + numeração linha/coluna
-- [ ] Quadrado-régua de calibração de 5 cm na 1ª folha (confere escala na impressão)
-- [ ] Desenhar contorno (linhas + Bézier via `drawSvgPath`/linhas), fio, dart, rótulos
-- [ ] Adicionar `"pdf"` a `ExportFormat` e ao menu do `Footer`
-- [ ] Testes: PDF válido (magic `%PDF`), nº de páginas = tiles esperados, presença da régua de calibração
-- [ ] Verificação manual: imprimir em A4 e medir o quadrado (5 cm)
-- [ ] Review + merge
+- [x] Spec + plano (brainstorm → writing-plans)
+- [x] Dep `pdf-lib` (única dep runtime nova), via `import()` dinâmico dentro de `toPdf` (code-split)
+- [x] `planTiles` — grade A4 (sobreposição de colagem 1cm, numeração linha/coluna) ou folha única; helper puro testável
+- [x] `flattenOutlineCm` — extraído de `toDxf` (DRY DXF/PDF), refatoração behavior-preserving
+- [x] `toPdf(model, mode)` async — contorno/fio/dart/rótulo 1:1, Y invertido, régua de calibração **10cm** na 1ª folha
+- [x] `"pdf-a4"`/`"pdf-single"` em `ExportFormat` e no menu do `Footer`; dispatch `switch`/`never` (4 formatos, cases PDF fire-and-forget)
+- [x] Testes: `planTiles`/`rulerTicksCm`/`flattenOutlineCm` + `toPdf` (magic `%PDF`, nº de páginas via `PDFDocument.load`, folha única 1:1); suíte 88/88
+- [x] Doc no `CLAUDE.md`; review de branch inteira (opus) = Ready to merge = Yes
+
+### Pendências herdadas da Fase 3 (não bloqueiam)
+
+- [ ] **Verificação manual:** `npm run dev` → gerar molde → Exportar → PDF · A4 → imprimir a 100% e medir a régua (10cm = 10cm); montar 2 folhas pela sobreposição; conferir folha única no tamanho real
+- [ ] Minor: caixa da régua tem largura fixa (10,6cm); num `single` mais estreito que ~9,9cm vaza pela direita — clampar a largura da caixa a `pageWcm − 2·margem`
+- [ ] Minor: `TOL_CM` redeclarado em `pdf.ts` — importar de `./dxf` (DRY)
+- [ ] Melhoria: `.catch(() => {})` engole falha do PDF sem feedback — futuro toast/erro inline (alinha com a convenção "limitações na UI" do CLAUDE.md)
 
 ---
 
