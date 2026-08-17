@@ -6,6 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This project is early-stage and this file is the source of truth for its documented decisions/architecture. If a user request conflicts with something stated in this file (an architecture choice, a scope boundary, a convention), don't silently follow the new request or silently keep the old one — ask the user whether CLAUDE.md should be updated to reflect the change before proceeding.
 
+## Conventions
+
+**Commit messages are always in English and follow [Conventional Commits](https://www.conventionalcommits.org/)** — `type(scope): summary` (e.g. `feat(i18n): add pt-BR catalog`, `fix(export): clamp dxf tolerance`). Common types: `feat`, `fix`, `refactor`, `chore`, `docs`, `test`, `ci`, `style`. The commit subject/body is English even though the product UI and the AI's chat responses are pt-BR. (Code identifiers, wire keys, and enum values are English; only UI display text and AI responses are pt-BR — see the Architecture section.)
+
 ## Next.js version warning
 
 @AGENTS.md
