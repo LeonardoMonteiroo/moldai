@@ -11,8 +11,8 @@ import { draftGarment, seamCheck } from "@/lib/draft/garment";
 import { resolveMeasurements } from "@/lib/measurements";
 import type { Translate } from "@/lib/i18n/translate";
 
-// Marca (círculo tracejado) na região da cava de uma peça, a partir da bbox
-// dos seus vértices em px. Ilustrativa — aponta a costura em conflito no canvas.
+// Marker (dashed circle) over a piece's armhole region, from the bbox
+// of its vertices in px. Illustrative — points at the conflicting seam on the canvas.
 function armholeMarker(
   piece: Piece | undefined,
 ): { cx: number; cy: number; r: number } | null {
@@ -26,8 +26,8 @@ function armholeMarker(
   return { cx: maxX - 6, cy: minY + (maxY - minY) * 0.28, r: 14 };
 }
 
-// Detecta divergência de costura entre a cava do corpo e a copa da manga
-// (seamCheck determinístico) e monta o ConflictInfo com marcas no canvas.
+// Detects a seam mismatch between the body's armhole and the sleeve cap
+// (deterministic seamCheck) and builds the ConflictInfo with canvas markers.
 function detectConflict(
   pieces: Piece[],
   armholeLenCm: number | undefined,
@@ -91,7 +91,7 @@ function seedCredits(): Credits {
   };
 }
 
-// O blank molde inicial de cada usuário.
+// Every user's initial blank molde.
 export function seedState(): EditorState {
   return {
     pattern: seedPattern(),
@@ -139,8 +139,8 @@ export function getSpec(state: EditorState): GarmentSpec {
   );
 }
 
-// Drafta o garment a partir de um spec validado e guarda pieces/viewBox/spec no
-// pattern; anexa (ou limpa) o conflito de costura (apply-with-warning).
+// Drafts the garment from a validated spec and stores pieces/viewBox/spec on
+// the pattern; attaches (or clears) the seam conflict (apply-with-warning).
 export function applyGarmentSpec(
   state: EditorState,
   spec: GarmentSpec,
@@ -159,8 +159,8 @@ export function applyGarmentSpec(
   state.conflict = detectConflict(pieces, armholeLenCm, sleeveArmholeCm, t);
 }
 
-// "Corrigir manga": marca sleeveRefit e re-drafta — a copa passa a usar a cava
-// ajustada, as costuras batem e detectConflict devolve null.
+// "Corrigir manga" (sleeve fix): sets sleeveRefit and re-drafts — the cap now
+// uses the adjusted armhole, the seams match, and detectConflict returns null.
 export function refitSleeve(state: EditorState, t: Translate): void {
   const spec = getSpec(state);
   applyGarmentSpec(

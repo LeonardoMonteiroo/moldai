@@ -15,7 +15,7 @@ import {
 import { t } from "@/lib/i18n/test-translate";
 
 describe("seedState", () => {
-  it("blank molde: sem peças, chat vazio, version 0, créditos Ateliê 320/500", () => {
+  it("blank molde: no pieces, empty chat, version 0, Ateliê credits 320/500", () => {
     const s = seedState();
     expect(s.pattern.pieces).toHaveLength(0);
     expect(s.chat).toHaveLength(0);
@@ -25,7 +25,7 @@ describe("seedState", () => {
     expect(s.credits.total).toBe(500);
     expect(s.credits.plan).toBe("atelier");
   });
-  it("cada chamada devolve um estado independente (sem alias)", () => {
+  it("each call returns an independent state (no aliasing)", () => {
     const a = seedState();
     const b = seedState();
     a.credits.balance = 0;
@@ -33,21 +33,21 @@ describe("seedState", () => {
   });
 });
 
-describe("créditos e versão", () => {
-  it("debit/refund ajustam o saldo", () => {
+describe("credits and version", () => {
+  it("debit/refund adjust the balance", () => {
     const s = seedState();
     debitCredits(s, 4);
     expect(s.credits.balance).toBe(316);
     refundCredits(s, 4);
     expect(s.credits.balance).toBe(320);
   });
-  it("bumpVersion incrementa e marca salvo agora", () => {
+  it("bumpVersion increments and marks saved just now", () => {
     const s = seedState();
     bumpVersion(s);
     expect(s.pattern.version).toBe(1);
     expect(s.pattern.savedAgo).toBe("salvo agora");
   });
-  it("addMessage anexa ao chat", () => {
+  it("addMessage appends to the chat", () => {
     const s = seedState();
     addMessage(s, { id: "m1", author: "user", text: "oi", createdAt: 1 });
     expect(s.chat).toHaveLength(1);
@@ -55,8 +55,8 @@ describe("créditos e versão", () => {
   });
 });
 
-describe("applyGarmentSpec / conflito / refit", () => {
-  it("drafta uma saia e guarda no pattern", () => {
+describe("applyGarmentSpec / conflict / refit", () => {
+  it("drafts a skirt and stores it on the pattern", () => {
     const s = seedState();
     applyGarmentSpec(
       s,
@@ -71,7 +71,7 @@ describe("applyGarmentSpec / conflito / refit", () => {
     expect(s.pattern.pieces[0].id).toBe("skirt");
     expect(s.pattern.viewBox!.w).toBeGreaterThan(0);
   });
-  it("armholeDeepenCm anexa conflito; sem ajuste não há conflito", () => {
+  it("armholeDeepenCm attaches a conflict; no adjustment means no conflict", () => {
     const s = seedState();
     applyGarmentSpec(
       s,
@@ -99,7 +99,7 @@ describe("applyGarmentSpec / conflito / refit", () => {
     expect(s.conflict!.pieceBId).toBe("sleeve");
     expect(s.conflict!.suggestion).toBe("conflict.suggestion");
   });
-  it("EditorState com pieces sobrevive a um round-trip JSON (persistência JSONB)", () => {
+  it("EditorState with pieces survives a JSON round-trip (JSONB persistence)", () => {
     const s = seedState();
     applyGarmentSpec(
       s,
@@ -116,9 +116,9 @@ describe("applyGarmentSpec / conflito / refit", () => {
       s.pattern.pieces.map((p) => p.id).sort(),
     );
     expect(round.pattern.viewBox).toEqual(s.pattern.viewBox);
-    expect(round).toEqual(s); // nenhum campo perdido (sem Date/undefined/NaN/Map/Set)
+    expect(round).toEqual(s); // no field lost (no Date/undefined/NaN/Map/Set)
   });
-  it("refitSleeve refaz a copa e limpa o conflito", () => {
+  it("refitSleeve remakes the cap and clears the conflict", () => {
     const s = seedState();
     applyGarmentSpec(
       s,
@@ -138,7 +138,7 @@ describe("applyGarmentSpec / conflito / refit", () => {
 });
 
 describe("setConflict / applySizes / applyPurchase", () => {
-  it("setConflict(null) limpa o aviso", () => {
+  it("setConflict(null) clears the warning", () => {
     const s = seedState();
     applyGarmentSpec(
       s,
@@ -153,13 +153,13 @@ describe("setConflict / applySizes / applyPurchase", () => {
     setConflict(s, null);
     expect(s.conflict).toBeNull();
   });
-  it("applySizes move pendentes para aplicados", () => {
+  it("applySizes moves pending to applied", () => {
     const s = seedState();
     applySizes(s, ["PP", "P"]);
     expect(s.pattern.sizesApplied).toEqual(expect.arrayContaining(["PP", "P"]));
     expect(s.pattern.sizesPending).not.toContain("PP");
   });
-  it("applyPurchase topup soma 100; subscribe reseta plano Ateliê", () => {
+  it("applyPurchase topup adds 100; subscribe resets to the Ateliê plan", () => {
     const s = seedState();
     applyPurchase(s, "topup");
     expect(s.credits.balance).toBe(420);
