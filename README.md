@@ -1,50 +1,50 @@
 # MoldAI
 
-Editor de moldes 2D com IA (chat → GarmentSpec → peças de costura). Next.js 16 (App Router) + TypeScript, auth real (Auth.js v5 + Postgres/Prisma). O backend de molde/chat/créditos ainda é um mock in-memory (Fase B pendente).
+AI-powered 2D pattern editor (chat → GarmentSpec → sewing pieces). Next.js 16 (App Router) + TypeScript, real auth (Auth.js v5 + Postgres/Prisma), and per-user molde persistence (Postgres/Prisma). Only billing/credits remain a mock top-up (Phase C pending).
 
-## Pré-requisitos
+## Prerequisites
 
-- Node 22 (fluxo host) e/ou Docker Desktop (fluxo em container).
-- `.env.local` na raiz com:
-  - `ANTHROPIC_API_KEY` — chave da API Anthropic (o chat usa `claude-sonnet-5`).
-  - `AUTH_SECRET` — segredo do Auth.js (`npx auth secret` ou `openssl rand -base64 32`).
-  - `DATABASE_URL` — `postgresql://moldai:moldai@localhost:5433/moldai?schema=public` (fluxo host).
+- Node 22 (host flow) and/or Docker Desktop (containerized flow).
+- `.env.local` at the repo root with:
+  - `ANTHROPIC_API_KEY` — Anthropic API key (chat uses `claude-sonnet-5`).
+  - `AUTH_SECRET` — Auth.js secret (`npx auth secret` or `openssl rand -base64 32`).
+  - `DATABASE_URL` — `postgresql://moldai:moldai@localhost:5433/moldai?schema=public` (host flow).
 
-## Rodar com Docker (app + Postgres juntos)
+## Run with Docker (app + Postgres together)
 
 ```bash
 npm run docker:up     # dev, hot reload — http://localhost:3000
-npm run docker:prod   # imagem de produção (next start)
+npm run docker:prod   # production image (next start)
 ```
 
-Um comando sobe o app e o Postgres; o entrypoint aplica as migrações e semeia as contas dev. No container o app fala com o Postgres em `db:5432`; os segredos vêm de `.env.local` em runtime (nunca embutidos na imagem).
+One command brings up the app and Postgres; the entrypoint applies migrations and seeds the dev accounts. Inside the container the app talks to Postgres at `db:5432`; secrets come from `.env.local` at runtime (never baked into the image).
 
-> Após mudar dependências (`package.json`), recrie o volume anônimo de `node_modules`: `docker compose down -v` (ou `docker compose up --build --renew-anon-volumes`).
+> After changing dependencies (`package.json`), recreate the anonymous `node_modules` volume: `docker compose down -v` (or `docker compose up --build --renew-anon-volumes`).
 
-## Rodar no host (sem containerizar o app)
+## Run on the host (without containerizing the app)
 
 ```bash
-npm run db:up        # sobe só o Postgres (Docker), porta host 5433
-npm run db:migrate   # aplica migrações Prisma
-npm run db:seed      # semeia contas dev
-npm run dev          # app em http://localhost:3000
+npm run db:up        # bring up Postgres only (Docker), host port 5433
+npm run db:migrate   # apply Prisma migrations
+npm run db:seed      # seed dev accounts
+npm run dev          # app at http://localhost:3000
 ```
 
-## Login (contas dev semeadas)
+## Login (seeded dev accounts)
 
-`dev@moldai.local` / `moldai-dev`. Self-signup ainda não existe ("em breve").
+`dev@moldai.local` / `moldai-dev`. Self-signup doesn't exist yet (shown as "em breve").
 
-## Testes e build
+## Tests and build
 
 ```bash
-npm test             # vitest (não precisa de Postgres rodando)
-npm run build        # build de produção + checagem TypeScript
-npm run smoke:prod   # sobe o stack de produção e faz login de verdade (smoke de auth)
-npm run smoke        # só o checador de login, contra um servidor já no ar (SMOKE_URL=...)
+npm test             # vitest (doesn't need Postgres running)
+npm run build        # production build + TypeScript check
+npm run smoke:prod   # brings up the production stack and does a real login (auth smoke test)
+npm run smoke        # just the login checker, against a server already running (SMOKE_URL=...)
 ```
 
-O `smoke` faz o fluxo de login completo (CSRF → credentials → sessão) e exige uma sessão válida no fim — pega regressões que um "a home respondeu 200" não pega (ex.: o `trustHost`/`UntrustedHost` que só quebra em produção).
+`smoke` runs the full login flow (CSRF → credentials → session) and requires a valid session at the end — it catches regressions a plain "home responded 200" check wouldn't (e.g. the `trustHost`/`UntrustedHost` issue that only breaks in production).
 
-## Arquitetura
+## Architecture
 
-Veja `CLAUDE.md` para as decisões de arquitetura. Auth e usuários são reais (Postgres/Prisma); molde/chat/créditos são um mock in-memory até a Fase B.
+See `CLAUDE.md` for the architecture decisions. Auth, users, and the molde are real (Postgres/Prisma); billing/credits remain a mock top-up until Phase C.
