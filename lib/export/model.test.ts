@@ -50,10 +50,10 @@ function fakePattern(): Pattern {
       },
     ],
     spec: {
-      tipo: "camiseta",
-      sexo: "masc",
+      type: "tshirt",
+      gender: "male",
       measurementOverrides: {},
-      style: { folgaCosturaCm: 1.5 },
+      style: { seamAllowanceCm: 1.5 },
     },
   };
 }
@@ -102,7 +102,7 @@ describe("buildExportModel", () => {
     expect(f.outline.segs.length).toBeGreaterThanOrEqual(3);
   });
 
-  it("usa folga default 1 quando style.folgaCosturaCm ausente", () => {
+  it("usa folga default 1 quando style.seamAllowanceCm ausente", () => {
     const pat = fakePattern();
     pat.spec!.style = {};
     expect(buildExportModel(pat).seamAllowanceCm).toBe(1);

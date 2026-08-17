@@ -24,10 +24,10 @@ function fakePattern(): Pattern {
       },
     ],
     spec: {
-      tipo: "camiseta",
-      sexo: "masc",
+      type: "tshirt",
+      gender: "male",
       measurementOverrides: {},
-      style: { folgaCosturaCm: 1 },
+      style: { seamAllowanceCm: 1 },
     },
   };
 }

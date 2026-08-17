@@ -16,11 +16,12 @@ export interface Measurement {
   b: Point;
 }
 
-export type GarmentType = "blusa" | "vestido" | "saia" | "camiseta";
-export type Sexo = "fem" | "masc";
-export type Decote = "reto" | "V" | "redondo";
-export type MangaLen = "sem" | "curta" | "longa";
-export type SaiaSilhueta = "reta" | "evase" | "gode" | "meia-roda" | "circulo";
+export type GarmentType = "blouse" | "dress" | "skirt" | "tshirt";
+export type Gender = "female" | "male";
+export type Neckline = "straight" | "V" | "round";
+export type SleeveLength = "none" | "short" | "long";
+export type SkirtSilhouette =
+  "straight" | "a-line" | "gore" | "half-circle" | "circle";
 
 export interface ClarifyQuestion {
   id: string;
@@ -30,25 +31,25 @@ export interface ClarifyQuestion {
 }
 
 export interface GarmentStyle {
-  decote?: Decote;
-  decoteProfundidadeCm?: number;
-  manga?: MangaLen;
-  saia?: SaiaSilhueta;
-  compSaiaCm?: number;
-  pences?: boolean;
-  folgaCosturaCm?: number;
+  neckline?: Neckline;
+  necklineDepthCm?: number;
+  sleeve?: SleeveLength;
+  skirt?: SkirtSilhouette;
+  skirtLengthCm?: number;
+  darts?: boolean;
+  seamAllowanceCm?: number;
   // Aprofundamento da cava do corpo (cm), settável pela IA e clampado em
   // validateSpec. Ao mexer só no corpo, a copa da manga (dimensionada pela cava
   // base) deixa de bater → conflito de costura detectado por seamCheck.
-  cavaAjusteCm?: number;
+  armholeDeepenCm?: number;
   // Interno (NÃO settável pela IA — validateSpec o descarta): marcado por
   // "Corrigir manga" no resolver, refaz a copa para a cava ajustada.
-  mangaRefit?: boolean;
+  sleeveRefit?: boolean;
 }
 
 export interface GarmentSpec {
-  tipo: GarmentType;
-  sexo?: Sexo;
+  type: GarmentType;
+  gender?: Gender;
   measurementOverrides: Record<string, number>;
   style: GarmentStyle;
 }

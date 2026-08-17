@@ -9,186 +9,192 @@ import {
 describe("validateSpec", () => {
   it("cai para defaults em enums inválidos e clampa faixas", () => {
     const s = validateSpec({
-      tipo: "foo",
-      sexo: "xx",
-      style: { saia: "xxx", compSaiaCm: 999, decoteProfundidadeCm: -5 },
-      measurementOverrides: { cintura: 70, hack: 1 },
+      type: "foo",
+      gender: "xx",
+      style: { skirt: "xxx", skirtLengthCm: 999, necklineDepthCm: -5 },
+      measurementOverrides: { waist: 70, hack: 1 },
     });
-    expect(s.tipo).toBe("blusa");
-    expect(s.sexo).toBe("fem");
-    expect(s.style.saia).toBe("reta");
-    expect(s.style.compSaiaCm).toBeLessThanOrEqual(120);
-    expect(s.style.decoteProfundidadeCm).toBeGreaterThanOrEqual(0);
+    expect(s.type).toBe("blouse");
+    expect(s.gender).toBe("female");
+    expect(s.style.skirt).toBe("straight");
+    expect(s.style.skirtLengthCm).toBeLessThanOrEqual(120);
+    expect(s.style.necklineDepthCm).toBeGreaterThanOrEqual(0);
     expect(s.measurementOverrides.hack).toBeUndefined();
-    expect(s.measurementOverrides.cintura).toBe(70);
+    expect(s.measurementOverrides.waist).toBe(70);
   });
-  it("aceita tipo camiseta e sexo masc", () => {
+  it("aceita type tshirt e gender male", () => {
     const s = validateSpec({
-      tipo: "camiseta",
-      sexo: "masc",
+      type: "tshirt",
+      gender: "male",
       style: {},
       measurementOverrides: {},
     });
-    expect(s.tipo).toBe("camiseta");
-    expect(s.sexo).toBe("masc");
+    expect(s.type).toBe("tshirt");
+    expect(s.gender).toBe("male");
   });
-  it("preserva zero válido em folgaCosturaCm", () => {
+  it("preserva zero válido em seamAllowanceCm", () => {
     expect(
       validateSpec({
-        tipo: "saia",
-        style: { folgaCosturaCm: 0 },
+        type: "skirt",
+        style: { seamAllowanceCm: 0 },
         measurementOverrides: {},
-      }).style.folgaCosturaCm,
+      }).style.seamAllowanceCm,
     ).toBe(0);
   });
-  it("clampa zero inválido em compSaiaCm para limite inferior", () => {
+  it("clampa zero inválido em skirtLengthCm para limite inferior", () => {
     expect(
       validateSpec({
-        tipo: "saia",
-        style: { compSaiaCm: 0 },
+        type: "skirt",
+        style: { skirtLengthCm: 0 },
         measurementOverrides: {},
-      }).style.compSaiaCm,
+      }).style.skirtLengthCm,
     ).toBe(25);
   });
   it("usa default para valores não-finitos", () => {
     expect(
       validateSpec({
-        tipo: "saia",
-        style: { compSaiaCm: "xxx" as unknown as number },
+        type: "skirt",
+        style: { skirtLengthCm: "xxx" as unknown as number },
         measurementOverrides: {},
-      }).style.compSaiaCm,
+      }).style.skirtLengthCm,
     ).toBe(60);
   });
-  it("clampa cavaAjusteCm a 0..6 e descarta mangaRefit vindo da IA", () => {
+  it("clampa armholeDeepenCm a 0..6 e descarta sleeveRefit vindo da IA", () => {
     const s = validateSpec({
-      tipo: "blusa",
-      style: { cavaAjusteCm: 99, mangaRefit: true },
+      type: "blouse",
+      style: { armholeDeepenCm: 99, sleeveRefit: true },
       measurementOverrides: {},
     });
-    expect(s.style.cavaAjusteCm).toBe(6);
-    expect(s.style.mangaRefit).toBeUndefined();
+    expect(s.style.armholeDeepenCm).toBe(6);
+    expect(s.style.sleeveRefit).toBeUndefined();
   });
-  it("clampa cavaAjusteCm negativo para 0", () => {
+  it("clampa armholeDeepenCm negativo para 0", () => {
     expect(
       validateSpec({
-        tipo: "blusa",
-        style: { cavaAjusteCm: -3 },
+        type: "blouse",
+        style: { armholeDeepenCm: -3 },
         measurementOverrides: {},
-      }).style.cavaAjusteCm,
+      }).style.armholeDeepenCm,
     ).toBe(0);
   });
 });
 
 describe("draftGarment", () => {
-  it("blusa gera frente, costas e manga", () => {
+  it("blouse gera frente, costas e manga", () => {
     const { pieces } = draftGarment(
       {
-        tipo: "blusa",
-        sexo: "fem",
+        type: "blouse",
+        gender: "female",
         measurementOverrides: {},
-        style: { manga: "curta", decote: "V" },
+        style: { sleeve: "short", neckline: "V" },
       },
       "M",
     );
     expect(pieces.map((p) => p.id).sort()).toEqual([
-      "corpo-costas",
-      "corpo-frente",
-      "manga",
+      "body-back",
+      "body-front",
+      "sleeve",
     ]);
   });
-  it("camiseta gera frente/costas/manga, sem pence, decote redondo", () => {
+  it("tshirt gera frente/costas/manga, sem pence, decote redondo", () => {
     const { pieces } = draftGarment(
-      { tipo: "camiseta", sexo: "masc", measurementOverrides: {}, style: {} },
-      "M",
-    );
-    const ids = pieces.map((p) => p.id).sort();
-    expect(ids).toEqual(["corpo-costas", "corpo-frente", "manga"]);
-    const frente = pieces.find((p) => p.id === "corpo-frente")!;
-    expect(frente.dart).toBeUndefined();
-    expect(frente.detailRows.some((r) => /redondo/i.test(r.value))).toBe(true);
-  });
-  it("saia gera só a peça de saia e viewBox > 0", () => {
-    const { pieces, viewBox } = draftGarment(
       {
-        tipo: "saia",
-        sexo: "fem",
+        type: "tshirt",
+        gender: "male",
         measurementOverrides: {},
-        style: { saia: "gode" },
+        style: {},
       },
       "M",
     );
-    expect(pieces.map((p) => p.id)).toEqual(["saia"]);
+    const ids = pieces.map((p) => p.id).sort();
+    expect(ids).toEqual(["body-back", "body-front", "sleeve"]);
+    const front = pieces.find((p) => p.id === "body-front")!;
+    expect(front.dart).toBeUndefined();
+    expect(front.detailRows.some((r) => /redondo/i.test(r.value))).toBe(true);
+  });
+  it("skirt gera só a peça de saia e viewBox > 0", () => {
+    const { pieces, viewBox } = draftGarment(
+      {
+        type: "skirt",
+        gender: "female",
+        measurementOverrides: {},
+        style: { skirt: "gore" },
+      },
+      "M",
+    );
+    expect(pieces.map((p) => p.id)).toEqual(["skirt"]);
     expect(viewBox.w).toBeGreaterThan(0);
   });
-  it("vestido combina corpo + saia", () => {
+  it("dress combina corpo + saia", () => {
     const { pieces } = draftGarment(
       {
-        tipo: "vestido",
-        sexo: "fem",
+        type: "dress",
+        gender: "female",
         measurementOverrides: {},
-        style: { manga: "sem", saia: "evase" },
+        style: { sleeve: "none", skirt: "a-line" },
       },
       "M",
     );
     const ids = pieces.map((p) => p.id);
-    expect(ids).toContain("saia");
-    expect(ids).toContain("corpo-frente");
+    expect(ids).toContain("skirt");
+    expect(ids).toContain("body-front");
   });
-  it("cavaAjusteCm faz a cava do corpo divergir da copa da manga (dispara seamCheck)", () => {
-    const { armholeLenCm, mangaArmholeCm } = draftGarment(
+  it("armholeDeepenCm faz a cava do corpo divergir da copa da manga (dispara seamCheck)", () => {
+    const { armholeLenCm, sleeveArmholeCm } = draftGarment(
       {
-        tipo: "blusa",
-        sexo: "fem",
+        type: "blouse",
+        gender: "female",
         measurementOverrides: {},
-        style: { manga: "curta", cavaAjusteCm: 2 },
+        style: { sleeve: "short", armholeDeepenCm: 2 },
       },
       "M",
     );
-    expect(armholeLenCm! - mangaArmholeCm!).toBeGreaterThan(1);
+    expect(armholeLenCm! - sleeveArmholeCm!).toBeGreaterThan(1);
   });
   it("sem ajuste de cava, corpo e manga batem por construção (sem conflito)", () => {
-    const { armholeLenCm, mangaArmholeCm } = draftGarment(
+    const { armholeLenCm, sleeveArmholeCm } = draftGarment(
       {
-        tipo: "blusa",
-        sexo: "fem",
+        type: "blouse",
+        gender: "female",
         measurementOverrides: {},
-        style: { manga: "curta" },
+        style: { sleeve: "short" },
       },
       "M",
     );
-    expect(Math.abs(armholeLenCm! - mangaArmholeCm!)).toBeLessThan(1e-6);
+    expect(Math.abs(armholeLenCm! - sleeveArmholeCm!)).toBeLessThan(1e-6);
   });
-  it("mangaRefit refaz a copa para a cava ajustada (costuras voltam a bater)", () => {
-    const { armholeLenCm, mangaArmholeCm } = draftGarment(
+  it("sleeveRefit refaz a copa para a cava ajustada (costuras voltam a bater)", () => {
+    const { armholeLenCm, sleeveArmholeCm } = draftGarment(
       {
-        tipo: "blusa",
-        sexo: "fem",
+        type: "blouse",
+        gender: "female",
         measurementOverrides: {},
-        style: { manga: "curta", cavaAjusteCm: 2, mangaRefit: true },
+        style: { sleeve: "short", armholeDeepenCm: 2, sleeveRefit: true },
       },
       "M",
     );
-    expect(Math.abs(armholeLenCm! - mangaArmholeCm!)).toBeLessThan(1e-6);
+    expect(Math.abs(armholeLenCm! - sleeveArmholeCm!)).toBeLessThan(1e-6);
   });
 });
 
 describe("draftPiecesCm", () => {
-  it("devolve peças em cm (frente/costas/manga) para camiseta", () => {
+  it("devolve peças em cm (frente/costas/manga) para tshirt", () => {
     const pcs = draftPiecesCm(
-      { tipo: "camiseta", sexo: "masc", measurementOverrides: {}, style: {} },
+      {
+        type: "tshirt",
+        gender: "male",
+        measurementOverrides: {},
+        style: {},
+      },
       "M",
     );
-    expect(pcs.map((p) => p.id)).toEqual([
-      "corpo-frente",
-      "corpo-costas",
-      "manga",
-    ]);
-    const frente = pcs[0];
+    expect(pcs.map((p) => p.id)).toEqual(["body-front", "body-back", "sleeve"]);
+    const front = pcs[0];
     // outlineCm em cm reais: largura da frente na casa de dezenas de cm, não centenas (px)
-    const xs = frente.outlineCm.map(([x]) => x);
-    const largura = Math.max(...xs) - Math.min(...xs);
-    expect(largura).toBeGreaterThan(20);
-    expect(largura).toBeLessThan(80);
+    const xs = front.outlineCm.map(([x]) => x);
+    const width = Math.max(...xs) - Math.min(...xs);
+    expect(width).toBeGreaterThan(20);
+    expect(width).toBeLessThan(80);
   });
 });
 

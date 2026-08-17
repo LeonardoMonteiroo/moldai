@@ -1,9 +1,16 @@
-import { Pattern } from "@/lib/types";
+import { GarmentType, Pattern } from "@/lib/types";
 import { buildExportModel } from "@/lib/export/model";
 
 const cm = (n: number) => n.toFixed(1).replace(".", ",");
 
-export function FichaTecnicaTab({ pattern }: { pattern: Pattern }) {
+const GARMENT_TYPE_LABELS_PT: Record<GarmentType, string> = {
+  blouse: "Blusa",
+  dress: "Vestido",
+  skirt: "Saia",
+  tshirt: "Camiseta",
+};
+
+export function TechSheetTab({ pattern }: { pattern: Pattern }) {
   // Dimensões (larg × alt em cm) por peça, do model re-draftado em cm exato.
   const dims: Record<string, { w: number; h: number }> = {};
   if (pattern.spec && pattern.pieces.length > 0) {
@@ -16,7 +23,7 @@ export function FichaTecnicaTab({ pattern }: { pattern: Pattern }) {
   }
 
   const totalPieces = pattern.pieces.reduce((s, p) => s + p.qty, 0);
-  const folga = pattern.spec?.style.folgaCosturaCm ?? 1;
+  const folga = pattern.spec?.style.seamAllowanceCm ?? 1;
 
   return (
     <div className="flex-1 overflow-auto p-[22px]">
@@ -32,10 +39,13 @@ export function FichaTecnicaTab({ pattern }: { pattern: Pattern }) {
       {/* resumo do molde */}
       {pattern.spec && (
         <div className="mb-4 flex flex-wrap gap-2 text-[11.5px]">
-          <Chip label="Tipo" value={pattern.spec.tipo} />
+          <Chip
+            label="Tipo"
+            value={GARMENT_TYPE_LABELS_PT[pattern.spec.type]}
+          />
           <Chip
             label="Modelagem"
-            value={pattern.spec.sexo === "masc" ? "masculina" : "feminina"}
+            value={pattern.spec.gender === "male" ? "masculina" : "feminina"}
           />
           <Chip label="Peças" value={`${totalPieces}`} />
           <Chip label="Folga de costura" value={`${cm(folga)} cm`} />

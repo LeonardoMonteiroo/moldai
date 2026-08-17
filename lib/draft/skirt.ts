@@ -1,17 +1,25 @@
 import { Measurements } from "@/lib/measurements";
-import { DetailRow, GarmentStyle, SaiaSilhueta } from "@/lib/types";
+import { DetailRow, GarmentStyle, SkirtSilhouette } from "@/lib/types";
 import { DraftedPiece, Pt } from "./core";
 
 const cm = (v: number) => `${v.toFixed(1).replace(".", ",")} cm`;
 
+const SKIRT_SILHOUETTE_LABELS_PT: Record<SkirtSilhouette, string> = {
+  straight: "reta",
+  "a-line": "evase",
+  gore: "gode",
+  "half-circle": "meia-roda",
+  circle: "circulo",
+};
+
 // setor anelar (arco de cintura e de barra) amostrado em pontos
 function radialSkirt(
-  cintura: number,
-  comp: number,
+  waist: number,
+  length: number,
   denom: number,
 ): { pts: Pt[]; r: number } {
-  const r = cintura / denom; // raio interno (cintura)
-  const R = r + comp; // raio externo (barra)
+  const r = waist / denom; // raio interno (cintura)
+  const R = r + length; // raio externo (barra)
   const sweep = (Math.PI * 2) / denom; // ângulo de UM quarto de peça (peça cortada 4x/2x)
   const half = sweep / 2;
   const steps = 12;
@@ -29,24 +37,24 @@ function radialSkirt(
   return { pts: pts.map(([x, y]) => [x, y - minY] as Pt), r };
 }
 
-export function draftSaia(m: Measurements, style: GarmentStyle): DraftedPiece {
-  const silhueta: SaiaSilhueta = style.saia ?? "reta";
-  const folga = style.folgaCosturaCm ?? 1;
-  const comp = style.compSaiaCm ?? m.compSaia;
+export function draftSkirt(m: Measurements, style: GarmentStyle): DraftedPiece {
+  const silhueta: SkirtSilhouette = style.skirt ?? "straight";
+  const ease = style.seamAllowanceCm ?? 1;
+  const length = style.skirtLengthCm ?? m.skirtLength;
   const detailRows: DetailRow[] = [
-    { label: "Silhueta", value: silhueta },
-    { label: "Comprimento", value: cm(comp) },
-    { label: "Folga de costura", value: cm(folga) },
+    { label: "Silhueta", value: SKIRT_SILHOUETTE_LABELS_PT[silhueta] },
+    { label: "Comprimento", value: cm(length) },
+    { label: "Folga de costura", value: cm(ease) },
     { label: "Fio", value: "reto" },
   ];
 
   if (
-    silhueta === "circulo" ||
-    silhueta === "gode" ||
-    silhueta === "meia-roda"
+    silhueta === "circle" ||
+    silhueta === "gore" ||
+    silhueta === "half-circle"
   ) {
-    const denom = silhueta === "meia-roda" ? Math.PI : 2 * Math.PI;
-    const { pts, r } = radialSkirt(m.cintura, comp, denom);
+    const denom = silhueta === "half-circle" ? Math.PI : 2 * Math.PI;
+    const { pts, r } = radialSkirt(m.waist, length, denom);
     detailRows.splice(1, 0, { label: "Raio da cintura", value: cm(r) });
     // desloca para x>=0
     const minX = Math.min(...pts.map((p) => p[0]));
@@ -56,41 +64,41 @@ export function draftSaia(m: Measurements, style: GarmentStyle): DraftedPiece {
     const waistSpan: [number, number] = [0, steps];
     const hemSpan: [number, number] = [steps + 1, 2 * steps + 1];
     return {
-      id: "saia",
+      id: "skirt",
       name: "Saia",
-      qty: silhueta === "meia-roda" ? 1 : 2,
+      qty: silhueta === "half-circle" ? 1 : 2,
       outlineCm,
       curvedSpans: [waistSpan, hemSpan],
       grainlineCm: [
         [cxTop, 4],
-        [cxTop, comp],
+        [cxTop, length],
       ],
       detailRows,
     };
   }
 
   // reta / evasê: trapézio (¼ quadril na cintura, barra igual ou mais larga)
-  const waistHalf = m.quadril / 4 + folga; // usa quadril como largura de referência do painel
-  const flare = silhueta === "evase" ? 12 : 0;
+  const waistHalf = m.hip / 4 + ease; // usa quadril como largura de referência do painel
+  const flare = silhueta === "a-line" ? 12 : 0;
   const hemHalf = waistHalf + flare;
   const outlineCm: Pt[] = [
     [waistHalf === hemHalf ? 0 : hemHalf - waistHalf, 0],
     [hemHalf - waistHalf + waistHalf * 2, 0],
-    [hemHalf * 2, comp],
-    [0, comp],
+    [hemHalf * 2, length],
+    [0, length],
   ];
   detailRows.splice(1, 0, {
     label: "Cintura (painel)",
     value: cm(waistHalf * 2),
   });
   return {
-    id: "saia",
+    id: "skirt",
     name: "Saia",
     qty: 2,
     outlineCm,
     grainlineCm: [
       [hemHalf, 4],
-      [hemHalf, comp - 4],
+      [hemHalf, length - 4],
     ],
     detailRows,
   };

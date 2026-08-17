@@ -11,12 +11,12 @@ import {
   Measurement,
 } from "./types";
 
-export type EditorTab = "molde2d" | "prova3d" | "ficha" | "corte";
-export type EditorTool = "cursor" | "medir";
+export type EditorTab = "pattern2d" | "proof3d" | "techsheet" | "cutplan";
+export type EditorTool = "cursor" | "measure";
 
 const GENERATION_STEPS = [
   { label: "passo 1/4 · silhueta", pieceProgress: "traçando peças" },
-  { label: "passo 2/4 · pences", pieceProgress: "ajustando detalhes" },
+  { label: "passo 2/4 · pinças", pieceProgress: "ajustando detalhes" },
   { label: "passo 3/4 · costuras", pieceProgress: "conferindo costuras" },
   { label: "passo 4/4 · consumo", pieceProgress: "calculando consumo" },
 ];
@@ -88,7 +88,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   credits: null,
   conflict: null,
 
-  activeTab: "molde2d",
+  activeTab: "pattern2d",
   selectedPieceId: null,
   detailsPanelOpen: true,
   activeTool: "cursor",
@@ -193,7 +193,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set({
       selectedPieceId: null,
       detailsPanelOpen: true,
-      activeTab: "molde2d",
+      activeTab: "pattern2d",
       activeTool: "cursor",
       measurements: [],
       generationStatus: "idle",

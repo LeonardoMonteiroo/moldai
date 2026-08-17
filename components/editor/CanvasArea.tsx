@@ -10,9 +10,9 @@ import { FloatingToolbar } from "./FloatingToolbar";
 import { ZoomControls } from "./ZoomControls";
 import { PieceDetailsPanel } from "./PieceDetailsPanel";
 import { ConflictInfoCard } from "./ConflictInfoCard";
-import { FichaTecnicaTab } from "./FichaTecnicaTab";
-import { PlanoCorteTab } from "./PlanoCorteTab";
-import { Prova3DTab } from "./Prova3DTab";
+import { TechSheetTab } from "./TechSheetTab";
+import { CutPlanTab } from "./CutPlanTab";
+import { Proof3DTab } from "./Proof3DTab";
 
 export function CanvasArea() {
   const pattern = useEditorStore((s) => s.pattern);
@@ -68,7 +68,7 @@ export function CanvasArea() {
         />
       )}
 
-      {activeTab === "molde2d" && (
+      {activeTab === "pattern2d" && (
         <div className="pattern-grid bg-paper relative min-h-[300px] flex-1 overflow-hidden p-[22px]">
           <div
             className={[
@@ -139,9 +139,9 @@ export function CanvasArea() {
           )}
         </div>
       )}
-      {activeTab === "prova3d" && <Prova3DTab />}
-      {activeTab === "ficha" && <FichaTecnicaTab pattern={pattern} />}
-      {activeTab === "corte" && <PlanoCorteTab pattern={pattern} />}
+      {activeTab === "proof3d" && <Proof3DTab />}
+      {activeTab === "techsheet" && <TechSheetTab pattern={pattern} />}
+      {activeTab === "cutplan" && <CutPlanTab pattern={pattern} />}
     </div>
   );
 }

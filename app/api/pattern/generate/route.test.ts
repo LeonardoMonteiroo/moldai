@@ -53,8 +53,8 @@ describe("POST /api/pattern/generate", () => {
     mockPropose.mockResolvedValue({
       decision: "ask",
       spec: {
-        tipo: "camiseta",
-        sexo: "masc",
+        type: "tshirt",
+        gender: "male",
         style: {},
         measurementOverrides: {},
       },
@@ -84,8 +84,8 @@ describe("POST /api/pattern/generate", () => {
     mockPropose.mockResolvedValue({
       decision: "apply",
       spec: {
-        tipo: "camiseta",
-        sexo: "masc",
+        type: "tshirt",
+        gender: "male",
         style: {},
         measurementOverrides: {},
       },
@@ -111,8 +111,8 @@ describe("POST /api/pattern/generate", () => {
     mockPropose.mockResolvedValue({
       decision: "apply",
       spec: {
-        tipo: "camiseta",
-        sexo: "masc",
+        type: "tshirt",
+        gender: "male",
         style: {},
         measurementOverrides: {},
       },

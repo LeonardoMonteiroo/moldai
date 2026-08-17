@@ -150,7 +150,7 @@ export function buildExportModel(pattern: Pattern): ExportModel {
     patternName: pattern.name,
     size: pattern.baseSize,
     unit: "cm",
-    seamAllowanceCm: spec.style.folgaCosturaCm ?? 1,
+    seamAllowanceCm: spec.style.seamAllowanceCm ?? 1,
     sheetWidthCm: sheetRight + padCm,
     sheetHeightCm: cursorY + rowH + padCm,
     pieces,

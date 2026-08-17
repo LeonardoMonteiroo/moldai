@@ -1,21 +1,22 @@
 import { Measurements } from "@/lib/measurements";
 import { DetailRow, GarmentStyle } from "@/lib/types";
 import { DraftedPiece, Pt } from "./core";
-import { BlockOpts } from "./corpo";
+import { BlockOpts } from "./body";
 
 const cm = (v: number) => `${v.toFixed(1).replace(".", ",")} cm`;
 
-export function draftManga(
+export function draftSleeve(
   m: Measurements,
   style: GarmentStyle,
   armholeLenCm: number,
-  _opts: BlockOpts = { sexo: "fem", knit: false, lengthCm: 0 },
+  _opts: BlockOpts = { gender: "female", knit: false, lengthCm: 0 },
 ): DraftedPiece | null {
-  if (style.manga === "sem" || !style.manga) return null;
+  if (style.sleeve === "none" || !style.sleeve) return null;
   const bicep = armholeLenCm * 0.9;
   const capH = armholeLenCm / 3;
-  const len = style.manga === "longa" ? m.compMangaLonga : m.compMangaCurta;
-  const hemHalf = (bicep / 2) * (style.manga === "longa" ? 0.7 : 0.9);
+  const len =
+    style.sleeve === "long" ? m.longSleeveLength : m.shortSleeveLength;
+  const hemHalf = (bicep / 2) * (style.sleeve === "long" ? 0.7 : 0.9);
   const cxTop = bicep / 2;
 
   // 0 axila esq -> 1 ctrl costas -> 2 topo -> 3 ctrl frente -> 4 axila dir (copa, curva)
@@ -35,13 +36,13 @@ export function draftManga(
     [cxTop, capH + len - 3],
   ];
   const detailRows: DetailRow[] = [
-    { label: "Tipo", value: style.manga === "longa" ? "longa" : "curta" },
+    { label: "Tipo", value: style.sleeve === "long" ? "longa" : "curta" },
     { label: "Comprimento", value: cm(capH + len) },
     { label: "Cava (copa)", value: cm(armholeLenCm) },
     { label: "Fio", value: "reto" },
   ];
   return {
-    id: "manga",
+    id: "sleeve",
     name: "Manga",
     qty: 2,
     outlineCm,
