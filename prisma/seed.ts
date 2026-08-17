@@ -20,7 +20,7 @@ async function main() {
       },
     });
   }
-  console.log("Seed concluído:", USERS.map((u) => u.email).join(", "));
+  console.log("Seed complete:", USERS.map((u) => u.email).join(", "));
 }
 
 main()
