@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { useEditorStore } from "@/lib/store";
 import { Topbar } from "./Topbar";
 import { ChatPanel } from "./ChatPanel";
@@ -9,6 +10,7 @@ import { Footer } from "./Footer";
 import { PaywallModal } from "./PaywallModal";
 
 export function EditorShell({ userEmail }: { userEmail: string }) {
+  const t = useTranslations("EditorShell");
   const ready = useEditorStore((s) => s.ready);
   const pattern = useEditorStore((s) => s.pattern);
   const credits = useEditorStore((s) => s.credits);
@@ -24,7 +26,7 @@ export function EditorShell({ userEmail }: { userEmail: string }) {
   if (!ready || !pattern || !credits) {
     return (
       <div className="text-muted flex flex-1 items-center justify-center text-[13px]">
-        Carregando molde…
+        {t("loading")}
       </div>
     );
   }

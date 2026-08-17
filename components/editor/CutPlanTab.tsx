@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Pattern } from "@/lib/types";
 import { buildPathD } from "@/lib/export/model";
 import { planCutLayout, FABRIC_WIDTHS_CM } from "@/lib/export/cutplan";
@@ -8,6 +9,7 @@ import { planCutLayout, FABRIC_WIDTHS_CM } from "@/lib/export/cutplan";
 const meters = (cm: number) => (cm / 100).toFixed(2).replace(".", ",") + " m";
 
 export function CutPlanTab({ pattern }: { pattern: Pattern }) {
+  const t = useTranslations("CutPlanTab");
   const [fabricWidthCm, setFabricWidthCm] = useState<number>(150);
 
   // Encaixe real: só recalcula quando o molde ou a largura mudam.
@@ -24,23 +26,21 @@ export function CutPlanTab({ pattern }: { pattern: Pattern }) {
     <div className="flex flex-1 flex-col gap-4 overflow-auto p-[22px]">
       <div className="flex items-baseline gap-2">
         <span className="font-display text-[19px] font-semibold">
-          Plano de corte
+          {t("title")}
         </span>
         <span className="text-muted text-[12px]">{pattern.name}</span>
       </div>
 
       {!plan ? (
         <div className="border-pattern-guide rounded-card bg-surface-alt flex min-h-[200px] flex-1 items-center justify-center border border-dashed">
-          <span className="text-muted text-[12.5px]">
-            Gere um molde para ver o plano de corte.
-          </span>
+          <span className="text-muted text-[12.5px]">{t("emptyState")}</span>
         </div>
       ) : (
         <>
           {/* seletor de largura de tecido */}
           <div className="flex flex-col gap-[6px]">
             <span className="text-muted text-[11px] font-semibold tracking-[.8px] uppercase">
-              Largura do tecido
+              {t("fabricWidthLabel")}
             </span>
             <div className="flex gap-[6px]">
               {FABRIC_WIDTHS_CM.map((w) => (
@@ -64,19 +64,19 @@ export function CutPlanTab({ pattern }: { pattern: Pattern }) {
           {/* métricas */}
           <div className="flex flex-wrap gap-3">
             <Metric
-              label="Consumo"
+              label={t("metricConsumptionLabel")}
               value={meters(plan.lengthCm)}
-              hint="comprimento no tecido"
+              hint={t("metricConsumptionHint")}
             />
             <Metric
-              label="Aproveitamento"
+              label={t("metricEfficiencyLabel")}
               value={`${Math.round(plan.efficiency * 100)}%`}
-              hint="área útil / área do tecido"
+              hint={t("metricEfficiencyHint")}
             />
             <Metric
-              label="Peças no corte"
+              label={t("metricPieceCountLabel")}
               value={String(plan.instances.length)}
-              hint="cópias (peça × quantidade)"
+              hint={t("metricPieceCountHint")}
             />
           </div>
 
@@ -85,8 +85,7 @@ export function CutPlanTab({ pattern }: { pattern: Pattern }) {
               role="alert"
               className="text-alert bg-amber-bg border-amber-border rounded-item border px-[10px] py-[6px] text-[11.5px]"
             >
-              Alguma peça é mais larga que o tecido — use um tecido mais largo
-              ou reduza a peça.
+              {t("overflowWarning")}
             </span>
           )}
 
@@ -137,10 +136,11 @@ export function CutPlanTab({ pattern }: { pattern: Pattern }) {
           </div>
 
           <p className="text-muted text-[10.5px] leading-snug">
-            Encaixe automático first-fit (não ótimo) · fio travado, sem rotação
-            das peças · cada peça repetida pela quantidade a cortar. Linha
-            líquida — sem margem de costura. Encaixe manual e otimizado{" "}
-            <span className="text-olive font-semibold">em breve</span>.
+            {t.rich("layoutNote", {
+              em: (chunks) => (
+                <span className="text-olive font-semibold">{chunks}</span>
+              ),
+            })}
           </p>
         </>
       )}

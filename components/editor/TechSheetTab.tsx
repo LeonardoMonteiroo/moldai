@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { GarmentType, Pattern } from "@/lib/types";
 import { buildExportModel } from "@/lib/export/model";
 
@@ -11,6 +12,7 @@ const GARMENT_TYPE_LABELS_PT: Record<GarmentType, string> = {
 };
 
 export function TechSheetTab({ pattern }: { pattern: Pattern }) {
+  const t = useTranslations("TechSheetTab");
   // Dimensões (larg × alt em cm) por peça, do model re-draftado em cm exato.
   const dims: Record<string, { w: number; h: number }> = {};
   if (pattern.spec && pattern.pieces.length > 0) {
@@ -29,10 +31,14 @@ export function TechSheetTab({ pattern }: { pattern: Pattern }) {
     <div className="flex-1 overflow-auto p-[22px]">
       <div className="mb-1 flex items-baseline gap-2">
         <span className="font-display text-[19px] font-semibold">
-          Ficha técnica
+          {t("title")}
         </span>
         <span className="text-muted text-[12px]">
-          {pattern.name} · base {pattern.baseSize} · unidade {pattern.unit}
+          {t("subtitle", {
+            name: pattern.name,
+            baseSize: pattern.baseSize,
+            unit: pattern.unit,
+          })}
         </span>
       </div>
 
@@ -40,15 +46,15 @@ export function TechSheetTab({ pattern }: { pattern: Pattern }) {
       {pattern.spec && (
         <div className="mb-4 flex flex-wrap gap-2 text-[11.5px]">
           <Chip
-            label="Tipo"
+            label={t("chipType")}
             value={GARMENT_TYPE_LABELS_PT[pattern.spec.type]}
           />
           <Chip
-            label="Modelagem"
+            label={t("chipGender")}
             value={pattern.spec.gender === "male" ? "masculina" : "feminina"}
           />
-          <Chip label="Peças" value={`${totalPieces}`} />
-          <Chip label="Folga de costura" value={`${cm(folga)} cm`} />
+          <Chip label={t("chipPieces")} value={`${totalPieces}`} />
+          <Chip label={t("chipSeamAllowance")} value={`${cm(folga)} cm`} />
         </div>
       )}
 
@@ -59,7 +65,7 @@ export function TechSheetTab({ pattern }: { pattern: Pattern }) {
             ...(d
               ? [
                   {
-                    label: "Dimensões (larg × alt)",
+                    label: t("dimensionsLabel"),
                     value: `${cm(d.w)} × ${cm(d.h)} cm`,
                   },
                 ]
@@ -95,7 +101,7 @@ export function TechSheetTab({ pattern }: { pattern: Pattern }) {
                 </table>
               ) : (
                 <div className="text-muted px-3 py-[9px] text-[12px]">
-                  Sem detalhes.
+                  {t("noDetails")}
                 </div>
               )}
             </div>

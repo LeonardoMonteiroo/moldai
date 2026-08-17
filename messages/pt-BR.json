@@ -121,5 +121,44 @@
     "generateButton": "Gerar molde",
     "generateAnywayButton": "gerar assim mesmo",
     "generateAnywayMessage": "pode gerar com os padrões"
+  },
+  "TechSheetTab": {
+    "title": "Ficha técnica",
+    "subtitle": "{name} · base {baseSize} · unidade {unit}",
+    "chipType": "Tipo",
+    "chipGender": "Modelagem",
+    "chipPieces": "Peças",
+    "chipSeamAllowance": "Folga de costura",
+    "dimensionsLabel": "Dimensões (larg × alt)",
+    "noDetails": "Sem detalhes."
+  },
+  "CutPlanTab": {
+    "title": "Plano de corte",
+    "emptyState": "Gere um molde para ver o plano de corte.",
+    "fabricWidthLabel": "Largura do tecido",
+    "metricConsumptionLabel": "Consumo",
+    "metricConsumptionHint": "comprimento no tecido",
+    "metricEfficiencyLabel": "Aproveitamento",
+    "metricEfficiencyHint": "área útil / área do tecido",
+    "metricPieceCountLabel": "Peças no corte",
+    "metricPieceCountHint": "cópias (peça × quantidade)",
+    "overflowWarning": "Alguma peça é mais larga que o tecido — use um tecido mais largo ou reduza a peça.",
+    "layoutNote": "Encaixe automático first-fit (não ótimo) · fio travado, sem rotação das peças · cada peça repetida pela quantidade a cortar. Linha líquida — sem margem de costura. Encaixe manual e otimizado <em>em breve</em>."
+  },
+  "Proof3DTab": {
+    "title": "Prova 3D ainda não disponível",
+    "description": "A visualização 3D do molde vestido no corpo virtual está em desenvolvimento."
+  },
+  "EditorShell": {
+    "loading": "Carregando molde…"
+  },
+  "Login": {
+    "heading": "Entrar",
+    "emailLabel": "Email",
+    "passwordLabel": "Senha",
+    "invalidCredentials": "Email ou senha inválidos.",
+    "submitButton": "Entrar",
+    "submitButtonLoading": "Entrando…",
+    "signupNote": "Criar conta — <b>em breve</b>. Cada conta tem o seu próprio molde, salvo automaticamente."
   }
 }
