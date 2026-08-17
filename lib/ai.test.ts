@@ -10,7 +10,7 @@ vi.mock("@anthropic-ai/sdk", () => {
 import Anthropic from "@anthropic-ai/sdk";
 import { proposeGarment } from "./ai";
 
-// handle compartilhado do mock (a factory reusa a mesma fn create)
+// shared handle for the mock (the factory reuses the same create fn)
 const create = new (
   Anthropic as unknown as new () => {
     messages: { create: ReturnType<typeof vi.fn> };
@@ -23,19 +23,19 @@ function toolResp(input: unknown) {
 
 const baseState = {
   pattern: { pieces: [], spec: undefined },
-  chat: [{ author: "user", text: "quero uma camiseta" }],
+  chat: [{ author: "user", text: "I want a t-shirt" }],
 } as unknown as EditorState;
 
 describe("proposeGarment", () => {
   beforeEach(() => create.mockReset());
 
-  it("mapeia decision=ask com perguntas validadas", async () => {
+  it("maps decision=ask with validated questions", async () => {
     create.mockResolvedValue(
       toolResp({
         decision: "ask",
-        assistantMessage: "Me conta mais:",
+        assistantMessage: "Tell me more:",
         questions: [
-          { label: "Gola", options: ["redonda", "V"], allowOther: true },
+          { label: "Neckline", options: ["round", "V"], allowOther: true },
         ],
       }),
     );
@@ -45,7 +45,7 @@ describe("proposeGarment", () => {
     expect(d.questions![0].id).toBe("q0");
   });
 
-  it("degrada ask sem perguntas válidas para apply", async () => {
+  it("degrades ask without valid questions to apply", async () => {
     create.mockResolvedValue(
       toolResp({
         decision: "ask",
@@ -63,12 +63,12 @@ describe("proposeGarment", () => {
     expect(d.decision).toBe("apply");
   });
 
-  it("answering=true força apply mesmo se a IA responder ask", async () => {
+  it("answering=true forces apply even if the AI responds ask", async () => {
     create.mockResolvedValue(
       toolResp({
         decision: "ask",
         assistantMessage: "x",
-        questions: [{ label: "Gola", options: ["a", "b"] }],
+        questions: [{ label: "Neckline", options: ["a", "b"] }],
       }),
     );
     const d = await proposeGarment(baseState, true);

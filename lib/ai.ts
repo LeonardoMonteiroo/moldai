@@ -28,7 +28,7 @@ interface RawToolInput {
 const TOOL: Anthropic.Tool = {
   name: "propose_garment",
   description:
-    "Decide como o pedido do usuário se traduz em uma GarmentSpec (especificação da peça de roupa). Escolha SEMPRE uma decisão e escreva assistantMessage em português do Brasil.",
+    "Decide how the user's request translates into a GarmentSpec (garment specification). Always choose a decision, and write assistantMessage in the same language the user wrote in.",
   input_schema: {
     type: "object",
     properties: {
@@ -36,12 +36,12 @@ const TOOL: Anthropic.Tool = {
         type: "string",
         enum: ["apply", "decline", "ask"],
         description:
-          "apply = dá pra modelar já; decline = fora do escopo (calça, acessório…); ask = falta detalhe relevante, faça perguntas antes de desenhar.",
+          "apply = ready to draft now; decline = out of scope (pants, accessories…); ask = missing relevant detail, ask questions before drafting.",
       },
       spec: {
         type: "object",
         description:
-          "A GarmentSpec COMPLETA e ATUALIZADA (não só o delta). Preencha SEMPRE que decision=apply — inclua tudo que já existia mais as mudanças pedidas.",
+          "The COMPLETE, UPDATED GarmentSpec (not just the delta). Always fill this in when decision=apply — include everything that already existed plus the requested changes.",
         properties: {
           type: {
             type: "string",
@@ -51,12 +51,12 @@ const TOOL: Anthropic.Tool = {
             type: "string",
             enum: ["female", "male"],
             description:
-              "Gênero/base de medidas. Infira de pistas como 'masculina'/'feminina'/'unissex'. Default female.",
+              "Gender / measurement base. Infer from cues like 'men's'/'women's'/'unisex' (in any language). Default female.",
           },
           measurementOverrides: {
             type: "object",
             description:
-              "Overrides numéricos (cm) de medidas do corpo, por nome de medida. Só inclua o que o pedido pede explicitamente ajustar; o resto vem da tabela de tamanhos.",
+              "Numeric (cm) overrides of body measurements, by measurement name. Only include what the request explicitly asks to adjust; everything else comes from the size table.",
             properties: Object.fromEntries(
               Object.keys(MEASUREMENT_RANGES).map((k) => [
                 k,
@@ -81,7 +81,7 @@ const TOOL: Anthropic.Tool = {
               armholeDeepenCm: {
                 type: "number",
                 description:
-                  "Aprofundar a cava do corpo em X cm (0 a 6). Use quando o usuário pedir para aumentar/aprofundar/baixar a cava (ex.: 'aumenta 2cm na cava'). Mexe só no corpo — a manga pode precisar de ajuste depois.",
+                  "Deepens the body's armhole by X cm (0 to 6). Use when the user asks to increase/deepen/lower the armhole (e.g. 'add 2cm to the armhole'). Only affects the body — the sleeve may need adjusting afterward.",
               },
             },
           },
@@ -91,23 +91,23 @@ const TOOL: Anthropic.Tool = {
       questions: {
         type: "array",
         description:
-          "Preencha SOMENTE quando decision=ask. 1 a 4 perguntas objetivas de escolha única, opções vindas do catálogo válido. Não invente medidas nem desenhe.",
+          "Fill in ONLY when decision=ask. 1 to 4 objective single-choice questions, with options drawn from the valid catalog. Don't invent measurements or draft.",
         items: {
           type: "object",
           properties: {
             label: {
               type: "string",
-              description: "Pergunta curta em pt-BR (ex.: 'Gola').",
+              description:
+                "Short question, written in the same language the user used (e.g. 'Neckline').",
             },
             options: {
               type: "array",
               items: { type: "string" },
-              description: "2 a 6 opções de escolha única.",
+              description: "2 to 6 single-choice options.",
             },
             allowOther: {
               type: "boolean",
-              description:
-                "true se fizer sentido um campo 'outro' de texto livre.",
+              description: "true if a free-text 'other' field makes sense.",
             },
           },
           required: ["label", "options"],
@@ -115,12 +115,12 @@ const TOOL: Anthropic.Tool = {
       },
       declineReason: {
         type: "string",
-        description: "Preencha SOMENTE quando decision=decline.",
+        description: "Fill in ONLY when decision=decline.",
       },
       assistantMessage: {
         type: "string",
         description:
-          "Resposta curta ao usuário no chat, em português, descrevendo o que foi feito ou por que não.",
+          "Short reply to the user in chat, in the same language the user wrote in, describing what was done or why not.",
       },
     },
     required: ["decision", "assistantMessage"],
@@ -131,27 +131,28 @@ function buildSystem(state: EditorState, answering: boolean): string {
   const currentSpec = state.pattern.spec;
   const isEmpty = state.pattern.pieces.length === 0;
   return [
-    "Você é o motor de modelagem da MoldAI. Recebe pedidos em linguagem natural sobre uma peça de roupa e traduz em uma GarmentSpec (type + medidas + estilo).",
-    "A GarmentSpec tem: type (blouse | dress | skirt | tshirt); gender (female | male); measurementOverrides (medidas do corpo em cm, sobrepõem a tabela de tamanhos); style (neckline, necklineDepthCm, sleeve, skirt, skirtLengthCm, darts, seamAllowanceCm, armholeDeepenCm).",
-    "armholeDeepenCm aprofunda a cava do corpo (0 a 6 cm): use quando pedirem para aumentar/baixar a cava. Como mexe só no corpo, a copa da manga pode ficar diferente e gerar um aviso de costura — isso é esperado, o usuário resolve com 'Corrigir manga'.",
-    "tshirt = peça de malha (gola redonda, manga montada curta por padrão, sem pence, caimento justo); blouse = tecido plano (pode ter pence, qualquer gola). Escolha tshirt para t-shirt/camiseta e blouse para blusa/camisa social.",
-    "Catálogo de estilos válidos: neckline em straight|V|round; sleeve em none|short|long; skirt (silhueta) em straight|a-line|gore|half-circle|circle.",
-    "Mapeie o vocabulário do usuário para os tokens: gola 'reta'->straight, 'em V'->V, 'redonda'->round; manga 'curta'->short, 'longa'->long, 'sem manga'->none; saia 'reta'->straight, 'godê/gode'->gore, 'evasê/evase'->a-line, 'meia-roda'->half-circle, 'rodada/círculo'->circle.",
-    "Infira gender do pedido ('masculina'->male, 'feminina'->female, sem pista->female).",
+    "You are MoldAI's pattern-drafting engine. You receive natural-language requests about a garment and translate them into a GarmentSpec (type + measurements + style).",
+    "The GarmentSpec has: type (blouse | dress | skirt | tshirt); gender (female | male); measurementOverrides (body measurements in cm, override the size table); style (neckline, necklineDepthCm, sleeve, skirt, skirtLengthCm, darts, seamAllowanceCm, armholeDeepenCm).",
+    "armholeDeepenCm deepens the body's armhole (0 to 6 cm): use it when asked to increase/lower the armhole. Since it only affects the body, the sleeve cap may end up mismatched and trigger a seam-conflict warning — that's expected, the user resolves it with the sleeve-fix action.",
+    "tshirt = knit garment (round neckline, short set-in sleeve by default, no darts, fitted); blouse = woven fabric (may have darts, any neckline). Choose tshirt for a t-shirt and blouse for a blouse/shirt.",
+    "Valid style catalog: neckline in straight|V|round; sleeve in none|short|long; skirt (silhouette) in straight|a-line|gore|half-circle|circle.",
+    "Map the user's vocabulary to these tokens regardless of what language they wrote in — e.g. neckline 'straight'->straight, 'V-neck'->V, 'round'->round; sleeve 'short'->short, 'long'->long, 'sleeveless'->none; skirt 'straight'->straight, 'godet'->gore, 'A-line'->a-line, 'half circle'->half-circle, 'circle'->circle.",
+    "Infer gender from the request ('men's'->male, 'women's'->female, no cue->female).",
+    "Always write assistantMessage, and any question labels/options, in the same natural language the user's most recent message was written in — mirror it exactly, never default to a fixed language.",
     isEmpty
-      ? "ESTADO ATUAL: molde EM BRANCO, nenhuma peça criada ainda. Este é um pedido do zero: monte a GarmentSpec inteira que a roupa precisa. Se o pedido já trouxer o suficiente, use apply; mas um pedido genérico só com o type da peça (ex.: 'faça uma camiseta', sem gender, tamanho, gola, manga nem caimento) está SUBESPECIFICADO — nesse caso use decision=ask antes de desenhar."
-      : "Já existe uma spec aplicada (abaixo). Um pedido de ajuste deve devolver a SPEC INTEIRA ATUALIZADA (não só o delta): parta da spec atual e aplique as mudanças pedidas.",
-    "Se o pedido não for uma peça de roupa que esta spec consegue representar (ex.: calça, acessório, pedido genérico sem relação com uma peça modelável), use decision=decline e explique gentilmente em assistantMessage. Não preencha spec nesse caso.",
+      ? "CURRENT STATE: BLANK pattern, no piece created yet. This is a from-scratch request: build the entire GarmentSpec the garment needs. If the request already provides enough, use apply; but a generic request with only the piece type (e.g. 'make a t-shirt', no gender, size, neckline, sleeve, or fit) is UNDERSPECIFIED — in that case use decision=ask before drafting."
+      : "A spec is already applied (below). An adjustment request should return the ENTIRE UPDATED SPEC (not just the delta): start from the current spec and apply the requested changes.",
+    "If the request isn't a garment this spec can represent (e.g. pants, accessories, a generic request unrelated to a draftable piece), use decision=decline and explain gently in assistantMessage. Don't fill in spec in that case.",
     answering
-      ? "O usuário ACABOU de responder às suas perguntas (as respostas estão na última mensagem do usuário). NÃO use decision=ask de novo — use apply (ou decline se for fora de escopo) com o melhor entendimento das respostas."
-      : "Se faltar detalhe relevante pra modelar corretamente (gola, manga, caimento, comprimento, tamanho…), use decision=ask com 1 a 4 perguntas objetivas de escolha única, opções do catálogo válido; não invente medidas nem desenhe nesse caso. Só use apply quando já tiver o suficiente.",
+      ? "The user just ANSWERED your questions (the answers are in the last user message). Do NOT use decision=ask again — use apply (or decline if out of scope) with your best understanding of the answers."
+      : "If relevant detail is missing to draft correctly (neckline, sleeve, fit, length, size…), use decision=ask with 1 to 4 objective single-choice questions, options from the valid catalog; don't invent measurements or draft in that case. Only use apply once you have enough.",
     "",
-    "Tabela de tamanhos feminina (cm):",
+    "Female size table (cm):",
     JSON.stringify(SIZE_TABLE),
-    "Tabela de tamanhos masculina (cm):",
+    "Male size table (cm):",
     JSON.stringify(SIZE_TABLE_MALE),
     "",
-    "Spec atual do molde:",
+    "Current pattern spec:",
     JSON.stringify(currentSpec ?? null),
   ].join("\n");
 }
@@ -181,7 +182,7 @@ export async function proposeGarment(
   }
   const input = block.input as RawToolInput;
 
-  // Guard redundante à instrução do prompt: respondendo, nunca voltar a perguntar.
+  // Redundant guard for the prompt instruction: when answering, never ask again.
   if (input.decision === "ask" && !answering) {
     const questions = validateQuestions(input.questions);
     if (questions.length > 0) {
@@ -192,7 +193,7 @@ export async function proposeGarment(
         assistantMessage: input.assistantMessage,
       };
     }
-    // sem pergunta aproveitável → desenha com defaults
+    // no usable question → draft with defaults
     return {
       decision: "apply",
       spec: validateSpec(input.spec),
