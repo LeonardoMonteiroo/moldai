@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getTranslations } from "next-intl/server";
 import { withMolde } from "@/lib/db/molde";
+import { loadWallet } from "@/lib/db/wallet";
+import { composeEditorState } from "@/lib/api/compose";
 import {
   addMessage,
   bumpVersion,
@@ -26,7 +28,7 @@ export async function POST(request: Request) {
 
   const t = await getTranslations("PatternData");
 
-  return withMolde(gate.id, (state) => {
+  const moldeState = await withMolde(gate.id, (state) => {
     if (action === "fix") {
       refitSleeve(state, t);
       bumpVersion(state);
@@ -40,6 +42,11 @@ export async function POST(request: Request) {
     } else {
       setConflict(state, null);
     }
-    return NextResponse.json({ status: "ok", state });
+    return state;
+  });
+  const wallet = await loadWallet(gate.id);
+  return NextResponse.json({
+    status: "ok",
+    state: composeEditorState(moldeState, wallet, new Date()),
   });
 }

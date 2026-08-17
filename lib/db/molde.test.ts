@@ -45,7 +45,7 @@ vi.mock("@/lib/db/prisma", () => ({
 }));
 
 import { withMolde, loadMolde, resetMolde } from "./molde";
-import { seedState, debitCredits } from "@/lib/editor/state";
+import { seedMoldeState, bumpVersion } from "@/lib/editor/state";
 
 // Makes $executeRaw materialize the seed (INSERT-if-absent) and persist the
 // final UPDATE, and makes $queryRaw return a COPY of the current row — truly
@@ -53,7 +53,7 @@ import { seedState, debitCredits } from "@/lib/editor/state";
 //
 // The copy in $queryRaw is essential: withMolde doesn't clone the `data` it
 // reads, so if we returned the `store`'s own reference, an in-place mutation
-// by fn (e.g. debitCredits) would show up in the store by aliasing — even if
+// by fn (e.g. bumpVersion) would show up in the store by aliasing — even if
 // the UPDATE never ran. With the copy, only the UPDATE writes the mutation back.
 function wireTx() {
   const uid = "u1";
@@ -73,7 +73,7 @@ function wireTx() {
     },
   );
   tx.$queryRaw.mockImplementation(async () => {
-    if (!store.has(uid)) store.set(uid, seedState());
+    if (!store.has(uid)) store.set(uid, seedMoldeState());
     return [{ data: JSON.parse(JSON.stringify(store.get(uid))) }];
   });
 }
@@ -89,17 +89,17 @@ describe("withMolde", () => {
   it("seeds the blank molde on first access and passes it to fn", async () => {
     let seen: number | null = null;
     await withMolde("u1", (state) => {
-      seen = state.credits.balance;
+      seen = state.pattern.version;
     });
-    expect(seen).toBe(320);
+    expect(seen).toBe(0);
   });
 
-  it("persists fn's mutations (the debit survives)", async () => {
+  it("persists fn's mutations (the version bump survives)", async () => {
     await withMolde("u1", (state) => {
-      debitCredits(state, 4);
+      bumpVersion(state);
     });
-    const s = store.get("u1") as ReturnType<typeof seedState>;
-    expect(s.credits.balance).toBe(316);
+    const s = store.get("u1") as ReturnType<typeof seedMoldeState>;
+    expect(s.pattern.version).toBe(1);
     expect(tx.$executeRaw).toHaveBeenCalled();
   });
 
@@ -115,15 +115,15 @@ describe("loadMolde", () => {
   });
   it("returns the seed without writing when there's no row", async () => {
     const s = await loadMolde("novo");
-    expect(s.credits.balance).toBe(320);
+    expect(s.pattern.version).toBe(0);
     expect(store.has("novo")).toBe(false); // read-only: nothing was persisted
   });
   it("returns the persisted state when it exists", async () => {
-    const seeded = seedState();
-    seeded.credits.balance = 7;
+    const seeded = seedMoldeState();
+    seeded.pattern.version = 7;
     store.set("u1", seeded);
     const s = await loadMolde("u1");
-    expect(s.credits.balance).toBe(7);
+    expect(s.pattern.version).toBe(7);
   });
 });
 
@@ -132,15 +132,13 @@ describe("resetMolde", () => {
     store.clear();
   });
   it("overwrites with the blank molde and persists it", async () => {
-    const dirty = seedState();
-    dirty.credits.balance = 0;
+    const dirty = seedMoldeState();
     dirty.pattern.version = 9;
     store.set("u1", dirty);
     const s = await resetMolde("u1");
-    expect(s.credits.balance).toBe(320);
     expect(s.pattern.version).toBe(0);
     expect(
-      (store.get("u1") as ReturnType<typeof seedState>).pattern.version,
+      (store.get("u1") as ReturnType<typeof seedMoldeState>).pattern.version,
     ).toBe(0);
   });
 });

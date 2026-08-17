@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
-import { withMolde } from "@/lib/db/molde";
-import {
-  addMessage,
-  applySizes,
-  bumpVersion,
-  debitCredits,
-} from "@/lib/editor/state";
+import { withMoldeAndWallet } from "@/lib/db/molde-wallet";
+import { addMessage, applySizes, bumpVersion } from "@/lib/editor/state";
+import { debitWallet } from "@/lib/billing/wallet";
+import type { LedgerEntry } from "@/lib/billing/wallet";
+import { composeEditorState } from "@/lib/api/compose";
 import { ALL_SIZES, COSTS, SizeLabel } from "@/lib/types";
 import { formatList } from "@/lib/format";
 import { requireUser } from "@/lib/auth/guard";
@@ -35,28 +33,41 @@ export async function POST(request: Request) {
     );
   }
   const cost = COSTS.graduate;
+  const now = new Date();
 
-  return withMolde(gate.id, (state) => {
-    if (state.credits.balance < cost) {
-      return NextResponse.json(
-        {
-          status: "insufficient_credits",
-          required: cost,
-          balance: state.credits.balance,
-        },
-        { status: 402 },
-      );
-    }
-    debitCredits(state, cost);
-    applySizes(state, sizes);
-    bumpVersion(state);
-    addMessage(state, {
-      id: `msg-${Date.now()}-ai`,
-      author: "ai",
-      text: `Graduação aplicada para ${formatList(sizes)}.`,
-      chips: [{ label: `−${cost} créditos`, tone: "credit" }],
-      createdAt: Date.now(),
-    });
-    return NextResponse.json({ status: "ok", state });
-  });
+  return withMoldeAndWallet(
+    gate.id,
+    (state, wallet): { result: NextResponse; entries: LedgerEntry[] } => {
+      if (wallet.balance < cost) {
+        return {
+          result: NextResponse.json(
+            {
+              status: "insufficient_credits",
+              required: cost,
+              balance: wallet.balance,
+            },
+            { status: 402 },
+          ),
+          entries: [],
+        };
+      }
+      const entry = debitWallet(wallet, cost, "graduate");
+      applySizes(state, sizes);
+      bumpVersion(state);
+      addMessage(state, {
+        id: `msg-${Date.now()}-ai`,
+        author: "ai",
+        text: `Graduação aplicada para ${formatList(sizes)}.`,
+        chips: [{ label: `−${cost} créditos`, tone: "credit" }],
+        createdAt: Date.now(),
+      });
+      return {
+        result: NextResponse.json({
+          status: "ok",
+          state: composeEditorState(state, wallet, now),
+        }),
+        entries: [entry],
+      };
+    },
+  );
 }

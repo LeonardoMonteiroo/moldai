@@ -1,8 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { seedState } from "@/lib/editor/state";
-import type { EditorState } from "@/lib/types";
+import { seedMoldeState } from "@/lib/editor/state";
+import { seedWallet } from "@/lib/billing/wallet";
+import type { MoldeState } from "@/lib/types";
+import type { Wallet, LedgerEntry } from "@/lib/billing/wallet";
 
-let state: EditorState = seedState();
+const NOW = new Date("2026-08-17T12:00:00.000Z");
+let state: MoldeState = seedMoldeState();
+let wallet: Wallet = seedWallet(NOW);
 
 vi.mock("@/lib/ai", () => ({ proposeGarment: vi.fn() }));
 vi.mock("next-intl/server", () => ({
@@ -15,13 +19,17 @@ vi.mock("@/lib/auth/guard", () => ({
     name: null,
   })),
 }));
-vi.mock("@/lib/db/molde", () => ({
-  // Runs fn over the in-memory state (mimics withMolde without a DB).
-  withMolde: vi.fn(async (_userId: string, fn: (s: EditorState) => unknown) =>
-    fn(state),
+vi.mock("@/lib/db/molde-wallet", () => ({
+  // Runs fn over the in-memory state+wallet (mimics withMoldeAndWallet without a DB).
+  withMoldeAndWallet: vi.fn(
+    async (
+      _userId: string,
+      fn: (
+        s: MoldeState,
+        w: Wallet,
+      ) => Promise<{ result: unknown; entries: LedgerEntry[] }>,
+    ) => (await fn(state, wallet)).result,
   ),
-  loadMolde: vi.fn(async () => state),
-  resetMolde: vi.fn(async () => (state = seedState())),
 }));
 
 import { POST } from "./route";
@@ -41,7 +49,8 @@ function req(body: unknown) {
 
 describe("POST /api/pattern/generate", () => {
   beforeEach(() => {
-    state = seedState();
+    state = seedMoldeState();
+    wallet = seedWallet(NOW);
     mockPropose.mockReset();
     vi.mocked(requireUser).mockResolvedValue({
       id: "u1",
@@ -51,7 +60,7 @@ describe("POST /api/pattern/generate", () => {
   });
 
   it("ask refunds the credit, doesn't draft or version, and returns clarify", async () => {
-    const balanceBefore = state.credits.balance;
+    const balanceBefore = wallet.balance;
     const versionBefore = state.pattern.version;
     mockPropose.mockResolvedValue({
       decision: "ask",
@@ -74,7 +83,7 @@ describe("POST /api/pattern/generate", () => {
     const res = await POST(req({ message: "quero uma camiseta" }));
     const json = await res.json();
     expect(json.status).toBe("clarify");
-    expect(state.credits.balance).toBe(balanceBefore);
+    expect(json.state.credits.balance).toBe(balanceBefore);
     expect(state.pattern.version).toBe(versionBefore);
     expect(state.pattern.pieces).toHaveLength(0);
     const last = state.chat[state.chat.length - 1];
@@ -83,7 +92,7 @@ describe("POST /api/pattern/generate", () => {
   });
 
   it("apply debits, drafts, and versions", async () => {
-    const balanceBefore = state.credits.balance;
+    const balanceBefore = wallet.balance;
     mockPropose.mockResolvedValue({
       decision: "apply",
       spec: {
@@ -97,16 +106,16 @@ describe("POST /api/pattern/generate", () => {
     const res = await POST(req({ message: "camiseta masc" }));
     const json = await res.json();
     expect(json.status).toBe("ok");
-    expect(state.credits.balance).toBe(balanceBefore - 1);
+    expect(json.state.credits.balance).toBe(balanceBefore - 1);
     expect(state.pattern.version).toBe(1);
     expect(state.pattern.pieces.length).toBeGreaterThan(0);
   });
 
   it("empty message returns 400 without debiting or calling the AI", async () => {
-    const balanceBefore = state.credits.balance;
+    const balanceBefore = wallet.balance;
     const res = await POST(req({ message: "   " }));
     expect(res.status).toBe(400);
-    expect(state.credits.balance).toBe(balanceBefore);
+    expect(wallet.balance).toBe(balanceBefore);
     expect(mockPropose).not.toHaveBeenCalled();
   });
 
@@ -127,18 +136,18 @@ describe("POST /api/pattern/generate", () => {
 
   it("no session returns 401 without debiting or calling the AI", async () => {
     vi.mocked(requireUser).mockResolvedValueOnce(unauthorized());
-    const balanceBefore = state.credits.balance;
+    const balanceBefore = wallet.balance;
     const res = await POST(req({ message: "quero uma camiseta" }));
     expect(res.status).toBe(401);
-    expect(state.credits.balance).toBe(balanceBefore);
+    expect(wallet.balance).toBe(balanceBefore);
     expect(mockPropose).not.toHaveBeenCalled();
   });
 
   it("insufficient balance returns 402 without debiting or calling the AI", async () => {
-    state.credits.balance = 0;
+    wallet.balance = 0;
     const res = await POST(req({ message: "camiseta" }));
     expect(res.status).toBe(402);
-    expect(state.credits.balance).toBe(0);
+    expect(wallet.balance).toBe(0);
     expect(mockPropose).not.toHaveBeenCalled();
   });
 });

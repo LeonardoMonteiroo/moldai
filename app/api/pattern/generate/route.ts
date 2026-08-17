@@ -1,13 +1,10 @@
 import { NextResponse } from "next/server";
 import { getTranslations } from "next-intl/server";
-import { withMolde } from "@/lib/db/molde";
-import {
-  addMessage,
-  applyGarmentSpec,
-  bumpVersion,
-  debitCredits,
-  refundCredits,
-} from "@/lib/editor/state";
+import { withMoldeAndWallet } from "@/lib/db/molde-wallet";
+import { addMessage, applyGarmentSpec, bumpVersion } from "@/lib/editor/state";
+import { debitWallet, refundWallet } from "@/lib/billing/wallet";
+import type { LedgerEntry } from "@/lib/billing/wallet";
+import { composeEditorState } from "@/lib/api/compose";
 import { COSTS } from "@/lib/types";
 import { proposeGarment } from "@/lib/ai";
 import { requireUser } from "@/lib/auth/guard";
@@ -35,75 +32,109 @@ export async function POST(request: Request) {
   const answering = body.answering === true;
   const cost = COSTS.adjust;
   const t = await getTranslations("PatternData");
+  const now = new Date();
 
-  return withMolde(gate.id, async (state) => {
-    if (state.credits.balance < cost) {
-      return NextResponse.json(
-        {
-          status: "insufficient_credits",
-          required: cost,
-          balance: state.credits.balance,
-        },
-        { status: 402 },
-      );
-    }
-
-    addMessage(state, {
-      id: `msg-${Date.now()}-u`,
-      author: "user",
-      text: trimmed,
-      createdAt: Date.now(),
-    });
-    debitCredits(state, cost);
-
-    try {
-      const decision = await proposeGarment(state, answering);
-
-      if (decision.decision === "ask") {
-        addMessage(state, {
-          id: `msg-${Date.now()}-ai`,
-          author: "ai",
-          text:
-            decision.assistantMessage ||
-            "Pra acertar a modelagem, me responde:",
-          questions: decision.questions,
-          createdAt: Date.now(),
-        });
-        refundCredits(state, cost);
-        return NextResponse.json({ status: "clarify", state });
+  return withMoldeAndWallet(
+    gate.id,
+    async (
+      state,
+      wallet,
+    ): Promise<{ result: NextResponse; entries: LedgerEntry[] }> => {
+      if (wallet.balance < cost) {
+        return {
+          result: NextResponse.json(
+            {
+              status: "insufficient_credits",
+              required: cost,
+              balance: wallet.balance,
+            },
+            { status: 402 },
+          ),
+          entries: [],
+        };
       }
 
-      if (decision.decision === "decline") {
-        addMessage(state, {
-          id: `msg-${Date.now()}-ai`,
-          author: "ai",
-          text:
-            decision.assistantMessage ||
-            decision.declineReason ||
-            "Não consegui aplicar esse pedido.",
-          createdAt: Date.now(),
-        });
-        refundCredits(state, cost);
-        return NextResponse.json({ status: "declined", state });
-      }
-
-      applyGarmentSpec(state, decision.spec, t);
-      bumpVersion(state);
-      const conflict = state.conflict;
       addMessage(state, {
-        id: `msg-${Date.now()}-ai`,
-        author: "ai",
-        text: conflict
-          ? `${decision.assistantMessage} ⚠️ ${conflict.description}`
-          : decision.assistantMessage,
-        chips: [{ label: `−${cost} crédito`, tone: "credit" }],
-        tone: conflict ? "conflict" : undefined,
+        id: `msg-${Date.now()}-u`,
+        author: "user",
+        text: trimmed,
         createdAt: Date.now(),
       });
-      return NextResponse.json({ status: conflict ? "conflict" : "ok", state });
-    } catch {
-      refundCredits(state, cost);
-      return NextResponse.json({ status: "error", state });
-    }
-  });
+      const entries: LedgerEntry[] = [debitWallet(wallet, cost, "generate")];
+
+      try {
+        const decision = await proposeGarment(state, answering);
+
+        if (decision.decision === "ask") {
+          addMessage(state, {
+            id: `msg-${Date.now()}-ai`,
+            author: "ai",
+            text:
+              decision.assistantMessage ||
+              "Pra acertar a modelagem, me responde:",
+            questions: decision.questions,
+            createdAt: Date.now(),
+          });
+          entries.push(refundWallet(wallet, cost, "generate-ask"));
+          return {
+            result: NextResponse.json({
+              status: "clarify",
+              state: composeEditorState(state, wallet, now),
+            }),
+            entries,
+          };
+        }
+
+        if (decision.decision === "decline") {
+          addMessage(state, {
+            id: `msg-${Date.now()}-ai`,
+            author: "ai",
+            text:
+              decision.assistantMessage ||
+              decision.declineReason ||
+              "Não consegui aplicar esse pedido.",
+            createdAt: Date.now(),
+          });
+          entries.push(refundWallet(wallet, cost, "generate-declined"));
+          return {
+            result: NextResponse.json({
+              status: "declined",
+              state: composeEditorState(state, wallet, now),
+            }),
+            entries,
+          };
+        }
+
+        applyGarmentSpec(state, decision.spec, t);
+        bumpVersion(state);
+        const conflict = state.conflict;
+        addMessage(state, {
+          id: `msg-${Date.now()}-ai`,
+          author: "ai",
+          text: conflict
+            ? `${decision.assistantMessage} ⚠️ ${conflict.description}`
+            : decision.assistantMessage,
+          chips: [{ label: `−${cost} crédito`, tone: "credit" }],
+          tone: conflict ? "conflict" : undefined,
+          createdAt: Date.now(),
+        });
+        return {
+          result: NextResponse.json({
+            status: conflict ? "conflict" : "ok",
+            state: composeEditorState(state, wallet, now),
+          }),
+          entries,
+        };
+      } catch {
+        entries.push(refundWallet(wallet, cost, "generate-error"));
+        return {
+          result: NextResponse.json({
+            status: "error",
+            state: composeEditorState(state, wallet, now),
+          }),
+          entries,
+        };
+      }
+    },
+  );
 }

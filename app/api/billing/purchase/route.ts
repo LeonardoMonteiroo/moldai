@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
-import { withMolde } from "@/lib/db/molde";
-import { applyPurchase } from "@/lib/editor/state";
+import { withWallet } from "@/lib/db/wallet";
+import { loadMolde } from "@/lib/db/molde";
+import { applyPurchase } from "@/lib/billing/wallet";
+import { composeEditorState } from "@/lib/api/compose";
 import { requireUser } from "@/lib/auth/guard";
 
 export async function POST(request: Request) {
@@ -8,8 +10,15 @@ export async function POST(request: Request) {
   if (gate instanceof NextResponse) return gate;
 
   const { type } = (await request.json()) as { type: "topup" | "subscribe" };
-  return withMolde(gate.id, (state) => {
-    applyPurchase(state, type);
-    return NextResponse.json({ status: "ok", state });
+  const now = new Date();
+
+  const wallet = await withWallet(gate.id, (wallet) => {
+    const entry = applyPurchase(wallet, type, now);
+    return { result: wallet, entries: [entry] };
+  });
+  const moldeState = await loadMolde(gate.id);
+  return NextResponse.json({
+    status: "ok",
+    state: composeEditorState(moldeState, wallet, now),
   });
 }

@@ -1,9 +1,8 @@
 import {
   ChatMessage,
   ConflictInfo,
-  Credits,
-  EditorState,
   GarmentSpec,
+  MoldeState,
   Pattern,
   Piece,
 } from "@/lib/types";
@@ -81,39 +80,21 @@ function seedPattern(): Pattern {
   };
 }
 
-function seedCredits(): Credits {
-  return {
-    plan: "atelier",
-    planLabel: "Ateliê",
-    balance: 320,
-    total: 500,
-    renewsInDays: 12,
-  };
-}
-
-// Every user's initial blank molde.
-export function seedState(): EditorState {
+// Every user's initial blank molde (pattern/chat/conflict — wallet is seeded
+// separately, lib/billing/wallet.ts's seedWallet).
+export function seedMoldeState(): MoldeState {
   return {
     pattern: seedPattern(),
     chat: [],
-    credits: seedCredits(),
     conflict: null,
   };
 }
 
-export function addMessage(state: EditorState, message: ChatMessage): void {
+export function addMessage(state: MoldeState, message: ChatMessage): void {
   state.chat = [...state.chat, message];
 }
 
-export function debitCredits(state: EditorState, amount: number): void {
-  state.credits = { ...state.credits, balance: state.credits.balance - amount };
-}
-
-export function refundCredits(state: EditorState, amount: number): void {
-  state.credits = { ...state.credits, balance: state.credits.balance + amount };
-}
-
-export function bumpVersion(state: EditorState): void {
+export function bumpVersion(state: MoldeState): void {
   state.pattern = {
     ...state.pattern,
     version: state.pattern.version + 1,
@@ -122,13 +103,13 @@ export function bumpVersion(state: EditorState): void {
 }
 
 export function setConflict(
-  state: EditorState,
+  state: MoldeState,
   conflict: ConflictInfo | null,
 ): void {
   state.conflict = conflict;
 }
 
-export function getSpec(state: EditorState): GarmentSpec {
+export function getSpec(state: MoldeState): GarmentSpec {
   return (
     state.pattern.spec ?? {
       type: "blouse",
@@ -142,7 +123,7 @@ export function getSpec(state: EditorState): GarmentSpec {
 // Drafts the garment from a validated spec and stores pieces/viewBox/spec on
 // the pattern; attaches (or clears) the seam conflict (apply-with-warning).
 export function applyGarmentSpec(
-  state: EditorState,
+  state: MoldeState,
   spec: GarmentSpec,
   t: Translate,
 ): void {
@@ -161,7 +142,7 @@ export function applyGarmentSpec(
 
 // "Corrigir manga" (sleeve fix): sets sleeveRefit and re-drafts — the cap now
 // uses the adjusted armhole, the seams match, and detectConflict returns null.
-export function refitSleeve(state: EditorState, t: Translate): void {
+export function refitSleeve(state: MoldeState, t: Translate): void {
   const spec = getSpec(state);
   applyGarmentSpec(
     state,
@@ -170,7 +151,7 @@ export function refitSleeve(state: EditorState, t: Translate): void {
   );
 }
 
-export function applySizes(state: EditorState, sizes: string[]): void {
+export function applySizes(state: MoldeState, sizes: string[]): void {
   const applied = new Set(state.pattern.sizesApplied);
   const pending = state.pattern.sizesPending.filter((s) => {
     if (sizes.includes(s)) {
@@ -184,21 +165,4 @@ export function applySizes(state: EditorState, sizes: string[]): void {
     sizesApplied: Array.from(applied),
     sizesPending: pending,
   };
-}
-
-export function applyPurchase(
-  state: EditorState,
-  type: "topup" | "subscribe",
-): void {
-  if (type === "topup") {
-    state.credits = { ...state.credits, balance: state.credits.balance + 100 };
-  } else {
-    state.credits = {
-      plan: "atelier",
-      planLabel: "Ateliê",
-      balance: state.credits.balance + 500,
-      total: 500,
-      renewsInDays: 30,
-    };
-  }
 }

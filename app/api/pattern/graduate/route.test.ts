@@ -1,8 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { seedState } from "@/lib/editor/state";
-import type { EditorState } from "@/lib/types";
+import { seedMoldeState } from "@/lib/editor/state";
+import { seedWallet } from "@/lib/billing/wallet";
+import type { MoldeState } from "@/lib/types";
+import type { Wallet, LedgerEntry } from "@/lib/billing/wallet";
 
-let state: EditorState = seedState();
+const NOW = new Date("2026-08-17T12:00:00.000Z");
+let state: MoldeState = seedMoldeState();
+let wallet: Wallet = seedWallet(NOW);
 
 vi.mock("@/lib/auth/guard", () => ({
   requireUser: vi.fn(async () => ({
@@ -11,12 +15,16 @@ vi.mock("@/lib/auth/guard", () => ({
     name: null,
   })),
 }));
-vi.mock("@/lib/db/molde", () => ({
-  withMolde: vi.fn(async (_userId: string, fn: (s: EditorState) => unknown) =>
-    fn(state),
+vi.mock("@/lib/db/molde-wallet", () => ({
+  withMoldeAndWallet: vi.fn(
+    async (
+      _userId: string,
+      fn: (
+        s: MoldeState,
+        w: Wallet,
+      ) => { result: unknown; entries: LedgerEntry[] },
+    ) => fn(state, wallet).result,
   ),
-  loadMolde: vi.fn(async () => state),
-  resetMolde: vi.fn(async () => (state = seedState())),
 }));
 
 import { POST } from "./route";
@@ -33,7 +41,8 @@ function req(body: unknown) {
 
 describe("POST /api/pattern/graduate", () => {
   beforeEach(() => {
-    state = seedState();
+    state = seedMoldeState();
+    wallet = seedWallet(NOW);
     vi.mocked(requireUser).mockResolvedValue({
       id: "u1",
       email: "dev@moldai.local",
@@ -42,11 +51,11 @@ describe("POST /api/pattern/graduate", () => {
   });
 
   it("grades valid sizes (2 sizes), debits 6, versions, and returns a formatted message", async () => {
-    const balanceBefore = state.credits.balance;
+    const balanceBefore = wallet.balance;
     const res = await POST(req({ sizes: ["PP", "P"] }));
     const json = await res.json();
     expect(json.status).toBe("ok");
-    expect(state.credits.balance).toBe(balanceBefore - 6);
+    expect(json.state.credits.balance).toBe(balanceBefore - 6);
     expect(state.pattern.sizesApplied).toEqual(
       expect.arrayContaining(["PP", "P"]),
     );
@@ -56,11 +65,11 @@ describe("POST /api/pattern/graduate", () => {
   });
 
   it("grades valid sizes (3 sizes) returns a message via formatList", async () => {
-    const balanceBefore = state.credits.balance;
+    const balanceBefore = wallet.balance;
     const res = await POST(req({ sizes: ["PP", "P", "G"] }));
     const json = await res.json();
     expect(json.status).toBe("ok");
-    expect(state.credits.balance).toBe(balanceBefore - 6);
+    expect(json.state.credits.balance).toBe(balanceBefore - 6);
     expect(state.pattern.sizesApplied).toEqual(
       expect.arrayContaining(["PP", "P", "G"]),
     );
@@ -70,19 +79,19 @@ describe("POST /api/pattern/graduate", () => {
   });
 
   it("no valid size returns 400 without mutating state", async () => {
-    const balanceBefore = state.credits.balance;
+    const balanceBefore = wallet.balance;
     const versionBefore = state.pattern.version;
     const res = await POST(req({ sizes: ["XL"] }));
     expect(res.status).toBe(400);
-    expect(state.credits.balance).toBe(balanceBefore);
+    expect(wallet.balance).toBe(balanceBefore);
     expect(state.pattern.version).toBe(versionBefore);
   });
 
   it("insufficient balance returns 402 without debiting", async () => {
-    state.credits.balance = 3;
+    wallet.balance = 3;
     const res = await POST(req({ sizes: ["PP"] }));
     expect(res.status).toBe(402);
-    expect(state.credits.balance).toBe(3);
+    expect(wallet.balance).toBe(3);
   });
 
   it("no session returns 401", async () => {
