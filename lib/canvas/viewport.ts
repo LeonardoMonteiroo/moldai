@@ -16,7 +16,7 @@ export const MIN_SCALE = 0.25;
 export const MAX_SCALE = 10;
 export const ZOOM_STEP = 1.1;
 
-// escala = razão entre tamanho natural e o do viewport (viewport menor => mais zoom)
+// scale = ratio between the natural size and the viewport's (smaller viewport => more zoom)
 export function scaleOf(vp: Viewport, natural: Size): number {
   return natural.w / vp.w;
 }
@@ -25,7 +25,7 @@ export function clampScale(s: number): number {
   return Math.max(MIN_SCALE, Math.min(MAX_SCALE, s));
 }
 
-// zoom ao redor de `focus` (coords SVG), mantendo o ponto sob o cursor fixo
+// zoom around `focus` (SVG coords), keeping the point under the cursor fixed
 export function zoomAt(
   vp: Viewport,
   focus: Point,
@@ -34,7 +34,7 @@ export function zoomAt(
 ): Viewport {
   const current = scaleOf(vp, natural);
   const target = clampScale(current * factor);
-  const applied = target / current; // fator efetivo após clamp
+  const applied = target / current; // effective factor after clamping
   const w = vp.w / applied;
   const h = vp.h / applied;
   const x = focus.x - (focus.x - vp.x) / applied;
@@ -55,12 +55,12 @@ export function zoomByCenter(
   );
 }
 
-// desloca o viewBox no sentido oposto ao arrasto (conteúdo segue o cursor)
+// shifts the viewBox opposite to the drag (content follows the cursor)
 export function panBy(vp: Viewport, dxUser: number, dyUser: number): Viewport {
   return { ...vp, x: vp.x - dxUser, y: vp.y - dyUser };
 }
 
-// viewBox natural da peça com padding (usado por "ajustar à tela")
+// piece's natural viewBox with padding (used by "fit to screen")
 export function fit(natural: Size, padPx = 24): Viewport {
   return {
     x: -padPx,

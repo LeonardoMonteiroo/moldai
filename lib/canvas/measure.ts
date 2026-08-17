@@ -9,7 +9,7 @@ export function distanceCm(a: Point, b: Point): number {
   return distancePx(a, b) / SCALE;
 }
 
-// vértice mais próximo de `p` dentro de `thresholdPx`; null se nenhum
+// vertex closest to `p` within `thresholdPx`; null if none
 export function nearestSnap(
   p: Point,
   vertices: Point[],

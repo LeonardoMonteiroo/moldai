@@ -23,8 +23,8 @@ export function useCanvasViewport(
   natural: Size,
 ) {
   const [viewport, setViewport] = useState<Viewport>(() => fit(natural));
-  // reseta o enquadramento quando o tamanho natural da peça muda (nova peça),
-  // mas não em bumps de versão que não mexem na geometria (ex.: graduar tamanho)
+  // resets the framing when the piece's natural size changes (a new piece),
+  // but not on version bumps that don't touch the geometry (e.g. grading a size)
   const [prevSize, setPrevSize] = useState({ w: natural.w, h: natural.h });
   if (prevSize.w !== natural.w || prevSize.h !== natural.h) {
     setPrevSize({ w: natural.w, h: natural.h });
@@ -46,7 +46,7 @@ export function useCanvasViewport(
       const svg = svgRef.current;
       if (!svg) return;
       const ctm = svg.getScreenCTM();
-      const s = ctm && ctm.a ? ctm.a : 1; // px de tela por unidade de usuário
+      const s = ctm && ctm.a ? ctm.a : 1; // screen px per user unit
       setViewport((vp) => panBy(vp, dxScreen / s, dyScreen / s));
     },
     [svgRef],

@@ -11,7 +11,7 @@ import {
 const natural = { w: 100, h: 100 };
 
 describe("viewport math", () => {
-  it("fit centraliza com padding", () => {
+  it("fit centers with padding", () => {
     expect(fit({ w: 100, h: 50 }, 24)).toEqual({
       x: -24,
       y: -24,
@@ -20,12 +20,12 @@ describe("viewport math", () => {
     });
   });
 
-  it("scaleOf: viewport natural = escala 1; menor = zoom maior", () => {
+  it("scaleOf: natural viewport = scale 1; smaller = more zoom", () => {
     expect(scaleOf({ x: 0, y: 0, w: 100, h: 100 }, natural)).toBeCloseTo(1, 5);
     expect(scaleOf({ x: 0, y: 0, w: 50, h: 50 }, natural)).toBeCloseTo(2, 5);
   });
 
-  it("zoomAt mantém o ponto-foco fixo (mesma fração do viewBox)", () => {
+  it("zoomAt keeps the focus point fixed (same fraction of the viewBox)", () => {
     const vp = { x: 0, y: 0, w: 100, h: 100 };
     const focus = { x: 30, y: 70 };
     const out = zoomAt(vp, focus, 2, natural);
@@ -35,13 +35,13 @@ describe("viewport math", () => {
     expect(scaleOf(out, natural)).toBeCloseTo(2, 5);
   });
 
-  it("zoomAt respeita o clamp de escala máxima", () => {
+  it("zoomAt respects the max-scale clamp", () => {
     let vp = { x: 0, y: 0, w: 100, h: 100 };
     for (let i = 0; i < 100; i++) vp = zoomByCenter(vp, 2, natural);
     expect(scaleOf(vp, natural)).toBeLessThanOrEqual(MAX_SCALE + 1e-9);
   });
 
-  it("panBy desloca o viewBox no sentido oposto ao arrasto", () => {
+  it("panBy shifts the viewBox opposite to the drag", () => {
     expect(panBy({ x: 10, y: 10, w: 100, h: 100 }, 5, -3)).toEqual({
       x: 5,
       y: 13,
