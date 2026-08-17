@@ -48,5 +48,34 @@
     "dxf": "＋ molde .dxf",
     "comingSoonTitle": "Anexos chegam em breve",
     "comingSoonBadge": "em breve"
+  },
+  "CanvasArea": {
+    "emptyStateTitle": "Molde em branco",
+    "emptyStateDescription": "Descreva a peça que você quer no chat ao lado — a IA gera seu primeiro molde do zero.",
+    "clearMeasurementsButton": "Limpar medições"
+  },
+  "TabBar": {
+    "tabPattern2d": "Molde 2D",
+    "tabProof3d": "Prova 3D",
+    "tabTechsheet": "Ficha técnica",
+    "tabCutplan": "Plano de corte",
+    "sizeButton": "Tamanho {size} ▾",
+    "closeSizeSelectorAriaLabel": "Fechar seletor de tamanho",
+    "comingSoonBadge": "em breve",
+    "sizeChangeNote": "Trocar o tamanho-base sem regerar",
+    "pieceDetailsButton": "Detalhes da peça",
+    "pieceDetailsButtonOpen": "Detalhes da peça ✕"
+  },
+  "FloatingToolbar": {
+    "cursorTool": "Cursor (mover e zoom)",
+    "measureTool": "Medir"
+  },
+  "ZoomControls": {
+    "zoomOutTitle": "Diminuir zoom",
+    "fitTitle": "Ajustar à tela",
+    "zoomInTitle": "Aumentar zoom"
+  },
+  "GeneratingOverlay": {
+    "cancelButton": "Cancelar"
   }
 }
