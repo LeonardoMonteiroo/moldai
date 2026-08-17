@@ -130,11 +130,17 @@ export interface Pattern {
   baseMeasurements?: Measurements;
 }
 
-export interface EditorState {
+// The molde's own state — pattern/chat/conflict. Credits/billing live in a
+// separate Wallet (lib/billing/wallet.ts), composed in only for the API/store
+// wire shape below.
+export interface MoldeState {
   pattern: Pattern;
   chat: ChatMessage[];
-  credits: Credits;
   conflict: ConflictInfo | null;
+}
+
+export interface EditorState extends MoldeState {
+  credits: Credits;
 }
 
 export const ALL_SIZES: SizeLabel[] = ["PP", "P", "M", "G", "GG"];
