@@ -41,7 +41,7 @@ describe("POST /api/pattern/graduate", () => {
     });
   });
 
-  it("gradua tamanhos válidos (2 tamanhos), debita 6, versiona e retorna mensagem formatada", async () => {
+  it("grades valid sizes (2 sizes), debits 6, versions, and returns a formatted message", async () => {
     const balanceBefore = state.credits.balance;
     const res = await POST(req({ sizes: ["PP", "P"] }));
     const json = await res.json();
@@ -55,7 +55,7 @@ describe("POST /api/pattern/graduate", () => {
     expect(lastMsg.text).toBe("Graduação aplicada para PP e P.");
   });
 
-  it("gradua tamanhos válidos (3 tamanhos) retorna mensagem com formatList", async () => {
+  it("grades valid sizes (3 sizes) returns a message via formatList", async () => {
     const balanceBefore = state.credits.balance;
     const res = await POST(req({ sizes: ["PP", "P", "G"] }));
     const json = await res.json();
@@ -69,7 +69,7 @@ describe("POST /api/pattern/graduate", () => {
     expect(lastMsg.text).toBe("Graduação aplicada para PP, P e G.");
   });
 
-  it("nenhum tamanho válido retorna 400 sem mutar estado", async () => {
+  it("no valid size returns 400 without mutating state", async () => {
     const balanceBefore = state.credits.balance;
     const versionBefore = state.pattern.version;
     const res = await POST(req({ sizes: ["XL"] }));
@@ -78,14 +78,14 @@ describe("POST /api/pattern/graduate", () => {
     expect(state.pattern.version).toBe(versionBefore);
   });
 
-  it("saldo insuficiente retorna 402 sem debitar", async () => {
+  it("insufficient balance returns 402 without debiting", async () => {
     state.credits.balance = 3;
     const res = await POST(req({ sizes: ["PP"] }));
     expect(res.status).toBe(402);
     expect(state.credits.balance).toBe(3);
   });
 
-  it("sem sessão retorna 401", async () => {
+  it("no session returns 401", async () => {
     vi.mocked(requireUser).mockResolvedValueOnce(unauthorized());
     const res = await POST(req({ sizes: ["PP"] }));
     expect(res.status).toBe(401);

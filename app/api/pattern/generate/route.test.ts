@@ -16,7 +16,7 @@ vi.mock("@/lib/auth/guard", () => ({
   })),
 }));
 vi.mock("@/lib/db/molde", () => ({
-  // Executa o fn sobre o state em memória (imita withMolde sem DB).
+  // Runs fn over the in-memory state (mimics withMolde without a DB).
   withMolde: vi.fn(async (_userId: string, fn: (s: EditorState) => unknown) =>
     fn(state),
   ),
@@ -50,7 +50,7 @@ describe("POST /api/pattern/generate", () => {
     });
   });
 
-  it("ask estorna o crédito, não desenha nem versiona, e devolve clarify", async () => {
+  it("ask refunds the credit, doesn't draft or version, and returns clarify", async () => {
     const balanceBefore = state.credits.balance;
     const versionBefore = state.pattern.version;
     mockPropose.mockResolvedValue({
@@ -82,7 +82,7 @@ describe("POST /api/pattern/generate", () => {
     expect(last.questions).toHaveLength(1);
   });
 
-  it("apply debita, desenha e versiona", async () => {
+  it("apply debits, drafts, and versions", async () => {
     const balanceBefore = state.credits.balance;
     mockPropose.mockResolvedValue({
       decision: "apply",
@@ -102,7 +102,7 @@ describe("POST /api/pattern/generate", () => {
     expect(state.pattern.pieces.length).toBeGreaterThan(0);
   });
 
-  it("mensagem vazia retorna 400 sem debitar nem chamar a IA", async () => {
+  it("empty message returns 400 without debiting or calling the AI", async () => {
     const balanceBefore = state.credits.balance;
     const res = await POST(req({ message: "   " }));
     expect(res.status).toBe(400);
@@ -110,7 +110,7 @@ describe("POST /api/pattern/generate", () => {
     expect(mockPropose).not.toHaveBeenCalled();
   });
 
-  it("repassa answering ao proposeGarment", async () => {
+  it("forwards answering to proposeGarment", async () => {
     mockPropose.mockResolvedValue({
       decision: "apply",
       spec: {
@@ -125,7 +125,7 @@ describe("POST /api/pattern/generate", () => {
     expect(mockPropose).toHaveBeenCalledWith(expect.anything(), true);
   });
 
-  it("sem sessão retorna 401 sem debitar nem chamar a IA", async () => {
+  it("no session returns 401 without debiting or calling the AI", async () => {
     vi.mocked(requireUser).mockResolvedValueOnce(unauthorized());
     const balanceBefore = state.credits.balance;
     const res = await POST(req({ message: "quero uma camiseta" }));
@@ -134,7 +134,7 @@ describe("POST /api/pattern/generate", () => {
     expect(mockPropose).not.toHaveBeenCalled();
   });
 
-  it("saldo insuficiente retorna 402 sem debitar nem chamar a IA", async () => {
+  it("insufficient balance returns 402 without debiting or calling the AI", async () => {
     state.credits.balance = 0;
     const res = await POST(req({ message: "camiseta" }));
     expect(res.status).toBe(402);
