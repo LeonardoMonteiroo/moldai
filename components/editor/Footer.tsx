@@ -1,21 +1,26 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Pattern } from "@/lib/types";
 import { exportPattern, ExportFormat } from "@/lib/export";
 import { buildExportModel } from "@/lib/export/model";
 import { planTiles } from "@/lib/export/pdf";
 
-const FORMATS: { id: ExportFormat; label: string; note?: string }[] = [
-  { id: "svg", label: "SVG · 1:1 (plotter)" },
-  { id: "dxf", label: "DXF · genérico 1:1 (CAD)" },
+const FORMATS: {
+  id: ExportFormat;
+  labelKey: string;
+  noteKey?: string;
+}[] = [
+  { id: "svg", labelKey: "formatSvg" },
+  { id: "dxf", labelKey: "formatDxf" },
   {
     id: "dxf-aama",
-    label: "DXF · Audaces/AAMA-ASTM · beta",
-    note: "Camadas numeradas D6673. Ainda sem piques/furos/linha de costura.",
+    labelKey: "formatDxfAama",
+    noteKey: "formatDxfAamaNote",
   },
-  { id: "pdf-a4", label: "PDF · A4 (colar em casa)" },
-  { id: "pdf-single", label: "PDF · folha única (plotter)" },
+  { id: "pdf-a4", labelKey: "formatPdfA4" },
+  { id: "pdf-single", labelKey: "formatPdfSingle" },
 ];
 
 export function Footer({
@@ -27,13 +32,14 @@ export function Footer({
   conflictActive: boolean;
   generating: boolean;
 }) {
+  const t = useTranslations("Footer");
   const [menuOpen, setMenuOpen] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!exportError) return;
-    const t = setTimeout(() => setExportError(null), 6000);
-    return () => clearTimeout(t);
+    const timeout = setTimeout(() => setExportError(null), 6000);
+    return () => clearTimeout(timeout);
   }, [exportError]);
   const pieceCount = pattern.pieces.reduce((sum, p) => sum + p.qty, 0);
   const exportDisabled =
@@ -43,10 +49,14 @@ export function Footer({
     !pattern.spec;
 
   const statusText = conflictActive
-    ? `v${pattern.version} · não exportável com conflito`
+    ? t("statusConflict", { version: pattern.version })
     : generating
-      ? "gerando molde…"
-      : `${pieceCount} peças · base ${pattern.baseSize} · unidade ${pattern.unit}`;
+      ? t("statusGenerating")
+      : t("statusReady", {
+          pieceCount,
+          baseSize: pattern.baseSize,
+          unit: pattern.unit,
+        });
 
   // Só re-desenha o modelo quando o menu abre (buildExportModel re-drafta em cm).
   const a4Pages = useMemo(() => {
@@ -83,13 +93,13 @@ export function Footer({
           onClick={() => setMenuOpen((o) => !o)}
           className="rounded-btn disabled:text-disabled disabled:border-disabled-border enabled:border-border enabled:hover:bg-surface-alt border px-[14px] py-2 text-[12.5px] font-medium transition-colors disabled:cursor-not-allowed"
         >
-          Exportar
+          {t("exportButton")}
         </button>
         {menuOpen && !exportDisabled && (
           <>
             <button
               type="button"
-              aria-label="Fechar menu de exportação"
+              aria-label={t("closeMenuAriaLabel")}
               className="fixed inset-0 z-10 cursor-default"
               onClick={() => setMenuOpen(false)}
             />
@@ -101,21 +111,21 @@ export function Footer({
                   onClick={() => handleExport(fmt.id)}
                   className="hover:bg-surface-alt block w-full px-3 py-2 text-left transition-colors"
                 >
-                  <span className="block text-[12.5px]">{fmt.label}</span>
+                  <span className="block text-[12.5px]">{t(fmt.labelKey)}</span>
                   {fmt.id === "pdf-a4" && a4Pages > 0 && (
                     <span className="text-muted block text-[11px]">
-                      ~{a4Pages} folha{a4Pages === 1 ? "" : "s"} A4
+                      {t("a4PageCount", { count: a4Pages })}
                     </span>
                   )}
-                  {fmt.note && (
+                  {fmt.noteKey && (
                     <span className="text-muted block text-[11px] leading-snug">
-                      {fmt.note}
+                      {t(fmt.noteKey)}
                     </span>
                   )}
                 </button>
               ))}
               <div className="border-line text-muted mt-1 border-t px-3 pt-[6px] pb-1 text-[10.5px] leading-snug">
-                Linha líquida — sem margem de costura embutida.
+                {t("netLineNote")}
               </div>
             </div>
           </>
@@ -125,10 +135,10 @@ export function Footer({
       <button
         type="button"
         disabled
-        title="O molde é salvo automaticamente a cada geração. Versionamento manual chega em breve."
+        title={t("saveVersionTitle")}
         className="rounded-btn bg-olive cursor-not-allowed px-4 py-2 text-[12.5px] font-semibold text-[#f7f7f2] opacity-50"
       >
-        Salvar versão · em breve
+        {t("saveVersionButton")}
       </button>
     </div>
   );

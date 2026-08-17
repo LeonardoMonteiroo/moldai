@@ -1,17 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { EditorTab } from "@/lib/store";
 import { ALL_SIZES, SizeLabel } from "@/lib/types";
 
-const TABS: { id: EditorTab; label: string }[] = [
-  { id: "pattern2d", label: "Molde 2D" },
-  { id: "proof3d", label: "Prova 3D" },
-  { id: "techsheet", label: "Ficha técnica" },
-  { id: "cutplan", label: "Plano de corte" },
-];
+const TAB_IDS: EditorTab[] = ["pattern2d", "proof3d", "techsheet", "cutplan"];
+
+const TAB_LABEL_KEYS: Record<EditorTab, string> = {
+  pattern2d: "tabPattern2d",
+  proof3d: "tabProof3d",
+  techsheet: "tabTechsheet",
+  cutplan: "tabCutplan",
+};
 
 function SizeSelector({ baseSize }: { baseSize: SizeLabel }) {
+  const t = useTranslations("TabBar");
   const [open, setOpen] = useState(false);
   return (
     <div className="relative">
@@ -20,13 +24,13 @@ function SizeSelector({ baseSize }: { baseSize: SizeLabel }) {
         onClick={() => setOpen((o) => !o)}
         className="text-muted-2 border-border rounded-btn bg-surface hover:bg-surface-alt border px-[11px] py-[6px] text-[12px] transition-colors"
       >
-        Tamanho {baseSize} ▾
+        {t("sizeButton", { size: baseSize })}
       </button>
       {open && (
         <>
           <button
             type="button"
-            aria-label="Fechar seletor de tamanho"
+            aria-label={t("closeSizeSelectorAriaLabel")}
             className="fixed inset-0 z-10 cursor-default"
             onClick={() => setOpen(false)}
           />
@@ -48,10 +52,10 @@ function SizeSelector({ baseSize }: { baseSize: SizeLabel }) {
             </div>
             <div className="border-line flex items-center gap-[6px] border-t px-1 pt-2">
               <span className="text-olive bg-olive-tint rounded-[5px] px-[6px] py-[2px] text-[10px] font-semibold tracking-[.6px] uppercase">
-                em breve
+                {t("comingSoonBadge")}
               </span>
               <span className="text-muted text-[11px] leading-tight">
-                Trocar o tamanho-base sem regerar
+                {t("sizeChangeNote")}
               </span>
             </div>
           </div>
@@ -76,21 +80,22 @@ export function TabBar({
   onToggleDetails: () => void;
   hasSelectedPiece: boolean;
 }) {
+  const t = useTranslations("TabBar");
   return (
     <div className="bg-surface border-border flex items-center gap-2 border-b px-4 py-[11px]">
       <div className="bg-paper border-border rounded-item flex gap-[2px] border p-[3px]">
-        {TABS.map((tab) => (
+        {TAB_IDS.map((id) => (
           <button
-            key={tab.id}
-            onClick={() => onChangeTab(tab.id)}
+            key={id}
+            onClick={() => onChangeTab(id)}
             className={[
               "rounded-[6px] px-[11px] py-[5px] text-[12px] transition-colors",
-              tab.id === activeTab
+              id === activeTab
                 ? "bg-surface shadow-card font-semibold"
                 : "text-muted-2 hover:text-ink",
             ].join(" ")}
           >
-            {tab.label}
+            {t(TAB_LABEL_KEYS[id])}
           </button>
         ))}
       </div>
@@ -107,7 +112,7 @@ export function TabBar({
               : "border-border bg-surface hover:bg-surface-alt",
           ].join(" ")}
         >
-          Detalhes da peça{detailsOpen ? " ✕" : ""}
+          {detailsOpen ? t("pieceDetailsButtonOpen") : t("pieceDetailsButton")}
         </button>
       )}
     </div>

@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { useTranslations } from "next-intl";
 
 export default function LoginPage() {
+  const t = useTranslations("Login");
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,7 +24,7 @@ export default function LoginPage() {
     });
     setLoading(false);
     if (res?.error) {
-      setError("Email ou senha inválidos.");
+      setError(t("invalidCredentials"));
       return;
     }
     router.push("/");
@@ -35,10 +37,10 @@ export default function LoginPage() {
         <span className="font-display text-[22px] font-bold tracking-[-0.4px]">
           Mold<span className="text-olive">AI</span>
         </span>
-        <h1 className="mt-4 text-[15px] font-semibold">Entrar</h1>
+        <h1 className="mt-4 text-[15px] font-semibold">{t("heading")}</h1>
         <form onSubmit={onSubmit} className="mt-4 flex flex-col gap-3">
           <label className="text-muted-2 flex flex-col gap-1 text-[12px]">
-            Email
+            {t("emailLabel")}
             <input
               type="email"
               value={email}
@@ -49,7 +51,7 @@ export default function LoginPage() {
             />
           </label>
           <label className="text-muted-2 flex flex-col gap-1 text-[12px]">
-            Senha
+            {t("passwordLabel")}
             <input
               type="password"
               value={password}
@@ -65,12 +67,13 @@ export default function LoginPage() {
             disabled={loading}
             className="rounded-btn bg-olive hover:bg-olive-dark mt-1 px-4 py-2 text-[13px] font-semibold text-white transition-colors disabled:opacity-50"
           >
-            {loading ? "Entrando…" : "Entrar"}
+            {loading ? t("submitButtonLoading") : t("submitButton")}
           </button>
         </form>
         <p className="text-muted mt-4 text-[11px]">
-          Criar conta — <span className="font-medium">em breve</span>. Cada
-          conta tem o seu próprio molde, salvo automaticamente.
+          {t.rich("signupNote", {
+            b: (chunks) => <span className="font-medium">{chunks}</span>,
+          })}
         </p>
       </div>
     </div>

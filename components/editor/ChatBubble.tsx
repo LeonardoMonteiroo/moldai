@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { ChatMessage } from "@/lib/types";
 import { ClarifyCard } from "./ClarifyCard";
 
@@ -8,6 +9,7 @@ export function ChatBubble({
   message: ChatMessage;
   active?: boolean;
 }) {
+  const t = useTranslations("ChatBubble");
   if (message.author === "user") {
     return (
       <div className="bg-olive max-w-[88%] self-end rounded-[12px_12px_3px_12px] px-[13px] py-[10px] text-[13px] leading-[1.45] text-[#f7f7f2]">
@@ -26,7 +28,7 @@ export function ChatBubble({
           <ClarifyCard questions={message.questions} />
         ) : (
           <div className="text-muted max-w-[92%] px-[13px] text-[12px] italic">
-            Perguntas respondidas.
+            {t("questionsAnswered")}
           </div>
         )}
       </div>

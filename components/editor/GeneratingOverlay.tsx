@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { GENERATION_STEPS } from "@/lib/store";
 
 export function GeneratingOverlay({
@@ -7,6 +8,7 @@ export function GeneratingOverlay({
   stepIndex: number;
   onCancel: () => void;
 }) {
+  const t = useTranslations("GeneratingOverlay");
   const step = GENERATION_STEPS[stepIndex];
 
   return (
@@ -19,7 +21,7 @@ export function GeneratingOverlay({
         onClick={onCancel}
         className="rounded-btn border-border bg-surface hover:bg-surface-alt border px-[11px] py-[6px] text-[12px] font-medium transition-colors"
       >
-        Cancelar
+        {t("cancelButton")}
       </button>
     </div>
   );

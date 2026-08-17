@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { useEditorStore } from "@/lib/store";
 import { useCanvasViewport } from "@/lib/canvas/useCanvasViewport";
 import { TabBar } from "./TabBar";
@@ -15,6 +16,7 @@ import { CutPlanTab } from "./CutPlanTab";
 import { Proof3DTab } from "./Proof3DTab";
 
 export function CanvasArea() {
+  const t = useTranslations("CanvasArea");
   const pattern = useEditorStore((s) => s.pattern);
   const conflict = useEditorStore((s) => s.conflict);
   const activeTab = useEditorStore((s) => s.activeTab);
@@ -99,11 +101,10 @@ export function CanvasArea() {
           {!isGenerating && !hasPieces && (
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-center">
               <span className="font-display text-muted-2 text-[18px] font-semibold">
-                Molde em branco
+                {t("emptyStateTitle")}
               </span>
               <span className="text-muted max-w-[300px] text-[12.5px]">
-                Descreva a peça que você quer no chat ao lado — a IA gera seu
-                primeiro molde do zero.
+                {t("emptyStateDescription")}
               </span>
             </div>
           )}
@@ -123,7 +124,7 @@ export function CanvasArea() {
               onClick={clearMeasurements}
               className="bg-surface border-border rounded-item text-muted-2 hover:bg-surface-alt shadow-card absolute bottom-5 left-5 h-[34px] border px-3 text-[12px] transition-colors"
             >
-              Limpar medições
+              {t("clearMeasurementsButton")}
             </button>
           )}
           {!isGenerating && conflict && (
