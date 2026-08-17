@@ -3,7 +3,7 @@ import { withMolde } from "@/lib/db/molde";
 import {
   addMessage,
   bumpVersion,
-  refitManga,
+  refitSleeve,
   setConflict,
 } from "@/lib/editor/state";
 import { requireUser } from "@/lib/auth/guard";
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
 
   return withMolde(gate.id, (state) => {
     if (action === "fix") {
-      refitManga(state);
+      refitSleeve(state);
       bumpVersion(state);
       addMessage(state, {
         id: `msg-${Date.now()}-ai`,

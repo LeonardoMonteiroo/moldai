@@ -52,7 +52,7 @@ function modelOf(sheetWcm: number, sheetHcm: number): ExportModel {
     sheetHeightCm: sheetHcm,
     pieces: [
       {
-        id: "frente",
+        id: "front",
         name: "Frente",
         qty: 2,
         widthCm: 10,

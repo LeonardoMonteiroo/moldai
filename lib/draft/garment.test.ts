@@ -91,9 +91,9 @@ describe("draftGarment", () => {
       "M",
     );
     expect(pieces.map((p) => p.id).sort()).toEqual([
-      "corpo-costas",
-      "corpo-frente",
-      "manga",
+      "body-back",
+      "body-front",
+      "sleeve",
     ]);
   });
   it("tshirt gera frente/costas/manga, sem pence, decote redondo", () => {
@@ -107,8 +107,8 @@ describe("draftGarment", () => {
       "M",
     );
     const ids = pieces.map((p) => p.id).sort();
-    expect(ids).toEqual(["corpo-costas", "corpo-frente", "manga"]);
-    const frente = pieces.find((p) => p.id === "corpo-frente")!;
+    expect(ids).toEqual(["body-back", "body-front", "sleeve"]);
+    const frente = pieces.find((p) => p.id === "body-front")!;
     expect(frente.dart).toBeUndefined();
     expect(frente.detailRows.some((r) => /redondo/i.test(r.value))).toBe(true);
   });
@@ -122,7 +122,7 @@ describe("draftGarment", () => {
       },
       "M",
     );
-    expect(pieces.map((p) => p.id)).toEqual(["saia"]);
+    expect(pieces.map((p) => p.id)).toEqual(["skirt"]);
     expect(viewBox.w).toBeGreaterThan(0);
   });
   it("dress combina corpo + saia", () => {
@@ -136,8 +136,8 @@ describe("draftGarment", () => {
       "M",
     );
     const ids = pieces.map((p) => p.id);
-    expect(ids).toContain("saia");
-    expect(ids).toContain("corpo-frente");
+    expect(ids).toContain("skirt");
+    expect(ids).toContain("body-front");
   });
   it("armholeDeepenCm faz a cava do corpo divergir da copa da manga (dispara seamCheck)", () => {
     const { armholeLenCm, mangaArmholeCm } = draftGarment(
@@ -188,11 +188,7 @@ describe("draftPiecesCm", () => {
       },
       "M",
     );
-    expect(pcs.map((p) => p.id)).toEqual([
-      "corpo-frente",
-      "corpo-costas",
-      "manga",
-    ]);
+    expect(pcs.map((p) => p.id)).toEqual(["body-front", "body-back", "sleeve"]);
     const frente = pcs[0];
     // outlineCm em cm reais: largura da frente na casa de dezenas de cm, não centenas (px)
     const xs = frente.outlineCm.map(([x]) => x);

@@ -7,7 +7,7 @@ import {
   bumpVersion,
   setConflict,
   applyGarmentSpec,
-  refitManga,
+  refitSleeve,
   getSpec,
   applySizes,
   applyPurchase,
@@ -63,7 +63,7 @@ describe("applyGarmentSpec / conflito / refit", () => {
       style: { skirt: "circle" },
     });
     expect(s.pattern.pieces.length).toBe(1);
-    expect(s.pattern.pieces[0].id).toBe("saia");
+    expect(s.pattern.pieces[0].id).toBe("skirt");
     expect(s.pattern.viewBox!.w).toBeGreaterThan(0);
   });
   it("armholeDeepenCm anexa conflito; sem ajuste não há conflito", () => {
@@ -83,7 +83,7 @@ describe("applyGarmentSpec / conflito / refit", () => {
     });
     expect(s.conflict).not.toBeNull();
     expect(s.conflict!.diffCm).toBeGreaterThan(1);
-    expect(s.conflict!.pieceBId).toBe("manga");
+    expect(s.conflict!.pieceBId).toBe("sleeve");
     expect(s.conflict!.suggestion).toContain("“Corrigir manga”");
   });
   it("EditorState com pieces sobrevive a um round-trip JSON (persistência JSONB)", () => {
@@ -101,7 +101,7 @@ describe("applyGarmentSpec / conflito / refit", () => {
     expect(round.pattern.viewBox).toEqual(s.pattern.viewBox);
     expect(round).toEqual(s); // nenhum campo perdido (sem Date/undefined/NaN/Map/Set)
   });
-  it("refitManga refaz a copa e limpa o conflito", () => {
+  it("refitSleeve refaz a copa e limpa o conflito", () => {
     const s = seedState();
     applyGarmentSpec(s, {
       type: "blouse",
@@ -110,7 +110,7 @@ describe("applyGarmentSpec / conflito / refit", () => {
       style: { sleeve: "short", armholeDeepenCm: 2 },
     });
     expect(s.conflict).not.toBeNull();
-    refitManga(s);
+    refitSleeve(s);
     expect(s.conflict).toBeNull();
     expect(getSpec(s).style.sleeveRefit).toBe(true);
   });

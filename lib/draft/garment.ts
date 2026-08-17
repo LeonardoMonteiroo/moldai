@@ -15,9 +15,9 @@ import {
   SizeLabel,
 } from "@/lib/types";
 import { autoLayout, DraftedPiece } from "./core";
-import { BlockOpts, draftCorpo } from "./corpo";
-import { draftManga } from "./manga";
-import { draftSaia } from "./saia";
+import { BlockOpts, draftBody } from "./body";
+import { draftSleeve } from "./sleeve";
+import { draftSkirt } from "./skirt";
 
 const TYPES: GarmentType[] = ["blouse", "dress", "skirt", "tshirt"];
 const GENDERS: Gender[] = ["female", "male"];
@@ -166,21 +166,21 @@ function draftAll(
       costas,
       armholeLenCm: a,
       armholeBaseLenCm,
-    } = draftCorpo(measurements, style, opts);
+    } = draftBody(measurements, style, opts);
     armholeLenCm = a;
     drafted.push(frente, costas);
     // A copa da manga é dimensionada pela cava BASE (não ajustada) — a menos que
     // já tenha sido refeita ("Corrigir manga" seta style.sleeveRefit). Assim um
     // ajuste de cava só no corpo faz as costuras divergirem → conflito real.
     const mangaCava = style.sleeveRefit ? a : armholeBaseLenCm;
-    const manga = draftManga(measurements, style, mangaCava, opts);
+    const manga = draftSleeve(measurements, style, mangaCava, opts);
     if (manga) {
       drafted.push(manga);
       mangaArmholeCm = mangaCava;
     }
   }
   if (spec.type === "skirt" || spec.type === "dress") {
-    drafted.push(draftSaia(measurements, spec.style));
+    drafted.push(draftSkirt(measurements, spec.style));
   }
 
   return { drafted, measurements, armholeLenCm, mangaArmholeCm };

@@ -11,7 +11,7 @@ const model: ExportModel = {
   sheetHeightCm: 30,
   pieces: [
     {
-      id: "frente",
+      id: "front",
       name: "Frente",
       qty: 1,
       widthCm: 10,

@@ -34,8 +34,8 @@ function detectConflict(
 ): ConflictInfo | null {
   const seam = seamCheck(armholeLenCm, mangaArmholeCm);
   if (!seam) return null;
-  const frente = pieces.find((p) => p.id === "corpo-frente");
-  const manga = pieces.find((p) => p.id === "manga");
+  const frente = pieces.find((p) => p.id === "body-front");
+  const manga = pieces.find((p) => p.id === "sleeve");
   const markers = [cavaMarker(frente), cavaMarker(manga)].filter(
     (m): m is { cx: number; cy: number; r: number } => m !== null,
   );
@@ -47,8 +47,8 @@ function detectConflict(
     diffCm: seam.diffCm,
     suggestion:
       "“Corrigir manga” refaz a copa para a cava ajustada, sem custo.",
-    pieceAId: "corpo-frente",
-    pieceBId: "manga",
+    pieceAId: "body-front",
+    pieceBId: "sleeve",
     markers,
   };
 }
@@ -153,7 +153,7 @@ export function applyGarmentSpec(state: EditorState, spec: GarmentSpec): void {
 
 // "Corrigir manga": marca sleeveRefit e re-drafta — a copa passa a usar a cava
 // ajustada, as costuras batem e detectConflict devolve null.
-export function refitManga(state: EditorState): void {
+export function refitSleeve(state: EditorState): void {
   const spec = getSpec(state);
   applyGarmentSpec(state, {
     ...spec,

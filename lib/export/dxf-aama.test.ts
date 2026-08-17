@@ -22,7 +22,7 @@ const squareModel: ExportModel = {
   sheetHeightCm: 30,
   pieces: [
     {
-      id: "frente",
+      id: "front",
       name: "Frente",
       qty: 2,
       widthCm: 10,
@@ -50,7 +50,7 @@ const dartModel: ExportModel = {
   pieces: [
     {
       ...squareModel.pieces[0],
-      id: "costas",
+      id: "back",
       name: "Costas",
       dart: [
         { x: 3, y: 2 },

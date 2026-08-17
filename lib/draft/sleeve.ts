@@ -1,11 +1,11 @@
 import { Measurements } from "@/lib/measurements";
 import { DetailRow, GarmentStyle } from "@/lib/types";
 import { DraftedPiece, Pt } from "./core";
-import { BlockOpts } from "./corpo";
+import { BlockOpts } from "./body";
 
 const cm = (v: number) => `${v.toFixed(1).replace(".", ",")} cm`;
 
-export function draftManga(
+export function draftSleeve(
   m: Measurements,
   style: GarmentStyle,
   armholeLenCm: number,
@@ -42,7 +42,7 @@ export function draftManga(
     { label: "Fio", value: "reto" },
   ];
   return {
-    id: "manga",
+    id: "sleeve",
     name: "Manga",
     qty: 2,
     outlineCm,

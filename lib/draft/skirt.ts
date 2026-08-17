@@ -37,7 +37,7 @@ function radialSkirt(
   return { pts: pts.map(([x, y]) => [x, y - minY] as Pt), r };
 }
 
-export function draftSaia(m: Measurements, style: GarmentStyle): DraftedPiece {
+export function draftSkirt(m: Measurements, style: GarmentStyle): DraftedPiece {
   const silhueta: SkirtSilhouette = style.skirt ?? "straight";
   const folga = style.seamAllowanceCm ?? 1;
   const comp = style.skirtLengthCm ?? m.skirtLength;
@@ -64,7 +64,7 @@ export function draftSaia(m: Measurements, style: GarmentStyle): DraftedPiece {
     const waistSpan: [number, number] = [0, steps];
     const hemSpan: [number, number] = [steps + 1, 2 * steps + 1];
     return {
-      id: "saia",
+      id: "skirt",
       name: "Saia",
       qty: silhueta === "half-circle" ? 1 : 2,
       outlineCm,
@@ -92,7 +92,7 @@ export function draftSaia(m: Measurements, style: GarmentStyle): DraftedPiece {
     value: cm(waistHalf * 2),
   });
   return {
-    id: "saia",
+    id: "skirt",
     name: "Saia",
     qty: 2,
     outlineCm,

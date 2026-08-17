@@ -104,7 +104,7 @@ const squareModel: ExportModel = {
   sheetHeightCm: 30,
   pieces: [
     {
-      id: "frente",
+      id: "front",
       name: "Frente",
       qty: 2,
       widthCm: 10,

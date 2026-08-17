@@ -142,13 +142,13 @@ function bodice(
   };
 }
 
-export function draftCorpo(
+export function draftBody(
   m: Measurements,
   style: GarmentStyle,
   opts: BlockOpts = defaultOpts(m),
 ) {
-  const f = bodice(m, style, opts, "corpo-frente", "Frente", true);
-  const c = bodice(m, style, opts, "corpo-costas", "Costas", false);
+  const f = bodice(m, style, opts, "body-front", "Frente", true);
+  const c = bodice(m, style, opts, "body-back", "Costas", false);
   return {
     frente: f.piece,
     costas: c.piece,
