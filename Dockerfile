@@ -43,6 +43,8 @@ COPY --from=build /app/next.config.ts ./next.config.ts
 COPY --from=build /app/prisma ./prisma
 # lib/ is needed by prisma/seed.ts (imports ../lib/auth/hash) in the entrypoint
 COPY --from=build /app/lib ./lib
+# scripts/ is needed by the cron service (scripts/cron-renew.ts)
+COPY --from=build /app/scripts ./scripts
 COPY --from=build /app/tsconfig.json ./tsconfig.json
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
