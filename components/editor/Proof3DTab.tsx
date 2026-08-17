@@ -1,4 +1,4 @@
-export function Prova3DTab() {
+export function Proof3DTab() {
   return (
     <div className="flex flex-1 items-center justify-center">
       <div className="flex max-w-[280px] flex-col items-center gap-2 text-center">

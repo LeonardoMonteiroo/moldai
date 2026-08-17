@@ -10,7 +10,7 @@ const GARMENT_TYPE_LABELS_PT: Record<GarmentType, string> = {
   tshirt: "Camiseta",
 };
 
-export function FichaTecnicaTab({ pattern }: { pattern: Pattern }) {
+export function TechSheetTab({ pattern }: { pattern: Pattern }) {
   // Dimensões (larg × alt em cm) por peça, do model re-draftado em cm exato.
   const dims: Record<string, { w: number; h: number }> = {};
   if (pattern.spec && pattern.pieces.length > 0) {

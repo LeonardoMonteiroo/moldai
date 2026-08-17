@@ -7,7 +7,7 @@ import { planCutLayout, FABRIC_WIDTHS_CM } from "@/lib/export/cutplan";
 
 const meters = (cm: number) => (cm / 100).toFixed(2).replace(".", ",") + " m";
 
-export function PlanoCorteTab({ pattern }: { pattern: Pattern }) {
+export function CutPlanTab({ pattern }: { pattern: Pattern }) {
   const [fabricWidthCm, setFabricWidthCm] = useState<number>(150);
 
   // Encaixe real: só recalcula quando o molde ou a largura mudam.
