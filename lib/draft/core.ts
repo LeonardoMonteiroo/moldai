@@ -1,6 +1,6 @@
 import { DetailRow, Piece, PieceOutline } from "@/lib/types";
 
-export const SCALE = 4; // px por cm
+export const SCALE = 4; // px per cm
 export const PX = (cm: number) => Math.round(cm * SCALE * 10) / 10;
 
 export type Pt = [number, number];
@@ -33,9 +33,9 @@ export function polyPath(ptsCm: Pt[]): PieceOutline {
   return { kind: "polygon", points };
 }
 
-// Desenha um contorno fechado: reta (L) em cada aresta, exceto nas arestas
-// cobertas por um curvedSpan, onde emite Catmull-Rom->Bézier com as tangentes
-// travadas nas bordas do span (não puxa para os pontos retos vizinhos).
+// Draws a closed outline: straight (L) on every edge, except edges
+// covered by a curvedSpan, where it emits Catmull-Rom->Bézier with the
+// tangents locked at the span's edges (doesn't pull toward the neighboring straight points).
 export function outlinePath(
   ptsCm: Pt[],
   curvedSpans: [number, number][] = [],
@@ -83,7 +83,7 @@ function translateOutline(
       .join(" ");
     return { kind: "polygon", points };
   }
-  // path: só temos comandos absolutos M/C/L/Z gerados aqui; transladamos números em pares após M/C/L.
+  // path: we only have absolute M/C/L/Z commands generated here; we translate numbers in pairs after M/C/L.
   const d = o.d.replace(/([MCL])([^MCLZ]*)/g, (_, cmd, nums) => {
     const parts = nums.trim().split(/\s+/).map(Number);
     const shifted = parts.map((v: number, i: number) =>
@@ -94,7 +94,7 @@ function translateOutline(
   return { kind: "path", d: d.trim() };
 }
 
-// Constrói a Piece final aplicando outline/guia/grainline/dart com deslocamento (dx,dy) em px.
+// Builds the final Piece by applying outline/guide/grainline/dart with an (dx,dy) offset in px.
 function place(dp: DraftedPiece, dxPx: number, dyPx: number): Piece {
   const spans = dp.curvedSpans ?? [];
   const outline = spans.length
@@ -142,18 +142,18 @@ export function autoLayout(
   const pad = PX(6);
   const gap = PX(gapCm);
 
-  // bbox + dimensões em px de cada peça, preservando a ordem original de `drafted`.
+  // bbox + px dimensions of each piece, preserving `drafted`'s original order.
   const items = drafted.map((dp) => {
     const b = bbox(dp.outlineCm);
     return { dp, b, w: PX(b.w), h: PX(b.h), ox: pad, oy: pad };
   });
 
-  // Empacotamento em prateleiras (mesma técnica do export em lib/export/model.ts):
-  // em vez de uma única fila horizontal — que espalhava as peças e as deixava
-  // pequenas dentro de um viewBox largo e baixo — embrulha as peças em linhas
-  // com uma largura-alvo quase quadrada. A bounding box fica mais compacta, então
-  // o canvas escala as peças maiores. Ordena por altura desc para prateleiras
-  // justas; a ordem do array de saída segue a ordem original de `drafted`.
+  // Shelf packing (same technique as the export in lib/export/model.ts):
+  // instead of a single horizontal row — which spread the pieces out and left
+  // them small inside a wide, short viewBox — it wraps the pieces into rows
+  // with a near-square target width. The bounding box ends up more compact, so
+  // the canvas scales the pieces bigger. Sorts by height desc for tight
+  // shelves; the output array's order follows `drafted`'s original order.
   const widest = items.reduce((m, it) => Math.max(m, it.w), 0);
   const totalArea = items.reduce((s, it) => s + it.w * it.h, 0);
   const targetW = Math.max(widest, Math.sqrt(totalArea * 1.4));
@@ -165,7 +165,7 @@ export function autoLayout(
   let sheetRight = pad;
   for (const it of order) {
     if (cursorX > pad && cursorX - pad + it.w > targetW) {
-      cursorY += rowH + gap; // nova prateleira
+      cursorY += rowH + gap; // new shelf
       cursorX = pad;
       rowH = 0;
     }

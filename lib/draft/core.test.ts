@@ -15,7 +15,7 @@ const rect = (id: string, w: number, h: number): DraftedPiece => ({
 });
 
 describe("core drafting", () => {
-  it("bbox mede a peça", () => {
+  it("bbox measures the piece", () => {
     expect(
       bbox([
         [2, 3],
@@ -25,7 +25,7 @@ describe("core drafting", () => {
     ).toEqual({ minX: 2, minY: 3, maxX: 10, maxY: 20, w: 8, h: 17 });
   });
 
-  it("polyPath fecha o polígono", () => {
+  it("polyPath closes the polygon", () => {
     expect(
       polyPath([
         [0, 0],
@@ -35,7 +35,7 @@ describe("core drafting", () => {
     ).toBe("polygon");
   });
 
-  it("autoLayout empacota peças sem sobreposição dentro do viewBox", () => {
+  it("autoLayout packs pieces without overlap inside the viewBox", () => {
     const { pieces, viewBox } = autoLayout(
       [rect("a", 10, 20), rect("b", 30, 40)],
       5,
@@ -53,14 +53,14 @@ describe("core drafting", () => {
         maxY: Math.max(...ys),
       };
     });
-    // toda peça cabe dentro do viewBox empacotado
+    // every piece fits inside the packed viewBox
     for (const r of rects) {
       expect(r.minX).toBeGreaterThanOrEqual(0);
       expect(r.minY).toBeGreaterThanOrEqual(0);
       expect(r.maxX).toBeLessThanOrEqual(viewBox.w + 1e-6);
       expect(r.maxY).toBeLessThanOrEqual(viewBox.h + 1e-6);
     }
-    // as duas peças nunca se sobrepõem (retângulos disjuntos)
+    // the two pieces never overlap (disjoint rectangles)
     const [a, b] = rects;
     const disjoint =
       a.maxX <= b.minX + 1e-6 ||
@@ -71,7 +71,7 @@ describe("core drafting", () => {
   });
 
   describe("outlinePath", () => {
-    it("sem spans: só retas (L), nenhum C, fecha com Z", () => {
+    it("no spans: only straights (L), no C, closes with Z", () => {
       const o = outlinePath(
         [
           [0, 0],
@@ -87,8 +87,8 @@ describe("core drafting", () => {
       expect(o.d).toMatch(/Z$/);
     });
 
-    it("com span: as arestas do span viram C; as de fora seguem L", () => {
-      // quadrado; curva só a aresta entre v1 e v2 (span [1,2])
+    it("with a span: the span's edges become C; the rest stay L", () => {
+      // square; only the edge between v1 and v2 is curved (span [1,2])
       const o = outlinePath(
         [
           [0, 0],
@@ -103,7 +103,7 @@ describe("core drafting", () => {
       expect(o.d).toMatch(/Z$/);
     });
 
-    it("span de fechamento [k,n] curva a aresta que volta ao vértice 0", () => {
+    it("closing span [k,n] curves the edge that returns to vertex 0", () => {
       const pts: [number, number][] = [
         [0, 0],
         [10, 0],
@@ -111,17 +111,17 @@ describe("core drafting", () => {
         [0, 10],
       ];
       const o = outlinePath(pts, [[3, 4]]) as { kind: "path"; d: string };
-      // 4 vértices; span [3,4] cobre a aresta 3->0 (fechamento)
+      // 4 vertices; span [3,4] covers edge 3->0 (closing)
       expect(o.d).toMatch(/C[^Z]*Z$/);
     });
   });
 
-  it("autoLayout anexa vertices alinhados aos cantos do outline", () => {
+  it("autoLayout attaches vertices aligned to the outline's corners", () => {
     const { pieces } = autoLayout([rect("a", 10, 20)], 5);
     const p = pieces[0];
     expect(p.vertices).toBeDefined();
     expect(p.vertices).toHaveLength(4);
-    // primeiro vértice = primeiro par "x,y" do polygon
+    // first vertex = first "x,y" pair from the polygon
     const [px, py] = (p.outline as { points: string }).points
       .split(" ")[0]
       .split(",")

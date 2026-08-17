@@ -21,8 +21,8 @@ export function draftSleeve(
   const hemHalf = (bicep / 2) * (style.sleeve === "long" ? 0.7 : 0.9);
   const cxTop = bicep / 2;
 
-  // 0 axila esq -> 1 ctrl costas -> 2 topo -> 3 ctrl frente -> 4 axila dir (copa, curva)
-  // 4 -> 5 barra dir (reta) -> 6 barra esq (reta) -> 0 (reta)
+  // 0 left underarm -> 1 back ctrl -> 2 top -> 3 front ctrl -> 4 right underarm (cap, curved)
+  // 4 -> 5 right hem (straight) -> 6 left hem (straight) -> 0 (straight)
   const outlineCm: Pt[] = [
     [0, capH],
     [bicep * 0.2, capH * 0.3],

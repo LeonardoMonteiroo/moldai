@@ -48,7 +48,7 @@ export function validateSpec(raw: unknown): GarmentSpec {
   const overrides: Record<string, number> = {};
   for (const k of Object.keys(MEASUREMENT_RANGES)) {
     const v = ovRaw[k];
-    if (typeof v === "number" && Number.isFinite(v)) overrides[k] = v; // faixa é aplicada em resolveMeasurements
+    if (typeof v === "number" && Number.isFinite(v)) overrides[k] = v; // range is applied in resolveMeasurements
   }
   const outStyle: GarmentStyle = {
     neckline:
@@ -80,7 +80,7 @@ export function validateSpec(raw: unknown): GarmentSpec {
       style.armholeDeepenCm !== undefined
         ? clamp(num(style.armholeDeepenCm, 0), 0, 6)
         : undefined,
-    // sleeveRefit é interno (só o resolver de conflito o define); nunca vem da IA.
+    // sleeveRefit is internal (only the conflict resolver sets it); never comes from the AI.
   };
   return {
     type: pick(r.type, TYPES, "blouse"),
@@ -153,7 +153,7 @@ function draftAll(
         ? measurements.backLength
         : measurements.backLength + measurements.hipHeight + 5;
     const opts: BlockOpts = { gender, knit, lengthCm };
-    // Modelo-base camiseta: gola redonda, sem pence, manga curta por padrão.
+    // T-shirt base model: round neckline, no darts, short sleeve by default.
     const style: GarmentStyle =
       spec.type === "tshirt"
         ? {
@@ -171,9 +171,9 @@ function draftAll(
     } = draftBody(measurements, style, t, opts);
     armholeLenCm = a;
     drafted.push(front, back);
-    // A copa da manga é dimensionada pela cava BASE (não ajustada) — a menos que
-    // já tenha sido refeita ("Corrigir manga" seta style.sleeveRefit). Assim um
-    // ajuste de cava só no corpo faz as costuras divergirem → conflito real.
+    // The sleeve cap is sized from the BASE (un-adjusted) armhole — unless it's
+    // already been refit (the sleeve-fix action sets style.sleeveRefit). This way
+    // an armhole adjustment on the body alone makes the seams diverge → real conflict.
     const sleeveArmhole = style.sleeveRefit ? a : armholeBaseLenCm;
     const sleeve = draftSleeve(measurements, style, sleeveArmhole, t, opts);
     if (sleeve) {

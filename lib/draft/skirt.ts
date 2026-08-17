@@ -5,15 +5,15 @@ import type { Translate } from "@/lib/i18n/translate";
 
 const cm = (v: number) => `${v.toFixed(1).replace(".", ",")} cm`;
 
-// setor anelar (arco de cintura e de barra) amostrado em pontos
+// annular sector (waist and hem arcs) sampled into points
 function radialSkirt(
   waist: number,
   length: number,
   denom: number,
 ): { pts: Pt[]; r: number } {
-  const r = waist / denom; // raio interno (cintura)
-  const R = r + length; // raio externo (barra)
-  const sweep = (Math.PI * 2) / denom; // ângulo de UM quarto de peça (peça cortada 4x/2x)
+  const r = waist / denom; // inner radius (waist)
+  const R = r + length; // outer radius (hem)
+  const sweep = (Math.PI * 2) / denom; // angle of ONE quarter-piece (piece cut 4x/2x)
   const half = sweep / 2;
   const steps = 12;
   const inner: Pt[] = [];
@@ -23,9 +23,9 @@ function radialSkirt(
     inner.push([r * Math.sin(a), -r * Math.cos(a)]);
     outer.push([R * Math.sin(a), -R * Math.cos(a)]);
   }
-  // fecha: cintura (esq->dir) + barra (dir->esq)
+  // closes: waist (left->right) + hem (right->left)
   const pts = [...inner, ...outer.reverse()];
-  // normaliza para y>=0 (bbox translada depois)
+  // normalize to y>=0 (bbox translated afterward)
   const minY = Math.min(...pts.map((p) => p[1]));
   return { pts: pts.map(([x, y]) => [x, y - minY] as Pt), r };
 }
@@ -53,11 +53,11 @@ export function draftSkirt(
     const denom = silhueta === "half-circle" ? Math.PI : 2 * Math.PI;
     const { pts, r } = radialSkirt(m.waist, length, denom);
     detailRows.splice(1, 0, { label: t("rows.waistRadius"), value: cm(r) });
-    // desloca para x>=0
+    // shift to x>=0
     const minX = Math.min(...pts.map((p) => p[0]));
     const outlineCm = pts.map(([x, y]) => [x - minX, y] as Pt);
-    const cxTop = -minX; // aproximação do centro no topo
-    const steps = 12; // igual ao usado em radialSkirt
+    const cxTop = -minX; // approximation of the top center
+    const steps = 12; // same as used in radialSkirt
     const waistSpan: [number, number] = [0, steps];
     const hemSpan: [number, number] = [steps + 1, 2 * steps + 1];
     return {
@@ -74,8 +74,8 @@ export function draftSkirt(
     };
   }
 
-  // reta / evasê: trapézio (¼ quadril na cintura, barra igual ou mais larga)
-  const waistHalf = m.hip / 4 + ease; // usa quadril como largura de referência do painel
+  // straight / A-line: trapezoid (¼ hip at the waist, hem equal or wider)
+  const waistHalf = m.hip / 4 + ease; // uses hip as the panel's reference width
   const flare = silhueta === "a-line" ? 12 : 0;
   const hemHalf = waistHalf + flare;
   const outlineCm: Pt[] = [

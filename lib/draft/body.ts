@@ -19,8 +19,8 @@ function defaultOpts(m: Measurements): BlockOpts {
   };
 }
 
-// Traça uma peça de corpo inteira (meia-peça espelhada em torno de cx) com
-// curvas só em neckline e cava. `frontish` controla a profundidade do neckline.
+// Drafts a whole body piece (half-piece mirrored around cx) with
+// curves only at the neckline and armhole. `frontish` controls the neckline depth.
 function bodice(
   m: Measurements,
   style: GarmentStyle,
@@ -35,7 +35,7 @@ function bodice(
   const halfChest = m.bust / 4 + wearingEase;
   const armholeDeepen = Math.max(0, style.armholeDeepenCm ?? 0);
   const armholeDepthBase = m.bust / 8 + (opts.gender === "male" ? 10.5 : 9.5);
-  const armholeDepth = armholeDepthBase + armholeDeepen; // cava aprofundada visível no contorno
+  const armholeDepth = armholeDepthBase + armholeDeepen; // deepened armhole, visible in the outline
   const shoulderSlope = opts.gender === "male" ? 4.5 : 4.0;
   const neckHalf = m.bust / 14 + (opts.gender === "male" ? 0.8 : 0);
   const shoulderHalf = m.shoulder;
@@ -60,36 +60,37 @@ function bodice(
 
   const cx = Math.max(shoulderHalf, halfChest, hemHalf);
   const midArmY = shoulderSlope + (armholeDepth - shoulderSlope) * 0.55;
-  const armCtrlX = (shoulderHalf + halfChest) / 2 - 1; // distância do centro
+  const armCtrlX = (shoulderHalf + halfChest) / 2 - 1; // distance from center
 
   const pts: Pt[] = [];
   const spans: [number, number][] = [];
   const push = (p: Pt) => (pts.push(p), pts.length - 1);
 
-  const cf = push([cx, neckDrop]); // centro neckline
-  push([cx - neckHalf * 0.6, neckDrop * 0.55]); // ctrl neckline esq
-  const hpsL = push([cx - neckHalf, 0]); // HPS esq
-  spans.push([cf, hpsL]); // neckline esq (curvo)
-  const shL = push([cx - shoulderHalf, shoulderSlope]); // ombro esq (reta hpsL->shL)
-  push([cx - armCtrlX, midArmY]); // ctrl cava esq
-  const uaL = push([cx - halfChest, armholeDepth]); // axila esq
-  spans.push([shL, uaL]); // cava esq (curva)
-  if (fitted) push([cx - waistHalf, waistY]); // cintura esq
-  push([cx - hemHalf, len]); // barra esq
-  push([cx + hemHalf, len]); // barra dir (reta = barra)
-  if (fitted) push([cx + waistHalf, waistY]); // cintura dir
-  const uaR = push([cx + halfChest, armholeDepth]); // axila dir
-  push([cx + armCtrlX, midArmY]); // ctrl cava dir
-  const shR = push([cx + shoulderHalf, shoulderSlope]); // ombro dir
-  spans.push([uaR, shR]); // cava dir (curva)
-  const hpsR = push([cx + neckHalf, 0]); // HPS dir (reta shR->hpsR)
-  push([cx + neckHalf * 0.6, neckDrop * 0.55]); // ctrl neckline dir
-  spans.push([hpsR, pts.length]); // neckline dir + fechamento (curvo)
+  const cf = push([cx, neckDrop]); // neckline center
+  push([cx - neckHalf * 0.6, neckDrop * 0.55]); // left neckline ctrl
+  const hpsL = push([cx - neckHalf, 0]); // left HPS
+  spans.push([cf, hpsL]); // left neckline (curved)
+  const shL = push([cx - shoulderHalf, shoulderSlope]); // left shoulder (straight hpsL->shL)
+  push([cx - armCtrlX, midArmY]); // left armhole ctrl
+  const uaL = push([cx - halfChest, armholeDepth]); // left underarm
+  spans.push([shL, uaL]); // left armhole (curved)
+  if (fitted) push([cx - waistHalf, waistY]); // left waist
+  push([cx - hemHalf, len]); // left hem
+  push([cx + hemHalf, len]); // right hem (straight = hem)
+  if (fitted) push([cx + waistHalf, waistY]); // right waist
+  const uaR = push([cx + halfChest, armholeDepth]); // right underarm
+  push([cx + armCtrlX, midArmY]); // right armhole ctrl
+  const shR = push([cx + shoulderHalf, shoulderSlope]); // right shoulder
+  spans.push([uaR, shR]); // right armhole (curved)
+  const hpsR = push([cx + neckHalf, 0]); // right HPS (straight shR->hpsR)
+  push([cx + neckHalf * 0.6, neckDrop * 0.55]); // right neckline ctrl
+  spans.push([hpsR, pts.length]); // right neckline + closing (curved)
 
   const armholeLenCm =
     Math.hypot(halfChest - shoulderHalf, armholeDepth - shoulderSlope) * 1.08;
-  // Cava "base" (sem o ajuste) — é a que a copa da manga usa enquanto não é refeita;
-  // a divergência entre esta e armholeLenCm é o que o seamCheck detecta.
+  // "Base" armhole (without the adjustment) — this is what the sleeve cap uses
+  // while it hasn't been refit; the divergence between this and armholeLenCm
+  // is what seamCheck detects.
   const armholeBaseLenCm =
     Math.hypot(halfChest - shoulderHalf, armholeDepthBase - shoulderSlope) *
     1.08;
