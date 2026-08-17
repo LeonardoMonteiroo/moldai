@@ -43,15 +43,15 @@ const TOOL: Anthropic.Tool = {
         description:
           "A GarmentSpec COMPLETA e ATUALIZADA (não só o delta). Preencha SEMPRE que decision=apply — inclua tudo que já existia mais as mudanças pedidas.",
         properties: {
-          tipo: {
+          type: {
             type: "string",
-            enum: ["blusa", "vestido", "saia", "camiseta"],
+            enum: ["blouse", "dress", "skirt", "tshirt"],
           },
-          sexo: {
+          gender: {
             type: "string",
-            enum: ["fem", "masc"],
+            enum: ["female", "male"],
             description:
-              "Sexo/base de medidas. Infira de pistas como 'masculina'/'feminina'/'unissex'. Default fem.",
+              "Gênero/base de medidas. Infira de pistas como 'masculina'/'feminina'/'unissex'. Default female.",
           },
           measurementOverrides: {
             type: "object",
@@ -68,17 +68,17 @@ const TOOL: Anthropic.Tool = {
           style: {
             type: "object",
             properties: {
-              decote: { type: "string", enum: ["reto", "V", "redondo"] },
-              decoteProfundidadeCm: { type: "number" },
-              manga: { type: "string", enum: ["sem", "curta", "longa"] },
-              saia: {
+              neckline: { type: "string", enum: ["straight", "V", "round"] },
+              necklineDepthCm: { type: "number" },
+              sleeve: { type: "string", enum: ["none", "short", "long"] },
+              skirt: {
                 type: "string",
-                enum: ["reta", "evase", "gode", "meia-roda", "circulo"],
+                enum: ["straight", "a-line", "gore", "half-circle", "circle"],
               },
-              compSaiaCm: { type: "number" },
-              pences: { type: "boolean" },
-              folgaCosturaCm: { type: "number" },
-              cavaAjusteCm: {
+              skirtLengthCm: { type: "number" },
+              darts: { type: "boolean" },
+              seamAllowanceCm: { type: "number" },
+              armholeDeepenCm: {
                 type: "number",
                 description:
                   "Aprofundar a cava do corpo em X cm (0 a 6). Use quando o usuário pedir para aumentar/aprofundar/baixar a cava (ex.: 'aumenta 2cm na cava'). Mexe só no corpo — a manga pode precisar de ajuste depois.",
@@ -86,7 +86,7 @@ const TOOL: Anthropic.Tool = {
             },
           },
         },
-        required: ["tipo", "sexo", "measurementOverrides", "style"],
+        required: ["type", "gender", "measurementOverrides", "style"],
       },
       questions: {
         type: "array",
@@ -131,14 +131,14 @@ function buildSystem(state: EditorState, answering: boolean): string {
   const currentSpec = state.pattern.spec;
   const isEmpty = state.pattern.pieces.length === 0;
   return [
-    "Você é o motor de modelagem da MoldAI. Recebe pedidos em linguagem natural sobre uma peça de roupa e traduz em uma GarmentSpec (tipo + medidas + estilo).",
-    "A GarmentSpec tem: tipo (blusa | vestido | saia | camiseta); sexo (fem | masc); measurementOverrides (medidas do corpo em cm, sobrepõem a tabela de tamanhos); style (decote, decoteProfundidadeCm, manga, saia, compSaiaCm, pences, folgaCosturaCm, cavaAjusteCm).",
-    "cavaAjusteCm aprofunda a cava do corpo (0 a 6 cm): use quando pedirem para aumentar/baixar a cava. Como mexe só no corpo, a copa da manga pode ficar diferente e gerar um aviso de costura — isso é esperado, o usuário resolve com 'Corrigir manga'.",
-    "camiseta = peça de malha (gola redonda, manga montada curta por padrão, sem pences, caimento justo); blusa = tecido plano (pode ter pences, decote reto/V/redondo). Escolha camiseta para t-shirt/camiseta e blusa para blusa/camisa social.",
-    "Catálogo de estilos válidos: decote em reto|V|redondo; manga em sem|curta|longa; saia (silhueta) em reta|evase|gode|meia-roda|circulo.",
-    "Infira sexo do pedido ('masculina'->masc, 'feminina'->fem, sem pista->fem).",
+    "Você é o motor de modelagem da MoldAI. Recebe pedidos em linguagem natural sobre uma peça de roupa e traduz em uma GarmentSpec (type + medidas + estilo).",
+    "A GarmentSpec tem: type (blouse | dress | skirt | tshirt); gender (female | male); measurementOverrides (medidas do corpo em cm, sobrepõem a tabela de tamanhos); style (neckline, necklineDepthCm, sleeve, skirt, skirtLengthCm, darts, seamAllowanceCm, armholeDeepenCm).",
+    "armholeDeepenCm aprofunda a cava do corpo (0 a 6 cm): use quando pedirem para aumentar/baixar a cava. Como mexe só no corpo, a copa da manga pode ficar diferente e gerar um aviso de costura — isso é esperado, o usuário resolve com 'Corrigir manga'.",
+    "tshirt = peça de malha (gola redonda, manga montada curta por padrão, sem pence, caimento justo); blouse = tecido plano (pode ter pence, neckline reto/V/redondo). Escolha tshirt para t-shirt/camiseta e blouse para blusa/camisa social.",
+    "Catálogo de estilos válidos: neckline em straight|V|round; sleeve em none|short|long; skirt (silhueta) em straight|a-line|gore|half-circle|circle.",
+    "Infira gender do pedido ('masculina'->male, 'feminina'->female, sem pista->female).",
     isEmpty
-      ? "ESTADO ATUAL: molde EM BRANCO, nenhuma peça criada ainda. Este é um pedido do zero: monte a GarmentSpec inteira que a roupa precisa. Se o pedido já trouxer o suficiente, use apply; mas um pedido genérico só com o tipo da peça (ex.: 'faça uma camiseta', sem sexo, tamanho, gola, manga nem caimento) está SUBESPECIFICADO — nesse caso use decision=ask antes de desenhar."
+      ? "ESTADO ATUAL: molde EM BRANCO, nenhuma peça criada ainda. Este é um pedido do zero: monte a GarmentSpec inteira que a roupa precisa. Se o pedido já trouxer o suficiente, use apply; mas um pedido genérico só com o type da peça (ex.: 'faça uma camiseta', sem gender, tamanho, gola, manga nem caimento) está SUBESPECIFICADO — nesse caso use decision=ask antes de desenhar."
       : "Já existe uma spec aplicada (abaixo). Um pedido de ajuste deve devolver a SPEC INTEIRA ATUALIZADA (não só o delta): parta da spec atual e aplique as mudanças pedidas.",
     "Se o pedido não for uma peça de roupa que esta spec consegue representar (ex.: calça, acessório, pedido genérico sem relação com uma peça modelável), use decision=decline e explique gentilmente em assistantMessage. Não preencha spec nesse caso.",
     answering

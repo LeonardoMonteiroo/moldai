@@ -5,13 +5,13 @@ import {
 } from "@/lib/measurements";
 import {
   ClarifyQuestion,
-  Decote,
+  Neckline,
   GarmentSpec,
   GarmentStyle,
   GarmentType,
-  MangaLen,
-  SaiaSilhueta,
-  Sexo,
+  SleeveLength,
+  SkirtSilhouette,
+  Gender,
   SizeLabel,
 } from "@/lib/types";
 import { autoLayout, DraftedPiece } from "./core";
@@ -19,11 +19,17 @@ import { BlockOpts, draftCorpo } from "./corpo";
 import { draftManga } from "./manga";
 import { draftSaia } from "./saia";
 
-const TIPOS: GarmentType[] = ["blusa", "vestido", "saia", "camiseta"];
-const SEXOS: Sexo[] = ["fem", "masc"];
-const DECOTES: Decote[] = ["reto", "V", "redondo"];
-const MANGAS: MangaLen[] = ["sem", "curta", "longa"];
-const SAIAS: SaiaSilhueta[] = ["reta", "evase", "gode", "meia-roda", "circulo"];
+const TYPES: GarmentType[] = ["blouse", "dress", "skirt", "tshirt"];
+const GENDERS: Gender[] = ["female", "male"];
+const NECKLINES: Neckline[] = ["straight", "V", "round"];
+const SLEEVES: SleeveLength[] = ["none", "short", "long"];
+const SKIRTS: SkirtSilhouette[] = [
+  "straight",
+  "a-line",
+  "gore",
+  "half-circle",
+  "circle",
+];
 
 const clamp = (v: number, min: number, max: number) =>
   Math.min(max, Math.max(min, v));
@@ -44,36 +50,40 @@ export function validateSpec(raw: unknown): GarmentSpec {
     if (typeof v === "number" && Number.isFinite(v)) overrides[k] = v; // faixa é aplicada em resolveMeasurements
   }
   const outStyle: GarmentStyle = {
-    decote:
-      style.decote !== undefined
-        ? pick(style.decote, DECOTES, "reto")
+    neckline:
+      style.neckline !== undefined
+        ? pick(style.neckline, NECKLINES, "straight")
         : undefined,
-    manga:
-      style.manga !== undefined ? pick(style.manga, MANGAS, "sem") : undefined,
-    saia:
-      style.saia !== undefined ? pick(style.saia, SAIAS, "reta") : undefined,
-    decoteProfundidadeCm:
-      style.decoteProfundidadeCm !== undefined
-        ? clamp(num(style.decoteProfundidadeCm, 0), 0, 15)
+    sleeve:
+      style.sleeve !== undefined
+        ? pick(style.sleeve, SLEEVES, "none")
         : undefined,
-    compSaiaCm:
-      style.compSaiaCm !== undefined
-        ? clamp(num(style.compSaiaCm, 60), 25, 120)
+    skirt:
+      style.skirt !== undefined
+        ? pick(style.skirt, SKIRTS, "straight")
         : undefined,
-    folgaCosturaCm:
-      style.folgaCosturaCm !== undefined
-        ? clamp(num(style.folgaCosturaCm, 1), 0, 4)
+    necklineDepthCm:
+      style.necklineDepthCm !== undefined
+        ? clamp(num(style.necklineDepthCm, 0), 0, 15)
         : undefined,
-    pences: typeof style.pences === "boolean" ? style.pences : undefined,
-    cavaAjusteCm:
-      style.cavaAjusteCm !== undefined
-        ? clamp(num(style.cavaAjusteCm, 0), 0, 6)
+    skirtLengthCm:
+      style.skirtLengthCm !== undefined
+        ? clamp(num(style.skirtLengthCm, 60), 25, 120)
         : undefined,
-    // mangaRefit é interno (só o resolver de conflito o define); nunca vem da IA.
+    seamAllowanceCm:
+      style.seamAllowanceCm !== undefined
+        ? clamp(num(style.seamAllowanceCm, 1), 0, 4)
+        : undefined,
+    darts: typeof style.darts === "boolean" ? style.darts : undefined,
+    armholeDeepenCm:
+      style.armholeDeepenCm !== undefined
+        ? clamp(num(style.armholeDeepenCm, 0), 0, 6)
+        : undefined,
+    // sleeveRefit é interno (só o resolver de conflito o define); nunca vem da IA.
   };
   return {
-    tipo: pick(r.tipo, TIPOS, "blusa"),
-    sexo: pick(r.sexo, SEXOS, "fem"),
+    type: pick(r.type, TYPES, "blouse"),
+    gender: pick(r.gender, GENDERS, "female"),
     measurementOverrides: overrides,
     style: outStyle,
   };
@@ -122,35 +132,33 @@ function draftAll(
   armholeLenCm?: number;
   mangaArmholeCm?: number;
 } {
-  const sexo: Sexo = spec.sexo ?? "fem";
+  const gender: Gender = spec.gender ?? "female";
   const measurements: Measurements = resolveMeasurements(
     size,
     spec.measurementOverrides,
-    sexo,
+    gender,
   );
   const drafted: DraftedPiece[] = [];
   let armholeLenCm: number | undefined;
   let mangaArmholeCm: number | undefined;
 
   const isCorpo =
-    spec.tipo === "blusa" ||
-    spec.tipo === "vestido" ||
-    spec.tipo === "camiseta";
+    spec.type === "blouse" || spec.type === "dress" || spec.type === "tshirt";
   if (isCorpo) {
-    const knit = spec.tipo === "camiseta";
+    const knit = spec.type === "tshirt";
     const lengthCm =
-      spec.tipo === "vestido"
+      spec.type === "dress"
         ? measurements.backLength
         : measurements.backLength + measurements.hipHeight + 5;
-    const opts: BlockOpts = { sexo, knit, lengthCm };
-    // Arquétipo camiseta: gola redonda, sem pences, manga curta por padrão.
+    const opts: BlockOpts = { gender, knit, lengthCm };
+    // Modelo-base camiseta: gola redonda, sem pence, manga curta por padrão.
     const style: GarmentStyle =
-      spec.tipo === "camiseta"
+      spec.type === "tshirt"
         ? {
             ...spec.style,
-            decote: spec.style.decote ?? "redondo",
-            pences: false,
-            manga: spec.style.manga ?? "curta",
+            neckline: spec.style.neckline ?? "round",
+            darts: false,
+            sleeve: spec.style.sleeve ?? "short",
           }
         : spec.style;
     const {
@@ -162,16 +170,16 @@ function draftAll(
     armholeLenCm = a;
     drafted.push(frente, costas);
     // A copa da manga é dimensionada pela cava BASE (não ajustada) — a menos que
-    // já tenha sido refeita ("Corrigir manga" seta style.mangaRefit). Assim um
+    // já tenha sido refeita ("Corrigir manga" seta style.sleeveRefit). Assim um
     // ajuste de cava só no corpo faz as costuras divergirem → conflito real.
-    const mangaCava = style.mangaRefit ? a : armholeBaseLenCm;
+    const mangaCava = style.sleeveRefit ? a : armholeBaseLenCm;
     const manga = draftManga(measurements, style, mangaCava, opts);
     if (manga) {
       drafted.push(manga);
       mangaArmholeCm = mangaCava;
     }
   }
-  if (spec.tipo === "saia" || spec.tipo === "vestido") {
+  if (spec.type === "skirt" || spec.type === "dress") {
     drafted.push(draftSaia(measurements, spec.style));
   }
 

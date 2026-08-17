@@ -1,4 +1,4 @@
-import { SizeLabel, Sexo } from "./types";
+import { SizeLabel, Gender } from "./types";
 
 export interface Measurements {
   bust: number; // circunferência do busto (cm)
@@ -150,9 +150,9 @@ function clamp(v: number, min: number, max: number) {
 export function resolveMeasurements(
   size: SizeLabel,
   overrides: Partial<Measurements>,
-  sexo: Sexo = "fem",
+  gender: Gender = "female",
 ): Measurements {
-  const base = { ...(sexo === "masc" ? SIZE_TABLE_MALE : SIZE_TABLE)[size] };
+  const base = { ...(gender === "male" ? SIZE_TABLE_MALE : SIZE_TABLE)[size] };
   for (const k of Object.keys(overrides) as (keyof Measurements)[]) {
     const v = overrides[k];
     if (typeof v === "number" && Number.isFinite(v)) {

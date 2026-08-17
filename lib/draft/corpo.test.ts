@@ -5,7 +5,7 @@ import { bbox, Pt } from "./core";
 
 const M = resolveMeasurements("M", {});
 const optsM: BlockOpts = {
-  sexo: "fem",
+  gender: "female",
   knit: false,
   lengthCm: M.backLength + M.hipHeight + 5,
 };
@@ -49,9 +49,9 @@ describe("draftCorpo sloper", () => {
   });
 
   it("decote frente mais fundo que costas; V > redondo > reto", () => {
-    const reto = draftCorpo(M, { decote: "reto" }, optsM);
-    const red = draftCorpo(M, { decote: "redondo" }, optsM);
-    const v = draftCorpo(M, { decote: "V", decoteProfundidadeCm: 8 }, optsM);
+    const reto = draftCorpo(M, { neckline: "straight" }, optsM);
+    const red = draftCorpo(M, { neckline: "round" }, optsM);
+    const v = draftCorpo(M, { neckline: "V", necklineDepthCm: 8 }, optsM);
     expect(neckDrop(v.frente.outlineCm)).toBeGreaterThan(
       neckDrop(v.costas.outlineCm),
     );
@@ -72,9 +72,9 @@ describe("draftCorpo sloper", () => {
     expect(draftCorpo(M, {}, optsM).armholeLenCm).toBeGreaterThan(10);
   });
 
-  it("gera pence quando pences=true (não-knit)", () => {
+  it("gera pence quando darts=true (não-knit)", () => {
     expect(
-      draftCorpo(M, { pences: true }, optsM).frente.dartCm?.length,
+      draftCorpo(M, { darts: true }, optsM).frente.dartCm?.length,
     ).toBeGreaterThanOrEqual(3);
   });
 

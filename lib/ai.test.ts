@@ -52,8 +52,8 @@ describe("proposeGarment", () => {
         assistantMessage: "x",
         questions: [],
         spec: {
-          tipo: "camiseta",
-          sexo: "masc",
+          type: "tshirt",
+          gender: "male",
           style: {},
           measurementOverrides: {},
         },

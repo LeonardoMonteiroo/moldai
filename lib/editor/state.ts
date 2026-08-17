@@ -56,8 +56,8 @@ function detectConflict(
 function seedPattern(): Pattern {
   const baseSize = "M" as const;
   const spec: GarmentSpec = {
-    tipo: "blusa",
-    sexo: "fem",
+    type: "blouse",
+    gender: "female",
     measurementOverrides: {},
     style: {},
   };
@@ -72,7 +72,7 @@ function seedPattern(): Pattern {
     sizesPending: ["PP", "P", "M", "G", "GG"],
     pieces: [],
     spec,
-    baseMeasurements: resolveMeasurements(baseSize, {}, "fem"),
+    baseMeasurements: resolveMeasurements(baseSize, {}, "female"),
     viewBox: { w: 620, h: 380 },
   };
 }
@@ -127,8 +127,8 @@ export function setConflict(
 export function getSpec(state: EditorState): GarmentSpec {
   return (
     state.pattern.spec ?? {
-      tipo: "blusa",
-      sexo: "fem",
+      type: "blouse",
+      gender: "female",
       measurementOverrides: {},
       style: {},
     }
@@ -151,13 +151,13 @@ export function applyGarmentSpec(state: EditorState, spec: GarmentSpec): void {
   state.conflict = detectConflict(pieces, armholeLenCm, mangaArmholeCm);
 }
 
-// "Corrigir manga": marca mangaRefit e re-drafta — a copa passa a usar a cava
+// "Corrigir manga": marca sleeveRefit e re-drafta — a copa passa a usar a cava
 // ajustada, as costuras batem e detectConflict devolve null.
 export function refitManga(state: EditorState): void {
   const spec = getSpec(state);
   applyGarmentSpec(state, {
     ...spec,
-    style: { ...spec.style, mangaRefit: true },
+    style: { ...spec.style, sleeveRefit: true },
   });
 }
 

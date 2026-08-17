@@ -1,8 +1,16 @@
 import { Measurements } from "@/lib/measurements";
-import { DetailRow, GarmentStyle, SaiaSilhueta } from "@/lib/types";
+import { DetailRow, GarmentStyle, SkirtSilhouette } from "@/lib/types";
 import { DraftedPiece, Pt } from "./core";
 
 const cm = (v: number) => `${v.toFixed(1).replace(".", ",")} cm`;
+
+const SKIRT_SILHOUETTE_LABELS_PT: Record<SkirtSilhouette, string> = {
+  straight: "reta",
+  "a-line": "evase",
+  gore: "gode",
+  "half-circle": "meia-roda",
+  circle: "circulo",
+};
 
 // setor anelar (arco de cintura e de barra) amostrado em pontos
 function radialSkirt(
@@ -30,22 +38,22 @@ function radialSkirt(
 }
 
 export function draftSaia(m: Measurements, style: GarmentStyle): DraftedPiece {
-  const silhueta: SaiaSilhueta = style.saia ?? "reta";
-  const folga = style.folgaCosturaCm ?? 1;
-  const comp = style.compSaiaCm ?? m.skirtLength;
+  const silhueta: SkirtSilhouette = style.skirt ?? "straight";
+  const folga = style.seamAllowanceCm ?? 1;
+  const comp = style.skirtLengthCm ?? m.skirtLength;
   const detailRows: DetailRow[] = [
-    { label: "Silhueta", value: silhueta },
+    { label: "Silhueta", value: SKIRT_SILHOUETTE_LABELS_PT[silhueta] },
     { label: "Comprimento", value: cm(comp) },
     { label: "Folga de costura", value: cm(folga) },
     { label: "Fio", value: "reto" },
   ];
 
   if (
-    silhueta === "circulo" ||
-    silhueta === "gode" ||
-    silhueta === "meia-roda"
+    silhueta === "circle" ||
+    silhueta === "gore" ||
+    silhueta === "half-circle"
   ) {
-    const denom = silhueta === "meia-roda" ? Math.PI : 2 * Math.PI;
+    const denom = silhueta === "half-circle" ? Math.PI : 2 * Math.PI;
     const { pts, r } = radialSkirt(m.waist, comp, denom);
     detailRows.splice(1, 0, { label: "Raio da cintura", value: cm(r) });
     // desloca para x>=0
@@ -58,7 +66,7 @@ export function draftSaia(m: Measurements, style: GarmentStyle): DraftedPiece {
     return {
       id: "saia",
       name: "Saia",
-      qty: silhueta === "meia-roda" ? 1 : 2,
+      qty: silhueta === "half-circle" ? 1 : 2,
       outlineCm,
       curvedSpans: [waistSpan, hemSpan],
       grainlineCm: [
@@ -71,7 +79,7 @@ export function draftSaia(m: Measurements, style: GarmentStyle): DraftedPiece {
 
   // reta / evasê: trapézio (¼ quadril na cintura, barra igual ou mais larga)
   const waistHalf = m.hip / 4 + folga; // usa quadril como largura de referência do painel
-  const flare = silhueta === "evase" ? 12 : 0;
+  const flare = silhueta === "a-line" ? 12 : 0;
   const hemHalf = waistHalf + flare;
   const outlineCm: Pt[] = [
     [waistHalf === hemHalf ? 0 : hemHalf - waistHalf, 0],

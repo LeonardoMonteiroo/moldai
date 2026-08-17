@@ -16,7 +16,7 @@ export type EditorTool = "cursor" | "medir";
 
 const GENERATION_STEPS = [
   { label: "passo 1/4 · silhueta", pieceProgress: "traçando peças" },
-  { label: "passo 2/4 · pences", pieceProgress: "ajustando detalhes" },
+  { label: "passo 2/4 · pinças", pieceProgress: "ajustando detalhes" },
   { label: "passo 3/4 · costuras", pieceProgress: "conferindo costuras" },
   { label: "passo 4/4 · consumo", pieceProgress: "calculando consumo" },
 ];

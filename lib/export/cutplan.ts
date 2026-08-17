@@ -29,7 +29,7 @@ export interface CutPlan {
 // cm exato de buildExportModel (re-drafta via draftPiecesCm, não inverte px), expande
 // cada peça pela quantidade a cortar e empacota as cópias em prateleiras dentro de uma
 // faixa da LARGURA DO TECIDO. O fio fica travado (sem rotação): a peça mantém a
-// orientação em que foi modelada, então a copa/decote continuam alinhados ao urdume.
+// orientação em que foi modelada, então a copa/neckline continuam alinhados ao urdume.
 export function planCutLayout(
   pattern: Pattern,
   fabricWidthCm: number,

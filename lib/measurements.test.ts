@@ -25,14 +25,14 @@ describe("size tables", () => {
     expect(SIZE_TABLE_MALE.M.bust).toBe(100);
   });
 
-  it("resolve base do tamanho e aplica overrides (default fem)", () => {
+  it("resolve base do tamanho e aplica overrides (default female)", () => {
     expect(resolveMeasurements("M", {}).waist).toBe(74);
     expect(resolveMeasurements("M", { waist: 68 }).waist).toBe(68);
   });
 
-  it("resolve pela tabela masculina quando sexo=masc", () => {
-    expect(resolveMeasurements("M", {}, "masc").bust).toBe(100);
-    expect(resolveMeasurements("M", {}, "fem").bust).toBe(92);
+  it("resolve pela tabela masculina quando gender=male", () => {
+    expect(resolveMeasurements("M", {}, "male").bust).toBe(100);
+    expect(resolveMeasurements("M", {}, "female").bust).toBe(92);
   });
 
   it("clampa ombro à nova faixa [14,26]", () => {
