@@ -116,10 +116,10 @@ export function validateQuestions(raw: unknown): ClarifyQuestion[] {
 
 export function seamCheck(
   armholeLenCm?: number,
-  mangaCavaCm?: number,
+  sleeveArmholeCm?: number,
 ): { diffCm: number } | null {
-  if (armholeLenCm == null || mangaCavaCm == null) return null;
-  const diff = Math.abs(armholeLenCm - mangaCavaCm);
+  if (armholeLenCm == null || sleeveArmholeCm == null) return null;
+  const diff = Math.abs(armholeLenCm - sleeveArmholeCm);
   return diff > 1 ? { diffCm: Math.round(diff * 10) / 10 } : null;
 }
 
@@ -130,7 +130,7 @@ function draftAll(
   drafted: DraftedPiece[];
   measurements: Measurements;
   armholeLenCm?: number;
-  mangaArmholeCm?: number;
+  sleeveArmholeCm?: number;
 } {
   const gender: Gender = spec.gender ?? "female";
   const measurements: Measurements = resolveMeasurements(
@@ -140,11 +140,11 @@ function draftAll(
   );
   const drafted: DraftedPiece[] = [];
   let armholeLenCm: number | undefined;
-  let mangaArmholeCm: number | undefined;
+  let sleeveArmholeCm: number | undefined;
 
-  const isCorpo =
+  const isBody =
     spec.type === "blouse" || spec.type === "dress" || spec.type === "tshirt";
-  if (isCorpo) {
+  if (isBody) {
     const knit = spec.type === "tshirt";
     const lengthCm =
       spec.type === "dress"
@@ -162,28 +162,28 @@ function draftAll(
           }
         : spec.style;
     const {
-      frente,
-      costas,
+      front,
+      back,
       armholeLenCm: a,
       armholeBaseLenCm,
     } = draftBody(measurements, style, opts);
     armholeLenCm = a;
-    drafted.push(frente, costas);
+    drafted.push(front, back);
     // A copa da manga é dimensionada pela cava BASE (não ajustada) — a menos que
     // já tenha sido refeita ("Corrigir manga" seta style.sleeveRefit). Assim um
     // ajuste de cava só no corpo faz as costuras divergirem → conflito real.
-    const mangaCava = style.sleeveRefit ? a : armholeBaseLenCm;
-    const manga = draftSleeve(measurements, style, mangaCava, opts);
-    if (manga) {
-      drafted.push(manga);
-      mangaArmholeCm = mangaCava;
+    const sleeveArmhole = style.sleeveRefit ? a : armholeBaseLenCm;
+    const sleeve = draftSleeve(measurements, style, sleeveArmhole, opts);
+    if (sleeve) {
+      drafted.push(sleeve);
+      sleeveArmholeCm = sleeveArmhole;
     }
   }
   if (spec.type === "skirt" || spec.type === "dress") {
     drafted.push(draftSkirt(measurements, spec.style));
   }
 
-  return { drafted, measurements, armholeLenCm, mangaArmholeCm };
+  return { drafted, measurements, armholeLenCm, sleeveArmholeCm };
 }
 
 export function draftPiecesCm(
@@ -194,10 +194,10 @@ export function draftPiecesCm(
 }
 
 export function draftGarment(spec: GarmentSpec, size: SizeLabel) {
-  const { drafted, measurements, armholeLenCm, mangaArmholeCm } = draftAll(
+  const { drafted, measurements, armholeLenCm, sleeveArmholeCm } = draftAll(
     spec,
     size,
   );
   const { pieces, viewBox } = autoLayout(drafted, 8);
-  return { pieces, viewBox, measurements, armholeLenCm, mangaArmholeCm };
+  return { pieces, viewBox, measurements, armholeLenCm, sleeveArmholeCm };
 }

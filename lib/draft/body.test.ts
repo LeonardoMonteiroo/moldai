@@ -24,48 +24,48 @@ describe("draftBody sloper", () => {
   it("escala a largura com o busto", () => {
     const small = draftBody(resolveMeasurements("PP", {}), {});
     const big = draftBody(resolveMeasurements("GG", {}), {});
-    expect(bbox(big.frente.outlineCm).w).toBeGreaterThan(
-      bbox(small.frente.outlineCm).w,
+    expect(bbox(big.front.outlineCm).w).toBeGreaterThan(
+      bbox(small.front.outlineCm).w,
     );
   });
 
   it("ombro tem caimento (ponta do ombro abaixo da HPS)", () => {
-    const { frente } = draftBody(M, {}, optsM);
-    const b = bbox(frente.outlineCm);
+    const { front } = draftBody(M, {}, optsM);
+    const b = bbox(front.outlineCm);
     const cx = (b.minX + b.maxX) / 2;
     // HPS: ponto mais alto perto do centro; ponta do ombro: ponto alto mais afastado
-    const near = frente.outlineCm.filter(
+    const near = front.outlineCm.filter(
       (p) => Math.abs(p[0] - cx) < b.w * 0.25,
     );
-    const far = frente.outlineCm.filter((p) => Math.abs(p[0] - cx) > b.w * 0.3);
+    const far = front.outlineCm.filter((p) => Math.abs(p[0] - cx) > b.w * 0.3);
     const hpsY = Math.min(...near.map((p) => p[1]));
     const shoulderTipY = Math.min(...far.map((p) => p[1]));
     expect(shoulderTipY).toBeGreaterThan(hpsY);
   });
 
   it("comprimento chega ao quadril (blusa/camiseta)", () => {
-    const { frente } = draftBody(M, {}, optsM);
-    expect(bbox(frente.outlineCm).h).toBeCloseTo(optsM.lengthCm, 0);
+    const { front } = draftBody(M, {}, optsM);
+    expect(bbox(front.outlineCm).h).toBeCloseTo(optsM.lengthCm, 0);
   });
 
   it("decote frente mais fundo que costas; V > redondo > reto", () => {
     const reto = draftBody(M, { neckline: "straight" }, optsM);
     const red = draftBody(M, { neckline: "round" }, optsM);
     const v = draftBody(M, { neckline: "V", necklineDepthCm: 8 }, optsM);
-    expect(neckDrop(v.frente.outlineCm)).toBeGreaterThan(
-      neckDrop(v.costas.outlineCm),
+    expect(neckDrop(v.front.outlineCm)).toBeGreaterThan(
+      neckDrop(v.back.outlineCm),
     );
-    expect(neckDrop(v.frente.outlineCm)).toBeGreaterThan(
-      neckDrop(red.frente.outlineCm),
+    expect(neckDrop(v.front.outlineCm)).toBeGreaterThan(
+      neckDrop(red.front.outlineCm),
     );
-    expect(neckDrop(red.frente.outlineCm)).toBeGreaterThan(
-      neckDrop(reto.frente.outlineCm),
+    expect(neckDrop(red.front.outlineCm)).toBeGreaterThan(
+      neckDrop(reto.front.outlineCm),
     );
   });
 
   it("marca decote e cava como curvedSpans", () => {
-    const { frente } = draftBody(M, {}, optsM);
-    expect((frente.curvedSpans ?? []).length).toBeGreaterThanOrEqual(2);
+    const { front } = draftBody(M, {}, optsM);
+    expect((front.curvedSpans ?? []).length).toBeGreaterThanOrEqual(2);
   });
 
   it("expõe comprimento de cava casável", () => {
@@ -74,14 +74,14 @@ describe("draftBody sloper", () => {
 
   it("gera pence quando darts=true (não-knit)", () => {
     expect(
-      draftBody(M, { darts: true }, optsM).frente.dartCm?.length,
+      draftBody(M, { darts: true }, optsM).front.dartCm?.length,
     ).toBeGreaterThanOrEqual(3);
   });
 
   it("barra reta e há arestas retas (invariante anti-balão)", () => {
-    const { frente } = draftBody(M, {}, optsM);
-    const pts = frente.outlineCm;
-    const spans = frente.curvedSpans ?? [];
+    const { front } = draftBody(M, {}, optsM);
+    const pts = front.outlineCm;
+    const spans = front.curvedSpans ?? [];
     const n = pts.length;
     const edgeCurved = (i: number) =>
       spans.some(([a, b]) => i >= a && i + 1 <= b);

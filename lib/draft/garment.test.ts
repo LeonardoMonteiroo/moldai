@@ -108,9 +108,9 @@ describe("draftGarment", () => {
     );
     const ids = pieces.map((p) => p.id).sort();
     expect(ids).toEqual(["body-back", "body-front", "sleeve"]);
-    const frente = pieces.find((p) => p.id === "body-front")!;
-    expect(frente.dart).toBeUndefined();
-    expect(frente.detailRows.some((r) => /redondo/i.test(r.value))).toBe(true);
+    const front = pieces.find((p) => p.id === "body-front")!;
+    expect(front.dart).toBeUndefined();
+    expect(front.detailRows.some((r) => /redondo/i.test(r.value))).toBe(true);
   });
   it("skirt gera só a peça de saia e viewBox > 0", () => {
     const { pieces, viewBox } = draftGarment(
@@ -140,7 +140,7 @@ describe("draftGarment", () => {
     expect(ids).toContain("body-front");
   });
   it("armholeDeepenCm faz a cava do corpo divergir da copa da manga (dispara seamCheck)", () => {
-    const { armholeLenCm, mangaArmholeCm } = draftGarment(
+    const { armholeLenCm, sleeveArmholeCm } = draftGarment(
       {
         type: "blouse",
         gender: "female",
@@ -149,10 +149,10 @@ describe("draftGarment", () => {
       },
       "M",
     );
-    expect(armholeLenCm! - mangaArmholeCm!).toBeGreaterThan(1);
+    expect(armholeLenCm! - sleeveArmholeCm!).toBeGreaterThan(1);
   });
   it("sem ajuste de cava, corpo e manga batem por construção (sem conflito)", () => {
-    const { armholeLenCm, mangaArmholeCm } = draftGarment(
+    const { armholeLenCm, sleeveArmholeCm } = draftGarment(
       {
         type: "blouse",
         gender: "female",
@@ -161,10 +161,10 @@ describe("draftGarment", () => {
       },
       "M",
     );
-    expect(Math.abs(armholeLenCm! - mangaArmholeCm!)).toBeLessThan(1e-6);
+    expect(Math.abs(armholeLenCm! - sleeveArmholeCm!)).toBeLessThan(1e-6);
   });
   it("sleeveRefit refaz a copa para a cava ajustada (costuras voltam a bater)", () => {
-    const { armholeLenCm, mangaArmholeCm } = draftGarment(
+    const { armholeLenCm, sleeveArmholeCm } = draftGarment(
       {
         type: "blouse",
         gender: "female",
@@ -173,7 +173,7 @@ describe("draftGarment", () => {
       },
       "M",
     );
-    expect(Math.abs(armholeLenCm! - mangaArmholeCm!)).toBeLessThan(1e-6);
+    expect(Math.abs(armholeLenCm! - sleeveArmholeCm!)).toBeLessThan(1e-6);
   });
 });
 
@@ -189,12 +189,12 @@ describe("draftPiecesCm", () => {
       "M",
     );
     expect(pcs.map((p) => p.id)).toEqual(["body-front", "body-back", "sleeve"]);
-    const frente = pcs[0];
+    const front = pcs[0];
     // outlineCm em cm reais: largura da frente na casa de dezenas de cm, não centenas (px)
-    const xs = frente.outlineCm.map(([x]) => x);
-    const largura = Math.max(...xs) - Math.min(...xs);
-    expect(largura).toBeGreaterThan(20);
-    expect(largura).toBeLessThan(80);
+    const xs = front.outlineCm.map(([x]) => x);
+    const width = Math.max(...xs) - Math.min(...xs);
+    expect(width).toBeGreaterThan(20);
+    expect(width).toBeLessThan(80);
   });
 });
 

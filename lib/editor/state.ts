@@ -12,7 +12,7 @@ import { resolveMeasurements } from "@/lib/measurements";
 
 // Marca (círculo tracejado) na região da cava de uma peça, a partir da bbox
 // dos seus vértices em px. Ilustrativa — aponta a costura em conflito no canvas.
-function cavaMarker(
+function armholeMarker(
   piece: Piece | undefined,
 ): { cx: number; cy: number; r: number } | null {
   const vs = piece?.vertices;
@@ -30,16 +30,16 @@ function cavaMarker(
 function detectConflict(
   pieces: Piece[],
   armholeLenCm?: number,
-  mangaArmholeCm?: number,
+  sleeveArmholeCm?: number,
 ): ConflictInfo | null {
-  const seam = seamCheck(armholeLenCm, mangaArmholeCm);
+  const seam = seamCheck(armholeLenCm, sleeveArmholeCm);
   if (!seam) return null;
-  const frente = pieces.find((p) => p.id === "body-front");
-  const manga = pieces.find((p) => p.id === "sleeve");
-  const markers = [cavaMarker(frente), cavaMarker(manga)].filter(
+  const front = pieces.find((p) => p.id === "body-front");
+  const sleeve = pieces.find((p) => p.id === "sleeve");
+  const markers = [armholeMarker(front), armholeMarker(sleeve)].filter(
     (m): m is { cx: number; cy: number; r: number } => m !== null,
   );
-  const maior = (armholeLenCm ?? 0) > (mangaArmholeCm ?? 0);
+  const maior = (armholeLenCm ?? 0) > (sleeveArmholeCm ?? 0);
   return {
     id: `conf-${Date.now()}`,
     title: "Cava e manga não batem",
@@ -139,7 +139,7 @@ export function getSpec(state: EditorState): GarmentSpec {
 // pattern; anexa (ou limpa) o conflito de costura (apply-with-warning).
 export function applyGarmentSpec(state: EditorState, spec: GarmentSpec): void {
   const size = state.pattern.baseSize;
-  const { pieces, viewBox, measurements, armholeLenCm, mangaArmholeCm } =
+  const { pieces, viewBox, measurements, armholeLenCm, sleeveArmholeCm } =
     draftGarment(spec, size);
   state.pattern = {
     ...state.pattern,
@@ -148,7 +148,7 @@ export function applyGarmentSpec(state: EditorState, spec: GarmentSpec): void {
     spec,
     baseMeasurements: measurements,
   };
-  state.conflict = detectConflict(pieces, armholeLenCm, mangaArmholeCm);
+  state.conflict = detectConflict(pieces, armholeLenCm, sleeveArmholeCm);
 }
 
 // "Corrigir manga": marca sleeveRefit e re-drafta — a copa passa a usar a cava

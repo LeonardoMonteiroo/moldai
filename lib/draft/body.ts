@@ -34,17 +34,17 @@ function bodice(
   name: string,
   frontish: boolean,
 ): { piece: DraftedPiece; armholeLenCm: number; armholeBaseLenCm: number } {
-  const folga = style.seamAllowanceCm ?? 1;
-  const folgaVestir = opts.knit ? 0 : 2;
-  const halfChest = m.bust / 4 + folgaVestir;
-  const cavaAjuste = Math.max(0, style.armholeDeepenCm ?? 0);
+  const ease = style.seamAllowanceCm ?? 1;
+  const wearingEase = opts.knit ? 0 : 2;
+  const halfChest = m.bust / 4 + wearingEase;
+  const armholeDeepen = Math.max(0, style.armholeDeepenCm ?? 0);
   const armholeDepthBase = m.bust / 8 + (opts.gender === "male" ? 10.5 : 9.5);
-  const armholeDepth = armholeDepthBase + cavaAjuste; // cava aprofundada visível no contorno
-  const caimentoOmbro = opts.gender === "male" ? 4.5 : 4.0;
+  const armholeDepth = armholeDepthBase + armholeDeepen; // cava aprofundada visível no contorno
+  const shoulderSlope = opts.gender === "male" ? 4.5 : 4.0;
   const neckHalf = m.bust / 14 + (opts.gender === "male" ? 0.8 : 0);
   const shoulderHalf = m.shoulder;
   const len = opts.lengthCm;
-  const hemHalf = m.hip / 4 + folgaVestir;
+  const hemHalf = m.hip / 4 + wearingEase;
 
   const backNeckDrop = 2.0;
   let frontNeckDrop: number;
@@ -63,7 +63,7 @@ function bodice(
   );
 
   const cx = Math.max(shoulderHalf, halfChest, hemHalf);
-  const midArmY = caimentoOmbro + (armholeDepth - caimentoOmbro) * 0.55;
+  const midArmY = shoulderSlope + (armholeDepth - shoulderSlope) * 0.55;
   const armCtrlX = (shoulderHalf + halfChest) / 2 - 1; // distância do centro
 
   const pts: Pt[] = [];
@@ -74,7 +74,7 @@ function bodice(
   push([cx - neckHalf * 0.6, neckDrop * 0.55]); // ctrl neckline esq
   const hpsL = push([cx - neckHalf, 0]); // HPS esq
   spans.push([cf, hpsL]); // neckline esq (curvo)
-  const shL = push([cx - shoulderHalf, caimentoOmbro]); // ombro esq (reta hpsL->shL)
+  const shL = push([cx - shoulderHalf, shoulderSlope]); // ombro esq (reta hpsL->shL)
   push([cx - armCtrlX, midArmY]); // ctrl cava esq
   const uaL = push([cx - halfChest, armholeDepth]); // axila esq
   spans.push([shL, uaL]); // cava esq (curva)
@@ -84,22 +84,22 @@ function bodice(
   if (fitted) push([cx + waistHalf, waistY]); // cintura dir
   const uaR = push([cx + halfChest, armholeDepth]); // axila dir
   push([cx + armCtrlX, midArmY]); // ctrl cava dir
-  const shR = push([cx + shoulderHalf, caimentoOmbro]); // ombro dir
+  const shR = push([cx + shoulderHalf, shoulderSlope]); // ombro dir
   spans.push([uaR, shR]); // cava dir (curva)
   const hpsR = push([cx + neckHalf, 0]); // HPS dir (reta shR->hpsR)
   push([cx + neckHalf * 0.6, neckDrop * 0.55]); // ctrl neckline dir
   spans.push([hpsR, pts.length]); // neckline dir + fechamento (curvo)
 
   const armholeLenCm =
-    Math.hypot(halfChest - shoulderHalf, armholeDepth - caimentoOmbro) * 1.08;
+    Math.hypot(halfChest - shoulderHalf, armholeDepth - shoulderSlope) * 1.08;
   // Cava "base" (sem o ajuste) — é a que a copa da manga usa enquanto não é refeita;
   // a divergência entre esta e armholeLenCm é o que o seamCheck detecta.
   const armholeBaseLenCm =
-    Math.hypot(halfChest - shoulderHalf, armholeDepthBase - caimentoOmbro) *
+    Math.hypot(halfChest - shoulderHalf, armholeDepthBase - shoulderSlope) *
     1.08;
 
   const detailRows: DetailRow[] = [
-    { label: "Folga de costura", value: cm(folga) },
+    { label: "Folga de costura", value: cm(ease) },
     { label: "Largura (tórax)", value: cm(halfChest * 2) },
     { label: "Comprimento", value: cm(len) },
     { label: "Cava", value: cm(armholeLenCm) },
@@ -150,8 +150,8 @@ export function draftBody(
   const f = bodice(m, style, opts, "body-front", "Frente", true);
   const c = bodice(m, style, opts, "body-back", "Costas", false);
   return {
-    frente: f.piece,
-    costas: c.piece,
+    front: f.piece,
+    back: c.piece,
     armholeLenCm: f.armholeLenCm,
     armholeBaseLenCm: f.armholeBaseLenCm,
   };
