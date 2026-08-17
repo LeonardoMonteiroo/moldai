@@ -15,5 +15,38 @@
     "netLineNote": "Linha líquida — sem margem de costura embutida.",
     "saveVersionTitle": "O molde é salvo automaticamente a cada geração. Versionamento manual chega em breve.",
     "saveVersionButton": "Salvar versão · em breve"
+  },
+  "Topbar": {
+    "resetConfirm": "Resetar o molde? Isso apaga o molde atual e toda a conversa.",
+    "resetTitle": "Resetar o molde e o chat",
+    "resetButton": "↺ Resetar",
+    "savedVersion": "{savedAgo} · v{version}",
+    "creditsLabel": "{planLabel} · {balance} créditos",
+    "outOfTotal": "de {total}",
+    "buyCreditsButton": "Comprar créditos",
+    "signOutButton": "Sair"
+  },
+  "ChatPanel": {
+    "title": "Conversa",
+    "subtitle": "MoldAI v2 Pro",
+    "generationError": "A geração falhou. Seus créditos foram devolvidos — tente novamente.",
+    "generatingCost": "−{cost} crédito · gerando…",
+    "generateButton": "Gerar",
+    "cancelButton": "Cancelar"
+  },
+  "ChatBubble": {
+    "questionsAnswered": "Perguntas respondidas."
+  },
+  "MessageInput": {
+    "placeholder": "Descreva o ajuste…",
+    "generateButton": "Gerar",
+    "creditCost": "{cost} crédito"
+  },
+  "AttachmentChips": {
+    "photo": "＋ foto",
+    "sketch": "＋ croqui",
+    "dxf": "＋ molde .dxf",
+    "comingSoonTitle": "Anexos chegam em breve",
+    "comingSoonBadge": "em breve"
   }
 }

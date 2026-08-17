@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Credits, Pattern } from "@/lib/types";
 import { useEditorStore } from "@/lib/store";
 import { signOut } from "next-auth/react";
@@ -14,15 +15,12 @@ export function Topbar({
   credits: Credits;
   userEmail: string;
 }) {
+  const t = useTranslations("Topbar");
   const pct = Math.round((credits.balance / credits.total) * 100);
   const resetPattern = useEditorStore((s) => s.resetPattern);
 
   const handleReset = () => {
-    if (
-      window.confirm(
-        "Resetar o molde? Isso apaga o molde atual e toda a conversa.",
-      )
-    ) {
+    if (window.confirm(t("resetConfirm"))) {
       resetPattern();
     }
   };
@@ -36,30 +34,36 @@ export function Topbar({
       <div className="flex flex-col gap-px">
         <span className="text-[13px] font-semibold">{pattern.name}</span>
         <span className="text-muted text-[11px]">
-          {pattern.savedAgo} · v{pattern.version}
+          {t("savedVersion", {
+            savedAgo: pattern.savedAgo,
+            version: pattern.version,
+          })}
         </span>
       </div>
       <button
         onClick={handleReset}
-        title="Resetar o molde e o chat"
+        title={t("resetTitle")}
         className="border-border rounded-btn bg-surface text-muted-2 hover:bg-surface-alt border px-[11px] py-[6px] text-[12px] font-medium transition-colors"
       >
-        ↺ Resetar
+        {t("resetButton")}
       </button>
       <div className="flex-1" />
       <div className="flex w-[168px] flex-col gap-[5px]">
         <div className="text-muted flex justify-between text-[11px]">
           <span>
-            {credits.planLabel} · {credits.balance} créditos
+            {t("creditsLabel", {
+              planLabel: credits.planLabel,
+              balance: credits.balance,
+            })}
           </span>
-          <span>de {credits.total}</span>
+          <span>{t("outOfTotal", { total: credits.total })}</span>
         </div>
         <div className="bg-track h-[5px] overflow-hidden rounded-full">
           <div className="bg-olive h-full" style={{ width: `${pct}%` }} />
         </div>
       </div>
       <button className="border-border rounded-btn bg-surface hover:bg-surface-alt border px-[13px] py-[7px] text-[12px] font-medium transition-colors">
-        Comprar créditos
+        {t("buyCreditsButton")}
       </button>
       <div className="flex items-center gap-2">
         <div
@@ -72,7 +76,7 @@ export function Topbar({
           onClick={() => signOut({ callbackUrl: "/login" })}
           className="border-border rounded-btn bg-surface text-muted-2 hover:bg-surface-alt border px-[11px] py-[6px] text-[12px] font-medium transition-colors"
         >
-          Sair
+          {t("signOutButton")}
         </button>
       </div>
     </div>

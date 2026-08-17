@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { useEditorStore, GENERATION_STEPS } from "@/lib/store";
 import { ChatBubble } from "./ChatBubble";
 import { AttachmentChips } from "./AttachmentChips";
@@ -9,6 +10,7 @@ import { ConflictActions } from "./ConflictActions";
 import { COSTS } from "@/lib/types";
 
 export function ChatPanel() {
+  const t = useTranslations("ChatPanel");
   const chat = useEditorStore((s) => s.chat);
   const conflict = useEditorStore((s) => s.conflict);
   const generationStatus = useEditorStore((s) => s.generationStatus);
@@ -32,10 +34,10 @@ export function ChatPanel() {
     <div className="bg-surface border-border flex min-h-0 w-[312px] shrink-0 flex-col border-r">
       <div className="border-line flex items-center gap-2 border-b px-4 py-[13px]">
         <span className="text-muted text-[11px] font-semibold tracking-[.8px] uppercase">
-          Conversa
+          {t("title")}
         </span>
         <div className="flex-1" />
-        <span className="text-muted text-[11px]">MoldAI v2 Pro</span>
+        <span className="text-muted text-[11px]">{t("subtitle")}</span>
       </div>
 
       <div
@@ -57,7 +59,7 @@ export function ChatPanel() {
         )}
         {generationStatus === "error" && (
           <div className="bg-amber-bg border-amber-border text-amber-text max-w-[92%] rounded-[12px_12px_12px_3px] border px-[13px] py-[10px] text-[13px] leading-[1.45]">
-            A geração falhou. Seus créditos foram devolvidos — tente novamente.
+            {t("generationError")}
           </div>
         )}
       </div>
@@ -79,17 +81,17 @@ export function ChatPanel() {
               </div>
             </div>
             <span className="text-muted text-[11px]">
-              −{COSTS.adjust} crédito · gerando…
+              {t("generatingCost", { cost: COSTS.adjust })}
             </span>
             <div className="flex items-center gap-[10px]">
               <div className="bg-disabled-border text-disabled rounded-item flex-1 py-[11px] text-center text-[13px] font-semibold">
-                Gerar
+                {t("generateButton")}
               </div>
               <button
                 onClick={cancelGeneration}
                 className="border-border rounded-btn text-muted-2 hover:bg-surface-alt border px-3 py-2 text-[12px] transition-colors"
               >
-                Cancelar
+                {t("cancelButton")}
               </button>
             </div>
           </>
