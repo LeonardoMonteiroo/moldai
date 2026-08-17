@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { ALL_SIZES, COSTS, Pattern, Piece } from "@/lib/types";
 import { formatList } from "@/lib/format";
 
@@ -12,6 +13,7 @@ export function PieceDetailsPanel({
   onClose: () => void;
   onGraduate: (sizes: string[]) => void;
 }) {
+  const t = useTranslations("PieceDetailsPanel");
   const detailRows = piece.detailRows ?? [];
   // O tamanho-base já é o tamanho desenhado — não precisa (nem pode) ser graduado.
   const gradable = pattern.sizesPending.filter((s) => s !== pattern.baseSize);
@@ -20,7 +22,7 @@ export function PieceDetailsPanel({
     <div className="bg-surface border-border rounded-card shadow-card absolute top-5 right-5 bottom-5 flex w-[230px] flex-col gap-[11px] border p-[14px]">
       <div className="flex items-center">
         <span className="text-muted text-[11px] font-semibold tracking-[.8px] uppercase">
-          Peça selecionada
+          {t("sectionLabel")}
         </span>
         <div className="flex-1" />
         <button
@@ -50,7 +52,7 @@ export function PieceDetailsPanel({
       )}
 
       <div className="text-muted mt-[2px] text-[11px] font-semibold tracking-[.8px] uppercase">
-        Graduação
+        {t("graduationLabel")}
       </div>
       <div className="border-pattern-guide rounded-item bg-surface-alt border border-dashed p-[10px]">
         <div className="flex gap-[5px] text-[11.5px]">
@@ -60,7 +62,7 @@ export function PieceDetailsPanel({
             return (
               <span
                 key={size}
-                title={isBase ? "tamanho base" : undefined}
+                title={isBase ? t("baseSizeTitle") : undefined}
                 className={[
                   "rounded-[6px] px-[7px] py-[3px] font-semibold",
                   active ? "bg-olive-tint text-olive" : "text-placeholder",
@@ -74,8 +76,11 @@ export function PieceDetailsPanel({
         </div>
         <div className="text-muted mt-2 text-[11.5px]">
           {gradable.length > 0
-            ? `Graduar ${formatList(gradable)} · ${COSTS.graduate} créditos`
-            : "Todos os tamanhos graduados"}
+            ? t("graduateSummary", {
+                list: formatList(gradable),
+                cost: COSTS.graduate,
+              })
+            : t("allGraduated")}
         </div>
       </div>
 
@@ -84,15 +89,12 @@ export function PieceDetailsPanel({
         onClick={() => onGraduate(gradable)}
         className="border-border rounded-btn hover:bg-surface-alt border py-[9px] text-center text-[12.5px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40"
       >
-        Graduar
+        {t("graduateButton")}
       </button>
 
       <div className="flex-1" />
-      <span
-        className="text-muted text-[11.5px]"
-        title="Glossário de modelagem chega em breve"
-      >
-        Glossário: o que é pence? · em breve
+      <span className="text-muted text-[11.5px]" title={t("glossaryTitle")}>
+        {t("glossaryText")}
       </span>
     </div>
   );

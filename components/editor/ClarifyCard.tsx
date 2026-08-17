@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { ClarifyQuestion } from "@/lib/types";
 import { useEditorStore } from "@/lib/store";
 
 const OTHER = "__other__";
 
 export function ClarifyCard({ questions }: { questions: ClarifyQuestion[] }) {
+  const t = useTranslations("ClarifyCard");
   const sendMessage = useEditorStore((s) => s.sendMessage);
   const [choice, setChoice] = useState<Record<string, string>>({});
   const [other, setOther] = useState<Record<string, string>>({});
@@ -15,8 +17,8 @@ export function ClarifyCard({ questions }: { questions: ClarifyQuestion[] }) {
     const c = choice[q.id];
     if (!c) return null;
     if (c === OTHER) {
-      const t = (other[q.id] ?? "").trim();
-      return t ? t : null;
+      const trimmed = (other[q.id] ?? "").trim();
+      return trimmed ? trimmed : null;
     }
     return c;
   };
@@ -31,7 +33,7 @@ export function ClarifyCard({ questions }: { questions: ClarifyQuestion[] }) {
   };
 
   const gerarAssimMesmo = () =>
-    void sendMessage("pode gerar com os padrões", { answering: true });
+    void sendMessage(t("generateAnywayMessage"), { answering: true });
 
   return (
     <div className="bg-surface border-border flex max-w-[92%] flex-col gap-[14px] rounded-[12px_12px_12px_3px] border p-[13px]">
@@ -68,7 +70,7 @@ export function ClarifyCard({ questions }: { questions: ClarifyQuestion[] }) {
                     : "bg-surface border-border text-muted-2 hover:bg-surface-alt",
                 ].join(" ")}
               >
-                outro
+                {t("otherOption")}
               </button>
             )}
           </div>
@@ -78,7 +80,7 @@ export function ClarifyCard({ questions }: { questions: ClarifyQuestion[] }) {
               onChange={(e) =>
                 setOther((s) => ({ ...s, [q.id]: e.target.value }))
               }
-              placeholder="descreva…"
+              placeholder={t("otherPlaceholder")}
               className="rounded-item border-border bg-surface-alt focus:border-olive-border border px-[9px] py-[6px] text-[12.5px] outline-none"
             />
           )}
@@ -95,13 +97,13 @@ export function ClarifyCard({ questions }: { questions: ClarifyQuestion[] }) {
               : "bg-disabled-border text-disabled cursor-not-allowed",
           ].join(" ")}
         >
-          Gerar molde
+          {t("generateButton")}
         </button>
         <button
           onClick={gerarAssimMesmo}
           className="text-muted hover:text-muted-2 text-[12px] underline underline-offset-2"
         >
-          gerar assim mesmo
+          {t("generateAnywayButton")}
         </button>
       </div>
     </div>

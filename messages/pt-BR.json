@@ -77,5 +77,49 @@
   },
   "GeneratingOverlay": {
     "cancelButton": "Cancelar"
+  },
+  "PaywallModal": {
+    "closeAriaLabel": "Fechar",
+    "title": "Seus créditos acabaram",
+    "description": "{action} usa {required} créditos e você tem {balance}. Nada foi perdido — o molde continua salvo.",
+    "topupTitle": "Créditos avulsos",
+    "topupPrice": "R$ 19",
+    "topupDetail": "100 créditos · sem assinatura",
+    "topupCta": "Comprar ›",
+    "subscribeTitle": "Ateliê",
+    "subscribeBadge": "melhor custo",
+    "subscribePrice": "R$ 59",
+    "subscribePeriod": "/mês",
+    "subscribeDetail": "500 créditos/mês · renova todo dia 1",
+    "subscribeCta": "Assinar ›",
+    "renewsNote": "Seus créditos grátis renovam em {days} dias.",
+    "backButton": "Voltar ao molde"
+  },
+  "ConflictInfoCard": {
+    "sectionLabel": "Conflito",
+    "diffLabel": "diferença {diff} cm"
+  },
+  "ConflictActions": {
+    "fixButton": "Corrigir manga",
+    "viewDiffButton": "Ver diferença",
+    "ignoreButton": "Ignorar",
+    "freeNote": "Correções não consomem crédito."
+  },
+  "PieceDetailsPanel": {
+    "sectionLabel": "Peça selecionada",
+    "graduationLabel": "Graduação",
+    "baseSizeTitle": "tamanho base",
+    "graduateSummary": "Graduar {list} · {cost} créditos",
+    "allGraduated": "Todos os tamanhos graduados",
+    "graduateButton": "Graduar",
+    "glossaryTitle": "Glossário de modelagem chega em breve",
+    "glossaryText": "Glossário: o que é pence? · em breve"
+  },
+  "ClarifyCard": {
+    "otherOption": "outro",
+    "otherPlaceholder": "descreva…",
+    "generateButton": "Gerar molde",
+    "generateAnywayButton": "gerar assim mesmo",
+    "generateAnywayMessage": "pode gerar com os padrões"
   }
 }
