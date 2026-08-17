@@ -105,9 +105,9 @@ export function PatternCanvas({
     setCursor(null);
   }
 
-  // Esc cancela o ponto pendente enquanto a ferramenta medir está ativa
+  // Esc cancela o ponto pendente enquanto a ferramenta measure está ativa
   useEffect(() => {
-    if (activeTool !== "medir") return;
+    if (activeTool !== "measure") return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setPending(null);
     };
@@ -140,7 +140,7 @@ export function PatternCanvas({
       }
       return;
     }
-    // medir: preview + snap
+    // measure: preview + snap
     const u = screenToUser(e.clientX, e.clientY);
     const s = nearestSnap(u, snapPoints, thresholdUser());
     setSnap(s);
@@ -157,7 +157,7 @@ export function PatternCanvas({
 
   // clique no fundo do SVG: na medição, coloca/finaliza pontos
   const handleClick = (e: React.MouseEvent) => {
-    if (activeTool !== "medir") return;
+    if (activeTool !== "measure") return;
     const u = screenToUser(e.clientX, e.clientY);
     const s = nearestSnap(u, snapPoints, thresholdUser());
     const point = s ?? u;
@@ -176,7 +176,7 @@ export function PatternCanvas({
       className="h-full w-full transition-opacity duration-300"
       style={{
         opacity: dimmed ? 0.4 : 1,
-        cursor: activeTool === "medir" ? "crosshair" : "grab",
+        cursor: activeTool === "measure" ? "crosshair" : "grab",
         touchAction: "none",
       }}
       onPointerDown={handlePointerDown}
@@ -258,7 +258,7 @@ export function PatternCanvas({
         cursor={cursor}
         snap={snap}
         scale={scale}
-        onRemove={activeTool === "medir" ? onRemoveMeasurement : undefined}
+        onRemove={activeTool === "measure" ? onRemoveMeasurement : undefined}
       />
     </svg>
   );

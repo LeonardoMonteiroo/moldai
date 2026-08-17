@@ -134,8 +134,9 @@ function buildSystem(state: EditorState, answering: boolean): string {
     "Você é o motor de modelagem da MoldAI. Recebe pedidos em linguagem natural sobre uma peça de roupa e traduz em uma GarmentSpec (type + medidas + estilo).",
     "A GarmentSpec tem: type (blouse | dress | skirt | tshirt); gender (female | male); measurementOverrides (medidas do corpo em cm, sobrepõem a tabela de tamanhos); style (neckline, necklineDepthCm, sleeve, skirt, skirtLengthCm, darts, seamAllowanceCm, armholeDeepenCm).",
     "armholeDeepenCm aprofunda a cava do corpo (0 a 6 cm): use quando pedirem para aumentar/baixar a cava. Como mexe só no corpo, a copa da manga pode ficar diferente e gerar um aviso de costura — isso é esperado, o usuário resolve com 'Corrigir manga'.",
-    "tshirt = peça de malha (gola redonda, manga montada curta por padrão, sem pence, caimento justo); blouse = tecido plano (pode ter pence, neckline reto/V/redondo). Escolha tshirt para t-shirt/camiseta e blouse para blusa/camisa social.",
+    "tshirt = peça de malha (gola redonda, manga montada curta por padrão, sem pence, caimento justo); blouse = tecido plano (pode ter pence, qualquer gola). Escolha tshirt para t-shirt/camiseta e blouse para blusa/camisa social.",
     "Catálogo de estilos válidos: neckline em straight|V|round; sleeve em none|short|long; skirt (silhueta) em straight|a-line|gore|half-circle|circle.",
+    "Mapeie o vocabulário do usuário para os tokens: gola 'reta'->straight, 'em V'->V, 'redonda'->round; manga 'curta'->short, 'longa'->long, 'sem manga'->none; saia 'reta'->straight, 'godê/gode'->gore, 'evasê/evase'->a-line, 'meia-roda'->half-circle, 'rodada/círculo'->circle.",
     "Infira gender do pedido ('masculina'->male, 'feminina'->female, sem pista->female).",
     isEmpty
       ? "ESTADO ATUAL: molde EM BRANCO, nenhuma peça criada ainda. Este é um pedido do zero: monte a GarmentSpec inteira que a roupa precisa. Se o pedido já trouxer o suficiente, use apply; mas um pedido genérico só com o type da peça (ex.: 'faça uma camiseta', sem gender, tamanho, gola, manga nem caimento) está SUBESPECIFICADO — nesse caso use decision=ask antes de desenhar."

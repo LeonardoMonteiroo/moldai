@@ -5,10 +5,10 @@ import { EditorTab } from "@/lib/store";
 import { ALL_SIZES, SizeLabel } from "@/lib/types";
 
 const TABS: { id: EditorTab; label: string }[] = [
-  { id: "molde2d", label: "Molde 2D" },
-  { id: "prova3d", label: "Prova 3D" },
-  { id: "ficha", label: "Ficha técnica" },
-  { id: "corte", label: "Plano de corte" },
+  { id: "pattern2d", label: "Molde 2D" },
+  { id: "proof3d", label: "Prova 3D" },
+  { id: "techsheet", label: "Ficha técnica" },
+  { id: "cutplan", label: "Plano de corte" },
 ];
 
 function SizeSelector({ baseSize }: { baseSize: SizeLabel }) {
@@ -96,7 +96,7 @@ export function TabBar({
       </div>
       <div className="flex-1" />
       <SizeSelector baseSize={baseSize} />
-      {activeTab === "molde2d" && (
+      {activeTab === "pattern2d" && (
         <button
           onClick={onToggleDetails}
           disabled={!hasSelectedPiece}

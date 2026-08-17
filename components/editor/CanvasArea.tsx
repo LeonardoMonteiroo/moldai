@@ -68,7 +68,7 @@ export function CanvasArea() {
         />
       )}
 
-      {activeTab === "molde2d" && (
+      {activeTab === "pattern2d" && (
         <div className="pattern-grid bg-paper relative min-h-[300px] flex-1 overflow-hidden p-[22px]">
           <div
             className={[
@@ -139,9 +139,9 @@ export function CanvasArea() {
           )}
         </div>
       )}
-      {activeTab === "prova3d" && <Proof3DTab />}
-      {activeTab === "ficha" && <TechSheetTab pattern={pattern} />}
-      {activeTab === "corte" && <CutPlanTab pattern={pattern} />}
+      {activeTab === "proof3d" && <Proof3DTab />}
+      {activeTab === "techsheet" && <TechSheetTab pattern={pattern} />}
+      {activeTab === "cutplan" && <CutPlanTab pattern={pattern} />}
     </div>
   );
 }
