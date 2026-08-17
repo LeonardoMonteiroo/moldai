@@ -1,24 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Fake do client Prisma: uma "tabela" em memória keyed por userId.
+// Fake Prisma client: an in-memory "table" keyed by userId.
 const store = new Map<string, unknown>();
 
 const tx = {
-  // INSERT ... ON CONFLICT DO NOTHING (materializa seed) e o UPDATE final —
-  // ambos chamados como tagged template: (strings, ...valores interpolados).
+  // INSERT ... ON CONFLICT DO NOTHING (materializes the seed) and the final
+  // UPDATE — both called as a tagged template: (strings, ...interpolated values).
   $executeRaw: vi.fn(
     async (
       _strings: TemplateStringsArray,
       ..._vals: unknown[]
     ): Promise<number> => 0,
   ),
-  // SELECT data ... FOR UPDATE — devolve a linha atual (após o insert-if-absent).
+  // SELECT data ... FOR UPDATE — returns the current row (after insert-if-absent).
   $queryRaw: vi.fn(async (): Promise<{ data: unknown }[]> => []),
 };
 
 vi.mock("@/lib/db/prisma", () => ({
   prisma: {
-    // interactive transaction: chama o callback com o tx fake.
+    // interactive transaction: calls the callback with the fake tx.
     $transaction: vi.fn(async (fn: (t: typeof tx) => unknown) => fn(tx)),
     molde: {
       findUnique: vi.fn(async ({ where }: { where: { userId: string } }) => {
@@ -47,14 +47,14 @@ vi.mock("@/lib/db/prisma", () => ({
 import { withMolde, loadMolde, resetMolde } from "./molde";
 import { seedState, debitCredits } from "@/lib/editor/state";
 
-// Faz $executeRaw materializar o seed (INSERT-if-absent) e persistir o UPDATE
-// final, e $queryRaw devolver uma CÓPIA da linha atual — imitando de verdade
-// INSERT ON CONFLICT DO NOTHING + SELECT FOR UPDATE + UPDATE.
+// Makes $executeRaw materialize the seed (INSERT-if-absent) and persist the
+// final UPDATE, and makes $queryRaw return a COPY of the current row — truly
+// mimicking INSERT ON CONFLICT DO NOTHING + SELECT FOR UPDATE + UPDATE.
 //
-// A cópia em $queryRaw é essencial: withMolde não clona o `data` lido, então
-// se devolvêssemos a própria referência do `store`, uma mutação in-place do
-// fn (ex. debitCredits) apareceria no store por aliasing — mesmo que o
-// UPDATE nunca rodasse. Com a cópia, só o UPDATE grava a mutação de volta.
+// The copy in $queryRaw is essential: withMolde doesn't clone the `data` it
+// reads, so if we returned the `store`'s own reference, an in-place mutation
+// by fn (e.g. debitCredits) would show up in the store by aliasing — even if
+// the UPDATE never ran. With the copy, only the UPDATE writes the mutation back.
 function wireTx() {
   const uid = "u1";
   tx.$executeRaw.mockImplementation(
@@ -67,8 +67,8 @@ function wireTx() {
         );
         if (jsonStr) store.set(uid, JSON.parse(jsonStr));
       }
-      // INSERT ... ON CONFLICT DO NOTHING também passa por aqui; o seed é
-      // materializado abaixo em $queryRaw, então isso é no-op para o INSERT.
+      // INSERT ... ON CONFLICT DO NOTHING also goes through here; the seed is
+      // materialized below in $queryRaw, so this is a no-op for the INSERT.
       return 0;
     },
   );
@@ -86,7 +86,7 @@ describe("withMolde", () => {
     wireTx();
   });
 
-  it("semeia o blank molde no primeiro acesso e passa ao fn", async () => {
+  it("seeds the blank molde on first access and passes it to fn", async () => {
     let seen: number | null = null;
     await withMolde("u1", (state) => {
       seen = state.credits.balance;
@@ -94,7 +94,7 @@ describe("withMolde", () => {
     expect(seen).toBe(320);
   });
 
-  it("persiste as mutações do fn (débito sobrevive)", async () => {
+  it("persists fn's mutations (the debit survives)", async () => {
     await withMolde("u1", (state) => {
       debitCredits(state, 4);
     });
@@ -103,7 +103,7 @@ describe("withMolde", () => {
     expect(tx.$executeRaw).toHaveBeenCalled();
   });
 
-  it("retorna o valor devolvido pelo fn", async () => {
+  it("returns the value fn returns", async () => {
     const out = await withMolde("u1", () => "resp");
     expect(out).toBe("resp");
   });
@@ -113,12 +113,12 @@ describe("loadMolde", () => {
   beforeEach(() => {
     store.clear();
   });
-  it("devolve seed sem gravar quando não há linha", async () => {
+  it("returns the seed without writing when there's no row", async () => {
     const s = await loadMolde("novo");
     expect(s.credits.balance).toBe(320);
-    expect(store.has("novo")).toBe(false); // read-only: nada foi persistido
+    expect(store.has("novo")).toBe(false); // read-only: nothing was persisted
   });
-  it("devolve o estado persistido quando existe", async () => {
+  it("returns the persisted state when it exists", async () => {
     const seeded = seedState();
     seeded.credits.balance = 7;
     store.set("u1", seeded);
@@ -131,7 +131,7 @@ describe("resetMolde", () => {
   beforeEach(() => {
     store.clear();
   });
-  it("sobrescreve com o blank molde e persiste", async () => {
+  it("overwrites with the blank molde and persists it", async () => {
     const dirty = seedState();
     dirty.credits.balance = 0;
     dirty.pattern.version = 9;

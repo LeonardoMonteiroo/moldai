@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { sessionUser, requireUserFrom } from "./session";
 
 describe("sessionUser", () => {
-  it("extrai user válido", () => {
+  it("extracts a valid user", () => {
     expect(
       sessionUser({ user: { id: "u1", email: "a@b.c", name: "A" } }),
     ).toEqual({
@@ -12,14 +12,14 @@ describe("sessionUser", () => {
       name: "A",
     });
   });
-  it("name ausente vira null", () => {
+  it("missing name becomes null", () => {
     expect(sessionUser({ user: { id: "u1", email: "a@b.c" } })).toEqual({
       id: "u1",
       email: "a@b.c",
       name: null,
     });
   });
-  it("null quando sessão vazia ou sem id/email", () => {
+  it("null when the session is empty or missing id/email", () => {
     expect(sessionUser(null)).toBeNull();
     expect(sessionUser({})).toBeNull();
     expect(sessionUser({ user: { email: "a@b.c" } })).toBeNull();
@@ -28,14 +28,14 @@ describe("sessionUser", () => {
 });
 
 describe("requireUserFrom", () => {
-  it("sessão presente devolve o user", () => {
+  it("returns the user when a session is present", () => {
     expect(requireUserFrom({ user: { id: "u1", email: "a@b.c" } })).toEqual({
       id: "u1",
       email: "a@b.c",
       name: null,
     });
   });
-  it("sessão ausente devolve 401", () => {
+  it("returns 401 when there's no session", () => {
     const r = requireUserFrom(null);
     expect(r).toBeInstanceOf(NextResponse);
     expect((r as NextResponse).status).toBe(401);
