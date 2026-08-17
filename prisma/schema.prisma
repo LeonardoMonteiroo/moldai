@@ -14,6 +14,7 @@ model User {
   name         String?
   createdAt    DateTime @default(now())
   molde        Molde?
+  wallet       Wallet?
 }
 
 model Molde {
@@ -21,4 +22,29 @@ model Molde {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   data      Json
   updatedAt DateTime @updatedAt
+}
+
+model Wallet {
+  userId       String        @id
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan         String
+  planLabel    String
+  balance      Int
+  total        Int
+  renewsAt     DateTime?
+  updatedAt    DateTime      @updatedAt
+  transactions Transaction[]
+}
+
+model Transaction {
+  id           String   @id @default(cuid())
+  userId       String
+  wallet       Wallet   @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  type         String
+  amount       Int
+  balanceAfter Int
+  reason       String?
+  createdAt    DateTime @default(now())
+
+  @@index([userId, createdAt])
 }
