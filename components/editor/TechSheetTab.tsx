@@ -1,23 +1,17 @@
 import { useTranslations } from "next-intl";
-import { GarmentType, Pattern } from "@/lib/types";
+import { Pattern } from "@/lib/types";
 import { buildExportModel } from "@/lib/export/model";
 
 const cm = (n: number) => n.toFixed(1).replace(".", ",");
 
-const GARMENT_TYPE_LABELS_PT: Record<GarmentType, string> = {
-  blouse: "Blusa",
-  dress: "Vestido",
-  skirt: "Saia",
-  tshirt: "Camiseta",
-};
-
 export function TechSheetTab({ pattern }: { pattern: Pattern }) {
   const t = useTranslations("TechSheetTab");
+  const tData = useTranslations("PatternData");
   // Dimensões (larg × alt em cm) por peça, do model re-draftado em cm exato.
   const dims: Record<string, { w: number; h: number }> = {};
   if (pattern.spec && pattern.pieces.length > 0) {
     try {
-      for (const p of buildExportModel(pattern).pieces)
+      for (const p of buildExportModel(pattern, tData).pieces)
         dims[p.id] = { w: p.widthCm, h: p.heightCm };
     } catch {
       /* sem spec válido: cai no comportamento sem dimensões */
@@ -47,11 +41,11 @@ export function TechSheetTab({ pattern }: { pattern: Pattern }) {
         <div className="mb-4 flex flex-wrap gap-2 text-[11.5px]">
           <Chip
             label={t("chipType")}
-            value={GARMENT_TYPE_LABELS_PT[pattern.spec.type]}
+            value={t("garmentType." + pattern.spec.type)}
           />
           <Chip
             label={t("chipGender")}
-            value={pattern.spec.gender === "male" ? "masculina" : "feminina"}
+            value={t("gender." + pattern.spec.gender)}
           />
           <Chip label={t("chipPieces")} value={`${totalPieces}`} />
           <Chip label={t("chipSeamAllowance")} value={`${cm(folga)} cm`} />

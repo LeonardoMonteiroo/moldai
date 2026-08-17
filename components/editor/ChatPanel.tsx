@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
-import { useEditorStore, GENERATION_STEPS } from "@/lib/store";
+import { useEditorStore, GENERATION_STEP_COUNT } from "@/lib/store";
 import { ChatBubble } from "./ChatBubble";
 import { AttachmentChips } from "./AttachmentChips";
 import { MessageInput } from "./MessageInput";
@@ -28,7 +28,7 @@ export function ChatPanel() {
   }, [chat.length, generationStatus]);
 
   const isGenerating = generationStatus === "generating";
-  const step = GENERATION_STEPS[generationStepIndex];
+  const tSteps = useTranslations("GeneratingOverlay");
 
   return (
     <div className="bg-surface border-border flex min-h-0 w-[312px] shrink-0 flex-col border-r">
@@ -68,14 +68,17 @@ export function ChatPanel() {
         {isGenerating ? (
           <>
             <div className="border-disabled-border rounded-item text-muted-2 bg-surface-alt border border-dashed p-2 text-[12.5px]">
-              {step.label}
+              {tSteps("steps.stepLabel", {
+                n: generationStepIndex + 1,
+                stage: tSteps("steps.stage" + (generationStepIndex + 1)),
+              })}
               <div className="bg-track mt-[7px] h-[6px] overflow-hidden rounded-full">
                 <div
                   className="bg-ink h-full animate-pulse transition-all duration-300"
                   style={{
                     // Nunca chega a 100% enquanto a IA responde — deixa headroom
                     // e pulsa pra não parecer "concluído" parado no último passo.
-                    width: `${Math.min(92, ((generationStepIndex + 1) / (GENERATION_STEPS.length + 0.5)) * 100)}%`,
+                    width: `${Math.min(92, ((generationStepIndex + 1) / (GENERATION_STEP_COUNT + 0.5)) * 100)}%`,
                   }}
                 />
               </div>

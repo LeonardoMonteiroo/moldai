@@ -12,6 +12,7 @@ import {
   applySizes,
   applyPurchase,
 } from "./state";
+import { t } from "@/lib/i18n/test-translate";
 
 describe("seedState", () => {
   it("blank molde: sem peças, chat vazio, version 0, créditos Ateliê 320/500", () => {
@@ -57,43 +58,59 @@ describe("créditos e versão", () => {
 describe("applyGarmentSpec / conflito / refit", () => {
   it("drafta uma saia e guarda no pattern", () => {
     const s = seedState();
-    applyGarmentSpec(s, {
-      type: "skirt",
-      measurementOverrides: {},
-      style: { skirt: "circle" },
-    });
+    applyGarmentSpec(
+      s,
+      {
+        type: "skirt",
+        measurementOverrides: {},
+        style: { skirt: "circle" },
+      },
+      t,
+    );
     expect(s.pattern.pieces.length).toBe(1);
     expect(s.pattern.pieces[0].id).toBe("skirt");
     expect(s.pattern.viewBox!.w).toBeGreaterThan(0);
   });
   it("armholeDeepenCm anexa conflito; sem ajuste não há conflito", () => {
     const s = seedState();
-    applyGarmentSpec(s, {
-      type: "blouse",
-      gender: "female",
-      measurementOverrides: {},
-      style: { sleeve: "short" },
-    });
+    applyGarmentSpec(
+      s,
+      {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: { sleeve: "short" },
+      },
+      t,
+    );
     expect(s.conflict).toBeNull();
-    applyGarmentSpec(s, {
-      type: "blouse",
-      gender: "female",
-      measurementOverrides: {},
-      style: { sleeve: "short", armholeDeepenCm: 2 },
-    });
+    applyGarmentSpec(
+      s,
+      {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: { sleeve: "short", armholeDeepenCm: 2 },
+      },
+      t,
+    );
     expect(s.conflict).not.toBeNull();
     expect(s.conflict!.diffCm).toBeGreaterThan(1);
     expect(s.conflict!.pieceBId).toBe("sleeve");
-    expect(s.conflict!.suggestion).toContain("“Corrigir manga”");
+    expect(s.conflict!.suggestion).toBe("conflict.suggestion");
   });
   it("EditorState com pieces sobrevive a um round-trip JSON (persistência JSONB)", () => {
     const s = seedState();
-    applyGarmentSpec(s, {
-      type: "blouse",
-      gender: "female",
-      measurementOverrides: {},
-      style: { sleeve: "short" },
-    });
+    applyGarmentSpec(
+      s,
+      {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: { sleeve: "short" },
+      },
+      t,
+    );
     const round = JSON.parse(JSON.stringify(s)) as typeof s;
     expect(round.pattern.pieces.map((p) => p.id).sort()).toEqual(
       s.pattern.pieces.map((p) => p.id).sort(),
@@ -103,14 +120,18 @@ describe("applyGarmentSpec / conflito / refit", () => {
   });
   it("refitSleeve refaz a copa e limpa o conflito", () => {
     const s = seedState();
-    applyGarmentSpec(s, {
-      type: "blouse",
-      gender: "female",
-      measurementOverrides: {},
-      style: { sleeve: "short", armholeDeepenCm: 2 },
-    });
+    applyGarmentSpec(
+      s,
+      {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: { sleeve: "short", armholeDeepenCm: 2 },
+      },
+      t,
+    );
     expect(s.conflict).not.toBeNull();
-    refitSleeve(s);
+    refitSleeve(s, t);
     expect(s.conflict).toBeNull();
     expect(getSpec(s).style.sleeveRefit).toBe(true);
   });
@@ -119,12 +140,16 @@ describe("applyGarmentSpec / conflito / refit", () => {
 describe("setConflict / applySizes / applyPurchase", () => {
   it("setConflict(null) limpa o aviso", () => {
     const s = seedState();
-    applyGarmentSpec(s, {
-      type: "blouse",
-      gender: "female",
-      measurementOverrides: {},
-      style: { sleeve: "short", armholeDeepenCm: 2 },
-    });
+    applyGarmentSpec(
+      s,
+      {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: { sleeve: "short", armholeDeepenCm: 2 },
+      },
+      t,
+    );
     setConflict(s, null);
     expect(s.conflict).toBeNull();
   });

@@ -1,5 +1,4 @@
 import { useTranslations } from "next-intl";
-import { GENERATION_STEPS } from "@/lib/store";
 
 export function GeneratingOverlay({
   stepIndex,
@@ -9,13 +8,16 @@ export function GeneratingOverlay({
   onCancel: () => void;
 }) {
   const t = useTranslations("GeneratingOverlay");
-  const step = GENERATION_STEPS[stepIndex];
+  const n = stepIndex + 1;
 
   return (
     <div className="bg-surface border-border flex items-center gap-[10px] border-b px-4 py-[11px]">
-      <span className="text-muted-2 text-[12px]">{step.pieceProgress}</span>
-      <span className="text-muted text-[12px]">·</span>
-      <span className="text-muted-2 text-[12px]">{step.label}</span>
+      <span className="text-muted-2 text-[12px]">
+        {t("steps.progress" + n)}
+      </span>
+      <span className="text-muted-2 text-[12px]">
+        {t("steps.stepLabel", { n, stage: t("steps.stage" + n) })}
+      </span>
       <div className="flex-1" />
       <button
         onClick={onCancel}

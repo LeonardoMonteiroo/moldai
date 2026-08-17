@@ -5,6 +5,7 @@ import {
   validateQuestions,
   draftPiecesCm,
 } from "./garment";
+import { t } from "@/lib/i18n/test-translate";
 
 describe("validateSpec", () => {
   it("cai para defaults em enums inválidos e clampa faixas", () => {
@@ -89,6 +90,7 @@ describe("draftGarment", () => {
         style: { sleeve: "short", neckline: "V" },
       },
       "M",
+      t,
     );
     expect(pieces.map((p) => p.id).sort()).toEqual([
       "body-back",
@@ -105,12 +107,15 @@ describe("draftGarment", () => {
         style: {},
       },
       "M",
+      t,
     );
     const ids = pieces.map((p) => p.id).sort();
     expect(ids).toEqual(["body-back", "body-front", "sleeve"]);
     const front = pieces.find((p) => p.id === "body-front")!;
     expect(front.dart).toBeUndefined();
-    expect(front.detailRows.some((r) => /redondo/i.test(r.value))).toBe(true);
+    expect(front.detailRows.some((r) => r.value === "neckline.round")).toBe(
+      true,
+    );
   });
   it("skirt gera só a peça de saia e viewBox > 0", () => {
     const { pieces, viewBox } = draftGarment(
@@ -121,6 +126,7 @@ describe("draftGarment", () => {
         style: { skirt: "gore" },
       },
       "M",
+      t,
     );
     expect(pieces.map((p) => p.id)).toEqual(["skirt"]);
     expect(viewBox.w).toBeGreaterThan(0);
@@ -134,6 +140,7 @@ describe("draftGarment", () => {
         style: { sleeve: "none", skirt: "a-line" },
       },
       "M",
+      t,
     );
     const ids = pieces.map((p) => p.id);
     expect(ids).toContain("skirt");
@@ -148,6 +155,7 @@ describe("draftGarment", () => {
         style: { sleeve: "short", armholeDeepenCm: 2 },
       },
       "M",
+      t,
     );
     expect(armholeLenCm! - sleeveArmholeCm!).toBeGreaterThan(1);
   });
@@ -160,6 +168,7 @@ describe("draftGarment", () => {
         style: { sleeve: "short" },
       },
       "M",
+      t,
     );
     expect(Math.abs(armholeLenCm! - sleeveArmholeCm!)).toBeLessThan(1e-6);
   });
@@ -172,6 +181,7 @@ describe("draftGarment", () => {
         style: { sleeve: "short", armholeDeepenCm: 2, sleeveRefit: true },
       },
       "M",
+      t,
     );
     expect(Math.abs(armholeLenCm! - sleeveArmholeCm!)).toBeLessThan(1e-6);
   });
@@ -187,6 +197,7 @@ describe("draftPiecesCm", () => {
         style: {},
       },
       "M",
+      t,
     );
     expect(pcs.map((p) => p.id)).toEqual(["body-front", "body-back", "sleeve"]);
     const front = pcs[0];

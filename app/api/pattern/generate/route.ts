@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { withMolde } from "@/lib/db/molde";
 import {
   addMessage,
@@ -33,6 +34,7 @@ export async function POST(request: Request) {
   }
   const answering = body.answering === true;
   const cost = COSTS.adjust;
+  const t = await getTranslations("PatternData");
 
   return withMolde(gate.id, async (state) => {
     if (state.credits.balance < cost) {
@@ -85,7 +87,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ status: "declined", state });
       }
 
-      applyGarmentSpec(state, decision.spec);
+      applyGarmentSpec(state, decision.spec, t);
       bumpVersion(state);
       const conflict = state.conflict;
       addMessage(state, {

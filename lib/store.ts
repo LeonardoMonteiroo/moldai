@@ -14,12 +14,7 @@ import {
 export type EditorTab = "pattern2d" | "proof3d" | "techsheet" | "cutplan";
 export type EditorTool = "cursor" | "measure";
 
-const GENERATION_STEPS = [
-  { label: "passo 1/4 · silhueta", pieceProgress: "traçando peças" },
-  { label: "passo 2/4 · pinças", pieceProgress: "ajustando detalhes" },
-  { label: "passo 3/4 · costuras", pieceProgress: "conferindo costuras" },
-  { label: "passo 4/4 · consumo", pieceProgress: "calculando consumo" },
-];
+const GENERATION_STEP_COUNT = 4;
 
 interface PaywallState {
   open: boolean;
@@ -133,7 +128,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       set((s) => ({
         generationStepIndex: Math.min(
           s.generationStepIndex + 1,
-          GENERATION_STEPS.length - 1,
+          GENERATION_STEP_COUNT - 1,
         ),
       }));
     }, 320);
@@ -269,4 +264,4 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   clearMeasurements: () => set({ measurements: [] }),
 }));
 
-export { GENERATION_STEPS };
+export { GENERATION_STEP_COUNT };

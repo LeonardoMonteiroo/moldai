@@ -18,6 +18,7 @@ import { autoLayout, DraftedPiece } from "./core";
 import { BlockOpts, draftBody } from "./body";
 import { draftSleeve } from "./sleeve";
 import { draftSkirt } from "./skirt";
+import type { Translate } from "@/lib/i18n/translate";
 
 const TYPES: GarmentType[] = ["blouse", "dress", "skirt", "tshirt"];
 const GENDERS: Gender[] = ["female", "male"];
@@ -126,6 +127,7 @@ export function seamCheck(
 function draftAll(
   spec: GarmentSpec,
   size: SizeLabel,
+  t: Translate,
 ): {
   drafted: DraftedPiece[];
   measurements: Measurements;
@@ -166,21 +168,21 @@ function draftAll(
       back,
       armholeLenCm: a,
       armholeBaseLenCm,
-    } = draftBody(measurements, style, opts);
+    } = draftBody(measurements, style, t, opts);
     armholeLenCm = a;
     drafted.push(front, back);
     // A copa da manga é dimensionada pela cava BASE (não ajustada) — a menos que
     // já tenha sido refeita ("Corrigir manga" seta style.sleeveRefit). Assim um
     // ajuste de cava só no corpo faz as costuras divergirem → conflito real.
     const sleeveArmhole = style.sleeveRefit ? a : armholeBaseLenCm;
-    const sleeve = draftSleeve(measurements, style, sleeveArmhole, opts);
+    const sleeve = draftSleeve(measurements, style, sleeveArmhole, t, opts);
     if (sleeve) {
       drafted.push(sleeve);
       sleeveArmholeCm = sleeveArmhole;
     }
   }
   if (spec.type === "skirt" || spec.type === "dress") {
-    drafted.push(draftSkirt(measurements, spec.style));
+    drafted.push(draftSkirt(measurements, spec.style, t));
   }
 
   return { drafted, measurements, armholeLenCm, sleeveArmholeCm };
@@ -189,14 +191,16 @@ function draftAll(
 export function draftPiecesCm(
   spec: GarmentSpec,
   size: SizeLabel,
+  t: Translate,
 ): DraftedPiece[] {
-  return draftAll(spec, size).drafted;
+  return draftAll(spec, size, t).drafted;
 }
 
-export function draftGarment(spec: GarmentSpec, size: SizeLabel) {
+export function draftGarment(spec: GarmentSpec, size: SizeLabel, t: Translate) {
   const { drafted, measurements, armholeLenCm, sleeveArmholeCm } = draftAll(
     spec,
     size,
+    t,
   );
   const { pieces, viewBox } = autoLayout(drafted, 8);
   return { pieces, viewBox, measurements, armholeLenCm, sleeveArmholeCm };

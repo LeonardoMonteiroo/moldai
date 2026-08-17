@@ -1,5 +1,6 @@
 import type { Pattern } from "@/lib/types";
 import { buildExportModel, type ExportPiece } from "./model";
+import type { Translate } from "@/lib/i18n/translate";
 
 // Larguras de rolo mais comuns no varejo de tecidos (cm).
 export const FABRIC_WIDTHS_CM = [140, 150, 160] as const;
@@ -33,8 +34,9 @@ export interface CutPlan {
 export function planCutLayout(
   pattern: Pattern,
   fabricWidthCm: number,
+  t: Translate,
 ): CutPlan {
-  const model = buildExportModel(pattern);
+  const model = buildExportModel(pattern, t);
 
   // expande qty: cada cópia é uma instância a cortar
   const instances: CutInstance[] = model.pieces.flatMap((p) =>

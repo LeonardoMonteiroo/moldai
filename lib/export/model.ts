@@ -1,6 +1,7 @@
 import type { Pattern, SizeLabel } from "@/lib/types";
 import { bbox, type DraftedPiece, type Pt } from "@/lib/draft/core";
 import { draftPiecesCm } from "@/lib/draft/garment";
+import type { Translate } from "@/lib/i18n/translate";
 
 export type ExPt = { x: number; y: number };
 export type ExSeg =
@@ -89,10 +90,10 @@ export function outlineSegments(
   return { start: P(at(0)), segs };
 }
 
-export function buildExportModel(pattern: Pattern): ExportModel {
+export function buildExportModel(pattern: Pattern, t: Translate): ExportModel {
   const spec = pattern.spec;
   if (!spec) throw new Error("buildExportModel: pattern sem spec");
-  const drafted: DraftedPiece[] = draftPiecesCm(spec, pattern.baseSize);
+  const drafted: DraftedPiece[] = draftPiecesCm(spec, pattern.baseSize, t);
 
   const padCm = 6;
   const gapCm = 8;

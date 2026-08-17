@@ -1,4 +1,5 @@
 import type { Pattern } from "@/lib/types";
+import type { Translate } from "@/lib/i18n/translate";
 import { buildExportModel } from "./model";
 import { toSvg } from "./svg";
 import { toDxf } from "./dxf";
@@ -11,6 +12,7 @@ export type ExportFormat = "svg" | "dxf" | "dxf-aama" | "pdf-a4" | "pdf-single";
 export function exportPattern(
   pattern: Pattern,
   format: ExportFormat,
+  t: Translate,
   onError?: (message: string) => void,
 ): void {
   if (!pattern.spec || pattern.pieces.length === 0) return;
@@ -18,7 +20,7 @@ export function exportPattern(
 
   let model;
   try {
-    model = buildExportModel(pattern);
+    model = buildExportModel(pattern, t);
   } catch {
     fail();
     return;

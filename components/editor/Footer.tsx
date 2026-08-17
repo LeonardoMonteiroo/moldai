@@ -33,6 +33,7 @@ export function Footer({
   generating: boolean;
 }) {
   const t = useTranslations("Footer");
+  const tData = useTranslations("PatternData");
   const [menuOpen, setMenuOpen] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
 
@@ -61,14 +62,14 @@ export function Footer({
   // Só re-desenha o modelo quando o menu abre (buildExportModel re-drafta em cm).
   const a4Pages = useMemo(() => {
     if (!menuOpen || exportDisabled) return 0;
-    const model = buildExportModel(pattern);
+    const model = buildExportModel(pattern, tData);
     return planTiles(model.sheetWidthCm, model.sheetHeightCm, "a4").pages
       .length;
-  }, [menuOpen, exportDisabled, pattern]);
+  }, [menuOpen, exportDisabled, pattern, tData]);
 
   const handleExport = (format: ExportFormat) => {
     setExportError(null);
-    exportPattern(pattern, format, (msg) => setExportError(msg));
+    exportPattern(pattern, format, tData, (msg) => setExportError(msg));
     setMenuOpen(false);
   };
 

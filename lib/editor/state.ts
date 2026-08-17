@@ -9,6 +9,7 @@ import {
 } from "@/lib/types";
 import { draftGarment, seamCheck } from "@/lib/draft/garment";
 import { resolveMeasurements } from "@/lib/measurements";
+import type { Translate } from "@/lib/i18n/translate";
 
 // Marca (círculo tracejado) na região da cava de uma peça, a partir da bbox
 // dos seus vértices em px. Ilustrativa — aponta a costura em conflito no canvas.
@@ -29,8 +30,9 @@ function armholeMarker(
 // (seamCheck determinístico) e monta o ConflictInfo com marcas no canvas.
 function detectConflict(
   pieces: Piece[],
-  armholeLenCm?: number,
-  sleeveArmholeCm?: number,
+  armholeLenCm: number | undefined,
+  sleeveArmholeCm: number | undefined,
+  t: Translate,
 ): ConflictInfo | null {
   const seam = seamCheck(armholeLenCm, sleeveArmholeCm);
   if (!seam) return null;
@@ -42,11 +44,13 @@ function detectConflict(
   const maior = (armholeLenCm ?? 0) > (sleeveArmholeCm ?? 0);
   return {
     id: `conf-${Date.now()}`,
-    title: "Cava e manga não batem",
-    description: `A cava do corpo ficou ${seam.diffCm} cm ${maior ? "maior" : "menor"} que a copa da manga — as costuras não vão fechar.`,
+    title: t("conflict.title"),
+    description: t("conflict.description", {
+      diffCm: seam.diffCm,
+      direction: maior ? "larger" : "smaller",
+    }),
     diffCm: seam.diffCm,
-    suggestion:
-      "“Corrigir manga” refaz a copa para a cava ajustada, sem custo.",
+    suggestion: t("conflict.suggestion"),
     pieceAId: "body-front",
     pieceBId: "sleeve",
     markers,
@@ -137,10 +141,14 @@ export function getSpec(state: EditorState): GarmentSpec {
 
 // Drafta o garment a partir de um spec validado e guarda pieces/viewBox/spec no
 // pattern; anexa (ou limpa) o conflito de costura (apply-with-warning).
-export function applyGarmentSpec(state: EditorState, spec: GarmentSpec): void {
+export function applyGarmentSpec(
+  state: EditorState,
+  spec: GarmentSpec,
+  t: Translate,
+): void {
   const size = state.pattern.baseSize;
   const { pieces, viewBox, measurements, armholeLenCm, sleeveArmholeCm } =
-    draftGarment(spec, size);
+    draftGarment(spec, size, t);
   state.pattern = {
     ...state.pattern,
     pieces,
@@ -148,17 +156,18 @@ export function applyGarmentSpec(state: EditorState, spec: GarmentSpec): void {
     spec,
     baseMeasurements: measurements,
   };
-  state.conflict = detectConflict(pieces, armholeLenCm, sleeveArmholeCm);
+  state.conflict = detectConflict(pieces, armholeLenCm, sleeveArmholeCm, t);
 }
 
 // "Corrigir manga": marca sleeveRefit e re-drafta — a copa passa a usar a cava
 // ajustada, as costuras batem e detectConflict devolve null.
-export function refitSleeve(state: EditorState): void {
+export function refitSleeve(state: EditorState, t: Translate): void {
   const spec = getSpec(state);
-  applyGarmentSpec(state, {
-    ...spec,
-    style: { ...spec.style, sleeveRefit: true },
-  });
+  applyGarmentSpec(
+    state,
+    { ...spec, style: { ...spec.style, sleeveRefit: true } },
+    t,
+  );
 }
 
 export function applySizes(state: EditorState, sizes: string[]): void {

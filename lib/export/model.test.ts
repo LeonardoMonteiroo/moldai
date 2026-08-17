@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { outlineSegments, buildExportModel } from "./model";
 import type { Pt } from "@/lib/draft/core";
 import type { Pattern } from "@/lib/types";
+import { t } from "@/lib/i18n/test-translate";
 
 describe("outlineSegments", () => {
   it("emite line em aresta fora de span e cubic dentro de span", () => {
@@ -60,7 +61,7 @@ function fakePattern(): Pattern {
 
 describe("buildExportModel", () => {
   it("monta model em cm com peças posicionadas e folga anotada", () => {
-    const m = buildExportModel(fakePattern());
+    const m = buildExportModel(fakePattern(), t);
     expect(m.unit).toBe("cm");
     expect(m.size).toBe("M");
     expect(m.seamAllowanceCm).toBe(1.5);
@@ -105,6 +106,6 @@ describe("buildExportModel", () => {
   it("usa folga default 1 quando style.seamAllowanceCm ausente", () => {
     const pat = fakePattern();
     pat.spec!.style = {};
-    expect(buildExportModel(pat).seamAllowanceCm).toBe(1);
+    expect(buildExportModel(pat, t).seamAllowanceCm).toBe(1);
   });
 });

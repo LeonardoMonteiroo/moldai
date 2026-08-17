@@ -1,14 +1,9 @@
 import { Measurements } from "@/lib/measurements";
-import { DetailRow, GarmentStyle, Gender, Neckline } from "@/lib/types";
+import { DetailRow, GarmentStyle, Gender } from "@/lib/types";
 import { DraftedPiece, Pt } from "./core";
+import type { Translate } from "@/lib/i18n/translate";
 
 const cm = (v: number) => `${v.toFixed(1).replace(".", ",")} cm`;
-
-const NECKLINE_LABELS_PT: Record<Neckline, string> = {
-  straight: "reto",
-  V: "V",
-  round: "redondo",
-};
 
 export interface BlockOpts {
   gender: Gender;
@@ -30,6 +25,7 @@ function bodice(
   m: Measurements,
   style: GarmentStyle,
   opts: BlockOpts,
+  t: Translate,
   id: string,
   name: string,
   frontish: boolean,
@@ -99,15 +95,15 @@ function bodice(
     1.08;
 
   const detailRows: DetailRow[] = [
-    { label: "Folga de costura", value: cm(ease) },
-    { label: "Largura (tórax)", value: cm(halfChest * 2) },
-    { label: "Comprimento", value: cm(len) },
-    { label: "Cava", value: cm(armholeLenCm) },
+    { label: t("rows.seamAllowance"), value: cm(ease) },
+    { label: t("rows.chestWidth"), value: cm(halfChest * 2) },
+    { label: t("rows.length"), value: cm(len) },
+    { label: t("rows.armhole"), value: cm(armholeLenCm) },
     {
-      label: "Decote",
-      value: NECKLINE_LABELS_PT[style.neckline ?? "straight"],
+      label: t("rows.neckline"),
+      value: t("neckline." + (style.neckline ?? "straight")),
     },
-    { label: "Fio", value: "reto" },
+    { label: t("rows.grain"), value: t("grainValue") },
   ];
 
   let dartCm: Pt[] | undefined;
@@ -118,7 +114,7 @@ function bodice(
       [cx, waistY - 12],
       [cx + dartW, waistY],
     ];
-    detailRows.splice(4, 0, { label: "Pence", value: cm(dartW * 2) });
+    detailRows.splice(4, 0, { label: t("rows.dart"), value: cm(dartW * 2) });
   }
 
   const grainlineCm: [Pt, Pt] = [
@@ -145,10 +141,19 @@ function bodice(
 export function draftBody(
   m: Measurements,
   style: GarmentStyle,
+  t: Translate,
   opts: BlockOpts = defaultOpts(m),
 ) {
-  const f = bodice(m, style, opts, "body-front", "Frente", true);
-  const c = bodice(m, style, opts, "body-back", "Costas", false);
+  const f = bodice(
+    m,
+    style,
+    opts,
+    t,
+    "body-front",
+    t("pieceNames.front"),
+    true,
+  );
+  const c = bodice(m, style, opts, t, "body-back", t("pieceNames.back"), false);
   return {
     front: f.piece,
     back: c.piece,

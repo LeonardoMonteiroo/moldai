@@ -2,6 +2,7 @@ import { Measurements } from "@/lib/measurements";
 import { DetailRow, GarmentStyle } from "@/lib/types";
 import { DraftedPiece, Pt } from "./core";
 import { BlockOpts } from "./body";
+import type { Translate } from "@/lib/i18n/translate";
 
 const cm = (v: number) => `${v.toFixed(1).replace(".", ",")} cm`;
 
@@ -9,6 +10,7 @@ export function draftSleeve(
   m: Measurements,
   style: GarmentStyle,
   armholeLenCm: number,
+  t: Translate,
   _opts: BlockOpts = { gender: "female", knit: false, lengthCm: 0 },
 ): DraftedPiece | null {
   if (style.sleeve === "none" || !style.sleeve) return null;
@@ -36,14 +38,14 @@ export function draftSleeve(
     [cxTop, capH + len - 3],
   ];
   const detailRows: DetailRow[] = [
-    { label: "Tipo", value: style.sleeve === "long" ? "longa" : "curta" },
-    { label: "Comprimento", value: cm(capH + len) },
-    { label: "Cava (copa)", value: cm(armholeLenCm) },
-    { label: "Fio", value: "reto" },
+    { label: t("rows.sleeveType"), value: t("sleeveType." + style.sleeve) },
+    { label: t("rows.length"), value: cm(capH + len) },
+    { label: t("rows.sleeveCap"), value: cm(armholeLenCm) },
+    { label: t("rows.grain"), value: t("grainValue") },
   ];
   return {
     id: "sleeve",
-    name: "Manga",
+    name: t("pieceNames.sleeve"),
     qty: 2,
     outlineCm,
     curvedSpans,

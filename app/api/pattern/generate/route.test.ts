@@ -5,6 +5,9 @@ import type { EditorState } from "@/lib/types";
 let state: EditorState = seedState();
 
 vi.mock("@/lib/ai", () => ({ proposeGarment: vi.fn() }));
+vi.mock("next-intl/server", () => ({
+  getTranslations: vi.fn(async () => (key: string) => key),
+}));
 vi.mock("@/lib/auth/guard", () => ({
   requireUser: vi.fn(async () => ({
     id: "u1",

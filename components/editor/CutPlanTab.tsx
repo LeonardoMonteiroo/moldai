@@ -10,17 +10,18 @@ const meters = (cm: number) => (cm / 100).toFixed(2).replace(".", ",") + " m";
 
 export function CutPlanTab({ pattern }: { pattern: Pattern }) {
   const t = useTranslations("CutPlanTab");
+  const tData = useTranslations("PatternData");
   const [fabricWidthCm, setFabricWidthCm] = useState<number>(150);
 
   // Encaixe real: só recalcula quando o molde ou a largura mudam.
   const plan = useMemo(() => {
     if (!pattern.spec || pattern.pieces.length === 0) return null;
     try {
-      return planCutLayout(pattern, fabricWidthCm);
+      return planCutLayout(pattern, fabricWidthCm, tData);
     } catch {
       return null;
     }
-  }, [pattern, fabricWidthCm]);
+  }, [pattern, fabricWidthCm, tData]);
 
   return (
     <div className="flex flex-1 flex-col gap-4 overflow-auto p-[22px]">

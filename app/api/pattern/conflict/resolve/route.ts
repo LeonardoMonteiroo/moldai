@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { withMolde } from "@/lib/db/molde";
 import {
   addMessage,
@@ -23,9 +24,11 @@ export async function POST(request: Request) {
     );
   }
 
+  const t = await getTranslations("PatternData");
+
   return withMolde(gate.id, (state) => {
     if (action === "fix") {
-      refitSleeve(state);
+      refitSleeve(state, t);
       bumpVersion(state);
       addMessage(state, {
         id: `msg-${Date.now()}-ai`,
