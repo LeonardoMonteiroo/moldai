@@ -16,7 +16,7 @@ const model: ExportModel = {
       qty: 1,
       widthCm: 10,
       heightCm: 10,
-      // quadrado 10cm de lado -> 4 lines
+      // 10cm-sided square -> 4 lines
       outline: {
         start: { x: 0, y: 0 },
         segs: [
@@ -36,25 +36,25 @@ const model: ExportModel = {
 };
 
 describe("toSvg", () => {
-  it("gera dimensões em mm 1:1 e viewBox", () => {
+  it("generates 1:1 mm dimensions and a viewBox", () => {
     const svg = toSvg(model);
     expect(svg).toContain('width="200mm"'); // 20cm * 10
     expect(svg).toContain('height="300mm"');
     expect(svg).toContain('viewBox="0 0 200 300"');
   });
 
-  it("escala 1:1: aresta de 10cm vira 100 unidades no path", () => {
+  it("1:1 scale: a 10cm edge becomes 100 units in the path", () => {
     const svg = toSvg(model);
-    // origem x=2cm -> 20 ; borda direita x=2+10=12cm -> 120
+    // origin x=2cm -> 20 ; right edge x=2+10=12cm -> 120
     expect(svg).toContain("M20 20");
     expect(svg).toContain("L120 20");
   });
 
-  it("um path de contorno por peça + anotação de tamanho/folga no cabeçalho", () => {
+  it("one outline path per piece + a size/allowance annotation in the header", () => {
     const svg = toSvg(model);
     expect(svg.match(/<path /g)?.length).toBe(1);
     expect(svg).toContain("tam M");
     expect(svg).toContain("folga 1cm (net line)");
-    expect(svg).toContain("Camiseta &amp; Cia"); // XML escapado
+    expect(svg).toContain("Camiseta &amp; Cia"); // XML-escaped
   });
 });

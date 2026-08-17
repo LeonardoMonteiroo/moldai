@@ -5,23 +5,23 @@ import type { Pattern } from "@/lib/types";
 import { t } from "@/lib/i18n/test-translate";
 
 describe("outlineSegments", () => {
-  it("emite line em aresta fora de span e cubic dentro de span", () => {
+  it("emits line on an edge outside a span and cubic inside a span", () => {
     const pts: Pt[] = [
       [0, 0],
       [10, 0],
       [10, 10],
       [0, 10],
     ];
-    const { start, segs } = outlineSegments(pts, [[1, 2]]); // curva só na aresta 1->2
+    const { start, segs } = outlineSegments(pts, [[1, 2]]); // only edge 1->2 is curved
     expect(start).toEqual({ x: 0, y: 0 });
-    expect(segs).toHaveLength(4); // uma por aresta (fechado)
+    expect(segs).toHaveLength(4); // one per edge (closed)
     expect(segs[0].kind).toBe("line");
     expect(segs[1].kind).toBe("cubic");
     expect(segs[2].kind).toBe("line");
     expect(segs[3].kind).toBe("line");
   });
 
-  it("cai para polilinha de lines quando < 3 pontos", () => {
+  it("falls back to a line-only polyline when < 3 points", () => {
     const { segs } = outlineSegments([
       [0, 0],
       [5, 5],
@@ -60,7 +60,7 @@ function fakePattern(): Pattern {
 }
 
 describe("buildExportModel", () => {
-  it("monta model em cm com peças posicionadas e folga anotada", () => {
+  it("builds a model in cm with positioned pieces and an annotated seam allowance", () => {
     const m = buildExportModel(fakePattern(), t);
     expect(m.unit).toBe("cm");
     expect(m.size).toBe("M");
@@ -68,7 +68,7 @@ describe("buildExportModel", () => {
     expect(m.sheetWidthCm).toBeGreaterThan(0);
     expect(m.sheetHeightCm).toBeGreaterThan(0);
     expect(m.pieces.length).toBeGreaterThanOrEqual(2);
-    // Empacotamento em prateleiras: nenhuma peça sai da folha…
+    // Shelf packing: no piece goes outside the sheet…
     for (const p of m.pieces) {
       expect(p.originCm.x).toBeGreaterThanOrEqual(0);
       expect(p.originCm.y).toBeGreaterThanOrEqual(0);
@@ -79,7 +79,7 @@ describe("buildExportModel", () => {
         m.sheetHeightCm + 1e-6,
       );
     }
-    // …e duas peças nunca se sobrepõem (retângulos disjuntos).
+    // …and two pieces never overlap (disjoint rectangles).
     for (let i = 0; i < m.pieces.length; i++) {
       for (let j = i + 1; j < m.pieces.length; j++) {
         const a = m.pieces[i];
@@ -92,18 +92,18 @@ describe("buildExportModel", () => {
         expect(disjoint).toBe(true);
       }
     }
-    // A folha deve ser bem menos extrema que a fila única (aspecto < ~4:1).
+    // The sheet should be much less extreme than a single row (aspect < ~4:1).
     const aspect =
       Math.max(m.sheetWidthCm, m.sheetHeightCm) /
       Math.min(m.sheetWidthCm, m.sheetHeightCm);
     expect(aspect).toBeLessThan(4);
-    // outline fechado começa no start e tem uma segmento por aresta
+    // closed outline starts at start and has one segment per edge
     const f = m.pieces[0];
     expect(f.widthCm).toBeGreaterThan(0);
     expect(f.outline.segs.length).toBeGreaterThanOrEqual(3);
   });
 
-  it("usa folga default 1 quando style.seamAllowanceCm ausente", () => {
+  it("uses the default 1 seam allowance when style.seamAllowanceCm is absent", () => {
     const pat = fakePattern();
     pat.spec!.style = {};
     expect(buildExportModel(pat, t).seamAllowanceCm).toBe(1);

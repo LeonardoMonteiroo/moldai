@@ -34,7 +34,7 @@ function fakePattern(): Pattern {
 }
 
 describe("planCutLayout", () => {
-  it("expande as peças pela quantidade a cortar", () => {
+  it("expands the pieces by their cut quantity", () => {
     const pat = fakePattern();
     const qtySum = buildExportModel(pat, t).pieces.reduce(
       (s, p) => s + p.qty,
@@ -42,10 +42,10 @@ describe("planCutLayout", () => {
     );
     const plan = planCutLayout(pat, 150, t);
     expect(plan.instances.length).toBe(qtySum);
-    expect(qtySum).toBeGreaterThanOrEqual(2); // camiseta = frente/costas/manga(s)
+    expect(qtySum).toBeGreaterThanOrEqual(2); // t-shirt = front/back/sleeve(s)
   });
 
-  it("todas as cópias cabem na largura do tecido, sem overflow", () => {
+  it("all copies fit within the fabric width, no overflow", () => {
     const plan = planCutLayout(fakePattern(), 150, t);
     expect(plan.overflow).toBe(false);
     for (const it of plan.instances) {
@@ -56,7 +56,7 @@ describe("planCutLayout", () => {
     }
   });
 
-  it("nenhuma cópia se sobrepõe (retângulos disjuntos)", () => {
+  it("no copy overlaps another (disjoint rectangles)", () => {
     const { instances } = planCutLayout(fakePattern(), 150, t);
     for (let i = 0; i < instances.length; i++) {
       for (let j = i + 1; j < instances.length; j++) {
@@ -72,14 +72,14 @@ describe("planCutLayout", () => {
     }
   });
 
-  it("comprimento e aproveitamento coerentes; eficiência em (0,1]", () => {
+  it("length and usage are coherent; efficiency is in (0,1]", () => {
     const plan = planCutLayout(fakePattern(), 150, t);
     expect(plan.lengthCm).toBeGreaterThan(0);
     expect(plan.efficiency).toBeGreaterThan(0);
     expect(plan.efficiency).toBeLessThanOrEqual(1 + 1e-9);
   });
 
-  it("tecido mais estreito consome comprimento >= tecido mais largo", () => {
+  it("a narrower fabric consumes length >= a wider fabric", () => {
     const narrow = planCutLayout(fakePattern(), 140, t).lengthCm;
     const wide = planCutLayout(fakePattern(), 160, t).lengthCm;
     expect(narrow).toBeGreaterThanOrEqual(wide - 1e-6);

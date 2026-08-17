@@ -1,35 +1,35 @@
 import type { ExportModel, ExportPiece } from "./model";
 import { flattenOutlineCm, TOL_CM } from "./dxf";
 
-// DXF "compatível AAMA/ASTM D6673" (subset). Diferente do DXF genérico
-// (lib/export/dxf.ts, camadas nomeadas), este usa a convenção da indústria:
+// "AAMA/ASTM D6673-compatible" DXF (subset). Unlike the generic DXF
+// (lib/export/dxf.ts, named layers), this one uses the industry convention:
 //
-//   - camadas NUMERADAS com semântica fixa do D6673 (a 0 não se usa):
-//       1  contorno da peça (+ texto de sistema da peça)
-//       7  fio (grainline)
-//       8  linhas internas (não cortadas) — usamos p/ a pence
-//   - cada peça é um BLOCK, posicionado por um INSERT (peças são blocos no D6673)
-//   - versão R13 (AC1012) + POLYLINE/VERTEX/SEQEND clássico (não LWPOLYLINE, que
-//     é R14) — R13 é o que o D6673 referencia e maximiza compat com Audaces/Gerber.
+//   - NUMBERED layers with D6673's fixed semantics (layer 0 isn't used):
+//       1  piece boundary (+ the piece's system text)
+//       7  grainline
+//       8  internal lines (not cut) — we use it for the dart
+//   - each piece is a BLOCK, positioned by an INSERT (pieces are blocks in D6673)
+//   - R13 version (AC1012) + classic POLYLINE/VERTEX/SEQEND (not LWPOLYLINE,
+//     which is R14) — R13 is what D6673 references and maximizes compat with Audaces/Gerber.
 //
-// É um SUBSET honesto: o ExportModel só carrega contorno/fio/pence/nome, então
-// piques (camada 4), furos (13) e linha de costura separada (14) NÃO são
-// emitidos — o MoldAI ainda não os modela. O contorno é a linha líquida (sem
-// margem de costura embutida), colocada na camada 1. O AAMA/ASTM estrito
-// completo (system text estruturado, block records, esses elementos derivados)
-// segue como "Fase 2.5".
+// This is an honest SUBSET: the ExportModel only carries boundary/grainline/dart/name,
+// so notches (layer 4), drill holes (13), and a separate sew line (14) are NOT
+// emitted — MoldAI doesn't model them yet. The outline is the net line (no
+// seam allowance baked in), placed on layer 1. The full strict AAMA/ASTM
+// (structured system text, block records, those derived elements) remains a
+// later "Phase 2.5".
 
 const MM = 10; // cm -> mm (1:1)
 const f = (n: number) => (Math.round(n * 100) / 100).toString();
 
-// Camadas numeradas que este subset usa, com uma cor (código 62) cada.
+// Numbered layers this subset uses, each with a color (code 62).
 const LAYERS: [string, number][] = [
-  ["1", 7], // contorno — branco/preto
-  ["7", 5], // fio — azul
-  ["8", 3], // interno (pence) — verde
+  ["1", 7], // boundary — white/black
+  ["7", 5], // grainline — blue
+  ["8", 3], // internal (dart) — green
 ];
 
-// Nome de BLOCK válido em DXF: só alfanumérico/_/-/$; prefixo garante letra inicial.
+// Valid DXF BLOCK name: alphanumeric/_/-/$ only; the prefix guarantees a leading letter.
 function blockName(id: string): string {
   return "PIECE_" + id.toUpperCase().replace(/[^A-Z0-9_$-]/g, "_");
 }
@@ -45,18 +45,18 @@ export function toDxfAama(model: ExportModel): string {
     `MoldAI AAMA/ASTM subset · ${model.patternName} · tam ${model.size} · folga ${model.seamAllowanceCm ?? 0}cm (net line, camada 1)`,
   );
 
-  // HEADER — R13, milímetros, métrico.
+  // HEADER — R13, millimeters, metric.
   p(0, "SECTION");
   p(2, "HEADER");
   p(9, "$ACADVER");
-  p(1, "AC1012"); // R13 — base do D6673
+  p(1, "AC1012"); // R13 — D6673's base
   p(9, "$INSUNITS");
-  p(70, 4); // 4 = milímetros
+  p(70, 4); // 4 = millimeters
   p(9, "$MEASUREMENT");
-  p(70, 1); // 1 = métrico
+  p(70, 1); // 1 = metric
   p(0, "ENDSEC");
 
-  // TABLES / LAYER — camadas numeradas.
+  // TABLES / LAYER — numbered layers.
   p(0, "SECTION");
   p(2, "TABLES");
   p(0, "TABLE");
@@ -72,19 +72,19 @@ export function toDxfAama(model: ExportModel): string {
   p(0, "ENDTAB");
   p(0, "ENDSEC");
 
-  // Geometria local da peça -> DXF-up dentro do BLOCK (Y invertido pela altura da
-  // peça). O INSERT reposiciona o bloco no lençol (também com Y invertido).
+  // The piece's local geometry -> DXF-up inside the BLOCK (Y flipped by the
+  // piece's height). The INSERT repositions the block on the sheet (also Y-flipped).
   const emitBlockBody = (piece: ExportPiece) => {
     const h = piece.heightCm;
     const X = (x: number) => f(x * MM);
-    const Y = (y: number) => f((h - y) * MM); // +Y pra cima dentro do bloco
+    const Y = (y: number) => f((h - y) * MM); // +Y up inside the block
 
-    // contorno -> POLYLINE fechado na camada 1 (helper de achatamento do DXF genérico)
+    // outline -> closed POLYLINE on layer 1 (flattening helper from the generic DXF)
     const verts = flattenOutlineCm(piece.outline, TOL_CM);
     p(0, "POLYLINE");
     p(8, "1");
     p(66, 1);
-    p(70, 1); // 70=1 fechado
+    p(70, 1); // 70=1 closed
     for (const v of verts) {
       p(0, "VERTEX");
       p(8, "1");
@@ -94,15 +94,15 @@ export function toDxfAama(model: ExportModel): string {
     p(0, "SEQEND");
     p(8, "1");
 
-    // nome/qtd como texto de sistema da peça, na camada 1
+    // name/qty as the piece's system text, on layer 1
     p(0, "TEXT");
     p(8, "1");
     p(10, X(0));
     p(20, f(Math.max(0, h * MM - 8)));
-    p(40, 8); // altura do texto em mm
+    p(40, 8); // text height in mm
     p(1, `${piece.name.toUpperCase()} ${piece.qty}X`);
 
-    // fio -> LINE na camada 7
+    // grainline -> LINE on layer 7
     if (piece.grainline) {
       const [a, b] = piece.grainline;
       p(0, "LINE");
@@ -113,7 +113,7 @@ export function toDxfAama(model: ExportModel): string {
       p(21, Y(b.y));
     }
 
-    // pence -> POLYLINE aberto na camada 8 (linha interna, não corta)
+    // dart -> open POLYLINE on layer 8 (internal line, not cut)
     if (piece.dart && piece.dart.length >= 3) {
       p(0, "POLYLINE");
       p(8, "8");
@@ -130,7 +130,7 @@ export function toDxfAama(model: ExportModel): string {
     }
   };
 
-  // BLOCKS — uma definição de bloco por peça.
+  // BLOCKS — one block definition per piece.
   p(0, "SECTION");
   p(2, "BLOCKS");
   for (const piece of model.pieces) {
@@ -149,7 +149,7 @@ export function toDxfAama(model: ExportModel): string {
   }
   p(0, "ENDSEC");
 
-  // ENTITIES — um INSERT por bloco, posicionado no lençol (Y invertido).
+  // ENTITIES — one INSERT per block, positioned on the sheet (Y flipped).
   p(0, "SECTION");
   p(2, "ENTITIES");
   for (const piece of model.pieces) {

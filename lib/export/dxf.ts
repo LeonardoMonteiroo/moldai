@@ -1,6 +1,6 @@
 import type { ExPt, ExSeg, ExportModel } from "./model";
 
-export const TOL_CM = 0.02; // 0,2 mm
+export const TOL_CM = 0.02; // 0.2 mm
 const MAX_DEPTH = 16;
 
 const mid = (a: ExPt, b: ExPt): ExPt => ({
@@ -8,7 +8,7 @@ const mid = (a: ExPt, b: ExPt): ExPt => ({
   y: (a.y + b.y) / 2,
 });
 
-// distância perpendicular de p à reta a→b (em cm); corda degenerada → distância a `a`
+// perpendicular distance from p to the line a→b (in cm); degenerate chord → distance to `a`
 function distToLine(p: ExPt, a: ExPt, b: ExPt): number {
   const dx = b.x - a.x;
   const dy = b.y - a.y;
@@ -47,8 +47,8 @@ export function flattenCubic(
   return out;
 }
 
-// Contorno achatado em cm: line -> 1 vértice, cubic -> pontos de flattenCubic.
-// Fechado; remove o vértice final se coincidir com o inicial (dedup).
+// Outline flattened to cm: line -> 1 vertex, cubic -> flattenCubic's points.
+// Closed; drops the final vertex if it coincides with the first (dedup).
 export function flattenOutlineCm(
   outline: { start: ExPt; segs: ExSeg[] },
   tolCm: number,
@@ -86,7 +86,7 @@ export function toDxf(model: ExportModel): string {
     L.push(code, value);
   };
 
-  // comentário nativo DXF (código 999) — sem o problema do "--" do comentário XML
+  // native DXF comment (code 999) — none of the "--" issue an XML comment has
   p(
     999,
     `MoldAI · ${model.patternName} · tam ${model.size} · folga ${model.seamAllowanceCm ?? 0}cm (net line)`,
@@ -96,11 +96,11 @@ export function toDxf(model: ExportModel): string {
   p(0, "SECTION");
   p(2, "HEADER");
   p(9, "$ACADVER");
-  p(1, "AC1014"); // R14 — necessário p/ LWPOLYLINE em leitores estritos
+  p(1, "AC1014"); // R14 — required for LWPOLYLINE in strict readers
   p(9, "$INSUNITS");
-  p(70, 4); // 4 = milímetros
+  p(70, 4); // 4 = millimeters
   p(9, "$MEASUREMENT");
-  p(70, 1); // 1 = métrico
+  p(70, 1); // 1 = metric
   p(0, "ENDSEC");
 
   // TABLES / LAYER
@@ -126,10 +126,10 @@ export function toDxf(model: ExportModel): string {
     const ox = piece.originCm.x;
     const oy = piece.originCm.y;
     const X = (x: number) => f((ox + x) * MM);
-    // Y invertido: DXF tem +Y pra cima; ExportModel tem +Y pra baixo.
+    // Y flipped: DXF has +Y up; ExportModel has +Y down.
     const Y = (y: number) => f((model.sheetHeightCm - (oy + y)) * MM);
 
-    // contorno -> vértices achatados (helper compartilhado com o PDF)
+    // outline -> flattened vertices (helper shared with the PDF)
     const verts = flattenOutlineCm(piece.outline, TOL_CM);
 
     p(0, "LWPOLYLINE");
@@ -166,7 +166,7 @@ export function toDxf(model: ExportModel): string {
     p(8, "TEXTO");
     p(10, X(piece.outline.start.x));
     p(20, Y(piece.heightCm));
-    p(40, 6); // altura do texto em mm
+    p(40, 6); // text height in mm
     p(1, `${piece.name.toUpperCase()} · ${piece.qty}x`);
   }
   p(0, "ENDSEC");

@@ -49,7 +49,7 @@ export function exportPattern(
       }
       return;
     case "pdf-a4":
-      // toPdf é async (pdf-lib); fire-and-forget — não muda a assinatura void
+      // toPdf is async (pdf-lib); fire-and-forget — doesn't change the void signature
       toPdf(model, "a4")
         .then((bytes) =>
           downloadFile(`${base}-a4.pdf`, "application/pdf", bytes),
@@ -64,7 +64,7 @@ export function exportPattern(
         .catch(fail);
       return;
     default: {
-      // exaustividade: formato sem case vira erro de compilação
+      // exhaustiveness: a format with no case becomes a compile error
       const _exhaustive: never = format;
       return _exhaustive;
     }

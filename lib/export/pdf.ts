@@ -54,8 +54,8 @@ export function rulerTicksCm(lengthCm: number): number[] {
   return ticks;
 }
 
-const PT_POR_CM = 72 / 2.54; // pontos PDF por cm (1:1 físico)
-const TOL_CM = 0.02; // achatamento de curvas (mesma tolerância do DXF)
+const PT_POR_CM = 72 / 2.54; // PDF points per cm (physical 1:1)
+const TOL_CM = 0.02; // curve flattening (same tolerance as the DXF)
 
 export async function toPdf(
   model: ExportModel,
@@ -71,7 +71,7 @@ export async function toPdf(
   const GRAY = rgb(0.6, 0.6, 0.6);
   const TXT = rgb(0.35, 0.34, 0.29);
 
-  // achata cada contorno uma vez (reusado em todas as páginas/tiles)
+  // flatten each outline once (reused across every page/tile)
   const outlines = model.pieces.map((pc) => ({
     pc,
     pts: flattenOutlineCm(pc.outline, TOL_CM),
@@ -83,7 +83,7 @@ export async function toPdf(
       plan.pageHcm * PT_POR_CM,
     ]);
 
-    // coord de sheet (cm, +Y p/ baixo) -> ponto de página (pt, +Y p/ cima), transladada pela janela do tile
+    // sheet coord (cm, +Y down) -> page point (pt, +Y up), translated by the tile's window
     const map = (sx: number, sy: number) => ({
       x: (plan.marginCm + sx - tile.originCm.x) * PT_POR_CM,
       y: (plan.pageHcm - plan.marginCm - (sy - tile.originCm.y)) * PT_POR_CM,
@@ -93,13 +93,13 @@ export async function toPdf(
       const P = (lx: number, ly: number) =>
         map(pc.originCm.x + lx, pc.originCm.y + ly);
 
-      // contorno (polilinha fechada)
+      // outline (closed polyline)
       for (let i = 0; i < pts.length; i++) {
         const a = P(pts[i].x, pts[i].y);
         const b = P(pts[(i + 1) % pts.length].x, pts[(i + 1) % pts.length].y);
         page.drawLine({ start: a, end: b, thickness: 0.75, color: INK });
       }
-      // fio (tracejado)
+      // grainline (dashed)
       if (pc.grainline) {
         const [g1, g2] = pc.grainline;
         page.drawLine({
@@ -110,7 +110,7 @@ export async function toPdf(
           dashArray: [4, 3],
         });
       }
-      // dart (polilinha fechada)
+      // dart (closed polyline)
       if (pc.dart && pc.dart.length >= 3) {
         for (let i = 0; i < pc.dart.length; i++) {
           const a = P(pc.dart[i].x, pc.dart[i].y);
@@ -121,7 +121,7 @@ export async function toPdf(
           page.drawLine({ start: a, end: b, thickness: 0.5, color: OLIVE });
         }
       }
-      // rótulo
+      // label
       const lbl = P(0, pc.heightCm);
       page.drawText(`${pc.name.toUpperCase()} · ${pc.qty}x`, {
         x: lbl.x,
@@ -133,7 +133,7 @@ export async function toPdf(
     }
 
     if (mode === "a4") {
-      // retângulo da área útil (linha de corte/colagem)
+      // usable-area rectangle (cut/glue line)
       page.drawRectangle({
         x: plan.marginCm * PT_POR_CM,
         y: plan.marginCm * PT_POR_CM,
@@ -155,7 +155,7 @@ export async function toPdf(
       );
     }
 
-    // régua de calibração de 10 cm — 1ª página (a4) ou a página única (single)
+    // 10 cm calibration ruler — 1st page (a4) or the single page (single)
     if (pageIndex === 0) {
       const baseXcm = plan.marginCm + 0.3;
       const boxYcm = plan.pageHcm - plan.marginCm - 1.2;

@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { toDxfAama } from "./dxf-aama";
 import type { ExportModel } from "./model";
 
-// xs (código 10) dos VERTEX do primeiro POLYLINE, até o SEQEND (não pega TEXT/LINE)
+// xs (code 10) of the first POLYLINE's VERTEX entries, up to SEQEND (doesn't grab TEXT/LINE)
 function firstPolylineXs(dxf: string): number[] {
   const lines = dxf.split("\n");
   const start = lines.indexOf("POLYLINE");
@@ -62,7 +62,7 @@ const dartModel: ExportModel = {
 };
 
 describe("toDxfAama", () => {
-  it("cabeçalho R13 (AC1012), mm, e comentário 999 do subset AAMA/ASTM", () => {
+  it("R13 header (AC1012), mm, and a 999 AAMA/ASTM-subset comment", () => {
     const dxf = toDxfAama(squareModel);
     expect(dxf).toMatch(/\$ACADVER\n1\nAC1012/);
     expect(dxf).toMatch(/\$INSUNITS\n70\n4/);
@@ -70,9 +70,9 @@ describe("toDxfAama", () => {
     expect(dxf).toContain("tam M");
   });
 
-  it("declara camadas numeradas (1/7/8), não as nomeadas do DXF genérico", () => {
+  it("declares numbered layers (1/7/8), not the generic DXF's named ones", () => {
     const dxf = toDxfAama(squareModel);
-    // bloco da TABLE LAYER contém os nomes numéricos
+    // the TABLE LAYER block contains the numeric names
     expect(dxf).toMatch(/LAYER\n2\n1\n/);
     expect(dxf).toMatch(/LAYER\n2\n7\n/);
     expect(dxf).toMatch(/LAYER\n2\n8\n/);
@@ -80,7 +80,7 @@ describe("toDxfAama", () => {
     expect(dxf).not.toContain("GRAINLINE");
   });
 
-  it("peça vira BLOCK + INSERT, com POLYLINE/SEQEND (R13) e sem LWPOLYLINE", () => {
+  it("a piece becomes BLOCK + INSERT, with POLYLINE/SEQEND (R13) and no LWPOLYLINE", () => {
     const dxf = toDxfAama(squareModel);
     expect(dxf).toContain("\nBLOCKS\n");
     expect(dxf.match(/\nBLOCK\n/g)?.length).toBe(1);
@@ -90,28 +90,28 @@ describe("toDxfAama", () => {
     expect(dxf).not.toContain("LWPOLYLINE");
   });
 
-  it("nome/qtd como texto de sistema na peça", () => {
+  it("name/qty as the piece's system text", () => {
     const dxf = toDxfAama(squareModel);
     expect(dxf).toContain("\nTEXT\n");
     expect(dxf).toContain("FRENTE 2X");
   });
 
-  it("escala 1:1: contorno de 10cm ocupa 100 unidades (mm)", () => {
+  it("1:1 scale: a 10cm outline spans 100 units (mm)", () => {
     const xs = firstPolylineXs(toDxfAama(squareModel));
     expect(xs.length).toBeGreaterThanOrEqual(4);
     expect(Math.max(...xs) - Math.min(...xs)).toBeCloseTo(100, 6);
   });
 
-  it("pence sai como POLYLINE aberto na camada 8; sem pence não há camada 8", () => {
+  it("dart comes out as an open POLYLINE on layer 8; no dart means no layer 8", () => {
     const withDart = toDxfAama(dartModel);
-    // duas POLYLINEs: contorno (camada 1) + pence (camada 8)
+    // two POLYLINEs: outline (layer 1) + dart (layer 8)
     expect(withDart.match(/\nPOLYLINE\n/g)?.length).toBe(2);
-    expect(withDart).toMatch(/POLYLINE\n8\n8\n66\n1\n70\n0/); // aberto na camada 8
+    expect(withDart).toMatch(/POLYLINE\n8\n8\n66\n1\n70\n0/); // open on layer 8
     const noDart = toDxfAama(squareModel);
-    expect(noDart.match(/\nPOLYLINE\n/g)?.length).toBe(1); // só o contorno
+    expect(noDart.match(/\nPOLYLINE\n/g)?.length).toBe(1); // only the outline
   });
 
-  it("um BLOCK e um INSERT por peça em models multi-peça", () => {
+  it("one BLOCK and one INSERT per piece in multi-piece models", () => {
     const multi: ExportModel = {
       ...squareModel,
       pieces: [squareModel.pieces[0], dartModel.pieces[0]],

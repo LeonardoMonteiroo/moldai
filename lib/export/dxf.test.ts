@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { flattenCubic, TOL_CM, flattenOutlineCm } from "./dxf";
 import type { ExPt } from "./model";
 
-// avalia a cúbica verdadeira em t
+// evaluates the true cubic at t
 function cubicAt(p0: ExPt, c1: ExPt, c2: ExPt, p3: ExPt, t: number): ExPt {
   const u = 1 - t;
   const b0 = u * u * u,
@@ -15,7 +15,7 @@ function cubicAt(p0: ExPt, c1: ExPt, c2: ExPt, p3: ExPt, t: number): ExPt {
   };
 }
 
-// distância do ponto q ao segmento a→b
+// distance from point q to segment a→b
 function distToSegment(q: ExPt, a: ExPt, b: ExPt): number {
   const dx = b.x - a.x,
     dy = b.y - a.y;
@@ -26,7 +26,7 @@ function distToSegment(q: ExPt, a: ExPt, b: ExPt): number {
   return Math.hypot(q.x - (a.x + t * dx), q.y - (a.y + t * dy));
 }
 
-// maior distância da curva verdadeira (amostrada densa) à polilinha [p0, ...pts]
+// largest distance from the true (densely sampled) curve to the polyline [p0, ...pts]
 function maxCurveError(
   p0: ExPt,
   c1: ExPt,
@@ -47,7 +47,7 @@ function maxCurveError(
 }
 
 describe("flattenCubic", () => {
-  it("cúbica praticamente reta vira um único ponto (p3)", () => {
+  it("a practically straight cubic becomes a single point (p3)", () => {
     const p0 = { x: 0, y: 0 },
       c1 = { x: 3, y: 0 },
       c2 = { x: 7, y: 0 },
@@ -56,14 +56,14 @@ describe("flattenCubic", () => {
     expect(out).toEqual([{ x: 10, y: 0 }]);
   });
 
-  it("cúbica curva: a polilinha aproxima a curva dentro da tolerância e termina em p3", () => {
+  it("curved cubic: the polyline approximates the curve within tolerance and ends at p3", () => {
     const p0 = { x: 0, y: 0 },
       c1 = { x: 0, y: 10 },
       c2 = { x: 10, y: 10 },
       p3 = { x: 10, y: 0 };
     const out = flattenCubic(p0, c1, c2, p3, TOL_CM);
     expect(out.length).toBeGreaterThan(1);
-    // a curva verdadeira nunca se afasta da polilinha mais que a tolerância
+    // the true curve never strays from the polyline by more than the tolerance
     expect(maxCurveError(p0, c1, c2, p3, out)).toBeLessThanOrEqual(TOL_CM);
     expect(out[out.length - 1]).toEqual({ x: 10, y: 0 });
   });
@@ -72,7 +72,7 @@ describe("flattenCubic", () => {
 import { toDxf } from "./dxf";
 import type { ExportModel } from "./model";
 
-// nº de vértices (código 90) da primeira LWPOLYLINE
+// vertex count (code 90) of the first LWPOLYLINE
 function firstLwVertexCount(dxf: string): number {
   const lines = dxf.split("\n");
   const i = lines.indexOf("LWPOLYLINE");
@@ -80,7 +80,7 @@ function firstLwVertexCount(dxf: string): number {
   return Number(lines[j + 1]);
 }
 
-// vértices (x,y) da primeira LWPOLYLINE — pares 10/20 logo após o cabeçalho da entidade
+// vertices (x,y) of the first LWPOLYLINE — 10/20 pairs right after the entity header
 function firstLwVertices(dxf: string): { x: number; y: number }[] {
   const lines = dxf.split("\n");
   const i = lines.indexOf("LWPOLYLINE");
@@ -159,7 +159,7 @@ const cubicModel: ExportModel = {
 };
 
 describe("toDxf", () => {
-  it("cabeçalho: $INSUNITS = 4 (mm) e comentário 999 com tamanho/folga", () => {
+  it("header: $INSUNITS = 4 (mm) and a 999 comment with size/allowance", () => {
     const dxf = toDxf(squareModel);
     expect(dxf).toMatch(/\$ACADVER\n1\nAC1014/);
     expect(dxf).toMatch(/\$INSUNITS\n70\n4/);
@@ -168,41 +168,41 @@ describe("toDxf", () => {
     expect(dxf).toContain("folga 1cm (net line)");
   });
 
-  it("declara as quatro layers nomeadas", () => {
+  it("declares the four named layers", () => {
     const dxf = toDxf(squareModel);
     for (const layer of ["CONTORNO", "INTERNO", "GRAINLINE", "TEXTO"]) {
       expect(dxf).toContain(layer);
     }
   });
 
-  it("uma LWPOLYLINE de contorno por peça, com LINE (fio) e TEXT (nome)", () => {
+  it("one outline LWPOLYLINE per piece, with LINE (grainline) and TEXT (name)", () => {
     const dxf = toDxf(squareModel);
-    expect(dxf.match(/\nLWPOLYLINE\n/g)?.length).toBe(1); // só o contorno (sem dart)
+    expect(dxf.match(/\nLWPOLYLINE\n/g)?.length).toBe(1); // only the outline (no dart)
     expect(dxf).toContain("\nLINE\n");
     expect(dxf).toContain("\nTEXT\n");
     expect(dxf).toContain("FRENTE · 2x");
   });
 
-  it("escala 1:1: contorno de 10cm de largura ocupa 100 unidades (mm)", () => {
+  it("1:1 scale: a 10cm-wide outline spans 100 units (mm)", () => {
     const verts = firstLwVertices(toDxf(squareModel));
     const xs = verts.map((v) => v.x);
-    // largura 10cm -> span de X de 100 unidades (mm), independente da inversão de Y
+    // 10cm width -> 100-unit (mm) X span, regardless of the Y flip
     expect(Math.max(...xs) - Math.min(...xs)).toBeCloseTo(100, 6);
   });
 
-  it("achatamento insere vértices: contorno com cubic tem mais vértices que segs", () => {
+  it("flattening inserts vertices: an outline with a cubic has more vertices than segs", () => {
     const dxf = toDxf(cubicModel);
-    expect(firstLwVertexCount(dxf)).toBeGreaterThan(2); // 2 segs no model
+    expect(firstLwVertexCount(dxf)).toBeGreaterThan(2); // 2 segs in the model
   });
 
-  it("folga nula vira 0cm no comentário", () => {
+  it("a null allowance becomes 0cm in the comment", () => {
     const dxf = toDxf(cubicModel);
     expect(dxf).toContain("folga 0cm (net line)");
   });
 });
 
 describe("flattenOutlineCm", () => {
-  it("contorno só de retas: vértices dos cantos, sem duplicar o de fechamento", () => {
+  it("straight-only outline: corner vertices, without duplicating the closing one", () => {
     const out = flattenOutlineCm(
       {
         start: { x: 0, y: 0 },
@@ -223,7 +223,7 @@ describe("flattenOutlineCm", () => {
     ]);
   });
 
-  it("contorno com cubic: achatamento insere vértices (mais que o nº de segs)", () => {
+  it("outline with a cubic: flattening inserts vertices (more than the seg count)", () => {
     const out = flattenOutlineCm(
       {
         start: { x: 0, y: 0 },

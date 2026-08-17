@@ -33,9 +33,9 @@ const P = (p: Pt): ExPt => ({ x: p[0], y: p[1] });
 
 const round2 = (n: number) => (Math.round(n * 100) / 100).toString();
 
-// Constrói o atributo `d` de um contorno fechado (start + segs) aplicando as
-// transformações de coordenada tx/ty. Compartilhado pelo serializer SVG
-// (lib/export/svg.ts, escala mm) e pelo preview do plano de corte (escala cm).
+// Builds the `d` attribute of a closed outline (start + segs) applying the
+// tx/ty coordinate transforms. Shared by the SVG serializer
+// (lib/export/svg.ts, mm scale) and the cut-plan preview (cm scale).
 export function buildPathD(
   start: ExPt,
   segs: ExSeg[],
@@ -92,13 +92,13 @@ export function outlineSegments(
 
 export function buildExportModel(pattern: Pattern, t: Translate): ExportModel {
   const spec = pattern.spec;
-  if (!spec) throw new Error("buildExportModel: pattern sem spec");
+  if (!spec) throw new Error("buildExportModel: pattern has no spec");
   const drafted: DraftedPiece[] = draftPiecesCm(spec, pattern.baseSize, t);
 
   const padCm = 6;
   const gapCm = 8;
 
-  // 1) Normaliza cada peça para o seu próprio bbox (geometria local) e guarda w/h.
+  // 1) Normalize each piece to its own bbox (local geometry) and store w/h.
   const pieces: ExportPiece[] = drafted.map((dp) => {
     const b = bbox(dp.outlineCm);
     const shift = (pt: Pt): Pt => [pt[0] - b.minX, pt[1] - b.minY];
@@ -110,7 +110,7 @@ export function buildExportModel(pattern: Pattern, t: Translate): ExportModel {
       widthCm: b.w,
       heightCm: b.h,
       outline: outlineSegments(local, dp.curvedSpans ?? []),
-      originCm: { x: padCm, y: padCm }, // posição definida no empacotamento abaixo
+      originCm: { x: padCm, y: padCm }, // position set by the packing below
     };
     if (dp.grainlineCm) {
       const [g1, g2] = dp.grainlineCm;
@@ -121,11 +121,11 @@ export function buildExportModel(pattern: Pattern, t: Translate): ExportModel {
     return ep;
   });
 
-  // 2) Shelf-packing (prateleiras): em vez de uma única fila horizontal — que
-  // gerava folhas de vários metros de largura e muitas páginas A4 — embrulha as
-  // peças em linhas com uma largura-alvo quase quadrada. Reduz a bounding box
-  // (menos folhas na impressão A4) sem sobrepor peças. Ordena por altura desc
-  // para prateleiras mais justas; a ordem do array retornado é preservada.
+  // 2) Shelf-packing: instead of a single horizontal row — which produced
+  // sheets several meters wide and many A4 pages — it wraps the pieces into
+  // rows with a near-square target width. Shrinks the bounding box (fewer
+  // A4 pages when printing) without overlapping pieces. Sorts by height desc
+  // for tighter shelves; the returned array's order is preserved.
   const widest = pieces.reduce((m, p) => Math.max(m, p.widthCm), 0);
   const totalArea = pieces.reduce((s, p) => s + p.widthCm * p.heightCm, 0);
   const targetW = Math.max(widest, Math.sqrt(totalArea * 1.4));
@@ -137,7 +137,7 @@ export function buildExportModel(pattern: Pattern, t: Translate): ExportModel {
   let sheetRight = padCm;
   for (const p of order) {
     if (cursorX > padCm && cursorX - padCm + p.widthCm > targetW) {
-      cursorY += rowH + gapCm; // nova prateleira
+      cursorY += rowH + gapCm; // new shelf
       cursorX = padCm;
       rowH = 0;
     }
