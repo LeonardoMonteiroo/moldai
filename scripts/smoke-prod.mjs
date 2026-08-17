@@ -109,8 +109,8 @@ async function main() {
   const csrfRes = await req("/api/auth/csrf");
   if (csrfRes.status !== 200) fail(`GET /api/auth/csrf → ${csrfRes.status}`);
   const { csrfToken } = await csrfRes.json();
-  if (!csrfToken) fail("csrfToken ausente na resposta de /api/auth/csrf");
-  ok("CSRF token obtido");
+  if (!csrfToken) fail("csrfToken missing from the /api/auth/csrf response");
+  ok("CSRF token obtained");
 
   // Login credentials.
   const body = new URLSearchParams({
