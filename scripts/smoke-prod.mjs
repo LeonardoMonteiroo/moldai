@@ -1,15 +1,15 @@
 #!/usr/bin/env node
-// Smoke de produção: valida que o LOGIN de verdade funciona no stack real
-// (`next start` / NODE_ENV=production), não só que a home responde HTTP.
+// Production smoke test: verifies that REAL login works on the actual stack
+// (`next start` / NODE_ENV=production), not just that the home page responds HTTP.
 //
-// Nasceu de um bug real: `trustHost` ausente no Auth.js v5 derrubava todo
-// /api/auth/* com 500 (UntrustedHost) SÓ em produção — em dev o host é
-// confiado automaticamente. Um smoke que só checa o código HTTP da home passa
-// mesmo com o login quebrado; este faz o fluxo credentials completo e exige
-// uma sessão válida no fim, então pega essa classe de regressão.
+// Born from a real bug: a missing `trustHost` in Auth.js v5 took down every
+// /api/auth/* route with a 500 (UntrustedHost) ONLY in production — in dev the
+// host is trusted automatically. A smoke test that only checks the home page's
+// HTTP status passes even with login broken; this one runs the full credentials
+// flow and requires a valid session at the end, so it catches that class of regression.
 //
-// Uso:
-//   node scripts/smoke-prod.mjs            # contra SMOKE_URL (default localhost:3000)
+// Usage:
+//   node scripts/smoke-prod.mjs            # against SMOKE_URL (default localhost:3000)
 //   SMOKE_URL=http://host:3000 node scripts/smoke-prod.mjs
 // Env: SMOKE_URL, SMOKE_EMAIL, SMOKE_PASSWORD, SMOKE_READY_TIMEOUT_MS
 
@@ -21,7 +21,7 @@ const EMAIL = process.env.SMOKE_EMAIL ?? "dev@moldai.local";
 const PASSWORD = process.env.SMOKE_PASSWORD ?? "moldai-dev";
 const READY_TIMEOUT_MS = Number(process.env.SMOKE_READY_TIMEOUT_MS ?? 120000);
 
-// Cookie jar mínimo (nome -> valor); reenviado em cada request.
+// Minimal cookie jar (name -> value); resent on every request.
 const jar = new Map();
 
 function storeCookies(res) {
@@ -74,16 +74,16 @@ async function waitReady() {
     await new Promise((r) => setTimeout(r, 2000));
   }
   fail(
-    `servidor não ficou pronto em ${BASE} (${READY_TIMEOUT_MS}ms) — último: ${last}`,
+    `server didn't become ready at ${BASE} (${READY_TIMEOUT_MS}ms) — last: ${last}`,
   );
 }
 
 async function main() {
-  console.log(`[smoke] alvo: ${BASE}  usuário: ${EMAIL}`);
+  console.log(`[smoke] target: ${BASE}  user: ${EMAIL}`);
   await waitReady();
   ok("GET /login → 200");
 
-  // Endpoint de auth precisa estar de pé — 500 aqui é o sintoma do UntrustedHost.
+  // Auth endpoint needs to be up — a 500 here is the UntrustedHost symptom.
   const providers = await req("/api/auth/providers");
   if (providers.status !== 200) {
     fail(
@@ -92,7 +92,7 @@ async function main() {
   }
   ok("GET /api/auth/providers → 200");
 
-  // Raiz sem sessão deve mandar para /login.
+  // Root without a session should redirect to /login.
   const anon = await req("/");
   const anonLoc = anon.headers.get("location") ?? "";
   if (
@@ -100,10 +100,10 @@ async function main() {
     !anonLoc.includes("/login")
   ) {
     fail(
-      `GET / (anônimo) → ${anon.status} loc="${anonLoc}" (esperado redirect p/ /login)`,
+      `GET / (anonymous) → ${anon.status} loc="${anonLoc}" (expected redirect to /login)`,
     );
   }
-  ok("GET / (anônimo) → redirect /login");
+  ok("GET / (anonymous) → redirect /login");
 
   // CSRF token (Auth.js v5).
   const csrfRes = await req("/api/auth/csrf");
@@ -125,34 +125,34 @@ async function main() {
     body,
   });
   if (login.status >= 500) {
-    fail(
-      `POST login → ${login.status} (5xx: provável UntrustedHost/trustHost)`,
-    );
+    fail(`POST login → ${login.status} (5xx: likely UntrustedHost/trustHost)`);
   }
   const loginLoc = login.headers.get("location") ?? "";
   if (/[?&]error=/.test(loginLoc)) {
-    fail(`login rejeitado (credenciais?): ${loginLoc}`);
+    fail(`login rejected (bad credentials?): ${loginLoc}`);
   }
   ok(`POST login credentials → ${login.status}`);
 
-  // Prova real: a sessão precisa existir e ser do usuário esperado.
+  // Real proof: the session must exist and belong to the expected user.
   const session = await req("/api/auth/session");
   if (session.status !== 200) fail(`GET /api/auth/session → ${session.status}`);
   const sess = await session.json();
   if (sess?.user?.email !== EMAIL) {
-    fail(`sessão sem o usuário esperado — recebido: ${JSON.stringify(sess)}`);
+    fail(
+      `session missing the expected user — received: ${JSON.stringify(sess)}`,
+    );
   }
-  ok(`sessão ativa para ${sess.user.email}`);
+  ok(`active session for ${sess.user.email}`);
 
-  // E a raiz autenticada não redireciona mais.
+  // And the authenticated root no longer redirects.
   const authed = await req("/");
   if (authed.status !== 200) {
-    fail(`GET / (autenticado) → ${authed.status} (esperado 200 — editor)`);
+    fail(`GET / (authenticated) → ${authed.status} (expected 200 — editor)`);
   }
-  ok("GET / (autenticado) → 200 (editor)");
+  ok("GET / (authenticated) → 200 (editor)");
 
   console.log(
-    "\n✓ smoke de produção OK — login real funciona no stack next start",
+    "\n✓ production smoke OK — real login works on the next start stack",
   );
 }
 

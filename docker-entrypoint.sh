@@ -2,22 +2,22 @@
 set -e
 
 if [ -n "$DATABASE_URL" ]; then
-  echo "[entrypoint] aguardando o Postgres..."
-  # pg_isready rejeita a query string (?schema=public) do DATABASE_URL — o
-  # parser de URI dele não aceita esse parâmetro. Prisma aceita; então só o
-  # readiness check usa a URL sem a query.
+  echo "[entrypoint] waiting for Postgres..."
+  # pg_isready rejects the query string (?schema=public) in DATABASE_URL — its
+  # URI parser doesn't accept that parameter. Prisma does accept it; so only the
+  # readiness check uses the URL without the query.
   DB_URL_NOQ="${DATABASE_URL%%\?*}"
   until pg_isready -d "$DB_URL_NOQ" >/dev/null 2>&1; do
     sleep 1
   done
-  echo "[entrypoint] Postgres pronto."
+  echo "[entrypoint] Postgres ready."
 fi
 
-echo "[entrypoint] aplicando migrações (prisma migrate deploy)..."
+echo "[entrypoint] applying migrations (prisma migrate deploy)..."
 npx prisma migrate deploy
 
-echo "[entrypoint] seed (idempotente)..."
-npx prisma db seed || echo "[entrypoint] aviso: seed falhou, seguindo mesmo assim"
+echo "[entrypoint] seed (idempotent)..."
+npx prisma db seed || echo "[entrypoint] warning: seed failed, continuing anyway"
 
-echo "[entrypoint] iniciando: $*"
+echo "[entrypoint] starting: $*"
 exec "$@"

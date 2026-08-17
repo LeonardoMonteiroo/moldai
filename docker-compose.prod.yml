@@ -1,5 +1,5 @@
-# Override de produção: docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build
-# Builda o target `runner` (next start) e remove os bind mounts de dev.
+# Production override: docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build
+# Builds the `runner` target (next start) and removes the dev bind mounts.
 services:
   app:
     build:

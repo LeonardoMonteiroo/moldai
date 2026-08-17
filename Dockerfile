@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# ---- deps: instala node_modules (+ prisma generate via postinstall) ----
+# ---- deps: installs node_modules (+ prisma generate via postinstall) ----
 FROM node:22-alpine AS deps
 WORKDIR /app
 RUN apk add --no-cache libc6-compat openssl
@@ -8,7 +8,7 @@ COPY package.json package-lock.json ./
 COPY prisma ./prisma
 RUN npm ci --legacy-peer-deps
 
-# ---- dev: hot reload; o código vem por bind mount em runtime ----
+# ---- dev: hot reload; code comes in via bind mount at runtime ----
 FROM node:22-alpine AS dev
 WORKDIR /app
 RUN apk add --no-cache libc6-compat openssl postgresql-client
@@ -20,7 +20,7 @@ EXPOSE 3000
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["npm", "run", "dev", "--", "--hostname", "0.0.0.0"]
 
-# ---- build: gera o .next de produção ----
+# ---- build: generates the production .next ----
 FROM node:22-alpine AS build
 WORKDIR /app
 RUN apk add --no-cache libc6-compat openssl
@@ -29,7 +29,7 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
-# ---- runner: produção (next start + toolchain para migrate/seed) ----
+# ---- runner: production (next start + toolchain for migrate/seed) ----
 FROM node:22-alpine AS runner
 WORKDIR /app
 RUN apk add --no-cache libc6-compat openssl postgresql-client
@@ -41,7 +41,7 @@ COPY --from=build /app/public ./public
 COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/next.config.ts ./next.config.ts
 COPY --from=build /app/prisma ./prisma
-# lib/ é necessário pelo prisma/seed.ts (importa ../lib/auth/hash) no entrypoint
+# lib/ is needed by prisma/seed.ts (imports ../lib/auth/hash) in the entrypoint
 COPY --from=build /app/lib ./lib
 COPY --from=build /app/tsconfig.json ./tsconfig.json
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
