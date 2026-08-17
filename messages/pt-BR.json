@@ -76,7 +76,18 @@
     "zoomInTitle": "Aumentar zoom"
   },
   "GeneratingOverlay": {
-    "cancelButton": "Cancelar"
+    "cancelButton": "Cancelar",
+    "steps": {
+      "stepLabel": "passo {n}/4 · {stage}",
+      "stage1": "silhueta",
+      "stage2": "pinças",
+      "stage3": "costuras",
+      "stage4": "consumo",
+      "progress1": "traçando peças",
+      "progress2": "ajustando detalhes",
+      "progress3": "conferindo costuras",
+      "progress4": "calculando consumo"
+    }
   },
   "PaywallModal": {
     "closeAriaLabel": "Fechar",
@@ -122,6 +133,43 @@
     "generateAnywayButton": "gerar assim mesmo",
     "generateAnywayMessage": "pode gerar com os padrões"
   },
+  "PatternData": {
+    "pieceNames": {
+      "front": "Frente",
+      "back": "Costas",
+      "sleeve": "Manga",
+      "skirt": "Saia"
+    },
+    "rows": {
+      "seamAllowance": "Folga de costura",
+      "chestWidth": "Largura (tórax)",
+      "length": "Comprimento",
+      "armhole": "Cava",
+      "neckline": "Decote",
+      "grain": "Fio",
+      "dart": "Pence",
+      "silhouette": "Silhueta",
+      "waistRadius": "Raio da cintura",
+      "waistPanel": "Cintura (painel)",
+      "sleeveType": "Tipo",
+      "sleeveCap": "Cava (copa)"
+    },
+    "neckline": { "straight": "reto", "V": "V", "round": "redondo" },
+    "skirtSilhouette": {
+      "straight": "reta",
+      "a-line": "evase",
+      "gore": "gode",
+      "half-circle": "meia-roda",
+      "circle": "circulo"
+    },
+    "sleeveType": { "short": "curta", "long": "longa" },
+    "grainValue": "reto",
+    "conflict": {
+      "title": "Cava e manga não batem",
+      "description": "A cava do corpo ficou {diffCm} cm {direction, select, larger {maior} smaller {menor} other {}} que a copa da manga — as costuras não vão fechar.",
+      "suggestion": "“Corrigir manga” refaz a copa para a cava ajustada, sem custo."
+    }
+  },
   "TechSheetTab": {
     "title": "Ficha técnica",
     "subtitle": "{name} · base {baseSize} · unidade {unit}",
@@ -130,7 +178,14 @@
     "chipPieces": "Peças",
     "chipSeamAllowance": "Folga de costura",
     "dimensionsLabel": "Dimensões (larg × alt)",
-    "noDetails": "Sem detalhes."
+    "noDetails": "Sem detalhes.",
+    "garmentType": {
+      "blouse": "Blusa",
+      "dress": "Vestido",
+      "skirt": "Saia",
+      "tshirt": "Camiseta"
+    },
+    "gender": { "male": "masculina", "female": "feminina" }
   },
   "CutPlanTab": {
     "title": "Plano de corte",
