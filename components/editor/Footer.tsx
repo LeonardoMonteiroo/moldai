@@ -59,7 +59,7 @@ export function Footer({
           unit: pattern.unit,
         });
 
-  // Só re-desenha o modelo quando o menu abre (buildExportModel re-drafta em cm).
+  // Only re-draws the model when the menu opens (buildExportModel re-drafts in cm).
   const a4Pages = useMemo(() => {
     if (!menuOpen || exportDisabled) return 0;
     const model = buildExportModel(pattern, tData);

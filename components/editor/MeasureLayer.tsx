@@ -20,8 +20,8 @@ export function MeasureLayer({
   scale: number;
   onRemove?: (id: string) => void;
 }) {
-  const fs = 12 / scale; // font-size constante em tela
-  const r = 3 / scale; // raio dos ticks constante em tela
+  const fs = 12 / scale; // font-size constant on screen
+  const r = 3 / scale; // tick radius constant on screen
   const mid = (a: Point, b: Point) => ({
     x: (a.x + b.x) / 2,
     y: (a.y + b.y) / 2,

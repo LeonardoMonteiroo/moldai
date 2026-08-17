@@ -47,8 +47,8 @@ export function CanvasArea() {
   const selectedPiece =
     pattern.pieces.find((p) => p.id === selectedPieceId) ?? null;
   const hasPieces = pattern.pieces.length > 0;
-  // Um painel flutuante ocupa o canto direito do canvas (conflito ou detalhes).
-  // Reservamos essa faixa pro desenho não ficar escondido atrás dele.
+  // A floating panel occupies the canvas's right corner (conflict or details).
+  // We reserve that strip so the drawing doesn't end up hidden behind it.
   const rightOverlayOpen =
     !isGenerating && (!!conflict || (detailsPanelOpen && !!selectedPiece));
 

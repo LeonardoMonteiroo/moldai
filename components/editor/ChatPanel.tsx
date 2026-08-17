@@ -76,8 +76,8 @@ export function ChatPanel() {
                 <div
                   className="bg-ink h-full animate-pulse transition-all duration-300"
                   style={{
-                    // Nunca chega a 100% enquanto a IA responde — deixa headroom
-                    // e pulsa pra não parecer "concluído" parado no último passo.
+                    // Never reaches 100% while the AI is responding — leaves headroom
+                    // and pulses so it doesn't look "done" stuck on the last step.
                     width: `${Math.min(92, ((generationStepIndex + 1) / (GENERATION_STEP_COUNT + 0.5)) * 100)}%`,
                   }}
                 />

@@ -13,7 +13,7 @@ export function CutPlanTab({ pattern }: { pattern: Pattern }) {
   const tData = useTranslations("PatternData");
   const [fabricWidthCm, setFabricWidthCm] = useState<number>(150);
 
-  // Encaixe real: só recalcula quando o molde ou a largura mudam.
+  // Real nesting: only recalculates when the pattern or the width changes.
   const plan = useMemo(() => {
     if (!pattern.spec || pattern.pieces.length === 0) return null;
     try {

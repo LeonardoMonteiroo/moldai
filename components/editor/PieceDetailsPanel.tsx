@@ -15,7 +15,7 @@ export function PieceDetailsPanel({
 }) {
   const t = useTranslations("PieceDetailsPanel");
   const detailRows = piece.detailRows ?? [];
-  // O tamanho-base já é o tamanho desenhado — não precisa (nem pode) ser graduado.
+  // The base size is already the size that was drafted — it doesn't need (or can't) be graded.
   const gradable = pattern.sizesPending.filter((s) => s !== pattern.baseSize);
 
   return (

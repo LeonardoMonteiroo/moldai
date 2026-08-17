@@ -7,7 +7,7 @@ const cm = (n: number) => n.toFixed(1).replace(".", ",");
 export function TechSheetTab({ pattern }: { pattern: Pattern }) {
   const t = useTranslations("TechSheetTab");
   const tData = useTranslations("PatternData");
-  // Dimensões (larg × alt em cm) por peça, do model re-draftado em cm exato.
+  // Dimensions (w × h in cm) per piece, from the model re-drafted in exact cm.
   const dims: Record<string, { w: number; h: number }> = {};
   if (pattern.spec && pattern.pieces.length > 0) {
     try {

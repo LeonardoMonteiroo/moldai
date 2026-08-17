@@ -73,8 +73,8 @@ export function PatternCanvas({
     [pieces],
   );
 
-  // limiar de snap ~10px de tela convertido p/ unidades de usuário, lido no CTM no
-  // momento do evento (exato, não o valor de render)
+  // ~10px screen snap threshold converted to user units, read from the CTM at
+  // the moment of the event (exact, not the render-time value)
   const thresholdUser = () => {
     const svg = svgRef.current;
     const ctm = svg?.getScreenCTM();
@@ -83,7 +83,7 @@ export function PatternCanvas({
       : (10 * viewport.w) / (svg?.clientWidth || viewport.w);
   };
 
-  // roda do mouse = zoom-ao-cursor (ambas as ferramentas); listener não-passivo p/ preventDefault
+  // mouse wheel = zoom-at-cursor (both tools); non-passive listener for preventDefault
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
@@ -96,7 +96,7 @@ export function PatternCanvas({
     return () => svg.removeEventListener("wheel", onWheel);
   }, [svgRef, onWheelZoom]);
 
-  // trocar de ferramenta limpa o preview (padrão "ajustar estado ao mudar de prop")
+  // switching tools clears the preview ("adjust state on prop change" pattern)
   const [prevTool, setPrevTool] = useState(activeTool);
   if (prevTool !== activeTool) {
     setPrevTool(activeTool);
@@ -105,7 +105,7 @@ export function PatternCanvas({
     setCursor(null);
   }
 
-  // Esc cancela o ponto pendente enquanto a ferramenta measure está ativa
+  // Esc cancels the pending point while the measure tool is active
   useEffect(() => {
     if (activeTool !== "measure") return;
     const onKey = (e: KeyboardEvent) => {
@@ -140,7 +140,7 @@ export function PatternCanvas({
       }
       return;
     }
-    // measure: preview + snap
+    // measure tool: preview + snap
     const u = screenToUser(e.clientX, e.clientY);
     const s = nearestSnap(u, snapPoints, thresholdUser());
     setSnap(s);
@@ -155,7 +155,7 @@ export function PatternCanvas({
     }
   };
 
-  // clique no fundo do SVG: na medição, coloca/finaliza pontos
+  // click on the SVG background: while measuring, places/finalizes points
   const handleClick = (e: React.MouseEvent) => {
     if (activeTool !== "measure") return;
     const u = screenToUser(e.clientX, e.clientY);
