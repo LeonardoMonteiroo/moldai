@@ -14,7 +14,7 @@ export function TechSheetTab({ pattern }: { pattern: Pattern }) {
       for (const p of buildExportModel(pattern, tData).pieces)
         dims[p.id] = { w: p.widthCm, h: p.heightCm };
     } catch {
-      /* sem spec válido: cai no comportamento sem dimensões */
+      /* no valid spec: falls back to the no-dimensions behavior */
     }
   }
 

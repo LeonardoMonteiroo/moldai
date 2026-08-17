@@ -5,8 +5,8 @@ import { getUserByEmail } from "@/lib/db/users";
 import { verifyPassword } from "@/lib/auth/hash";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  // Self-hosted (Docker/`next start`): Auth.js v5 só confia no host automaticamente
-  // em dev. Em produção, sem isto todo request de auth falha com UntrustedHost.
+  // Self-hosted (Docker/`next start`): Auth.js v5 only trusts the host
+  // automatically in dev. In production, without this every auth request fails with UntrustedHost.
   trustHost: true,
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },

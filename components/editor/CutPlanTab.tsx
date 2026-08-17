@@ -62,7 +62,7 @@ export function CutPlanTab({ pattern }: { pattern: Pattern }) {
             </div>
           </div>
 
-          {/* métricas */}
+          {/* metrics */}
           <div className="flex flex-wrap gap-3">
             <Metric
               label={t("metricConsumptionLabel")}
@@ -90,7 +90,7 @@ export function CutPlanTab({ pattern }: { pattern: Pattern }) {
             </span>
           )}
 
-          {/* prévia do encaixe */}
+          {/* nesting preview */}
           <div className="border-border rounded-card bg-surface-alt overflow-auto border p-3">
             <svg
               viewBox={`0 0 ${fabricWidthCm} ${plan.lengthCm}`}
