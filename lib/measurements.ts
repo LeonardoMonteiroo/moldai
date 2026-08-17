@@ -1,13 +1,13 @@
 import { SizeLabel, Gender } from "./types";
 
 export interface Measurements {
-  bust: number; // circunferência do busto (cm)
-  waist: number; // circunferência da cintura (cm)
-  hip: number; // circunferência do quadril (cm)
-  hipHeight: number; // cintura → quadril (cm)
-  backLength: number; // nuca → cintura (cm)
-  shoulder: number; // largura de um ombro (cm)
-  skirtLength: number; // comprimento default da saia (cm)
+  bust: number; // bust circumference (cm)
+  waist: number; // waist circumference (cm)
+  hip: number; // hip circumference (cm)
+  hipHeight: number; // waist → hip (cm)
+  backLength: number; // nape → waist (cm)
+  shoulder: number; // width of one shoulder (cm)
+  skirtLength: number; // default skirt length (cm)
   shortSleeveLength: number; // (cm)
   longSleeveLength: number; // (cm)
 }

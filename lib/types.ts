@@ -38,12 +38,12 @@ export interface GarmentStyle {
   skirtLengthCm?: number;
   darts?: boolean;
   seamAllowanceCm?: number;
-  // Aprofundamento da cava do corpo (cm), settável pela IA e clampado em
-  // validateSpec. Ao mexer só no corpo, a copa da manga (dimensionada pela cava
-  // base) deixa de bater → conflito de costura detectado por seamCheck.
+  // Deepening of the body's armhole (cm), settable by the AI and clamped in
+  // validateSpec. Since it only touches the body, the sleeve cap (sized from the
+  // base armhole) stops matching → seam conflict detected by seamCheck.
   armholeDeepenCm?: number;
-  // Interno (NÃO settável pela IA — validateSpec o descarta): marcado por
-  // "Corrigir manga" no resolver, refaz a copa para a cava ajustada.
+  // Internal (NOT settable by the AI — validateSpec discards it): set by
+  // "Corrigir manga" (sleeve fix) in the resolver, remakes the cap for the adjusted armhole.
   sleeveRefit?: boolean;
 }
 
@@ -68,7 +68,7 @@ export interface Piece {
   grainline?: { x1: number; y1: number; x2: number; y2: number };
   dart?: { d: string };
   label: { x: number; y: number };
-  vertices?: Point[]; // âncoras do outline em px, p/ snap da ferramenta medir
+  vertices?: Point[]; // outline anchors in px, for the measure tool's snap
   detailRows: DetailRow[];
 }
 

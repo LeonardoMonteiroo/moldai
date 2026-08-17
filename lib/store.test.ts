@@ -59,7 +59,7 @@ describe("store.sendMessage", () => {
     });
   });
 
-  it("repassa answering e trata clarify sem erro nem seleção de peça", async () => {
+  it("forwards answering and handles clarify without error or piece selection", async () => {
     genMock.mockResolvedValue({ status: "clarify", state: emptyState() });
     await useEditorStore
       .getState()
@@ -73,23 +73,23 @@ describe("store.sendMessage", () => {
   });
 });
 
-describe("editor store — ferramenta e medições", () => {
+describe("editor store — tool and measurements", () => {
   beforeEach(() => {
     useEditorStore.setState({ measurements: [], activeTool: "cursor" });
   });
 
-  it("default de ferramenta é cursor", () => {
+  it("defaults the tool to cursor", () => {
     expect(useEditorStore.getState().activeTool).toBe("cursor");
   });
 
-  it("addMeasurement acrescenta", () => {
+  it("addMeasurement appends", () => {
     useEditorStore
       .getState()
       .addMeasurement({ id: "m1", a: { x: 0, y: 0 }, b: { x: 4, y: 0 } });
     expect(useEditorStore.getState().measurements).toHaveLength(1);
   });
 
-  it("removeMeasurement remove pelo id", () => {
+  it("removeMeasurement removes by id", () => {
     const s = useEditorStore.getState();
     s.addMeasurement({ id: "m1", a: { x: 0, y: 0 }, b: { x: 4, y: 0 } });
     s.addMeasurement({ id: "m2", a: { x: 0, y: 0 }, b: { x: 8, y: 0 } });
@@ -99,7 +99,7 @@ describe("editor store — ferramenta e medições", () => {
     ]);
   });
 
-  it("clearMeasurements esvazia", () => {
+  it("clearMeasurements empties the list", () => {
     useEditorStore
       .getState()
       .addMeasurement({ id: "m1", a: { x: 0, y: 0 }, b: { x: 4, y: 0 } });
