@@ -11,7 +11,9 @@ let rows: Row[] = [];
 let nextId = 1;
 
 const tx = {
-  $queryRaw: vi.fn(async (): Promise<{ data: unknown }[]> => []),
+  $queryRaw: vi.fn(
+    async (..._args: unknown[]): Promise<{ data: unknown }[]> => [],
+  ),
   $executeRaw: vi.fn(
     async (
       _strings: TemplateStringsArray,

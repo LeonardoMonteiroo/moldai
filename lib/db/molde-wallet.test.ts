@@ -23,7 +23,7 @@ const tx = {
           (v): v is string =>
             typeof v === "string" && v.trimStart().startsWith("{"),
         );
-        const row = moldeStore.get(moldeId);
+        const row = moldeId ? moldeStore.get(moldeId) : undefined;
         if (jsonStr && row) row.data = JSON.parse(jsonStr);
       }
       if (sql.includes('"Wallet"') && sql.includes("UPDATE")) {
