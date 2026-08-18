@@ -17,7 +17,10 @@
     "saveVersionButton": "Salvar versão · em breve"
   },
   "Topbar": {
-    "deleteConfirm": "Excluir este molde? Isso apaga o molde e toda a conversa, e não pode ser desfeito.",
+    "deleteModalTitle": "Excluir este molde?",
+    "deleteModalDescription": "Isso apaga o molde e toda a conversa, e não pode ser desfeito.",
+    "deleteConfirmButton": "Excluir",
+    "deleteCancelButton": "Cancelar",
     "deleteTitle": "Excluir este molde",
     "deleteButton": "✕ Excluir",
     "savedVersion": "{savedAgo} · v{version}",
