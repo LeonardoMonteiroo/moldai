@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getTranslations } from "next-intl/server";
 import { withMoldeAndWallet } from "@/lib/db/molde-wallet";
+import { moldeNotFound } from "@/lib/db/molde";
 import { addMessage, applyGarmentSpec, bumpVersion } from "@/lib/editor/state";
 import { debitWallet, refundWallet } from "@/lib/billing/wallet";
 import type { LedgerEntry } from "@/lib/billing/wallet";
@@ -9,9 +10,12 @@ import { COSTS } from "@/lib/types";
 import { proposeGarment } from "@/lib/ai";
 import { requireUser } from "@/lib/auth/guard";
 
-export async function POST(request: Request) {
+type Ctx = { params: Promise<{ id: string }> };
+
+export async function POST(request: Request, { params }: Ctx) {
   const gate = await requireUser();
   if (gate instanceof NextResponse) return gate;
+  const { id } = await params;
 
   let body: { message?: unknown; answering?: unknown };
   try {
@@ -34,7 +38,8 @@ export async function POST(request: Request) {
   const t = await getTranslations("PatternData");
   const now = new Date();
 
-  return withMoldeAndWallet(
+  const result = await withMoldeAndWallet(
+    id,
     gate.id,
     async (
       state,
@@ -137,4 +142,5 @@ export async function POST(request: Request) {
       }
     },
   );
+  return result ?? moldeNotFound();
 }
