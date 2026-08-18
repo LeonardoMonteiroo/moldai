@@ -2,12 +2,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { EditorState } from "./types";
 
 vi.mock("./api-client", () => ({
-  fetchPattern: vi.fn(),
+  fetchMolde: vi.fn(),
   generate: vi.fn(),
-  resetPattern: vi.fn(),
   graduate: vi.fn(),
   resolveConflict: vi.fn(),
   purchase: vi.fn(),
+  deleteMolde: vi.fn(),
 }));
 
 import * as api from "./api-client";
@@ -54,18 +54,19 @@ describe("store.sendMessage", () => {
   beforeEach(() => {
     genMock.mockReset();
     useEditorStore.setState({
+      moldeId: "m1",
       selectedPieceId: null,
       generationStatus: "idle",
     });
   });
 
-  it("forwards answering and handles clarify without error or piece selection", async () => {
+  it("forwards moldeId, message, and answering to api.generate", async () => {
     genMock.mockResolvedValue({ status: "clarify", state: emptyState() });
     await useEditorStore
       .getState()
       .sendMessage("gola redonda", { answering: true });
 
-    expect(genMock).toHaveBeenCalledWith("gola redonda", true);
+    expect(genMock).toHaveBeenCalledWith("m1", "gola redonda", true);
     expect(useEditorStore.getState().generationStatus).toBe("idle");
     expect(useEditorStore.getState().selectedPieceId).toBeNull();
     const last = useEditorStore.getState().chat.at(-1)!;

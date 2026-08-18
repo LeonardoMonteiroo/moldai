@@ -30,6 +30,7 @@ interface PaywallState {
 
 interface EditorStore {
   ready: boolean;
+  moldeId: string | null;
   pattern: Pattern | null;
   chat: ChatMessage[];
   credits: Credits | null;
@@ -47,12 +48,12 @@ interface EditorStore {
 
   paywall: PaywallState;
 
-  init: () => Promise<void>;
+  init: (moldeId: string) => Promise<void>;
   sendMessage: (
     message: string,
     opts?: { answering?: boolean },
   ) => Promise<void>;
-  resetPattern: () => Promise<void>;
+  deleteCurrentMolde: () => Promise<void>;
   cancelGeneration: () => void;
   graduateSizes: (sizes: string[]) => Promise<void>;
   resolveConflict: (action: "fix" | "ignore") => Promise<void>;
@@ -82,6 +83,7 @@ function applyState(
 
 export const useEditorStore = create<EditorStore>((set, get) => ({
   ready: false,
+  moldeId: null,
   pattern: null,
   chat: [],
   credits: null,
@@ -105,14 +107,17 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     retry: null,
   },
 
-  init: async () => {
-    const state = await api.fetchPattern();
+  init: async (moldeId: string) => {
+    set({ moldeId });
+    const state = await api.fetchMolde(moldeId);
     applyState(set, state);
     set({ ready: true, selectedPieceId: state.pattern.pieces[0]?.id ?? null });
   },
 
   sendMessage: async (message: string, opts?: { answering?: boolean }) => {
     if (!message.trim()) return;
+    const moldeId = get().moldeId;
+    if (!moldeId) return;
     const requestId = get().generationRequestId + 1;
     set((s) => ({
       generationStatus: "generating",
@@ -143,7 +148,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     };
     scheduleStep(0);
 
-    const result = await api.generate(message, opts?.answering);
+    const result = await api.generate(moldeId, message, opts?.answering);
     clearTimeout(stepTimer);
 
     if (get().generationRequestId !== requestId) return; // canceled
@@ -189,32 +194,17 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     }));
   },
 
-  resetPattern: async () => {
-    // Bump the request id first so any in-flight generation is treated as
-    // canceled (its result is ignored when it resolves).
+  deleteCurrentMolde: async () => {
+    const moldeId = get().moldeId;
+    if (!moldeId) return;
     set((s) => ({ generationRequestId: s.generationRequestId + 1 }));
-    const result = await api.resetPattern();
-    applyState(set, result.state);
-    set({
-      selectedPieceId: null,
-      detailsPanelOpen: true,
-      activeTab: "pattern2d",
-      activeTool: "cursor",
-      measurements: [],
-      generationStatus: "idle",
-      generationStepIndex: 0,
-      paywall: {
-        open: false,
-        required: 0,
-        balance: 0,
-        actionLabel: "",
-        retry: null,
-      },
-    });
+    await api.deleteMolde(moldeId);
   },
 
   graduateSizes: async (sizes: string[]) => {
-    const result = await api.graduate(sizes);
+    const moldeId = get().moldeId;
+    if (!moldeId) return;
+    const result = await api.graduate(moldeId, sizes);
     if (result.status === "insufficient_credits") {
       set({
         paywall: {
@@ -231,13 +221,17 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   },
 
   resolveConflict: async (action: "fix" | "ignore") => {
-    const result = await api.resolveConflict(action);
+    const moldeId = get().moldeId;
+    if (!moldeId) return;
+    const result = await api.resolveConflict(moldeId, action);
     if ("state" in result) applyState(set, result.state);
   },
 
   purchase: async (type: "topup" | "subscribe") => {
-    const result = await api.purchase(type);
+    const moldeId = get().moldeId ?? undefined;
+    const result = await api.purchase(type, moldeId);
     if ("state" in result) applyState(set, result.state);
+    else if ("credits" in result) set({ credits: result.credits });
     const retry = get().paywall.retry;
     set({
       paywall: {
