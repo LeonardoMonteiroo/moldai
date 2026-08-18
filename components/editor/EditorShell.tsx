@@ -9,7 +9,13 @@ import { CanvasArea } from "./CanvasArea";
 import { Footer } from "./Footer";
 import { PaywallModal } from "./PaywallModal";
 
-export function EditorShell({ userEmail }: { userEmail: string }) {
+export function EditorShell({
+  userEmail,
+  moldeId,
+}: {
+  userEmail: string;
+  moldeId: string;
+}) {
   const t = useTranslations("EditorShell");
   const ready = useEditorStore((s) => s.ready);
   const pattern = useEditorStore((s) => s.pattern);
@@ -20,8 +26,8 @@ export function EditorShell({ userEmail }: { userEmail: string }) {
   const init = useEditorStore((s) => s.init);
 
   useEffect(() => {
-    init();
-  }, [init]);
+    init(moldeId);
+  }, [init, moldeId]);
 
   if (!ready || !pattern || !credits) {
     return (

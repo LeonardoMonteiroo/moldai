@@ -17,9 +17,9 @@
     "saveVersionButton": "Salvar versão · em breve"
   },
   "Topbar": {
-    "resetConfirm": "Resetar o molde? Isso apaga o molde atual e toda a conversa.",
-    "resetTitle": "Resetar o molde e o chat",
-    "resetButton": "↺ Resetar",
+    "deleteConfirm": "Excluir este molde? Isso apaga o molde e toda a conversa, e não pode ser desfeito.",
+    "deleteTitle": "Excluir este molde",
+    "deleteButton": "✕ Excluir",
     "savedVersion": "{savedAgo} · v{version}",
     "creditsLabel": "{planLabel} · {balance} créditos",
     "outOfTotal": "de {total}",
@@ -214,6 +214,6 @@
     "invalidCredentials": "Email ou senha inválidos.",
     "submitButton": "Entrar",
     "submitButtonLoading": "Entrando…",
-    "signupNote": "Criar conta — <b>em breve</b>. Cada conta tem o seu próprio molde, salvo automaticamente."
+    "signupNote": "Criar conta — <b>em breve</b>. Cada conta tem os seus próprios moldes, salvos automaticamente."
   }
 }

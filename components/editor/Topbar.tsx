@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Credits, Pattern } from "@/lib/types";
 import { useEditorStore } from "@/lib/store";
@@ -16,12 +17,14 @@ export function Topbar({
   userEmail: string;
 }) {
   const t = useTranslations("Topbar");
+  const router = useRouter();
   const pct = Math.round((credits.balance / credits.total) * 100);
-  const resetPattern = useEditorStore((s) => s.resetPattern);
+  const deleteCurrentMolde = useEditorStore((s) => s.deleteCurrentMolde);
 
-  const handleReset = () => {
-    if (window.confirm(t("resetConfirm"))) {
-      resetPattern();
+  const handleDelete = async () => {
+    if (window.confirm(t("deleteConfirm"))) {
+      await deleteCurrentMolde();
+      router.push("/");
     }
   };
 
@@ -41,11 +44,11 @@ export function Topbar({
         </span>
       </div>
       <button
-        onClick={handleReset}
-        title={t("resetTitle")}
+        onClick={handleDelete}
+        title={t("deleteTitle")}
         className="border-border rounded-btn bg-surface text-muted-2 hover:bg-surface-alt border px-[11px] py-[6px] text-[12px] font-medium transition-colors"
       >
-        {t("resetButton")}
+        {t("deleteButton")}
       </button>
       <div className="flex-1" />
       <div className="flex w-[168px] flex-col gap-[5px]">
