@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getTranslations } from "next-intl/server";
-import { withMolde } from "@/lib/db/molde";
+import { withMolde, moldeNotFound } from "@/lib/db/molde";
 import { loadWallet } from "@/lib/db/wallet";
 import { composeEditorState } from "@/lib/api/compose";
 import {
@@ -11,9 +11,12 @@ import {
 } from "@/lib/editor/state";
 import { requireUser } from "@/lib/auth/guard";
 
-export async function POST(request: Request) {
+type Ctx = { params: Promise<{ id: string }> };
+
+export async function POST(request: Request, { params }: Ctx) {
   const gate = await requireUser();
   if (gate instanceof NextResponse) return gate;
+  const { id } = await params;
 
   let action: "fix" | "ignore" = "ignore";
   try {
@@ -28,7 +31,7 @@ export async function POST(request: Request) {
 
   const t = await getTranslations("PatternData");
 
-  const moldeState = await withMolde(gate.id, (state) => {
+  const moldeState = await withMolde(id, gate.id, (state) => {
     if (action === "fix") {
       refitSleeve(state, t);
       bumpVersion(state);
@@ -44,6 +47,8 @@ export async function POST(request: Request) {
     }
     return state;
   });
+  if (!moldeState) return moldeNotFound();
+
   const wallet = await loadWallet(gate.id);
   return NextResponse.json({
     status: "ok",
