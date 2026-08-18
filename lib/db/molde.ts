@@ -100,7 +100,13 @@ export async function listMoldesForUser(
     return {
       id: row.id,
       name: state.pattern.name,
-      garmentType: state.pattern.spec?.type ?? null,
+      // `pattern.spec` always has a default `type` (even pre-generation, for
+      // baseMeasurements) — a molde only really "is" that garment type once
+      // it's been drafted into pieces. A blank molde reports null.
+      garmentType:
+        state.pattern.pieces.length > 0
+          ? (state.pattern.spec?.type ?? null)
+          : null,
       updatedAt: row.updatedAt.toISOString(),
       thumbnailSvg: buildThumbnailSvg(state.pattern),
     };

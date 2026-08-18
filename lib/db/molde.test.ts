@@ -222,11 +222,37 @@ describe("listMoldesForUser", () => {
     expect(list.map((m) => m.id)).toEqual(["m2", "m1"]);
   });
 
-  it("projects name/garmentType/thumbnail from the stored state", async () => {
+  it("projects name/thumbnail from the stored state", async () => {
     const list = await listMoldesForUser("u1");
     expect(list[0].name).toBe("Novo molde");
-    expect(list[0].garmentType).toBe("blouse");
     expect(list[0].thumbnailSvg).toContain("<svg");
+  });
+
+  it("garmentType is null for a still-blank molde (0 pieces), even though spec.type defaults to a value", async () => {
+    const list = await listMoldesForUser("u1");
+    expect(list[0].garmentType).toBeNull();
+  });
+
+  it("garmentType reflects spec.type once the molde has drafted pieces", async () => {
+    const drafted = seedMoldeState();
+    drafted.pattern.pieces = [
+      {
+        id: "body-front",
+        name: "Frente",
+        qty: 1,
+        outline: { kind: "polygon", points: "0,0 10,0 10,10" },
+        label: { x: 0, y: 0 },
+        detailRows: [],
+      },
+    ];
+    rows.push({
+      id: "m4",
+      userId: "u1",
+      data: drafted,
+      updatedAt: new Date("2026-04-01"),
+    });
+    const list = await listMoldesForUser("u1");
+    expect(list[0].garmentType).toBe("blouse");
   });
 });
 
