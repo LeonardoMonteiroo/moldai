@@ -10,7 +10,11 @@ import type { MoldeState } from "@/lib/types";
 // combined with this in the same request, so the lock order can never invert
 // and deadlock. Don't add a second combined-lock helper without preserving
 // this order.
+//
+// If the molde doesn't exist or isn't the caller's, returns null WITHOUT
+// locking the wallet — routes turn that into moldeNotFound().
 export async function withMoldeAndWallet<T>(
+  moldeId: string,
   userId: string,
   fn: (
     state: MoldeState,
@@ -18,12 +22,13 @@ export async function withMoldeAndWallet<T>(
   ) =>
     | { result: T; entries: LedgerEntry[] }
     | Promise<{ result: T; entries: LedgerEntry[] }>,
-): Promise<T> {
+): Promise<T | null> {
   return prisma.$transaction(async (tx) => {
-    const state = await lockMolde(tx, userId);
+    const state = await lockMolde(tx, moldeId, userId);
+    if (!state) return null;
     const wallet = await lockWallet(tx, userId);
     const { result, entries } = await fn(state, wallet);
-    await saveMolde(tx, userId, state);
+    await saveMolde(tx, moldeId, state);
     await saveWallet(tx, userId, wallet);
     await saveLedger(tx, userId, entries);
     return result;
