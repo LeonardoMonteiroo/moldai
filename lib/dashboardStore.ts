@@ -22,7 +22,7 @@ interface DashboardStore {
   setTypeFilter: (t: TypeFilter) => void;
 }
 
-export const useDashboardStore = create<DashboardStore>((set, get) => ({
+export const useDashboardStore = create<DashboardStore>((set) => ({
   ready: false,
   error: false,
   moldes: [],
