@@ -144,12 +144,19 @@ async function main() {
   }
   ok(`active session for ${sess.user.email}`);
 
-  // And the authenticated root no longer redirects.
+  // Authenticated root now redirects into a molde (list-or-create bridge,
+  // ahead of the real dashboard landing there).
   const authed = await req("/");
-  if (authed.status !== 200) {
-    fail(`GET / (authenticated) → ${authed.status} (expected 200 — editor)`);
+  const authedLoc = authed.headers.get("location") ?? "";
+  if (
+    ![301, 302, 307, 308].includes(authed.status) ||
+    !authedLoc.includes("/molde/")
+  ) {
+    fail(
+      `GET / (authenticated) → ${authed.status} loc="${authedLoc}" (expected redirect to /molde/<id>)`,
+    );
   }
-  ok("GET / (authenticated) → 200 (editor)");
+  ok("GET / (authenticated) → redirect /molde/<id>");
 
   console.log(
     "\n✓ production smoke OK — real login works on the next start stack",
