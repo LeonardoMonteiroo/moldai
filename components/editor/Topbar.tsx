@@ -1,13 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Credits, Pattern } from "@/lib/types";
-import { useEditorStore } from "@/lib/store";
 import { signOut } from "next-auth/react";
 import { initialsFromEmail } from "@/lib/format";
-import { ConfirmModal } from "@/components/shared/ConfirmModal";
 
 export function Topbar({
   pattern,
@@ -20,15 +17,7 @@ export function Topbar({
 }) {
   const t = useTranslations("Topbar");
   const router = useRouter();
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const pct = Math.round((credits.balance / credits.total) * 100);
-  const deleteCurrentMolde = useEditorStore((s) => s.deleteCurrentMolde);
-
-  const handleConfirmDelete = async () => {
-    setConfirmingDelete(false);
-    await deleteCurrentMolde();
-    router.push("/");
-  };
 
   return (
     <div className="bg-surface border-border relative flex items-center gap-4 border-b px-[18px] py-3">
@@ -36,6 +25,13 @@ export function Topbar({
         Mold<span className="text-olive">AI</span>
       </span>
       <div className="bg-border h-5 w-px" />
+      <button
+        onClick={() => router.push("/")}
+        title={t("backTitle")}
+        className="border-border rounded-btn bg-surface text-muted-2 hover:bg-surface-alt border px-[11px] py-[6px] text-[12px] font-medium transition-colors"
+      >
+        {t("backButton")}
+      </button>
       <div className="flex flex-col gap-px">
         <span className="text-[13px] font-semibold">{pattern.name}</span>
         <span className="text-muted text-[11px]">
@@ -45,13 +41,6 @@ export function Topbar({
           })}
         </span>
       </div>
-      <button
-        onClick={() => setConfirmingDelete(true)}
-        title={t("deleteTitle")}
-        className="border-border rounded-btn bg-surface text-muted-2 hover:bg-surface-alt border px-[11px] py-[6px] text-[12px] font-medium transition-colors"
-      >
-        {t("deleteButton")}
-      </button>
       <div className="flex-1" />
       <div className="flex w-[168px] flex-col gap-[5px]">
         <div className="text-muted flex justify-between text-[11px]">
@@ -84,16 +73,6 @@ export function Topbar({
           {t("signOutButton")}
         </button>
       </div>
-      {confirmingDelete && (
-        <ConfirmModal
-          title={t("deleteModalTitle")}
-          description={t("deleteModalDescription")}
-          confirmLabel={t("deleteConfirmButton")}
-          cancelLabel={t("deleteCancelButton")}
-          onConfirm={handleConfirmDelete}
-          onCancel={() => setConfirmingDelete(false)}
-        />
-      )}
     </div>
   );
 }

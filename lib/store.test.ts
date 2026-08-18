@@ -7,7 +7,6 @@ vi.mock("./api-client", () => ({
   graduate: vi.fn(),
   resolveConflict: vi.fn(),
   purchase: vi.fn(),
-  deleteMolde: vi.fn(),
 }));
 
 import * as api from "./api-client";

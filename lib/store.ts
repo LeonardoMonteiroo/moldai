@@ -53,7 +53,6 @@ interface EditorStore {
     message: string,
     opts?: { answering?: boolean },
   ) => Promise<void>;
-  deleteCurrentMolde: () => Promise<void>;
   cancelGeneration: () => void;
   graduateSizes: (sizes: string[]) => Promise<void>;
   resolveConflict: (action: "fix" | "ignore") => Promise<void>;
@@ -192,13 +191,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         ? { ...s.credits, balance: s.credits.balance + COSTS.adjust }
         : s.credits,
     }));
-  },
-
-  deleteCurrentMolde: async () => {
-    const moldeId = get().moldeId;
-    if (!moldeId) return;
-    set((s) => ({ generationRequestId: s.generationRequestId + 1 }));
-    await api.deleteMolde(moldeId);
   },
 
   graduateSizes: async (sizes: string[]) => {

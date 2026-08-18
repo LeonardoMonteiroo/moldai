@@ -17,12 +17,8 @@
     "saveVersionButton": "Salvar versão · em breve"
   },
   "Topbar": {
-    "deleteModalTitle": "Excluir este molde?",
-    "deleteModalDescription": "Isso apaga o molde e toda a conversa, e não pode ser desfeito.",
-    "deleteConfirmButton": "Excluir",
-    "deleteCancelButton": "Cancelar",
-    "deleteTitle": "Excluir este molde",
-    "deleteButton": "✕ Excluir",
+    "backTitle": "Voltar para meus moldes",
+    "backButton": "← Voltar",
     "savedVersion": "{savedAgo} · v{version}",
     "creditsLabel": "{planLabel} · {balance} créditos",
     "outOfTotal": "de {total}",
