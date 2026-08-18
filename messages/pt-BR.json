@@ -240,5 +240,16 @@
     "empty": "Nenhum uso ainda.",
     "reasonGenerate": "Ajuste",
     "reasonGraduate": "Graduação"
+  },
+  "MoldeGrid": {
+    "countLabel": "{count, plural, one {# molde} other {# moldes}}",
+    "searchPlaceholder": "Buscar molde…",
+    "typeFilterAll": "Todos os tipos",
+    "emptyTitle": "Nenhum molde ainda",
+    "emptyDescription": "Crie seu primeiro molde para começar.",
+    "noMatchesTitle": "Nenhum molde encontrado",
+    "noMatchesDescription": "Tente outro termo de busca ou filtro.",
+    "importCardLabel": "Importar .dxf · Audaces",
+    "importComingSoonBadge": "em breve"
   }
 }
