@@ -251,5 +251,21 @@
     "noMatchesDescription": "Tente outro termo de busca ou filtro.",
     "importCardLabel": "Importar .dxf · Audaces",
     "importComingSoonBadge": "em breve"
+  },
+  "Sidebar": {
+    "myMoldesLabel": "Meus moldes",
+    "measurementsLabel": "Medidas e grades",
+    "studioBasesLabel": "Bases do ateliê",
+    "comingSoonBadge": "em breve",
+    "importLabel": "Importar molde · Audaces · Molde.me · .dxf",
+    "newMoldeButton": "＋ Novo molde"
+  },
+  "DashboardTopbar": {
+    "creditsPill": "◆ {balance} créditos",
+    "accountMenuLabel": "◍ Conta ▾",
+    "usageMenuItem": "Créditos e uso",
+    "planMenuItem": "Plano e cobrança",
+    "preferencesMenuItem": "Preferências",
+    "signOutMenuItem": "Sair"
   }
 }
