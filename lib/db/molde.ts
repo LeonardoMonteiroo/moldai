@@ -1,7 +1,9 @@
+import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "./prisma";
 import { seedMoldeState } from "@/lib/editor/state";
-import type { MoldeState } from "@/lib/types";
+import { buildThumbnailSvg } from "@/lib/editor/thumbnail";
+import type { GarmentType, MoldeState } from "@/lib/types";
 
 type Tx = Prisma.TransactionClient;
 
@@ -14,59 +16,114 @@ function toState(data: Prisma.JsonValue): MoldeState {
   return data as unknown as MoldeState;
 }
 
-// Materializes the seed if missing (INSERT ... ON CONFLICT DO NOTHING), then
-// locks and reads the row (SELECT ... FOR UPDATE). Exported so
-// lib/db/molde-wallet.ts can lock this row inside its own combined transaction
-// without duplicating the SQL.
-export async function lockMolde(tx: Tx, userId: string): Promise<MoldeState> {
-  const seed = JSON.stringify(seedMoldeState());
-  await tx.$executeRaw`
-    INSERT INTO "Molde" ("userId", "data", "updatedAt")
-    VALUES (${userId}, ${seed}::jsonb, now())
-    ON CONFLICT ("userId") DO NOTHING`;
+export function moldeNotFound(): NextResponse {
+  return NextResponse.json(
+    { status: "not_found", error: "Molde não encontrado." },
+    { status: 404 },
+  );
+}
+
+// Locks and reads the row, scoped to (id, userId) — a molde owned by someone
+// else reads as null, identical to a molde that doesn't exist at all.
+// Exported so lib/db/molde-wallet.ts can lock this row inside its own
+// combined transaction without duplicating the SQL.
+export async function lockMolde(
+  tx: Tx,
+  moldeId: string,
+  userId: string,
+): Promise<MoldeState | null> {
   const rows = await tx.$queryRaw<{ data: Prisma.JsonValue }[]>`
-    SELECT "data" FROM "Molde" WHERE "userId" = ${userId} FOR UPDATE`;
-  return toState(rows[0].data);
+    SELECT "data" FROM "Molde" WHERE "id" = ${moldeId} AND "userId" = ${userId} FOR UPDATE`;
+  return rows[0] ? toState(rows[0].data) : null;
 }
 
 export async function saveMolde(
   tx: Tx,
-  userId: string,
+  moldeId: string,
   state: MoldeState,
 ): Promise<void> {
   await tx.$executeRaw`
     UPDATE "Molde" SET "data" = ${JSON.stringify(state)}::jsonb, "updatedAt" = now()
-    WHERE "userId" = ${userId}`;
+    WHERE "id" = ${moldeId}`;
 }
 
 // load → fn(state) → save, inside an interactive transaction with a row lock.
-// Guarantees mutations made inside fn are all-or-nothing.
+// Returns null (without calling fn) when the molde doesn't exist or isn't
+// the caller's — routes turn that into moldeNotFound().
 export async function withMolde<T>(
+  moldeId: string,
   userId: string,
   fn: (state: MoldeState) => T | Promise<T>,
-): Promise<T> {
+): Promise<T | null> {
   return prisma.$transaction(async (tx) => {
-    const state = await lockMolde(tx, userId);
+    const state = await lockMolde(tx, moldeId, userId);
+    if (!state) return null;
     const result = await fn(state);
-    await saveMolde(tx, userId, state);
+    await saveMolde(tx, moldeId, state);
     return result;
   }, TX_OPTS);
 }
 
-// Read-only fetch for the GET: returns seedMoldeState() without writing if there's no row.
-export async function loadMolde(userId: string): Promise<MoldeState> {
-  const row = await prisma.molde.findUnique({ where: { userId } });
-  return row ? toState(row.data) : seedMoldeState();
+// Read-only fetch, ownership-scoped. Null when missing or not owned.
+export async function loadMolde(
+  moldeId: string,
+  userId: string,
+): Promise<MoldeState | null> {
+  const row = await prisma.molde.findUnique({ where: { id: moldeId } });
+  if (!row || row.userId !== userId) return null;
+  return toState(row.data);
 }
 
-// Resets the user's molde to the blank molde and persists it.
-export async function resetMolde(userId: string): Promise<MoldeState> {
-  const state = seedMoldeState();
-  const data = state as unknown as Prisma.InputJsonValue;
-  await prisma.molde.upsert({
+export async function createMolde(userId: string): Promise<string> {
+  const data = seedMoldeState() as unknown as Prisma.InputJsonValue;
+  const row = await prisma.molde.create({ data: { userId, data } });
+  return row.id;
+}
+
+export interface MoldeListItem {
+  id: string;
+  name: string;
+  garmentType: GarmentType | null;
+  updatedAt: string;
+  thumbnailSvg: string;
+}
+
+export async function listMoldesForUser(
+  userId: string,
+): Promise<MoldeListItem[]> {
+  const rows = await prisma.molde.findMany({
     where: { userId },
-    create: { userId, data },
-    update: { data },
+    orderBy: { updatedAt: "desc" },
   });
-  return state;
+  return rows.map((row) => {
+    const state = toState(row.data);
+    return {
+      id: row.id,
+      name: state.pattern.name,
+      garmentType: state.pattern.spec?.type ?? null,
+      updatedAt: row.updatedAt.toISOString(),
+      thumbnailSvg: buildThumbnailSvg(state.pattern),
+    };
+  });
+}
+
+export async function renameMolde(
+  moldeId: string,
+  userId: string,
+  name: string,
+): Promise<boolean> {
+  const renamed = await withMolde(moldeId, userId, (state) => {
+    state.pattern = { ...state.pattern, name };
+  });
+  return renamed !== null;
+}
+
+export async function deleteMolde(
+  moldeId: string,
+  userId: string,
+): Promise<boolean> {
+  const res = await prisma.molde.deleteMany({
+    where: { id: moldeId, userId },
+  });
+  return res.count > 0;
 }
