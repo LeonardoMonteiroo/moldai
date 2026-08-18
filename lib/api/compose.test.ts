@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { composeEditorState } from "./compose";
+import { composeEditorState, buildCredits } from "./compose";
 import { seedMoldeState } from "@/lib/editor/state";
 import { seedWallet } from "@/lib/billing/wallet";
 
@@ -19,6 +19,26 @@ describe("composeEditorState", () => {
       balance: 320,
       total: 500,
       renewsInDays: 12,
+    });
+  });
+});
+
+describe("buildCredits", () => {
+  it("builds a Credits object from a wallet, independent of any molde", () => {
+    const wallet = {
+      plan: "atelier" as const,
+      planLabel: "Ateliê",
+      balance: 320,
+      total: 500,
+      renewsAt: new Date("2026-09-01T00:00:00.000Z"),
+    };
+    const now = new Date("2026-08-18T00:00:00.000Z");
+    expect(buildCredits(wallet, now)).toEqual({
+      plan: "atelier",
+      planLabel: "Ateliê",
+      balance: 320,
+      total: 500,
+      renewsInDays: 14,
     });
   });
 });
