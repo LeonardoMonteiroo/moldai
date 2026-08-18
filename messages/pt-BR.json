@@ -267,5 +267,9 @@
     "planMenuItem": "Plano e cobrança",
     "preferencesMenuItem": "Preferências",
     "signOutMenuItem": "Sair"
+  },
+  "DashboardShell": {
+    "loading": "Carregando moldes…",
+    "loadError": "Não foi possível carregar seus moldes. Tente recarregar a página."
   }
 }
