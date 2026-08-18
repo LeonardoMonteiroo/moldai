@@ -1,4 +1,4 @@
-import { Credits, EditorState } from "./types";
+import { Credits, EditorState, GarmentType } from "./types";
 
 export type GenerateResult =
   | {
@@ -13,9 +13,20 @@ export type PurchaseResult =
 export interface MoldeListItem {
   id: string;
   name: string;
-  garmentType: string | null;
+  garmentType: GarmentType | null;
   updatedAt: string;
   thumbnailSvg: string;
+}
+
+export interface RecentUsageEntry {
+  reason: string | null;
+  amount: number;
+  createdAt: string;
+}
+
+export interface AccountSummary {
+  credits: Credits;
+  recentUsage: RecentUsageEntry[];
 }
 
 async function getJson<T>(url: string): Promise<T> {
@@ -94,4 +105,8 @@ export function purchase(
   moldeId?: string,
 ): Promise<PurchaseResult> {
   return postJson<PurchaseResult>("/api/billing/purchase", { type, moldeId });
+}
+
+export function getAccountSummary(): Promise<AccountSummary> {
+  return getJson<AccountSummary>("/api/account/summary");
 }
