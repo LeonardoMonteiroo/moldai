@@ -15,6 +15,10 @@ export type EditorTab = "pattern2d" | "proof3d" | "techsheet" | "cutplan";
 export type EditorTool = "cursor" | "measure";
 
 const GENERATION_STEP_COUNT = 4;
+// Gaps between steps 1→2→3→4, increasing so the fake progress doesn't blast
+// through all steps in under a second and then sit frozen on the last one
+// while the real AI call is still in flight.
+const GENERATION_STEP_DELAYS_MS = [500, 1100, 2000];
 
 interface PaywallState {
   open: boolean;
@@ -124,17 +128,23 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         },
       ],
     }));
-    const stepTimer = setInterval(() => {
-      set((s) => ({
-        generationStepIndex: Math.min(
-          s.generationStepIndex + 1,
-          GENERATION_STEP_COUNT - 1,
-        ),
-      }));
-    }, 320);
+    let stepTimer: ReturnType<typeof setTimeout> | undefined;
+    const scheduleStep = (i: number) => {
+      if (i >= GENERATION_STEP_DELAYS_MS.length) return;
+      stepTimer = setTimeout(() => {
+        set((s) => ({
+          generationStepIndex: Math.min(
+            s.generationStepIndex + 1,
+            GENERATION_STEP_COUNT - 1,
+          ),
+        }));
+        scheduleStep(i + 1);
+      }, GENERATION_STEP_DELAYS_MS[i]);
+    };
+    scheduleStep(0);
 
     const result = await api.generate(message, opts?.answering);
-    clearInterval(stepTimer);
+    clearTimeout(stepTimer);
 
     if (get().generationRequestId !== requestId) return; // canceled
 
