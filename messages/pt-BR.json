@@ -218,5 +218,27 @@
     "submitButton": "Entrar",
     "submitButtonLoading": "Entrando…",
     "signupNote": "Criar conta — <b>em breve</b>. Cada conta tem os seus próprios moldes, salvos automaticamente."
+  },
+  "MoldeCard": {
+    "menuAriaLabel": "Mais opções",
+    "renameOption": "Renomear",
+    "renameTitle": "Renomear molde",
+    "renamePrompt": "Novo nome do molde",
+    "deleteOption": "Excluir",
+    "deleteModalTitle": "Excluir este molde?",
+    "deleteModalDescription": "Isso apaga o molde e toda a conversa, e não pode ser desfeito.",
+    "deleteConfirmButton": "Excluir",
+    "deleteCancelButton": "Cancelar",
+    "blankLabel": "em branco"
+  },
+  "CreditsCard": {
+    "title": "Créditos do mês",
+    "outOfTotal": "de {total} · renova em {days} dias"
+  },
+  "RecentUsageCard": {
+    "title": "Uso recente",
+    "empty": "Nenhum uso ainda.",
+    "reasonGenerate": "Ajuste",
+    "reasonGraduate": "Graduação"
   }
 }
