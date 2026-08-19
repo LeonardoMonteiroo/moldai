@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { MoldeState, GarmentSpec, ClarifyQuestion } from "./types";
+import { PatternState, GarmentSpec, ClarifyQuestion } from "./types";
 import { validateSpec, validateQuestions } from "@/lib/draft/garment";
 import {
   MEASUREMENT_RANGES,
@@ -127,7 +127,7 @@ const TOOL: Anthropic.Tool = {
   },
 };
 
-function buildSystem(state: MoldeState, answering: boolean): string {
+function buildSystem(state: PatternState, answering: boolean): string {
   const currentSpec = state.pattern.spec;
   const isEmpty = state.pattern.pieces.length === 0;
   return [
@@ -158,7 +158,7 @@ function buildSystem(state: MoldeState, answering: boolean): string {
 }
 
 export async function proposeGarment(
-  state: MoldeState,
+  state: PatternState,
   answering: boolean,
 ): Promise<AiDecision> {
   const client = new Anthropic();

@@ -1,13 +1,13 @@
 import { describe, it, expect } from "vitest";
 import { composeEditorState, buildCredits } from "./compose";
-import { seedMoldeState } from "@/lib/editor/state";
+import { seedPatternState } from "@/lib/editor/state";
 import { seedWallet } from "@/lib/billing/wallet";
 
 const NOW = new Date("2026-08-17T12:00:00.000Z");
 
 describe("composeEditorState", () => {
   it("merges pattern/chat/conflict with credits derived from the wallet", () => {
-    const moldeState = seedMoldeState();
+    const moldeState = seedPatternState();
     const wallet = seedWallet(NOW);
     const state = composeEditorState(moldeState, wallet, NOW);
     expect(state.pattern).toBe(moldeState.pattern);

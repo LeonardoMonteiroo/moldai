@@ -76,7 +76,7 @@ import {
   renamePattern,
   deletePattern,
 } from "./pattern";
-import { seedMoldeState, bumpVersion } from "@/lib/editor/state";
+import { seedPatternState, bumpVersion } from "@/lib/editor/state";
 
 // Wires the fake tx to read/write `rows` by (id, userId), mimicking
 // `SELECT ... WHERE id = $1 AND userId = $2 FOR UPDATE` + the final UPDATE.
@@ -111,7 +111,12 @@ function wireTx() {
 describe("withPattern", () => {
   beforeEach(() => {
     rows = [
-      { id: "m1", userId: "u1", data: seedMoldeState(), updatedAt: new Date() },
+      {
+        id: "m1",
+        userId: "u1",
+        data: seedPatternState(),
+        updatedAt: new Date(),
+      },
     ];
     nextId = 2;
     tx.$queryRaw.mockReset();
@@ -158,7 +163,12 @@ describe("withPattern", () => {
 describe("loadPattern", () => {
   beforeEach(() => {
     rows = [
-      { id: "m1", userId: "u1", data: seedMoldeState(), updatedAt: new Date() },
+      {
+        id: "m1",
+        userId: "u1",
+        data: seedPatternState(),
+        updatedAt: new Date(),
+      },
     ];
   });
 
@@ -199,19 +209,19 @@ describe("listPatternsForUser", () => {
       {
         id: "m1",
         userId: "u1",
-        data: seedMoldeState(),
+        data: seedPatternState(),
         updatedAt: new Date("2026-01-01"),
       },
       {
         id: "m2",
         userId: "u1",
-        data: seedMoldeState(),
+        data: seedPatternState(),
         updatedAt: new Date("2026-02-01"),
       },
       {
         id: "m3",
         userId: "u2",
-        data: seedMoldeState(),
+        data: seedPatternState(),
         updatedAt: new Date("2026-03-01"),
       },
     ];
@@ -234,7 +244,7 @@ describe("listPatternsForUser", () => {
   });
 
   it("garmentType reflects spec.type once the pattern has drafted pieces", async () => {
-    const drafted = seedMoldeState();
+    const drafted = seedPatternState();
     drafted.pattern.pieces = [
       {
         id: "body-front",
@@ -259,7 +269,12 @@ describe("listPatternsForUser", () => {
 describe("renamePattern", () => {
   beforeEach(() => {
     rows = [
-      { id: "m1", userId: "u1", data: seedMoldeState(), updatedAt: new Date() },
+      {
+        id: "m1",
+        userId: "u1",
+        data: seedPatternState(),
+        updatedAt: new Date(),
+      },
     ];
     tx.$queryRaw.mockReset();
     tx.$executeRaw.mockReset();
@@ -288,7 +303,12 @@ describe("renamePattern", () => {
 describe("deletePattern", () => {
   beforeEach(() => {
     rows = [
-      { id: "m1", userId: "u1", data: seedMoldeState(), updatedAt: new Date() },
+      {
+        id: "m1",
+        userId: "u1",
+        data: seedPatternState(),
+        updatedAt: new Date(),
+      },
     ];
   });
 

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { seedMoldeState } from "@/lib/editor/state";
+import { seedPatternState } from "@/lib/editor/state";
 import { seedWallet } from "@/lib/billing/wallet";
-import type { MoldeState } from "@/lib/types";
+import type { PatternState } from "@/lib/types";
 import type { Wallet, LedgerEntry } from "@/lib/billing/wallet";
 
 const NOW = new Date("2026-08-17T12:00:00.000Z");
@@ -23,8 +23,8 @@ vi.mock("@/lib/db/wallet", () => ({
   ),
 }));
 vi.mock("@/lib/db/pattern", () => ({
-  loadPattern: vi.fn(async (moldeId: string): Promise<MoldeState | null> =>
-    moldeId === "m1" ? seedMoldeState() : null,
+  loadPattern: vi.fn(async (moldeId: string): Promise<PatternState | null> =>
+    moldeId === "m1" ? seedPatternState() : null,
   ),
   patternNotFound: vi.fn(
     () =>

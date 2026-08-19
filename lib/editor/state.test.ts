@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  seedMoldeState,
+  seedPatternState,
   addMessage,
   bumpVersion,
   setConflict,
@@ -11,17 +11,17 @@ import {
 } from "./state";
 import { t } from "@/lib/i18n/test-translate";
 
-describe("seedMoldeState", () => {
+describe("seedPatternState", () => {
   it("blank molde: no pieces, empty chat, version 0, no conflict", () => {
-    const s = seedMoldeState();
+    const s = seedPatternState();
     expect(s.pattern.pieces).toHaveLength(0);
     expect(s.chat).toHaveLength(0);
     expect(s.pattern.version).toBe(0);
     expect(s.conflict).toBeNull();
   });
   it("each call returns an independent state (no aliasing)", () => {
-    const a = seedMoldeState();
-    const b = seedMoldeState();
+    const a = seedPatternState();
+    const b = seedPatternState();
     a.pattern.version = 9;
     expect(b.pattern.version).toBe(0);
   });
@@ -29,13 +29,13 @@ describe("seedMoldeState", () => {
 
 describe("version and chat", () => {
   it("bumpVersion increments and marks saved just now", () => {
-    const s = seedMoldeState();
+    const s = seedPatternState();
     bumpVersion(s);
     expect(s.pattern.version).toBe(1);
     expect(s.pattern.savedAgo).toBe("salvo agora");
   });
   it("addMessage appends to the chat", () => {
-    const s = seedMoldeState();
+    const s = seedPatternState();
     addMessage(s, { id: "m1", author: "user", text: "oi", createdAt: 1 });
     expect(s.chat).toHaveLength(1);
     expect(s.chat[0].id).toBe("m1");
@@ -44,7 +44,7 @@ describe("version and chat", () => {
 
 describe("applyGarmentSpec / conflict / refit", () => {
   it("drafts a skirt and stores it on the pattern", () => {
-    const s = seedMoldeState();
+    const s = seedPatternState();
     applyGarmentSpec(
       s,
       {
@@ -59,7 +59,7 @@ describe("applyGarmentSpec / conflict / refit", () => {
     expect(s.pattern.viewBox!.w).toBeGreaterThan(0);
   });
   it("armholeDeepenCm attaches a conflict; no adjustment means no conflict", () => {
-    const s = seedMoldeState();
+    const s = seedPatternState();
     applyGarmentSpec(
       s,
       {
@@ -87,7 +87,7 @@ describe("applyGarmentSpec / conflict / refit", () => {
     expect(s.conflict!.suggestion).toBe("conflict.suggestion");
   });
   it("EditorState with pieces survives a JSON round-trip (JSONB persistence)", () => {
-    const s = seedMoldeState();
+    const s = seedPatternState();
     applyGarmentSpec(
       s,
       {
@@ -106,7 +106,7 @@ describe("applyGarmentSpec / conflict / refit", () => {
     expect(round).toEqual(s); // no field lost (no Date/undefined/NaN/Map/Set)
   });
   it("refitSleeve remakes the cap and clears the conflict", () => {
-    const s = seedMoldeState();
+    const s = seedPatternState();
     applyGarmentSpec(
       s,
       {
@@ -126,7 +126,7 @@ describe("applyGarmentSpec / conflict / refit", () => {
 
 describe("setConflict / applySizes", () => {
   it("setConflict(null) clears the warning", () => {
-    const s = seedMoldeState();
+    const s = seedPatternState();
     applyGarmentSpec(
       s,
       {
@@ -141,7 +141,7 @@ describe("setConflict / applySizes", () => {
     expect(s.conflict).toBeNull();
   });
   it("applySizes moves pending to applied", () => {
-    const s = seedMoldeState();
+    const s = seedPatternState();
     applySizes(s, ["PP", "P"]);
     expect(s.pattern.sizesApplied).toEqual(expect.arrayContaining(["PP", "P"]));
     expect(s.pattern.sizesPending).not.toContain("PP");

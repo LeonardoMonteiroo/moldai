@@ -67,13 +67,13 @@ vi.mock("@/lib/db/prisma", () => ({
 }));
 
 import { withPatternAndWallet } from "./pattern-wallet";
-import { seedMoldeState, bumpVersion } from "@/lib/editor/state";
+import { seedPatternState, bumpVersion } from "@/lib/editor/state";
 import { seedWallet, debitWallet } from "@/lib/billing/wallet";
 
 describe("withPatternAndWallet", () => {
   beforeEach(() => {
     patternStore.clear();
-    patternStore.set("m1", { userId: "u1", data: seedMoldeState() });
+    patternStore.set("m1", { userId: "u1", data: seedPatternState() });
     walletStore.clear();
     ledger.length = 0;
     callOrder.length = 0;

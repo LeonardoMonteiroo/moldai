@@ -2,7 +2,7 @@ import {
   ChatMessage,
   ConflictInfo,
   GarmentSpec,
-  MoldeState,
+  PatternState,
   Pattern,
   Piece,
 } from "@/lib/types";
@@ -80,9 +80,9 @@ function seedPattern(): Pattern {
   };
 }
 
-// Every user's initial blank molde (pattern/chat/conflict — wallet is seeded
+// Every user's initial blank pattern (pattern/chat/conflict — wallet is seeded
 // separately, lib/billing/wallet.ts's seedWallet).
-export function seedMoldeState(): MoldeState {
+export function seedPatternState(): PatternState {
   return {
     pattern: seedPattern(),
     chat: [],
@@ -90,11 +90,11 @@ export function seedMoldeState(): MoldeState {
   };
 }
 
-export function addMessage(state: MoldeState, message: ChatMessage): void {
+export function addMessage(state: PatternState, message: ChatMessage): void {
   state.chat = [...state.chat, message];
 }
 
-export function bumpVersion(state: MoldeState): void {
+export function bumpVersion(state: PatternState): void {
   state.pattern = {
     ...state.pattern,
     version: state.pattern.version + 1,
@@ -103,13 +103,13 @@ export function bumpVersion(state: MoldeState): void {
 }
 
 export function setConflict(
-  state: MoldeState,
+  state: PatternState,
   conflict: ConflictInfo | null,
 ): void {
   state.conflict = conflict;
 }
 
-export function getSpec(state: MoldeState): GarmentSpec {
+export function getSpec(state: PatternState): GarmentSpec {
   return (
     state.pattern.spec ?? {
       type: "blouse",
@@ -123,7 +123,7 @@ export function getSpec(state: MoldeState): GarmentSpec {
 // Drafts the garment from a validated spec and stores pieces/viewBox/spec on
 // the pattern; attaches (or clears) the seam conflict (apply-with-warning).
 export function applyGarmentSpec(
-  state: MoldeState,
+  state: PatternState,
   spec: GarmentSpec,
   t: Translate,
 ): void {
@@ -142,7 +142,7 @@ export function applyGarmentSpec(
 
 // "Corrigir manga" (sleeve fix): sets sleeveRefit and re-drafts — the cap now
 // uses the adjusted armhole, the seams match, and detectConflict returns null.
-export function refitSleeve(state: MoldeState, t: Translate): void {
+export function refitSleeve(state: PatternState, t: Translate): void {
   const spec = getSpec(state);
   applyGarmentSpec(
     state,
@@ -151,7 +151,7 @@ export function refitSleeve(state: MoldeState, t: Translate): void {
   );
 }
 
-export function applySizes(state: MoldeState, sizes: string[]): void {
+export function applySizes(state: PatternState, sizes: string[]): void {
   const applied = new Set(state.pattern.sizesApplied);
   const pending = state.pattern.sizesPending.filter((s) => {
     if (sizes.includes(s)) {

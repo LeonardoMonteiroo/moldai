@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { seedMoldeState } from "@/lib/editor/state";
+import { seedPatternState } from "@/lib/editor/state";
 import { seedWallet } from "@/lib/billing/wallet";
-import type { MoldeState } from "@/lib/types";
+import type { PatternState } from "@/lib/types";
 
 const NOW = new Date("2026-08-17T12:00:00.000Z");
-let state: MoldeState = seedMoldeState();
+let state: PatternState = seedPatternState();
 let ownedPatternId: string | null = "m1";
 
 vi.mock("next-intl/server", () => ({
@@ -28,7 +28,7 @@ vi.mock("@/lib/db/pattern", async () => {
       async (
         patternId: string,
         _userId: string,
-        fn: (s: MoldeState) => MoldeState,
+        fn: (s: PatternState) => PatternState,
       ) => (patternId === ownedPatternId ? fn(state) : null),
     ),
   };
@@ -55,7 +55,7 @@ function ctx(id = "m1") {
 
 describe("POST /api/moldes/[id]/conflict/resolve", () => {
   beforeEach(() => {
-    state = seedMoldeState();
+    state = seedPatternState();
     setConflict(state, {
       id: "conf-1",
       title: "t",

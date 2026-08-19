@@ -1,6 +1,6 @@
 import { renewsInDays } from "@/lib/billing/wallet";
 import type { Wallet } from "@/lib/billing/wallet";
-import type { Credits, EditorState, MoldeState } from "@/lib/types";
+import type { Credits, EditorState, PatternState } from "@/lib/types";
 
 export function buildCredits(wallet: Wallet, now: Date): Credits {
   return {
@@ -12,12 +12,12 @@ export function buildCredits(wallet: Wallet, now: Date): Credits {
   };
 }
 
-// Builds the full wire/store EditorState from the molde's own state and the
-// wallet — the client/store never know credits moved out of the molde blob.
+// Builds the full wire/store EditorState from the pattern's own state and the
+// wallet — the client/store never know credits moved out of the pattern blob.
 export function composeEditorState(
-  moldeState: MoldeState,
+  patternState: PatternState,
   wallet: Wallet,
   now: Date,
 ): EditorState {
-  return { ...moldeState, credits: buildCredits(wallet, now) };
+  return { ...patternState, credits: buildCredits(wallet, now) };
 }

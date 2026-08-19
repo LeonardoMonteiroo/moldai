@@ -2,7 +2,7 @@ import { prisma } from "./prisma";
 import { lockPattern, savePattern, TX_OPTS } from "./pattern";
 import { lockWallet, saveWallet, saveLedger } from "./wallet";
 import type { LedgerEntry, Wallet } from "@/lib/billing/wallet";
-import type { MoldeState } from "@/lib/types";
+import type { PatternState } from "@/lib/types";
 
 // Locks BOTH rows in the SAME transaction, atomically — Pattern ALWAYS first,
 // then Wallet, in that fixed order. This is the only function in the codebase
@@ -17,7 +17,7 @@ export async function withPatternAndWallet<T>(
   patternId: string,
   userId: string,
   fn: (
-    state: MoldeState,
+    state: PatternState,
     wallet: Wallet,
   ) =>
     | { result: T; entries: LedgerEntry[] }

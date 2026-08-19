@@ -144,16 +144,16 @@ export interface Pattern {
   baseMeasurements?: Measurements;
 }
 
-// The molde's own state — pattern/chat/conflict. Credits/billing live in a
-// separate Wallet (lib/billing/wallet.ts), composed in only for the API/store
-// wire shape below.
-export interface MoldeState {
+// The pattern's own state — the drafted garment/chat/conflict. Credits/billing
+// live in a separate Wallet (lib/billing/wallet.ts), composed in only for the
+// API/store wire shape below.
+export interface PatternState {
   pattern: Pattern;
   chat: ChatMessage[];
   conflict: ConflictInfo | null;
 }
 
-export interface EditorState extends MoldeState {
+export interface EditorState extends PatternState {
   credits: Credits;
 }
 
