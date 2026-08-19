@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth/guard";
 import {
-  loadMolde,
-  renameMolde,
-  deleteMolde,
-  moldeNotFound,
-} from "@/lib/db/molde";
+  loadPattern,
+  renamePattern,
+  deletePattern,
+  patternNotFound,
+} from "@/lib/db/pattern";
 import { loadWallet } from "@/lib/db/wallet";
 import { composeEditorState } from "@/lib/api/compose";
 
@@ -16,12 +16,14 @@ export async function GET(_request: Request, { params }: Ctx) {
   if (gate instanceof NextResponse) return gate;
   const { id } = await params;
 
-  const [moldeState, wallet] = await Promise.all([
-    loadMolde(id, gate.id),
+  const [patternState, wallet] = await Promise.all([
+    loadPattern(id, gate.id),
     loadWallet(gate.id),
   ]);
-  if (!moldeState) return moldeNotFound();
-  return NextResponse.json(composeEditorState(moldeState, wallet, new Date()));
+  if (!patternState) return patternNotFound();
+  return NextResponse.json(
+    composeEditorState(patternState, wallet, new Date()),
+  );
 }
 
 export async function PATCH(request: Request, { params }: Ctx) {
@@ -45,8 +47,8 @@ export async function PATCH(request: Request, { params }: Ctx) {
       { status: 400 },
     );
   }
-  const ok = await renameMolde(id, gate.id, name);
-  if (!ok) return moldeNotFound();
+  const ok = await renamePattern(id, gate.id, name);
+  if (!ok) return patternNotFound();
   return NextResponse.json({ status: "ok" });
 }
 
@@ -55,7 +57,7 @@ export async function DELETE(_request: Request, { params }: Ctx) {
   if (gate instanceof NextResponse) return gate;
   const { id } = await params;
 
-  const ok = await deleteMolde(id, gate.id);
-  if (!ok) return moldeNotFound();
+  const ok = await deletePattern(id, gate.id);
+  if (!ok) return patternNotFound();
   return NextResponse.json({ status: "ok" });
 }

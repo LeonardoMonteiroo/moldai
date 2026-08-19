@@ -22,11 +22,11 @@ vi.mock("@/lib/db/wallet", () => ({
     ) => fn(wallet).result,
   ),
 }));
-vi.mock("@/lib/db/molde", () => ({
-  loadMolde: vi.fn(async (moldeId: string): Promise<MoldeState | null> =>
+vi.mock("@/lib/db/pattern", () => ({
+  loadPattern: vi.fn(async (moldeId: string): Promise<MoldeState | null> =>
     moldeId === "m1" ? seedMoldeState() : null,
   ),
-  moldeNotFound: vi.fn(
+  patternNotFound: vi.fn(
     () =>
       new Response(JSON.stringify({ status: "not_found" }), { status: 404 }),
   ),

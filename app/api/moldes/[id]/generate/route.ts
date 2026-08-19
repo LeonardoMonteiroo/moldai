@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getTranslations } from "next-intl/server";
-import { withMoldeAndWallet } from "@/lib/db/molde-wallet";
-import { moldeNotFound } from "@/lib/db/molde";
+import { withPatternAndWallet } from "@/lib/db/pattern-wallet";
+import { patternNotFound } from "@/lib/db/pattern";
 import { addMessage, applyGarmentSpec, bumpVersion } from "@/lib/editor/state";
 import { debitWallet, refundWallet } from "@/lib/billing/wallet";
 import type { LedgerEntry } from "@/lib/billing/wallet";
@@ -38,7 +38,7 @@ export async function POST(request: Request, { params }: Ctx) {
   const t = await getTranslations("PatternData");
   const now = new Date();
 
-  const result = await withMoldeAndWallet(
+  const result = await withPatternAndWallet(
     id,
     gate.id,
     async (
@@ -142,5 +142,5 @@ export async function POST(request: Request, { params }: Ctx) {
       }
     },
   );
-  return result ?? moldeNotFound();
+  return result ?? patternNotFound();
 }

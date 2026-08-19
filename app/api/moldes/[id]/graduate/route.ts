@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { withMoldeAndWallet } from "@/lib/db/molde-wallet";
-import { moldeNotFound } from "@/lib/db/molde";
+import { withPatternAndWallet } from "@/lib/db/pattern-wallet";
+import { patternNotFound } from "@/lib/db/pattern";
 import { addMessage, applySizes, bumpVersion } from "@/lib/editor/state";
 import { debitWallet } from "@/lib/billing/wallet";
 import type { LedgerEntry } from "@/lib/billing/wallet";
@@ -39,7 +39,7 @@ export async function POST(request: Request, { params }: Ctx) {
   const cost = COSTS.graduate;
   const now = new Date();
 
-  const result = await withMoldeAndWallet(
+  const result = await withPatternAndWallet(
     id,
     gate.id,
     (state, wallet): { result: NextResponse; entries: LedgerEntry[] } => {
@@ -75,5 +75,5 @@ export async function POST(request: Request, { params }: Ctx) {
       };
     },
   );
-  return result ?? moldeNotFound();
+  return result ?? patternNotFound();
 }

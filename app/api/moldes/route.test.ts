@@ -1,18 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@/lib/auth/guard", () => ({ requireUser: vi.fn() }));
-vi.mock("@/lib/db/molde", () => ({
-  listMoldesForUser: vi.fn(),
-  createMolde: vi.fn(),
+vi.mock("@/lib/db/pattern", () => ({
+  listPatternsForUser: vi.fn(),
+  createPattern: vi.fn(),
 }));
 
 import { GET, POST } from "./route";
 import { requireUser } from "@/lib/auth/guard";
 import { unauthorized } from "@/lib/auth/session";
-import { listMoldesForUser, createMolde } from "@/lib/db/molde";
+import { listPatternsForUser, createPattern } from "@/lib/db/pattern";
 
-const mockList = listMoldesForUser as unknown as ReturnType<typeof vi.fn>;
-const mockCreate = createMolde as unknown as ReturnType<typeof vi.fn>;
+const mockList = listPatternsForUser as unknown as ReturnType<typeof vi.fn>;
+const mockCreate = createPattern as unknown as ReturnType<typeof vi.fn>;
 
 describe("GET /api/moldes", () => {
   beforeEach(() => {
@@ -25,7 +25,7 @@ describe("GET /api/moldes", () => {
     mockCreate.mockReset();
   });
 
-  it("returns the user's molde list", async () => {
+  it("returns the user's pattern list", async () => {
     mockList.mockResolvedValue([
       {
         id: "m1",
@@ -59,7 +59,7 @@ describe("POST /api/moldes", () => {
     mockCreate.mockReset();
   });
 
-  it("creates a molde for the session user and returns its id", async () => {
+  it("creates a pattern for the session user and returns its id", async () => {
     mockCreate.mockResolvedValue("m9");
     const res = await POST();
     const json = await res.json();

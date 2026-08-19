@@ -26,7 +26,7 @@ function toWallet(row: WalletRow): Wallet {
 }
 
 // Materializes the default wallet if missing, then locks and reads the row.
-// Exported so lib/db/molde-wallet.ts can lock this row inside its own combined
+// Exported so lib/db/pattern-wallet.ts can lock this row inside its own combined
 // transaction without duplicating the SQL.
 export async function lockWallet(tx: Tx, userId: string): Promise<Wallet> {
   const seed = seedWallet(new Date());

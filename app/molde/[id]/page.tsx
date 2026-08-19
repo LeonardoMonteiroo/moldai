@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { loadMolde } from "@/lib/db/molde";
+import { loadPattern } from "@/lib/db/pattern";
 import { EditorShell } from "@/components/editor/EditorShell";
 
-export default async function MoldePage({
+export default async function PatternPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -12,8 +12,8 @@ export default async function MoldePage({
   if (!session?.user?.email || !session.user.id) redirect("/login");
   const { id } = await params;
 
-  const moldeState = await loadMolde(id, session.user.id);
-  if (!moldeState) redirect("/");
+  const patternState = await loadPattern(id, session.user.id);
+  if (!patternState) redirect("/");
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">

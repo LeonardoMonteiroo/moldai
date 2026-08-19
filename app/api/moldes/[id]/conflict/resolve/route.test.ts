@@ -5,7 +5,7 @@ import type { MoldeState } from "@/lib/types";
 
 const NOW = new Date("2026-08-17T12:00:00.000Z");
 let state: MoldeState = seedMoldeState();
-let ownedMoldeId: string | null = "m1";
+let ownedPatternId: string | null = "m1";
 
 vi.mock("next-intl/server", () => ({
   getTranslations: vi.fn(async () => (key: string) => key),
@@ -17,17 +17,19 @@ vi.mock("@/lib/auth/guard", () => ({
     name: null,
   })),
 }));
-vi.mock("@/lib/db/molde", async () => {
+vi.mock("@/lib/db/pattern", async () => {
   const actual =
-    await vi.importActual<typeof import("@/lib/db/molde")>("@/lib/db/molde");
+    await vi.importActual<typeof import("@/lib/db/pattern")>(
+      "@/lib/db/pattern",
+    );
   return {
     ...actual,
-    withMolde: vi.fn(
+    withPattern: vi.fn(
       async (
-        moldeId: string,
+        patternId: string,
         _userId: string,
         fn: (s: MoldeState) => MoldeState,
-      ) => (moldeId === ownedMoldeId ? fn(state) : null),
+      ) => (patternId === ownedPatternId ? fn(state) : null),
     ),
   };
 });
@@ -64,7 +66,7 @@ describe("POST /api/moldes/[id]/conflict/resolve", () => {
       pieceBId: "sleeve",
       markers: [],
     });
-    ownedMoldeId = "m1";
+    ownedPatternId = "m1";
     vi.mocked(requireUser).mockResolvedValue({
       id: "u1",
       email: "dev@moldai.local",
@@ -85,7 +87,7 @@ describe("POST /api/moldes/[id]/conflict/resolve", () => {
     expect(res.status).toBe(401);
   });
 
-  it("404s when the molde isn't found/owned", async () => {
+  it("404s when the pattern isn't found/owned", async () => {
     const res = await POST(req("ignore"), ctx("someone-elses"));
     expect(res.status).toBe(404);
   });

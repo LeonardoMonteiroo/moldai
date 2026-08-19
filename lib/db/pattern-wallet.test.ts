@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const moldeStore = new Map<string, { userId: string; data: unknown }>();
+const patternStore = new Map<string, { userId: string; data: unknown }>();
 const walletStore = new Map<string, unknown>();
 const ledger: unknown[] = [];
 const callOrder: string[] = [];
@@ -14,16 +14,16 @@ const tx = {
       ...vals: unknown[]
     ): Promise<number> => {
       const sql = Array.isArray(strings) ? strings.join("") : String(strings);
-      if (sql.includes('"Molde"') && sql.includes("UPDATE")) {
-        callOrder.push("save-molde");
-        const moldeId = vals.find(
-          (v): v is string => typeof v === "string" && moldeStore.has(v),
+      if (sql.includes('"Pattern"') && sql.includes("UPDATE")) {
+        callOrder.push("save-pattern");
+        const patternId = vals.find(
+          (v): v is string => typeof v === "string" && patternStore.has(v),
         );
         const jsonStr = vals.find(
           (v): v is string =>
             typeof v === "string" && v.trimStart().startsWith("{"),
         );
-        const row = moldeId ? moldeStore.get(moldeId) : undefined;
+        const row = patternId ? patternStore.get(patternId) : undefined;
         if (jsonStr && row) row.data = JSON.parse(jsonStr);
       }
       if (sql.includes('"Wallet"') && sql.includes("UPDATE")) {
@@ -40,10 +40,10 @@ const tx = {
       ...vals: unknown[]
     ): Promise<unknown[]> => {
       const sql = Array.isArray(strings) ? strings.join("") : String(strings);
-      if (sql.includes('"Molde"')) {
-        callOrder.push("lock-molde");
-        const [moldeId, userId] = vals as [string, string];
-        const row = moldeStore.get(moldeId);
+      if (sql.includes('"Pattern"')) {
+        callOrder.push("lock-pattern");
+        const [patternId, userId] = vals as [string, string];
+        const row = patternStore.get(patternId);
         if (!row || row.userId !== userId) return [];
         return [{ data: JSON.parse(JSON.stringify(row.data)) }];
       }
@@ -66,14 +66,14 @@ vi.mock("@/lib/db/prisma", () => ({
   },
 }));
 
-import { withMoldeAndWallet } from "./molde-wallet";
+import { withPatternAndWallet } from "./pattern-wallet";
 import { seedMoldeState, bumpVersion } from "@/lib/editor/state";
 import { seedWallet, debitWallet } from "@/lib/billing/wallet";
 
-describe("withMoldeAndWallet", () => {
+describe("withPatternAndWallet", () => {
   beforeEach(() => {
-    moldeStore.clear();
-    moldeStore.set("m1", { userId: "u1", data: seedMoldeState() });
+    patternStore.clear();
+    patternStore.set("m1", { userId: "u1", data: seedMoldeState() });
     walletStore.clear();
     ledger.length = 0;
     callOrder.length = 0;
@@ -82,10 +82,10 @@ describe("withMoldeAndWallet", () => {
     tx.transaction.createMany.mockClear();
   });
 
-  it("passes both a locked molde state and wallet to fn", async () => {
+  it("passes both a locked pattern state and wallet to fn", async () => {
     let seenVersion: number | null = null;
     let seenBalance: number | null = null;
-    await withMoldeAndWallet("m1", "u1", (state, wallet) => {
+    await withPatternAndWallet("m1", "u1", (state, wallet) => {
       seenVersion = state.pattern.version;
       seenBalance = wallet.balance;
       return { result: undefined, entries: [] };
@@ -94,42 +94,42 @@ describe("withMoldeAndWallet", () => {
     expect(seenBalance).toBe(320);
   });
 
-  it("locks Molde before Wallet, always", async () => {
-    await withMoldeAndWallet("m1", "u1", () => ({
+  it("locks Pattern before Wallet, always", async () => {
+    await withPatternAndWallet("m1", "u1", () => ({
       result: undefined,
       entries: [],
     }));
     const lockIdx = callOrder.filter((c) => c.startsWith("lock-"));
-    expect(lockIdx).toEqual(["lock-molde", "lock-wallet"]);
+    expect(lockIdx).toEqual(["lock-pattern", "lock-wallet"]);
   });
 
   it("persists both mutations and the ledger, atomically", async () => {
-    await withMoldeAndWallet("m1", "u1", (state, wallet) => {
+    await withPatternAndWallet("m1", "u1", (state, wallet) => {
       bumpVersion(state);
       const entry = debitWallet(wallet, 4, "generate");
       return { result: undefined, entries: [entry] };
     });
     expect(
-      (moldeStore.get("m1")!.data as { pattern: { version: number } }).pattern
+      (patternStore.get("m1")!.data as { pattern: { version: number } }).pattern
         .version,
     ).toBe(1);
     expect((walletStore.get("u1") as { balance: number }).balance).toBe(316);
     expect(ledger).toHaveLength(1);
   });
 
-  it("returns null and never locks the wallet when the molde isn't owned", async () => {
+  it("returns null and never locks the wallet when the pattern isn't owned", async () => {
     let called = false;
-    const out = await withMoldeAndWallet("m1", "someone-else", () => {
+    const out = await withPatternAndWallet("m1", "someone-else", () => {
       called = true;
       return { result: undefined, entries: [] };
     });
     expect(out).toBeNull();
     expect(called).toBe(false);
-    expect(callOrder).toEqual(["lock-molde"]);
+    expect(callOrder).toEqual(["lock-pattern"]);
   });
 
   it("returns the value fn returns", async () => {
-    const out = await withMoldeAndWallet("m1", "u1", () => ({
+    const out = await withPatternAndWallet("m1", "u1", () => ({
       result: "resp",
       entries: [],
     }));

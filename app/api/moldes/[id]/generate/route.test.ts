@@ -7,7 +7,7 @@ import type { Wallet, LedgerEntry } from "@/lib/billing/wallet";
 const NOW = new Date("2026-08-17T12:00:00.000Z");
 let state: MoldeState = seedMoldeState();
 let wallet: Wallet = seedWallet(NOW);
-let ownedMoldeId: string | null = "m1";
+let ownedPatternId: string | null = "m1";
 
 vi.mock("@/lib/ai", () => ({ proposeGarment: vi.fn() }));
 vi.mock("next-intl/server", () => ({
@@ -20,17 +20,17 @@ vi.mock("@/lib/auth/guard", () => ({
     name: null,
   })),
 }));
-vi.mock("@/lib/db/molde-wallet", () => ({
-  withMoldeAndWallet: vi.fn(
+vi.mock("@/lib/db/pattern-wallet", () => ({
+  withPatternAndWallet: vi.fn(
     async (
-      moldeId: string,
+      patternId: string,
       _userId: string,
       fn: (
         s: MoldeState,
         w: Wallet,
       ) => Promise<{ result: unknown; entries: LedgerEntry[] }>,
     ) => {
-      if (moldeId !== ownedMoldeId) return null;
+      if (patternId !== ownedPatternId) return null;
       return (await fn(state, wallet)).result;
     },
   ),
@@ -58,7 +58,7 @@ describe("POST /api/moldes/[id]/generate", () => {
   beforeEach(() => {
     state = seedMoldeState();
     wallet = seedWallet(NOW);
-    ownedMoldeId = "m1";
+    ownedPatternId = "m1";
     mockPropose.mockReset();
     vi.mocked(requireUser).mockResolvedValue({
       id: "u1",
@@ -136,7 +136,7 @@ describe("POST /api/moldes/[id]/generate", () => {
     expect(mockPropose).not.toHaveBeenCalled();
   });
 
-  it("404s when the molde isn't found/owned, without calling the AI", async () => {
+  it("404s when the pattern isn't found/owned, without calling the AI", async () => {
     const res = await POST(req({ message: "camiseta" }), ctx("someone-elses"));
     expect(res.status).toBe(404);
     expect(mockPropose).not.toHaveBeenCalled();

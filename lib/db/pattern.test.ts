@@ -25,7 +25,7 @@ const tx = {
 vi.mock("@/lib/db/prisma", () => ({
   prisma: {
     $transaction: vi.fn(async (fn: (t: typeof tx) => unknown) => fn(tx)),
-    molde: {
+    pattern: {
       findUnique: vi.fn(async ({ where }: { where: { id: string } }) => {
         const row = rows.find((r) => r.id === where.id);
         return row ?? null;
@@ -69,13 +69,13 @@ vi.mock("@/lib/db/prisma", () => ({
 }));
 
 import {
-  withMolde,
-  loadMolde,
-  createMolde,
-  listMoldesForUser,
-  renameMolde,
-  deleteMolde,
-} from "./molde";
+  withPattern,
+  loadPattern,
+  createPattern,
+  listPatternsForUser,
+  renamePattern,
+  deletePattern,
+} from "./pattern";
 import { seedMoldeState, bumpVersion } from "@/lib/editor/state";
 
 // Wires the fake tx to read/write `rows` by (id, userId), mimicking
@@ -108,7 +108,7 @@ function wireTx() {
   );
 }
 
-describe("withMolde", () => {
+describe("withPattern", () => {
   beforeEach(() => {
     rows = [
       { id: "m1", userId: "u1", data: seedMoldeState(), updatedAt: new Date() },
@@ -119,43 +119,43 @@ describe("withMolde", () => {
     wireTx();
   });
 
-  it("passes the state to fn when the molde belongs to the user", async () => {
+  it("passes the state to fn when the pattern belongs to the user", async () => {
     let seen: number | null = null;
-    await withMolde("m1", "u1", (state) => {
+    await withPattern("m1", "u1", (state) => {
       seen = state.pattern.version;
     });
     expect(seen).toBe(0);
   });
 
   it("persists fn's mutations", async () => {
-    await withMolde("m1", "u1", (state) => bumpVersion(state));
+    await withPattern("m1", "u1", (state) => bumpVersion(state));
     const row = rows.find((r) => r.id === "m1")!;
     expect((row.data as { pattern: { version: number } }).pattern.version).toBe(
       1,
     );
   });
 
-  it("returns null and does not call fn for a molde owned by someone else", async () => {
+  it("returns null and does not call fn for a pattern owned by someone else", async () => {
     let called = false;
-    const out = await withMolde("m1", "someone-else", () => {
+    const out = await withPattern("m1", "someone-else", () => {
       called = true;
     });
     expect(out).toBeNull();
     expect(called).toBe(false);
   });
 
-  it("returns null for a molde id that doesn't exist", async () => {
-    const out = await withMolde("does-not-exist", "u1", () => "x");
+  it("returns null for a pattern id that doesn't exist", async () => {
+    const out = await withPattern("does-not-exist", "u1", () => "x");
     expect(out).toBeNull();
   });
 
   it("returns the value fn returns", async () => {
-    const out = await withMolde("m1", "u1", () => "resp");
+    const out = await withPattern("m1", "u1", () => "resp");
     expect(out).toBe("resp");
   });
 });
 
-describe("loadMolde", () => {
+describe("loadPattern", () => {
   beforeEach(() => {
     rows = [
       { id: "m1", userId: "u1", data: seedMoldeState(), updatedAt: new Date() },
@@ -163,27 +163,27 @@ describe("loadMolde", () => {
   });
 
   it("returns the state for the owning user", async () => {
-    const s = await loadMolde("m1", "u1");
+    const s = await loadPattern("m1", "u1");
     expect(s?.pattern.version).toBe(0);
   });
 
   it("returns null when owned by someone else", async () => {
-    expect(await loadMolde("m1", "u2")).toBeNull();
+    expect(await loadPattern("m1", "u2")).toBeNull();
   });
 
   it("returns null when the id doesn't exist", async () => {
-    expect(await loadMolde("nope", "u1")).toBeNull();
+    expect(await loadPattern("nope", "u1")).toBeNull();
   });
 });
 
-describe("createMolde", () => {
+describe("createPattern", () => {
   beforeEach(() => {
     rows = [];
     nextId = 1;
   });
 
-  it("creates a blank molde for the user and returns its id", async () => {
-    const id = await createMolde("u1");
+  it("creates a blank pattern for the user and returns its id", async () => {
+    const id = await createPattern("u1");
     expect(rows).toHaveLength(1);
     expect(rows[0].userId).toBe("u1");
     expect(id).toBe(rows[0].id);
@@ -193,7 +193,7 @@ describe("createMolde", () => {
   });
 });
 
-describe("listMoldesForUser", () => {
+describe("listPatternsForUser", () => {
   beforeEach(() => {
     rows = [
       {
@@ -217,23 +217,23 @@ describe("listMoldesForUser", () => {
     ];
   });
 
-  it("returns only the user's moldes, most recently updated first", async () => {
-    const list = await listMoldesForUser("u1");
+  it("returns only the user's patterns, most recently updated first", async () => {
+    const list = await listPatternsForUser("u1");
     expect(list.map((m) => m.id)).toEqual(["m2", "m1"]);
   });
 
   it("projects name/thumbnail from the stored state", async () => {
-    const list = await listMoldesForUser("u1");
+    const list = await listPatternsForUser("u1");
     expect(list[0].name).toBe("Novo molde");
     expect(list[0].thumbnailSvg).toContain("<svg");
   });
 
-  it("garmentType is null for a still-blank molde (0 pieces), even though spec.type defaults to a value", async () => {
-    const list = await listMoldesForUser("u1");
+  it("garmentType is null for a still-blank pattern (0 pieces), even though spec.type defaults to a value", async () => {
+    const list = await listPatternsForUser("u1");
     expect(list[0].garmentType).toBeNull();
   });
 
-  it("garmentType reflects spec.type once the molde has drafted pieces", async () => {
+  it("garmentType reflects spec.type once the pattern has drafted pieces", async () => {
     const drafted = seedMoldeState();
     drafted.pattern.pieces = [
       {
@@ -251,12 +251,12 @@ describe("listMoldesForUser", () => {
       data: drafted,
       updatedAt: new Date("2026-04-01"),
     });
-    const list = await listMoldesForUser("u1");
+    const list = await listPatternsForUser("u1");
     expect(list[0].garmentType).toBe("blouse");
   });
 });
 
-describe("renameMolde", () => {
+describe("renamePattern", () => {
   beforeEach(() => {
     rows = [
       { id: "m1", userId: "u1", data: seedMoldeState(), updatedAt: new Date() },
@@ -267,7 +267,7 @@ describe("renameMolde", () => {
   });
 
   it("renames when owned by the user and returns true", async () => {
-    const ok = await renameMolde("m1", "u1", "Vestido de festa");
+    const ok = await renamePattern("m1", "u1", "Vestido de festa");
     expect(ok).toBe(true);
     const row = rows.find((r) => r.id === "m1")!;
     expect((row.data as { pattern: { name: string } }).pattern.name).toBe(
@@ -276,7 +276,7 @@ describe("renameMolde", () => {
   });
 
   it("returns false and does not rename when owned by someone else", async () => {
-    const ok = await renameMolde("m1", "u2", "Roubado");
+    const ok = await renamePattern("m1", "u2", "Roubado");
     expect(ok).toBe(false);
     const row = rows.find((r) => r.id === "m1")!;
     expect((row.data as { pattern: { name: string } }).pattern.name).toBe(
@@ -285,7 +285,7 @@ describe("renameMolde", () => {
   });
 });
 
-describe("deleteMolde", () => {
+describe("deletePattern", () => {
   beforeEach(() => {
     rows = [
       { id: "m1", userId: "u1", data: seedMoldeState(), updatedAt: new Date() },
@@ -293,13 +293,13 @@ describe("deleteMolde", () => {
   });
 
   it("deletes when owned by the user and returns true", async () => {
-    const ok = await deleteMolde("m1", "u1");
+    const ok = await deletePattern("m1", "u1");
     expect(ok).toBe(true);
     expect(rows).toHaveLength(0);
   });
 
   it("returns false and does not delete when owned by someone else", async () => {
-    const ok = await deleteMolde("m1", "u2");
+    const ok = await deletePattern("m1", "u2");
     expect(ok).toBe(false);
     expect(rows).toHaveLength(1);
   });

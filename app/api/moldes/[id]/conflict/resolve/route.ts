@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getTranslations } from "next-intl/server";
-import { withMolde, moldeNotFound } from "@/lib/db/molde";
+import { withPattern, patternNotFound } from "@/lib/db/pattern";
 import { loadWallet } from "@/lib/db/wallet";
 import { composeEditorState } from "@/lib/api/compose";
 import {
@@ -31,7 +31,7 @@ export async function POST(request: Request, { params }: Ctx) {
 
   const t = await getTranslations("PatternData");
 
-  const moldeState = await withMolde(id, gate.id, (state) => {
+  const patternState = await withPattern(id, gate.id, (state) => {
     if (action === "fix") {
       refitSleeve(state, t);
       bumpVersion(state);
@@ -47,11 +47,11 @@ export async function POST(request: Request, { params }: Ctx) {
     }
     return state;
   });
-  if (!moldeState) return moldeNotFound();
+  if (!patternState) return patternNotFound();
 
   const wallet = await loadWallet(gate.id);
   return NextResponse.json({
     status: "ok",
-    state: composeEditorState(moldeState, wallet, new Date()),
+    state: composeEditorState(patternState, wallet, new Date()),
   });
 }

@@ -5,14 +5,16 @@ import { seedWallet } from "@/lib/billing/wallet";
 const NOW = new Date("2026-08-18T00:00:00.000Z");
 
 vi.mock("@/lib/auth/guard", () => ({ requireUser: vi.fn() }));
-vi.mock("@/lib/db/molde", async () => {
+vi.mock("@/lib/db/pattern", async () => {
   const actual =
-    await vi.importActual<typeof import("@/lib/db/molde")>("@/lib/db/molde");
+    await vi.importActual<typeof import("@/lib/db/pattern")>(
+      "@/lib/db/pattern",
+    );
   return {
     ...actual,
-    loadMolde: vi.fn(),
-    renameMolde: vi.fn(),
-    deleteMolde: vi.fn(),
+    loadPattern: vi.fn(),
+    renamePattern: vi.fn(),
+    deletePattern: vi.fn(),
   };
 });
 vi.mock("@/lib/db/wallet", () => ({ loadWallet: vi.fn() }));
@@ -20,12 +22,12 @@ vi.mock("@/lib/db/wallet", () => ({ loadWallet: vi.fn() }));
 import { GET, PATCH, DELETE } from "./route";
 import { requireUser } from "@/lib/auth/guard";
 import { unauthorized } from "@/lib/auth/session";
-import { loadMolde, renameMolde, deleteMolde } from "@/lib/db/molde";
+import { loadPattern, renamePattern, deletePattern } from "@/lib/db/pattern";
 import { loadWallet } from "@/lib/db/wallet";
 
-const mockLoad = loadMolde as unknown as ReturnType<typeof vi.fn>;
-const mockRename = renameMolde as unknown as ReturnType<typeof vi.fn>;
-const mockDelete = deleteMolde as unknown as ReturnType<typeof vi.fn>;
+const mockLoad = loadPattern as unknown as ReturnType<typeof vi.fn>;
+const mockRename = renamePattern as unknown as ReturnType<typeof vi.fn>;
+const mockDelete = deletePattern as unknown as ReturnType<typeof vi.fn>;
 const mockLoadWallet = loadWallet as unknown as ReturnType<typeof vi.fn>;
 
 function ctx(id: string) {

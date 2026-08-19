@@ -7,7 +7,7 @@ import type { Wallet, LedgerEntry } from "@/lib/billing/wallet";
 const NOW = new Date("2026-08-17T12:00:00.000Z");
 let state: MoldeState = seedMoldeState();
 let wallet: Wallet = seedWallet(NOW);
-let ownedMoldeId: string | null = "m1";
+let ownedPatternId: string | null = "m1";
 
 vi.mock("@/lib/auth/guard", () => ({
   requireUser: vi.fn(async () => ({
@@ -16,17 +16,17 @@ vi.mock("@/lib/auth/guard", () => ({
     name: null,
   })),
 }));
-vi.mock("@/lib/db/molde-wallet", () => ({
-  withMoldeAndWallet: vi.fn(
+vi.mock("@/lib/db/pattern-wallet", () => ({
+  withPatternAndWallet: vi.fn(
     async (
-      moldeId: string,
+      patternId: string,
       _userId: string,
       fn: (
         s: MoldeState,
         w: Wallet,
       ) => { result: unknown; entries: LedgerEntry[] },
     ) => {
-      if (moldeId !== ownedMoldeId) return null;
+      if (patternId !== ownedPatternId) return null;
       return fn(state, wallet).result;
     },
   ),
@@ -51,7 +51,7 @@ describe("POST /api/moldes/[id]/graduate", () => {
   beforeEach(() => {
     state = seedMoldeState();
     wallet = seedWallet(NOW);
-    ownedMoldeId = "m1";
+    ownedPatternId = "m1";
     vi.mocked(requireUser).mockResolvedValue({
       id: "u1",
       email: "dev@moldai.local",
@@ -86,7 +86,7 @@ describe("POST /api/moldes/[id]/graduate", () => {
     expect(res.status).toBe(402);
   });
 
-  it("404s when the molde isn't found/owned", async () => {
+  it("404s when the pattern isn't found/owned", async () => {
     const res = await POST(req({ sizes: ["G"] }), ctx("someone-elses"));
     expect(res.status).toBe(404);
   });

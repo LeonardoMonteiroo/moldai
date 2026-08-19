@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { withWallet } from "@/lib/db/wallet";
-import { loadMolde, moldeNotFound } from "@/lib/db/molde";
+import { loadPattern, patternNotFound } from "@/lib/db/pattern";
 import { applyPurchase } from "@/lib/billing/wallet";
 import { buildCredits, composeEditorState } from "@/lib/api/compose";
 import { requireUser } from "@/lib/auth/guard";
@@ -21,8 +21,8 @@ export async function POST(request: Request) {
   });
 
   if (typeof moldeId === "string") {
-    const moldeState = await loadMolde(moldeId, gate.id);
-    if (!moldeState) return moldeNotFound();
+    const moldeState = await loadPattern(moldeId, gate.id);
+    if (!moldeState) return patternNotFound();
     return NextResponse.json({
       status: "ok",
       state: composeEditorState(moldeState, wallet, now),
