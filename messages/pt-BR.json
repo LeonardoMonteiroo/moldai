@@ -279,5 +279,15 @@
     "saveSuccess": "Perfil atualizado.",
     "saveError": "Não foi possível salvar. Tente novamente.",
     "nameRequired": "Nome obrigatório."
+  },
+  "PasswordSection": {
+    "heading": "Alterar senha",
+    "currentLabel": "Senha atual",
+    "newLabel": "Nova senha",
+    "confirmLabel": "Confirmar nova senha",
+    "submitButton": "Alterar senha",
+    "mismatchError": "As senhas não coincidem.",
+    "tooShortError": "A nova senha deve ter pelo menos 8 caracteres.",
+    "successMessage": "Senha alterada com sucesso."
   }
 }
