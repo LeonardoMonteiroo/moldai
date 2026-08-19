@@ -1,4 +1,12 @@
-import { Credits, EditorState, GarmentType, LedgerHistoryEntry } from "./types";
+import {
+  Credits,
+  EditorState,
+  GarmentType,
+  GradeData,
+  GradeListEntry,
+  GradeRecord,
+  LedgerHistoryEntry,
+} from "./types";
 
 export type GenerateResult =
   | {
@@ -158,4 +166,44 @@ export async function deleteAccount(
     body: JSON.stringify({ password }),
   });
   return (await res.json()) as AccountActionResult;
+}
+
+export function listGrades(): Promise<GradeListEntry[]> {
+  return getJson<GradeListEntry[]>("/api/grades");
+}
+
+export async function createGrade(sourceId?: string): Promise<GradeRecord> {
+  const res = await fetch("/api/grades", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sourceId }),
+  });
+  return (await res.json()) as GradeRecord;
+}
+
+export async function updateGrade(
+  gradeId: string,
+  patch: Partial<GradeData>,
+): Promise<GradeRecord> {
+  const res = await fetch(`/api/grades/${gradeId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(patch),
+  });
+  return (await res.json()) as GradeRecord;
+}
+
+export async function deleteGrade(gradeId: string): Promise<void> {
+  await fetch(`/api/grades/${gradeId}`, { method: "DELETE" });
+}
+
+export async function duplicateGrade(gradeId: string): Promise<GradeRecord> {
+  const res = await fetch(`/api/grades/${gradeId}/duplicate`, {
+    method: "POST",
+  });
+  return (await res.json()) as GradeRecord;
+}
+
+export async function activateGrade(gradeId: string): Promise<void> {
+  await fetch(`/api/grades/${gradeId}/activate`, { method: "POST" });
 }
