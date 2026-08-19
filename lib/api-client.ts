@@ -29,6 +29,16 @@ export interface AccountSummary {
   recentUsage: RecentUsageEntry[];
 }
 
+export interface AccountActionResult {
+  status: "ok" | "error";
+  error?: string;
+}
+
+export interface UpdateProfileResult extends AccountActionResult {
+  name?: string;
+  email?: string;
+}
+
 async function getJson<T>(url: string): Promise<T> {
   const res = await fetch(url);
   return (await res.json()) as T;
@@ -109,4 +119,36 @@ export function purchase(
 
 export function getAccountSummary(): Promise<AccountSummary> {
   return getJson<AccountSummary>("/api/account/summary");
+}
+
+export async function updateProfile(
+  name: string,
+): Promise<UpdateProfileResult> {
+  const res = await fetch("/api/account/profile", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  });
+  return (await res.json()) as UpdateProfileResult;
+}
+
+export function changePassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<AccountActionResult> {
+  return postJson<AccountActionResult>("/api/account/password", {
+    currentPassword,
+    newPassword,
+  });
+}
+
+export async function deleteAccount(
+  password: string,
+): Promise<AccountActionResult> {
+  const res = await fetch("/api/account", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password }),
+  });
+  return (await res.json()) as AccountActionResult;
 }
