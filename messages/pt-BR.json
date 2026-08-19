@@ -1,4 +1,12 @@
 {
+  "PageHeader": {
+    "backTitle": "Voltar para meus moldes",
+    "backButton": "← Voltar",
+    "creditsLabel": "{planLabel} · {balance} créditos",
+    "outOfTotal": "de {total}",
+    "buyCreditsButton": "Comprar créditos",
+    "signOutButton": "Sair"
+  },
   "Footer": {
     "formatSvg": "SVG · 1:1 (plotter)",
     "formatDxf": "DXF · genérico 1:1 (CAD)",
