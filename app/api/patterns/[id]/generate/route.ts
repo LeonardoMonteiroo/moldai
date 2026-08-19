@@ -2,7 +2,13 @@ import { NextResponse } from "next/server";
 import { getTranslations } from "next-intl/server";
 import { withPatternAndWallet } from "@/lib/db/pattern-wallet";
 import { patternNotFound } from "@/lib/db/pattern";
-import { addMessage, applyGarmentSpec, bumpVersion } from "@/lib/editor/state";
+import { getGradeForGeneration } from "@/lib/db/grade";
+import {
+  addMessage,
+  applyGarmentSpec,
+  bumpVersion,
+  seedPatternSizeSnapshot,
+} from "@/lib/editor/state";
 import { debitWallet, refundWallet } from "@/lib/billing/wallet";
 import type { LedgerEntry } from "@/lib/billing/wallet";
 import { composeEditorState } from "@/lib/api/compose";
@@ -110,6 +116,13 @@ export async function POST(request: Request, { params }: Ctx) {
           };
         }
 
+        if (state.pattern.pieces.length === 0) {
+          const grade = await getGradeForGeneration(
+            gate.id,
+            decision.spec.gender ?? "female",
+          );
+          seedPatternSizeSnapshot(state, grade);
+        }
         applyGarmentSpec(state, decision.spec, t);
         bumpVersion(state);
         const conflict = state.conflict;
