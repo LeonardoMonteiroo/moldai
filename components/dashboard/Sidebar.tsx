@@ -1,10 +1,12 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useDashboardStore } from "@/lib/dashboardStore";
 
 export function Sidebar({ onCreate }: { onCreate: (id: string) => void }) {
   const t = useTranslations("Sidebar");
+  const router = useRouter();
   const create = useDashboardStore((s) => s.create);
 
   const handleCreate = async () => {
@@ -18,12 +20,13 @@ export function Sidebar({ onCreate }: { onCreate: (id: string) => void }) {
         <span className="bg-olive-tint text-olive rounded-item px-[10px] py-[7px] text-[12.5px] font-medium">
           {t("myPatternsLabel")}
         </span>
-        <span className="text-disabled rounded-item flex items-center justify-between px-[10px] py-[7px] text-[12.5px]">
+        <button
+          type="button"
+          onClick={() => router.push("/grades")}
+          className="text-muted-2 hover:bg-surface-alt rounded-item flex items-center px-[10px] py-[7px] text-left text-[12.5px]"
+        >
           {t("measurementsLabel")}
-          <span className="bg-amber-bg border-amber-border text-amber-text rounded-pill border px-[6px] py-px text-[10px] font-semibold">
-            {t("comingSoonBadge")}
-          </span>
-        </span>
+        </button>
         <span className="text-disabled rounded-item flex items-center justify-between px-[10px] py-[7px] text-[12.5px]">
           {t("studioBasesLabel")}
           <span className="bg-amber-bg border-amber-border text-amber-text rounded-pill border px-[6px] py-px text-[10px] font-semibold">
