@@ -1,18 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { MoldeListItem } from "./api-client";
+import type { PatternListItem } from "./api-client";
 
 vi.mock("./api-client", () => ({
-  listMoldes: vi.fn(),
-  createMolde: vi.fn(),
-  renameMolde: vi.fn(),
-  deleteMolde: vi.fn(),
+  listPatterns: vi.fn(),
+  createPattern: vi.fn(),
+  renamePattern: vi.fn(),
+  deletePattern: vi.fn(),
   getAccountSummary: vi.fn(),
 }));
 
 import * as api from "./api-client";
-import { useDashboardStore, filteredMoldes } from "./dashboardStore";
+import { useDashboardStore, filteredPatterns } from "./dashboardStore";
 
-function molde(overrides: Partial<MoldeListItem> = {}): MoldeListItem {
+function pattern(overrides: Partial<PatternListItem> = {}): PatternListItem {
   return {
     id: "m1",
     name: "Novo molde",
@@ -25,12 +25,12 @@ function molde(overrides: Partial<MoldeListItem> = {}): MoldeListItem {
 
 describe("dashboardStore.init", () => {
   beforeEach(() => {
-    vi.mocked(api.listMoldes).mockReset();
+    vi.mocked(api.listPatterns).mockReset();
     vi.mocked(api.getAccountSummary).mockReset();
     useDashboardStore.setState({
       ready: false,
       error: false,
-      moldes: [],
+      patterns: [],
       credits: null,
       recentUsage: [],
       search: "",
@@ -38,8 +38,8 @@ describe("dashboardStore.init", () => {
     });
   });
 
-  it("loads moldes and account summary", async () => {
-    vi.mocked(api.listMoldes).mockResolvedValue([molde()]);
+  it("loads patterns and account summary", async () => {
+    vi.mocked(api.listPatterns).mockResolvedValue([pattern()]);
     vi.mocked(api.getAccountSummary).mockResolvedValue({
       credits: {
         plan: "atelier",
@@ -53,12 +53,12 @@ describe("dashboardStore.init", () => {
     await useDashboardStore.getState().init();
     const s = useDashboardStore.getState();
     expect(s.ready).toBe(true);
-    expect(s.moldes).toHaveLength(1);
+    expect(s.patterns).toHaveLength(1);
     expect(s.credits?.balance).toBe(320);
   });
 
   it("sets error and ready on failure, without throwing", async () => {
-    vi.mocked(api.listMoldes).mockRejectedValue(new Error("boom"));
+    vi.mocked(api.listPatterns).mockRejectedValue(new Error("boom"));
     vi.mocked(api.getAccountSummary).mockResolvedValue({
       credits: {
         plan: "atelier",
@@ -78,59 +78,63 @@ describe("dashboardStore.init", () => {
 
 describe("dashboardStore.rename / remove", () => {
   beforeEach(() => {
-    vi.mocked(api.renameMolde).mockReset();
-    vi.mocked(api.deleteMolde).mockReset();
+    vi.mocked(api.renamePattern).mockReset();
+    vi.mocked(api.deletePattern).mockReset();
     useDashboardStore.setState({
-      moldes: [molde(), molde({ id: "m2", name: "Vestido" })],
+      patterns: [pattern(), pattern({ id: "m2", name: "Vestido" })],
     });
   });
 
   it("rename updates the local list optimistically after the call resolves", async () => {
-    vi.mocked(api.renameMolde).mockResolvedValue(undefined);
+    vi.mocked(api.renamePattern).mockResolvedValue(undefined);
     await useDashboardStore.getState().rename("m1", "Blusa nova");
-    expect(api.renameMolde).toHaveBeenCalledWith("m1", "Blusa nova");
+    expect(api.renamePattern).toHaveBeenCalledWith("m1", "Blusa nova");
     expect(
-      useDashboardStore.getState().moldes.find((m) => m.id === "m1")?.name,
+      useDashboardStore.getState().patterns.find((p) => p.id === "m1")?.name,
     ).toBe("Blusa nova");
   });
 
-  it("remove drops the molde from the local list", async () => {
-    vi.mocked(api.deleteMolde).mockResolvedValue(undefined);
+  it("remove drops the pattern from the local list", async () => {
+    vi.mocked(api.deletePattern).mockResolvedValue(undefined);
     await useDashboardStore.getState().remove("m1");
-    expect(api.deleteMolde).toHaveBeenCalledWith("m1");
-    expect(useDashboardStore.getState().moldes.map((m) => m.id)).toEqual([
+    expect(api.deletePattern).toHaveBeenCalledWith("m1");
+    expect(useDashboardStore.getState().patterns.map((p) => p.id)).toEqual([
       "m2",
     ]);
   });
 });
 
-describe("filteredMoldes", () => {
-  const moldes = [
-    molde({ id: "m1", name: "Vestido de festa", garmentType: "dress" }),
-    molde({ id: "m2", name: "Camiseta básica", garmentType: "tshirt" }),
-    molde({ id: "m3", name: "Vestido curto", garmentType: "dress" }),
+describe("filteredPatterns", () => {
+  const patterns = [
+    pattern({ id: "m1", name: "Vestido de festa", garmentType: "dress" }),
+    pattern({ id: "m2", name: "Camiseta básica", garmentType: "tshirt" }),
+    pattern({ id: "m3", name: "Vestido curto", garmentType: "dress" }),
   ];
 
   it("filters by case-insensitive name search", () => {
-    const out = filteredMoldes({
-      moldes,
+    const out = filteredPatterns({
+      patterns,
       search: "vestido",
       typeFilter: "all",
     });
-    expect(out.map((m) => m.id)).toEqual(["m1", "m3"]);
+    expect(out.map((p) => p.id)).toEqual(["m1", "m3"]);
   });
 
   it("filters by garment type", () => {
-    const out = filteredMoldes({ moldes, search: "", typeFilter: "tshirt" });
-    expect(out.map((m) => m.id)).toEqual(["m2"]);
+    const out = filteredPatterns({
+      patterns,
+      search: "",
+      typeFilter: "tshirt",
+    });
+    expect(out.map((p) => p.id)).toEqual(["m2"]);
   });
 
   it("combines search and type filter", () => {
-    const out = filteredMoldes({
-      moldes,
+    const out = filteredPatterns({
+      patterns,
       search: "curto",
       typeFilter: "dress",
     });
-    expect(out.map((m) => m.id)).toEqual(["m3"]);
+    expect(out.map((p) => p.id)).toEqual(["m3"]);
   });
 });

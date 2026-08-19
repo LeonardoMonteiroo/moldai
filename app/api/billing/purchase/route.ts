@@ -9,9 +9,9 @@ export async function POST(request: Request) {
   const gate = await requireUser();
   if (gate instanceof NextResponse) return gate;
 
-  const { type, moldeId } = (await request.json()) as {
+  const { type, patternId } = (await request.json()) as {
     type: "topup" | "subscribe";
-    moldeId?: string;
+    patternId?: string;
   };
   const now = new Date();
 
@@ -20,12 +20,12 @@ export async function POST(request: Request) {
     return { result: wallet, entries: [entry] };
   });
 
-  if (typeof moldeId === "string") {
-    const moldeState = await loadPattern(moldeId, gate.id);
-    if (!moldeState) return patternNotFound();
+  if (typeof patternId === "string") {
+    const patternState = await loadPattern(patternId, gate.id);
+    if (!patternState) return patternNotFound();
     return NextResponse.json({
       status: "ok",
-      state: composeEditorState(moldeState, wallet, now),
+      state: composeEditorState(patternState, wallet, now),
     });
   }
 

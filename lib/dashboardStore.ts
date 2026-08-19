@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import * as api from "./api-client";
-import type { MoldeListItem, RecentUsageEntry } from "./api-client";
+import type { PatternListItem, RecentUsageEntry } from "./api-client";
 import type { Credits, GarmentType } from "./types";
 
 export type TypeFilter = GarmentType | "all";
@@ -8,7 +8,7 @@ export type TypeFilter = GarmentType | "all";
 interface DashboardStore {
   ready: boolean;
   error: boolean;
-  moldes: MoldeListItem[];
+  patterns: PatternListItem[];
   credits: Credits | null;
   recentUsage: RecentUsageEntry[];
   search: string;
@@ -25,7 +25,7 @@ interface DashboardStore {
 export const useDashboardStore = create<DashboardStore>((set) => ({
   ready: false,
   error: false,
-  moldes: [],
+  patterns: [],
   credits: null,
   recentUsage: [],
   search: "",
@@ -34,12 +34,12 @@ export const useDashboardStore = create<DashboardStore>((set) => ({
   init: async () => {
     set({ ready: false, error: false });
     try {
-      const [moldes, summary] = await Promise.all([
-        api.listMoldes(),
+      const [patterns, summary] = await Promise.all([
+        api.listPatterns(),
         api.getAccountSummary(),
       ]);
       set({
-        moldes,
+        patterns,
         credits: summary.credits,
         recentUsage: summary.recentUsage,
         ready: true,
@@ -50,20 +50,20 @@ export const useDashboardStore = create<DashboardStore>((set) => ({
   },
 
   create: async () => {
-    const { id } = await api.createMolde();
+    const { id } = await api.createPattern();
     return id;
   },
 
   rename: async (id, name) => {
-    await api.renameMolde(id, name);
+    await api.renamePattern(id, name);
     set((s) => ({
-      moldes: s.moldes.map((m) => (m.id === id ? { ...m, name } : m)),
+      patterns: s.patterns.map((p) => (p.id === id ? { ...p, name } : p)),
     }));
   },
 
   remove: async (id) => {
-    await api.deleteMolde(id);
-    set((s) => ({ moldes: s.moldes.filter((m) => m.id !== id) }));
+    await api.deletePattern(id);
+    set((s) => ({ patterns: s.patterns.filter((p) => p.id !== id) }));
   },
 
   setSearch: (search) => set({ search }),
@@ -72,16 +72,16 @@ export const useDashboardStore = create<DashboardStore>((set) => ({
 
 // Pure — takes a slice matching the store's shape so it's usable both from
 // a live store snapshot and directly in tests.
-export function filteredMoldes(state: {
-  moldes: MoldeListItem[];
+export function filteredPatterns(state: {
+  patterns: PatternListItem[];
   search: string;
   typeFilter: TypeFilter;
-}): MoldeListItem[] {
+}): PatternListItem[] {
   const q = state.search.trim().toLowerCase();
-  return state.moldes.filter((m) => {
-    const matchesSearch = !q || m.name.toLowerCase().includes(q);
+  return state.patterns.filter((p) => {
+    const matchesSearch = !q || p.name.toLowerCase().includes(q);
     const matchesType =
-      state.typeFilter === "all" || m.garmentType === state.typeFilter;
+      state.typeFilter === "all" || p.garmentType === state.typeFilter;
     return matchesSearch && matchesType;
   });
 }

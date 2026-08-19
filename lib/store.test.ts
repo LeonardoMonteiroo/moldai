@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { EditorState } from "./types";
 
 vi.mock("./api-client", () => ({
-  fetchMolde: vi.fn(),
+  fetchPattern: vi.fn(),
   generate: vi.fn(),
   graduate: vi.fn(),
   resolveConflict: vi.fn(),
@@ -53,13 +53,13 @@ describe("store.sendMessage", () => {
   beforeEach(() => {
     genMock.mockReset();
     useEditorStore.setState({
-      moldeId: "m1",
+      patternId: "m1",
       selectedPieceId: null,
       generationStatus: "idle",
     });
   });
 
-  it("forwards moldeId, message, and answering to api.generate", async () => {
+  it("forwards patternId, message, and answering to api.generate", async () => {
     genMock.mockResolvedValue({ status: "clarify", state: emptyState() });
     await useEditorStore
       .getState()

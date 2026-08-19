@@ -10,7 +10,7 @@ export type GenerateResult =
 export type PurchaseResult =
   { status: "ok"; state: EditorState } | { status: "ok"; credits: Credits };
 
-export interface MoldeListItem {
+export interface PatternListItem {
   id: string;
   name: string;
   garmentType: GarmentType | null;
@@ -53,68 +53,71 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
   return (await res.json()) as T;
 }
 
-export function listMoldes(): Promise<MoldeListItem[]> {
-  return getJson<MoldeListItem[]>("/api/moldes");
+export function listPatterns(): Promise<PatternListItem[]> {
+  return getJson<PatternListItem[]>("/api/patterns");
 }
 
-export async function createMolde(): Promise<{ id: string }> {
-  const res = await fetch("/api/moldes", { method: "POST" });
+export async function createPattern(): Promise<{ id: string }> {
+  const res = await fetch("/api/patterns", { method: "POST" });
   return (await res.json()) as { id: string };
 }
 
-export function fetchMolde(moldeId: string): Promise<EditorState> {
-  return getJson<EditorState>(`/api/moldes/${moldeId}`);
+export function fetchPattern(patternId: string): Promise<EditorState> {
+  return getJson<EditorState>(`/api/patterns/${patternId}`);
 }
 
-export async function renameMolde(
-  moldeId: string,
+export async function renamePattern(
+  patternId: string,
   name: string,
 ): Promise<void> {
-  await fetch(`/api/moldes/${moldeId}`, {
+  await fetch(`/api/patterns/${patternId}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name }),
   });
 }
 
-export async function deleteMolde(moldeId: string): Promise<void> {
-  await fetch(`/api/moldes/${moldeId}`, { method: "DELETE" });
+export async function deletePattern(patternId: string): Promise<void> {
+  await fetch(`/api/patterns/${patternId}`, { method: "DELETE" });
 }
 
 export function generate(
-  moldeId: string,
+  patternId: string,
   message: string,
   answering?: boolean,
 ): Promise<GenerateResult> {
-  return postJson<GenerateResult>(`/api/moldes/${moldeId}/generate`, {
+  return postJson<GenerateResult>(`/api/patterns/${patternId}/generate`, {
     message,
     answering,
   });
 }
 
 export function graduate(
-  moldeId: string,
+  patternId: string,
   sizes: string[],
 ): Promise<GenerateResult> {
-  return postJson<GenerateResult>(`/api/moldes/${moldeId}/graduate`, {
+  return postJson<GenerateResult>(`/api/patterns/${patternId}/graduate`, {
     sizes,
   });
 }
 
 export function resolveConflict(
-  moldeId: string,
+  patternId: string,
   action: "fix" | "ignore",
 ): Promise<GenerateResult> {
-  return postJson<GenerateResult>(`/api/moldes/${moldeId}/conflict/resolve`, {
-    action,
-  });
+  return postJson<GenerateResult>(
+    `/api/patterns/${patternId}/conflict/resolve`,
+    {
+      action,
+    },
+  );
 }
 
 export function purchase(
   type: "topup" | "subscribe",
-  moldeId?: string,
+  patternId?: string,
 ): Promise<PurchaseResult> {
-  return postJson<PurchaseResult>("/api/billing/purchase", { type, moldeId });
+  return postJson<PurchaseResult>("/api/billing/purchase", { type, patternId });
 }
 
 export function getAccountSummary(): Promise<AccountSummary> {

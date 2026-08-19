@@ -23,8 +23,8 @@ vi.mock("@/lib/db/wallet", () => ({
   ),
 }));
 vi.mock("@/lib/db/pattern", () => ({
-  loadPattern: vi.fn(async (moldeId: string): Promise<PatternState | null> =>
-    moldeId === "m1" ? seedPatternState() : null,
+  loadPattern: vi.fn(async (patternId: string): Promise<PatternState | null> =>
+    patternId === "m1" ? seedPatternState() : null,
   ),
   patternNotFound: vi.fn(
     () =>
@@ -54,15 +54,15 @@ describe("POST /api/billing/purchase", () => {
     });
   });
 
-  it("with a moldeId, returns the full composed editor state", async () => {
-    const res = await POST(req({ type: "topup", moldeId: "m1" }));
+  it("with a patternId, returns the full composed editor state", async () => {
+    const res = await POST(req({ type: "topup", patternId: "m1" }));
     const json = await res.json();
     expect(json.status).toBe("ok");
     expect(json.state.pattern.version).toBe(0);
     expect(json.state.credits.balance).toBe(420);
   });
 
-  it("without a moldeId, returns just credits", async () => {
+  it("without a patternId, returns just credits", async () => {
     const res = await POST(req({ type: "topup" }));
     const json = await res.json();
     expect(json.status).toBe("ok");
@@ -70,8 +70,8 @@ describe("POST /api/billing/purchase", () => {
     expect(json.state).toBeUndefined();
   });
 
-  it("404s when moldeId is given but not found/owned", async () => {
-    const res = await POST(req({ type: "topup", moldeId: "not-mine" }));
+  it("404s when patternId is given but not found/owned", async () => {
+    const res = await POST(req({ type: "topup", patternId: "not-mine" }));
     expect(res.status).toBe(404);
   });
 
