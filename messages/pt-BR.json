@@ -300,5 +300,61 @@
   },
   "SettingsShell": {
     "title": "Configurações"
+  },
+  "SettingsSidebar": {
+    "profileLabel": "Perfil",
+    "passwordLabel": "Alterar senha",
+    "dangerZoneLabel": "Excluir conta",
+    "usageLabel": "Créditos e uso",
+    "planLabel": "Plano e cobrança"
+  },
+  "UsageSection": {
+    "heading": "Créditos e uso",
+    "outOfTotal": "de {total} · renova em {days} dias",
+    "topupButton": "Comprar créditos avulsos · R$ 19",
+    "historyHeading": "Histórico",
+    "empty": "Nenhuma movimentação ainda.",
+    "typeDebit": "Uso",
+    "typeRefund": "Estorno",
+    "typeTopup": "Créditos avulsos",
+    "typeSubscribe": "Assinatura",
+    "typeRenew": "Renovação",
+    "reasonGenerate": "Ajuste",
+    "reasonGraduate": "Graduação",
+    "reasonGenerateAsk": "Pergunta",
+    "reasonGenerateDeclined": "Recusado",
+    "reasonGenerateError": "Erro"
+  },
+  "PlanSection": {
+    "currentBadge": "Plano atual",
+    "comingSoonBadge": "em breve",
+    "costsHeading": "Custo por ação",
+    "costGenerate": "Geração · {cost} créditos",
+    "costAdjust": "Ajuste · {cost} créditos",
+    "costGraduate": "Graduação · {cost} créditos",
+    "costCuttingPlan": "Plano de corte · {cost} créditos",
+    "costCorrection": "Correção · {cost} créditos",
+    "plans": {
+      "free": {
+        "name": "Grátis",
+        "price": "R$ 0",
+        "creditsLabel": "30 créditos/mês"
+      },
+      "atelier": {
+        "name": "Ateliê",
+        "price": "R$ 59",
+        "creditsLabel": "500 créditos/mês"
+      },
+      "studio": {
+        "name": "Estúdio",
+        "price": "R$ 149",
+        "creditsLabel": "2.000 créditos/mês"
+      },
+      "factory": {
+        "name": "Confecção",
+        "price": "R$ 399",
+        "creditsLabel": "10.000 créditos/mês"
+      }
+    }
   }
 }
