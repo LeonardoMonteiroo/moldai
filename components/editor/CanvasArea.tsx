@@ -64,6 +64,7 @@ export function CanvasArea() {
           activeTab={activeTab}
           onChangeTab={setActiveTab}
           baseSize={pattern.baseSize}
+          sizes={pattern.sizes}
           detailsOpen={detailsPanelOpen}
           onToggleDetails={toggleDetailsPanel}
           hasSelectedPiece={selectedPiece !== null && !conflict}

@@ -23,8 +23,22 @@ function emptyState(): EditorState {
       savedAgo: "",
       baseSize: "M",
       unit: "cm",
+      sizes: ["M"],
       sizesApplied: [],
       sizesPending: [],
+      sizeTable: {
+        M: {
+          bust: 92,
+          waist: 74,
+          hip: 100,
+          hipHeight: 20.6,
+          backLength: 41,
+          shoulder: 18.5,
+          skirtLength: 60,
+          shortSleeveLength: 18,
+          longSleeveLength: 58,
+        },
+      },
       pieces: [],
     },
     chat: [

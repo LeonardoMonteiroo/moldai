@@ -1,5 +1,5 @@
 import { useTranslations } from "next-intl";
-import { ALL_SIZES, COSTS, Pattern, Piece } from "@/lib/types";
+import { COSTS, Pattern, Piece } from "@/lib/types";
 import { formatList } from "@/lib/format";
 
 export function PieceDetailsPanel({
@@ -56,7 +56,7 @@ export function PieceDetailsPanel({
       </div>
       <div className="border-pattern-guide rounded-item bg-surface-alt border border-dashed p-[10px]">
         <div className="flex gap-[5px] text-[11.5px]">
-          {ALL_SIZES.map((size) => {
+          {pattern.sizes.map((size) => {
             const isBase = size === pattern.baseSize;
             const active = isBase || pattern.sizesApplied.includes(size);
             return (

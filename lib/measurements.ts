@@ -1,4 +1,4 @@
-import { SizeLabel, Gender } from "./types";
+import { SizeLabel } from "./types";
 
 export interface Measurements {
   bust: number; // bust circumference (cm)
@@ -147,18 +147,21 @@ function clamp(v: number, min: number, max: number) {
   return Math.min(max, Math.max(min, v));
 }
 
+// Applies chat-driven overrides on top of an already-resolved base row (from
+// a grade's sizeTable — see lib/grades/compute.ts's resolveGradeSize) and
+// clamps to MEASUREMENT_RANGES. No longer does a size/gender table lookup
+// itself — that responsibility moved to the grade layer.
 export function resolveMeasurements(
-  size: SizeLabel,
+  base: Measurements,
   overrides: Partial<Measurements>,
-  gender: Gender = "female",
 ): Measurements {
-  const base = { ...(gender === "male" ? SIZE_TABLE_MALE : SIZE_TABLE)[size] };
+  const result = { ...base };
   for (const k of Object.keys(overrides) as (keyof Measurements)[]) {
     const v = overrides[k];
     if (typeof v === "number" && Number.isFinite(v)) {
       const r = MEASUREMENT_RANGES[k];
-      base[k] = clamp(v, r.min, r.max);
+      result[k] = clamp(v, r.min, r.max);
     }
   }
-  return base;
+  return result;
 }

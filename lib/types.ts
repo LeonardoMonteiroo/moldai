@@ -1,6 +1,8 @@
 import type { Measurements } from "./measurements";
 
-export type SizeLabel = "PP" | "P" | "M" | "G" | "GG";
+export type SizeLabel = string;
+
+export type BodyType = "straight" | "hourglass" | "pear" | "apple";
 
 export type PieceOutline =
   { kind: "polygon"; points: string } | { kind: "path"; d: string };
@@ -136,8 +138,10 @@ export interface Pattern {
   savedAgo: string;
   baseSize: SizeLabel;
   unit: string;
+  sizes: string[];
   sizesApplied: SizeLabel[];
   sizesPending: SizeLabel[];
+  sizeTable: Record<string, Measurements>;
   pieces: Piece[];
   spec?: GarmentSpec;
   viewBox?: { w: number; h: number };
@@ -157,7 +161,32 @@ export interface EditorState extends PatternState {
   credits: Credits;
 }
 
-export const ALL_SIZES: SizeLabel[] = ["PP", "P", "M", "G", "GG"];
+// A grade's editable data — grid library entries + the source of truth for
+// resolveGradeSize/buildSizeTable (lib/grades/compute.ts). Persisted 1:1 as a
+// Grade row's `data` JSON (lib/db/grade.ts), same shape convention as
+// PatternState.
+export interface GradeData {
+  name: string;
+  gender: Gender;
+  bodyType: BodyType; // descriptive metadata only — never affects drafted geometry
+  isSystem: boolean; // seeded, read-only (no edit/delete), duplicable
+  sizes: string[]; // ordered size labels, e.g. ["PP","P","M","G","GG"] or ["36",...,"46"]
+  baseSizeIndex: number; // index into sizes[] — the highlighted/base column
+  baseMeasurements: Measurements; // values at the base size
+  progressionRule: Partial<Record<keyof Measurements, number>>; // cm delta per size step
+  overrides: Record<string, Partial<Measurements>>; // size -> field -> manual value, wins over the rule
+}
+
+export interface GradeRecord extends GradeData {
+  id: string;
+  updatedAt: string;
+}
+
+// Wire shape for GET /api/grades — isActive is computed server-side by
+// comparing each record's id to the account's User.activeGradeId.
+export interface GradeListEntry extends GradeRecord {
+  isActive: boolean;
+}
 
 export const COSTS = {
   generate: 4,

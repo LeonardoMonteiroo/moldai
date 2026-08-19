@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { resolveMeasurements } from "@/lib/measurements";
+import { SIZE_TABLE } from "@/lib/measurements";
 import { draftSleeve } from "./sleeve";
 import { bbox } from "./core";
 import { t } from "@/lib/i18n/test-translate";
 
-const M = resolveMeasurements("M", {});
+const M = SIZE_TABLE.M;
 
 describe("draftSleeve bell cap", () => {
   it("returns null when sleeve=none", () => {

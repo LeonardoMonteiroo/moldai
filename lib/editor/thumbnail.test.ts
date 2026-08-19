@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { buildThumbnailSvg } from "./thumbnail";
 import type { Pattern } from "@/lib/types";
+import { SIZE_TABLE } from "@/lib/measurements";
 
 function pattern(overrides: Partial<Pattern> = {}): Pattern {
   return {
@@ -10,8 +11,10 @@ function pattern(overrides: Partial<Pattern> = {}): Pattern {
     savedAgo: "",
     baseSize: "M",
     unit: "cm",
+    sizes: ["PP", "P", "M", "G", "GG"],
     sizesApplied: [],
     sizesPending: [],
+    sizeTable: { M: SIZE_TABLE.M },
     pieces: [],
     viewBox: { w: 620, h: 380 },
     ...overrides,

@@ -93,7 +93,8 @@ export function outlineSegments(
 export function buildExportModel(pattern: Pattern, t: Translate): ExportModel {
   const spec = pattern.spec;
   if (!spec) throw new Error("buildExportModel: pattern has no spec");
-  const drafted: DraftedPiece[] = draftPiecesCm(spec, pattern.baseSize, t);
+  const baseMeasurements = pattern.sizeTable[pattern.baseSize];
+  const drafted: DraftedPiece[] = draftPiecesCm(spec, baseMeasurements, t);
 
   const padCm = 6;
   const gapCm = 8;

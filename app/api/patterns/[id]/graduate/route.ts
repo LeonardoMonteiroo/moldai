@@ -5,7 +5,7 @@ import { addMessage, applySizes, bumpVersion } from "@/lib/editor/state";
 import { debitWallet } from "@/lib/billing/wallet";
 import type { LedgerEntry } from "@/lib/billing/wallet";
 import { composeEditorState } from "@/lib/api/compose";
-import { ALL_SIZES, COSTS, SizeLabel } from "@/lib/types";
+import { COSTS, SizeLabel } from "@/lib/types";
 import { formatList } from "@/lib/format";
 import { requireUser } from "@/lib/auth/guard";
 
@@ -25,17 +25,7 @@ export async function POST(request: Request, { params }: Ctx) {
       { status: 400 },
     );
   }
-  const sizes = Array.isArray(body.sizes)
-    ? body.sizes.filter((s): s is SizeLabel =>
-        (ALL_SIZES as string[]).includes(s as string),
-      )
-    : [];
-  if (sizes.length === 0) {
-    return NextResponse.json(
-      { status: "error", error: "Nenhum tamanho válido para graduar." },
-      { status: 400 },
-    );
-  }
+  const requested = Array.isArray(body.sizes) ? body.sizes : [];
   const cost = COSTS.graduate;
   const now = new Date();
 
@@ -43,6 +33,18 @@ export async function POST(request: Request, { params }: Ctx) {
     id,
     gate.id,
     (state, wallet): { result: NextResponse; entries: LedgerEntry[] } => {
+      const sizes = requested.filter((s): s is SizeLabel =>
+        state.pattern.sizes.includes(s as string),
+      );
+      if (sizes.length === 0) {
+        return {
+          result: NextResponse.json(
+            { status: "error", error: "Nenhum tamanho válido para graduar." },
+            { status: 400 },
+          ),
+          entries: [],
+        };
+      }
       if (wallet.balance < cost) {
         return {
           result: NextResponse.json(
