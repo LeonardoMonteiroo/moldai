@@ -289,5 +289,13 @@
     "mismatchError": "As senhas não coincidem.",
     "tooShortError": "A nova senha deve ter pelo menos 8 caracteres.",
     "successMessage": "Senha alterada com sucesso."
+  },
+  "DangerZoneSection": {
+    "heading": "Excluir conta",
+    "warning": "Essa ação exclui permanentemente todos os seus moldes, créditos e histórico. Não pode ser desfeita.",
+    "emailConfirmLabel": "Digite {email} para confirmar",
+    "passwordLabel": "Senha",
+    "submitButton": "Excluir conta",
+    "genericError": "Não foi possível excluir a conta. Tente novamente."
   }
 }
