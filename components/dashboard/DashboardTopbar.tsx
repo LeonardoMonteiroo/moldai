@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { signOut } from "next-auth/react";
 import type { Credits } from "@/lib/types";
@@ -14,6 +15,7 @@ export function DashboardTopbar({
   credits: Credits | null;
 }) {
   const t = useTranslations("DashboardTopbar");
+  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -45,7 +47,13 @@ export function DashboardTopbar({
             <button className="hover:bg-surface-alt px-3 py-[8px] text-left text-[12px]">
               {t("planMenuItem")}
             </button>
-            <button className="hover:bg-surface-alt px-3 py-[8px] text-left text-[12px]">
+            <button
+              onClick={() => {
+                setMenuOpen(false);
+                router.push("/configuracoes");
+              }}
+              className="hover:bg-surface-alt px-3 py-[8px] text-left text-[12px]"
+            >
               {t("preferencesMenuItem")}
             </button>
             <button
