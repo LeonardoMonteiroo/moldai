@@ -41,16 +41,28 @@ export function DashboardTopbar({
             <span className="text-muted border-border truncate border-b px-3 py-[8px] text-[11.5px]">
               {userEmail}
             </span>
-            <button className="hover:bg-surface-alt px-3 py-[8px] text-left text-[12px]">
+            <button
+              onClick={() => {
+                setMenuOpen(false);
+                router.push("/settings?section=usage");
+              }}
+              className="hover:bg-surface-alt px-3 py-[8px] text-left text-[12px]"
+            >
               {t("usageMenuItem")}
             </button>
-            <button className="hover:bg-surface-alt px-3 py-[8px] text-left text-[12px]">
+            <button
+              onClick={() => {
+                setMenuOpen(false);
+                router.push("/settings?section=plan");
+              }}
+              className="hover:bg-surface-alt px-3 py-[8px] text-left text-[12px]"
+            >
               {t("planMenuItem")}
             </button>
             <button
               onClick={() => {
                 setMenuOpen(false);
-                router.push("/configuracoes");
+                router.push("/settings?section=profile");
               }}
               className="hover:bg-surface-alt px-3 py-[8px] text-left text-[12px]"
             >
