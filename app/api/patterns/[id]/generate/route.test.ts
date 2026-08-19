@@ -44,7 +44,7 @@ import { unauthorized } from "@/lib/auth/session";
 const mockPropose = proposeGarment as unknown as ReturnType<typeof vi.fn>;
 
 function req(body: unknown) {
-  return new Request("http://test/api/moldes/m1/generate", {
+  return new Request("http://test/api/patterns/m1/generate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -54,7 +54,7 @@ function ctx(id = "m1") {
   return { params: Promise.resolve({ id }) };
 }
 
-describe("POST /api/moldes/[id]/generate", () => {
+describe("POST /api/patterns/[id]/generate", () => {
   beforeEach(() => {
     state = seedPatternState();
     wallet = seedWallet(NOW);

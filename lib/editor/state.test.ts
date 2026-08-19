@@ -12,7 +12,7 @@ import {
 import { t } from "@/lib/i18n/test-translate";
 
 describe("seedPatternState", () => {
-  it("blank molde: no pieces, empty chat, version 0, no conflict", () => {
+  it("blank pattern: no pieces, empty chat, version 0, no conflict", () => {
     const s = seedPatternState();
     expect(s.pattern.pieces).toHaveLength(0);
     expect(s.chat).toHaveLength(0);

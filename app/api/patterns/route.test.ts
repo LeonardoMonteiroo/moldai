@@ -14,7 +14,7 @@ import { listPatternsForUser, createPattern } from "@/lib/db/pattern";
 const mockList = listPatternsForUser as unknown as ReturnType<typeof vi.fn>;
 const mockCreate = createPattern as unknown as ReturnType<typeof vi.fn>;
 
-describe("GET /api/moldes", () => {
+describe("GET /api/patterns", () => {
   beforeEach(() => {
     vi.mocked(requireUser).mockResolvedValue({
       id: "u1",
@@ -49,7 +49,7 @@ describe("GET /api/moldes", () => {
   });
 });
 
-describe("POST /api/moldes", () => {
+describe("POST /api/patterns", () => {
   beforeEach(() => {
     vi.mocked(requireUser).mockResolvedValue({
       id: "u1",

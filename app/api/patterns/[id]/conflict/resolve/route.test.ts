@@ -43,7 +43,7 @@ import { unauthorized } from "@/lib/auth/session";
 import { setConflict } from "@/lib/editor/state";
 
 function req(action: "fix" | "ignore") {
-  return new Request("http://test/api/moldes/m1/conflict/resolve", {
+  return new Request("http://test/api/patterns/m1/conflict/resolve", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action }),
@@ -53,7 +53,7 @@ function ctx(id = "m1") {
   return { params: Promise.resolve({ id }) };
 }
 
-describe("POST /api/moldes/[id]/conflict/resolve", () => {
+describe("POST /api/patterns/[id]/conflict/resolve", () => {
   beforeEach(() => {
     state = seedPatternState();
     setConflict(state, {

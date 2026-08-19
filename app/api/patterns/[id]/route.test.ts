@@ -34,7 +34,7 @@ function ctx(id: string) {
   return { params: Promise.resolve({ id }) };
 }
 
-describe("/api/moldes/[id]", () => {
+describe("/api/patterns/[id]", () => {
   beforeEach(() => {
     vi.mocked(requireUser).mockResolvedValue({
       id: "u1",

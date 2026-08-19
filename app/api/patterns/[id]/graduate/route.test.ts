@@ -37,7 +37,7 @@ import { requireUser } from "@/lib/auth/guard";
 import { unauthorized } from "@/lib/auth/session";
 
 function req(body: unknown) {
-  return new Request("http://test/api/moldes/m1/graduate", {
+  return new Request("http://test/api/patterns/m1/graduate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -47,7 +47,7 @@ function ctx(id = "m1") {
   return { params: Promise.resolve({ id }) };
 }
 
-describe("POST /api/moldes/[id]/graduate", () => {
+describe("POST /api/patterns/[id]/graduate", () => {
   beforeEach(() => {
     state = seedPatternState();
     wallet = seedWallet(NOW);
