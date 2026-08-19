@@ -8,7 +8,7 @@ import { SettingsShell } from "@/components/settings/SettingsShell";
 import {
   SETTINGS_SECTIONS,
   type SettingsSection,
-} from "@/components/settings/SettingsSidebar";
+} from "@/lib/settings/sections";
 
 function parseSection(value: string | undefined): SettingsSection {
   return SETTINGS_SECTIONS.includes(value as SettingsSection)

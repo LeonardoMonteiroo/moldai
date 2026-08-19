@@ -2,17 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-
-export type SettingsSection =
-  "profile" | "password" | "danger" | "usage" | "plan";
-
-export const SETTINGS_SECTIONS: SettingsSection[] = [
-  "profile",
-  "password",
-  "danger",
-  "usage",
-  "plan",
-];
+import { SETTINGS_SECTIONS } from "@/lib/settings/sections";
+import type { SettingsSection } from "@/lib/settings/sections";
 
 const LABEL_KEY: Record<SettingsSection, string> = {
   profile: "profileLabel",

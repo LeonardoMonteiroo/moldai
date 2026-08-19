@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import type { Credits, LedgerHistoryEntry } from "@/lib/types";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { SettingsSidebar } from "./SettingsSidebar";
-import type { SettingsSection } from "./SettingsSidebar";
+import type { SettingsSection } from "@/lib/settings/sections";
 import { ProfileSection } from "./ProfileSection";
 import { PasswordSection } from "./PasswordSection";
 import { DangerZoneSection } from "./DangerZoneSection";
