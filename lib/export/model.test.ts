@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { outlineSegments, buildExportModel } from "./model";
 import type { Pt } from "@/lib/draft/core";
 import type { Pattern } from "@/lib/types";
+import { SIZE_TABLE } from "@/lib/measurements";
 import { t } from "@/lib/i18n/test-translate";
 
 describe("outlineSegments", () => {
@@ -38,8 +39,10 @@ function fakePattern(): Pattern {
     savedAgo: "agora",
     baseSize: "M",
     unit: "cm",
+    sizes: ["PP", "P", "M", "G", "GG"],
     sizesApplied: [],
     sizesPending: [],
+    sizeTable: { M: SIZE_TABLE.M },
     pieces: [
       {
         id: "x",

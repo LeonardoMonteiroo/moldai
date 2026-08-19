@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { resolveMeasurements } from "@/lib/measurements";
+import { SIZE_TABLE } from "@/lib/measurements";
 import { draftBody, BlockOpts } from "./body";
 import { bbox, Pt } from "./core";
 import { t } from "@/lib/i18n/test-translate";
 
-const M = resolveMeasurements("M", {});
+const M = SIZE_TABLE.M;
 const optsM: BlockOpts = {
   gender: "female",
   knit: false,
@@ -23,8 +23,8 @@ const neckDrop = (pts: Pt[]) => {
 
 describe("draftBody sloper", () => {
   it("scales the width with the bust", () => {
-    const small = draftBody(resolveMeasurements("PP", {}), {}, t);
-    const big = draftBody(resolveMeasurements("GG", {}), {}, t);
+    const small = draftBody(SIZE_TABLE.PP, {}, t);
+    const big = draftBody(SIZE_TABLE.GG, {}, t);
     expect(bbox(big.front.outlineCm).w).toBeGreaterThan(
       bbox(small.front.outlineCm).w,
     );

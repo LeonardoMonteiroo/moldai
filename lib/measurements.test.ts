@@ -24,23 +24,35 @@ describe("size tables", () => {
     expect(SIZE_TABLE_MALE.M.shoulder).toBeGreaterThan(SIZE_TABLE.M.shoulder);
     expect(SIZE_TABLE_MALE.M.bust).toBe(100);
   });
+});
 
-  it("resolves the size base and applies overrides (default female)", () => {
-    expect(resolveMeasurements("M", {}).waist).toBe(74);
-    expect(resolveMeasurements("M", { waist: 68 }).waist).toBe(68);
+describe("resolveMeasurements", () => {
+  it("returns the base row unchanged with no overrides", () => {
+    expect(resolveMeasurements(SIZE_TABLE.M, {}).waist).toBe(74);
   });
 
-  it("resolves via the male table when gender=male", () => {
-    expect(resolveMeasurements("M", {}, "male").bust).toBe(100);
-    expect(resolveMeasurements("M", {}, "female").bust).toBe(92);
+  it("applies a numeric override on top of the base row", () => {
+    expect(resolveMeasurements(SIZE_TABLE.M, { waist: 68 }).waist).toBe(68);
+  });
+
+  it("leaves fields without an override untouched", () => {
+    const r = resolveMeasurements(SIZE_TABLE.M, { waist: 68 });
+    expect(r.bust).toBe(SIZE_TABLE.M.bust);
   });
 
   it("clamps the shoulder to the [14,26] range", () => {
-    expect(resolveMeasurements("M", { shoulder: 99 }).shoulder).toBe(
+    expect(resolveMeasurements(SIZE_TABLE.M, { shoulder: 99 }).shoulder).toBe(
       MEASUREMENT_RANGES.shoulder.max,
     );
-    expect(resolveMeasurements("M", { shoulder: 1 }).shoulder).toBe(
+    expect(resolveMeasurements(SIZE_TABLE.M, { shoulder: 1 }).shoulder).toBe(
       MEASUREMENT_RANGES.shoulder.min,
     );
+  });
+
+  it("ignores non-numeric override values", () => {
+    const r = resolveMeasurements(SIZE_TABLE.M, {
+      waist: "x" as unknown as number,
+    });
+    expect(r.waist).toBe(SIZE_TABLE.M.waist);
   });
 });

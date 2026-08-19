@@ -250,6 +250,57 @@
     "importCardLabel": "Importar .dxf · Audaces",
     "importComingSoonBadge": "em breve"
   },
+  "Grades": {
+    "title": "Medidas e grades",
+    "subtitle": "A grade escolhida vale para toda geração e graduação",
+    "newGradeButton": "＋ Nova grade",
+    "importLabel": "↥ Importar planilha ou tabela de medidas do Audaces",
+    "loading": "Carregando grades…",
+    "loadError": "Não foi possível carregar suas grades. Tente recarregar a página."
+  },
+  "GradeLibrary": {
+    "systemBadge": "padrão do sistema",
+    "customBadge": "minha grade",
+    "activeBadge": "ativa"
+  },
+  "GradeTable": {
+    "duplicateButton": "Duplicar",
+    "deleteButton": "Excluir",
+    "editRuleButton": "Editar regra de progressão",
+    "doneEditingRuleButton": "Concluir edição da regra",
+    "ruleHint": "cm por tamanho, a partir da base",
+    "measurementColumnLabel": "Medida (cm)",
+    "resetOverrideTitle": "Resetar para a regra",
+    "addSizeButton": "＋ tamanho",
+    "addSizePrompt": "Nome do novo tamanho",
+    "removeSizeTitle": "Remover tamanho",
+    "progressionTitle": "Progressão",
+    "useGradeButton": "Usar esta grade",
+    "activeGradeNote": "Grade ativa",
+    "saveButton": "Salvar alterações",
+    "systemReadOnlyNote": "Grades do sistema não podem ser editadas — duplique para personalizar.",
+    "deleteModalTitle": "Excluir esta grade?",
+    "deleteModalDescription": "Isso apaga a grade e não pode ser desfeito.",
+    "deleteConfirmButton": "Excluir",
+    "deleteCancelButton": "Cancelar",
+    "measurement": {
+      "bust": "Busto",
+      "waist": "Cintura",
+      "hip": "Quadril",
+      "hipHeight": "Altura de cava",
+      "backLength": "Comprimento de costas",
+      "shoulder": "Ombro",
+      "skirtLength": "Comprimento de saia",
+      "shortSleeveLength": "Manga curta",
+      "longSleeveLength": "Manga longa"
+    },
+    "bodyType": {
+      "straight": "reto",
+      "hourglass": "ampulheta",
+      "pear": "pera",
+      "apple": "maçã"
+    }
+  },
   "Sidebar": {
     "myPatternsLabel": "Meus moldes",
     "measurementsLabel": "Medidas e grades",

@@ -2,12 +2,14 @@ import {
   ChatMessage,
   ConflictInfo,
   GarmentSpec,
+  GradeData,
   PatternState,
   Pattern,
   Piece,
 } from "@/lib/types";
 import { draftGarment, seamCheck } from "@/lib/draft/garment";
-import { resolveMeasurements } from "@/lib/measurements";
+import { buildSizeTable } from "@/lib/grades/compute";
+import { buildSystemGradeData } from "@/lib/grades/seed";
 import type { Translate } from "@/lib/i18n/translate";
 
 // Marker (dashed circle) over a piece's armhole region, from the bbox
@@ -57,7 +59,9 @@ function detectConflict(
 }
 
 function seedPattern(): Pattern {
-  const baseSize = "M" as const;
+  const grade = buildSystemGradeData("female");
+  const sizeTable = buildSizeTable(grade);
+  const baseSize = grade.sizes[grade.baseSizeIndex];
   const spec: GarmentSpec = {
     type: "blouse",
     gender: "female",
@@ -71,11 +75,13 @@ function seedPattern(): Pattern {
     savedAgo: "ainda não salvo",
     baseSize,
     unit: "cm",
+    sizes: grade.sizes,
     sizesApplied: [],
-    sizesPending: ["PP", "P", "M", "G", "GG"],
+    sizesPending: grade.sizes,
+    sizeTable,
     pieces: [],
     spec,
-    baseMeasurements: resolveMeasurements(baseSize, {}, "female"),
+    baseMeasurements: sizeTable[baseSize],
     viewBox: { w: 620, h: 380 },
   };
 }
@@ -87,6 +93,29 @@ export function seedPatternState(): PatternState {
     pattern: seedPattern(),
     chat: [],
     conflict: null,
+  };
+}
+
+// Overwrites the pattern's size snapshot from a real (account or system
+// fallback) grade — called once, by the generate route, right before the
+// FIRST-EVER applyGarmentSpec for a pattern (state.pattern.pieces.length ===
+// 0). Every later regeneration reuses the snapshot already on the pattern;
+// editing the account's active grade afterward never retroactively changes
+// an in-progress pattern (same precedent as the i18n locale-snapshot
+// limitation).
+export function seedPatternSizeSnapshot(
+  state: PatternState,
+  grade: GradeData,
+): void {
+  const sizeTable = buildSizeTable(grade);
+  const baseSize = grade.sizes[grade.baseSizeIndex];
+  state.pattern = {
+    ...state.pattern,
+    sizes: grade.sizes,
+    baseSize,
+    sizeTable,
+    sizesApplied: [],
+    sizesPending: grade.sizes,
   };
 }
 
@@ -127,9 +156,9 @@ export function applyGarmentSpec(
   spec: GarmentSpec,
   t: Translate,
 ): void {
-  const size = state.pattern.baseSize;
+  const baseRow = state.pattern.sizeTable[state.pattern.baseSize];
   const { pieces, viewBox, measurements, armholeLenCm, sleeveArmholeCm } =
-    draftGarment(spec, size, t);
+    draftGarment(spec, baseRow, t);
   state.pattern = {
     ...state.pattern,
     pieces,

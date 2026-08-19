@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { planCutLayout } from "./cutplan";
 import { buildExportModel } from "./model";
 import type { Pattern } from "@/lib/types";
+import { SIZE_TABLE_MALE } from "@/lib/measurements";
 import { t } from "@/lib/i18n/test-translate";
 
 function fakePattern(): Pattern {
@@ -12,8 +13,10 @@ function fakePattern(): Pattern {
     savedAgo: "agora",
     baseSize: "M",
     unit: "cm",
+    sizes: ["PP", "P", "M", "G", "GG"],
     sizesApplied: [],
     sizesPending: [],
+    sizeTable: { M: SIZE_TABLE_MALE.M },
     pieces: [
       {
         id: "x",

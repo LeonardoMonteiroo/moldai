@@ -12,7 +12,6 @@ import {
   SleeveLength,
   SkirtSilhouette,
   Gender,
-  SizeLabel,
 } from "@/lib/types";
 import { autoLayout, DraftedPiece } from "./core";
 import { BlockOpts, draftBody } from "./body";
@@ -126,7 +125,7 @@ export function seamCheck(
 
 function draftAll(
   spec: GarmentSpec,
-  size: SizeLabel,
+  baseMeasurements: Measurements,
   t: Translate,
 ): {
   drafted: DraftedPiece[];
@@ -136,9 +135,8 @@ function draftAll(
 } {
   const gender: Gender = spec.gender ?? "female";
   const measurements: Measurements = resolveMeasurements(
-    size,
+    baseMeasurements,
     spec.measurementOverrides,
-    gender,
   );
   const drafted: DraftedPiece[] = [];
   let armholeLenCm: number | undefined;
@@ -190,16 +188,20 @@ function draftAll(
 
 export function draftPiecesCm(
   spec: GarmentSpec,
-  size: SizeLabel,
+  baseMeasurements: Measurements,
   t: Translate,
 ): DraftedPiece[] {
-  return draftAll(spec, size, t).drafted;
+  return draftAll(spec, baseMeasurements, t).drafted;
 }
 
-export function draftGarment(spec: GarmentSpec, size: SizeLabel, t: Translate) {
+export function draftGarment(
+  spec: GarmentSpec,
+  baseMeasurements: Measurements,
+  t: Translate,
+) {
   const { drafted, measurements, armholeLenCm, sleeveArmholeCm } = draftAll(
     spec,
-    size,
+    baseMeasurements,
     t,
   );
   const { pieces, viewBox } = autoLayout(drafted, 8);

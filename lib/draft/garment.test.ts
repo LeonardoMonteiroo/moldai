@@ -5,6 +5,7 @@ import {
   validateQuestions,
   draftPiecesCm,
 } from "./garment";
+import { SIZE_TABLE, SIZE_TABLE_MALE } from "@/lib/measurements";
 import { t } from "@/lib/i18n/test-translate";
 
 describe("validateSpec", () => {
@@ -89,7 +90,7 @@ describe("draftGarment", () => {
         measurementOverrides: {},
         style: { sleeve: "short", neckline: "V" },
       },
-      "M",
+      SIZE_TABLE.M,
       t,
     );
     expect(pieces.map((p) => p.id).sort()).toEqual([
@@ -106,7 +107,7 @@ describe("draftGarment", () => {
         measurementOverrides: {},
         style: {},
       },
-      "M",
+      SIZE_TABLE_MALE.M,
       t,
     );
     const ids = pieces.map((p) => p.id).sort();
@@ -125,7 +126,7 @@ describe("draftGarment", () => {
         measurementOverrides: {},
         style: { skirt: "gore" },
       },
-      "M",
+      SIZE_TABLE.M,
       t,
     );
     expect(pieces.map((p) => p.id)).toEqual(["skirt"]);
@@ -139,7 +140,7 @@ describe("draftGarment", () => {
         measurementOverrides: {},
         style: { sleeve: "none", skirt: "a-line" },
       },
-      "M",
+      SIZE_TABLE.M,
       t,
     );
     const ids = pieces.map((p) => p.id);
@@ -154,7 +155,7 @@ describe("draftGarment", () => {
         measurementOverrides: {},
         style: { sleeve: "short", armholeDeepenCm: 2 },
       },
-      "M",
+      SIZE_TABLE.M,
       t,
     );
     expect(armholeLenCm! - sleeveArmholeCm!).toBeGreaterThan(1);
@@ -167,7 +168,7 @@ describe("draftGarment", () => {
         measurementOverrides: {},
         style: { sleeve: "short" },
       },
-      "M",
+      SIZE_TABLE.M,
       t,
     );
     expect(Math.abs(armholeLenCm! - sleeveArmholeCm!)).toBeLessThan(1e-6);
@@ -180,7 +181,7 @@ describe("draftGarment", () => {
         measurementOverrides: {},
         style: { sleeve: "short", armholeDeepenCm: 2, sleeveRefit: true },
       },
-      "M",
+      SIZE_TABLE.M,
       t,
     );
     expect(Math.abs(armholeLenCm! - sleeveArmholeCm!)).toBeLessThan(1e-6);
@@ -196,7 +197,7 @@ describe("draftPiecesCm", () => {
         measurementOverrides: {},
         style: {},
       },
-      "M",
+      SIZE_TABLE_MALE.M,
       t,
     );
     expect(pcs.map((p) => p.id)).toEqual(["body-front", "body-back", "sleeve"]);

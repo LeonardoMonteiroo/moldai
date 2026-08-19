@@ -35,6 +35,29 @@ vi.mock("@/lib/db/pattern-wallet", () => ({
     },
   ),
 }));
+vi.mock("@/lib/db/grade", () => ({
+  getGradeForGeneration: vi.fn(async () => ({
+    name: "Feminino adulto · ABNT",
+    gender: "female",
+    bodyType: "straight",
+    isSystem: true,
+    sizes: ["PP", "P", "M", "G", "GG"],
+    baseSizeIndex: 2,
+    baseMeasurements: {
+      bust: 92,
+      waist: 74,
+      hip: 100,
+      hipHeight: 20.6,
+      backLength: 41,
+      shoulder: 18.5,
+      skirtLength: 60,
+      shortSleeveLength: 18,
+      longSleeveLength: 58,
+    },
+    progressionRule: {},
+    overrides: {},
+  })),
+}));
 
 import { POST } from "./route";
 import { proposeGarment } from "@/lib/ai";

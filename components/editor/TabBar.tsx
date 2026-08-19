@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { EditorTab } from "@/lib/store";
-import { ALL_SIZES, SizeLabel } from "@/lib/types";
+import { SizeLabel } from "@/lib/types";
 
 const TAB_IDS: EditorTab[] = ["pattern2d", "proof3d", "techsheet", "cutplan"];
 
@@ -14,7 +14,13 @@ const TAB_LABEL_KEYS: Record<EditorTab, string> = {
   cutplan: "tabCutplan",
 };
 
-function SizeSelector({ baseSize }: { baseSize: SizeLabel }) {
+function SizeSelector({
+  baseSize,
+  sizes,
+}: {
+  baseSize: SizeLabel;
+  sizes: SizeLabel[];
+}) {
   const t = useTranslations("TabBar");
   const [open, setOpen] = useState(false);
   return (
@@ -36,7 +42,7 @@ function SizeSelector({ baseSize }: { baseSize: SizeLabel }) {
           />
           <div className="bg-surface border-border rounded-item shadow-card absolute top-full right-0 z-20 mt-1 min-w-[190px] border p-2">
             <div className="flex gap-[5px] px-1 pb-2 text-[11.5px]">
-              {ALL_SIZES.map((size) => (
+              {sizes.map((size) => (
                 <span
                   key={size}
                   className={[
@@ -69,6 +75,7 @@ export function TabBar({
   activeTab,
   onChangeTab,
   baseSize,
+  sizes,
   detailsOpen,
   onToggleDetails,
   hasSelectedPiece,
@@ -76,6 +83,7 @@ export function TabBar({
   activeTab: EditorTab;
   onChangeTab: (tab: EditorTab) => void;
   baseSize: SizeLabel;
+  sizes: SizeLabel[];
   detailsOpen: boolean;
   onToggleDetails: () => void;
   hasSelectedPiece: boolean;
@@ -100,7 +108,7 @@ export function TabBar({
         ))}
       </div>
       <div className="flex-1" />
-      <SizeSelector baseSize={baseSize} />
+      <SizeSelector baseSize={baseSize} sizes={sizes} />
       {activeTab === "pattern2d" && (
         <button
           onClick={onToggleDetails}

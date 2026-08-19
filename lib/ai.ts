@@ -1,11 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { PatternState, GarmentSpec, ClarifyQuestion } from "./types";
 import { validateSpec, validateQuestions } from "@/lib/draft/garment";
-import {
-  MEASUREMENT_RANGES,
-  SIZE_TABLE,
-  SIZE_TABLE_MALE,
-} from "@/lib/measurements";
+import { MEASUREMENT_RANGES } from "@/lib/measurements";
 
 export interface AiDecision {
   decision: "apply" | "decline" | "ask";
@@ -147,10 +143,8 @@ function buildSystem(state: PatternState, answering: boolean): string {
       ? "The user just ANSWERED your questions (the answers are in the last user message). Do NOT use decision=ask again — use apply (or decline if out of scope) with your best understanding of the answers."
       : "If relevant detail is missing to draft correctly (neckline, sleeve, fit, length, size…), use decision=ask with 1 to 4 objective single-choice questions, options from the valid catalog; don't invent measurements or draft in that case. Only use apply once you have enough.",
     "",
-    "Female size table (cm):",
-    JSON.stringify(SIZE_TABLE),
-    "Male size table (cm):",
-    JSON.stringify(SIZE_TABLE_MALE),
+    "Size table (cm) for this pattern's active measurement grade:",
+    JSON.stringify(state.pattern.sizeTable),
     "",
     "Current pattern spec:",
     JSON.stringify(currentSpec ?? null),
