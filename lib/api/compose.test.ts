@@ -7,11 +7,11 @@ const NOW = new Date("2026-08-17T12:00:00.000Z");
 
 describe("composeEditorState", () => {
   it("merges pattern/chat/conflict with credits derived from the wallet", () => {
-    const moldeState = seedPatternState();
+    const patternState = seedPatternState();
     const wallet = seedWallet(NOW);
-    const state = composeEditorState(moldeState, wallet, NOW);
-    expect(state.pattern).toBe(moldeState.pattern);
-    expect(state.chat).toBe(moldeState.chat);
+    const state = composeEditorState(patternState, wallet, NOW);
+    expect(state.pattern).toBe(patternState.pattern);
+    expect(state.chat).toBe(patternState.chat);
     expect(state.conflict).toBeNull();
     expect(state.credits).toEqual({
       plan: "atelier",
@@ -24,7 +24,7 @@ describe("composeEditorState", () => {
 });
 
 describe("buildCredits", () => {
-  it("builds a Credits object from a wallet, independent of any molde", () => {
+  it("builds a Credits object from a wallet, independent of any pattern", () => {
     const wallet = {
       plan: "atelier" as const,
       planLabel: "Ateliê",

@@ -16,7 +16,7 @@ export function Sidebar({ onCreate }: { onCreate: (id: string) => void }) {
     <div className="border-border bg-surface flex w-[186px] flex-col border-r p-[14px]">
       <nav className="flex flex-col gap-1">
         <span className="bg-olive-tint text-olive rounded-item px-[10px] py-[7px] text-[12.5px] font-medium">
-          {t("myMoldesLabel")}
+          {t("myPatternsLabel")}
         </span>
         <span className="text-disabled rounded-item flex items-center justify-between px-[10px] py-[7px] text-[12.5px]">
           {t("measurementsLabel")}
@@ -39,7 +39,7 @@ export function Sidebar({ onCreate }: { onCreate: (id: string) => void }) {
         onClick={handleCreate}
         className="bg-olive rounded-btn px-[13px] py-[9px] text-[12.5px] font-medium text-white transition-[filter] hover:brightness-[0.95]"
       >
-        {t("newMoldeButton")}
+        {t("newPatternButton")}
       </button>
     </div>
   );

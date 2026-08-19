@@ -2,19 +2,19 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import type { MoldeListItem } from "@/lib/api-client";
+import type { PatternListItem } from "@/lib/api-client";
 import { useDashboardStore } from "@/lib/dashboardStore";
 import { relativeTime } from "@/lib/format";
 import { ConfirmModal } from "@/components/shared/ConfirmModal";
 
-export function MoldeCard({
-  molde,
+export function PatternCard({
+  pattern,
   onOpen,
 }: {
-  molde: MoldeListItem;
+  pattern: PatternListItem;
   onOpen: (id: string) => void;
 }) {
-  const t = useTranslations("MoldeCard");
+  const t = useTranslations("PatternCard");
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const rename = useDashboardStore((s) => s.rename);
@@ -22,9 +22,9 @@ export function MoldeCard({
 
   const handleRename = () => {
     setMenuOpen(false);
-    const next = window.prompt(t("renamePrompt"), molde.name);
-    if (next && next.trim() && next.trim() !== molde.name) {
-      rename(molde.id, next.trim());
+    const next = window.prompt(t("renamePrompt"), pattern.name);
+    if (next && next.trim() && next.trim() !== pattern.name) {
+      rename(pattern.id, next.trim());
     }
   };
 
@@ -32,13 +32,13 @@ export function MoldeCard({
     <div className="border-border rounded-card group relative flex flex-col gap-2 border bg-white p-[10px]">
       <button
         type="button"
-        onClick={() => onOpen(molde.id)}
+        onClick={() => onOpen(pattern.id)}
         className="bg-surface-alt rounded-item flex h-[112px] w-full items-center justify-center overflow-hidden"
       >
-        {molde.garmentType ? (
+        {pattern.garmentType ? (
           <span
             className="h-full w-full [&_svg]:h-full [&_svg]:w-full"
-            dangerouslySetInnerHTML={{ __html: molde.thumbnailSvg }}
+            dangerouslySetInnerHTML={{ __html: pattern.thumbnailSvg }}
           />
         ) : (
           <span className="text-muted text-[11px]">{t("blankLabel")}</span>
@@ -46,9 +46,9 @@ export function MoldeCard({
       </button>
       <div className="flex items-start justify-between gap-1">
         <div className="flex flex-col gap-px">
-          <span className="text-[13px] font-semibold">{molde.name}</span>
+          <span className="text-[13px] font-semibold">{pattern.name}</span>
           <span className="text-muted text-[11px]">
-            {relativeTime(molde.updatedAt)}
+            {relativeTime(pattern.updatedAt)}
           </span>
         </div>
         <div className="relative">
@@ -91,7 +91,7 @@ export function MoldeCard({
           cancelLabel={t("deleteCancelButton")}
           onConfirm={() => {
             setConfirmingDelete(false);
-            remove(molde.id);
+            remove(pattern.id);
           }}
           onCancel={() => setConfirmingDelete(false)}
         />

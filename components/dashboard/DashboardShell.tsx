@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { useDashboardStore } from "@/lib/dashboardStore";
 import { DashboardTopbar } from "./DashboardTopbar";
 import { Sidebar } from "./Sidebar";
-import { MoldeGrid } from "./MoldeGrid";
+import { PatternGrid } from "./PatternGrid";
 import { CreditsCard } from "./CreditsCard";
 import { RecentUsageCard } from "./RecentUsageCard";
 
@@ -23,7 +23,7 @@ export function DashboardShell({ userEmail }: { userEmail: string }) {
     init();
   }, [init]);
 
-  const openMolde = (id: string) => router.push(`/molde/${id}`);
+  const openPattern = (id: string) => router.push(`/pattern/${id}`);
 
   if (!ready) {
     return (
@@ -45,9 +45,9 @@ export function DashboardShell({ userEmail }: { userEmail: string }) {
     <div className="flex min-h-0 flex-1 flex-col">
       <DashboardTopbar userEmail={userEmail} credits={credits} />
       <div className="flex min-h-0 flex-1">
-        <Sidebar onCreate={openMolde} />
+        <Sidebar onCreate={openPattern} />
         <div className="flex min-h-0 flex-1 flex-col">
-          <MoldeGrid onOpen={openMolde} />
+          <PatternGrid onOpen={openPattern} />
           {credits && (
             <div className="flex gap-[14px] px-[22px] pb-[22px]">
               <CreditsCard credits={credits} />

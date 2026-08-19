@@ -17,7 +17,7 @@ export default async function PatternPage({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <EditorShell userEmail={session.user.email} moldeId={id} />
+      <EditorShell userEmail={session.user.email} patternId={id} />
     </div>
   );
 }

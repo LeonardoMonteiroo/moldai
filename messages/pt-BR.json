@@ -217,7 +217,7 @@
     "submitButtonLoading": "Entrando…",
     "signupNote": "Criar conta — <b>em breve</b>. Cada conta tem os seus próprios moldes, salvos automaticamente."
   },
-  "MoldeCard": {
+  "PatternCard": {
     "menuAriaLabel": "Mais opções",
     "renameOption": "Renomear",
     "renameTitle": "Renomear molde",
@@ -239,7 +239,7 @@
     "reasonGenerate": "Ajuste",
     "reasonGraduate": "Graduação"
   },
-  "MoldeGrid": {
+  "PatternGrid": {
     "countLabel": "{count, plural, one {# molde} other {# moldes}}",
     "searchPlaceholder": "Buscar molde…",
     "typeFilterAll": "Todos os tipos",
@@ -251,12 +251,12 @@
     "importComingSoonBadge": "em breve"
   },
   "Sidebar": {
-    "myMoldesLabel": "Meus moldes",
+    "myPatternsLabel": "Meus moldes",
     "measurementsLabel": "Medidas e grades",
     "studioBasesLabel": "Bases do ateliê",
     "comingSoonBadge": "em breve",
     "importLabel": "Importar molde · Audaces · Molde.me · .dxf",
-    "newMoldeButton": "＋ Novo molde"
+    "newPatternButton": "＋ Novo molde"
   },
   "DashboardTopbar": {
     "creditsPill": "◆ {balance} créditos",

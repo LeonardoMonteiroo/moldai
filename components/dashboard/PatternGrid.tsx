@@ -1,30 +1,30 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useDashboardStore, filteredMoldes } from "@/lib/dashboardStore";
-import { MoldeCard } from "./MoldeCard";
+import { useDashboardStore, filteredPatterns } from "@/lib/dashboardStore";
+import { PatternCard } from "./PatternCard";
 import type { GarmentType } from "@/lib/types";
 
 const GARMENT_TYPES: GarmentType[] = ["blouse", "dress", "skirt", "tshirt"];
 
-export function MoldeGrid({ onOpen }: { onOpen: (id: string) => void }) {
-  const t = useTranslations("MoldeGrid");
+export function PatternGrid({ onOpen }: { onOpen: (id: string) => void }) {
+  const t = useTranslations("PatternGrid");
   const tGarment = useTranslations("TechSheetTab");
-  const moldes = useDashboardStore((s) => s.moldes);
+  const patterns = useDashboardStore((s) => s.patterns);
   const search = useDashboardStore((s) => s.search);
   const typeFilter = useDashboardStore((s) => s.typeFilter);
   const setSearch = useDashboardStore((s) => s.setSearch);
   const setTypeFilter = useDashboardStore((s) => s.setTypeFilter);
 
-  const filtered = filteredMoldes({ moldes, search, typeFilter });
-  const isTrulyEmpty = moldes.length === 0;
+  const filtered = filteredPatterns({ patterns, search, typeFilter });
+  const isTrulyEmpty = patterns.length === 0;
   const hasNoMatches = !isTrulyEmpty && filtered.length === 0;
 
   return (
     <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-[22px]">
       <div className="flex items-center gap-3">
         <span className="font-display text-[24px] font-semibold">
-          {t("countLabel", { count: moldes.length })}
+          {t("countLabel", { count: patterns.length })}
         </span>
         <div className="flex-1" />
         <input
@@ -69,8 +69,8 @@ export function MoldeGrid({ onOpen }: { onOpen: (id: string) => void }) {
 
       {!isTrulyEmpty && !hasNoMatches && (
         <div className="grid grid-cols-4 gap-[14px]">
-          {filtered.map((m) => (
-            <MoldeCard key={m.id} molde={m} onOpen={onOpen} />
+          {filtered.map((p) => (
+            <PatternCard key={p.id} pattern={p} onOpen={onOpen} />
           ))}
           <div className="border-border rounded-card text-muted flex h-[168px] flex-col items-center justify-center gap-1 border border-dashed text-center text-[12px]">
             <span>{t("importCardLabel")}</span>

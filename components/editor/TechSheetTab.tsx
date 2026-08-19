@@ -36,7 +36,7 @@ export function TechSheetTab({ pattern }: { pattern: Pattern }) {
         </span>
       </div>
 
-      {/* resumo do molde */}
+      {/* pattern summary */}
       {pattern.spec && (
         <div className="mb-4 flex flex-wrap gap-2 text-[11.5px]">
           <Chip

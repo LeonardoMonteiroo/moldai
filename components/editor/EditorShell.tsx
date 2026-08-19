@@ -11,10 +11,10 @@ import { PaywallModal } from "./PaywallModal";
 
 export function EditorShell({
   userEmail,
-  moldeId,
+  patternId,
 }: {
   userEmail: string;
-  moldeId: string;
+  patternId: string;
 }) {
   const t = useTranslations("EditorShell");
   const ready = useEditorStore((s) => s.ready);
@@ -26,8 +26,8 @@ export function EditorShell({
   const init = useEditorStore((s) => s.init);
 
   useEffect(() => {
-    init(moldeId);
-  }, [init, moldeId]);
+    init(patternId);
+  }, [init, patternId]);
 
   if (!ready || !pattern || !credits) {
     return (

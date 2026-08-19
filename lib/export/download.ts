@@ -6,7 +6,7 @@ export function slug(name: string): string {
     .replace(/[̀-ͯ]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
-  return s || "molde";
+  return s || "pattern";
 }
 
 export function downloadFile(
