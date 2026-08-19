@@ -297,5 +297,8 @@
     "passwordLabel": "Senha",
     "submitButton": "Excluir conta",
     "genericError": "Não foi possível excluir a conta. Tente novamente."
+  },
+  "SettingsShell": {
+    "title": "Configurações"
   }
 }
