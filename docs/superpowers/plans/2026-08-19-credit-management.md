@@ -1,6 +1,8 @@
 # Credit Management (Créditos e uso / Plano e cobrança) Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+>
+> **Status: executed 2026-08-19.** All 10 tasks complete; see the note at the end of this file for one unplanned fix discovered during Task 9.
 
 **Goal:** Wire up the dashboard account menu's two dead buttons ("Créditos e uso", "Plano e cobrança") into a unified settings shell with a sidebar, and rename the settings route from `/configuracoes` to `/settings`.
 
@@ -30,7 +32,7 @@
 
 - Produces: `LedgerEntryType` (`"debit" | "refund" | "topup" | "subscribe" | "renew"`) and `LedgerHistoryEntry { type: LedgerEntryType; reason: string | null; amount: number; createdAt: string }`, both exported from `lib/types.ts`. `getLedgerHistory(userId: string, limit = 30): Promise<LedgerHistoryEntry[]>` exported from `lib/db/account.ts`.
 
-- [ ] **Step 1: Add the shared types to `lib/types.ts`**
+- [x] **Step 1: Add the shared types to `lib/types.ts`**
 
 Open `lib/types.ts` and find the existing `Credits` interface (around line 92-98):
 
@@ -62,7 +64,7 @@ export interface LedgerHistoryEntry {
 }
 ```
 
-- [ ] **Step 2: Write the failing test for `getLedgerHistory`**
+- [x] **Step 2: Write the failing test for `getLedgerHistory`**
 
 Open `lib/db/account.test.ts`. Replace the whole file with (adds a `type` field to the mock rows/filter and a new `describe` block; the existing `getRecentUsage` tests are unchanged in behavior):
 
@@ -256,12 +258,12 @@ describe("getLedgerHistory", () => {
 });
 ```
 
-- [ ] **Step 3: Run the test to verify it fails**
+- [x] **Step 3: Run the test to verify it fails**
 
 Run: `npx vitest run lib/db/account.test.ts`
 Expected: FAIL — `getLedgerHistory` is not exported from `./account`.
 
-- [ ] **Step 4: Implement `getLedgerHistory`**
+- [x] **Step 4: Implement `getLedgerHistory`**
 
 Open `lib/db/account.ts`. Replace the whole file with:
 
@@ -313,12 +315,12 @@ export async function getLedgerHistory(
 }
 ```
 
-- [ ] **Step 5: Run the test to verify it passes**
+- [x] **Step 5: Run the test to verify it passes**
 
 Run: `npx vitest run lib/db/account.test.ts`
 Expected: PASS (all 6 tests).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add lib/types.ts lib/db/account.ts lib/db/account.test.ts
@@ -339,7 +341,7 @@ git commit -m "feat(billing): add getLedgerHistory for the full transaction ledg
 - Consumes: `requireUser()` from `@/lib/auth/guard` (returns `SessionUser | NextResponse`), `getLedgerHistory(userId, limit)` from Task 1.
 - Produces: `GET` handler returning `NextResponse.json({ ledger: LedgerHistoryEntry[] })`, 401 via `requireUser()` gate like every other account route.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `app/api/account/ledger/route.test.ts`:
 
@@ -390,12 +392,12 @@ describe("GET /api/account/ledger", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run app/api/account/ledger/route.test.ts`
 Expected: FAIL — cannot find module `./route`.
 
-- [ ] **Step 3: Implement the route**
+- [x] **Step 3: Implement the route**
 
 Create `app/api/account/ledger/route.ts`:
 
@@ -413,12 +415,12 @@ export async function GET() {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run app/api/account/ledger/route.test.ts`
 Expected: PASS (2 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/api/account/ledger/route.ts app/api/account/ledger/route.test.ts
@@ -438,7 +440,7 @@ git commit -m "feat(api): add GET /api/account/ledger"
 - Consumes: `LedgerHistoryEntry` from `@/lib/types` (Task 1).
 - Produces: `getLedgerHistory(): Promise<{ ledger: LedgerHistoryEntry[] }>`.
 
-- [ ] **Step 1: Add the import and the client function**
+- [x] **Step 1: Add the import and the client function**
 
 Open `lib/api-client.ts`. Change the top import line:
 
@@ -466,12 +468,12 @@ export function getLedgerHistory(): Promise<{ ledger: LedgerHistoryEntry[] }> {
 
 (Only the new `getLedgerHistory` function is new — `getAccountSummary` above is shown for placement context, don't duplicate it.)
 
-- [ ] **Step 2: Typecheck**
+- [x] **Step 2: Typecheck**
 
 Run: `npm run build`
 Expected: build succeeds (this is a pure addition, no existing call sites change).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add lib/api-client.ts
@@ -490,7 +492,7 @@ git commit -m "feat(api-client): add getLedgerHistory client helper"
 
 - Produces: `SettingsSidebar`, `UsageSection`, `PlanSection` namespaces, consumed by Tasks 5-8.
 
-- [ ] **Step 1: Append the new namespaces**
+- [x] **Step 1: Append the new namespaces**
 
 Open `messages/pt-BR.json`. Find the end of the file:
 
@@ -566,12 +568,12 @@ Replace with:
 }
 ```
 
-- [ ] **Step 2: Validate JSON syntax**
+- [x] **Step 2: Validate JSON syntax**
 
 Run: `node -e "JSON.parse(require('fs').readFileSync('messages/pt-BR.json','utf8')); console.log('ok')"`
 Expected: prints `ok`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add messages/pt-BR.json
@@ -590,7 +592,7 @@ git commit -m "feat(i18n): add SettingsSidebar/UsageSection/PlanSection catalog"
 
 - Produces: `type SettingsSection = "profile" | "password" | "danger" | "usage" | "plan"`, `const SETTINGS_SECTIONS: SettingsSection[]`, `SettingsSidebar({ active: SettingsSection })` component. Consumed by Tasks 8 (`SettingsShell`) and 9 (`app/settings/page.tsx`).
 
-- [ ] **Step 1: Create the component**
+- [x] **Step 1: Create the component**
 
 Create `components/settings/SettingsSidebar.tsx`:
 
@@ -643,12 +645,12 @@ export function SettingsSidebar({ active }: { active: SettingsSection }) {
 }
 ```
 
-- [ ] **Step 2: Typecheck**
+- [x] **Step 2: Typecheck**
 
 Run: `npm run build`
 Expected: succeeds (component isn't imported anywhere yet, but must still typecheck standalone — Next's build typechecks all files under `app`/`components`).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add components/settings/SettingsSidebar.tsx
@@ -668,7 +670,7 @@ git commit -m "feat(settings): add SettingsSidebar"
 - Consumes: `Credits`, `LedgerEntryType`, `LedgerHistoryEntry` from `@/lib/types`; `purchase` from `@/lib/api-client` (existing, signature `purchase(type: "topup" | "subscribe", moldeId?: string): Promise<PurchaseResult>`); `relativeTime` from `@/lib/format`.
 - Produces: `UsageSection({ credits: Credits; initialLedger: LedgerHistoryEntry[] })`, consumed by Task 8.
 
-- [ ] **Step 1: Create the component**
+- [x] **Step 1: Create the component**
 
 Create `components/settings/UsageSection.tsx`:
 
@@ -802,12 +804,12 @@ export function UsageSection({
 }
 ```
 
-- [ ] **Step 2: Typecheck**
+- [x] **Step 2: Typecheck**
 
 Run: `npm run build`
 Expected: succeeds.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add components/settings/UsageSection.tsx
@@ -827,7 +829,7 @@ git commit -m "feat(settings): add UsageSection"
 - Consumes: `Credits`, `PlanId`, `COSTS` from `@/lib/types`.
 - Produces: `PlanSection({ credits: Credits })`, consumed by Task 8.
 
-- [ ] **Step 1: Create the component**
+- [x] **Step 1: Create the component**
 
 Create `components/settings/PlanSection.tsx`:
 
@@ -898,12 +900,12 @@ export function PlanSection({ credits }: { credits: Credits }) {
 }
 ```
 
-- [ ] **Step 2: Typecheck**
+- [x] **Step 2: Typecheck**
 
 Run: `npm run build`
 Expected: succeeds.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add components/settings/PlanSection.tsx
@@ -928,7 +930,7 @@ git commit -m "feat(settings): add PlanSection"
 
 This task is deliberately kept as one unit rather than split further: `SettingsShell`'s new required props (`ledger`, `activeSection`) and their one call site (the page) change together — splitting them would leave the build red in between for no benefit.
 
-- [ ] **Step 1: Rewrite the file**
+- [x] **Step 1: Rewrite the file**
 
 Open `components/settings/SettingsShell.tsx`. Replace the whole file with:
 
@@ -985,7 +987,7 @@ export function SettingsShell({
 }
 ```
 
-- [ ] **Step 2: Create the new page**
+- [x] **Step 2: Create the new page**
 
 Create `app/settings/page.tsx`:
 
@@ -1037,11 +1039,11 @@ export default async function SettingsPage({
 }
 ```
 
-- [ ] **Step 2: Delete the old page**
+- [x] **Step 3: Delete the old page**
 
 Delete `app/configuracoes/page.tsx` (the directory should now be empty — Next.js's App Router ignores empty directories, no further cleanup needed).
 
-- [ ] **Step 3: Wire the dashboard account menu**
+- [x] **Step 4: Wire the dashboard account menu**
 
 Open `components/dashboard/DashboardTopbar.tsx`. Find this block:
 
@@ -1095,17 +1097,17 @@ Replace with:
             </button>
 ```
 
-- [ ] **Step 4: Typecheck**
+- [x] **Step 5: Typecheck**
 
 Run: `npm run build`
 Expected: succeeds.
 
-- [ ] **Step 5: Run the full test suite**
+- [x] **Step 6: Run the full test suite**
 
 Run: `npm test`
 Expected: all tests pass, including `lib/db/account.test.ts` and `app/api/account/ledger/route.test.ts` from Tasks 1-2.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add components/settings/SettingsShell.tsx app/settings/page.tsx components/dashboard/DashboardTopbar.tsx
@@ -1119,11 +1121,11 @@ git commit -m "feat(settings): SettingsShell renders one section via sidebar, re
 
 **Files:** none (no code changes)
 
-- [ ] **Step 1: Start the dev server**
+- [x] **Step 1: Start the dev server**
 
 Run: `npm run dev`
 
-- [ ] **Step 2: Walk through the account menu**
+- [x] **Step 2: Walk through the account menu**
 
 Open `http://localhost:3000`, log in (`dev@moldai.local` / `moldai-dev`), click "◍ Conta ▾":
 
@@ -1133,12 +1135,12 @@ Open `http://localhost:3000`, log in (`dev@moldai.local` / `moldai-dev`), click 
 - Click "Preferências" → lands on `/settings?section=profile`, same Perfil form as before.
 - Click each `SettingsSidebar` item directly (Perfil / Alterar senha / Excluir conta / Créditos e uso / Plano e cobrança) → each swaps the right-hand content and updates the URL, without a full page reload or losing the topbar/sidebar.
 
-- [ ] **Step 3: Confirm the old route is gone**
+- [x] **Step 3: Confirm the old route is gone**
 
 Navigate to `http://localhost:3000/configuracoes` directly.
 Expected: Next.js 404 (the route no longer exists).
 
-- [ ] **Step 4: Confirm "← Voltar" still works**
+- [x] **Step 4: Confirm "← Voltar" still works**
 
 From `/settings` (any section), click "← Voltar" in the header.
 Expected: navigates back to `/` (the dashboard).
@@ -1153,7 +1155,7 @@ No commit for this task (verification only).
 
 - Modify: `CLAUDE.md`
 
-- [ ] **Step 1: Update the MVP scope paragraph**
+- [x] **Step 1: Update the MVP scope paragraph**
 
 Find this paragraph (under "## What this is"):
 
@@ -1167,7 +1169,7 @@ Replace with:
 **MVP scope (small-scale/personal-use production) is five subsystems.** Shipped: the pattern editor (`4a`), the dashboard (`4b`), and **Configurações do usuário / Gerenciamento de crédito** (one unified `/settings` shell — see below; `4b`'s `CreditsCard`/`RecentUsageCard` still back the dashboard's own summary cards, unchanged). Roadmap, not yet built: **Medidas e grades** (`5i`, has a high-fidelity design already); and **Moldes bases** (not its own screen — a sub-section of `5i`'s design, "Bases do ateliê"). This reverses the earlier call to keep measurement-grid screens and "Bases do ateliê" out of scope — they're now roadmap items, just not yet implemented.
 ```
 
-- [ ] **Step 2: Update the Configurações paragraph**
+- [x] **Step 2: Update the Configurações paragraph**
 
 Find this paragraph:
 
@@ -1181,7 +1183,7 @@ Replace with:
 **Configurações do usuário / Gerenciamento de crédito (`/settings`) is one unified, dedicated page, not a modal**, reached only from the dashboard's account-menu — its three items ("Créditos e uso", "Plano e cobrança", "Preferências", `components/dashboard/DashboardTopbar.tsx`) all deep-link into this same page via a `?section=` query param (`profile` default, plus `password`/`danger`/`usage`/`plan`) — there is still no _dashboard sidebar_ entry for it, but the page now has its own internal `SettingsSidebar` (5 items, same 186px-column idiom as the dashboard's `Sidebar.tsx`) for switching sections without a full navigation. **The route is English (`/settings`, renamed from the original `/configuracoes`) — a deliberate convention for new full-page screen routes going forward, even though the UI text inside stays pt-BR like everywhere else; previously-shipped routes (`/molde/[id]`) are unaffected, this is not a retroactive rename.** `app/settings/page.tsx` is the same thin-server-component-does-the-session-check shape as `app/page.tsx`/`app/molde/[id]/page.tsx`: it loads `{id, name, email}` via `getUserById` (`lib/db/users.ts`), the account's `Wallet` via `loadWallet`, and now also the last 30 ledger entries via a new `getLedgerHistory` (`lib/db/account.ts`, same shape as `getRecentUsage` but without the debit-only filter) — no API round-trip for the initial render, same as the editor/dashboard pattern — and renders `components/settings/SettingsShell.tsx`, which picks exactly one of five sections to render based on the active section: `ProfileSection` (name editable, email deliberately **read-only** since it's the Auth.js Credentials login identifier — editing it is out of scope), `PasswordSection` (current/new/confirm, client-side confirm-mismatch gating plus a server-verified current-password check), `DangerZoneSection` (account deletion gated by both a client-side "type your email to confirm" match **and** a server-verified password — stronger than the single-molde `ConfirmModal` pattern, since this cascades away every molde and the wallet/transaction history in one irreversible `prisma.user.delete`, which Prisma's existing `onDelete: Cascade` on `Molde`/`Wallet`/`Transaction` handles with no manual cleanup), `UsageSection` (balance/renewal, a "Comprar créditos avulsos" top-up reusing the existing `purchase("topup")` call with an optimistic client-side ledger update, and the full transaction history across every ledger type, not just spend), and `PlanSection` (the 4 plans from design doc `5c` as static display cards — only Ateliê is marked "Plano atual" and actionable, since `lib/billing/wallet.ts`'s `applyPurchase` still only ever issues that one plan; the other 3 are shown but badged **"em breve"**, honest about the limitation rather than faking a plan switch — plus a cost-per-action footer sourced from the existing `COSTS` constant). None of the five sections introduces a new Zustand store — this screen has no cross-component shared state, section choice lives in the URL, so local `useState` per section is enough, per the "don't add abstractions beyond what's needed" convention. Four account-level routes back it, alongside the existing `GET /api/account/summary` and the new `GET /api/account/ledger`: `PATCH /api/account/profile`, `POST /api/account/password`, `DELETE /api/account` — all `requireUser()`-gated like every other route, with the profile/password/deletion validation/verification logic in a DB-free, dependency-injected `lib/account/settings.ts` (mirroring `lib/auth/authorize.ts`'s `AuthorizeDeps` shape) so it's unit-testable without a live DB. Password changes do **not** invalidate the current JWT session — a deliberate choice for this single-device personal-use MVP, not an oversight.
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add CLAUDE.md
@@ -1195,3 +1197,7 @@ git commit -m "docs(claude): document /settings, its 5 sections, and the English
 - **Spec coverage:** unified shell + sidebar + `/settings` rename + dashboard wiring (Task 8), CLAUDE.md update (Task 10), full-ledger `UsageSection` with optimistic top-up (Task 6), honest single-plan `PlanSection` (Task 7), `GET /api/account/ledger` (Task 2), query-param section routing via the `searchParams` page prop rather than `useSearchParams` (Task 8) — all five spec decisions and the architecture/data-flow/API/i18n/testing sections are covered.
 - **Type consistency checked:** `LedgerHistoryEntry`/`LedgerEntryType` defined once in `lib/types.ts` (Task 1) and imported — never redeclared — by `lib/db/account.ts`, `lib/api-client.ts`, `UsageSection`, and `SettingsShell`. `SettingsSection`/`SETTINGS_SECTIONS` defined once in `SettingsSidebar.tsx` (Task 5) and imported by both `SettingsShell` and `app/settings/page.tsx` (both within Task 8) — no duplicate section lists.
 - **No red-build window:** Task 8 was originally drafted as two tasks (rewrite `SettingsShell`, then add the route) which would have left `npm run build` failing in between since they share one call site. Merged into a single task instead — every task now leaves the build green.
+
+## Post-Execution Note
+
+Task 9's manual verification (done via authenticated HTTP requests against the live dev server, since browser automation wasn't in scope for this session) caught a bug `npm run build` didn't: `app/settings/page.tsx` (a Server Component) imported `SETTINGS_SECTIONS` — a plain array — from `SettingsSidebar.tsx`, a `"use client"` file. That compiles fine (TypeScript doesn't know about the RSC boundary), but 500s at runtime, because only component/function references are meant to cross a client-module import into server code; a plain value becomes a broken client reference. Fixed by extracting `SettingsSection`/`SETTINGS_SECTIONS` into a new plain module, `lib/settings/sections.ts`, imported by both the client sidebar and the server page (commit `fix(settings): move SETTINGS_SECTIONS out of the "use client" boundary`). Re-verified all 5 sections render their own content correctly (and only their own) after the fix, and the top-up purchase flow updates balance/ledger end-to-end.
