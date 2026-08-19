@@ -269,5 +269,15 @@
   "DashboardShell": {
     "loading": "Carregando moldes…",
     "loadError": "Não foi possível carregar seus moldes. Tente recarregar a página."
+  },
+  "ProfileSection": {
+    "heading": "Perfil",
+    "nameLabel": "Nome",
+    "emailLabel": "E-mail",
+    "emailHint": "O e-mail é o identificador de login e não pode ser alterado.",
+    "saveButton": "Salvar",
+    "saveSuccess": "Perfil atualizado.",
+    "saveError": "Não foi possível salvar. Tente novamente.",
+    "nameRequired": "Nome obrigatório."
   }
 }
