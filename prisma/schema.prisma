@@ -13,11 +13,11 @@ model User {
   passwordHash String
   name         String?
   createdAt    DateTime @default(now())
-  moldes       Molde[]
+  patterns     Pattern[]
   wallet       Wallet?
 }
 
-model Molde {
+model Pattern {
   id        String   @id @default(cuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
