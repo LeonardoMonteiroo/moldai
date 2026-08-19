@@ -1,19 +1,23 @@
 import { create } from "zustand";
 import * as api from "./api-client";
-import type { GradeData, GradeListEntry, GradeRecord } from "./types";
+import type {
+  SizeChartData,
+  SizeChartListEntry,
+  SizeChartRecord,
+} from "./types";
 
-interface GradesStore {
+interface SizeChartsStore {
   ready: boolean;
   error: boolean;
-  grades: GradeListEntry[];
+  charts: SizeChartListEntry[];
   selectedId: string | null;
-  draft: GradeData | null;
+  draft: SizeChartData | null;
   editingRule: boolean;
   dirty: boolean;
 
   init: () => Promise<void>;
   select: (id: string) => void;
-  updateDraft: (patch: Partial<GradeData>) => void;
+  updateDraft: (patch: Partial<SizeChartData>) => void;
   setEditingRule: (v: boolean) => void;
   save: () => Promise<void>;
   create: () => Promise<void>;
@@ -22,15 +26,15 @@ interface GradesStore {
   activate: (id: string) => Promise<void>;
 }
 
-function draftFrom(g: GradeRecord): GradeData {
-  const { id: _id, updatedAt: _updatedAt, ...data } = g;
+function draftFrom(c: SizeChartRecord): SizeChartData {
+  const { id: _id, updatedAt: _updatedAt, ...data } = c;
   return data;
 }
 
-export const useGradesStore = create<GradesStore>((set, get) => ({
+export const useSizeChartsStore = create<SizeChartsStore>((set, get) => ({
   ready: false,
   error: false,
-  grades: [],
+  charts: [],
   selectedId: null,
   draft: null,
   editingRule: false,
@@ -39,10 +43,10 @@ export const useGradesStore = create<GradesStore>((set, get) => ({
   init: async () => {
     set({ ready: false, error: false });
     try {
-      const grades = await api.listGrades();
-      const active = grades.find((g) => g.isActive) ?? grades[0];
+      const charts = await api.listSizeCharts();
+      const active = charts.find((c) => c.isActive) ?? charts[0];
       set({
-        grades,
+        charts,
         selectedId: active?.id ?? null,
         draft: active ? draftFrom(active) : null,
         editingRule: false,
@@ -55,11 +59,11 @@ export const useGradesStore = create<GradesStore>((set, get) => ({
   },
 
   select: (id) => {
-    const g = get().grades.find((x) => x.id === id);
-    if (!g) return;
+    const c = get().charts.find((x) => x.id === id);
+    if (!c) return;
     set({
       selectedId: id,
-      draft: draftFrom(g),
+      draft: draftFrom(c),
       editingRule: false,
       dirty: false,
     });
@@ -76,10 +80,10 @@ export const useGradesStore = create<GradesStore>((set, get) => ({
   save: async () => {
     const { selectedId, draft } = get();
     if (!selectedId || !draft || draft.isSystem) return;
-    const updated = await api.updateGrade(selectedId, draft);
+    const updated = await api.updateSizeChart(selectedId, draft);
     set((s) => ({
-      grades: s.grades.map((g) =>
-        g.id === selectedId ? { ...updated, isActive: g.isActive } : g,
+      charts: s.charts.map((c) =>
+        c.id === selectedId ? { ...updated, isActive: c.isActive } : c,
       ),
       draft: draftFrom(updated),
       dirty: false,
@@ -87,9 +91,9 @@ export const useGradesStore = create<GradesStore>((set, get) => ({
   },
 
   create: async () => {
-    const created = await api.createGrade();
+    const created = await api.createSizeChart();
     set((s) => ({
-      grades: [...s.grades, { ...created, isActive: false }],
+      charts: [...s.charts, { ...created, isActive: false }],
       selectedId: created.id,
       draft: draftFrom(created),
       editingRule: false,
@@ -98,9 +102,9 @@ export const useGradesStore = create<GradesStore>((set, get) => ({
   },
 
   duplicate: async (id) => {
-    const created = await api.duplicateGrade(id);
+    const created = await api.duplicateSizeChart(id);
     set((s) => ({
-      grades: [...s.grades, { ...created, isActive: false }],
+      charts: [...s.charts, { ...created, isActive: false }],
       selectedId: created.id,
       draft: draftFrom(created),
       editingRule: false,
@@ -109,13 +113,13 @@ export const useGradesStore = create<GradesStore>((set, get) => ({
   },
 
   remove: async (id) => {
-    await api.deleteGrade(id);
+    await api.deleteSizeChart(id);
     set((s) => {
-      const grades = s.grades.filter((g) => g.id !== id);
-      if (s.selectedId !== id) return { grades };
-      const next = grades[0];
+      const charts = s.charts.filter((c) => c.id !== id);
+      if (s.selectedId !== id) return { charts };
+      const next = charts[0];
       return {
-        grades,
+        charts,
         selectedId: next?.id ?? null,
         draft: next ? draftFrom(next) : null,
         editingRule: false,
@@ -125,9 +129,9 @@ export const useGradesStore = create<GradesStore>((set, get) => ({
   },
 
   activate: async (id) => {
-    await api.activateGrade(id);
+    await api.activateSizeChart(id);
     set((s) => ({
-      grades: s.grades.map((g) => ({ ...g, isActive: g.id === id })),
+      charts: s.charts.map((c) => ({ ...c, isActive: c.id === id })),
     }));
   },
 }));

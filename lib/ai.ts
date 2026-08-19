@@ -143,7 +143,7 @@ function buildSystem(state: PatternState, answering: boolean): string {
       ? "The user just ANSWERED your questions (the answers are in the last user message). Do NOT use decision=ask again — use apply (or decline if out of scope) with your best understanding of the answers."
       : "If relevant detail is missing to draft correctly (neckline, sleeve, fit, length, size…), use decision=ask with 1 to 4 objective single-choice questions, options from the valid catalog; don't invent measurements or draft in that case. Only use apply once you have enough.",
     "",
-    "Size table (cm) for this pattern's active measurement grade:",
+    "Size table (cm) for this pattern's active size chart:",
     JSON.stringify(state.pattern.sizeTable),
     "",
     "Current pattern spec:",

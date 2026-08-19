@@ -1,13 +1,13 @@
 import { describe, it, expect } from "vitest";
 import {
-  resolveGradeSize,
+  resolveSizeChartSize,
   buildSizeTable,
-  pickGradeForGeneration,
+  pickSizeChartForGeneration,
 } from "./compute";
 import { MEASUREMENT_RANGES } from "@/lib/measurements";
-import type { GradeData, GradeRecord } from "@/lib/types";
+import type { SizeChartData, SizeChartRecord } from "@/lib/types";
 
-function baseGrade(overrides: Partial<GradeData> = {}): GradeData {
+function baseChart(overrides: Partial<SizeChartData> = {}): SizeChartData {
   return {
     name: "Test",
     gender: "female",
@@ -32,73 +32,77 @@ function baseGrade(overrides: Partial<GradeData> = {}): GradeData {
   };
 }
 
-describe("resolveGradeSize", () => {
+describe("resolveSizeChartSize", () => {
   it("returns the base row unchanged at the base size", () => {
-    const grade = baseGrade();
-    expect(resolveGradeSize(grade, "M")).toEqual(grade.baseMeasurements);
+    const chart = baseChart();
+    expect(resolveSizeChartSize(chart, "M")).toEqual(chart.baseMeasurements);
   });
 
   it("applies the progression rule scaled by distance from the base", () => {
-    const grade = baseGrade();
-    expect(resolveGradeSize(grade, "G").bust).toBe(96); // +1 step
-    expect(resolveGradeSize(grade, "PP").bust).toBe(84); // -2 steps
+    const chart = baseChart();
+    expect(resolveSizeChartSize(chart, "G").bust).toBe(96); // +1 step
+    expect(resolveSizeChartSize(chart, "PP").bust).toBe(84); // -2 steps
   });
 
   it("a manual override wins over the rule-derived value", () => {
-    const grade = baseGrade({ overrides: { G: { bust: 99 } } });
-    expect(resolveGradeSize(grade, "G").bust).toBe(99);
-    expect(resolveGradeSize(grade, "G").waist).toBe(78); // unaffected field still rule-derived
+    const chart = baseChart({ overrides: { G: { bust: 99 } } });
+    expect(resolveSizeChartSize(chart, "G").bust).toBe(99);
+    expect(resolveSizeChartSize(chart, "G").waist).toBe(78); // unaffected field still rule-derived
   });
 
   it("clamps the resolved value to MEASUREMENT_RANGES", () => {
-    const grade = baseGrade({ progressionRule: { shoulder: 50 } });
-    expect(resolveGradeSize(grade, "GG").shoulder).toBe(
+    const chart = baseChart({ progressionRule: { shoulder: 50 } });
+    expect(resolveSizeChartSize(chart, "GG").shoulder).toBe(
       MEASUREMENT_RANGES.shoulder.max,
     );
   });
 
   it("treats a size not in the grid as step 0 from the base", () => {
-    const grade = baseGrade();
-    expect(resolveGradeSize(grade, "XX").bust).toBe(92);
+    const chart = baseChart();
+    expect(resolveSizeChartSize(chart, "XX").bust).toBe(92);
   });
 });
 
 describe("buildSizeTable", () => {
-  it("resolves every size in the grade", () => {
-    const table = buildSizeTable(baseGrade());
+  it("resolves every size in the chart", () => {
+    const table = buildSizeTable(baseChart());
     expect(Object.keys(table)).toEqual(["PP", "P", "M", "G", "GG"]);
     expect(table.M.bust).toBe(92);
     expect(table.G.bust).toBe(96);
   });
 });
 
-describe("pickGradeForGeneration", () => {
-  function record(overrides: Partial<GradeRecord> = {}): GradeRecord {
+describe("pickSizeChartForGeneration", () => {
+  function record(overrides: Partial<SizeChartRecord> = {}): SizeChartRecord {
     return {
       id: "g1",
       updatedAt: "2026-08-19T00:00:00.000Z",
-      ...baseGrade(),
+      ...baseChart(),
       ...overrides,
     };
   }
 
-  it("uses the active grade when its gender matches", () => {
+  it("uses the active chart when its gender matches", () => {
     const active = record({ id: "custom", isSystem: false, gender: "female" });
     const sysFemale = record({ id: "sys-f", isSystem: true, gender: "female" });
-    const out = pickGradeForGeneration([active, sysFemale], "custom", "female");
+    const out = pickSizeChartForGeneration(
+      [active, sysFemale],
+      "custom",
+      "female",
+    );
     expect(out.id).toBe("custom");
   });
 
-  it("falls back to the system grade for the requested gender when the active grade doesn't match", () => {
+  it("falls back to the system chart for the requested gender when the active chart doesn't match", () => {
     const active = record({ id: "custom", isSystem: false, gender: "female" });
     const sysMale = record({ id: "sys-m", isSystem: true, gender: "male" });
-    const out = pickGradeForGeneration([active, sysMale], "custom", "male");
+    const out = pickSizeChartForGeneration([active, sysMale], "custom", "male");
     expect(out.id).toBe("sys-m");
   });
 
-  it("falls back to any grade when there's no active id and no system match", () => {
+  it("falls back to any chart when there's no active id and no system match", () => {
     const only = record({ id: "only" });
-    const out = pickGradeForGeneration([only], null, "male");
+    const out = pickSizeChartForGeneration([only], null, "male");
     expect(out.id).toBe("only");
   });
 });

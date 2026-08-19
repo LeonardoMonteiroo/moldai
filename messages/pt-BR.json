@@ -250,20 +250,20 @@
     "importCardLabel": "Importar .dxf · Audaces",
     "importComingSoonBadge": "em breve"
   },
-  "Grades": {
+  "SizeCharts": {
     "title": "Medidas e grades",
     "subtitle": "A grade escolhida vale para toda geração e graduação",
-    "newGradeButton": "＋ Nova grade",
+    "newSizeChartButton": "＋ Nova grade",
     "importLabel": "↥ Importar planilha ou tabela de medidas do Audaces",
     "loading": "Carregando grades…",
     "loadError": "Não foi possível carregar suas grades. Tente recarregar a página."
   },
-  "GradeLibrary": {
+  "SizeChartLibrary": {
     "systemBadge": "padrão do sistema",
     "customBadge": "minha grade",
     "activeBadge": "ativa"
   },
-  "GradeTable": {
+  "SizeChartTable": {
     "duplicateButton": "Duplicar",
     "deleteButton": "Excluir",
     "editRuleButton": "Editar regra de progressão",
@@ -275,8 +275,8 @@
     "addSizePrompt": "Nome do novo tamanho",
     "removeSizeTitle": "Remover tamanho",
     "progressionTitle": "Progressão",
-    "useGradeButton": "Usar esta grade",
-    "activeGradeNote": "Grade ativa",
+    "useSizeChartButton": "Usar esta grade",
+    "activeSizeChartNote": "Grade ativa",
     "saveButton": "Salvar alterações",
     "systemReadOnlyNote": "Grades do sistema não podem ser editadas — duplique para personalizar.",
     "deleteModalTitle": "Excluir esta grade?",

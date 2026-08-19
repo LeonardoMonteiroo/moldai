@@ -35,8 +35,8 @@ vi.mock("@/lib/db/pattern-wallet", () => ({
     },
   ),
 }));
-vi.mock("@/lib/db/grade", () => ({
-  getGradeForGeneration: vi.fn(async () => ({
+vi.mock("@/lib/db/sizeChart", () => ({
+  getSizeChartForGeneration: vi.fn(async () => ({
     name: "Feminino adulto · ABNT",
     gender: "female",
     bodyType: "straight",

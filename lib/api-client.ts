@@ -2,9 +2,9 @@ import {
   Credits,
   EditorState,
   GarmentType,
-  GradeData,
-  GradeListEntry,
-  GradeRecord,
+  SizeChartData,
+  SizeChartListEntry,
+  SizeChartRecord,
   LedgerHistoryEntry,
 } from "./types";
 
@@ -168,42 +168,46 @@ export async function deleteAccount(
   return (await res.json()) as AccountActionResult;
 }
 
-export function listGrades(): Promise<GradeListEntry[]> {
-  return getJson<GradeListEntry[]>("/api/grades");
+export function listSizeCharts(): Promise<SizeChartListEntry[]> {
+  return getJson<SizeChartListEntry[]>("/api/size-charts");
 }
 
-export async function createGrade(sourceId?: string): Promise<GradeRecord> {
-  const res = await fetch("/api/grades", {
+export async function createSizeChart(
+  sourceId?: string,
+): Promise<SizeChartRecord> {
+  const res = await fetch("/api/size-charts", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ sourceId }),
   });
-  return (await res.json()) as GradeRecord;
+  return (await res.json()) as SizeChartRecord;
 }
 
-export async function updateGrade(
-  gradeId: string,
-  patch: Partial<GradeData>,
-): Promise<GradeRecord> {
-  const res = await fetch(`/api/grades/${gradeId}`, {
+export async function updateSizeChart(
+  sizeChartId: string,
+  patch: Partial<SizeChartData>,
+): Promise<SizeChartRecord> {
+  const res = await fetch(`/api/size-charts/${sizeChartId}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(patch),
   });
-  return (await res.json()) as GradeRecord;
+  return (await res.json()) as SizeChartRecord;
 }
 
-export async function deleteGrade(gradeId: string): Promise<void> {
-  await fetch(`/api/grades/${gradeId}`, { method: "DELETE" });
+export async function deleteSizeChart(sizeChartId: string): Promise<void> {
+  await fetch(`/api/size-charts/${sizeChartId}`, { method: "DELETE" });
 }
 
-export async function duplicateGrade(gradeId: string): Promise<GradeRecord> {
-  const res = await fetch(`/api/grades/${gradeId}/duplicate`, {
+export async function duplicateSizeChart(
+  sizeChartId: string,
+): Promise<SizeChartRecord> {
+  const res = await fetch(`/api/size-charts/${sizeChartId}/duplicate`, {
     method: "POST",
   });
-  return (await res.json()) as GradeRecord;
+  return (await res.json()) as SizeChartRecord;
 }
 
-export async function activateGrade(gradeId: string): Promise<void> {
-  await fetch(`/api/grades/${gradeId}/activate`, { method: "POST" });
+export async function activateSizeChart(sizeChartId: string): Promise<void> {
+  await fetch(`/api/size-charts/${sizeChartId}/activate`, { method: "POST" });
 }

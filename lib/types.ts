@@ -161,11 +161,11 @@ export interface EditorState extends PatternState {
   credits: Credits;
 }
 
-// A grade's editable data — grid library entries + the source of truth for
-// resolveGradeSize/buildSizeTable (lib/grades/compute.ts). Persisted 1:1 as a
-// Grade row's `data` JSON (lib/db/grade.ts), same shape convention as
-// PatternState.
-export interface GradeData {
+// A size chart's editable data — grid library entries + the source of truth
+// for resolveSizeChartSize/buildSizeTable (lib/sizeCharts/compute.ts).
+// Persisted 1:1 as a SizeChart row's `data` JSON (lib/db/sizeChart.ts), same
+// shape convention as PatternState.
+export interface SizeChartData {
   name: string;
   gender: Gender;
   bodyType: BodyType; // descriptive metadata only — never affects drafted geometry
@@ -177,14 +177,14 @@ export interface GradeData {
   overrides: Record<string, Partial<Measurements>>; // size -> field -> manual value, wins over the rule
 }
 
-export interface GradeRecord extends GradeData {
+export interface SizeChartRecord extends SizeChartData {
   id: string;
   updatedAt: string;
 }
 
-// Wire shape for GET /api/grades — isActive is computed server-side by
-// comparing each record's id to the account's User.activeGradeId.
-export interface GradeListEntry extends GradeRecord {
+// Wire shape for GET /api/size-charts — isActive is computed server-side by
+// comparing each record's id to the account's User.activeSizeChartId.
+export interface SizeChartListEntry extends SizeChartRecord {
   isActive: boolean;
 }
 

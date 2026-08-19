@@ -148,9 +148,10 @@ function clamp(v: number, min: number, max: number) {
 }
 
 // Applies chat-driven overrides on top of an already-resolved base row (from
-// a grade's sizeTable — see lib/grades/compute.ts's resolveGradeSize) and
-// clamps to MEASUREMENT_RANGES. No longer does a size/gender table lookup
-// itself — that responsibility moved to the grade layer.
+// a size chart's sizeTable — see lib/sizeCharts/compute.ts's
+// resolveSizeChartSize) and clamps to MEASUREMENT_RANGES. No longer does a
+// size/gender table lookup itself — that responsibility moved to the size
+// chart layer.
 export function resolveMeasurements(
   base: Measurements,
   overrides: Partial<Measurements>,

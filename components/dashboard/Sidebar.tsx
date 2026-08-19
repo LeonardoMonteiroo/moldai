@@ -22,7 +22,7 @@ export function Sidebar({ onCreate }: { onCreate: (id: string) => void }) {
         </span>
         <button
           type="button"
-          onClick={() => router.push("/grades")}
+          onClick={() => router.push("/size-charts")}
           className="text-muted-2 hover:bg-surface-alt rounded-item flex items-center px-[10px] py-[7px] text-left text-[12.5px]"
         >
           {t("measurementsLabel")}

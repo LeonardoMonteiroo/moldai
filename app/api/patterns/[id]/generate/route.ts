@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getTranslations } from "next-intl/server";
 import { withPatternAndWallet } from "@/lib/db/pattern-wallet";
 import { patternNotFound } from "@/lib/db/pattern";
-import { getGradeForGeneration } from "@/lib/db/grade";
+import { getSizeChartForGeneration } from "@/lib/db/sizeChart";
 import {
   addMessage,
   applyGarmentSpec,
@@ -117,11 +117,11 @@ export async function POST(request: Request, { params }: Ctx) {
         }
 
         if (state.pattern.pieces.length === 0) {
-          const grade = await getGradeForGeneration(
+          const sizeChart = await getSizeChartForGeneration(
             gate.id,
             decision.spec.gender ?? "female",
           );
-          seedPatternSizeSnapshot(state, grade);
+          seedPatternSizeSnapshot(state, sizeChart);
         }
         applyGarmentSpec(state, decision.spec, t);
         bumpVersion(state);

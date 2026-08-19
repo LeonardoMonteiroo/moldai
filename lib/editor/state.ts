@@ -2,14 +2,14 @@ import {
   ChatMessage,
   ConflictInfo,
   GarmentSpec,
-  GradeData,
+  SizeChartData,
   PatternState,
   Pattern,
   Piece,
 } from "@/lib/types";
 import { draftGarment, seamCheck } from "@/lib/draft/garment";
-import { buildSizeTable } from "@/lib/grades/compute";
-import { buildSystemGradeData } from "@/lib/grades/seed";
+import { buildSizeTable } from "@/lib/sizeCharts/compute";
+import { buildSystemSizeChartData } from "@/lib/sizeCharts/seed";
 import type { Translate } from "@/lib/i18n/translate";
 
 // Marker (dashed circle) over a piece's armhole region, from the bbox
@@ -59,9 +59,9 @@ function detectConflict(
 }
 
 function seedPattern(): Pattern {
-  const grade = buildSystemGradeData("female");
-  const sizeTable = buildSizeTable(grade);
-  const baseSize = grade.sizes[grade.baseSizeIndex];
+  const sizeChart = buildSystemSizeChartData("female");
+  const sizeTable = buildSizeTable(sizeChart);
+  const baseSize = sizeChart.sizes[sizeChart.baseSizeIndex];
   const spec: GarmentSpec = {
     type: "blouse",
     gender: "female",
@@ -75,9 +75,9 @@ function seedPattern(): Pattern {
     savedAgo: "ainda não salvo",
     baseSize,
     unit: "cm",
-    sizes: grade.sizes,
+    sizes: sizeChart.sizes,
     sizesApplied: [],
-    sizesPending: grade.sizes,
+    sizesPending: sizeChart.sizes,
     sizeTable,
     pieces: [],
     spec,
@@ -97,25 +97,25 @@ export function seedPatternState(): PatternState {
 }
 
 // Overwrites the pattern's size snapshot from a real (account or system
-// fallback) grade — called once, by the generate route, right before the
-// FIRST-EVER applyGarmentSpec for a pattern (state.pattern.pieces.length ===
-// 0). Every later regeneration reuses the snapshot already on the pattern;
-// editing the account's active grade afterward never retroactively changes
-// an in-progress pattern (same precedent as the i18n locale-snapshot
-// limitation).
+// fallback) size chart — called once, by the generate route, right before
+// the FIRST-EVER applyGarmentSpec for a pattern (state.pattern.pieces.length
+// === 0). Every later regeneration reuses the snapshot already on the
+// pattern; editing the account's active size chart afterward never
+// retroactively changes an in-progress pattern (same precedent as the i18n
+// locale-snapshot limitation).
 export function seedPatternSizeSnapshot(
   state: PatternState,
-  grade: GradeData,
+  sizeChart: SizeChartData,
 ): void {
-  const sizeTable = buildSizeTable(grade);
-  const baseSize = grade.sizes[grade.baseSizeIndex];
+  const sizeTable = buildSizeTable(sizeChart);
+  const baseSize = sizeChart.sizes[sizeChart.baseSizeIndex];
   state.pattern = {
     ...state.pattern,
-    sizes: grade.sizes,
+    sizes: sizeChart.sizes,
     baseSize,
     sizeTable,
     sizesApplied: [],
-    sizesPending: grade.sizes,
+    sizesPending: sizeChart.sizes,
   };
 }
 

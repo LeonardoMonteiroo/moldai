@@ -7,30 +7,30 @@ vi.mock("@/lib/auth/guard", () => ({
     name: null,
   })),
 }));
-vi.mock("@/lib/db/grade", () => ({
-  listGradesForUser: vi.fn(),
-  getActiveGradeId: vi.fn(),
-  createGrade: vi.fn(),
+vi.mock("@/lib/db/sizeChart", () => ({
+  listSizeChartsForUser: vi.fn(),
+  getActiveSizeChartId: vi.fn(),
+  createSizeChart: vi.fn(),
 }));
 
 import { GET, POST } from "./route";
 import { requireUser } from "@/lib/auth/guard";
 import { unauthorized } from "@/lib/auth/session";
 import {
-  listGradesForUser,
-  getActiveGradeId,
-  createGrade,
-} from "@/lib/db/grade";
+  listSizeChartsForUser,
+  getActiveSizeChartId,
+  createSizeChart,
+} from "@/lib/db/sizeChart";
 
 function req(body?: unknown) {
-  return new Request("http://test/api/grades", {
+  return new Request("http://test/api/size-charts", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
 }
 
-describe("GET /api/grades", () => {
+describe("GET /api/size-charts", () => {
   beforeEach(() => {
     vi.mocked(requireUser).mockResolvedValue({
       id: "u1",
@@ -39,18 +39,18 @@ describe("GET /api/grades", () => {
     });
   });
 
-  it("marks the account's active grade in the returned list", async () => {
-    vi.mocked(listGradesForUser).mockResolvedValue([
+  it("marks the account's active chart in the returned list", async () => {
+    vi.mocked(listSizeChartsForUser).mockResolvedValue([
       { id: "g1", name: "A" } as never,
       { id: "g2", name: "B" } as never,
     ]);
-    vi.mocked(getActiveGradeId).mockResolvedValue("g2");
+    vi.mocked(getActiveSizeChartId).mockResolvedValue("g2");
     const res = await GET();
     const json = await res.json();
-    expect(json.find((g: { id: string }) => g.id === "g1").isActive).toBe(
+    expect(json.find((c: { id: string }) => c.id === "g1").isActive).toBe(
       false,
     );
-    expect(json.find((g: { id: string }) => g.id === "g2").isActive).toBe(true);
+    expect(json.find((c: { id: string }) => c.id === "g2").isActive).toBe(true);
   });
 
   it("no session returns 401", async () => {
@@ -60,27 +60,27 @@ describe("GET /api/grades", () => {
   });
 });
 
-describe("POST /api/grades", () => {
+describe("POST /api/size-charts", () => {
   beforeEach(() => {
     vi.mocked(requireUser).mockResolvedValue({
       id: "u1",
       email: "dev@moldai.local",
       name: null,
     });
-    vi.mocked(createGrade).mockReset();
+    vi.mocked(createSizeChart).mockReset();
   });
 
-  it("creates a grade, forwarding an optional sourceId", async () => {
-    vi.mocked(createGrade).mockResolvedValue({ id: "g3" } as never);
+  it("creates a chart, forwarding an optional sourceId", async () => {
+    vi.mocked(createSizeChart).mockResolvedValue({ id: "g3" } as never);
     const res = await POST(req({ sourceId: "g1" }));
-    expect(createGrade).toHaveBeenCalledWith("u1", "g1");
+    expect(createSizeChart).toHaveBeenCalledWith("u1", "g1");
     expect((await res.json()).id).toBe("g3");
   });
 
-  it("creates a grade with no sourceId when the body is empty", async () => {
-    vi.mocked(createGrade).mockResolvedValue({ id: "g4" } as never);
+  it("creates a chart with no sourceId when the body is empty", async () => {
+    vi.mocked(createSizeChart).mockResolvedValue({ id: "g4" } as never);
     await POST(req({}));
-    expect(createGrade).toHaveBeenCalledWith("u1", undefined);
+    expect(createSizeChart).toHaveBeenCalledWith("u1", undefined);
   });
 
   it("no session returns 401", async () => {

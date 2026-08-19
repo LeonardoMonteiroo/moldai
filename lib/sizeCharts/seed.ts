@@ -1,5 +1,5 @@
 import { SIZE_TABLE, SIZE_TABLE_MALE, Measurements } from "@/lib/measurements";
-import type { Gender, GradeData } from "@/lib/types";
+import type { Gender, SizeChartData } from "@/lib/types";
 
 const SIZES = ["PP", "P", "M", "G", "GG"];
 const BASE_INDEX = 2; // "M"
@@ -16,11 +16,11 @@ function deriveProgressionRule(
   return rule;
 }
 
-// Builds the GradeData for a system-seeded default, from today's static
+// Builds the SizeChartData for a system-seeded default, from today's static
 // SIZE_TABLE/SIZE_TABLE_MALE. The progression rule is derived from the M->P
 // step; any size where that rule doesn't reproduce the original table exactly
 // gets a manual override, so buildSizeTable(this) === the original table.
-export function buildSystemGradeData(gender: Gender): GradeData {
+export function buildSystemSizeChartData(gender: Gender): SizeChartData {
   const table = gender === "male" ? SIZE_TABLE_MALE : SIZE_TABLE;
   const baseMeasurements = table[SIZES[BASE_INDEX]];
   const progressionRule = deriveProgressionRule(table);

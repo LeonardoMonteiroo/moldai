@@ -1,8 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useGradesStore } from "@/lib/gradesStore";
-import { resolveGradeSize } from "@/lib/grades/compute";
+import { useSizeChartsStore } from "@/lib/sizeChartsStore";
+import { resolveSizeChartSize } from "@/lib/sizeCharts/compute";
 import type { Measurements } from "@/lib/measurements";
 import type { BodyType } from "@/lib/types";
 
@@ -20,22 +20,22 @@ const MEASUREMENT_KEYS: (keyof Measurements)[] = [
 
 const BODY_TYPES: BodyType[] = ["straight", "hourglass", "pear", "apple"];
 
-export function GradeTable() {
-  const t = useTranslations("GradeTable");
-  const draft = useGradesStore((s) => s.draft);
-  const editingRule = useGradesStore((s) => s.editingRule);
-  const dirty = useGradesStore((s) => s.dirty);
-  const selectedId = useGradesStore((s) => s.selectedId);
-  const grades = useGradesStore((s) => s.grades);
-  const updateDraft = useGradesStore((s) => s.updateDraft);
-  const setEditingRule = useGradesStore((s) => s.setEditingRule);
-  const save = useGradesStore((s) => s.save);
-  const duplicate = useGradesStore((s) => s.duplicate);
-  const remove = useGradesStore((s) => s.remove);
-  const activate = useGradesStore((s) => s.activate);
+export function SizeChartTable() {
+  const t = useTranslations("SizeChartTable");
+  const draft = useSizeChartsStore((s) => s.draft);
+  const editingRule = useSizeChartsStore((s) => s.editingRule);
+  const dirty = useSizeChartsStore((s) => s.dirty);
+  const selectedId = useSizeChartsStore((s) => s.selectedId);
+  const charts = useSizeChartsStore((s) => s.charts);
+  const updateDraft = useSizeChartsStore((s) => s.updateDraft);
+  const setEditingRule = useSizeChartsStore((s) => s.setEditingRule);
+  const save = useSizeChartsStore((s) => s.save);
+  const duplicate = useSizeChartsStore((s) => s.duplicate);
+  const remove = useSizeChartsStore((s) => s.remove);
+  const activate = useSizeChartsStore((s) => s.activate);
 
   if (!draft || !selectedId) return null;
-  const isActive = grades.find((g) => g.id === selectedId)?.isActive ?? false;
+  const isActive = charts.find((c) => c.id === selectedId)?.isActive ?? false;
   const readOnly = draft.isSystem;
 
   const setCell = (size: string, key: keyof Measurements, value: number) => {
@@ -191,7 +191,7 @@ export function GradeTable() {
               draft.sizes.map((size, idx) => {
                 const isBase = idx === draft.baseSizeIndex;
                 const overridden = draft.overrides[size]?.[key] !== undefined;
-                const value = resolveGradeSize(draft, size)[key];
+                const value = resolveSizeChartSize(draft, size)[key];
                 return (
                   <span
                     key={size}
@@ -272,7 +272,7 @@ export function GradeTable() {
             onClick={() => activate(selectedId)}
             className="bg-olive rounded-btn py-[9px] text-center text-[12.5px] font-semibold text-white transition-[filter] hover:brightness-[0.95] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isActive ? t("activeGradeNote") : t("useGradeButton")}
+            {isActive ? t("activeSizeChartNote") : t("useSizeChartButton")}
           </button>
         </div>
       </div>

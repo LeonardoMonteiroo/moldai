@@ -2,9 +2,9 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { loadWallet } from "@/lib/db/wallet";
 import { buildCredits } from "@/lib/api/compose";
-import { GradesShell } from "@/components/grades/GradesShell";
+import { SizeChartsShell } from "@/components/size-charts/SizeChartsShell";
 
-export default async function GradesPage() {
+export default async function SizeChartsPage() {
   const session = await auth();
   if (!session?.user?.email || !session.user.id) redirect("/login");
 
@@ -12,7 +12,7 @@ export default async function GradesPage() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <GradesShell
+      <SizeChartsShell
         userEmail={session.user.email}
         credits={buildCredits(wallet, new Date())}
       />

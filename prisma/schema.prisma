@@ -8,15 +8,15 @@ generator client {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  passwordHash  String
-  name          String?
-  createdAt     DateTime @default(now())
-  patterns      Pattern[]
-  wallet        Wallet?
-  grades        Grade[]
-  activeGradeId String?
+  id                String   @id @default(cuid())
+  email             String   @unique
+  passwordHash      String
+  name              String?
+  createdAt         DateTime @default(now())
+  patterns          Pattern[]
+  wallet            Wallet?
+  sizeCharts        SizeChart[]
+  activeSizeChartId String?
 }
 
 model Pattern {
@@ -30,7 +30,7 @@ model Pattern {
   @@index([userId, updatedAt])
 }
 
-model Grade {
+model SizeChart {
   id        String   @id @default(cuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)

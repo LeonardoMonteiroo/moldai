@@ -1,20 +1,20 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth/guard";
 import {
-  listGradesForUser,
-  getActiveGradeId,
-  createGrade,
-} from "@/lib/db/grade";
+  listSizeChartsForUser,
+  getActiveSizeChartId,
+  createSizeChart,
+} from "@/lib/db/sizeChart";
 
 export async function GET() {
   const gate = await requireUser();
   if (gate instanceof NextResponse) return gate;
-  const [grades, activeGradeId] = await Promise.all([
-    listGradesForUser(gate.id),
-    getActiveGradeId(gate.id),
+  const [charts, activeSizeChartId] = await Promise.all([
+    listSizeChartsForUser(gate.id),
+    getActiveSizeChartId(gate.id),
   ]);
   return NextResponse.json(
-    grades.map((g) => ({ ...g, isActive: g.id === activeGradeId })),
+    charts.map((c) => ({ ...c, isActive: c.id === activeSizeChartId })),
   );
 }
 
@@ -29,6 +29,6 @@ export async function POST(request: Request) {
   }
   const sourceId =
     typeof body.sourceId === "string" ? body.sourceId : undefined;
-  const grade = await createGrade(gate.id, sourceId);
-  return NextResponse.json(grade);
+  const chart = await createSizeChart(gate.id, sourceId);
+  return NextResponse.json(chart);
 }
