@@ -1,4 +1,4 @@
-import { Credits, EditorState, GarmentType } from "./types";
+import { Credits, EditorState, GarmentType, LedgerHistoryEntry } from "./types";
 
 export type GenerateResult =
   | {
@@ -119,6 +119,10 @@ export function purchase(
 
 export function getAccountSummary(): Promise<AccountSummary> {
   return getJson<AccountSummary>("/api/account/summary");
+}
+
+export function getLedgerHistory(): Promise<{ ledger: LedgerHistoryEntry[] }> {
+  return getJson<{ ledger: LedgerHistoryEntry[] }>("/api/account/ledger");
 }
 
 export async function updateProfile(
