@@ -18,12 +18,16 @@ vi.mock("@/lib/db/prisma", () => ({
           orderBy,
           take,
         }: {
-          where: { userId: string; type: string };
+          where: { userId: string; type?: string };
           orderBy: { createdAt: "desc" };
           take: number;
         }) =>
           rows
-            .filter((r) => r.userId === where.userId && r.type === where.type)
+            .filter(
+              (r) =>
+                r.userId === where.userId &&
+                (where.type === undefined || r.type === where.type),
+            )
             .sort((a, b) =>
               orderBy.createdAt === "desc"
                 ? b.createdAt.getTime() - a.createdAt.getTime()
@@ -35,7 +39,7 @@ vi.mock("@/lib/db/prisma", () => ({
   },
 }));
 
-import { getRecentUsage } from "./account";
+import { getRecentUsage, getLedgerHistory } from "./account";
 
 describe("getRecentUsage", () => {
   beforeEach(() => {
@@ -95,5 +99,89 @@ describe("getRecentUsage", () => {
   it("respects the limit", async () => {
     const usage = await getRecentUsage("u1", 1);
     expect(usage).toHaveLength(1);
+  });
+});
+
+describe("getLedgerHistory", () => {
+  beforeEach(() => {
+    rows = [
+      {
+        userId: "u1",
+        type: "debit",
+        amount: 1,
+        reason: "generate",
+        createdAt: new Date("2026-01-01"),
+      },
+      {
+        userId: "u1",
+        type: "debit",
+        amount: 6,
+        reason: "graduate",
+        createdAt: new Date("2026-01-03"),
+      },
+      {
+        userId: "u1",
+        type: "debit",
+        amount: 1,
+        reason: "generate",
+        createdAt: new Date("2026-01-02"),
+      },
+      {
+        userId: "u1",
+        type: "refund",
+        amount: 1,
+        reason: "generate-declined",
+        createdAt: new Date("2026-01-04"),
+      },
+      {
+        userId: "u2",
+        type: "debit",
+        amount: 4,
+        reason: "generate",
+        createdAt: new Date("2026-01-05"),
+      },
+    ];
+  });
+
+  it("returns every transaction type for the user, most recent first", async () => {
+    const ledger = await getLedgerHistory("u1", 10);
+    expect(ledger).toEqual([
+      {
+        type: "refund",
+        reason: "generate-declined",
+        amount: 1,
+        createdAt: "2026-01-04T00:00:00.000Z",
+      },
+      {
+        type: "debit",
+        reason: "graduate",
+        amount: 6,
+        createdAt: "2026-01-03T00:00:00.000Z",
+      },
+      {
+        type: "debit",
+        reason: "generate",
+        amount: 1,
+        createdAt: "2026-01-02T00:00:00.000Z",
+      },
+      {
+        type: "debit",
+        reason: "generate",
+        amount: 1,
+        createdAt: "2026-01-01T00:00:00.000Z",
+      },
+    ]);
+  });
+
+  it("respects the limit", async () => {
+    const ledger = await getLedgerHistory("u1", 2);
+    expect(ledger).toHaveLength(2);
+  });
+
+  it("does not include another user's transactions", async () => {
+    const ledger = await getLedgerHistory("u1", 10);
+    expect(ledger.some((e) => e.amount === 4 && e.reason === "generate")).toBe(
+      false,
+    );
   });
 });

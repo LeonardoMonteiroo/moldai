@@ -97,6 +97,20 @@ export interface Credits {
   renewsInDays: number;
 }
 
+// Every ledger entry type lib/billing/wallet.ts's applyPurchase/debitWallet/
+// refundWallet/renewWallet can produce, mirrored here (not imported from
+// lib/billing) the same way Credits mirrors Wallet — wire/display shape,
+// decoupled from the internal billing module.
+export type LedgerEntryType =
+  "debit" | "refund" | "topup" | "subscribe" | "renew";
+
+export interface LedgerHistoryEntry {
+  type: LedgerEntryType;
+  reason: string | null;
+  amount: number;
+  createdAt: string;
+}
+
 export interface ConflictInfo {
   id: string;
   title: string;
