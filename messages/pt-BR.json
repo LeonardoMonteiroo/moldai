@@ -25,13 +25,7 @@
     "saveVersionButton": "Salvar versão · em breve"
   },
   "Topbar": {
-    "backTitle": "Voltar para meus moldes",
-    "backButton": "← Voltar",
-    "savedVersion": "{savedAgo} · v{version}",
-    "creditsLabel": "{planLabel} · {balance} créditos",
-    "outOfTotal": "de {total}",
-    "buyCreditsButton": "Comprar créditos",
-    "signOutButton": "Sair"
+    "savedVersion": "{savedAgo} · v{version}"
   },
   "ChatPanel": {
     "title": "Conversa",
