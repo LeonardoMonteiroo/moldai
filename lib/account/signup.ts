@@ -5,14 +5,17 @@ import { validateName, validateNewPassword } from "./settings";
 // catch typos without adding a dependency and without rejecting valid addresses.
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// `bad_body` is produced by the route (unparseable JSON), never by
-// createAccount — it lives here because the whole wire contract is one union.
+// `bad_body`, `rate_limited` and `mail_unavailable` are produced by the route,
+// never by createAccount -- they live here because the whole wire contract is
+// one union.
 export type SignupErrorCode =
   | "invalid_name"
   | "invalid_email"
   | "weak_password"
   | "email_taken"
-  | "bad_body";
+  | "bad_body"
+  | "rate_limited"
+  | "mail_unavailable";
 
 export interface NewUser {
   email: string; // already normalized
