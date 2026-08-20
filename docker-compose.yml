@@ -18,6 +18,22 @@ services:
       timeout: 3s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    container_name: moldai-redis
+    restart: unless-stopped
+    # Counters are meant to be ephemeral: persistence off, no volume mounted.
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports:
+      # host 6380 (not 6379) so it doesn't collide with another local Redis,
+      # mirroring the db's 5433 choice
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   app:
     build:
       context: .
@@ -26,10 +42,13 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     env_file:
       - .env.local
     environment:
       DATABASE_URL: postgresql://moldai:moldai@db:5432/moldai?schema=public
+      REDIS_URL: redis://redis:6379
       WATCHPACK_POLLING: "true"
       CHOKIDAR_USEPOLLING: "true"
     ports:
