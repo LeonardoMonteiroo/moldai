@@ -3,6 +3,7 @@ export interface UserRecord {
   email: string;
   passwordHash: string;
   name: string | null;
+  emailVerified: Date | null;
 }
 
 export interface SessionUser {

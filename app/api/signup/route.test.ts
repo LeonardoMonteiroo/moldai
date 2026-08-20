@@ -35,6 +35,7 @@ describe("POST /api/signup", () => {
       email: "novo@moldai.local",
       passwordHash: "hashed",
       name: "Leonardo",
+      emailVerified: null,
     });
   });
 
@@ -60,6 +61,7 @@ describe("POST /api/signup", () => {
       email: "novo@moldai.local",
       passwordHash: "x",
       name: null,
+      emailVerified: null,
     });
     const res = await POST(req(VALID));
     expect(res.status).toBe(409);

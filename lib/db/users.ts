@@ -6,14 +6,26 @@ import type { NewUser } from "@/lib/account/signup";
 export function getUserByEmail(email: string): Promise<UserRecord | null> {
   return prisma.user.findUnique({
     where: { email },
-    select: { id: true, email: true, passwordHash: true, name: true },
+    select: {
+      id: true,
+      email: true,
+      passwordHash: true,
+      name: true,
+      emailVerified: true,
+    },
   });
 }
 
 export function getUserById(id: string): Promise<UserRecord | null> {
   return prisma.user.findUnique({
     where: { id },
-    select: { id: true, email: true, passwordHash: true, name: true },
+    select: {
+      id: true,
+      email: true,
+      passwordHash: true,
+      name: true,
+      emailVerified: true,
+    },
   });
 }
 
@@ -39,7 +51,13 @@ export async function createUser(input: NewUser): Promise<UserRecord | null> {
   try {
     return await prisma.user.create({
       data: input,
-      select: { id: true, email: true, passwordHash: true, name: true },
+      select: {
+        id: true,
+        email: true,
+        passwordHash: true,
+        name: true,
+        emailVerified: true,
+      },
     });
   } catch (e) {
     if (

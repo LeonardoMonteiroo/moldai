@@ -31,6 +31,9 @@ async function main() {
         email: u.email,
         name: u.name,
         passwordHash: await hashPassword(u.password),
+        // Dev accounts skip the verification gate: there is no inbox for
+        // dev@moldai.local. Real sign-ups still go through /verify.
+        emailVerified: now,
       },
     });
     if (!u.atelier) continue;

@@ -7,6 +7,7 @@ const user: UserRecord = {
   email: "dev@moldai.local",
   passwordHash: "HASH",
   name: "Dev",
+  emailVerified: new Date(),
 };
 
 function deps(over: Partial<AuthorizeDeps> = {}): AuthorizeDeps {

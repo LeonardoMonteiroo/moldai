@@ -21,6 +21,7 @@ const user = {
   email: "dev@moldai.local",
   passwordHash: "HASH",
   name: "Dev",
+  emailVerified: new Date(),
 };
 
 function req(body: unknown) {
