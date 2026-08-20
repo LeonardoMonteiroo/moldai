@@ -4,6 +4,7 @@ import {
   draftGarment,
   validateQuestions,
   draftPiecesCm,
+  STYLE_LIMITS,
 } from "./garment";
 import { SIZE_TABLE, SIZE_TABLE_MALE } from "@/lib/measurements";
 import { t } from "@/lib/i18n/test-translate";
@@ -78,6 +79,23 @@ describe("validateSpec", () => {
         measurementOverrides: {},
       }).style.armholeDeepenCm,
     ).toBe(0);
+  });
+  it("clamps numeric style fields to the exported STYLE_LIMITS bounds", () => {
+    const s = validateSpec({
+      type: "dress",
+      gender: "female",
+      measurementOverrides: {},
+      style: {
+        necklineDepthCm: 999,
+        skirtLengthCm: 0,
+        seamAllowanceCm: 99,
+        armholeDeepenCm: 99,
+      },
+    });
+    expect(s.style.necklineDepthCm).toBe(STYLE_LIMITS.necklineDepthCm.max);
+    expect(s.style.skirtLengthCm).toBe(STYLE_LIMITS.skirtLengthCm.min);
+    expect(s.style.seamAllowanceCm).toBe(STYLE_LIMITS.seamAllowanceCm.max);
+    expect(s.style.armholeDeepenCm).toBe(STYLE_LIMITS.armholeDeepenCm.max);
   });
 });
 

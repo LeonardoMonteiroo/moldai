@@ -19,17 +19,27 @@ import { draftSleeve } from "./sleeve";
 import { draftSkirt } from "./skirt";
 import type { Translate } from "@/lib/i18n/translate";
 
-const TYPES: GarmentType[] = ["blouse", "dress", "skirt", "tshirt"];
-const GENDERS: Gender[] = ["female", "male"];
-const NECKLINES: Neckline[] = ["straight", "V", "round"];
-const SLEEVES: SleeveLength[] = ["none", "short", "long"];
-const SKIRTS: SkirtSilhouette[] = [
+export const TYPES: GarmentType[] = ["blouse", "dress", "skirt", "tshirt"];
+export const GENDERS: Gender[] = ["female", "male"];
+export const NECKLINES: Neckline[] = ["straight", "V", "round"];
+export const SLEEVES: SleeveLength[] = ["none", "short", "long"];
+export const SKIRTS: SkirtSilhouette[] = [
   "straight",
   "a-line",
   "gore",
   "half-circle",
   "circle",
 ];
+
+// Clamp bounds validateSpec applies to numeric style fields. Exported so the
+// AI layer (lib/ai) quotes the same numbers in its prompt and tool schema —
+// they must never drift from what actually gets enforced here.
+export const STYLE_LIMITS = {
+  necklineDepthCm: { min: 0, max: 15 },
+  skirtLengthCm: { min: 25, max: 120 },
+  seamAllowanceCm: { min: 0, max: 4 },
+  armholeDeepenCm: { min: 0, max: 6 },
+} as const;
 
 const clamp = (v: number, min: number, max: number) =>
   Math.min(max, Math.max(min, v));
@@ -64,20 +74,36 @@ export function validateSpec(raw: unknown): GarmentSpec {
         : undefined,
     necklineDepthCm:
       style.necklineDepthCm !== undefined
-        ? clamp(num(style.necklineDepthCm, 0), 0, 15)
+        ? clamp(
+            num(style.necklineDepthCm, 0),
+            STYLE_LIMITS.necklineDepthCm.min,
+            STYLE_LIMITS.necklineDepthCm.max,
+          )
         : undefined,
     skirtLengthCm:
       style.skirtLengthCm !== undefined
-        ? clamp(num(style.skirtLengthCm, 60), 25, 120)
+        ? clamp(
+            num(style.skirtLengthCm, 60),
+            STYLE_LIMITS.skirtLengthCm.min,
+            STYLE_LIMITS.skirtLengthCm.max,
+          )
         : undefined,
     seamAllowanceCm:
       style.seamAllowanceCm !== undefined
-        ? clamp(num(style.seamAllowanceCm, 1), 0, 4)
+        ? clamp(
+            num(style.seamAllowanceCm, 1),
+            STYLE_LIMITS.seamAllowanceCm.min,
+            STYLE_LIMITS.seamAllowanceCm.max,
+          )
         : undefined,
     darts: typeof style.darts === "boolean" ? style.darts : undefined,
     armholeDeepenCm:
       style.armholeDeepenCm !== undefined
-        ? clamp(num(style.armholeDeepenCm, 0), 0, 6)
+        ? clamp(
+            num(style.armholeDeepenCm, 0),
+            STYLE_LIMITS.armholeDeepenCm.min,
+            STYLE_LIMITS.armholeDeepenCm.max,
+          )
         : undefined,
     // sleeveRefit is internal (only the conflict resolver sets it); never comes from the AI.
   };

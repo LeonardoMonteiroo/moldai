@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { EditorState } from "./types";
+import type { EditorState } from "@/lib/types";
 
 vi.mock("@anthropic-ai/sdk", () => {
   const create = vi.fn();
@@ -8,7 +8,7 @@ vi.mock("@anthropic-ai/sdk", () => {
 });
 
 import Anthropic from "@anthropic-ai/sdk";
-import { proposeGarment } from "./ai";
+import { proposeGarment } from "./index";
 
 // shared handle for the mock (the factory reuses the same create fn)
 const create = new (
@@ -69,10 +69,23 @@ describe("proposeGarment", () => {
         decision: "ask",
         assistantMessage: "x",
         questions: [{ label: "Neckline", options: ["a", "b"] }],
+        spec: {
+          type: "tshirt",
+          gender: "male",
+          style: {},
+          measurementOverrides: {},
+        },
       }),
     );
     const d = await proposeGarment(baseState, true);
     expect(d.decision).toBe("apply");
     expect(d.questions).toBeUndefined();
+  });
+
+  it("rejects apply without a spec object (route refunds via its catch)", async () => {
+    create.mockResolvedValue(
+      toolResp({ decision: "apply", assistantMessage: "done" }),
+    );
+    await expect(proposeGarment(baseState, false)).rejects.toThrow(/spec/);
   });
 });
