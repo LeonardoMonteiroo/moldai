@@ -34,7 +34,9 @@ export function resolveDecision(
   const decision = input.decision === "ask" ? "apply" : input.decision;
   if (
     decision === "apply" &&
-    (typeof input.spec !== "object" || input.spec === null)
+    (typeof input.spec !== "object" ||
+      input.spec === null ||
+      Array.isArray(input.spec))
   ) {
     throw new Error("decision=apply without a spec object");
   }
