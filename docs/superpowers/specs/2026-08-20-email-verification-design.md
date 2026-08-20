@@ -6,6 +6,21 @@
 **Independent of:** [auth rate limiting](./2026-08-20-auth-rate-limiting-design.md)
 (spec C) — either may ship first.
 
+**Ship order (decided 2026-08-20): B and C ship together as one combined
+"go-live hardening" plan.** Both are the blockers CLAUDE.md names for exposing
+the instance to the internet, so neither is useful alone. Consequences, which
+override the either-order language kept below for reference:
+
+- `AuthorizeResult` is introduced **once**, with all three members
+  (`invalid | unverified | rate_limited`) — never introduced then extended.
+- `/api/verify-email` and `/api/verify-email/resend` are written with their
+  `consume` calls from the start; spec C's "only if spec B has shipped"
+  conditionals do not apply.
+- `.env.example` is created once carrying `APP_URL`, the five `SMTP_*`, and
+  `REDIS_URL` together.
+- The §6 caveat that resend's only brake is its 60-second cooldown "until C
+  ships" never holds — the `resend` bucket is live on day one.
+
 ## Problem
 
 After spec A, anyone can create an account with an address they do not own and
