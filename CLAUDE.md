@@ -39,7 +39,7 @@ npm run smoke:prod    # brings up the prod stack and does a REAL login (catches 
 npm run smoke         # just the HTTP login checker, against a server already running (SMOKE_URL)
 ```
 
-Also in `package.json`: `test:watch`, `typecheck`, `format`/`format:check`, `cron:renew` (one wallet-renewal sweep — see Billing).
+Also in `package.json`: `test:watch`, `typecheck`, `format`/`format:check`, `cron:renew` (one wallet-renewal sweep — see Billing). The production stack no longer auto-seeds `dev@moldai.local`/`atelier@moldai.local`, so running `smoke:prod` against it needs `SMOKE_EMAIL`/`SMOKE_PASSWORD` pointed at an account that actually exists there (created via `/signup`).
 
 **Docker vs host:** Inside the container, the app talks to Postgres at `db:5432` (Docker Compose DNS); on the host, at `localhost:5433`. Secrets (`.env.local`) come in via `env_file` at runtime — never baked into the image. A third compose service, `cron`, runs the hourly wallet-renewal loop (defined in `docker-compose.yml`, so it runs in both the dev and prod stacks). A fourth base-compose service, `redis` (host **6380**, `redis:6379` inside the network — same split as Postgres' 5433/5432), backs rate limiting in both the dev and prod stacks. `docker-compose.override.yml` adds a dev-only **Mailpit** (SMTP **1025**, web inbox at **:8025**) and points the app's `SMTP_*` at it; Compose auto-merges an override file for a bare `docker compose up` (`npm run docker:up`) and ignores it for the explicit two-file prod stack (`npm run docker:prod`), so production never gets Mailpit. `.env.example` documents every variable.
 
