@@ -215,7 +215,13 @@
     "invalidCredentials": "Email ou senha inválidos.",
     "submitButton": "Entrar",
     "submitButtonLoading": "Entrando…",
-    "signupNote": "Ainda não tem conta? <a>Criar conta</a>. Cada conta tem os seus próprios moldes, salvos automaticamente."
+    "signupNote": "Ainda não tem conta? <a>Criar conta</a>. Cada conta tem os seus próprios moldes, salvos automaticamente.",
+    "unverifiedEmail": "Confirme seu email antes de entrar. Enviamos um link quando você criou a conta.",
+    "rateLimited": "Muitas tentativas. Aguarde alguns minutos e tente de novo.",
+    "resendButton": "Reenviar link de confirmação",
+    "resendButtonLoading": "Reenviando…",
+    "resendDone": "Link reenviado. Confira seu email.",
+    "resendFailed": "Não foi possível reenviar agora. Tente de novo em instantes."
   },
   "Signup": {
     "heading": "Criar conta",
@@ -226,15 +232,41 @@
     "mismatchError": "As senhas não conferem.",
     "submitButton": "Criar conta",
     "submitButtonLoading": "Criando conta…",
-    "signinFailedError": "Conta criada, mas não foi possível entrar. Faça login.",
     "loginNote": "Já tem uma conta? <a>Entrar</a>.",
+    "sentHeading": "Confirme seu email",
+    "sentBody": "Enviamos um link de confirmação para <b>{email}</b>. Abra o link para liberar o acesso à sua conta.",
+    "sentHint": "Não chegou? Verifique o spam ou reenvie.",
+    "resendButton": "Reenviar",
+    "resendButtonLoading": "Reenviando…",
+    "resendDone": "Link reenviado.",
     "errors": {
       "invalid_name": "Informe o seu nome.",
       "invalid_email": "Email inválido.",
       "weak_password": "A senha deve ter pelo menos 8 caracteres.",
       "email_taken": "Este email já está cadastrado.",
-      "bad_body": "Não foi possível criar a conta. Tente novamente."
+      "bad_body": "Não foi possível criar a conta. Tente novamente.",
+      "rate_limited": "Muitas tentativas de cadastro. Aguarde alguns minutos.",
+      "mail_unavailable": "Sua conta foi criada, mas não conseguimos enviar o email de confirmação. Tente reenviar em instantes.",
+      "invalid_credentials": "Email ou senha inválidos.",
+      "already_verified": "Este email já está confirmado. Faça login.",
+      "cooldown": "Aguarde um minuto antes de pedir outro link."
     }
+  },
+  "Verify": {
+    "heading": "Confirmar email",
+    "intro": "Clique no botão para confirmar que este email é seu e liberar o acesso à sua conta.",
+    "confirmButton": "Confirmar meu email",
+    "confirmButtonLoading": "Confirmando…",
+    "successHeading": "Email confirmado!",
+    "successBody": "Tudo certo. Agora é só entrar com sua senha.",
+    "loginLink": "Ir para o login",
+    "errors": {
+      "invalid_token": "Este link não é válido. Peça um novo na tela de login.",
+      "expired_token": "Este link expirou. Peça um novo na tela de login.",
+      "bad_body": "Não foi possível confirmar. Tente novamente.",
+      "rate_limited": "Muitas tentativas. Aguarde alguns minutos e tente de novo."
+    },
+    "missingToken": "Link incompleto. Abra o endereço exatamente como ele chegou no seu email."
   },
   "VerificationEmail": {
     "subject": "Confirme seu email · MoldAI",

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useTranslations } from "next-intl";
+import { resendVerification } from "@/lib/api-client";
 
 export default function LoginPage() {
   const t = useTranslations("Login");
@@ -13,11 +14,16 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [unverified, setUnverified] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setUnverified(false);
+    setResent(false);
     const res = await signIn("credentials", {
       email,
       password,
@@ -25,11 +31,32 @@ export default function LoginPage() {
     });
     setLoading(false);
     if (res?.error) {
-      setError(t("invalidCredentials"));
+      // Auth.js surfaces a CredentialsSignin subclass's `code` here, so an
+      // unverified account never reads as "senha inválida".
+      if (res.code === "unverified_email") {
+        setUnverified(true);
+        setError(t("unverifiedEmail"));
+      } else if (res.code === "rate_limited") {
+        setError(t("rateLimited"));
+      } else {
+        setError(t("invalidCredentials"));
+      }
       return;
     }
     router.push("/");
     router.refresh();
+  }
+
+  async function onResend() {
+    setResending(true);
+    setResent(false);
+    const result = await resendVerification(email, password);
+    setResending(false);
+    if (result.status === "error") {
+      setError(t("resendFailed"));
+      return;
+    }
+    setResent(true);
   }
 
   return (
@@ -63,6 +90,19 @@ export default function LoginPage() {
             />
           </label>
           {error && <p className="text-alert text-[12px]">{error}</p>}
+          {unverified && (
+            <button
+              type="button"
+              onClick={onResend}
+              disabled={resending}
+              className="border-border rounded-btn hover:bg-surface-alt border px-4 py-2 text-[12px] font-semibold transition-colors disabled:opacity-50"
+            >
+              {resending ? t("resendButtonLoading") : t("resendButton")}
+            </button>
+          )}
+          {resent && (
+            <p className="text-olive-dark text-[12px]">{t("resendDone")}</p>
+          )}
           <button
             type="submit"
             disabled={loading}
