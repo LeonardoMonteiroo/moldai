@@ -28,11 +28,30 @@ export async function consume(
       .exec();
     if (!res) throw new Error("redis MULTI aborted");
 
-    const [incr, , ttl] = res as [Error | null, unknown][];
+    const [incr, expire, ttl] = res as [Error | null, unknown][];
     if (incr[0]) throw incr[0];
+    // The NX flag on EXPIRE requires Redis >= 7.0. REDIS_URL can point at an
+    // older/managed server where EXPIRE errors while INCR still succeeds --
+    // don't let that error propagate to the catch below, or a key that never
+    // gets a TTL would grow forever and deny that IP/email permanently and
+    // silently, the exact inverse of this module's fail-open philosophy.
+    if (expire[0]) {
+      console.error(`[rate-limit] ${bucket} EXPIRE NX failed:`, expire[0]);
+    }
 
     const count = typeof incr[1] === "number" ? incr[1] : 0;
     const remainingTtl = typeof ttl?.[1] === "number" ? ttl[1] : -1;
+
+    // Defensive backstop: whatever the reason (EXPIRE NX errored above, or
+    // any other version/driver quirk), a key with no TTL must never become
+    // immortal. Plain EXPIRE is supported by every Redis version.
+    if (remainingTtl <= 0) {
+      await getRedis()
+        .expire(key, windowSec)
+        .catch((err) => {
+          console.error(`[rate-limit] ${bucket} fallback EXPIRE failed:`, err);
+        });
+    }
 
     return {
       allowed: count <= limit,

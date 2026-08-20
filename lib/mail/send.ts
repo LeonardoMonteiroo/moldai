@@ -7,11 +7,18 @@ export class MailUnavailableError extends Error {
   }
 }
 
+// Missing APP_URL is explicit, never silent -- symmetric with sendMail's
+// SMTP_HOST check below. Outside production the localhost fallback keeps a
+// bare `npm run dev` and the test suite working; in production it throws, so
+// a deploy that forgot APP_URL fails as mail_unavailable instead of mailing
+// every user an unusable http://localhost:3000 link while the UI reports
+// success.
 export function verificationLink(rawToken: string): string {
-  const base = (process.env.APP_URL ?? "http://localhost:3000").replace(
-    /\/+$/,
-    "",
-  );
+  const rawBase = process.env.APP_URL;
+  if (!rawBase && process.env.NODE_ENV === "production") {
+    throw new MailUnavailableError("APP_URL is not set");
+  }
+  const base = (rawBase ?? "http://localhost:3000").replace(/\/+$/, "");
   return `${base}/verify?token=${encodeURIComponent(rawToken)}`;
 }
 

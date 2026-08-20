@@ -253,7 +253,7 @@
       "email_taken": "Este email já está cadastrado.",
       "bad_body": "Não foi possível criar a conta. Tente novamente.",
       "rate_limited": "Muitas tentativas de cadastro. Aguarde alguns minutos.",
-      "mail_unavailable": "Sua conta foi criada, mas não conseguimos enviar o email de confirmação. Tente reenviar em instantes.",
+      "mail_unavailable": "Sua conta foi criada, mas não conseguimos enviar o email de confirmação. Entre com seu email e senha para reenviar o link.",
       "invalid_credentials": "Email ou senha inválidos.",
       "already_verified": "Este email já está confirmado. Faça login.",
       "cooldown": "Aguarde um minuto antes de pedir outro link."
