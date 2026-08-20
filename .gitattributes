@@ -1,4 +1,11 @@
-# Shell scripts precisam permanecer LF para o shebang funcionar no container Alpine
-# (core.autocrlf=true converteria para CRLF no checkout e quebraria /bin/sh).
+# Todo arquivo de texto usa LF, no repositório e no working tree, em qualquer SO.
+# Sem esta regra o core.autocrlf=true do Windows faz checkout em CRLF e o
+# `prettier --check` (endOfLine "lf" por padrão) acusa o repositório inteiro.
+# Atributo vence core.autocrlf, então isto vale para todo mundo que clonar.
+* text=auto eol=lf
+
+# Redundante com a regra acima, mas mantido de propósito: se o `*` algum dia for
+# afrouxado, estes ainda precisam de LF para o shebang funcionar no container
+# Alpine (CRLF no checkout quebraria /bin/sh).
 *.sh text eol=lf
 .husky/* text eol=lf
