@@ -45,6 +45,9 @@ export async function POST(request: Request) {
   } catch {
     return fail("bad_body");
   }
+  // `null` is valid JSON, so a body of "null" parses successfully and skips
+  // the catch above -- guard against that (and any other non-object) here.
+  if (typeof body !== "object" || body === null) return fail("bad_body");
 
   const email = normalizeEmail(body.email);
   const password = typeof body.password === "string" ? body.password : "";
@@ -67,6 +70,19 @@ export async function POST(request: Request) {
         "Retry-After": String(Math.ceil((RESEND_COOLDOWN_MS - elapsed) / 1000)),
       });
     }
+  }
+
+  // The IP bucket above is spoofable without a trusted proxy, so this
+  // email-keyed bucket is the non-spoofable backstop -- it sits after the
+  // credential check (so it can't be used to exhaust a victim's quota
+  // without their password) and after the cooldown check (so a legitimate
+  // user retrying "Reenviar" within the cooldown, which sent no mail, is not
+  // punished for it). It counts mails actually attempted per address.
+  const byEmail = await consume("resend_email", email);
+  if (!byEmail.allowed) {
+    return fail("rate_limited", {
+      "Retry-After": String(byEmail.retryAfterSec),
+    });
   }
 
   try {

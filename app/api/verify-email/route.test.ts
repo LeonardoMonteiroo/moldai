@@ -29,6 +29,11 @@ describe("POST /api/verify-email", () => {
     expect(await res.json()).toEqual({ status: "ok" });
   });
 
+  it("mints no session -- proof of email ownership is not proof of password", async () => {
+    const res = await POST(req({ token: "raw-token" }));
+    expect(res.headers.get("Set-Cookie")).toBeNull();
+  });
+
   it("looks the token up by its digest, never by the raw value", async () => {
     await POST(req({ token: "raw-token" }));
     expect(consumeToken).toHaveBeenCalledWith(
@@ -77,6 +82,12 @@ describe("POST /api/verify-email", () => {
     const res = await POST(
       new Request("http://test", { method: "POST", body: "not json" }),
     );
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ status: "error", error: "bad_body" });
+  });
+
+  it("400s with bad_body on a null JSON body", async () => {
+    const res = await POST(req(null));
     expect(res.status).toBe(400);
     expect(await res.json()).toEqual({ status: "error", error: "bad_body" });
   });

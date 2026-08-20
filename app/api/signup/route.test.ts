@@ -141,6 +141,13 @@ describe("POST /api/signup", () => {
     expect(createUser).not.toHaveBeenCalled();
   });
 
+  it("400s with bad_body on a null JSON body", async () => {
+    const res = await POST(req(null));
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ status: "error", error: "bad_body" });
+    expect(createUser).not.toHaveBeenCalled();
+  });
+
   it("issues a token and mails it after creating the account", async () => {
     const res = await POST(req(VALID));
     expect(res.status).toBe(200);

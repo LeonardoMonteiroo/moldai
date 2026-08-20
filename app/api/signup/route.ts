@@ -38,6 +38,9 @@ export async function POST(request: Request) {
   } catch {
     return fail("bad_body");
   }
+  // `null` is valid JSON, so a body of "null" parses successfully and skips
+  // the catch above -- guard against that (and any other non-object) here.
+  if (typeof body !== "object" || body === null) return fail("bad_body");
 
   // Consume before any real work: no row creation, no bcrypt, no mail.
   const byIp = await consume("signup", clientIp(request.headers));

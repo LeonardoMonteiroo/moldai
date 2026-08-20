@@ -142,4 +142,38 @@ describe("POST /api/verify-email/resend", () => {
     expect(res.status).toBe(400);
     expect(await res.json()).toEqual({ status: "error", error: "bad_body" });
   });
+
+  it("400s with bad_body on a null JSON body", async () => {
+    const res = await POST(req(null));
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ status: "error", error: "bad_body" });
+  });
+
+  it("429s when only the resend_email bucket is exhausted, before touching the repo", async () => {
+    vi.mocked(consume).mockImplementation(async (bucket) => ({
+      allowed: bucket !== "resend_email",
+      retryAfterSec: 300,
+    }));
+    const res = await POST(req(CREDS));
+    expect(res.status).toBe(429);
+    expect(res.headers.get("Retry-After")).toBe("300");
+    expect(await res.json()).toEqual({
+      status: "error",
+      error: "rate_limited",
+    });
+    expect(issueToken).not.toHaveBeenCalled();
+    expect(sendMail).not.toHaveBeenCalled();
+  });
+
+  it("does not consume resend_email on a wrong password", async () => {
+    vi.mocked(verifyPassword).mockResolvedValue(false);
+    await POST(req(CREDS));
+    expect(consume).not.toHaveBeenCalledWith("resend_email", expect.anything());
+  });
+
+  it("does not consume resend_email when the cooldown blocks the request", async () => {
+    vi.mocked(lastIssuedAt).mockResolvedValue(new Date(Date.now() - 5_000));
+    await POST(req(CREDS));
+    expect(consume).not.toHaveBeenCalledWith("resend_email", expect.anything());
+  });
 });
