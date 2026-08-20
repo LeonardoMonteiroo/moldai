@@ -59,14 +59,14 @@ describe("POST /api/billing/purchase", () => {
     const json = await res.json();
     expect(json.status).toBe("ok");
     expect(json.state.pattern.version).toBe(0);
-    expect(json.state.credits.balance).toBe(420);
+    expect(json.state.credits.balance).toBe(130);
   });
 
   it("without a patternId, returns just credits", async () => {
     const res = await POST(req({ type: "topup" }));
     const json = await res.json();
     expect(json.status).toBe("ok");
-    expect(json.credits.balance).toBe(420);
+    expect(json.credits.balance).toBe(130);
     expect(json.state).toBeUndefined();
   });
 

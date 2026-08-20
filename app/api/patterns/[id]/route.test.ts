@@ -54,7 +54,7 @@ describe("/api/patterns/[id]", () => {
     const json = await res.json();
     expect(mockLoad).toHaveBeenCalledWith("m1", "u1");
     expect(json.pattern.version).toBe(0);
-    expect(json.credits.balance).toBe(320);
+    expect(json.credits.balance).toBe(30);
   });
 
   it("GET 404s when not found/owned", async () => {

@@ -46,7 +46,7 @@ vi.mock("@/lib/db/prisma", () => ({
   },
 }));
 
-import { withWallet, loadWallet, resetWallet } from "./wallet";
+import { withWallet, loadWallet } from "./wallet";
 import { seedWallet, debitWallet } from "@/lib/billing/wallet";
 
 const NOW = new Date("2026-08-17T12:00:00.000Z");
@@ -87,7 +87,7 @@ describe("withWallet", () => {
       seen = wallet.balance;
       return { result: undefined, entries: [] };
     });
-    expect(seen).toBe(320);
+    expect(seen).toBe(30);
   });
 
   it("persists fn's mutations and inserts the returned ledger entries", async () => {
@@ -96,13 +96,13 @@ describe("withWallet", () => {
       return { result: undefined, entries: [entry] };
     });
     const w = store.get("u1") as ReturnType<typeof seedWallet>;
-    expect(w.balance).toBe(316);
+    expect(w.balance).toBe(26);
     expect(ledger).toHaveLength(1);
     expect(ledger[0]).toMatchObject({
       userId: "u1",
       type: "debit",
       amount: 4,
-      balanceAfter: 316,
+      balanceAfter: 26,
       reason: "generate",
     });
   });
@@ -125,7 +125,7 @@ describe("loadWallet", () => {
   beforeEach(() => store.clear());
   it("returns the seed without writing when there's no row", async () => {
     const w = await loadWallet("novo");
-    expect(w.balance).toBe(320);
+    expect(w.balance).toBe(30);
     expect(store.has("novo")).toBe(false);
   });
   it("returns the persisted wallet when it exists", async () => {
@@ -134,15 +134,5 @@ describe("loadWallet", () => {
     store.set("u1", seeded);
     const w = await loadWallet("u1");
     expect(w.balance).toBe(7);
-  });
-});
-
-describe("resetWallet", () => {
-  beforeEach(() => store.clear());
-  it("overwrites with the default wallet and persists it", async () => {
-    store.set("u1", { ...seedWallet(NOW), balance: 0 });
-    const w = await resetWallet("u1");
-    expect(w.balance).toBe(320);
-    expect((store.get("u1") as { balance: number }).balance).toBe(320);
   });
 });

@@ -20,15 +20,16 @@ export interface LedgerEntry {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// Every user's initial wallet (mirrors the previous mock's default: Ateliê
-// plan, 320/500, "renova em 12 dias") — now a real scheduled date.
+// Every new account starts on the design's Free tier (5c: "Grátis · R$ 0 ·
+// 30 créditos/mês"). Open sign-up must not hand a stranger a paid balance;
+// applyPurchase("subscribe") is the upgrade path to Ateliê.
 export function seedWallet(now: Date): Wallet {
   return {
-    plan: "atelier",
-    planLabel: "Ateliê",
-    balance: 320,
-    total: 500,
-    renewsAt: new Date(now.getTime() + 12 * DAY_MS),
+    plan: "free",
+    planLabel: "Grátis",
+    balance: 30,
+    total: 30,
+    renewsAt: new Date(now.getTime() + 30 * DAY_MS),
   };
 }
 

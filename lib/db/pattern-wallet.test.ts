@@ -91,7 +91,7 @@ describe("withPatternAndWallet", () => {
       return { result: undefined, entries: [] };
     });
     expect(seenVersion).toBe(0);
-    expect(seenBalance).toBe(320);
+    expect(seenBalance).toBe(30);
   });
 
   it("locks Pattern before Wallet, always", async () => {
@@ -113,7 +113,7 @@ describe("withPatternAndWallet", () => {
       (patternStore.get("m1")!.data as { pattern: { version: number } }).pattern
         .version,
     ).toBe(1);
-    expect((walletStore.get("u1") as { balance: number }).balance).toBe(316);
+    expect((walletStore.get("u1") as { balance: number }).balance).toBe(26);
     expect(ledger).toHaveLength(1);
   });
 

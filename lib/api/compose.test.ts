@@ -14,11 +14,11 @@ describe("composeEditorState", () => {
     expect(state.chat).toBe(patternState.chat);
     expect(state.conflict).toBeNull();
     expect(state.credits).toEqual({
-      plan: "atelier",
-      planLabel: "Ateliê",
-      balance: 320,
-      total: 500,
-      renewsInDays: 12,
+      plan: "free",
+      planLabel: "Grátis",
+      balance: 30,
+      total: 30,
+      renewsInDays: 30,
     });
   });
 });

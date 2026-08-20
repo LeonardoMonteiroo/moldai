@@ -91,13 +91,3 @@ export async function loadWallet(userId: string): Promise<Wallet> {
   const row = await prisma.wallet.findUnique({ where: { userId } });
   return row ? toWallet(row) : seedWallet(new Date());
 }
-
-export async function resetWallet(userId: string): Promise<Wallet> {
-  const wallet = seedWallet(new Date());
-  await prisma.wallet.upsert({
-    where: { userId },
-    create: { userId, ...wallet },
-    update: { ...wallet },
-  });
-  return wallet;
-}

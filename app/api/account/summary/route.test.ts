@@ -33,7 +33,7 @@ describe("GET /api/account/summary", () => {
     const res = await GET();
     const json = await res.json();
     expect(getRecentUsage).toHaveBeenCalledWith("u1", 3);
-    expect(json.credits.balance).toBe(320);
+    expect(json.credits.balance).toBe(30);
     expect(json.recentUsage).toHaveLength(1);
   });
 
