@@ -236,6 +236,15 @@
       "bad_body": "Não foi possível criar a conta. Tente novamente."
     }
   },
+  "VerificationEmail": {
+    "subject": "Confirme seu email · MoldAI",
+    "greeting": "Olá, {name}!",
+    "body": "Falta um passo para começar a criar seus moldes: confirme que este email é seu.",
+    "button": "Confirmar meu email",
+    "linkFallback": "Se o botão não funcionar, copie e cole este endereço no navegador:",
+    "expiry": "Este link vale por {hours} horas e só pode ser usado uma vez.",
+    "ignore": "Se você não criou uma conta no MoldAI, pode ignorar esta mensagem."
+  },
   "PatternCard": {
     "menuAriaLabel": "Mais opções",
     "renameOption": "Renomear",

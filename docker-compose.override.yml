@@ -1,0 +1,23 @@
+# Dev-only. Compose auto-merges an override file for a bare `docker compose up`
+# -- exactly `npm run docker:up` -- and ignores it for the explicit two-file
+# prod stack (`npm run docker:prod`), so production never gets Mailpit and no
+# npm script needed changing. `npm run db:up` merges this too but starts only
+# `db`, so it is unaffected.
+services:
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: moldai-mailpit
+    restart: unless-stopped
+    ports:
+      - "8025:8025" # web inbox
+      - "1025:1025" # SMTP
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: "1"
+      MP_SMTP_AUTH_ALLOW_INSECURE: "1"
+
+  app:
+    environment:
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+      SMTP_FROM: MoldAI <no-reply@moldai.local>
+      APP_URL: http://localhost:3000
