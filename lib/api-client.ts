@@ -7,6 +7,7 @@ import {
   SizeChartRecord,
   LedgerHistoryEntry,
 } from "./types";
+import type { SignupErrorCode } from "./account/signup";
 
 export type GenerateResult =
   | {
@@ -17,6 +18,11 @@ export type GenerateResult =
 
 export type PurchaseResult =
   { status: "ok"; state: EditorState } | { status: "ok"; credits: Credits };
+
+export type { SignupErrorCode };
+
+export type SignupResult =
+  { status: "ok" } | { status: "error"; error: SignupErrorCode };
 
 export interface PatternListItem {
   id: string;
@@ -166,6 +172,14 @@ export async function deleteAccount(
     body: JSON.stringify({ password }),
   });
   return (await res.json()) as AccountActionResult;
+}
+
+export function signUp(
+  name: string,
+  email: string,
+  password: string,
+): Promise<SignupResult> {
+  return postJson<SignupResult>("/api/signup", { name, email, password });
 }
 
 export function listSizeCharts(): Promise<SizeChartListEntry[]> {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useTranslations } from "next-intl";
@@ -72,7 +73,11 @@ export default function LoginPage() {
         </form>
         <p className="text-muted mt-4 text-[11px]">
           {t.rich("signupNote", {
-            b: (chunks) => <span className="font-medium">{chunks}</span>,
+            a: (chunks) => (
+              <Link href="/signup" className="text-olive-dark font-medium">
+                {chunks}
+              </Link>
+            ),
           })}
         </p>
       </div>

@@ -47,7 +47,7 @@ Also in `package.json`: `test:watch`, `typecheck`, `format`/`format:check`, `cro
 
 MoldAI is an AI pattern-making product for clothing: chat with an AI to generate/adjust 2D sewing patterns, grade sizes, and export to Audaces/Molde.me/plotter/PDF. This repo is a Next.js app with a real backend — the "real backend" roadmap (Phase A auth → B persistence → C billing) is fully shipped:
 
-- **Auth:** Auth.js v5 (Credentials + JWT), users in Postgres via Prisma (local Docker Compose). Login/logout only — self-signup is deferred, shown as "em breve".
+- **Auth:** Auth.js v5 (Credentials + JWT), users in Postgres via Prisma (local Docker Compose). Self-service sign-up at `/signup` creates the account and signs the visitor straight in. Email verification and auth rate limiting are specced but not yet built (`docs/superpowers/specs/2026-08-20-email-verification-design.md`, `…-auth-rate-limiting-design.md`) — until they ship, an address is unproven and account creation is unthrottled, so do not expose this instance to the internet.
 - **Chat:** a real Anthropic API call (`claude-sonnet-5`) interprets the user's request and returns a `GarmentSpec` (garment type + measurement overrides + style); the server validates/clamps that spec and drafts the pattern pieces from it.
 - **Patterns:** persisted per account, many per account (the dashboard's list).
 - **Billing:** a real per-account `Wallet` + append-only `Transaction` ledger, shared across the account's patterns. The **only mock left is the payment gateway** — "purchase"/"subscribe" simulate instant success instead of charging a card.
@@ -93,6 +93,7 @@ The official design handoff for the whole platform: `README.md` (design tokens, 
 
 All pattern-mutating routes live under `/api/patterns/[id]/*`, scoped to one pattern and 404'ing via `patternNotFound()`:
 
+- `POST /api/signup` — creates an account (name/email/password) and returns `{status:"ok"}` or a machine-readable `SignupErrorCode` the client resolves through the catalog. It is the **only unauthenticated route handler** besides NextAuth's own — deliberately at the top level, outside both the `[...nextauth]` catch-all and the uniformly `requireUser()`-gated `/api/account/*`. Validation lives in the pure, DI'd `lib/account/signup.ts`; `lib/db/users.ts`'s `createUser` returns `null` on the P2002 insert race so a lost race reads as `email_taken`.
 - `GET /api/patterns` — the session user's pattern list; `POST /api/patterns` — create a blank one, returns its `id`.
 - `GET /api/patterns/[id]` — the composed `EditorState`; `PATCH` renames (body `{name}`); `DELETE` deletes (the only way to "reset").
 - `POST /api/patterns/[id]/generate` — the core AI flow (below). Debit-then-mutate; insufficient balance → HTTP 402 (no debit, no AI call).

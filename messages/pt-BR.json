@@ -215,7 +215,26 @@
     "invalidCredentials": "Email ou senha inválidos.",
     "submitButton": "Entrar",
     "submitButtonLoading": "Entrando…",
-    "signupNote": "Criar conta — <b>em breve</b>. Cada conta tem os seus próprios moldes, salvos automaticamente."
+    "signupNote": "Ainda não tem conta? <a>Criar conta</a>. Cada conta tem os seus próprios moldes, salvos automaticamente."
+  },
+  "Signup": {
+    "heading": "Criar conta",
+    "nameLabel": "Nome",
+    "emailLabel": "Email",
+    "passwordLabel": "Senha",
+    "confirmLabel": "Confirmar senha",
+    "mismatchError": "As senhas não conferem.",
+    "submitButton": "Criar conta",
+    "submitButtonLoading": "Criando conta…",
+    "signinFailedError": "Conta criada, mas não foi possível entrar. Faça login.",
+    "loginNote": "Já tem uma conta? <a>Entrar</a>.",
+    "errors": {
+      "invalid_name": "Informe o seu nome.",
+      "invalid_email": "Email inválido.",
+      "weak_password": "A senha deve ter pelo menos 8 caracteres.",
+      "email_taken": "Este email já está cadastrado.",
+      "bad_body": "Não foi possível criar a conta. Tente novamente."
+    }
   },
   "PatternCard": {
     "menuAriaLabel": "Mais opções",
