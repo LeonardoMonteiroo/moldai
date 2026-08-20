@@ -149,7 +149,7 @@ describe("POST /api/verify-email/resend", () => {
     expect(await res.json()).toEqual({ status: "error", error: "bad_body" });
   });
 
-  it("429s when only the resend_email bucket is exhausted, before touching the repo", async () => {
+  it("429s when only the resend_email bucket is exhausted, before sending mail", async () => {
     vi.mocked(consume).mockImplementation(async (bucket) => ({
       allowed: bucket !== "resend_email",
       retryAfterSec: 300,

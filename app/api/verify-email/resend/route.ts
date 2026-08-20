@@ -75,9 +75,10 @@ export async function POST(request: Request) {
   // The IP bucket above is spoofable without a trusted proxy, so this
   // email-keyed bucket is the non-spoofable backstop -- it sits after the
   // credential check (so it can't be used to exhaust a victim's quota
-  // without their password) and after the cooldown check (so a legitimate
-  // user retrying "Reenviar" within the cooldown, which sent no mail, is not
-  // punished for it). It counts mails actually attempted per address.
+  // without their password) and after the already-verified and cooldown
+  // checks (so a legitimate user retrying "Reenviar" within the cooldown,
+  // which sent no mail, is not punished for it). It counts mails actually
+  // attempted per address.
   const byEmail = await consume("resend_email", email);
   if (!byEmail.allowed) {
     return fail("rate_limited", {
