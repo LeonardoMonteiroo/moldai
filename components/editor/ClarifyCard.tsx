@@ -93,7 +93,7 @@ export function ClarifyCard({ questions }: { questions: ClarifyQuestion[] }) {
           className={[
             "rounded-btn px-[14px] py-[8px] text-[13px] font-semibold transition-colors",
             allAnswered
-              ? "bg-olive hover:bg-olive-dark text-[#f7f7f2]"
+              ? "bg-olive hover:bg-olive-dark text-olive-foreground"
               : "bg-disabled-border text-disabled cursor-not-allowed",
           ].join(" ")}
         >

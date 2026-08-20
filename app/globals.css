@@ -16,6 +16,8 @@
   --color-olive-dark: #38452c;
   --color-olive-tint: #eaeee2;
   --color-olive-border: #d7ddc9;
+  /* text/icon color on an olive fill (chat bubbles, primary buttons) */
+  --color-olive-foreground: #f7f7f2;
   --color-amber-bg: #fdf3d8;
   --color-amber-border: #f0dfa8;
   --color-amber-text: #7a5f14;

@@ -137,7 +137,7 @@ export function Footer({
         type="button"
         disabled
         title={t("saveVersionTitle")}
-        className="rounded-btn bg-olive cursor-not-allowed px-4 py-2 text-[12.5px] font-semibold text-[#f7f7f2] opacity-50"
+        className="rounded-btn bg-olive text-olive-foreground cursor-not-allowed px-4 py-2 text-[12.5px] font-semibold opacity-50"
       >
         {t("saveVersionButton")}
       </button>
