@@ -14,8 +14,9 @@ export interface AiDecision {
 // when there are no usable questions or the user is answering (redundant
 // guard for the prompt rule: when answering, never ask again), and
 // validates/clamps the untrusted spec. Throws when the model wants to apply
-// but sent no spec object: validateSpec(undefined) would fabricate a default
-// blouse, whereas throwing makes the generate route refund the credit.
+// but sent no usable spec object (missing, null, or an array): validateSpec
+// would fabricate a default blouse from any of those, whereas throwing makes
+// the generate route refund the credit.
 export function resolveDecision(
   input: RawToolInput,
   answering: boolean,
