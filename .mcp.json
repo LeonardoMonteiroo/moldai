@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "moldai-db": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@bytebase/dbhub@1.2.0",
+        "--transport",
+        "stdio",
+        "--config",
+        "${CLAUDE_PROJECT_DIR:-.}/dbhub.toml"
+      ]
+    }
+  }
+}

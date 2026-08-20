@@ -1,0 +1,39 @@
+# DBHub config for the LOCAL DEV database only.
+#
+# Why this exists: Pattern.data and SizeChart.data are JSON blob columns, so the real
+# shape of persisted data is invisible in prisma/schema.prisma. Reading an actual row is
+# the only way to confirm a blob change did not orphan existing data.
+#
+# SAFE TO COMMIT — the DSN below is a variable reference, never a credential. DBHub
+# interpolates ${MOLDAI_DEV_DSN} from the process environment at config load.
+#
+# Set it in your shell, never in a repo file (PowerShell, current user):
+#   [Environment]::SetEnvironmentVariable('MOLDAI_DEV_DSN',
+#     'postgres://moldai_ro:YOUR_PASSWORD@localhost:5433/moldai?sslmode=disable', 'User')
+# Then restart the terminal so Claude Code inherits it.
+#
+# Host port is 5433, not 5432 (docker-compose.yml maps "5433:5432" to avoid colliding
+# with another local Postgres). Point this at the dev database only.
+
+[[sources]]
+id = "moldai_dev"
+dsn = "${MOLDAI_DEV_DSN}"
+connection_timeout = 10
+query_timeout = 30
+
+# Declaring [[tools]] turns the tool surface into a whitelist: only the two below are
+# exposed. explain_sql and health_check stay off.
+#
+# readonly = true is enforced by DBHub at two layers on Postgres — the connection sets
+# default_transaction_read_only, and every execution is wrapped in BEGIN READ ONLY,
+# which on Postgres also blocks DDL. Back it with a read-only role anyway (see README
+# note / the CREATE ROLE moldai_ro snippet) so a misconfiguration cannot write.
+[[tools]]
+name = "execute_sql"
+source = "moldai_dev"
+readonly = true
+max_rows = 200
+
+[[tools]]
+name = "search_objects"
+source = "moldai_dev"
