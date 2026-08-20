@@ -49,11 +49,12 @@ export default function LoginPage() {
 
   async function onResend() {
     setResending(true);
+    setError("");
     setResent(false);
     const result = await resendVerification(email, password);
     setResending(false);
     if (result.status === "error") {
-      setError(t("resendFailed"));
+      setError(t(`errors.${result.error}`));
       return;
     }
     setResent(true);

@@ -221,7 +221,14 @@
     "resendButton": "Reenviar link de confirmação",
     "resendButtonLoading": "Reenviando…",
     "resendDone": "Link reenviado. Confira seu email.",
-    "resendFailed": "Não foi possível reenviar agora. Tente de novo em instantes."
+    "errors": {
+      "invalid_credentials": "Email ou senha inválidos.",
+      "already_verified": "Este email já está confirmado. Tente entrar novamente.",
+      "cooldown": "Aguarde um minuto antes de pedir outro link.",
+      "bad_body": "Não foi possível reenviar o link. Tente novamente.",
+      "rate_limited": "Muitas tentativas. Aguarde alguns minutos e tente de novo.",
+      "mail_unavailable": "Não conseguimos enviar o email agora. Tente de novo em instantes."
+    }
   },
   "Signup": {
     "heading": "Criar conta",
