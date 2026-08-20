@@ -92,28 +92,34 @@ describe("authorizeUser", () => {
 
   it("denies over the IP limit without ever hashing", async () => {
     const verify = vi.fn(async () => true);
+    const getUserByEmail = vi.fn(async () => user);
     const r = await authorizeUser(
       GOOD,
       deps({
         verify,
+        getUserByEmail,
         consume: async (bucket) => ({ allowed: bucket !== "login" }),
       }),
     );
     expect(r).toEqual({ ok: false, reason: "rate_limited" });
     expect(verify).not.toHaveBeenCalled();
+    expect(getUserByEmail).not.toHaveBeenCalled();
   });
 
   it("denies over the email limit without ever hashing", async () => {
     const verify = vi.fn(async () => true);
+    const getUserByEmail = vi.fn(async () => user);
     const r = await authorizeUser(
       GOOD,
       deps({
         verify,
+        getUserByEmail,
         consume: async (bucket) => ({ allowed: bucket !== "login_email" }),
       }),
     );
     expect(r).toEqual({ ok: false, reason: "rate_limited" });
     expect(verify).not.toHaveBeenCalled();
+    expect(getUserByEmail).not.toHaveBeenCalled();
   });
 
   it("consumes both buckets, keyed by ip and by normalized email", async () => {
@@ -129,6 +135,16 @@ describe("authorizeUser", () => {
   it("resets the email counter once the password is correct", async () => {
     const reset = vi.fn(async () => {});
     await authorizeUser(GOOD, deps({ reset }));
+    expect(reset).toHaveBeenCalledWith("login_email", "dev@moldai.local");
+  });
+
+  it("resets the email counter even when the account is unverified", async () => {
+    const reset = vi.fn(async () => {});
+    const r = await authorizeUser(
+      GOOD,
+      deps({ reset, getUserByEmail: async () => unverified }),
+    );
+    expect(r).toEqual({ ok: false, reason: "unverified" });
     expect(reset).toHaveBeenCalledWith("login_email", "dev@moldai.local");
   });
 
