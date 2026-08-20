@@ -1,0 +1,65 @@
+{
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true,
+    "context7@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": true,
+    "feature-dev@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true,
+    "github@claude-plugins-official": true
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["$CLAUDE_PROJECT_DIR/.claude/hooks/guard-paths.mjs"],
+            "timeout": 10,
+            "statusMessage": "Checking path guard"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["$CLAUDE_PROJECT_DIR/.claude/hooks/guard-bash.mjs"],
+            "timeout": 10,
+            "statusMessage": "Checking lint scope"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["$CLAUDE_PROJECT_DIR/.claude/hooks/check-conventions.mjs"],
+            "timeout": 15,
+            "statusMessage": "Checking CLAUDE.md conventions"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["$CLAUDE_PROJECT_DIR/.claude/hooks/verify-on-stop.mjs"],
+            "timeout": 200,
+            "statusMessage": "Running verification sweep"
+          }
+        ]
+      }
+    ]
+  }
+}
