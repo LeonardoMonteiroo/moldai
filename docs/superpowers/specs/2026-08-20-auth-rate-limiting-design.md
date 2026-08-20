@@ -140,9 +140,8 @@ coupling is one line per route, in whichever spec lands second:
   adds `rate_limited` plus the two `consume` calls.
 
 The union is introduced once by whichever ships first and extended by the other;
-`AuthorizeResult`'s final shape is the same either way.
-
-Either way no work is thrown away.
+`AuthorizeResult`'s final shape is the same either way, and no work is thrown
+away in either order.
 
 ### 8. i18n
 
