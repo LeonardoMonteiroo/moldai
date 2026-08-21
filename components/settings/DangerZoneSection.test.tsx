@@ -79,4 +79,38 @@ describe("DangerZoneSection", () => {
       ).toBeInTheDocument();
     });
   });
+
+  // Regression: requireUser() answers a 401 body with error:"unauthorized",
+  // and postJson/deleteAccount parse it regardless of status, so an expired
+  // session must resolve to real catalog copy here, not a raw key path.
+  it("renders the catalog text for an unauthorized code", async () => {
+    vi.mocked(deleteAccount).mockResolvedValue({
+      status: "error",
+      error: "unauthorized",
+    });
+    renderWithIntl(<DangerZoneSection userEmail={USER_EMAIL} />);
+
+    const user = userEvent.setup();
+    await user.type(
+      screen.getByLabelText(
+        ptBR.DangerZoneSection.emailConfirmLabel.replace("{email}", USER_EMAIL),
+      ),
+      USER_EMAIL,
+    );
+    await user.type(
+      screen.getByLabelText(ptBR.DangerZoneSection.passwordLabel),
+      "some-password",
+    );
+    await user.click(
+      screen.getByRole("button", {
+        name: ptBR.DangerZoneSection.submitButton,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(ptBR.DangerZoneSection.errors.unauthorized),
+      ).toBeInTheDocument();
+    });
+  });
 });

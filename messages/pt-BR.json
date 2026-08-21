@@ -406,7 +406,8 @@
     "nameRequired": "Nome obrigatório.",
     "errors": {
       "bad_body": "Não foi possível salvar. Tente novamente.",
-      "invalid_name": "Nome obrigatório."
+      "invalid_name": "Nome obrigatório.",
+      "unauthorized": "Sua sessão expirou. Faça login novamente para salvar."
     }
   },
   "PasswordSection": {
@@ -422,7 +423,8 @@
       "bad_body": "Não foi possível alterar a senha. Tente novamente.",
       "account_not_found": "Não foi possível alterar a senha. Tente novamente.",
       "wrong_password": "Senha atual incorreta.",
-      "weak_password": "A nova senha deve ter pelo menos 8 caracteres."
+      "weak_password": "A nova senha deve ter pelo menos 8 caracteres.",
+      "unauthorized": "Sua sessão expirou. Faça login novamente para alterar a senha."
     }
   },
   "DangerZoneSection": {
@@ -435,7 +437,8 @@
     "errors": {
       "bad_body": "Não foi possível excluir a conta. Tente novamente.",
       "account_not_found": "Não foi possível excluir a conta. Tente novamente.",
-      "wrong_password": "Senha incorreta."
+      "wrong_password": "Senha incorreta.",
+      "unauthorized": "Sua sessão expirou. Faça login novamente para excluir a conta."
     }
   },
   "SettingsShell": {

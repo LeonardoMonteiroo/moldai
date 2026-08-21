@@ -76,4 +76,38 @@ describe("PasswordSection", () => {
       ).toBeInTheDocument();
     });
   });
+
+  // Regression: requireUser() answers a 401 body with error:"unauthorized",
+  // and postJson/changePassword parse it regardless of status, so an expired
+  // session must resolve to real catalog copy here, not a raw key path.
+  it("renders the catalog text for an unauthorized code", async () => {
+    vi.mocked(changePassword).mockResolvedValue({
+      status: "error",
+      error: "unauthorized",
+    });
+    renderWithIntl(<PasswordSection />);
+
+    const user = userEvent.setup();
+    await user.type(
+      screen.getByLabelText(ptBR.PasswordSection.currentLabel),
+      "old-password",
+    );
+    await user.type(
+      screen.getByLabelText(ptBR.PasswordSection.newLabel),
+      "new-password-1",
+    );
+    await user.type(
+      screen.getByLabelText(ptBR.PasswordSection.confirmLabel),
+      "new-password-1",
+    );
+    await user.click(
+      screen.getByRole("button", { name: ptBR.PasswordSection.submitButton }),
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(ptBR.PasswordSection.errors.unauthorized),
+      ).toBeInTheDocument();
+    });
+  });
 });

@@ -56,4 +56,28 @@ describe("ProfileSection", () => {
       ).toBeInTheDocument();
     });
   });
+
+  // Regression: requireUser() answers a 401 body with error:"unauthorized",
+  // and postJson/updateProfile parse it regardless of status, so an expired
+  // session must resolve to real catalog copy here, not a raw key path.
+  it("renders the catalog text for an unauthorized code", async () => {
+    vi.mocked(updateProfile).mockResolvedValue({
+      status: "error",
+      error: "unauthorized",
+    });
+    renderWithIntl(
+      <ProfileSection initialName="Dev" email="dev@moldai.local" />,
+    );
+
+    const user = userEvent.setup();
+    await user.click(
+      screen.getByRole("button", { name: ptBR.ProfileSection.saveButton }),
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(ptBR.ProfileSection.errors.unauthorized),
+      ).toBeInTheDocument();
+    });
+  });
 });
