@@ -8,6 +8,7 @@ const EXISTING: UserRecord = {
   email: "taken@moldai.local",
   passwordHash: "hashed",
   name: "Taken",
+  emailVerified: new Date(),
 };
 
 function deps(over: Partial<SignupDeps> = {}): SignupDeps {
@@ -18,6 +19,7 @@ function deps(over: Partial<SignupDeps> = {}): SignupDeps {
       email: input.email,
       passwordHash: input.passwordHash,
       name: input.name,
+      emailVerified: null,
     })),
     hash: vi.fn(async (plain: string) => `hashed:${plain}`),
     ...over,
@@ -54,6 +56,7 @@ describe("createAccount", () => {
         email: "novo@moldai.local",
         passwordHash: "hashed:senha-forte",
         name: "Leonardo",
+        emailVerified: null,
       },
     });
     expect(vi.mocked(d.hash)).toHaveBeenCalledWith("senha-forte");

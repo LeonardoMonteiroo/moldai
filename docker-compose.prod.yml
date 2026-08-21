@@ -11,3 +11,4 @@ services:
       WATCHPACK_POLLING: "false"
       CHOKIDAR_USEPOLLING: "false"
       DATABASE_URL: postgresql://moldai:moldai@db:5432/moldai?schema=public
+      REDIS_URL: redis://redis:6379

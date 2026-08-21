@@ -5,10 +5,27 @@ vi.mock("@/lib/db/users", () => ({
   createUser: vi.fn(),
 }));
 vi.mock("@/lib/auth/hash", () => ({ hashPassword: vi.fn() }));
+vi.mock("@/lib/rate-limit/consume", () => ({ consume: vi.fn() }));
+vi.mock("@/lib/db/verification", () => ({ issueToken: vi.fn() }));
+vi.mock("@/lib/mail/send", async () => {
+  const actual =
+    await vi.importActual<typeof import("@/lib/mail/send")>("@/lib/mail/send");
+  return {
+    sendMail: vi.fn(),
+    verificationLink: vi.fn(() => "http://test/verify?token=raw"),
+    MailUnavailableError: actual.MailUnavailableError,
+  };
+});
+vi.mock("next-intl/server", () => ({
+  getTranslations: vi.fn(async () => (key: string) => key),
+}));
 
 import { POST } from "./route";
 import { getUserByEmail, createUser } from "@/lib/db/users";
 import { hashPassword } from "@/lib/auth/hash";
+import { consume } from "@/lib/rate-limit/consume";
+import { issueToken } from "@/lib/db/verification";
+import { sendMail, MailUnavailableError } from "@/lib/mail/send";
 
 function req(body: unknown) {
   return new Request("http://test", {
@@ -35,7 +52,14 @@ describe("POST /api/signup", () => {
       email: "novo@moldai.local",
       passwordHash: "hashed",
       name: "Leonardo",
+      emailVerified: null,
     });
+    vi.mocked(consume).mockReset();
+    vi.mocked(issueToken).mockReset();
+    vi.mocked(sendMail).mockReset();
+    vi.mocked(consume).mockResolvedValue({ allowed: true, retryAfterSec: 0 });
+    vi.mocked(issueToken).mockResolvedValue("raw-token");
+    vi.mocked(sendMail).mockResolvedValue(undefined);
   });
 
   it("creates the account and returns ok", async () => {
@@ -60,6 +84,7 @@ describe("POST /api/signup", () => {
       email: "novo@moldai.local",
       passwordHash: "x",
       name: null,
+      emailVerified: null,
     });
     const res = await POST(req(VALID));
     expect(res.status).toBe(409);
@@ -114,5 +139,72 @@ describe("POST /api/signup", () => {
     expect(res.status).toBe(400);
     expect(await res.json()).toEqual({ status: "error", error: "bad_body" });
     expect(createUser).not.toHaveBeenCalled();
+  });
+
+  it("400s with bad_body on a null JSON body", async () => {
+    const res = await POST(req(null));
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ status: "error", error: "bad_body" });
+    expect(createUser).not.toHaveBeenCalled();
+  });
+
+  it("issues a token and mails it after creating the account", async () => {
+    const res = await POST(req(VALID));
+    expect(res.status).toBe(200);
+    expect(issueToken).toHaveBeenCalledWith("new", expect.any(Date));
+    expect(sendMail).toHaveBeenCalledWith(
+      "novo@moldai.local",
+      expect.objectContaining({ subject: expect.any(String) }),
+    );
+  });
+
+  it("creates the account before sending, so a mail failure is recoverable", async () => {
+    vi.mocked(sendMail).mockRejectedValue(
+      new MailUnavailableError("SMTP_HOST is not set"),
+    );
+    const res = await POST(req(VALID));
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({
+      status: "error",
+      error: "mail_unavailable",
+    });
+    expect(createUser).toHaveBeenCalled();
+  });
+
+  it("429s when the IP bucket is exhausted, without creating anything", async () => {
+    vi.mocked(consume).mockResolvedValue({
+      allowed: false,
+      retryAfterSec: 900,
+    });
+    const res = await POST(req(VALID));
+    expect(res.status).toBe(429);
+    expect(res.headers.get("Retry-After")).toBe("900");
+    expect(await res.json()).toEqual({
+      status: "error",
+      error: "rate_limited",
+    });
+    expect(createUser).not.toHaveBeenCalled();
+  });
+
+  it("429s when only the email bucket is exhausted", async () => {
+    vi.mocked(consume).mockImplementation(async (bucket) => ({
+      allowed: bucket !== "signup_email",
+      retryAfterSec: 60,
+    }));
+    const res = await POST(req(VALID));
+    expect(res.status).toBe(429);
+    expect(createUser).not.toHaveBeenCalled();
+  });
+
+  it("consumes the ip bucket and the normalized-email bucket", async () => {
+    await POST(req({ ...VALID, email: "  NOVO@MoldAI.local " }));
+    expect(consume).toHaveBeenCalledWith("signup", "unknown");
+    expect(consume).toHaveBeenCalledWith("signup_email", "novo@moldai.local");
+  });
+
+  it("never sends a mail when validation fails", async () => {
+    await POST(req({ ...VALID, password: "curta12" }));
+    expect(sendMail).not.toHaveBeenCalled();
+    expect(issueToken).not.toHaveBeenCalled();
   });
 });

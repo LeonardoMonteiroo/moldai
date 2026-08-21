@@ -14,10 +14,10 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node",
-            "args": ["$CLAUDE_PROJECT_DIR/.claude/hooks/guard-paths.mjs"],
+            "command": "node \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/guard-paths.mjs\"",
             "timeout": 10,
-            "statusMessage": "Checking path guard"
+            "statusMessage": "Checking path guard",
+            "shell": "bash"
           }
         ]
       },
@@ -26,10 +26,10 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node",
-            "args": ["$CLAUDE_PROJECT_DIR/.claude/hooks/guard-bash.mjs"],
+            "command": "node \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/guard-bash.mjs\"",
             "timeout": 10,
-            "statusMessage": "Checking lint scope"
+            "statusMessage": "Checking lint scope",
+            "shell": "bash"
           }
         ]
       }
@@ -40,10 +40,10 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node",
-            "args": ["$CLAUDE_PROJECT_DIR/.claude/hooks/check-conventions.mjs"],
+            "command": "node \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/check-conventions.mjs\"",
             "timeout": 15,
-            "statusMessage": "Checking CLAUDE.md conventions"
+            "statusMessage": "Checking CLAUDE.md conventions",
+            "shell": "bash"
           }
         ]
       }
@@ -53,10 +53,10 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node",
-            "args": ["$CLAUDE_PROJECT_DIR/.claude/hooks/verify-on-stop.mjs"],
+            "command": "node \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/verify-on-stop.mjs\"",
             "timeout": 200,
-            "statusMessage": "Running verification sweep"
+            "statusMessage": "Running verification sweep",
+            "shell": "bash"
           }
         ]
       }

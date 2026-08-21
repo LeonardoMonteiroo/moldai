@@ -8,6 +8,7 @@ import {
   LedgerHistoryEntry,
 } from "./types";
 import type { SignupErrorCode } from "./account/signup";
+import type { VerifyErrorCode, ResendErrorCode } from "./auth/verification";
 
 export type GenerateResult =
   | {
@@ -23,6 +24,14 @@ export type { SignupErrorCode };
 
 export type SignupResult =
   { status: "ok" } | { status: "error"; error: SignupErrorCode };
+
+export type { VerifyErrorCode, ResendErrorCode };
+
+export type VerifyEmailResult =
+  { status: "ok" } | { status: "error"; error: VerifyErrorCode };
+
+export type ResendResult =
+  { status: "ok" } | { status: "error"; error: ResendErrorCode };
 
 export interface PatternListItem {
   id: string;
@@ -180,6 +189,20 @@ export function signUp(
   password: string,
 ): Promise<SignupResult> {
   return postJson<SignupResult>("/api/signup", { name, email, password });
+}
+
+export function verifyEmail(token: string): Promise<VerifyEmailResult> {
+  return postJson<VerifyEmailResult>("/api/verify-email", { token });
+}
+
+export function resendVerification(
+  email: string,
+  password: string,
+): Promise<ResendResult> {
+  return postJson<ResendResult>("/api/verify-email/resend", {
+    email,
+    password,
+  });
 }
 
 export function listSizeCharts(): Promise<SizeChartListEntry[]> {

@@ -1,8 +1,20 @@
-import NextAuth from "next-auth";
+import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { authorizeUser } from "@/lib/auth/authorize";
 import { getUserByEmail } from "@/lib/db/users";
 import { verifyPassword } from "@/lib/auth/hash";
+import { consume, reset } from "@/lib/rate-limit/consume";
+import { clientIp } from "@/lib/rate-limit/ip";
+
+// Auth.js surfaces a CredentialsSignin subclass's `code` to the caller, so
+// /login can tell these apart instead of showing "senha inválida" for both.
+class UnverifiedEmailError extends CredentialsSignin {
+  code = "unverified_email";
+}
+
+class RateLimitedError extends CredentialsSignin {
+  code = "rate_limited";
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   // Self-hosted (Docker/`next start`): Auth.js v5 only trusts the host
@@ -13,8 +25,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Credentials({
       credentials: { email: {}, password: {} },
-      authorize: (creds) =>
-        authorizeUser(creds ?? {}, { getUserByEmail, verify: verifyPassword }),
+      authorize: async (creds, request) => {
+        // Auth.js hands `authorize` the original Request; Next 16 has no
+        // request.ip, so the header is the only source.
+        const ip = clientIp(request.headers);
+        const result = await authorizeUser(
+          { ...(creds ?? {}), ip },
+          { getUserByEmail, verify: verifyPassword, consume, reset },
+        );
+        if (result.ok) return result.user;
+        if (result.reason === "unverified") throw new UnverifiedEmailError();
+        if (result.reason === "rate_limited") throw new RateLimitedError();
+        return null;
+      },
     }),
   ],
   callbacks: {

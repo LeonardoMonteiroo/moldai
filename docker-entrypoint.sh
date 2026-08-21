@@ -16,8 +16,5 @@ fi
 echo "[entrypoint] applying migrations (prisma migrate deploy)..."
 npx prisma migrate deploy
 
-echo "[entrypoint] seed (idempotent)..."
-npx prisma db seed || echo "[entrypoint] warning: seed failed, continuing anyway"
-
 echo "[entrypoint] starting: $*"
 exec "$@"

@@ -6,6 +6,12 @@
 **Independent of:** [email verification](./2026-08-20-email-verification-design.md)
 (spec B) — either may ship first. See "Interaction with spec B" below.
 
+**Ship order (decided 2026-08-20): B and C ship together as one combined
+"go-live hardening" plan.** See the same note in spec B. In this document that
+means: the `AuthorizeResult` union is introduced once with all three members,
+and every "only if spec B has shipped" conditional below resolves to **yes** —
+the `verify` and `resend` buckets are wired as those routes are created.
+
 ## Problem
 
 Spec A opens account creation to anyone with the URL, and the credentials login
@@ -128,9 +134,10 @@ Each limited handler consumes **before** doing any real work:
 
 ### Interaction with spec B
 
-The last two endpoints only exist once spec B ships. The policy table carries all
-six buckets from the start regardless — an unused entry costs nothing — so the
-coupling is one line per route, in whichever spec lands second:
+**Superseded by the combined ship order above** — kept because it records why
+the policy table carries all six buckets regardless. The last two endpoints only
+exist once spec B ships; since B and C now ship together, they exist. The
+original either-order analysis:
 
 - **If C ships first:** this spec is what converts `authorizeUser` from returning
   a bare `null` to the `{ ok: false; reason }` union, with members
@@ -141,20 +148,21 @@ coupling is one line per route, in whichever spec lands second:
 
 The union is introduced once by whichever ships first and extended by the other;
 `AuthorizeResult`'s final shape is the same either way, and no work is thrown
-away in either order.
+away in either order. **Under the combined plan neither branch applies:** the
+union is written once as `invalid | unverified | rate_limited`.
 
 ### 8. i18n
 
-`rate_limited` error strings added to the `Signup`, `Login`, and (if spec B has
-shipped) `Verify` namespaces. All display text from the catalog, as usual.
+`rate_limited` error strings added to the `Signup`, `Login`, and `Verify`
+namespaces (the last created by spec B in the same combined plan). All display text from the catalog, as usual.
 
 ### 9. Documentation
 
 CLAUDE.md gains a short **rate limiting** subsection: Redis-backed fixed window,
 where the policy table lives, fail-open behavior, and the spoofable-IP caveat.
 The **Docker** section gains the `redis` service and its host `6380`, alongside
-the existing `db:5432`-vs-`localhost:5433` note. `.env.example` (created by spec
-B, or by this spec if it ships first) gains `REDIS_URL`.
+the existing `db:5432`-vs-`localhost:5433` note. `.env.example` (created once by the
+combined plan) gains `REDIS_URL`.
 
 ## Testing
 
@@ -192,7 +200,7 @@ still works (fail open) with an error in the server log.
 - `lib/auth/authorize.ts` — `consume`/`reset` deps, `ip` input, `rate_limited`
 - `auth.ts` — read the IP off `request`, inject the limiter, map `rate_limited`
 - `app/api/signup/route.ts` — consume + `429`
-- `app/api/verify-email/route.ts`, `app/api/verify-email/resend/route.ts` — consume + `429` (only if spec B has shipped)
+- `app/api/verify-email/route.ts`, `app/api/verify-email/resend/route.ts` — consume + `429` (created by spec B in the same combined plan)
 - `app/login/page.tsx` — `rate_limited` message
 - `lib/api-client.ts` — `rate_limited` in the error unions
 - `package.json` — add `ioredis`
