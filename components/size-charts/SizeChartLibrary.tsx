@@ -38,6 +38,14 @@ export function SizeChartLibrary() {
             {c.sizes[0]}–{c.sizes[c.sizes.length - 1]} ·{" "}
             {c.isSystem ? tLib("systemBadge") : tLib("customBadge")}
           </span>
+          {/* "ativa" alone read as "used for everything", but generation falls
+              back to the system chart whenever the garment's gender differs.
+              Only shown on the active chart, where the limit actually bites. */}
+          {c.isActive && (
+            <span className="text-muted-2 text-meta">
+              {tLib("activeScope", { gender: tLib("gender." + c.gender) })}
+            </span>
+          )}
         </button>
       ))}
 

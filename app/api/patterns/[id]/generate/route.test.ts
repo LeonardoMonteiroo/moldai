@@ -36,8 +36,8 @@ vi.mock("@/lib/db/pattern-wallet", () => ({
     },
   ),
 }));
-vi.mock("@/lib/db/sizeChart", () => ({
-  getSizeChartForGeneration: vi.fn(async () => ({
+const CHART = {
+  chart: {
     name: "Feminino adulto · ABNT",
     gender: "female",
     bodyType: "straight",
@@ -54,10 +54,14 @@ vi.mock("@/lib/db/sizeChart", () => ({
       skirtLength: 60,
       shortSleeveLength: 18,
       longSleeveLength: 58,
-    },
+    } as Record<string, number>,
     progressionRule: {},
     overrides: {},
-  })),
+  },
+  rejectedActiveName: null as string | null,
+};
+vi.mock("@/lib/db/sizeChart", () => ({
+  getSizeChartForGeneration: vi.fn(async () => CHART),
 }));
 
 import { POST } from "./route";
@@ -164,5 +168,65 @@ describe("POST /api/patterns/[id]/generate", () => {
     const res = await POST(req({ message: "camiseta" }), ctx("someone-elses"));
     expect(res.status).toBe(404);
     expect(mockPropose).not.toHaveBeenCalled();
+  });
+
+  // The fallback was correct but silent: nothing on screen said the account's
+  // active chart had not been used, so the user got measurements they never
+  // chose while /size-charts still showed their chart as active.
+  it("adds a notice message when the active size chart could not be used", async () => {
+    CHART.rejectedActiveName = "Masculino adulto (cópia)";
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Feito!",
+    });
+
+    const res = await POST(req({ message: "uma blusa" }), ctx());
+    expect(res.status).toBe(200);
+
+    const notice = state.chat.find((m) => m.tone === "notice");
+    expect(notice).toBeDefined();
+    expect(notice!.text).toBe("chat.sizeChartSubstituted");
+    CHART.rejectedActiveName = null;
+  });
+
+  it("adds no notice when the active chart was the one used", async () => {
+    CHART.rejectedActiveName = null;
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Feito!",
+    });
+
+    await POST(req({ message: "uma blusa" }), ctx());
+
+    expect(state.chat.some((m) => m.tone === "notice")).toBe(false);
+  });
+
+  it("freezes the chart name onto the pattern for the tech sheet", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Feito!",
+    });
+
+    await POST(req({ message: "uma blusa" }), ctx());
+
+    expect(state.pattern.sizeChartName).toBe("Feminino adulto · ABNT");
   });
 });

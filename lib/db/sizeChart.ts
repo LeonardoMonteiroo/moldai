@@ -153,15 +153,25 @@ export async function setActiveSizeChart(
   return true;
 }
 
-// The size chart a NEW generation should draft from: the account's active
-// chart if its gender matches, else the system default for that gender.
+/**
+ * The size chart a NEW generation should draft from: the account's active
+ * chart if its gender matches, else the system default for that gender.
+ *
+ * Returns the passed-over active chart's name too, so the route can tell the
+ * user its measurements were not the ones used. Previously this returned only
+ * the chart and the substitution was invisible.
+ */
 export async function getSizeChartForGeneration(
   userId: string,
   gender: Gender,
-): Promise<SizeChartData> {
+): Promise<{ chart: SizeChartData; rejectedActiveName: string | null }> {
   const charts = await listSizeChartsForUser(userId);
   const activeSizeChartId = await getActiveSizeChartId(userId);
-  const record = pickSizeChartForGeneration(charts, activeSizeChartId, gender);
+  const { chart: record, rejectedActive } = pickSizeChartForGeneration(
+    charts,
+    activeSizeChartId,
+    gender,
+  );
   const { id: _id, updatedAt: _updatedAt, ...data } = record;
-  return data;
+  return { chart: data, rejectedActiveName: rejectedActive?.name ?? null };
 }

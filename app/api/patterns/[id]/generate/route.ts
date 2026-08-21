@@ -104,12 +104,17 @@ export async function POST(request: Request, { params }: Ctx) {
           };
         }
 
+        // The size chart is snapshotted once, at the first generation. That is
+        // also the only moment the account's active chart can be passed over,
+        // so it is the only moment there is a substitution to report.
+        let substitutedFrom: string | null = null;
         if (state.pattern.pieces.length === 0) {
-          const sizeChart = await getSizeChartForGeneration(
+          const { chart, rejectedActiveName } = await getSizeChartForGeneration(
             gate.id,
             decision.spec.gender ?? "female",
           );
-          seedPatternSizeSnapshot(state, sizeChart);
+          seedPatternSizeSnapshot(state, chart);
+          substitutedFrom = rejectedActiveName;
         }
         applyGarmentSpec(state, decision.spec, t);
         bumpVersion(state);
@@ -124,6 +129,20 @@ export async function POST(request: Request, { params }: Ctx) {
           tone: conflict ? "conflict" : undefined,
           createdAt: Date.now(),
         });
+        // Said out loud rather than left for the user to discover: their active
+        // chart's measurements are not the ones this pattern was drafted from.
+        if (substitutedFrom) {
+          addMessage(state, {
+            id: `msg-${Date.now()}-chart`,
+            author: "ai",
+            text: t("chat.sizeChartSubstituted", {
+              rejected: substitutedFrom,
+              used: state.pattern.sizeChartName ?? "",
+            }),
+            tone: "notice",
+            createdAt: Date.now(),
+          });
+        }
         return {
           result: NextResponse.json({
             status: conflict ? "conflict" : "ok",

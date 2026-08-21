@@ -41,7 +41,13 @@ export function ChatBubble({
   }
 
   return (
-    <Bubble variant={message.tone === "conflict" ? "notice" : "paper"}>
+    <Bubble
+      variant={
+        message.tone === "conflict" || message.tone === "notice"
+          ? "notice"
+          : "paper"
+      }
+    >
       <BubbleContent>
         {message.text}
         {message.chips && message.chips.length > 0 && (

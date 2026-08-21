@@ -90,19 +90,52 @@ describe("pickSizeChartForGeneration", () => {
       "custom",
       "female",
     );
-    expect(out.id).toBe("custom");
+    expect(out.chart.id).toBe("custom");
+    expect(out.rejectedActive).toBeNull();
   });
 
   it("falls back to the system chart for the requested gender when the active chart doesn't match", () => {
     const active = record({ id: "custom", isSystem: false, gender: "female" });
     const sysMale = record({ id: "sys-m", isSystem: true, gender: "male" });
     const out = pickSizeChartForGeneration([active, sysMale], "custom", "male");
-    expect(out.id).toBe("sys-m");
+    expect(out.chart.id).toBe("sys-m");
   });
 
   it("falls back to any chart when there's no active id and no system match", () => {
     const only = record({ id: "only" });
     const out = pickSizeChartForGeneration([only], null, "male");
-    expect(out.id).toBe("only");
+    expect(out.chart.id).toBe("only");
+    expect(out.rejectedActive).toBeNull();
+  });
+
+  // The substitution was correct but completely silent: the caller had no way
+  // to tell that the account's active chart had been passed over, so nothing
+  // on screen could say so.
+  it("reports the active chart it had to pass over", () => {
+    const active = record({
+      id: "custom",
+      name: "Masculino adulto (cópia)",
+      gender: "male",
+    });
+    const sysFemale = record({ id: "sys-f", isSystem: true, gender: "female" });
+    const out = pickSizeChartForGeneration(
+      [active, sysFemale],
+      "custom",
+      "female",
+    );
+    expect(out.chart.id).toBe("sys-f");
+    expect(out.rejectedActive?.name).toBe("Masculino adulto (cópia)");
+  });
+
+  it("reports nothing rejected when the account has no active chart", () => {
+    const sysFemale = record({ id: "sys-f", isSystem: true, gender: "female" });
+    const out = pickSizeChartForGeneration([sysFemale], null, "female");
+    expect(out.rejectedActive).toBeNull();
+  });
+
+  it("reports nothing rejected when the active chart is the one used", () => {
+    const active = record({ id: "custom", gender: "female" });
+    const out = pickSizeChartForGeneration([active], "custom", "female");
+    expect(out.rejectedActive).toBeNull();
   });
 });

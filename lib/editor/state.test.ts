@@ -8,8 +8,10 @@ import {
   refitSleeve,
   getSpec,
   applySizes,
+  seedPatternSizeSnapshot,
 } from "./state";
 import { t } from "@/lib/i18n/test-translate";
+import type { SizeChartData } from "@/lib/types";
 
 describe("seedPatternState", () => {
   it("takes the new-pattern name from the translator", () => {
@@ -154,5 +156,46 @@ describe("setConflict / applySizes", () => {
     applySizes(s, ["PP", "P"]);
     expect(s.pattern.sizesApplied).toEqual(expect.arrayContaining(["PP", "P"]));
     expect(s.pattern.sizesPending).not.toContain("PP");
+  });
+});
+
+describe("seedPatternSizeSnapshot", () => {
+  const chart: SizeChartData = {
+    name: "Feminino adulto · ABNT",
+    gender: "female",
+    bodyType: "straight",
+    isSystem: true,
+    sizes: ["P", "M", "G"],
+    baseSizeIndex: 1,
+    baseMeasurements: {
+      bust: 92,
+      waist: 74,
+      hip: 100,
+      hipHeight: 20.6,
+      backLength: 41,
+      shoulder: 18.5,
+      skirtLength: 60,
+      shortSleeveLength: 18,
+      longSleeveLength: 58,
+    },
+    progressionRule: { bust: 4 },
+    overrides: {},
+  };
+
+  it("freezes the chart's sizes and base size onto the pattern", () => {
+    const s = seedPatternState(t);
+    seedPatternSizeSnapshot(s, chart);
+    expect(s.pattern.sizes).toEqual(["P", "M", "G"]);
+    expect(s.pattern.baseSize).toBe("M");
+    expect(Object.keys(s.pattern.sizeTable)).toEqual(["P", "M", "G"]);
+  });
+
+  // Recorded so the tech sheet can say which grade a pattern was drafted from.
+  // Frozen at snapshot time for the same reason sizeTable is: renaming or
+  // reassigning the chart later must not rewrite an existing pattern's history.
+  it("records the name of the chart it drafted from", () => {
+    const s = seedPatternState(t);
+    seedPatternSizeSnapshot(s, chart);
+    expect(s.pattern.sizeChartName).toBe("Feminino adulto · ABNT");
   });
 });

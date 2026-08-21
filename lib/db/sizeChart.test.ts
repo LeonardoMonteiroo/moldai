@@ -245,15 +245,40 @@ describe("setActiveSizeChart / getSizeChartForGeneration", () => {
   it("uses the active chart when its gender matches the request", async () => {
     const created = await createSizeChart("u1", SUFFIX); // female, per createSizeChart's default
     await setActiveSizeChart("u1", created.id);
-    const chart = await getSizeChartForGeneration("u1", "female");
+    const { chart, rejectedActiveName } = await getSizeChartForGeneration(
+      "u1",
+      "female",
+    );
     expect(chart.name).toBe(created.name);
+    expect(rejectedActiveName).toBeNull();
   });
 
   it("falls back to the system chart when the active chart's gender doesn't match", async () => {
     const created = await createSizeChart("u1", SUFFIX); // female
     await setActiveSizeChart("u1", created.id);
-    const chart = await getSizeChartForGeneration("u1", "male");
+    const { chart } = await getSizeChartForGeneration("u1", "male");
     expect(chart.isSystem).toBe(true);
     expect(chart.gender).toBe("male");
+  });
+
+  // Reported so the generate route can say so in the chat instead of drafting
+  // from measurements the user did not pick, silently.
+  it("names the active chart it had to pass over", async () => {
+    const created = await createSizeChart("u1", SUFFIX); // female
+    await setActiveSizeChart("u1", created.id);
+    const { rejectedActiveName } = await getSizeChartForGeneration(
+      "u1",
+      "male",
+    );
+    expect(rejectedActiveName).toBe(created.name);
+  });
+
+  it("reports nothing passed over when the account has no active chart", async () => {
+    await createSizeChart("u1", SUFFIX);
+    const { rejectedActiveName } = await getSizeChartForGeneration(
+      "u1",
+      "female",
+    );
+    expect(rejectedActiveName).toBeNull();
   });
 });

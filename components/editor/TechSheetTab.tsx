@@ -52,6 +52,11 @@ export function TechSheetTab({ pattern }: { pattern: Pattern }) {
             />
             <Chip label={t("chipPieces")} value={`${totalPieces}`} />
             <Chip label={t("chipSeamAllowance")} value={`${cm(folga)} cm`} />
+            {/* Absent on patterns drafted before the snapshot recorded it —
+                omitted rather than guessed at. */}
+            {pattern.sizeChartName && (
+              <Chip label={t("chipSizeChart")} value={pattern.sizeChartName} />
+            )}
           </div>
         )}
 

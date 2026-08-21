@@ -186,7 +186,8 @@
       "creditChip": "−{cost, plural, one {# crédito} other {# créditos}}",
       "graduated": "Graduação aplicada para {list}.",
       "sleeveRefit": "Copa da manga refeita para a cava ajustada — as costuras voltaram a bater.",
-      "freeFixChip": "correção gratuita"
+      "freeFixChip": "correção gratuita",
+      "sizeChartSubstituted": "Sua grade ativa (“{rejected}”) não serve para esta peça, então usei “{used}”. Para usar a sua, ative uma grade do mesmo gênero em Medidas e grades."
     },
     "pdf": {
       "pageLabel": "Linha {rowNumber} · Coluna {colNumber} de {totalRows}x{totalCols}",
@@ -202,6 +203,7 @@
     "chipGender": "Modelagem",
     "chipPieces": "Peças",
     "chipSeamAllowance": "Folga de costura",
+    "chipSizeChart": "Grade usada",
     "dimensionsLabel": "Dimensões (larg × alt)",
     "noDetails": "Sem detalhes.",
     "garmentType": {
@@ -364,7 +366,12 @@
   "SizeChartLibrary": {
     "systemBadge": "padrão do sistema",
     "customBadge": "minha grade",
-    "activeBadge": "ativa"
+    "activeBadge": "ativa",
+    "activeScope": "usada só em peças {gender}",
+    "gender": {
+      "female": "femininas",
+      "male": "masculinas"
+    }
   },
   "SizeChartTable": {
     "duplicateButton": "Duplicar",

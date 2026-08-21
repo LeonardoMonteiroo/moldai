@@ -113,6 +113,7 @@ export function seedPatternSizeSnapshot(
     sizes: sizeChart.sizes,
     baseSize,
     sizeTable,
+    sizeChartName: sizeChart.name,
     sizesApplied: [],
     sizesPending: sizeChart.sizes,
   };

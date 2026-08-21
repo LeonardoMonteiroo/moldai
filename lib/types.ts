@@ -95,7 +95,10 @@ export interface ChatMessage {
   text: string;
   chips?: ChatChip[];
   questions?: ClarifyQuestion[];
-  tone?: "neutral" | "conflict";
+  // "notice" shares the amber bubble with "conflict" but is not a conflict:
+  // it marks an informational caveat, e.g. that generation could not use the
+  // account's active size chart.
+  tone?: "neutral" | "conflict" | "notice";
   createdAt: number;
 }
 
@@ -150,6 +153,17 @@ export interface Pattern {
   sizesApplied: SizeLabel[];
   sizesPending: SizeLabel[];
   sizeTable: Record<string, Measurements>;
+  /**
+   * Name of the size chart this pattern was drafted from, frozen at the first
+   * generation alongside `sizeTable` — renaming or reassigning the account's
+   * charts must not rewrite an existing pattern's history, for the same reason
+   * the resolved measurements are snapshotted rather than looked up.
+   *
+   * Optional because patterns drafted before this existed simply do not carry
+   * it (an additive blob key, so no reset migration); the tech sheet omits the
+   * row when it is absent rather than inventing a name.
+   */
+  sizeChartName?: string;
   pieces: Piece[];
   spec?: GarmentSpec;
   viewBox?: { w: number; h: number };
