@@ -5,6 +5,7 @@ import { seedPatternState } from "@/lib/editor/state";
 import { buildThumbnailSvg } from "@/lib/editor/thumbnail";
 import { apiError, ERROR_STATUS } from "@/lib/api/errors";
 import type { GarmentType, PatternState } from "@/lib/types";
+import type { Translate } from "@/lib/i18n/translate";
 
 type Tx = Prisma.TransactionClient;
 
@@ -72,8 +73,11 @@ export async function loadPattern(
   return toState(row.data);
 }
 
-export async function createPattern(userId: string): Promise<string> {
-  const data = seedPatternState() as unknown as Prisma.InputJsonValue;
+export async function createPattern(
+  userId: string,
+  t: Translate,
+): Promise<string> {
+  const data = seedPatternState(t) as unknown as Prisma.InputJsonValue;
   const row = await prisma.pattern.create({ data: { userId, data } });
   return row.id;
 }

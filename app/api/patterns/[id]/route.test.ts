@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { seedPatternState } from "@/lib/editor/state";
 import { seedWallet } from "@/lib/billing/wallet";
+import { t } from "@/lib/i18n/test-translate";
 
 const NOW = new Date("2026-08-18T00:00:00.000Z");
 
@@ -49,7 +50,7 @@ describe("/api/patterns/[id]", () => {
   });
 
   it("GET returns the composed state when found", async () => {
-    mockLoad.mockResolvedValue(seedPatternState());
+    mockLoad.mockResolvedValue(seedPatternState(t));
     const res = await GET(new Request("http://test"), ctx("m1"));
     const json = await res.json();
     expect(mockLoad).toHaveBeenCalledWith("m1", "u1");

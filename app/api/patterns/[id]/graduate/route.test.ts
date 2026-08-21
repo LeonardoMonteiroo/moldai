@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { seedPatternState } from "@/lib/editor/state";
 import { seedWallet } from "@/lib/billing/wallet";
+import { t } from "@/lib/i18n/test-translate";
 import type { PatternState } from "@/lib/types";
 import type { Wallet, LedgerEntry } from "@/lib/billing/wallet";
 
 const NOW = new Date("2026-08-17T12:00:00.000Z");
-let state: PatternState = seedPatternState();
+let state: PatternState = seedPatternState(t);
 let wallet: Wallet = seedWallet(NOW);
 let ownedPatternId: string | null = "m1";
 
@@ -52,7 +53,7 @@ function ctx(id = "m1") {
 
 describe("POST /api/patterns/[id]/graduate", () => {
   beforeEach(() => {
-    state = seedPatternState();
+    state = seedPatternState(t);
     wallet = seedWallet(NOW);
     ownedPatternId = "m1";
     vi.mocked(requireUser).mockResolvedValue({

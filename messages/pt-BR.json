@@ -187,7 +187,9 @@
       "graduated": "Graduação aplicada para {list}.",
       "sleeveRefit": "Copa da manga refeita para a cava ajustada — as costuras voltaram a bater.",
       "freeFixChip": "correção gratuita"
-    }
+    },
+    "exportFailed": "A exportação falhou. Tente novamente.",
+    "newPatternName": "Novo molde"
   },
   "TechSheetTab": {
     "title": "Ficha técnica",
@@ -347,7 +349,8 @@
     "newSizeChartButton": "＋ Nova grade",
     "importLabel": "↥ Importar planilha ou tabela de medidas do Audaces",
     "loading": "Carregando grades…",
-    "loadError": "Não foi possível carregar suas grades. Tente recarregar a página."
+    "loadError": "Não foi possível carregar suas grades. Tente recarregar a página.",
+    "copySuffix": " (cópia)"
   },
   "SizeChartLibrary": {
     "systemBadge": "padrão do sistema",

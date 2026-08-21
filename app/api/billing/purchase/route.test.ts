@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { seedPatternState } from "@/lib/editor/state";
 import { seedWallet } from "@/lib/billing/wallet";
+import { t } from "@/lib/i18n/test-translate";
 import type { PatternState } from "@/lib/types";
 import type { Wallet, LedgerEntry } from "@/lib/billing/wallet";
 
@@ -24,7 +25,7 @@ vi.mock("@/lib/db/wallet", () => ({
 }));
 vi.mock("@/lib/db/pattern", () => ({
   loadPattern: vi.fn(async (patternId: string): Promise<PatternState | null> =>
-    patternId === "m1" ? seedPatternState() : null,
+    patternId === "m1" ? seedPatternState(t) : null,
   ),
   patternNotFound: vi.fn(
     () =>

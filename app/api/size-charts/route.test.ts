@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+vi.mock("next-intl/server", () => ({
+  getTranslations: vi.fn(async () => (key: string) => key),
+}));
 vi.mock("@/lib/auth/guard", () => ({
   requireUser: vi.fn(async () => ({
     id: "u1",
@@ -73,14 +76,14 @@ describe("POST /api/size-charts", () => {
   it("creates a chart, forwarding an optional sourceId", async () => {
     vi.mocked(createSizeChart).mockResolvedValue({ id: "g3" } as never);
     const res = await POST(req({ sourceId: "g1" }));
-    expect(createSizeChart).toHaveBeenCalledWith("u1", "g1");
+    expect(createSizeChart).toHaveBeenCalledWith("u1", "copySuffix", "g1");
     expect((await res.json()).id).toBe("g3");
   });
 
   it("creates a chart with no sourceId when the body is empty", async () => {
     vi.mocked(createSizeChart).mockResolvedValue({ id: "g4" } as never);
     await POST(req({}));
-    expect(createSizeChart).toHaveBeenCalledWith("u1", undefined);
+    expect(createSizeChart).toHaveBeenCalledWith("u1", "copySuffix", undefined);
   });
 
   it("no session returns 401", async () => {

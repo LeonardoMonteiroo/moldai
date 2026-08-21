@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+vi.mock("next-intl/server", () => ({
+  getTranslations: vi.fn(async () => (key: string) => key),
+}));
 vi.mock("@/lib/auth/guard", () => ({ requireUser: vi.fn() }));
 vi.mock("@/lib/db/pattern", () => ({
   listPatternsForUser: vi.fn(),
@@ -63,7 +66,7 @@ describe("POST /api/patterns", () => {
     mockCreate.mockResolvedValue("m9");
     const res = await POST();
     const json = await res.json();
-    expect(mockCreate).toHaveBeenCalledWith("u1");
+    expect(mockCreate).toHaveBeenCalledWith("u1", expect.any(Function));
     expect(json).toEqual({ id: "m9" });
   });
 

@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+vi.mock("next-intl/server", () => ({
+  getTranslations: vi.fn(async () => (key: string) => key),
+}));
 vi.mock("@/lib/auth/guard", () => ({
   requireUser: vi.fn(async () => ({
     id: "u1",
@@ -31,7 +34,7 @@ describe("POST /api/size-charts/[id]/duplicate", () => {
   it("duplicates the given chart id for the current user", async () => {
     vi.mocked(createSizeChart).mockResolvedValue({ id: "g2" } as never);
     const res = await POST(new Request("http://test"), ctx("g1"));
-    expect(createSizeChart).toHaveBeenCalledWith("u1", "g1");
+    expect(createSizeChart).toHaveBeenCalledWith("u1", "copySuffix", "g1");
     expect((await res.json()).id).toBe("g2");
   });
 

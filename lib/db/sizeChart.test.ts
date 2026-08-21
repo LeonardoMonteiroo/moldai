@@ -118,6 +118,10 @@ import {
   getSizeChartForGeneration,
 } from "./sizeChart";
 
+// Deliberately distinct from the real catalog's " (cópia)" so these tests
+// prove the suffix is threaded through from the caller, not hardcoded.
+const SUFFIX = " (copy-test)";
+
 describe("ensureSystemSizeCharts / listSizeChartsForUser", () => {
   beforeEach(() => {
     rows = [];
@@ -155,16 +159,16 @@ describe("createSizeChart", () => {
   });
 
   it("duplicates the system female-adult chart by default", async () => {
-    const created = await createSizeChart("u1");
+    const created = await createSizeChart("u1", SUFFIX);
     expect(created.isSystem).toBe(false);
     expect(created.gender).toBe("female");
-    expect(created.name).toContain("(cópia)");
+    expect(created.name).toContain("(copy-test)");
   });
 
   it("duplicates a given source chart", async () => {
     const charts = await listSizeChartsForUser("u1");
     const male = charts.find((c) => c.gender === "male")!;
-    const created = await createSizeChart("u1", male.id);
+    const created = await createSizeChart("u1", SUFFIX, male.id);
     expect(created.gender).toBe("male");
   });
 });
@@ -184,14 +188,14 @@ describe("updateSizeChart", () => {
   });
 
   it("merges a partial patch into a custom chart", async () => {
-    const created = await createSizeChart("u1");
+    const created = await createSizeChart("u1", SUFFIX);
     const updated = await updateSizeChart(created.id, "u1", { name: "Nova" });
     expect(updated!.name).toBe("Nova");
     expect(updated!.gender).toBe(created.gender); // untouched field preserved
   });
 
   it("returns null when the chart isn't owned by the caller", async () => {
-    const created = await createSizeChart("u1");
+    const created = await createSizeChart("u1", SUFFIX);
     const result = await updateSizeChart(created.id, "someone-else", {
       name: "x",
     });
@@ -213,7 +217,7 @@ describe("deleteSizeChart", () => {
   });
 
   it("deletes a custom chart and clears it as the active chart", async () => {
-    const created = await createSizeChart("u1");
+    const created = await createSizeChart("u1", SUFFIX);
     await setActiveSizeChart("u1", created.id);
     expect(await deleteSizeChart(created.id, "u1")).toBe(true);
     expect(await getActiveSizeChartId("u1")).toBeNull();
@@ -228,25 +232,25 @@ describe("setActiveSizeChart / getSizeChartForGeneration", () => {
   });
 
   it("sets the account's active chart", async () => {
-    const created = await createSizeChart("u1");
+    const created = await createSizeChart("u1", SUFFIX);
     expect(await setActiveSizeChart("u1", created.id)).toBe(true);
     expect(await getActiveSizeChartId("u1")).toBe(created.id);
   });
 
   it("returns false when activating a chart not owned by the caller", async () => {
-    const created = await createSizeChart("u1");
+    const created = await createSizeChart("u1", SUFFIX);
     expect(await setActiveSizeChart("someone-else", created.id)).toBe(false);
   });
 
   it("uses the active chart when its gender matches the request", async () => {
-    const created = await createSizeChart("u1"); // female, per createSizeChart's default
+    const created = await createSizeChart("u1", SUFFIX); // female, per createSizeChart's default
     await setActiveSizeChart("u1", created.id);
     const chart = await getSizeChartForGeneration("u1", "female");
     expect(chart.name).toBe(created.name);
   });
 
   it("falls back to the system chart when the active chart's gender doesn't match", async () => {
-    const created = await createSizeChart("u1"); // female
+    const created = await createSizeChart("u1", SUFFIX); // female
     await setActiveSizeChart("u1", created.id);
     const chart = await getSizeChartForGeneration("u1", "male");
     expect(chart.isSystem).toBe(true);

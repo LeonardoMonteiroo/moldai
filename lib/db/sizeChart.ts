@@ -69,6 +69,7 @@ export async function getActiveSizeChartId(
 // "＋ Nova grade" and "Duplicar".
 export async function createSizeChart(
   userId: string,
+  copySuffix: string,
   sourceSizeChartId?: string,
 ): Promise<SizeChartRecord> {
   const charts = await listSizeChartsForUser(userId);
@@ -79,7 +80,7 @@ export async function createSizeChart(
   const { id: _id, updatedAt: _updatedAt, ...sourceData } = source;
   const data: SizeChartData = {
     ...sourceData,
-    name: `${sourceData.name} (cópia)`,
+    name: `${sourceData.name}${copySuffix}`,
     isSystem: false,
   };
   const row = await prisma.sizeChart.create({

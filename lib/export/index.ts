@@ -16,7 +16,7 @@ export function exportPattern(
   onError?: (message: string) => void,
 ): void {
   if (!pattern.spec || pattern.pieces.length === 0) return;
-  const fail = () => onError?.("A exportação falhou. Tente novamente.");
+  const fail = () => onError?.(t("exportFailed"));
 
   let model;
   try {

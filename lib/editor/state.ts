@@ -58,7 +58,7 @@ function detectConflict(
   };
 }
 
-function seedPattern(): Pattern {
+function seedPattern(t: Translate): Pattern {
   const sizeChart = buildSystemSizeChartData("female");
   const sizeTable = buildSizeTable(sizeChart);
   const baseSize = sizeChart.sizes[sizeChart.baseSizeIndex];
@@ -70,7 +70,7 @@ function seedPattern(): Pattern {
   };
   return {
     id: "demo",
-    name: "Novo molde",
+    name: t("newPatternName"),
     version: 0,
     savedAgo: "ainda não salvo",
     baseSize,
@@ -88,9 +88,9 @@ function seedPattern(): Pattern {
 
 // Every user's initial blank pattern (pattern/chat/conflict — wallet is seeded
 // separately, lib/billing/wallet.ts's seedWallet).
-export function seedPatternState(): PatternState {
+export function seedPatternState(t: Translate): PatternState {
   return {
-    pattern: seedPattern(),
+    pattern: seedPattern(t),
     chat: [],
     conflict: null,
   };

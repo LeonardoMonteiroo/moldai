@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { seedPatternState } from "@/lib/editor/state";
 import { seedWallet } from "@/lib/billing/wallet";
+import { t } from "@/lib/i18n/test-translate";
 import type { PatternState } from "@/lib/types";
 
 const NOW = new Date("2026-08-17T12:00:00.000Z");
-let state: PatternState = seedPatternState();
+let state: PatternState = seedPatternState(t);
 let ownedPatternId: string | null = "m1";
 
 vi.mock("next-intl/server", () => ({
@@ -55,7 +56,7 @@ function ctx(id = "m1") {
 
 describe("POST /api/patterns/[id]/conflict/resolve", () => {
   beforeEach(() => {
-    state = seedPatternState();
+    state = seedPatternState(t);
     setConflict(state, {
       id: "conf-1",
       title: "t",

@@ -78,6 +78,7 @@ import {
   patternNotFound,
 } from "./pattern";
 import { seedPatternState, bumpVersion } from "@/lib/editor/state";
+import { t } from "@/lib/i18n/test-translate";
 
 // Wires the fake tx to read/write `rows` by (id, userId), mimicking
 // `SELECT ... WHERE id = $1 AND userId = $2 FOR UPDATE` + the final UPDATE.
@@ -115,7 +116,7 @@ describe("withPattern", () => {
       {
         id: "m1",
         userId: "u1",
-        data: seedPatternState(),
+        data: seedPatternState(t),
         updatedAt: new Date(),
       },
     ];
@@ -167,7 +168,7 @@ describe("loadPattern", () => {
       {
         id: "m1",
         userId: "u1",
-        data: seedPatternState(),
+        data: seedPatternState(t),
         updatedAt: new Date(),
       },
     ];
@@ -194,7 +195,7 @@ describe("createPattern", () => {
   });
 
   it("creates a blank pattern for the user and returns its id", async () => {
-    const id = await createPattern("u1");
+    const id = await createPattern("u1", t);
     expect(rows).toHaveLength(1);
     expect(rows[0].userId).toBe("u1");
     expect(id).toBe(rows[0].id);
@@ -210,19 +211,19 @@ describe("listPatternsForUser", () => {
       {
         id: "m1",
         userId: "u1",
-        data: seedPatternState(),
+        data: seedPatternState(t),
         updatedAt: new Date("2026-01-01"),
       },
       {
         id: "m2",
         userId: "u1",
-        data: seedPatternState(),
+        data: seedPatternState(t),
         updatedAt: new Date("2026-02-01"),
       },
       {
         id: "m3",
         userId: "u2",
-        data: seedPatternState(),
+        data: seedPatternState(t),
         updatedAt: new Date("2026-03-01"),
       },
     ];
@@ -235,7 +236,7 @@ describe("listPatternsForUser", () => {
 
   it("projects name/thumbnail from the stored state", async () => {
     const list = await listPatternsForUser("u1");
-    expect(list[0].name).toBe("Novo molde");
+    expect(list[0].name).toBe("newPatternName");
     expect(list[0].thumbnailSvg).toContain("<svg");
   });
 
@@ -245,7 +246,7 @@ describe("listPatternsForUser", () => {
   });
 
   it("garmentType reflects spec.type once the pattern has drafted pieces", async () => {
-    const drafted = seedPatternState();
+    const drafted = seedPatternState(t);
     drafted.pattern.pieces = [
       {
         id: "body-front",
@@ -273,7 +274,7 @@ describe("renamePattern", () => {
       {
         id: "m1",
         userId: "u1",
-        data: seedPatternState(),
+        data: seedPatternState(t),
         updatedAt: new Date(),
       },
     ];
@@ -296,7 +297,7 @@ describe("renamePattern", () => {
     expect(ok).toBe(false);
     const row = rows.find((r) => r.id === "m1")!;
     expect((row.data as { pattern: { name: string } }).pattern.name).toBe(
-      "Novo molde",
+      "newPatternName",
     );
   });
 });
@@ -307,7 +308,7 @@ describe("deletePattern", () => {
       {
         id: "m1",
         userId: "u1",
-        data: seedPatternState(),
+        data: seedPatternState(t),
         updatedAt: new Date(),
       },
     ];

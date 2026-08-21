@@ -2,12 +2,13 @@ import { describe, it, expect } from "vitest";
 import { composeEditorState, buildCredits } from "./compose";
 import { seedPatternState } from "@/lib/editor/state";
 import { seedWallet } from "@/lib/billing/wallet";
+import { t } from "@/lib/i18n/test-translate";
 
 const NOW = new Date("2026-08-17T12:00:00.000Z");
 
 describe("composeEditorState", () => {
   it("merges pattern/chat/conflict with credits derived from the wallet", () => {
-    const patternState = seedPatternState();
+    const patternState = seedPatternState(t);
     const wallet = seedWallet(NOW);
     const state = composeEditorState(patternState, wallet, NOW);
     expect(state.pattern).toBe(patternState.pattern);

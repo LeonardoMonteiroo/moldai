@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { requireUser } from "@/lib/auth/guard";
 import {
   listSizeChartsForUser,
@@ -29,6 +30,7 @@ export async function POST(request: Request) {
   }
   const sourceId =
     typeof body.sourceId === "string" ? body.sourceId : undefined;
-  const chart = await createSizeChart(gate.id, sourceId);
+  const t = await getTranslations("SizeCharts");
+  const chart = await createSizeChart(gate.id, t("copySuffix"), sourceId);
   return NextResponse.json(chart);
 }
