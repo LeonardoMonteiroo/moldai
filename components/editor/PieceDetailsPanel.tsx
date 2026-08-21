@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button";
+import { XIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { COSTS, Pattern, Piece } from "@/lib/types";
 import { formatList } from "@/lib/format";
@@ -21,22 +23,25 @@ export function PieceDetailsPanel({
   return (
     <div className="bg-surface border-border rounded-card shadow-card absolute top-5 right-5 bottom-5 flex w-[230px] flex-col gap-[11px] border p-[14px]">
       <div className="flex items-center">
-        <span className="text-muted text-[11px] font-semibold tracking-[.8px] uppercase">
+        <span className="text-muted text-meta tracking-eyebrow font-semibold uppercase">
           {t("sectionLabel")}
         </span>
         <div className="flex-1" />
-        <button
+        <Button
+          variant="ghost"
+          size="icon-xs"
+          aria-label={t("closeAriaLabel")}
           onClick={onClose}
-          className="text-placeholder hover:text-muted-2 text-[13px]"
+          className="text-placeholder hover:text-muted-2"
         >
-          ✕
-        </button>
+          <XIcon />
+        </Button>
       </div>
 
-      <div className="font-display text-[16px] font-semibold">{piece.name}</div>
+      <div className="font-display text-body font-semibold">{piece.name}</div>
 
       {detailRows.length > 0 && (
-        <div className="flex flex-col gap-2 text-[12.5px]">
+        <div className="text-ui flex flex-col gap-2">
           {detailRows.map((row, i) => (
             <div key={row.label}>
               <div className="flex justify-between">
@@ -51,11 +56,11 @@ export function PieceDetailsPanel({
         </div>
       )}
 
-      <div className="text-muted mt-[2px] text-[11px] font-semibold tracking-[.8px] uppercase">
+      <div className="text-muted text-meta tracking-eyebrow mt-[2px] font-semibold uppercase">
         {t("graduationLabel")}
       </div>
       <div className="border-pattern-guide rounded-item bg-surface-alt border border-dashed p-[10px]">
-        <div className="flex gap-[5px] text-[11.5px]">
+        <div className="text-meta flex gap-[5px]">
           {pattern.sizes.map((size) => {
             const isBase = size === pattern.baseSize;
             const active = isBase || pattern.sizesApplied.includes(size);
@@ -74,7 +79,7 @@ export function PieceDetailsPanel({
             );
           })}
         </div>
-        <div className="text-muted mt-2 text-[11.5px]">
+        <div className="text-muted text-meta mt-2">
           {gradable.length > 0
             ? t("graduateSummary", {
                 list: formatList(gradable),
@@ -84,16 +89,16 @@ export function PieceDetailsPanel({
         </div>
       </div>
 
-      <button
+      <Button
+        variant="outline"
         disabled={gradable.length === 0}
         onClick={() => onGraduate(gradable)}
-        className="border-border rounded-btn hover:bg-surface-alt border py-[9px] text-center text-[12.5px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40"
       >
         {t("graduateButton")}
-      </button>
+      </Button>
 
       <div className="flex-1" />
-      <span className="text-muted text-[11.5px]" title={t("glossaryTitle")}>
+      <span className="text-muted text-meta" title={t("glossaryTitle")}>
         {t("glossaryText")}
       </span>
     </div>

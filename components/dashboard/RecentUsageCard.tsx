@@ -13,16 +13,13 @@ export function RecentUsageCard({ entries }: { entries: RecentUsageEntry[] }) {
   const t = useTranslations("RecentUsageCard");
   return (
     <div className="border-border rounded-card flex w-[290px] flex-col gap-2 border bg-white p-[16px]">
-      <span className="text-muted text-[12px] font-medium">{t("title")}</span>
+      <span className="text-muted text-ui font-medium">{t("title")}</span>
       {entries.length === 0 ? (
-        <span className="text-muted text-[12px]">{t("empty")}</span>
+        <span className="text-muted text-ui">{t("empty")}</span>
       ) : (
         <ul className="flex flex-col gap-[6px]">
           {entries.map((e, i) => (
-            <li
-              key={i}
-              className="flex items-center justify-between text-[12px]"
-            >
+            <li key={i} className="text-ui flex items-center justify-between">
               <span>
                 {e.reason && REASON_KEY[e.reason]
                   ? t(REASON_KEY[e.reason])

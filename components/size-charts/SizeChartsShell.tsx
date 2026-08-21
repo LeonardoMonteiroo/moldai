@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { SizeChartLibrary } from "./SizeChartLibrary";
 import { SizeChartTable } from "./SizeChartTable";
 import { useSizeChartsStore } from "@/lib/sizeChartsStore";
@@ -34,20 +35,24 @@ export function SizeChartsShell({
         userEmail={userEmail}
       />
       {!ready && (
-        <div className="text-muted flex flex-1 items-center justify-center text-[13px]">
+        <div className="text-muted text-control flex flex-1 items-center justify-center">
           {t("loading")}
         </div>
       )}
       {ready && error && (
-        <div className="text-muted flex flex-1 items-center justify-center text-[13px]">
+        <div className="text-muted text-control flex flex-1 items-center justify-center">
           {t("loadError")}
         </div>
       )}
+      {/* `fill` + `min-h-full`: the two columns are full-height panels, not a
+          stack of cards, so the row has to keep the region's height. */}
       {ready && !error && (
-        <div className="flex flex-1 gap-4 overflow-y-auto p-[22px]">
-          <SizeChartLibrary />
-          {draft && <SizeChartTable />}
-        </div>
+        <ScrollArea fill className="min-h-0 flex-1">
+          <div className="flex min-h-full gap-4 p-[22px]">
+            <SizeChartLibrary />
+            {draft && <SizeChartTable />}
+          </div>
+        </ScrollArea>
       )}
     </div>
   );

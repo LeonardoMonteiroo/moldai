@@ -2,6 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import { useTranslations } from "next-intl";
 import { signUp, resendVerification } from "@/lib/api-client";
 
@@ -63,13 +71,13 @@ export default function SignupPage() {
   return (
     <div className="bg-paper flex min-h-screen items-center justify-center px-4">
       <div className="bg-surface border-border rounded-card shadow-card w-full max-w-[380px] border p-7">
-        <span className="font-display text-[22px] font-bold tracking-[-0.4px]">
+        <span className="font-display text-title tracking-wordmark font-bold">
           Mold<span className="text-olive">AI</span>
         </span>
         {sent ? (
           <div className="mt-3">
-            <h1 className="text-[15px] font-semibold">{t("sentHeading")}</h1>
-            <p className="text-muted-2 mt-2 text-[12px]">
+            <h1 className="text-body font-semibold">{t("sentHeading")}</h1>
+            <p className="text-muted-2 text-ui mt-2">
               {t.rich("sentBody", {
                 email,
                 b: (chunks) => (
@@ -77,86 +85,99 @@ export default function SignupPage() {
                 ),
               })}
             </p>
-            <p className="text-muted mt-3 text-[11px]">{t("sentHint")}</p>
-            {error && <p className="text-alert mt-3 text-[12px]">{error}</p>}
+            <p className="text-muted text-meta mt-3">{t("sentHint")}</p>
+            {error && <p className="text-alert text-ui mt-3">{error}</p>}
             {resent && (
-              <p className="text-olive-dark mt-3 text-[12px]">
-                {t("resendDone")}
-              </p>
+              <p className="text-olive-dark text-ui mt-3">{t("resendDone")}</p>
             )}
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={onResend}
               disabled={resending}
-              className="border-border rounded-btn hover:bg-surface-alt mt-4 border px-4 py-2 text-[13px] font-semibold transition-colors disabled:opacity-50"
+              className="mt-4"
             >
               {resending ? t("resendButtonLoading") : t("resendButton")}
-            </button>
+            </Button>
           </div>
         ) : (
           <>
-            <h1 className="mt-4 text-[15px] font-semibold">{t("heading")}</h1>
+            <h1 className="text-body mt-4 font-semibold">{t("heading")}</h1>
             <form onSubmit={onSubmit} className="mt-4 flex flex-col gap-3">
-              <label className="text-muted-2 flex flex-col gap-1 text-[12px]">
-                {t("nameLabel")}
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  autoComplete="name"
-                  className="border-border rounded-btn bg-surface-alt text-ink focus:border-olive border px-3 py-2 text-[13px] focus:outline-none"
-                />
-              </label>
-              <label className="text-muted-2 flex flex-col gap-1 text-[12px]">
-                {t("emailLabel")}
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  autoComplete="username"
-                  className="border-border rounded-btn bg-surface-alt text-ink focus:border-olive border px-3 py-2 text-[13px] focus:outline-none"
-                />
-              </label>
-              <label className="text-muted-2 flex flex-col gap-1 text-[12px]">
-                {t("passwordLabel")}
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={MIN_PASSWORD_LENGTH}
-                  autoComplete="new-password"
-                  className="border-border rounded-btn bg-surface-alt text-ink focus:border-olive border px-3 py-2 text-[13px] focus:outline-none"
-                />
-              </label>
-              <label className="text-muted-2 flex flex-col gap-1 text-[12px]">
-                {t("confirmLabel")}
-                <input
-                  type="password"
-                  value={confirm}
-                  onChange={(e) => setConfirm(e.target.value)}
-                  required
-                  autoComplete="new-password"
-                  className="border-border rounded-btn bg-surface-alt text-ink focus:border-olive border px-3 py-2 text-[13px] focus:outline-none"
-                />
-              </label>
-              {mismatch && (
-                <p className="text-alert text-[12px]">{t("mismatchError")}</p>
-              )}
-              {error && <p className="text-alert text-[12px]">{error}</p>}
-              <button
+              <FieldGroup>
+                <Field>
+                  <FieldLabel htmlFor="signup-name">
+                    {t("nameLabel")}
+                  </FieldLabel>
+                  <Input
+                    id="signup-name"
+                    type="text"
+                    value={name}
+                    onChange={(event) => setName(event.target.value)}
+                    required
+                    autoComplete="name"
+                    className="bg-surface-alt"
+                  />
+                </Field>
+                <Field data-invalid={!!error || undefined}>
+                  <FieldLabel htmlFor="signup-email">
+                    {t("emailLabel")}
+                  </FieldLabel>
+                  <Input
+                    id="signup-email"
+                    type="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    required
+                    autoComplete="username"
+                    aria-invalid={!!error || undefined}
+                    className="bg-surface-alt"
+                  />
+                  {!!error && <FieldError>{error}</FieldError>}
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="signup-password">
+                    {t("passwordLabel")}
+                  </FieldLabel>
+                  <Input
+                    id="signup-password"
+                    type="password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    required
+                    minLength={MIN_PASSWORD_LENGTH}
+                    autoComplete="new-password"
+                    className="bg-surface-alt"
+                  />
+                </Field>
+                <Field data-invalid={mismatch || undefined}>
+                  <FieldLabel htmlFor="signup-confirm">
+                    {t("confirmLabel")}
+                  </FieldLabel>
+                  <Input
+                    id="signup-confirm"
+                    type="password"
+                    value={confirm}
+                    onChange={(event) => setConfirm(event.target.value)}
+                    required
+                    autoComplete="new-password"
+                    aria-invalid={mismatch || undefined}
+                    className="bg-surface-alt"
+                  />
+                  {mismatch && <FieldError>{t("mismatchError")}</FieldError>}
+                </Field>
+              </FieldGroup>
+              <Button
                 type="submit"
                 disabled={!canSubmit || loading}
-                className="rounded-btn bg-olive hover:bg-olive-dark mt-1 px-4 py-2 text-[13px] font-semibold text-white transition-colors disabled:opacity-50"
+                className="mt-1"
               >
                 {loading ? t("submitButtonLoading") : t("submitButton")}
-              </button>
+              </Button>
             </form>
           </>
         )}
-        <p className="text-muted mt-4 text-[11px]">
+        <p className="text-muted text-meta mt-4">
           {t.rich("loginNote", {
             a: (chunks) => (
               <Link href="/login" className="text-olive-dark font-medium">

@@ -1,10 +1,30 @@
 "use client";
 
+import { useState } from "react";
+import { XIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSizeChartsStore } from "@/lib/sizeChartsStore";
 import { resolveSizeChartSize } from "@/lib/sizeCharts/compute";
 import type { Measurements } from "@/lib/measurements";
 import type { BodyType } from "@/lib/types";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const MEASUREMENT_KEYS: (keyof Measurements)[] = [
   "bust",
@@ -33,6 +53,8 @@ export function SizeChartTable() {
   const duplicate = useSizeChartsStore((s) => s.duplicate);
   const remove = useSizeChartsStore((s) => s.remove);
   const activate = useSizeChartsStore((s) => s.activate);
+  const [addingSize, setAddingSize] = useState(false);
+  const [newSize, setNewSize] = useState("");
 
   if (!draft || !selectedId) return null;
   const isActive = charts.find((c) => c.id === selectedId)?.isActive ?? false;
@@ -66,7 +88,8 @@ export function SizeChartTable() {
   };
 
   const addSize = () => {
-    const label = window.prompt(t("addSizePrompt"))?.trim();
+    const label = newSize.trim();
+    setAddingSize(false);
     if (!label || draft.sizes.includes(label)) return;
     updateDraft({ sizes: [...draft.sizes, label] });
   };
@@ -88,66 +111,70 @@ export function SizeChartTable() {
     <div className="flex flex-1 flex-col gap-3">
       <div className="flex flex-wrap items-center gap-[10px]">
         {readOnly ? (
-          <span className="font-display text-[16px] font-semibold">
+          <span className="font-display text-body font-semibold">
             {draft.name}
           </span>
         ) : (
-          <input
+          <Input
             value={draft.name}
-            onChange={(e) => updateDraft({ name: e.target.value })}
-            className="font-display border-border rounded-btn border px-2 py-1 text-[16px] font-semibold"
+            onChange={(event) => updateDraft({ name: event.target.value })}
+            className="font-display text-body h-auto w-auto py-1 font-semibold"
           />
         )}
-        <select
+        <Select
           value={draft.bodyType}
           disabled={readOnly}
-          onChange={(e) =>
-            updateDraft({ bodyType: e.target.value as BodyType })
+          onValueChange={(value) =>
+            updateDraft({ bodyType: value as BodyType })
           }
-          className="border-border rounded-pill bg-surface border px-[10px] py-[5px] text-[11.5px] disabled:opacity-60"
         >
-          {BODY_TYPES.map((bt) => (
-            <option key={bt} value={bt}>
-              {t(`bodyType.${bt}`)}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger size="sm" className="w-[170px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {BODY_TYPES.map((bt) => (
+                <SelectItem key={bt} value={bt}>
+                  {t(`bodyType.${bt}`)}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
         <div className="flex-1" />
         {!readOnly && (
-          <button
-            type="button"
+          <Button
+            variant={editingRule ? "soft" : "outline"}
+            size="chrome"
             onClick={() => setEditingRule(!editingRule)}
-            className="border-border rounded-btn bg-surface hover:bg-surface-alt border px-[11px] py-[6px] text-[12px]"
           >
             {editingRule ? t("doneEditingRuleButton") : t("editRuleButton")}
-          </button>
+          </Button>
         )}
-        <button
-          type="button"
+        <Button
+          variant="outline"
+          size="chrome"
           onClick={() => duplicate(selectedId)}
-          className="border-border rounded-btn bg-surface hover:bg-surface-alt border px-[11px] py-[6px] text-[12px]"
         >
           {t("duplicateButton")}
-        </button>
+        </Button>
         {!readOnly && (
-          <button
-            type="button"
+          <Button
+            variant="destructiveOutline"
+            size="chrome"
             onClick={() => remove(selectedId)}
-            className="border-border rounded-btn bg-surface hover:bg-surface-alt text-alert border px-[11px] py-[6px] text-[12px]"
           >
             {t("deleteButton")}
-          </button>
+          </Button>
         )}
       </div>
 
       {readOnly && (
-        <span className="text-muted text-[11.5px]">
-          {t("systemReadOnlyNote")}
-        </span>
+        <span className="text-muted text-meta">{t("systemReadOnlyNote")}</span>
       )}
 
       <div className="border-border rounded-card bg-surface overflow-x-auto border">
-        <div className="bg-surface-alt border-border text-muted flex border-b px-[14px] py-[10px] text-[11px] font-semibold tracking-[.6px] uppercase">
+        <div className="bg-surface-alt border-border text-muted text-meta tracking-eyebrow flex border-b px-[14px] py-[10px] font-semibold uppercase">
           <span className="flex-[2]">{t("measurementColumnLabel")}</span>
           {draft.sizes.map((size) => (
             <span
@@ -156,14 +183,15 @@ export function SizeChartTable() {
             >
               {size}
               {!readOnly && draft.sizes.length > 1 && (
-                <button
-                  type="button"
-                  title={t("removeSizeTitle")}
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  aria-label={t("removeSizeTitle")}
                   onClick={() => removeSize(size)}
-                  className="text-placeholder hover:text-alert text-[10px]"
+                  className="text-placeholder hover:text-alert"
                 >
-                  ✕
-                </button>
+                  <XIcon />
+                </Button>
               )}
             </span>
           ))}
@@ -172,7 +200,7 @@ export function SizeChartTable() {
           <div
             key={key}
             className={[
-              "flex items-center px-[14px] py-[9px] text-[12.5px]",
+              "text-ui flex items-center px-[14px] py-[9px]",
               i < MEASUREMENT_KEYS.length - 1 ? "border-line border-b" : "",
             ].join(" ")}
           >
@@ -185,7 +213,7 @@ export function SizeChartTable() {
                 step="0.1"
                 value={draft.progressionRule[key] ?? 0}
                 onChange={(e) => setRule(key, Number(e.target.value))}
-                className="border-border rounded-btn ml-auto w-[70px] border px-2 py-1 text-right text-[12px]"
+                className="border-border rounded-btn text-ui ml-auto w-[70px] border px-2 py-1 text-right"
               />
             ) : (
               draft.sizes.map((size, idx) => {
@@ -198,12 +226,18 @@ export function SizeChartTable() {
                     className="flex flex-1 items-center justify-end gap-1"
                   >
                     {overridden && !isBase && !readOnly && (
-                      <button
-                        type="button"
-                        title={t("resetOverrideTitle")}
+                      // The dot stays 5px, but a 5x5 hit target fails WCAG 2.2
+                      // AA 2.5.8 (24x24 minimum), so the button around it is
+                      // full size and the dot is what you see.
+                      <Button
+                        variant="ghost"
+                        size="icon-xs"
+                        aria-label={t("resetOverrideTitle")}
                         onClick={() => clearOverride(size, key)}
-                        className="bg-olive h-[5px] w-[5px] rounded-full"
-                      />
+                        className="hover:bg-transparent"
+                      >
+                        <span className="bg-olive size-[5px] rounded-full" />
+                      </Button>
                     )}
                     <input
                       type="number"
@@ -214,7 +248,7 @@ export function SizeChartTable() {
                         setCell(size, key, Number(e.target.value))
                       }
                       className={[
-                        "w-[56px] rounded-[6px] border px-1 py-[3px] text-right text-[12px]",
+                        "text-ui w-[56px] rounded-[6px] border px-1 py-[3px] text-right",
                         isBase
                           ? "border-olive-border bg-olive-tint font-semibold"
                           : "border-transparent bg-transparent",
@@ -229,24 +263,66 @@ export function SizeChartTable() {
       </div>
 
       {!readOnly && (
-        <button
-          type="button"
-          onClick={addSize}
-          className="border-border rounded-btn bg-surface hover:bg-surface-alt self-start border px-[11px] py-[6px] text-[12px]"
+        <Button
+          variant="outline"
+          size="chrome"
+          onClick={() => {
+            setNewSize("");
+            setAddingSize(true);
+          }}
+          className="self-start"
         >
           {t("addSizeButton")}
-        </button>
+        </Button>
       )}
+
+      <Dialog open={addingSize} onOpenChange={setAddingSize}>
+        <DialogContent>
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              addSize();
+            }}
+          >
+            <DialogHeader>
+              <DialogTitle>{t("addSizePrompt")}</DialogTitle>
+            </DialogHeader>
+            <Field className="py-4">
+              <FieldLabel htmlFor="new-size">
+                {t("addSizeFieldLabel")}
+              </FieldLabel>
+              <Input
+                id="new-size"
+                value={newSize}
+                onChange={(event) => setNewSize(event.target.value)}
+              />
+            </Field>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setAddingSize(false)}
+              >
+                {t("addSizeCancelButton")}
+              </Button>
+              <Button type="submit" size="sm" disabled={!newSize.trim()}>
+                {t("addSizeSaveButton")}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <div className="flex gap-3">
         <div className="border-border rounded-card bg-surface flex-1 border p-[14px]">
-          <span className="text-muted text-[11px] font-semibold tracking-[.8px] uppercase">
+          <span className="text-muted text-meta tracking-eyebrow font-semibold uppercase">
             {t("progressionTitle")}
           </span>
           <div className="mt-2 flex flex-col gap-[6px]">
             {MEASUREMENT_KEYS.filter((k) => draft.progressionRule[k]).map(
               (key) => (
-                <div key={key} className="flex justify-between text-[12.5px]">
+                <div key={key} className="text-ui flex justify-between">
                   <span className="text-muted">{t(`measurement.${key}`)}</span>
                   <span className="font-semibold">
                     {draft.progressionRule[key]} cm
@@ -258,22 +334,13 @@ export function SizeChartTable() {
         </div>
         <div className="flex w-[220px] flex-col justify-end gap-2">
           {dirty && !readOnly && (
-            <button
-              type="button"
-              onClick={() => save()}
-              className="border-olive text-olive bg-olive-tint rounded-btn border py-[9px] text-center text-[12.5px] font-semibold"
-            >
+            <Button variant="accent" onClick={() => save()}>
               {t("saveButton")}
-            </button>
+            </Button>
           )}
-          <button
-            type="button"
-            disabled={isActive}
-            onClick={() => activate(selectedId)}
-            className="bg-olive rounded-btn py-[9px] text-center text-[12.5px] font-semibold text-white transition-[filter] hover:brightness-[0.95] disabled:cursor-not-allowed disabled:opacity-50"
-          >
+          <Button disabled={isActive} onClick={() => activate(selectedId)}>
             {isActive ? t("activeSizeChartNote") : t("useSizeChartButton")}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

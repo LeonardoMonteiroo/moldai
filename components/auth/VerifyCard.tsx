@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { verifyEmail } from "@/lib/api-client";
+import { Button } from "@/components/ui/button";
 
 export default function VerifyCard({ token }: { token: string }) {
   const t = useTranslations("Verify");
@@ -25,11 +26,11 @@ export default function VerifyCard({ token }: { token: string }) {
   if (status === "done") {
     return (
       <div className="mt-3">
-        <p className="text-[13px] font-semibold">{t("successHeading")}</p>
-        <p className="text-muted-2 mt-1 text-[12px]">{t("successBody")}</p>
+        <p className="text-control font-semibold">{t("successHeading")}</p>
+        <p className="text-muted-2 text-ui mt-1">{t("successBody")}</p>
         <Link
           href="/login"
-          className="rounded-btn bg-olive hover:bg-olive-dark mt-4 inline-block px-4 py-2 text-[13px] font-semibold text-white transition-colors"
+          className="rounded-btn bg-olive hover:bg-olive-dark text-control mt-4 inline-block px-4 py-2 font-semibold text-white transition-colors"
         >
           {t("loginLink")}
         </Link>
@@ -39,16 +40,16 @@ export default function VerifyCard({ token }: { token: string }) {
 
   return (
     <div className="mt-3">
-      <p className="text-muted-2 text-[12px]">{t("intro")}</p>
-      {error && <p className="text-alert mt-3 text-[12px]">{error}</p>}
-      <button
+      <p className="text-muted-2 text-ui">{t("intro")}</p>
+      {error && <p className="text-alert text-ui mt-3">{error}</p>}
+      <Button
         type="button"
         onClick={onConfirm}
         disabled={status === "loading"}
-        className="rounded-btn bg-olive hover:bg-olive-dark mt-4 px-4 py-2 text-[13px] font-semibold text-white transition-colors disabled:opacity-50"
+        className="mt-4"
       >
         {status === "loading" ? t("confirmButtonLoading") : t("confirmButton")}
-      </button>
+      </Button>
     </div>
   );
 }

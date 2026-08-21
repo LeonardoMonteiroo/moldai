@@ -31,7 +31,7 @@ export function EditorShell({
 
   if (!ready || !pattern || !credits) {
     return (
-      <div className="text-muted flex flex-1 items-center justify-center text-[13px]">
+      <div className="text-muted text-control flex flex-1 items-center justify-center">
         {t("loading")}
       </div>
     );

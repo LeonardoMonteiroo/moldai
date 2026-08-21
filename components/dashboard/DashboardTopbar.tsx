@@ -1,11 +1,23 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { ChevronDownIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { signOut } from "next-auth/react";
 import type { Credits } from "@/lib/types";
 import { initialsFromEmail } from "@/lib/format";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function DashboardTopbar({
   userEmail,
@@ -16,73 +28,70 @@ export function DashboardTopbar({
 }) {
   const t = useTranslations("DashboardTopbar");
   const router = useRouter();
-  const [menuOpen, setMenuOpen] = useState(false);
+
+  const sections = [
+    { section: "usage", label: t("usageMenuItem") },
+    { section: "plan", label: t("planMenuItem") },
+    { section: "profile", label: t("preferencesMenuItem") },
+  ];
 
   return (
     <div className="bg-surface border-border flex items-center gap-4 border-b px-[18px] py-3">
-      <span className="font-display text-[19px] font-bold tracking-[-0.4px]">
+      <span className="font-display text-title tracking-wordmark font-bold">
         Mold<span className="text-olive">AI</span>
       </span>
       <div className="flex-1" />
       {credits && (
-        <span className="bg-amber-bg border-amber-border text-amber-text rounded-pill border px-[10px] py-[5px] text-[12px] font-semibold">
+        <Badge variant="notice">
+          {/* The diamond is the design language's credit mark, not copy — it stays
+              out of the catalog and out of the accessible name. */}
+          <span aria-hidden="true">◆</span>
           {t("creditsPill", { balance: credits.balance })}
-        </span>
+        </Badge>
       )}
-      <div className="relative">
-        <button
-          onClick={() => setMenuOpen((v) => !v)}
-          className="border-border rounded-btn bg-surface hover:bg-surface-alt border px-[11px] py-[6px] text-[12px] font-medium transition-colors"
-        >
-          {t("accountMenuLabel")}
-        </button>
-        {menuOpen && (
-          <div className="border-border rounded-card shadow-modal bg-surface absolute top-[38px] right-0 z-10 flex w-[180px] flex-col border py-1">
-            <span className="text-muted border-border truncate border-b px-3 py-[8px] text-[11.5px]">
-              {userEmail}
-            </span>
-            <button
-              onClick={() => {
-                setMenuOpen(false);
-                router.push("/settings?section=usage");
-              }}
-              className="hover:bg-surface-alt px-3 py-[8px] text-left text-[12px]"
-            >
-              {t("usageMenuItem")}
-            </button>
-            <button
-              onClick={() => {
-                setMenuOpen(false);
-                router.push("/settings?section=plan");
-              }}
-              className="hover:bg-surface-alt px-3 py-[8px] text-left text-[12px]"
-            >
-              {t("planMenuItem")}
-            </button>
-            <button
-              onClick={() => {
-                setMenuOpen(false);
-                router.push("/settings?section=profile");
-              }}
-              className="hover:bg-surface-alt px-3 py-[8px] text-left text-[12px]"
-            >
-              {t("preferencesMenuItem")}
-            </button>
-            <button
-              onClick={() => signOut({ callbackUrl: "/login" })}
-              className="hover:bg-surface-alt px-3 py-[8px] text-left text-[12px]"
-            >
-              {t("signOutMenuItem")}
-            </button>
-          </div>
-        )}
-      </div>
-      <div
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          {/* Explicit label: aria-hidden on the glyph alone did not keep it out of
+              the computed name, so the trigger (and the menu it labels) states it. */}
+          <Button
+            variant="outline"
+            size="chrome"
+            aria-label={t("accountMenuLabel")}
+          >
+            <span aria-hidden="true">◍</span>
+            {t("accountMenuLabel")}
+            <ChevronDownIcon data-icon="inline-end" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-[190px]">
+          <DropdownMenuLabel className="text-muted text-meta truncate font-normal">
+            {userEmail}
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuGroup>
+            {sections.map(({ section, label }) => (
+              <DropdownMenuItem
+                key={section}
+                onSelect={() => router.push(`/settings?section=${section}`)}
+              >
+                {label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={() => signOut({ callbackUrl: "/login" })}>
+            {t("signOutMenuItem")}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <Avatar
         title={userEmail}
-        className="bg-olive-tint border-olive-border text-olive flex h-[30px] w-[30px] items-center justify-center rounded-full border text-[12px] font-semibold"
+        className="border-olive-border size-[30px] border"
       >
-        {initialsFromEmail(userEmail)}
-      </div>
+        <AvatarFallback className="bg-olive-tint text-olive text-ui font-semibold">
+          {initialsFromEmail(userEmail)}
+        </AvatarFallback>
+      </Avatar>
     </div>
   );
 }

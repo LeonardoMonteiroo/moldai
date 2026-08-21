@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import type { Credits, PlanId } from "@/lib/types";
 import { COSTS } from "@/lib/types";
+import { Badge } from "@/components/ui/badge";
 
 const PLAN_IDS: PlanId[] = ["free", "atelier", "studio", "factory"];
 
@@ -24,23 +25,21 @@ export function PlanSection({ credits }: { credits: Credits }) {
               }
             >
               <div className="flex items-center justify-between">
-                <span className="text-[13px] font-semibold">
+                <span className="text-control font-semibold">
                   {t(`plans.${id}.name`)}
                 </span>
                 {isCurrent ? (
-                  <span className="bg-olive rounded-pill px-[9px] py-[3px] text-[10.5px] font-semibold text-white">
+                  <span className="bg-olive rounded-pill text-tick px-[9px] py-[3px] font-semibold text-white">
                     {t("currentBadge")}
                   </span>
                 ) : (
-                  <span className="bg-amber-bg border-amber-border text-amber-text rounded-pill border px-[7px] py-[2px] text-[10.5px] font-semibold">
-                    {t("comingSoonBadge")}
-                  </span>
+                  <Badge variant="soon">{t("comingSoonBadge")}</Badge>
                 )}
               </div>
-              <span className="font-display text-[21px] font-semibold">
+              <span className="font-display text-title font-semibold">
                 {t(`plans.${id}.price`)}
               </span>
-              <span className="text-muted text-[11.5px]">
+              <span className="text-muted text-meta">
                 {t(`plans.${id}.creditsLabel`)}
               </span>
             </div>
@@ -48,10 +47,10 @@ export function PlanSection({ credits }: { credits: Credits }) {
         })}
       </section>
       <section className="bg-surface border-border rounded-card flex flex-col gap-2 border p-[18px]">
-        <h2 className="font-display text-[16px] font-semibold">
+        <h2 className="font-display text-body font-semibold">
           {t("costsHeading")}
         </h2>
-        <ul className="text-muted-2 flex flex-col gap-1 text-[12px]">
+        <ul className="text-muted-2 text-ui flex flex-col gap-1">
           <li>{t("costGenerate", { cost: COSTS.generate })}</li>
           <li>{t("costAdjust", { cost: COSTS.adjust })}</li>
           <li>{t("costGraduate", { cost: COSTS.graduate })}</li>

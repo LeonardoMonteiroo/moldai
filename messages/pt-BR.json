@@ -19,7 +19,6 @@
     "statusReady": "{pieceCount} peças · base {baseSize} · unidade {unit}",
     "a4PageCount": "~{count, plural, one {# folha A4} other {# folhas A4}}",
     "exportButton": "Exportar",
-    "closeMenuAriaLabel": "Fechar menu de exportação",
     "netLineNote": "Linha líquida — sem margem de costura embutida.",
     "saveVersionTitle": "O molde é salvo automaticamente a cada geração. Versionamento manual chega em breve.",
     "saveVersionButton": "Salvar versão · em breve"
@@ -60,12 +59,10 @@
     "tabProof3d": "Prova 3D",
     "tabTechsheet": "Ficha técnica",
     "tabCutplan": "Plano de corte",
-    "sizeButton": "Tamanho {size} ▾",
-    "closeSizeSelectorAriaLabel": "Fechar seletor de tamanho",
+    "sizeButton": "Tamanho {size}",
     "comingSoonBadge": "em breve",
     "sizeChangeNote": "Trocar o tamanho-base sem regerar",
-    "pieceDetailsButton": "Detalhes da peça",
-    "pieceDetailsButtonOpen": "Detalhes da peça ✕"
+    "pieceDetailsButton": "Detalhes da peça"
   },
   "FloatingToolbar": {
     "cursorTool": "Cursor (mover e zoom)",
@@ -91,7 +88,6 @@
     }
   },
   "PaywallModal": {
-    "closeAriaLabel": "Fechar",
     "title": "Seus créditos acabaram",
     "description": "{action} usa {required} créditos e você tem {balance}. Nada foi perdido — o molde continua salvo.",
     "topupTitle": "Créditos avulsos",
@@ -115,7 +111,8 @@
     "fixButton": "Corrigir manga",
     "viewDiffButton": "Ver diferença",
     "ignoreButton": "Ignorar",
-    "freeNote": "Correções não consomem crédito."
+    "freeNote": "Correções não consomem crédito.",
+    "comingSoonBadge": "em breve"
   },
   "PieceDetailsPanel": {
     "sectionLabel": "Peça selecionada",
@@ -125,7 +122,8 @@
     "allGraduated": "Todos os tamanhos graduados",
     "graduateButton": "Graduar",
     "glossaryTitle": "Glossário de modelagem chega em breve",
-    "glossaryText": "Glossário: o que é pence? · em breve"
+    "glossaryText": "Glossário: o que é pence? · em breve",
+    "closeAriaLabel": "Fechar detalhes da peça"
   },
   "ClarifyCard": {
     "otherOption": "outro",
@@ -155,7 +153,11 @@
       "sleeveType": "Tipo",
       "sleeveCap": "Cava (copa)"
     },
-    "neckline": { "straight": "reto", "V": "V", "round": "redondo" },
+    "neckline": {
+      "straight": "reto",
+      "V": "V",
+      "round": "redondo"
+    },
     "skirtSilhouette": {
       "straight": "reta",
       "a-line": "evase",
@@ -163,7 +165,10 @@
       "half-circle": "meia-roda",
       "circle": "circulo"
     },
-    "sleeveType": { "short": "curta", "long": "longa" },
+    "sleeveType": {
+      "short": "curta",
+      "long": "longa"
+    },
     "grainValue": "reto",
     "conflict": {
       "title": "Cava e manga não batem",
@@ -186,7 +191,10 @@
       "skirt": "Saia",
       "tshirt": "Camiseta"
     },
-    "gender": { "male": "masculina", "female": "feminina" }
+    "gender": {
+      "male": "masculina",
+      "female": "feminina"
+    }
   },
   "CutPlanTab": {
     "title": "Plano de corte",
@@ -294,7 +302,9 @@
     "deleteModalDescription": "Isso apaga o molde e toda a conversa, e não pode ser desfeito.",
     "deleteConfirmButton": "Excluir",
     "deleteCancelButton": "Cancelar",
-    "blankLabel": "em branco"
+    "blankLabel": "em branco",
+    "renameSaveButton": "Salvar",
+    "renameCancelButton": "Cancelar"
   },
   "CreditsCard": {
     "title": "Créditos do mês",
@@ -366,7 +376,10 @@
       "hourglass": "ampulheta",
       "pear": "pera",
       "apple": "maçã"
-    }
+    },
+    "addSizeFieldLabel": "Nome do tamanho",
+    "addSizeSaveButton": "Adicionar",
+    "addSizeCancelButton": "Cancelar"
   },
   "Sidebar": {
     "myPatternsLabel": "Meus moldes",
@@ -377,8 +390,8 @@
     "newPatternButton": "＋ Novo molde"
   },
   "DashboardTopbar": {
-    "creditsPill": "◆ {balance} créditos",
-    "accountMenuLabel": "◍ Conta ▾",
+    "creditsPill": "{balance} créditos",
+    "accountMenuLabel": "Conta",
     "usageMenuItem": "Créditos e uso",
     "planMenuItem": "Plano e cobrança",
     "preferencesMenuItem": "Preferências",

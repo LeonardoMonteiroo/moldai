@@ -1,11 +1,29 @@
 "use client";
 
 import { useState } from "react";
+import { MoreHorizontalIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { PatternListItem } from "@/lib/api-client";
 import { useDashboardStore } from "@/lib/dashboardStore";
 import { relativeTime } from "@/lib/format";
 import { ConfirmModal } from "@/components/shared/ConfirmModal";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 
 export function PatternCard({
   pattern,
@@ -15,17 +33,17 @@ export function PatternCard({
   onOpen: (id: string) => void;
 }) {
   const t = useTranslations("PatternCard");
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [renaming, setRenaming] = useState(false);
+  const [draftName, setDraftName] = useState(pattern.name);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const rename = useDashboardStore((s) => s.rename);
   const remove = useDashboardStore((s) => s.remove);
 
-  const handleRename = () => {
-    setMenuOpen(false);
-    const next = window.prompt(t("renamePrompt"), pattern.name);
-    if (next && next.trim() && next.trim() !== pattern.name) {
-      rename(pattern.id, next.trim());
-    }
+  const submitRename = (event: React.FormEvent) => {
+    event.preventDefault();
+    const next = draftName.trim();
+    if (next && next !== pattern.name) rename(pattern.id, next);
+    setRenaming(false);
   };
 
   return (
@@ -41,48 +59,83 @@ export function PatternCard({
             dangerouslySetInnerHTML={{ __html: pattern.thumbnailSvg }}
           />
         ) : (
-          <span className="text-muted text-[11px]">{t("blankLabel")}</span>
+          <span className="text-muted text-meta">{t("blankLabel")}</span>
         )}
       </button>
       <div className="flex items-start justify-between gap-1">
         <div className="flex flex-col gap-px">
-          <span className="text-[13px] font-semibold">{pattern.name}</span>
-          <span className="text-muted text-[11px]">
+          <span className="text-control font-semibold">{pattern.name}</span>
+          <span className="text-muted text-meta">
             {relativeTime(pattern.updatedAt)}
           </span>
         </div>
-        <div className="relative">
-          <button
-            type="button"
-            aria-label={t("menuAriaLabel")}
-            onClick={() => setMenuOpen((v) => !v)}
-            className="text-muted-2 hover:bg-surface-alt rounded-btn px-[6px] py-[2px] text-[13px] opacity-0 transition-opacity group-hover:opacity-100"
-          >
-            ⋯
-          </button>
-          {menuOpen && (
-            <div className="border-border rounded-card shadow-modal bg-surface absolute top-[26px] right-0 z-10 flex w-[140px] flex-col border py-1">
-              <button
-                type="button"
-                onClick={handleRename}
-                className="hover:bg-surface-alt px-3 py-[6px] text-left text-[12px]"
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            {/* Revealed on hover, but also on keyboard focus — otherwise the menu
+                is unreachable without a pointer. */}
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label={t("menuAriaLabel")}
+              className="opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
+            >
+              <MoreHorizontalIcon />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-[150px]">
+            <DropdownMenuGroup>
+              <DropdownMenuItem
+                onSelect={() => {
+                  setDraftName(pattern.name);
+                  setRenaming(true);
+                }}
               >
                 {t("renameOption")}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setMenuOpen(false);
-                  setConfirmingDelete(true);
-                }}
-                className="text-alert hover:bg-amber-bg px-3 py-[6px] text-left text-[12px]"
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                variant="destructive"
+                onSelect={() => setConfirmingDelete(true)}
               >
                 {t("deleteOption")}
-              </button>
-            </div>
-          )}
-        </div>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
+
+      <Dialog open={renaming} onOpenChange={setRenaming}>
+        <DialogContent>
+          <form onSubmit={submitRename}>
+            <DialogHeader>
+              <DialogTitle>{t("renameTitle")}</DialogTitle>
+            </DialogHeader>
+            <Field className="py-4">
+              <FieldLabel htmlFor={`rename-${pattern.id}`}>
+                {t("renamePrompt")}
+              </FieldLabel>
+              <Input
+                id={`rename-${pattern.id}`}
+                value={draftName}
+                onChange={(event) => setDraftName(event.target.value)}
+              />
+            </Field>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setRenaming(false)}
+              >
+                {t("renameCancelButton")}
+              </Button>
+              <Button type="submit" size="sm" disabled={!draftName.trim()}>
+                {t("renameSaveButton")}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       {confirmingDelete && (
         <ConfirmModal
           title={t("deleteModalTitle")}

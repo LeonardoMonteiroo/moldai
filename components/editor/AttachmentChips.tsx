@@ -1,4 +1,6 @@
 import { useTranslations } from "next-intl";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 const ATTACHMENT_KEYS = ["photo", "sketch", "dxf"] as const;
 
@@ -6,20 +8,21 @@ export function AttachmentChips() {
   const t = useTranslations("AttachmentChips");
   return (
     <div className="flex flex-wrap items-center gap-[6px]">
+      {/* Dashed borders read as provisional here, the same grammar the rest of
+          the placeholders use — these three attachment kinds are not built yet. */}
       {ATTACHMENT_KEYS.map((key) => (
-        <button
+        <Button
           key={key}
-          type="button"
+          variant="outline"
+          size="chrome"
           disabled
           title={t("comingSoonTitle")}
-          className="rounded-pill border-border text-placeholder cursor-not-allowed border border-dashed px-[10px] py-[5px] text-[11.5px]"
+          className="rounded-pill text-placeholder border-dashed"
         >
           {t(key)}
-        </button>
+        </Button>
       ))}
-      <span className="text-olive bg-olive-tint rounded-[5px] px-[6px] py-[2px] text-[10px] font-semibold tracking-[.6px] uppercase">
-        {t("comingSoonBadge")}
-      </span>
+      <Badge variant="soon">{t("comingSoonBadge")}</Badge>
     </div>
   );
 }

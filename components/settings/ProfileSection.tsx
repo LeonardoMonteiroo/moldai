@@ -3,6 +3,15 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { updateProfile } from "@/lib/api-client";
+import { Button } from "@/components/ui/button";
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 
 export function ProfileSection({
   initialName,
@@ -35,41 +44,34 @@ export function ProfileSection({
     }
   }
 
+  const invalid = status === "error" && !!error;
+
   return (
     <section className="bg-surface border-border rounded-card flex flex-col gap-3 border p-[18px]">
-      <h2 className="font-display text-[16px] font-semibold">{t("heading")}</h2>
-      <label className="flex flex-col gap-1 text-[12.5px]">
-        {t("nameLabel")}
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="border-border rounded-item bg-surface-alt focus:border-olive-border border px-[13px] py-[9px] text-[13px] outline-none"
-        />
-      </label>
-      <label className="flex flex-col gap-1 text-[12.5px]">
-        {t("emailLabel")}
-        <input
-          value={email}
-          disabled
-          className="border-border rounded-item bg-surface-alt text-muted-2 border px-[13px] py-[9px] text-[13px] outline-none disabled:opacity-70"
-        />
-        <span className="text-muted text-[11px]">{t("emailHint")}</span>
-      </label>
+      <h2 className="font-display text-body font-semibold">{t("heading")}</h2>
+      <FieldGroup className="max-w-[420px]">
+        <Field data-invalid={invalid || undefined}>
+          <FieldLabel htmlFor="profile-name">{t("nameLabel")}</FieldLabel>
+          <Input
+            id="profile-name"
+            value={name}
+            aria-invalid={invalid || undefined}
+            onChange={(event) => setName(event.target.value)}
+          />
+          {invalid && <FieldError>{error}</FieldError>}
+        </Field>
+        <Field data-disabled>
+          <FieldLabel htmlFor="profile-email">{t("emailLabel")}</FieldLabel>
+          <Input id="profile-email" value={email} disabled />
+          <FieldDescription>{t("emailHint")}</FieldDescription>
+        </Field>
+      </FieldGroup>
       <div className="flex items-center gap-3">
-        <button
-          onClick={save}
-          disabled={status === "saving"}
-          className="bg-ink rounded-item px-[15px] py-[9px] text-[13px] font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-        >
+        <Button onClick={save} disabled={status === "saving"}>
           {t("saveButton")}
-        </button>
+        </Button>
         {status === "ok" && (
-          <span className="text-olive-dark text-[12px]">
-            {t("saveSuccess")}
-          </span>
-        )}
-        {status === "error" && error && (
-          <span className="text-alert text-[12px]">{error}</span>
+          <span className="text-olive-dark text-ui">{t("saveSuccess")}</span>
         )}
       </div>
     </section>

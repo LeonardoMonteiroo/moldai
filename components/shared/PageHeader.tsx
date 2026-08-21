@@ -5,6 +5,9 @@ import { useTranslations } from "next-intl";
 import { signOut } from "next-auth/react";
 import type { Credits } from "@/lib/types";
 import { initialsFromEmail } from "@/lib/format";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 export function PageHeader({
   title,
@@ -23,24 +26,26 @@ export function PageHeader({
 
   return (
     <div className="bg-surface border-border relative flex items-center gap-4 border-b px-[18px] py-3">
-      <span className="font-display text-[19px] font-bold tracking-[-0.4px]">
+      <span className="font-display text-title tracking-wordmark font-bold">
         Mold<span className="text-olive">AI</span>
       </span>
-      <div className="bg-border h-5 w-px" />
-      <button
+      <Separator orientation="vertical" className="h-5" />
+      <Button
+        variant="outline"
+        size="chrome"
         onClick={() => router.push("/")}
         title={t("backTitle")}
-        className="border-border rounded-btn bg-surface text-muted-2 hover:bg-surface-alt border px-[11px] py-[6px] text-[12px] font-medium transition-colors"
+        className="text-muted-2"
       >
         {t("backButton")}
-      </button>
+      </Button>
       <div className="flex flex-col gap-px">
-        <span className="text-[13px] font-semibold">{title}</span>
-        {subtitle && <span className="text-muted text-[11px]">{subtitle}</span>}
+        <span className="text-control font-semibold">{title}</span>
+        {subtitle && <span className="text-muted text-meta">{subtitle}</span>}
       </div>
       <div className="flex-1" />
       <div className="flex w-[168px] flex-col gap-[5px]">
-        <div className="text-muted flex justify-between text-[11px]">
+        <div className="text-muted text-meta flex justify-between">
           <span>
             {t("creditsLabel", {
               planLabel: credits.planLabel,
@@ -53,22 +58,30 @@ export function PageHeader({
           <div className="bg-olive h-full" style={{ width: `${pct}%` }} />
         </div>
       </div>
-      <button className="border-border rounded-btn bg-surface hover:bg-surface-alt border px-[13px] py-[7px] text-[12px] font-medium transition-colors">
+      <Button
+        variant="outline"
+        size="chrome"
+        onClick={() => router.push("/settings?section=usage")}
+      >
         {t("buyCreditsButton")}
-      </button>
+      </Button>
       <div className="flex items-center gap-2">
-        <div
+        <Avatar
           title={userEmail}
-          className="bg-olive-tint border-olive-border text-olive flex h-[30px] w-[30px] items-center justify-center rounded-full border text-[12px] font-semibold"
+          className="border-olive-border size-[30px] border"
         >
-          {initialsFromEmail(userEmail)}
-        </div>
-        <button
+          <AvatarFallback className="bg-olive-tint text-olive text-ui font-semibold">
+            {initialsFromEmail(userEmail)}
+          </AvatarFallback>
+        </Avatar>
+        <Button
+          variant="outline"
+          size="chrome"
           onClick={() => signOut({ callbackUrl: "/login" })}
-          className="border-border rounded-btn bg-surface text-muted-2 hover:bg-surface-alt border px-[11px] py-[6px] text-[12px] font-medium transition-colors"
+          className="text-muted-2"
         >
           {t("signOutButton")}
-        </button>
+        </Button>
       </div>
     </div>
   );

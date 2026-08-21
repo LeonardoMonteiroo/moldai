@@ -1,9 +1,15 @@
+import { MousePointer2Icon, RulerIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { EditorTool } from "@/lib/store";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
-const TOOLS: { id: EditorTool; icon: string; labelKey: string }[] = [
-  { id: "cursor", icon: "↖", labelKey: "cursorTool" },
-  { id: "measure", icon: "↔", labelKey: "measureTool" },
+const TOOLS: {
+  id: EditorTool;
+  Icon: typeof MousePointer2Icon;
+  labelKey: string;
+}[] = [
+  { id: "cursor", Icon: MousePointer2Icon, labelKey: "cursorTool" },
+  { id: "measure", Icon: RulerIcon, labelKey: "measureTool" },
 ];
 
 export function FloatingToolbar({
@@ -15,22 +21,22 @@ export function FloatingToolbar({
 }) {
   const t = useTranslations("FloatingToolbar");
   return (
-    <div className="bg-surface border-border rounded-item shadow-card absolute top-5 left-5 flex flex-col gap-1 border p-[7px]">
-      {TOOLS.map((tool) => (
-        <button
-          key={tool.id}
-          title={t(tool.labelKey)}
-          onClick={() => onSelect(tool.id)}
-          className={[
-            "flex h-[30px] w-[30px] items-center justify-center rounded-[7px] text-[14px] transition-colors",
-            tool.id === activeTool
-              ? "bg-olive-tint text-olive"
-              : "text-muted-2 hover:bg-surface-alt",
-          ].join(" ")}
-        >
-          {tool.icon}
-        </button>
+    <ToggleGroup
+      type="single"
+      variant="outline"
+      orientation="vertical"
+      value={activeTool}
+      aria-label={t("cursorTool")}
+      onValueChange={(value) => {
+        if (value) onSelect(value as EditorTool);
+      }}
+      className="bg-surface border-border rounded-item shadow-card absolute top-5 left-5 flex-col border p-[7px]"
+    >
+      {TOOLS.map(({ id, Icon, labelKey }) => (
+        <ToggleGroupItem key={id} value={id} aria-label={t(labelKey)}>
+          <Icon />
+        </ToggleGroupItem>
       ))}
-    </div>
+    </ToggleGroup>
   );
 }
