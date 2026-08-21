@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { seedPatternState } from "@/lib/editor/state";
 import { seedWallet } from "@/lib/billing/wallet";
 import { t } from "@/lib/i18n/test-translate";
+import { MAX_PATTERN_NAME_LENGTH } from "@/lib/types";
 
 const NOW = new Date("2026-08-18T00:00:00.000Z");
 
@@ -113,6 +114,35 @@ describe("/api/patterns/[id]", () => {
     );
     expect(res.status).toBe(400);
     expect(mockRename).not.toHaveBeenCalled();
+  });
+
+  // A 5000-character name was accepted, then rendered untruncated into the
+  // editor header and the dashboard card, blowing out both layouts.
+  it("PATCH 400s on a name past the length cap", async () => {
+    const res = await PATCH(
+      new Request("http://test", {
+        method: "PATCH",
+        body: JSON.stringify({ name: "x".repeat(MAX_PATTERN_NAME_LENGTH + 1) }),
+      }),
+      ctx("m1"),
+    );
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe("invalid_name");
+    expect(mockRename).not.toHaveBeenCalled();
+  });
+
+  it("PATCH accepts a name exactly at the cap", async () => {
+    mockRename.mockResolvedValue(true);
+    const name = "x".repeat(MAX_PATTERN_NAME_LENGTH);
+    const res = await PATCH(
+      new Request("http://test", {
+        method: "PATCH",
+        body: JSON.stringify({ name }),
+      }),
+      ctx("m1"),
+    );
+    expect(res.status).toBe(200);
+    expect(mockRename).toHaveBeenCalledWith("m1", "u1", name);
   });
 
   // "null" is valid JSON: it survived request.json() and threw on body.name.

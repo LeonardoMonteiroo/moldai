@@ -81,9 +81,14 @@ export function PageHeader({
         </Button>
       )}
       {title && (
-        <div className="flex flex-col gap-px">
-          <span className="text-control font-semibold">{title}</span>
-          {subtitle && <span className="text-muted text-meta">{subtitle}</span>}
+        // The editor's title is the pattern name, which the user chooses, so
+        // it has to be allowed to run out of room without shoving the credits
+        // bar and avatar off the header.
+        <div className="flex min-w-0 flex-col gap-px">
+          <span className="text-control truncate font-semibold">{title}</span>
+          {subtitle && (
+            <span className="text-muted text-meta truncate">{subtitle}</span>
+          )}
         </div>
       )}
       <div className="flex-1" />

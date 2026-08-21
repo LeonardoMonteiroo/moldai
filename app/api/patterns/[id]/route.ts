@@ -9,6 +9,7 @@ import {
 import { loadWallet } from "@/lib/db/wallet";
 import { composeEditorState } from "@/lib/api/compose";
 import { apiError } from "@/lib/api/errors";
+import { MAX_PATTERN_NAME_LENGTH } from "@/lib/types";
 import { readJsonObject } from "@/lib/api/body";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -36,7 +37,9 @@ export async function PATCH(request: Request, { params }: Ctx) {
   const body = await readJsonObject(request);
   if (body instanceof NextResponse) return body;
   const name = typeof body.name === "string" ? body.name.trim() : "";
-  if (!name) return apiError("invalid_name", 400);
+  if (!name || name.length > MAX_PATTERN_NAME_LENGTH) {
+    return apiError("invalid_name", 400);
+  }
   const ok = await renamePattern(id, gate.id, name);
   if (!ok) return patternNotFound();
   return NextResponse.json({ status: "ok" });

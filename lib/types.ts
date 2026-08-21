@@ -219,6 +219,15 @@ export interface SizeChartListEntry extends SizeChartRecord {
   isActive: boolean;
 }
 
+/**
+ * Cap on a pattern's name, shared by the PATCH route and the rename dialog's
+ * `maxLength` so the client stops you before the server has to. Matches
+ * MAX_NAME_LENGTH in lib/account/settings.ts, which already capped the *user's*
+ * name while a pattern's was unbounded -- a 5000-character name was accepted
+ * and then rendered untruncated into the editor header and the dashboard card.
+ */
+export const MAX_PATTERN_NAME_LENGTH = 80;
+
 export const COSTS = {
   generate: 4,
   adjust: 1,

@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { MAX_PATTERN_NAME_LENGTH } from "@/lib/types";
 
 export function PatternCard({
   pattern,
@@ -64,8 +65,13 @@ export function PatternCard({
         )}
       </button>
       <div className="flex items-start justify-between gap-1">
-        <div className="flex flex-col gap-px">
-          <span className="text-control font-semibold">{pattern.name}</span>
+        {/* min-w-0 so the name can actually shrink inside the flex row --
+            without it `truncate` has nothing to truncate against and a long
+            name pushes the "⋯" menu off the tile. */}
+        <div className="flex min-w-0 flex-col gap-px">
+          <span className="text-control truncate font-semibold">
+            {pattern.name}
+          </span>
           <span className="text-muted text-meta">
             {relativeTime(tf, pattern.updatedAt)}
           </span>
@@ -114,9 +120,12 @@ export function PatternCard({
               <FieldLabel htmlFor={`rename-${pattern.id}`}>
                 {t("renamePrompt")}
               </FieldLabel>
+              {/* Same cap the PATCH route enforces, so the field stops you
+                  here instead of failing after a round trip. */}
               <Input
                 id={`rename-${pattern.id}`}
                 value={draftName}
+                maxLength={MAX_PATTERN_NAME_LENGTH}
                 onChange={(event) => setDraftName(event.target.value)}
               />
             </Field>
