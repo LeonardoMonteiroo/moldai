@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "./prisma";
 import { seedPatternState } from "@/lib/editor/state";
 import { buildThumbnailSvg } from "@/lib/editor/thumbnail";
+import { apiError, ERROR_STATUS } from "@/lib/api/errors";
 import type { GarmentType, PatternState } from "@/lib/types";
 
 type Tx = Prisma.TransactionClient;
@@ -17,10 +18,7 @@ function toState(data: Prisma.JsonValue): PatternState {
 }
 
 export function patternNotFound(): NextResponse {
-  return NextResponse.json(
-    { status: "not_found", error: "Molde não encontrado." },
-    { status: 404 },
-  );
+  return apiError("pattern_not_found", ERROR_STATUS.pattern_not_found);
 }
 
 // Locks and reads the row, scoped to (id, userId) — a pattern owned by someone

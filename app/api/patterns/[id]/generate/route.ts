@@ -12,6 +12,7 @@ import {
 import { debitWallet, refundWallet } from "@/lib/billing/wallet";
 import type { LedgerEntry } from "@/lib/billing/wallet";
 import { composeEditorState } from "@/lib/api/compose";
+import { apiError, ERROR_STATUS } from "@/lib/api/errors";
 import { COSTS } from "@/lib/types";
 import { proposeGarment } from "@/lib/ai";
 import { requireUser } from "@/lib/auth/guard";
@@ -27,18 +28,10 @@ export async function POST(request: Request, { params }: Ctx) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json(
-      { status: "error", error: "Corpo inválido." },
-      { status: 400 },
-    );
+    return apiError("bad_body", ERROR_STATUS.bad_body);
   }
   const trimmed = typeof body.message === "string" ? body.message.trim() : "";
-  if (!trimmed) {
-    return NextResponse.json(
-      { status: "error", error: "Mensagem obrigatória." },
-      { status: 400 },
-    );
-  }
+  if (!trimmed) return apiError("missing_message", 400);
   const answering = body.answering === true;
   const cost = COSTS.adjust;
   const t = await getTranslations("PatternData");

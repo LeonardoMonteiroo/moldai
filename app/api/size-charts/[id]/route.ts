@@ -1,15 +1,13 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth/guard";
 import { updateSizeChart, deleteSizeChart } from "@/lib/db/sizeChart";
+import { apiError, ERROR_STATUS } from "@/lib/api/errors";
 import type { SizeChartData } from "@/lib/types";
 
 type Ctx = { params: Promise<{ id: string }> };
 
 function notFound(): NextResponse {
-  return NextResponse.json(
-    { status: "not_found", error: "Grade não encontrada." },
-    { status: 404 },
-  );
+  return apiError("size_chart_not_found", ERROR_STATUS.size_chart_not_found);
 }
 
 export async function PATCH(request: Request, { params }: Ctx) {
@@ -20,10 +18,7 @@ export async function PATCH(request: Request, { params }: Ctx) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json(
-      { status: "error", error: "Corpo inválido." },
-      { status: 400 },
-    );
+    return apiError("bad_body", ERROR_STATUS.bad_body);
   }
   const updated = await updateSizeChart(id, gate.id, body);
   if (!updated) return notFound();

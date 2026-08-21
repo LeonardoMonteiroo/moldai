@@ -75,6 +75,7 @@ import {
   listPatternsForUser,
   renamePattern,
   deletePattern,
+  patternNotFound,
 } from "./pattern";
 import { seedPatternState, bumpVersion } from "@/lib/editor/state";
 
@@ -322,5 +323,16 @@ describe("deletePattern", () => {
     const ok = await deletePattern("m1", "u2");
     expect(ok).toBe(false);
     expect(rows).toHaveLength(1);
+  });
+});
+
+describe("patternNotFound", () => {
+  it("carries the pattern_not_found code, not pt-BR prose", async () => {
+    const res = patternNotFound();
+    expect(res.status).toBe(404);
+    await expect(res.json()).resolves.toEqual({
+      status: "not_found",
+      error: "pattern_not_found",
+    });
   });
 });

@@ -5,6 +5,7 @@ import { addMessage, applySizes, bumpVersion } from "@/lib/editor/state";
 import { debitWallet } from "@/lib/billing/wallet";
 import type { LedgerEntry } from "@/lib/billing/wallet";
 import { composeEditorState } from "@/lib/api/compose";
+import { apiError, ERROR_STATUS } from "@/lib/api/errors";
 import { COSTS, SizeLabel } from "@/lib/types";
 import { formatList } from "@/lib/format";
 import { requireUser } from "@/lib/auth/guard";
@@ -20,10 +21,7 @@ export async function POST(request: Request, { params }: Ctx) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json(
-      { status: "error", error: "Corpo inválido." },
-      { status: 400 },
-    );
+    return apiError("bad_body", ERROR_STATUS.bad_body);
   }
   const requested = Array.isArray(body.sizes) ? body.sizes : [];
   const cost = COSTS.graduate;
@@ -38,10 +36,7 @@ export async function POST(request: Request, { params }: Ctx) {
       );
       if (sizes.length === 0) {
         return {
-          result: NextResponse.json(
-            { status: "error", error: "Nenhum tamanho válido para graduar." },
-            { status: 400 },
-          ),
+          result: apiError("no_gradable_sizes", 400),
           entries: [],
         };
       }

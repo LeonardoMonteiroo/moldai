@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { NextResponse } from "next/server";
-import { sessionUser, requireUserFrom } from "./session";
+import { sessionUser, requireUserFrom, unauthorized } from "./session";
 
 describe("sessionUser", () => {
   it("extracts a valid user", () => {
@@ -39,5 +39,16 @@ describe("requireUserFrom", () => {
     const r = requireUserFrom(null);
     expect(r).toBeInstanceOf(NextResponse);
     expect((r as NextResponse).status).toBe(401);
+  });
+});
+
+describe("unauthorized", () => {
+  it("carries the unauthorized code, not pt-BR prose", async () => {
+    const res = unauthorized();
+    expect(res.status).toBe(401);
+    await expect(res.json()).resolves.toEqual({
+      status: "unauthorized",
+      error: "unauthorized",
+    });
   });
 });

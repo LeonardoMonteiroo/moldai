@@ -8,6 +8,7 @@ import {
 } from "@/lib/db/pattern";
 import { loadWallet } from "@/lib/db/wallet";
 import { composeEditorState } from "@/lib/api/compose";
+import { apiError, ERROR_STATUS } from "@/lib/api/errors";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -35,18 +36,10 @@ export async function PATCH(request: Request, { params }: Ctx) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json(
-      { status: "error", error: "Corpo inválido." },
-      { status: 400 },
-    );
+    return apiError("bad_body", ERROR_STATUS.bad_body);
   }
   const name = typeof body.name === "string" ? body.name.trim() : "";
-  if (!name) {
-    return NextResponse.json(
-      { status: "error", error: "Nome obrigatório." },
-      { status: 400 },
-    );
-  }
+  if (!name) return apiError("invalid_name", 400);
   const ok = await renamePattern(id, gate.id, name);
   if (!ok) return patternNotFound();
   return NextResponse.json({ status: "ok" });

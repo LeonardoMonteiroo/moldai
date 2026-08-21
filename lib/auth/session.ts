@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
+import { apiError, ERROR_STATUS } from "@/lib/api/errors";
 import type { SessionUser } from "./types";
 
 export function sessionUser(session: unknown): SessionUser | null {
@@ -17,10 +18,7 @@ export function sessionUser(session: unknown): SessionUser | null {
 }
 
 export function unauthorized(): NextResponse {
-  return NextResponse.json(
-    { status: "unauthorized", error: "Login necessário." },
-    { status: 401 },
-  );
+  return apiError("unauthorized", ERROR_STATUS.unauthorized);
 }
 
 export function requireUserFrom(session: unknown): SessionUser | NextResponse {

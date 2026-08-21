@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { withPattern, patternNotFound } from "@/lib/db/pattern";
 import { loadWallet } from "@/lib/db/wallet";
 import { composeEditorState } from "@/lib/api/compose";
+import { apiError, ERROR_STATUS } from "@/lib/api/errors";
 import {
   addMessage,
   bumpVersion,
@@ -23,10 +24,7 @@ export async function POST(request: Request, { params }: Ctx) {
     const body = (await request.json()) as { action?: unknown };
     if (body.action === "fix") action = "fix";
   } catch {
-    return NextResponse.json(
-      { status: "error", error: "Corpo inválido." },
-      { status: 400 },
-    );
+    return apiError("bad_body", ERROR_STATUS.bad_body);
   }
 
   const t = await getTranslations("PatternData");
