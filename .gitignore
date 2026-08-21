@@ -44,6 +44,10 @@ next-env.d.ts
 # playwright mcp
 /.playwright-mcp/
 
+# playwright — local test-account credentials and saved storageState.
+# Real values for a throwaway account on a local database; never commit.
+/playwright/.auth/
+
 # claude code — commit settings.json / hooks / agents / skills (team-wide),
 # but never the personal override file: it is the usual place for credentials
 # and is NOT covered by any other rule here.
