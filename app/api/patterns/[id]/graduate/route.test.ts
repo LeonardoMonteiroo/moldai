@@ -1,12 +1,25 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { seedPatternState } from "@/lib/editor/state";
+import { seedPatternState, applyGarmentSpec } from "@/lib/editor/state";
 import { seedWallet } from "@/lib/billing/wallet";
 import { t } from "@/lib/i18n/test-translate";
 import type { PatternState } from "@/lib/types";
 import type { Wallet, LedgerEntry } from "@/lib/billing/wallet";
 
+// Graduation now requires drafted pieces, so the default fixture is a pattern
+// that has actually been generated once -- a blank seedPatternState is the
+// *negative* case, exercised on its own below.
+function draftedState(): PatternState {
+  const s = seedPatternState(t);
+  applyGarmentSpec(
+    s,
+    { type: "blouse", gender: "female", measurementOverrides: {}, style: {} },
+    t,
+  );
+  return s;
+}
+
 const NOW = new Date("2026-08-17T12:00:00.000Z");
-let state: PatternState = seedPatternState(t);
+let state: PatternState = draftedState();
 let wallet: Wallet = seedWallet(NOW);
 let ownedPatternId: string | null = "m1";
 
@@ -53,7 +66,7 @@ function ctx(id = "m1") {
 
 describe("POST /api/patterns/[id]/graduate", () => {
   beforeEach(() => {
-    state = seedPatternState(t);
+    state = draftedState();
     wallet = seedWallet(NOW);
     ownedPatternId = "m1";
     vi.mocked(requireUser).mockResolvedValue({
@@ -102,5 +115,26 @@ describe("POST /api/patterns/[id]/graduate", () => {
   it("404s when the pattern isn't found/owned", async () => {
     const res = await POST(req({ sizes: ["G"] }), ctx("someone-elses"));
     expect(res.status).toBe(404);
+  });
+
+  // "null" is valid JSON: it survived request.json() and threw on body.sizes.
+  it("400s on a literal null body instead of throwing", async () => {
+    const res = await POST(req(null), ctx("m1"));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe("bad_body");
+  });
+
+  // A blank pattern has no pieces but DOES have a seeded `sizes` list, so the
+  // existing "no gradable sizes" guard never fired: grading nothing versioned
+  // the pattern and charged the most expensive action in the app.
+  it("400s and does not debit when the pattern has no pieces", async () => {
+    state = seedPatternState(t); // blank: version 0, pieces []
+    const balanceBefore = wallet.balance;
+    const res = await POST(req({ sizes: ["G"] }), ctx());
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe("pattern_not_drafted");
+    expect(wallet.balance).toBe(balanceBefore);
+    expect(state.pattern.version).toBe(0);
+    expect(state.pattern.sizesApplied).not.toContain("G");
   });
 });

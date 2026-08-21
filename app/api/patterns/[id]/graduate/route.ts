@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { readJsonObject } from "@/lib/api/body";
 import { getTranslations } from "next-intl/server";
 import { withPatternAndWallet } from "@/lib/db/pattern-wallet";
 import { patternNotFound } from "@/lib/db/pattern";
@@ -6,7 +7,7 @@ import { addMessage, applySizes, bumpVersion } from "@/lib/editor/state";
 import { debitWallet } from "@/lib/billing/wallet";
 import type { LedgerEntry } from "@/lib/billing/wallet";
 import { composeEditorState } from "@/lib/api/compose";
-import { apiError, ERROR_STATUS } from "@/lib/api/errors";
+import { apiError } from "@/lib/api/errors";
 import { COSTS, SizeLabel } from "@/lib/types";
 import { formatList } from "@/lib/format";
 import { requireUser } from "@/lib/auth/guard";
@@ -18,12 +19,8 @@ export async function POST(request: Request, { params }: Ctx) {
   if (gate instanceof NextResponse) return gate;
   const { id } = await params;
 
-  let body: { sizes?: unknown };
-  try {
-    body = await request.json();
-  } catch {
-    return apiError("bad_body", ERROR_STATUS.bad_body);
-  }
+  const body = await readJsonObject(request);
+  if (body instanceof NextResponse) return body;
   const requested = Array.isArray(body.sizes) ? body.sizes : [];
   const cost = COSTS.graduate;
   const t = await getTranslations("PatternData");
@@ -34,6 +31,12 @@ export async function POST(request: Request, { params }: Ctx) {
     id,
     gate.id,
     (state, wallet): { result: NextResponse; entries: LedgerEntry[] } => {
+      // A blank pattern still carries a seeded `sizes` list, so the size check
+      // below cannot stand in for "there is something to grade". Without this,
+      // grading nothing bumped the version and debited COSTS.graduate.
+      if (state.pattern.pieces.length === 0) {
+        return { result: apiError("pattern_not_drafted", 400), entries: [] };
+      }
       const sizes = requested.filter((s): s is SizeLabel =>
         state.pattern.sizes.includes(s as string),
       );
