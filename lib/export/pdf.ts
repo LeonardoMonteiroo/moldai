@@ -1,4 +1,5 @@
 import type { ExPt, ExportModel } from "./model";
+import type { Translate } from "@/lib/i18n/translate";
 import { flattenOutlineCm } from "./dxf";
 
 export type PdfMode = "a4" | "single";
@@ -60,6 +61,7 @@ const TOL_CM = 0.02; // curve flattening (same tolerance as the DXF)
 export async function toPdf(
   model: ExportModel,
   mode: PdfMode,
+  t: Translate,
 ): Promise<Uint8Array> {
   const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
   const plan = planTiles(model.sheetWidthCm, model.sheetHeightCm, mode);
@@ -144,7 +146,12 @@ export async function toPdf(
         borderDashArray: [3, 2],
       });
       page.drawText(
-        `Linha ${tile.row + 1} · Coluna ${tile.col + 1} de ${plan.rows}x${plan.cols}`,
+        t("pdf.pageLabel", {
+          rowNumber: tile.row + 1,
+          colNumber: tile.col + 1,
+          totalRows: plan.rows,
+          totalCols: plan.cols,
+        }),
         {
           x: plan.marginCm * PT_POR_CM,
           y: plan.marginCm * 0.3 * PT_POR_CM,
@@ -183,7 +190,7 @@ export async function toPdf(
           color: INK,
         });
       }
-      page.drawText("10 cm - confira a escala", {
+      page.drawText(t("pdf.rulerLabel"), {
         x: baseXcm * PT_POR_CM,
         y: (boxYcm + 0.7) * PT_POR_CM,
         size: 7,

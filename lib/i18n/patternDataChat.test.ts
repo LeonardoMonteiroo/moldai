@@ -18,7 +18,7 @@ import type { Translate } from "@/lib/i18n/translate";
 // "Graduação aplicada para {list}." straight into the chat the user reads.
 // A mocked/echo translator can't exercise this — only the real catalog
 // through createTranslator can.
-describe("PatternData.chat", () => {
+describe("PatternData", () => {
   const t = createTranslator({
     locale: "pt-BR",
     messages,
@@ -68,6 +68,40 @@ describe("PatternData.chat", () => {
       expect(t("chat.graduated", { list: formatList(tFormat, ["G"]) })).toBe(
         "Graduação aplicada para G.",
       );
+    });
+  });
+
+  // PatternData.pdf.pageLabel / rulerLabel were the two survivors of the
+  // hardcoded-pt-BR sweep: pageLabel was a backtick template (invisible to a
+  // double-quote-anchored grep) and rulerLabel starts with a digit (invisible
+  // to a leading-letter-anchored one). Both are drawn directly onto the
+  // exported PDF page by lib/export/pdf.ts's toPdf, so a broken interpolation
+  // here would ship straight into the downloaded file, unnoticed by any
+  // component test. Only the real catalog through createTranslator can catch
+  // that — same reasoning as chat.creditChip/chat.graduated above.
+  describe("pdf.pageLabel", () => {
+    // "·" here is U+00B7 MIDDLE DOT (matches lib/export/pdf.ts's separator,
+    // not U+2212 MINUS SIGN used by chat.creditChip above). Values mirror the
+    // real call site: tile.row/tile.col are 0-indexed, +1'd before this call.
+    it("renders the tile position exactly as pdf.ts's old template literal did", () => {
+      expect(
+        t("pdf.pageLabel", {
+          rowNumber: 2,
+          colNumber: 1,
+          totalRows: 3,
+          totalCols: 3,
+        }),
+      ).toBe("Linha 2 · Coluna 1 de 3x3");
+    });
+  });
+
+  describe("pdf.rulerLabel", () => {
+    // No placeholders — this key exists only so the calibration-ruler label
+    // resolves from the catalog instead of a hardcoded string. The "-" is a
+    // plain hyphen-minus (U+002D), not an en dash — confirmed against the
+    // original literal byte-for-byte.
+    it("renders the calibration-ruler label exactly as pdf.ts's old literal did", () => {
+      expect(t("pdf.rulerLabel")).toBe("10 cm - confira a escala");
     });
   });
 });

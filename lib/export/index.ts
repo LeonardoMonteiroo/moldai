@@ -50,14 +50,14 @@ export function exportPattern(
       return;
     case "pdf-a4":
       // toPdf is async (pdf-lib); fire-and-forget — doesn't change the void signature
-      toPdf(model, "a4")
+      toPdf(model, "a4", t)
         .then((bytes) =>
           downloadFile(`${base}-a4.pdf`, "application/pdf", bytes),
         )
         .catch(fail);
       return;
     case "pdf-single":
-      toPdf(model, "single")
+      toPdf(model, "single", t)
         .then((bytes) =>
           downloadFile(`${base}-folha.pdf`, "application/pdf", bytes),
         )

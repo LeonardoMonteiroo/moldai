@@ -41,6 +41,7 @@ describe("rulerTicksCm", () => {
 import { toPdf } from "./pdf";
 import type { ExportModel } from "./model";
 import { PDFDocument } from "pdf-lib";
+import { t } from "@/lib/i18n/test-translate";
 
 function modelOf(sheetWcm: number, sheetHcm: number): ExportModel {
   return {
@@ -85,7 +86,7 @@ const PT_POR_CM = 72 / 2.54;
 describe("toPdf", () => {
   it("a4: valid PDF (%PDF) and page count = planTiles", async () => {
     const model = modelOf(50, 40);
-    const bytes = await toPdf(model, "a4");
+    const bytes = await toPdf(model, "a4", t);
     expect(new TextDecoder().decode(bytes.slice(0, 5))).toBe("%PDF-");
     const doc = await PDFDocument.load(bytes);
     expect(doc.getPageCount()).toBe(6); // planTiles(50,40,"a4") = 6
@@ -93,7 +94,7 @@ describe("toPdf", () => {
 
   it("single: 1 page the pattern's size (1:1)", async () => {
     const model = modelOf(20, 30);
-    const bytes = await toPdf(model, "single");
+    const bytes = await toPdf(model, "single", t);
     const doc = await PDFDocument.load(bytes);
     expect(doc.getPageCount()).toBe(1);
     const { width, height } = doc.getPage(0).getSize();

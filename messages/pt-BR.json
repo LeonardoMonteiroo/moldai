@@ -188,6 +188,10 @@
       "sleeveRefit": "Copa da manga refeita para a cava ajustada — as costuras voltaram a bater.",
       "freeFixChip": "correção gratuita"
     },
+    "pdf": {
+      "pageLabel": "Linha {rowNumber} · Coluna {colNumber} de {totalRows}x{totalCols}",
+      "rulerLabel": "10 cm - confira a escala"
+    },
     "exportFailed": "A exportação falhou. Tente novamente.",
     "newPatternName": "Novo molde"
   },
