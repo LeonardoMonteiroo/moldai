@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { Input } from "@/components/ui/input";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { ClarifyQuestion } from "@/lib/types";
 import { useEditorStore } from "@/lib/store";
 
@@ -42,46 +44,35 @@ export function ClarifyCard({ questions }: { questions: ClarifyQuestion[] }) {
           <span className="text-ink text-[12.5px] font-semibold">
             {q.label}
           </span>
-          <div className="flex flex-wrap gap-[6px]">
-            {q.options.map((opt) => {
-              const sel = choice[q.id] === opt;
-              return (
-                <button
-                  key={opt}
-                  onClick={() => setChoice((s) => ({ ...s, [q.id]: opt }))}
-                  className={[
-                    "rounded-pill border px-[10px] py-[5px] text-[12px] transition-colors",
-                    sel
-                      ? "bg-olive-tint border-olive-border text-olive-dark"
-                      : "bg-surface border-border text-muted-2 hover:bg-surface-alt",
-                  ].join(" ")}
-                >
-                  {opt}
-                </button>
-              );
-            })}
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            aria-label={q.label}
+            value={choice[q.id] ?? ""}
+            onValueChange={(value) => {
+              if (value) setChoice((s) => ({ ...s, [q.id]: value }));
+            }}
+            className="flex-wrap"
+          >
+            {q.options.map((opt) => (
+              <ToggleGroupItem key={opt} value={opt}>
+                {opt}
+              </ToggleGroupItem>
+            ))}
             {q.allowOther && (
-              <button
-                onClick={() => setChoice((s) => ({ ...s, [q.id]: OTHER }))}
-                className={[
-                  "rounded-pill border px-[10px] py-[5px] text-[12px] transition-colors",
-                  choice[q.id] === OTHER
-                    ? "bg-olive-tint border-olive-border text-olive-dark"
-                    : "bg-surface border-border text-muted-2 hover:bg-surface-alt",
-                ].join(" ")}
-              >
+              <ToggleGroupItem value={OTHER}>
                 {t("otherOption")}
-              </button>
+              </ToggleGroupItem>
             )}
-          </div>
+          </ToggleGroup>
           {q.allowOther && choice[q.id] === OTHER && (
-            <input
+            <Input
               value={other[q.id] ?? ""}
-              onChange={(e) =>
-                setOther((s) => ({ ...s, [q.id]: e.target.value }))
+              onChange={(event) =>
+                setOther((s) => ({ ...s, [q.id]: event.target.value }))
               }
               placeholder={t("otherPlaceholder")}
-              className="rounded-item border-border bg-surface-alt focus:border-olive-border border px-[9px] py-[6px] text-[12.5px] outline-none"
+              className="bg-surface-alt h-auto py-[6px]"
             />
           )}
         </div>

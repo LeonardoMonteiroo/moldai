@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Pattern } from "@/lib/types";
 import { buildPathD } from "@/lib/export/model";
 import { planCutLayout, FABRIC_WIDTHS_CM } from "@/lib/export/cutplan";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 const meters = (cm: number) => (cm / 100).toFixed(2).replace(".", ",") + " m";
 
@@ -40,26 +41,24 @@ export function CutPlanTab({ pattern }: { pattern: Pattern }) {
         <>
           {/* seletor de largura de tecido */}
           <div className="flex flex-col gap-[6px]">
-            <span className="text-muted text-[11px] font-semibold tracking-[.8px] uppercase">
+            <span className="text-muted text-meta tracking-eyebrow font-semibold uppercase">
               {t("fabricWidthLabel")}
             </span>
-            <div className="flex gap-[6px]">
+            <ToggleGroup
+              type="single"
+              variant="outline"
+              value={String(fabricWidthCm)}
+              aria-label={t("fabricWidthLabel")}
+              onValueChange={(value) => {
+                if (value) setFabricWidthCm(Number(value));
+              }}
+            >
               {FABRIC_WIDTHS_CM.map((w) => (
-                <button
-                  key={w}
-                  type="button"
-                  onClick={() => setFabricWidthCm(w)}
-                  className={[
-                    "rounded-btn border px-[13px] py-[6px] text-[12.5px] transition-colors",
-                    w === fabricWidthCm
-                      ? "border-olive text-olive bg-olive-tint font-semibold"
-                      : "border-border bg-surface hover:bg-surface-alt",
-                  ].join(" ")}
-                >
+                <ToggleGroupItem key={w} value={String(w)}>
                   {meters(w)}
-                </button>
+                </ToggleGroupItem>
               ))}
-            </div>
+            </ToggleGroup>
           </div>
 
           {/* metrics */}

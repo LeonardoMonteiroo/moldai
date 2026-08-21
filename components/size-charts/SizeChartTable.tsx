@@ -1,10 +1,29 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useSizeChartsStore } from "@/lib/sizeChartsStore";
 import { resolveSizeChartSize } from "@/lib/sizeCharts/compute";
 import type { Measurements } from "@/lib/measurements";
 import type { BodyType } from "@/lib/types";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const MEASUREMENT_KEYS: (keyof Measurements)[] = [
   "bust",
@@ -33,6 +52,8 @@ export function SizeChartTable() {
   const duplicate = useSizeChartsStore((s) => s.duplicate);
   const remove = useSizeChartsStore((s) => s.remove);
   const activate = useSizeChartsStore((s) => s.activate);
+  const [addingSize, setAddingSize] = useState(false);
+  const [newSize, setNewSize] = useState("");
 
   if (!draft || !selectedId) return null;
   const isActive = charts.find((c) => c.id === selectedId)?.isActive ?? false;
@@ -66,7 +87,8 @@ export function SizeChartTable() {
   };
 
   const addSize = () => {
-    const label = window.prompt(t("addSizePrompt"))?.trim();
+    const label = newSize.trim();
+    setAddingSize(false);
     if (!label || draft.sizes.includes(label)) return;
     updateDraft({ sizes: [...draft.sizes, label] });
   };
@@ -92,26 +114,32 @@ export function SizeChartTable() {
             {draft.name}
           </span>
         ) : (
-          <input
+          <Input
             value={draft.name}
-            onChange={(e) => updateDraft({ name: e.target.value })}
-            className="font-display border-border rounded-btn border px-2 py-1 text-[16px] font-semibold"
+            onChange={(event) => updateDraft({ name: event.target.value })}
+            className="font-display text-body h-auto w-auto py-1 font-semibold"
           />
         )}
-        <select
+        <Select
           value={draft.bodyType}
           disabled={readOnly}
-          onChange={(e) =>
-            updateDraft({ bodyType: e.target.value as BodyType })
+          onValueChange={(value) =>
+            updateDraft({ bodyType: value as BodyType })
           }
-          className="border-border rounded-pill bg-surface border px-[10px] py-[5px] text-[11.5px] disabled:opacity-60"
         >
-          {BODY_TYPES.map((bt) => (
-            <option key={bt} value={bt}>
-              {t(`bodyType.${bt}`)}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger size="sm" className="w-[170px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {BODY_TYPES.map((bt) => (
+                <SelectItem key={bt} value={bt}>
+                  {t(`bodyType.${bt}`)}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
         <div className="flex-1" />
         {!readOnly && (
           <button
@@ -231,12 +259,53 @@ export function SizeChartTable() {
       {!readOnly && (
         <button
           type="button"
-          onClick={addSize}
-          className="border-border rounded-btn bg-surface hover:bg-surface-alt self-start border px-[11px] py-[6px] text-[12px]"
+          onClick={() => {
+            setNewSize("");
+            setAddingSize(true);
+          }}
+          className="border-border rounded-btn bg-surface hover:bg-surface-alt text-ui self-start border px-[11px] py-[6px]"
         >
           {t("addSizeButton")}
         </button>
       )}
+
+      <Dialog open={addingSize} onOpenChange={setAddingSize}>
+        <DialogContent>
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              addSize();
+            }}
+          >
+            <DialogHeader>
+              <DialogTitle>{t("addSizePrompt")}</DialogTitle>
+            </DialogHeader>
+            <Field className="py-4">
+              <FieldLabel htmlFor="new-size">
+                {t("addSizeFieldLabel")}
+              </FieldLabel>
+              <Input
+                id="new-size"
+                value={newSize}
+                onChange={(event) => setNewSize(event.target.value)}
+              />
+            </Field>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setAddingSize(false)}
+              >
+                {t("addSizeCancelButton")}
+              </Button>
+              <Button type="submit" size="sm" disabled={!newSize.trim()}>
+                {t("addSizeSaveButton")}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <div className="flex gap-3">
         <div className="border-border rounded-card bg-surface flex-1 border p-[14px]">

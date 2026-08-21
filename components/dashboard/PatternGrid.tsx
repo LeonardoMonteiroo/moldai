@@ -3,6 +3,15 @@
 import { useTranslations } from "next-intl";
 import { useDashboardStore, filteredPatterns } from "@/lib/dashboardStore";
 import { PatternCard } from "./PatternCard";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { GarmentType } from "@/lib/types";
 
 const GARMENT_TYPES: GarmentType[] = ["blouse", "dress", "skirt", "tshirt"];
@@ -23,28 +32,34 @@ export function PatternGrid({ onOpen }: { onOpen: (id: string) => void }) {
   return (
     <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-[22px]">
       <div className="flex items-center gap-3">
-        <span className="font-display text-[24px] font-semibold">
+        <span className="font-display text-display font-semibold">
           {t("countLabel", { count: patterns.length })}
         </span>
         <div className="flex-1" />
-        <input
+        <Input
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(event) => setSearch(event.target.value)}
           placeholder={t("searchPlaceholder")}
-          className="border-border rounded-btn h-[34px] w-[180px] border px-3 text-[12.5px]"
+          className="h-[34px] w-[180px]"
         />
-        <select
+        <Select
           value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value as typeof typeFilter)}
-          className="border-border rounded-btn h-[34px] border px-2 text-[12.5px]"
+          onValueChange={(value) => setTypeFilter(value as typeof typeFilter)}
         >
-          <option value="all">{t("typeFilterAll")}</option>
-          {GARMENT_TYPES.map((gt) => (
-            <option key={gt} value={gt}>
-              {tGarment(`garmentType.${gt}`)}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger size="sm" className="w-[150px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="all">{t("typeFilterAll")}</SelectItem>
+              {GARMENT_TYPES.map((gt) => (
+                <SelectItem key={gt} value={gt}>
+                  {tGarment(`garmentType.${gt}`)}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       </div>
 
       {isTrulyEmpty && (

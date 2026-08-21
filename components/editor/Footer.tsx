@@ -6,6 +6,16 @@ import { Pattern } from "@/lib/types";
 import { exportPattern, ExportFormat } from "@/lib/export";
 import { buildExportModel } from "@/lib/export/model";
 import { planTiles } from "@/lib/export/pdf";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const FORMATS: {
   id: ExportFormat;
@@ -70,77 +80,64 @@ export function Footer({
   const handleExport = (format: ExportFormat) => {
     setExportError(null);
     exportPattern(pattern, format, tData, (msg) => setExportError(msg));
-    setMenuOpen(false);
   };
 
   return (
     <div className="bg-surface border-border flex items-center gap-[10px] border-t px-4 py-3">
-      <span className="text-muted text-[12px]">{statusText}</span>
+      <span className="text-muted text-ui">{statusText}</span>
       <div className="flex-1" />
 
       {exportError && (
         <span
           role="alert"
-          className="text-alert bg-amber-bg border-amber-border rounded-item border px-[10px] py-[5px] text-[11.5px]"
+          className="text-alert bg-amber-bg border-amber-border rounded-item text-meta border px-[10px] py-[5px]"
         >
           {exportError}
         </span>
       )}
 
-      <div className="relative">
-        <button
-          type="button"
-          disabled={exportDisabled}
-          onClick={() => setMenuOpen((o) => !o)}
-          className="rounded-btn disabled:text-disabled disabled:border-disabled-border enabled:border-border enabled:hover:bg-surface-alt border px-[14px] py-2 text-[12.5px] font-medium transition-colors disabled:cursor-not-allowed"
-        >
-          {t("exportButton")}
-        </button>
-        {menuOpen && !exportDisabled && (
-          <>
-            <button
-              type="button"
-              aria-label={t("closeMenuAriaLabel")}
-              className="fixed inset-0 z-10 cursor-default"
-              onClick={() => setMenuOpen(false)}
-            />
-            <div className="bg-surface border-border rounded-item shadow-card absolute right-0 bottom-full z-20 mb-1 min-w-[210px] border py-1">
-              {FORMATS.map((fmt) => (
-                <button
-                  key={fmt.id}
-                  type="button"
-                  onClick={() => handleExport(fmt.id)}
-                  className="hover:bg-surface-alt block w-full px-3 py-2 text-left transition-colors"
-                >
-                  <span className="block text-[12.5px]">{t(fmt.labelKey)}</span>
-                  {fmt.id === "pdf-a4" && a4Pages > 0 && (
-                    <span className="text-muted block text-[11px]">
-                      {t("a4PageCount", { count: a4Pages })}
-                    </span>
-                  )}
-                  {fmt.noteKey && (
-                    <span className="text-muted block text-[11px] leading-snug">
-                      {t(fmt.noteKey)}
-                    </span>
-                  )}
-                </button>
-              ))}
-              <div className="border-line text-muted mt-1 border-t px-3 pt-[6px] pb-1 text-[10.5px] leading-snug">
-                {t("netLineNote")}
-              </div>
-            </div>
-          </>
-        )}
-      </div>
+      <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" disabled={exportDisabled}>
+            {t("exportButton")}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" side="top" className="w-[230px]">
+          <DropdownMenuGroup>
+            {FORMATS.map((fmt) => (
+              <DropdownMenuItem
+                key={fmt.id}
+                onSelect={() => handleExport(fmt.id)}
+                className="flex-col items-start gap-0"
+              >
+                <span className="text-ui">{t(fmt.labelKey)}</span>
+                {fmt.id === "pdf-a4" && a4Pages > 0 && (
+                  <span className="text-muted text-meta">
+                    {t("a4PageCount", { count: a4Pages })}
+                  </span>
+                )}
+                {fmt.noteKey && (
+                  <span className="text-muted text-meta leading-snug">
+                    {t(fmt.noteKey)}
+                  </span>
+                )}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuLabel className="text-muted text-tick leading-snug font-normal">
+            {t("netLineNote")}
+          </DropdownMenuLabel>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-      <button
-        type="button"
+      <Button
         disabled
         title={t("saveVersionTitle")}
-        className="rounded-btn bg-olive text-olive-foreground cursor-not-allowed px-4 py-2 text-[12.5px] font-semibold opacity-50"
+        className="cursor-not-allowed"
       >
         {t("saveVersionButton")}
-      </button>
+      </Button>
     </div>
   );
 }

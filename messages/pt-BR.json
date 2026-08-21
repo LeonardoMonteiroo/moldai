@@ -19,7 +19,6 @@
     "statusReady": "{pieceCount} peças · base {baseSize} · unidade {unit}",
     "a4PageCount": "~{count, plural, one {# folha A4} other {# folhas A4}}",
     "exportButton": "Exportar",
-    "closeMenuAriaLabel": "Fechar menu de exportação",
     "netLineNote": "Linha líquida — sem margem de costura embutida.",
     "saveVersionTitle": "O molde é salvo automaticamente a cada geração. Versionamento manual chega em breve.",
     "saveVersionButton": "Salvar versão · em breve"
@@ -89,7 +88,6 @@
     }
   },
   "PaywallModal": {
-    "closeAriaLabel": "Fechar",
     "title": "Seus créditos acabaram",
     "description": "{action} usa {required} créditos e você tem {balance}. Nada foi perdido — o molde continua salvo.",
     "topupTitle": "Créditos avulsos",
@@ -376,7 +374,10 @@
       "hourglass": "ampulheta",
       "pear": "pera",
       "apple": "maçã"
-    }
+    },
+    "addSizeFieldLabel": "Nome do tamanho",
+    "addSizeSaveButton": "Adicionar",
+    "addSizeCancelButton": "Cancelar"
   },
   "Sidebar": {
     "myPatternsLabel": "Meus moldes",

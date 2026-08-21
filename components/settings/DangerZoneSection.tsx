@@ -4,6 +4,14 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { signOut } from "next-auth/react";
 import { deleteAccount } from "@/lib/api-client";
+import { Button } from "@/components/ui/button";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 
 export function DangerZoneSection({ userEmail }: { userEmail: string }) {
   const t = useTranslations("DangerZoneSection");
@@ -29,38 +37,45 @@ export function DangerZoneSection({ userEmail }: { userEmail: string }) {
 
   return (
     <section className="bg-amber-bg border-alert rounded-card flex flex-col gap-3 border p-[18px]">
-      <h2 className="text-alert font-display text-[16px] font-semibold">
+      <h2 className="text-alert font-display text-body font-semibold">
         {t("heading")}
       </h2>
-      <p className="text-muted-2 text-[12.5px] leading-[1.5]">{t("warning")}</p>
-      <label className="flex flex-col gap-1 text-[12.5px]">
-        {t("emailConfirmLabel", { email: userEmail })}
-        <input
-          value={typedEmail}
-          onChange={(e) => setTypedEmail(e.target.value)}
-          className="border-border rounded-item bg-surface border px-[13px] py-[9px] text-[13px] outline-none"
-        />
-      </label>
-      <label className="flex flex-col gap-1 text-[12.5px]">
-        {t("passwordLabel")}
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="border-border rounded-item bg-surface border px-[13px] py-[9px] text-[13px] outline-none"
-        />
-      </label>
-      <div className="flex items-center gap-3">
-        <button
+      <p className="text-muted-2 text-ui leading-[1.5]">{t("warning")}</p>
+      <FieldGroup>
+        <Field>
+          <FieldLabel htmlFor="danger-email">
+            {t("emailConfirmLabel", { email: userEmail })}
+          </FieldLabel>
+          <Input
+            id="danger-email"
+            className="bg-surface"
+            value={typedEmail}
+            onChange={(event) => setTypedEmail(event.target.value)}
+          />
+        </Field>
+        <Field data-invalid={status === "error" || undefined}>
+          <FieldLabel htmlFor="danger-password">
+            {t("passwordLabel")}
+          </FieldLabel>
+          <Input
+            id="danger-password"
+            className="bg-surface"
+            type="password"
+            value={password}
+            aria-invalid={status === "error" || undefined}
+            onChange={(event) => setPassword(event.target.value)}
+          />
+          {status === "error" && error && <FieldError>{error}</FieldError>}
+        </Field>
+      </FieldGroup>
+      <div>
+        <Button
+          variant="destructiveOutline"
           onClick={submit}
           disabled={!canSubmit || status === "deleting"}
-          className="border-alert text-alert hover:bg-amber-bg rounded-btn border px-[15px] py-[9px] text-[13px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40"
         >
           {t("submitButton")}
-        </button>
-        {status === "error" && error && (
-          <span className="text-alert text-[12px]">{error}</span>
-        )}
+        </Button>
       </div>
     </section>
   );

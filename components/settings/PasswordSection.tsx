@@ -3,6 +3,14 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { changePassword } from "@/lib/api-client";
+import { Button } from "@/components/ui/button";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -40,52 +48,52 @@ export function PasswordSection() {
 
   return (
     <section className="bg-surface border-border rounded-card flex flex-col gap-3 border p-[18px]">
-      <h2 className="font-display text-[16px] font-semibold">{t("heading")}</h2>
-      <label className="flex flex-col gap-1 text-[12.5px]">
-        {t("currentLabel")}
-        <input
-          type="password"
-          value={current}
-          onChange={(e) => setCurrent(e.target.value)}
-          className="border-border rounded-item bg-surface-alt focus:border-olive-border border px-[13px] py-[9px] text-[13px] outline-none"
-        />
-      </label>
-      <label className="flex flex-col gap-1 text-[12.5px]">
-        {t("newLabel")}
-        <input
-          type="password"
-          value={next}
-          onChange={(e) => setNext(e.target.value)}
-          className="border-border rounded-item bg-surface-alt focus:border-olive-border border px-[13px] py-[9px] text-[13px] outline-none"
-        />
-      </label>
-      <label className="flex flex-col gap-1 text-[12.5px]">
-        {t("confirmLabel")}
-        <input
-          type="password"
-          value={confirm}
-          onChange={(e) => setConfirm(e.target.value)}
-          className="border-border rounded-item bg-surface-alt focus:border-olive-border border px-[13px] py-[9px] text-[13px] outline-none"
-        />
-      </label>
-      {mismatch && (
-        <span className="text-alert text-[12px]">{t("mismatchError")}</span>
-      )}
+      <h2 className="font-display text-body font-semibold">{t("heading")}</h2>
+      <FieldGroup>
+        <Field data-invalid={status === "error" || undefined}>
+          <FieldLabel htmlFor="password-current">
+            {t("currentLabel")}
+          </FieldLabel>
+          <Input
+            id="password-current"
+            type="password"
+            value={current}
+            aria-invalid={status === "error" || undefined}
+            onChange={(event) => setCurrent(event.target.value)}
+          />
+          {status === "error" && error && <FieldError>{error}</FieldError>}
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="password-new">{t("newLabel")}</FieldLabel>
+          <Input
+            id="password-new"
+            type="password"
+            value={next}
+            onChange={(event) => setNext(event.target.value)}
+          />
+        </Field>
+        {/* The mismatch now belongs to the field it describes, instead of floating
+            at the end of the form with nothing associating it to a control. */}
+        <Field data-invalid={mismatch || undefined}>
+          <FieldLabel htmlFor="password-confirm">
+            {t("confirmLabel")}
+          </FieldLabel>
+          <Input
+            id="password-confirm"
+            type="password"
+            value={confirm}
+            aria-invalid={mismatch || undefined}
+            onChange={(event) => setConfirm(event.target.value)}
+          />
+          {mismatch && <FieldError>{t("mismatchError")}</FieldError>}
+        </Field>
+      </FieldGroup>
       <div className="flex items-center gap-3">
-        <button
-          onClick={submit}
-          disabled={!canSubmit || status === "saving"}
-          className="bg-ink rounded-item px-[15px] py-[9px] text-[13px] font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-        >
+        <Button onClick={submit} disabled={!canSubmit || status === "saving"}>
           {t("submitButton")}
-        </button>
+        </Button>
         {status === "ok" && (
-          <span className="text-olive-dark text-[12px]">
-            {t("successMessage")}
-          </span>
-        )}
-        {status === "error" && error && (
-          <span className="text-alert text-[12px]">{error}</span>
+          <span className="text-olive-dark text-ui">{t("successMessage")}</span>
         )}
       </div>
     </section>
