@@ -32,14 +32,12 @@ export default async function SettingsPage({
   ]);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <SettingsShell
-        userEmail={session.user.email}
-        initialName={user?.name ?? ""}
-        credits={buildCredits(wallet, new Date())}
-        ledger={ledger}
-        activeSection={parseSection(params.section)}
-      />
-    </div>
+    <SettingsShell
+      userEmail={session.user.email}
+      initialName={user?.name ?? ""}
+      credits={buildCredits(wallet, new Date())}
+      ledger={ledger}
+      activeSection={parseSection(params.section)}
+    />
   );
 }

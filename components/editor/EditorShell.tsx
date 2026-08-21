@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useEditorStore } from "@/lib/store";
-import { Topbar } from "./Topbar";
+import { AppShell } from "@/components/shared/AppShell";
 import { ChatPanel } from "./ChatPanel";
 import { CanvasArea } from "./CanvasArea";
 import { Footer } from "./Footer";
@@ -17,6 +17,7 @@ export function EditorShell({
   patternId: string;
 }) {
   const t = useTranslations("EditorShell");
+  const tTopbar = useTranslations("Topbar");
   const ready = useEditorStore((s) => s.ready);
   const pattern = useEditorStore((s) => s.pattern);
   const credits = useEditorStore((s) => s.credits);
@@ -29,6 +30,8 @@ export function EditorShell({
     init(patternId);
   }, [init, patternId]);
 
+  // The header's title IS the pattern name, so unlike the other screens there
+  // is nothing to paint until the store is ready.
   if (!ready || !pattern || !credits) {
     return (
       <div className="text-muted text-control flex flex-1 items-center justify-center">
@@ -46,16 +49,28 @@ export function EditorShell({
             : "flex min-h-0 flex-1 flex-col"
         }
       >
-        <Topbar pattern={pattern} credits={credits} userEmail={userEmail} />
-        <div className="flex min-h-0 flex-1">
-          <ChatPanel />
-          <CanvasArea />
-        </div>
-        <Footer
-          pattern={pattern}
-          conflictActive={conflict !== null}
-          generating={generationStatus === "generating"}
-        />
+        <AppShell
+          title={pattern.name}
+          subtitle={tTopbar("savedVersion", {
+            savedAgo: pattern.savedAgo,
+            version: pattern.version,
+          })}
+          backHref="/"
+          credits={credits}
+          userEmail={userEmail}
+          footer={
+            <Footer
+              pattern={pattern}
+              conflictActive={conflict !== null}
+              generating={generationStatus === "generating"}
+            />
+          }
+        >
+          <div className="flex min-h-0 flex-1">
+            <ChatPanel />
+            <CanvasArea />
+          </div>
+        </AppShell>
       </div>
       <PaywallModal />
     </div>

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { PageHeader } from "@/components/shared/PageHeader";
+import { AppShell } from "@/components/shared/AppShell";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SizeChartLibrary } from "./SizeChartLibrary";
 import { SizeChartTable } from "./SizeChartTable";
@@ -27,14 +27,13 @@ export function SizeChartsShell({
   }, [init]);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <PageHeader
-        title={t("title")}
-        subtitle={t("subtitle")}
-        backHref="/"
-        credits={credits}
-        userEmail={userEmail}
-      />
+    <AppShell
+      title={t("title")}
+      subtitle={t("subtitle")}
+      backHref="/"
+      credits={credits}
+      userEmail={userEmail}
+    >
       {!ready && (
         <div className="text-muted text-control flex flex-1 items-center justify-center">
           {t("loading")}
@@ -55,6 +54,6 @@ export function SizeChartsShell({
           </div>
         </ScrollArea>
       )}
-    </div>
+    </AppShell>
   );
 }
