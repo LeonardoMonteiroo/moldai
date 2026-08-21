@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { resendVerification } from "@/lib/api-client";
+import { Wordmark } from "@/components/shared/Wordmark";
 
 export default function LoginPage() {
   const t = useTranslations("Login");
@@ -71,9 +72,7 @@ export default function LoginPage() {
   return (
     <div className="bg-paper flex min-h-screen items-center justify-center px-4">
       <div className="bg-surface border-border rounded-card shadow-card w-full max-w-[380px] border p-7">
-        <span className="font-display text-title tracking-wordmark font-bold">
-          Mold<span className="text-olive">AI</span>
-        </span>
+        <Wordmark />
         <h1 className="text-body mt-4 font-semibold">{t("heading")}</h1>
         <form onSubmit={onSubmit} className="mt-4 flex flex-col gap-3">
           <FieldGroup>

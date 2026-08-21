@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import VerifyCard from "@/components/auth/VerifyCard";
+import { Wordmark } from "@/components/shared/Wordmark";
 
 export default async function VerifyPage({
   searchParams,
@@ -12,9 +13,7 @@ export default async function VerifyPage({
   return (
     <div className="bg-paper flex min-h-screen items-center justify-center px-4">
       <div className="bg-surface border-border rounded-card shadow-card w-full max-w-[380px] border p-7">
-        <span className="font-display text-title tracking-wordmark font-bold">
-          Mold<span className="text-olive">AI</span>
-        </span>
+        <Wordmark />
         <h1 className="text-body mt-4 font-semibold">{t("heading")}</h1>
         {token ? (
           <VerifyCard token={token} />

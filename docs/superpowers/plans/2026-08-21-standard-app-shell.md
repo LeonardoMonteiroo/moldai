@@ -39,7 +39,7 @@ Nothing in Tasks 1–4 can be written test-first until this exists. It is delibe
 - Create: `vitest.workspace.ts`
 - Create: `vitest.setup.ts`
 - Create: `components/test-utils.tsx`
-- Create: `components/shared/Wordmark.test.tsx` (smoke test — the component itself arrives in Task 1)
+- Create: `components/test-utils.test.tsx` (the harness's own test)
 
 **Interfaces:**
 
@@ -186,9 +186,76 @@ export { screen, within, waitFor, act } from "@testing-library/react";
 export { default as userEvent } from "@testing-library/user-event";
 ```
 
-- [ ] **Step 5: Write the harness smoke test**
+- [ ] **Step 5: Write the harness's own test**
 
-This is also Task 1's failing test — it asserts the component that does not exist yet.
+A permanent test of the harness itself, not throwaway scaffolding: it proves jsdom booted, the JSX transform ran, the setup file's matchers loaded, and — the part that matters for every later task — that `renderWithIntl` really does supply the **real** catalog rather than a stub.
+
+Create `components/test-utils.test.tsx`:
+
+```tsx
+import { describe, it, expect } from "vitest";
+import { useTranslations } from "next-intl";
+import { renderWithIntl, ptBR, screen } from "./test-utils";
+
+function Probe() {
+  const t = useTranslations("PageHeader");
+  return <span>{t("buyCreditsButton")}</span>;
+}
+
+describe("renderWithIntl", () => {
+  it("supplies the real pt-BR catalog to the tree", () => {
+    renderWithIntl(<Probe />);
+    // Resolves to the catalog value, not the key name — which is what makes a
+    // missing key a test failure in every component test that follows.
+    expect(
+      screen.getByText(ptBR.PageHeader.buyCreditsButton),
+    ).toBeInTheDocument();
+  });
+});
+```
+
+- [ ] **Step 6: Run the full suite green**
+
+Run: `npx vitest run`
+
+Expected: the `node` project's existing suites all pass (unchanged) **and** the `dom` project passes its 1 test.
+
+If you see `document is not defined`, `ReferenceError: React is not defined`, or a JSX syntax error, the harness is wrong — fix Steps 2–4 before continuing. If the assertion fails because the rendered text is the literal `buyCreditsButton`, the provider is not receiving `messages`.
+
+- [ ] **Step 7: Lint and typecheck**
+
+Run: `npx eslint app lib components && npm run build`
+
+Expected: eslint exit 0; build `✓ Compiled successfully`. The build typechecks the new test files too — `Dockerfile` and CI both `npm ci --legacy-peer-deps` without `--omit=dev`, so the devDependencies resolve there as well.
+
+- [ ] **Step 8: Commit**
+
+```bash
+git add package.json package-lock.json vitest.workspace.ts vitest.setup.ts components/test-utils.tsx components/test-utils.test.tsx
+git rm --cached vitest.config.ts
+git commit -m "test: add a React Testing Library harness as a second vitest project"
+```
+
+---
+
+### Task 1: Extract the `Wordmark` component
+
+**Files:**
+
+- Create: `components/shared/Wordmark.tsx`
+- Modify: `components/shared/PageHeader.tsx` (the wordmark `<span>`)
+- Modify: `components/dashboard/DashboardTopbar.tsx` (the wordmark `<span>`)
+- Modify: `app/login/page.tsx:74-76`
+- Modify: `app/signup/page.tsx:74-76`
+- Modify: `app/verify/page.tsx:15-17`
+- Create: `components/shared/Wordmark.test.tsx`
+
+**Interfaces:**
+
+- Consumes: the Task 0 harness.
+- Produces: `Wordmark()` — a zero-prop presentational component exported from `components/shared/Wordmark.tsx`. Tasks 2 and 3 import it as `import { Wordmark } from "@/components/shared/Wordmark";`.
+
+- [ ] **Step 1: Write the failing test**
 
 Create `components/shared/Wordmark.test.tsx`:
 
@@ -207,45 +274,6 @@ describe("Wordmark", () => {
   });
 });
 ```
-
-- [ ] **Step 6: Run it and confirm the harness reaches the right failure**
-
-Run: `npx vitest run`
-
-Expected: the `node` project's existing suites all **pass** (unchanged), and the `dom` project fails with a module-resolution error on `./Wordmark` — `Failed to resolve import "./Wordmark"` or `Cannot find module`.
-
-That exact failure is the goal: it proves jsdom booted, the setup file loaded, and the JSX transform ran. **If instead you see `document is not defined`, `ReferenceError: React is not defined`, or a JSX syntax error, the harness is wrong — fix Steps 2–4 before continuing.**
-
-- [ ] **Step 7: Commit**
-
-```bash
-git add package.json package-lock.json vitest.workspace.ts vitest.setup.ts components/test-utils.tsx components/shared/Wordmark.test.tsx
-git rm --cached vitest.config.ts
-git commit -m "test: add a React Testing Library harness as a second vitest project"
-```
-
-Note: the commit intentionally lands with the `dom` project failing — Task 1 makes it green one step later. `lint-staged` runs `vitest related --run` on staged files; if it blocks the commit, use `git commit --no-verify` **for this commit only** and say so in the task report.
-
----
-
-### Task 1: Extract the `Wordmark` component
-
-**Files:**
-
-- Create: `components/shared/Wordmark.tsx`
-- Modify: `components/shared/PageHeader.tsx` (the wordmark `<span>`)
-- Modify: `components/dashboard/DashboardTopbar.tsx` (the wordmark `<span>`)
-- Modify: `app/login/page.tsx:74-76`
-- Modify: `app/signup/page.tsx:74-76`
-- Modify: `app/verify/page.tsx:15-17`
-- Test: `components/shared/Wordmark.test.tsx` (already written in Task 0, Step 5)
-
-**Interfaces:**
-
-- Consumes: the Task 0 harness.
-- Produces: `Wordmark()` — a zero-prop presentational component exported from `components/shared/Wordmark.tsx`. Tasks 2 and 3 import it as `import { Wordmark } from "@/components/shared/Wordmark";`.
-
-- [ ] **Step 1: Confirm the test still fails**
 
 Run: `npx vitest run --project dom`
 
@@ -311,7 +339,7 @@ Expected: grep prints **only** `components/shared/Wordmark.tsx:...` (any other f
 - [ ] **Step 6: Commit**
 
 ```bash
-git add components/shared/Wordmark.tsx components/shared/PageHeader.tsx components/dashboard/DashboardTopbar.tsx app/login/page.tsx app/signup/page.tsx app/verify/page.tsx
+git add components/shared/Wordmark.tsx components/shared/Wordmark.test.tsx components/shared/PageHeader.tsx components/dashboard/DashboardTopbar.tsx app/login/page.tsx app/signup/page.tsx app/verify/page.tsx
 git commit -m "refactor(ui): extract the MoldAI wordmark into a shared component"
 ```
 

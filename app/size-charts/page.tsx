@@ -11,11 +11,9 @@ export default async function SizeChartsPage() {
   const wallet = await loadWallet(session.user.id);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <SizeChartsShell
-        userEmail={session.user.email}
-        credits={buildCredits(wallet, new Date())}
-      />
-    </div>
+    <SizeChartsShell
+      userEmail={session.user.email}
+      credits={buildCredits(wallet, new Date())}
+    />
   );
 }

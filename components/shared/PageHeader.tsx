@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { ChevronDownIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { signOut } from "next-auth/react";
 import type { Credits } from "@/lib/types";
@@ -8,81 +9,138 @@ import { initialsFromEmail } from "@/lib/format";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Wordmark } from "@/components/shared/Wordmark";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
+/**
+ * The one header every full-page screen shows. Rendered only by AppShell —
+ * screens pass data, never a header element, so no screen can drift.
+ *
+ * `credits` is nullable for the dashboard, whose balance arrives from
+ * /api/account/summary after first paint; the bar and "Comprar créditos" are
+ * simply absent until it lands, rather than the whole header flickering in.
+ *
+ * `backHref` is opt-in: the dashboard IS "/" and must not offer a back button
+ * pointing at itself.
+ */
 export function PageHeader({
   title,
   subtitle,
+  backHref,
   credits,
   userEmail,
 }: {
   title: string;
   subtitle?: string;
-  credits: Credits;
+  backHref?: string;
+  credits: Credits | null;
   userEmail: string;
 }) {
   const t = useTranslations("PageHeader");
   const router = useRouter();
-  const pct = Math.round((credits.balance / credits.total) * 100);
+  const pct = credits ? Math.round((credits.balance / credits.total) * 100) : 0;
+
+  const sections = [
+    { section: "usage", label: t("usageMenuItem") },
+    { section: "plan", label: t("planMenuItem") },
+    { section: "profile", label: t("preferencesMenuItem") },
+  ];
 
   return (
     <div className="bg-surface border-border relative flex items-center gap-4 border-b px-[18px] py-3">
-      <span className="font-display text-title tracking-wordmark font-bold">
-        Mold<span className="text-olive">AI</span>
-      </span>
+      <Wordmark />
       <Separator orientation="vertical" className="h-5" />
-      <Button
-        variant="outline"
-        size="chrome"
-        onClick={() => router.push("/")}
-        title={t("backTitle")}
-        className="text-muted-2"
-      >
-        {t("backButton")}
-      </Button>
+      {backHref && (
+        <Button
+          variant="outline"
+          size="chrome"
+          onClick={() => router.push(backHref)}
+          title={t("backTitle")}
+          className="text-muted-2"
+        >
+          {t("backButton")}
+        </Button>
+      )}
       <div className="flex flex-col gap-px">
         <span className="text-control font-semibold">{title}</span>
         {subtitle && <span className="text-muted text-meta">{subtitle}</span>}
       </div>
       <div className="flex-1" />
-      <div className="flex w-[168px] flex-col gap-[5px]">
-        <div className="text-muted text-meta flex justify-between">
-          <span>
-            {t("creditsLabel", {
-              planLabel: credits.planLabel,
-              balance: credits.balance,
-            })}
-          </span>
-          <span>{t("outOfTotal", { total: credits.total })}</span>
-        </div>
-        <div className="bg-track h-[5px] overflow-hidden rounded-full">
-          <div className="bg-olive h-full" style={{ width: `${pct}%` }} />
-        </div>
-      </div>
-      <Button
-        variant="outline"
-        size="chrome"
-        onClick={() => router.push("/settings?section=usage")}
-      >
-        {t("buyCreditsButton")}
-      </Button>
-      <div className="flex items-center gap-2">
-        <Avatar
-          title={userEmail}
-          className="border-olive-border size-[30px] border"
-        >
-          <AvatarFallback className="bg-olive-tint text-olive text-ui font-semibold">
-            {initialsFromEmail(userEmail)}
-          </AvatarFallback>
-        </Avatar>
-        <Button
-          variant="outline"
-          size="chrome"
-          onClick={() => signOut({ callbackUrl: "/login" })}
-          className="text-muted-2"
-        >
-          {t("signOutButton")}
-        </Button>
-      </div>
+      {credits && (
+        <>
+          <div className="flex w-[168px] flex-col gap-[5px]">
+            <div className="text-muted text-meta flex justify-between">
+              <span>
+                {t("creditsLabel", {
+                  planLabel: credits.planLabel,
+                  balance: credits.balance,
+                })}
+              </span>
+              <span>{t("outOfTotal", { total: credits.total })}</span>
+            </div>
+            <div className="bg-track h-[5px] overflow-hidden rounded-full">
+              <div className="bg-olive h-full" style={{ width: `${pct}%` }} />
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            size="chrome"
+            onClick={() => router.push("/settings?section=usage")}
+          >
+            {t("buyCreditsButton")}
+          </Button>
+        </>
+      )}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          {/* Explicit label: aria-hidden on the avatar alone did not keep its
+              initials out of the computed name, so the trigger states it. */}
+          <Button
+            variant="ghost"
+            size="chrome"
+            aria-label={t("accountMenuLabel")}
+            className="gap-1.5 px-1"
+          >
+            <Avatar
+              title={userEmail}
+              className="border-olive-border size-[30px] border"
+            >
+              <AvatarFallback className="bg-olive-tint text-olive text-ui font-semibold">
+                {initialsFromEmail(userEmail)}
+              </AvatarFallback>
+            </Avatar>
+            <ChevronDownIcon data-icon="inline-end" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-[190px]">
+          <DropdownMenuLabel className="text-muted text-meta truncate font-normal">
+            {userEmail}
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuGroup>
+            {sections.map(({ section, label }) => (
+              <DropdownMenuItem
+                key={section}
+                onSelect={() => router.push(`/settings?section=${section}`)}
+              >
+                {label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={() => signOut({ callbackUrl: "/login" })}>
+            {t("signOutButton")}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }

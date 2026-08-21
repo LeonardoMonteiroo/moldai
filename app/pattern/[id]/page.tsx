@@ -15,9 +15,5 @@ export default async function PatternPage({
   const patternState = await loadPattern(id, session.user.id);
   if (!patternState) redirect("/");
 
-  return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <EditorShell userEmail={session.user.email} patternId={id} />
-    </div>
-  );
+  return <EditorShell userEmail={session.user.email} patternId={id} />;
 }

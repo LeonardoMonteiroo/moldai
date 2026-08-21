@@ -5,7 +5,11 @@
     "creditsLabel": "{planLabel} · {balance} créditos",
     "outOfTotal": "de {total}",
     "buyCreditsButton": "Comprar créditos",
-    "signOutButton": "Sair"
+    "signOutButton": "Sair",
+    "accountMenuLabel": "Conta",
+    "usageMenuItem": "Créditos e uso",
+    "planMenuItem": "Plano e cobrança",
+    "preferencesMenuItem": "Preferências"
   },
   "Footer": {
     "formatSvg": "SVG · 1:1 (plotter)",
@@ -22,9 +26,6 @@
     "netLineNote": "Linha líquida — sem margem de costura embutida.",
     "saveVersionTitle": "O molde é salvo automaticamente a cada geração. Versionamento manual chega em breve.",
     "saveVersionButton": "Salvar versão · em breve"
-  },
-  "Topbar": {
-    "savedVersion": "{savedAgo} · v{version}"
   },
   "ChatPanel": {
     "title": "Conversa",
@@ -214,7 +215,8 @@
     "description": "A visualização 3D do molde vestido no corpo virtual está em desenvolvimento."
   },
   "EditorShell": {
-    "loading": "Carregando molde…"
+    "loading": "Carregando molde…",
+    "savedVersion": "{savedAgo} · v{version}"
   },
   "Login": {
     "heading": "Entrar",
@@ -389,15 +391,8 @@
     "importLabel": "Importar molde · Audaces · Molde.me · .dxf",
     "newPatternButton": "＋ Novo molde"
   },
-  "DashboardTopbar": {
-    "creditsPill": "{balance} créditos",
-    "accountMenuLabel": "Conta",
-    "usageMenuItem": "Créditos e uso",
-    "planMenuItem": "Plano e cobrança",
-    "preferencesMenuItem": "Preferências",
-    "signOutMenuItem": "Sair"
-  },
   "DashboardShell": {
+    "title": "Meus moldes",
     "loading": "Carregando moldes…",
     "loadError": "Não foi possível carregar seus moldes. Tente recarregar a página."
   },

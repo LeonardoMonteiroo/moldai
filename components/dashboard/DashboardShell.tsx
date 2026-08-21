@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useDashboardStore } from "@/lib/dashboardStore";
-import { DashboardTopbar } from "./DashboardTopbar";
+import { AppShell } from "@/components/shared/AppShell";
 import { Sidebar } from "./Sidebar";
 import { PatternGrid } from "./PatternGrid";
 import { CreditsCard } from "./CreditsCard";
@@ -25,28 +25,28 @@ export function DashboardShell({ userEmail }: { userEmail: string }) {
 
   const openPattern = (id: string) => router.push(`/pattern/${id}`);
 
-  if (!ready) {
-    return (
-      <div className="text-muted text-control flex flex-1 items-center justify-center">
-        {t("loading")}
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-alert text-control flex flex-1 items-center justify-center">
-        {t("loadError")}
-      </div>
-    );
-  }
-
+  // Loading and error live inside the content region, not in place of the
+  // whole screen: the header and nav are stable across the fetch. The
+  // dashboard passes no backHref — it IS "/".
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <DashboardTopbar userEmail={userEmail} credits={credits} />
-      <div className="flex min-h-0 flex-1">
-        <Sidebar onCreate={openPattern} />
-        <div className="flex min-h-0 flex-1 flex-col">
+    <AppShell
+      title={t("title")}
+      credits={credits}
+      userEmail={userEmail}
+      sidebar={<Sidebar onCreate={openPattern} disabled={error} />}
+    >
+      {!ready && (
+        <div className="text-muted text-control flex flex-1 items-center justify-center">
+          {t("loading")}
+        </div>
+      )}
+      {ready && error && (
+        <div className="text-alert text-control flex flex-1 items-center justify-center">
+          {t("loadError")}
+        </div>
+      )}
+      {ready && !error && (
+        <>
           <PatternGrid onOpen={openPattern} />
           {credits && (
             <div className="flex gap-[14px] px-[22px] pb-[22px]">
@@ -54,8 +54,8 @@ export function DashboardShell({ userEmail }: { userEmail: string }) {
               <RecentUsageCard entries={recentUsage} />
             </div>
           )}
-        </div>
-      </div>
-    </div>
+        </>
+      )}
+    </AppShell>
   );
 }
