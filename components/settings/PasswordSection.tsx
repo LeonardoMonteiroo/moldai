@@ -49,7 +49,7 @@ export function PasswordSection() {
   return (
     <section className="bg-surface border-border rounded-card flex flex-col gap-3 border p-[18px]">
       <h2 className="font-display text-body font-semibold">{t("heading")}</h2>
-      <FieldGroup>
+      <FieldGroup className="max-w-[420px]">
         <Field data-invalid={status === "error" || undefined}>
           <FieldLabel htmlFor="password-current">
             {t("currentLabel")}

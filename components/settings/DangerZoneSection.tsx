@@ -41,7 +41,7 @@ export function DangerZoneSection({ userEmail }: { userEmail: string }) {
         {t("heading")}
       </h2>
       <p className="text-muted-2 text-ui leading-[1.5]">{t("warning")}</p>
-      <FieldGroup>
+      <FieldGroup className="max-w-[420px]">
         <Field>
           <FieldLabel htmlFor="danger-email">
             {t("emailConfirmLabel", { email: userEmail })}
