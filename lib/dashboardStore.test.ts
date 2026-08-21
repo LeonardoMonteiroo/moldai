@@ -43,7 +43,6 @@ describe("dashboardStore.init", () => {
     vi.mocked(api.getAccountSummary).mockResolvedValue({
       credits: {
         plan: "atelier",
-        planLabel: "Ateliê",
         balance: 320,
         total: 500,
         renewsInDays: 12,
@@ -62,7 +61,6 @@ describe("dashboardStore.init", () => {
     vi.mocked(api.getAccountSummary).mockResolvedValue({
       credits: {
         plan: "atelier",
-        planLabel: "Ateliê",
         balance: 0,
         total: 0,
         renewsInDays: 0,

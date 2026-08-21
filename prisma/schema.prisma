@@ -57,7 +57,6 @@ model Wallet {
   userId       String        @id
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   plan         String
-  planLabel    String
   balance      Int
   total        Int
   renewsAt     DateTime?

@@ -14,7 +14,6 @@ describe("seedWallet", () => {
   it("Free plan, 30/30, renews in 30 days", () => {
     const w = seedWallet(NOW);
     expect(w.plan).toBe("free");
-    expect(w.planLabel).toBe("Grátis");
     expect(w.balance).toBe(30);
     expect(w.total).toBe(30);
     expect(w.renewsAt).toEqual(new Date("2026-09-16T12:00:00.000Z"));

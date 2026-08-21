@@ -2,7 +2,6 @@ import type { PlanId } from "@/lib/types";
 
 export interface Wallet {
   plan: PlanId;
-  planLabel: string;
   balance: number;
   total: number;
   renewsAt: Date | null;
@@ -26,7 +25,6 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export function seedWallet(now: Date): Wallet {
   return {
     plan: "free",
-    planLabel: "Grátis",
     balance: 30,
     total: 30,
     renewsAt: new Date(now.getTime() + 30 * DAY_MS),
@@ -61,7 +59,6 @@ export function applyPurchase(
     return { type: "topup", amount: 100, balanceAfter: wallet.balance };
   }
   wallet.plan = "atelier";
-  wallet.planLabel = "Ateliê";
   wallet.balance = 500;
   wallet.total = 500;
   wallet.renewsAt = new Date(now.getTime() + 30 * DAY_MS);

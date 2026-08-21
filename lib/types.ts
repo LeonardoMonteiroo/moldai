@@ -93,7 +93,6 @@ export type PlanId = "free" | "atelier" | "studio" | "factory";
 
 export interface Credits {
   plan: PlanId;
-  planLabel: string;
   balance: number;
   total: number;
   renewsInDays: number;

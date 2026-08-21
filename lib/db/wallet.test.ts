@@ -58,9 +58,9 @@ function wireTx() {
       const sql = Array.isArray(strings) ? strings.join("") : String(strings);
       if (sql.includes("UPDATE")) {
         // vals order matches the tagged-template interpolation order in
-        // saveWallet: plan, planLabel, balance, total, renewsAt.
-        const [plan, planLabel, balance, total, renewsAt] = vals;
-        store.set(uid, { plan, planLabel, balance, total, renewsAt });
+        // saveWallet: plan, balance, total, renewsAt.
+        const [plan, balance, total, renewsAt] = vals;
+        store.set(uid, { plan, balance, total, renewsAt });
       }
       return 0;
     },

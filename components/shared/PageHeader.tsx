@@ -49,6 +49,7 @@ export function PageHeader({
   userEmail: string;
 }) {
   const t = useTranslations("PageHeader");
+  const tPlan = useTranslations("PlanSection");
   const router = useRouter();
   const pct = credits ? Math.round((credits.balance / credits.total) * 100) : 0;
 
@@ -92,7 +93,7 @@ export function PageHeader({
             <div className="text-muted text-meta flex justify-between">
               <span>
                 {t("creditsLabel", {
-                  planLabel: credits.planLabel,
+                  planLabel: tPlan(`plans.${credits.plan}.name`),
                   balance: credits.balance,
                 })}
               </span>

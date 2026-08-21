@@ -5,7 +5,6 @@ import type { Credits, EditorState, PatternState } from "@/lib/types";
 export function buildCredits(wallet: Wallet, now: Date): Credits {
   return {
     plan: wallet.plan,
-    planLabel: wallet.planLabel,
     balance: wallet.balance,
     total: wallet.total,
     renewsInDays: renewsInDays(wallet, now),

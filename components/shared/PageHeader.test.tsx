@@ -18,7 +18,6 @@ vi.mock("next-auth/react", () => ({ signOut }));
 
 const CREDITS: Credits = {
   plan: "atelier",
-  planLabel: "Ateliê",
   balance: 320,
   total: 500,
   renewsInDays: 12,
@@ -117,6 +116,31 @@ describe("PageHeader", () => {
       screen.getByRole("button", { name: t.buyCreditsButton }),
     );
     expect(push).toHaveBeenCalledWith("/settings?section=usage");
+  });
+
+  it("resolves the plan label from PlanSection's catalog names, for every PlanId", () => {
+    // Regression guard for the planLabel column removal: PageHeader must read
+    // `PlanSection.plans.{plan}.name` via a template-built key, not a
+    // hardcoded two-key { free, atelier } block — a wallet on "studio" or
+    // "factory" (applyPurchase can't issue them yet, but the type allows
+    // them) would fail to resolve against a two-key block, either throwing
+    // or rendering the raw key path instead of the real plan name. Asserting
+    // the exact resolved string (not a substring) is what makes that failure
+    // visible here.
+    (["studio", "factory"] as const).forEach((plan) => {
+      const { unmount } = renderWithIntl(
+        <PageHeader
+          title="Blusa"
+          credits={{ plan, balance: 750, total: 2000, renewsInDays: 5 }}
+          userEmail="a@b.com"
+        />,
+      );
+      const expected = ptBR.PageHeader.creditsLabel
+        .replace("{planLabel}", ptBR.PlanSection.plans[plan].name)
+        .replace("{balance}", "750");
+      expect(screen.getByText(expected)).toBeInTheDocument();
+      unmount();
+    });
   });
 
   it("reaches every settings section from the account menu", async () => {

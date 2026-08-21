@@ -8,7 +8,6 @@ vi.mock("next-auth/react", () => ({ signOut: vi.fn() }));
 
 const CREDITS: Credits = {
   plan: "atelier",
-  planLabel: "Ateliê",
   balance: 320,
   total: 500,
   renewsInDays: 12,

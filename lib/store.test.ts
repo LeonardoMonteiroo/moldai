@@ -54,7 +54,6 @@ function emptyState(): EditorState {
     ],
     credits: {
       plan: "atelier",
-      planLabel: "Ateliê",
       balance: 100,
       total: 500,
       renewsInDays: 10,

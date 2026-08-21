@@ -7,7 +7,6 @@ const t = ptBR.PaywallModal;
 
 const CREDITS = {
   plan: "free" as const,
-  planLabel: "Grátis",
   balance: 1,
   total: 30,
   renewsInDays: 10,

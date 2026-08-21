@@ -9,7 +9,6 @@ export const TX_OPTS = { timeout: 30_000, maxWait: 10_000 } as const;
 
 interface WalletRow {
   plan: string;
-  planLabel: string;
   balance: number;
   total: number;
   renewsAt: Date | null;
@@ -18,7 +17,6 @@ interface WalletRow {
 function toWallet(row: WalletRow): Wallet {
   return {
     plan: row.plan as Wallet["plan"],
-    planLabel: row.planLabel,
     balance: row.balance,
     total: row.total,
     renewsAt: row.renewsAt,
@@ -31,11 +29,11 @@ function toWallet(row: WalletRow): Wallet {
 export async function lockWallet(tx: Tx, userId: string): Promise<Wallet> {
   const seed = seedWallet(new Date());
   await tx.$executeRaw`
-    INSERT INTO "Wallet" ("userId", "plan", "planLabel", "balance", "total", "renewsAt", "updatedAt")
-    VALUES (${userId}, ${seed.plan}, ${seed.planLabel}, ${seed.balance}, ${seed.total}, ${seed.renewsAt}, now())
+    INSERT INTO "Wallet" ("userId", "plan", "balance", "total", "renewsAt", "updatedAt")
+    VALUES (${userId}, ${seed.plan}, ${seed.balance}, ${seed.total}, ${seed.renewsAt}, now())
     ON CONFLICT ("userId") DO NOTHING`;
   const rows = await tx.$queryRaw<WalletRow[]>`
-    SELECT "plan", "planLabel", "balance", "total", "renewsAt"
+    SELECT "plan", "balance", "total", "renewsAt"
     FROM "Wallet" WHERE "userId" = ${userId} FOR UPDATE`;
   return toWallet(rows[0]);
 }
@@ -47,7 +45,7 @@ export async function saveWallet(
 ): Promise<void> {
   await tx.$executeRaw`
     UPDATE "Wallet"
-    SET "plan" = ${wallet.plan}, "planLabel" = ${wallet.planLabel},
+    SET "plan" = ${wallet.plan},
         "balance" = ${wallet.balance}, "total" = ${wallet.total},
         "renewsAt" = ${wallet.renewsAt}, "updatedAt" = now()
     WHERE "userId" = ${userId}`;
