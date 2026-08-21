@@ -4,6 +4,16 @@ export type SizeLabel = string;
 
 export type BodyType = "straight" | "hourglass" | "pear" | "apple";
 
+// One exported source for the enum, the same rule the drafting/AI enums follow:
+// the size-chart <Select>, the validator, and anything else all read this list
+// rather than each hand-rolling its own copy.
+export const BODY_TYPES: BodyType[] = [
+  "straight",
+  "hourglass",
+  "pear",
+  "apple",
+];
+
 export type PieceOutline =
   { kind: "polygon"; points: string } | { kind: "path"; d: string };
 

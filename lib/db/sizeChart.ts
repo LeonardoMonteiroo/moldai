@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import { validateSizeChartPatch } from "@/lib/sizeCharts/validate";
 import { prisma } from "./prisma";
 import { buildSystemSizeChartData } from "@/lib/sizeCharts/seed";
 import { pickSizeChartForGeneration } from "@/lib/sizeCharts/compute";
@@ -89,10 +90,17 @@ export async function createSizeChart(
   return toRecord(row);
 }
 
+/**
+ * `patch` is deliberately `unknown`: it arrives straight off the wire, and
+ * typing it as Partial<SizeChartData> was an assertion the compiler could not
+ * check — which is how `gender: "banana"` and a wiped baseMeasurements got
+ * persisted. validateSizeChartPatch is the trust boundary; it runs here rather
+ * than in the route because the merge needs the current row.
+ */
 export async function updateSizeChart(
   sizeChartId: string,
   userId: string,
-  patch: Partial<SizeChartData>,
+  patch: unknown,
 ): Promise<SizeChartRecord | null> {
   const row = await prisma.sizeChart.findUnique({
     where: { id: sizeChartId },
@@ -100,21 +108,9 @@ export async function updateSizeChart(
   if (!row || row.userId !== userId) return null;
   const current = row.data as unknown as SizeChartData;
   if (current.isSystem) return null; // system charts are read-only
-  const sizes =
-    Array.isArray(patch.sizes) && patch.sizes.length > 0
-      ? patch.sizes
-      : current.sizes;
-  const baseSizeIndex =
-    typeof patch.baseSizeIndex === "number" &&
-    patch.baseSizeIndex >= 0 &&
-    patch.baseSizeIndex < sizes.length
-      ? patch.baseSizeIndex
-      : Math.min(current.baseSizeIndex, sizes.length - 1);
   const next: SizeChartData = {
     ...current,
-    ...patch,
-    sizes,
-    baseSizeIndex,
+    ...validateSizeChartPatch(current, patch),
     isSystem: false,
   };
   const updated = await prisma.sizeChart.update({

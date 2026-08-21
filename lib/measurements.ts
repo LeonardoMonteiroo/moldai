@@ -12,6 +12,21 @@ export interface Measurements {
   longSleeveLength: number; // (cm)
 }
 
+// Every Measurements field, in the order the size-chart table renders its rows.
+// Exported so the table, the validator and any future consumer iterate one
+// list instead of each restating the shape.
+export const MEASUREMENT_KEYS: (keyof Measurements)[] = [
+  "bust",
+  "waist",
+  "hip",
+  "hipHeight",
+  "backLength",
+  "shoulder",
+  "skirtLength",
+  "shortSleeveLength",
+  "longSleeveLength",
+];
+
 export const SIZE_TABLE: Record<SizeLabel, Measurements> = {
   PP: {
     bust: 84,

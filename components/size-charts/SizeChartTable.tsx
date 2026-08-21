@@ -5,8 +5,8 @@ import { XIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSizeChartsStore } from "@/lib/sizeChartsStore";
 import { resolveSizeChartSize } from "@/lib/sizeCharts/compute";
-import type { Measurements } from "@/lib/measurements";
-import type { BodyType } from "@/lib/types";
+import { MEASUREMENT_KEYS, type Measurements } from "@/lib/measurements";
+import { BODY_TYPES, type BodyType } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -25,20 +25,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-const MEASUREMENT_KEYS: (keyof Measurements)[] = [
-  "bust",
-  "waist",
-  "hip",
-  "hipHeight",
-  "backLength",
-  "shoulder",
-  "skirtLength",
-  "shortSleeveLength",
-  "longSleeveLength",
-];
-
-const BODY_TYPES: BodyType[] = ["straight", "hourglass", "pear", "apple"];
 
 export function SizeChartTable() {
   const t = useTranslations("SizeChartTable");
