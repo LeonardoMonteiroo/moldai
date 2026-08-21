@@ -60,12 +60,10 @@
     "tabProof3d": "Prova 3D",
     "tabTechsheet": "Ficha técnica",
     "tabCutplan": "Plano de corte",
-    "sizeButton": "Tamanho {size} ▾",
-    "closeSizeSelectorAriaLabel": "Fechar seletor de tamanho",
+    "sizeButton": "Tamanho {size}",
     "comingSoonBadge": "em breve",
     "sizeChangeNote": "Trocar o tamanho-base sem regerar",
-    "pieceDetailsButton": "Detalhes da peça",
-    "pieceDetailsButtonOpen": "Detalhes da peça ✕"
+    "pieceDetailsButton": "Detalhes da peça"
   },
   "FloatingToolbar": {
     "cursorTool": "Cursor (mover e zoom)",
@@ -155,7 +153,11 @@
       "sleeveType": "Tipo",
       "sleeveCap": "Cava (copa)"
     },
-    "neckline": { "straight": "reto", "V": "V", "round": "redondo" },
+    "neckline": {
+      "straight": "reto",
+      "V": "V",
+      "round": "redondo"
+    },
     "skirtSilhouette": {
       "straight": "reta",
       "a-line": "evase",
@@ -163,7 +165,10 @@
       "half-circle": "meia-roda",
       "circle": "circulo"
     },
-    "sleeveType": { "short": "curta", "long": "longa" },
+    "sleeveType": {
+      "short": "curta",
+      "long": "longa"
+    },
     "grainValue": "reto",
     "conflict": {
       "title": "Cava e manga não batem",
@@ -186,7 +191,10 @@
       "skirt": "Saia",
       "tshirt": "Camiseta"
     },
-    "gender": { "male": "masculina", "female": "feminina" }
+    "gender": {
+      "male": "masculina",
+      "female": "feminina"
+    }
   },
   "CutPlanTab": {
     "title": "Plano de corte",

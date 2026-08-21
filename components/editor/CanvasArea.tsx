@@ -2,8 +2,9 @@
 
 import { useMemo, useRef } from "react";
 import { useTranslations } from "next-intl";
-import { useEditorStore } from "@/lib/store";
+import { EditorTab, useEditorStore } from "@/lib/store";
 import { useCanvasViewport } from "@/lib/canvas/useCanvasViewport";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { TabBar } from "./TabBar";
 import { GeneratingOverlay } from "./GeneratingOverlay";
 import { PatternCanvas } from "./PatternCanvas";
@@ -53,7 +54,11 @@ export function CanvasArea() {
     !isGenerating && (!!conflict || (detailsPanelOpen && !!selectedPiece));
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+    <Tabs
+      value={activeTab}
+      onValueChange={(v) => setActiveTab(v as EditorTab)}
+      className="flex min-h-0 min-w-0 flex-1 flex-col gap-0"
+    >
       {isGenerating ? (
         <GeneratingOverlay
           stepIndex={generationStepIndex}
@@ -62,7 +67,6 @@ export function CanvasArea() {
       ) : (
         <TabBar
           activeTab={activeTab}
-          onChangeTab={setActiveTab}
           baseSize={pattern.baseSize}
           sizes={pattern.sizes}
           detailsOpen={detailsPanelOpen}
@@ -71,79 +75,84 @@ export function CanvasArea() {
         />
       )}
 
-      {activeTab === "pattern2d" && (
-        <div className="pattern-grid bg-paper relative min-h-[300px] flex-1 overflow-hidden p-[22px]">
-          <div
-            className={[
-              "absolute top-[22px] bottom-[22px] left-[22px] transition-[right] duration-200",
-              rightOverlayOpen ? "right-[268px]" : "right-[22px]",
-            ].join(" ")}
-          >
-            <PatternCanvas
-              pieces={pattern.pieces}
-              selectedPieceId={selectedPieceId}
-              conflict={conflict}
-              dimmed={isGenerating}
-              viewport={vp.viewport}
-              scale={vp.scale}
-              activeTool={activeTool}
-              measurements={measurements}
-              svgRef={svgRef}
-              onSelectPiece={selectPiece}
-              onWheelZoom={vp.zoomAtScreen}
-              onPan={vp.panByScreen}
-              screenToUser={vp.screenToUser}
-              onAddMeasurement={(a, b) =>
-                addMeasurement({ id: crypto.randomUUID(), a, b })
-              }
-              onRemoveMeasurement={removeMeasurement}
-            />
-          </div>
-          {!isGenerating && !hasPieces && (
-            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-center">
-              <span className="font-display text-muted-2 text-[18px] font-semibold">
-                {t("emptyStateTitle")}
-              </span>
-              <span className="text-muted max-w-[300px] text-[12.5px]">
-                {t("emptyStateDescription")}
-              </span>
-            </div>
-          )}
-          {!isGenerating && hasPieces && (
-            <FloatingToolbar activeTool={activeTool} onSelect={setActiveTool} />
-          )}
-          {!isGenerating && hasPieces && (
-            <ZoomControls
-              scale={vp.scale}
-              onZoomIn={vp.zoomIn}
-              onZoomOut={vp.zoomOut}
-              onFit={vp.fitToScreen}
-            />
-          )}
-          {!isGenerating && hasPieces && measurements.length > 0 && (
-            <button
-              onClick={clearMeasurements}
-              className="bg-surface border-border rounded-item text-muted-2 hover:bg-surface-alt shadow-card absolute bottom-5 left-5 h-[34px] border px-3 text-[12px] transition-colors"
-            >
-              {t("clearMeasurementsButton")}
-            </button>
-          )}
-          {!isGenerating && conflict && (
-            <ConflictInfoCard conflict={conflict} />
-          )}
-          {!isGenerating && !conflict && detailsPanelOpen && selectedPiece && (
-            <PieceDetailsPanel
-              piece={selectedPiece}
-              pattern={pattern}
-              onClose={toggleDetailsPanel}
-              onGraduate={graduateSizes}
-            />
-          )}
+      <TabsContent
+        value="pattern2d"
+        className="pattern-grid bg-paper relative min-h-[300px] overflow-hidden p-[22px]"
+      >
+        <div
+          className={[
+            "absolute top-[22px] bottom-[22px] left-[22px] transition-[right] duration-200",
+            rightOverlayOpen ? "right-[268px]" : "right-[22px]",
+          ].join(" ")}
+        >
+          <PatternCanvas
+            pieces={pattern.pieces}
+            selectedPieceId={selectedPieceId}
+            conflict={conflict}
+            dimmed={isGenerating}
+            viewport={vp.viewport}
+            scale={vp.scale}
+            activeTool={activeTool}
+            measurements={measurements}
+            svgRef={svgRef}
+            onSelectPiece={selectPiece}
+            onWheelZoom={vp.zoomAtScreen}
+            onPan={vp.panByScreen}
+            screenToUser={vp.screenToUser}
+            onAddMeasurement={(a, b) =>
+              addMeasurement({ id: crypto.randomUUID(), a, b })
+            }
+            onRemoveMeasurement={removeMeasurement}
+          />
         </div>
-      )}
-      {activeTab === "proof3d" && <Proof3DTab />}
-      {activeTab === "techsheet" && <TechSheetTab pattern={pattern} />}
-      {activeTab === "cutplan" && <CutPlanTab pattern={pattern} />}
-    </div>
+        {!isGenerating && !hasPieces && (
+          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-center">
+            <span className="font-display text-muted-2 text-[18px] font-semibold">
+              {t("emptyStateTitle")}
+            </span>
+            <span className="text-muted max-w-[300px] text-[12.5px]">
+              {t("emptyStateDescription")}
+            </span>
+          </div>
+        )}
+        {!isGenerating && hasPieces && (
+          <FloatingToolbar activeTool={activeTool} onSelect={setActiveTool} />
+        )}
+        {!isGenerating && hasPieces && (
+          <ZoomControls
+            scale={vp.scale}
+            onZoomIn={vp.zoomIn}
+            onZoomOut={vp.zoomOut}
+            onFit={vp.fitToScreen}
+          />
+        )}
+        {!isGenerating && hasPieces && measurements.length > 0 && (
+          <button
+            onClick={clearMeasurements}
+            className="bg-surface border-border rounded-item text-muted-2 hover:bg-surface-alt shadow-card absolute bottom-5 left-5 h-[34px] border px-3 text-[12px] transition-colors"
+          >
+            {t("clearMeasurementsButton")}
+          </button>
+        )}
+        {!isGenerating && conflict && <ConflictInfoCard conflict={conflict} />}
+        {!isGenerating && !conflict && detailsPanelOpen && selectedPiece && (
+          <PieceDetailsPanel
+            piece={selectedPiece}
+            pattern={pattern}
+            onClose={toggleDetailsPanel}
+            onGraduate={graduateSizes}
+          />
+        )}
+      </TabsContent>
+      <TabsContent value="proof3d" className="flex min-h-0 flex-1 flex-col">
+        <Proof3DTab />
+      </TabsContent>
+      <TabsContent value="techsheet" className="flex min-h-0 flex-1 flex-col">
+        <TechSheetTab pattern={pattern} />
+      </TabsContent>
+      <TabsContent value="cutplan" className="flex min-h-0 flex-1 flex-col">
+        <CutPlanTab pattern={pattern} />
+      </TabsContent>
+    </Tabs>
   );
 }

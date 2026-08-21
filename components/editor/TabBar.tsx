@@ -1,9 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { ChevronDownIcon, XIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { EditorTab } from "@/lib/store";
 import { SizeLabel } from "@/lib/types";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
+import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const TAB_IDS: EditorTab[] = ["pattern2d", "proof3d", "techsheet", "cutplan"];
 
@@ -22,58 +31,40 @@ function SizeSelector({
   sizes: SizeLabel[];
 }) {
   const t = useTranslations("TabBar");
-  const [open, setOpen] = useState(false);
   return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="text-muted-2 border-border rounded-btn bg-surface hover:bg-surface-alt border px-[11px] py-[6px] text-[12px] transition-colors"
-      >
-        {t("sizeButton", { size: baseSize })}
-      </button>
-      {open && (
-        <>
-          <button
-            type="button"
-            aria-label={t("closeSizeSelectorAriaLabel")}
-            className="fixed inset-0 z-10 cursor-default"
-            onClick={() => setOpen(false)}
-          />
-          <div className="bg-surface border-border rounded-item shadow-card absolute top-full right-0 z-20 mt-1 min-w-[190px] border p-2">
-            <div className="flex gap-[5px] px-1 pb-2 text-[11.5px]">
-              {sizes.map((size) => (
-                <span
-                  key={size}
-                  className={[
-                    "rounded-[6px] px-[7px] py-[3px] font-semibold",
-                    size === baseSize
-                      ? "bg-olive-tint text-olive"
-                      : "text-placeholder",
-                  ].join(" ")}
-                >
-                  {size}
-                </span>
-              ))}
-            </div>
-            <div className="border-line flex items-center gap-[6px] border-t px-1 pt-2">
-              <span className="text-olive bg-olive-tint rounded-[5px] px-[6px] py-[2px] text-[10px] font-semibold tracking-[.6px] uppercase">
-                {t("comingSoonBadge")}
-              </span>
-              <span className="text-muted text-[11px] leading-tight">
-                {t("sizeChangeNote")}
-              </span>
-            </div>
-          </div>
-        </>
-      )}
-    </div>
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="chrome" className="text-muted-2">
+          {t("sizeButton", { size: baseSize })}
+          <ChevronDownIcon data-icon="inline-end" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-[232px] p-2">
+        <div className="flex gap-[5px] px-1 pb-2">
+          {sizes.map((size) => (
+            <Badge
+              key={size}
+              variant={size === baseSize ? "accent" : "quiet"}
+              size="chip"
+            >
+              {size}
+            </Badge>
+          ))}
+        </div>
+        <Separator />
+        <div className="flex flex-col items-start gap-[5px] px-1 pt-2">
+          <Badge variant="soon">{t("comingSoonBadge")}</Badge>
+          <span className="text-muted text-meta leading-tight">
+            {t("sizeChangeNote")}
+          </span>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
 export function TabBar({
   activeTab,
-  onChangeTab,
   baseSize,
   sizes,
   detailsOpen,
@@ -81,7 +72,6 @@ export function TabBar({
   hasSelectedPiece,
 }: {
   activeTab: EditorTab;
-  onChangeTab: (tab: EditorTab) => void;
   baseSize: SizeLabel;
   sizes: SizeLabel[];
   detailsOpen: boolean;
@@ -91,37 +81,25 @@ export function TabBar({
   const t = useTranslations("TabBar");
   return (
     <div className="bg-surface border-border flex items-center gap-2 border-b px-4 py-[11px]">
-      <div className="bg-paper border-border rounded-item flex gap-[2px] border p-[3px]">
+      <TabsList>
         {TAB_IDS.map((id) => (
-          <button
-            key={id}
-            onClick={() => onChangeTab(id)}
-            className={[
-              "rounded-[6px] px-[11px] py-[5px] text-[12px] transition-colors",
-              id === activeTab
-                ? "bg-surface shadow-card font-semibold"
-                : "text-muted-2 hover:text-ink",
-            ].join(" ")}
-          >
+          <TabsTrigger key={id} value={id}>
             {t(TAB_LABEL_KEYS[id])}
-          </button>
+          </TabsTrigger>
         ))}
-      </div>
+      </TabsList>
       <div className="flex-1" />
       <SizeSelector baseSize={baseSize} sizes={sizes} />
       {activeTab === "pattern2d" && (
-        <button
+        <Button
+          variant={detailsOpen ? "accent" : "outline"}
+          size="chrome"
           onClick={onToggleDetails}
           disabled={!hasSelectedPiece}
-          className={[
-            "rounded-btn border px-[11px] py-[6px] text-[12px] font-medium transition-colors disabled:opacity-40",
-            detailsOpen
-              ? "border-olive text-olive bg-olive-tint"
-              : "border-border bg-surface hover:bg-surface-alt",
-          ].join(" ")}
         >
-          {detailsOpen ? t("pieceDetailsButtonOpen") : t("pieceDetailsButton")}
-        </button>
+          {t("pieceDetailsButton")}
+          {detailsOpen && <XIcon data-icon="inline-end" />}
+        </Button>
       )}
     </div>
   );
