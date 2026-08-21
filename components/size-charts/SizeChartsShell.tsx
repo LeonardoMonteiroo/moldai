@@ -31,6 +31,7 @@ export function SizeChartsShell({
       <PageHeader
         title={t("title")}
         subtitle={t("subtitle")}
+        backHref="/"
         credits={credits}
         userEmail={userEmail}
       />

@@ -22,6 +22,7 @@ export function Topbar({
         savedAgo: pattern.savedAgo,
         version: pattern.version,
       })}
+      backHref="/"
       credits={credits}
       userEmail={userEmail}
     />

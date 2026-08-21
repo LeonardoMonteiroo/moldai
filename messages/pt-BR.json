@@ -5,7 +5,11 @@
     "creditsLabel": "{planLabel} · {balance} créditos",
     "outOfTotal": "de {total}",
     "buyCreditsButton": "Comprar créditos",
-    "signOutButton": "Sair"
+    "signOutButton": "Sair",
+    "accountMenuLabel": "Conta",
+    "usageMenuItem": "Créditos e uso",
+    "planMenuItem": "Plano e cobrança",
+    "preferencesMenuItem": "Preferências"
   },
   "Footer": {
     "formatSvg": "SVG · 1:1 (plotter)",
