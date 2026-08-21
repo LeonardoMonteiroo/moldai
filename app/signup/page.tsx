@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useTranslations } from "next-intl";
 import { signUp, resendVerification } from "@/lib/api-client";
+import { Wordmark } from "@/components/shared/Wordmark";
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -71,9 +72,7 @@ export default function SignupPage() {
   return (
     <div className="bg-paper flex min-h-screen items-center justify-center px-4">
       <div className="bg-surface border-border rounded-card shadow-card w-full max-w-[380px] border p-7">
-        <span className="font-display text-title tracking-wordmark font-bold">
-          Mold<span className="text-olive">AI</span>
-        </span>
+        <Wordmark />
         {sent ? (
           <div className="mt-3">
             <h1 className="text-body font-semibold">{t("sentHeading")}</h1>

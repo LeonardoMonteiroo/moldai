@@ -8,6 +8,7 @@ import { initialsFromEmail } from "@/lib/format";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Wordmark } from "@/components/shared/Wordmark";
 
 export function PageHeader({
   title,
@@ -26,9 +27,7 @@ export function PageHeader({
 
   return (
     <div className="bg-surface border-border relative flex items-center gap-4 border-b px-[18px] py-3">
-      <span className="font-display text-title tracking-wordmark font-bold">
-        Mold<span className="text-olive">AI</span>
-      </span>
+      <Wordmark />
       <Separator orientation="vertical" className="h-5" />
       <Button
         variant="outline"
