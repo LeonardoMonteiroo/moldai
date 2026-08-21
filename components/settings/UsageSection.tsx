@@ -31,6 +31,7 @@ export function UsageSection({
   initialLedger: LedgerHistoryEntry[];
 }) {
   const t = useTranslations("UsageSection");
+  const tf = useTranslations("Format");
   const [balance, setBalance] = useState(credits.balance);
   const [ledger, setLedger] = useState(initialLedger);
   const [buying, setBuying] = useState(false);
@@ -105,7 +106,7 @@ export function UsageSection({
                     {reasonKey ? ` · ${t(reasonKey)}` : ""}
                   </span>
                   <span className="text-muted">
-                    {relativeTime(entry.createdAt)}
+                    {relativeTime(tf, entry.createdAt)}
                   </span>
                   <span className={`font-medium ${amountClass}`}>
                     {sign}

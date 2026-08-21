@@ -1,41 +1,71 @@
 import { describe, it, expect } from "vitest";
-import { initialsFromEmail, relativeTime } from "./format";
+import { relativeTime, formatList, initialsFromEmail } from "./format";
 
-describe("initialsFromEmail", () => {
-  it("uses the local-part's first two letters, uppercased", () => {
-    expect(initialsFromEmail("dev@moldai.local")).toBe("DE");
-    expect(initialsFromEmail("atelier@moldai.local")).toBe("AT");
+// A fake translator that echoes the key and its values, so these tests assert
+// the seam (which key, which interpolation) and never a pt-BR string.
+const t = (key: string, values?: Record<string, unknown>) => {
+  // dateLocale must echo a VALID BCP-47 tag: toLocaleDateString throws
+  // RangeError on an invalid one, which would error the test rather than fail it.
+  if (key === "dateLocale") return "en-US";
+  return values ? `${key}:${JSON.stringify(values)}` : key;
+};
+
+describe("relativeTime", () => {
+  const now = new Date("2026-08-21T12:00:00Z");
+
+  it("emits the now key under a minute", () => {
+    expect(relativeTime(t, "2026-08-21T11:59:30Z", now)).toBe("relativeNow");
   });
-  it("one letter when the local-part has only one", () => {
-    expect(initialsFromEmail("a@b.c")).toBe("A");
+
+  it("emits minutes with an n value", () => {
+    expect(relativeTime(t, "2026-08-21T11:45:00Z", now)).toBe(
+      'relativeMinutes:{"n":15}',
+    );
   });
-  it("falls back to '?' when there are no letters", () => {
-    expect(initialsFromEmail("123@x.y")).toBe("?");
+
+  it("emits hours with an n value", () => {
+    expect(relativeTime(t, "2026-08-21T09:00:00Z", now)).toBe(
+      'relativeHours:{"n":3}',
+    );
+  });
+
+  it("emits days with an n value", () => {
+    expect(relativeTime(t, "2026-08-19T12:00:00Z", now)).toBe(
+      'relativeDays:{"n":2}',
+    );
+  });
+
+  it("falls back to a locale date past a week, using the catalog locale", () => {
+    const out = relativeTime(t, "2026-07-01T12:00:00Z", now);
+    expect(out).not.toContain("relative");
+    // Pins that the tag came from t("dateLocale"): a hardcoded "pt-BR" in the
+    // implementation yields "01/07/2026", not the en-US "7/1/2026".
+    expect(out).toBe(
+      new Date("2026-07-01T12:00:00Z").toLocaleDateString("en-US"),
+    );
   });
 });
 
-describe("relativeTime", () => {
-  const now = new Date("2026-08-18T12:00:00.000Z");
-
-  it("returns 'agora' under a minute", () => {
-    expect(relativeTime("2026-08-18T11:59:30.000Z", now)).toBe("agora");
+describe("formatList", () => {
+  it("returns a lone item unchanged", () => {
+    expect(formatList(t, ["P"])).toBe("P");
   });
 
-  it("returns minutes under an hour", () => {
-    expect(relativeTime("2026-08-18T11:45:00.000Z", now)).toBe("há 15 min");
+  it("returns an empty string for no items", () => {
+    expect(formatList(t, [])).toBe("");
   });
 
-  it("returns hours under a day", () => {
-    expect(relativeTime("2026-08-18T09:00:00.000Z", now)).toBe("há 3h");
+  it("joins two items with the catalog conjunction", () => {
+    expect(formatList(t, ["P", "M"])).toBe("PlistConjunctionM");
   });
 
-  it("returns days under a week", () => {
-    expect(relativeTime("2026-08-16T12:00:00.000Z", now)).toBe("há 2d");
+  it("comma-separates all but the last, then uses the conjunction", () => {
+    expect(formatList(t, ["P", "M", "G"])).toBe("P, MlistConjunctionG");
   });
+});
 
-  it("falls back to a pt-BR date past a week", () => {
-    expect(relativeTime("2026-08-01T12:00:00.000Z", now)).toBe(
-      new Date("2026-08-01T12:00:00.000Z").toLocaleDateString("pt-BR"),
-    );
+describe("initialsFromEmail", () => {
+  it("takes the first two letters of the local part", () => {
+    expect(initialsFromEmail("leonardo@moldai.dev")).toBe("LE");
   });
 });

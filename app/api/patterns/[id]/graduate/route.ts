@@ -27,6 +27,7 @@ export async function POST(request: Request, { params }: Ctx) {
   const requested = Array.isArray(body.sizes) ? body.sizes : [];
   const cost = COSTS.graduate;
   const t = await getTranslations("PatternData");
+  const tFormat = await getTranslations("Format");
   const now = new Date();
 
   const result = await withPatternAndWallet(
@@ -61,7 +62,7 @@ export async function POST(request: Request, { params }: Ctx) {
       addMessage(state, {
         id: `msg-${Date.now()}-ai`,
         author: "ai",
-        text: t("chat.graduated", { list: formatList(sizes) }),
+        text: t("chat.graduated", { list: formatList(tFormat, sizes) }),
         chips: [{ label: t("chat.creditChip", { cost }), tone: "credit" }],
         createdAt: Date.now(),
       });

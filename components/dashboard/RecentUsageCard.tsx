@@ -11,6 +11,7 @@ const REASON_KEY: Record<string, "reasonGenerate" | "reasonGraduate"> = {
 
 export function RecentUsageCard({ entries }: { entries: RecentUsageEntry[] }) {
   const t = useTranslations("RecentUsageCard");
+  const tf = useTranslations("Format");
   return (
     <div className="border-border rounded-card flex w-[290px] flex-col gap-2 border bg-white p-[16px]">
       <span className="text-muted text-ui font-medium">{t("title")}</span>
@@ -25,7 +26,9 @@ export function RecentUsageCard({ entries }: { entries: RecentUsageEntry[] }) {
                   ? t(REASON_KEY[e.reason])
                   : (e.reason ?? "—")}
               </span>
-              <span className="text-muted">{relativeTime(e.createdAt)}</span>
+              <span className="text-muted">
+                {relativeTime(tf, e.createdAt)}
+              </span>
               <span className="text-alert font-medium">−{e.amount}</span>
             </li>
           ))}

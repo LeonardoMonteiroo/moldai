@@ -1,7 +1,9 @@
-// Junta uma lista em texto pt-BR: "A", "A e B", "A, B e C".
-export function formatList(items: string[]): string {
+import type { Translate } from "@/lib/i18n/translate";
+
+// Joins a list as prose. The conjunction is pt-BR in the catalog, not here.
+export function formatList(t: Translate, items: string[]): string {
   if (items.length <= 1) return items.join("");
-  return `${items.slice(0, -1).join(", ")} e ${items[items.length - 1]}`;
+  return `${items.slice(0, -1).join(", ")}${t("listConjunction")}${items[items.length - 1]}`;
 }
 
 export function initialsFromEmail(email: string): string {
@@ -10,16 +12,20 @@ export function initialsFromEmail(email: string): string {
   return (letters.slice(0, 2) || "?").toUpperCase();
 }
 
-// Dashboard card "updated" label. Hardcoded pt-BR, same precedent as
-// formatList above — lib/format.ts isn't wired into the next-intl catalog.
-export function relativeTime(iso: string, now: Date = new Date()): string {
+// "updated" labels on the dashboard, the usage list and the editor header.
+// The caller supplies a translator scoped to the Format namespace.
+export function relativeTime(
+  t: Translate,
+  iso: string,
+  now: Date = new Date(),
+): string {
   const diffMs = now.getTime() - new Date(iso).getTime();
   const min = Math.floor(diffMs / 60_000);
-  if (min < 1) return "agora";
-  if (min < 60) return `há ${min} min`;
+  if (min < 1) return t("relativeNow");
+  if (min < 60) return t("relativeMinutes", { n: min });
   const hours = Math.floor(min / 60);
-  if (hours < 24) return `há ${hours}h`;
+  if (hours < 24) return t("relativeHours", { n: hours });
   const days = Math.floor(hours / 24);
-  if (days < 7) return `há ${days}d`;
-  return new Date(iso).toLocaleDateString("pt-BR");
+  if (days < 7) return t("relativeDays", { n: days });
+  return new Date(iso).toLocaleDateString(t("dateLocale"));
 }

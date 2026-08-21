@@ -33,6 +33,7 @@ export function PatternCard({
   onOpen: (id: string) => void;
 }) {
   const t = useTranslations("PatternCard");
+  const tf = useTranslations("Format");
   const [renaming, setRenaming] = useState(false);
   const [draftName, setDraftName] = useState(pattern.name);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -66,7 +67,7 @@ export function PatternCard({
         <div className="flex flex-col gap-px">
           <span className="text-control font-semibold">{pattern.name}</span>
           <span className="text-muted text-meta">
-            {relativeTime(pattern.updatedAt)}
+            {relativeTime(tf, pattern.updatedAt)}
           </span>
         </div>
         <DropdownMenu>

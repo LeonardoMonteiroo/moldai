@@ -507,5 +507,13 @@
         "creditsLabel": "10.000 créditos/mês"
       }
     }
+  },
+  "Format": {
+    "relativeNow": "agora",
+    "relativeMinutes": "há {n} min",
+    "relativeHours": "há {n}h",
+    "relativeDays": "há {n}d",
+    "listConjunction": " e ",
+    "dateLocale": "pt-BR"
   }
 }

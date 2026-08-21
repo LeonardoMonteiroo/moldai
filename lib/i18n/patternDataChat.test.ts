@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { createTranslator } from "next-intl";
 import messages from "@/messages/pt-BR.json";
 import { formatList } from "@/lib/format";
+import type { Translate } from "@/lib/i18n/translate";
 
 // This exercises the REAL pt-BR catalog (not lib/i18n/test-translate.ts's
 // echo fake, and not app/api/patterns/[id]/graduate/route.test.ts's own
@@ -23,6 +24,18 @@ describe("PatternData.chat", () => {
     messages,
     namespace: "PatternData",
   });
+  // formatList now takes an injected Translate scoped to the Format
+  // namespace (lib/format.ts) — a second real translator, same reasoning
+  // as the PatternData one above: only the real catalog can catch a broken
+  // "listConjunction" interpolation. The cast is type-only: createTranslator
+  // infers `key` as the literal union of messages.Format's own keys (from
+  // the imported JSON's structural type), narrower than Translate's plain
+  // `string`; at runtime it's still the same real-catalog translator.
+  const tFormat = createTranslator({
+    locale: "pt-BR",
+    messages,
+    namespace: "Format",
+  }) as unknown as Translate;
 
   describe("chat.creditChip", () => {
     // The "−" is U+2212 MINUS SIGN, not a hyphen-minus, and must survive
@@ -43,13 +56,13 @@ describe("PatternData.chat", () => {
     // pasting a pre-joined string, so this test tracks the actual
     // production call shape.
     it("interpolates a multi-size list the way graduate/route.ts builds it", () => {
-      expect(t("chat.graduated", { list: formatList(["P", "M", "G"]) })).toBe(
-        "Graduação aplicada para P, M e G.",
-      );
+      expect(
+        t("chat.graduated", { list: formatList(tFormat, ["P", "M", "G"]) }),
+      ).toBe("Graduação aplicada para P, M e G.");
     });
 
     it("interpolates a single-size list", () => {
-      expect(t("chat.graduated", { list: formatList(["G"]) })).toBe(
+      expect(t("chat.graduated", { list: formatList(tFormat, ["G"]) })).toBe(
         "Graduação aplicada para G.",
       );
     });

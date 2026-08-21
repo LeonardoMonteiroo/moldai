@@ -16,6 +16,7 @@ export function PieceDetailsPanel({
   onGraduate: (sizes: string[]) => void;
 }) {
   const t = useTranslations("PieceDetailsPanel");
+  const tf = useTranslations("Format");
   const detailRows = piece.detailRows ?? [];
   // The base size is already the size that was drafted — it doesn't need (or can't) be graded.
   const gradable = pattern.sizesPending.filter((s) => s !== pattern.baseSize);
@@ -82,7 +83,7 @@ export function PieceDetailsPanel({
         <div className="text-muted text-meta mt-2">
           {gradable.length > 0
             ? t("graduateSummary", {
-                list: formatList(gradable),
+                list: formatList(tf, gradable),
                 cost: COSTS.graduate,
               })
             : t("allGraduated")}
