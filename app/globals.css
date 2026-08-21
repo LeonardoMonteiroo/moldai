@@ -1,4 +1,9 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+/* shadcn/ui components ship `dark:` classes; this app is light-only, so scope the
+   variant to a `.dark` ancestor (never set) instead of `prefers-color-scheme`. */
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --font-sans: var(--font-archivo);
@@ -53,4 +58,70 @@ body {
     linear-gradient(var(--color-grid-line) 1px, transparent 1px),
     linear-gradient(90deg, var(--color-grid-line) 1px, transparent 1px);
   background-size: 26px 26px;
+}
+
+/* shadcn/ui semantic tokens — aliases onto the MoldAI tokens above, never literal
+   values. `--color-border` and `--color-muted` are deliberately absent: they are
+   MoldAI tokens already (border-border / text-muted), and shadcn means a surface by
+   "muted" where this repo means text. See CLAUDE.md. */
+@theme inline {
+  /* shadcn uses bg-background for RAISED surfaces (dialog panels, the active tab
+     pill, field separators) — never the page ground, which body{} owns as paper.
+     Mapping it to paper would render every modal in the page colour. */
+  --color-background: var(--color-surface);
+  --color-foreground: var(--color-ink);
+  --color-card: var(--color-surface);
+  --color-card-foreground: var(--color-ink);
+  --color-popover: var(--color-surface);
+  --color-popover-foreground: var(--color-ink);
+  --color-primary: var(--color-olive);
+  --color-primary-foreground: var(--color-olive-foreground);
+  --color-secondary: var(--color-surface-alt);
+  --color-secondary-foreground: var(--color-ink);
+  --color-accent: var(--color-olive-tint);
+  --color-accent-foreground: var(--color-olive-dark);
+  --color-muted-foreground: var(--color-muted);
+  --color-destructive: var(--color-alert);
+  --color-destructive-foreground: var(--color-surface);
+  --color-input: var(--color-border);
+  --color-ring: var(--color-olive);
+
+  --radius: var(--radius-btn);
+  --radius-sm: var(--radius-chip);
+  --radius-md: var(--radius-btn);
+  --radius-lg: var(--radius-item);
+  --radius-xl: var(--radius-card);
+}
+
+/* shadcn/ui expects a default border-color rather than Tailwind's `currentColor`
+   (its `outline`/`ghost` variants write a bare `border`). Verified safe: every
+   `border` in app/ + components/ already pairs with an explicit color utility,
+   which outranks this base-layer rule. The `body` half of shadcn's base block is
+   omitted — the unlayered `body` rule above already owns background/color. */
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-border);
+  }
+}
+
+/* Typography scale — collapses 259 ad-hoc `text-[Npx]` values across 19 near-duplicate
+   sizes (11/11.5, 12/12.5, 13/13.5, 10/10.5 …) into 7 steps, each set to the dominant
+   member of its measured cluster so existing screens keep their weight. Named for the
+   domain: `tick` is a ruler tick, `control` is buttons/inputs/tabs. */
+@theme inline {
+  --text-tick: 10.5px;
+  --text-meta: 11.5px;
+  --text-ui: 12.5px;
+  --text-control: 13.5px;
+  --text-body: 16px;
+  --text-title: 21px;
+  --text-display: 26px;
+
+  /* One named value for the 3 ad-hoc positive trackings on uppercase labels
+     (.8px x7, .6px x3, .5px x1). 0.08em lands on .84px at text-tick, matching
+     the dominant .8px. (tracking-[-0.4px], used x6 to tighten display text, is a
+     separate cluster and still ad-hoc.) */
+  --tracking-eyebrow: 0.08em;
 }
