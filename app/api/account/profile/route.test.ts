@@ -54,4 +54,21 @@ describe("PATCH /api/account/profile", () => {
     expect(res.status).toBe(401);
     expect(updateUserName).not.toHaveBeenCalled();
   });
+
+  it("answers invalid_name as a code, not pt-BR prose", async () => {
+    const res = await PATCH(req({ name: "   " }));
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({
+      status: "error",
+      error: "invalid_name",
+    });
+  });
+
+  it("answers bad_body as a code when the body is not JSON", async () => {
+    const res = await PATCH(
+      new Request("http://test", { method: "PATCH", body: "not json" }),
+    );
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ status: "error", error: "bad_body" });
+  });
 });

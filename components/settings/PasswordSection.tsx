@@ -42,7 +42,7 @@ export function PasswordSection() {
       setConfirm("");
     } else {
       setStatus("error");
-      setError(result.error ?? t("tooShortError"));
+      setError(result.error ? t(`errors.${result.error}`) : t("tooShortError"));
     }
   }
 

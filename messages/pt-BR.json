@@ -403,7 +403,11 @@
     "saveButton": "Salvar",
     "saveSuccess": "Perfil atualizado.",
     "saveError": "Não foi possível salvar. Tente novamente.",
-    "nameRequired": "Nome obrigatório."
+    "nameRequired": "Nome obrigatório.",
+    "errors": {
+      "bad_body": "Não foi possível salvar. Tente novamente.",
+      "invalid_name": "Nome obrigatório."
+    }
   },
   "PasswordSection": {
     "heading": "Alterar senha",
@@ -413,7 +417,13 @@
     "submitButton": "Alterar senha",
     "mismatchError": "As senhas não coincidem.",
     "tooShortError": "A nova senha deve ter pelo menos 8 caracteres.",
-    "successMessage": "Senha alterada com sucesso."
+    "successMessage": "Senha alterada com sucesso.",
+    "errors": {
+      "bad_body": "Não foi possível alterar a senha. Tente novamente.",
+      "account_not_found": "Não foi possível alterar a senha. Tente novamente.",
+      "wrong_password": "Senha atual incorreta.",
+      "weak_password": "A nova senha deve ter pelo menos 8 caracteres."
+    }
   },
   "DangerZoneSection": {
     "heading": "Excluir conta",
@@ -421,7 +431,12 @@
     "emailConfirmLabel": "Digite {email} para confirmar",
     "passwordLabel": "Senha",
     "submitButton": "Excluir conta",
-    "genericError": "Não foi possível excluir a conta. Tente novamente."
+    "genericError": "Não foi possível excluir a conta. Tente novamente.",
+    "errors": {
+      "bad_body": "Não foi possível excluir a conta. Tente novamente.",
+      "account_not_found": "Não foi possível excluir a conta. Tente novamente.",
+      "wrong_password": "Senha incorreta."
+    }
   },
   "SettingsShell": {
     "title": "Configurações"

@@ -9,6 +9,7 @@ import {
 } from "./types";
 import type { SignupErrorCode } from "./account/signup";
 import type { VerifyErrorCode, ResendErrorCode } from "./auth/verification";
+import type { SharedErrorCode } from "./api/errors";
 
 export type GenerateResult =
   | {
@@ -52,9 +53,12 @@ export interface AccountSummary {
   recentUsage: RecentUsageEntry[];
 }
 
+export type AccountErrorCode =
+  SharedErrorCode | "invalid_name" | "wrong_password" | "weak_password";
+
 export interface AccountActionResult {
   status: "ok" | "error";
-  error?: string;
+  error?: AccountErrorCode;
 }
 
 export interface UpdateProfileResult extends AccountActionResult {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth/guard";
+import { apiError, ERROR_STATUS } from "@/lib/api/errors";
 import { verifyForDeletion } from "@/lib/account/settings";
 import { verifyPassword } from "@/lib/auth/hash";
 import { getUserById, deleteUser } from "@/lib/db/users";
@@ -12,18 +13,12 @@ export async function DELETE(request: Request) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json(
-      { status: "error", error: "Corpo inválido." },
-      { status: 400 },
-    );
+    return apiError("bad_body", ERROR_STATUS.bad_body);
   }
 
   const user = await getUserById(gate.id);
   if (!user) {
-    return NextResponse.json(
-      { status: "error", error: "Conta não encontrada." },
-      { status: 404 },
-    );
+    return apiError("account_not_found", ERROR_STATUS.account_not_found);
   }
 
   const ok = await verifyForDeletion(
@@ -31,12 +26,7 @@ export async function DELETE(request: Request) {
     body.password,
     user.passwordHash,
   );
-  if (!ok) {
-    return NextResponse.json(
-      { status: "error", error: "Senha incorreta." },
-      { status: 400 },
-    );
-  }
+  if (!ok) return apiError("wrong_password", 400);
 
   await deleteUser(gate.id);
   return NextResponse.json({ status: "ok" });

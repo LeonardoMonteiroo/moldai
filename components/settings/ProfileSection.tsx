@@ -40,7 +40,7 @@ export function ProfileSection({
       setStatus("ok");
     } else {
       setStatus("error");
-      setError(result.error ?? t("saveError"));
+      setError(result.error ? t(`errors.${result.error}`) : t("saveError"));
     }
   }
 

@@ -31,7 +31,7 @@ export function DangerZoneSection({ userEmail }: { userEmail: string }) {
       await signOut({ callbackUrl: "/login" });
     } else {
       setStatus("error");
-      setError(result.error ?? t("genericError"));
+      setError(result.error ? t(`errors.${result.error}`) : t("genericError"));
     }
   }
 
