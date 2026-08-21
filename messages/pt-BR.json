@@ -102,7 +102,11 @@
     "subscribeDetail": "500 créditos/mês · renova todo dia 1",
     "subscribeCta": "Assinar ›",
     "renewsNote": "Seus créditos grátis renovam em {days} dias.",
-    "backButton": "Voltar ao molde"
+    "backButton": "Voltar ao molde",
+    "actions": {
+      "adjust": "Esse ajuste",
+      "graduate": "Essa graduação"
+    }
   },
   "ConflictInfoCard": {
     "sectionLabel": "Conflito",

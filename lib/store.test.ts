@@ -87,6 +87,21 @@ describe("store.sendMessage", () => {
   });
 });
 
+describe("store.graduateSizes", () => {
+  it("stashes the graduate action code on the paywall, not pt-BR prose", async () => {
+    vi.mocked(api.graduate).mockResolvedValue({
+      status: "insufficient_credits",
+      required: 3,
+      balance: 1,
+    });
+    useEditorStore.setState({ patternId: "p1" });
+
+    await useEditorStore.getState().graduateSizes(["P", "M"]);
+
+    expect(useEditorStore.getState().paywall.action).toBe("graduate");
+  });
+});
+
 describe("editor store — tool and measurements", () => {
   beforeEach(() => {
     useEditorStore.setState({ measurements: [], activeTool: "cursor" });

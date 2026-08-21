@@ -24,7 +24,7 @@ interface PaywallState {
   open: boolean;
   required: number;
   balance: number;
-  actionLabel: string;
+  action: "adjust" | "graduate" | null;
   retry: (() => void) | null;
 }
 
@@ -102,7 +102,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     open: false,
     required: 0,
     balance: 0,
-    actionLabel: "",
+    action: null,
     retry: null,
   },
 
@@ -160,7 +160,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
           open: true,
           required: result.required,
           balance: result.balance,
-          actionLabel: "esse ajuste",
+          action: "adjust",
           retry: () => get().sendMessage(message, opts),
         },
       }));
@@ -203,7 +203,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
           open: true,
           required: result.required,
           balance: result.balance,
-          actionLabel: "essa graduação",
+          action: "graduate",
           retry: () => get().graduateSizes(sizes),
         },
       });
@@ -230,7 +230,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         open: false,
         required: 0,
         balance: 0,
-        actionLabel: "",
+        action: null,
         retry: null,
       },
     });
@@ -243,7 +243,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         open: false,
         required: 0,
         balance: 0,
-        actionLabel: "",
+        action: null,
         retry: null,
       },
     }),

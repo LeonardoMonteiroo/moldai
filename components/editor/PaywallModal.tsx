@@ -22,9 +22,6 @@ export function PaywallModal() {
 
   if (!credits) return null;
 
-  const actionLabel =
-    paywall.actionLabel.charAt(0).toUpperCase() + paywall.actionLabel.slice(1);
-
   return (
     <Dialog
       open={paywall.open}
@@ -45,7 +42,7 @@ export function PaywallModal() {
           </DialogTitle>
           <DialogDescription>
             {t("description", {
-              action: actionLabel,
+              action: paywall.action ? t(`actions.${paywall.action}`) : "",
               required: paywall.required,
               balance: paywall.balance,
             })}
