@@ -10,6 +10,10 @@
         "--config",
         "${CLAUDE_PROJECT_DIR:-.}/dbhub.toml"
       ]
+    },
+    "shadcn": {
+      "command": "npx",
+      "args": ["-y", "shadcn@4.18.0", "mcp"]
     }
   }
 }
