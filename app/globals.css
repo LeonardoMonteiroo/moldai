@@ -26,7 +26,11 @@
   --color-amber-bg: #fdf3d8;
   --color-amber-border: #f0dfa8;
   --color-amber-text: #7a5f14;
-  --color-muted: #8b8779;
+  /* Darkened from #8b8779, which sat at 3.2–3.6:1 and failed WCAG AA on every
+     ground it is used against. #6e6b60 clears 4.5:1 on white, surface-alt,
+     paper, olive-tint and amber-bg alike, and stays lighter than --color-muted-2
+     so the two-level text hierarchy survives. */
+  --color-muted: #6e6b60;
   --color-muted-2: #5a564a;
   --color-placeholder: #a29e91;
   --color-disabled: #b8b3a4;
