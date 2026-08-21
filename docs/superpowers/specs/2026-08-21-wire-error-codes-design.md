@@ -52,7 +52,7 @@ Each is already established in this codebase. Nothing new is invented.
 
 `Corpo inválido.` is duplicated across **8** routes.
 
-Only three of these 21 are ever displayed — `ProfileSection.tsx:43`, `PasswordSection.tsx:45`, `DangerZoneSection.tsx:34`, each via `setError(result.error ?? t("fallback"))`. The remaining 18 are dead payload: no client reads `.error` from any other response.
+Only the **9** payloads from the three `/api/account/*` routes are ever displayed, and they reach the user through just three call sites — `ProfileSection.tsx:43`, `PasswordSection.tsx:45`, `DangerZoneSection.tsx:34` — each via `setError(result.error ?? t("fallback"))`. The other **12** are dead payload: no client reads `.error` from any other response.
 
 ### B · Server-produced chat text, persisted into the pattern blob (7)
 
