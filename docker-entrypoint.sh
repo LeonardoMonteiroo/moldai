@@ -16,12 +16,5 @@ fi
 echo "[entrypoint] applying migrations (prisma migrate deploy)..."
 npx prisma migrate deploy
 
-if [ "$NODE_ENV" != "production" ]; then
-  echo "[entrypoint] seed (idempotent)..."
-  npx prisma db seed || echo "[entrypoint] warning: seed failed, continuing anyway"
-else
-  echo "[entrypoint] production: skipping dev seed."
-fi
-
 echo "[entrypoint] starting: $*"
 exec "$@"

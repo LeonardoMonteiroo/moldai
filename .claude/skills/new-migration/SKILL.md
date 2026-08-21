@@ -1,6 +1,6 @@
 ---
 name: new-migration
-description: Create a Prisma migration in this repo — the naming checklist, the identifier-rename vs JSON-blob-shape decision, and the db:up / db:migrate / db:seed mechanics. User-invoked with /new-migration, since it writes to the database.
+description: Create a Prisma migration in this repo — the naming checklist, the identifier-rename vs JSON-blob-shape decision, and the db:up / db:migrate mechanics. User-invoked with /new-migration, since it writes to the database.
 disable-model-invocation: true
 ---
 
@@ -82,15 +82,13 @@ A PT→EN identifier rename was *also* a change to the persisted JSON keys, and 
 ```bash
 npm run db:up        # docker compose up -d db
 npm run db:migrate   # dotenv -e .env.local -- prisma migrate dev
-npm run db:seed      # only if seed data is affected
 ```
 
 - **Postgres:** host port **5433** (`localhost:5433`); **`db:5432`** from inside the Docker network. Wrong one = "connection refused."
 - **Why the `dotenv -e .env.local --` wrapper is mandatory:** `DATABASE_URL` lives in `.env.local`, which Prisma does not read on its own (it reads `.env`). Bare `npx prisma migrate dev` fails on a missing `DATABASE_URL` or silently targets the wrong database. Always go through the npm script.
 - `prisma migrate dev` prompts for a name, which becomes `prisma/migrations/<timestamp>_<name>/migration.sql`, applies it, and regenerates the client (`postinstall` also runs `prisma generate`).
 - **Write a header comment in the generated `migration.sql`.** Every existing one states what changes and whether data is preserved. Match that convention.
-- **Seed:** `prisma/seed.ts`, creating `dev@moldai.local` and `atelier@moldai.local`, password `moldai-dev`. It is wired through **`prisma.config.ts`** at the repo root — `defineConfig({ migrations: { seed: "tsx prisma/seed.ts" } })` — *not* through a `"prisma"` key in `package.json`. That key was the old location, is deprecated in Prisma 7, and was removed from this repo; if you see it reintroduced, that is a regression.
-- **Consequence of `prisma.config.ts`:** the CLI now prints *"Prisma config detected, skipping environment variable loading"* and no longer loads any `.env` itself, so the `dotenv -e .env.local --` wrapper is now load-bearing for **every** prisma invocation, not just a convenience. A bare `npx prisma validate` fails with `P1012 Environment variable not found: DATABASE_URL`; `npx dotenv -e .env.local -- prisma validate` passes.
+- **No seed.** `prisma/seed.ts` and its `prisma.config.ts` wiring were removed once self-service sign-up shipped — a fresh database starts empty; create an account via `/signup`.
 
 ## 4. Verify after
 

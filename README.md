@@ -17,7 +17,7 @@ npm run docker:up     # dev, hot reload — http://localhost:3000
 npm run docker:prod   # production image (next start)
 ```
 
-One command brings up the app and Postgres; the entrypoint applies migrations and seeds the dev accounts. Inside the container the app talks to Postgres at `db:5432`; secrets come from `.env.local` at runtime (never baked into the image).
+One command brings up the app and Postgres; the entrypoint applies migrations. Inside the container the app talks to Postgres at `db:5432`; secrets come from `.env.local` at runtime (never baked into the image).
 
 > After changing dependencies (`package.json`), recreate the anonymous `node_modules` volume: `docker compose down -v` (or `docker compose up --build --renew-anon-volumes`).
 
@@ -26,13 +26,12 @@ One command brings up the app and Postgres; the entrypoint applies migrations an
 ```bash
 npm run db:up        # bring up Postgres only (Docker), host port 5433
 npm run db:migrate   # apply Prisma migrations
-npm run db:seed      # seed dev accounts
 npm run dev          # app at http://localhost:3000
 ```
 
-## Login (seeded dev accounts)
+## Login
 
-`dev@moldai.local` / `moldai-dev`. Self-signup doesn't exist yet (shown as "em breve").
+Create an account at `/signup`, then confirm it via the verification link — in the Docker dev stack, that mail lands in Mailpit at `http://localhost:8025`.
 
 ## Tests and build
 

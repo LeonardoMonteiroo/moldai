@@ -16,7 +16,6 @@
     "docker:up": "docker compose up --build",
     "docker:prod": "docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build",
     "db:migrate": "dotenv -e .env.local -- prisma migrate dev",
-    "db:seed": "dotenv -e .env.local -- prisma db seed",
     "cron:renew": "dotenv -e .env.local -- tsx scripts/cron-renew.ts",
     "smoke": "node scripts/smoke-prod.mjs",
     "smoke:prod": "docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build && node scripts/smoke-prod.mjs",
