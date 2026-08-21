@@ -1191,7 +1191,7 @@ git commit -m "refactor(i18n): resolve the remaining lib display strings through
 - Modify: `lib/types.ts:94-100` (`Credits`)
 - Modify: `lib/api/compose.ts:5-12`
 - Modify: `components/shared/PageHeader.tsx:95`
-- Modify: `messages/pt-BR.json`
+- Does NOT touch `messages/pt-BR.json` — see Step 1, this task adds no catalog keys
 - Test: `lib/billing/wallet.test.ts`, `lib/api/compose.test.ts`, `lib/db/wallet.test.ts`, `components/shared/PageHeader.test.tsx`
 
 **Interfaces:**
