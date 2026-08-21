@@ -19,7 +19,7 @@ export function Sidebar({ onCreate }: { onCreate: (id: string) => void }) {
   return (
     <div className="border-border bg-surface flex w-[186px] flex-col border-r p-[14px]">
       <nav className="flex flex-col gap-1">
-        <span className="bg-olive-tint text-olive rounded-item px-[10px] py-[7px] text-[12.5px] font-medium">
+        <span className="bg-olive-tint text-olive rounded-item text-ui px-[10px] py-[7px] font-medium">
           {t("myPatternsLabel")}
         </span>
         <Button
@@ -30,13 +30,13 @@ export function Sidebar({ onCreate }: { onCreate: (id: string) => void }) {
         >
           {t("measurementsLabel")}
         </Button>
-        <span className="text-disabled rounded-item flex items-center justify-between px-[10px] py-[7px] text-[12.5px]">
+        <span className="text-disabled rounded-item text-ui flex items-center justify-between px-[10px] py-[7px]">
           {t("studioBasesLabel")}
           <Badge variant="soon">{t("comingSoonBadge")}</Badge>
         </span>
       </nav>
       <div className="flex-1" />
-      <div className="border-border rounded-card text-disabled mb-3 border border-dashed p-[10px] text-center text-[11px]">
+      <div className="border-border rounded-card text-disabled text-meta mb-3 border border-dashed p-[10px] text-center">
         {t("importLabel")}
       </div>
       <Button onClick={handleCreate}>{t("newPatternButton")}</Button>

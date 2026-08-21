@@ -35,12 +35,12 @@ export function SizeChartsShell({
         userEmail={userEmail}
       />
       {!ready && (
-        <div className="text-muted flex flex-1 items-center justify-center text-[13px]">
+        <div className="text-muted text-control flex flex-1 items-center justify-center">
           {t("loading")}
         </div>
       )}
       {ready && error && (
-        <div className="text-muted flex flex-1 items-center justify-center text-[13px]">
+        <div className="text-muted text-control flex flex-1 items-center justify-center">
           {t("loadError")}
         </div>
       )}

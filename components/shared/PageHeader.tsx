@@ -26,7 +26,7 @@ export function PageHeader({
 
   return (
     <div className="bg-surface border-border relative flex items-center gap-4 border-b px-[18px] py-3">
-      <span className="font-display text-title font-bold tracking-[-0.4px]">
+      <span className="font-display text-title tracking-wordmark font-bold">
         Mold<span className="text-olive">AI</span>
       </span>
       <Separator orientation="vertical" className="h-5" />
@@ -40,12 +40,12 @@ export function PageHeader({
         {t("backButton")}
       </Button>
       <div className="flex flex-col gap-px">
-        <span className="text-[13px] font-semibold">{title}</span>
-        {subtitle && <span className="text-muted text-[11px]">{subtitle}</span>}
+        <span className="text-control font-semibold">{title}</span>
+        {subtitle && <span className="text-muted text-meta">{subtitle}</span>}
       </div>
       <div className="flex-1" />
       <div className="flex w-[168px] flex-col gap-[5px]">
-        <div className="text-muted flex justify-between text-[11px]">
+        <div className="text-muted text-meta flex justify-between">
           <span>
             {t("creditsLabel", {
               planLabel: credits.planLabel,

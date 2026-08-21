@@ -71,13 +71,13 @@ export default function SignupPage() {
   return (
     <div className="bg-paper flex min-h-screen items-center justify-center px-4">
       <div className="bg-surface border-border rounded-card shadow-card w-full max-w-[380px] border p-7">
-        <span className="font-display text-[22px] font-bold tracking-[-0.4px]">
+        <span className="font-display text-title tracking-wordmark font-bold">
           Mold<span className="text-olive">AI</span>
         </span>
         {sent ? (
           <div className="mt-3">
-            <h1 className="text-[15px] font-semibold">{t("sentHeading")}</h1>
-            <p className="text-muted-2 mt-2 text-[12px]">
+            <h1 className="text-body font-semibold">{t("sentHeading")}</h1>
+            <p className="text-muted-2 text-ui mt-2">
               {t.rich("sentBody", {
                 email,
                 b: (chunks) => (
@@ -85,12 +85,10 @@ export default function SignupPage() {
                 ),
               })}
             </p>
-            <p className="text-muted mt-3 text-[11px]">{t("sentHint")}</p>
-            {error && <p className="text-alert mt-3 text-[12px]">{error}</p>}
+            <p className="text-muted text-meta mt-3">{t("sentHint")}</p>
+            {error && <p className="text-alert text-ui mt-3">{error}</p>}
             {resent && (
-              <p className="text-olive-dark mt-3 text-[12px]">
-                {t("resendDone")}
-              </p>
+              <p className="text-olive-dark text-ui mt-3">{t("resendDone")}</p>
             )}
             <Button
               type="button"

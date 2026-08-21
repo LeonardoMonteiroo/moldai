@@ -37,7 +37,7 @@ export function DashboardTopbar({
 
   return (
     <div className="bg-surface border-border flex items-center gap-4 border-b px-[18px] py-3">
-      <span className="font-display text-title font-bold tracking-[-0.4px]">
+      <span className="font-display text-title tracking-wordmark font-bold">
         Mold<span className="text-olive">AI</span>
       </span>
       <div className="flex-1" />

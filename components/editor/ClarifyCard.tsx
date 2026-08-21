@@ -42,9 +42,7 @@ export function ClarifyCard({ questions }: { questions: ClarifyQuestion[] }) {
     <div className="bg-surface border-border flex max-w-[92%] flex-col gap-[14px] rounded-[12px_12px_12px_3px] border p-[13px]">
       {questions.map((q) => (
         <div key={q.id} className="flex flex-col gap-[7px]">
-          <span className="text-ink text-[12.5px] font-semibold">
-            {q.label}
-          </span>
+          <span className="text-ink text-ui font-semibold">{q.label}</span>
           <ToggleGroup
             type="single"
             variant="outline"

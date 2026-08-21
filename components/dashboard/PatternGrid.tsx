@@ -95,9 +95,9 @@ export function PatternGrid({ onOpen }: { onOpen: (id: string) => void }) {
             {filtered.map((p) => (
               <PatternCard key={p.id} pattern={p} onOpen={onOpen} />
             ))}
-            <div className="border-border rounded-card text-muted flex h-[168px] flex-col items-center justify-center gap-1 border border-dashed text-center text-[12px]">
+            <div className="border-border rounded-card text-muted text-ui flex h-[168px] flex-col items-center justify-center gap-1 border border-dashed text-center">
               <span>{t("importCardLabel")}</span>
-              <span className="bg-amber-bg border-amber-border text-amber-text rounded-pill border px-[7px] py-[2px] text-[10.5px] font-semibold">
+              <span className="bg-amber-bg border-amber-border text-amber-text rounded-pill text-tick border px-[7px] py-[2px] font-semibold">
                 {t("importComingSoonBadge")}
               </span>
             </div>

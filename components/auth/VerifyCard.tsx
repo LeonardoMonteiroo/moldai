@@ -26,11 +26,11 @@ export default function VerifyCard({ token }: { token: string }) {
   if (status === "done") {
     return (
       <div className="mt-3">
-        <p className="text-[13px] font-semibold">{t("successHeading")}</p>
-        <p className="text-muted-2 mt-1 text-[12px]">{t("successBody")}</p>
+        <p className="text-control font-semibold">{t("successHeading")}</p>
+        <p className="text-muted-2 text-ui mt-1">{t("successBody")}</p>
         <Link
           href="/login"
-          className="rounded-btn bg-olive hover:bg-olive-dark mt-4 inline-block px-4 py-2 text-[13px] font-semibold text-white transition-colors"
+          className="rounded-btn bg-olive hover:bg-olive-dark text-control mt-4 inline-block px-4 py-2 font-semibold text-white transition-colors"
         >
           {t("loginLink")}
         </Link>
@@ -40,8 +40,8 @@ export default function VerifyCard({ token }: { token: string }) {
 
   return (
     <div className="mt-3">
-      <p className="text-muted-2 text-[12px]">{t("intro")}</p>
-      {error && <p className="text-alert mt-3 text-[12px]">{error}</p>}
+      <p className="text-muted-2 text-ui">{t("intro")}</p>
+      {error && <p className="text-alert text-ui mt-3">{error}</p>}
       <Button
         type="button"
         onClick={onConfirm}

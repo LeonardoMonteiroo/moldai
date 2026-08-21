@@ -13,10 +13,8 @@ export function GeneratingOverlay({
 
   return (
     <div className="bg-surface border-border flex items-center gap-[10px] border-b px-4 py-[11px]">
-      <span className="text-muted-2 text-[12px]">
-        {t("steps.progress" + n)}
-      </span>
-      <span className="text-muted-2 text-[12px]">
+      <span className="text-muted-2 text-ui">{t("steps.progress" + n)}</span>
+      <span className="text-muted-2 text-ui">
         {t("steps.stepLabel", { n, stage: t("steps.stage" + n) })}
       </span>
       <div className="flex-1" />

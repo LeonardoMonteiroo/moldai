@@ -36,11 +36,11 @@ export function ChatPanel() {
   return (
     <div className="bg-surface border-border flex min-h-0 w-[312px] shrink-0 flex-col border-r">
       <div className="border-line flex items-center gap-2 border-b px-4 py-[13px]">
-        <span className="text-muted text-[11px] font-semibold tracking-[.8px] uppercase">
+        <span className="text-muted text-meta tracking-eyebrow font-semibold uppercase">
           {t("title")}
         </span>
         <div className="flex-1" />
-        <span className="text-muted text-[11px]">{t("subtitle")}</span>
+        <span className="text-muted text-meta">{t("subtitle")}</span>
       </div>
 
       <ScrollArea viewportRef={listRef} className="min-h-0 flex-1">
@@ -61,7 +61,7 @@ export function ChatPanel() {
             />
           )}
           {generationStatus === "error" && (
-            <div className="bg-amber-bg border-amber-border text-amber-text max-w-[92%] rounded-[12px_12px_12px_3px] border px-[13px] py-[10px] text-[13px] leading-[1.45]">
+            <div className="bg-amber-bg border-amber-border text-amber-text text-control max-w-[92%] rounded-[12px_12px_12px_3px] border px-[13px] py-[10px] leading-[1.45]">
               {t("generationError")}
             </div>
           )}
@@ -71,7 +71,7 @@ export function ChatPanel() {
       <div className="border-line flex flex-col gap-[10px] border-t px-4 py-[14px]">
         {isGenerating ? (
           <>
-            <div className="border-disabled-border rounded-item text-muted-2 bg-surface-alt border border-dashed p-2 text-[12.5px]">
+            <div className="border-disabled-border rounded-item text-muted-2 bg-surface-alt text-ui border border-dashed p-2">
               {tSteps("steps.stepLabel", {
                 n: generationStepIndex + 1,
                 stage: tSteps("steps.stage" + (generationStepIndex + 1)),
@@ -86,11 +86,11 @@ export function ChatPanel() {
                 className="bg-track mt-[7px] h-[6px] [&>[data-slot=progress-indicator]]:animate-pulse"
               />
             </div>
-            <span className="text-muted text-[11px]">
+            <span className="text-muted text-meta">
               {t("generatingCost", { cost: COSTS.adjust })}
             </span>
             <div className="flex items-center gap-[10px]">
-              <div className="bg-disabled-border text-disabled rounded-item flex-1 py-[11px] text-center text-[13px] font-semibold">
+              <div className="bg-disabled-border text-disabled rounded-item text-control flex-1 py-[11px] text-center font-semibold">
                 {t("generateButton")}
               </div>
               <Button

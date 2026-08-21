@@ -125,7 +125,12 @@ body {
 
   /* One named value for the 3 ad-hoc positive trackings on uppercase labels
      (.8px x7, .6px x3, .5px x1). 0.08em lands on .84px at text-tick, matching
-     the dominant .8px. (tracking-[-0.4px], used x6 to tighten display text, is a
-     separate cluster and still ad-hoc.) */
+     the dominant .8px — and being relative, it now tracks the step it is used
+     at instead of pinning one absolute value across three sizes. */
   --tracking-eyebrow: 0.08em;
+
+  /* The other cluster: display text tightened by -0.4px, all 5 uses the same
+     one element — the MoldAI wordmark, in the 3 auth pages and the 2 headers.
+     Named after what it is, since nothing else should reach for it. */
+  --tracking-wordmark: -0.4px;
 }

@@ -111,7 +111,7 @@ export function SizeChartTable() {
     <div className="flex flex-1 flex-col gap-3">
       <div className="flex flex-wrap items-center gap-[10px]">
         {readOnly ? (
-          <span className="font-display text-[16px] font-semibold">
+          <span className="font-display text-body font-semibold">
             {draft.name}
           </span>
         ) : (
@@ -170,13 +170,11 @@ export function SizeChartTable() {
       </div>
 
       {readOnly && (
-        <span className="text-muted text-[11.5px]">
-          {t("systemReadOnlyNote")}
-        </span>
+        <span className="text-muted text-meta">{t("systemReadOnlyNote")}</span>
       )}
 
       <div className="border-border rounded-card bg-surface overflow-x-auto border">
-        <div className="bg-surface-alt border-border text-muted flex border-b px-[14px] py-[10px] text-[11px] font-semibold tracking-[.6px] uppercase">
+        <div className="bg-surface-alt border-border text-muted text-meta tracking-eyebrow flex border-b px-[14px] py-[10px] font-semibold uppercase">
           <span className="flex-[2]">{t("measurementColumnLabel")}</span>
           {draft.sizes.map((size) => (
             <span
@@ -202,7 +200,7 @@ export function SizeChartTable() {
           <div
             key={key}
             className={[
-              "flex items-center px-[14px] py-[9px] text-[12.5px]",
+              "text-ui flex items-center px-[14px] py-[9px]",
               i < MEASUREMENT_KEYS.length - 1 ? "border-line border-b" : "",
             ].join(" ")}
           >
@@ -215,7 +213,7 @@ export function SizeChartTable() {
                 step="0.1"
                 value={draft.progressionRule[key] ?? 0}
                 onChange={(e) => setRule(key, Number(e.target.value))}
-                className="border-border rounded-btn ml-auto w-[70px] border px-2 py-1 text-right text-[12px]"
+                className="border-border rounded-btn text-ui ml-auto w-[70px] border px-2 py-1 text-right"
               />
             ) : (
               draft.sizes.map((size, idx) => {
@@ -250,7 +248,7 @@ export function SizeChartTable() {
                         setCell(size, key, Number(e.target.value))
                       }
                       className={[
-                        "w-[56px] rounded-[6px] border px-1 py-[3px] text-right text-[12px]",
+                        "text-ui w-[56px] rounded-[6px] border px-1 py-[3px] text-right",
                         isBase
                           ? "border-olive-border bg-olive-tint font-semibold"
                           : "border-transparent bg-transparent",
@@ -318,13 +316,13 @@ export function SizeChartTable() {
 
       <div className="flex gap-3">
         <div className="border-border rounded-card bg-surface flex-1 border p-[14px]">
-          <span className="text-muted text-[11px] font-semibold tracking-[.8px] uppercase">
+          <span className="text-muted text-meta tracking-eyebrow font-semibold uppercase">
             {t("progressionTitle")}
           </span>
           <div className="mt-2 flex flex-col gap-[6px]">
             {MEASUREMENT_KEYS.filter((k) => draft.progressionRule[k]).map(
               (key) => (
-                <div key={key} className="flex justify-between text-[12.5px]">
+                <div key={key} className="text-ui flex justify-between">
                   <span className="text-muted">{t(`measurement.${key}`)}</span>
                   <span className="font-semibold">
                     {draft.progressionRule[key]} cm

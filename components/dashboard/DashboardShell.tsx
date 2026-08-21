@@ -27,7 +27,7 @@ export function DashboardShell({ userEmail }: { userEmail: string }) {
 
   if (!ready) {
     return (
-      <div className="text-muted flex flex-1 items-center justify-center text-[13px]">
+      <div className="text-muted text-control flex flex-1 items-center justify-center">
         {t("loading")}
       </div>
     );
@@ -35,7 +35,7 @@ export function DashboardShell({ userEmail }: { userEmail: string }) {
 
   if (error) {
     return (
-      <div className="text-alert flex flex-1 items-center justify-center text-[13px]">
+      <div className="text-alert text-control flex flex-1 items-center justify-center">
         {t("loadError")}
       </div>
     );

@@ -31,15 +31,15 @@ export function CutPlanTab({ pattern }: { pattern: Pattern }) {
     <ScrollArea fill className="min-h-0 flex-1">
       <div className="flex min-h-full flex-col gap-4 p-[22px]">
         <div className="flex items-baseline gap-2">
-          <span className="font-display text-[19px] font-semibold">
+          <span className="font-display text-title font-semibold">
             {t("title")}
           </span>
-          <span className="text-muted text-[12px]">{pattern.name}</span>
+          <span className="text-muted text-ui">{pattern.name}</span>
         </div>
 
         {!plan ? (
           <div className="border-pattern-guide rounded-card bg-surface-alt flex min-h-[200px] flex-1 items-center justify-center border border-dashed">
-            <span className="text-muted text-[12.5px]">{t("emptyState")}</span>
+            <span className="text-muted text-ui">{t("emptyState")}</span>
           </div>
         ) : (
           <>
@@ -87,7 +87,7 @@ export function CutPlanTab({ pattern }: { pattern: Pattern }) {
             {plan.overflow && (
               <span
                 role="alert"
-                className="text-alert bg-amber-bg border-amber-border rounded-item border px-[10px] py-[6px] text-[11.5px]"
+                className="text-alert bg-amber-bg border-amber-border rounded-item text-meta border px-[10px] py-[6px]"
               >
                 {t("overflowWarning")}
               </span>
@@ -139,7 +139,7 @@ export function CutPlanTab({ pattern }: { pattern: Pattern }) {
               </svg>
             </div>
 
-            <p className="text-muted text-[10.5px] leading-snug">
+            <p className="text-muted text-tick leading-snug">
               {t.rich("layoutNote", {
                 em: (chunks) => (
                   <span className="text-olive font-semibold">{chunks}</span>
@@ -164,11 +164,11 @@ function Metric({
 }) {
   return (
     <div className="border-border rounded-card bg-surface flex min-w-[150px] flex-col gap-1 border p-[14px]">
-      <span className="text-muted text-[11px] font-semibold tracking-[.8px] uppercase">
+      <span className="text-muted text-meta tracking-eyebrow font-semibold uppercase">
         {label}
       </span>
-      <span className="font-display text-[19px] font-semibold">{value}</span>
-      <span className="text-muted text-[10.5px]">{hint}</span>
+      <span className="font-display text-title font-semibold">{value}</span>
+      <span className="text-muted text-tick">{hint}</span>
     </div>
   );
 }

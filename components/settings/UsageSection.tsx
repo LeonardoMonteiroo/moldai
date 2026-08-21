@@ -58,15 +58,13 @@ export function UsageSection({
   return (
     <div className="flex flex-col gap-4">
       <section className="bg-surface border-border rounded-card flex flex-col gap-3 border p-[18px]">
-        <h2 className="font-display text-[16px] font-semibold">
-          {t("heading")}
-        </h2>
+        <h2 className="font-display text-body font-semibold">{t("heading")}</h2>
         <div className="flex items-end gap-4">
           <div className="flex flex-col gap-1">
-            <span className="font-display text-[26px] font-semibold">
+            <span className="font-display text-display font-semibold">
               {balance}
             </span>
-            <span className="text-muted text-[11.5px]">
+            <span className="text-muted text-meta">
               {t("outOfTotal", {
                 total: credits.total,
                 days: credits.renewsInDays,
@@ -83,11 +81,11 @@ export function UsageSection({
         </div>
       </section>
       <section className="bg-surface border-border rounded-card flex flex-col gap-2 border p-[18px]">
-        <h2 className="font-display text-[16px] font-semibold">
+        <h2 className="font-display text-body font-semibold">
           {t("historyHeading")}
         </h2>
         {ledger.length === 0 ? (
-          <span className="text-muted text-[12px]">{t("empty")}</span>
+          <span className="text-muted text-ui">{t("empty")}</span>
         ) : (
           <ul className="flex flex-col gap-[6px]">
             {ledger.map((entry, i) => {
@@ -100,7 +98,7 @@ export function UsageSection({
               return (
                 <li
                   key={i}
-                  className="border-line flex items-center justify-between border-b py-[6px] text-[12px] last:border-b-0"
+                  className="border-line text-ui flex items-center justify-between border-b py-[6px] last:border-b-0"
                 >
                   <span>
                     {t(TYPE_KEY[entry.type])}

@@ -25,21 +25,21 @@ export function PlanSection({ credits }: { credits: Credits }) {
               }
             >
               <div className="flex items-center justify-between">
-                <span className="text-[13px] font-semibold">
+                <span className="text-control font-semibold">
                   {t(`plans.${id}.name`)}
                 </span>
                 {isCurrent ? (
-                  <span className="bg-olive rounded-pill px-[9px] py-[3px] text-[10.5px] font-semibold text-white">
+                  <span className="bg-olive rounded-pill text-tick px-[9px] py-[3px] font-semibold text-white">
                     {t("currentBadge")}
                   </span>
                 ) : (
                   <Badge variant="soon">{t("comingSoonBadge")}</Badge>
                 )}
               </div>
-              <span className="font-display text-[21px] font-semibold">
+              <span className="font-display text-title font-semibold">
                 {t(`plans.${id}.price`)}
               </span>
-              <span className="text-muted text-[11.5px]">
+              <span className="text-muted text-meta">
                 {t(`plans.${id}.creditsLabel`)}
               </span>
             </div>
@@ -47,10 +47,10 @@ export function PlanSection({ credits }: { credits: Credits }) {
         })}
       </section>
       <section className="bg-surface border-border rounded-card flex flex-col gap-2 border p-[18px]">
-        <h2 className="font-display text-[16px] font-semibold">
+        <h2 className="font-display text-body font-semibold">
           {t("costsHeading")}
         </h2>
-        <ul className="text-muted-2 flex flex-col gap-1 text-[12px]">
+        <ul className="text-muted-2 text-ui flex flex-col gap-1">
           <li>{t("costGenerate", { cost: COSTS.generate })}</li>
           <li>{t("costAdjust", { cost: COSTS.adjust })}</li>
           <li>{t("costGraduate", { cost: COSTS.graduate })}</li>

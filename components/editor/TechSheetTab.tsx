@@ -27,10 +27,10 @@ export function TechSheetTab({ pattern }: { pattern: Pattern }) {
     <ScrollArea className="min-h-0 flex-1">
       <div className="p-[22px]">
         <div className="mb-1 flex items-baseline gap-2">
-          <span className="font-display text-[19px] font-semibold">
+          <span className="font-display text-title font-semibold">
             {t("title")}
           </span>
-          <span className="text-muted text-[12px]">
+          <span className="text-muted text-ui">
             {t("subtitle", {
               name: pattern.name,
               baseSize: pattern.baseSize,
@@ -41,7 +41,7 @@ export function TechSheetTab({ pattern }: { pattern: Pattern }) {
 
         {/* pattern summary */}
         {pattern.spec && (
-          <div className="mb-4 flex flex-wrap gap-2 text-[11.5px]">
+          <div className="text-meta mb-4 flex flex-wrap gap-2">
             <Chip
               label={t("chipType")}
               value={t("garmentType." + pattern.spec.type)}
@@ -75,10 +75,10 @@ export function TechSheetTab({ pattern }: { pattern: Pattern }) {
                 className="border-border rounded-card bg-surface overflow-hidden border"
               >
                 <div className="bg-surface-alt border-line flex items-baseline gap-2 border-b px-3 py-[9px]">
-                  <span className="text-[13px] font-semibold">
+                  <span className="text-control font-semibold">
                     {piece.name}
                   </span>
-                  <span className="text-muted text-[12px]">{piece.qty}×</span>
+                  <span className="text-muted text-ui">{piece.qty}×</span>
                 </div>
                 {detailRows.length > 0 ? (
                   <Table>
@@ -99,7 +99,7 @@ export function TechSheetTab({ pattern }: { pattern: Pattern }) {
                     </TableBody>
                   </Table>
                 ) : (
-                  <div className="text-muted px-3 py-[9px] text-[12px]">
+                  <div className="text-muted text-ui px-3 py-[9px]">
                     {t("noDetails")}
                   </div>
                 )}
@@ -115,7 +115,7 @@ export function TechSheetTab({ pattern }: { pattern: Pattern }) {
 function Chip({ label, value }: { label: string; value: string }) {
   return (
     <span className="border-border rounded-item bg-surface inline-flex items-baseline gap-[5px] border px-[9px] py-[4px]">
-      <span className="text-muted text-[10px] font-semibold tracking-[.5px] uppercase">
+      <span className="text-muted text-tick tracking-eyebrow font-semibold uppercase">
         {label}
       </span>
       <span className="font-medium">{value}</span>
