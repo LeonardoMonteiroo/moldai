@@ -17,7 +17,6 @@ export function EditorShell({
   patternId: string;
 }) {
   const t = useTranslations("EditorShell");
-  const tTopbar = useTranslations("Topbar");
   const ready = useEditorStore((s) => s.ready);
   const pattern = useEditorStore((s) => s.pattern);
   const credits = useEditorStore((s) => s.credits);
@@ -51,7 +50,7 @@ export function EditorShell({
       >
         <AppShell
           title={pattern.name}
-          subtitle={tTopbar("savedVersion", {
+          subtitle={t("savedVersion", {
             savedAgo: pattern.savedAgo,
             version: pattern.version,
           })}

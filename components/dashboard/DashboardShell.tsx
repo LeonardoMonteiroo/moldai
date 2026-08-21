@@ -33,7 +33,7 @@ export function DashboardShell({ userEmail }: { userEmail: string }) {
       title={t("title")}
       credits={credits}
       userEmail={userEmail}
-      sidebar={<Sidebar onCreate={openPattern} />}
+      sidebar={<Sidebar onCreate={openPattern} disabled={error} />}
     >
       {!ready && (
         <div className="text-muted text-control flex flex-1 items-center justify-center">

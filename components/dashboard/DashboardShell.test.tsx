@@ -97,6 +97,19 @@ describe("DashboardShell", () => {
       }),
     ).toBeInTheDocument();
   });
+
+  it("disables the create-pattern button while in the error state", async () => {
+    listPatterns.mockRejectedValue(new Error("boom"));
+    getAccountSummary.mockRejectedValue(new Error("boom"));
+
+    renderWithIntl(<DashboardShell userEmail="a@b.com" />);
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: ptBR.Sidebar.newPatternButton }),
+      ).toBeDisabled(),
+    );
+  });
 });
 
 describe("catalog after the header merge", () => {

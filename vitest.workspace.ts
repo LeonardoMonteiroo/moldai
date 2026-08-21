@@ -20,7 +20,7 @@ export default defineWorkspace([
     test: {
       name: "node",
       environment: "node",
-      include: ["lib/**/*.test.ts", "app/**/*.test.ts"],
+      include: ["lib/**/*.test.{ts,tsx}", "app/**/*.test.{ts,tsx}"],
     },
   },
   {
@@ -31,7 +31,7 @@ export default defineWorkspace([
     test: {
       name: "dom",
       environment: "jsdom",
-      include: ["components/**/*.test.tsx"],
+      include: ["components/**/*.test.{ts,tsx}"],
       setupFiles: ["./vitest.setup.ts"],
     },
   },

@@ -27,9 +27,6 @@
     "saveVersionTitle": "O molde é salvo automaticamente a cada geração. Versionamento manual chega em breve.",
     "saveVersionButton": "Salvar versão · em breve"
   },
-  "Topbar": {
-    "savedVersion": "{savedAgo} · v{version}"
-  },
   "ChatPanel": {
     "title": "Conversa",
     "subtitle": "MoldAI v2 Pro",
@@ -218,7 +215,8 @@
     "description": "A visualização 3D do molde vestido no corpo virtual está em desenvolvimento."
   },
   "EditorShell": {
-    "loading": "Carregando molde…"
+    "loading": "Carregando molde…",
+    "savedVersion": "{savedAgo} · v{version}"
   },
   "Login": {
     "heading": "Entrar",
