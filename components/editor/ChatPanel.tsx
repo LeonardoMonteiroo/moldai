@@ -8,6 +8,7 @@ import { AttachmentChips } from "./AttachmentChips";
 import { MessageInput } from "./MessageInput";
 import { ConflictActions } from "./ConflictActions";
 import { COSTS } from "@/lib/types";
+import { Bubble, BubbleContent } from "@/components/ui/bubble";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -22,12 +23,25 @@ export function ChatPanel() {
   const cancelGeneration = useEditorStore((s) => s.cancelGeneration);
   const resolveConflict = useEditorStore((s) => s.resolveConflict);
   const listRef = useRef<HTMLDivElement>(null);
+  // Was the reader already at the bottom? If they scrolled up to re-read an
+  // earlier turn, a generation finishing must not yank them back down.
+  const pinnedToBottom = useRef(true);
 
   useEffect(() => {
-    listRef.current?.scrollTo({
-      top: listRef.current.scrollHeight,
-      behavior: "smooth",
-    });
+    const el = listRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      pinnedToBottom.current =
+        el.scrollHeight - el.clientHeight - el.scrollTop < 40;
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el || !pinnedToBottom.current) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [chat.length, generationStatus]);
 
   const isGenerating = generationStatus === "generating";
@@ -61,9 +75,13 @@ export function ChatPanel() {
             />
           )}
           {generationStatus === "error" && (
-            <div className="bg-amber-bg border-amber-border text-amber-text text-control max-w-[92%] rounded-[12px_12px_12px_3px] border px-[13px] py-[10px] leading-[1.45]">
-              {t("generationError")}
-            </div>
+            // Was a hand-rolled copy of the conflict bubble's classes living
+            // outside ChatBubble; it is the same thing, so it is the same
+            // primitive. `role="alert"` because a failed generation appearing
+            // in the thread announced nothing at all before.
+            <Bubble variant="notice">
+              <BubbleContent role="alert">{t("generationError")}</BubbleContent>
+            </Bubble>
           )}
         </div>
       </ScrollArea>
