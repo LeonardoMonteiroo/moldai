@@ -111,7 +111,8 @@
     "fixButton": "Corrigir manga",
     "viewDiffButton": "Ver diferença",
     "ignoreButton": "Ignorar",
-    "freeNote": "Correções não consomem crédito."
+    "freeNote": "Correções não consomem crédito.",
+    "comingSoonBadge": "em breve"
   },
   "PieceDetailsPanel": {
     "sectionLabel": "Peça selecionada",
@@ -121,7 +122,8 @@
     "allGraduated": "Todos os tamanhos graduados",
     "graduateButton": "Graduar",
     "glossaryTitle": "Glossário de modelagem chega em breve",
-    "glossaryText": "Glossário: o que é pence? · em breve"
+    "glossaryText": "Glossário: o que é pence? · em breve",
+    "closeAriaLabel": "Fechar detalhes da peça"
   },
   "ClarifyCard": {
     "otherOption": "outro",

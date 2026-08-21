@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button";
+import { XIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { COSTS, Pattern, Piece } from "@/lib/types";
 import { formatList } from "@/lib/format";
@@ -25,12 +27,15 @@ export function PieceDetailsPanel({
           {t("sectionLabel")}
         </span>
         <div className="flex-1" />
-        <button
+        <Button
+          variant="ghost"
+          size="icon-xs"
+          aria-label={t("closeAriaLabel")}
           onClick={onClose}
-          className="text-placeholder hover:text-muted-2 text-[13px]"
+          className="text-placeholder hover:text-muted-2"
         >
-          ✕
-        </button>
+          <XIcon />
+        </Button>
       </div>
 
       <div className="font-display text-[16px] font-semibold">{piece.name}</div>
@@ -84,13 +89,13 @@ export function PieceDetailsPanel({
         </div>
       </div>
 
-      <button
+      <Button
+        variant="outline"
         disabled={gradable.length === 0}
         onClick={() => onGraduate(gradable)}
-        className="border-border rounded-btn hover:bg-surface-alt border py-[9px] text-center text-[12.5px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40"
       >
         {t("graduateButton")}
-      </button>
+      </Button>
 
       <div className="flex-1" />
       <span className="text-muted text-[11.5px]" title={t("glossaryTitle")}>

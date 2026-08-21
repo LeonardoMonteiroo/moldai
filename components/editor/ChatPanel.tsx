@@ -9,6 +9,7 @@ import { MessageInput } from "./MessageInput";
 import { ConflictActions } from "./ConflictActions";
 import { COSTS } from "@/lib/types";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 
 export function ChatPanel() {
   const t = useTranslations("ChatPanel");
@@ -90,12 +91,14 @@ export function ChatPanel() {
               <div className="bg-disabled-border text-disabled rounded-item flex-1 py-[11px] text-center text-[13px] font-semibold">
                 {t("generateButton")}
               </div>
-              <button
+              <Button
+                variant="outline"
+                size="chrome"
                 onClick={cancelGeneration}
-                className="border-border rounded-btn text-muted-2 hover:bg-surface-alt border px-3 py-2 text-[12px] transition-colors"
+                className="text-muted-2"
               >
                 {t("cancelButton")}
-              </button>
+              </Button>
             </div>
           </>
         ) : (

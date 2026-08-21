@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import type { Credits, LedgerEntryType, LedgerHistoryEntry } from "@/lib/types";
@@ -73,13 +74,9 @@ export function UsageSection({
             </span>
           </div>
           <div className="flex-1" />
-          <button
-            onClick={buyTopup}
-            disabled={buying}
-            className="bg-ink rounded-item px-[15px] py-[9px] text-[13px] font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-          >
+          <Button onClick={buyTopup} disabled={buying}>
             {t("topupButton")}
-          </button>
+          </Button>
         </div>
         <div className="bg-track h-[5px] overflow-hidden rounded-full">
           <div className="bg-olive h-full" style={{ width: `${pct}%` }} />

@@ -15,6 +15,7 @@ import { ConflictInfoCard } from "./ConflictInfoCard";
 import { TechSheetTab } from "./TechSheetTab";
 import { CutPlanTab } from "./CutPlanTab";
 import { Proof3DTab } from "./Proof3DTab";
+import { Button } from "@/components/ui/button";
 import {
   Empty,
   EmptyDescription,
@@ -135,12 +136,14 @@ export function CanvasArea() {
           />
         )}
         {!isGenerating && hasPieces && measurements.length > 0 && (
-          <button
+          <Button
+            variant="outline"
+            size="chrome"
             onClick={clearMeasurements}
-            className="bg-surface border-border rounded-item text-muted-2 hover:bg-surface-alt shadow-card absolute bottom-5 left-5 h-[34px] border px-3 text-[12px] transition-colors"
+            className="text-muted-2 shadow-card absolute bottom-5 left-5"
           >
             {t("clearMeasurementsButton")}
-          </button>
+          </Button>
         )}
         {!isGenerating && conflict && <ConflictInfoCard conflict={conflict} />}
         {!isGenerating && !conflict && detailsPanelOpen && selectedPiece && (

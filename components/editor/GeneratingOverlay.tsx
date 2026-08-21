@@ -1,4 +1,5 @@
 import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/button";
 
 export function GeneratingOverlay({
   stepIndex,
@@ -19,12 +20,9 @@ export function GeneratingOverlay({
         {t("steps.stepLabel", { n, stage: t("steps.stage" + n) })}
       </span>
       <div className="flex-1" />
-      <button
-        onClick={onCancel}
-        className="rounded-btn border-border bg-surface hover:bg-surface-alt border px-[11px] py-[6px] text-[12px] font-medium transition-colors"
-      >
+      <Button variant="outline" size="chrome" onClick={onCancel}>
         {t("cancelButton")}
-      </button>
+      </Button>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useDashboardStore } from "@/lib/dashboardStore";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 export function Sidebar({ onCreate }: { onCreate: (id: string) => void }) {
   const t = useTranslations("Sidebar");
@@ -21,13 +22,14 @@ export function Sidebar({ onCreate }: { onCreate: (id: string) => void }) {
         <span className="bg-olive-tint text-olive rounded-item px-[10px] py-[7px] text-[12.5px] font-medium">
           {t("myPatternsLabel")}
         </span>
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="chrome"
           onClick={() => router.push("/size-charts")}
-          className="text-muted-2 hover:bg-surface-alt rounded-item flex items-center px-[10px] py-[7px] text-left text-[12.5px]"
+          className="text-muted-2 justify-start"
         >
           {t("measurementsLabel")}
-        </button>
+        </Button>
         <span className="text-disabled rounded-item flex items-center justify-between px-[10px] py-[7px] text-[12.5px]">
           {t("studioBasesLabel")}
           <Badge variant="soon">{t("comingSoonBadge")}</Badge>
@@ -37,12 +39,7 @@ export function Sidebar({ onCreate }: { onCreate: (id: string) => void }) {
       <div className="border-border rounded-card text-disabled mb-3 border border-dashed p-[10px] text-center text-[11px]">
         {t("importLabel")}
       </div>
-      <button
-        onClick={handleCreate}
-        className="bg-olive rounded-btn px-[13px] py-[9px] text-[12.5px] font-medium text-white transition-[filter] hover:brightness-[0.95]"
-      >
-        {t("newPatternButton")}
-      </button>
+      <Button onClick={handleCreate}>{t("newPatternButton")}</Button>
     </div>
   );
 }

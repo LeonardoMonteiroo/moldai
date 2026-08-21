@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { useTranslations } from "next-intl";
 import { useSizeChartsStore } from "@/lib/sizeChartsStore";
 
@@ -46,13 +47,7 @@ export function SizeChartLibrary() {
         {t("importLabel")}
       </div>
 
-      <button
-        type="button"
-        onClick={() => create()}
-        className="bg-ink rounded-btn px-[13px] py-[9px] text-center text-[12.5px] font-medium text-white transition-[filter] hover:brightness-[0.95]"
-      >
-        {t("newSizeChartButton")}
-      </button>
+      <Button onClick={() => create()}>{t("newSizeChartButton")}</Button>
     </div>
   );
 }

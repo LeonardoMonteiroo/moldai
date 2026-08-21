@@ -92,14 +92,15 @@ export default function SignupPage() {
                 {t("resendDone")}
               </p>
             )}
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={onResend}
               disabled={resending}
-              className="border-border rounded-btn hover:bg-surface-alt mt-4 border px-4 py-2 text-[13px] font-semibold transition-colors disabled:opacity-50"
+              className="mt-4"
             >
               {resending ? t("resendButtonLoading") : t("resendButton")}
-            </button>
+            </Button>
           </div>
         ) : (
           <>

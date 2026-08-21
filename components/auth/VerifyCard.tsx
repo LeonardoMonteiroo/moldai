@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { verifyEmail } from "@/lib/api-client";
+import { Button } from "@/components/ui/button";
 
 export default function VerifyCard({ token }: { token: string }) {
   const t = useTranslations("Verify");
@@ -41,14 +42,14 @@ export default function VerifyCard({ token }: { token: string }) {
     <div className="mt-3">
       <p className="text-muted-2 text-[12px]">{t("intro")}</p>
       {error && <p className="text-alert mt-3 text-[12px]">{error}</p>}
-      <button
+      <Button
         type="button"
         onClick={onConfirm}
         disabled={status === "loading"}
-        className="rounded-btn bg-olive hover:bg-olive-dark mt-4 px-4 py-2 text-[13px] font-semibold text-white transition-colors disabled:opacity-50"
+        className="mt-4"
       >
         {status === "loading" ? t("confirmButtonLoading") : t("confirmButton")}
-      </button>
+      </Button>
     </div>
   );
 }

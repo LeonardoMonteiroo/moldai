@@ -1,4 +1,6 @@
 import { useTranslations } from "next-intl";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 export function ConflictActions({
   onFix,
@@ -10,24 +12,22 @@ export function ConflictActions({
   const t = useTranslations("ConflictActions");
   return (
     <div className="-mt-1 flex flex-col gap-2">
-      <div className="flex flex-wrap gap-[6px]">
-        <button
-          onClick={onFix}
-          className="rounded-pill bg-ink px-[11px] py-[6px] text-[11.5px] font-semibold text-white transition-opacity hover:opacity-90"
-        >
+      <div className="flex flex-wrap items-center gap-[6px]">
+        <Button size="sm" onClick={onFix}>
           {t("fixButton")}
-        </button>
-        <button className="rounded-pill border-border text-muted-2 hover:bg-surface-alt border px-[11px] py-[6px] text-[11.5px] transition-colors">
+        </Button>
+        {/* "Ver diferença" had no handler at all: it looked live and silently did
+            nothing. Per the convention, an unbuilt capability is shown disabled
+            and badged rather than faked. */}
+        <Button size="sm" variant="outline" disabled>
           {t("viewDiffButton")}
-        </button>
-        <button
-          onClick={onIgnore}
-          className="rounded-pill border-border text-muted-2 hover:bg-surface-alt border px-[11px] py-[6px] text-[11.5px] transition-colors"
-        >
+        </Button>
+        <Badge variant="soon">{t("comingSoonBadge")}</Badge>
+        <Button size="sm" variant="outline" onClick={onIgnore}>
           {t("ignoreButton")}
-        </button>
+        </Button>
       </div>
-      <span className="text-muted text-[11.5px]">{t("freeNote")}</span>
+      <span className="text-muted text-meta">{t("freeNote")}</span>
     </div>
   );
 }

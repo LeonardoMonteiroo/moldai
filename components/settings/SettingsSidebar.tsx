@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { SETTINGS_SECTIONS } from "@/lib/settings/sections";
 import type { SettingsSection } from "@/lib/settings/sections";
+import { Button } from "@/components/ui/button";
 
 const LABEL_KEY: Record<SettingsSection, string> = {
   profile: "profileLabel",
@@ -20,17 +21,15 @@ export function SettingsSidebar({ active }: { active: SettingsSection }) {
   return (
     <div className="border-border bg-surface flex w-[186px] flex-col gap-1 border-r p-[14px]">
       {SETTINGS_SECTIONS.map((section) => (
-        <button
+        <Button
           key={section}
+          variant={section === active ? "soft" : "ghost"}
+          size="chrome"
           onClick={() => router.replace(`/settings?section=${section}`)}
-          className={
-            section === active
-              ? "bg-olive-tint text-olive rounded-item px-[10px] py-[7px] text-left text-[12.5px] font-medium"
-              : "hover:bg-surface-alt rounded-item px-[10px] py-[7px] text-left text-[12.5px]"
-          }
+          className="justify-start"
         >
           {t(LABEL_KEY[section])}
-        </button>
+        </Button>
       ))}
     </div>
   );

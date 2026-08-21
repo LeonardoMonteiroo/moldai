@@ -1,4 +1,6 @@
+import { MinusIcon, PlusIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/button";
 
 export function ZoomControls({
   scale,
@@ -14,27 +16,33 @@ export function ZoomControls({
   const t = useTranslations("ZoomControls");
   return (
     <div className="bg-surface border-border rounded-item shadow-card absolute right-5 bottom-5 flex items-center gap-1 border p-[7px]">
-      <button
-        title={t("zoomOutTitle")}
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        aria-label={t("zoomOutTitle")}
         onClick={onZoomOut}
-        className="text-muted-2 hover:bg-surface-alt flex h-[30px] w-[30px] items-center justify-center rounded-[7px] text-[16px] transition-colors"
+        className="text-muted-2"
       >
-        −
-      </button>
-      <button
-        title={t("fitTitle")}
+        <MinusIcon />
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        aria-label={t("fitTitle")}
         onClick={onFit}
-        className="text-muted-2 hover:bg-surface-alt flex h-[30px] min-w-[54px] items-center justify-center rounded-[7px] px-2 text-[12px] tabular-nums transition-colors"
+        className="text-muted-2 min-w-[54px] tabular-nums"
       >
         {Math.round(scale * 100)}%
-      </button>
-      <button
-        title={t("zoomInTitle")}
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        aria-label={t("zoomInTitle")}
         onClick={onZoomIn}
-        className="text-muted-2 hover:bg-surface-alt flex h-[30px] w-[30px] items-center justify-center rounded-[7px] text-[16px] transition-colors"
+        className="text-muted-2"
       >
-        +
-      </button>
+        <PlusIcon />
+      </Button>
     </div>
   );
 }

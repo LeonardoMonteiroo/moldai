@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { XIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSizeChartsStore } from "@/lib/sizeChartsStore";
 import { resolveSizeChartSize } from "@/lib/sizeCharts/compute";
@@ -142,29 +143,29 @@ export function SizeChartTable() {
         </Select>
         <div className="flex-1" />
         {!readOnly && (
-          <button
-            type="button"
+          <Button
+            variant={editingRule ? "soft" : "outline"}
+            size="chrome"
             onClick={() => setEditingRule(!editingRule)}
-            className="border-border rounded-btn bg-surface hover:bg-surface-alt border px-[11px] py-[6px] text-[12px]"
           >
             {editingRule ? t("doneEditingRuleButton") : t("editRuleButton")}
-          </button>
+          </Button>
         )}
-        <button
-          type="button"
+        <Button
+          variant="outline"
+          size="chrome"
           onClick={() => duplicate(selectedId)}
-          className="border-border rounded-btn bg-surface hover:bg-surface-alt border px-[11px] py-[6px] text-[12px]"
         >
           {t("duplicateButton")}
-        </button>
+        </Button>
         {!readOnly && (
-          <button
-            type="button"
+          <Button
+            variant="destructiveOutline"
+            size="chrome"
             onClick={() => remove(selectedId)}
-            className="border-border rounded-btn bg-surface hover:bg-surface-alt text-alert border px-[11px] py-[6px] text-[12px]"
           >
             {t("deleteButton")}
-          </button>
+          </Button>
         )}
       </div>
 
@@ -184,14 +185,15 @@ export function SizeChartTable() {
             >
               {size}
               {!readOnly && draft.sizes.length > 1 && (
-                <button
-                  type="button"
-                  title={t("removeSizeTitle")}
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  aria-label={t("removeSizeTitle")}
                   onClick={() => removeSize(size)}
-                  className="text-placeholder hover:text-alert text-[10px]"
+                  className="text-placeholder hover:text-alert"
                 >
-                  ✕
-                </button>
+                  <XIcon />
+                </Button>
               )}
             </span>
           ))}
@@ -226,12 +228,18 @@ export function SizeChartTable() {
                     className="flex flex-1 items-center justify-end gap-1"
                   >
                     {overridden && !isBase && !readOnly && (
-                      <button
-                        type="button"
-                        title={t("resetOverrideTitle")}
+                      // The dot stays 5px, but a 5x5 hit target fails WCAG 2.2
+                      // AA 2.5.8 (24x24 minimum), so the button around it is
+                      // full size and the dot is what you see.
+                      <Button
+                        variant="ghost"
+                        size="icon-xs"
+                        aria-label={t("resetOverrideTitle")}
                         onClick={() => clearOverride(size, key)}
-                        className="bg-olive h-[5px] w-[5px] rounded-full"
-                      />
+                        className="hover:bg-transparent"
+                      >
+                        <span className="bg-olive size-[5px] rounded-full" />
+                      </Button>
                     )}
                     <input
                       type="number"
@@ -257,16 +265,17 @@ export function SizeChartTable() {
       </div>
 
       {!readOnly && (
-        <button
-          type="button"
+        <Button
+          variant="outline"
+          size="chrome"
           onClick={() => {
             setNewSize("");
             setAddingSize(true);
           }}
-          className="border-border rounded-btn bg-surface hover:bg-surface-alt text-ui self-start border px-[11px] py-[6px]"
+          className="self-start"
         >
           {t("addSizeButton")}
-        </button>
+        </Button>
       )}
 
       <Dialog open={addingSize} onOpenChange={setAddingSize}>
@@ -327,22 +336,13 @@ export function SizeChartTable() {
         </div>
         <div className="flex w-[220px] flex-col justify-end gap-2">
           {dirty && !readOnly && (
-            <button
-              type="button"
-              onClick={() => save()}
-              className="border-olive text-olive bg-olive-tint rounded-btn border py-[9px] text-center text-[12.5px] font-semibold"
-            >
+            <Button variant="accent" onClick={() => save()}>
               {t("saveButton")}
-            </button>
+            </Button>
           )}
-          <button
-            type="button"
-            disabled={isActive}
-            onClick={() => activate(selectedId)}
-            className="bg-olive rounded-btn py-[9px] text-center text-[12.5px] font-semibold text-white transition-[filter] hover:brightness-[0.95] disabled:cursor-not-allowed disabled:opacity-50"
-          >
+          <Button disabled={isActive} onClick={() => activate(selectedId)}>
             {isActive ? t("activeSizeChartNote") : t("useSizeChartButton")}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

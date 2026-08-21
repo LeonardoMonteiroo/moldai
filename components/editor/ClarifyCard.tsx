@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { ClarifyQuestion } from "@/lib/types";
 import { useEditorStore } from "@/lib/store";
+import { Button } from "@/components/ui/button";
 
 const OTHER = "__other__";
 
@@ -78,24 +79,12 @@ export function ClarifyCard({ questions }: { questions: ClarifyQuestion[] }) {
         </div>
       ))}
       <div className="flex items-center gap-[12px] pt-[2px]">
-        <button
-          disabled={!allAnswered}
-          onClick={gerar}
-          className={[
-            "rounded-btn px-[14px] py-[8px] text-[13px] font-semibold transition-colors",
-            allAnswered
-              ? "bg-olive hover:bg-olive-dark text-olive-foreground"
-              : "bg-disabled-border text-disabled cursor-not-allowed",
-          ].join(" ")}
-        >
+        <Button disabled={!allAnswered} onClick={gerar}>
           {t("generateButton")}
-        </button>
-        <button
-          onClick={gerarAssimMesmo}
-          className="text-muted hover:text-muted-2 text-[12px] underline underline-offset-2"
-        >
+        </Button>
+        <Button variant="link" size="sm" onClick={gerarAssimMesmo}>
           {t("generateAnywayButton")}
-        </button>
+        </Button>
       </div>
     </div>
   );
