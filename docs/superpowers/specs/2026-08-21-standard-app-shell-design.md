@@ -185,13 +185,52 @@ be rewritten rather than silently diverged from. The user approved all three.
 - Auth screens keep their centered-card frame; they gain only `Wordmark`.
 - No new abstraction beyond `AppShell` + `Wordmark` — no slot system, no header registry.
 
+## Test harness (added to this scope)
+
+The repo had no way to test a component: `vitest.config.ts` was `environment: "node"` with
+`include: ["lib/**/*.test.ts", "app/**/*.test.ts"]`. This work adds one.
+
+`vitest.config.ts` is replaced by `vitest.workspace.ts` with **two projects**, so the 20+
+existing pure-logic suites keep running exactly as they do today and never load the DOM
+setup file:
+
+- `node` — `lib/**/*.test.ts` + `app/**/*.test.ts`, no setup file. Unchanged.
+- `dom` — `components/**/*.test.tsx`, jsdom, `vitest.setup.ts`.
+
+`vitest.setup.ts` installs the jest-dom matchers, RTL auto-cleanup, and the browser APIs
+jsdom lacks that the Radix primitives in `components/ui/` call: `ResizeObserver`, pointer
+capture, `scrollIntoView`, `matchMedia`.
+
+`components/test-utils.tsx` exports `renderWithIntl`, which wraps the tree in
+`NextIntlClientProvider` with the **real** `messages/pt-BR.json` rather than a stub
+translator — so a component reading a key that does not exist fails the test instead of
+rendering the key name — plus the catalog itself as `ptBR`. Tests assert against `ptBR`
+values, never against pasted pt-BR literals: the repo's no-hardcoded-display-text rule
+applies to tests too, and it makes the suite catch catalog drift, which is exactly what
+the `DashboardTopbar` → `PageHeader` namespace merge needs.
+
+New devDependencies (installed with `--legacy-peer-deps`, as `Dockerfile` and CI do):
+`jsdom`, `@testing-library/react`, `@testing-library/dom`, `@testing-library/jest-dom`,
+`@testing-library/user-event`. Both `Dockerfile` and `.github/workflows/ci.yml` run
+`npm ci --legacy-peer-deps` **without** `--omit=dev`, so `next build`'s typecheck resolves
+the test files' imports.
+
+Coverage: `Wordmark`, `PageHeader` (back button opt-in, nullable credits, the account
+menu reaching all three settings sections and sign out) and `AppShell` (title, children,
+sidebar/footer slots) directly; `DashboardShell`'s header-and-nav-painted-before-the-fetch
+behavior. The dashboard's _resolved_ state renders `PatternGrid` (Radix `Select`) and is
+left to the manual pass.
+
 ## Verification
 
 - `npm run build` (the TypeScript check; bare `tsc` reports a spurious `app/layout.tsx`
   `LayoutProps` error under Next 16).
 - `npm run lint -- app lib components` (scoped: a repo-root run crawls nested worktrees).
-- `npm test` — the suite covers `lib/*` and `app/api/**`; no component tests exist, so it
-  is a regression guard here, not proof this work is correct.
+- `npm test` — now two Vitest projects (`vitest.workspace.ts`): the pre-existing `node`
+  suite over `lib/*` and `app/api/**`, plus a new `dom` project (jsdom + React Testing
+  Library) over `components/**/*.test.tsx`. The harness is added as part of this work
+  (see below) and covers `Wordmark`, `PageHeader` and `AppShell` directly, plus the
+  dashboard's header-stays-painted-during-loading behavior.
 - Manual pass on the host dev server (`npm run dev`, not the Docker dev stack) over all
   four screens plus the three auth screens: header identical everywhere, avatar menu
   reaches all three settings sections from each screen, `← Voltar` absent on `/` and
