@@ -393,15 +393,8 @@
     "importLabel": "Importar molde · Audaces · Molde.me · .dxf",
     "newPatternButton": "＋ Novo molde"
   },
-  "DashboardTopbar": {
-    "creditsPill": "{balance} créditos",
-    "accountMenuLabel": "Conta",
-    "usageMenuItem": "Créditos e uso",
-    "planMenuItem": "Plano e cobrança",
-    "preferencesMenuItem": "Preferências",
-    "signOutMenuItem": "Sair"
-  },
   "DashboardShell": {
+    "title": "Meus moldes",
     "loading": "Carregando moldes…",
     "loadError": "Não foi possível carregar seus moldes. Tente recarregar a página."
   },
