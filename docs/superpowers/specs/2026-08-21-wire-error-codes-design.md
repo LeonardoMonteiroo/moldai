@@ -169,4 +169,6 @@ Each commit leaves the suite green.
 - **The AI's `assistantMessage` and clarifying-question labels.** Model-produced, and `lib/ai/prompt.ts` deliberately instructs the model to mirror the user's own language. Not catalog text by design.
 - **`app/layout.tsx:22`'s metadata description.** Next route metadata is a Server Component export that legitimately sits outside next-intl; the convention hook already exempts it via `metadataRanges`.
 - **English `throw new Error(...)` messages** in `lib/ai/`. Developer-facing, never rendered.
-- **DXF file-content strings** (`lib/export/dxf.ts:92`, `dxf-aama.ts:45`) containing `tam` / `folga` / `camada`. These are bytes inside an exported CAD file, not UI, and changing them changes exported artifacts. Worth revisiting alongside the AAMA "Fase 2.5" work, not here.
+- **Exported-file metadata strings** (`lib/export/dxf.ts:92`, `dxf-aama.ts:45`, and `svg.ts:57` — the same `MoldAI · {name} · tam {size} · folga {n}cm` comment, character for character) containing `tam` / `folga` / `camada`. These are bytes inside an exported CAD/SVG artifact, not UI, and changing them changes the files users have already downloaded and imported into Audaces or Molde.me. Worth revisiting alongside the AAMA "Fase 2.5" work, not here.
+
+  `svg.ts:57` was added to this exclusion during execution, not before it: the original wording named only the two DXF files, so a reader could reasonably have concluded the SVG one had simply been missed. It has the identical rationale and is deliberately untouched.
