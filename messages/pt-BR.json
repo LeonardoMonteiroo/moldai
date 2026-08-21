@@ -302,7 +302,9 @@
     "deleteModalDescription": "Isso apaga o molde e toda a conversa, e não pode ser desfeito.",
     "deleteConfirmButton": "Excluir",
     "deleteCancelButton": "Cancelar",
-    "blankLabel": "em branco"
+    "blankLabel": "em branco",
+    "renameSaveButton": "Salvar",
+    "renameCancelButton": "Cancelar"
   },
   "CreditsCard": {
     "title": "Créditos do mês",
@@ -385,8 +387,8 @@
     "newPatternButton": "＋ Novo molde"
   },
   "DashboardTopbar": {
-    "creditsPill": "◆ {balance} créditos",
-    "accountMenuLabel": "◍ Conta ▾",
+    "creditsPill": "{balance} créditos",
+    "accountMenuLabel": "Conta",
     "usageMenuItem": "Créditos e uso",
     "planMenuItem": "Plano e cobrança",
     "preferencesMenuItem": "Preferências",

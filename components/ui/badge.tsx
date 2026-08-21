@@ -18,6 +18,9 @@ const badgeVariants = cva(
           "border-border text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         ghost: "[a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         accent: "bg-accent text-accent-foreground",
+        // amber attention pill — credits, warnings, plan notes (bg-amber-bg is used
+        // in 10 screens; this is the one place it should be spelled out)
+        notice: "bg-amber-bg border-amber-border text-amber-text",
         quiet: "text-placeholder",
         soon: "border-dashed border-olive-border bg-accent text-accent-foreground text-tick font-semibold tracking-eyebrow uppercase",
         link: "text-primary underline-offset-4 [a&]:hover:underline",

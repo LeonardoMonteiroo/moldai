@@ -19,6 +19,7 @@ const buttonVariants = cva(
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
+        destructiveOutline: "border-alert text-alert hover:bg-amber-bg border",
         // toggled-on chrome control (piece details, active filters)
         accent:
           "border-olive bg-accent text-accent-foreground hover:bg-olive-tint/70 border",

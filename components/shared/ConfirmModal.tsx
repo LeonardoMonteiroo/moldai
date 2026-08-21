@@ -1,5 +1,21 @@
 "use client";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+/**
+ * Destructive confirmation. Call sites mount it conditionally, so it opens as soon
+ * as it renders and reports every dismissal path — Escape, the overlay, Cancel —
+ * through onCancel.
+ */
 export function ConfirmModal({
   title,
   description,
@@ -16,33 +32,30 @@ export function ConfirmModal({
   onCancel: () => void;
 }) {
   return (
-    <div className="absolute inset-0 z-30 flex items-start justify-center pt-[52px]">
-      <button
-        type="button"
-        aria-label={cancelLabel}
-        onClick={onCancel}
-        className="bg-overlay absolute inset-0 cursor-default border-0"
-      />
-      <div className="bg-surface border-border rounded-modal shadow-modal relative flex w-[380px] flex-col gap-3 border p-[20px]">
-        <span className="font-display text-[17px] font-semibold">{title}</span>
-        <p className="text-muted-2 m-0 text-[13px] leading-[1.5]">
-          {description}
-        </p>
-        <div className="flex justify-end gap-2 pt-1">
-          <button
-            onClick={onCancel}
-            className="border-border rounded-btn text-muted-2 hover:bg-surface-alt border px-[13px] py-[7px] text-[12px] font-medium transition-colors"
-          >
+    <AlertDialog
+      open
+      onOpenChange={(next) => {
+        if (!next) onCancel();
+      }}
+    >
+      <AlertDialogContent size="sm">
+        <AlertDialogHeader>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogDescription>{description}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel size="sm" onClick={onCancel}>
             {cancelLabel}
-          </button>
-          <button
+          </AlertDialogCancel>
+          <AlertDialogAction
+            size="sm"
+            variant="destructiveOutline"
             onClick={onConfirm}
-            className="border-alert text-alert hover:bg-amber-bg rounded-btn border px-[13px] py-[7px] text-[12px] font-medium transition-colors"
           >
             {confirmLabel}
-          </button>
-        </div>
-      </div>
-    </div>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
