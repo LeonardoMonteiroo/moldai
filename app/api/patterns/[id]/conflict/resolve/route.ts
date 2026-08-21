@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
+import { readJsonObject } from "@/lib/api/body";
 import { getTranslations } from "next-intl/server";
 import { withPattern, patternNotFound } from "@/lib/db/pattern";
 import { loadWallet } from "@/lib/db/wallet";
 import { composeEditorState } from "@/lib/api/compose";
-import { apiError, ERROR_STATUS } from "@/lib/api/errors";
 import {
   addMessage,
   bumpVersion,
@@ -19,13 +19,9 @@ export async function POST(request: Request, { params }: Ctx) {
   if (gate instanceof NextResponse) return gate;
   const { id } = await params;
 
-  let action: "fix" | "ignore" = "ignore";
-  try {
-    const body = (await request.json()) as { action?: unknown };
-    if (body.action === "fix") action = "fix";
-  } catch {
-    return apiError("bad_body", ERROR_STATUS.bad_body);
-  }
+  const body = await readJsonObject(request);
+  if (body instanceof NextResponse) return body;
+  const action: "fix" | "ignore" = body.action === "fix" ? "fix" : "ignore";
 
   const t = await getTranslations("PatternData");
 

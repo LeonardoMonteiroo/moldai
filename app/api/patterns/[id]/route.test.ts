@@ -115,6 +115,17 @@ describe("/api/patterns/[id]", () => {
     expect(mockRename).not.toHaveBeenCalled();
   });
 
+  // "null" is valid JSON: it survived request.json() and threw on body.name.
+  it("PATCH 400s on a literal null body instead of throwing", async () => {
+    const res = await PATCH(
+      new Request("http://test", { method: "PATCH", body: "null" }),
+      ctx("m1"),
+    );
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe("bad_body");
+    expect(mockRename).not.toHaveBeenCalled();
+  });
+
   it("DELETE deletes and returns ok", async () => {
     mockDelete.mockResolvedValue(true);
     const res = await DELETE(new Request("http://test"), ctx("m1"));

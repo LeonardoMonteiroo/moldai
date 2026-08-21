@@ -8,7 +8,8 @@ import {
 } from "@/lib/db/pattern";
 import { loadWallet } from "@/lib/db/wallet";
 import { composeEditorState } from "@/lib/api/compose";
-import { apiError, ERROR_STATUS } from "@/lib/api/errors";
+import { apiError } from "@/lib/api/errors";
+import { readJsonObject } from "@/lib/api/body";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -32,12 +33,8 @@ export async function PATCH(request: Request, { params }: Ctx) {
   if (gate instanceof NextResponse) return gate;
   const { id } = await params;
 
-  let body: { name?: unknown };
-  try {
-    body = await request.json();
-  } catch {
-    return apiError("bad_body", ERROR_STATUS.bad_body);
-  }
+  const body = await readJsonObject(request);
+  if (body instanceof NextResponse) return body;
   const name = typeof body.name === "string" ? body.name.trim() : "";
   if (!name) return apiError("invalid_name", 400);
   const ok = await renamePattern(id, gate.id, name);

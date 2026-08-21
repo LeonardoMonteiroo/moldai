@@ -63,4 +63,12 @@ describe("DELETE /api/account", () => {
     expect(res.status).toBe(401);
     expect(deleteUser).not.toHaveBeenCalled();
   });
+
+  // "null" parses fine, so it threw on body.password.
+  it("400s on a literal null body without deleting anything", async () => {
+    const res = await DELETE(req(null));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe("bad_body");
+    expect(deleteUser).not.toHaveBeenCalled();
+  });
 });

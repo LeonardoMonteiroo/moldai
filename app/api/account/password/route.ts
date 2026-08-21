@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { readJsonObject } from "@/lib/api/body";
 import { requireUser } from "@/lib/auth/guard";
 import { apiError, ERROR_STATUS } from "@/lib/api/errors";
 import { changePassword } from "@/lib/account/settings";
@@ -17,12 +18,8 @@ export async function POST(request: Request) {
   const gate = await requireUser();
   if (gate instanceof NextResponse) return gate;
 
-  let body: { currentPassword?: unknown; newPassword?: unknown };
-  try {
-    body = await request.json();
-  } catch {
-    return apiError("bad_body", ERROR_STATUS.bad_body);
-  }
+  const body = await readJsonObject(request);
+  if (body instanceof NextResponse) return body;
 
   const user = await getUserById(gate.id);
   if (!user) {

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { readJsonObject } from "@/lib/api/body";
 import { getTranslations } from "next-intl/server";
 import { normalizeEmail } from "@/lib/account/signup";
 import { verifyPassword } from "@/lib/auth/hash";
@@ -39,15 +40,8 @@ export async function POST(request: Request) {
     return fail("rate_limited", { "Retry-After": String(gate.retryAfterSec) });
   }
 
-  let body: { email?: unknown; password?: unknown };
-  try {
-    body = await request.json();
-  } catch {
-    return fail("bad_body");
-  }
-  // `null` is valid JSON, so a body of "null" parses successfully and skips
-  // the catch above -- guard against that (and any other non-object) here.
-  if (typeof body !== "object" || body === null) return fail("bad_body");
+  const body = await readJsonObject(request);
+  if (body instanceof NextResponse) return fail("bad_body");
 
   const email = normalizeEmail(body.email);
   const password = typeof body.password === "string" ? body.password : "";

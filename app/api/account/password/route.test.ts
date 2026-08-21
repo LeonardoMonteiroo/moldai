@@ -83,4 +83,12 @@ describe("POST /api/account/password", () => {
     expect(res.status).toBe(401);
     expect(getUserById).not.toHaveBeenCalled();
   });
+
+  // "null" parses fine, so it threw on body.currentPassword.
+  it("400s on a literal null body without loading the user", async () => {
+    const res = await POST(req(null));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe("bad_body");
+    expect(getUserById).not.toHaveBeenCalled();
+  });
 });

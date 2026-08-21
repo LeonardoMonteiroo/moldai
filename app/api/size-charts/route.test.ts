@@ -91,4 +91,14 @@ describe("POST /api/size-charts", () => {
     const res = await POST(req({}));
     expect(res.status).toBe(401);
   });
+
+  // This route deliberately tolerates an unusable body (it just means "no
+  // sourceId", i.e. a blank chart) -- but "null" used to reach body.sourceId
+  // and throw a 500 rather than being tolerated like a malformed body was.
+  it("treats a literal null body as no sourceId rather than throwing", async () => {
+    vi.mocked(createSizeChart).mockResolvedValue({ id: "g5" } as never);
+    const res = await POST(req(null));
+    expect(res.status).toBe(200);
+    expect(createSizeChart).toHaveBeenCalledWith("u1", "copySuffix", undefined);
+  });
 });

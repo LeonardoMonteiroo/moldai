@@ -71,4 +71,12 @@ describe("PATCH /api/account/profile", () => {
     expect(res.status).toBe(400);
     expect(await res.json()).toEqual({ status: "error", error: "bad_body" });
   });
+
+  // "null" parses fine, so it slipped past the catch and threw on body.name.
+  it("answers bad_body for a literal null body instead of throwing", async () => {
+    const res = await PATCH(req(null));
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ status: "error", error: "bad_body" });
+    expect(updateUserName).not.toHaveBeenCalled();
+  });
 });

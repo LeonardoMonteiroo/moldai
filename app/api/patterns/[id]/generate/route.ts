@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { readJsonObject } from "@/lib/api/body";
 import { getTranslations } from "next-intl/server";
 import { withPatternAndWallet } from "@/lib/db/pattern-wallet";
 import { patternNotFound } from "@/lib/db/pattern";
@@ -12,7 +13,7 @@ import {
 import { debitWallet, refundWallet } from "@/lib/billing/wallet";
 import type { LedgerEntry } from "@/lib/billing/wallet";
 import { composeEditorState } from "@/lib/api/compose";
-import { apiError, ERROR_STATUS } from "@/lib/api/errors";
+import { apiError } from "@/lib/api/errors";
 import { COSTS } from "@/lib/types";
 import { proposeGarment } from "@/lib/ai";
 import { requireUser } from "@/lib/auth/guard";
@@ -24,12 +25,8 @@ export async function POST(request: Request, { params }: Ctx) {
   if (gate instanceof NextResponse) return gate;
   const { id } = await params;
 
-  let body: { message?: unknown; answering?: unknown };
-  try {
-    body = await request.json();
-  } catch {
-    return apiError("bad_body", ERROR_STATUS.bad_body);
-  }
+  const body = await readJsonObject(request);
+  if (body instanceof NextResponse) return body;
   const trimmed = typeof body.message === "string" ? body.message.trim() : "";
   if (!trimmed) return apiError("missing_message", 400);
   const answering = body.answering === true;

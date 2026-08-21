@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { readJsonObject } from "@/lib/api/body";
 import { getTranslations } from "next-intl/server";
 import { requireUser } from "@/lib/auth/guard";
 import {
@@ -22,14 +23,14 @@ export async function GET() {
 export async function POST(request: Request) {
   const gate = await requireUser();
   if (gate instanceof NextResponse) return gate;
-  let body: { sourceId?: unknown };
-  try {
-    body = await request.json();
-  } catch {
-    body = {};
-  }
+  // This route tolerates an unusable body -- it just means "no sourceId", i.e.
+  // create a blank chart -- so the guard result is folded into `sourceId`
+  // rather than returned. Only the crash on `null` is being fixed here.
+  const body = await readJsonObject(request);
   const sourceId =
-    typeof body.sourceId === "string" ? body.sourceId : undefined;
+    !(body instanceof NextResponse) && typeof body.sourceId === "string"
+      ? body.sourceId
+      : undefined;
   const t = await getTranslations("SizeCharts");
   const chart = await createSizeChart(gate.id, t("copySuffix"), sourceId);
   return NextResponse.json(chart);

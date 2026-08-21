@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { readJsonObject } from "@/lib/api/body";
 import { getTranslations } from "next-intl/server";
 import { createAccount, normalizeEmail } from "@/lib/account/signup";
 import type { SignupErrorCode } from "@/lib/account/signup";
@@ -32,15 +33,8 @@ function fail(error: SignupErrorCode, headers?: HeadersInit) {
 }
 
 export async function POST(request: Request) {
-  let body: { name?: unknown; email?: unknown; password?: unknown };
-  try {
-    body = await request.json();
-  } catch {
-    return fail("bad_body");
-  }
-  // `null` is valid JSON, so a body of "null" parses successfully and skips
-  // the catch above -- guard against that (and any other non-object) here.
-  if (typeof body !== "object" || body === null) return fail("bad_body");
+  const body = await readJsonObject(request);
+  if (body instanceof NextResponse) return fail("bad_body");
 
   // Consume before any real work: no row creation, no bcrypt, no mail.
   const byIp = await consume("signup", clientIp(request.headers));

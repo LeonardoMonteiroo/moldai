@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth/guard";
-import { apiError, ERROR_STATUS } from "@/lib/api/errors";
+import { apiError } from "@/lib/api/errors";
+import { readJsonObject } from "@/lib/api/body";
 import { validateName } from "@/lib/account/settings";
 import { updateUserName } from "@/lib/db/users";
 
@@ -8,12 +9,8 @@ export async function PATCH(request: Request) {
   const gate = await requireUser();
   if (gate instanceof NextResponse) return gate;
 
-  let body: { name?: unknown };
-  try {
-    body = await request.json();
-  } catch {
-    return apiError("bad_body", ERROR_STATUS.bad_body);
-  }
+  const body = await readJsonObject(request);
+  if (body instanceof NextResponse) return body;
 
   const name = validateName(body.name);
   if (!name) return apiError("invalid_name", 400);

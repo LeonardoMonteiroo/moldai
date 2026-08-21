@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { readJsonObject } from "@/lib/api/body";
 import { hashToken, type VerifyErrorCode } from "@/lib/auth/verification";
 import { consumeToken } from "@/lib/db/verification";
 import { consume } from "@/lib/rate-limit/consume";
@@ -25,15 +26,8 @@ export async function POST(request: Request) {
     return fail("rate_limited", { "Retry-After": String(gate.retryAfterSec) });
   }
 
-  let body: { token?: unknown };
-  try {
-    body = await request.json();
-  } catch {
-    return fail("bad_body");
-  }
-  // `null` is valid JSON, so a body of "null" parses successfully and skips
-  // the catch above -- guard against that (and any other non-object) here.
-  if (typeof body !== "object" || body === null) return fail("bad_body");
+  const body = await readJsonObject(request);
+  if (body instanceof NextResponse) return fail("bad_body");
 
   const token = typeof body.token === "string" ? body.token : "";
   if (!token) return fail("invalid_token");
