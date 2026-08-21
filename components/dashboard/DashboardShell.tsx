@@ -27,10 +27,10 @@ export function DashboardShell({ userEmail }: { userEmail: string }) {
 
   // Loading and error live inside the content region, not in place of the
   // whole screen: the header and nav are stable across the fetch. The
-  // dashboard passes no backHref — it IS "/".
+  // dashboard passes neither backHref nor title — it IS "/", and the sidebar
+  // already marks "Meus moldes" as the active section.
   return (
     <AppShell
-      title={t("title")}
       credits={credits}
       userEmail={userEmail}
       sidebar={<Sidebar onCreate={openPattern} disabled={error} />}

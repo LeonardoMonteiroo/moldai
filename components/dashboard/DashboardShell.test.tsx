@@ -40,17 +40,9 @@ describe("DashboardShell", () => {
 
     renderWithIntl(<DashboardShell userEmail="a@b.com" />);
 
-    // Header: title present, no back button (the dashboard IS "/"), no credits
-    // bar yet, but the account menu is already reachable.
-    // Scoped by selector: DashboardShell.title and Sidebar.myPatternsLabel are
-    // both "Meus moldes" (a genuine coincidence, not a bug), so a bare
-    // getByText matches both the header title and the sidebar's active nav
-    // item. Only the header title span carries font-semibold.
-    expect(
-      screen.getByText(ptBR.DashboardShell.title, {
-        selector: ".font-semibold",
-      }),
-    ).toBeInTheDocument();
+    // Header: no back button and no title (the dashboard IS "/", and its
+    // sidebar already names the section), no credits bar yet, but the account
+    // menu is already reachable.
     expect(
       screen.queryByRole("button", { name: ptBR.PageHeader.backButton }),
     ).not.toBeInTheDocument();
@@ -62,12 +54,10 @@ describe("DashboardShell", () => {
     ).toBeInTheDocument();
 
     // Nav column is painted too, and the loading message is in the content
-    // region rather than replacing the screen.
-    expect(
-      screen.getByText(ptBR.Sidebar.myPatternsLabel, {
-        selector: ".font-medium",
-      }),
-    ).toBeInTheDocument();
+    // region rather than replacing the screen. getAllByText pins the COUNT:
+    // "Meus moldes" must appear exactly once. A header title would make it two,
+    // which is the duplication this screen deliberately avoids.
+    expect(screen.getAllByText(ptBR.Sidebar.myPatternsLabel)).toHaveLength(1);
     expect(screen.getByText(ptBR.DashboardShell.loading)).toBeInTheDocument();
   });
 
@@ -82,20 +72,11 @@ describe("DashboardShell", () => {
         screen.getByText(ptBR.DashboardShell.loadError),
       ).toBeInTheDocument(),
     );
-    // Scoped by selector: DashboardShell.title and Sidebar.myPatternsLabel are
-    // both "Meus moldes" (a genuine coincidence, not a bug), so a bare
-    // getByText matches both the header title and the sidebar's active nav
-    // item. Only the header title span carries font-semibold.
+    // The header and nav survive the error — still exactly one "Meus moldes".
     expect(
-      screen.getByText(ptBR.DashboardShell.title, {
-        selector: ".font-semibold",
-      }),
+      screen.getByRole("button", { name: ptBR.PageHeader.accountMenuLabel }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText(ptBR.Sidebar.myPatternsLabel, {
-        selector: ".font-medium",
-      }),
-    ).toBeInTheDocument();
+    expect(screen.getAllByText(ptBR.Sidebar.myPatternsLabel)).toHaveLength(1);
   });
 
   it("disables the create-pattern button while in the error state", async () => {
