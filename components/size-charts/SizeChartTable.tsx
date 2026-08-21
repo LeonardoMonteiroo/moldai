@@ -5,7 +5,11 @@ import { XIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSizeChartsStore } from "@/lib/sizeChartsStore";
 import { resolveSizeChartSize } from "@/lib/sizeCharts/compute";
-import { MEASUREMENT_KEYS, type Measurements } from "@/lib/measurements";
+import {
+  MEASUREMENT_KEYS,
+  MEASUREMENT_RANGES,
+  type Measurements,
+} from "@/lib/measurements";
 import { BODY_TYPES, type BodyType } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,6 +45,12 @@ export function SizeChartTable() {
   const activate = useSizeChartsStore((s) => s.activate);
   const [addingSize, setAddingSize] = useState(false);
   const [newSize, setNewSize] = useState("");
+  // Lifted out of the cells so the message can sit under the table rather than
+  // being squeezed into a 56px column.
+  const [invalidHint, setInvalidHint] = useState<{
+    min: number;
+    max: number;
+  } | null>(null);
 
   if (!draft || !selectedId) return null;
   const isActive = charts.find((c) => c.id === selectedId)?.isActive ?? false;
@@ -225,20 +235,18 @@ export function SizeChartTable() {
                         <span className="bg-olive size-[5px] rounded-full" />
                       </Button>
                     )}
-                    <input
-                      type="number"
-                      step="0.1"
+                    <MeasurementCell
                       value={value}
+                      min={MEASUREMENT_RANGES[key].min}
+                      max={MEASUREMENT_RANGES[key].max}
                       disabled={readOnly}
-                      onChange={(e) =>
-                        setCell(size, key, Number(e.target.value))
-                      }
-                      className={[
-                        "text-ui w-[56px] rounded-[6px] border px-1 py-[3px] text-right",
+                      onCommit={(next) => setCell(size, key, next)}
+                      onInvalid={setInvalidHint}
+                      className={
                         isBase
                           ? "border-olive-border bg-olive-tint font-semibold"
-                          : "border-transparent bg-transparent",
-                      ].join(" ")}
+                          : "border-transparent bg-transparent"
+                      }
                     />
                   </span>
                 );
@@ -247,6 +255,15 @@ export function SizeChartTable() {
           </div>
         ))}
       </div>
+
+      {/* Says what the allowed range is, at the moment a value leaves it —
+          the old behaviour was to clamp silently and show a different number
+          than the one that was typed. */}
+      {invalidHint && (
+        <span role="status" className="text-alert text-meta">
+          {t("rangeHint", { min: invalidHint.min, max: invalidHint.max })}
+        </span>
+      )}
 
       {!readOnly && (
         <Button
@@ -330,5 +347,89 @@ export function SizeChartTable() {
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * One measurement cell.
+ *
+ * It holds the text you are typing in local state instead of writing every
+ * keystroke into the chart. That indirection is the whole point: the displayed
+ * value used to come from resolveSizeChartSize, which clamps to
+ * MEASUREMENT_RANGES, so each keystroke was written, clamped, and fed back into
+ * the input — clearing the bust cell and typing "96" actually produced 1406,
+ * and `Number("")` being 0 meant clearing a cell silently rewrote it to the
+ * range minimum.
+ *
+ * So: what you type is what you see; an out-of-range or empty value is flagged
+ * rather than substituted; and nothing reaches the chart until the edit is
+ * both finished and valid.
+ */
+function MeasurementCell({
+  value,
+  min,
+  max,
+  disabled,
+  onCommit,
+  onInvalid,
+  className,
+}: {
+  value: number;
+  min: number;
+  max: number;
+  disabled?: boolean;
+  onCommit: (value: number) => void;
+  onInvalid: (hint: { min: number; max: number } | null) => void;
+  className?: string;
+}) {
+  // null means "not editing" — show the stored value.
+  const [editing, setEditing] = useState<string | null>(null);
+  const parsed = editing === null ? value : Number(editing);
+  const invalid =
+    editing !== null &&
+    (editing.trim() === "" ||
+      !Number.isFinite(parsed) ||
+      parsed < min ||
+      parsed > max);
+
+  const finish = () => {
+    if (editing !== null && !invalid) onCommit(parsed);
+    setEditing(null);
+    onInvalid(null);
+  };
+
+  return (
+    <input
+      type="number"
+      step="0.1"
+      min={min}
+      max={max}
+      value={editing ?? value}
+      disabled={disabled}
+      aria-invalid={invalid || undefined}
+      onChange={(e) => {
+        setEditing(e.target.value);
+        const next = Number(e.target.value);
+        const bad =
+          e.target.value.trim() === "" ||
+          !Number.isFinite(next) ||
+          next < min ||
+          next > max;
+        onInvalid(bad ? { min, max } : null);
+      }}
+      onBlur={finish}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") finish();
+        if (e.key === "Escape") {
+          setEditing(null);
+          onInvalid(null);
+        }
+      }}
+      className={[
+        "text-ui w-[56px] rounded-[6px] border px-1 py-[3px] text-right",
+        "aria-invalid:border-alert aria-invalid:text-alert",
+        className ?? "",
+      ].join(" ")}
+    />
   );
 }

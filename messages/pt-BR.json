@@ -379,6 +379,7 @@
     "editRuleButton": "Editar regra de progressão",
     "doneEditingRuleButton": "Concluir edição da regra",
     "ruleHint": "cm por tamanho, a partir da base",
+    "rangeHint": "Valor fora do intervalo aceito — use entre {min} e {max} cm.",
     "measurementColumnLabel": "Medida (cm)",
     "resetOverrideTitle": "Resetar para a regra",
     "addSizeButton": "＋ tamanho",
