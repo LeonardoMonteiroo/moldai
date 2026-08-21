@@ -12,7 +12,7 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
     >
       <table
         data-slot="table"
-        className={cn("w-full caption-bottom text-sm", className)}
+        className={cn("text-ui w-full caption-bottom", className)}
         {...props}
       />
     </div>
@@ -44,7 +44,7 @@ function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
     <tfoot
       data-slot="table-footer"
       className={cn(
-        "bg-muted/50 border-t font-medium [&>tr]:last:border-b-0",
+        "bg-surface-alt border-t font-medium [&>tr]:last:border-b-0",
         className,
       )}
       {...props}
@@ -57,7 +57,11 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
     <tr
       data-slot="table-row"
       className={cn(
-        "hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors",
+        // shadcn means a *surface* by `muted`; here it is a text token (CLAUDE.md),
+        // so the row washes use `surface-alt`/`olive-tint`. The internal rule is
+        // `border-line`, a step lighter than the card border around it — the
+        // repo's outer-heavier / inner-lighter hierarchy.
+        "hover:bg-surface-alt has-aria-expanded:bg-surface-alt data-[state=selected]:bg-olive-tint border-line border-b transition-colors",
         className,
       )}
       {...props}
@@ -98,7 +102,7 @@ function TableCaption({
   return (
     <caption
       data-slot="table-caption"
-      className={cn("text-muted-foreground mt-4 text-sm", className)}
+      className={cn("text-muted-foreground text-ui mt-4", className)}
       {...props}
     />
   );

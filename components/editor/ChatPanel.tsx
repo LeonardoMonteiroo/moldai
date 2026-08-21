@@ -9,6 +9,7 @@ import { MessageInput } from "./MessageInput";
 import { ConflictActions } from "./ConflictActions";
 import { COSTS } from "@/lib/types";
 import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 
 export function ChatPanel() {
@@ -42,29 +43,30 @@ export function ChatPanel() {
         <span className="text-muted text-[11px]">{t("subtitle")}</span>
       </div>
 
-      <div
-        ref={listRef}
-        className="flex flex-1 flex-col gap-3 overflow-y-auto p-4"
-      >
-        {chat.map((message, i) => (
-          <ChatBubble
-            key={message.id}
-            message={message}
-            active={i === chat.length - 1 && generationStatus !== "generating"}
-          />
-        ))}
-        {conflict && (
-          <ConflictActions
-            onFix={() => resolveConflict("fix")}
-            onIgnore={() => resolveConflict("ignore")}
-          />
-        )}
-        {generationStatus === "error" && (
-          <div className="bg-amber-bg border-amber-border text-amber-text max-w-[92%] rounded-[12px_12px_12px_3px] border px-[13px] py-[10px] text-[13px] leading-[1.45]">
-            {t("generationError")}
-          </div>
-        )}
-      </div>
+      <ScrollArea viewportRef={listRef} className="min-h-0 flex-1">
+        <div className="flex flex-col gap-3 p-4">
+          {chat.map((message, i) => (
+            <ChatBubble
+              key={message.id}
+              message={message}
+              active={
+                i === chat.length - 1 && generationStatus !== "generating"
+              }
+            />
+          ))}
+          {conflict && (
+            <ConflictActions
+              onFix={() => resolveConflict("fix")}
+              onIgnore={() => resolveConflict("ignore")}
+            />
+          )}
+          {generationStatus === "error" && (
+            <div className="bg-amber-bg border-amber-border text-amber-text max-w-[92%] rounded-[12px_12px_12px_3px] border px-[13px] py-[10px] text-[13px] leading-[1.45]">
+              {t("generationError")}
+            </div>
+          )}
+        </div>
+      </ScrollArea>
 
       <div className="border-line flex flex-col gap-[10px] border-t px-4 py-[14px]">
         {isGenerating ? (

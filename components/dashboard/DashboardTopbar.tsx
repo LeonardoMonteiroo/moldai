@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { signOut } from "next-auth/react";
 import type { Credits } from "@/lib/types";
 import { initialsFromEmail } from "@/lib/format";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -83,12 +84,14 @@ export function DashboardTopbar({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <div
+      <Avatar
         title={userEmail}
-        className="bg-olive-tint border-olive-border text-olive text-ui flex h-[30px] w-[30px] items-center justify-center rounded-full border font-semibold"
+        className="border-olive-border size-[30px] border"
       >
-        {initialsFromEmail(userEmail)}
-      </div>
+        <AvatarFallback className="bg-olive-tint text-olive text-ui font-semibold">
+          {initialsFromEmail(userEmail)}
+        </AvatarFallback>
+      </Avatar>
     </div>
   );
 }
