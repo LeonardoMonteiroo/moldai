@@ -8,7 +8,6 @@ function pattern(overrides: Partial<Pattern> = {}): Pattern {
     id: "p",
     name: "Novo molde",
     version: 0,
-    savedAgo: "",
     baseSize: "M",
     unit: "cm",
     sizes: ["PP", "P", "M", "G", "GG"],

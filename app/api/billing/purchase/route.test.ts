@@ -2,10 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { seedPatternState } from "@/lib/editor/state";
 import { seedWallet } from "@/lib/billing/wallet";
 import { t } from "@/lib/i18n/test-translate";
-import type { PatternState } from "@/lib/types";
 import type { Wallet, LedgerEntry } from "@/lib/billing/wallet";
 
 const NOW = new Date("2026-08-17T12:00:00.000Z");
+const ROW_UPDATED_AT = new Date("2026-08-21T11:30:00.000Z");
 let wallet: Wallet = seedWallet(NOW);
 
 vi.mock("@/lib/auth/guard", () => ({
@@ -24,8 +24,10 @@ vi.mock("@/lib/db/wallet", () => ({
   ),
 }));
 vi.mock("@/lib/db/pattern", () => ({
-  loadPattern: vi.fn(async (patternId: string): Promise<PatternState | null> =>
-    patternId === "m1" ? seedPatternState(t) : null,
+  loadPattern: vi.fn(async (patternId: string) =>
+    patternId === "m1"
+      ? { state: seedPatternState(t), updatedAt: ROW_UPDATED_AT }
+      : null,
   ),
   patternNotFound: vi.fn(
     () =>
@@ -61,6 +63,8 @@ describe("POST /api/billing/purchase", () => {
     expect(json.status).toBe("ok");
     expect(json.state.pattern.version).toBe(0);
     expect(json.state.credits.balance).toBe(130);
+    // Non-mutating reader: must use the row's stored updatedAt, not "now".
+    expect(json.state.pattern.updatedAt).toBe(ROW_UPDATED_AT.toISOString());
   });
 
   it("without a patternId, returns just credits", async () => {

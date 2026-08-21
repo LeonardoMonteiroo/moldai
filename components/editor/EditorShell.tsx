@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useEditorStore } from "@/lib/store";
+import { relativeTime } from "@/lib/format";
 import { AppShell } from "@/components/shared/AppShell";
 import { ChatPanel } from "./ChatPanel";
 import { CanvasArea } from "./CanvasArea";
@@ -17,6 +18,7 @@ export function EditorShell({
   patternId: string;
 }) {
   const t = useTranslations("EditorShell");
+  const tf = useTranslations("Format");
   const ready = useEditorStore((s) => s.ready);
   const pattern = useEditorStore((s) => s.pattern);
   const credits = useEditorStore((s) => s.credits);
@@ -51,7 +53,11 @@ export function EditorShell({
         <AppShell
           title={pattern.name}
           subtitle={t("savedVersion", {
-            savedAgo: pattern.savedAgo,
+            // pattern.updatedAt is set by every server response through
+            // composeEditorState (lib/api/compose.ts) — the ready/pattern
+            // guard above already ensures we only render once one has
+            // arrived, so the non-null assertion just informs TS of that.
+            savedAgo: relativeTime(tf, pattern.updatedAt!),
             version: pattern.version,
           })}
           backHref="/"

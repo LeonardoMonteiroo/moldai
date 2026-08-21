@@ -21,11 +21,11 @@ export async function POST(request: Request) {
   });
 
   if (typeof patternId === "string") {
-    const patternState = await loadPattern(patternId, gate.id);
-    if (!patternState) return patternNotFound();
+    const loaded = await loadPattern(patternId, gate.id);
+    if (!loaded) return patternNotFound();
     return NextResponse.json({
       status: "ok",
-      state: composeEditorState(patternState, wallet, now),
+      state: composeEditorState(loaded.state, wallet, now, loaded.updatedAt),
     });
   }
 

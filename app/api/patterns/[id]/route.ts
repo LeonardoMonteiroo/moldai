@@ -17,13 +17,13 @@ export async function GET(_request: Request, { params }: Ctx) {
   if (gate instanceof NextResponse) return gate;
   const { id } = await params;
 
-  const [patternState, wallet] = await Promise.all([
+  const [loaded, wallet] = await Promise.all([
     loadPattern(id, gate.id),
     loadWallet(gate.id),
   ]);
-  if (!patternState) return patternNotFound();
+  if (!loaded) return patternNotFound();
   return NextResponse.json(
-    composeEditorState(patternState, wallet, new Date()),
+    composeEditorState(loaded.state, wallet, new Date(), loaded.updatedAt),
   );
 }
 

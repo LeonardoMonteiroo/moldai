@@ -36,7 +36,6 @@ function fakePattern(): Pattern {
     id: "p1",
     name: "Camiseta Teste",
     version: 1,
-    savedAgo: "agora",
     baseSize: "M",
     unit: "cm",
     sizes: ["PP", "P", "M", "G", "GG"],

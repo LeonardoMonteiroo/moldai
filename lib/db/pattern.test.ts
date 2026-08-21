@@ -163,20 +163,27 @@ describe("withPattern", () => {
 });
 
 describe("loadPattern", () => {
+  const ROW_UPDATED_AT = new Date("2026-08-21T11:30:00.000Z");
+
   beforeEach(() => {
     rows = [
       {
         id: "m1",
         userId: "u1",
         data: seedPatternState(t),
-        updatedAt: new Date(),
+        updatedAt: ROW_UPDATED_AT,
       },
     ];
   });
 
   it("returns the state for the owning user", async () => {
     const s = await loadPattern("m1", "u1");
-    expect(s?.pattern.version).toBe(0);
+    expect(s?.state.pattern.version).toBe(0);
+  });
+
+  it("returns the row's own updatedAt column alongside the state", async () => {
+    const s = await loadPattern("m1", "u1");
+    expect(s?.updatedAt).toEqual(ROW_UPDATED_AT);
   });
 
   it("returns null when owned by someone else", async () => {

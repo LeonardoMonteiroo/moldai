@@ -72,7 +72,6 @@ function seedPattern(t: Translate): Pattern {
     id: "demo",
     name: t("newPatternName"),
     version: 0,
-    savedAgo: "ainda não salvo",
     baseSize,
     unit: "cm",
     sizes: sizeChart.sizes,
@@ -127,7 +126,6 @@ export function bumpVersion(state: PatternState): void {
   state.pattern = {
     ...state.pattern,
     version: state.pattern.version + 1,
-    savedAgo: "salvo agora",
   };
 }
 

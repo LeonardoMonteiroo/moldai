@@ -11,7 +11,12 @@ describe("composeEditorState", () => {
     const patternState = seedPatternState(t);
     const wallet = seedWallet(NOW);
     const state = composeEditorState(patternState, wallet, NOW);
-    expect(state.pattern).toBe(patternState.pattern);
+    // pattern is a new object (updatedAt is spread onto it), but every other
+    // field is carried over unchanged from the source pattern.
+    expect(state.pattern).toEqual({
+      ...patternState.pattern,
+      updatedAt: NOW.toISOString(),
+    });
     expect(state.chat).toBe(patternState.chat);
     expect(state.conflict).toBeNull();
     expect(state.credits).toEqual({
@@ -20,6 +25,27 @@ describe("composeEditorState", () => {
       total: 30,
       renewsInDays: 30,
     });
+  });
+
+  it("puts updatedAt on the wire and no savedAgo", () => {
+    const patternState = seedPatternState(t);
+    const wallet = seedWallet(NOW);
+    const state = composeEditorState(
+      patternState,
+      wallet,
+      new Date("2026-08-21T12:00:00Z"),
+      new Date("2026-08-21T11:30:00Z"),
+    );
+    expect(state.pattern).not.toHaveProperty("savedAgo");
+    expect(state.pattern.updatedAt).toBe("2026-08-21T11:30:00.000Z");
+  });
+
+  it("defaults updatedAt to now when the caller just mutated the row", () => {
+    const patternState = seedPatternState(t);
+    const wallet = seedWallet(NOW);
+    const now = new Date("2026-08-21T12:00:00Z");
+    const state = composeEditorState(patternState, wallet, now);
+    expect(state.pattern.updatedAt).toBe(now.toISOString());
   });
 });
 

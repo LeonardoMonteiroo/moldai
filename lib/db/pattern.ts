@@ -63,14 +63,18 @@ export async function withPattern<T>(
   }, TX_OPTS);
 }
 
-// Read-only fetch, ownership-scoped. Null when missing or not owned.
+// Read-only fetch, ownership-scoped. Null when missing or not owned. Widened
+// (unlike lockPattern) to also return the row's own `updatedAt` column: this
+// is the one non-mutating reader that needs the *stored* save time rather
+// than "now" — mutating routes get `updatedAt = now()` from savePattern in
+// the same transaction, so they never need to read it back.
 export async function loadPattern(
   patternId: string,
   userId: string,
-): Promise<PatternState | null> {
+): Promise<{ state: PatternState; updatedAt: Date } | null> {
   const row = await prisma.pattern.findUnique({ where: { id: patternId } });
   if (!row || row.userId !== userId) return null;
-  return toState(row.data);
+  return { state: toState(row.data), updatedAt: row.updatedAt };
 }
 
 export async function createPattern(

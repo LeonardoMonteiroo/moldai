@@ -33,11 +33,13 @@ describe("seedPatternState", () => {
 });
 
 describe("version and chat", () => {
-  it("bumpVersion increments and marks saved just now", () => {
+  it("bumpVersion increments the version", () => {
     const s = seedPatternState(t);
     bumpVersion(s);
     expect(s.pattern.version).toBe(1);
-    expect(s.pattern.savedAgo).toBe("salvo agora");
+    // updatedAt is never part of the persisted blob — it's composed onto the
+    // wire from the row's own column (lib/api/compose.ts), not set here.
+    expect(s.pattern.updatedAt).toBeUndefined();
   });
   it("addMessage appends to the chat", () => {
     const s = seedPatternState(t);

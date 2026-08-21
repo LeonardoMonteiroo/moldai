@@ -12,8 +12,8 @@ export default async function PatternPage({
   if (!session?.user?.email || !session.user.id) redirect("/login");
   const { id } = await params;
 
-  const patternState = await loadPattern(id, session.user.id);
-  if (!patternState) redirect("/");
+  const loaded = await loadPattern(id, session.user.id);
+  if (!loaded) redirect("/");
 
   return <EditorShell userEmail={session.user.email} patternId={id} />;
 }

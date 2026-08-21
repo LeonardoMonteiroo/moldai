@@ -49,13 +49,20 @@ describe("/api/patterns/[id]", () => {
     mockLoadWallet.mockResolvedValue(seedWallet(NOW));
   });
 
-  it("GET returns the composed state when found", async () => {
-    mockLoad.mockResolvedValue(seedPatternState(t));
+  it("GET returns the composed state when found, with the row's stored updatedAt", async () => {
+    const ROW_UPDATED_AT = new Date("2026-08-21T11:30:00.000Z");
+    mockLoad.mockResolvedValue({
+      state: seedPatternState(t),
+      updatedAt: ROW_UPDATED_AT,
+    });
     const res = await GET(new Request("http://test"), ctx("m1"));
     const json = await res.json();
     expect(mockLoad).toHaveBeenCalledWith("m1", "u1");
     expect(json.pattern.version).toBe(0);
     expect(json.credits.balance).toBe(30);
+    // The stored column, not "now" — this is the non-mutating reader that
+    // must not approximate the save time.
+    expect(json.pattern.updatedAt).toBe(ROW_UPDATED_AT.toISOString());
   });
 
   it("GET 404s when not found/owned", async () => {

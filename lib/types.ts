@@ -134,7 +134,11 @@ export interface Pattern {
   id: string;
   name: string;
   version: number;
-  savedAgo: string;
+  // ISO timestamp of the row's last save, composed onto the wire from the
+  // Pattern row's own `updatedAt` column (lib/api/compose.ts) — never part
+  // of the persisted blob itself, so pre-compose pattern objects (e.g.
+  // seedPatternState) legitimately have none yet.
+  updatedAt?: string;
   baseSize: SizeLabel;
   unit: string;
   sizes: string[];
