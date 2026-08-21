@@ -13,6 +13,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { GarmentType } from "@/lib/types";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/components/ui/empty";
 
 const GARMENT_TYPES: GarmentType[] = ["blouse", "dress", "skirt", "tshirt"];
 
@@ -63,23 +69,21 @@ export function PatternGrid({ onOpen }: { onOpen: (id: string) => void }) {
       </div>
 
       {isTrulyEmpty && (
-        <div className="flex flex-1 flex-col items-center justify-center gap-1 text-center">
-          <span className="text-[13.5px] font-semibold">{t("emptyTitle")}</span>
-          <span className="text-muted text-[12px]">
-            {t("emptyDescription")}
-          </span>
-        </div>
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{t("emptyTitle")}</EmptyTitle>
+            <EmptyDescription>{t("emptyDescription")}</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       )}
 
       {hasNoMatches && (
-        <div className="flex flex-1 flex-col items-center justify-center gap-1 text-center">
-          <span className="text-[13.5px] font-semibold">
-            {t("noMatchesTitle")}
-          </span>
-          <span className="text-muted text-[12px]">
-            {t("noMatchesDescription")}
-          </span>
-        </div>
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{t("noMatchesTitle")}</EmptyTitle>
+            <EmptyDescription>{t("noMatchesDescription")}</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       )}
 
       {!isTrulyEmpty && !hasNoMatches && (

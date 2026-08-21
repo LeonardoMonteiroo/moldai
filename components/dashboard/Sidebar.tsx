@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useDashboardStore } from "@/lib/dashboardStore";
+import { Badge } from "@/components/ui/badge";
 
 export function Sidebar({ onCreate }: { onCreate: (id: string) => void }) {
   const t = useTranslations("Sidebar");
@@ -29,9 +30,7 @@ export function Sidebar({ onCreate }: { onCreate: (id: string) => void }) {
         </button>
         <span className="text-disabled rounded-item flex items-center justify-between px-[10px] py-[7px] text-[12.5px]">
           {t("studioBasesLabel")}
-          <span className="bg-amber-bg border-amber-border text-amber-text rounded-pill border px-[6px] py-px text-[10px] font-semibold">
-            {t("comingSoonBadge")}
-          </span>
+          <Badge variant="soon">{t("comingSoonBadge")}</Badge>
         </span>
       </nav>
       <div className="flex-1" />

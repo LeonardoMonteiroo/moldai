@@ -15,6 +15,12 @@ import { ConflictInfoCard } from "./ConflictInfoCard";
 import { TechSheetTab } from "./TechSheetTab";
 import { CutPlanTab } from "./CutPlanTab";
 import { Proof3DTab } from "./Proof3DTab";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/components/ui/empty";
 
 export function CanvasArea() {
   const t = useTranslations("CanvasArea");
@@ -106,14 +112,16 @@ export function CanvasArea() {
           />
         </div>
         {!isGenerating && !hasPieces && (
-          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-center">
-            <span className="font-display text-muted-2 text-[18px] font-semibold">
-              {t("emptyStateTitle")}
-            </span>
-            <span className="text-muted max-w-[300px] text-[12.5px]">
-              {t("emptyStateDescription")}
-            </span>
-          </div>
+          <Empty className="pointer-events-none absolute inset-0">
+            <EmptyHeader>
+              <EmptyTitle className="font-display text-muted-2">
+                {t("emptyStateTitle")}
+              </EmptyTitle>
+              <EmptyDescription className="max-w-[300px]">
+                {t("emptyStateDescription")}
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         )}
         {!isGenerating && hasPieces && (
           <FloatingToolbar activeTool={activeTool} onSelect={setActiveTool} />

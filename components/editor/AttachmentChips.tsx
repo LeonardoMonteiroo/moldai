@@ -1,4 +1,5 @@
 import { useTranslations } from "next-intl";
+import { Badge } from "@/components/ui/badge";
 
 const ATTACHMENT_KEYS = ["photo", "sketch", "dxf"] as const;
 
@@ -17,9 +18,7 @@ export function AttachmentChips() {
           {t(key)}
         </button>
       ))}
-      <span className="text-olive bg-olive-tint rounded-[5px] px-[6px] py-[2px] text-[10px] font-semibold tracking-[.6px] uppercase">
-        {t("comingSoonBadge")}
-      </span>
+      <Badge variant="soon">{t("comingSoonBadge")}</Badge>
     </div>
   );
 }

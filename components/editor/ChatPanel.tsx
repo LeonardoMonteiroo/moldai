@@ -8,6 +8,7 @@ import { AttachmentChips } from "./AttachmentChips";
 import { MessageInput } from "./MessageInput";
 import { ConflictActions } from "./ConflictActions";
 import { COSTS } from "@/lib/types";
+import { Progress } from "@/components/ui/progress";
 
 export function ChatPanel() {
   const t = useTranslations("ChatPanel");
@@ -72,16 +73,15 @@ export function ChatPanel() {
                 n: generationStepIndex + 1,
                 stage: tSteps("steps.stage" + (generationStepIndex + 1)),
               })}
-              <div className="bg-track mt-[7px] h-[6px] overflow-hidden rounded-full">
-                <div
-                  className="bg-ink h-full animate-pulse transition-all duration-300"
-                  style={{
-                    // Never reaches 100% while the AI is responding — leaves headroom
-                    // and pulses so it doesn't look "done" stuck on the last step.
-                    width: `${Math.min(92, ((generationStepIndex + 1) / (GENERATION_STEP_COUNT + 0.5)) * 100)}%`,
-                  }}
-                />
-              </div>
+              <Progress
+                value={Math.min(
+                  92,
+                  ((generationStepIndex + 1) / (GENERATION_STEP_COUNT + 0.5)) *
+                    100,
+                )}
+                aria-label={tSteps("steps.stage" + (generationStepIndex + 1))}
+                className="bg-track mt-[7px] h-[6px] [&>[data-slot=progress-indicator]]:animate-pulse"
+              />
             </div>
             <span className="text-muted text-[11px]">
               {t("generatingCost", { cost: COSTS.adjust })}

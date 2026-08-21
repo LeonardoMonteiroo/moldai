@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import type { Credits, PlanId } from "@/lib/types";
 import { COSTS } from "@/lib/types";
+import { Badge } from "@/components/ui/badge";
 
 const PLAN_IDS: PlanId[] = ["free", "atelier", "studio", "factory"];
 
@@ -32,9 +33,7 @@ export function PlanSection({ credits }: { credits: Credits }) {
                     {t("currentBadge")}
                   </span>
                 ) : (
-                  <span className="bg-amber-bg border-amber-border text-amber-text rounded-pill border px-[7px] py-[2px] text-[10.5px] font-semibold">
-                    {t("comingSoonBadge")}
-                  </span>
+                  <Badge variant="soon">{t("comingSoonBadge")}</Badge>
                 )}
               </div>
               <span className="font-display text-[21px] font-semibold">
