@@ -30,6 +30,10 @@ import {
  *
  * `backHref` is opt-in: the dashboard IS "/" and must not offer a back button
  * pointing at itself.
+ *
+ * `title` is opt-in for the same reason. A screen whose nav column already
+ * names the current section would otherwise say it twice — the dashboard's
+ * sidebar marks "Meus moldes" active, so the header repeating it was noise.
  */
 export function PageHeader({
   title,
@@ -38,7 +42,7 @@ export function PageHeader({
   credits,
   userEmail,
 }: {
-  title: string;
+  title?: string;
   subtitle?: string;
   backHref?: string;
   credits: Credits | null;
@@ -57,7 +61,13 @@ export function PageHeader({
   return (
     <div className="bg-surface border-border relative flex items-center gap-4 border-b px-[18px] py-3">
       <Wordmark />
-      <Separator orientation="vertical" className="h-5" />
+      {/* The separator divides the wordmark from the screen's own identity —
+          the back button and the title. The dashboard has neither (it IS "/",
+          and its nav column already names the section), so the rule would
+          otherwise dangle against the empty spacer. */}
+      {(backHref || title) && (
+        <Separator orientation="vertical" className="h-5" />
+      )}
       {backHref && (
         <Button
           variant="outline"
@@ -69,10 +79,12 @@ export function PageHeader({
           {t("backButton")}
         </Button>
       )}
-      <div className="flex flex-col gap-px">
-        <span className="text-control font-semibold">{title}</span>
-        {subtitle && <span className="text-muted text-meta">{subtitle}</span>}
-      </div>
+      {title && (
+        <div className="flex flex-col gap-px">
+          <span className="text-control font-semibold">{title}</span>
+          {subtitle && <span className="text-muted text-meta">{subtitle}</span>}
+        </div>
+      )}
       <div className="flex-1" />
       {credits && (
         <>

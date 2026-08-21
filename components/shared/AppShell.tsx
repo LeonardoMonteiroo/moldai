@@ -17,6 +17,9 @@ import { PageHeader } from "@/components/shared/PageHeader";
  *
  * The content region is a column; a screen with a row body (the editor) passes
  * one child that is itself a row.
+ *
+ * `title` is optional: a screen whose sidebar already names the current
+ * section (the dashboard) omits it rather than printing the same words twice.
  */
 export function AppShell({
   title,
@@ -28,7 +31,7 @@ export function AppShell({
   footer,
   children,
 }: {
-  title: string;
+  title?: string;
   subtitle?: string;
   backHref?: string;
   credits: Credits | null;

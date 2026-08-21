@@ -392,7 +392,6 @@
     "newPatternButton": "＋ Novo molde"
   },
   "DashboardShell": {
-    "title": "Meus moldes",
     "loading": "Carregando moldes…",
     "loadError": "Não foi possível carregar seus moldes. Tente recarregar a página."
   },

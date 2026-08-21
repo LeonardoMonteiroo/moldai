@@ -67,6 +67,34 @@ describe("PageHeader", () => {
     expect(screen.getByText("há 2 min · v3")).toBeInTheDocument();
   });
 
+  it("renders no title block, and no separator, when title is omitted", () => {
+    // The dashboard's case: its sidebar already names the section, so a header
+    // title would print the same words twice. With neither title nor backHref
+    // the separator has nothing to divide and must not dangle.
+    const { container } = renderWithIntl(
+      <PageHeader credits={CREDITS} userEmail="a@b.com" />,
+    );
+    expect(
+      container.querySelector("[data-slot='separator']"),
+    ).not.toBeInTheDocument();
+    // Everything else still renders.
+    expect(
+      screen.getByRole("button", { name: t.buyCreditsButton }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: t.accountMenuLabel }),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps the separator when there is a back button but no title", () => {
+    const { container } = renderWithIntl(
+      <PageHeader backHref="/" credits={CREDITS} userEmail="a@b.com" />,
+    );
+    expect(
+      container.querySelector("[data-slot='separator']"),
+    ).toBeInTheDocument();
+  });
+
   it("omits the credits bar and buy button while credits are null", () => {
     renderWithIntl(
       <PageHeader title="Meus moldes" credits={null} userEmail="a@b.com" />,
