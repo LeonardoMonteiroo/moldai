@@ -49,20 +49,39 @@ export function refundWallet(
   return { type: "refund", amount, balanceAfter: wallet.balance, reason };
 }
 
+export type PurchaseType = "topup" | "subscribe";
+
+/**
+ * Narrows an untrusted wire value to a PurchaseType. Required because the
+ * route reads `type` off a JSON body: an unrecognised value used to fall into
+ * applyPurchase's else branch and grant the Atelie plan for free.
+ */
+export function isPurchaseType(value: unknown): value is PurchaseType {
+  return value === "topup" || value === "subscribe";
+}
+
+// Exhaustive on purpose -- the `never` binding makes a new PurchaseType member
+// a compile error here instead of silently taking the subscribe branch.
 export function applyPurchase(
   wallet: Wallet,
-  type: "topup" | "subscribe",
+  type: PurchaseType,
   now: Date,
 ): LedgerEntry {
-  if (type === "topup") {
-    wallet.balance += 100;
-    return { type: "topup", amount: 100, balanceAfter: wallet.balance };
+  switch (type) {
+    case "topup":
+      wallet.balance += 100;
+      return { type: "topup", amount: 100, balanceAfter: wallet.balance };
+    case "subscribe":
+      wallet.plan = "atelier";
+      wallet.balance = 500;
+      wallet.total = 500;
+      wallet.renewsAt = new Date(now.getTime() + 30 * DAY_MS);
+      return { type: "subscribe", amount: 500, balanceAfter: wallet.balance };
+    default: {
+      const exhaustive: never = type;
+      throw new Error(`unhandled purchase type: ${String(exhaustive)}`);
+    }
   }
-  wallet.plan = "atelier";
-  wallet.balance = 500;
-  wallet.total = 500;
-  wallet.renewsAt = new Date(now.getTime() + 30 * DAY_MS);
-  return { type: "subscribe", amount: 500, balanceAfter: wallet.balance };
 }
 
 // Called by the renewal cron (scripts/cron-renew.ts) for wallets past renewsAt.

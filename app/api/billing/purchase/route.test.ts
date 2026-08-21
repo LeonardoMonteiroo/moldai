@@ -80,6 +80,41 @@ describe("POST /api/billing/purchase", () => {
     expect(res.status).toBe(404);
   });
 
+  // The wallet write used to commit before patternId was checked, so a bad id
+  // credited the account and then answered 404 -- the client never saw it.
+  it("does not touch the wallet when patternId is not found/owned", async () => {
+    const before = wallet.balance;
+    const res = await POST(req({ type: "topup", patternId: "not-mine" }));
+    expect(res.status).toBe(404);
+    expect(wallet.balance).toBe(before);
+  });
+
+  // applyPurchase treated anything that was not literally "topup" as
+  // "subscribe", so an unrecognised (or absent) type granted the Atelie plan.
+  it("rejects an unknown purchase type without touching the wallet", async () => {
+    const res = await POST(req({ type: "not-a-real-kind" }));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe("invalid_purchase_type");
+    expect(wallet.plan).toBe("free");
+    expect(wallet.balance).toBe(30);
+  });
+
+  it("rejects a missing purchase type without touching the wallet", async () => {
+    const res = await POST(req({}));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe("invalid_purchase_type");
+    expect(wallet.plan).toBe("free");
+    expect(wallet.balance).toBe(30);
+  });
+
+  it("still accepts the two real types", async () => {
+    expect((await POST(req({ type: "topup" }))).status).toBe(200);
+    wallet = seedWallet(NOW);
+    const res = await POST(req({ type: "subscribe" }));
+    expect(res.status).toBe(200);
+    expect(wallet.plan).toBe("atelier");
+  });
+
   it("no session returns 401", async () => {
     vi.mocked(requireUser).mockResolvedValueOnce(unauthorized());
     const res = await POST(req({ type: "topup" }));
