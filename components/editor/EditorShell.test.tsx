@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderWithIntl, ptBR, screen } from "@/components/test-utils";
-import type { Pattern } from "@/lib/types";
+import type { PatternRecord } from "@/lib/types";
 
 // PageHeader (rendered via AppShell) calls useRouter() for the avatar menu's
 // sign-out; jsdom has no App Router mounted, so it's mocked like the other
@@ -29,7 +29,7 @@ vi.mock("@/lib/api-client", () => ({
 import { useEditorStore } from "@/lib/store";
 import { EditorShell } from "./EditorShell";
 
-function pattern(updatedAt: string): Pattern {
+function pattern(updatedAt: string): PatternRecord {
   return {
     id: "p1",
     name: "Vestido",

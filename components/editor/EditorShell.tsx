@@ -54,10 +54,10 @@ export function EditorShell({
           title={pattern.name}
           subtitle={t("savedVersion", {
             // pattern.updatedAt is set by every server response through
-            // composeEditorState (lib/api/compose.ts) — the ready/pattern
-            // guard above already ensures we only render once one has
-            // arrived, so the non-null assertion just informs TS of that.
-            savedAgo: relativeTime(tf, pattern.updatedAt!),
+            // composeEditorState (lib/api/compose.ts) — the store's `pattern`
+            // is typed PatternRecord, so this is a required string once the
+            // ready/pattern guard above has passed.
+            savedAgo: relativeTime(tf, pattern.updatedAt),
             version: pattern.version,
           })}
           backHref="/"

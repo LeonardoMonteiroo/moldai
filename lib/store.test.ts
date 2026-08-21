@@ -20,6 +20,7 @@ function emptyState(): EditorState {
       id: "p",
       name: "Novo molde",
       version: 0,
+      updatedAt: "2026-08-21T00:00:00.000Z",
       baseSize: "M",
       unit: "cm",
       sizes: ["M"],

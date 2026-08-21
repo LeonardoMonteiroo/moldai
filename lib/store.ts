@@ -5,7 +5,7 @@ import {
   Credits,
   EditorState,
   GenerationStatus,
-  Pattern,
+  PatternRecord,
   ConflictInfo,
   COSTS,
   Measurement,
@@ -31,7 +31,7 @@ interface PaywallState {
 interface EditorStore {
   ready: boolean;
   patternId: string | null;
-  pattern: Pattern | null;
+  pattern: PatternRecord | null;
   chat: ChatMessage[];
   credits: Credits | null;
   conflict: ConflictInfo | null;

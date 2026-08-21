@@ -134,11 +134,6 @@ export interface Pattern {
   id: string;
   name: string;
   version: number;
-  // ISO timestamp of the row's last save, composed onto the wire from the
-  // Pattern row's own `updatedAt` column (lib/api/compose.ts) — never part
-  // of the persisted blob itself, so pre-compose pattern objects (e.g.
-  // seedPatternState) legitimately have none yet.
-  updatedAt?: string;
   baseSize: SizeLabel;
   unit: string;
   sizes: string[];
@@ -151,6 +146,14 @@ export interface Pattern {
   baseMeasurements?: Measurements;
 }
 
+// Wire shape: the persisted Pattern blob plus the row's own `updatedAt`
+// column, composed on by lib/api/compose.ts. `updatedAt` is never part of
+// the persisted blob itself, so pre-compose pattern objects (e.g.
+// seedPatternState's output) are plain `Pattern` and legitimately have none.
+export interface PatternRecord extends Pattern {
+  updatedAt: string;
+}
+
 // The pattern's own state — the drafted garment/chat/conflict. Credits/billing
 // live in a separate Wallet (lib/billing/wallet.ts), composed in only for the
 // API/store wire shape below.
@@ -161,6 +164,7 @@ export interface PatternState {
 }
 
 export interface EditorState extends PatternState {
+  pattern: PatternRecord;
   credits: Credits;
 }
 

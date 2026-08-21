@@ -39,7 +39,9 @@ describe("version and chat", () => {
     expect(s.pattern.version).toBe(1);
     // updatedAt is never part of the persisted blob — it's composed onto the
     // wire from the row's own column (lib/api/compose.ts), not set here.
-    expect(s.pattern.updatedAt).toBeUndefined();
+    // (Pattern has no updatedAt field at all now, so `toHaveProperty` is the
+    // form that still type-checks; the invariant asserted is unchanged.)
+    expect(s.pattern).not.toHaveProperty("updatedAt");
   });
   it("addMessage appends to the chat", () => {
     const s = seedPatternState(t);
