@@ -31,11 +31,14 @@ describe("PatternData.chat", () => {
   // infers `key` as the literal union of messages.Format's own keys (from
   // the imported JSON's structural type), narrower than Translate's plain
   // `string`; at runtime it's still the same real-catalog translator.
+  // A single assertion is deliberate — `as unknown as` would also silence a
+  // future next-intl change that made the shapes genuinely incompatible,
+  // whereas this still makes TS confirm the two types structurally overlap.
   const tFormat = createTranslator({
     locale: "pt-BR",
     messages,
     namespace: "Format",
-  }) as unknown as Translate;
+  }) as Translate;
 
   describe("chat.creditChip", () => {
     // The "−" is U+2212 MINUS SIGN, not a hyphen-minus, and must survive
