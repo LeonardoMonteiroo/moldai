@@ -224,7 +224,7 @@ it("carries the unauthorized code, not pt-BR prose", async () => {
 });
 ```
 
-Create `lib/db/pattern-not-found.test.ts`:
+Add to the existing `lib/db/pattern.test.ts` (do **not** create a new file — that test file is already there):
 
 ```ts
 import { describe, it, expect } from "vitest";
@@ -244,7 +244,7 @@ describe("patternNotFound", () => {
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `npx vitest run lib/auth/session.test.ts lib/db/pattern-not-found.test.ts`
+Run: `npx vitest run lib/auth/session.test.ts lib/db/pattern.test.ts`
 Expected: FAIL — received `error: "Login necessário."` and `error: "Molde não encontrado."`.
 
 - [ ] **Step 3: Convert the two `lib/` helpers**
@@ -273,7 +273,7 @@ export function patternNotFound(): NextResponse {
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
-Run: `npx vitest run lib/auth/session.test.ts lib/db/pattern-not-found.test.ts`
+Run: `npx vitest run lib/auth/session.test.ts lib/db/pattern.test.ts`
 Expected: PASS.
 
 - [ ] **Step 5: Convert the pattern routes**
@@ -363,7 +363,7 @@ Expected: all pass. Fix any existing route test that asserted the old prose by a
 - [ ] **Step 9: Commit**
 
 ```bash
-git add lib/auth/session.ts lib/auth/session.test.ts lib/db/pattern.ts lib/db/pattern-not-found.test.ts app/api/patterns app/api/size-charts
+git add lib/auth/session.ts lib/auth/session.test.ts lib/db/pattern.ts lib/db/pattern.test.ts app/api/patterns app/api/size-charts
 git commit -m "refactor(api): carry error codes instead of pt-BR prose on unrendered payloads"
 ```
 
@@ -780,8 +780,12 @@ import { relativeTime, formatList, initialsFromEmail } from "./format";
 
 // A fake translator that echoes the key and its values, so these tests assert
 // the seam (which key, which interpolation) and never a pt-BR string.
-const t = (key: string, values?: Record<string, unknown>) =>
-  values ? `${key}:${JSON.stringify(values)}` : key;
+const t = (key: string, values?: Record<string, unknown>) => {
+  // dateLocale must echo a VALID BCP-47 tag: toLocaleDateString throws
+  // RangeError on an invalid one, which would error the test rather than fail it.
+  if (key === "dateLocale") return "en-US";
+  return values ? `${key}:${JSON.stringify(values)}` : key;
+};
 
 describe("relativeTime", () => {
   const now = new Date("2026-08-21T12:00:00Z");
@@ -808,11 +812,13 @@ describe("relativeTime", () => {
     );
   });
 
-  it("falls back to a locale date past a week and reads the locale from the catalog", () => {
+  it("falls back to a locale date past a week, using the catalog locale", () => {
     const out = relativeTime(t, "2026-07-01T12:00:00Z", now);
     expect(out).not.toContain("relative");
+    // Pins that the tag came from t("dateLocale"): a hardcoded "pt-BR" in the
+    // implementation yields "01/07/2026", not the en-US "7/1/2026".
     expect(out).toBe(
-      new Date("2026-07-01T12:00:00Z").toLocaleDateString("dateLocale"),
+      new Date("2026-07-01T12:00:00Z").toLocaleDateString("en-US"),
     );
   });
 });
@@ -842,7 +848,7 @@ describe("initialsFromEmail", () => {
 });
 ```
 
-Note the locale-fallback assertion passes `"dateLocale"` as the locale tag, which `toLocaleDateString` treats as invalid and falls back on — the test asserts the _seam_, i.e. that the value came from `t`, not that a particular date string was produced.
+The fake translator returns `"en-US"` for `dateLocale` on purpose: `toLocaleDateString` throws `RangeError` on an invalid tag (verified — `toLocaleDateString("dateLocale")` throws), which would _error_ the test rather than fail it. Echoing a real-but-different locale is what makes the assertion discriminate: a hardcoded `"pt-BR"` in the implementation yields `01/07/2026` where the test expects the en-US `7/1/2026`.
 
 - [ ] **Step 3: Run it to verify it fails**
 
