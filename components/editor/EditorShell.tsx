@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect } from "react";
+import { XIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEditorStore } from "@/lib/store";
 import { relativeTime } from "@/lib/format";
 import { AppShell } from "@/components/shared/AppShell";
+import { Button } from "@/components/ui/button";
 import { ChatPanel } from "./ChatPanel";
 import { CanvasArea } from "./CanvasArea";
 import { Footer } from "./Footer";
@@ -25,11 +27,39 @@ export function EditorShell({
   const conflict = useEditorStore((s) => s.conflict);
   const generationStatus = useEditorStore((s) => s.generationStatus);
   const paywallOpen = useEditorStore((s) => s.paywall.open);
+  const error = useEditorStore((s) => s.error);
   const init = useEditorStore((s) => s.init);
+  const clearError = useEditorStore((s) => s.clearError);
 
   useEffect(() => {
     init(patternId);
   }, [init, patternId]);
+
+  // A failed load has to be distinguishable from a slow one. Without this the
+  // store's `ready` stayed false forever on a rejected fetch and the loading
+  // text below was the permanent end state.
+  if (error && !pattern) {
+    return (
+      <div
+        role="alert"
+        className="flex flex-1 flex-col items-center justify-center gap-[14px]"
+      >
+        <p className="text-alert text-control">
+          {error === "unauthorized" ? t("sessionExpired") : t("loadError")}
+        </p>
+        <Button
+          variant="outline"
+          size="chrome"
+          onClick={() => {
+            clearError();
+            init(patternId);
+          }}
+        >
+          {t("retryButton")}
+        </Button>
+      </div>
+    );
+  }
 
   // The header's title IS the pattern name, so unlike the other screens there
   // is nothing to paint until the store is ready.
@@ -71,6 +101,24 @@ export function EditorShell({
             />
           }
         >
+          {/* A notice, not a replacement: the pattern is intact, only the last
+              action was not applied. role="status" so it is announced. */}
+          {error && (
+            <div
+              role="status"
+              className="border-amber-border bg-amber-bg flex items-center gap-[10px] border-b px-[22px] py-[9px]"
+            >
+              <span className="text-ui flex-1">{t("actionError")}</span>
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                aria-label={t("dismissError")}
+                onClick={clearError}
+              >
+                <XIcon />
+              </Button>
+            </div>
+          )}
           <div className="flex min-h-0 flex-1">
             <ChatPanel />
             <CanvasArea />

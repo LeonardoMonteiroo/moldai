@@ -234,7 +234,12 @@
   },
   "EditorShell": {
     "loading": "Carregando molde…",
-    "savedVersion": "{savedAgo} · v{version}"
+    "savedVersion": "{savedAgo} · v{version}",
+    "loadError": "Não foi possível carregar este molde. Tente novamente.",
+    "sessionExpired": "Sua sessão expirou. Entre novamente para continuar.",
+    "retryButton": "Tentar de novo",
+    "actionError": "Algo deu errado e sua última ação não foi aplicada.",
+    "dismissError": "Fechar aviso"
   },
   "Login": {
     "heading": "Entrar",

@@ -1,15 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { EditorState } from "./types";
 
-vi.mock("./api-client", () => ({
-  fetchPattern: vi.fn(),
-  generate: vi.fn(),
-  graduate: vi.fn(),
-  resolveConflict: vi.fn(),
-  purchase: vi.fn(),
-}));
+// ApiError comes from the real module (the store narrows on it with
+// instanceof, so a stub class would not be the same constructor).
+vi.mock("./api-client", async () => {
+  const actual =
+    await vi.importActual<typeof import("./api-client")>("./api-client");
+  return {
+    ApiError: actual.ApiError,
+    fetchPattern: vi.fn(),
+    generate: vi.fn(),
+    graduate: vi.fn(),
+    resolveConflict: vi.fn(),
+    purchase: vi.fn(),
+  };
+});
 
 import * as api from "./api-client";
+import { ApiError } from "./api-client";
 import { useEditorStore } from "./store";
 
 const genMock = api.generate as unknown as ReturnType<typeof vi.fn>;
@@ -83,6 +91,80 @@ describe("store.sendMessage", () => {
     expect(useEditorStore.getState().selectedPieceId).toBeNull();
     const last = useEditorStore.getState().chat.at(-1)!;
     expect(last.questions).toHaveLength(1);
+  });
+});
+
+// The editor store had no try/catch anywhere, so a rejected call left the UI
+// wedged: init never set `ready`, sendMessage never cleared "generating", and
+// applyState wrote `undefined` into pattern/chat from a 401's body.
+describe("store error handling", () => {
+  beforeEach(() => {
+    genMock.mockReset();
+    useEditorStore.setState({
+      patternId: "m1",
+      ready: false,
+      error: null,
+      pattern: null,
+      chat: [],
+      generationStatus: "idle",
+    });
+  });
+
+  it("init marks itself ready with an error rather than loading forever", async () => {
+    vi.mocked(api.fetchPattern).mockRejectedValue(
+      new ApiError(401, "unauthorized"),
+    );
+
+    await useEditorStore.getState().init("m1");
+
+    const s = useEditorStore.getState();
+    expect(s.ready).toBe(true); // the loading screen must not be permanent
+    expect(s.error).toBe("unauthorized");
+    expect(s.pattern).toBeNull();
+  });
+
+  it("init surfaces a generic code for a non-ApiError failure", async () => {
+    vi.mocked(api.fetchPattern).mockRejectedValue(new TypeError("offline"));
+
+    await useEditorStore.getState().init("m1");
+
+    expect(useEditorStore.getState().ready).toBe(true);
+    expect(useEditorStore.getState().error).toBe("request_failed");
+  });
+
+  it("sendMessage stops generating and rolls back the optimistic message", async () => {
+    genMock.mockRejectedValue(new ApiError(500, "request_failed"));
+
+    await useEditorStore.getState().sendMessage("uma blusa");
+
+    const s = useEditorStore.getState();
+    expect(s.generationStatus).not.toBe("generating");
+    expect(s.error).toBe("request_failed");
+    expect(s.chat.some((m) => m.id.startsWith("optimistic-"))).toBe(false);
+  });
+
+  it("a failed sendMessage never overwrites the pattern with undefined", async () => {
+    const state = emptyState();
+    useEditorStore.setState({ pattern: state.pattern, ready: true });
+    genMock.mockRejectedValue(new ApiError(401, "unauthorized"));
+
+    await useEditorStore.getState().sendMessage("uma blusa");
+
+    expect(useEditorStore.getState().pattern).toEqual(state.pattern);
+  });
+
+  it("graduateSizes surfaces a failure instead of throwing into the void", async () => {
+    vi.mocked(api.graduate).mockRejectedValue(new ApiError(500, "boom"));
+
+    await useEditorStore.getState().graduateSizes(["M"]);
+
+    expect(useEditorStore.getState().error).toBe("boom");
+  });
+
+  it("clearError dismisses a surfaced failure", async () => {
+    useEditorStore.setState({ error: "unauthorized" });
+    useEditorStore.getState().clearError();
+    expect(useEditorStore.getState().error).toBeNull();
   });
 });
 

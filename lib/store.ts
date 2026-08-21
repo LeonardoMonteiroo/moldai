@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import * as api from "./api-client";
+import { ApiError } from "./api-client";
 import {
   ChatMessage,
   Credits,
@@ -30,6 +31,13 @@ interface PaywallState {
 
 interface EditorStore {
   ready: boolean;
+  /**
+   * Wire error code of the last failed call, or null. Every action funnels its
+   * failures here: before this existed the store had no try/catch at all, so a
+   * rejected request left the editor on its loading screen (init) or spinning
+   * the generating overlay forever (sendMessage), with nothing on screen.
+   */
+  error: string | null;
   patternId: string | null;
   pattern: PatternRecord | null;
   chat: ChatMessage[];
@@ -49,6 +57,7 @@ interface EditorStore {
   paywall: PaywallState;
 
   init: (patternId: string) => Promise<void>;
+  clearError: () => void;
   sendMessage: (
     message: string,
     opts?: { answering?: boolean },
@@ -68,6 +77,11 @@ interface EditorStore {
   clearMeasurements: () => void;
 }
 
+/** ApiError carries the wire code; anything else (offline, parse) is generic. */
+function errorCode(err: unknown): string {
+  return err instanceof ApiError ? err.code : "request_failed";
+}
+
 function applyState(
   set: (partial: Partial<EditorStore>) => void,
   state: EditorState,
@@ -82,6 +96,7 @@ function applyState(
 
 export const useEditorStore = create<EditorStore>((set, get) => ({
   ready: false,
+  error: null,
   patternId: null,
   pattern: null,
   chat: [],
@@ -107,11 +122,22 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   },
 
   init: async (patternId: string) => {
-    set({ patternId });
-    const state = await api.fetchPattern(patternId);
-    applyState(set, state);
-    set({ ready: true, selectedPieceId: state.pattern.pieces[0]?.id ?? null });
+    set({ patternId, error: null });
+    try {
+      const state = await api.fetchPattern(patternId);
+      applyState(set, state);
+      set({
+        ready: true,
+        selectedPieceId: state.pattern.pieces[0]?.id ?? null,
+      });
+    } catch (err) {
+      // ready:true on purpose -- EditorShell's loading early-return would
+      // otherwise leave a permanent spinner with no way to know why.
+      set({ ready: true, error: errorCode(err) });
+    }
   },
+
+  clearError: () => set({ error: null }),
 
   sendMessage: async (message: string, opts?: { answering?: boolean }) => {
     if (!message.trim()) return;
@@ -147,7 +173,21 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     };
     scheduleStep(0);
 
-    const result = await api.generate(patternId, message, opts?.answering);
+    let result: Awaited<ReturnType<typeof api.generate>>;
+    try {
+      result = await api.generate(patternId, message, opts?.answering);
+    } catch (err) {
+      clearTimeout(stepTimer);
+      if (get().generationRequestId !== requestId) return; // canceled
+      // Roll the optimistic message back and leave the pattern untouched --
+      // applyState would have written undefined over it.
+      set((s) => ({
+        generationStatus: "error",
+        error: errorCode(err),
+        chat: s.chat.filter((m) => !m.id.startsWith("optimistic-")),
+      }));
+      return;
+    }
     clearTimeout(stepTimer);
 
     if (get().generationRequestId !== requestId) return; // canceled
@@ -196,7 +236,13 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   graduateSizes: async (sizes: string[]) => {
     const patternId = get().patternId;
     if (!patternId) return;
-    const result = await api.graduate(patternId, sizes);
+    let result: Awaited<ReturnType<typeof api.graduate>>;
+    try {
+      result = await api.graduate(patternId, sizes);
+    } catch (err) {
+      set({ error: errorCode(err) });
+      return;
+    }
     if (result.status === "insufficient_credits") {
       set({
         paywall: {
@@ -215,13 +261,25 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   resolveConflict: async (action: "fix" | "ignore") => {
     const patternId = get().patternId;
     if (!patternId) return;
-    const result = await api.resolveConflict(patternId, action);
-    if ("state" in result) applyState(set, result.state);
+    try {
+      const result = await api.resolveConflict(patternId, action);
+      if ("state" in result) applyState(set, result.state);
+    } catch (err) {
+      set({ error: errorCode(err) });
+    }
   },
 
   purchase: async (type: "topup" | "subscribe") => {
     const patternId = get().patternId ?? undefined;
-    const result = await api.purchase(type, patternId);
+    let result: Awaited<ReturnType<typeof api.purchase>>;
+    try {
+      result = await api.purchase(type, patternId);
+    } catch (err) {
+      // The paywall stays open: the retry thunk is still valid, and closing it
+      // on a failed purchase would look like the purchase worked.
+      set({ error: errorCode(err) });
+      return;
+    }
     if ("state" in result) applyState(set, result.state);
     else if ("credits" in result) set({ credits: result.credits });
     const retry = get().paywall.retry;

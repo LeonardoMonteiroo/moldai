@@ -66,27 +66,104 @@ export interface UpdateProfileResult extends AccountActionResult {
   email?: string;
 }
 
-async function getJson<T>(url: string): Promise<T> {
-  const res = await fetch(url);
-  return (await res.json()) as T;
+/**
+ * A request that failed in a way the caller was not expecting.
+ *
+ * Before this existed, none of the helpers below checked `res.ok`, so an error
+ * body was handed back typed as the success shape: a 401 became an
+ * "EditorState" with no pattern, the editor store wrote that into itself, and
+ * the screen sat on its loading spinner forever with nothing logged. Throwing
+ * makes the failure impossible to mistake for data.
+ */
+export class ApiError extends Error {
+  constructor(
+    readonly status: number,
+    readonly code: string,
+  ) {
+    super(`${status} ${code}`);
+    this.name = "ApiError";
+  }
 }
 
-async function postJson<T>(url: string, body: unknown): Promise<T> {
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  return (await res.json()) as T;
+/**
+ * `handled` lists the HTTP statuses whose *body* is part of the endpoint's
+ * contract — a 402 the paywall reads, or a 400 carrying a domain code the
+ * caller resolves through the catalog. Those come back as data. Every other
+ * non-2xx throws ApiError. Enumerating them is deliberate: it keeps each
+ * endpoint's failure contract visible at the call site.
+ */
+async function request<T>(
+  url: string,
+  init?: RequestInit,
+  handled: number[] = [],
+): Promise<T> {
+  const res = await fetch(url, init);
+  let body: unknown = null;
+  try {
+    body = await res.json();
+  } catch {
+    // A 500 can answer with an HTML error page, and 204 with nothing at all.
+  }
+  if (!res.ok && !handled.includes(res.status)) {
+    const code =
+      typeof body === "object" &&
+      body !== null &&
+      typeof (body as { error?: unknown }).error === "string"
+        ? (body as { error: string }).error
+        : "request_failed";
+    throw new ApiError(res.status, code);
+  }
+  return body as T;
 }
+
+function getJson<T>(url: string, handled: number[] = []): Promise<T> {
+  return request<T>(url, undefined, handled);
+}
+
+function postJson<T>(
+  url: string,
+  body?: unknown,
+  handled: number[] = [],
+): Promise<T> {
+  return request<T>(
+    url,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body ?? {}),
+    },
+    handled,
+  );
+}
+
+function sendJson<T>(
+  url: string,
+  method: "PATCH" | "DELETE",
+  body?: unknown,
+  handled: number[] = [],
+): Promise<T> {
+  return request<T>(
+    url,
+    {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    },
+    handled,
+  );
+}
+
+/** Statuses whose body carries a domain code the calling screen renders. */
+const DOMAIN_ERRORS = [400, 401, 404, 409, 429, 503];
+/** generate/graduate answer 402 with the paywall's required/balance numbers. */
+const PAYWALL = [402];
 
 export function listPatterns(): Promise<PatternListItem[]> {
   return getJson<PatternListItem[]>("/api/patterns");
 }
 
-export async function createPattern(): Promise<{ id: string }> {
-  const res = await fetch("/api/patterns", { method: "POST" });
-  return (await res.json()) as { id: string };
+export function createPattern(): Promise<{ id: string }> {
+  return postJson<{ id: string }>("/api/patterns");
 }
 
 export function fetchPattern(patternId: string): Promise<EditorState> {
@@ -97,15 +174,11 @@ export async function renamePattern(
   patternId: string,
   name: string,
 ): Promise<void> {
-  await fetch(`/api/patterns/${patternId}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name }),
-  });
+  await sendJson(`/api/patterns/${patternId}`, "PATCH", { name });
 }
 
 export async function deletePattern(patternId: string): Promise<void> {
-  await fetch(`/api/patterns/${patternId}`, { method: "DELETE" });
+  await sendJson(`/api/patterns/${patternId}`, "DELETE");
 }
 
 export function generate(
@@ -113,19 +186,22 @@ export function generate(
   message: string,
   answering?: boolean,
 ): Promise<GenerateResult> {
-  return postJson<GenerateResult>(`/api/patterns/${patternId}/generate`, {
-    message,
-    answering,
-  });
+  return postJson<GenerateResult>(
+    `/api/patterns/${patternId}/generate`,
+    { message, answering },
+    PAYWALL,
+  );
 }
 
 export function graduate(
   patternId: string,
   sizes: string[],
 ): Promise<GenerateResult> {
-  return postJson<GenerateResult>(`/api/patterns/${patternId}/graduate`, {
-    sizes,
-  });
+  return postJson<GenerateResult>(
+    `/api/patterns/${patternId}/graduate`,
+    { sizes },
+    PAYWALL,
+  );
 }
 
 export function resolveConflict(
@@ -134,9 +210,8 @@ export function resolveConflict(
 ): Promise<GenerateResult> {
   return postJson<GenerateResult>(
     `/api/patterns/${patternId}/conflict/resolve`,
-    {
-      action,
-    },
+    { action },
+    PAYWALL,
   );
 }
 
@@ -155,36 +230,33 @@ export function getLedgerHistory(): Promise<{ ledger: LedgerHistoryEntry[] }> {
   return getJson<{ ledger: LedgerHistoryEntry[] }>("/api/account/ledger");
 }
 
-export async function updateProfile(
-  name: string,
-): Promise<UpdateProfileResult> {
-  const res = await fetch("/api/account/profile", {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name }),
-  });
-  return (await res.json()) as UpdateProfileResult;
+export function updateProfile(name: string): Promise<UpdateProfileResult> {
+  return sendJson<UpdateProfileResult>(
+    "/api/account/profile",
+    "PATCH",
+    { name },
+    DOMAIN_ERRORS,
+  );
 }
 
 export function changePassword(
   currentPassword: string,
   newPassword: string,
 ): Promise<AccountActionResult> {
-  return postJson<AccountActionResult>("/api/account/password", {
-    currentPassword,
-    newPassword,
-  });
+  return postJson<AccountActionResult>(
+    "/api/account/password",
+    { currentPassword, newPassword },
+    DOMAIN_ERRORS,
+  );
 }
 
-export async function deleteAccount(
-  password: string,
-): Promise<AccountActionResult> {
-  const res = await fetch("/api/account", {
-    method: "DELETE",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password }),
-  });
-  return (await res.json()) as AccountActionResult;
+export function deleteAccount(password: string): Promise<AccountActionResult> {
+  return sendJson<AccountActionResult>(
+    "/api/account",
+    "DELETE",
+    { password },
+    DOMAIN_ERRORS,
+  );
 }
 
 export function signUp(
@@ -192,63 +264,61 @@ export function signUp(
   email: string,
   password: string,
 ): Promise<SignupResult> {
-  return postJson<SignupResult>("/api/signup", { name, email, password });
+  return postJson<SignupResult>(
+    "/api/signup",
+    { name, email, password },
+    DOMAIN_ERRORS,
+  );
 }
 
 export function verifyEmail(token: string): Promise<VerifyEmailResult> {
-  return postJson<VerifyEmailResult>("/api/verify-email", { token });
+  return postJson<VerifyEmailResult>(
+    "/api/verify-email",
+    { token },
+    DOMAIN_ERRORS,
+  );
 }
 
 export function resendVerification(
   email: string,
   password: string,
 ): Promise<ResendResult> {
-  return postJson<ResendResult>("/api/verify-email/resend", {
-    email,
-    password,
-  });
+  return postJson<ResendResult>(
+    "/api/verify-email/resend",
+    { email, password },
+    DOMAIN_ERRORS,
+  );
 }
 
 export function listSizeCharts(): Promise<SizeChartListEntry[]> {
   return getJson<SizeChartListEntry[]>("/api/size-charts");
 }
 
-export async function createSizeChart(
-  sourceId?: string,
-): Promise<SizeChartRecord> {
-  const res = await fetch("/api/size-charts", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ sourceId }),
-  });
-  return (await res.json()) as SizeChartRecord;
+export function createSizeChart(sourceId?: string): Promise<SizeChartRecord> {
+  return postJson<SizeChartRecord>("/api/size-charts", { sourceId });
 }
 
-export async function updateSizeChart(
+export function updateSizeChart(
   sizeChartId: string,
   patch: Partial<SizeChartData>,
 ): Promise<SizeChartRecord> {
-  const res = await fetch(`/api/size-charts/${sizeChartId}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(patch),
-  });
-  return (await res.json()) as SizeChartRecord;
+  return sendJson<SizeChartRecord>(
+    `/api/size-charts/${sizeChartId}`,
+    "PATCH",
+    patch,
+  );
 }
 
 export async function deleteSizeChart(sizeChartId: string): Promise<void> {
-  await fetch(`/api/size-charts/${sizeChartId}`, { method: "DELETE" });
+  await sendJson(`/api/size-charts/${sizeChartId}`, "DELETE");
 }
 
-export async function duplicateSizeChart(
+export function duplicateSizeChart(
   sizeChartId: string,
 ): Promise<SizeChartRecord> {
-  const res = await fetch(`/api/size-charts/${sizeChartId}/duplicate`, {
-    method: "POST",
-  });
-  return (await res.json()) as SizeChartRecord;
+  return postJson<SizeChartRecord>(`/api/size-charts/${sizeChartId}/duplicate`);
 }
 
 export async function activateSizeChart(sizeChartId: string): Promise<void> {
-  await fetch(`/api/size-charts/${sizeChartId}/activate`, { method: "POST" });
+  await postJson(`/api/size-charts/${sizeChartId}/activate`);
 }
