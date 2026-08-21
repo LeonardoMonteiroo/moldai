@@ -9,6 +9,9 @@ let state: PatternState = seedPatternState();
 let wallet: Wallet = seedWallet(NOW);
 let ownedPatternId: string | null = "m1";
 
+vi.mock("next-intl/server", () => ({
+  getTranslations: vi.fn(async () => (key: string) => key),
+}));
 vi.mock("@/lib/auth/guard", () => ({
   requireUser: vi.fn(async () => ({
     id: "u1",
@@ -67,6 +70,15 @@ describe("POST /api/patterns/[id]/graduate", () => {
     expect(json.state.credits.balance).toBe(balanceBefore - 6);
     expect(state.pattern.sizesApplied).toContain("G");
     expect(state.pattern.version).toBe(1);
+  });
+
+  it("writes the graduated chat message and credit chip through the translator", async () => {
+    const res = await POST(req({ sizes: ["G"] }), ctx());
+    expect(res.status).toBe(200);
+    const last = state.chat[state.chat.length - 1];
+    expect(last.author).toBe("ai");
+    expect(last.text).toBe("chat.graduated");
+    expect(last.chips).toEqual([{ label: "chat.creditChip", tone: "credit" }]);
   });
 
   it("400s on no valid sizes", async () => {

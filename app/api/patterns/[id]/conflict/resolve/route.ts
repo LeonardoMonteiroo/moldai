@@ -36,8 +36,8 @@ export async function POST(request: Request, { params }: Ctx) {
       addMessage(state, {
         id: `msg-${Date.now()}-ai`,
         author: "ai",
-        text: "Copa da manga refeita para a cava ajustada — as costuras voltaram a bater.",
-        chips: [{ label: "correção gratuita", tone: "neutral" }],
+        text: t("chat.sleeveRefit"),
+        chips: [{ label: t("chat.freeFixChip"), tone: "neutral" }],
         createdAt: Date.now(),
       });
     } else {

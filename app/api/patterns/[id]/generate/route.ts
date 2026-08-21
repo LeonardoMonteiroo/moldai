@@ -73,9 +73,7 @@ export async function POST(request: Request, { params }: Ctx) {
           addMessage(state, {
             id: `msg-${Date.now()}-ai`,
             author: "ai",
-            text:
-              decision.assistantMessage ||
-              "Pra acertar a modelagem, me responde:",
+            text: decision.assistantMessage || t("chat.askFallback"),
             questions: decision.questions,
             createdAt: Date.now(),
           });
@@ -96,7 +94,7 @@ export async function POST(request: Request, { params }: Ctx) {
             text:
               decision.assistantMessage ||
               decision.declineReason ||
-              "Não consegui aplicar esse pedido.",
+              t("chat.declineFallback"),
             createdAt: Date.now(),
           });
           entries.push(refundWallet(wallet, cost, "generate-declined"));
@@ -125,7 +123,7 @@ export async function POST(request: Request, { params }: Ctx) {
           text: conflict
             ? `${decision.assistantMessage} ⚠️ ${conflict.description}`
             : decision.assistantMessage,
-          chips: [{ label: `−${cost} crédito`, tone: "credit" }],
+          chips: [{ label: t("chat.creditChip", { cost }), tone: "credit" }],
           tone: conflict ? "conflict" : undefined,
           createdAt: Date.now(),
         });

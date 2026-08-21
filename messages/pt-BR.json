@@ -175,6 +175,14 @@
       "title": "Cava e manga não batem",
       "description": "A cava do corpo ficou {diffCm} cm {direction, select, larger {maior} smaller {menor} other {}} que a copa da manga — as costuras não vão fechar.",
       "suggestion": "“Corrigir manga” refaz a copa para a cava ajustada, sem custo."
+    },
+    "chat": {
+      "askFallback": "Pra acertar a modelagem, me responde:",
+      "declineFallback": "Não consegui aplicar esse pedido.",
+      "creditChip": "−{cost, plural, one {# crédito} other {# créditos}}",
+      "graduated": "Graduação aplicada para {list}.",
+      "sleeveRefit": "Copa da manga refeita para a cava ajustada — as costuras voltaram a bater.",
+      "freeFixChip": "correção gratuita"
     }
   },
   "TechSheetTab": {

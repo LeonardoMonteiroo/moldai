@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { withPatternAndWallet } from "@/lib/db/pattern-wallet";
 import { patternNotFound } from "@/lib/db/pattern";
 import { addMessage, applySizes, bumpVersion } from "@/lib/editor/state";
@@ -25,6 +26,7 @@ export async function POST(request: Request, { params }: Ctx) {
   }
   const requested = Array.isArray(body.sizes) ? body.sizes : [];
   const cost = COSTS.graduate;
+  const t = await getTranslations("PatternData");
   const now = new Date();
 
   const result = await withPatternAndWallet(
@@ -59,8 +61,8 @@ export async function POST(request: Request, { params }: Ctx) {
       addMessage(state, {
         id: `msg-${Date.now()}-ai`,
         author: "ai",
-        text: `Graduação aplicada para ${formatList(sizes)}.`,
-        chips: [{ label: `−${cost} créditos`, tone: "credit" }],
+        text: t("chat.graduated", { list: formatList(sizes) }),
+        chips: [{ label: t("chat.creditChip", { cost }), tone: "credit" }],
         createdAt: Date.now(),
       });
       return {
