@@ -9,6 +9,7 @@ const ALL_SHARED: SharedErrorCode[] = [
   "pattern_not_found",
   "size_chart_not_found",
   "account_not_found",
+  "sloper_not_found",
 ];
 
 describe("ERROR_STATUS", () => {

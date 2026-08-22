@@ -6,6 +6,7 @@ import {
   SizeChartListEntry,
   SizeChartRecord,
   LedgerHistoryEntry,
+  SloperListItem,
 } from "./types";
 import type { SignupErrorCode } from "./account/signup";
 import type { VerifyErrorCode, ResendErrorCode } from "./auth/verification";
@@ -162,8 +163,9 @@ export function listPatterns(): Promise<PatternListItem[]> {
   return getJson<PatternListItem[]>("/api/patterns");
 }
 
-export function createPattern(): Promise<{ id: string }> {
-  return postJson<{ id: string }>("/api/patterns");
+export function createPattern(sloperId?: string): Promise<{ id: string }> {
+  // JSON.stringify drops an undefined value, so the blank case still posts {}.
+  return postJson<{ id: string }>("/api/patterns", { sloperId });
 }
 
 export function fetchPattern(patternId: string): Promise<EditorState> {
@@ -321,4 +323,26 @@ export function duplicateSizeChart(
 
 export async function activateSizeChart(sizeChartId: string): Promise<void> {
   await postJson(`/api/size-charts/${sizeChartId}/activate`);
+}
+
+export function listSlopers(): Promise<SloperListItem[]> {
+  return getJson<SloperListItem[]>("/api/slopers");
+}
+
+export function createSloper(
+  patternId: string,
+  name: string,
+): Promise<SloperListItem> {
+  return postJson<SloperListItem>("/api/slopers", { patternId, name });
+}
+
+export async function renameSloper(
+  sloperId: string,
+  name: string,
+): Promise<void> {
+  await sendJson(`/api/slopers/${sloperId}`, "PATCH", { name });
+}
+
+export async function deleteSloper(sloperId: string): Promise<void> {
+  await sendJson(`/api/slopers/${sloperId}`, "DELETE");
 }

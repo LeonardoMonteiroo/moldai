@@ -67,6 +67,7 @@ interface EditorStore {
   resolveConflict: (action: "fix" | "ignore") => Promise<void>;
   purchase: (type: "topup" | "subscribe") => Promise<void>;
   closePaywall: () => void;
+  saveAsSloper: (name: string) => Promise<boolean>;
 
   setActiveTab: (tab: EditorTab) => void;
   selectPiece: (id: string | null) => void;
@@ -305,6 +306,21 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         retry: null,
       },
     }),
+
+  // Saving a base does not change the pattern, so this writes no state. It
+  // returns a boolean rather than setting `error`, because a failed save
+  // leaves a perfectly usable editor: the Footer shows an inline notice, the
+  // same shape it already uses for an export failure.
+  saveAsSloper: async (name: string) => {
+    const patternId = get().patternId;
+    if (!patternId) return false;
+    try {
+      await api.createSloper(patternId, name);
+      return true;
+    } catch {
+      return false;
+    }
+  },
 
   setActiveTab: (tab) => set({ activeTab: tab }),
   selectPiece: (id) =>

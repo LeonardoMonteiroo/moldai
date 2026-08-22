@@ -25,7 +25,15 @@
     "exportButton": "Exportar",
     "netLineNote": "Linha líquida — sem margem de costura embutida.",
     "saveVersionTitle": "O molde é salvo automaticamente a cada geração. Versionamento manual chega em breve.",
-    "saveVersionButton": "Salvar versão · em breve"
+    "saveVersionButton": "Salvar versão · em breve",
+    "saveAsBaseButton": "Salvar como base",
+    "saveAsBaseDisabledTitle": "Gere o molde e resolva o conflito de costura antes de salvar como base.",
+    "saveAsBaseTitle": "Salvar como base do ateliê",
+    "saveAsBasePrompt": "Nome da base",
+    "saveAsBaseSaveButton": "Salvar",
+    "saveAsBaseCancelButton": "Cancelar",
+    "saveAsBaseSaved": "Base salva em Bases do ateliê.",
+    "saveAsBaseError": "Não foi possível salvar a base. Tente de novo."
   },
   "ChatPanel": {
     "title": "Conversa",
@@ -187,7 +195,8 @@
       "graduated": "Graduação aplicada para {list}.",
       "sleeveRefit": "Copa da manga refeita para a cava ajustada — as costuras voltaram a bater.",
       "freeFixChip": "correção gratuita",
-      "sizeChartSubstituted": "Sua grade ativa (“{rejected}”) não serve para esta peça, então usei “{used}”. Para usar a sua, ative uma grade do mesmo gênero em Medidas e grades."
+      "sizeChartSubstituted": "Sua grade ativa (“{rejected}”) não serve para esta peça, então usei “{used}”. Para usar a sua, ative uma grade do mesmo gênero em Medidas e grades.",
+      "fromSloper": "Molde criado a partir da base “{name}”. Peça os ajustes por aqui."
     },
     "pdf": {
       "pageLabel": "Linha {rowNumber} · Coluna {colNumber} de {totalRows}x{totalCols}",
@@ -430,6 +439,30 @@
     "loadError": "Não foi possível carregar seus moldes. Tente recarregar a página.",
     "patternMissing": "Esse molde não existe mais — talvez tenha sido excluído.",
     "dismissPatternMissing": "Fechar aviso"
+  },
+  "Slopers": {
+    "title": "Bases do ateliê",
+    "subtitle": "Moldes salvos como ponto de partida para novas peças",
+    "countLabel": "{count, plural, one {# base} other {# bases}}",
+    "loading": "Carregando bases…",
+    "loadError": "Não foi possível carregar suas bases. Tente recarregar a página.",
+    "emptyTitle": "Nenhuma base salva",
+    "emptyDescription": "Abra um molde já gerado e use “Salvar como base” no rodapé do editor."
+  },
+  "SloperCard": {
+    "useButton": "Usar base",
+    "meta": "{garment} · base {baseSize}",
+    "menuAriaLabel": "Mais opções",
+    "renameOption": "Renomear",
+    "renameTitle": "Renomear base",
+    "renamePrompt": "Novo nome da base",
+    "renameSaveButton": "Salvar",
+    "renameCancelButton": "Cancelar",
+    "deleteOption": "Excluir",
+    "deleteModalTitle": "Excluir esta base?",
+    "deleteModalDescription": "Isso apaga a base do ateliê. Os moldes já criados a partir dela não são afetados.",
+    "deleteConfirmButton": "Excluir",
+    "deleteCancelButton": "Cancelar"
   },
   "ProfileSection": {
     "heading": "Perfil",
