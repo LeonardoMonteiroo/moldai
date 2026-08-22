@@ -29,6 +29,58 @@ npm run db:migrate   # apply Prisma migrations
 npm run dev          # app at http://localhost:3000
 ```
 
+## Database inspection (DBHub MCP)
+
+`Pattern.data` and `SizeChart.data` are JSON blob columns, so the real shape of persisted
+data is invisible in `prisma/schema.prisma` — reading an actual row is the only way to
+confirm a blob change didn't orphan existing data. The `moldai-db` MCP server (`.mcp.json`
+plus `dbhub.toml`) exists for that, and it connects as a dedicated read-only role.
+
+Create the role once, against the dev database. Generate a password first
+(`openssl rand -hex 20`) and substitute it for `<password>` in both blocks below:
+
+```bash
+npm run db:up   # Postgres must be up first
+docker exec -i moldai-db psql -U moldai -d moldai <<'SQL'
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'moldai_ro') THEN
+    CREATE ROLE moldai_ro LOGIN PASSWORD '<password>'
+      NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION;
+  END IF;
+END
+$$;
+
+GRANT CONNECT ON DATABASE moldai TO moldai_ro;
+GRANT USAGE   ON SCHEMA   public TO moldai_ro;
+GRANT SELECT  ON ALL TABLES IN SCHEMA public TO moldai_ro;
+REVOKE CREATE ON SCHEMA public FROM moldai_ro;
+
+-- Prisma migrations create tables as `moldai`; this keeps future ones readable
+-- without re-running the GRANT above.
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO moldai_ro;
+SQL
+```
+
+Then point the MCP server at it. `dbhub.toml` is safe to commit because it holds only a
+variable reference (`${MOLDAI_DEV_DSN}`), never the credential — DBHub interpolates it
+from the process environment at config load, so the value lives in your shell:
+
+```powershell
+[Environment]::SetEnvironmentVariable('MOLDAI_DEV_DSN',
+  'postgres://moldai_ro:<password>@localhost:5433/moldai?sslmode=disable', 'User')
+```
+
+Restart the terminal **and** Claude Code afterwards — the variable is read at launch, so
+reconnecting via `/mcp` alone won't pick it up. If either the variable or Postgres is
+missing, DBHub exits non-zero before the stdio handshake and Claude Code reports only
+`CONNECTION_CLOSED`; run the command from `.mcp.json` by hand to see the real error.
+
+Read-only is enforced at two layers on Postgres (DBHub sets
+`default_transaction_read_only` and wraps every execution in `BEGIN READ ONLY`, which
+also blocks DDL). The `moldai_ro` grants above are the third layer, so a DBHub
+misconfiguration still cannot write.
+
 ## Login
 
 Create an account at `/signup`, then confirm it via the verification link — in the Docker dev stack, that mail lands in Mailpit at `http://localhost:8025`.
