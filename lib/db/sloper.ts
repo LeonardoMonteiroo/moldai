@@ -66,8 +66,13 @@ export async function loadSloper(
   return toData(row.data);
 }
 
-// A sloper is immutable apart from its name, so there is no load -> mutate ->
-// save race worth a row lock: the scoped updateMany is the whole operation.
+// A sloper is immutable apart from its name, so no row lock is needed: two
+// racing renames resolve to last-write-wins on the one mutable field, which is
+// the same final state a lock would produce. The read exists only to merge
+// `name` into the JSON blob (Prisma has no JSON-path patch without raw SQL);
+// the write is a scoped updateMany so a concurrent delete answers `count: 0`
+// rather than throwing P2025 — this module never throws, the same contract
+// lib/db/pattern.ts holds.
 export async function renameSloper(
   sloperId: string,
   userId: string,
@@ -76,11 +81,11 @@ export async function renameSloper(
   const row = await prisma.sloper.findUnique({ where: { id: sloperId } });
   if (!row || row.userId !== userId) return false;
   const next: SloperData = { ...toData(row.data), name };
-  await prisma.sloper.update({
-    where: { id: sloperId },
+  const res = await prisma.sloper.updateMany({
+    where: { id: sloperId, userId },
     data: { data: next as unknown as Prisma.InputJsonValue },
   });
-  return true;
+  return res.count > 0;
 }
 
 export async function deleteSloper(
