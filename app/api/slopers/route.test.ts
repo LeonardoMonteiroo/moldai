@@ -45,6 +45,23 @@ function draftedPattern() {
   return { state, updatedAt: new Date("2026-08-22T00:00:00.000Z") };
 }
 
+/**
+ * A drafted pattern carrying a real, engine-produced seam conflict: an
+ * armholeDeepenCm above seamCheck's 1cm tolerance makes the body armhole
+ * diverge from the sleeve cap (see garment.ts's draftAll / lib/editor/state.ts's
+ * applyGarmentSpec), the same way lib/editor/state.test.ts triggers one.
+ */
+function draftedPatternWithConflict() {
+  const state = seedPatternState(t);
+  applyGarmentSpec(
+    state,
+    { ...BLOUSE, style: { sleeve: "short", armholeDeepenCm: 2 } },
+    t,
+  );
+  if (!state.conflict) throw new Error("fixture did not produce a conflict");
+  return { state, updatedAt: new Date("2026-08-22T00:00:00.000Z") };
+}
+
 function post(body: unknown) {
   return new Request("http://test/api/slopers", {
     method: "POST",
@@ -110,6 +127,14 @@ describe("/api/slopers", () => {
     const res = await POST(post({ patternId: "p1", name: "base" }));
     expect(res.status).toBe(400);
     expect((await res.json()).error).toBe("pattern_not_drafted");
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  it("POST 400s for a drafted pattern with an active seam conflict", async () => {
+    mockLoadPattern.mockResolvedValue(draftedPatternWithConflict());
+    const res = await POST(post({ patternId: "p1", name: "base" }));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe("pattern_has_conflict");
     expect(mockCreate).not.toHaveBeenCalled();
   });
 
