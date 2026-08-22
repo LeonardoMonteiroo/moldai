@@ -4,6 +4,7 @@ import { useMemo, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { EditorTab, useEditorStore } from "@/lib/store";
 import { useCanvasViewport } from "@/lib/canvas/useCanvasViewport";
+import { measureSeams } from "@/lib/draft/garment";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { TabBar } from "./TabBar";
 import { GeneratingOverlay } from "./GeneratingOverlay";
@@ -25,6 +26,7 @@ import {
 
 export function CanvasArea() {
   const t = useTranslations("CanvasArea");
+  const tData = useTranslations("PatternData");
   const pattern = useEditorStore((s) => s.pattern);
   const conflict = useEditorStore((s) => s.conflict);
   const activeTab = useEditorStore((s) => s.activeTab);
@@ -49,6 +51,24 @@ export function CanvasArea() {
   const vbH = pattern?.viewBox?.h;
   const natural = useMemo(() => ({ w: vbW ?? 620, h: vbH ?? 380 }), [vbW, vbH]);
   const vp = useCanvasViewport(svgRef, natural);
+
+  // The two seam lengths a conflict is about, re-derived from the pattern's own
+  // spec instead of read off ConflictInfo (which only ever carried their
+  // difference) — the same client-side re-draft in exact cm that TechSheetTab and
+  // CutPlanTab do through buildExportModel. Memoized because this component
+  // re-renders on every pan and zoom frame.
+  const spec = pattern?.spec;
+  const baseMeasurements = pattern?.baseMeasurements;
+  const seams = useMemo(() => {
+    if (!conflict || !spec || !baseMeasurements) return null;
+    try {
+      return measureSeams(spec, baseMeasurements, tData);
+    } catch {
+      // No usable spec: the card and the markers fall back to the difference
+      // alone, rather than the whole canvas failing to render.
+      return null;
+    }
+  }, [conflict, spec, baseMeasurements, tData]);
 
   if (!pattern) return null;
   const isGenerating = generationStatus === "generating";
@@ -110,6 +130,8 @@ export function CanvasArea() {
               addMeasurement({ id: crypto.randomUUID(), a, b })
             }
             onRemoveMeasurement={removeMeasurement}
+            armholeLenCm={seams?.armholeLenCm}
+            sleeveArmholeCm={seams?.sleeveArmholeCm}
           />
         </div>
         {!isGenerating && !hasPieces && (
@@ -145,7 +167,13 @@ export function CanvasArea() {
             {t("clearMeasurementsButton")}
           </Button>
         )}
-        {!isGenerating && conflict && <ConflictInfoCard conflict={conflict} />}
+        {!isGenerating && conflict && (
+          <ConflictInfoCard
+            conflict={conflict}
+            armholeLenCm={seams?.armholeLenCm}
+            sleeveArmholeCm={seams?.sleeveArmholeCm}
+          />
+        )}
         {!isGenerating && !conflict && detailsPanelOpen && selectedPiece && (
           <PieceDetailsPanel
             piece={selectedPiece}

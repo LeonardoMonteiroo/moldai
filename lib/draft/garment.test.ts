@@ -4,6 +4,8 @@ import {
   draftGarment,
   validateQuestions,
   draftPiecesCm,
+  measureSeams,
+  seamCheck,
   STYLE_LIMITS,
 } from "./garment";
 import { SIZE_TABLE, SIZE_TABLE_MALE } from "@/lib/measurements";
@@ -225,6 +227,57 @@ describe("draftPiecesCm", () => {
     const width = Math.max(...xs) - Math.min(...xs);
     expect(width).toBeGreaterThan(20);
     expect(width).toBeLessThan(80);
+  });
+});
+
+describe("measureSeams", () => {
+  it("reports both seam lengths and agrees with seamCheck's diff", () => {
+    const spec = {
+      type: "blouse" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { sleeve: "short" as const, armholeDeepenCm: 3 },
+    };
+    const { armholeLenCm, sleeveArmholeCm } = measureSeams(
+      spec,
+      SIZE_TABLE.M,
+      t,
+    );
+    // The body's armhole is the deepened one; the cap is still sized from the base.
+    expect(armholeLenCm!).toBeGreaterThan(sleeveArmholeCm!);
+    const seam = seamCheck(armholeLenCm, sleeveArmholeCm);
+    expect(seam).not.toBeNull();
+    expect(Math.abs(armholeLenCm! - sleeveArmholeCm!)).toBeCloseTo(
+      seam!.diffCm,
+      1,
+    );
+  });
+  it("matches what draftGarment computed for the same spec", () => {
+    const spec = {
+      type: "blouse" as const,
+      gender: "female" as const,
+      measurementOverrides: { bust: 96 },
+      style: { sleeve: "short" as const, armholeDeepenCm: 2 },
+    };
+    const drafted = draftGarment(spec, SIZE_TABLE.M, t);
+    expect(measureSeams(spec, SIZE_TABLE.M, t)).toEqual({
+      armholeLenCm: drafted.armholeLenCm,
+      sleeveArmholeCm: drafted.sleeveArmholeCm,
+    });
+  });
+  it("reports no seams for a garment without an armhole", () => {
+    const { armholeLenCm, sleeveArmholeCm } = measureSeams(
+      {
+        type: "skirt",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      SIZE_TABLE.M,
+      t,
+    );
+    expect(armholeLenCm).toBeUndefined();
+    expect(sleeveArmholeCm).toBeUndefined();
   });
 });
 

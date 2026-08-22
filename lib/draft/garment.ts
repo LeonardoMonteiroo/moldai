@@ -220,6 +220,22 @@ export function draftPiecesCm(
   return draftAll(spec, baseMeasurements, t).drafted;
 }
 
+// The pair of seam lengths seamCheck compares, without the pieces or the layout.
+// Both are undefined for a garment with no armhole (a skirt). The conflict card
+// and the canvas markers derive their numbers from here rather than reading them
+// off a persisted ConflictInfo: they follow from the spec, so storing them beside
+// the armholeDeepenCm that moved them would be the same duplication CLAUDE.md
+// already removed twice (Pattern.savedAgo, Wallet.planLabel) — and deriving also
+// gives the lengths to conflicts persisted before this existed.
+export function measureSeams(
+  spec: GarmentSpec,
+  baseMeasurements: Measurements,
+  t: Translate,
+): { armholeLenCm?: number; sleeveArmholeCm?: number } {
+  const { armholeLenCm, sleeveArmholeCm } = draftAll(spec, baseMeasurements, t);
+  return { armholeLenCm, sleeveArmholeCm };
+}
+
 export function draftGarment(
   spec: GarmentSpec,
   baseMeasurements: Measurements,

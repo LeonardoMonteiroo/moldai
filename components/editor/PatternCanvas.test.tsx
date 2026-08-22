@@ -167,3 +167,48 @@ describe("PatternCanvas piece labels", () => {
     expect(parseFloat(label.style.fontSize)).toBe(MAX_LABEL_FONT_SIZE);
   });
 });
+
+const seamConflict = {
+  id: "conf-1",
+  title: "Cava e manga não batem",
+  description: "…",
+  diffCm: 3.1,
+  suggestion: "…",
+  pieceAId: "body-front",
+  pieceBId: "sleeve",
+  markers: [
+    { cx: 40, cy: 30, r: 14 },
+    { cx: 200, cy: 120, r: 14 },
+  ],
+};
+
+describe("PatternCanvas conflict markers", () => {
+  it("labels each marker with its own seam length, body first", () => {
+    renderCanvas({
+      conflict: seamConflict,
+      armholeLenCm: 22.84,
+      sleeveArmholeCm: 19.7,
+    });
+    const body = screen.getByText("22,8 cm");
+    const sleeve = screen.getByText("19,7 cm");
+    // Anchored outside its circle, so the value never sits on the piece.
+    expect(Number(body.getAttribute("x"))).toBe(40 + 14 + 4);
+    expect(Number(sleeve.getAttribute("x"))).toBe(200 + 14 + 4);
+  });
+
+  it("draws bare circles when the seam lengths are unavailable", () => {
+    const { container } = renderCanvas({ conflict: seamConflict });
+    expect(container.querySelectorAll("circle")).toHaveLength(2);
+    expect(screen.queryByText(/cm$/)).not.toBeInTheDocument();
+  });
+
+  it("labels nothing when a marker is missing, rather than mislabelling the survivor", () => {
+    renderCanvas({
+      conflict: { ...seamConflict, markers: [seamConflict.markers[1]] },
+      armholeLenCm: 22.84,
+      sleeveArmholeCm: 19.7,
+    });
+    expect(screen.queryByText("22,8 cm")).not.toBeInTheDocument();
+    expect(screen.queryByText("19,7 cm")).not.toBeInTheDocument();
+  });
+});
