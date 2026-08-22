@@ -12,7 +12,14 @@ export function GeneratingOverlay({
   const n = stepIndex + 1;
 
   return (
-    <div className="bg-surface border-border flex items-center gap-[10px] border-b px-4 py-[11px]">
+    // role="status" so each step change is announced. This is the one live
+    // region for generation progress: ChatPanel renders the same step text in
+    // its composer and is deliberately left silent, or every step would be
+    // read out twice.
+    <div
+      role="status"
+      className="bg-surface border-border flex items-center gap-[10px] border-b px-4 py-[11px]"
+    >
       <span className="text-muted-2 text-ui">{t("steps.progress" + n)}</span>
       <span className="text-muted-2 text-ui">
         {t("steps.stepLabel", { n, stage: t("steps.stage" + n) })}

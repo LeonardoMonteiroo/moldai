@@ -58,7 +58,11 @@ export function ChatPanel() {
       </div>
 
       <ScrollArea viewportRef={listRef} className="min-h-0 flex-1">
-        <div className="flex flex-col gap-3 p-4">
+        {/* role="log" + polite: the AI's reply is the whole point of this
+            screen, and its arrival was announced nowhere. "log" (rather than
+            plain aria-live) tells assistive tech this is an append-only
+            thread, so only the new turn is read out, not the whole history. */}
+        <div role="log" aria-live="polite" className="flex flex-col gap-3 p-4">
           {chat.map((message, i) => (
             <ChatBubble
               key={message.id}

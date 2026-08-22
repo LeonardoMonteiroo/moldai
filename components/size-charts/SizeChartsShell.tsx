@@ -41,12 +41,18 @@ export function SizeChartsShell({
           `dirty` left true and no explanation. */}
       {actionError && <ActionErrorNotice onDismiss={clearActionError} />}
       {!ready && (
-        <div className="text-muted text-control flex flex-1 items-center justify-center">
+        <div
+          role="status"
+          className="text-muted text-control flex flex-1 items-center justify-center"
+        >
           {t("loading")}
         </div>
       )}
       {ready && error && (
-        <div className="text-muted text-control flex flex-1 items-center justify-center">
+        <div
+          role="alert"
+          className="text-muted text-control flex flex-1 items-center justify-center"
+        >
           {t("loadError")}
         </div>
       )}

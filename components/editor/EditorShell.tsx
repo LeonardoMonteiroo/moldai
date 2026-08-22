@@ -65,7 +65,10 @@ export function EditorShell({
   // is nothing to paint until the store is ready.
   if (!ready || !pattern || !credits) {
     return (
-      <div className="text-muted text-control flex flex-1 items-center justify-center">
+      <div
+        role="status"
+        className="text-muted text-control flex flex-1 items-center justify-center"
+      >
         {t("loading")}
       </div>
     );
