@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useDashboardStore } from "@/lib/dashboardStore";
 import { AppShell } from "@/components/shared/AppShell";
+import { ActionErrorNotice } from "@/components/shared/ActionErrorNotice";
 import { Sidebar } from "./Sidebar";
 import { PatternGrid } from "./PatternGrid";
 import { CreditsCard } from "./CreditsCard";
@@ -18,6 +19,8 @@ export function DashboardShell({ userEmail }: { userEmail: string }) {
   const credits = useDashboardStore((s) => s.credits);
   const recentUsage = useDashboardStore((s) => s.recentUsage);
   const init = useDashboardStore((s) => s.init);
+  const actionError = useDashboardStore((s) => s.actionError);
+  const clearActionError = useDashboardStore((s) => s.clearActionError);
 
   useEffect(() => {
     init();
@@ -35,6 +38,9 @@ export function DashboardShell({ userEmail }: { userEmail: string }) {
       userEmail={userEmail}
       sidebar={<Sidebar onCreate={openPattern} disabled={error} />}
     >
+      {/* Sits above the list: a failed rename/delete/create leaves the list
+          itself perfectly usable, so it gets a notice, not a takeover. */}
+      {actionError && <ActionErrorNotice onDismiss={clearActionError} />}
       {!ready && (
         <div className="text-muted text-control flex flex-1 items-center justify-center">
           {t("loading")}

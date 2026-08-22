@@ -1,16 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { SizeChartListEntry } from "./types";
 
-vi.mock("./api-client", () => ({
-  listSizeCharts: vi.fn(),
-  createSizeChart: vi.fn(),
-  updateSizeChart: vi.fn(),
-  deleteSizeChart: vi.fn(),
-  duplicateSizeChart: vi.fn(),
-  activateSizeChart: vi.fn(),
-}));
+vi.mock("./api-client", async () => {
+  const actual =
+    await vi.importActual<typeof import("./api-client")>("./api-client");
+  return {
+    ApiError: actual.ApiError,
+    listSizeCharts: vi.fn(),
+    createSizeChart: vi.fn(),
+    updateSizeChart: vi.fn(),
+    deleteSizeChart: vi.fn(),
+    duplicateSizeChart: vi.fn(),
+    activateSizeChart: vi.fn(),
+  };
+});
 
 import * as api from "./api-client";
+import { ApiError } from "./api-client";
 import { useSizeChartsStore } from "./sizeChartsStore";
 
 function entry(
@@ -179,5 +185,56 @@ describe("sizeChartsStore.create / duplicate / remove / activate", () => {
     const s = useSizeChartsStore.getState();
     expect(s.charts.find((c) => c.id === "g1")?.isActive).toBe(false);
     expect(s.charts.find((c) => c.id === "g2")?.isActive).toBe(true);
+  });
+});
+
+// Same gap as the dashboard store: only init() caught, so a failed save left
+// `dirty` true with no message, and a failed activate/delete silently did
+// nothing at all.
+describe("sizeChartsStore mutation failures", () => {
+  beforeEach(() => {
+    vi.mocked(api.updateSizeChart).mockReset();
+    vi.mocked(api.deleteSizeChart).mockReset();
+    vi.mocked(api.activateSizeChart).mockReset();
+    useSizeChartsStore.setState({ actionError: null });
+  });
+
+  it("surfaces a failed save and keeps the draft dirty", async () => {
+    useSizeChartsStore.setState({
+      selectedId: "g1",
+      draft: { ...entry({ id: "g1" }), isSystem: false } as never,
+      dirty: true,
+    });
+    vi.mocked(api.updateSizeChart).mockRejectedValue(
+      new ApiError(500, "request_failed"),
+    );
+
+    await useSizeChartsStore.getState().save();
+
+    expect(useSizeChartsStore.getState().actionError).toBe("request_failed");
+    // Still dirty: the edit was not persisted, so it must not look saved.
+    expect(useSizeChartsStore.getState().dirty).toBe(true);
+  });
+
+  it("surfaces a failed activate", async () => {
+    vi.mocked(api.activateSizeChart).mockRejectedValue(new Error("boom"));
+
+    await useSizeChartsStore.getState().activate("g1");
+
+    expect(useSizeChartsStore.getState().actionError).toBe("request_failed");
+  });
+
+  it("surfaces a failed delete", async () => {
+    vi.mocked(api.deleteSizeChart).mockRejectedValue(new Error("boom"));
+
+    await useSizeChartsStore.getState().remove("g1");
+
+    expect(useSizeChartsStore.getState().actionError).toBe("request_failed");
+  });
+
+  it("clearActionError dismisses it", () => {
+    useSizeChartsStore.setState({ actionError: "request_failed" });
+    useSizeChartsStore.getState().clearActionError();
+    expect(useSizeChartsStore.getState().actionError).toBeNull();
   });
 });

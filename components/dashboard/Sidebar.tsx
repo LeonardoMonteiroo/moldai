@@ -18,14 +18,11 @@ export function Sidebar({
   const create = useDashboardStore((s) => s.create);
 
   const handleCreate = async () => {
-    try {
-      const id = await create();
-      onCreate(id);
-    } catch {
-      // The dashboard's error banner already surfaces the failure; this just
-      // keeps a transient rejection from becoming an unhandled promise
-      // rejection with no navigation and no feedback.
-    }
+    // create() resolves to null on failure and records the code on the store,
+    // which DashboardShell renders as a notice — so there is nothing to catch
+    // here, and nothing to navigate to either.
+    const id = await create();
+    if (id) onCreate(id);
   };
 
   return (

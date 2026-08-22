@@ -1,15 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { PatternListItem } from "./api-client";
 
-vi.mock("./api-client", () => ({
-  listPatterns: vi.fn(),
-  createPattern: vi.fn(),
-  renamePattern: vi.fn(),
-  deletePattern: vi.fn(),
-  getAccountSummary: vi.fn(),
-}));
+vi.mock("./api-client", async () => {
+  const actual =
+    await vi.importActual<typeof import("./api-client")>("./api-client");
+  return {
+    ApiError: actual.ApiError,
+    listPatterns: vi.fn(),
+    createPattern: vi.fn(),
+    renamePattern: vi.fn(),
+    deletePattern: vi.fn(),
+    getAccountSummary: vi.fn(),
+  };
+});
 
 import * as api from "./api-client";
+import { ApiError } from "./api-client";
 import { useDashboardStore, filteredPatterns } from "./dashboardStore";
 
 function pattern(overrides: Partial<PatternListItem> = {}): PatternListItem {
@@ -134,5 +140,63 @@ describe("filteredPatterns", () => {
       typeFilter: "dress",
     });
     expect(out.map((p) => p.id)).toEqual(["m3"]);
+  });
+});
+
+// The store only ever caught on the initial load, so a failed rename/delete/
+// create became an unhandled rejection: the row silently stayed (or vanished
+// from) the list with nothing on screen.
+describe("dashboardStore mutation failures", () => {
+  beforeEach(() => {
+    vi.mocked(api.renamePattern).mockReset();
+    vi.mocked(api.deletePattern).mockReset();
+    vi.mocked(api.createPattern).mockReset();
+    useDashboardStore.setState({
+      patterns: [pattern({ id: "m1", name: "Blusa" })],
+      actionError: null,
+    });
+  });
+
+  it("surfaces a failed rename and leaves the old name in place", async () => {
+    vi.mocked(api.renamePattern).mockRejectedValue(new Error("boom"));
+
+    await useDashboardStore.getState().rename("m1", "Vestido");
+
+    expect(useDashboardStore.getState().actionError).toBe("request_failed");
+    expect(useDashboardStore.getState().patterns[0].name).toBe("Blusa");
+  });
+
+  it("surfaces a failed delete and keeps the pattern in the list", async () => {
+    vi.mocked(api.deletePattern).mockRejectedValue(new Error("boom"));
+
+    await useDashboardStore.getState().remove("m1");
+
+    expect(useDashboardStore.getState().actionError).toBe("request_failed");
+    expect(useDashboardStore.getState().patterns).toHaveLength(1);
+  });
+
+  // create()'s caller navigates to the returned id; it must get null rather
+  // than a rejected promise to route on.
+  it("returns null from a failed create instead of throwing", async () => {
+    vi.mocked(api.createPattern).mockRejectedValue(new Error("boom"));
+
+    await expect(useDashboardStore.getState().create()).resolves.toBeNull();
+    expect(useDashboardStore.getState().actionError).toBe("request_failed");
+  });
+
+  it("carries the wire code when the failure is an ApiError", async () => {
+    vi.mocked(api.renamePattern).mockRejectedValue(
+      new ApiError(401, "unauthorized"),
+    );
+
+    await useDashboardStore.getState().rename("m1", "Vestido");
+
+    expect(useDashboardStore.getState().actionError).toBe("unauthorized");
+  });
+
+  it("clearActionError dismisses it", () => {
+    useDashboardStore.setState({ actionError: "request_failed" });
+    useDashboardStore.getState().clearActionError();
+    expect(useDashboardStore.getState().actionError).toBeNull();
   });
 });

@@ -239,9 +239,11 @@
     "savedVersion": "{savedAgo} · v{version}",
     "loadError": "Não foi possível carregar este molde. Tente novamente.",
     "sessionExpired": "Sua sessão expirou. Entre novamente para continuar.",
-    "retryButton": "Tentar de novo",
-    "actionError": "Algo deu errado e sua última ação não foi aplicada.",
-    "dismissError": "Fechar aviso"
+    "retryButton": "Tentar de novo"
+  },
+  "ActionErrorNotice": {
+    "message": "Algo deu errado e sua última ação não foi aplicada.",
+    "dismiss": "Fechar aviso"
   },
   "Login": {
     "heading": "Entrar",

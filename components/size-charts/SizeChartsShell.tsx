@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { AppShell } from "@/components/shared/AppShell";
+import { ActionErrorNotice } from "@/components/shared/ActionErrorNotice";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SizeChartLibrary } from "./SizeChartLibrary";
 import { SizeChartTable } from "./SizeChartTable";
@@ -21,6 +22,8 @@ export function SizeChartsShell({
   const ready = useSizeChartsStore((s) => s.ready);
   const error = useSizeChartsStore((s) => s.error);
   const draft = useSizeChartsStore((s) => s.draft);
+  const actionError = useSizeChartsStore((s) => s.actionError);
+  const clearActionError = useSizeChartsStore((s) => s.clearActionError);
 
   useEffect(() => {
     init();
@@ -34,6 +37,9 @@ export function SizeChartsShell({
       credits={credits}
       userEmail={userEmail}
     >
+      {/* A failed save/activate/delete used to be completely silent, with
+          `dirty` left true and no explanation. */}
+      {actionError && <ActionErrorNotice onDismiss={clearActionError} />}
       {!ready && (
         <div className="text-muted text-control flex flex-1 items-center justify-center">
           {t("loading")}

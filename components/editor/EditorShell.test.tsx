@@ -146,15 +146,17 @@ describe("EditorShell", () => {
       useEditorStore.setState({ error: "request_failed" });
     });
 
-    expect(screen.getByText(ptBR.EditorShell.actionError)).toBeInTheDocument();
+    expect(
+      screen.getByText(ptBR.ActionErrorNotice.message),
+    ).toBeInTheDocument();
     // The pattern is still on screen — this is a notice, not a replacement.
     expect(screen.getByText("Vestido")).toBeInTheDocument();
 
     await userEvent.click(
-      screen.getByRole("button", { name: ptBR.EditorShell.dismissError }),
+      screen.getByRole("button", { name: ptBR.ActionErrorNotice.dismiss }),
     );
     expect(
-      screen.queryByText(ptBR.EditorShell.actionError),
+      screen.queryByText(ptBR.ActionErrorNotice.message),
     ).not.toBeInTheDocument();
   });
 

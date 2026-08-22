@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
-import { XIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEditorStore } from "@/lib/store";
 import { relativeTime } from "@/lib/format";
 import { AppShell } from "@/components/shared/AppShell";
+import { ActionErrorNotice } from "@/components/shared/ActionErrorNotice";
 import { Button } from "@/components/ui/button";
 import { ChatPanel } from "./ChatPanel";
 import { CanvasArea } from "./CanvasArea";
@@ -102,23 +102,8 @@ export function EditorShell({
           }
         >
           {/* A notice, not a replacement: the pattern is intact, only the last
-              action was not applied. role="status" so it is announced. */}
-          {error && (
-            <div
-              role="status"
-              className="border-amber-border bg-amber-bg flex items-center gap-[10px] border-b px-[22px] py-[9px]"
-            >
-              <span className="text-ui flex-1">{t("actionError")}</span>
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                aria-label={t("dismissError")}
-                onClick={clearError}
-              >
-                <XIcon />
-              </Button>
-            </div>
-          )}
+              action was not applied. */}
+          {error && <ActionErrorNotice onDismiss={clearError} />}
           <div className="flex min-h-0 flex-1">
             <ChatPanel />
             <CanvasArea />

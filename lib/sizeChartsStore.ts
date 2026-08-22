@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import * as api from "./api-client";
+import { ApiError } from "./api-client";
 import type {
   SizeChartData,
   SizeChartListEntry,
@@ -8,7 +9,14 @@ import type {
 
 interface SizeChartsStore {
   ready: boolean;
+  /** Initial load failed. */
   error: boolean;
+  /**
+   * Wire code of the last failed mutation, or null. Only init() used to catch,
+   * so a failed save left `dirty` true with nothing on screen, and a failed
+   * activate or delete silently did nothing at all.
+   */
+  actionError: string | null;
   charts: SizeChartListEntry[];
   selectedId: string | null;
   draft: SizeChartData | null;
@@ -19,6 +27,7 @@ interface SizeChartsStore {
   select: (id: string) => void;
   updateDraft: (patch: Partial<SizeChartData>) => void;
   setEditingRule: (v: boolean) => void;
+  clearActionError: () => void;
   save: () => Promise<void>;
   create: () => Promise<void>;
   duplicate: (id: string) => Promise<void>;
@@ -31,9 +40,15 @@ function draftFrom(c: SizeChartRecord): SizeChartData {
   return data;
 }
 
+/** ApiError carries the wire code; anything else (offline, parse) is generic. */
+function errorCode(err: unknown): string {
+  return err instanceof ApiError ? err.code : "request_failed";
+}
+
 export const useSizeChartsStore = create<SizeChartsStore>((set, get) => ({
   ready: false,
   error: false,
+  actionError: null,
   charts: [],
   selectedId: null,
   draft: null,
@@ -77,10 +92,20 @@ export const useSizeChartsStore = create<SizeChartsStore>((set, get) => ({
 
   setEditingRule: (editingRule) => set({ editingRule }),
 
+  clearActionError: () => set({ actionError: null }),
+
+  // dirty stays true on failure: the edit was not persisted, so the screen
+  // must not look saved.
   save: async () => {
     const { selectedId, draft } = get();
     if (!selectedId || !draft || draft.isSystem) return;
-    const updated = await api.updateSizeChart(selectedId, draft);
+    let updated: Awaited<ReturnType<typeof api.updateSizeChart>>;
+    try {
+      updated = await api.updateSizeChart(selectedId, draft);
+    } catch (err) {
+      set({ actionError: errorCode(err) });
+      return;
+    }
     set((s) => ({
       charts: s.charts.map((c) =>
         c.id === selectedId ? { ...updated, isActive: c.isActive } : c,
@@ -91,7 +116,13 @@ export const useSizeChartsStore = create<SizeChartsStore>((set, get) => ({
   },
 
   create: async () => {
-    const created = await api.createSizeChart();
+    let created: Awaited<ReturnType<typeof api.createSizeChart>>;
+    try {
+      created = await api.createSizeChart();
+    } catch (err) {
+      set({ actionError: errorCode(err) });
+      return;
+    }
     set((s) => ({
       charts: [...s.charts, { ...created, isActive: false }],
       selectedId: created.id,
@@ -102,7 +133,13 @@ export const useSizeChartsStore = create<SizeChartsStore>((set, get) => ({
   },
 
   duplicate: async (id) => {
-    const created = await api.duplicateSizeChart(id);
+    let created: Awaited<ReturnType<typeof api.duplicateSizeChart>>;
+    try {
+      created = await api.duplicateSizeChart(id);
+    } catch (err) {
+      set({ actionError: errorCode(err) });
+      return;
+    }
     set((s) => ({
       charts: [...s.charts, { ...created, isActive: false }],
       selectedId: created.id,
@@ -113,7 +150,12 @@ export const useSizeChartsStore = create<SizeChartsStore>((set, get) => ({
   },
 
   remove: async (id) => {
-    await api.deleteSizeChart(id);
+    try {
+      await api.deleteSizeChart(id);
+    } catch (err) {
+      set({ actionError: errorCode(err) });
+      return;
+    }
     set((s) => {
       const charts = s.charts.filter((c) => c.id !== id);
       if (s.selectedId !== id) return { charts };
@@ -129,7 +171,12 @@ export const useSizeChartsStore = create<SizeChartsStore>((set, get) => ({
   },
 
   activate: async (id) => {
-    await api.activateSizeChart(id);
+    try {
+      await api.activateSizeChart(id);
+    } catch (err) {
+      set({ actionError: errorCode(err) });
+      return;
+    }
     set((s) => ({
       charts: s.charts.map((c) => ({ ...c, isActive: c.id === id })),
     }));
