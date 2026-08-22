@@ -67,6 +67,7 @@ export function PatternCanvas({
   const drag = useRef<{ x: number; y: number } | null>(null);
   const dragStart = useRef<{ x: number; y: number } | null>(null);
   const moved = useRef(false);
+  const downPieceId = useRef<string | null>(null);
 
   const snapPoints = useMemo(
     () => pieces.flatMap((p) => p.vertices ?? []),
@@ -117,6 +118,13 @@ export function PatternCanvas({
 
   const handlePointerDown = (e: React.PointerEvent) => {
     if (activeTool !== "cursor") return;
+    // Read the real target now, before setPointerCapture below makes the
+    // browser retarget the eventual click to the capturing <svg> — see
+    // handlePointerUp, which is what actually resolves the selection.
+    downPieceId.current =
+      (e.target as Element)
+        .closest?.("[data-piece-id]")
+        ?.getAttribute("data-piece-id") ?? null;
     drag.current = { x: e.clientX, y: e.clientY };
     dragStart.current = { x: e.clientX, y: e.clientY };
     moved.current = false;
@@ -149,6 +157,10 @@ export function PatternCanvas({
 
   const handlePointerUp = (e: React.PointerEvent) => {
     if (activeTool === "cursor") {
+      if (!moved.current && downPieceId.current) {
+        onSelectPiece(downPieceId.current);
+      }
+      downPieceId.current = null;
       drag.current = null;
       dragStart.current = null;
       svgRef.current?.releasePointerCapture(e.pointerId);
@@ -189,10 +201,7 @@ export function PatternCanvas({
         return (
           <g
             key={piece.id}
-            onClick={() => {
-              if (activeTool === "cursor" && !moved.current)
-                onSelectPiece(piece.id);
-            }}
+            data-piece-id={piece.id}
             className={activeTool === "cursor" ? "cursor-pointer" : undefined}
           >
             {piece.guideOutline && (
