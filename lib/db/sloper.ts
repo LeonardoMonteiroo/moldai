@@ -1,7 +1,9 @@
 import { Prisma } from "@prisma/client";
+import type { NextResponse } from "next/server";
 import { prisma } from "./prisma";
 import { patternFromSloper } from "@/lib/slopers/convert";
 import { buildThumbnailSvg } from "@/lib/editor/thumbnail";
+import { apiError, ERROR_STATUS } from "@/lib/api/errors";
 import type { SloperData, SloperListItem } from "@/lib/types";
 import type { Translate } from "@/lib/i18n/translate";
 
@@ -96,4 +98,8 @@ export async function deleteSloper(
     where: { id: sloperId, userId },
   });
   return res.count > 0;
+}
+
+export function sloperNotFound(): NextResponse {
+  return apiError("sloper_not_found", ERROR_STATUS.sloper_not_found);
 }

@@ -5,7 +5,10 @@ export type RouteErrorCode = "bad_body" | "unauthorized";
 
 /** One per resource kind. */
 export type NotFoundCode =
-  "pattern_not_found" | "size_chart_not_found" | "account_not_found";
+  | "pattern_not_found"
+  | "size_chart_not_found"
+  | "account_not_found"
+  | "sloper_not_found";
 
 export type SharedErrorCode = RouteErrorCode | NotFoundCode;
 
@@ -15,6 +18,7 @@ export const ERROR_STATUS: Record<SharedErrorCode, number> = {
   pattern_not_found: 404,
   size_chart_not_found: 404,
   account_not_found: 404,
+  sloper_not_found: 404,
 };
 
 // The `status` field in the body is NOT the HTTP status — it is the wire
@@ -26,6 +30,7 @@ const STATUS_WORD: Record<string, string> = {
   unauthorized: "unauthorized",
   pattern_not_found: "not_found",
   size_chart_not_found: "not_found",
+  sloper_not_found: "not_found",
 };
 
 /**
