@@ -17,6 +17,7 @@ model User {
   patterns           Pattern[]
   wallet             Wallet?
   sizeCharts         SizeChart[]
+  slopers            Sloper[]
   verificationTokens EmailVerificationToken[]
   activeSizeChartId  String?
 }
@@ -43,6 +44,17 @@ model Pattern {
 }
 
 model SizeChart {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  data      Json
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@index([userId, updatedAt])
+}
+
+model Sloper {
   id        String   @id @default(cuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
