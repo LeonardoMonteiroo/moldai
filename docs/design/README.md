@@ -81,15 +81,15 @@ Topbar com pill de crédito em âmbar ("◆ 320 créditos") e menu "◍ Conta �
 
 ### 3. Landing (`5a`)
 
-Nav (logo, Como funciona / Formatos / Planos, Entrar com borda, "Testar grátis" ink). Hero em duas colunas: à esquerda eyebrow olive uppercase "MODELAGEM COM IA", h1 44px "Descreva a peça. Receba o molde pronto para cortar.", parágrafo 15px/1.55 (máx 390px), CTA olive "Começar com 30 créditos grátis" + secundário "Ver um molde real", nota "Sem cartão. Todos os recursos liberados — você só paga mais créditos quando quiser."; à direita card branco raio 16px simulando o produto (campo de prompt + botão Gerar, canvas com malha e peças, chips graduar/plano de corte/exportar). Abaixo, 3 cards de passo (Descreva ou envie · Ajuste conversando · Exporte e corte).
+Not built. Full visual spec: `MoldAI Wireframes.dc.html`, id `5a`.
 
 ### 4. Onboarding (`5b`)
 
-Três cards lado a lado, gap 16px, cada um com marcador de passo (círculo 22px: preenchido olive no passo atual, borda cinza nos demais) e título 19px. Passo 1 "Como você trabalha?": 3 opções com subtítulo, a selecionada com borda 1.5px olive e fundo olive-tint. Passo 2 "Sua tabela de medidas": ABNT / importar planilha ou tabela do Audaces / preencher agora + nota tracejada de que pode ser feito depois. Passo 3 "Seu primeiro molde": textarea, chips de sugestão, pill âmbar "◆ 30 créditos grátis por mês", CTA olive "Gerar meu molde · 4 créditos".
+Not built. Full visual spec: `MoldAI Wireframes.dc.html`, id `5b`.
 
 ### 5. Planos (`5c`)
 
-Título + subtítulo "Todos os recursos em todos os planos. A diferença é quanto você gera por mês."; toggle Mensal/Anual −20%. Quatro cards: **Grátis** R$ 0 · 30 cr/mês (graduação e .dxf liberados, Audaces e Molde.me, modelo v2 padrão, botão "Plano atual" desabilitado) · **Ateliê** R$ 59 · 500 cr · grade própria, histórico ilimitado, 1 usuário · **Estúdio** R$ 149 · 2.000 cr — destaque: borda 2px olive, sombra, badge âmbar "mais escolhido", modelo v2 Pro, plano de corte, 3 usuários, CTA olive · **Confecção** R$ 399 · 10.000 cr · fila prioritária e API, 5 usuários, "Falar com vendas". Rodapé com a tabela de custos: geração 4 · ajuste 1 · graduação 6 · plano de corte 2 · correção 0; "Créditos avulsos: 100 por R$ 19".
+Not built. Full visual spec: `MoldAI Wireframes.dc.html`, id `5c`.
 
 ### 6. Limite de crédito (`5d`) — único paywall
 
@@ -101,15 +101,15 @@ Badge âmbar "1 conflito" na topbar. No chat, mensagem da IA em âmbar explicand
 
 ### 8. Histórico de versões (`5f`)
 
-Lista de versões à esquerda (v5 ativa em olive-tint), cada item com autoria da mudança e crédito gasto; total do molde no pé. À direita, comparação v4 → v5 com chips e botão "sobrepor", canvas mostrando v4 tracejado e v5 cheio, e dois cards de delta (Cava 19,6 → 21,4 cm · Consumo 1,80 → 1,85 m).
+Not built. Full visual spec: `MoldAI Wireframes.dc.html`, id `5f`.
 
 ### 9. Importar Audaces / Molde.me (`5g`)
 
-Cabeçalho "Importar molde · Passo 2 de 2 · mapear camadas" + badge olive-tint "importação grátis". Card do arquivo: ícone, nome, "Audaces Moldes · AAMA/ASTM · 3 peças · 5 tamanhos · 412 KB", botão Trocar. À esquerda, **camadas encontradas** com select por camada (contorno → corte, linha interna → costura, piques e furos → marcação, texto → ignorar, fio → badge âmbar "não encontrado"); selects mapeados em olive-tint, não mapeados com borda. À direita, **verificação** (2 itens ✓ em olive-dark, 2 avisos ⚠ em âmbar-text), prévia das peças e ações Cancelar / "Importar molde" (olive).
+Not built. Full visual spec: `MoldAI Wireframes.dc.html`, id `5g`.
 
 ### 10. Exportar (`5h`)
 
-Coluna de formatos como lista selecionável (Audaces Moldes .dxf AAMA/ASTM selecionado em olive-tint; Molde.me; Plotter .plt/.hpgl; PDF A4 encaixável; Ficha técnica .pdf/.xlsx). À direita, "O que vai no arquivo" (tamanhos, margem de costura, piques e fio, nome das peças — cada um com select) e "Checagem antes de baixar" (sem conflitos, peças fechadas, consumo estimado). Ações: "Salvar preset" e "Baixar .dxf" (olive).
+Not built as a dedicated screen (programmatic export itself is shipped, via a menu in the editor footer). Full visual spec for the dedicated screen: `MoldAI Wireframes.dc.html`, id `5h`.
 
 ### 11. Medidas e grades (`5i`)
 
