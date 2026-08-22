@@ -4,6 +4,10 @@ import { fireEvent } from "@testing-library/react";
 import { renderWithIntl, screen } from "@/components/test-utils";
 import { PatternCanvas } from "./PatternCanvas";
 import type { Piece } from "@/lib/types";
+import {
+  MAX_LABEL_FONT_SIZE,
+  estimateTextWidth,
+} from "@/lib/canvas/pieceLabel";
 
 // A pointerdown immediately followed by a pointerup at the same coordinates
 // (no pointermove) is what a real click resolves to once the browser has
@@ -95,5 +99,71 @@ describe("PatternCanvas piece selection", () => {
 
     expect(onPan).toHaveBeenCalledWith(20, -20);
     expect(onSelectPiece).not.toHaveBeenCalled();
+  });
+});
+
+// A sleeve-shaped piece: wide at the bicep, tapering to a narrower hem, which
+// is where the label sits. Its stored `label.x` is deliberately absurd — the
+// drafted anchor is measured from the bounding box, and the renderer has to
+// derive the placement from the outline instead.
+const sleevePiece: Piece = {
+  id: "sleeve",
+  name: "Manga",
+  qty: 2,
+  outline: {
+    kind: "polygon",
+    points: "0,26 14,8 35,0 56,8 70,26 63,98 7,98",
+  },
+  label: { x: 999, y: 999 },
+  detailRows: [],
+  vertices: [
+    { x: 0, y: 26 },
+    { x: 14, y: 8 },
+    { x: 35, y: 0 },
+    { x: 56, y: 8 },
+    { x: 70, y: 26 },
+    { x: 63, y: 98 },
+    { x: 7, y: 98 },
+  ],
+};
+
+const widePiece: Piece = {
+  id: "wide",
+  name: "Frente",
+  qty: 1,
+  outline: { kind: "polygon", points: "0,0 100,0 100,100 0,100" },
+  label: { x: 6, y: 94 },
+  detailRows: [],
+  vertices: [
+    { x: 0, y: 0 },
+    { x: 100, y: 0 },
+    { x: 100, y: 100 },
+    { x: 0, y: 100 },
+  ],
+};
+
+describe("PatternCanvas piece labels", () => {
+  it("shrinks a narrow piece's label and anchors it to the outline, not the bbox", () => {
+    renderCanvas({ pieces: [sleevePiece] });
+    const label = screen.getByText("MANGA · 2×");
+
+    const fontSize = parseFloat(label.style.fontSize);
+    expect(fontSize).toBeGreaterThan(0);
+    expect(fontSize).toBeLessThan(MAX_LABEL_FONT_SIZE);
+
+    // the discarded bbox anchor, and the outline it has to sit inside
+    const x = Number(label.getAttribute("x"));
+    const y = Number(label.getAttribute("y"));
+    expect(x).not.toBe(999);
+    expect(y).not.toBe(999);
+    expect(x + estimateTextWidth("MANGA · 2×", fontSize)).toBeLessThanOrEqual(
+      63.58,
+    );
+  });
+
+  it("leaves a wide piece's label at the design's full size", () => {
+    renderCanvas({ pieces: [widePiece] });
+    const label = screen.getByText("FRENTE · 1×");
+    expect(parseFloat(label.style.fontSize)).toBe(MAX_LABEL_FONT_SIZE);
   });
 });

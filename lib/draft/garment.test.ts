@@ -272,3 +272,118 @@ describe("validateQuestions", () => {
     expect(qs[0].allowOther).toBe(false);
   });
 });
+
+// Every drafter decoration (grainline, dart) is a line drawn *inside* the
+// piece, and it reaches all five export formats — so containment is a
+// geometry invariant, not a rendering detail. The bounding box is a superset
+// of the piece: anywhere the outline is concave (the neckline scoop) an
+// offset measured from the bbox top lands outside the piece.
+function verticalSpanAt(pts: [number, number][], x: number) {
+  let top = Infinity,
+    bottom = -Infinity;
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[i],
+      b = pts[(i + 1) % pts.length];
+    if (a[0] === b[0]) continue;
+    if (x < Math.min(a[0], b[0]) || x > Math.max(a[0], b[0])) continue;
+    const y = a[1] + ((b[1] - a[1]) * (x - a[0])) / (b[0] - a[0]);
+    top = Math.min(top, y);
+    bottom = Math.max(bottom, y);
+  }
+  return { top, bottom };
+}
+
+const DECORATION_CASES: [string, Parameters<typeof draftPiecesCm>[0]][] = [
+  [
+    "blouse round short",
+    {
+      type: "blouse",
+      gender: "female",
+      measurementOverrides: {},
+      style: { neckline: "round", sleeve: "short", darts: true },
+    },
+  ],
+  [
+    "blouse deep V long",
+    {
+      type: "blouse",
+      gender: "female",
+      measurementOverrides: {},
+      style: {
+        neckline: "V",
+        necklineDepthCm: STYLE_LIMITS.necklineDepthCm.max,
+        sleeve: "long",
+        darts: true,
+      },
+    },
+  ],
+  [
+    "blouse straight sleeveless",
+    {
+      type: "blouse",
+      gender: "female",
+      measurementOverrides: {},
+      style: { neckline: "straight", sleeve: "none", darts: false },
+    },
+  ],
+  [
+    "tshirt male",
+    { type: "tshirt", gender: "male", measurementOverrides: {}, style: {} },
+  ],
+  [
+    "dress a-line",
+    {
+      type: "dress",
+      gender: "female",
+      measurementOverrides: {},
+      style: {
+        neckline: "round",
+        sleeve: "short",
+        darts: true,
+        skirt: "a-line",
+      },
+    },
+  ],
+  [
+    "skirt circle",
+    {
+      type: "skirt",
+      gender: "female",
+      measurementOverrides: {},
+      style: { skirt: "circle" },
+    },
+  ],
+  [
+    "skirt straight",
+    {
+      type: "skirt",
+      gender: "female",
+      measurementOverrides: {},
+      style: { skirt: "straight" },
+    },
+  ],
+];
+
+describe("drafted decorations stay inside their own piece", () => {
+  for (const [name, spec] of DECORATION_CASES) {
+    it(`${name}: grainline and dart never leave the outline`, () => {
+      const m = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
+      const pieces = draftPiecesCm(spec, m, t);
+      expect(pieces.length).toBeGreaterThan(0);
+      for (const piece of pieces) {
+        const points = [
+          ...(piece.grainlineCm ?? []),
+          ...(piece.dartCm ?? []),
+        ] as [number, number][];
+        for (const [x, y] of points) {
+          const span = verticalSpanAt(piece.outlineCm, x);
+          expect(
+            y,
+            `${piece.id} point (${x.toFixed(1)}, ${y.toFixed(1)}) vs outline y-range [${span.top.toFixed(1)}, ${span.bottom.toFixed(1)}]`,
+          ).toBeGreaterThanOrEqual(span.top);
+          expect(y).toBeLessThanOrEqual(span.bottom);
+        }
+      }
+    });
+  }
+});

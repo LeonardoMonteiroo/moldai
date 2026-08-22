@@ -9,6 +9,7 @@ import {
 import { EditorTool } from "@/lib/store";
 import { Viewport, ZOOM_STEP } from "@/lib/canvas/viewport";
 import { nearestSnap } from "@/lib/canvas/measure";
+import { fitPieceLabel, pieceLabelText } from "@/lib/canvas/pieceLabel";
 import { MeasureLayer } from "./MeasureLayer";
 
 function OutlineShape({
@@ -198,6 +199,8 @@ export function PatternCanvas({
     >
       {pieces.map((piece) => {
         const isSelected = piece.id === selectedPieceId;
+        const labelText = pieceLabelText(piece);
+        const label = fitPieceLabel(piece, labelText);
         return (
           <g
             key={piece.id}
@@ -238,12 +241,12 @@ export function PatternCanvas({
               />
             )}
             <text
-              x={piece.label.x}
-              y={piece.label.y}
+              x={label.x}
+              y={label.y}
               className="fill-muted"
-              style={{ fontSize: 11 }}
+              style={{ fontSize: label.fontSize }}
             >
-              {piece.name.toUpperCase()} · {piece.qty}×
+              {labelText}
             </text>
           </g>
         );

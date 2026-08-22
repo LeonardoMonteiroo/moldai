@@ -118,8 +118,13 @@ function bodice(
     detailRows.splice(4, 0, { label: t("rows.dart"), value: cm(dartW * 2) });
   }
 
+  // Inset from the piece's OWN top edge at x=cx (the neckline base), not from
+  // the bounding box: the neckline scoop means the bbox top is outside the
+  // piece there, and a grainline starting at y=3 floated in the neck opening —
+  // on canvas and in all five export formats. neckDrop stays well under `len`
+  // (necklineDepthCm caps at 15), so the line can never invert.
   const grainlineCm: [Pt, Pt] = [
-    [cx, 3],
+    [cx, neckDrop + 3],
     [cx, len - 3],
   ];
   return {
