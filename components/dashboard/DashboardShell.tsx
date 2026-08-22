@@ -36,7 +36,15 @@ export function DashboardShell({
     init();
   }, [init]);
 
+  const create = useDashboardStore((s) => s.create);
   const openPattern = (id: string) => router.push(`/pattern/${id}`);
+
+  // create() records its own failure on this screen's store, which the
+  // ActionErrorNotice below renders.
+  const handleNewPattern = async () => {
+    const id = await create();
+    if (id) openPattern(id);
+  };
 
   // Loading and error live inside the content region, not in place of the
   // whole screen: the header and nav are stable across the fetch. The
@@ -46,7 +54,13 @@ export function DashboardShell({
     <AppShell
       credits={credits}
       userEmail={userEmail}
-      sidebar={<Sidebar onCreate={openPattern} disabled={error} />}
+      sidebar={
+        <Sidebar
+          active="patterns"
+          onNewPattern={handleNewPattern}
+          disabled={error}
+        />
+      }
     >
       {/* Sits above the list: a failed rename/delete/create leaves the list
           itself perfectly usable, so it gets a notice, not a takeover. */}
