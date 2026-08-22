@@ -427,7 +427,9 @@
   },
   "DashboardShell": {
     "loading": "Carregando moldes…",
-    "loadError": "Não foi possível carregar seus moldes. Tente recarregar a página."
+    "loadError": "Não foi possível carregar seus moldes. Tente recarregar a página.",
+    "patternMissing": "Esse molde não existe mais — talvez tenha sido excluído.",
+    "dismissPatternMissing": "Fechar aviso"
   },
   "ProfileSection": {
     "heading": "Perfil",

@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { XIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/button";
 import { useDashboardStore } from "@/lib/dashboardStore";
 import { AppShell } from "@/components/shared/AppShell";
 import { ActionErrorNotice } from "@/components/shared/ActionErrorNotice";
@@ -11,9 +13,17 @@ import { PatternGrid } from "./PatternGrid";
 import { CreditsCard } from "./CreditsCard";
 import { RecentUsageCard } from "./RecentUsageCard";
 
-export function DashboardShell({ userEmail }: { userEmail: string }) {
+export function DashboardShell({
+  userEmail,
+  /** True when /pattern/[id] bounced here because the pattern was gone. */
+  patternMissing = false,
+}: {
+  userEmail: string;
+  patternMissing?: boolean;
+}) {
   const t = useTranslations("DashboardShell");
   const router = useRouter();
+  const [dismissedMissing, setDismissedMissing] = useState(false);
   const ready = useDashboardStore((s) => s.ready);
   const error = useDashboardStore((s) => s.error);
   const credits = useDashboardStore((s) => s.credits);
@@ -41,13 +51,37 @@ export function DashboardShell({ userEmail }: { userEmail: string }) {
       {/* Sits above the list: a failed rename/delete/create leaves the list
           itself perfectly usable, so it gets a notice, not a takeover. */}
       {actionError && <ActionErrorNotice onDismiss={clearActionError} />}
+      {/* Answers "why am I suddenly on the dashboard?" after /pattern/[id]
+          redirects here for a pattern that is gone or not yours. */}
+      {patternMissing && !dismissedMissing && (
+        <div
+          role="status"
+          className="border-amber-border bg-amber-bg flex items-center gap-[10px] border-b px-[22px] py-[9px]"
+        >
+          <span className="text-ui flex-1">{t("patternMissing")}</span>
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            aria-label={t("dismissPatternMissing")}
+            onClick={() => setDismissedMissing(true)}
+          >
+            <XIcon />
+          </Button>
+        </div>
+      )}
       {!ready && (
-        <div className="text-muted text-control flex flex-1 items-center justify-center">
+        <div
+          role="status"
+          className="text-muted text-control flex flex-1 items-center justify-center"
+        >
           {t("loading")}
         </div>
       )}
       {ready && error && (
-        <div className="text-alert text-control flex flex-1 items-center justify-center">
+        <div
+          role="alert"
+          className="text-alert text-control flex flex-1 items-center justify-center"
+        >
           {t("loadError")}
         </div>
       )}

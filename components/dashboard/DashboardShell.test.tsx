@@ -98,3 +98,34 @@ describe("catalog after the header merge", () => {
     expect("DashboardTopbar" in ptBR).toBe(false);
   });
 });
+
+// Opening a deleted or someone else's pattern redirected to "/" with no
+// explanation at all — you just landed on the dashboard wondering why.
+describe("DashboardShell missing-pattern notice", () => {
+  beforeEach(() => {
+    listPatterns.mockResolvedValue([]);
+    getAccountSummary.mockResolvedValue({
+      credits: { plan: "free", balance: 30, total: 30, renewsInDays: 30 },
+      recentUsage: [],
+    });
+  });
+
+  it("explains why you were sent back to the dashboard", async () => {
+    renderWithIntl(
+      <DashboardShell userEmail="user@example.com" patternMissing />,
+    );
+
+    expect(
+      await screen.findByText(ptBR.DashboardShell.patternMissing),
+    ).toBeInTheDocument();
+  });
+
+  it("says nothing on a normal visit", async () => {
+    renderWithIntl(<DashboardShell userEmail="user@example.com" />);
+
+    await waitFor(() => expect(useDashboardStore.getState().ready).toBe(true));
+    expect(
+      screen.queryByText(ptBR.DashboardShell.patternMissing),
+    ).not.toBeInTheDocument();
+  });
+});
