@@ -220,6 +220,41 @@ export interface SizeChartListEntry extends SizeChartRecord {
 }
 
 /**
+ * A saved atelier base — "base do ateliê" in the UI. Holds exactly what a
+ * Pattern needs to be redrafted (the spec plus the frozen size snapshot it was
+ * drafted against) and nothing that draftGarment can reproduce: no pieces, no
+ * viewBox, no baseMeasurements. Persisting those would duplicate what `spec` +
+ * `sizeTable` already determine — the savedAgo / planLabel mistake.
+ *
+ * Persisted 1:1 as a Sloper row's `data` JSON (lib/db/sloper.ts), the same
+ * shape convention as PatternState and SizeChartData.
+ */
+export interface SloperData {
+  name: string;
+  spec: GarmentSpec;
+  sizes: string[];
+  baseSize: SizeLabel;
+  sizeTable: Record<string, Measurements>;
+  /** Frozen like Pattern.sizeChartName; absent on none, never guessed. */
+  sizeChartName?: string;
+}
+
+/**
+ * Wire shape for GET /api/slopers — a projection, not the blob (the
+ * PatternListItem precedent). `thumbnailSvg` is built server-side by drafting
+ * the sloper, since the geometry is not stored.
+ */
+export interface SloperListItem {
+  id: string;
+  name: string;
+  garmentType: GarmentType;
+  baseSize: string;
+  sizeChartName?: string;
+  updatedAt: string;
+  thumbnailSvg: string;
+}
+
+/**
  * Cap on a pattern's name, shared by the PATCH route and the rename dialog's
  * `maxLength` so the client stops you before the server has to. Matches
  * MAX_NAME_LENGTH in lib/account/settings.ts, which already capped the *user's*
