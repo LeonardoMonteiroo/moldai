@@ -9,6 +9,7 @@ const NOW = new Date("2026-08-17T12:00:00.000Z");
 let state: PatternState = seedPatternState(t);
 let wallet: Wallet = seedWallet(NOW);
 let ownedPatternId: string | null = "m1";
+let lastEntries: LedgerEntry[] = [];
 
 vi.mock("@/lib/ai", () => ({ proposeGarment: vi.fn() }));
 vi.mock("next-intl/server", () => ({
@@ -32,7 +33,9 @@ vi.mock("@/lib/db/pattern-wallet", () => ({
       ) => Promise<{ result: unknown; entries: LedgerEntry[] }>,
     ) => {
       if (patternId !== ownedPatternId) return null;
-      return (await fn(state, wallet)).result;
+      const { result, entries } = await fn(state, wallet);
+      lastEntries = entries;
+      return result;
     },
   ),
 }));
@@ -87,6 +90,7 @@ describe("POST /api/patterns/[id]/generate", () => {
     state = seedPatternState(t);
     wallet = seedWallet(NOW);
     ownedPatternId = "m1";
+    lastEntries = [];
     mockPropose.mockReset();
     vi.mocked(requireUser).mockResolvedValue({
       id: "u1",
@@ -140,6 +144,74 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(json.status).toBe("ok");
     expect(json.state.credits.balance).toBe(balanceBefore - 1);
     expect(state.pattern.version).toBe(1);
+  });
+
+  it("explain answers, keeps the debit, and neither drafts nor versions", async () => {
+    const balanceBefore = wallet.balance;
+    const versionBefore = state.pattern.version;
+    mockPropose.mockResolvedValue({
+      decision: "explain",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pence é a dobra costurada que dá volume à peça.",
+    });
+
+    const res = await POST(req({ message: "o que é pence?" }), ctx());
+    const json = await res.json();
+
+    expect(json.status).toBe("answered");
+    expect(json.state.credits.balance).toBe(balanceBefore - 1);
+    expect(state.pattern.version).toBe(versionBefore);
+    expect(state.pattern.pieces).toHaveLength(0);
+
+    const answer = state.chat.at(-1)!;
+    expect(answer.author).toBe("ai");
+    expect(answer.text).toBe("Pence é a dobra costurada que dá volume à peça.");
+    expect(answer.chips?.[0].label).toBe("chat.creditChip");
+    expect(answer.chips?.[0].tone).toBe("credit");
+  });
+
+  it("explain writes one debit and no refund", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "explain",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "A cava é o recorte onde a manga encaixa.",
+    });
+
+    await POST(req({ message: "o que é cava?" }), ctx());
+
+    expect(lastEntries.map((e) => e.type)).toEqual(["debit"]);
+  });
+
+  // The contrast case: explain is the only non-drafting decision that is paid.
+  it("decline still refunds", async () => {
+    const balanceBefore = wallet.balance;
+    mockPropose.mockResolvedValue({
+      decision: "decline",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      declineReason: "calça",
+      assistantMessage: "Ainda não faço calça.",
+    });
+
+    const res = await POST(req({ message: "faz uma calça" }), ctx());
+
+    expect((await res.json()).status).toBe("declined");
+    expect(wallet.balance).toBe(balanceBefore);
+    expect(lastEntries.map((e) => e.type)).toEqual(["debit", "refund"]);
   });
 
   it("empty message returns 400 without debiting or calling the AI", async () => {

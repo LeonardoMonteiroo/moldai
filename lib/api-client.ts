@@ -13,7 +13,7 @@ import type { SharedErrorCode } from "./api/errors";
 
 export type GenerateResult =
   | {
-      status: "ok" | "conflict" | "error" | "declined" | "clarify";
+      status: "ok" | "conflict" | "error" | "declined" | "clarify" | "answered";
       state: EditorState;
     }
   | { status: "insufficient_credits"; required: number; balance: number };

@@ -7,7 +7,9 @@ import { toDxfAama } from "./dxf-aama";
 import { toPdf } from "./pdf";
 import { downloadFile, slug } from "./download";
 
-export type ExportFormat = "svg" | "dxf" | "dxf-aama" | "pdf-a4" | "pdf-single";
+import type { ExportFormat } from "./formats";
+
+export { EXPORT_FORMATS, type ExportFormat } from "./formats";
 
 export function exportPattern(
   pattern: Pattern,

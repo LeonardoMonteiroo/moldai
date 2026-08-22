@@ -104,6 +104,26 @@ export async function POST(request: Request, { params }: Ctx) {
           };
         }
 
+        // The one non-drafting decision that keeps its debit: the user asked a
+        // question and got the answer, and the AI call is as real as a draft's.
+        // The chip makes the charge visible in the bubble, as it is for apply.
+        if (decision.decision === "explain") {
+          addMessage(state, {
+            id: `msg-${Date.now()}-ai`,
+            author: "ai",
+            text: decision.assistantMessage,
+            chips: [{ label: t("chat.creditChip", { cost }), tone: "credit" }],
+            createdAt: Date.now(),
+          });
+          return {
+            result: NextResponse.json({
+              status: "answered",
+              state: composeEditorState(state, wallet, now),
+            }),
+            entries,
+          };
+        }
+
         // The size chart is snapshotted once, at the first generation. That is
         // also the only moment the account's active chart can be passed over,
         // so it is the only moment there is a substitution to report.

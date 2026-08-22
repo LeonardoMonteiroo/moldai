@@ -3,6 +3,8 @@ import { buildSystem } from "./prompt";
 import type { PatternState } from "@/lib/types";
 import { STYLE_LIMITS } from "@/lib/draft/garment";
 import { MEASUREMENT_RANGES } from "@/lib/measurements";
+import { COSTS } from "@/lib/types";
+import { EXPORT_FORMATS } from "@/lib/export/formats";
 
 function state(pieces: number, spec?: object): PatternState {
   return {
@@ -53,5 +55,32 @@ describe("buildSystem", () => {
 
   it("embeds the size table", () => {
     expect(buildSystem(state(0), false)).toContain('"bust":88');
+  });
+
+  it("quotes the app's real credit costs", () => {
+    const s = buildSystem(state(0), false);
+    for (const [action, cost] of Object.entries(COSTS)) {
+      expect(s).toContain(`${action}: ${cost} credit`);
+    }
+  });
+
+  it("lists every export format the app can actually write", () => {
+    const s = buildSystem(state(0), false);
+    for (const format of EXPORT_FORMATS) {
+      expect(s).toContain(format);
+    }
+  });
+
+  it("carries the knowledge sections and the explain policy", () => {
+    const s = buildSystem(state(0), false);
+    expect(s).toContain("# Modeling knowledge");
+    expect(s).toContain("# Product facts");
+    expect(s).toContain("- explain:");
+  });
+
+  it("blank pattern answers a question instead of clarifying it", () => {
+    const s = buildSystem(state(0), false);
+    expect(s).toContain("BLANK pattern");
+    expect(s).toContain("a question still gets decision=explain");
   });
 });

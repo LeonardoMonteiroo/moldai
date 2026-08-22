@@ -97,11 +97,6 @@ export function PieceDetailsPanel({
       >
         {t("graduateButton")}
       </Button>
-
-      <div className="flex-1" />
-      <span className="text-muted text-meta" title={t("glossaryTitle")}>
-        {t("glossaryText")}
-      </span>
     </div>
   );
 }

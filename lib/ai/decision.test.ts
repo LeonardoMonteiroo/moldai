@@ -70,4 +70,27 @@ describe("resolveDecision", () => {
     expect(d.decision).toBe("decline");
     expect(d.declineReason).toBe("pants");
   });
+
+  it("passes explain through without requiring a spec", () => {
+    const d = resolveDecision(
+      { decision: "explain", assistantMessage: "Pence é uma dobra costurada." },
+      false,
+    );
+    expect(d.decision).toBe("explain");
+    expect(d.assistantMessage).toBe("Pence é uma dobra costurada.");
+  });
+
+  it("keeps explain even when the user is answering clarifying questions", () => {
+    const d = resolveDecision(
+      { decision: "explain", assistantMessage: "Cava é onde a manga encaixa." },
+      true,
+    );
+    expect(d.decision).toBe("explain");
+  });
+
+  it("throws on explain with a blank message instead of posting an empty bubble", () => {
+    expect(() =>
+      resolveDecision({ decision: "explain", assistantMessage: "   " }, false),
+    ).toThrow(/explain/);
+  });
 });
