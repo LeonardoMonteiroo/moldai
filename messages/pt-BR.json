@@ -110,14 +110,16 @@
   },
   "ConflictInfoCard": {
     "sectionLabel": "Conflito",
-    "diffLabel": "diferença {diff} cm"
+    "diffLabel": "diferença {diff} cm",
+    "bodyRowLabel": "Cava · frente",
+    "sleeveRowLabel": "Cava · copa",
+    "valueCm": "{value} cm",
+    "gapLabel": "{direction, select, larger {falta {diff} cm na copa} smaller {sobra {diff} cm na copa} other {}}"
   },
   "ConflictActions": {
     "fixButton": "Corrigir manga",
-    "viewDiffButton": "Ver diferença",
     "ignoreButton": "Ignorar",
-    "freeNote": "Correções não consomem crédito.",
-    "comingSoonBadge": "em breve"
+    "freeNote": "Correções não consomem crédito."
   },
   "PieceDetailsPanel": {
     "sectionLabel": "Peça selecionada",

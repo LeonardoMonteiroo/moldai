@@ -12,6 +12,11 @@ import { nearestSnap } from "@/lib/canvas/measure";
 import { fitPieceLabel, pieceLabelText } from "@/lib/canvas/pieceLabel";
 import { MeasureLayer } from "./MeasureLayer";
 
+const SEAM_LABEL_FONT_SIZE = 10;
+// Same inline cm formatting the sibling MeasureLayer uses for its on-canvas
+// distances — a unit suffix, not catalog copy.
+const seamValue = (v: number) => `${v.toFixed(1).replace(".", ",")} cm`;
+
 function OutlineShape({
   outline,
   className,
@@ -45,6 +50,8 @@ export function PatternCanvas({
   screenToUser,
   onAddMeasurement,
   onRemoveMeasurement,
+  armholeLenCm,
+  sleeveArmholeCm,
 }: {
   pieces: Piece[];
   selectedPieceId: string | null;
@@ -61,6 +68,11 @@ export function PatternCanvas({
   screenToUser: (clientX: number, clientY: number) => Point;
   onAddMeasurement: (a: Point, b: Point) => void;
   onRemoveMeasurement: (id: string) => void;
+  // The two divergent seam lengths behind `conflict`, derived from the pattern's
+  // spec by the caller (lib/draft's measureSeams) rather than read off the
+  // persisted ConflictInfo, which never carried them.
+  armholeLenCm?: number;
+  sleeveArmholeCm?: number;
 }) {
   const [pending, setPending] = useState<Point | null>(null);
   const [cursor, setCursor] = useState<Point | null>(null);
@@ -74,6 +86,19 @@ export function PatternCanvas({
     () => pieces.flatMap((p) => p.vertices ?? []),
     [pieces],
   );
+
+  // detectConflict builds the markers in [pieceAId, pieceBId] order — the body's
+  // armhole first, then the sleeve cap — and drops any piece whose vertices are
+  // missing, which a blob drafted before the measure tool's snap can be. Label
+  // them only when both survived, so a collapsed array can never print the
+  // body's length beside the sleeve.
+  const seamLabels =
+    conflict &&
+    conflict.markers.length === 2 &&
+    armholeLenCm != null &&
+    sleeveArmholeCm != null
+      ? [seamValue(armholeLenCm), seamValue(sleeveArmholeCm)]
+      : null;
 
   // ~10px screen snap threshold converted to user units, read from the CTM at
   // the moment of the event (exact, not the render-time value)
@@ -254,14 +279,27 @@ export function PatternCanvas({
 
       {conflict &&
         conflict.markers.map((marker, i) => (
-          <circle
-            key={i}
-            cx={marker.cx}
-            cy={marker.cy}
-            r={marker.r}
-            className="stroke-alert fill-none"
-            style={{ strokeWidth: 2, strokeDasharray: "4 3" }}
-          />
+          <g key={i}>
+            <circle
+              cx={marker.cx}
+              cy={marker.cy}
+              r={marker.r}
+              className="stroke-alert fill-none"
+              style={{ strokeWidth: 2, strokeDasharray: "4 3" }}
+            />
+            {seamLabels && (
+              // Anchored outside the circle, growing away from the piece: the
+              // markers sit at each piece's right edge, so this lands on grid.
+              <text
+                x={marker.cx + marker.r + 4}
+                y={marker.cy + 3.5}
+                className="fill-alert"
+                style={{ fontSize: SEAM_LABEL_FONT_SIZE }}
+              >
+                {seamLabels[i]}
+              </text>
+            )}
+          </g>
         ))}
 
       <MeasureLayer
