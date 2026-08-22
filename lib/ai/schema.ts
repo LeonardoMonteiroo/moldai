@@ -12,7 +12,7 @@ import { MEASUREMENT_RANGES } from "@/lib/measurements";
 // Raw shape as returned by the model's tool_use block, before validation —
 // `spec` here is untrusted/unknown-shaped input, not yet a GarmentSpec.
 export interface RawToolInput {
-  decision: "apply" | "decline" | "ask";
+  decision: "apply" | "decline" | "ask" | "explain";
   spec?: unknown;
   questions?: unknown;
   declineReason?: string;
@@ -35,7 +35,10 @@ export const TOOL: Anthropic.Tool = {
   input_schema: {
     type: "object",
     properties: {
-      decision: { type: "string", enum: ["apply", "decline", "ask"] },
+      decision: {
+        type: "string",
+        enum: ["apply", "decline", "ask", "explain"],
+      },
       spec: {
         type: "object",
         description:
@@ -96,7 +99,8 @@ export const TOOL: Anthropic.Tool = {
       },
       assistantMessage: {
         type: "string",
-        description: "Short chat reply, in the user's own language.",
+        description:
+          "Short chat reply, in the user's own language. When decision=explain this carries the entire answer.",
       },
     },
     required: ["decision", "assistantMessage"],

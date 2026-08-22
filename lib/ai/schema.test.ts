@@ -48,4 +48,13 @@ describe("propose_garment tool schema", () => {
     expect(style.sleeve.enum).toEqual(SLEEVES);
     expect(style.skirt.enum).toEqual(SKIRTS);
   });
+
+  it("offers all four decisions", () => {
+    expect(input.properties.decision.enum).toEqual([
+      "apply",
+      "decline",
+      "ask",
+      "explain",
+    ]);
+  });
 });
