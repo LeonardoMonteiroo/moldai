@@ -54,3 +54,13 @@ next-env.d.ts
 /.claude/settings.local.json
 /.claude/worktrees/
 /.claude/scheduled_tasks.lock
+
+# design-sync — staged converter scripts, generated bundle output and
+# machine-local verification state; .design-sync/config.json, NOTES.md,
+# conventions.md, previews/ and overrides/ ARE committed (see .design-sync/NOTES.md)
+/.ds-sync/
+/ds-bundle/
+/.design-sync/.cache/
+/.design-sync/learnings/
+/.design-sync/node_modules
+/.ds-entry.ts
