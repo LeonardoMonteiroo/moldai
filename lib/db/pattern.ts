@@ -77,13 +77,21 @@ export async function loadPattern(
   return { state: toState(row.data), updatedAt: row.updatedAt };
 }
 
+export async function createPatternFromState(
+  userId: string,
+  state: PatternState,
+): Promise<string> {
+  const row = await prisma.pattern.create({
+    data: { userId, data: state as unknown as Prisma.InputJsonValue },
+  });
+  return row.id;
+}
+
 export async function createPattern(
   userId: string,
   t: Translate,
 ): Promise<string> {
-  const data = seedPatternState(t) as unknown as Prisma.InputJsonValue;
-  const row = await prisma.pattern.create({ data: { userId, data } });
-  return row.id;
+  return createPatternFromState(userId, seedPatternState(t));
 }
 
 export interface PatternListItem {

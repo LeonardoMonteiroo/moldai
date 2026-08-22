@@ -187,7 +187,8 @@
       "graduated": "Graduação aplicada para {list}.",
       "sleeveRefit": "Copa da manga refeita para a cava ajustada — as costuras voltaram a bater.",
       "freeFixChip": "correção gratuita",
-      "sizeChartSubstituted": "Sua grade ativa (“{rejected}”) não serve para esta peça, então usei “{used}”. Para usar a sua, ative uma grade do mesmo gênero em Medidas e grades."
+      "sizeChartSubstituted": "Sua grade ativa (“{rejected}”) não serve para esta peça, então usei “{used}”. Para usar a sua, ative uma grade do mesmo gênero em Medidas e grades.",
+      "fromSloper": "Molde criado a partir da base “{name}”. Peça os ajustes por aqui."
     },
     "pdf": {
       "pageLabel": "Linha {rowNumber} · Coluna {colNumber} de {totalRows}x{totalCols}",

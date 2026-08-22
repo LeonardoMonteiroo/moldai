@@ -7,15 +7,34 @@ vi.mock("@/lib/auth/guard", () => ({ requireUser: vi.fn() }));
 vi.mock("@/lib/db/pattern", () => ({
   listPatternsForUser: vi.fn(),
   createPattern: vi.fn(),
+  createPatternFromState: vi.fn(),
 }));
+vi.mock("@/lib/db/sloper", async () => {
+  const actual =
+    await vi.importActual<typeof import("@/lib/db/sloper")>("@/lib/db/sloper");
+  return { ...actual, loadSloper: vi.fn() };
+});
 
 import { GET, POST } from "./route";
 import { requireUser } from "@/lib/auth/guard";
 import { unauthorized } from "@/lib/auth/session";
-import { listPatternsForUser, createPattern } from "@/lib/db/pattern";
+import {
+  listPatternsForUser,
+  createPattern,
+  createPatternFromState,
+} from "@/lib/db/pattern";
+import { loadSloper } from "@/lib/db/sloper";
+import { seedPatternState, applyGarmentSpec } from "@/lib/editor/state";
+import { sloperFromPattern } from "@/lib/slopers/convert";
+import { t as translate } from "@/lib/i18n/test-translate";
+import type { GarmentSpec } from "@/lib/types";
 
 const mockList = listPatternsForUser as unknown as ReturnType<typeof vi.fn>;
 const mockCreate = createPattern as unknown as ReturnType<typeof vi.fn>;
+const mockCreateFromState = createPatternFromState as unknown as ReturnType<
+  typeof vi.fn
+>;
+const mockLoadSloper = loadSloper as unknown as ReturnType<typeof vi.fn>;
 
 describe("GET /api/patterns", () => {
   beforeEach(() => {
@@ -52,6 +71,27 @@ describe("GET /api/patterns", () => {
   });
 });
 
+const BLOUSE: GarmentSpec = {
+  type: "blouse",
+  gender: "female",
+  measurementOverrides: {},
+  style: {},
+};
+
+function sloperFixture() {
+  const state = seedPatternState(translate);
+  applyGarmentSpec(state, BLOUSE, translate);
+  return sloperFromPattern(state.pattern, "base blusa");
+}
+
+function post(body?: unknown) {
+  return new Request("http://test/api/patterns", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+  });
+}
+
 describe("POST /api/patterns", () => {
   beforeEach(() => {
     vi.mocked(requireUser).mockResolvedValue({
@@ -60,19 +100,53 @@ describe("POST /api/patterns", () => {
       name: null,
     });
     mockCreate.mockReset();
+    mockCreateFromState.mockReset();
+    mockLoadSloper.mockReset();
   });
 
-  it("creates a pattern for the session user and returns its id", async () => {
+  it("creates a blank pattern when the request carries no body at all", async () => {
     mockCreate.mockResolvedValue("m9");
-    const res = await POST();
-    const json = await res.json();
+    const res = await POST(post());
     expect(mockCreate).toHaveBeenCalledWith("u1", expect.any(Function));
-    expect(json).toEqual({ id: "m9" });
+    expect(mockCreateFromState).not.toHaveBeenCalled();
+    expect(await res.json()).toEqual({ id: "m9" });
+  });
+
+  it("creates a blank pattern for an empty object body", async () => {
+    mockCreate.mockResolvedValue("m9");
+    const res = await POST(post({}));
+    expect(mockCreate).toHaveBeenCalled();
+    expect(await res.json()).toEqual({ id: "m9" });
+  });
+
+  it("creates an already-drafted pattern from a sloper", async () => {
+    mockLoadSloper.mockResolvedValue(sloperFixture());
+    mockCreateFromState.mockResolvedValue("m10");
+
+    const res = await POST(post({ sloperId: "s1" }));
+
+    expect(mockLoadSloper).toHaveBeenCalledWith("s1", "u1");
+    const [userId, state] = mockCreateFromState.mock.calls[0];
+    expect(userId).toBe("u1");
+    expect(state.pattern.pieces.length).toBeGreaterThan(0);
+    expect(state.pattern.version).toBe(1);
+    expect(state.pattern.name).toBe("base blusa");
+    expect(mockCreate).not.toHaveBeenCalled();
+    expect(await res.json()).toEqual({ id: "m10" });
+  });
+
+  it("404s for an unknown sloper and creates nothing", async () => {
+    mockLoadSloper.mockResolvedValue(null);
+    const res = await POST(post({ sloperId: "nope" }));
+    expect(res.status).toBe(404);
+    expect((await res.json()).error).toBe("sloper_not_found");
+    expect(mockCreate).not.toHaveBeenCalled();
+    expect(mockCreateFromState).not.toHaveBeenCalled();
   });
 
   it("401s without a session", async () => {
     vi.mocked(requireUser).mockResolvedValueOnce(unauthorized());
-    const res = await POST();
+    const res = await POST(post());
     expect(res.status).toBe(401);
     expect(mockCreate).not.toHaveBeenCalled();
   });
