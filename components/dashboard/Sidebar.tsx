@@ -8,13 +8,12 @@ import { Button } from "@/components/ui/button";
 function NavItem({
   label,
   isActive,
-  href,
+  onSelect,
 }: {
   label: string;
   isActive: boolean;
-  href: string;
+  onSelect: () => void;
 }) {
-  const router = useRouter();
   if (isActive)
     return (
       <span className="bg-olive-tint text-olive rounded-item text-ui px-[10px] py-[7px] font-medium">
@@ -25,7 +24,7 @@ function NavItem({
     <Button
       variant="ghost"
       size="chrome"
-      onClick={() => router.push(href)}
+      onClick={onSelect}
       className="text-muted-2 justify-start"
     >
       {label}
@@ -44,6 +43,7 @@ export function Sidebar({
   disabled?: boolean;
 }) {
   const t = useTranslations("Sidebar");
+  const router = useRouter();
 
   return (
     <div className="border-border bg-surface flex w-[186px] flex-col border-r p-[14px]">
@@ -51,18 +51,18 @@ export function Sidebar({
         <NavItem
           label={t("myPatternsLabel")}
           isActive={active === "patterns"}
-          href="/"
+          onSelect={() => router.push("/")}
         />
         {/* /size-charts renders no sidebar, so this entry is never the active one. */}
         <NavItem
           label={t("measurementsLabel")}
           isActive={false}
-          href="/size-charts"
+          onSelect={() => router.push("/size-charts")}
         />
         <NavItem
           label={t("studioBasesLabel")}
           isActive={active === "slopers"}
-          href="/slopers"
+          onSelect={() => router.push("/slopers")}
         />
       </nav>
       <div className="flex-1" />
