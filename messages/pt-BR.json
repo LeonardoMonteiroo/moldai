@@ -440,6 +440,30 @@
     "patternMissing": "Esse molde não existe mais — talvez tenha sido excluído.",
     "dismissPatternMissing": "Fechar aviso"
   },
+  "Slopers": {
+    "title": "Bases do ateliê",
+    "subtitle": "Moldes salvos como ponto de partida para novas peças",
+    "countLabel": "{count, plural, one {# base} other {# bases}}",
+    "loading": "Carregando bases…",
+    "loadError": "Não foi possível carregar suas bases. Tente recarregar a página.",
+    "emptyTitle": "Nenhuma base salva",
+    "emptyDescription": "Abra um molde já gerado e use “Salvar como base” no rodapé do editor."
+  },
+  "SloperCard": {
+    "useButton": "Usar base",
+    "meta": "{garment} · base {baseSize}",
+    "menuAriaLabel": "Mais opções",
+    "renameOption": "Renomear",
+    "renameTitle": "Renomear base",
+    "renamePrompt": "Novo nome da base",
+    "renameSaveButton": "Salvar",
+    "renameCancelButton": "Cancelar",
+    "deleteOption": "Excluir",
+    "deleteModalTitle": "Excluir esta base?",
+    "deleteModalDescription": "Isso apaga a base do ateliê. Os moldes já criados a partir dela não são afetados.",
+    "deleteConfirmButton": "Excluir",
+    "deleteCancelButton": "Cancelar"
+  },
   "ProfileSection": {
     "heading": "Perfil",
     "nameLabel": "Nome",
