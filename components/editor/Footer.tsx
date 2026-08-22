@@ -16,6 +16,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useEditorStore } from "@/lib/store";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { MAX_PATTERN_NAME_LENGTH } from "@/lib/types";
 
 const FORMATS: {
   id: ExportFormat;
@@ -52,6 +63,32 @@ export function Footer({
     const timeout = setTimeout(() => setExportError(null), 6000);
     return () => clearTimeout(timeout);
   }, [exportError]);
+
+  const saveAsSloper = useEditorStore((s) => s.saveAsSloper);
+  const [savingBase, setSavingBase] = useState(false);
+  const [baseName, setBaseName] = useState(pattern.name);
+  const [baseNotice, setBaseNotice] = useState<{
+    tone: "ok" | "error";
+    text: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!baseNotice) return;
+    const timeout = setTimeout(() => setBaseNotice(null), 6000);
+    return () => clearTimeout(timeout);
+  }, [baseNotice]);
+
+  const submitBase = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const name = baseName.trim();
+    if (!name) return;
+    setSavingBase(false);
+    setBaseNotice(
+      (await saveAsSloper(name))
+        ? { tone: "ok", text: t("saveAsBaseSaved") }
+        : { tone: "error", text: t("saveAsBaseError") },
+    );
+  };
   const pieceCount = pattern.pieces.reduce((sum, p) => sum + p.qty, 0);
   const exportDisabled =
     conflictActive ||
@@ -96,6 +133,19 @@ export function Footer({
         </span>
       )}
 
+      {baseNotice && (
+        <span
+          role={baseNotice.tone === "error" ? "alert" : "status"}
+          className={
+            baseNotice.tone === "error"
+              ? "text-alert bg-amber-bg border-amber-border rounded-item text-meta border px-[10px] py-[5px]"
+              : "text-olive bg-olive-tint rounded-item text-meta px-[10px] py-[5px]"
+          }
+        >
+          {baseNotice.text}
+        </span>
+      )}
+
       <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" disabled={exportDisabled}>
@@ -132,12 +182,58 @@ export function Footer({
       </DropdownMenu>
 
       <Button
+        variant="outline"
+        disabled={exportDisabled}
+        title={exportDisabled ? t("saveAsBaseDisabledTitle") : undefined}
+        onClick={() => {
+          setBaseName(pattern.name);
+          setSavingBase(true);
+        }}
+      >
+        {t("saveAsBaseButton")}
+      </Button>
+
+      <Button
         disabled
         title={t("saveVersionTitle")}
         className="cursor-not-allowed"
       >
         {t("saveVersionButton")}
       </Button>
+
+      <Dialog open={savingBase} onOpenChange={setSavingBase}>
+        <DialogContent>
+          <form onSubmit={submitBase}>
+            <DialogHeader>
+              <DialogTitle>{t("saveAsBaseTitle")}</DialogTitle>
+            </DialogHeader>
+            <Field className="py-4">
+              <FieldLabel htmlFor="save-as-base-name">
+                {t("saveAsBasePrompt")}
+              </FieldLabel>
+              <Input
+                id="save-as-base-name"
+                value={baseName}
+                maxLength={MAX_PATTERN_NAME_LENGTH}
+                onChange={(event) => setBaseName(event.target.value)}
+              />
+            </Field>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setSavingBase(false)}
+              >
+                {t("saveAsBaseCancelButton")}
+              </Button>
+              <Button type="submit" size="sm" disabled={!baseName.trim()}>
+                {t("saveAsBaseSaveButton")}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

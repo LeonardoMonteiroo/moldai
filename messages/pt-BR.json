@@ -25,7 +25,15 @@
     "exportButton": "Exportar",
     "netLineNote": "Linha líquida — sem margem de costura embutida.",
     "saveVersionTitle": "O molde é salvo automaticamente a cada geração. Versionamento manual chega em breve.",
-    "saveVersionButton": "Salvar versão · em breve"
+    "saveVersionButton": "Salvar versão · em breve",
+    "saveAsBaseButton": "Salvar como base",
+    "saveAsBaseDisabledTitle": "Gere o molde e resolva o conflito de costura antes de salvar como base.",
+    "saveAsBaseTitle": "Salvar como base do ateliê",
+    "saveAsBasePrompt": "Nome da base",
+    "saveAsBaseSaveButton": "Salvar",
+    "saveAsBaseCancelButton": "Cancelar",
+    "saveAsBaseSaved": "Base salva em Bases do ateliê.",
+    "saveAsBaseError": "Não foi possível salvar a base. Tente de novo."
   },
   "ChatPanel": {
     "title": "Conversa",
