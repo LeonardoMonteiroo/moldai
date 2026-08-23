@@ -51,6 +51,7 @@ export function SloperCard({
     <div className="border-border rounded-card group relative flex flex-col gap-2 border bg-white p-[10px]">
       <div className="bg-surface-alt rounded-item flex h-[112px] w-full items-center justify-center overflow-hidden">
         <span
+          aria-hidden="true"
           className="h-full w-full [&_svg]:h-full [&_svg]:w-full"
           dangerouslySetInnerHTML={{ __html: sloper.thumbnailSvg }}
         />

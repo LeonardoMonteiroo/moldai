@@ -53,10 +53,12 @@ export function PatternCard({
       <button
         type="button"
         onClick={() => onOpen(pattern.id)}
+        aria-label={pattern.name}
         className="bg-surface-alt rounded-item flex h-[112px] w-full items-center justify-center overflow-hidden"
       >
         {pattern.garmentType ? (
           <span
+            aria-hidden="true"
             className="h-full w-full [&_svg]:h-full [&_svg]:w-full"
             dangerouslySetInnerHTML={{ __html: pattern.thumbnailSvg }}
           />
