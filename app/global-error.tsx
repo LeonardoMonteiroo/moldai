@@ -11,6 +11,7 @@ import { Wordmark } from "@/components/shared/Wordmark";
 // from this required-to-be-client-component boundary. pt-BR text still
 // lives only in messages/pt-BR.json, never hardcoded in this file.
 import messages from "@/messages/pt-BR.json";
+import { reportError } from "@/lib/observability/report";
 import "./globals.css";
 
 const bricolage = Bricolage_Grotesque({
@@ -39,7 +40,7 @@ export default function GlobalError({
   retry: () => void;
 }) {
   useEffect(() => {
-    console.error(error);
+    reportError("global-error-boundary", error, { digest: error.digest });
   }, [error]);
 
   return (

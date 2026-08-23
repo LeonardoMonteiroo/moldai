@@ -17,6 +17,7 @@ import { apiError } from "@/lib/api/errors";
 import { COSTS } from "@/lib/types";
 import { proposeGarment } from "@/lib/ai";
 import { requireUser } from "@/lib/auth/guard";
+import { reportError } from "@/lib/observability/report";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -195,7 +196,13 @@ export async function POST(request: Request, { params }: Ctx) {
               throw new Error(`unhandled decision: ${String(exhaustive)}`);
             }
           }
-        } catch {
+        } catch (err) {
+          // #100: this had no error binding at all, so an Anthropic 401/429
+          // (a rotated key, a spend cap) was structurally unloggable -- the
+          // credit was refunded, the user saw a generic failure and retried
+          // in a loop, and the operator's stdout held nothing at all: not
+          // the cause, not even a line saying a generation was attempted.
+          reportError("generate", err, { patternId: id, userId: gate.id });
           entries.push(refundWallet(wallet, cost, "generate-error"));
           return {
             result: NextResponse.json({

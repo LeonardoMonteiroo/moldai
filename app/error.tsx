@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Wordmark } from "@/components/shared/Wordmark";
+import { reportError } from "@/lib/observability/report";
 
 // #98: with no error.tsx anywhere in the tree, a thrown Server Component
 // (a Postgres restart, a momentarily exhausted Prisma pool) fell through to
@@ -23,7 +24,7 @@ export default function AppError({
   const t = useTranslations("AppError");
 
   useEffect(() => {
-    console.error(error);
+    reportError("app-error-boundary", error, { digest: error.digest });
   }, [error]);
 
   return (

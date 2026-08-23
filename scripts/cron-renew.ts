@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { withWallet } from "../lib/db/wallet";
 import { renewWallet } from "../lib/billing/wallet";
+import { reportError } from "../lib/observability/report";
 
 const prisma = new PrismaClient();
 
@@ -26,7 +27,7 @@ async function main() {
 main()
   .then(() => process.exit(0))
   .catch((e) => {
-    console.error("[cron-renew] failed:", e);
+    reportError("cron-renew", e);
     process.exit(1);
   })
   .finally(() => prisma.$disconnect());

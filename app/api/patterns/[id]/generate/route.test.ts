@@ -69,12 +69,14 @@ const CHART = {
 vi.mock("@/lib/db/sizeChart", () => ({
   getSizeChartForGeneration: vi.fn(async () => CHART),
 }));
+vi.mock("@/lib/observability/report", () => ({ reportError: vi.fn() }));
 
 import { POST } from "./route";
 import { proposeGarment } from "@/lib/ai";
 import { requireUser } from "@/lib/auth/guard";
 import { unauthorized } from "@/lib/auth/session";
 import { withPatternAndWallet } from "@/lib/db/pattern-wallet";
+import { reportError } from "@/lib/observability/report";
 
 const mockPropose = proposeGarment as unknown as ReturnType<typeof vi.fn>;
 
@@ -96,6 +98,7 @@ describe("POST /api/patterns/[id]/generate", () => {
     ownedPatternId = "m1";
     lastEntries = [];
     mockPropose.mockReset();
+    vi.mocked(reportError).mockReset();
     vi.mocked(requireUser).mockResolvedValue({
       id: "u1",
       email: "dev@moldai.local",
@@ -226,9 +229,10 @@ describe("POST /api/patterns/[id]/generate", () => {
   it("refunds instead of drafting when proposeGarment rejects", async () => {
     const balanceBefore = wallet.balance;
     const versionBefore = state.pattern.version;
-    mockPropose.mockRejectedValue(
-      new Error("propose_garment tool_use.input was not an object"),
+    const thrown = new Error(
+      "propose_garment tool_use.input was not an object",
     );
+    mockPropose.mockRejectedValue(thrown);
 
     const res = await POST(req({ message: "uma blusa" }), ctx());
     const json = await res.json();
@@ -237,6 +241,13 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(wallet.balance).toBe(balanceBefore);
     expect(state.pattern.version).toBe(versionBefore);
     expect(lastEntries.map((e) => e.type)).toEqual(["debit", "refund"]);
+    // #100: this catch had no error binding at all before -- an Anthropic
+    // 401/429 was structurally unloggable, and the operator's stdout held
+    // nothing saying a generation was even attempted.
+    expect(reportError).toHaveBeenCalledWith("generate", thrown, {
+      patternId: "m1",
+      userId: "u1",
+    });
   });
 
   it("empty message returns 400 without debiting or calling the AI", async () => {
