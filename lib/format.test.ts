@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { relativeTime, formatList, initialsFromEmail } from "./format";
+import {
+  relativeTime,
+  formatList,
+  initialsFromEmail,
+  formatCm,
+} from "./format";
 
 // A fake translator that echoes the key and its values, so these tests assert
 // the seam (which key, which interpolation) and never a pt-BR string.
@@ -67,5 +72,23 @@ describe("formatList", () => {
 describe("initialsFromEmail", () => {
   it("takes the first two letters of the local part", () => {
     expect(initialsFromEmail("leonardo@moldai.dev")).toBe("LE");
+  });
+});
+
+// #107: six independent local copies of `.toFixed(1).replace(".", ",")` had
+// drifted across drafters, canvas overlays and detail panels -- one of them
+// (components/editor/MeasureLayer.tsx) was missing the comma replace
+// entirely, rendering "12.3 cm" in a pt-BR interface.
+describe("formatCm", () => {
+  it("formats one decimal place with a pt-BR comma", () => {
+    expect(formatCm(4.1)).toBe("4,1");
+  });
+
+  it("keeps a trailing .0 rather than dropping it", () => {
+    expect(formatCm(4)).toBe("4,0");
+  });
+
+  it("rounds to one decimal place", () => {
+    expect(formatCm(4.15)).toBe("4,2");
   });
 });

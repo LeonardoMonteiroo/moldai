@@ -197,7 +197,7 @@
     "grainValue": "reto",
     "conflict": {
       "title": "Cava e manga não batem",
-      "description": "A cava do corpo ficou {diffCm} cm {direction, select, larger {maior} smaller {menor} other {}} que a copa da manga — as costuras não vão fechar.",
+      "description": "A cava do corpo ficou {diffCm, number, ::.0} cm {direction, select, larger {maior} smaller {menor} other {}} que a copa da manga — as costuras não vão fechar.",
       "suggestion": "“Corrigir manga” refaz a copa para a cava ajustada, sem custo."
     },
     "chat": {

@@ -1,8 +1,12 @@
 import type { Measurement, Point } from "@/lib/types";
 import { distanceCm } from "@/lib/canvas/measure";
+import { formatCm } from "@/lib/format";
 
+// #107: was `.toFixed(1)` with no comma replace at all -- the measure tool's
+// on-canvas distance rendered "12.3 cm" in a pt-BR interface, next to the
+// seam labels beside it which already got the comma right.
 function label(a: Point, b: Point): string {
-  return `${distanceCm(a, b).toFixed(1)} cm`;
+  return `${formatCm(distanceCm(a, b))} cm`;
 }
 
 export function MeasureLayer({

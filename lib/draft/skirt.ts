@@ -1,9 +1,10 @@
 import { Measurements } from "@/lib/measurements";
 import { DetailRow, GarmentStyle, SkirtSilhouette } from "@/lib/types";
 import { DraftedPiece, Pt } from "./core";
+import { formatCm } from "@/lib/format";
 import type { Translate } from "@/lib/i18n/translate";
 
-const cm = (v: number) => `${v.toFixed(1).replace(".", ",")} cm`;
+const cm = (v: number) => `${formatCm(v)} cm`;
 
 // #80: was `m.hip/4 + (style.seamAllowanceCm ?? 1)` -- the seam-allowance
 // spec field baked straight into finished geometry here, while every other

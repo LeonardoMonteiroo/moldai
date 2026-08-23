@@ -10,12 +10,13 @@ import { EditorTool } from "@/lib/store";
 import { Viewport, ZOOM_STEP } from "@/lib/canvas/viewport";
 import { nearestSnap } from "@/lib/canvas/measure";
 import { fitPieceLabel, pieceLabelText } from "@/lib/canvas/pieceLabel";
+import { formatCm } from "@/lib/format";
 import { MeasureLayer } from "./MeasureLayer";
 
 const SEAM_LABEL_FONT_SIZE = 10;
-// Same inline cm formatting the sibling MeasureLayer uses for its on-canvas
+// Same cm formatting the sibling MeasureLayer uses for its on-canvas
 // distances — a unit suffix, not catalog copy.
-const seamValue = (v: number) => `${v.toFixed(1).replace(".", ",")} cm`;
+const seamValue = (v: number) => `${formatCm(v)} cm`;
 
 function OutlineShape({
   outline,

@@ -12,6 +12,7 @@ import {
   type Measurements,
 } from "@/lib/measurements";
 import { BODY_TYPES, type BodyType } from "@/lib/types";
+import { formatCm } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -346,7 +347,7 @@ export function SizeChartTable() {
                 <div key={key} className="text-ui flex justify-between">
                   <span className="text-muted">{t(`measurement.${key}`)}</span>
                   <span className="font-semibold">
-                    {draft.progressionRule[key]} cm
+                    {formatCm(draft.progressionRule[key] ?? 0)} cm
                   </span>
                 </div>
               ),

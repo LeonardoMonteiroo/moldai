@@ -2,10 +2,9 @@ import { useTranslations } from "next-intl";
 import { Pattern } from "@/lib/types";
 import { buildExportModel } from "@/lib/export/model";
 import { wearingEaseCm } from "@/lib/draft/garment";
+import { formatCm as cm } from "@/lib/format";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
-
-const cm = (n: number) => n.toFixed(1).replace(".", ",");
 
 export function TechSheetTab({ pattern }: { pattern: Pattern }) {
   const t = useTranslations("TechSheetTab");

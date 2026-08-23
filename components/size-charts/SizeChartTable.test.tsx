@@ -233,3 +233,19 @@ describe("SizeChartTable size-list cap", () => {
     ).not.toBeInTheDocument();
   });
 });
+
+// #107: `{draft.progressionRule[key]} cm` was a raw JS number in JSX, so
+// React stringified it with a dot -- the PROGRESSÃO card showed "0.3 cm"
+// while the measurement table directly above it correctly showed "20,3".
+// bust:4 (BASE's own default fixture, used elsewhere in this file) is a
+// whole number and wouldn't have shown the bug either way, so this needs
+// its own non-integer fixture.
+describe("SizeChartTable progression card", () => {
+  it("formats a non-integer progression value with a pt-BR comma, not a dot", () => {
+    seed({ progressionRule: { bust: 0.3 } });
+    renderWithIntl(<SizeChartTable />);
+
+    expect(screen.getByText("0,3 cm")).toBeInTheDocument();
+    expect(screen.queryByText("0.3 cm")).not.toBeInTheDocument();
+  });
+});

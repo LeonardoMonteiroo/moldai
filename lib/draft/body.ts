@@ -2,9 +2,10 @@ import { Measurements } from "@/lib/measurements";
 import { DetailRow, GarmentStyle, Gender } from "@/lib/types";
 import { curveArcLengthCm, DraftedPiece, Pt } from "./core";
 import { wearingEaseCm } from "./ease";
+import { formatCm } from "@/lib/format";
 import type { Translate } from "@/lib/i18n/translate";
 
-const cm = (v: number) => `${v.toFixed(1).replace(".", ",")} cm`;
+const cm = (v: number) => `${formatCm(v)} cm`;
 
 export interface BlockOpts {
   gender: Gender;

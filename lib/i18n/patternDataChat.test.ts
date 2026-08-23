@@ -104,4 +104,48 @@ describe("PatternData", () => {
       expect(t("pdf.rulerLabel")).toBe("10 cm - confira a escala");
     });
   });
+
+  // #107: {diffCm} was a BARE placeholder -- intl-messageformat stringifies a
+  // non-string argument with JS's default Number#toString rather than
+  // running it through Intl.NumberFormat, so a real seam conflict's chat
+  // message rendered "ficou 4.1 cm maior" beside ConflictInfoCard's own
+  // correctly-formatted "23,7 cm" / "19,7 cm". Only the real catalog through
+  // createTranslator can catch this -- a stub/echo translator (or a mocked
+  // getTranslations) never exercises intl-messageformat's actual number
+  // handling at all, so it would pass whether the placeholder were bare or
+  // typed. `::.0` (not the plain `number` type) is deliberate too: verified
+  // empirically that the plain form drops the decimal for a whole-number
+  // diff (4.0 renders "4 cm", inconsistent with ConflictInfoCard's
+  // `.toFixed(1)`), while the skeleton forces exactly one decimal always.
+  describe("conflict.description", () => {
+    it("renders a non-integer diffCm with a pt-BR comma, not a dot", () => {
+      const out = t("conflict.description", {
+        diffCm: 4.1,
+        direction: "larger",
+      });
+      expect(out).toContain("4,1 cm");
+      expect(out).not.toContain("4.1");
+    });
+
+    it("keeps a trailing .0 for a whole-number diffCm, matching ConflictInfoCard's own formatting", () => {
+      const out = t("conflict.description", {
+        diffCm: 4,
+        direction: "smaller",
+      });
+      expect(out).toContain("4,0 cm");
+    });
+
+    it("selects the direction word correctly alongside the formatted number", () => {
+      expect(
+        t("conflict.description", { diffCm: 3.7, direction: "larger" }),
+      ).toBe(
+        "A cava do corpo ficou 3,7 cm maior que a copa da manga — as costuras não vão fechar.",
+      );
+      expect(
+        t("conflict.description", { diffCm: 3.7, direction: "smaller" }),
+      ).toBe(
+        "A cava do corpo ficou 3,7 cm menor que a copa da manga — as costuras não vão fechar.",
+      );
+    });
+  });
 });

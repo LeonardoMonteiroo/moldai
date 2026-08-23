@@ -1,5 +1,6 @@
 import { useTranslations } from "next-intl";
 import { ConflictInfo } from "@/lib/types";
+import { formatCm } from "@/lib/format";
 
 // One decimal, the same basis the drafters' own detailRows use — so the card's
 // "Cava · frente 22,7 cm" is the number the piece details panel already shows.
@@ -9,7 +10,7 @@ import { ConflictInfo } from "@/lib/types";
 // alternative — deriving the gap from the rounded operands — would make the card
 // contradict the chat message and the persisted ConflictInfo about the same
 // divergence, which is the worse of the two roundings.
-const cm = (n: number) => n.toFixed(1).replace(".", ",");
+const cm = formatCm;
 
 // Both seams share one scale: each bar is the seam's share of the longer of the
 // two, so the shorter one's missing span is the visible remainder — drawn in the

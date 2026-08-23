@@ -1,5 +1,15 @@
 import type { Translate } from "@/lib/i18n/translate";
 
+// One decimal place, pt-BR comma. #107: six independent local copies of this
+// exact formula (five correct, one -- components/editor/MeasureLayer.tsx --
+// missing the comma replace entirely, rendering "12.3 cm") had drifted
+// across drafters, canvas overlays and detail panels. Everywhere a cm value
+// reaches JSX or a pre-formatted catalog value now calls this instead of
+// re-deriving it.
+export function formatCm(v: number): string {
+  return v.toFixed(1).replace(".", ",");
+}
+
 // Joins a list as prose. The conjunction is pt-BR in the catalog, not here.
 export function formatList(t: Translate, items: string[]): string {
   if (items.length <= 1) return items.join("");
