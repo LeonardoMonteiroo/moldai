@@ -112,6 +112,13 @@ function applyState(
   });
 }
 
+// #35: was local to one sendMessage call, so cancelGeneration had no handle
+// to clear it -- an orphaned chain kept ticking generationStepIndex forward
+// for a generation the user had already canceled, and (if a new one was sent
+// immediately after) for the WRONG generation. Module-scope is enough: the
+// store is a singleton and only one generation is ever in flight per screen.
+let stepTimer: ReturnType<typeof setTimeout> | undefined;
+
 export const useEditorStore = create<EditorStore>((set, get) => ({
   ready: false,
   error: null,
@@ -218,10 +225,17 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         },
       ],
     }));
-    let stepTimer: ReturnType<typeof setTimeout> | undefined;
+    // #35: clears any orphan chain a re-entrant send (or a canceled-but-still
+    // ticking previous call) might have left running, so this call is never
+    // racing a stale one for the same module-scope handle.
+    clearTimeout(stepTimer);
     const scheduleStep = (i: number) => {
       if (i >= GENERATION_STEP_DELAYS_MS.length) return;
       stepTimer = setTimeout(() => {
+        // #35: bails instead of ticking if this generation was canceled (or
+        // superseded) since the timer was armed -- the same requestId guard
+        // idiom the two post-await response paths below already use.
+        if (get().generationRequestId !== requestId) return;
         set((s) => ({
           generationStepIndex: Math.min(
             s.generationStepIndex + 1,
@@ -309,6 +323,12 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     // sendMessage's own post-await handling above applies the real
     // `credits` from that response once it arrives, which is the only
     // place the true balance is known.
+    // #35: without this, the orphaned timer chain kept ticking
+    // generationStepIndex forward for a generation that no longer exists
+    // (and, for the next generation sent right after, ticking the WRONG
+    // one) -- the requestId bump below stops that tick from doing anything
+    // once it fires, but clearing the handle here stops it firing at all.
+    clearTimeout(stepTimer);
     set((s) => ({
       generationStatus: "idle",
       generationRequestId: s.generationRequestId + 1,

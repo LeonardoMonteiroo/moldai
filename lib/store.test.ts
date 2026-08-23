@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { EditorState } from "./types";
 
 // ApiError comes from the real module (the store narrows on it with
@@ -237,6 +237,68 @@ describe("store.cancelGeneration (#41)", () => {
     await sendPromise;
 
     expect(useEditorStore.getState().pattern).toBe(m2Pattern);
+  });
+});
+
+// #35: the step timer chain was a local of one sendMessage call, so
+// cancelGeneration had no handle to clear it -- an orphaned chain kept
+// ticking generationStepIndex forward for a generation the user had already
+// canceled (and, if a new one was sent right after, for the wrong one).
+describe("store generation step timer (#35)", () => {
+  beforeEach(() => {
+    genMock.mockReset();
+    useEditorStore.setState({
+      patternId: "m1",
+      selectedPieceId: null,
+      generationStatus: "idle",
+      generationStepIndex: 0,
+    });
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("stops advancing generationStepIndex once canceled", async () => {
+    const gen = deferred<Awaited<ReturnType<typeof api.generate>>>();
+    genMock.mockReturnValue(gen.promise);
+    const sendPromise = useEditorStore.getState().sendMessage("uma blusa");
+
+    vi.advanceTimersByTime(600); // past the first 500ms hop
+    expect(useEditorStore.getState().generationStepIndex).toBe(1);
+
+    useEditorStore.getState().cancelGeneration();
+
+    vi.advanceTimersByTime(5000); // past every remaining hop
+    expect(useEditorStore.getState().generationStepIndex).toBe(1);
+
+    gen.resolve({ status: "ok", state: emptyState() });
+    await sendPromise;
+  });
+
+  it("a re-entrant send clears the previous chain instead of racing it", async () => {
+    const gen1 = deferred<Awaited<ReturnType<typeof api.generate>>>();
+    genMock.mockReturnValueOnce(gen1.promise);
+    const first = useEditorStore.getState().sendMessage("uma blusa");
+
+    vi.advanceTimersByTime(600);
+    expect(useEditorStore.getState().generationStepIndex).toBe(1);
+
+    // A second send while the first is still in flight resets the visible
+    // step -- without clearing the first chain's handle, its orphaned tick
+    // would fire moments later and jump the index for this new generation.
+    const gen2 = deferred<Awaited<ReturnType<typeof api.generate>>>();
+    genMock.mockReturnValueOnce(gen2.promise);
+    const second = useEditorStore.getState().sendMessage("outra blusa");
+    expect(useEditorStore.getState().generationStepIndex).toBe(0);
+
+    vi.advanceTimersByTime(600);
+    expect(useEditorStore.getState().generationStepIndex).toBe(1);
+
+    gen1.resolve({ status: "ok", state: emptyState() });
+    gen2.resolve({ status: "ok", state: emptyState() });
+    await Promise.all([first, second]);
   });
 });
 
