@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { readJsonObject } from "@/lib/api/body";
 import { getTranslations } from "next-intl/server";
 import { requireUser } from "@/lib/auth/guard";
+import { prisma } from "@/lib/db/prisma";
 import {
   listSizeChartsForUser,
   getActiveSizeChartId,
@@ -11,9 +12,11 @@ import {
 export async function GET() {
   const gate = await requireUser();
   if (gate instanceof NextResponse) return gate;
+  // Not inside a transaction here, so the module-level client is passed
+  // straight through — see #67's comment on ensureSystemSizeCharts.
   const [charts, activeSizeChartId] = await Promise.all([
-    listSizeChartsForUser(gate.id),
-    getActiveSizeChartId(gate.id),
+    listSizeChartsForUser(prisma, gate.id),
+    getActiveSizeChartId(prisma, gate.id),
   ]);
   return NextResponse.json(
     charts.map((c) => ({ ...c, isActive: c.id === activeSizeChartId })),

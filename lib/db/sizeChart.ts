@@ -5,6 +5,8 @@ import { buildSystemSizeChartData } from "@/lib/sizeCharts/seed";
 import { pickSizeChartForGeneration } from "@/lib/sizeCharts/compute";
 import type { Gender, SizeChartData, SizeChartRecord } from "@/lib/types";
 
+type Tx = Prisma.TransactionClient;
+
 function toRecord(row: {
   id: string;
   data: Prisma.JsonValue;
@@ -20,8 +22,21 @@ function toRecord(row: {
 // Seeds the two system default size charts for a user the first time
 // they're needed — same "lazily reseeded on first access" precedent as
 // lib/db/wallet.ts's seedWallet.
-export async function ensureSystemSizeCharts(userId: string): Promise<void> {
-  const existing = await prisma.sizeChart.findMany({ where: { userId } });
+//
+// #67: takes `tx` rather than the module-level `prisma` singleton so a
+// caller already inside an interactive transaction (withPatternAndWallet)
+// can pass that transaction's client — running these queries on some other
+// pooled connection while a Pattern+Wallet-locking transaction holds one for
+// the whole AI call risks pool exhaustion, and a createMany committing on
+// its own connection would survive a rollback of the transaction it looks
+// like it belongs to. A bare PrismaClient (the `prisma` singleton) is
+// structurally assignable to Prisma.TransactionClient, so a non-transactional
+// caller just passes `prisma` straight through.
+export async function ensureSystemSizeCharts(
+  tx: Tx,
+  userId: string,
+): Promise<void> {
+  const existing = await tx.sizeChart.findMany({ where: { userId } });
   const hasSystem = existing.some(
     (r) => (r.data as unknown as SizeChartData).isSystem,
   );
@@ -36,7 +51,7 @@ export async function ensureSystemSizeCharts(userId: string): Promise<void> {
   // handling of @updatedAt defaults is version-sensitive in Prisma — create()
   // can be trusted for it (see createPattern), createMany() shouldn't be.
   const now = new Date();
-  await prisma.sizeChart.createMany({
+  await tx.sizeChart.createMany({
     data: [
       { userId, data: female, updatedAt: now },
       { userId, data: male, updatedAt: now },
@@ -45,10 +60,11 @@ export async function ensureSystemSizeCharts(userId: string): Promise<void> {
 }
 
 export async function listSizeChartsForUser(
+  tx: Tx,
   userId: string,
 ): Promise<SizeChartRecord[]> {
-  await ensureSystemSizeCharts(userId);
-  const rows = await prisma.sizeChart.findMany({
+  await ensureSystemSizeCharts(tx, userId);
+  const rows = await tx.sizeChart.findMany({
     where: { userId },
     orderBy: { updatedAt: "desc" },
   });
@@ -56,9 +72,10 @@ export async function listSizeChartsForUser(
 }
 
 export async function getActiveSizeChartId(
+  tx: Tx,
   userId: string,
 ): Promise<string | null> {
-  const user = await prisma.user.findUnique({
+  const user = await tx.user.findUnique({
     where: { id: userId },
     select: { activeSizeChartId: true },
   });
@@ -73,7 +90,7 @@ export async function createSizeChart(
   copySuffix: string,
   sourceSizeChartId?: string,
 ): Promise<SizeChartRecord> {
-  const charts = await listSizeChartsForUser(userId);
+  const charts = await listSizeChartsForUser(prisma, userId);
   const source =
     charts.find((c) => c.id === sourceSizeChartId) ??
     charts.find((c) => c.isSystem && c.gender === "female") ??
@@ -162,11 +179,12 @@ export async function setActiveSizeChart(
  * the chart and the substitution was invisible.
  */
 export async function getSizeChartForGeneration(
+  tx: Tx,
   userId: string,
   gender: Gender,
 ): Promise<{ chart: SizeChartData; rejectedActiveName: string | null }> {
-  const charts = await listSizeChartsForUser(userId);
-  const activeSizeChartId = await getActiveSizeChartId(userId);
+  const charts = await listSizeChartsForUser(tx, userId);
+  const activeSizeChartId = await getActiveSizeChartId(tx, userId);
   const { chart: record, rejectedActive } = pickSizeChartForGeneration(
     charts,
     activeSizeChartId,

@@ -15,6 +15,9 @@ vi.mock("@/lib/db/sizeChart", () => ({
   getActiveSizeChartId: vi.fn(),
   createSizeChart: vi.fn(),
 }));
+// route.ts passes this straight through to the (mocked) db functions above
+// as their `tx` argument — see #67's comment in lib/db/sizeChart.ts.
+vi.mock("@/lib/db/prisma", () => ({ prisma: {} }));
 
 import { GET, POST } from "./route";
 import { requireUser } from "@/lib/auth/guard";

@@ -42,6 +42,7 @@ export async function POST(request: Request, { params }: Ctx) {
       async (
         state,
         wallet,
+        tx,
       ): Promise<{ result: NextResponse; entries: LedgerEntry[] }> => {
         if (wallet.balance < cost) {
           return {
@@ -144,6 +145,7 @@ export async function POST(request: Request, { params }: Ctx) {
               if (state.pattern.pieces.length === 0) {
                 const { chart, rejectedActiveName } =
                   await getSizeChartForGeneration(
+                    tx,
                     gate.id,
                     decision.spec.gender ?? "female",
                   );

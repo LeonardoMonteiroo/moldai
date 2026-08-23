@@ -107,6 +107,7 @@ vi.mock("@/lib/db/prisma", () => ({
   },
 }));
 
+import { prisma } from "@/lib/db/prisma";
 import {
   ensureSystemSizeCharts,
   listSizeChartsForUser,
@@ -130,22 +131,22 @@ describe("ensureSystemSizeCharts / listSizeChartsForUser", () => {
   });
 
   it("seeds exactly two system charts (female + male) on first access", async () => {
-    const charts = await listSizeChartsForUser("u1");
+    const charts = await listSizeChartsForUser(prisma, "u1");
     expect(charts).toHaveLength(2);
     expect(charts.every((c) => c.isSystem)).toBe(true);
     expect(charts.map((c) => c.gender).sort()).toEqual(["female", "male"]);
   });
 
   it("is idempotent — a second call doesn't reseed", async () => {
-    await listSizeChartsForUser("u1");
-    await ensureSystemSizeCharts("u1");
-    const charts = await listSizeChartsForUser("u1");
+    await listSizeChartsForUser(prisma, "u1");
+    await ensureSystemSizeCharts(prisma, "u1");
+    const charts = await listSizeChartsForUser(prisma, "u1");
     expect(charts).toHaveLength(2);
   });
 
   it("scopes to the requesting user", async () => {
-    await listSizeChartsForUser("u1");
-    const other = await listSizeChartsForUser("u2");
+    await listSizeChartsForUser(prisma, "u1");
+    const other = await listSizeChartsForUser(prisma, "u2");
     expect(other).toHaveLength(2);
     expect(rows.filter((r) => r.userId === "u1")).toHaveLength(2);
   });
@@ -166,7 +167,7 @@ describe("createSizeChart", () => {
   });
 
   it("duplicates a given source chart", async () => {
-    const charts = await listSizeChartsForUser("u1");
+    const charts = await listSizeChartsForUser(prisma, "u1");
     const male = charts.find((c) => c.gender === "male")!;
     const created = await createSizeChart("u1", SUFFIX, male.id);
     expect(created.gender).toBe("male");
@@ -181,7 +182,7 @@ describe("updateSizeChart", () => {
   });
 
   it("rejects edits to a system chart", async () => {
-    const charts = await listSizeChartsForUser("u1");
+    const charts = await listSizeChartsForUser(prisma, "u1");
     const sys = charts.find((c) => c.isSystem)!;
     const result = await updateSizeChart(sys.id, "u1", { name: "hacked" });
     expect(result).toBeNull();
@@ -211,7 +212,7 @@ describe("deleteSizeChart", () => {
   });
 
   it("rejects deleting a system chart", async () => {
-    const charts = await listSizeChartsForUser("u1");
+    const charts = await listSizeChartsForUser(prisma, "u1");
     const sys = charts.find((c) => c.isSystem)!;
     expect(await deleteSizeChart(sys.id, "u1")).toBe(false);
   });
@@ -220,7 +221,7 @@ describe("deleteSizeChart", () => {
     const created = await createSizeChart("u1", SUFFIX);
     await setActiveSizeChart("u1", created.id);
     expect(await deleteSizeChart(created.id, "u1")).toBe(true);
-    expect(await getActiveSizeChartId("u1")).toBeNull();
+    expect(await getActiveSizeChartId(prisma, "u1")).toBeNull();
   });
 });
 
@@ -234,7 +235,7 @@ describe("setActiveSizeChart / getSizeChartForGeneration", () => {
   it("sets the account's active chart", async () => {
     const created = await createSizeChart("u1", SUFFIX);
     expect(await setActiveSizeChart("u1", created.id)).toBe(true);
-    expect(await getActiveSizeChartId("u1")).toBe(created.id);
+    expect(await getActiveSizeChartId(prisma, "u1")).toBe(created.id);
   });
 
   it("returns false when activating a chart not owned by the caller", async () => {
@@ -246,6 +247,7 @@ describe("setActiveSizeChart / getSizeChartForGeneration", () => {
     const created = await createSizeChart("u1", SUFFIX); // female, per createSizeChart's default
     await setActiveSizeChart("u1", created.id);
     const { chart, rejectedActiveName } = await getSizeChartForGeneration(
+      prisma,
       "u1",
       "female",
     );
@@ -256,7 +258,7 @@ describe("setActiveSizeChart / getSizeChartForGeneration", () => {
   it("falls back to the system chart when the active chart's gender doesn't match", async () => {
     const created = await createSizeChart("u1", SUFFIX); // female
     await setActiveSizeChart("u1", created.id);
-    const { chart } = await getSizeChartForGeneration("u1", "male");
+    const { chart } = await getSizeChartForGeneration(prisma, "u1", "male");
     expect(chart.isSystem).toBe(true);
     expect(chart.gender).toBe("male");
   });
@@ -267,6 +269,7 @@ describe("setActiveSizeChart / getSizeChartForGeneration", () => {
     const created = await createSizeChart("u1", SUFFIX); // female
     await setActiveSizeChart("u1", created.id);
     const { rejectedActiveName } = await getSizeChartForGeneration(
+      prisma,
       "u1",
       "male",
     );
@@ -276,9 +279,99 @@ describe("setActiveSizeChart / getSizeChartForGeneration", () => {
   it("reports nothing passed over when the account has no active chart", async () => {
     await createSizeChart("u1", SUFFIX);
     const { rejectedActiveName } = await getSizeChartForGeneration(
+      prisma,
       "u1",
       "female",
     );
     expect(rejectedActiveName).toBeNull();
+  });
+});
+
+// #67: these four functions used to run their queries through the imported
+// `prisma` singleton no matter what — so a caller mid-transaction (holding
+// the Pattern+Wallet locks for the whole AI call) had them acquire a
+// *second*, unrelated pooled connection instead of joining the open
+// transaction. Under the pool's default size that starves concurrent
+// generations into a pool_timeout, and a createMany that runs outside the
+// transaction survives a rollback of the transaction it looks like it
+// belongs to. Proven here with a `tx` double that is deliberately NOT the
+// mocked `prisma` singleton above: if a function reached for the singleton
+// instead of the argument, its data would show up in `rows`/`users`
+// (the singleton's backing store) rather than in this double's own store.
+describe("uses the passed tx, not the module-level prisma singleton (#67)", () => {
+  beforeEach(() => {
+    rows = [];
+    users = {};
+    nextId = 1;
+    // Earlier describe blocks in this file called the singleton's mocks
+    // directly (via `listSizeChartsForUser(prisma, ...)`); clear that call
+    // history so "not called" below only asserts about this block's calls.
+    vi.mocked(prisma.sizeChart.findMany).mockClear();
+    vi.mocked(prisma.sizeChart.createMany).mockClear();
+    vi.mocked(prisma.user.findUnique).mockClear();
+  });
+
+  function fakeTx() {
+    const txRows: Row[] = [];
+    const txUsers: Record<string, { activeSizeChartId: string | null }> = {};
+    let txNextId = 1;
+    return {
+      rows: txRows,
+      sizeChart: {
+        findMany: vi.fn(async ({ where }: { where: { userId: string } }) =>
+          txRows.filter((r) => r.userId === where.userId),
+        ),
+        createMany: vi.fn(
+          async ({
+            data,
+          }: {
+            data: { userId: string; data: unknown }[];
+          }): Promise<{ count: number }> => {
+            for (const d of data) {
+              txRows.push({
+                id: `tx${txNextId++}`,
+                userId: d.userId,
+                data: d.data,
+                updatedAt: new Date(),
+              });
+            }
+            return { count: data.length };
+          },
+        ),
+      },
+      user: {
+        findUnique: vi.fn(
+          async ({ where }: { where: { id: string } }) =>
+            txUsers[where.id] ?? { activeSizeChartId: null },
+        ),
+      },
+    };
+  }
+
+  it("ensureSystemSizeCharts seeds into tx, leaving the singleton untouched", async () => {
+    const tx = fakeTx();
+    await ensureSystemSizeCharts(tx as never, "u1");
+    expect(tx.rows).toHaveLength(2);
+    expect(vi.mocked(prisma.sizeChart.createMany)).not.toHaveBeenCalled();
+    expect(rows).toHaveLength(0);
+  });
+
+  it("listSizeChartsForUser reads from tx, not the singleton", async () => {
+    const tx = fakeTx();
+    const charts = await listSizeChartsForUser(tx as never, "u1");
+    expect(charts).toHaveLength(2);
+    expect(vi.mocked(prisma.sizeChart.findMany)).not.toHaveBeenCalled();
+  });
+
+  it("getSizeChartForGeneration resolves entirely off tx", async () => {
+    const tx = fakeTx();
+    const { chart } = await getSizeChartForGeneration(
+      tx as never,
+      "u1",
+      "female",
+    );
+    expect(chart.isSystem).toBe(true);
+    expect(vi.mocked(prisma.sizeChart.findMany)).not.toHaveBeenCalled();
+    expect(vi.mocked(prisma.user.findUnique)).not.toHaveBeenCalled();
   });
 });

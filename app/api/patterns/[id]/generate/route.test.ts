@@ -30,10 +30,13 @@ vi.mock("@/lib/db/pattern-wallet", () => ({
       fn: (
         s: PatternState,
         w: Wallet,
+        tx: unknown,
       ) => Promise<{ result: unknown; entries: LedgerEntry[] }>,
     ) => {
       if (patternId !== ownedPatternId) return null;
-      const { result, entries } = await fn(state, wallet);
+      // getSizeChartForGeneration is mocked wholesale below and ignores its
+      // arguments, so a fake tx is enough here.
+      const { result, entries } = await fn(state, wallet, {});
       lastEntries = entries;
       return result;
     },
