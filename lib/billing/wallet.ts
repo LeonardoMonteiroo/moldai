@@ -4,6 +4,11 @@ export interface Wallet {
   plan: PlanId;
   balance: number;
   total: number;
+  // Credits bought via top-up, carried over across renewals — #37: the
+  // renewal sweep used to reset `balance` straight to `total`, deleting any
+  // top-up bought outside the monthly allowance. `total` stays the plan
+  // allowance only ("use it or lose it"); `purchased` never resets on renew.
+  purchased: number;
   renewsAt: Date | null;
 }
 
@@ -27,6 +32,7 @@ export function seedWallet(now: Date): Wallet {
     plan: "free",
     balance: 30,
     total: 30,
+    purchased: 0,
     renewsAt: new Date(now.getTime() + 30 * DAY_MS),
   };
 }
@@ -70,11 +76,14 @@ export function applyPurchase(
   switch (type) {
     case "topup":
       wallet.balance += 100;
+      wallet.purchased += 100;
       return { type: "topup", amount: 100, balanceAfter: wallet.balance };
     case "subscribe":
       wallet.plan = "atelier";
-      wallet.balance = 500;
       wallet.total = 500;
+      // Plan allowance plus whatever top-up credits were already bought —
+      // upgrading plans must not erase them either (#37).
+      wallet.balance = 500 + wallet.purchased;
       wallet.renewsAt = new Date(now.getTime() + 30 * DAY_MS);
       return { type: "subscribe", amount: 500, balanceAfter: wallet.balance };
     default: {
@@ -88,7 +97,9 @@ export function applyPurchase(
 // Rolls forward from the *scheduled* renewsAt, not `now`, so a cron run that's
 // a few hours (or days) late doesn't push the next renewal date out by the delay.
 export function renewWallet(wallet: Wallet, now: Date): LedgerEntry {
-  wallet.balance = wallet.total;
+  // "Use it or lose it" resets only the monthly plan allowance; purchased
+  // top-up credits (#37) are never touched by a renewal.
+  wallet.balance = wallet.total + wallet.purchased;
   const base = wallet.renewsAt ?? now;
   wallet.renewsAt = new Date(base.getTime() + 30 * DAY_MS);
   return { type: "renew", amount: wallet.total, balanceAfter: wallet.balance };

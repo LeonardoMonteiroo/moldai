@@ -54,7 +54,10 @@ export function UsageSection({
     setBuying(false);
   }
 
-  const pct = Math.round((balance / credits.total) * 100);
+  // #37: a top-up can push balance past total (purchased credits carry over
+  // independently of the plan allowance), so the bar clamps at 100% rather
+  // than overflowing its track.
+  const pct = Math.min(100, Math.round((balance / credits.total) * 100));
 
   return (
     <div className="flex flex-col gap-4">

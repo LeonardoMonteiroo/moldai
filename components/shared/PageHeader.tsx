@@ -51,7 +51,12 @@ export function PageHeader({
   const t = useTranslations("PageHeader");
   const tPlan = useTranslations("PlanSection");
   const router = useRouter();
-  const pct = credits ? Math.round((credits.balance / credits.total) * 100) : 0;
+  // #37: a top-up can push balance past total (purchased credits carry over
+  // independently of the plan allowance), so the bar clamps at 100% rather
+  // than overflowing its track.
+  const pct = credits
+    ? Math.min(100, Math.round((credits.balance / credits.total) * 100))
+    : 0;
 
   const sections = [
     { section: "usage", label: t("usageMenuItem") },

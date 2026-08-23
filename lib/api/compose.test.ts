@@ -55,6 +55,7 @@ describe("buildCredits", () => {
       plan: "atelier" as const,
       balance: 320,
       total: 500,
+      purchased: 0,
       renewsAt: new Date("2026-09-01T00:00:00.000Z"),
     };
     const now = new Date("2026-08-18T00:00:00.000Z");
@@ -71,6 +72,7 @@ describe("buildCredits", () => {
       plan: "free" as const,
       balance: 30,
       total: 30,
+      purchased: 0,
       renewsAt: new Date("2026-09-16T12:00:00.000Z"),
     };
     const now = new Date("2026-08-17T12:00:00.000Z");

@@ -16,6 +16,7 @@ describe("seedWallet", () => {
     expect(w.plan).toBe("free");
     expect(w.balance).toBe(30);
     expect(w.total).toBe(30);
+    expect(w.purchased).toBe(0);
     expect(w.renewsAt).toEqual(new Date("2026-09-16T12:00:00.000Z"));
   });
 });
@@ -43,11 +44,12 @@ describe("debitWallet / refundWallet", () => {
 });
 
 describe("applyPurchase", () => {
-  it("topup adds 100 to the balance, plan/renewsAt untouched", () => {
+  it("topup adds 100 to the balance and to the purchased carry-over, plan/renewsAt untouched", () => {
     const w = seedWallet(NOW);
     const renewsBefore = w.renewsAt;
     const entry = applyPurchase(w, "topup", NOW);
     expect(w.balance).toBe(130);
+    expect(w.purchased).toBe(100);
     expect(w.renewsAt).toEqual(renewsBefore);
     expect(entry).toEqual({ type: "topup", amount: 100, balanceAfter: 130 });
   });
@@ -64,6 +66,14 @@ describe("applyPurchase", () => {
       amount: 500,
       balanceAfter: 500,
     });
+  });
+  it("subscribe keeps any already-purchased top-up credits on top of the new plan allowance (#37)", () => {
+    const w = seedWallet(NOW);
+    applyPurchase(w, "topup", NOW); // balance 130, purchased 100
+    const entry = applyPurchase(w, "subscribe", NOW);
+    expect(w.balance).toBe(600); // 500 plan + 100 purchased, not just 500
+    expect(w.purchased).toBe(100);
+    expect(entry.balanceAfter).toBe(600);
   });
 });
 
@@ -82,6 +92,14 @@ describe("renewWallet", () => {
     w.renewsAt = new Date("2026-08-10T00:00:00.000Z"); // 7 days overdue
     renewWallet(w, NOW);
     expect(w.renewsAt).toEqual(new Date("2026-09-09T00:00:00.000Z"));
+  });
+  it("leaves purchased top-up credits untouched — 'use it or lose it' governs only the plan allowance (#37)", () => {
+    const w = seedWallet(NOW);
+    applyPurchase(w, "topup", NOW); // balance 130, total 30, purchased 100
+    const entry = renewWallet(w, NOW);
+    expect(w.balance).toBe(130); // total (30) + purchased (100), not reset to 30
+    expect(w.purchased).toBe(100);
+    expect(entry).toEqual({ type: "renew", amount: 30, balanceAfter: 130 });
   });
 });
 

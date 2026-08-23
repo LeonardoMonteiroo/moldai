@@ -28,8 +28,8 @@ const tx = {
       }
       if (sql.includes('"Wallet"') && sql.includes("UPDATE")) {
         callOrder.push("save-wallet");
-        const [plan, balance, total, renewsAt] = vals;
-        walletStore.set("u1", { plan, balance, total, renewsAt });
+        const [plan, balance, total, purchased, renewsAt] = vals;
+        walletStore.set("u1", { plan, balance, total, purchased, renewsAt });
       }
       return 0;
     },

@@ -11,6 +11,7 @@ interface WalletRow {
   plan: string;
   balance: number;
   total: number;
+  purchased: number;
   renewsAt: Date | null;
 }
 
@@ -19,6 +20,7 @@ function toWallet(row: WalletRow): Wallet {
     plan: row.plan as Wallet["plan"],
     balance: row.balance,
     total: row.total,
+    purchased: row.purchased,
     renewsAt: row.renewsAt,
   };
 }
@@ -29,11 +31,11 @@ function toWallet(row: WalletRow): Wallet {
 export async function lockWallet(tx: Tx, userId: string): Promise<Wallet> {
   const seed = seedWallet(new Date());
   await tx.$executeRaw`
-    INSERT INTO "Wallet" ("userId", "plan", "balance", "total", "renewsAt", "updatedAt")
-    VALUES (${userId}, ${seed.plan}, ${seed.balance}, ${seed.total}, ${seed.renewsAt}, now())
+    INSERT INTO "Wallet" ("userId", "plan", "balance", "total", "purchased", "renewsAt", "updatedAt")
+    VALUES (${userId}, ${seed.plan}, ${seed.balance}, ${seed.total}, ${seed.purchased}, ${seed.renewsAt}, now())
     ON CONFLICT ("userId") DO NOTHING`;
   const rows = await tx.$queryRaw<WalletRow[]>`
-    SELECT "plan", "balance", "total", "renewsAt"
+    SELECT "plan", "balance", "total", "purchased", "renewsAt"
     FROM "Wallet" WHERE "userId" = ${userId} FOR UPDATE`;
   return toWallet(rows[0]);
 }
@@ -47,6 +49,7 @@ export async function saveWallet(
     UPDATE "Wallet"
     SET "plan" = ${wallet.plan},
         "balance" = ${wallet.balance}, "total" = ${wallet.total},
+        "purchased" = ${wallet.purchased},
         "renewsAt" = ${wallet.renewsAt}, "updatedAt" = now()
     WHERE "userId" = ${userId}`;
 }

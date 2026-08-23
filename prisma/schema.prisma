@@ -71,6 +71,7 @@ model Wallet {
   plan         String
   balance      Int
   total        Int
+  purchased    Int           @default(0)
   renewsAt     DateTime?
   updatedAt    DateTime      @updatedAt
   transactions Transaction[]

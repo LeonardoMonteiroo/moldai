@@ -118,6 +118,21 @@ describe("PageHeader", () => {
     expect(push).toHaveBeenCalledWith("/settings?section=usage");
   });
 
+  // #37: a top-up raises balance without raising total (purchased credits
+  // carry over independently of the plan allowance), so balance can exceed
+  // total — the bar must clamp at 100% instead of overflowing its track.
+  it("clamps the credits bar at 100% when balance exceeds total (purchased top-up credits)", () => {
+    const { container } = renderWithIntl(
+      <PageHeader
+        title="Blusa"
+        credits={{ plan: "free", balance: 130, total: 30, renewsInDays: 1 }}
+        userEmail="a@b.com"
+      />,
+    );
+    const bar = container.querySelector(".bg-olive") as HTMLElement;
+    expect(bar.style.width).toBe("100%");
+  });
+
   it("resolves the plan label from PlanSection's catalog names, for every PlanId", () => {
     // Regression guard for the planLabel column removal: PageHeader must read
     // `PlanSection.plans.{plan}.name` via a template-built key, not a
