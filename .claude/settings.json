@@ -1,12 +1,4 @@
 {
-  "enabledPlugins": {
-    "frontend-design@claude-plugins-official": true,
-    "context7@claude-plugins-official": true,
-    "claude-md-management@claude-plugins-official": true,
-    "feature-dev@claude-plugins-official": true,
-    "code-review@claude-plugins-official": true,
-    "github@claude-plugins-official": true
-  },
   "hooks": {
     "PreToolUse": [
       {
@@ -15,9 +7,9 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/guard-paths.mjs\"",
+            "shell": "bash",
             "timeout": 10,
-            "statusMessage": "Checking path guard",
-            "shell": "bash"
+            "statusMessage": "Checking path guard"
           }
         ]
       },
@@ -27,9 +19,9 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/guard-bash.mjs\"",
+            "shell": "bash",
             "timeout": 10,
-            "statusMessage": "Checking lint scope",
-            "shell": "bash"
+            "statusMessage": "Checking lint scope"
           }
         ]
       }
@@ -41,9 +33,9 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/check-conventions.mjs\"",
+            "shell": "bash",
             "timeout": 15,
-            "statusMessage": "Checking CLAUDE.md conventions",
-            "shell": "bash"
+            "statusMessage": "Checking CLAUDE.md conventions"
           }
         ]
       }
@@ -54,12 +46,22 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/verify-on-stop.mjs\"",
+            "shell": "bash",
             "timeout": 200,
-            "statusMessage": "Running verification sweep",
-            "shell": "bash"
+            "statusMessage": "Running verification sweep"
           }
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true,
+    "context7@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": false,
+    "feature-dev@claude-plugins-official": false,
+    "code-review@claude-plugins-official": false,
+    "github@claude-plugins-official": false,
+    "security-guidance@claude-plugins-official": true,
+    "ralph-loop@claude-plugins-official": true
   }
 }
