@@ -1,6 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { NextResponse } from "next/server";
-import { readJsonObject } from "./body";
+import { readJsonObject, hasNulByte } from "./body";
+
+// A literal control character in a source file is awkward and some tooling
+// rejects it -- build it at runtime instead, per this module's own comment.
+const NUL = String.fromCharCode(0);
 
 function req(raw: string | undefined) {
   return new Request("http://test/api/thing", {
@@ -51,5 +55,30 @@ describe("readJsonObject", () => {
     const body = await readJsonObject(req(undefined));
     expect(body).toBeInstanceOf(NextResponse);
     expect(await code(body as NextResponse)).toBe("bad_body");
+  });
+});
+
+// #69: Postgres's jsonb type rejects an embedded NUL code point specifically
+// -- verified live against Postgres 16 that every other C0 control
+// character (0x01-0x1f) and DEL (0x7f) round-trips through a ::jsonb cast
+// fine. hasNulByte is deliberately scoped to just the NUL code point so it
+// doesn't also reject a real newline (Shift+Enter in the chat composer).
+describe("hasNulByte", () => {
+  it("detects a NUL code point anywhere in the string", () => {
+    expect(hasNulByte(`a${NUL}b`)).toBe(true);
+    expect(hasNulByte(NUL)).toBe(true);
+    expect(hasNulByte(`ab${NUL}`)).toBe(true);
+  });
+
+  it("does not flag ordinary text, including accented pt-BR characters", () => {
+    expect(hasNulByte("Blusa 100% algodão")).toBe(false);
+    expect(hasNulByte("")).toBe(false);
+  });
+
+  it("does not flag other control characters -- only NUL breaks jsonb", () => {
+    expect(hasNulByte("a\nb")).toBe(false); // newline: Shift+Enter in chat
+    expect(hasNulByte("a\tb")).toBe(false);
+    expect(hasNulByte(`a${String.fromCharCode(0x7f)}b`)).toBe(false); // DEL
+    expect(hasNulByte(`a${String.fromCharCode(0x01)}b`)).toBe(false);
   });
 });

@@ -160,6 +160,9 @@ describe("/api/slopers", () => {
   it.each([
     ["empty", "   "],
     ["over the cap", "x".repeat(MAX_PATTERN_NAME_LENGTH + 1)],
+    // #69: survives .trim() and .length -- used to only abort the jsonb
+    // write with no coded error.
+    ["carrying a NUL code point", `base${String.fromCharCode(0)}`],
   ])(
     "POST 400s on a name that is %s, without touching the DB",
     async (_l, name) => {

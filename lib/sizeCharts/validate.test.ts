@@ -57,6 +57,17 @@ describe("validateSizeChartPatch", () => {
     expect(long.name!.length).toBeLessThanOrEqual(80);
   });
 
+  // #69: a NUL code point survives trim/slice and would otherwise abort the
+  // jsonb write with no coded error -- dropped like any other unusable
+  // name, matching this module's drop-or-clamp-never-throw contract (no
+  // exception, out.name is simply left unset).
+  it("drops a name carrying a NUL code point", () => {
+    const withNul = `Grade${String.fromCharCode(0)}nova`;
+    expect(validateSizeChartPatch(current, { name: withNul }).name).toBe(
+      undefined,
+    );
+  });
+
   // The bug this module exists for: a partial (or empty) baseMeasurements used
   // to REPLACE the whole object, so resolveSizeChartSize iterated over the
   // surviving keys only and every drafted dimension came out NaN.

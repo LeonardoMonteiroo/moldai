@@ -104,6 +104,38 @@ describe("/api/patterns/[id]", () => {
     expect(res.status).toBe(404);
   });
 
+  // #69: a NUL code point survives .trim() and .length, then used to abort
+  // the jsonb write inside savePattern with no coded error. Built with
+  // fromCharCode rather than a literal control character in the source.
+  it("PATCH 400s on a name containing a NUL code point", async () => {
+    const res = await PATCH(
+      new Request("http://test", {
+        method: "PATCH",
+        body: JSON.stringify({ name: `ab${String.fromCharCode(0)}c` }),
+      }),
+      ctx("m1"),
+    );
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe("invalid_name");
+    expect(mockRename).not.toHaveBeenCalled();
+  });
+
+  // #69 belt-and-braces: this route had no catch at all, unlike
+  // generate/graduate (#61) -- any other renamePattern failure escaped as a
+  // bare, uncoded HTTP 500.
+  it("PATCH maps a renamePattern failure to a coded 503 instead of a bare 500", async () => {
+    mockRename.mockRejectedValue(new Error("connection reset"));
+    const res = await PATCH(
+      new Request("http://test", {
+        method: "PATCH",
+        body: JSON.stringify({ name: "Vestido" }),
+      }),
+      ctx("m1"),
+    );
+    expect(res.status).toBe(503);
+    expect((await res.json()).error).toBe("service_unavailable");
+  });
+
   it("PATCH 400s on a blank name", async () => {
     const res = await PATCH(
       new Request("http://test", {
@@ -167,5 +199,13 @@ describe("/api/patterns/[id]", () => {
     mockDelete.mockResolvedValue(false);
     const res = await DELETE(new Request("http://test"), ctx("m1"));
     expect(res.status).toBe(404);
+  });
+
+  // #69 belt-and-braces: same guard as PATCH above.
+  it("DELETE maps a deletePattern failure to a coded 503 instead of a bare 500", async () => {
+    mockDelete.mockRejectedValue(new Error("connection reset"));
+    const res = await DELETE(new Request("http://test"), ctx("m1"));
+    expect(res.status).toBe(503);
+    expect((await res.json()).error).toBe("service_unavailable");
   });
 });

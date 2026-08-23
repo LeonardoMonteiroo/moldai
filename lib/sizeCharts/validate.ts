@@ -17,6 +17,9 @@ const MAX_PROGRESSION_STEP = 20;
 // permanently unusable pattern (proposeGarment throws forever).
 export const MAX_SIZE_CHART_SIZES = 40;
 export const MAX_SIZE_LABEL_LENGTH = 12;
+// #69: written via fromCharCode rather than a literal escape in a string --
+// see the identical constant and comment in lib/api/body.ts.
+const NUL = String.fromCharCode(0);
 
 function clamp(v: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, v));
@@ -66,7 +69,10 @@ export function validateSizeChartPatch(
 
   if (typeof input.name === "string") {
     const name = input.name.trim().slice(0, MAX_SIZE_CHART_NAME);
-    if (name) out.name = name;
+    // #69: a NUL code point survives trim/slice and would abort the jsonb
+    // write with no coded error -- dropped like any other unusable name,
+    // matching this module's drop-or-clamp-never-throw contract.
+    if (name && name.indexOf(NUL) === -1) out.name = name;
   }
 
   if (GENDERS.includes(input.gender as never)) {

@@ -28,3 +28,27 @@ export async function readJsonObject(
   }
   return parsed as Record<string, unknown>;
 }
+
+/**
+ * #69: JSON allows a NUL code point (Unicode code point zero) inside a
+ * string, but Postgres's jsonb type does not accept one embedded in text --
+ * JSON.stringify re-emits it verbatim, and the ::jsonb cast then throws
+ * "unsupported Unicode escape sequence" past every existing validation
+ * (trim() doesn't strip it, length still counts it). That throw had no
+ * try/catch on some callers, so it escaped as a raw HTTP 500 -- worse, on
+ * the generate route, only *after* the paid Anthropic call had already
+ * billed and drafted.
+ *
+ * Deliberately scoped to the NUL code point alone, not the wider C0 control
+ * range the original report suggested: verified live against Postgres 16
+ * that every other C0 control character and DEL round-trips through a
+ * ::jsonb cast fine -- Postgres rejects that one code point specifically.
+ * Chat messages support a real newline via Shift+Enter (MessageInput), so
+ * rejecting the whole control range here would break that feature instead
+ * of fixing anything.
+ */
+const NUL = String.fromCharCode(0);
+
+export function hasNulByte(s: string): boolean {
+  return s.indexOf(NUL) !== -1;
+}

@@ -56,6 +56,7 @@ describe("/api/slopers/[id]", () => {
   it.each([
     ["empty", "   "],
     ["over the cap", "x".repeat(MAX_PATTERN_NAME_LENGTH + 1)],
+    ["carrying a NUL code point", `base${String.fromCharCode(0)}`], // #69
   ])("PATCH 400s on a name that is %s", async (_l, name) => {
     const res = await PATCH(patch({ name }), ctx("s1"));
     expect(res.status).toBe(400);

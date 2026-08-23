@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getTranslations } from "next-intl/server";
 import { requireUser } from "@/lib/auth/guard";
-import { readJsonObject } from "@/lib/api/body";
+import { readJsonObject, hasNulByte } from "@/lib/api/body";
 import { apiError, ERROR_STATUS } from "@/lib/api/errors";
 import { loadPattern, patternNotFound } from "@/lib/db/pattern";
 import { listSlopersForUser, createSloper } from "@/lib/db/sloper";
@@ -38,7 +38,8 @@ export async function POST(request: Request) {
   if (body instanceof NextResponse) return body;
   const patternId = typeof body.patternId === "string" ? body.patternId : "";
   const name = typeof body.name === "string" ? body.name.trim() : "";
-  if (!name || name.length > MAX_PATTERN_NAME_LENGTH) {
+  // #69: see the identical guard on PATCH /api/patterns/[id].
+  if (!name || name.length > MAX_PATTERN_NAME_LENGTH || hasNulByte(name)) {
     return apiError("invalid_name", 400);
   }
   if (!patternId) return apiError("bad_body", ERROR_STATUS.bad_body);

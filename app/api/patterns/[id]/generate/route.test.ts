@@ -258,6 +258,21 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(mockPropose).not.toHaveBeenCalled();
   });
 
+  // #69: a NUL code point survives .trim() and used to only abort the
+  // jsonb write inside savePattern -- by then the paid Anthropic call had
+  // already run and billed. Reject before any of that, at the boundary.
+  it("a message containing a NUL code point returns 400 without debiting or calling the AI", async () => {
+    const balanceBefore = wallet.balance;
+    const res = await POST(
+      req({ message: `uma blusa${String.fromCharCode(0)}` }),
+      ctx(),
+    );
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe("missing_message");
+    expect(wallet.balance).toBe(balanceBefore);
+    expect(mockPropose).not.toHaveBeenCalled();
+  });
+
   it("no session returns 401 without debiting or calling the AI", async () => {
     vi.mocked(requireUser).mockResolvedValueOnce(unauthorized());
     const res = await POST(req({ message: "quero uma camiseta" }), ctx());

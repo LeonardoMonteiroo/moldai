@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { readJsonObject } from "@/lib/api/body";
+import { readJsonObject, hasNulByte } from "@/lib/api/body";
 import { getTranslations } from "next-intl/server";
 import { withPatternAndWallet } from "@/lib/db/pattern-wallet";
 import { patternNotFound } from "@/lib/db/pattern";
@@ -29,7 +29,10 @@ export async function POST(request: Request, { params }: Ctx) {
   const body = await readJsonObject(request);
   if (body instanceof NextResponse) return body;
   const trimmed = typeof body.message === "string" ? body.message.trim() : "";
-  if (!trimmed) return apiError("missing_message", 400);
+  // #69: a NUL byte survives .trim() and would otherwise only abort the
+  // jsonb write inside savePattern -- by then the paid Anthropic call has
+  // already run and billed. Reject it here, before any of that happens.
+  if (!trimmed || hasNulByte(trimmed)) return apiError("missing_message", 400);
   const answering = body.answering === true;
   const cost = COSTS.adjust;
   const t = await getTranslations("PatternData");

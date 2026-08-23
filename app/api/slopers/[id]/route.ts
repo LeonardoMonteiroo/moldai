@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth/guard";
-import { readJsonObject } from "@/lib/api/body";
+import { readJsonObject, hasNulByte } from "@/lib/api/body";
 import { apiError } from "@/lib/api/errors";
 import { renameSloper, deleteSloper, sloperNotFound } from "@/lib/db/sloper";
 import { MAX_PATTERN_NAME_LENGTH } from "@/lib/types";
@@ -15,7 +15,8 @@ export async function PATCH(request: Request, { params }: Ctx) {
   const body = await readJsonObject(request);
   if (body instanceof NextResponse) return body;
   const name = typeof body.name === "string" ? body.name.trim() : "";
-  if (!name || name.length > MAX_PATTERN_NAME_LENGTH) {
+  // #69: see the identical guard on PATCH /api/patterns/[id].
+  if (!name || name.length > MAX_PATTERN_NAME_LENGTH || hasNulByte(name)) {
     return apiError("invalid_name", 400);
   }
 
