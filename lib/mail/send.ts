@@ -22,6 +22,17 @@ export function verificationLink(rawToken: string): string {
   return `${base}/verify?token=${encodeURIComponent(rawToken)}`;
 }
 
+// Same APP_URL contract as verificationLink -- missing in production throws
+// rather than mailing an unusable http://localhost:3000 link.
+export function passwordResetLink(rawToken: string): string {
+  const rawBase = process.env.APP_URL;
+  if (!rawBase && process.env.NODE_ENV === "production") {
+    throw new MailUnavailableError("APP_URL is not set");
+  }
+  const base = (rawBase ?? "http://localhost:3000").replace(/\/+$/, "");
+  return `${base}/password-reset?token=${encodeURIComponent(rawToken)}`;
+}
+
 // Missing SMTP is explicit, never silent. Outside production the link is logged
 // so a bare `npm run dev` and the test suite keep working; in production it
 // throws, surfacing as mail_unavailable rather than a "check your email" screen

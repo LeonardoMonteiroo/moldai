@@ -283,6 +283,7 @@
     "resendButton": "Reenviar link de confirmação",
     "resendButtonLoading": "Reenviando…",
     "resendDone": "Link reenviado. Confira seu email.",
+    "forgotPasswordLink": "Esqueci minha senha",
     "errors": {
       "invalid_credentials": "Email ou senha inválidos.",
       "already_verified": "Este email já está confirmado. Tente entrar novamente.",
@@ -345,6 +346,41 @@
     "linkFallback": "Se o botão não funcionar, copie e cole este endereço no navegador:",
     "expiry": "Este link vale por {hours} horas e só pode ser usado uma vez.",
     "ignore": "Se você não criou uma conta no MoldAI, pode ignorar esta mensagem."
+  },
+  "PasswordReset": {
+    "requestHeading": "Esqueci minha senha",
+    "requestIntro": "Informe seu email. Se ele estiver cadastrado, enviamos um link para redefinir sua senha.",
+    "emailLabel": "Email",
+    "requestButton": "Enviar link",
+    "requestButtonLoading": "Enviando…",
+    "requestSentHeading": "Verifique seu email",
+    "requestSentBody": "Se este email estiver cadastrado, você vai receber um link para redefinir sua senha.",
+    "confirmHeading": "Nova senha",
+    "confirmIntro": "Escolha uma nova senha para sua conta.",
+    "newPasswordLabel": "Nova senha",
+    "confirmPasswordLabel": "Confirmar nova senha",
+    "mismatchError": "As senhas não conferem.",
+    "confirmButton": "Redefinir senha",
+    "confirmButtonLoading": "Redefinindo…",
+    "confirmSuccessHeading": "Senha redefinida!",
+    "confirmSuccessBody": "Sua senha foi alterada. Agora é só entrar com a nova senha.",
+    "loginLink": "Ir para o login",
+    "errors": {
+      "bad_body": "Não foi possível enviar o link. Tente novamente.",
+      "rate_limited": "Muitas tentativas. Aguarde alguns minutos e tente de novo.",
+      "invalid_token": "Este link não é válido. Peça um novo.",
+      "expired_token": "Este link expirou. Peça um novo.",
+      "weak_password": "A senha deve ter pelo menos 8 caracteres."
+    }
+  },
+  "PasswordResetEmail": {
+    "subject": "Redefinir senha · MoldAI",
+    "greeting": "Olá, {name}!",
+    "body": "Recebemos um pedido para redefinir a senha da sua conta. Clique no botão abaixo para escolher uma nova senha.",
+    "button": "Redefinir minha senha",
+    "linkFallback": "Se o botão não funcionar, copie e cole este endereço no navegador:",
+    "expiry": "Este link vale por {hours} horas e só pode ser usado uma vez.",
+    "ignore": "Se você não pediu essa alteração, pode ignorar esta mensagem — sua senha continua a mesma."
   },
   "PatternCard": {
     "menuAriaLabel": "Mais opções",

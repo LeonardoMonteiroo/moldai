@@ -10,6 +10,10 @@ import {
 } from "./types";
 import type { SignupErrorCode } from "./account/signup";
 import type { VerifyErrorCode, ResendErrorCode } from "./auth/verification";
+import type {
+  RequestResetErrorCode,
+  ConfirmResetErrorCode,
+} from "./auth/passwordReset";
 import type { SharedErrorCode } from "./api/errors";
 
 export type GenerateResult =
@@ -34,6 +38,14 @@ export type VerifyEmailResult =
 
 export type ResendResult =
   { status: "ok" } | { status: "error"; error: ResendErrorCode };
+
+export type { RequestResetErrorCode, ConfirmResetErrorCode };
+
+export type RequestPasswordResetResult =
+  { status: "ok" } | { status: "error"; error: RequestResetErrorCode };
+
+export type ConfirmPasswordResetResult =
+  { status: "ok" } | { status: "error"; error: ConfirmResetErrorCode };
 
 export interface PatternListItem {
   id: string;
@@ -288,6 +300,27 @@ export function resendVerification(
   return postJson<ResendResult>(
     "/api/verify-email/resend",
     { email, password },
+    DOMAIN_ERRORS,
+  );
+}
+
+export function requestPasswordReset(
+  email: string,
+): Promise<RequestPasswordResetResult> {
+  return postJson<RequestPasswordResetResult>(
+    "/api/password-reset/request",
+    { email },
+    DOMAIN_ERRORS,
+  );
+}
+
+export function confirmPasswordReset(
+  token: string,
+  newPassword: string,
+): Promise<ConfirmPasswordResetResult> {
+  return postJson<ConfirmPasswordResetResult>(
+    "/api/password-reset/confirm",
+    { token, newPassword },
     DOMAIN_ERRORS,
   );
 }

@@ -3,6 +3,10 @@ import messages from "@/messages/pt-BR.json";
 import type { SignupErrorCode } from "@/lib/account/signup";
 import type { VerifyErrorCode, ResendErrorCode } from "@/lib/auth/verification";
 import type { ChangePasswordResult } from "@/lib/account/settings";
+import type {
+  RequestResetErrorCode,
+  ConfirmResetErrorCode,
+} from "@/lib/auth/passwordReset";
 
 /**
  * #56: six call sites build a catalog key from a wire error code at runtime
@@ -108,6 +112,37 @@ type _ChangePasswordExhaustive =
 const _changePasswordExhaustive: _ChangePasswordExhaustive = true;
 void _changePasswordExhaustive;
 
+const REQUEST_RESET_CODES = [
+  "bad_body",
+  "rate_limited",
+] as const satisfies readonly RequestResetErrorCode[];
+type _RequestResetExhaustive =
+  Exclude<
+    RequestResetErrorCode,
+    (typeof REQUEST_RESET_CODES)[number]
+  > extends never
+    ? true
+    : never;
+const _requestResetExhaustive: _RequestResetExhaustive = true;
+void _requestResetExhaustive;
+
+const CONFIRM_RESET_CODES = [
+  "invalid_token",
+  "expired_token",
+  "weak_password",
+  "bad_body",
+  "rate_limited",
+] as const satisfies readonly ConfirmResetErrorCode[];
+type _ConfirmResetExhaustive =
+  Exclude<
+    ConfirmResetErrorCode,
+    (typeof CONFIRM_RESET_CODES)[number]
+  > extends never
+    ? true
+    : never;
+const _confirmResetExhaustive: _ConfirmResetExhaustive = true;
+void _confirmResetExhaustive;
+
 // PATCH /api/account/profile (app/api/account/profile/route.ts): requireUser
 // -> unauthorized, readJsonObject -> bad_body, validateName fails ->
 // invalid_name. No try/catch around the write, so service_unavailable is
@@ -141,6 +176,10 @@ describe("template-built errors.${code} catalog coverage (#56)", () => {
     // Signup: both signUp (:50) and resend (:66) build one, same namespace.
     ["Signup", [...SIGNUP_CODES, ...RESEND_CODES]],
     ["Verify", VERIFY_CODES],
+    // PasswordResetCard resolves both routes' codes through one namespace --
+    // the request form (REQUEST_RESET_CODES) and the confirm form
+    // (CONFIRM_RESET_CODES) are two components sharing "PasswordReset".
+    ["PasswordReset", [...REQUEST_RESET_CODES, ...CONFIRM_RESET_CODES]],
     ["ProfileSection", PROFILE_CODES],
     ["PasswordSection", PASSWORD_SECTION_CODES],
     ["DangerZoneSection", DANGER_ZONE_CODES],

@@ -9,7 +9,10 @@ export type Bucket =
   | "resend"
   | "resend_email"
   | "resend_attempt"
-  | "create";
+  | "create"
+  | "password_reset_request"
+  | "password_reset_request_email"
+  | "password_reset_confirm";
 
 export interface Policy {
   limit: number;
@@ -40,4 +43,13 @@ export const LIMITS: Record<Bucket, Policy> = {
   // /api/size-charts, whose only cost before this was Postgres row growth
   // and (for a sloper-backed pattern) a real draftGarment call per request.
   create: { limit: 60, windowSec: 3600 },
+  // #24: request has no credential gate (unlike resend, which requires the
+  // password), so the email-keyed bucket alone caps how many reset mails one
+  // address can be sent -- matching resend_email's role and limit.
+  password_reset_request: { limit: 10, windowSec: 3600 },
+  password_reset_request_email: { limit: 5, windowSec: 3600 },
+  // No email-keyed pair, matching `verify`: there's no email in this
+  // request, only a token, and the real backstop is the 256-bit token
+  // itself, not a counter.
+  password_reset_confirm: { limit: 20, windowSec: 3600 },
 };

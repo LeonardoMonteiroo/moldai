@@ -105,6 +105,12 @@ export default function LoginPage() {
               {error && <FieldError>{error}</FieldError>}
             </Field>
           </FieldGroup>
+          <Link
+            href="/password-reset"
+            className="text-muted-2 text-meta self-end hover:underline"
+          >
+            {t("forgotPasswordLink")}
+          </Link>
           {unverified && (
             <Button
               type="button"

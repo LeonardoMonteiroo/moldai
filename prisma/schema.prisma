@@ -19,11 +19,29 @@ model User {
   sizeCharts         SizeChart[]
   slopers            Sloper[]
   verificationTokens EmailVerificationToken[]
+  passwordResetTokens PasswordResetToken[]
   activeSizeChartId  String?
 }
 
 model EmailVerificationToken {
   tokenHash String   @id // sha-256 of the raw token, hex
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// #24: shaped identically to EmailVerificationToken -- same token primitives
+// (lib/auth/verification.ts's newVerificationToken/hashToken), same
+// single-use/newest-only issuance (lib/db/passwordReset.ts mirrors
+// lib/db/verification.ts). A separate table rather than reusing
+// EmailVerificationToken because the two have different consumers (email
+// confirmation vs. a password change) and different lifecycles -- issuing
+// one must never invalidate the other.
+model PasswordResetToken {
+  tokenHash String   @id
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
