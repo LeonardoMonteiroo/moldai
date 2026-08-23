@@ -6,6 +6,7 @@ import { PatternCanvas } from "./PatternCanvas";
 import type { Piece } from "@/lib/types";
 import {
   MAX_LABEL_FONT_SIZE,
+  MIN_LABEL_FONT_SIZE,
   estimateTextWidth,
 } from "@/lib/canvas/pieceLabel";
 
@@ -143,12 +144,15 @@ const widePiece: Piece = {
 };
 
 describe("PatternCanvas piece labels", () => {
-  it("shrinks a narrow piece's label and anchors it to the outline, not the bbox", () => {
+  it("floors a narrow piece's label at MIN_LABEL_FONT_SIZE, shortening the text rather than shrinking further, and anchors it to the outline, not the bbox", () => {
     renderCanvas({ pieces: [sleevePiece] });
-    const label = screen.getByText("MANGA · 2×");
+    // #81: "MANGA · 2×" no longer fits this synthetic narrow piece even at
+    // the floor size -- it shortens to the bare piece name instead of
+    // shrinking below --text-tick.
+    const label = screen.getByText("MANGA");
 
     const fontSize = parseFloat(label.style.fontSize);
-    expect(fontSize).toBeGreaterThan(0);
+    expect(fontSize).toBeGreaterThanOrEqual(MIN_LABEL_FONT_SIZE);
     expect(fontSize).toBeLessThan(MAX_LABEL_FONT_SIZE);
 
     // the discarded bbox anchor, and the outline it has to sit inside
@@ -156,9 +160,7 @@ describe("PatternCanvas piece labels", () => {
     const y = Number(label.getAttribute("y"));
     expect(x).not.toBe(999);
     expect(y).not.toBe(999);
-    expect(x + estimateTextWidth("MANGA · 2×", fontSize)).toBeLessThanOrEqual(
-      63.58,
-    );
+    expect(x + estimateTextWidth("MANGA", fontSize)).toBeLessThanOrEqual(63.58);
   });
 
   it("leaves a wide piece's label at the design's full size", () => {

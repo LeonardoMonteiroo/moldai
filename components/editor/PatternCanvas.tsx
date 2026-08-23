@@ -271,7 +271,7 @@ export function PatternCanvas({
               className="fill-muted"
               style={{ fontSize: label.fontSize }}
             >
-              {labelText}
+              {label.text}
             </text>
           </g>
         );

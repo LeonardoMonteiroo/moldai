@@ -6,6 +6,7 @@ import ptBR from "@/messages/pt-BR.json";
 import type { GarmentSpec, Piece } from "@/lib/types";
 import {
   MAX_LABEL_FONT_SIZE,
+  MIN_LABEL_FONT_SIZE,
   estimateTextWidth,
   fitPieceLabel,
   pieceLabelText,
@@ -104,7 +105,7 @@ describe("fitPieceLabel", () => {
     expect(placed.fontSize).toBeGreaterThan(0);
     expect(placed.x).toBeGreaterThanOrEqual(span.lo);
     expect(
-      placed.x + estimateTextWidth(text, placed.fontSize),
+      placed.x + estimateTextWidth(placed.text, placed.fontSize),
     ).toBeLessThanOrEqual(span.hi);
   });
 
@@ -117,7 +118,7 @@ describe("fitPieceLabel", () => {
     expect(placed.fontSize).toBe(MAX_LABEL_FONT_SIZE);
     expect(placed.x).toBeGreaterThanOrEqual(span.lo);
     expect(
-      placed.x + estimateTextWidth(text, placed.fontSize),
+      placed.x + estimateTextWidth(placed.text, placed.fontSize),
     ).toBeLessThanOrEqual(span.hi);
   });
 
@@ -130,7 +131,7 @@ describe("fitPieceLabel", () => {
     expect(placed.fontSize).toBe(MAX_LABEL_FONT_SIZE);
     expect(placed.x).toBeGreaterThanOrEqual(span.lo);
     expect(
-      placed.x + estimateTextWidth(text, placed.fontSize),
+      placed.x + estimateTextWidth(placed.text, placed.fontSize),
     ).toBeLessThanOrEqual(span.hi);
   });
 
@@ -150,7 +151,7 @@ describe("fitPieceLabel", () => {
           span.lo,
         );
         expect(
-          placed.x + estimateTextWidth(text, placed.fontSize),
+          placed.x + estimateTextWidth(placed.text, placed.fontSize),
           `${piece.id} / ${text}`,
         ).toBeLessThanOrEqual(span.hi);
       }
@@ -170,11 +171,57 @@ describe("fitPieceLabel", () => {
       x: 6,
       y: 94,
       fontSize: 11,
+      text: "FRENTE · 1×",
     });
   });
 
   it("composes the label text from the piece's name and cut quantity", () => {
     const piece = { ...drafted("sleeve"), name: "Manga", qty: 2 };
     expect(pieceLabelText(piece)).toBe(labelFor("sleeve", 2));
+  });
+
+  // #81: the shrink-to-fit formula had no lower bound -- a narrow piece's
+  // label shrank to ~5.4 (long sleeve) or ~7.5 (short sleeve) SVG user
+  // units, well under --text-tick (10.5, the design system's smallest
+  // legible step), while its siblings on the same canvas rendered at 11.
+  it("floors a long sleeve's label at MIN_LABEL_FONT_SIZE instead of shrinking below it", () => {
+    const longSleeveBlouse: GarmentSpec = {
+      ...blouse,
+      style: { ...blouse.style, sleeve: "long" },
+    };
+    const { pieces } = draftGarment(longSleeveBlouse, SIZE_TABLE.M, t);
+    const sleeve = pieces.find((p) => p.id === "sleeve")!;
+    const text = labelFor("sleeve", 2);
+    const placed = fitPieceLabel(sleeve, text, MAX_LABEL_FONT_SIZE);
+
+    expect(placed.fontSize).toBeGreaterThanOrEqual(MIN_LABEL_FONT_SIZE);
+    // Still contained, whichever text (full or shortened) actually renders.
+    const span = horizontalSpanAt(sleeve, placed.y);
+    expect(placed.x).toBeGreaterThanOrEqual(span.lo);
+    expect(
+      placed.x + estimateTextWidth(placed.text, placed.fontSize),
+    ).toBeLessThanOrEqual(span.hi);
+  });
+
+  it("shortens to the bare piece name when even the floor size doesn't fit the qty suffix", () => {
+    const narrow: Piece = {
+      id: "narrow",
+      name: "Manga",
+      qty: 2,
+      outline: { kind: "polygon", points: "0,0 60,0 60,80 0,80" },
+      label: { x: 0, y: 74 },
+      detailRows: [],
+      vertices: [
+        { x: 0, y: 0 },
+        { x: 60, y: 0 },
+        { x: 60, y: 80 },
+        { x: 0, y: 80 },
+      ],
+    };
+    const text = labelFor("sleeve", 2); // "MANGA · 2×" -- does not fit at the floor
+    const placed = fitPieceLabel(narrow, text, MAX_LABEL_FONT_SIZE);
+
+    expect(placed.text).toBe("MANGA");
+    expect(placed.fontSize).toBe(MIN_LABEL_FONT_SIZE);
   });
 });

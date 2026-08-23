@@ -2,6 +2,12 @@ import type { Piece, Point } from "@/lib/types";
 
 // The design's piece label: 11px, bottom-left inside the piece ("FRENTE · 1×").
 export const MAX_LABEL_FONT_SIZE = 11;
+// #81: the shrink-to-fit formula below had no floor -- a narrow piece (a long
+// sleeve at the hem) shrank its label to ~5.4 SVG user units, well under
+// every step the type scale admits, while its siblings on the same canvas
+// rendered at 11 and the seam labels at a fixed 10. --text-tick (10.5 px) is
+// the project's own smallest legible step, so it's the floor here too.
+export const MIN_LABEL_FONT_SIZE = 10.5;
 
 // Inset from the piece's own edges, in canvas px.
 const PAD = 6;
@@ -19,6 +25,10 @@ export interface PieceLabelPlacement {
   x: number;
   y: number;
   fontSize: number;
+  // #81: the text to actually render -- equal to the input `text` unless the
+  // fallback below shortened it. Callers must render this, not their own
+  // copy of the full label, or the fallback has no visible effect.
+  text: string;
 }
 
 export function estimateTextWidth(text: string, fontSize: number): number {
@@ -67,7 +77,7 @@ export function fitPieceLabel(
   const vertices = piece.vertices;
   // Pre-snap-tool patterns carry no vertices; keep the stored anchor.
   if (!vertices || vertices.length < 3)
-    return { x: piece.label.x, y: piece.label.y, fontSize: maxFontSize };
+    return { x: piece.label.x, y: piece.label.y, fontSize: maxFontSize, text };
 
   const bottom = Math.max(...vertices.map((v) => v.y));
   const y = bottom - PAD;
@@ -84,10 +94,32 @@ export function fitPieceLabel(
 
   const available = hi - lo - PAD * 2;
   const wanted = estimateTextWidth(text, maxFontSize);
-  const fontSize =
-    available >= wanted
-      ? maxFontSize
-      : Math.max(0, available / (text.length * ADVANCE));
+  if (available >= wanted) {
+    return { x: lo + PAD, y, fontSize: maxFontSize, text };
+  }
 
-  return { x: lo + PAD, y, fontSize };
+  // #81: below maxFontSize, MIN_LABEL_FONT_SIZE is a floor, not a further
+  // shrink target -- try the full text there first (still legible, just not
+  // the largest size).
+  const wantedAtFloor = estimateTextWidth(text, MIN_LABEL_FONT_SIZE);
+  if (available >= wantedAtFloor) {
+    return { x: lo + PAD, y, fontSize: MIN_LABEL_FONT_SIZE, text };
+  }
+
+  // Even the floor size doesn't fit the qty suffix -- shorten to the bare
+  // piece name rather than spilling the label past the outline (CLAUDE.md:
+  // a scope limitation must be surfaced, never silently overflowed, and a
+  // piece must never end up unlabelled).
+  const shortText = piece.name.toUpperCase();
+  const shortWantedAtFloor = estimateTextWidth(shortText, MIN_LABEL_FONT_SIZE);
+  if (available >= shortWantedAtFloor) {
+    return { x: lo + PAD, y, fontSize: MIN_LABEL_FONT_SIZE, text: shortText };
+  }
+
+  // Last resort, not reachable by any drafter geometry within
+  // MEASUREMENT_RANGES today (verified for the narrowest case, a long
+  // sleeve) but kept as a hard backstop: shrink the shortened text below the
+  // floor rather than ever leaving the piece unlabelled.
+  const fontSize = Math.max(1, available / (shortText.length * ADVANCE));
+  return { x: lo + PAD, y, fontSize, text: shortText };
 }
