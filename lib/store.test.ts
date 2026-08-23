@@ -104,6 +104,142 @@ describe("store.sendMessage", () => {
   });
 });
 
+// #41: cancelGeneration never aborted the request server-side -- only its
+// result was discarded -- while withPatternAndWallet's transaction still
+// committed. It used to also fabricate a `+ COSTS.adjust` credit refund
+// unconditionally, regardless of what the server actually did.
+describe("store.cancelGeneration (#41)", () => {
+  beforeEach(() => {
+    genMock.mockReset();
+    useEditorStore.setState({
+      patternId: "m1",
+      selectedPieceId: null,
+      generationStatus: "idle",
+      credits: {
+        plan: "atelier",
+        balance: 100,
+        total: 500,
+        renewsInDays: 10,
+      },
+    });
+  });
+
+  it("does not fabricate a credit refund on cancel", async () => {
+    const gen = deferred<Awaited<ReturnType<typeof api.generate>>>();
+    genMock.mockReturnValue(gen.promise);
+    const sendPromise = useEditorStore.getState().sendMessage("uma blusa");
+
+    useEditorStore.getState().cancelGeneration();
+
+    // Balance is exactly what it was before sendMessage ran -- no invented
+    // "+1" while the real outcome is still unknown.
+    expect(useEditorStore.getState().credits?.balance).toBe(100);
+    expect(useEditorStore.getState().generationStatus).toBe("idle");
+    expect(
+      useEditorStore
+        .getState()
+        .chat.some((m) => m.id.startsWith("optimistic-")),
+    ).toBe(false);
+
+    gen.resolve({ status: "ok", state: emptyState() });
+    await sendPromise;
+  });
+
+  it("applies the server's committed state once a canceled request's response arrives", async () => {
+    const gen = deferred<Awaited<ReturnType<typeof api.generate>>>();
+    genMock.mockReturnValue(gen.promise);
+    const sendPromise = useEditorStore.getState().sendMessage("uma blusa");
+
+    useEditorStore.getState().cancelGeneration();
+
+    // The server committed: debited the credit and drafted a piece. This
+    // arrives AFTER cancel -- it must not be silently dropped.
+    const committed = emptyState();
+    committed.credits = { ...committed.credits, balance: 99 };
+    committed.pattern = {
+      ...committed.pattern,
+      version: 1,
+      pieces: [
+        {
+          id: "piece-1",
+          name: "Frente",
+          qty: 1,
+          outline: { kind: "path", d: "M0 0" },
+          label: { x: 0, y: 0 },
+          detailRows: [],
+        },
+      ],
+    };
+    gen.resolve({ status: "ok", state: committed });
+    await sendPromise;
+
+    const s = useEditorStore.getState();
+    expect(s.credits?.balance).toBe(99); // the real, server-committed balance
+    expect(s.pattern?.version).toBe(1);
+    expect(s.pattern?.pieces).toHaveLength(1);
+    // cancelGeneration already put this back to idle -- reconciling the
+    // late response must not resurface the overlay.
+    expect(s.generationStatus).toBe("idle");
+  });
+
+  it("selects the first piece when reconciling a canceled request that drafted one", async () => {
+    const gen = deferred<Awaited<ReturnType<typeof api.generate>>>();
+    genMock.mockReturnValue(gen.promise);
+    const sendPromise = useEditorStore.getState().sendMessage("uma blusa");
+    useEditorStore.getState().cancelGeneration();
+
+    const committed = emptyState();
+    committed.pattern = {
+      ...committed.pattern,
+      pieces: [
+        {
+          id: "piece-1",
+          name: "Frente",
+          qty: 1,
+          outline: { kind: "path", d: "M0 0" },
+          label: { x: 0, y: 0 },
+          detailRows: [],
+        },
+      ],
+    };
+    gen.resolve({ status: "ok", state: committed });
+    await sendPromise;
+
+    expect(useEditorStore.getState().selectedPieceId).toBe("piece-1");
+  });
+
+  it("does not reconcile a canceled request answered with insufficient_credits (nothing was committed)", async () => {
+    const gen = deferred<Awaited<ReturnType<typeof api.generate>>>();
+    genMock.mockReturnValue(gen.promise);
+    const sendPromise = useEditorStore.getState().sendMessage("uma blusa");
+    useEditorStore.getState().cancelGeneration();
+
+    gen.resolve({ status: "insufficient_credits", required: 1, balance: 0 });
+    await sendPromise;
+
+    expect(useEditorStore.getState().paywall.open).toBe(false);
+    expect(useEditorStore.getState().credits?.balance).toBe(100);
+  });
+
+  it("still discards a canceled request's response if the pattern itself changed (#32)", async () => {
+    const gen = deferred<Awaited<ReturnType<typeof api.generate>>>();
+    genMock.mockReturnValue(gen.promise);
+    const sendPromise = useEditorStore.getState().sendMessage("uma blusa");
+    useEditorStore.getState().cancelGeneration();
+
+    vi.mocked(api.fetchPattern).mockResolvedValue(emptyState());
+    await useEditorStore.getState().init("m2");
+    const m2Pattern = useEditorStore.getState().pattern;
+
+    const committed = emptyState();
+    committed.pattern = { ...committed.pattern, version: 5 };
+    gen.resolve({ status: "ok", state: committed });
+    await sendPromise;
+
+    expect(useEditorStore.getState().pattern).toBe(m2Pattern);
+  });
+});
+
 // The editor store had no try/catch anywhere, so a rejected call left the UI
 // wedged: init never set `ready`, sendMessage never cleared "generating", and
 // applyState wrote `undefined` into pattern/chat from a 401's body.

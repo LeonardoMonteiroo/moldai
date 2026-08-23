@@ -8,7 +8,6 @@ import {
   GenerationStatus,
   PatternRecord,
   ConflictInfo,
-  COSTS,
   Measurement,
 } from "./types";
 
@@ -251,9 +250,24 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     }
     clearTimeout(stepTimer);
 
-    if (get().generationRequestId !== requestId) return; // canceled
+    // #41: canceling never aborted the request server-side -- only its
+    // result was discarded, while withPatternAndWallet's transaction still
+    // committed the debit, the drafted pieces and the AI's chat turn. A
+    // canceled request whose response has now arrived is reconciled below
+    // instead of being silently dropped, so the editor doesn't diverge from
+    // what actually persisted for the rest of the session (a fabricated
+    // credit refund on screen, and the drafted pieces existing server-side
+    // but invisible until the next full reload).
+    const canceled = get().generationRequestId !== requestId;
+    // The pattern itself changed (via init switching patterns, which also
+    // bumps generationRequestId) -- applying old data onto the new
+    // pattern's slot would be the #32 bug. Nothing to reconcile either way.
+    if (canceled && get().patternId !== patternId) return;
 
     if (result.status === "insufficient_credits") {
+      // Nothing was committed server-side for this outcome -- if canceled,
+      // there is nothing to reconcile; if not, show the paywall as usual.
+      if (canceled) return;
       set((s) => ({
         generationStatus: "idle",
         chat: s.chat.filter((m) => !m.id.startsWith("optimistic-")),
@@ -273,7 +287,12 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     const shouldSelectFirst =
       !get().selectedPieceId && result.state.pattern.pieces.length > 0;
     set({
-      generationStatus: result.status === "error" ? "error" : "idle",
+      // A canceled request is reconciled silently: cancelGeneration already
+      // put generationStatus back to "idle", and touching it here would
+      // resurface the overlay for a result the user already dismissed.
+      ...(canceled
+        ? {}
+        : { generationStatus: result.status === "error" ? "error" : "idle" }),
       ...(shouldSelectFirst
         ? { selectedPieceId: result.state.pattern.pieces[0].id }
         : {}),
@@ -284,13 +303,16 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   },
 
   cancelGeneration: () => {
+    // #41: no longer fabricates a `+ COSTS.adjust` refund -- the server was
+    // never actually told to cancel, so it may debit, refund, or leave the
+    // balance untouched depending on how the in-flight request resolves.
+    // sendMessage's own post-await handling above applies the real
+    // `credits` from that response once it arrives, which is the only
+    // place the true balance is known.
     set((s) => ({
       generationStatus: "idle",
       generationRequestId: s.generationRequestId + 1,
       chat: s.chat.filter((m) => !m.id.startsWith("optimistic-")),
-      credits: s.credits
-        ? { ...s.credits, balance: s.credits.balance + COSTS.adjust }
-        : s.credits,
     }));
   },
 
