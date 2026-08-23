@@ -63,6 +63,14 @@ function pattern(updatedAt: string): PatternRecord {
 describe("EditorShell", () => {
   beforeEach(() => {
     useEditorStore.setState({
+      // #32: init() now resets the whole per-pattern slice when the store's
+      // patternId differs from the one it's asked to load, treating that as
+      // a genuine pattern switch. Every test here renders <EditorShell
+      // patternId="p1" /> against state it seeds directly (not through
+      // init), so patternId has to already read "p1" too, or that same-id
+      // check sees a (false) switch and wipes the seeded pattern/ready
+      // right back out before the assertions run.
+      patternId: "p1",
       generationStatus: "idle",
       conflict: null,
       paywall: {

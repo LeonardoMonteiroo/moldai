@@ -29,6 +29,14 @@ interface PaywallState {
   retry: (() => void) | null;
 }
 
+const CLOSED_PAYWALL: PaywallState = {
+  open: false,
+  required: 0,
+  balance: 0,
+  action: null,
+  retry: null,
+};
+
 interface EditorStore {
   ready: boolean;
   /**
@@ -114,24 +122,69 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   generationStepIndex: 0,
   generationRequestId: 0,
 
-  paywall: {
-    open: false,
-    required: 0,
-    balance: 0,
-    action: null,
-    retry: null,
-  },
+  paywall: CLOSED_PAYWALL,
 
   init: async (patternId: string) => {
-    set({ patternId, error: null });
+    // #32: the store is a module-level singleton, and until this reset
+    // `init` cleared nothing but patternId/error -- pattern, chat, conflict,
+    // measurements, selectedPieceId, generationStatus and paywall all kept
+    // the PREVIOUS pattern's values, and ready stayed true. Opening pattern
+    // B after A therefore rendered A's pieces/chat/conflict card (and any
+    // open paywall, complete with a retry thunk that still resent A's
+    // prompt) on B's screen until B's own fetch resolved -- and clicking
+    // "Corrigir manga" or buying credits in that window mutated pattern B
+    // with data that belonged to A. Guarded on the id actually differing so
+    // a remount for the SAME pattern (React strict-mode double-effect)
+    // doesn't blank an already-loaded screen. generationRequestId is bumped
+    // (not reset to 0) so sendMessage's existing requestId guards (below)
+    // discard any in-flight generate for the pattern being left.
+    // #32: the store is a module-level singleton, and until this reset
+    // `init` cleared nothing but patternId/error -- pattern, chat, conflict,
+    // measurements, selectedPieceId, generationStatus and paywall all kept
+    // the PREVIOUS pattern's values, and ready stayed true. Opening pattern
+    // B after A therefore rendered A's pieces/chat/conflict card (and any
+    // open paywall, complete with a retry thunk that still resent A's
+    // prompt) on B's screen until B's own fetch resolved -- and clicking
+    // "Corrigir manga" or buying credits in that window mutated pattern B
+    // with data that belonged to A. Guarded on the id actually differing so
+    // a remount for the SAME pattern (React strict-mode double-effect)
+    // doesn't blank an already-loaded screen. generationRequestId is bumped
+    // (not reset to 0) so sendMessage's existing requestId guards (below)
+    // discard any in-flight generate for the pattern being left.
+    const switchingPattern = get().patternId !== patternId;
+    set({
+      patternId,
+      error: null,
+      ...(switchingPattern
+        ? {
+            pattern: null,
+            chat: [],
+            credits: null,
+            conflict: null,
+            selectedPieceId: null,
+            detailsPanelOpen: true,
+            measurements: [],
+            generationStatus: "idle" as GenerationStatus,
+            generationStepIndex: 0,
+            generationRequestId: get().generationRequestId + 1,
+            paywall: CLOSED_PAYWALL,
+            ready: false,
+          }
+        : {}),
+    });
     try {
       const state = await api.fetchPattern(patternId);
+      // A slow fetch for a pattern the user has since navigated away from
+      // (init() was called again for a different id before this resolved)
+      // must not overwrite whatever that later init already loaded.
+      if (get().patternId !== patternId) return;
       applyState(set, state);
       set({
         ready: true,
         selectedPieceId: state.pattern.pieces[0]?.id ?? null,
       });
     } catch (err) {
+      if (get().patternId !== patternId) return;
       // ready:true on purpose -- EditorShell's loading early-return would
       // otherwise leave a permanent spinner with no way to know why.
       set({ ready: true, error: errorCode(err) });
@@ -234,6 +287,13 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     }));
   },
 
+  // #32: every mutating action here now verifies (after its own await) that
+  // the store hasn't since moved on to a different pattern -- init() bumps
+  // generationRequestId when switching (sendMessage's existing requestId
+  // checks already cover it, below), but graduateSizes/resolveConflict/
+  // purchase had no such guard at all, so a response for a pattern the user
+  // had already navigated away from wrote its state onto whatever pattern
+  // was current by the time it arrived.
   graduateSizes: async (sizes: string[]) => {
     const patternId = get().patternId;
     if (!patternId) return;
@@ -241,9 +301,10 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     try {
       result = await api.graduate(patternId, sizes);
     } catch (err) {
-      set({ error: errorCode(err) });
+      if (get().patternId === patternId) set({ error: errorCode(err) });
       return;
     }
+    if (get().patternId !== patternId) return;
     if (result.status === "insufficient_credits") {
       set({
         paywall: {
@@ -264,9 +325,10 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     if (!patternId) return;
     try {
       const result = await api.resolveConflict(patternId, action);
+      if (get().patternId !== patternId) return;
       if ("state" in result) applyState(set, result.state);
     } catch (err) {
-      set({ error: errorCode(err) });
+      if (get().patternId === patternId) set({ error: errorCode(err) });
     }
   },
 
@@ -278,34 +340,20 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     } catch (err) {
       // The paywall stays open: the retry thunk is still valid, and closing it
       // on a failed purchase would look like the purchase worked.
-      set({ error: errorCode(err) });
+      if (!patternId || get().patternId === patternId) {
+        set({ error: errorCode(err) });
+      }
       return;
     }
+    if (patternId && get().patternId !== patternId) return;
     if ("state" in result) applyState(set, result.state);
     else if ("credits" in result) set({ credits: result.credits });
     const retry = get().paywall.retry;
-    set({
-      paywall: {
-        open: false,
-        required: 0,
-        balance: 0,
-        action: null,
-        retry: null,
-      },
-    });
+    set({ paywall: CLOSED_PAYWALL });
     retry?.();
   },
 
-  closePaywall: () =>
-    set({
-      paywall: {
-        open: false,
-        required: 0,
-        balance: 0,
-        action: null,
-        retry: null,
-      },
-    }),
+  closePaywall: () => set({ paywall: CLOSED_PAYWALL }),
 
   // Saving a base does not change the pattern, so this writes no state. It
   // returns a boolean rather than setting `error`, because a failed save

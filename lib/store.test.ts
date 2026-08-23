@@ -22,6 +22,16 @@ import { useEditorStore } from "./store";
 
 const genMock = api.generate as unknown as ReturnType<typeof vi.fn>;
 
+// A promise this test can resolve on its own schedule, for asserting what
+// happens while a call is still in flight (e.g. a pattern switch racing a
+// slow response). Typed generically so `mockReturnValue` sees the exact
+// shape each api-client function's own Promise return type expects.
+function deferred<T>() {
+  let resolve!: (v: T) => void;
+  const promise = new Promise<T>((r) => (resolve = r));
+  return { promise, resolve };
+}
+
 function emptyState(): EditorState {
   return {
     pattern: {
@@ -180,6 +190,136 @@ describe("store.graduateSizes", () => {
     await useEditorStore.getState().graduateSizes(["P", "M"]);
 
     expect(useEditorStore.getState().paywall.action).toBe("graduate");
+  });
+});
+
+// #32: the store is a module-level singleton, so switching patterns without
+// resetting the per-pattern slice let one pattern's pieces/chat/conflict/
+// paywall (complete with a retry thunk) bleed onto another's screen, and a
+// slow response for a pattern the user had already left could overwrite
+// whatever the newly-opened pattern had already loaded.
+describe("store.init across patterns", () => {
+  beforeEach(() => {
+    genMock.mockReset();
+    vi.mocked(api.fetchPattern).mockReset();
+    vi.mocked(api.graduate).mockReset();
+    vi.mocked(api.resolveConflict).mockReset();
+    vi.mocked(api.purchase).mockReset();
+  });
+
+  it("resets the whole per-pattern slice synchronously when switching patterns", () => {
+    const state1 = emptyState();
+    useEditorStore.setState({
+      patternId: "m1",
+      ready: true,
+      pattern: state1.pattern,
+      chat: state1.chat,
+      credits: state1.credits,
+      conflict: { id: "c1" } as never,
+      selectedPieceId: "piece-1",
+      paywall: {
+        open: true,
+        required: 3,
+        balance: 1,
+        action: "adjust",
+        retry: () => {},
+      },
+    });
+    vi.mocked(api.fetchPattern).mockReturnValue(new Promise(() => {})); // never resolves
+
+    void useEditorStore.getState().init("m2"); // deliberately not awaited
+
+    const s = useEditorStore.getState();
+    expect(s.patternId).toBe("m2");
+    expect(s.ready).toBe(false);
+    expect(s.pattern).toBeNull();
+    expect(s.chat).toEqual([]);
+    expect(s.credits).toBeNull();
+    expect(s.conflict).toBeNull();
+    expect(s.selectedPieceId).toBeNull();
+    expect(s.paywall.open).toBe(false);
+    expect(s.paywall.retry).toBeNull();
+  });
+
+  it("does not reset the loaded screen when re-initing the same pattern", async () => {
+    const state1 = emptyState();
+    vi.mocked(api.fetchPattern).mockResolvedValue(state1);
+    await useEditorStore.getState().init("m1");
+    useEditorStore.setState({ selectedPieceId: "kept" });
+
+    vi.mocked(api.fetchPattern).mockReturnValue(new Promise(() => {}));
+    void useEditorStore.getState().init("m1"); // same id -- e.g. strict-mode double-effect
+
+    expect(useEditorStore.getState().ready).toBe(true);
+    expect(useEditorStore.getState().pattern).toEqual(state1.pattern);
+    expect(useEditorStore.getState().selectedPieceId).toBe("kept");
+  });
+
+  it("does not apply a stale sendMessage response after switching to a different pattern", async () => {
+    useEditorStore.setState({ patternId: "m1" });
+    const gen = deferred<Awaited<ReturnType<typeof api.generate>>>();
+    genMock.mockReturnValue(gen.promise);
+    const sendPromise = useEditorStore.getState().sendMessage("uma blusa");
+
+    const state2 = emptyState();
+    vi.mocked(api.fetchPattern).mockResolvedValue(state2);
+    await useEditorStore.getState().init("m2");
+    const m2Pattern = useEditorStore.getState().pattern;
+
+    gen.resolve({ status: "ok", state: emptyState() });
+    await sendPromise;
+
+    expect(useEditorStore.getState().pattern).toBe(m2Pattern);
+  });
+
+  it("does not apply a stale graduateSizes response after switching to a different pattern", async () => {
+    useEditorStore.setState({ patternId: "m1" });
+    const grad = deferred<Awaited<ReturnType<typeof api.graduate>>>();
+    vi.mocked(api.graduate).mockReturnValue(grad.promise);
+    const gradPromise = useEditorStore.getState().graduateSizes(["M"]);
+
+    vi.mocked(api.fetchPattern).mockResolvedValue(emptyState());
+    await useEditorStore.getState().init("m2");
+    const m2Pattern = useEditorStore.getState().pattern;
+
+    grad.resolve({ status: "ok", state: emptyState() });
+    await gradPromise;
+
+    expect(useEditorStore.getState().pattern).toBe(m2Pattern);
+  });
+
+  it("does not apply a stale resolveConflict response after switching to a different pattern", async () => {
+    useEditorStore.setState({ patternId: "m1" });
+    const fix = deferred<Awaited<ReturnType<typeof api.resolveConflict>>>();
+    vi.mocked(api.resolveConflict).mockReturnValue(fix.promise);
+    const fixPromise = useEditorStore.getState().resolveConflict("fix");
+
+    vi.mocked(api.fetchPattern).mockResolvedValue(emptyState());
+    await useEditorStore.getState().init("m2");
+    const m2Pattern = useEditorStore.getState().pattern;
+
+    fix.resolve({ status: "ok", state: emptyState() });
+    await fixPromise;
+
+    expect(useEditorStore.getState().pattern).toBe(m2Pattern);
+  });
+
+  it("does not apply a stale purchase response after switching to a different pattern", async () => {
+    useEditorStore.setState({ patternId: "m1" });
+    const buy = deferred<Awaited<ReturnType<typeof api.purchase>>>();
+    vi.mocked(api.purchase).mockReturnValue(buy.promise);
+    const purchasePromise = useEditorStore.getState().purchase("topup");
+
+    vi.mocked(api.fetchPattern).mockResolvedValue(emptyState());
+    await useEditorStore.getState().init("m2");
+    const m2Pattern = useEditorStore.getState().pattern;
+    const m2Credits = useEditorStore.getState().credits;
+
+    buy.resolve({ status: "ok", state: emptyState() });
+    await purchasePromise;
+
+    expect(useEditorStore.getState().pattern).toBe(m2Pattern);
+    expect(useEditorStore.getState().credits).toBe(m2Credits);
   });
 });
 
