@@ -39,11 +39,16 @@ export async function lockPattern(
 export async function savePattern(
   tx: Tx,
   patternId: string,
+  userId: string,
   state: PatternState,
 ): Promise<void> {
+  // #72: scoped to (id, userId), mirroring lockPattern's read, even though
+  // every current caller only ever reaches this after lockPattern already
+  // verified ownership inside the same transaction -- defense in depth
+  // against a future caller that saves without locking first.
   await tx.$executeRaw`
     UPDATE "Pattern" SET "data" = ${JSON.stringify(state)}::jsonb, "updatedAt" = now()
-    WHERE "id" = ${patternId}`;
+    WHERE "id" = ${patternId} AND "userId" = ${userId}`;
 }
 
 // load → fn(state) → save, inside an interactive transaction with a row lock.
@@ -58,7 +63,7 @@ export async function withPattern<T>(
     const state = await lockPattern(tx, patternId, userId);
     if (!state) return null;
     const result = await fn(state);
-    await savePattern(tx, patternId, state);
+    await savePattern(tx, patternId, userId, state);
     return result;
   }, TX_OPTS);
 }

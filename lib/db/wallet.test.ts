@@ -10,7 +10,12 @@ const tx = {
       ..._vals: unknown[]
     ): Promise<number> => 0,
   ),
-  $queryRaw: vi.fn(async (): Promise<unknown[]> => []),
+  $queryRaw: vi.fn(
+    async (
+      _strings: TemplateStringsArray,
+      ..._vals: unknown[]
+    ): Promise<unknown[]> => [],
+  ),
   transaction: {
     createMany: vi.fn(async ({ data }: { data: unknown[] }) => {
       ledger.push(...data);
@@ -51,23 +56,43 @@ import { seedWallet, debitWallet } from "@/lib/billing/wallet";
 
 const NOW = new Date("2026-08-17T12:00:00.000Z");
 
+// Wires the fake tx to read/write `store` keyed on the interpolated userId,
+// mimicking lockWallet's INSERT ... ON CONFLICT DO NOTHING + SELECT ... WHERE
+// userId = $1 FOR UPDATE, and saveWallet's UPDATE ... WHERE userId = $1.
 function wireTx() {
-  const uid = "u1";
   tx.$executeRaw.mockImplementation(
     async (strings: TemplateStringsArray, ...vals: unknown[]) => {
       const sql = Array.isArray(strings) ? strings.join("") : String(strings);
-      if (sql.includes("UPDATE")) {
-        // vals order matches the tagged-template interpolation order in
-        // saveWallet: plan, balance, total, purchased, renewsAt.
-        const [plan, balance, total, purchased, renewsAt] = vals;
-        store.set(uid, { plan, balance, total, purchased, renewsAt });
+      if (sql.includes("INSERT")) {
+        // vals order matches lockWallet: userId, plan, balance, total,
+        // purchased, renewsAt. Mirrors ON CONFLICT DO NOTHING -- only seeds
+        // when the row doesn't already exist.
+        const [userId, plan, balance, total, purchased, renewsAt] = vals as [
+          string,
+          ...unknown[],
+        ];
+        if (!store.has(userId)) {
+          store.set(userId, { plan, balance, total, purchased, renewsAt });
+        }
+      } else if (sql.includes("UPDATE")) {
+        // vals order matches saveWallet: plan, balance, total, purchased,
+        // renewsAt, userId -- userId is last.
+        const [plan, balance, total, purchased, renewsAt, userId] = vals as [
+          unknown,
+          unknown,
+          unknown,
+          unknown,
+          unknown,
+          string,
+        ];
+        store.set(userId, { plan, balance, total, purchased, renewsAt });
       }
       return 0;
     },
   );
-  tx.$queryRaw.mockImplementation(async () => {
-    if (!store.has(uid)) store.set(uid, seedWallet(NOW));
-    return [store.get(uid)];
+  tx.$queryRaw.mockImplementation(async (_s: unknown, ...vals: unknown[]) => {
+    const [userId] = vals as [string];
+    return store.has(userId) ? [store.get(userId)] : [];
   });
 }
 
@@ -118,6 +143,33 @@ describe("withWallet", () => {
       entries: [],
     }));
     expect(out).toBe("resp");
+  });
+
+  // #72: the fake used to key everything on a hardcoded "u1" regardless of
+  // the userId argument, so deleting the WHERE userId = $1 clause from the
+  // real lockWallet/saveWallet SQL would still leave this whole suite green.
+  it("lockWallet seeds and returns u2's own row, not u1's", async () => {
+    await withWallet("u1", (wallet) => {
+      wallet.balance = 999;
+      return { result: undefined, entries: [] };
+    });
+    let seenU2Balance: number | null = null;
+    await withWallet("u2", (wallet) => {
+      seenU2Balance = wallet.balance;
+      return { result: undefined, entries: [] };
+    });
+    expect(seenU2Balance).toBe(30);
+    expect((store.get("u1") as { balance: number }).balance).toBe(999);
+  });
+
+  it("saveWallet under u2 leaves u1's row untouched", async () => {
+    await withWallet("u1", () => ({ result: undefined, entries: [] }));
+    await withWallet("u2", (wallet) => {
+      const entry = debitWallet(wallet, 4, "generate");
+      return { result: undefined, entries: [entry] };
+    });
+    expect((store.get("u1") as { balance: number }).balance).toBe(30);
+    expect((store.get("u2") as { balance: number }).balance).toBe(26);
   });
 });
 

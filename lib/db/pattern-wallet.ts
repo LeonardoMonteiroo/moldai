@@ -37,7 +37,7 @@ export async function withPatternAndWallet<T>(
     if (!state) return null;
     const wallet = await lockWallet(tx, userId);
     const { result, entries } = await fn(state, wallet, tx);
-    await savePattern(tx, patternId, state);
+    await savePattern(tx, patternId, userId, state);
     await saveWallet(tx, userId, wallet);
     await saveLedger(tx, userId, entries);
     return result;

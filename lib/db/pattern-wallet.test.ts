@@ -16,20 +16,24 @@ const tx = {
       const sql = Array.isArray(strings) ? strings.join("") : String(strings);
       if (sql.includes('"Pattern"') && sql.includes("UPDATE")) {
         callOrder.push("save-pattern");
-        const patternId = vals.find(
-          (v): v is string => typeof v === "string" && patternStore.has(v),
-        );
-        const jsonStr = vals.find(
-          (v): v is string =>
-            typeof v === "string" && v.trimStart().startsWith("{"),
-        );
-        const row = patternId ? patternStore.get(patternId) : undefined;
-        if (jsonStr && row) row.data = JSON.parse(jsonStr);
+        // Interpolation order matches savePattern: json, id, userId.
+        const [jsonStr, patternId, userId] = vals as [string, string, string];
+        const row = patternStore.get(patternId);
+        if (row && row.userId === userId) row.data = JSON.parse(jsonStr);
       }
       if (sql.includes('"Wallet"') && sql.includes("UPDATE")) {
         callOrder.push("save-wallet");
-        const [plan, balance, total, purchased, renewsAt] = vals;
-        walletStore.set("u1", { plan, balance, total, purchased, renewsAt });
+        // Interpolation order matches saveWallet: plan, balance, total,
+        // purchased, renewsAt, userId -- userId is last.
+        const [plan, balance, total, purchased, renewsAt, userId] = vals as [
+          unknown,
+          unknown,
+          unknown,
+          unknown,
+          unknown,
+          string,
+        ];
+        walletStore.set(userId, { plan, balance, total, purchased, renewsAt });
       }
       return 0;
     },
@@ -48,8 +52,9 @@ const tx = {
         return [{ data: JSON.parse(JSON.stringify(row.data)) }];
       }
       callOrder.push("lock-wallet");
-      if (!walletStore.has("u1")) walletStore.set("u1", seedWallet(NOW));
-      return [{ ...(walletStore.get("u1") as object) }];
+      const [userId] = vals as [string];
+      if (!walletStore.has(userId)) walletStore.set(userId, seedWallet(NOW));
+      return [{ ...(walletStore.get(userId) as object) }];
     },
   ),
   transaction: {
@@ -135,5 +140,35 @@ describe("withPatternAndWallet", () => {
       entries: [],
     }));
     expect(out).toBe("resp");
+  });
+
+  // #72: the fake used to key wallet reads/writes on a hardcoded "u1"
+  // regardless of the userId argument, so deleting the WHERE userId = $1
+  // clause from lockWallet/saveWallet's real SQL would still leave this
+  // whole suite green. Pattern m1/u1 and a wallet for u2 coexisting proves
+  // the combined-lock path scopes the wallet half by the actual caller.
+  it("debiting u1's wallet through m1 never touches a pre-existing u2 wallet", async () => {
+    walletStore.set("u2", seedWallet(NOW));
+
+    await withPatternAndWallet("m1", "u1", (_state, wallet) => {
+      const entry = debitWallet(wallet, 4, "generate");
+      return { result: undefined, entries: [entry] };
+    });
+
+    expect((walletStore.get("u1") as { balance: number }).balance).toBe(26);
+    expect((walletStore.get("u2") as { balance: number }).balance).toBe(30);
+  });
+
+  it("persists u2's wallet debit independently of u1's, when both exist", async () => {
+    patternStore.set("m2", { userId: "u2", data: seedPatternState(t) });
+    walletStore.set("u1", seedWallet(NOW));
+
+    await withPatternAndWallet("m2", "u2", (state, wallet) => {
+      const entry = debitWallet(wallet, 4, "generate");
+      return { result: undefined, entries: [entry] };
+    });
+
+    expect((walletStore.get("u2") as { balance: number }).balance).toBe(26);
+    expect((walletStore.get("u1") as { balance: number }).balance).toBe(30);
   });
 });

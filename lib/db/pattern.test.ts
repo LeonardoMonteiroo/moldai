@@ -76,6 +76,7 @@ import {
   renamePattern,
   deletePattern,
   patternNotFound,
+  savePattern,
 } from "./pattern";
 import { seedPatternState, bumpVersion } from "@/lib/editor/state";
 import { t } from "@/lib/i18n/test-translate";
@@ -92,15 +93,10 @@ function wireTx() {
     async (strings: TemplateStringsArray, ...vals: unknown[]) => {
       const sql = Array.isArray(strings) ? strings.join("") : String(strings);
       if (sql.includes("UPDATE")) {
-        const id = vals.find(
-          (v) => typeof v === "string" && rows.some((r) => r.id === v),
-        ) as string | undefined;
-        const jsonStr = vals.find(
-          (v): v is string =>
-            typeof v === "string" && v.trimStart().startsWith("{"),
-        );
-        const row = rows.find((r) => r.id === id);
-        if (row && jsonStr) {
+        // Interpolation order matches savePattern: json, id, userId.
+        const [jsonStr, id, userId] = vals as [string, string, string];
+        const row = rows.find((r) => r.id === id && r.userId === userId);
+        if (row) {
           row.data = JSON.parse(jsonStr);
           row.updatedAt = new Date();
         }
@@ -159,6 +155,19 @@ describe("withPattern", () => {
   it("returns the value fn returns", async () => {
     const out = await withPattern("m1", "u1", () => "resp");
     expect(out).toBe("resp");
+  });
+
+  // #72: every current caller only reaches savePattern after lockPattern has
+  // already verified ownership inside the same transaction, so this can't be
+  // exploited through withPattern's own API today -- it guards a future
+  // caller that saves without locking first, mirroring lockPattern's own
+  // (id, userId) scoping on the read side.
+  it("savePattern does not persist a mutation for a userId that doesn't own the row", async () => {
+    const before = JSON.stringify(rows.find((r) => r.id === "m1")!.data);
+    const mutated = seedPatternState(t);
+    bumpVersion(mutated);
+    await savePattern(tx as never, "m1", "someone-else", mutated);
+    expect(JSON.stringify(rows.find((r) => r.id === "m1")!.data)).toBe(before);
   });
 });
 
