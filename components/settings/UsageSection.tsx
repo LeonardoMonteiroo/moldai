@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import type { Credits, LedgerEntryType, LedgerHistoryEntry } from "@/lib/types";
 import { purchase } from "@/lib/api-client";
 import { relativeTime } from "@/lib/format";
+import { ActionErrorNotice } from "@/components/shared/ActionErrorNotice";
 
 const TYPE_KEY: Record<LedgerEntryType, string> = {
   debit: "typeDebit",
@@ -35,23 +36,37 @@ export function UsageSection({
   const [balance, setBalance] = useState(credits.balance);
   const [ledger, setLedger] = useState(initialLedger);
   const [buying, setBuying] = useState(false);
+  const [actionError, setActionError] = useState(false);
 
+  // #44: purchase() throws on any non-2xx (an expired JWT, a 5xx) --
+  // previously uncaught here, so buying never reset and the button stayed
+  // disabled forever with nothing on screen and no way to tell whether the
+  // R$19 charge went through. finally guarantees setBuying(false) runs
+  // either way; the try/catch is local to this component rather than
+  // widening purchase()'s `handled` list, which would make the editor
+  // paywall (lib/store.ts) mistake a failed purchase for a success.
   async function buyTopup() {
     setBuying(true);
-    const result = await purchase("topup");
-    if ("credits" in result) {
-      setBalance(result.credits.balance);
-      setLedger((prev) => [
-        {
-          type: "topup",
-          reason: null,
-          amount: 100,
-          createdAt: new Date().toISOString(),
-        },
-        ...prev,
-      ]);
+    setActionError(false);
+    try {
+      const result = await purchase("topup");
+      if ("credits" in result) {
+        setBalance(result.credits.balance);
+        setLedger((prev) => [
+          {
+            type: "topup",
+            reason: null,
+            amount: 100,
+            createdAt: new Date().toISOString(),
+          },
+          ...prev,
+        ]);
+      }
+    } catch {
+      setActionError(true);
+    } finally {
+      setBuying(false);
     }
-    setBuying(false);
   }
 
   // #37: a top-up can push balance past total (purchased credits carry over
@@ -61,6 +76,9 @@ export function UsageSection({
 
   return (
     <div className="flex flex-col gap-4">
+      {actionError && (
+        <ActionErrorNotice onDismiss={() => setActionError(false)} />
+      )}
       <section className="bg-surface border-border rounded-card flex flex-col gap-3 border p-[18px]">
         <h2 className="font-display text-body font-semibold">{t("heading")}</h2>
         <div className="flex items-end gap-4">
