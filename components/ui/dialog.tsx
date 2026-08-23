@@ -47,13 +47,22 @@ function DialogOverlay({
   );
 }
 
+// #110: the label a primitive can't resolve for itself (no useTranslations
+// inside components/ui/ -- that stays the caller's job everywhere else in
+// this codebase). A prop with a pt-BR default, matching messages/pt-BR.json's
+// Dialog.close, is the exception: it's never read at runtime here, but it's
+// what every current call site renders since none of them override it.
+const DEFAULT_CLOSE_LABEL = "Fechar";
+
 function DialogContent({
   className,
   children,
   showCloseButton = true,
+  closeLabel = DEFAULT_CLOSE_LABEL,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean;
+  closeLabel?: string;
 }) {
   return (
     <DialogPortal data-slot="dialog-portal">
@@ -73,7 +82,7 @@ function DialogContent({
             className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
           >
             <XIcon />
-            <span className="sr-only">Close</span>
+            <span className="sr-only">{closeLabel}</span>
           </DialogPrimitive.Close>
         )}
       </DialogPrimitive.Content>
@@ -94,10 +103,12 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
 function DialogFooter({
   className,
   showCloseButton = false,
+  closeLabel = DEFAULT_CLOSE_LABEL,
   children,
   ...props
 }: React.ComponentProps<"div"> & {
   showCloseButton?: boolean;
+  closeLabel?: string;
 }) {
   return (
     <div
@@ -111,7 +122,7 @@ function DialogFooter({
       {children}
       {showCloseButton && (
         <DialogPrimitive.Close asChild>
-          <Button variant="outline">Close</Button>
+          <Button variant="outline">{closeLabel}</Button>
         </DialogPrimitive.Close>
       )}
     </div>

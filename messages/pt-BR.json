@@ -636,6 +636,9 @@
       }
     }
   },
+  "Dialog": {
+    "close": "Fechar"
+  },
   "Format": {
     "relativeNow": "agora",
     "relativeMinutes": "há {n} min",
