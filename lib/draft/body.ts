@@ -1,6 +1,7 @@
 import { Measurements } from "@/lib/measurements";
 import { DetailRow, GarmentStyle, Gender } from "@/lib/types";
 import { curveArcLengthCm, DraftedPiece, Pt } from "./core";
+import { wearingEaseCm } from "./ease";
 import type { Translate } from "@/lib/i18n/translate";
 
 const cm = (v: number) => `${v.toFixed(1).replace(".", ",")} cm`;
@@ -9,6 +10,10 @@ export interface BlockOpts {
   gender: Gender;
   knit: boolean;
   lengthCm: number;
+  // Total cm the bust circumference gains (or, for a stretchy knit, loses) —
+  // lib/draft/ease.ts's wearingEaseCm, resolved by the caller from the
+  // style's fit/stretch class. Shared with draftSleeve via the same opts.
+  wearingEaseCm: number;
 }
 
 function defaultOpts(m: Measurements): BlockOpts {
@@ -16,6 +21,7 @@ function defaultOpts(m: Measurements): BlockOpts {
     gender: "female",
     knit: false,
     lengthCm: m.backLength + m.hipHeight + 5,
+    wearingEaseCm: wearingEaseCm({}, false, m.bust),
   };
 }
 
@@ -33,9 +39,15 @@ function bodice(
   piece: DraftedPiece;
   armholeEdgeLenCm: number;
   armholeEdgeBaseLenCm: number;
+  halfChestCm: number;
 } {
-  const ease = style.seamAllowanceCm ?? 1;
-  const wearingEase = opts.knit ? 0 : 2;
+  const seamAllowanceCm = style.seamAllowanceCm ?? 1;
+  // #125: was the inline constant `opts.knit ? 0 : 2` -- now the caller
+  // (draftAll, lib/draft/garment.ts) resolves it from the style's
+  // fit/stretch class via wearingEaseCm and passes the TOTAL cm through
+  // opts; dividing by 4 gives the per-quarter figure this bodice adds to
+  // each of its four panels (front-left/right, back-left/right).
+  const wearingEase = opts.wearingEaseCm / 4;
   const halfChest = m.bust / 4 + wearingEase;
   const armholeDeepen = Math.max(0, style.armholeDeepenCm ?? 0);
   const armholeDepthBase = m.bust / 8 + (opts.gender === "male" ? 10.5 : 9.5);
@@ -114,7 +126,7 @@ function bodice(
   );
 
   const detailRows: DetailRow[] = [
-    { label: t("rows.seamAllowance"), value: cm(ease) },
+    { label: t("rows.seamAllowance"), value: cm(seamAllowanceCm) },
     { label: t("rows.chestWidth"), value: cm(halfChest * 2) },
     { label: t("rows.length"), value: cm(len) },
     { label: t("rows.armhole"), value: cm(armholeEdgeLenCm) },
@@ -159,6 +171,7 @@ function bodice(
     },
     armholeEdgeLenCm,
     armholeEdgeBaseLenCm,
+    halfChestCm: halfChest,
   };
 }
 
@@ -186,5 +199,9 @@ export function draftBody(
     back: c.piece,
     armholeLenCm: f.armholeEdgeLenCm + c.armholeEdgeLenCm,
     armholeBaseLenCm: f.armholeEdgeBaseLenCm + c.armholeEdgeBaseLenCm,
+    // Front and back share the same formula (it doesn't depend on
+    // `frontish`), so either's value is the garment's actual bust
+    // quarter-width; total bust girth is 4× this.
+    halfChestCm: f.halfChestCm,
   };
 }

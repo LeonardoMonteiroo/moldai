@@ -182,6 +182,18 @@
       "short": "curta",
       "long": "longa"
     },
+    "fit": {
+      "close": "justo",
+      "fitted": "ajustado",
+      "semiFitted": "semi-ajustado",
+      "loose": "solto"
+    },
+    "stretch": {
+      "none": "sem elasticidade",
+      "low": "elasticidade baixa",
+      "medium": "elasticidade média",
+      "high": "elasticidade alta"
+    },
     "grainValue": "reto",
     "conflict": {
       "title": "Cava e manga não batem",
@@ -212,6 +224,9 @@
     "chipGender": "Modelagem",
     "chipPieces": "Peças",
     "chipSeamAllowance": "Folga de costura",
+    "chipFit": "Caimento",
+    "chipFabric": "Tecido",
+    "chipEase": "Folga (busto)",
     "chipSizeChart": "Grade usada",
     "dimensionsLabel": "Dimensões (larg × alt)",
     "noDetails": "Sem detalhes.",

@@ -7,6 +7,8 @@ import {
   TYPES,
   GENDERS,
   STYLE_LIMITS,
+  FIT_CLASSES,
+  STRETCH_CLASSES,
 } from "@/lib/draft/garment";
 import { MEASUREMENT_RANGES } from "@/lib/measurements";
 
@@ -47,6 +49,8 @@ describe("propose_garment tool schema", () => {
     expect(style.neckline.enum).toEqual(NECKLINES);
     expect(style.sleeve.enum).toEqual(SLEEVES);
     expect(style.skirt.enum).toEqual(SKIRTS);
+    expect(style.fit.enum).toEqual(FIT_CLASSES);
+    expect(style.stretch.enum).toEqual(STRETCH_CLASSES);
   });
 
   it("offers all four decisions", () => {

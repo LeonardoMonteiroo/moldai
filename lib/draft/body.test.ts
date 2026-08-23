@@ -1,7 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { SIZE_TABLE } from "@/lib/measurements";
+import { SIZE_TABLE, Measurements } from "@/lib/measurements";
 import { draftBody, BlockOpts } from "./body";
 import { bbox, Pt } from "./core";
+import { FIT_CLASSES, FIT_EASE_CM, wearingEaseCm } from "./ease";
+import type { FitClass } from "@/lib/types";
 import { t } from "@/lib/i18n/test-translate";
 
 const M = SIZE_TABLE.M;
@@ -9,6 +11,7 @@ const optsM: BlockOpts = {
   gender: "female",
   knit: false,
   lengthCm: M.backLength + M.hipHeight + 5,
+  wearingEaseCm: 8, // FIT_EASE_CM.fitted.bust (lib/draft/ease.ts) -- today's default
 };
 
 // smallest central y = neckline base (front/back)
@@ -104,5 +107,56 @@ describe("draftBody sloper", () => {
     expect(hemIdx).toHaveLength(2);
     expect(hemIdx[1] - hemIdx[0]).toBe(1);
     expect(edgeCurved(hemIdx[0])).toBe(false);
+  });
+});
+
+// #125: bust girth is 4× halfChestCm (four quarter-panels: front-left/right,
+// back-left/right), and the drafter's only ease knob is opts.wearingEaseCm --
+// asserting against the DRAFTED geometry (not just wearingEaseCm's own return
+// value, covered separately in ease.test.ts) is what the issue's acceptance
+// criteria asks for.
+function optsFor(m: Measurements, style: { fit?: FitClass }): BlockOpts {
+  return {
+    gender: "female",
+    knit: false,
+    lengthCm: m.backLength + m.hipHeight + 5,
+    wearingEaseCm: wearingEaseCm(style, false, m.bust),
+  };
+}
+
+describe("fit class / fabric stretch ease (#125)", () => {
+  it.each(FIT_CLASSES)(
+    "drafted bust girth equals body bust + the %s class's table ease",
+    (fit) => {
+      const { halfChestCm } = draftBody(M, { fit }, t, optsFor(M, { fit }));
+      const bustGirth = halfChestCm * 4;
+      expect(bustGirth).toBeCloseTo(M.bust + FIT_EASE_CM[fit].bust, 1);
+    },
+  );
+
+  it("a knit at the highest stretch band drafts below the body measurement", () => {
+    const opts: BlockOpts = {
+      ...optsM,
+      knit: true,
+      wearingEaseCm: wearingEaseCm({ stretch: "high" }, true, M.bust),
+    };
+    const { halfChestCm } = draftBody(M, { stretch: "high" }, t, opts);
+    expect(halfChestCm * 4).toBeLessThan(M.bust);
+  });
+
+  it("ease is invariant across a graded run -- same fit class, same absolute ease in cm at PP and GG", () => {
+    const pp = SIZE_TABLE.PP;
+    const gg = SIZE_TABLE.GG;
+    const style: { fit: FitClass } = { fit: "semiFitted" };
+    const small = draftBody(pp, style, t, optsFor(pp, style));
+    const big = draftBody(gg, style, t, optsFor(gg, style));
+    const easeSmall = small.halfChestCm * 4 - pp.bust;
+    const easeBig = big.halfChestCm * 4 - gg.bust;
+    expect(easeBig).toBeCloseTo(easeSmall, 1);
+  });
+
+  it("the default fit class reproduces today's bust girth exactly (bust + 8)", () => {
+    const { halfChestCm } = draftBody(M, {}, t, optsM);
+    expect(halfChestCm * 4).toBeCloseTo(M.bust + 8, 5);
   });
 });

@@ -6,9 +6,13 @@ import type { Translate } from "@/lib/i18n/translate";
 
 const cm = (v: number) => `${v.toFixed(1).replace(".", ",")} cm`;
 
-// #139: until #125 lands a real fit-class/fabric-stretch ease table, these
-// are fixed, documented constants in one named place, per that issue's
-// decision. Bicep has no measured key yet either (see #132), so it is
+// #139: fixed, documented constants in one named place. #125 gave the bodice
+// a real fit-class/fabric-stretch ease table (lib/draft/ease.ts's
+// FIT_EASE_CM/STRETCH_EASE_PCT), but it is gender-blind and bicep ease here
+// is not (wovenFemale/wovenMale differ) -- collapsing the two would need a
+// gender-aware mapping #125 doesn't specify, a new design decision this
+// constant deliberately leaves for whoever unifies bicep ease with the
+// bodice's. Bicep has no measured key yet either (see #132), so it is
 // approximated as a proportion of bust girth — a common quick-draft rule
 // (upper-arm circumference is roughly 30% of bust circumference) — plus
 // wearing ease, rather than as a fraction of the armhole the way it used to
@@ -62,7 +66,14 @@ export function draftSleeve(
   style: GarmentStyle,
   armholeLenCm: number,
   t: Translate,
-  opts: BlockOpts = { gender: "female", knit: false, lengthCm: 0 },
+  // wearingEaseCm is unused here -- this drafter has its own independent
+  // bicep-ease table (WEARING_EASE_CM above), not lib/draft/ease.ts's.
+  opts: BlockOpts = {
+    gender: "female",
+    knit: false,
+    lengthCm: 0,
+    wearingEaseCm: 8,
+  },
 ): DraftedPiece | null {
   if (style.sleeve === "none" || !style.sleeve) return null;
   const wearingEase = opts.knit

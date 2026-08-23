@@ -6,6 +6,8 @@ import {
   SLEEVES,
   SKIRTS,
   STYLE_LIMITS,
+  FIT_CLASSES,
+  STRETCH_CLASSES,
 } from "@/lib/draft/garment";
 import { MEASUREMENT_RANGES } from "@/lib/measurements";
 import { COSTS } from "@/lib/types";
@@ -59,6 +61,8 @@ ${MEASUREMENT_LINES}
   - darts: boolean
   - seamAllowanceCm: ${fmtRange(STYLE_LIMITS.seamAllowanceCm)}
   - armholeDeepenCm: ${fmtRange(STYLE_LIMITS.armholeDeepenCm)} — deepens the body's armhole; use when asked to increase/lower/deepen the armhole. It only affects the body, so the sleeve cap may stop matching and trigger a seam-conflict warning: that's expected, the user resolves it with the sleeve-fix action.
+  - fit (woven garments — blouse/dress/skirt bodice): ${FIT_CLASSES.join(" | ")}. How loose the garment is drafted relative to the body. Default fitted. ALWAYS express a looser/tighter/closer-fitting request through this field — never by inflating measurementOverrides, which would corrupt the recorded body measurements instead of changing the garment's ease.
+  - stretch (knit garments — tshirt): ${STRETCH_CLASSES.join(" | ")}. How much negative ease the fabric tolerates (a stretchier fabric can be drafted smaller than the body and still fit). Default none.
 
 # Vocabulary mapping
 

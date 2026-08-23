@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 import { Pattern } from "@/lib/types";
 import { buildExportModel } from "@/lib/export/model";
+import { wearingEaseCm } from "@/lib/draft/garment";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 
@@ -22,6 +23,21 @@ export function TechSheetTab({ pattern }: { pattern: Pattern }) {
 
   const totalPieces = pattern.pieces.reduce((s, p) => s + p.qty, 0);
   const folga = pattern.spec?.style.seamAllowanceCm ?? 1;
+
+  // #125: fit/stretch only apply to the bodice (blouse/dress/tshirt) --
+  // draftSkirt never reads either, so a pure skirt pattern shows neither
+  // chip rather than a number that doesn't correspond to anything drafted.
+  const knit = pattern.spec?.type === "tshirt";
+  const hasBodice =
+    pattern.spec &&
+    (pattern.spec.type === "blouse" ||
+      pattern.spec.type === "dress" ||
+      pattern.spec.type === "tshirt");
+  const baseBustCm = pattern.sizeTable[pattern.baseSize]?.bust;
+  const easeCm =
+    hasBodice && pattern.spec && baseBustCm !== undefined
+      ? wearingEaseCm(pattern.spec.style, knit, baseBustCm)
+      : undefined;
 
   return (
     <ScrollArea className="min-h-0 flex-1">
@@ -52,6 +68,21 @@ export function TechSheetTab({ pattern }: { pattern: Pattern }) {
             />
             <Chip label={t("chipPieces")} value={`${totalPieces}`} />
             <Chip label={t("chipSeamAllowance")} value={`${cm(folga)} cm`} />
+            {hasBodice && (
+              <Chip
+                label={knit ? t("chipFabric") : t("chipFit")}
+                value={
+                  knit
+                    ? tData(
+                        "stretch." + (pattern.spec!.style.stretch ?? "none"),
+                      )
+                    : tData("fit." + (pattern.spec!.style.fit ?? "fitted"))
+                }
+              />
+            )}
+            {easeCm !== undefined && (
+              <Chip label={t("chipEase")} value={`${cm(easeCm)} cm`} />
+            )}
             {/* Absent on patterns drafted before the snapshot recorded it —
                 omitted rather than guessed at. */}
             {pattern.sizeChartName && (

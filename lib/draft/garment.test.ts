@@ -83,6 +83,44 @@ describe("validateSpec", () => {
       }).style.armholeDeepenCm,
     ).toBe(0);
   });
+  it("falls back to the fitted/none defaults on invalid fit/stretch enums", () => {
+    const s = validateSpec({
+      type: "blouse",
+      style: { fit: "baggy", stretch: "extreme" },
+      measurementOverrides: {},
+    });
+    expect(s.style.fit).toBe("fitted");
+    expect(s.style.stretch).toBe("none");
+  });
+  it("accepts every valid fit and stretch class", () => {
+    for (const fit of ["close", "fitted", "semiFitted", "loose"] as const) {
+      expect(
+        validateSpec({
+          type: "blouse",
+          style: { fit },
+          measurementOverrides: {},
+        }).style.fit,
+      ).toBe(fit);
+    }
+    for (const stretch of ["none", "low", "medium", "high"] as const) {
+      expect(
+        validateSpec({
+          type: "tshirt",
+          style: { stretch },
+          measurementOverrides: {},
+        }).style.stretch,
+      ).toBe(stretch);
+    }
+  });
+  it("leaves fit/stretch undefined when the spec doesn't mention them", () => {
+    const s = validateSpec({
+      type: "blouse",
+      style: {},
+      measurementOverrides: {},
+    });
+    expect(s.style.fit).toBeUndefined();
+    expect(s.style.stretch).toBeUndefined();
+  });
   it("clamps numeric style fields to the exported STYLE_LIMITS bounds", () => {
     const s = validateSpec({
       type: "dress",

@@ -6,6 +6,8 @@ import {
   SLEEVES,
   SKIRTS,
   STYLE_LIMITS,
+  FIT_CLASSES,
+  STRETCH_CLASSES,
 } from "@/lib/draft/garment";
 import { MEASUREMENT_RANGES } from "@/lib/measurements";
 
@@ -86,6 +88,8 @@ export const TOOL: Anthropic.Tool = {
               skirtLengthCm: bounded(STYLE_LIMITS.skirtLengthCm),
               darts: { type: "boolean" },
               seamAllowanceCm: bounded(STYLE_LIMITS.seamAllowanceCm),
+              fit: { type: "string", enum: [...FIT_CLASSES] },
+              stretch: { type: "string", enum: [...STRETCH_CLASSES] },
               armholeDeepenCm: bounded(STYLE_LIMITS.armholeDeepenCm),
             },
           },

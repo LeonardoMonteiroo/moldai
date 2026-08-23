@@ -35,6 +35,7 @@ describe("draftSleeve bell cap", () => {
       gender: "female",
       knit: false,
       lengthCm: 0,
+      wearingEaseCm: 8, // unused by this drafter -- see sleeve.ts's own WEARING_EASE_CM
     })!;
     expect(bbox(sleeve.outlineCm).w).toBeGreaterThanOrEqual(30);
   });
@@ -45,6 +46,7 @@ describe("draftSleeve bell cap", () => {
       gender: "female",
       knit: false,
       lengthCm: 0,
+      wearingEaseCm: 8, // unused by this drafter -- see sleeve.ts's own WEARING_EASE_CM
     })!;
     const measuredCapArcCm = curveArcLengthCm(
       sleeve.outlineCm,
@@ -61,11 +63,13 @@ describe("draftSleeve bell cap", () => {
       gender: "female",
       knit: false,
       lengthCm: 0,
+      wearingEaseCm: 8, // unused by this drafter -- see sleeve.ts's own WEARING_EASE_CM
     })!;
     const knit = draftSleeve(M, { sleeve: "short" }, 39.3, t, {
       gender: "female",
       knit: true,
       lengthCm: 0,
+      wearingEaseCm: 0, // unused by this drafter -- see sleeve.ts's own WEARING_EASE_CM
     })!;
     expect(bbox(knit.outlineCm).w).not.toBeCloseTo(bbox(woven.outlineCm).w, 3);
   });

@@ -128,4 +128,14 @@ describe("buildSystem", () => {
     expect(s).toContain("BLANK pattern");
     expect(s).toContain("a question still gets decision=explain");
   });
+
+  // #125: the AI's only lever for "looser"/"more fitted" must be the fit
+  // class, not measurementOverrides -- inflating the recorded body
+  // measurements to fake ease corrupts the frozen sizeTable snapshot.
+  it("instructs the model to express fit via the fit class, never via measurementOverrides", () => {
+    const s = buildSystem(state(0), false);
+    expect(s).toContain("fit (woven garments");
+    expect(s).toContain("never by inflating measurementOverrides");
+    expect(s).toContain("stretch (knit garments");
+  });
 });

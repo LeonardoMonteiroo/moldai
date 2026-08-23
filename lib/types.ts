@@ -34,6 +34,13 @@ export type Neckline = "straight" | "V" | "round";
 export type SleeveLength = "none" | "short" | "long";
 export type SkirtSilhouette =
   "straight" | "a-line" | "gore" | "half-circle" | "circle";
+// #125: how loose the body/bodice is drafted relative to the body measurement.
+// A closed enum (not a numeric cm/percent field) so the AI expresses fit
+// through a named class rather than by inflating measurementOverrides to fake
+// ease. fit governs woven garments; stretch governs knit ones -- see
+// lib/draft/garment.ts's FIT_EASE_CM / STRETCH_EASE_PCT.
+export type FitClass = "close" | "fitted" | "semiFitted" | "loose";
+export type StretchClass = "none" | "low" | "medium" | "high";
 
 export interface ClarifyQuestion {
   id: string;
@@ -50,6 +57,8 @@ export interface GarmentStyle {
   skirtLengthCm?: number;
   darts?: boolean;
   seamAllowanceCm?: number;
+  fit?: FitClass;
+  stretch?: StretchClass;
   // Deepening of the body's armhole (cm), settable by the AI and clamped in
   // validateSpec. Since it only touches the body, the sleeve cap (sized from the
   // base armhole) stops matching → seam conflict detected by seamCheck.

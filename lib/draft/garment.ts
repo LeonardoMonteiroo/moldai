@@ -17,6 +17,7 @@ import { autoLayout, DraftedPiece } from "./core";
 import { BlockOpts, draftBody } from "./body";
 import { draftSleeve } from "./sleeve";
 import { draftSkirt } from "./skirt";
+import { FIT_CLASSES, STRETCH_CLASSES, wearingEaseCm } from "./ease";
 import type { Translate } from "@/lib/i18n/translate";
 
 export const TYPES: GarmentType[] = ["blouse", "dress", "skirt", "tshirt"];
@@ -30,6 +31,20 @@ export const SKIRTS: SkirtSilhouette[] = [
   "half-circle",
   "circle",
 ];
+// #125: FIT_CLASSES/STRETCH_CLASSES/FIT_EASE_CM/STRETCH_EASE_PCT/wearingEaseCm
+// live in ./ease, a leaf module with no dependency on this file or on
+// body.ts — body.ts needs them too (the actual drafting), and it's a
+// drafter this file already imports, so defining them here would cycle.
+// Re-exported so every existing importer (lib/ai's prompt/schema, this
+// file's own validateSpec, TechSheetTab) keeps reading one place, matching
+// how STYLE_LIMITS below is quoted verbatim by the AI layer.
+export {
+  FIT_CLASSES,
+  STRETCH_CLASSES,
+  FIT_EASE_CM,
+  STRETCH_EASE_PCT,
+  wearingEaseCm,
+} from "./ease";
 
 // Clamp bounds validateSpec applies to numeric style fields. Exported so the
 // AI layer (lib/ai) quotes the same numbers in its prompt and tool schema —
@@ -97,6 +112,14 @@ export function validateSpec(raw: unknown): GarmentSpec {
           )
         : undefined,
     darts: typeof style.darts === "boolean" ? style.darts : undefined,
+    fit:
+      style.fit !== undefined
+        ? pick(style.fit, FIT_CLASSES, "fitted")
+        : undefined,
+    stretch:
+      style.stretch !== undefined
+        ? pick(style.stretch, STRETCH_CLASSES, "none")
+        : undefined,
     armholeDeepenCm:
       style.armholeDeepenCm !== undefined
         ? clamp(
@@ -176,7 +199,6 @@ function draftAll(
       spec.type === "dress"
         ? measurements.backLength
         : measurements.backLength + measurements.hipHeight + 5;
-    const opts: BlockOpts = { gender, knit, lengthCm };
     // T-shirt base model: round neckline, no darts, short sleeve by default.
     const style: GarmentStyle =
       spec.type === "tshirt"
@@ -187,6 +209,12 @@ function draftAll(
             sleeve: spec.style.sleeve ?? "short",
           }
         : spec.style;
+    const opts: BlockOpts = {
+      gender,
+      knit,
+      lengthCm,
+      wearingEaseCm: wearingEaseCm(style, knit, measurements.bust),
+    };
     const {
       front,
       back,
