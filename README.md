@@ -1,15 +1,14 @@
 # MoldAI
 
-AI-powered 2D pattern editor (chat → GarmentSpec → sewing pieces). Next.js 16 (App Router) + TypeScript, real auth (Auth.js v5 + Postgres/Prisma), and per-user molde persistence (Postgres/Prisma). Only billing/credits remain a mock top-up (Phase C pending).
+AI-powered 2D pattern editor (chat → GarmentSpec → sewing pieces): generate/adjust sewing patterns, grade sizes, and export to Audaces/Molde.me/plotter/PDF. Next.js 16 (App Router) + TypeScript, real auth (Auth.js v5 + Postgres/Prisma), per-account pattern persistence (Postgres/Prisma), and a real per-account Wallet + append-only Transaction ledger. **The only mock left is the payment gateway** — "purchase"/"subscribe" simulate instant success instead of charging a card.
+
+Shipped screens: the pattern editor (`/pattern/[id]`), the dashboard (`/`), account settings and credit management (`/settings`), the size-chart library (`/size-charts`), and saved atelier bases (`/slopers`).
 
 ## Prerequisites
 
 - Node 22 (host flow) and/or Docker Desktop (containerized flow).
-- `.env.local` at the repo root with:
-  - `ANTHROPIC_API_KEY` — Anthropic API key (chat uses `claude-sonnet-5`).
-  - `AUTH_SECRET` — Auth.js secret (`npx auth secret` or `openssl rand -base64 32`).
-  - `POSTGRES_PASSWORD` / `REDIS_PASSWORD` — required, no default (`openssl rand -hex 20` each). The Docker stack fails to start without them rather than falling back to a weak, previously-committed password.
-  - `DATABASE_URL` — `postgresql://moldai:<POSTGRES_PASSWORD>@localhost:5433/moldai?schema=public` (host flow; must carry the same password as `POSTGRES_PASSWORD` above).
+- `.env.local` at the repo root — copy `.env.example` as a starting point; it documents every variable inline. The required core is `ANTHROPIC_API_KEY`, `AUTH_SECRET`, `POSTGRES_PASSWORD`, `REDIS_PASSWORD`, and `DATABASE_URL` (host flow only — see below).
+- **The production stack additionally needs `APP_URL` and `SMTP_HOST`** (plus `SMTP_PORT`/`SMTP_USER`/`SMTP_PASS`/`SMTP_FROM` for a real SMTP server). `docker-compose.prod.yml` sets `NODE_ENV=production`, and in production both `verificationLink` and `sendMail` (`lib/mail/send.ts`) throw `MailUnavailableError` rather than silently falling back — so `npm run docker:prod` with either unset makes every `POST /api/signup` answer HTTP 503 `mail_unavailable`, and no account can be created. `docker-compose.prod.yml` inherits `env_file: .env.local` from the base compose file, so `.env.local` is the right place for both.
 
 ## Run with Docker (app + Postgres together)
 
@@ -103,4 +102,4 @@ npm run smoke        # just the login checker, against a server already running 
 
 ## Architecture
 
-See `CLAUDE.md` for the architecture decisions. Auth, users, and the molde are real (Postgres/Prisma); billing/credits remain a mock top-up until Phase C.
+See `CLAUDE.md` for the architecture decisions. Auth, users, patterns, and billing (a real Wallet + Transaction ledger) are all real (Postgres/Prisma); only the payment gateway is mocked.
