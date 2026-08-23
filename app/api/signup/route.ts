@@ -33,14 +33,18 @@ function fail(error: SignupErrorCode, headers?: HeadersInit) {
 }
 
 export async function POST(request: Request) {
-  const body = await readJsonObject(request);
-  if (body instanceof NextResponse) return fail("bad_body");
-
-  // Consume before any real work: no row creation, no bcrypt, no mail.
+  // #65: consumed before readJsonObject, matching both /api/verify-email
+  // routes -- no row creation, no bcrypt, no mail, and now no body parsing
+  // either. readJsonObject bounds body size on its own (#55/#65's shared
+  // fix), so this ordering is a consistency match with the two sibling
+  // routes rather than the DoS mitigation the original report described.
   const byIp = await consume("signup", clientIp(request.headers));
   if (!byIp.allowed) {
     return fail("rate_limited", { "Retry-After": String(byIp.retryAfterSec) });
   }
+
+  const body = await readJsonObject(request);
+  if (body instanceof NextResponse) return fail("bad_body");
 
   // A malformed address gets no email bucket -- createAccount rejects it below.
   const email = normalizeEmail(body.email);

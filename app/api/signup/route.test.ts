@@ -186,6 +186,30 @@ describe("POST /api/signup", () => {
     expect(createUser).not.toHaveBeenCalled();
   });
 
+  // #65: consume("signup", ...) used to run AFTER readJsonObject, so an
+  // exhausted IP bucket still paid for parsing the body first. Sending a
+  // literal null body (which 400s if it's ever actually parsed) alongside
+  // an exhausted bucket proves the ordering: a 429 here means the bucket
+  // check happened before the body was ever touched.
+  it("429s on an exhausted IP bucket before the body is parsed", async () => {
+    vi.mocked(consume).mockResolvedValueOnce({
+      allowed: false,
+      retryAfterSec: 900,
+    });
+    const res = await POST(
+      new Request("http://test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "null",
+      }),
+    );
+    expect(res.status).toBe(429);
+    expect(await res.json()).toEqual({
+      status: "error",
+      error: "rate_limited",
+    });
+  });
+
   it("429s when only the email bucket is exhausted", async () => {
     vi.mocked(consume).mockImplementation(async (bucket) => ({
       allowed: bucket !== "signup_email",

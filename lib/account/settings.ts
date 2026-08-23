@@ -1,5 +1,11 @@
 const MAX_NAME_LENGTH = 80;
 const MIN_PASSWORD_LENGTH = 8;
+// #55: only a minimum was ever enforced -- an unbounded password reaches
+// bcrypt on both the signup and password-change paths (this function's two
+// callers) with nothing capping the input size. 200 is a sanity/DoS bound,
+// not a correctness fix for bcrypt's own well-known 72-byte truncation,
+// which is out of scope here.
+const MAX_PASSWORD_LENGTH = 200;
 
 export function validateName(name: unknown): string | null {
   if (typeof name !== "string") return null;
@@ -9,7 +15,11 @@ export function validateName(name: unknown): string | null {
 }
 
 export function validateNewPassword(password: unknown): password is string {
-  return typeof password === "string" && password.length >= MIN_PASSWORD_LENGTH;
+  return (
+    typeof password === "string" &&
+    password.length >= MIN_PASSWORD_LENGTH &&
+    password.length <= MAX_PASSWORD_LENGTH
+  );
 }
 
 export interface PasswordDeps {

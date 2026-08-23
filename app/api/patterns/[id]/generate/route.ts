@@ -14,7 +14,7 @@ import { debitWallet, refundWallet } from "@/lib/billing/wallet";
 import type { LedgerEntry } from "@/lib/billing/wallet";
 import { composeEditorState } from "@/lib/api/compose";
 import { apiError } from "@/lib/api/errors";
-import { COSTS } from "@/lib/types";
+import { COSTS, MAX_CHAT_MESSAGE_LENGTH } from "@/lib/types";
 import { proposeGarment } from "@/lib/ai";
 import { requireUser } from "@/lib/auth/guard";
 import { reportError } from "@/lib/observability/report";
@@ -33,6 +33,19 @@ export async function POST(request: Request, { params }: Ctx) {
   // jsonb write inside savePattern -- by then the paid Anthropic call has
   // already run and billed. Reject it here, before any of that happens.
   if (!trimmed || hasNulByte(trimmed)) return apiError("missing_message", 400);
+  // #55: presence was checked, length never was -- a large paste gets
+  // appended to the pattern's chat, re-serialised on every subsequent save,
+  // shipped in full on every load, and eventually rejected by Anthropic on
+  // context length, bricking the pattern until it rolls out of
+  // HISTORY_WINDOW. A new code is safe without a catalog entry: sendMessage's
+  // catch (lib/store.ts) only ever sets generationStatus:"error", and
+  // ChatPanel renders one fixed t("generationError") bubble for it -- the
+  // wire code lands in store state but is never resolved through a catalog
+  // lookup here, unlike the dashboard/size-charts/slopers stores' actionError
+  // + ActionErrorNotice (see #56).
+  if (trimmed.length > MAX_CHAT_MESSAGE_LENGTH) {
+    return apiError("message_too_long", 400);
+  }
   const answering = body.answering === true;
   const cost = COSTS.adjust;
   const t = await getTranslations("PatternData");

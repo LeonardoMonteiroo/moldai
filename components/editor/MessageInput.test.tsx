@@ -6,6 +6,7 @@ import {
   userEvent,
 } from "@/components/test-utils";
 import { MessageInput } from "./MessageInput";
+import { MAX_CHAT_MESSAGE_LENGTH } from "@/lib/types";
 
 describe("MessageInput", () => {
   // The app's primary interaction is describing a garment; a single-line
@@ -61,6 +62,17 @@ describe("MessageInput", () => {
     );
 
     expect(onSend).toHaveBeenCalledWith("uma blusa");
+  });
+
+  // #55: the field had no maxLength at all -- a large paste got appended to
+  // the pattern's chat with nothing stopping it client-side, matching how
+  // PatternCard/Footer/SloperCard cap their rename inputs at
+  // MAX_PATTERN_NAME_LENGTH.
+  it("caps input at MAX_CHAT_MESSAGE_LENGTH", () => {
+    renderWithIntl(<MessageInput disabled={false} onSend={vi.fn()} />);
+    expect(
+      screen.getByPlaceholderText(ptBR.MessageInput.placeholder),
+    ).toHaveAttribute("maxLength", String(MAX_CHAT_MESSAGE_LENGTH));
   });
 
   it("sends nothing while a generation is in flight", async () => {

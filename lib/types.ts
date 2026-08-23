@@ -276,6 +276,23 @@ export const MAX_PATTERN_NAME_LENGTH = 80;
  */
 export const MAX_PATTERNS_LISTED = 500;
 
+/**
+ * #55: a chat message had no length cap at all -- `presence` was checked
+ * (`!trimmed`), `length` never was. Paste a large document into the
+ * composer and it's appended to the pattern blob by addMessage; savePattern
+ * re-serialises the whole blob on every subsequent mutation,
+ * composeEditorState ships the whole chat array on every load, and
+ * buildHistory feeds it to Anthropic, which rejects the request on context
+ * length -- the route's catch refunds and answers status:"error" for the
+ * next several turns until the message rolls out of HISTORY_WINDOW. The
+ * pattern is effectively bricked while staying permanently fat. ~2000 chars
+ * is generous for a garment description, matching the cap-and-truncate
+ * convention MAX_PATTERN_NAME_LENGTH already sets: MessageInput's Textarea
+ * gets the same value as its maxLength, so the client stops you before the
+ * server has to.
+ */
+export const MAX_CHAT_MESSAGE_LENGTH = 2000;
+
 // #108: `generate` and `cuttingPlan` used to exist here too, but nothing
 // ever debited them — the first draft of a pattern debits `adjust` like
 // every later AI-driven change, and the cut plan is computed client-side,

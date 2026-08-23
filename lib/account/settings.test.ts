@@ -44,6 +44,16 @@ describe("validateNewPassword", () => {
     expect(validateNewPassword(12345678)).toBe(false);
     expect(validateNewPassword(undefined)).toBe(false);
   });
+
+  // #55: only a minimum was ever enforced -- an unbounded password reached
+  // bcrypt on both the signup and password-change paths with nothing
+  // capping input size.
+  it("accepts a password exactly at the 200-character cap", () => {
+    expect(validateNewPassword("a".repeat(200))).toBe(true);
+  });
+  it("rejects a password over the 200-character cap", () => {
+    expect(validateNewPassword("a".repeat(201))).toBe(false);
+  });
 });
 
 describe("changePassword", () => {

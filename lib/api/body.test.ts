@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { NextResponse } from "next/server";
-import { readJsonObject, hasNulByte } from "./body";
+import { readJsonObject, hasNulByte, MAX_BODY_BYTES } from "./body";
 
 // A literal control character in a source file is awkward and some tooling
 // rejects it -- build it at runtime instead, per this module's own comment.
@@ -53,6 +53,76 @@ describe("readJsonObject", () => {
 
   it("rejects an absent body", async () => {
     const body = await readJsonObject(req(undefined));
+    expect(body).toBeInstanceOf(NextResponse);
+    expect(await code(body as NextResponse)).toBe("bad_body");
+  });
+});
+
+// #65/#55: readJsonObject used to buffer and JSON.parse an unbounded body
+// for every route -- a handful of concurrent oversized POSTs (e.g. to the
+// unauthenticated /api/signup) could OOM the single app container before
+// the rate limiter even ran.
+//
+// The ceiling below is a literal 65536, not the imported MAX_BODY_BYTES:
+// computing test fixtures FROM the same constant the fix reads from would
+// make these tests pass vacuously if that constant ever went missing
+// (`undefined + 1` -> NaN -> "x".repeat(NaN) silently becomes "", per the
+// #101 lesson elsewhere in this repo). A separate assertion below still
+// pins the exported constant to that literal.
+describe("readJsonObject body-size ceiling", () => {
+  const CEILING = 65536;
+
+  it("MAX_BODY_BYTES is 65536 (64 KB)", () => {
+    expect(MAX_BODY_BYTES).toBe(CEILING);
+  });
+
+  it("accepts a body right at the ceiling", async () => {
+    // {"name":"..."} plus padding, landing exactly at the ceiling.
+    const padding = "x".repeat(CEILING - JSON.stringify({ name: "" }).length);
+    const raw = JSON.stringify({ name: padding });
+    expect(Buffer.byteLength(raw)).toBe(CEILING);
+    const body = await readJsonObject(req(raw));
+    expect(body).not.toBeInstanceOf(NextResponse);
+  });
+
+  // Deliberately still *valid* JSON once past the ceiling (a real object,
+  // not a truncated blob) -- otherwise this would pass even against the
+  // pre-fix code for the wrong reason (malformed JSON always 400s) and
+  // never actually exercise the size check.
+  it("rejects a body over the ceiling via a declared Content-Length, without reading it", async () => {
+    const raw = JSON.stringify({ name: "x".repeat(CEILING + 1) });
+    const body = await readJsonObject(req(raw));
+    expect(body).toBeInstanceOf(NextResponse);
+    expect((body as NextResponse).status).toBe(400);
+    expect(await code(body as NextResponse)).toBe("bad_body");
+  });
+
+  // A client fully controls whether it declares Content-Length -- a chunked
+  // body with no header at all must be bounded the same way, by counting
+  // bytes as they stream in, not just by trusting a header that could lie
+  // (or simply be absent). Same "still valid JSON" requirement as above.
+  it("rejects an over-ceiling body streamed with no Content-Length header", async () => {
+    const raw = JSON.stringify({ name: "x".repeat(CEILING + 1) });
+    const bytes = new TextEncoder().encode(raw);
+    const chunkSize = 1024;
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        for (let i = 0; i < bytes.byteLength; i += chunkSize) {
+          controller.enqueue(bytes.slice(i, i + chunkSize));
+        }
+        controller.close();
+      },
+    });
+    const request = new Request("http://test/api/thing", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: stream,
+      // @ts-expect-error -- required by undici for a streaming body, not
+      // part of the standard RequestInit type.
+      duplex: "half",
+    });
+    expect(request.headers.get("content-length")).toBeNull();
+    const body = await readJsonObject(request);
     expect(body).toBeInstanceOf(NextResponse);
     expect(await code(body as NextResponse)).toBe("bad_body");
   });

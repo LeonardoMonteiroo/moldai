@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { seedPatternState } from "@/lib/editor/state";
+import { MAX_CHAT_MESSAGE_LENGTH } from "@/lib/types";
 import { seedWallet } from "@/lib/billing/wallet";
 import { t } from "@/lib/i18n/test-translate";
 import type { PatternState } from "@/lib/types";
@@ -271,6 +272,35 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect((await res.json()).error).toBe("missing_message");
     expect(wallet.balance).toBe(balanceBefore);
     expect(mockPropose).not.toHaveBeenCalled();
+  });
+
+  // #55: presence was checked, length never was -- a large paste got
+  // appended to the pattern's chat, re-serialised on every subsequent save
+  // and shipped in full on every load, eventually rejected by Anthropic on
+  // context length and bricking the pattern for several turns.
+  it("a message over MAX_CHAT_MESSAGE_LENGTH returns 400 without debiting or calling the AI", async () => {
+    const balanceBefore = wallet.balance;
+    const res = await POST(
+      req({ message: "a".repeat(MAX_CHAT_MESSAGE_LENGTH + 1) }),
+      ctx(),
+    );
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe("message_too_long");
+    expect(wallet.balance).toBe(balanceBefore);
+    expect(mockPropose).not.toHaveBeenCalled();
+  });
+
+  it("a message exactly at MAX_CHAT_MESSAGE_LENGTH is accepted", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "decline",
+      declineReason: "fora do escopo",
+    });
+    const res = await POST(
+      req({ message: "a".repeat(MAX_CHAT_MESSAGE_LENGTH) }),
+      ctx(),
+    );
+    expect(res.status).toBe(200);
+    expect(mockPropose).toHaveBeenCalled();
   });
 
   it("no session returns 401 without debiting or calling the AI", async () => {

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { COSTS } from "@/lib/types";
+import { COSTS, MAX_CHAT_MESSAGE_LENGTH } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -43,6 +43,7 @@ export function MessageInput({
           }
         }}
         rows={2}
+        maxLength={MAX_CHAT_MESSAGE_LENGTH}
         placeholder={t("placeholder")}
         className="bg-surface-alt max-h-[160px] min-h-0 resize-none py-[11px]"
       />
