@@ -96,7 +96,7 @@ describe("toSvg", () => {
   // segment straight back along the base -- a marking line that isn't part
   // of the dart and disagreed with the AAMA exporter's own open polyline
   // for the identical pattern.
-  it("dart path is open -- no trailing Z, unlike the outline", () => {
+  it("each dart path is open -- no trailing Z, unlike the outline", () => {
     const dartModel: ExportModel = {
       ...model,
       pieces: [
@@ -104,22 +104,31 @@ describe("toSvg", () => {
           ...model.pieces[0],
           id: "back",
           name: "Costas",
-          dart: [
-            { x: 3, y: 2 },
-            { x: 4, y: 6 },
-            { x: 5, y: 2 },
+          darts: [
+            [
+              { x: 3, y: 2 },
+              { x: 4, y: 6 },
+              { x: 5, y: 2 },
+            ],
+            [
+              { x: 6, y: 2 },
+              { x: 7, y: 6 },
+              { x: 8, y: 2 },
+            ],
           ],
         },
       ],
     };
     const svg = toSvg(dartModel);
-    const dartPath = svg
+    const dartPaths = svg
       .split("\n")
-      .find((l) => l.includes("<path ") && l.includes('stroke="#4a5a3a"'));
-    expect(dartPath).toBeDefined();
-    expect(dartPath).not.toContain("Z");
-    // 3 dart points -> M + 2 L commands only, no segment closing back to the first
-    expect(dartPath?.match(/[ML]\d/g)?.length).toBe(3);
+      .filter((l) => l.includes("<path ") && l.includes('stroke="#4a5a3a"'));
+    expect(dartPaths).toHaveLength(2); // one per dart
+    for (const dartPath of dartPaths) {
+      expect(dartPath).not.toContain("Z");
+      // 3 dart points -> M + 2 L commands only, no segment closing back to the first
+      expect(dartPath.match(/[ML]\d/g)?.length).toBe(3);
+    }
   });
 
   // #126: rendered as a dashed <line> (distinct dasharray from the

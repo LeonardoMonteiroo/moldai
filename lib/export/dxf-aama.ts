@@ -128,13 +128,15 @@ export function toDxfAama(model: ExportModel): string {
       p(21, Y(b.y));
     }
 
-    // dart -> open POLYLINE on layer 8 (internal line, not cut)
-    if (piece.dart && piece.dart.length >= 3) {
+    // dart -> open POLYLINE on layer 8 (internal line, not cut). #122: a
+    // fitted panel carries two darts, symmetric about its own centre line.
+    for (const dart of piece.darts ?? []) {
+      if (dart.length < 3) continue;
       p(0, "POLYLINE");
       p(8, "8");
       p(66, 1);
       p(70, 0);
-      for (const d of piece.dart) {
+      for (const d of dart) {
         p(0, "VERTEX");
         p(8, "8");
         p(10, X(d.x));

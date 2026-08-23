@@ -13,7 +13,11 @@ export interface DraftedPiece {
   curvedSpans?: [number, number][];
   guideCm?: Pt[];
   grainlineCm?: [Pt, Pt];
-  dartCm?: Pt[];
+  // #122: one entry per dart, each an open point list (>=3 points, first
+  // point repeated at the end for a double-ended/fisheye dart so it reads as
+  // closed without a synthetic straight-line base). Two mirrored darts on a
+  // fitted front/back panel, never a single one on the centre line.
+  dartsCm?: Pt[][];
   // #126: the two `outlineCm` indices bounding this piece's cut-on-fold line
   // (its own axis of symmetry) -- both indices must already exist in
   // outlineCm (additive metadata; drafters that need a fold endpoint with no
@@ -184,19 +188,21 @@ function place(dp: DraftedPiece, dxPx: number, dyPx: number): Piece {
       y2: PX(y2) + dyPx,
     };
   }
-  if (dp.dartCm && dp.dartCm.length >= 3) {
-    const dd = (polyPath(dp.dartCm) as { points: string }).points
-      .split(" ")
-      .map((p) => p.split(",").map(Number));
-    const [a, b, c] = dd;
-    // #87: open, not closed -- a dart is two legs meeting at a point, and
-    // the trailing Z drew a fourth segment straight back along the base
-    // that isn't part of the dart, mismatching the generic .dxf/svg/pdf
-    // exports (now also fixed) against the AAMA exporter, which was always
-    // open on layer 8.
-    piece.dart = {
-      d: `M${a[0] + dxPx} ${a[1] + dyPx} L${b[0] + dxPx} ${b[1] + dyPx} L${c[0] + dxPx} ${c[1] + dyPx}`,
-    };
+  const darts = (dp.dartsCm ?? []).filter((pts) => pts.length >= 3);
+  if (darts.length) {
+    // #87: open, not closed -- a dart is two legs meeting at a point, and a
+    // trailing Z would draw a segment straight back along the base that
+    // isn't part of the dart. A double-ended (fisheye) dart repeats its
+    // first point at the end of its own list instead, so it reads as closed
+    // without that synthetic base line.
+    piece.darts = darts.map((pts) => ({
+      d: pts
+        .map(
+          ([x, y], i) =>
+            `${i === 0 ? "M" : "L"}${PX(x) + dxPx} ${PX(y) + dyPx}`,
+        )
+        .join(" "),
+    }));
   }
   return piece;
 }

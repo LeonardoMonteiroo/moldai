@@ -87,7 +87,10 @@ export interface Piece {
   outline: PieceOutline;
   guideOutline?: PieceOutline;
   grainline?: { x1: number; y1: number; x2: number; y2: number };
-  dart?: { d: string };
+  // #122: an array, not a single dart -- a full front/back panel (qty 1,
+  // mirrored about its own centre line) takes two darts, symmetric about
+  // that centre, never one centred on it.
+  darts?: { d: string }[];
   label: { x: number; y: number };
   vertices?: Point[]; // outline anchors in px, for the measure tool's snap
   // #126: the two `vertices` indices bounding the piece's own cut-on-fold

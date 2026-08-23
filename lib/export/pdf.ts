@@ -112,14 +112,17 @@ export async function toPdf(
           dashArray: [4, 3],
         });
       }
-      // #87: open, not closed -- a dart is two legs meeting at a point;
-      // wrapping the last leg back to the first drew a fourth segment along
-      // the base that isn't part of the dart, matching neither the AAMA
-      // exporter's own layer-8 open polyline nor pattern-making convention.
-      if (pc.dart && pc.dart.length >= 3) {
-        for (let i = 0; i < pc.dart.length - 1; i++) {
-          const a = P(pc.dart[i].x, pc.dart[i].y);
-          const b = P(pc.dart[i + 1].x, pc.dart[i + 1].y);
+      // #87/#122: open, not closed -- a dart is two legs meeting at a
+      // point; wrapping the last leg back to the first drew a fourth
+      // segment along the base that isn't part of the dart, matching
+      // neither the AAMA exporter's own layer-8 open polyline nor
+      // pattern-making convention. A fitted panel carries two darts,
+      // symmetric about its own centre line.
+      for (const dart of pc.darts ?? []) {
+        if (dart.length < 3) continue;
+        for (let i = 0; i < dart.length - 1; i++) {
+          const a = P(dart[i].x, dart[i].y);
+          const b = P(dart[i + 1].x, dart[i + 1].y);
           page.drawLine({ start: a, end: b, thickness: 0.5, color: OLIVE });
         }
       }

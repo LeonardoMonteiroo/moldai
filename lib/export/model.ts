@@ -15,7 +15,9 @@ export interface ExportPiece {
   heightCm: number;
   outline: { start: ExPt; segs: ExSeg[] };
   grainline?: [ExPt, ExPt];
-  dart?: ExPt[];
+  // #122: one entry per dart -- a fitted front/back panel carries two,
+  // symmetric about its own centre line.
+  darts?: ExPt[][];
   // #126: the piece's cut-on-fold line, both endpoints already real outline
   // vertices (see DraftedPiece.foldEdge) -- absent on a piece with no fold
   // (e.g. a sleeve) or drafted before this existed.
@@ -135,8 +137,9 @@ export function buildExportModel(
       const [g1, g2] = dp.grainlineCm;
       ep.grainline = [P(shift(g1)), P(shift(g2))];
     }
-    if (dp.dartCm && dp.dartCm.length >= 3)
-      ep.dart = dp.dartCm.map((pt) => P(shift(pt)));
+    const darts = (dp.dartsCm ?? []).filter((pts) => pts.length >= 3);
+    if (darts.length)
+      ep.darts = darts.map((pts) => pts.map((pt) => P(shift(pt))));
     if (dp.foldEdge) {
       const [a, b] = dp.foldEdge;
       ep.fold = [P(shift(dp.outlineCm[a])), P(shift(dp.outlineCm[b]))];

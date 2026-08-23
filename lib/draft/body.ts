@@ -80,10 +80,15 @@ function bodice(
 
   const fitted = !!style.darts && !opts.knit;
   const waistY = m.backLength;
-  const waistHalf = Math.max(
-    halfChest - (m.hip / 4 - m.waist / 4),
-    halfChest - 3,
-  );
+  // #122: the panel's total waist suppression (bust/hip-driven, as before)
+  // is now split rather than applied in full twice over -- half narrows the
+  // side seam (waistHalf below), half is removed by the two darts together
+  // (dartsSuppression, used further down). The old formula put the FULL
+  // amount in waistHalf AND put it again, whole, in a single dart wedge.
+  const waistSuppression = Math.max(0, m.hip / 4 - m.waist / 4);
+  const sideSeamSuppression = waistSuppression * 0.5;
+  const dartsSuppression = waistSuppression * 0.5;
+  const waistHalf = Math.max(halfChest - sideSeamSuppression, halfChest - 3);
 
   const cx = Math.max(shoulderHalf, halfChest, hemHalf);
   const midArmY = shoulderSlope + (armholeDepth - shoulderSlope) * 0.55;
@@ -164,15 +169,49 @@ function bodice(
     { label: t("rows.grain"), value: t("grainValue") },
   ];
 
-  let dartCm: Pt[] | undefined;
+  // #122: two darts, symmetric about cx and offset toward the side seam --
+  // never one centred on the piece's own axis of symmetry, which a full
+  // front/back panel (qty 1, mirrored about cx) would render as a single
+  // wedge sitting on centre front/back, not a dart any pattern-maker would
+  // accept. `dartRiseCm` is the pre-existing single-dart apex offset,
+  // unchanged; `dartHalfWidth` is each dart's own half-width, the combined
+  // suppression (dartsSuppression) split across 2 darts x 2 legs each.
+  let dartsCm: Pt[][] | undefined;
   if (fitted) {
-    const dartW = Math.max(1.5, (m.hip / 4 - m.waist / 4) * 0.5);
-    dartCm = [
-      [cx - dartW, waistY],
-      [cx, waistY - 12],
-      [cx + dartW, waistY],
-    ];
-    detailRows.splice(4, 0, { label: t("rows.dart"), value: cm(dartW * 2) });
+    const dartOffset = waistHalf * 0.5;
+    const dartHalfWidth = Math.max(0.9, dartsSuppression / 8);
+    const dartRiseCm = 12;
+    const oneDart = (side: -1 | 1): Pt[] => {
+      const dx = cx + side * dartOffset;
+      if (isDressHem) {
+        // The hem IS the waist seam here (#79) -- the dart opens directly
+        // onto it: its wide end sits on the seam, tapering to a single
+        // point above. No seam to open onto below (there's nothing past the
+        // hem), so it can't be double-ended.
+        return [
+          [dx - dartHalfWidth, waistY],
+          [dx, waistY - dartRiseCm],
+          [dx + dartHalfWidth, waistY],
+        ];
+      }
+      // The piece continues past the waist (a blouse/t-shirt hem below it),
+      // so the dart touches no seam at all -- drafted as a double-ended
+      // (fisheye) diamond, closed at both ends, entirely internal to the
+      // piece. The first point repeats at the end so it renders as closed
+      // without a synthetic straight-line base (see core.ts's place()).
+      return [
+        [dx, waistY - dartRiseCm],
+        [dx + dartHalfWidth, waistY],
+        [dx, waistY + dartRiseCm],
+        [dx - dartHalfWidth, waistY],
+        [dx, waistY - dartRiseCm],
+      ];
+    };
+    dartsCm = [oneDart(-1), oneDart(1)];
+    detailRows.splice(4, 0, {
+      label: t("rows.dart"),
+      value: cm(dartHalfWidth * 2),
+    });
   }
 
   // Inset from the piece's OWN top edge at x=cx (the neckline base), not from
@@ -192,7 +231,7 @@ function bodice(
       outlineCm: pts,
       curvedSpans: spans,
       grainlineCm,
-      dartCm,
+      dartsCm,
       foldEdge: [cf, hemCenter],
       detailRows,
       armholeLenCm: armholeEdgeLenCm,

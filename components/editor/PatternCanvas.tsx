@@ -279,13 +279,14 @@ export function PatternCanvas({
                 style={{ strokeWidth: 1.2, strokeDasharray: "7 5" }}
               />
             )}
-            {piece.dart && (
+            {piece.darts?.map((dart, i) => (
               <path
-                d={piece.dart.d}
+                key={i}
+                d={dart.d}
                 className="stroke-olive fill-none"
                 style={{ strokeWidth: 1.2 }}
               />
-            )}
+            ))}
             {piece.foldEdge &&
               piece.vertices &&
               (() => {

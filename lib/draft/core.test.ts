@@ -120,21 +120,24 @@ describe("core drafting", () => {
   // fourth segment straight back along the base -- a marking line that
   // isn't part of the dart and mismatched every export format against the
   // AAMA exporter's own open polyline for the identical pattern.
-  it("autoLayout draws the dart open -- no trailing Z, unlike the outline", () => {
+  it("autoLayout draws each dart open -- no trailing Z, unlike the outline", () => {
     const withDart: DraftedPiece = {
       ...rect("back", 10, 20),
-      dartCm: [
-        [3, 2],
-        [4, 6],
-        [5, 2],
+      dartsCm: [
+        [
+          [3, 2],
+          [4, 6],
+          [5, 2],
+        ],
       ],
     };
     const { pieces } = autoLayout([withDart], 5);
     const piece = pieces[0];
-    expect(piece.dart).toBeDefined();
-    expect(piece.dart!.d).not.toMatch(/Z$/);
+    expect(piece.darts).toBeDefined();
+    expect(piece.darts).toHaveLength(1);
+    expect(piece.darts![0].d).not.toMatch(/Z$/);
     // exactly 3 dart points -> 1 M + 2 L commands
-    expect(piece.dart!.d.match(/[ML]/g)).toHaveLength(3);
+    expect(piece.darts![0].d.match(/[ML]/g)).toHaveLength(3);
   });
 
   it("autoLayout attaches vertices aligned to the outline's corners", () => {

@@ -87,10 +87,18 @@ describe("draftBody sloper", () => {
     expect(draftBody(M, {}, t, optsM).armholeLenCm).toBeGreaterThan(10);
   });
 
-  it("generates a dart when darts=true (non-knit)", () => {
-    expect(
-      draftBody(M, { darts: true }, t, optsM).front.dartCm?.length,
-    ).toBeGreaterThanOrEqual(3);
+  it("generates two mirrored darts when darts=true (non-knit)", () => {
+    const { front } = draftBody(M, { darts: true }, t, optsM);
+    expect(front.dartsCm).toHaveLength(2);
+    for (const dart of front.dartsCm!) {
+      expect(dart.length).toBeGreaterThanOrEqual(3);
+    }
+    // symmetric about the piece's own centre line (cx), never centred on it
+    const b = bbox(front.outlineCm);
+    const cx = (b.minX + b.maxX) / 2;
+    const [left, right] = front.dartsCm!;
+    expect(left.every(([x]) => x < cx)).toBe(true);
+    expect(right.every(([x]) => x > cx)).toBe(true);
   });
 
   it("has a straight hem and straight edges (anti-balloon invariant)", () => {

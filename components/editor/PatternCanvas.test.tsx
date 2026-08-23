@@ -175,15 +175,17 @@ describe("PatternCanvas piece labels", () => {
 // along the base -- a marking line that isn't part of the dart -- and
 // disagreed with every fixed export format.
 describe("PatternCanvas dart", () => {
-  it("renders the dart path unfilled and open, with no trailing Z", () => {
-    const pieceWithDart: Piece = {
+  it("renders each dart path unfilled and open, with no trailing Z", () => {
+    const pieceWithDarts: Piece = {
       ...widePiece,
-      dart: { d: "M30 20 L40 60 L50 20" },
+      darts: [{ d: "M30 20 L40 60 L50 20" }, { d: "M60 20 L70 60 L80 20" }],
     };
-    const { container } = renderCanvas({ pieces: [pieceWithDart] });
-    const dartPath = container.querySelector('path[class*="fill-none"]');
-    expect(dartPath).not.toBeNull();
-    expect(dartPath!.getAttribute("d")).not.toMatch(/Z$/);
+    const { container } = renderCanvas({ pieces: [pieceWithDarts] });
+    const dartPaths = container.querySelectorAll('path[class*="fill-none"]');
+    expect(dartPaths).toHaveLength(2);
+    for (const dartPath of dartPaths) {
+      expect(dartPath.getAttribute("d")).not.toMatch(/Z$/);
+    }
   });
 });
 

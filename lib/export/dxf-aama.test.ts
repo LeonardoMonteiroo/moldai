@@ -57,10 +57,12 @@ const dartModel: ExportModel = {
       ...squareModel.pieces[0],
       id: "back",
       name: "Costas",
-      dart: [
-        { x: 3, y: 2 },
-        { x: 4, y: 6 },
-        { x: 5, y: 2 },
+      darts: [
+        [
+          { x: 3, y: 2 },
+          { x: 4, y: 6 },
+          { x: 5, y: 2 },
+        ],
       ],
     },
   ],

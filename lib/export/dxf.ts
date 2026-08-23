@@ -164,15 +164,17 @@ export function toDxf(model: ExportModel): string {
       p(21, Y(b.y));
     }
 
-    if (piece.dart && piece.dart.length >= 3) {
+    // #87/#122: open (0), not closed (1) -- matches the AAMA exporter's own
+    // layer-8 open polyline and pattern-making convention. A closed dart
+    // drew a fourth segment along the base that isn't part of the dart. A
+    // fitted panel carries two darts, symmetric about its own centre line.
+    for (const dart of piece.darts ?? []) {
+      if (dart.length < 3) continue;
       p(0, "LWPOLYLINE");
       p(8, "INTERNO");
-      p(90, piece.dart.length);
-      // #87: open (0), not closed (1) -- matches the AAMA exporter's own
-      // layer-8 open polyline and pattern-making convention. A closed dart
-      // drew a fourth segment along the base that isn't part of the dart.
+      p(90, dart.length);
       p(70, 0);
-      for (const d of piece.dart) {
+      for (const d of dart) {
         p(10, X(d.x));
         p(20, Y(d.y));
       }

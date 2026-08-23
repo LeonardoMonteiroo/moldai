@@ -173,7 +173,7 @@ describe("draftGarment", () => {
     const ids = pieces.map((p) => p.id).sort();
     expect(ids).toEqual(["body-back", "body-front", "sleeve"]);
     const front = pieces.find((p) => p.id === "body-front")!;
-    expect(front.dart).toBeUndefined();
+    expect(front.darts).toBeUndefined();
     expect(front.detailRows.some((r) => r.value === "neckline.round")).toBe(
       true,
     );
@@ -653,7 +653,7 @@ describe("drafted decorations stay inside their own piece", () => {
       for (const piece of pieces) {
         const points = [
           ...(piece.grainlineCm ?? []),
-          ...(piece.dartCm ?? []),
+          ...(piece.dartsCm ?? []).flat(),
         ] as [number, number][];
         for (const [x, y] of points) {
           const span = verticalSpanAt(piece.outlineCm, x);

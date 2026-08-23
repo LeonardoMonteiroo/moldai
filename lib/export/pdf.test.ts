@@ -127,11 +127,12 @@ describe("toPdf", () => {
     expect(height).toBeCloseTo(31.6 * PT_POR_CM, 1); // (30+1.6) cm in pt
   });
 
-  // #87: the dart used to wrap its last leg back to the first point (`%
-  // pc.dart.length`), drawing a fourth segment straight back along the base
-  // -- a marking line that isn't part of the dart and disagreed with the
-  // AAMA exporter's own open polyline for the identical pattern.
-  it("dart draws exactly dart.length - 1 segments, not a closed loop", async () => {
+  // #87/#122: the dart used to wrap its last leg back to the first point
+  // (`% pc.dart.length`), drawing a fourth segment straight back along the
+  // base -- a marking line that isn't part of the dart and disagreed with
+  // the AAMA exporter's own open polyline for the identical pattern. A
+  // fitted panel carries two darts, symmetric about its own centre line.
+  it("each dart draws exactly dart.length - 1 segments, not a closed loop", async () => {
     const base = modelOf(20, 30);
     const { grainline: _grainline, ...pieceWithoutGrainline } = base.pieces[0];
     const model: ExportModel = {
@@ -139,10 +140,17 @@ describe("toPdf", () => {
       pieces: [
         {
           ...pieceWithoutGrainline,
-          dart: [
-            { x: 3, y: 2 },
-            { x: 4, y: 6 },
-            { x: 5, y: 2 },
+          darts: [
+            [
+              { x: 3, y: 2 },
+              { x: 4, y: 6 },
+              { x: 5, y: 2 },
+            ],
+            [
+              { x: 6, y: 2 },
+              { x: 7, y: 6 },
+              { x: 8, y: 2 },
+            ],
           ],
         },
       ],
@@ -152,7 +160,7 @@ describe("toPdf", () => {
     const bytes = await toPdf(model, "single", t);
     const content = inflatedContent(bytes);
     const oliveSegments = content.match(/0\.29 0\.35 0\.23 RG/g) ?? [];
-    expect(oliveSegments).toHaveLength(2); // dart.length - 1, not 3
+    expect(oliveSegments).toHaveLength(4); // 2 darts x (dart.length - 1)
   });
 
   // #126: fold is drawn gray-dashed (reusing the usable-area rectangle's
