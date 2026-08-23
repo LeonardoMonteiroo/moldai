@@ -70,11 +70,30 @@ describe("estimateTextWidth", () => {
 });
 
 describe("fitPieceLabel", () => {
-  it("keeps the sleeve's label inside the sleeve, shrinking the font to fit", () => {
-    const sleeve = drafted("sleeve");
+  // #139 widened the drafted sleeve from ~17.7 cm (narrower than "MANGA · 2×"
+  // at full size — the reported case fitPieceLabel exists for) to a real
+  // bicep girth, so the live drafter no longer produces a piece narrow
+  // enough to trigger shrinking. The shrink path is still real behavior
+  // (a legacy pattern, a future narrow piece), so it's tested here against
+  // a synthetic narrow piece instead of relying on the drafter for one.
+  it("keeps a narrow piece's label inside it, shrinking the font to fit", () => {
+    const narrow: Piece = {
+      id: "narrow",
+      name: "Manga",
+      qty: 2,
+      outline: { kind: "polygon", points: "0,0 60,0 60,80 0,80" },
+      label: { x: 0, y: 74 },
+      detailRows: [],
+      vertices: [
+        { x: 0, y: 0 },
+        { x: 60, y: 0 },
+        { x: 60, y: 80 },
+        { x: 0, y: 80 },
+      ],
+    };
     const text = labelFor("sleeve", 2);
-    const placed = fitPieceLabel(sleeve, text, MAX_LABEL_FONT_SIZE);
-    const span = horizontalSpanAt(sleeve, placed.y);
+    const placed = fitPieceLabel(narrow, text, MAX_LABEL_FONT_SIZE);
+    const span = horizontalSpanAt(narrow, placed.y);
 
     // the reported case: at full size the label is wider than the piece
     expect(estimateTextWidth(text, MAX_LABEL_FONT_SIZE)).toBeGreaterThan(
@@ -83,6 +102,19 @@ describe("fitPieceLabel", () => {
     // ...so it has to come down, and the drawn box has to fit
     expect(placed.fontSize).toBeLessThan(MAX_LABEL_FONT_SIZE);
     expect(placed.fontSize).toBeGreaterThan(0);
+    expect(placed.x).toBeGreaterThanOrEqual(span.lo);
+    expect(
+      placed.x + estimateTextWidth(text, placed.fontSize),
+    ).toBeLessThanOrEqual(span.hi);
+  });
+
+  it("leaves the now-realistically-wide drafted sleeve's label at full size", () => {
+    const sleeve = drafted("sleeve");
+    const text = labelFor("sleeve", 2);
+    const placed = fitPieceLabel(sleeve, text, MAX_LABEL_FONT_SIZE);
+    const span = horizontalSpanAt(sleeve, placed.y);
+
+    expect(placed.fontSize).toBe(MAX_LABEL_FONT_SIZE);
     expect(placed.x).toBeGreaterThanOrEqual(span.lo);
     expect(
       placed.x + estimateTextWidth(text, placed.fontSize),

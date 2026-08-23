@@ -1,6 +1,6 @@
 import { Measurements } from "@/lib/measurements";
 import { DetailRow, GarmentStyle, Gender } from "@/lib/types";
-import { DraftedPiece, Pt } from "./core";
+import { curveArcLengthCm, DraftedPiece, Pt } from "./core";
 import type { Translate } from "@/lib/i18n/translate";
 
 const cm = (v: number) => `${v.toFixed(1).replace(".", ",")} cm`;
@@ -29,7 +29,11 @@ function bodice(
   id: string,
   name: string,
   frontish: boolean,
-): { piece: DraftedPiece; armholeLenCm: number; armholeBaseLenCm: number } {
+): {
+  piece: DraftedPiece;
+  armholeEdgeLenCm: number;
+  armholeEdgeBaseLenCm: number;
+} {
   const ease = style.seamAllowanceCm ?? 1;
   const wearingEase = opts.knit ? 0 : 2;
   const halfChest = m.bust / 4 + wearingEase;
@@ -60,6 +64,7 @@ function bodice(
 
   const cx = Math.max(shoulderHalf, halfChest, hemHalf);
   const midArmY = shoulderSlope + (armholeDepth - shoulderSlope) * 0.55;
+  const midArmYBase = shoulderSlope + (armholeDepthBase - shoulderSlope) * 0.55;
   const armCtrlX = (shoulderHalf + halfChest) / 2 - 1; // distance from center
 
   const pts: Pt[] = [];
@@ -86,20 +91,33 @@ function bodice(
   push([cx + neckHalf * 0.6, neckDrop * 0.55]); // right neckline ctrl
   spans.push([hpsR, pts.length]); // right neckline + closing (curved)
 
-  const armholeLenCm =
-    Math.hypot(halfChest - shoulderHalf, armholeDepth - shoulderSlope) * 1.08;
-  // "Base" armhole (without the adjustment) — this is what the sleeve cap uses
-  // while it hasn't been refit; the divergence between this and armholeLenCm
-  // is what seamCheck detects.
-  const armholeBaseLenCm =
-    Math.hypot(halfChest - shoulderHalf, armholeDepthBase - shoulderSlope) *
-    1.08;
+  // This piece's own armhole edge (shoulder -> control point -> underarm),
+  // measured from the real curve outlinePath will draw — not a straight-line
+  // approximation. A garment's full armhole circumference is this edge plus
+  // the other piece's matching edge (see draftBody, which sums front+back);
+  // #139 found that a single edge had been used as if it *were* the full
+  // circumference, drafting every sleeve at roughly half size.
+  const armholeEdgeLenCm = curveArcLengthCm(pts, spans, shL, uaL);
+  // "Base" edge (without the armholeDeepenCm adjustment) — this is what the
+  // sleeve cap targets while it hasn't been refit; the divergence between
+  // this and armholeEdgeLenCm (doubled to full-circumference scale in
+  // draftBody) is what seamCheck detects.
+  const armholeEdgeBaseLenCm = curveArcLengthCm(
+    [
+      [cx - shoulderHalf, shoulderSlope],
+      [cx - armCtrlX, midArmYBase],
+      [cx - halfChest, armholeDepthBase],
+    ],
+    [[0, 2]],
+    0,
+    2,
+  );
 
   const detailRows: DetailRow[] = [
     { label: t("rows.seamAllowance"), value: cm(ease) },
     { label: t("rows.chestWidth"), value: cm(halfChest * 2) },
     { label: t("rows.length"), value: cm(len) },
-    { label: t("rows.armhole"), value: cm(armholeLenCm) },
+    { label: t("rows.armhole"), value: cm(armholeEdgeLenCm) },
     {
       label: t("rows.neckline"),
       value: t("neckline." + (style.neckline ?? "straight")),
@@ -137,10 +155,10 @@ function bodice(
       grainlineCm,
       dartCm,
       detailRows,
-      armholeLenCm,
+      armholeLenCm: armholeEdgeLenCm,
     },
-    armholeLenCm,
-    armholeBaseLenCm,
+    armholeEdgeLenCm,
+    armholeEdgeBaseLenCm,
   };
 }
 
@@ -160,10 +178,13 @@ export function draftBody(
     true,
   );
   const c = bodice(m, style, opts, t, "body-back", t("pieceNames.back"), false);
+  // The full armhole circumference is the front edge plus the back edge —
+  // #139: a single edge had been published and consumed by the sleeve as if
+  // it were the whole armhole, drafting every sleeve at roughly half size.
   return {
     front: f.piece,
     back: c.piece,
-    armholeLenCm: f.armholeLenCm,
-    armholeBaseLenCm: f.armholeBaseLenCm,
+    armholeLenCm: f.armholeEdgeLenCm + c.armholeEdgeLenCm,
+    armholeBaseLenCm: f.armholeEdgeBaseLenCm + c.armholeEdgeBaseLenCm,
   };
 }

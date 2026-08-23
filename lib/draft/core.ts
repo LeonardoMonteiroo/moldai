@@ -68,6 +68,60 @@ export function outlinePath(
   return { kind: "path", d: d.trim() };
 }
 
+// Cubic Bézier point at parameter u in [0,1].
+function bezierPoint(p0: Pt, c1: Pt, c2: Pt, p3: Pt, u: number): Pt {
+  const mt = 1 - u;
+  const a = mt * mt * mt,
+    b = 3 * mt * mt * u,
+    c = 3 * mt * u * u,
+    d = u * u * u;
+  return [
+    a * p0[0] + b * c1[0] + c * c2[0] + d * p3[0],
+    a * p0[1] + b * c1[1] + c * c2[1] + d * p3[1],
+  ];
+}
+
+// Measures the real length, in cm, of the outline between edge indices
+// `from` and `to`, using the same Catmull-Rom-derived tangents as
+// outlinePath (straight edges outside a curvedSpan, tangent-locked cubic
+// Bézier inside one) — so a caller can assert on the geometry actually
+// emitted (an armhole, a sleeve cap) instead of on the numbers that were
+// fed in to build it. See #139/#78.
+export function curveArcLengthCm(
+  ptsCm: Pt[],
+  curvedSpans: [number, number][],
+  from: number,
+  to: number,
+  samplesPerEdge = 32,
+): number {
+  const n = ptsCm.length;
+  const at = (i: number) => ptsCm[(i + n) % n];
+  const spanFor = (i: number) =>
+    curvedSpans.find(([a, b]) => i >= a && i + 1 <= b);
+  let len = 0;
+  for (let i = from; i < to; i++) {
+    const p1 = at(i),
+      p2 = at(i + 1);
+    const span = spanFor(i);
+    if (!span) {
+      len += Math.hypot(p2[0] - p1[0], p2[1] - p1[1]);
+      continue;
+    }
+    const [a, b] = span;
+    const p0 = i === a ? p1 : at(i - 1);
+    const p3 = i + 1 === b ? p2 : at(i + 2);
+    const c1: Pt = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+    const c2: Pt = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+    let prev = p1;
+    for (let s = 1; s <= samplesPerEdge; s++) {
+      const pt = bezierPoint(p1, c1, c2, p2, s / samplesPerEdge);
+      len += Math.hypot(pt[0] - prev[0], pt[1] - prev[1]);
+      prev = pt;
+    }
+  }
+  return len;
+}
+
 function translateOutline(
   o: PieceOutline,
   dx: number,

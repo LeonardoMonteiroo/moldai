@@ -10,6 +10,7 @@ import {
 } from "./garment";
 import { SIZE_TABLE, SIZE_TABLE_MALE } from "@/lib/measurements";
 import { t } from "@/lib/i18n/test-translate";
+import { curveArcLengthCm } from "./core";
 
 describe("validateSpec", () => {
   it("falls back to defaults on invalid enums and clamps ranges", () => {
@@ -180,7 +181,11 @@ describe("draftGarment", () => {
     );
     expect(armholeLenCm! - sleeveArmholeCm!).toBeGreaterThan(1);
   });
-  it("without an armhole adjustment, body and sleeve match by construction (no conflict)", () => {
+  it("without an armhole adjustment, the cap's measured fit matches the body's measured armhole (no conflict)", () => {
+    // sleeveArmholeCm is now measured from the drafted cap's own curve
+    // (fitted arc minus the documented cap ease), not an echo of the
+    // argument passed into draftSleeve (#78) — so this only holds if the
+    // solver in sleeve.ts actually converges the cap to the target.
     const { armholeLenCm, sleeveArmholeCm } = draftGarment(
       {
         type: "blouse",
@@ -191,7 +196,7 @@ describe("draftGarment", () => {
       SIZE_TABLE.M,
       t,
     );
-    expect(Math.abs(armholeLenCm! - sleeveArmholeCm!)).toBeLessThan(1e-6);
+    expect(Math.abs(armholeLenCm! - sleeveArmholeCm!)).toBeLessThan(0.01);
   });
   it("sleeveRefit remakes the cap for the adjusted armhole (seams match again)", () => {
     const { armholeLenCm, sleeveArmholeCm } = draftGarment(
@@ -204,8 +209,105 @@ describe("draftGarment", () => {
       SIZE_TABLE.M,
       t,
     );
-    expect(Math.abs(armholeLenCm! - sleeveArmholeCm!)).toBeLessThan(1e-6);
+    expect(Math.abs(armholeLenCm! - sleeveArmholeCm!)).toBeLessThan(0.01);
   });
+});
+
+// #139 acceptance criteria: for every sleeved combination in the drafting
+// matrix, the CAP's measured arc must exceed the FULL armhole's measured
+// arc by the intended (documented) ease, within 0.3 cm — both quantities
+// measured from the emitted geometry (curveArcLengthCm on the actual
+// outline/curvedSpans), never from the arguments that built it.
+describe("sleeve cap ease is real, and measured from the drafted geometry", () => {
+  const CASES: [string, Parameters<typeof draftPiecesCm>[0], number][] = [
+    [
+      "female short woven",
+      {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: { sleeve: "short" },
+      },
+      2.5,
+    ],
+    [
+      "female long woven",
+      {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: { sleeve: "long" },
+      },
+      2.5,
+    ],
+    [
+      "male short woven",
+      {
+        type: "blouse",
+        gender: "male",
+        measurementOverrides: {},
+        style: { sleeve: "short" },
+      },
+      2.5,
+    ],
+    [
+      "female knit short (tshirt)",
+      {
+        type: "tshirt",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      1,
+    ],
+    [
+      "male knit short (tshirt)",
+      { type: "tshirt", gender: "male", measurementOverrides: {}, style: {} },
+      1,
+    ],
+  ];
+
+  for (const [name, spec, expectedEaseCm] of CASES) {
+    it(`${name}: cap arc exceeds full armhole arc by ~${expectedEaseCm} cm`, () => {
+      const m = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
+      const pieces = draftPiecesCm(spec, m, t);
+      const front = pieces.find((p) => p.id === "body-front")!;
+      const back = pieces.find((p) => p.id === "body-back")!;
+      const sleeve = pieces.find((p) => p.id === "sleeve")!;
+
+      // Full armhole circumference: front edge + back edge. Each piece's
+      // left-armhole span is always curvedSpans[1] (neckline-left, armhole-
+      // left, armhole-right, neckline-right, in that push order — see
+      // body.ts's `bodice`), regardless of neckline/dart style, so this
+      // doesn't hardcode point indices.
+      const [fFrom, fTo] = front.curvedSpans![1];
+      const frontEdge = curveArcLengthCm(
+        front.outlineCm,
+        front.curvedSpans ?? [],
+        fFrom,
+        fTo,
+      );
+      const [bFrom, bTo] = back.curvedSpans![1];
+      const backEdge = curveArcLengthCm(
+        back.outlineCm,
+        back.curvedSpans ?? [],
+        bFrom,
+        bTo,
+      );
+      const fullArmholeCm = frontEdge + backEdge;
+      expect(fullArmholeCm).toBeGreaterThan(30);
+
+      const capArcCm = curveArcLengthCm(
+        sleeve.outlineCm,
+        sleeve.curvedSpans ?? [],
+        0,
+        4,
+      );
+      expect(Math.abs(capArcCm - fullArmholeCm - expectedEaseCm)).toBeLessThan(
+        0.3,
+      );
+    });
+  }
 });
 
 describe("draftPiecesCm", () => {

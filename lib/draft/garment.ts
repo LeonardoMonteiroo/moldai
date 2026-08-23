@@ -202,7 +202,11 @@ function draftAll(
     const sleeve = draftSleeve(measurements, style, sleeveArmhole, t, opts);
     if (sleeve) {
       drafted.push(sleeve);
-      sleeveArmholeCm = sleeveArmhole;
+      // The armhole the drafted cap actually fits, measured from its own
+      // curve — not the target argument (#78) — so seamCheck stays able to
+      // detect a real cap/armhole mismatch instead of comparing an input to
+      // itself.
+      sleeveArmholeCm = sleeve.armholeLenCm;
     }
   }
   if (spec.type === "skirt" || spec.type === "dress") {
