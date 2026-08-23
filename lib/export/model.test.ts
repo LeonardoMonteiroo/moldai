@@ -136,4 +136,29 @@ describe("buildExportModel", () => {
       expect(model).toEqual(buildExportModel(fakePattern(), t));
     });
   });
+
+  // #126: the fold edge, resolved from DraftedPiece.foldEdge through the same
+  // local (bbox-shifted) coordinates as grainline/dart.
+  describe("fold edge (#126)", () => {
+    it("carries the catalog's fold label", () => {
+      expect(buildExportModel(fakePattern(), t).foldLabel).toBe("foldLabel");
+    });
+
+    it("a body piece's fold endpoints land on its own local outline (0..width, 0..height)", () => {
+      const model = buildExportModel(fakePattern(), t);
+      const front = model.pieces.find((p) => p.id === "body-front");
+      expect(front?.fold).toBeDefined();
+      const [a, b] = front!.fold!;
+      for (const pt of [a, b]) {
+        expect(pt.x).toBeGreaterThanOrEqual(-1e-6);
+        expect(pt.x).toBeLessThanOrEqual(front!.widthCm + 1e-6);
+        expect(pt.y).toBeGreaterThanOrEqual(-1e-6);
+        expect(pt.y).toBeLessThanOrEqual(front!.heightCm + 1e-6);
+      }
+      // the fold runs vertically down the piece's own centre (its axis of
+      // symmetry), not diagonally or horizontally
+      expect(Math.abs(a.x - b.x)).toBeLessThan(1e-6);
+      expect(Math.abs(a.y - b.y)).toBeGreaterThan(1);
+    });
+  });
 });

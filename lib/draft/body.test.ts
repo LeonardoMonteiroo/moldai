@@ -108,16 +108,19 @@ describe("draftBody sloper", () => {
     expect(curvedCount).toBeGreaterThan(0);
     expect(curvedCount).toBeLessThan(n);
 
-    // the hem (edge between the two consecutive max-y points) is straight
+    // the hem (left, #126's fold-centre, and right -- three consecutive
+    // max-y points forming two collinear straight segments) is straight
     const b = bbox(pts);
     const hemIdx = pts
       .map((p, i) => ({ i, y: p[1] }))
       .filter((o) => Math.abs(o.y - b.maxY) < 0.01)
       .map((o) => o.i)
       .sort((a, c) => a - c);
-    expect(hemIdx).toHaveLength(2);
+    expect(hemIdx).toHaveLength(3);
     expect(hemIdx[1] - hemIdx[0]).toBe(1);
+    expect(hemIdx[2] - hemIdx[1]).toBe(1);
     expect(edgeCurved(hemIdx[0])).toBe(false);
+    expect(edgeCurved(hemIdx[1])).toBe(false);
   });
 });
 
@@ -197,8 +200,10 @@ describe("dressHemHalfCm (#79)", () => {
     const { front } = draftBody(M, { darts: true }, t, dressOpts);
     const maxY = Math.max(...front.outlineCm.map(([, y]) => y));
     const hemLevelPoints = front.outlineCm.filter(([, y]) => y === maxY);
-    // Without the fix: 4 points at the hem's y (2 hem + 2 duplicate waist).
-    expect(hemLevelPoints).toHaveLength(2);
+    // Without the fix: 5 points at the hem's y (2 hem + 1 #126 fold-centre +
+    // 2 duplicate waist). The legitimate count is 3: left hem, #126's
+    // fold-centre, right hem.
+    expect(hemLevelPoints).toHaveLength(3);
   });
 
   it("without dressHemHalfCm, a fitted non-dress piece still gets its waist vertices (unaffected)", () => {

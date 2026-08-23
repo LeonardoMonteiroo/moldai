@@ -66,6 +66,19 @@ export function toSvg(model: ExportModel): string {
         `<path d="${dd}" fill="none" stroke="#4a5a3a" stroke-width="0.3"/>`,
       );
     }
+    if (p.fold) {
+      // #126: a chain dash (long-short), distinct from the grainline's even
+      // dash, matching the cut-on-fold symbol pattern-making convention.
+      const [a, b] = p.fold;
+      parts.push(
+        `<line x1="${X(a.x)}" y1="${Y(a.y)}" x2="${X(b.x)}" y2="${Y(b.y)}" stroke="#000" stroke-width="0.25" stroke-dasharray="8 2 2 2"/>`,
+      );
+      const midX = X((a.x + b.x) / 2);
+      const midY = Y((a.y + b.y) / 2);
+      parts.push(
+        `<text x="${midX}" y="${midY}" font-family="sans-serif" font-size="5" fill="#5a564a">${escapeXml(model.foldLabel)}</text>`,
+      );
+    }
     parts.push(
       `<text x="${X(p.outline.start.x)}" y="${Y(p.heightCm)}" font-family="sans-serif" font-size="6" fill="#5a564a">${escapeXml(p.name.toUpperCase())} · ${p.qty}x</text>`,
     );

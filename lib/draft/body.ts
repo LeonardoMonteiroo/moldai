@@ -107,6 +107,12 @@ function bodice(
   // retracing that edge and leaving the boundary non-simple.
   if (fitted && !isDressHem) push([cx - waistHalf, waistY]); // left waist
   push([cx - hemHalf, len]); // left hem
+  // #126: exactly on the straight hem edge (collinear with left/right hem,
+  // same y) -- subdivides that edge into two collinear segments rather than
+  // changing the piece's rendered shape, giving the fold line's bottom
+  // endpoint a real vertex to reference. The top endpoint is `cf`, the
+  // neckline-center point already pushed at index 0.
+  const hemCenter = push([cx, len]); // hem center (fold bottom)
   push([cx + hemHalf, len]); // right hem (straight = hem)
   if (fitted && !isDressHem) push([cx + waistHalf, waistY]); // right waist
   const uaR = push([cx + halfChest, armholeDepth]); // right underarm
@@ -187,6 +193,7 @@ function bodice(
       curvedSpans: spans,
       grainlineCm,
       dartCm,
+      foldEdge: [cf, hemCenter],
       detailRows,
       armholeLenCm: armholeEdgeLenCm,
     },

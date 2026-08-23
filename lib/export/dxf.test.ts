@@ -102,6 +102,7 @@ const squareModel: ExportModel = {
   seamAllowanceCm: 1,
   sheetWidthCm: 20,
   sheetHeightCm: 30,
+  foldLabel: "dobra",
   pieces: [
     {
       id: "front",
@@ -122,6 +123,10 @@ const squareModel: ExportModel = {
         { x: 5, y: 1 },
         { x: 5, y: 9 },
       ],
+      fold: [
+        { x: 5, y: 0 },
+        { x: 5, y: 10 },
+      ],
       originCm: { x: 2, y: 2 },
     },
   ],
@@ -134,6 +139,7 @@ const cubicModel: ExportModel = {
   seamAllowanceCm: null,
   sheetWidthCm: 20,
   sheetHeightCm: 20,
+  foldLabel: "dobra",
   pieces: [
     {
       id: "c",
@@ -186,19 +192,37 @@ describe("toDxf", () => {
     expect(dxf).toContain("folga 1cm (net line)");
   });
 
-  it("declares the four named layers", () => {
+  it("declares the five named layers", () => {
     const dxf = toDxf(squareModel);
-    for (const layer of ["CONTORNO", "INTERNO", "GRAINLINE", "TEXTO"]) {
+    for (const layer of [
+      "CONTORNO",
+      "INTERNO",
+      "GRAINLINE",
+      "TEXTO",
+      "DOBRA",
+    ]) {
       expect(dxf).toContain(layer);
     }
   });
 
-  it("one outline LWPOLYLINE per piece, with LINE (grainline) and TEXT (name)", () => {
+  it("one outline LWPOLYLINE per piece, with LINE (grainline + fold) and TEXT (name)", () => {
     const dxf = toDxf(squareModel);
     expect(dxf.match(/\nLWPOLYLINE\n/g)?.length).toBe(1); // only the outline (no dart)
-    expect(dxf).toContain("\nLINE\n");
+    expect(dxf.match(/\nLINE\n/g)?.length).toBe(2); // grainline + fold
     expect(dxf).toContain("\nTEXT\n");
     expect(dxf).toContain("FRENTE · 2x");
+  });
+
+  // #126: geometry-only, matching the grainline's own no-text precedent --
+  // "dobra" is reserved for the printed formats (svg/pdf).
+  it("fold comes out as a LINE on the DOBRA layer; no fold means no such LINE", () => {
+    const dxf = toDxf(squareModel);
+    expect(dxf).toMatch(/LINE\n8\nDOBRA\n10\n70\n20\n280\n11\n70\n21\n180/);
+    const noFold: ExportModel = {
+      ...squareModel,
+      pieces: [{ ...squareModel.pieces[0], fold: undefined }],
+    };
+    expect(toDxf(noFold)).not.toContain("DOBRA\n10");
   });
 
   // #87: the dart used to close (p(70,1)), drawing a fourth segment straight

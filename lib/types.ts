@@ -90,6 +90,11 @@ export interface Piece {
   dart?: { d: string };
   label: { x: number; y: number };
   vertices?: Point[]; // outline anchors in px, for the measure tool's snap
+  // #126: the two `vertices` indices bounding the piece's own cut-on-fold
+  // line (its axis of symmetry) -- additive metadata, not a boundary edge
+  // walked by `outline` itself. Absent on a piece with no fold (e.g. a
+  // sleeve) and on a piece drafted before this existed.
+  foldEdge?: [number, number];
   detailRows: DetailRow[];
 }
 

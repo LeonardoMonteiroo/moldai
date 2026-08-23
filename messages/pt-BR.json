@@ -197,6 +197,7 @@
       "high": "elasticidade alta"
     },
     "grainValue": "reto",
+    "foldLabel": "dobra",
     "conflict": {
       "title": "Cava e manga não batem",
       "description": "A cava do corpo ficou {diffCm, number, ::.0} cm {direction, select, larger {maior} smaller {menor} other {}} que a copa da manga — as costuras não vão fechar.",

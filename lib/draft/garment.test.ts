@@ -688,6 +688,52 @@ function hasRetracedEdge(pts: [number, number][]): boolean {
   return false;
 }
 
+// #126 AC 6: marking the fold is additive metadata, not a geometry change --
+// every foldEdge endpoint is either a pre-existing curve joint (cf, and the
+// radial skirt's own arc-centre sample), which #126 never touched, or a
+// newly-inserted straight-edge vertex, which must land exactly collinear
+// with its immediate polygon neighbours so the rendered outline is
+// byte-for-byte the same shape it was before the vertex existed.
+function foldEndpointChangesNothing(
+  pts: [number, number][],
+  spans: [number, number][],
+  i: number,
+): boolean {
+  const n = pts.length;
+  const onCurve = spans.some(
+    ([a, b]) => (i - 1 >= a && i <= b) || (i >= a && i + 1 <= b),
+  );
+  if (onCurve) return true;
+  const [px, py] = pts[(i - 1 + n) % n];
+  const [cx, cy] = pts[i];
+  const [nx, ny] = pts[(i + 1) % n];
+  const cross = (cx - px) * (ny - py) - (cy - py) * (nx - px);
+  return Math.abs(cross) < 1e-6;
+}
+
+describe("fold edge is additive metadata, not a geometry change (#126)", () => {
+  for (const [name, spec] of DECORATION_CASES) {
+    it(`${name}: every piece's foldEdge endpoints change no rendered coordinate`, () => {
+      const m = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
+      const pieces = draftPiecesCm(spec, m, t);
+      const withFold = pieces.filter((p) => p.foldEdge);
+      expect(withFold.length).toBeGreaterThan(0);
+      for (const piece of withFold) {
+        const pts = piece.outlineCm as [number, number][];
+        const spans = piece.curvedSpans ?? [];
+        for (const idx of piece.foldEdge!) {
+          expect(idx).toBeGreaterThanOrEqual(0);
+          expect(idx).toBeLessThan(pts.length);
+          expect(
+            foldEndpointChangesNothing(pts, spans, idx),
+            `${piece.id} foldEdge index ${idx} is neither a curve joint nor collinear with its neighbours`,
+          ).toBe(true);
+        }
+      }
+    });
+  }
+});
+
 describe("drafted outlines have no retraced edge (#79)", () => {
   for (const [name, spec] of DECORATION_CASES) {
     it(`${name}: no three consecutive same-y vertices reverse direction`, () => {
@@ -725,8 +771,10 @@ describe("drafted outlines have no retraced edge (#79)", () => {
     const skirtWaistWidth = Math.max(...waistXs) - Math.min(...waistXs);
 
     expect(bodiceHemWidth).toBeCloseTo(skirtWaistWidth, 5);
-    // Exactly two hem-level vertices (not the old four with a duplicate
-    // fitted-waist pair collapsed onto the same y).
-    expect(hemXs).toHaveLength(2);
+    // Exactly three hem-level vertices -- left hem, #126's fold-centre, and
+    // right hem (not the old four-with-a-duplicate-fitted-waist-pair bug
+    // this test guards, and not more than the one legitimate fold vertex
+    // #126 added).
+    expect(hemXs).toHaveLength(3);
   });
 });

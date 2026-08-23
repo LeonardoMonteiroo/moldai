@@ -20,6 +20,7 @@ const squareModel: ExportModel = {
   seamAllowanceCm: 1,
   sheetWidthCm: 20,
   sheetHeightCm: 30,
+  foldLabel: "dobra",
   pieces: [
     {
       id: "front",
@@ -39,6 +40,10 @@ const squareModel: ExportModel = {
       grainline: [
         { x: 5, y: 1 },
         { x: 5, y: 9 },
+      ],
+      fold: [
+        { x: 5, y: 0 },
+        { x: 5, y: 10 },
       ],
       originCm: { x: 2, y: 2 },
     },
@@ -70,14 +75,26 @@ describe("toDxfAama", () => {
     expect(dxf).toContain("tam M");
   });
 
-  it("declares numbered layers (1/7/8), not the generic DXF's named ones", () => {
+  it("declares numbered layers (1/6/7/8), not the generic DXF's named ones", () => {
     const dxf = toDxfAama(squareModel);
     // the TABLE LAYER block contains the numeric names
     expect(dxf).toMatch(/LAYER\n2\n1\n/);
+    expect(dxf).toMatch(/LAYER\n2\n6\n/);
     expect(dxf).toMatch(/LAYER\n2\n7\n/);
     expect(dxf).toMatch(/LAYER\n2\n8\n/);
     expect(dxf).not.toContain("CONTORNO");
     expect(dxf).not.toContain("GRAINLINE");
+  });
+
+  // #126: ASTM D6673 reserves layer 6 for the fold/mirror line.
+  it("fold comes out as a LINE on layer 6; no fold means no layer 6", () => {
+    const withFold = toDxfAama(squareModel);
+    expect(withFold).toMatch(/LINE\n8\n6\n10\n50\n20\n100\n11\n50\n21\n0/);
+    const noFold: ExportModel = {
+      ...squareModel,
+      pieces: [{ ...squareModel.pieces[0], fold: undefined }],
+    };
+    expect(toDxfAama(noFold)).not.toMatch(/\n8\n6\n/);
   });
 
   it("a piece becomes BLOCK + INSERT, with POLYLINE/SEQEND (R13) and no LWPOLYLINE", () => {

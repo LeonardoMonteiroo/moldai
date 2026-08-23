@@ -71,6 +71,7 @@ function modelOf(sheetWcm: number, sheetHcm: number): ExportModel {
     seamAllowanceCm: 1,
     sheetWidthCm: sheetWcm,
     sheetHeightCm: sheetHcm,
+    foldLabel: "dobra",
     pieces: [
       {
         id: "front",
@@ -94,6 +95,10 @@ function modelOf(sheetWcm: number, sheetHcm: number): ExportModel {
         grainline: [
           { x: 5, y: 1 },
           { x: 5, y: 9 },
+        ],
+        fold: [
+          { x: 5, y: 0 },
+          { x: 5, y: 10 },
         ],
         originCm: { x: 2, y: 2 },
       },
@@ -148,5 +153,28 @@ describe("toPdf", () => {
     const content = inflatedContent(bytes);
     const oliveSegments = content.match(/0\.29 0\.35 0\.23 RG/g) ?? [];
     expect(oliveSegments).toHaveLength(2); // dart.length - 1, not 3
+  });
+
+  // #126: fold is drawn gray-dashed (reusing the usable-area rectangle's
+  // GRAY) with the pt-BR "dobra" label at its midpoint; absent when the
+  // piece has no fold.
+  it("fold draws a gray line and the foldLabel text; no fold means neither", async () => {
+    const withFold = modelOf(20, 30);
+    const withFoldBytes = await toPdf(withFold, "single", t);
+    const withFoldContent = inflatedContent(withFoldBytes);
+    expect(withFoldContent).toMatch(/0\.6 0\.6 0\.6 RG/);
+    // pdf-lib hex-encodes Tj text operands (WinAnsi) rather than using
+    // literal parens -- "dobra" as hex, same encoding the existing
+    // rulerLabel text already uses in this content stream.
+    expect(withFoldContent).toContain("<646F627261>");
+
+    const noFold: ExportModel = {
+      ...withFold,
+      pieces: [{ ...withFold.pieces[0], fold: undefined }],
+    };
+    const noFoldBytes = await toPdf(noFold, "single", t);
+    const noFoldContent = inflatedContent(noFoldBytes);
+    expect(noFoldContent).not.toMatch(/0\.6 0\.6 0\.6 RG/);
+    expect(noFoldContent).not.toContain("<646F627261>");
   });
 });

@@ -6,18 +6,19 @@ import { flattenOutlineCm, TOL_CM } from "./dxf";
 //
 //   - NUMBERED layers with D6673's fixed semantics (layer 0 isn't used):
 //       1  piece boundary (+ the piece's system text)
+//       6  fold/mirror line (#126 — cut-on-fold, geometry only)
 //       7  grainline
 //       8  internal lines (not cut) — we use it for the dart
 //   - each piece is a BLOCK, positioned by an INSERT (pieces are blocks in D6673)
 //   - R13 version (AC1012) + classic POLYLINE/VERTEX/SEQEND (not LWPOLYLINE,
 //     which is R14) — R13 is what D6673 references and maximizes compat with Audaces/Gerber.
 //
-// This is an honest SUBSET: the ExportModel only carries boundary/grainline/dart/name,
-// so notches (layer 4), drill holes (13), and a separate sew line (14) are NOT
-// emitted — MoldAI doesn't model them yet. The outline is the net line (no
-// seam allowance baked in), placed on layer 1. The full strict AAMA/ASTM
-// (structured system text, block records, those derived elements) remains a
-// later "Phase 2.5".
+// This is an honest SUBSET: the ExportModel only carries boundary/fold/
+// grainline/dart/name, so notches (layer 4) and drill holes (13) are NOT
+// emitted — MoldAI doesn't model them yet, and a separate sew line (14) isn't
+// either, since the outline is the net line (no seam allowance baked in),
+// placed on layer 1. The full strict AAMA/ASTM (structured system text,
+// block records, those derived elements) remains a later "Phase 2.5".
 
 const MM = 10; // cm -> mm (1:1)
 const f = (n: number) => (Math.round(n * 100) / 100).toString();
@@ -25,6 +26,7 @@ const f = (n: number) => (Math.round(n * 100) / 100).toString();
 // Numbered layers this subset uses, each with a color (code 62).
 const LAYERS: [string, number][] = [
   ["1", 7], // boundary — white/black
+  ["6", 1], // fold/mirror line (#126) — red
   ["7", 5], // grainline — blue
   ["8", 3], // internal (dart) — green
 ];
@@ -101,6 +103,19 @@ export function toDxfAama(model: ExportModel): string {
     p(20, f(Math.max(0, h * MM - 8)));
     p(40, 8); // text height in mm
     p(1, `${piece.name.toUpperCase()} ${piece.qty}X`);
+
+    // fold/mirror line -> LINE on layer 6 (#126, ASTM D6673's reserved
+    // semantics for it) — geometry only, matching the grainline's own
+    // no-text precedent on layer 7.
+    if (piece.fold) {
+      const [a, b] = piece.fold;
+      p(0, "LINE");
+      p(8, "6");
+      p(10, X(a.x));
+      p(20, Y(a.y));
+      p(11, X(b.x));
+      p(21, Y(b.y));
+    }
 
     // grainline -> LINE on layer 7
     if (piece.grainline) {

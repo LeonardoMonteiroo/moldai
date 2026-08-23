@@ -156,6 +156,7 @@ export function CanvasArea() {
             armholeLenCm={seams?.armholeLenCm}
             sleeveArmholeCm={seams?.sleeveArmholeCm}
             gradedOverlays={gradedOverlays}
+            foldLabel={tData("foldLabel")}
           />
         </div>
         {!isGenerating && !hasPieces && (

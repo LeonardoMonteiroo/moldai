@@ -91,6 +91,13 @@ export function draftSkirt(
     const steps = 12; // same as used in radialSkirt
     const waistSpan: [number, number] = [0, steps];
     const hemSpan: [number, number] = [steps + 1, 2 * steps + 1];
+    // #126: each panel is sampled symmetrically about its own centre angle
+    // (a=0), and `steps` is even, so the centre sample already exists as a
+    // real vertex on both arcs -- no new point needed. Index `steps/2` is
+    // the waist arc's own middle sample (`inner`, indices 0..steps); the hem
+    // arc is appended reversed (`outer.reverse()`, indices steps+1..2*steps+1),
+    // so its middle sample lands at `steps+1 + steps/2`.
+    const foldEdge: [number, number] = [steps / 2, steps + 1 + steps / 2];
     return {
       id: "skirt",
       name: t("pieceNames.skirt"),
@@ -101,18 +108,31 @@ export function draftSkirt(
         [cxTop, 4],
         [cxTop, length],
       ],
+      foldEdge,
       detailRows,
     };
   }
 
-  // straight / A-line: trapezoid (¼ hip at the waist, hem equal or wider)
+  // straight / A-line: trapezoid (¼ hip at the waist, hem equal or wider),
+  // symmetric about x=hemHalf -- the whole panel (qty 2 = front + back, each
+  // cut on its own fold), matching the grainline already centred there.
   const waistHalf = skirtWaistHalfCm(m.hip); // uses hip as the panel's reference width
   const flare = silhueta === "a-line" ? 12 : 0;
   const hemHalf = waistHalf + flare;
+  const waistLeftX = waistHalf === hemHalf ? 0 : hemHalf - waistHalf;
+  const waistRightX = waistLeftX + waistHalf * 2;
+  const hemRightX = hemHalf * 2;
+  // #126: the waist and hem are each a single straight edge with no vertex
+  // at their own midpoint -- (hemHalf, 0) and (hemHalf, length) subdivide
+  // those two edges exactly at their centres (collinear with their
+  // neighbours), so the fold line's endpoints are real vertices without
+  // moving the panel's rendered shape.
   const outlineCm: Pt[] = [
-    [waistHalf === hemHalf ? 0 : hemHalf - waistHalf, 0],
-    [hemHalf - waistHalf + waistHalf * 2, 0],
-    [hemHalf * 2, length],
+    [waistLeftX, 0],
+    [hemHalf, 0], // waist centre (fold top)
+    [waistRightX, 0],
+    [hemRightX, length],
+    [hemHalf, length], // hem centre (fold bottom)
     [0, length],
   ];
   detailRows.splice(1, 0, {
@@ -128,6 +148,7 @@ export function draftSkirt(
       [hemHalf, 4],
       [hemHalf, length - 4],
     ],
+    foldEdge: [1, 4],
     detailRows,
   };
 }

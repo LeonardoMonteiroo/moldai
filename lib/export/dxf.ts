@@ -78,7 +78,7 @@ export function flattenOutlineCm(
 
 const MM = 10; // cm -> mm (1:1)
 const f = (n: number) => (Math.round(n * 100) / 100).toString();
-const LAYERS = ["CONTORNO", "INTERNO", "GRAINLINE", "TEXTO"] as const;
+const LAYERS = ["CONTORNO", "INTERNO", "GRAINLINE", "TEXTO", "DOBRA"] as const;
 
 export function toDxf(model: ExportModel): string {
   const L: (string | number)[] = [];
@@ -145,6 +145,19 @@ export function toDxf(model: ExportModel): string {
       const [a, b] = piece.grainline;
       p(0, "LINE");
       p(8, "GRAINLINE");
+      p(10, X(a.x));
+      p(20, Y(a.y));
+      p(11, X(b.x));
+      p(21, Y(b.y));
+    }
+
+    if (piece.fold) {
+      // #126: geometry-only, like GRAINLINE above -- the "dobra" label is
+      // reserved for the printed formats (svg/pdf); layer name is the
+      // semantic marker here.
+      const [a, b] = piece.fold;
+      p(0, "LINE");
+      p(8, "DOBRA");
       p(10, X(a.x));
       p(20, Y(a.y));
       p(11, X(b.x));

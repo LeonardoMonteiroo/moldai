@@ -16,6 +16,10 @@ export interface ExportPiece {
   outline: { start: ExPt; segs: ExSeg[] };
   grainline?: [ExPt, ExPt];
   dart?: ExPt[];
+  // #126: the piece's cut-on-fold line, both endpoints already real outline
+  // vertices (see DraftedPiece.foldEdge) -- absent on a piece with no fold
+  // (e.g. a sleeve) or drafted before this existed.
+  fold?: [ExPt, ExPt];
   originCm: ExPt;
 }
 
@@ -27,6 +31,10 @@ export interface ExportModel {
   sheetWidthCm: number;
   sheetHeightCm: number;
   pieces: ExportPiece[];
+  // #126: pt-BR "dobra" from the PatternData catalog -- resolved once here
+  // (the same namespace every drafter row already reads `t` from) rather
+  // than per-serializer, so svg/pdf print the same label the catalog owns.
+  foldLabel: string;
 }
 
 const P = (p: Pt): ExPt => ({ x: p[0], y: p[1] });
@@ -129,6 +137,10 @@ export function buildExportModel(
     }
     if (dp.dartCm && dp.dartCm.length >= 3)
       ep.dart = dp.dartCm.map((pt) => P(shift(pt)));
+    if (dp.foldEdge) {
+      const [a, b] = dp.foldEdge;
+      ep.fold = [P(shift(dp.outlineCm[a])), P(shift(dp.outlineCm[b]))];
+    }
     return ep;
   });
 
@@ -166,5 +178,6 @@ export function buildExportModel(
     sheetWidthCm: sheetRight + padCm,
     sheetHeightCm: cursorY + rowH + padCm,
     pieces,
+    foldLabel: t("foldLabel"),
   };
 }

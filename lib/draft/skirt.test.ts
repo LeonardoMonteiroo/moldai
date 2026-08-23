@@ -7,9 +7,9 @@ import { t } from "@/lib/i18n/test-translate";
 const M = SIZE_TABLE.M;
 
 describe("draftSkirt", () => {
-  it("straight generates a trapezoid with 4 vertices and viewBox > 0", () => {
+  it("straight generates a trapezoid (6 vertices: 4 corners + 2 fold-edge midpoints) and viewBox > 0", () => {
     const s = draftSkirt(M, { skirt: "straight" }, t);
-    expect(s.outlineCm.length).toBe(4);
+    expect(s.outlineCm.length).toBe(6);
     expect(bbox(s.outlineCm).w).toBeGreaterThan(0);
   });
   it("radial (circle) marks the waist and hem as curvedSpans", () => {

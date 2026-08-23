@@ -15,6 +15,7 @@ import { formatCm } from "@/lib/format";
 import { MeasureLayer } from "./MeasureLayer";
 
 const SEAM_LABEL_FONT_SIZE = 10;
+const FOLD_LABEL_FONT_SIZE = 9;
 // Same cm formatting the sibling MeasureLayer uses for its on-canvas
 // distances — a unit suffix, not catalog copy.
 const seamValue = (v: number) => `${formatCm(v)} cm`;
@@ -55,6 +56,7 @@ export function PatternCanvas({
   armholeLenCm,
   sleeveArmholeCm,
   gradedOverlays = [],
+  foldLabel,
 }: {
   pieces: Piece[];
   selectedPieceId: string | null;
@@ -80,6 +82,9 @@ export function PatternCanvas({
   // its piece's placed position by the caller (CanvasArea, via
   // draftGradedOverlays) -- this component only renders them.
   gradedOverlays?: GradedOverlay[];
+  // #126: pt-BR "dobra" from the PatternData catalog, resolved by the caller
+  // (CanvasArea) -- this presentational component never calls useTranslations.
+  foldLabel?: string;
 }) {
   const [pending, setPending] = useState<Point | null>(null);
   const [cursor, setCursor] = useState<Point | null>(null);
@@ -281,6 +286,39 @@ export function PatternCanvas({
                 style={{ strokeWidth: 1.2 }}
               />
             )}
+            {piece.foldEdge &&
+              piece.vertices &&
+              (() => {
+                const [ai, bi] = piece.foldEdge!;
+                const a = piece.vertices![ai];
+                const b = piece.vertices![bi];
+                if (!a || !b) return null;
+                // #126: a chain dash (long-short), distinct from the
+                // grainline's even dash and the graded overlay's uniform
+                // one, matching the cut-on-fold symbol convention.
+                return (
+                  <g>
+                    <line
+                      x1={a.x}
+                      y1={a.y}
+                      x2={b.x}
+                      y2={b.y}
+                      className="stroke-ink"
+                      style={{ strokeWidth: 1, strokeDasharray: "8 2 2 2" }}
+                    />
+                    {foldLabel && (
+                      <text
+                        x={(a.x + b.x) / 2 + 4}
+                        y={(a.y + b.y) / 2}
+                        className="fill-muted"
+                        style={{ fontSize: FOLD_LABEL_FONT_SIZE }}
+                      >
+                        {foldLabel}
+                      </text>
+                    )}
+                  </g>
+                );
+              })()}
             <text
               x={label.x}
               y={label.y}

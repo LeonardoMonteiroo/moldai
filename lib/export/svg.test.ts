@@ -9,6 +9,7 @@ const model: ExportModel = {
   seamAllowanceCm: 1,
   sheetWidthCm: 20,
   sheetHeightCm: 30,
+  foldLabel: "dobra",
   pieces: [
     {
       id: "front",
@@ -29,6 +30,10 @@ const model: ExportModel = {
       grainline: [
         { x: 5, y: 1 },
         { x: 5, y: 9 },
+      ],
+      fold: [
+        { x: 5, y: 0 },
+        { x: 5, y: 10 },
       ],
       originCm: { x: 2, y: 2 },
     },
@@ -115,5 +120,22 @@ describe("toSvg", () => {
     expect(dartPath).not.toContain("Z");
     // 3 dart points -> M + 2 L commands only, no segment closing back to the first
     expect(dartPath?.match(/[ML]\d/g)?.length).toBe(3);
+  });
+
+  // #126: rendered as a dashed <line> (distinct dasharray from the
+  // grainline's) plus the pt-BR foldLabel text at its midpoint; absent when
+  // the piece has no fold.
+  it("fold is a dashed line with the foldLabel text; no fold means neither", () => {
+    const svg = toSvg(model);
+    expect(svg).toContain('stroke-dasharray="8 2 2 2"');
+    expect(svg).toContain(">dobra<");
+
+    const noFoldModel: ExportModel = {
+      ...model,
+      pieces: [{ ...model.pieces[0], fold: undefined }],
+    };
+    const noFoldSvg = toSvg(noFoldModel);
+    expect(noFoldSvg).not.toContain('stroke-dasharray="8 2 2 2"');
+    expect(noFoldSvg).not.toContain(">dobra<");
   });
 });

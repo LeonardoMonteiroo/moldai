@@ -123,6 +123,27 @@ export async function toPdf(
           page.drawLine({ start: a, end: b, thickness: 0.5, color: OLIVE });
         }
       }
+      // #126: cut-on-fold line (dashed, distinct from the grainline's dash)
+      // plus the pt-BR "dobra" label at its midpoint.
+      if (pc.fold) {
+        const [f1, f2] = pc.fold;
+        const fa = P(f1.x, f1.y);
+        const fb = P(f2.x, f2.y);
+        page.drawLine({
+          start: fa,
+          end: fb,
+          thickness: 0.5,
+          color: GRAY,
+          dashArray: [8, 2, 2, 2],
+        });
+        page.drawText(model.foldLabel, {
+          x: (fa.x + fb.x) / 2,
+          y: (fa.y + fb.y) / 2,
+          size: 6,
+          font,
+          color: GRAY,
+        });
+      }
       // label
       const lbl = P(0, pc.heightCm);
       page.drawText(`${pc.name.toUpperCase()} · ${pc.qty}x`, {

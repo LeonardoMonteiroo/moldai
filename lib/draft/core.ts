@@ -14,6 +14,12 @@ export interface DraftedPiece {
   guideCm?: Pt[];
   grainlineCm?: [Pt, Pt];
   dartCm?: Pt[];
+  // #126: the two `outlineCm` indices bounding this piece's cut-on-fold line
+  // (its own axis of symmetry) -- both indices must already exist in
+  // outlineCm (additive metadata; drafters that need a fold endpoint with no
+  // existing vertex there insert one exactly on a straight edge it already
+  // walks, so the outline's rendered shape is unchanged).
+  foldEdge?: [number, number];
   detailRows: DetailRow[];
   armholeLenCm?: number;
 }
@@ -166,6 +172,7 @@ function place(dp: DraftedPiece, dxPx: number, dyPx: number): Piece {
     x: PX(x) + dxPx,
     y: PX(y) + dyPx,
   }));
+  if (dp.foldEdge) piece.foldEdge = dp.foldEdge;
   if (dp.guideCm)
     piece.guideOutline = translateOutline(polyPath(dp.guideCm), dxPx, dyPx);
   if (dp.grainlineCm) {
