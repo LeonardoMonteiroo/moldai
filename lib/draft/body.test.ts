@@ -171,3 +171,40 @@ describe("fit class / fabric stretch ease (#125)", () => {
     expect(halfChestCm * 4).toBeCloseTo(M.bust + 8, 5);
   });
 });
+
+// #79: a dress's bodice piece ends at the waist (lengthCm === waistY there),
+// so its hem IS the waist seam it joins to a separately-drafted skirt panel
+// -- opts.dressHemHalfCm lets the caller (garment.ts's draftAll) pass in
+// that skirt panel's own waist width instead of the hip-derived blouse hem,
+// and drops the redundant fitted-only waist vertices that would otherwise
+// retrace the same edge.
+describe("dressHemHalfCm (#79)", () => {
+  const dressOpts: BlockOpts = {
+    ...optsM,
+    lengthCm: M.backLength, // a dress bodice ends at the natural waist
+    dressHemHalfCm: 27, // an arbitrary stand-in for the skirt's own waist half
+  };
+
+  it("drafts the hem at dressHemHalfCm, not the hip-derived width", () => {
+    const { front } = draftBody(M, {}, t, dressOpts);
+    const maxY = Math.max(...front.outlineCm.map(([, y]) => y));
+    const hemXs = front.outlineCm.filter(([, y]) => y === maxY).map(([x]) => x);
+    const hemWidth = Math.max(...hemXs) - Math.min(...hemXs);
+    expect(hemWidth).toBeCloseTo(54, 5); // 2 * dressHemHalfCm
+  });
+
+  it("does not push the redundant fitted-waist vertices onto the hem edge", () => {
+    const { front } = draftBody(M, { darts: true }, t, dressOpts);
+    const maxY = Math.max(...front.outlineCm.map(([, y]) => y));
+    const hemLevelPoints = front.outlineCm.filter(([, y]) => y === maxY);
+    // Without the fix: 4 points at the hem's y (2 hem + 2 duplicate waist).
+    expect(hemLevelPoints).toHaveLength(2);
+  });
+
+  it("without dressHemHalfCm, a fitted non-dress piece still gets its waist vertices (unaffected)", () => {
+    const { front } = draftBody(M, { darts: true }, t, optsM);
+    const waistY = M.backLength;
+    const waistLevelPoints = front.outlineCm.filter(([, y]) => y === waistY);
+    expect(waistLevelPoints).toHaveLength(2);
+  });
+});

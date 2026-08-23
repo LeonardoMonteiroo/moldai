@@ -580,3 +580,66 @@ describe("drafted decorations stay inside their own piece", () => {
     });
   }
 });
+
+// #79: a dress bodice used to push extra fitted-waist vertices at
+// waistY === len (the hem), exactly retracing the hem edge it had just
+// drawn -- e.g. (cx-22,41) -> (cx-27,41) -> (cx+27,41) -> (cx+22,41), a
+// non-simple boundary the decoration-containment suite above cannot see
+// (an on-the-boundary point still satisfies y <= span.bottom).
+function hasRetracedEdge(pts: [number, number][]): boolean {
+  const n = pts.length;
+  for (let i = 0; i < n; i++) {
+    const [, ay] = pts[i];
+    const [bx, by] = pts[(i + 1) % n];
+    const [cx, cy] = pts[(i + 2) % n];
+    if (ay !== by || by !== cy) continue;
+    const [ax] = pts[i];
+    const dir1 = Math.sign(bx - ax);
+    const dir2 = Math.sign(cx - bx);
+    if (dir1 !== 0 && dir2 !== 0 && dir1 !== dir2) return true;
+  }
+  return false;
+}
+
+describe("drafted outlines have no retraced edge (#79)", () => {
+  for (const [name, spec] of DECORATION_CASES) {
+    it(`${name}: no three consecutive same-y vertices reverse direction`, () => {
+      const m = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
+      for (const piece of draftPiecesCm(spec, m, t)) {
+        expect(
+          hasRetracedEdge(piece.outlineCm as [number, number][]),
+          `${piece.id} outline retraces an edge`,
+        ).toBe(false);
+      }
+    });
+  }
+
+  it("a dress bodice's hem width equals the skirt panel's own waist width", () => {
+    const spec: Parameters<typeof draftPiecesCm>[0] = {
+      type: "dress",
+      gender: "female",
+      measurementOverrides: {},
+      style: { sleeve: "short", darts: true, skirt: "straight" },
+    };
+    const pieces = draftPiecesCm(spec, SIZE_TABLE.M, t);
+    const front = pieces.find((p) => p.id === "body-front")!;
+    const skirt = pieces.find((p) => p.id === "skirt")!;
+
+    const frontMaxY = Math.max(...front.outlineCm.map(([, y]) => y));
+    const hemXs = front.outlineCm
+      .filter(([, y]) => y === frontMaxY)
+      .map(([x]) => x);
+    const bodiceHemWidth = Math.max(...hemXs) - Math.min(...hemXs);
+
+    const skirtMinY = Math.min(...skirt.outlineCm.map(([, y]) => y));
+    const waistXs = skirt.outlineCm
+      .filter(([, y]) => y === skirtMinY)
+      .map(([x]) => x);
+    const skirtWaistWidth = Math.max(...waistXs) - Math.min(...waistXs);
+
+    expect(bodiceHemWidth).toBeCloseTo(skirtWaistWidth, 5);
+    // Exactly two hem-level vertices (not the old four with a duplicate
+    // fitted-waist pair collapsed onto the same y).
+    expect(hemXs).toHaveLength(2);
+  });
+});

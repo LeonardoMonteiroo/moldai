@@ -16,7 +16,7 @@ import {
 import { autoLayout, DraftedPiece } from "./core";
 import { BlockOpts, draftBody } from "./body";
 import { draftSleeve } from "./sleeve";
-import { draftSkirt } from "./skirt";
+import { draftSkirt, skirtWaistHalfCm } from "./skirt";
 import { FIT_CLASSES, STRETCH_CLASSES, wearingEaseCm } from "./ease";
 import type { Translate } from "@/lib/i18n/translate";
 
@@ -214,6 +214,13 @@ function draftAll(
       knit,
       lengthCm,
       wearingEaseCm: wearingEaseCm(style, knit, measurements.bust),
+      // #79: a dress's bodice ends at the waist (lengthCm === backLength,
+      // above), where it's joined to a separately-drafted skirt panel --
+      // the hem must be drafted at that panel's own waist width, not the
+      // hip-derived width a standalone blouse hem uses.
+      ...(spec.type === "dress"
+        ? { dressHemHalfCm: skirtWaistHalfCm(measurements.hip) }
+        : {}),
     };
     const {
       front,

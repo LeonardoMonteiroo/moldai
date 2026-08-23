@@ -5,6 +5,26 @@ import type { Translate } from "@/lib/i18n/translate";
 
 const cm = (v: number) => `${v.toFixed(1).replace(".", ",")} cm`;
 
+// #80: was `m.hip/4 + (style.seamAllowanceCm ?? 1)` -- the seam-allowance
+// spec field baked straight into finished geometry here, while every other
+// drafter (and CLAUDE.md: "exported geometry is the net sewing line -- seam
+// allowance is not offset into it") treats it as an annotation only. A user
+// asking for "4cm de margem" (clamped to STYLE_LIMITS.seamAllowanceCm's max)
+// silently widened the waist opening by up to 12 cm with no announcement,
+// while `rows.waistPanel` printed the inflated number as if it were the
+// design. Mirrors body.ts's own wearingEase constant; the skirt drafter
+// takes no BlockOpts, so a plain module constant is enough.
+const SKIRT_WEARING_EASE_CM = 2;
+
+// Exported so a dress's bodice hem (lib/draft/body.ts, via garment.ts's
+// draftAll) can derive from the exact same number the skirt panel it's sewn
+// to actually uses -- #79: a hip-based skirt waist panel joined to an
+// unrelated bust-taper bodice hem drafted a seam whose two sides disagreed
+// by construction.
+export function skirtWaistHalfCm(hipCm: number): number {
+  return hipCm / 4 + SKIRT_WEARING_EASE_CM;
+}
+
 // annular sector (waist and hem arcs) sampled into points.
 // `fullSweep` is the angular extent whose arc length equals the full waist
 // measurement (2π for a full circle, π for a half-circle); `panels` is how
@@ -85,7 +105,7 @@ export function draftSkirt(
   }
 
   // straight / A-line: trapezoid (¼ hip at the waist, hem equal or wider)
-  const waistHalf = m.hip / 4 + ease; // uses hip as the panel's reference width
+  const waistHalf = skirtWaistHalfCm(m.hip); // uses hip as the panel's reference width
   const flare = silhueta === "a-line" ? 12 : 0;
   const hemHalf = waistHalf + flare;
   const outlineCm: Pt[] = [

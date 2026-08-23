@@ -14,6 +14,15 @@ export interface BlockOpts {
   // lib/draft/ease.ts's wearingEaseCm, resolved by the caller from the
   // style's fit/stretch class. Shared with draftSleeve via the same opts.
   wearingEaseCm: number;
+  // #79: only set for a dress -- lengthCm equals waistY there (the bodice
+  // piece ends at the natural waist, where a separate skirt piece takes
+  // over), so the hem IS the waist seam, not a hip-derived blouse hem. When
+  // present, this replaces hemHalf and the redundant fitted-only waist
+  // vertices (which would otherwise exactly retrace the hem, at the same y)
+  // are skipped. The number is the skirt panel's own waist half-width
+  // (lib/draft/skirt.ts's skirtWaistHalfCm), so the seam a dress joins is
+  // drafted at a length that matches what the skirt panel actually is.
+  dressHemHalfCm?: number;
 }
 
 function defaultOpts(m: Measurements): BlockOpts {
@@ -56,7 +65,8 @@ function bodice(
   const neckHalf = m.bust / 14 + (opts.gender === "male" ? 0.8 : 0);
   const shoulderHalf = m.shoulder;
   const len = opts.lengthCm;
-  const hemHalf = m.hip / 4 + wearingEase;
+  const isDressHem = opts.dressHemHalfCm !== undefined;
+  const hemHalf = opts.dressHemHalfCm ?? m.hip / 4 + wearingEase;
 
   const backNeckDrop = 2.0;
   let frontNeckDrop: number;
@@ -91,10 +101,13 @@ function bodice(
   push([cx - armCtrlX, midArmY]); // left armhole ctrl
   const uaL = push([cx - halfChest, armholeDepth]); // left underarm
   spans.push([shL, uaL]); // left armhole (curved)
-  if (fitted) push([cx - waistHalf, waistY]); // left waist
+  // #79: for a dress, waistY === len (the hem IS the waist seam) -- pushing
+  // both would land two extra vertices exactly on top of the hem's own,
+  // retracing that edge and leaving the boundary non-simple.
+  if (fitted && !isDressHem) push([cx - waistHalf, waistY]); // left waist
   push([cx - hemHalf, len]); // left hem
   push([cx + hemHalf, len]); // right hem (straight = hem)
-  if (fitted) push([cx + waistHalf, waistY]); // right waist
+  if (fitted && !isDressHem) push([cx + waistHalf, waistY]); // right waist
   const uaR = push([cx + halfChest, armholeDepth]); // right underarm
   push([cx + armCtrlX, midArmY]); // right armhole ctrl
   const shR = push([cx + shoulderHalf, shoulderSlope]); // right shoulder

@@ -66,4 +66,19 @@ describe("draftSkirt", () => {
     const longa = draftSkirt(M, { skirt: "straight", skirtLengthCm: 90 }, t);
     expect(bbox(longa.outlineCm).h).toBeGreaterThan(bbox(curta.outlineCm).h);
   });
+
+  // #80: seamAllowanceCm used to be added straight into the waist panel's
+  // half-width (m.hip/4 + ease), so a user asking for a wider seam allowance
+  // silently widened the finished waist opening -- while CLAUDE.md states
+  // exported geometry is the net sewing line, seam allowance annotated but
+  // never offset into it. The straight/A-line trapezoid is the only branch
+  // that ever read `ease`; the radial silhouettes never did.
+  it("seamAllowanceCm changes only the annotation, never the drafted outline", () => {
+    const s0 = draftSkirt(M, { skirt: "straight", seamAllowanceCm: 0 }, t);
+    const s4 = draftSkirt(M, { skirt: "straight", seamAllowanceCm: 4 }, t);
+    expect(s4.outlineCm).toEqual(s0.outlineCm);
+    const row = (dp: typeof s0) =>
+      dp.detailRows.find((r) => r.label === "rows.seamAllowance")?.value;
+    expect(row(s0)).not.toBe(row(s4)); // the annotation itself still differs
+  });
 });
