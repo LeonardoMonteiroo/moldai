@@ -27,6 +27,15 @@ const tx = {
 vi.mock("@/lib/db/prisma", () => ({
   prisma: {
     $transaction: vi.fn(async (fn: (t: typeof tx) => unknown) => fn(tx)),
+    // #62: loadWallet falls back to this when no Wallet row exists yet, to
+    // tell a real account awaiting its lazy seed apart from a deleted one --
+    // exists by default (every id in this suite belongs to a live account
+    // unless a test overrides it with mockResolvedValueOnce(null)).
+    user: {
+      findUnique: vi.fn(async ({ where }: { where: { id: string } }) => ({
+        id: where.id,
+      })),
+    },
     wallet: {
       findUnique: vi.fn(async ({ where }: { where: { userId: string } }) => {
         const data = store.get(where.userId);
@@ -52,6 +61,7 @@ vi.mock("@/lib/db/prisma", () => ({
 }));
 
 import { withWallet, loadWallet } from "./wallet";
+import { prisma } from "./prisma";
 import { seedWallet, debitWallet } from "@/lib/billing/wallet";
 
 const NOW = new Date("2026-08-17T12:00:00.000Z");
@@ -175,9 +185,9 @@ describe("withWallet", () => {
 
 describe("loadWallet", () => {
   beforeEach(() => store.clear());
-  it("returns the seed without writing when there's no row", async () => {
+  it("returns the seed without writing when a real account has no row yet", async () => {
     const w = await loadWallet("novo");
-    expect(w.balance).toBe(30);
+    expect(w?.balance).toBe(30);
     expect(store.has("novo")).toBe(false);
   });
   it("returns the persisted wallet when it exists", async () => {
@@ -185,6 +195,16 @@ describe("loadWallet", () => {
     seeded.balance = 7;
     store.set("u1", seeded);
     const w = await loadWallet("u1");
-    expect(w.balance).toBe(7);
+    expect(w?.balance).toBe(7);
+  });
+  // #62: without this, a deleted account's Wallet-row-not-found path was
+  // indistinguishable from a real account's lazy-seed-not-yet-applied path --
+  // both fabricated a free 30/30 wallet, so a vanished account read back as
+  // a funded one.
+  it("returns null for a userId with no row and no User account (deleted)", async () => {
+    vi.mocked(prisma.user.findUnique).mockResolvedValueOnce(null);
+    const w = await loadWallet("deleted-user");
+    expect(w).toBeNull();
+    expect(store.has("deleted-user")).toBe(false);
   });
 });

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { getUserById } from "@/lib/db/users";
 import { loadPattern } from "@/lib/db/pattern";
 import { EditorShell } from "@/components/editor/EditorShell";
 
@@ -10,6 +11,11 @@ export default async function PatternPage({
 }) {
   const session = await auth();
   if (!session?.user?.email || !session.user.id) redirect("/login");
+  // #62: the session cookie outlives account deletion (up to the JWT's
+  // 30-day default) on any device that isn't the one that deleted it -- the
+  // editor would otherwise render for an account that no longer exists.
+  const user = await getUserById(session.user.id);
+  if (!user) redirect("/login");
   const { id } = await params;
 
   const loaded = await loadPattern(id, session.user.id);

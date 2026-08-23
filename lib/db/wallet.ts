@@ -88,7 +88,19 @@ export async function withWallet<T>(
   }, TX_OPTS);
 }
 
-export async function loadWallet(userId: string): Promise<Wallet> {
+// #62: used to fabricate a free wallet whenever no Wallet row existed yet,
+// without distinguishing "a real account whose wallet hasn't been lazily
+// seeded" (lockWallet's job, on the write path) from "this userId belongs to
+// nobody" -- a deleted account read back as a funded free-tier one. The
+// display-only lazy-seed for a real user stays (that precedent is
+// deliberate, matching lockWallet/ensureSystemSizeCharts); only a
+// confirmed-nonexistent user now gets null instead of a fabricated wallet.
+export async function loadWallet(userId: string): Promise<Wallet | null> {
   const row = await prisma.wallet.findUnique({ where: { userId } });
-  return row ? toWallet(row) : seedWallet(new Date());
+  if (row) return toWallet(row);
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true },
+  });
+  return user ? seedWallet(new Date()) : null;
 }

@@ -9,6 +9,10 @@ export default async function SlopersPage() {
   if (!session?.user?.email || !session.user.id) redirect("/login");
 
   const wallet = await loadWallet(session.user.id);
+  // #62: the session cookie outlives account deletion (up to the JWT's
+  // 30-day default) on any device that isn't the one that deleted it -- this
+  // page would otherwise render for an account that no longer exists.
+  if (!wallet) redirect("/login");
 
   return (
     <SlopersShell

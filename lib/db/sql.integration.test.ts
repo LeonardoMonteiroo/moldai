@@ -52,8 +52,13 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)(
     });
 
     it("lockWallet materializes a default wallet and withWallet persists a real UPDATE", async () => {
+      // #62: loadWallet now returns null only for a userId with no User row
+      // at all -- this userId was just created in beforeAll, so a null here
+      // would itself be a real failure worth a clear assertion, not a
+      // silent `?.`.
       const before = await loadWallet(userId);
-      expect(before.balance).toBeGreaterThan(0);
+      expect(before).not.toBeNull();
+      expect(before!.balance).toBeGreaterThan(0);
 
       await withWallet(userId, (wallet) => {
         wallet.balance -= 1;
@@ -71,7 +76,8 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)(
       });
 
       const after = await loadWallet(userId);
-      expect(after.balance).toBe(before.balance - 1);
+      expect(after).not.toBeNull();
+      expect(after!.balance).toBe(before!.balance - 1);
 
       const ledgerRows = await prisma.transaction.findMany({
         where: { userId, reason: "sql-integration-test" },

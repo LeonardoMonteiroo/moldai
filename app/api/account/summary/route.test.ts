@@ -43,4 +43,14 @@ describe("GET /api/account/summary", () => {
     expect(res.status).toBe(401);
     expect(getRecentUsage).not.toHaveBeenCalled();
   });
+
+  // #62: requireUser() already re-checks the account exists, so this is
+  // only the race window between that check and this route's own read --
+  // loadWallet returning null (a deleted account) must not compose into a
+  // 200 for a wallet that isn't there.
+  it("401s if the account vanished between requireUser() and loadWallet()", async () => {
+    vi.mocked(loadWallet).mockResolvedValueOnce(null);
+    const res = await GET();
+    expect(res.status).toBe(401);
+  });
 });

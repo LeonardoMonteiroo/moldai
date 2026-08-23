@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth/guard";
+import { unauthorized } from "@/lib/auth/session";
 import {
   loadPattern,
   renamePattern,
@@ -25,6 +26,9 @@ export async function GET(_request: Request, { params }: Ctx) {
     loadWallet(gate.id),
   ]);
   if (!loaded) return patternNotFound();
+  // #62: requireUser() just confirmed this account exists -- null here means
+  // it was deleted in the instant between that check and this one.
+  if (!wallet) return unauthorized();
   return NextResponse.json(
     composeEditorState(loaded.state, wallet, new Date(), loaded.updatedAt),
   );

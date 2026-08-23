@@ -79,6 +79,18 @@ describe("/api/patterns/[id]", () => {
     expect(mockLoad).not.toHaveBeenCalled();
   });
 
+  // #62: requireUser() already re-checks the account exists, so this is
+  // only the race window between that check and this route's own read.
+  it("GET 401s if the account vanished between requireUser() and loadWallet()", async () => {
+    mockLoad.mockResolvedValue({
+      state: seedPatternState(t),
+      updatedAt: NOW,
+    });
+    mockLoadWallet.mockResolvedValue(null);
+    const res = await GET(new Request("http://test"), ctx("m1"));
+    expect(res.status).toBe(401);
+  });
+
   it("PATCH renames and returns ok", async () => {
     mockRename.mockResolvedValue(true);
     const res = await PATCH(

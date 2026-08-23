@@ -30,6 +30,11 @@ export default async function SettingsPage({
     getLedgerHistory(session.user.id, 30),
     searchParams,
   ]);
+  // #62: the session cookie outlives account deletion (up to the JWT's
+  // 30-day default) on any device that isn't the one that deleted it --
+  // without this, the page rendered a real settings shell, with a
+  // fabricated free wallet, for an account that no longer exists.
+  if (!user || !wallet) redirect("/login");
 
   return (
     <SettingsShell

@@ -41,6 +41,7 @@ vi.mock("@/lib/db/wallet", () => ({
 import { POST } from "./route";
 import { requireUser } from "@/lib/auth/guard";
 import { unauthorized } from "@/lib/auth/session";
+import { loadWallet } from "@/lib/db/wallet";
 import { setConflict } from "@/lib/editor/state";
 
 function req(action: "fix" | "ignore") {
@@ -91,5 +92,13 @@ describe("POST /api/patterns/[id]/conflict/resolve", () => {
   it("404s when the pattern isn't found/owned", async () => {
     const res = await POST(req("ignore"), ctx("someone-elses"));
     expect(res.status).toBe(404);
+  });
+
+  // #62: requireUser() already re-checks the account exists, so this is
+  // only the race window between that check and this route's own read.
+  it("401s if the account vanished between requireUser() and loadWallet()", async () => {
+    vi.mocked(loadWallet).mockResolvedValueOnce(null);
+    const res = await POST(req("ignore"), ctx());
+    expect(res.status).toBe(401);
   });
 });

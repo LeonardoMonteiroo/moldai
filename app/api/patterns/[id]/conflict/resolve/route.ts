@@ -11,6 +11,7 @@ import {
   setConflict,
 } from "@/lib/editor/state";
 import { requireUser } from "@/lib/auth/guard";
+import { unauthorized } from "@/lib/auth/session";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -44,6 +45,9 @@ export async function POST(request: Request, { params }: Ctx) {
   if (!patternState) return patternNotFound();
 
   const wallet = await loadWallet(gate.id);
+  // #62: requireUser() just confirmed this account exists -- null here means
+  // it was deleted in the instant between that check and this one.
+  if (!wallet) return unauthorized();
   return NextResponse.json({
     status: "ok",
     state: composeEditorState(patternState, wallet, new Date()),
