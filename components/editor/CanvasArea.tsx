@@ -4,7 +4,7 @@ import { useMemo, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { EditorTab, useEditorStore } from "@/lib/store";
 import { useCanvasViewport } from "@/lib/canvas/useCanvasViewport";
-import { measureSeams } from "@/lib/draft/garment";
+import { measureSeams, draftGradedOverlays } from "@/lib/draft/garment";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { TabBar } from "./TabBar";
 import { GeneratingOverlay } from "./GeneratingOverlay";
@@ -71,6 +71,28 @@ export function CanvasArea() {
     }
   }, [conflict, spec, baseMeasurements, tData]);
 
+  // #59: the graduation curve for every applied size, drawn dashed over the
+  // base -- recomputed here rather than read off the pattern, the same
+  // never-persisted-only-derived precedent `seams` above already follows.
+  const sizesApplied = pattern?.sizesApplied;
+  const gradedOverlays = useMemo(() => {
+    if (!spec || !baseMeasurements || !pattern || !sizesApplied?.length) {
+      return [];
+    }
+    try {
+      return draftGradedOverlays(
+        spec,
+        pattern.pieces,
+        baseMeasurements,
+        pattern.sizeTable,
+        sizesApplied,
+        tData,
+      );
+    } catch {
+      return [];
+    }
+  }, [spec, baseMeasurements, pattern, sizesApplied, tData]);
+
   if (!pattern) return null;
   const isGenerating = generationStatus === "generating";
   const selectedPiece =
@@ -133,6 +155,7 @@ export function CanvasArea() {
             onRemoveMeasurement={removeMeasurement}
             armholeLenCm={seams?.armholeLenCm}
             sleeveArmholeCm={seams?.sleeveArmholeCm}
+            gradedOverlays={gradedOverlays}
           />
         </div>
         {!isGenerating && !hasPieces && (

@@ -90,10 +90,20 @@ export function outlineSegments(
   return { start: P(at(0)), segs };
 }
 
-export function buildExportModel(pattern: Pattern, t: Translate): ExportModel {
+// #59: `size` defaults to the base size (unchanged behavior for a pattern
+// with nothing graded); passing an applied size re-drafts the export in that
+// size's own measurements instead of always the base. There is no separate
+// "graded geometry" to export -- it's the same draftPiecesCm call the base
+// export already made, given a different row of the frozen sizeTable.
+export function buildExportModel(
+  pattern: Pattern,
+  t: Translate,
+  size: SizeLabel = pattern.baseSize,
+): ExportModel {
   const spec = pattern.spec;
   if (!spec) throw new Error("buildExportModel: pattern has no spec");
-  const baseMeasurements = pattern.sizeTable[pattern.baseSize];
+  const resolvedSize = pattern.sizeTable[size] ? size : pattern.baseSize;
+  const baseMeasurements = pattern.sizeTable[resolvedSize];
   const drafted: DraftedPiece[] = draftPiecesCm(spec, baseMeasurements, t);
 
   const padCm = 6;
@@ -150,7 +160,7 @@ export function buildExportModel(pattern: Pattern, t: Translate): ExportModel {
 
   return {
     patternName: pattern.name,
-    size: pattern.baseSize,
+    size: resolvedSize,
     unit: "cm",
     seamAllowanceCm: spec.style.seamAllowanceCm ?? 1,
     sheetWidthCm: sheetRight + padCm,

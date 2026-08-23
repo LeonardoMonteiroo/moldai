@@ -7,6 +7,7 @@ import {
   Measurement,
 } from "@/lib/types";
 import { EditorTool } from "@/lib/store";
+import type { GradedOverlay } from "@/lib/draft/garment";
 import { Viewport, ZOOM_STEP } from "@/lib/canvas/viewport";
 import { nearestSnap } from "@/lib/canvas/measure";
 import { fitPieceLabel, pieceLabelText } from "@/lib/canvas/pieceLabel";
@@ -53,6 +54,7 @@ export function PatternCanvas({
   onRemoveMeasurement,
   armholeLenCm,
   sleeveArmholeCm,
+  gradedOverlays = [],
 }: {
   pieces: Piece[];
   selectedPieceId: string | null;
@@ -74,6 +76,10 @@ export function PatternCanvas({
   // persisted ConflictInfo, which never carried them.
   armholeLenCm?: number;
   sleeveArmholeCm?: number;
+  // #59: one dashed outline per applied graduation size, already aligned onto
+  // its piece's placed position by the caller (CanvasArea, via
+  // draftGradedOverlays) -- this component only renders them.
+  gradedOverlays?: GradedOverlay[];
 }) {
   const [pending, setPending] = useState<Point | null>(null);
   const [cursor, setCursor] = useState<Point | null>(null);
@@ -227,6 +233,7 @@ export function PatternCanvas({
         const isSelected = piece.id === selectedPieceId;
         const labelText = pieceLabelText(piece);
         const label = fitPieceLabel(piece, labelText);
+        const overlays = gradedOverlays.filter((o) => o.pieceId === piece.id);
         return (
           <g
             key={piece.id}
@@ -240,6 +247,14 @@ export function PatternCanvas({
                 style={{ strokeWidth: 1.1, strokeDasharray: "5 4" }}
               />
             )}
+            {overlays.map((overlay) => (
+              <OutlineShape
+                key={overlay.size}
+                outline={overlay.outline}
+                className="stroke-pattern-guide fill-none"
+                style={{ strokeWidth: 1.1, strokeDasharray: "5 4" }}
+              />
+            ))}
             <OutlineShape
               outline={piece.outline}
               className={

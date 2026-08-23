@@ -1,4 +1,4 @@
-import type { Pattern } from "@/lib/types";
+import type { Pattern, SizeLabel } from "@/lib/types";
 import type { Translate } from "@/lib/i18n/translate";
 import { buildExportModel } from "./model";
 import { toSvg } from "./svg";
@@ -16,13 +16,16 @@ export function exportPattern(
   format: ExportFormat,
   t: Translate,
   onError?: (message: string) => void,
+  // #59: which size's measurements to redraft the export from; defaults to
+  // the base size, so a pattern with nothing graded exports exactly as before.
+  size?: SizeLabel,
 ): void {
   if (!pattern.spec || pattern.pieces.length === 0) return;
   const fail = () => onError?.(t("exportFailed"));
 
   let model;
   try {
-    model = buildExportModel(pattern, t);
+    model = buildExportModel(pattern, t, size);
   } catch {
     fail();
     return;

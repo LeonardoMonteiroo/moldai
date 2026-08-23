@@ -4,6 +4,7 @@ import {
   draftGarment,
   validateQuestions,
   draftPiecesCm,
+  draftGradedOverlays,
   measureSeams,
   seamCheck,
   STYLE_LIMITS,
@@ -418,6 +419,92 @@ describe("measureSeams", () => {
     );
     expect(armholeLenCm).toBeUndefined();
     expect(sleeveArmholeCm).toBeUndefined();
+  });
+});
+
+// #59: grading used to charge 6 credits for state-flag bookkeeping that
+// produced no geometry -- draftGradedOverlays is the redraft the graduated
+// chip now actually backs, recomputed on demand from the frozen sizeTable
+// rather than persisted.
+describe("draftGradedOverlays", () => {
+  const spec = {
+    type: "blouse" as const,
+    gender: "female" as const,
+    measurementOverrides: {},
+    style: {},
+  };
+
+  it("returns no overlays when no size is applied", () => {
+    const { pieces } = draftGarment(spec, SIZE_TABLE.M, t);
+    expect(
+      draftGradedOverlays(spec, pieces, SIZE_TABLE.M, SIZE_TABLE, [], t),
+    ).toEqual([]);
+  });
+
+  it("returns one overlay per piece per applied size, keyed to the base piece's own id", () => {
+    const { pieces } = draftGarment(spec, SIZE_TABLE.M, t);
+    const overlays = draftGradedOverlays(
+      spec,
+      pieces,
+      SIZE_TABLE.M,
+      SIZE_TABLE,
+      ["G"],
+      t,
+    );
+    expect(overlays).toHaveLength(pieces.length);
+    expect(overlays.map((o) => o.pieceId).sort()).toEqual(
+      pieces.map((p) => p.id).sort(),
+    );
+    expect(overlays.every((o) => o.size === "G")).toBe(true);
+  });
+
+  it("produces a distinct outline from the base piece (G is a real size larger than M)", () => {
+    const { pieces } = draftGarment(spec, SIZE_TABLE.M, t);
+    const [overlay] = draftGradedOverlays(
+      spec,
+      pieces,
+      SIZE_TABLE.M,
+      SIZE_TABLE,
+      ["G"],
+      t,
+    );
+    const base = pieces.find((p) => p.id === overlay.pieceId)!;
+    expect(overlay.outline).not.toEqual(base.outline);
+  });
+
+  it("aligns onto the base piece's own placed position exactly: grading 'M' against itself reproduces the identical outline", () => {
+    // A fresh autoLayout of a same-measurements redraft would coincidentally
+    // match too, so this alone wouldn't prove alignment -- it's the
+    // "distinct from base" test above, together with this one, that pins the
+    // transform down: same measurements -> byte-identical outline (the
+    // computed dx/dy exactly recovers what autoLayout originally placed this
+    // piece at); different measurements (G, above) -> a different outline.
+    const { pieces } = draftGarment(spec, SIZE_TABLE.M, t);
+    const front = pieces.find((p) => p.id === "body-front")!;
+    const overlays = draftGradedOverlays(
+      spec,
+      pieces,
+      SIZE_TABLE.M,
+      SIZE_TABLE,
+      ["M"],
+      t,
+    );
+    const overlay = overlays.find((o) => o.pieceId === "body-front")!;
+    expect(overlay.outline).toEqual(front.outline);
+  });
+
+  it("silently skips a size missing from the sizeTable rather than throwing", () => {
+    const { pieces } = draftGarment(spec, SIZE_TABLE.M, t);
+    expect(
+      draftGradedOverlays(
+        spec,
+        pieces,
+        SIZE_TABLE.M,
+        SIZE_TABLE,
+        ["not-a-real-size"],
+        t,
+      ),
+    ).toEqual([]);
   });
 });
 

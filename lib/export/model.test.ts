@@ -39,9 +39,9 @@ function fakePattern(): Pattern {
     baseSize: "M",
     unit: "cm",
     sizes: ["PP", "P", "M", "G", "GG"],
-    sizesApplied: [],
+    sizesApplied: ["G"],
     sizesPending: [],
-    sizeTable: { M: SIZE_TABLE.M },
+    sizeTable: { M: SIZE_TABLE.M, G: SIZE_TABLE.G },
     pieces: [
       {
         id: "x",
@@ -109,5 +109,31 @@ describe("buildExportModel", () => {
     const pat = fakePattern();
     pat.spec!.style = {};
     expect(buildExportModel(pat, t).seamAllowanceCm).toBe(1);
+  });
+
+  // #59: export can now redraft from a graduated size, not only the base --
+  // buildExportModel is the layer that actually re-drafts.
+  describe("size selection (#59)", () => {
+    it("defaults to the base size when none is given", () => {
+      expect(buildExportModel(fakePattern(), t).size).toBe("M");
+    });
+
+    it("redrafts from the requested size's own measurements", () => {
+      const base = buildExportModel(fakePattern(), t);
+      const graded = buildExportModel(fakePattern(), t, "G");
+      expect(graded.size).toBe("G");
+      // SIZE_TABLE.G's bust is real cm larger than SIZE_TABLE.M's -- the
+      // redraft produces a wider front piece, not just a relabeled model.
+      expect(graded.pieces[0].widthCm).not.toBeCloseTo(
+        base.pieces[0].widthCm,
+        3,
+      );
+    });
+
+    it("falls back to the base size for a size missing from sizeTable, rather than throwing", () => {
+      const model = buildExportModel(fakePattern(), t, "not-a-real-size");
+      expect(model.size).toBe("M");
+      expect(model).toEqual(buildExportModel(fakePattern(), t));
+    });
   });
 });

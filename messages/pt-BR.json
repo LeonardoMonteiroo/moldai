@@ -23,6 +23,8 @@
     "statusReady": "{pieceCount} peças · base {baseSize} · unidade {unit}",
     "a4PageCount": "~{count, plural, one {# folha A4} other {# folhas A4}}",
     "exportButton": "Exportar",
+    "exportSizeLabel": "Tamanho para exportar",
+    "exportSizeBaseOption": "{size} (base)",
     "netLineNote": "Linha líquida — sem margem de costura embutida.",
     "saveVersionTitle": "O molde é salvo automaticamente a cada geração. Versionamento manual chega em breve.",
     "saveVersionButton": "Salvar versão · em breve",

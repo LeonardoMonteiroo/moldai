@@ -12,8 +12,17 @@ import {
   SleeveLength,
   SkirtSilhouette,
   Gender,
+  Piece,
+  PieceOutline,
 } from "@/lib/types";
-import { autoLayout, DraftedPiece } from "./core";
+import {
+  autoLayout,
+  DraftedPiece,
+  PX,
+  outlinePath,
+  polyPath,
+  translateOutline,
+} from "./core";
 import { BlockOpts, draftBody } from "./body";
 import { draftSleeve } from "./sleeve";
 import { draftSkirt, skirtWaistHalfCm } from "./skirt";
@@ -273,6 +282,58 @@ export function measureSeams(
 ): { armholeLenCm?: number; sleeveArmholeCm?: number } {
   const { armholeLenCm, sleeveArmholeCm } = draftAll(spec, baseMeasurements, t);
   return { armholeLenCm, sleeveArmholeCm };
+}
+
+export interface GradedOverlay {
+  pieceId: string;
+  size: string;
+  outline: PieceOutline;
+}
+
+// #59: graduation produces real per-size geometry, recomputed on demand from
+// the pattern's own frozen sizeTable rather than persisted onto it -- the
+// same derive-don't-store precedent as measureSeams/fitPieceLabel. Each
+// applied size is redrafted with draftPiecesCm and aligned onto the base
+// piece's own already-placed position (read off its `vertices[0]`, not
+// re-run through autoLayout), so the two outlines land in the same canvas
+// coordinate space and are visually comparable. Piece order/ids are stable
+// across measurements for the same spec (draftPiecesCm's per-piece id and
+// count depend only on garment type/style), so pairing by index is safe.
+export function draftGradedOverlays(
+  spec: GarmentSpec,
+  pieces: Piece[],
+  baseMeasurements: Measurements,
+  sizeTable: Record<string, Measurements>,
+  sizes: string[],
+  t: Translate,
+): GradedOverlay[] {
+  if (sizes.length === 0) return [];
+  const baseDrafted = draftPiecesCm(spec, baseMeasurements, t);
+  const overlays: GradedOverlay[] = [];
+  for (const size of sizes) {
+    const measurements = sizeTable[size];
+    if (!measurements) continue;
+    const graded = draftPiecesCm(spec, measurements, t);
+    graded.forEach((dp, i) => {
+      const base = baseDrafted[i];
+      const placed = pieces[i];
+      // A piece with no vertices predates the measure tool's snap (#79's
+      // legacy-blob case) -- there's no placed position to align onto.
+      if (!base || !placed?.vertices?.length) return;
+      const [bx, by] = base.outlineCm[0];
+      const dxPx = placed.vertices[0].x - PX(bx);
+      const dyPx = placed.vertices[0].y - PX(by);
+      const rawOutline = dp.curvedSpans?.length
+        ? outlinePath(dp.outlineCm, dp.curvedSpans)
+        : polyPath(dp.outlineCm);
+      overlays.push({
+        pieceId: dp.id,
+        size,
+        outline: translateOutline(rawOutline, dxPx, dyPx),
+      });
+    });
+  }
+  return overlays;
 }
 
 export function draftGarment(

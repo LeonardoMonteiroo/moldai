@@ -122,7 +122,7 @@ export function curveArcLengthCm(
   return len;
 }
 
-function translateOutline(
+export function translateOutline(
   o: PieceOutline,
   dx: number,
   dy: number,

@@ -231,3 +231,65 @@ describe("PatternCanvas conflict markers", () => {
     expect(screen.queryByText("19,7 cm")).not.toBeInTheDocument();
   });
 });
+
+// #59: the graduation curve for each applied size, dashed over the base --
+// gradedOverlays is caller-computed (CanvasArea via draftGradedOverlays);
+// this component only has to draw what it's handed, keyed to the right piece.
+describe("PatternCanvas gradedOverlays", () => {
+  it("renders one dashed pattern-guide outline per overlay, only on its own piece", () => {
+    const { container } = renderCanvas({
+      pieces: [frontPiece, backPiece],
+      gradedOverlays: [
+        {
+          pieceId: "front",
+          size: "G",
+          outline: { kind: "polygon", points: "5,5 95,5 95,95 5,95" },
+        },
+      ],
+    });
+    const dashed = container.querySelectorAll(
+      'polygon[class*="stroke-pattern-guide"]',
+    );
+    expect(dashed).toHaveLength(1);
+    expect(dashed[0].getAttribute("points")).toBe("5,5 95,5 95,95 5,95");
+    // Lives inside the front <g>, not the back piece's.
+    expect(
+      container.querySelector(
+        '[data-piece-id="front"] polygon[class*="stroke-pattern-guide"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      container.querySelector(
+        '[data-piece-id="back"] polygon[class*="stroke-pattern-guide"]',
+      ),
+    ).toBeNull();
+  });
+
+  it("renders every applied size's overlay on the same piece", () => {
+    const { container } = renderCanvas({
+      pieces: [frontPiece],
+      gradedOverlays: [
+        {
+          pieceId: "front",
+          size: "P",
+          outline: { kind: "polygon", points: "10,10 90,10 90,90 10,90" },
+        },
+        {
+          pieceId: "front",
+          size: "G",
+          outline: { kind: "polygon", points: "0,0 100,0 100,100 0,100" },
+        },
+      ],
+    });
+    expect(
+      container.querySelectorAll('polygon[class*="stroke-pattern-guide"]'),
+    ).toHaveLength(2);
+  });
+
+  it("renders no overlay outlines when none are given (default)", () => {
+    const { container } = renderCanvas({ pieces: [frontPiece] });
+    expect(
+      container.querySelectorAll('polygon[class*="stroke-pattern-guide"]'),
+    ).toHaveLength(0);
+  });
+});

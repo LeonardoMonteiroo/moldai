@@ -16,6 +16,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useEditorStore } from "@/lib/store";
 import {
   Dialog,
@@ -57,6 +65,10 @@ export function Footer({
   const tData = useTranslations("PatternData");
   const [menuOpen, setMenuOpen] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
+  // #59: which size's measurements the export is redrafted from. Only shown
+  // once something is actually graded -- an ungraded pattern always exports
+  // the base size, unchanged from before this existed.
+  const [exportSize, setExportSize] = useState(pattern.baseSize);
 
   useEffect(() => {
     if (!exportError) return;
@@ -109,14 +121,20 @@ export function Footer({
   // Only re-draws the model when the menu opens (buildExportModel re-drafts in cm).
   const a4Pages = useMemo(() => {
     if (!menuOpen || exportDisabled) return 0;
-    const model = buildExportModel(pattern, tData);
+    const model = buildExportModel(pattern, tData, exportSize);
     return planTiles(model.sheetWidthCm, model.sheetHeightCm, "a4").pages
       .length;
-  }, [menuOpen, exportDisabled, pattern, tData]);
+  }, [menuOpen, exportDisabled, pattern, tData, exportSize]);
 
   const handleExport = (format: ExportFormat) => {
     setExportError(null);
-    exportPattern(pattern, format, tData, (msg) => setExportError(msg));
+    exportPattern(
+      pattern,
+      format,
+      tData,
+      (msg) => setExportError(msg),
+      exportSize,
+    );
   };
 
   return (
@@ -144,6 +162,34 @@ export function Footer({
         >
           {baseNotice.text}
         </span>
+      )}
+
+      {pattern.sizesApplied.length > 0 && (
+        <Select
+          value={exportSize}
+          onValueChange={setExportSize}
+          disabled={exportDisabled}
+        >
+          <SelectTrigger
+            size="sm"
+            className="w-[120px]"
+            aria-label={t("exportSizeLabel")}
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value={pattern.baseSize}>
+                {t("exportSizeBaseOption", { size: pattern.baseSize })}
+              </SelectItem>
+              {pattern.sizesApplied.map((size) => (
+                <SelectItem key={size} value={size}>
+                  {size}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       )}
 
       <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
