@@ -66,6 +66,19 @@ describe("PageHeader", () => {
     expect(screen.getByText("há 2 min · v3")).toBeInTheDocument();
   });
 
+  // #48: the header row was an anonymous div and the title a bare span --
+  // a screen-reader user had no banner landmark to jump to, and "list
+  // headings" found nothing at all on the dashboard's own header.
+  it("is a banner landmark, and the title is an h1", () => {
+    renderWithIntl(
+      <PageHeader title="Blusa" credits={CREDITS} userEmail="a@b.com" />,
+    );
+    expect(screen.getByRole("banner")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Blusa" }),
+    ).toBeInTheDocument();
+  });
+
   it("renders no title block, and no separator, when title is omitted", () => {
     // The dashboard's case: its sidebar already names the section, so a header
     // title would print the same words twice. With neither title nor backHref

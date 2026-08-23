@@ -65,7 +65,7 @@ export function PageHeader({
   ];
 
   return (
-    <div className="bg-surface border-border relative flex items-center gap-4 border-b px-[18px] py-3">
+    <header className="bg-surface border-border relative flex items-center gap-4 border-b px-[18px] py-3">
       <Wordmark />
       {/* The separator divides the wordmark from the screen's own identity —
           the back button and the title. The dashboard has neither (it IS "/",
@@ -89,8 +89,15 @@ export function PageHeader({
         // The editor's title is the pattern name, which the user chooses, so
         // it has to be allowed to run out of room without shoving the credits
         // bar and avatar off the header.
+        //
+        // #48: the dashboard is the one screen that renders no title at all
+        // (its sidebar already names the section) -- rather than inventing a
+        // visually-hidden duplicate of that same text and risking a second
+        // match against Sidebar.myPatternsLabel-pinned test assertions, the
+        // dashboard is left with landmarks only and no h1, which the issue
+        // explicitly allows.
         <div className="flex min-w-0 flex-col gap-px">
-          <span className="text-control truncate font-semibold">{title}</span>
+          <h1 className="text-control truncate font-semibold">{title}</h1>
           {subtitle && (
             <span className="text-muted text-meta truncate">{subtitle}</span>
           )}
@@ -164,6 +171,6 @@ export function PageHeader({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-    </div>
+    </header>
   );
 }

@@ -20,6 +20,12 @@ import { PageHeader } from "@/components/shared/PageHeader";
  *
  * `title` is optional: a screen whose sidebar already names the current
  * section (the dashboard) omits it rather than printing the same words twice.
+ *
+ * #48: PageHeader's own root is a <header> (banner landmark) and its title
+ * span is an <h1> when `title` is given; the content region here is a
+ * <main id="main">, and `footer` (when passed) is wrapped in a <footer> --
+ * one shared fix repairs the landmark structure and heading hierarchy on
+ * every screen that renders through AppShell at once.
  */
 export function AppShell({
   title,
@@ -51,9 +57,11 @@ export function AppShell({
       />
       <div className="flex min-h-0 flex-1">
         {sidebar}
-        <div className="flex min-h-0 flex-1 flex-col">{children}</div>
+        <main id="main" className="flex min-h-0 flex-1 flex-col">
+          {children}
+        </main>
       </div>
-      {footer}
+      {footer && <footer>{footer}</footer>}
     </div>
   );
 }
