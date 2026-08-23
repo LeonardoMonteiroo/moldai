@@ -1,20 +1,54 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import type { Credits, PlanId } from "@/lib/types";
 import { COSTS } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ActionErrorNotice } from "@/components/shared/ActionErrorNotice";
+import { purchase } from "@/lib/api-client";
 
 const PLAN_IDS: PlanId[] = ["free", "atelier", "studio", "factory"];
 
-export function PlanSection({ credits }: { credits: Credits }) {
+// #111: applyPurchase (lib/billing/wallet.ts) only ever issues the atelier
+// plan today -- studio/factory stay badged "em breve" until #9 gives them a
+// real purchase path. This is the one place that distinction is made.
+const PURCHASABLE: PlanId[] = ["atelier"];
+
+export function PlanSection({ credits: initial }: { credits: Credits }) {
   const t = useTranslations("PlanSection");
+  const [credits, setCredits] = useState(initial);
+  const [subscribing, setSubscribing] = useState(false);
+  const [actionError, setActionError] = useState(false);
+
+  // #111: PlanSection used to badge Ateliê "em breve" while PaywallModal
+  // sold it as a live, working subscribe card -- two screens making opposite
+  // claims about the same purchasable plan. Both now drive the same
+  // purchase("subscribe") call; the try/catch/finally shape mirrors
+  // UsageSection's buyTopup (#44), which purchase() itself was fixed for.
+  async function subscribeAtelier() {
+    setSubscribing(true);
+    setActionError(false);
+    try {
+      const result = await purchase("subscribe");
+      if ("credits" in result) setCredits(result.credits);
+    } catch {
+      setActionError(true);
+    } finally {
+      setSubscribing(false);
+    }
+  }
 
   return (
     <div className="flex flex-col gap-4">
+      {actionError && (
+        <ActionErrorNotice onDismiss={() => setActionError(false)} />
+      )}
       <section className="grid grid-cols-2 gap-3">
         {PLAN_IDS.map((id) => {
           const isCurrent = credits.plan === id;
+          const isPurchasable = !isCurrent && PURCHASABLE.includes(id);
           return (
             <div
               key={id}
@@ -32,7 +66,7 @@ export function PlanSection({ credits }: { credits: Credits }) {
                   <span className="bg-olive rounded-pill text-tick px-[9px] py-[3px] font-semibold text-white">
                     {t("currentBadge")}
                   </span>
-                ) : (
+                ) : isPurchasable ? null : (
                   <Badge variant="soon">{t("comingSoonBadge")}</Badge>
                 )}
               </div>
@@ -42,6 +76,16 @@ export function PlanSection({ credits }: { credits: Credits }) {
               <span className="text-muted text-meta">
                 {t(`plans.${id}.creditsLabel`)}
               </span>
+              {isPurchasable && (
+                <Button
+                  size="sm"
+                  onClick={subscribeAtelier}
+                  disabled={subscribing}
+                  className="mt-1"
+                >
+                  {t("subscribeButton")}
+                </Button>
+              )}
             </div>
           );
         })}

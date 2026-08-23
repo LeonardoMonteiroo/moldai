@@ -608,6 +608,7 @@
   "PlanSection": {
     "currentBadge": "Plano atual",
     "comingSoonBadge": "em breve",
+    "subscribeButton": "Assinar · R$ 59/mês",
     "costsHeading": "Custo por ação",
     "costGenerate": "Geração · {cost} créditos",
     "costAdjust": "Ajuste · {cost} créditos",
