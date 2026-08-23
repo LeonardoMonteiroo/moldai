@@ -87,3 +87,55 @@ describe("docker-compose production hardening (#25)", () => {
     }
   });
 });
+
+// #73: the prod stack never overrode `cron` at all -- it ran the `dev`
+// build target (no application code, only a bind mount at runtime), no
+// restart policy, and its entrypoint applied migrations a second time,
+// racing the app container's own. #100 folds in the "and a healthcheck"
+// half of the same issue title.
+describe("docker cron/healthcheck hardening (#73, #100)", () => {
+  const dev = readFileSync(join(process.cwd(), "docker-compose.yml"), "utf-8");
+  const prod = readFileSync(
+    join(process.cwd(), "docker-compose.prod.yml"),
+    "utf-8",
+  );
+  const dockerfile = readFileSync(join(process.cwd(), "Dockerfile"), "utf-8");
+
+  it("overrides cron in prod to build the runner target with a restart policy", () => {
+    // Anchored to the service key at line-start (2-space indent), not a bare
+    // "cron:" -- this file's own explanatory comment above the block also
+    // contains that substring.
+    const cronBlock = prod.slice(prod.indexOf("\n  cron:"));
+    expect(cronBlock).toMatch(/target:\s*runner/);
+    expect(cronBlock).toMatch(/restart:\s*unless-stopped/);
+    expect(cronBlock).toMatch(/volumes:\s*!reset\s*\[\]/);
+  });
+
+  it("points prod's cron entrypoint at the migrate-skipping script", () => {
+    const cronBlock = prod.slice(prod.indexOf("\n  cron:"));
+    expect(cronBlock).toMatch(/entrypoint:.*docker-entrypoint-cron\.sh/);
+  });
+
+  it("the cron entrypoint waits for Postgres but never runs prisma migrate", () => {
+    const script = readFileSync(
+      join(process.cwd(), "docker-entrypoint-cron.sh"),
+      "utf-8",
+    );
+    expect(script).toMatch(/pg_isready/);
+    // Matches only an actual invocation, not the explanatory comment above
+    // (which necessarily quotes the command it's explicitly not running).
+    expect(script).not.toMatch(/^\s*npx prisma migrate/m);
+  });
+
+  it("the Dockerfile's runner stage installs the cron entrypoint script", () => {
+    const runnerStage = dockerfile.slice(dockerfile.indexOf("AS runner"));
+    expect(runnerStage).toMatch(/docker-entrypoint-cron\.sh/);
+    expect(runnerStage).toMatch(/chmod \+x.*docker-entrypoint-cron\.sh/);
+  });
+
+  it("gives the app service a healthcheck that probes GET /api/health", () => {
+    const appBlock = dev.slice(dev.indexOf("app:"), dev.indexOf("cron:"));
+    expect(appBlock).toMatch(/healthcheck:/);
+    expect(appBlock).toMatch(/\/api\/health/);
+  });
+});

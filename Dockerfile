@@ -47,7 +47,11 @@ COPY --from=build /app/lib ./lib
 COPY --from=build /app/scripts ./scripts
 COPY --from=build /app/tsconfig.json ./tsconfig.json
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+# #73: the cron service's prod override points its entrypoint at this
+# instead -- same Postgres-readiness wait, no migrate step, so only the app
+# container ever applies migrations.
+COPY docker-entrypoint-cron.sh /usr/local/bin/docker-entrypoint-cron.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh /usr/local/bin/docker-entrypoint-cron.sh
 EXPOSE 3000
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["npm", "run", "start", "--", "--hostname", "0.0.0.0"]

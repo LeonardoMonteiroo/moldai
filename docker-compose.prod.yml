@@ -18,6 +18,21 @@ services:
       DATABASE_URL: postgresql://moldai:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.local}@db:5432/moldai?schema=public
       REDIS_URL: redis://:${REDIS_PASSWORD:?set REDIS_PASSWORD in .env.local}@redis:6379
 
+  # #73: this service didn't exist here at all, so the base file's `cron:`
+  # ran unmodified in prod -- the `dev` build target (no application code,
+  # only a bind mount at runtime), no restart policy, and racing the app
+  # container's own migrate on every stack start. Mirrors `app` above,
+  # minus the ports it never had.
+  cron:
+    build:
+      target: runner
+    restart: unless-stopped
+    volumes: !reset []
+    entrypoint: ["docker-entrypoint-cron.sh"]
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://moldai:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.local}@db:5432/moldai?schema=public
+
   db:
     ports: !reset []
 
