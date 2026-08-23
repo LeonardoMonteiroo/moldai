@@ -193,6 +193,119 @@ describe("store.graduateSizes", () => {
   });
 });
 
+// #31: neither action had any in-flight signal (no spinner, nothing
+// disabled) -- a double click sent two requests. The server's row lock
+// serialized them but never deduplicated: graduate's route filters against
+// the full size list, not against what's already applied, so the second
+// request debited again (12 credits for one grading), and a top-up granted
+// double credits.
+describe("store double submission (#31)", () => {
+  beforeEach(() => {
+    vi.mocked(api.graduate).mockReset();
+    vi.mocked(api.purchase).mockReset();
+    useEditorStore.setState({
+      patternId: "p1",
+      graduating: false,
+      purchasing: false,
+      paywall: {
+        open: false,
+        required: 0,
+        balance: 0,
+        action: null,
+        retry: null,
+      },
+    });
+  });
+
+  it("a second graduateSizes call while one is in flight issues only one request", async () => {
+    const grad = deferred<Awaited<ReturnType<typeof api.graduate>>>();
+    vi.mocked(api.graduate).mockReturnValue(grad.promise);
+
+    const first = useEditorStore.getState().graduateSizes(["M"]);
+    expect(useEditorStore.getState().graduating).toBe(true);
+    await useEditorStore.getState().graduateSizes(["M"]); // the double click
+
+    expect(api.graduate).toHaveBeenCalledTimes(1);
+
+    grad.resolve({ status: "ok", state: emptyState() });
+    await first;
+    expect(useEditorStore.getState().graduating).toBe(false);
+  });
+
+  it("clears graduating before opening the paywall, so its own retry can re-enter", async () => {
+    vi.mocked(api.graduate).mockResolvedValue({
+      status: "insufficient_credits",
+      required: 6,
+      balance: 1,
+    });
+
+    await useEditorStore.getState().graduateSizes(["M"]);
+
+    expect(useEditorStore.getState().graduating).toBe(false);
+    expect(useEditorStore.getState().paywall.retry).not.toBeNull();
+  });
+
+  it("clears graduating on a failed request", async () => {
+    vi.mocked(api.graduate).mockRejectedValue(new ApiError(500, "boom"));
+
+    await useEditorStore.getState().graduateSizes(["M"]);
+
+    expect(useEditorStore.getState().graduating).toBe(false);
+  });
+
+  it("a second purchase call while one is in flight issues only one request", async () => {
+    const buy = deferred<Awaited<ReturnType<typeof api.purchase>>>();
+    vi.mocked(api.purchase).mockReturnValue(buy.promise);
+
+    const first = useEditorStore.getState().purchase("topup");
+    expect(useEditorStore.getState().purchasing).toBe(true);
+    await useEditorStore.getState().purchase("topup"); // the double click
+
+    expect(api.purchase).toHaveBeenCalledTimes(1);
+
+    buy.resolve({ status: "ok", credits: emptyState().credits });
+    await first;
+    expect(useEditorStore.getState().purchasing).toBe(false);
+  });
+
+  it("clears purchasing before invoking the paywall's retry thunk", async () => {
+    let retryCalled = false;
+    useEditorStore.setState({
+      paywall: {
+        open: true,
+        required: 6,
+        balance: 1,
+        action: "graduate",
+        retry: () => {
+          // If purchasing were still true here, a retry that re-enters
+          // graduateSizes/sendMessage would matter -- what this test
+          // actually pins is that purchasing itself already reads false
+          // by the time retry fires, which is what let the issue's
+          // implementation notes call out as the failure mode.
+          retryCalled = true;
+          expect(useEditorStore.getState().purchasing).toBe(false);
+        },
+      },
+    });
+    vi.mocked(api.purchase).mockResolvedValue({
+      status: "ok",
+      credits: emptyState().credits,
+    });
+
+    await useEditorStore.getState().purchase("topup");
+
+    expect(retryCalled).toBe(true);
+  });
+
+  it("clears purchasing on a failed request", async () => {
+    vi.mocked(api.purchase).mockRejectedValue(new ApiError(500, "boom"));
+
+    await useEditorStore.getState().purchase("topup");
+
+    expect(useEditorStore.getState().purchasing).toBe(false);
+  });
+});
+
 // #32: the store is a module-level singleton, so switching patterns without
 // resetting the per-pattern slice let one pattern's pieces/chat/conflict/
 // paywall (complete with a retry thunk) bleed onto another's screen, and a

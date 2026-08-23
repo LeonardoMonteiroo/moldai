@@ -9,11 +9,13 @@ export function PieceDetailsPanel({
   pattern,
   onClose,
   onGraduate,
+  graduating,
 }: {
   piece: Piece;
   pattern: Pattern;
   onClose: () => void;
   onGraduate: (sizes: string[]) => void;
+  graduating: boolean;
 }) {
   const t = useTranslations("PieceDetailsPanel");
   const tf = useTranslations("Format");
@@ -92,7 +94,12 @@ export function PieceDetailsPanel({
 
       <Button
         variant="outline"
-        disabled={gradable.length === 0}
+        // #31: graduating also guards against a double click double-billing
+        // the account -- this action had no other in-flight signal (no
+        // spinner, the panel isn't hidden the way it is during a
+        // generation), so nothing else disabled it while a request was
+        // already out.
+        disabled={gradable.length === 0 || graduating}
         onClick={() => onGraduate(gradable)}
       >
         {t("graduateButton")}

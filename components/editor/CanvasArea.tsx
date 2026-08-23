@@ -41,6 +41,7 @@ export function CanvasArea() {
   const generationStepIndex = useEditorStore((s) => s.generationStepIndex);
   const cancelGeneration = useEditorStore((s) => s.cancelGeneration);
   const graduateSizes = useEditorStore((s) => s.graduateSizes);
+  const graduating = useEditorStore((s) => s.graduating);
   const measurements = useEditorStore((s) => s.measurements);
   const addMeasurement = useEditorStore((s) => s.addMeasurement);
   const removeMeasurement = useEditorStore((s) => s.removeMeasurement);
@@ -180,6 +181,7 @@ export function CanvasArea() {
             pattern={pattern}
             onClose={toggleDetailsPanel}
             onGraduate={graduateSizes}
+            graduating={graduating}
           />
         )}
       </TabsContent>

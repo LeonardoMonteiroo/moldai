@@ -18,6 +18,7 @@ export function PaywallModal() {
   const paywall = useEditorStore((s) => s.paywall);
   const credits = useEditorStore((s) => s.credits);
   const purchase = useEditorStore((s) => s.purchase);
+  const purchasing = useEditorStore((s) => s.purchasing);
   const close = useEditorStore((s) => s.closePaywall);
 
   if (!credits) return null;
@@ -52,7 +53,11 @@ export function PaywallModal() {
         <div className="flex gap-3">
           <button
             onClick={() => purchase("topup")}
-            className="border-border rounded-card bg-surface-alt flex flex-1 flex-col gap-[5px] border p-[14px] text-left transition-colors hover:bg-white"
+            disabled={purchasing}
+            // #31: double-clicking granted double credits -- applyPurchase
+            // has no idempotency key, so nothing but this flag stood
+            // between one click and two purchase requests.
+            className="border-border rounded-card bg-surface-alt flex flex-1 flex-col gap-[5px] border p-[14px] text-left transition-colors hover:bg-white disabled:pointer-events-none disabled:opacity-50"
           >
             <span className="text-control font-semibold">
               {t("topupTitle")}
@@ -68,7 +73,8 @@ export function PaywallModal() {
           </button>
           <button
             onClick={() => purchase("subscribe")}
-            className="border-olive rounded-card bg-olive-tint flex flex-1 flex-col gap-[5px] border-2 p-[14px] text-left transition-[filter] hover:brightness-[0.98]"
+            disabled={purchasing}
+            className="border-olive rounded-card bg-olive-tint flex flex-1 flex-col gap-[5px] border-2 p-[14px] text-left transition-[filter] hover:brightness-[0.98] disabled:pointer-events-none disabled:opacity-50"
           >
             <div className="flex items-center gap-[7px]">
               <span className="text-control font-semibold">

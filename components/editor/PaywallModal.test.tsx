@@ -15,6 +15,7 @@ const CREDITS = {
 beforeEach(() => {
   useEditorStore.setState({
     credits: CREDITS,
+    purchasing: false,
     paywall: {
       open: true,
       required: 3,
@@ -59,5 +60,27 @@ describe("PaywallModal", () => {
     renderWithIntl(<PaywallModal />);
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  // #31: double-clicking either plan card sent two purchase requests --
+  // nothing disabled them while the first was still in flight, so a top-up
+  // granted double credits with no idempotency key on the server side to
+  // catch it.
+  it("disables both plan cards while a purchase is already in flight", () => {
+    useEditorStore.setState({ purchasing: true });
+    renderWithIntl(<PaywallModal />);
+
+    const topupButton = screen.getByText(t.topupCta).closest("button")!;
+    const subscribeButton = screen.getByText(t.subscribeCta).closest("button")!;
+    expect(topupButton).toBeDisabled();
+    expect(subscribeButton).toBeDisabled();
+  });
+
+  it("leaves both plan cards enabled when no purchase is in flight", () => {
+    useEditorStore.setState({ purchasing: false });
+    renderWithIntl(<PaywallModal />);
+
+    expect(screen.getByText(t.topupCta).closest("button")).toBeEnabled();
+    expect(screen.getByText(t.subscribeCta).closest("button")).toBeEnabled();
   });
 });
