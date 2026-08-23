@@ -8,7 +8,8 @@ AI-powered 2D pattern editor (chat → GarmentSpec → sewing pieces). Next.js 1
 - `.env.local` at the repo root with:
   - `ANTHROPIC_API_KEY` — Anthropic API key (chat uses `claude-sonnet-5`).
   - `AUTH_SECRET` — Auth.js secret (`npx auth secret` or `openssl rand -base64 32`).
-  - `DATABASE_URL` — `postgresql://moldai:moldai@localhost:5433/moldai?schema=public` (host flow).
+  - `POSTGRES_PASSWORD` / `REDIS_PASSWORD` — required, no default (`openssl rand -hex 20` each). The Docker stack fails to start without them rather than falling back to a weak, previously-committed password.
+  - `DATABASE_URL` — `postgresql://moldai:<POSTGRES_PASSWORD>@localhost:5433/moldai?schema=public` (host flow; must carry the same password as `POSTGRES_PASSWORD` above).
 
 ## Run with Docker (app + Postgres together)
 
@@ -17,7 +18,9 @@ npm run docker:up     # dev, hot reload — http://localhost:3000
 npm run docker:prod   # production image (next start)
 ```
 
-One command brings up the app and Postgres; the entrypoint applies migrations. Inside the container the app talks to Postgres at `db:5432`; secrets come from `.env.local` at runtime (never baked into the image).
+One command brings up the app and Postgres; the entrypoint applies migrations. Inside the container the app talks to Postgres at `db:5432` and Redis at `redis:6379`; secrets come from `.env.local` at runtime (never baked into the image, and also passed as `--env-file` so Compose can resolve the `${POSTGRES_PASSWORD}`/`${REDIS_PASSWORD}` placeholders in `docker-compose.yml` itself).
+
+The dev stack (`npm run docker:up`) publishes `db`/`redis` to the host (`localhost:5433`/`localhost:6380`) for local inspection. **The production stack does not** — `docker-compose.prod.yml` resets both to no published ports, since a host-published database/cache on a public VPS is reachable from the internet regardless of any firewall rule (Docker's published ports bind `0.0.0.0` and bypass `ufw`). Production reaches both only over the compose network.
 
 > After changing dependencies (`package.json`), recreate the anonymous `node_modules` volume: `docker compose down -v` (or `docker compose up --build --renew-anon-volumes`).
 

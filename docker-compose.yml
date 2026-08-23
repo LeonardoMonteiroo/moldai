@@ -5,10 +5,20 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: moldai
-      POSTGRES_PASSWORD: moldai
+      # #25: no default -- a deploy with this unset must fail loudly at
+      # `docker compose up` rather than silently shipping the committed
+      # dev password. Set it in .env.local (docker-compose.yml is not the
+      # place secrets live; env_file below is, but POSTGRES_PASSWORD has to
+      # be readable by `docker compose` itself for interpolation, which
+      # env_file does not provide -- see .env.example for the workaround).
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.local}
       POSTGRES_DB: moldai
     ports:
-      # host 5433 (not 5432) so it doesn't collide with another local Postgres
+      # Dev-only host publication -- host 5433 (not 5432) so it doesn't
+      # collide with another local Postgres. docker-compose.prod.yml
+      # resets this to nothing: the app reaches this over the compose
+      # network (db:5432) and production has no business exposing the
+      # database to the host's network interface at all.
       - "5433:5432"
     volumes:
       - moldai-pgdata:/var/lib/postgresql/data
@@ -23,13 +33,21 @@ services:
     container_name: moldai-redis
     restart: unless-stopped
     # Counters are meant to be ephemeral: persistence off, no volume mounted.
-    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    # #25: --requirepass, same "fail loudly if unset" reasoning as
+    # POSTGRES_PASSWORD above -- an unauthenticated Redis published to the
+    # host lets anyone run FLUSHALL (silently disables all rate limiting,
+    # since consume() fails open) or CONFIG SET dir/dbfilename (a known RCE
+    # primitive).
+    command: >-
+      redis-server --save "" --appendonly no
+      --requirepass ${REDIS_PASSWORD:?set REDIS_PASSWORD in .env.local}
     ports:
-      # host 6380 (not 6379) so it doesn't collide with another local Redis,
-      # mirroring the db's 5433 choice
+      # Dev-only, same reasoning as db.ports above -- host 6380 (not 6379)
+      # so it doesn't collide with another local Redis, mirroring the db's
+      # 5433 choice. Reset to nothing in docker-compose.prod.yml.
       - "6380:6379"
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:?set REDIS_PASSWORD in .env.local}", "--no-auth-warning", "ping"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -47,8 +65,8 @@ services:
     env_file:
       - .env.local
     environment:
-      DATABASE_URL: postgresql://moldai:moldai@db:5432/moldai?schema=public
-      REDIS_URL: redis://redis:6379
+      DATABASE_URL: postgresql://moldai:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.local}@db:5432/moldai?schema=public
+      REDIS_URL: redis://:${REDIS_PASSWORD:?set REDIS_PASSWORD in .env.local}@redis:6379
       WATCHPACK_POLLING: "true"
       CHOKIDAR_USEPOLLING: "true"
     ports:
@@ -69,7 +87,7 @@ services:
     env_file:
       - .env.local
     environment:
-      DATABASE_URL: postgresql://moldai:moldai@db:5432/moldai?schema=public
+      DATABASE_URL: postgresql://moldai:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.local}@db:5432/moldai?schema=public
     command: sh -c "while true; do npx tsx scripts/cron-renew.ts; sleep 3600; done"
     volumes:
       - .:/app

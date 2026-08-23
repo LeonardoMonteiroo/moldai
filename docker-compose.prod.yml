@@ -1,5 +1,10 @@
-# Production override: docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build
-# Builds the `runner` target (next start) and removes the dev bind mounts.
+# Production override: docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.prod.yml up --build
+# Builds the `runner` target (next start), removes the dev bind mounts, and
+# stops publishing db/redis to the host -- #25: Docker's published ports
+# bind 0.0.0.0 and its iptables DOCKER chain bypasses ufw, so a host-published
+# db/redis on a VPS is reachable from the internet regardless of any firewall
+# rule. The app reaches both over the compose network (db:5432, redis:6379),
+# which is all it needs in production.
 services:
   app:
     build:
@@ -10,5 +15,11 @@ services:
       NODE_ENV: production
       WATCHPACK_POLLING: "false"
       CHOKIDAR_USEPOLLING: "false"
-      DATABASE_URL: postgresql://moldai:moldai@db:5432/moldai?schema=public
-      REDIS_URL: redis://redis:6379
+      DATABASE_URL: postgresql://moldai:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.local}@db:5432/moldai?schema=public
+      REDIS_URL: redis://:${REDIS_PASSWORD:?set REDIS_PASSWORD in .env.local}@redis:6379
+
+  db:
+    ports: !reset []
+
+  redis:
+    ports: !reset []
