@@ -27,10 +27,12 @@ The dev stack (`npm run docker:up`) publishes `db`/`redis` to the host (`localho
 ## Run on the host (without containerizing the app)
 
 ```bash
-npm run db:up        # bring up Postgres only (Docker), host port 5433
+npm run db:up        # bring up Postgres + Redis (Docker), host ports 5433 / 6380
 npm run db:migrate   # apply Prisma migrations
 npm run dev          # app at http://localhost:3000
 ```
+
+Without Redis running, every rate-limit check hits its fail-open branch (`[rate-limit] … failing open` in the console) — signup/login stay functional but unthrottled. `db:up` starts both so the host flow isn't silently unprotected.
 
 ## Database inspection (DBHub MCP)
 

@@ -61,6 +61,17 @@ describe("docker-compose production hardening (#25)", () => {
     expect(example).toMatch(/^REDIS_PASSWORD=/m);
   });
 
+  it("brings up redis alongside postgres in the host-flow db:up script (#92)", () => {
+    // The documented host flow (README's "Run on the host") starts only
+    // whatever db:up starts. If it only started `db`, nothing would listen
+    // on 6380 and every rate-limit consume() would silently take the
+    // fail-open branch for the whole of host-based local development.
+    const pkg = JSON.parse(
+      readFileSync(join(process.cwd(), "package.json"), "utf-8"),
+    ) as { scripts: Record<string, string> };
+    expect(pkg.scripts["db:up"]).toMatch(/up -d .*\bdb\b.*\bredis\b/);
+  });
+
   it("passes .env.local as --env-file in every npm script that runs docker compose", () => {
     // env_file: inside a service only reaches the container's runtime
     // environment -- Compose's own ${VAR} interpolation in these YAML files
