@@ -114,3 +114,4 @@ Delete + create replaces it: `DELETE /api/patterns/[id]` then `POST /api/pattern
 | Connecting to `localhost:5432` | Host mapping is 5433; 5432 is in-container only |
 | Backfill migration for lazily-creatable state | Unnecessary migration; use the `Wallet` lazy-seed pattern |
 | Stopping at green tests | Prisma type changes surface in `npm run build`, not vitest |
+| Accepting a `migrate dev` prompt to "fix drift" without reading it | Can silently drop a raw-SQL-only index/constraint schema.prisma can't express — e.g. `SizeChart_userId_systemGender_key` from migration `20260823120000`, a partial index over a JSON path (see the warning comment above `model SizeChart`) — reintroducing the race it exists to close |

@@ -38,21 +38,42 @@ vi.mock("@/lib/db/prisma", () => ({
           return row;
         },
       ),
+      // Mirrors the real partial unique index added for #68 (userId, gender
+      // WHERE isSystem): with skipDuplicates, a row whose (userId, gender)
+      // already has a system chart is silently dropped instead of inserted,
+      // the same as Postgres's ON CONFLICT DO NOTHING.
       createMany: vi.fn(
         async ({
           data,
+          skipDuplicates,
         }: {
-          data: { userId: string; data: unknown }[];
+          data: {
+            userId: string;
+            data: { gender?: string; isSystem?: boolean };
+          }[];
+          skipDuplicates?: boolean;
         }): Promise<{ count: number }> => {
+          let count = 0;
           for (const d of data) {
+            if (skipDuplicates && d.data.isSystem) {
+              const conflict = rows.some(
+                (r) =>
+                  r.userId === d.userId &&
+                  (r.data as { gender?: string; isSystem?: boolean })
+                    .isSystem &&
+                  (r.data as { gender?: string }).gender === d.data.gender,
+              );
+              if (conflict) continue;
+            }
             rows.push({
               id: `g${nextId++}`,
               userId: d.userId,
               data: d.data,
               updatedAt: new Date(),
             });
+            count++;
           }
-          return { count: data.length };
+          return { count };
         },
       ),
       update: vi.fn(
@@ -149,6 +170,21 @@ describe("ensureSystemSizeCharts / listSizeChartsForUser", () => {
     const other = await listSizeChartsForUser(prisma, "u2");
     expect(other).toHaveLength(2);
     expect(rows.filter((r) => r.userId === "u1")).toHaveLength(2);
+  });
+
+  // #68: check-then-insert with nothing atomic in between -- two overlapping
+  // first-ever requests for the same brand-new account (e.g. /size-charts
+  // loading while a generate is in flight) both used to see zero rows and
+  // both insert, leaving the account with two copies of each system chart,
+  // permanently (hasSystem is true from then on, so it never self-heals).
+  it("firing two seed calls concurrently still leaves exactly two system charts", async () => {
+    await Promise.all([
+      ensureSystemSizeCharts(prisma, "u1"),
+      ensureSystemSizeCharts(prisma, "u1"),
+    ]);
+    expect(rows.filter((r) => r.userId === "u1")).toHaveLength(2);
+    const charts = await listSizeChartsForUser(prisma, "u1");
+    expect(charts.map((c) => c.gender).sort()).toEqual(["female", "male"]);
   });
 });
 

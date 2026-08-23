@@ -51,11 +51,19 @@ export async function ensureSystemSizeCharts(
   // handling of @updatedAt defaults is version-sensitive in Prisma — create()
   // can be trusted for it (see createPattern), createMany() shouldn't be.
   const now = new Date();
+  // #68: the hasSystem check above is check-then-insert, not atomic, so two
+  // overlapping requests for a brand-new account can both see zero rows and
+  // both reach here. The real guarantee is the partial unique index added in
+  // migration 20260823120000 (userId, gender WHERE isSystem) -- skipDuplicates
+  // makes Prisma emit ON CONFLICT DO NOTHING instead of throwing, so the
+  // loser of the race silently contributes zero rows rather than leaving the
+  // account with two copies of each system chart.
   await tx.sizeChart.createMany({
     data: [
       { userId, data: female, updatedAt: now },
       { userId, data: male, updatedAt: now },
     ],
+    skipDuplicates: true,
   });
 }
 

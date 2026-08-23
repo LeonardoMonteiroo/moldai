@@ -43,6 +43,13 @@ model Pattern {
   @@index([userId, updatedAt])
 }
 
+// #68: the DB also carries a partial unique index on (userId, data->>'gender')
+// WHERE (data->>'isSystem')::boolean, added by raw SQL in migration
+// 20260823120000 -- Prisma cannot express a partial index over a JSON path,
+// so it is NOT declared here. If `npm run db:migrate` (prisma migrate dev)
+// ever proposes a migration that drops "SizeChart_userId_systemGender_key"
+// to "fix" this drift, DECLINE IT -- that index is what keeps
+// ensureSystemSizeCharts' concurrent seeding race-safe (lib/db/sizeChart.ts).
 model SizeChart {
   id        String   @id @default(cuid())
   userId    String
