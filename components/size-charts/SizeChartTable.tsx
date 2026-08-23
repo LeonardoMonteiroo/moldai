@@ -31,6 +31,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+const RANGE_HINT_ID = "size-chart-range-hint";
+
 export function SizeChartTable() {
   const t = useTranslations("SizeChartTable");
   const draft = useSizeChartsStore((s) => s.draft);
@@ -245,6 +247,8 @@ export function SizeChartTable() {
                       disabled={readOnly}
                       onCommit={(next) => setCell(size, key, next)}
                       onInvalid={setInvalidHint}
+                      ariaLabel={`${t(`measurement.${key}`)} · ${size}`}
+                      describedBy={RANGE_HINT_ID}
                       className={
                         isBase
                           ? "border-olive-border bg-olive-tint font-semibold"
@@ -261,9 +265,12 @@ export function SizeChartTable() {
 
       {/* Says what the allowed range is, at the moment a value leaves it —
           the old behaviour was to clamp silently and show a different number
-          than the one that was typed. */}
+          than the one that was typed. Stable id so the invalid cell's
+          aria-describedby can point at it -- aria-invalid alone told a
+          screen-reader user "invalid" with no way to reach the accepted
+          range, which lives in this separate, unlinked region. */}
       {invalidHint && (
-        <span role="status" className="text-alert text-meta">
+        <span id={RANGE_HINT_ID} role="status" className="text-alert text-meta">
           {t("rangeHint", { min: invalidHint.min, max: invalidHint.max })}
         </span>
       )}
@@ -384,6 +391,8 @@ function MeasurementCell({
   onCommit,
   onInvalid,
   className,
+  ariaLabel,
+  describedBy,
 }: {
   value: number;
   min: number;
@@ -392,6 +401,8 @@ function MeasurementCell({
   onCommit: (value: number) => void;
   onInvalid: (hint: { min: number; max: number } | null) => void;
   className?: string;
+  ariaLabel: string;
+  describedBy?: string;
 }) {
   // null means "not editing" — show the stored value.
   const [editing, setEditing] = useState<string | null>(null);
@@ -418,6 +429,8 @@ function MeasurementCell({
       value={editing ?? value}
       disabled={disabled}
       aria-invalid={invalid || undefined}
+      aria-label={ariaLabel}
+      aria-describedby={invalid ? describedBy : undefined}
       onChange={(e) => {
         setEditing(e.target.value);
         const next = Number(e.target.value);

@@ -50,11 +50,15 @@ function seed(draft: Partial<SizeChartData> = {}) {
   });
 }
 
-/** The bust cell of the base column (M), whose value is 92. */
+// #46: findable by its own name (measurement · size), not by scanning for a
+// value that happens to be unique in the fixture -- 45 identical, unlabelled
+// spinbuttons is exactly the bug this issue is about, so a test that can
+// only distinguish a cell by its numeric value would not actually catch a
+// regression here.
 function bustBaseCell() {
-  return screen
-    .getAllByRole("spinbutton")
-    .find((el) => (el as HTMLInputElement).value === "92") as HTMLInputElement;
+  return screen.getByRole("spinbutton", {
+    name: `${ptBR.SizeChartTable.measurement.bust} · M`,
+  }) as HTMLInputElement;
 }
 
 describe("SizeChartTable measurement cells", () => {
@@ -137,6 +141,66 @@ describe("SizeChartTable measurement cells", () => {
     await userEvent.tab();
 
     expect(cell).toHaveValue(92);
+  });
+
+  // #46: MEASUREMENT_KEYS × sizes is a 9x5 (or larger) grid of spinbuttons
+  // that all previously announced identically -- a screen-reader user could
+  // not tell the Busto/M cell from the Quadril/GG cell, and this grid feeds
+  // buildSizeTable -> the frozen Pattern.sizeTable -> draftGarment, so a
+  // mis-entered cell was silent and undiagnosable by name alone.
+  it("gives every cell a distinct accessible name pairing its measurement and size", () => {
+    renderWithIntl(<SizeChartTable />);
+
+    expect(
+      screen.getByRole("spinbutton", {
+        name: `${ptBR.SizeChartTable.measurement.hip} · G`,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("spinbutton", {
+        name: `${ptBR.SizeChartTable.measurement.waist} · P`,
+      }),
+    ).toBeInTheDocument();
+    // Same measurement, different size -- these must be two distinguishable
+    // elements, not the same node matched twice.
+    expect(
+      screen.getByRole("spinbutton", {
+        name: `${ptBR.SizeChartTable.measurement.bust} · P`,
+      }),
+    ).not.toBe(bustBaseCell());
+  });
+
+  // aria-invalid alone told a screen-reader user "invalid" with no way to
+  // reach the accepted range, which lived in a separate, unlinked region.
+  it("points the invalid cell's aria-describedby at the visible range hint", async () => {
+    renderWithIntl(<SizeChartTable />);
+    const cell = bustBaseCell();
+
+    await userEvent.clear(cell);
+    await userEvent.type(cell, "500");
+
+    const describedBy = cell.getAttribute("aria-describedby");
+    expect(describedBy).toBeTruthy();
+    const hint = screen.getByText(
+      ptBR.SizeChartTable.rangeHint
+        .replace("{min}", String(MEASUREMENT_RANGES.bust.min))
+        .replace("{max}", String(MEASUREMENT_RANGES.bust.max)),
+    );
+    expect(hint.id).toBe(describedBy);
+  });
+
+  it("clears aria-describedby once the cell is valid again", async () => {
+    renderWithIntl(<SizeChartTable />);
+    const cell = bustBaseCell();
+
+    await userEvent.clear(cell);
+    await userEvent.type(cell, "500");
+    expect(cell).toHaveAttribute("aria-describedby");
+
+    await userEvent.clear(cell);
+    await userEvent.type(cell, "96");
+
+    expect(cell).not.toHaveAttribute("aria-describedby");
   });
 });
 
