@@ -81,7 +81,17 @@ export async function POST(request: Request, { params }: Ctx) {
           text: trimmed,
           createdAt: Date.now(),
         });
-        const entries: LedgerEntry[] = [debitWallet(wallet, cost, "generate")];
+        // #39: this used to debit unconditionally here, then refund it in
+        // the ask/decline/error branches below -- a debit+refund pair, not
+        // a no-op, on an append-only ledger. getRecentUsage's "Uso recente"
+        // card selects the last N `debit`-type rows and renders every
+        // surviving one as spend; the paired refund never gets excluded
+        // alongside it, so three vague prompts in a row (each `ask`,
+        // balance unchanged) show as three real charges and push actual
+        // spend off the card. The balance precondition above stays before
+        // the AI call; only the chargeable branches (explain, apply) below
+        // now debit at all -- no ledger rows are written for ask/decline.
+        const entries: LedgerEntry[] = [];
 
         try {
           const decision = await proposeGarment(state, answering);
@@ -103,7 +113,6 @@ export async function POST(request: Request, { params }: Ctx) {
                 questions: decision.questions,
                 createdAt: Date.now(),
               });
-              entries.push(refundWallet(wallet, cost, "generate-ask"));
               return {
                 result: NextResponse.json({
                   status: "clarify",
@@ -122,7 +131,6 @@ export async function POST(request: Request, { params }: Ctx) {
                   t("chat.declineFallback"),
                 createdAt: Date.now(),
               });
-              entries.push(refundWallet(wallet, cost, "generate-declined"));
               return {
                 result: NextResponse.json({
                   status: "declined",
@@ -136,6 +144,7 @@ export async function POST(request: Request, { params }: Ctx) {
             // as a draft's. The chip makes the charge visible in the bubble,
             // as it is for apply.
             case "explain": {
+              entries.push(debitWallet(wallet, cost, "generate"));
               addMessage(state, {
                 id: `msg-${Date.now()}-ai`,
                 author: "ai",
@@ -154,6 +163,7 @@ export async function POST(request: Request, { params }: Ctx) {
               };
             }
             case "apply": {
+              entries.push(debitWallet(wallet, cost, "generate"));
               // The size chart is snapshotted once, at the first generation.
               // That is also the only moment the account's active chart can
               // be passed over, so it is the only moment there is a
@@ -219,7 +229,13 @@ export async function POST(request: Request, { params }: Ctx) {
           // in a loop, and the operator's stdout held nothing at all: not
           // the cause, not even a line saying a generation was attempted.
           reportError("generate", err, { patternId: id, userId: gate.id });
-          entries.push(refundWallet(wallet, cost, "generate-error"));
+          // #39: only refund if this attempt actually debited -- ask/decline
+          // never do, and proposeGarment throwing before the decision is
+          // known (the common case: a rotated key, a spend cap) never
+          // touched the wallet at all, so there is nothing to undo.
+          if (entries.length > 0) {
+            entries.push(refundWallet(wallet, cost, "generate-error"));
+          }
           return {
             result: NextResponse.json({
               status: "error",

@@ -78,6 +78,7 @@ import { requireUser } from "@/lib/auth/guard";
 import { unauthorized } from "@/lib/auth/session";
 import { withPatternAndWallet } from "@/lib/db/pattern-wallet";
 import { reportError } from "@/lib/observability/report";
+import { getSizeChartForGeneration } from "@/lib/db/sizeChart";
 
 const mockPropose = proposeGarment as unknown as ReturnType<typeof vi.fn>;
 
@@ -107,7 +108,11 @@ describe("POST /api/patterns/[id]/generate", () => {
     });
   });
 
-  it("ask refunds the credit, doesn't draft or version, and returns clarify", async () => {
+  // #39: this used to debit then immediately refund -- a real debit+refund
+  // pair on the append-only ledger, not a no-op, which is exactly what made
+  // "Uso recente" show three vague prompts as three real charges. `ask` is
+  // never chargeable, so it must never touch the wallet at all now.
+  it("ask never debits or refunds, doesn't draft or version, and returns clarify", async () => {
     const balanceBefore = wallet.balance;
     const versionBefore = state.pattern.version;
     mockPropose.mockResolvedValue({
@@ -133,6 +138,7 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(json.status).toBe("clarify");
     expect(json.state.credits.balance).toBe(balanceBefore);
     expect(state.pattern.version).toBe(versionBefore);
+    expect(lastEntries).toEqual([]);
   });
 
   it("apply debits, drafts, and versions", async () => {
@@ -152,6 +158,7 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(json.status).toBe("ok");
     expect(json.state.credits.balance).toBe(balanceBefore - 1);
     expect(state.pattern.version).toBe(1);
+    expect(lastEntries.map((e) => e.type)).toEqual(["debit"]);
   });
 
   it("explain answers, keeps the debit, and neither drafts nor versions", async () => {
@@ -200,8 +207,10 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(lastEntries.map((e) => e.type)).toEqual(["debit"]);
   });
 
-  // The contrast case: explain is the only non-drafting decision that is paid.
-  it("decline still refunds", async () => {
+  // The contrast case: explain is the only non-drafting decision that is
+  // paid. #39: decline used to debit then refund in the same request -- a
+  // real ledger pair, not a no-op -- now it never touches the wallet.
+  it("decline never debits or refunds", async () => {
     const balanceBefore = wallet.balance;
     mockPropose.mockResolvedValue({
       decision: "decline",
@@ -219,15 +228,17 @@ describe("POST /api/patterns/[id]/generate", () => {
 
     expect((await res.json()).status).toBe("declined");
     expect(wallet.balance).toBe(balanceBefore);
-    expect(lastEntries.map((e) => e.type)).toEqual(["debit", "refund"]);
+    expect(lastEntries).toEqual([]);
   });
 
   // #53: a malformed tool_use payload (not an object, an unrecognized
   // decision, ...) now throws inside proposeGarment instead of being cast
   // and trusted -- this asserts the route's existing catch turns that throw
-  // into a refund + status:"error" rather than drafting whatever fell out
-  // of the untrusted payload.
-  it("refunds instead of drafting when proposeGarment rejects", async () => {
+  // into status:"error" rather than drafting whatever fell out of the
+  // untrusted payload. #39: proposeGarment throwing here happens BEFORE any
+  // decision is known, so (unlike a mid-apply failure) nothing was ever
+  // debited -- there is nothing to refund, and no ledger rows are written.
+  it("does not debit or refund when proposeGarment rejects before a decision is known", async () => {
     const balanceBefore = wallet.balance;
     const versionBefore = state.pattern.version;
     const thrown = new Error(
@@ -241,7 +252,7 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(json.status).toBe("error");
     expect(wallet.balance).toBe(balanceBefore);
     expect(state.pattern.version).toBe(versionBefore);
-    expect(lastEntries.map((e) => e.type)).toEqual(["debit", "refund"]);
+    expect(lastEntries).toEqual([]);
     // #100: this catch had no error binding at all before -- an Anthropic
     // 401/429 was structurally unloggable, and the operator's stdout held
     // nothing saying a generation was even attempted.
@@ -249,6 +260,33 @@ describe("POST /api/patterns/[id]/generate", () => {
       patternId: "m1",
       userId: "u1",
     });
+  });
+
+  // #39's other half: a debit did happen (decision was "apply"), then
+  // something failed while drafting -- unlike the case above, this one DOES
+  // need a refund, and the catch block still provides it correctly.
+  it("refunds a debit that already happened when drafting fails after the decision is known", async () => {
+    const balanceBefore = wallet.balance;
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+    vi.mocked(getSizeChartForGeneration).mockRejectedValueOnce(
+      new Error("db unavailable"),
+    );
+
+    const res = await POST(req({ message: "uma blusa" }), ctx());
+    const json = await res.json();
+
+    expect(json.status).toBe("error");
+    expect(wallet.balance).toBe(balanceBefore);
+    expect(lastEntries.map((e) => e.type)).toEqual(["debit", "refund"]);
   });
 
   it("empty message returns 400 without debiting or calling the AI", async () => {
