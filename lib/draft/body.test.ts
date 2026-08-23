@@ -67,6 +67,17 @@ describe("draftBody sloper", () => {
     );
   });
 
+  // #121: the back tech-sheet row used to read the FRONT's spec choice
+  // unconditionally, even though the back is always drafted as its own
+  // shallow round scoop (backNeckDrop = 2.0) independent of style.neckline.
+  it("the back piece reports its own (round) neckline, not the front's V", () => {
+    const { front, back } = draftBody(M, { neckline: "V" }, t, optsM);
+    const row = (rows: typeof front.detailRows) =>
+      rows.find((r) => r.label === "rows.neckline")?.value;
+    expect(row(front.detailRows)).toBe("neckline.V");
+    expect(row(back.detailRows)).toBe("neckline.round");
+  });
+
   it("marks the neckline and armhole as curvedSpans", () => {
     const { front } = draftBody(M, {}, t, optsM);
     expect((front.curvedSpans ?? []).length).toBeGreaterThanOrEqual(2);

@@ -132,7 +132,14 @@ function bodice(
     { label: t("rows.armhole"), value: cm(armholeEdgeLenCm) },
     {
       label: t("rows.neckline"),
-      value: t("neckline." + (style.neckline ?? "straight")),
+      // #121: the back is always drafted as a shallow scoop (backNeckDrop =
+      // 2.0, the same curve construction as a "round" front, independent of
+      // style.neckline entirely) -- reporting the front's chosen style here
+      // for BOTH pieces claimed a V-neck back when the drafted geometry was
+      // a shallow round one. Only the front's row reflects the spec choice.
+      value: frontish
+        ? t("neckline." + (style.neckline ?? "straight"))
+        : t("neckline.round"),
     },
     { label: t("rows.grain"), value: t("grainValue") },
   ];
