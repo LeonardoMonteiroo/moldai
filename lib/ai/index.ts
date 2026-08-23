@@ -21,6 +21,15 @@ export async function proposeGarment(
     messages: buildHistory(state.chat),
   });
 
+  // #99: a reply that hits max_tokens (routine for a token-heavy Portuguese
+  // `explain` answer) comes back with a partially parsed tool_use.input —
+  // decision may be truncated away entirely. Reject it here, before
+  // resolveDecision ever sees the partial payload; the route's catch then
+  // refunds instead of applying whatever a partial spec resolves to.
+  if (resp.stop_reason === "max_tokens") {
+    throw new Error("Anthropic response truncated at max_tokens");
+  }
+
   const block = resp.content.find((b) => b.type === "tool_use");
   if (!block || block.type !== "tool_use") {
     throw new Error("Model did not return a tool_use block");

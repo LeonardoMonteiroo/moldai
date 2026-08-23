@@ -66,110 +66,131 @@ export async function POST(request: Request, { params }: Ctx) {
       try {
         const decision = await proposeGarment(state, answering);
 
-        if (decision.decision === "ask") {
-          addMessage(state, {
-            id: `msg-${Date.now()}-ai`,
-            author: "ai",
-            text: decision.assistantMessage || t("chat.askFallback"),
-            questions: decision.questions,
-            createdAt: Date.now(),
-          });
-          entries.push(refundWallet(wallet, cost, "generate-ask"));
-          return {
-            result: NextResponse.json({
-              status: "clarify",
-              state: composeEditorState(state, wallet, now),
-            }),
-            entries,
-          };
+        // #99: this used to be three positive `if`s (ask/decline/explain)
+        // with an implicit else that applied — so any decision value the
+        // three checks missed (there was one: resolveDecision could return
+        // an unvalidated value straight from a truncated/malformed model
+        // response) silently drafted and charged for a fabricated default
+        // blouse. An exhaustive switch with a `never` binding in `default`
+        // makes a future fifth decision value a compile error here too,
+        // matching applyPurchase/exportPattern's existing precedent.
+        switch (decision.decision) {
+          case "ask": {
+            addMessage(state, {
+              id: `msg-${Date.now()}-ai`,
+              author: "ai",
+              text: decision.assistantMessage || t("chat.askFallback"),
+              questions: decision.questions,
+              createdAt: Date.now(),
+            });
+            entries.push(refundWallet(wallet, cost, "generate-ask"));
+            return {
+              result: NextResponse.json({
+                status: "clarify",
+                state: composeEditorState(state, wallet, now),
+              }),
+              entries,
+            };
+          }
+          case "decline": {
+            addMessage(state, {
+              id: `msg-${Date.now()}-ai`,
+              author: "ai",
+              text:
+                decision.assistantMessage ||
+                decision.declineReason ||
+                t("chat.declineFallback"),
+              createdAt: Date.now(),
+            });
+            entries.push(refundWallet(wallet, cost, "generate-declined"));
+            return {
+              result: NextResponse.json({
+                status: "declined",
+                state: composeEditorState(state, wallet, now),
+              }),
+              entries,
+            };
+          }
+          // The one non-drafting decision that keeps its debit: the user
+          // asked a question and got the answer, and the AI call is as real
+          // as a draft's. The chip makes the charge visible in the bubble,
+          // as it is for apply.
+          case "explain": {
+            addMessage(state, {
+              id: `msg-${Date.now()}-ai`,
+              author: "ai",
+              text: decision.assistantMessage,
+              chips: [
+                { label: t("chat.creditChip", { cost }), tone: "credit" },
+              ],
+              createdAt: Date.now(),
+            });
+            return {
+              result: NextResponse.json({
+                status: "answered",
+                state: composeEditorState(state, wallet, now),
+              }),
+              entries,
+            };
+          }
+          case "apply": {
+            // The size chart is snapshotted once, at the first generation.
+            // That is also the only moment the account's active chart can
+            // be passed over, so it is the only moment there is a
+            // substitution to report.
+            let substitutedFrom: string | null = null;
+            if (state.pattern.pieces.length === 0) {
+              const { chart, rejectedActiveName } =
+                await getSizeChartForGeneration(
+                  gate.id,
+                  decision.spec.gender ?? "female",
+                );
+              seedPatternSizeSnapshot(state, chart);
+              substitutedFrom = rejectedActiveName;
+            }
+            applyGarmentSpec(state, decision.spec, t);
+            bumpVersion(state);
+            const conflict = state.conflict;
+            addMessage(state, {
+              id: `msg-${Date.now()}-ai`,
+              author: "ai",
+              text: conflict
+                ? `${decision.assistantMessage} ⚠️ ${conflict.description}`
+                : decision.assistantMessage,
+              chips: [
+                { label: t("chat.creditChip", { cost }), tone: "credit" },
+              ],
+              tone: conflict ? "conflict" : undefined,
+              createdAt: Date.now(),
+            });
+            // Said out loud rather than left for the user to discover:
+            // their active chart's measurements are not the ones this
+            // pattern was drafted from.
+            if (substitutedFrom) {
+              addMessage(state, {
+                id: `msg-${Date.now()}-chart`,
+                author: "ai",
+                text: t("chat.sizeChartSubstituted", {
+                  rejected: substitutedFrom,
+                  used: state.pattern.sizeChartName ?? "",
+                }),
+                tone: "notice",
+                createdAt: Date.now(),
+              });
+            }
+            return {
+              result: NextResponse.json({
+                status: conflict ? "conflict" : "ok",
+                state: composeEditorState(state, wallet, now),
+              }),
+              entries,
+            };
+          }
+          default: {
+            const exhaustive: never = decision.decision;
+            throw new Error(`unhandled decision: ${String(exhaustive)}`);
+          }
         }
-
-        if (decision.decision === "decline") {
-          addMessage(state, {
-            id: `msg-${Date.now()}-ai`,
-            author: "ai",
-            text:
-              decision.assistantMessage ||
-              decision.declineReason ||
-              t("chat.declineFallback"),
-            createdAt: Date.now(),
-          });
-          entries.push(refundWallet(wallet, cost, "generate-declined"));
-          return {
-            result: NextResponse.json({
-              status: "declined",
-              state: composeEditorState(state, wallet, now),
-            }),
-            entries,
-          };
-        }
-
-        // The one non-drafting decision that keeps its debit: the user asked a
-        // question and got the answer, and the AI call is as real as a draft's.
-        // The chip makes the charge visible in the bubble, as it is for apply.
-        if (decision.decision === "explain") {
-          addMessage(state, {
-            id: `msg-${Date.now()}-ai`,
-            author: "ai",
-            text: decision.assistantMessage,
-            chips: [{ label: t("chat.creditChip", { cost }), tone: "credit" }],
-            createdAt: Date.now(),
-          });
-          return {
-            result: NextResponse.json({
-              status: "answered",
-              state: composeEditorState(state, wallet, now),
-            }),
-            entries,
-          };
-        }
-
-        // The size chart is snapshotted once, at the first generation. That is
-        // also the only moment the account's active chart can be passed over,
-        // so it is the only moment there is a substitution to report.
-        let substitutedFrom: string | null = null;
-        if (state.pattern.pieces.length === 0) {
-          const { chart, rejectedActiveName } = await getSizeChartForGeneration(
-            gate.id,
-            decision.spec.gender ?? "female",
-          );
-          seedPatternSizeSnapshot(state, chart);
-          substitutedFrom = rejectedActiveName;
-        }
-        applyGarmentSpec(state, decision.spec, t);
-        bumpVersion(state);
-        const conflict = state.conflict;
-        addMessage(state, {
-          id: `msg-${Date.now()}-ai`,
-          author: "ai",
-          text: conflict
-            ? `${decision.assistantMessage} ⚠️ ${conflict.description}`
-            : decision.assistantMessage,
-          chips: [{ label: t("chat.creditChip", { cost }), tone: "credit" }],
-          tone: conflict ? "conflict" : undefined,
-          createdAt: Date.now(),
-        });
-        // Said out loud rather than left for the user to discover: their active
-        // chart's measurements are not the ones this pattern was drafted from.
-        if (substitutedFrom) {
-          addMessage(state, {
-            id: `msg-${Date.now()}-chart`,
-            author: "ai",
-            text: t("chat.sizeChartSubstituted", {
-              rejected: substitutedFrom,
-              used: state.pattern.sizeChartName ?? "",
-            }),
-            tone: "notice",
-            createdAt: Date.now(),
-          });
-        }
-        return {
-          result: NextResponse.json({
-            status: conflict ? "conflict" : "ok",
-            state: composeEditorState(state, wallet, now),
-          }),
-          entries,
-        };
       } catch {
         entries.push(refundWallet(wallet, cost, "generate-error"));
         return {

@@ -93,4 +93,32 @@ describe("resolveDecision", () => {
       resolveDecision({ decision: "explain", assistantMessage: "   " }, false),
     ).toThrow(/explain/);
   });
+
+  // #99: a truncated tool_use payload (e.g. hitting max_tokens) can arrive
+  // with `decision` missing/undefined. Before this fix, neither throw guard
+  // above tested for that, so it fell through to validateSpec(undefined),
+  // fabricating a default blouse the route then silently applied over
+  // whatever the user actually had, and charged for it.
+  it("throws on a missing decision instead of falling through to a fabricated default", () => {
+    expect(() =>
+      resolveDecision(
+        { assistantMessage: "x" } as unknown as Parameters<
+          typeof resolveDecision
+        >[0],
+        false,
+      ),
+    ).toThrow(/decision/);
+  });
+
+  it("throws on an unrecognized decision value instead of passing it through", () => {
+    expect(() =>
+      resolveDecision(
+        {
+          decision: "banana" as unknown as "apply",
+          assistantMessage: "x",
+        },
+        false,
+      ),
+    ).toThrow(/decision/);
+  });
 });

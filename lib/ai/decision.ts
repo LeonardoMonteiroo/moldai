@@ -2,8 +2,11 @@ import type { GarmentSpec, ClarifyQuestion } from "@/lib/types";
 import { validateSpec, validateQuestions } from "@/lib/draft/garment";
 import type { RawToolInput } from "./schema";
 
+export type Decision = "apply" | "decline" | "ask" | "explain";
+const DECISIONS: Decision[] = ["apply", "decline", "ask", "explain"];
+
 export interface AiDecision {
-  decision: "apply" | "decline" | "ask" | "explain";
+  decision: Decision;
   spec: GarmentSpec;
   questions?: ClarifyQuestion[];
   declineReason?: string;
@@ -22,6 +25,16 @@ export function resolveDecision(
   input: RawToolInput,
   answering: boolean,
 ): AiDecision {
+  // #99: `input` is only asserted to be RawToolInput (`as RawToolInput` at
+  // the call site), never actually checked — a truncated or malformed
+  // tool_use.input can carry `decision: undefined` or an unrecognized
+  // string. Without this guard neither throw below fires (both test for
+  // specific values), so it fell through to validateSpec(undefined),
+  // fabricating and silently applying a default blouse over whatever the
+  // user actually had, and charging for it.
+  if (!DECISIONS.includes(input.decision)) {
+    throw new Error(`unrecognized decision: ${String(input.decision)}`);
+  }
   if (input.decision === "ask" && !answering) {
     const questions = validateQuestions(input.questions);
     if (questions.length > 0) {

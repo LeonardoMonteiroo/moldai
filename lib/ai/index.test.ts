@@ -88,4 +88,20 @@ describe("proposeGarment", () => {
     );
     await expect(proposeGarment(baseState, false)).rejects.toThrow(/spec/);
   });
+
+  // #99: a reply that hits the 1024 max_tokens ceiling (routine for a
+  // token-heavy Portuguese `explain` answer) comes back with a partially
+  // parsed tool_use.input — `stop_reason` is the one signal that the model
+  // didn't actually finish. Reject it before resolveDecision ever sees the
+  // truncated payload, so the route's catch refunds instead of applying
+  // whatever partial/fabricated spec falls out of it.
+  it("rejects a max_tokens-truncated response instead of resolving its partial payload", async () => {
+    create.mockResolvedValue({
+      ...toolResp({ decision: "apply", assistantMessage: "x" }),
+      stop_reason: "max_tokens",
+    });
+    await expect(proposeGarment(baseState, false)).rejects.toThrow(
+      /max_tokens/,
+    );
+  });
 });
