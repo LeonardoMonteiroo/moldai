@@ -10,6 +10,20 @@ function escapeXml(s: string): string {
   );
 }
 
+// #83: XML forbids "--" anywhere inside a comment (and a trailing "-" would
+// touch the closing "-->"), a rule escapeXml doesn't cover — neither
+// patternName nor size go through any character-set validation upstream
+// (rename only trims + caps length; a size label is free text), so an
+// untrusted "--" or "-->" reaches here unless the comment builder strips it
+// itself, per the repo's convention that each serializer owns its own
+// format's escaping.
+function xmlCommentText(s: string): string {
+  return s
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/-$/, "");
+}
+
 function pathD(start: ExPt, segs: ExSeg[], ox: number, oy: number): string {
   return buildPathD(
     start,
@@ -54,7 +68,7 @@ export function toSvg(model: ExportModel): string {
 
   return [
     `<?xml version="1.0" encoding="UTF-8"?>`,
-    `<!-- MoldAI · ${escapeXml(model.patternName)} · tam ${model.size} · folga ${model.seamAllowanceCm ?? 0}cm (net line) -->`,
+    `<!-- MoldAI · ${escapeXml(xmlCommentText(model.patternName))} · tam ${escapeXml(xmlCommentText(model.size))} · folga ${model.seamAllowanceCm ?? 0}cm (net line) -->`,
     `<svg xmlns="http://www.w3.org/2000/svg" width="${f(w)}mm" height="${f(h)}mm" viewBox="0 0 ${f(w)} ${f(h)}">`,
     ...parts,
     `</svg>`,

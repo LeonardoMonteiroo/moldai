@@ -57,4 +57,33 @@ describe("toSvg", () => {
     expect(svg).toContain("folga 1cm (net line)");
     expect(svg).toContain("Camiseta &amp; Cia"); // XML-escaped
   });
+
+  // #83: XML forbids "--" anywhere inside a comment, and a run ending in "-"
+  // would touch the closing "-->" — neither patternName (rename only trims
+  // + caps length, no character rules) nor size (free text from
+  // SizeChartTable's add-size dialog) are validated against this upstream,
+  // so the comment builder has to strip it itself.
+  it("never emits '--' in the header comment for a hyphenated pattern name", () => {
+    const svg = toSvg({ ...model, patternName: "Vestido -- v2" });
+    const comment = svg.split("\n")[1];
+    expect(comment.startsWith("<!--") && comment.endsWith("-->")).toBe(true);
+    expect(comment.slice(4, -3)).not.toContain("--");
+  });
+
+  it("never emits '--' in the header comment for a name ending the comment early", () => {
+    const svg = toSvg({ ...model, patternName: "Vestido --> injected" });
+    const comment = svg.split("\n")[1];
+    expect(comment.slice(4, -3)).not.toContain("--");
+    // The comment must still be exactly one line — a live "-->" inside the
+    // name would terminate it early and dump the rest as raw markup ahead
+    // of <svg>, which is the "text data outside of root node" failure mode
+    // the issue reproduced against the repo's own XML parser.
+    expect(svg.split("\n")[2]).toMatch(/^<svg /);
+  });
+
+  it("sanitizes the size label the same way — it is not covered by escapeXml at all", () => {
+    const svg = toSvg({ ...model, size: "M--X-->G" });
+    const comment = svg.split("\n")[1];
+    expect(comment.slice(4, -3)).not.toContain("--");
+  });
 });
