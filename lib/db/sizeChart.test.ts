@@ -9,6 +9,11 @@ interface Row {
 let rows: Row[] = [];
 let users: Record<string, { activeSizeChartId: string | null }> = {};
 let nextId = 1;
+// #21: set to a row's id right before calling the function under test to
+// simulate a concurrent delete racing in between that function's own read
+// and its write -- the row is still returned by this findUnique (as it
+// existed when read), but is gone from `rows` by the time the write runs.
+let deleteRowOnNextRead: string | null = null;
 
 vi.mock("@/lib/db/prisma", () => ({
   prisma: {
@@ -20,6 +25,10 @@ vi.mock("@/lib/db/prisma", () => ({
       ),
       findUnique: vi.fn(async ({ where }: { where: { id: string } }) => {
         const row = rows.find((r) => r.id === where.id);
+        if (row && deleteRowOnNextRead === where.id) {
+          rows = rows.filter((r) => r.id !== where.id);
+          deleteRowOnNextRead = null;
+        }
         return row ?? null;
       }),
       create: vi.fn(
@@ -76,6 +85,9 @@ vi.mock("@/lib/db/prisma", () => ({
           return { count };
         },
       ),
+      // Real Prisma's single-record update()/delete() throw P2025 when the
+      // row is gone -- these mocks reproduce that so a regression test
+      // against the pre-#21 code (which called these) actually throws.
       update: vi.fn(
         async ({
           where,
@@ -84,15 +96,61 @@ vi.mock("@/lib/db/prisma", () => ({
           where: { id: string };
           data: { data: unknown };
         }): Promise<Row> => {
-          const row = rows.find((r) => r.id === where.id)!;
+          const row = rows.find((r) => r.id === where.id);
+          if (!row) throw new Error("P2025: Record to update not found.");
           row.data = data.data;
           row.updatedAt = new Date();
           return row;
         },
       ),
       delete: vi.fn(async ({ where }: { where: { id: string } }) => {
-        rows = rows.filter((r) => r.id !== where.id);
+        const idx = rows.findIndex((r) => r.id === where.id);
+        if (idx === -1) throw new Error("P2025: Record to delete not found.");
+        rows.splice(idx, 1);
       }),
+      // #21: the scoped (id, userId) counterparts -- never throw, just
+      // report how many rows matched, which is what lets updateSizeChart/
+      // deleteSizeChart answer null/false instead of throwing on a
+      // concurrent delete.
+      updateMany: vi.fn(
+        async ({
+          where,
+          data,
+        }: {
+          where: { id: string; userId: string };
+          data: { data: unknown; updatedAt?: Date };
+        }): Promise<{ count: number }> => {
+          const row = rows.find(
+            (r) => r.id === where.id && r.userId === where.userId,
+          );
+          if (!row) return { count: 0 };
+          row.data = data.data;
+          row.updatedAt = data.updatedAt ?? new Date();
+          return { count: 1 };
+        },
+      ),
+      deleteMany: vi.fn(
+        async ({
+          where,
+        }: {
+          where: { id: string; userId: string };
+        }): Promise<{ count: number }> => {
+          const before = rows.length;
+          rows = rows.filter(
+            (r) => !(r.id === where.id && r.userId === where.userId),
+          );
+          return { count: before - rows.length };
+        },
+      ),
+      count: vi.fn(
+        async ({
+          where,
+        }: {
+          where: { id: string; userId: string };
+        }): Promise<number> =>
+          rows.filter((r) => r.id === where.id && r.userId === where.userId)
+            .length,
+      ),
     },
     user: {
       findUnique: vi.fn(
@@ -236,6 +294,7 @@ describe("updateSizeChart", () => {
     rows = [];
     users = {};
     nextId = 1;
+    deleteRowOnNextRead = null;
   });
 
   it("rejects edits to a system chart", async () => {
@@ -259,6 +318,19 @@ describe("updateSizeChart", () => {
     });
     expect(result).toBeNull();
   });
+
+  // #21: simulates another request deleting the chart between this
+  // function's own findUnique read and its write. The pre-fix code called
+  // prisma.sizeChart.update({where:{id}}), which throws P2025 on a missing
+  // row (reproduced by the update() mock above); updateMany scoped to
+  // (id, userId) just reports count: 0.
+  it("returns null instead of throwing when the chart is deleted between the read and the write", async () => {
+    const created = (await createSizeChart("u1", SUFFIX))!;
+    deleteRowOnNextRead = created.id;
+    await expect(
+      updateSizeChart(created.id, "u1", { name: "x" }),
+    ).resolves.toBeNull();
+  });
 });
 
 describe("deleteSizeChart", () => {
@@ -266,6 +338,7 @@ describe("deleteSizeChart", () => {
     rows = [];
     users = {};
     nextId = 1;
+    deleteRowOnNextRead = null;
   });
 
   it("rejects deleting a system chart", async () => {
@@ -280,6 +353,16 @@ describe("deleteSizeChart", () => {
     expect(await deleteSizeChart(created.id, "u1")).toBe(true);
     expect(await getActiveSizeChartId(prisma, "u1")).toBeNull();
   });
+
+  // #21: the pre-fix code called prisma.sizeChart.delete({where:{id}}),
+  // which throws P2025 on a row already gone by write time (reproduced by
+  // the delete() mock above); deleteMany scoped to (id, userId) just
+  // reports count: 0.
+  it("returns false instead of throwing when the chart is deleted between the read and the write", async () => {
+    const created = (await createSizeChart("u1", SUFFIX))!;
+    deleteRowOnNextRead = created.id;
+    await expect(deleteSizeChart(created.id, "u1")).resolves.toBe(false);
+  });
 });
 
 describe("setActiveSizeChart / getSizeChartForGeneration", () => {
@@ -287,6 +370,7 @@ describe("setActiveSizeChart / getSizeChartForGeneration", () => {
     rows = [];
     users = {};
     nextId = 1;
+    deleteRowOnNextRead = null;
   });
 
   it("sets the account's active chart", async () => {
@@ -298,6 +382,16 @@ describe("setActiveSizeChart / getSizeChartForGeneration", () => {
   it("returns false when activating a chart not owned by the caller", async () => {
     const created = (await createSizeChart("u1", SUFFIX))!;
     expect(await setActiveSizeChart("someone-else", created.id)).toBe(false);
+  });
+
+  // #21: the ownership check now folds userId into the query itself
+  // (count({where:{id, userId}})) instead of an unscoped findUnique plus an
+  // application-code compare -- this proves activation for a chart deleted
+  // right before the call still cleanly returns false.
+  it("returns false when the chart no longer exists", async () => {
+    const created = (await createSizeChart("u1", SUFFIX))!;
+    await deleteSizeChart(created.id, "u1");
+    expect(await setActiveSizeChart("u1", created.id)).toBe(false);
   });
 
   it("uses the active chart when its gender matches the request", async () => {

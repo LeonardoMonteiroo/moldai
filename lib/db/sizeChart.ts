@@ -131,6 +131,14 @@ export async function createSizeChart(
  * check — which is how `gender: "banana"` and a wiped baseMeasurements got
  * persisted. validateSizeChartPatch is the trust boundary; it runs here rather
  * than in the route because the merge needs the current row.
+ *
+ * #21: the read stays a plain findUnique (it only needs the current row to
+ * merge the patch and to check isSystem), but the write is a userId-scoped
+ * updateMany — same renameSloper template as deleteSizeChart/setActiveSizeChart
+ * below — so a delete racing in between answers `count: 0` instead of the old
+ * single-record `update()` throwing P2025. updatedAt is set explicitly (the
+ * ensureSystemSizeCharts precedent above) so the returned record doesn't need
+ * a second read to pick it up.
  */
 export async function updateSizeChart(
   sizeChartId: string,
@@ -148,13 +156,19 @@ export async function updateSizeChart(
     ...validateSizeChartPatch(current, patch),
     isSystem: false,
   };
-  const updated = await prisma.sizeChart.update({
-    where: { id: sizeChartId },
-    data: { data: next as unknown as Prisma.InputJsonValue },
+  const updatedAt = new Date();
+  const res = await prisma.sizeChart.updateMany({
+    where: { id: sizeChartId, userId },
+    data: { data: next as unknown as Prisma.InputJsonValue, updatedAt },
   });
-  return toRecord(updated);
+  if (res.count === 0) return null;
+  return { id: sizeChartId, updatedAt: updatedAt.toISOString(), ...next };
 }
 
+// #21: deleteMany scoped to (id, userId) instead of delete({where:{id}}) --
+// delete() throws P2025 if the row is already gone (a concurrent second
+// delete, or a delete racing this same read), deleteMany() just answers
+// count: 0. Same renameSloper/deleteSloper template as lib/db/sloper.ts.
 export async function deleteSizeChart(
   sizeChartId: string,
   userId: string,
@@ -165,7 +179,10 @@ export async function deleteSizeChart(
   if (!row || row.userId !== userId) return false;
   const current = row.data as unknown as SizeChartData;
   if (current.isSystem) return false;
-  await prisma.sizeChart.delete({ where: { id: sizeChartId } });
+  const res = await prisma.sizeChart.deleteMany({
+    where: { id: sizeChartId, userId },
+  });
+  if (res.count === 0) return false;
   await prisma.user.updateMany({
     where: { id: userId, activeSizeChartId: sizeChartId },
     data: { activeSizeChartId: null },
@@ -173,14 +190,21 @@ export async function deleteSizeChart(
   return true;
 }
 
+// #21: the ownership check used to be an unscoped findUnique followed by an
+// application-code `row.userId !== userId` compare -- a count() scoped to
+// (id, userId) folds that check into the query itself instead. The eventual
+// write is to User.activeSizeChartId, a plain string with no FK to
+// SizeChart, so it was never at risk of throwing P2025 on a concurrently
+// deleted chart; this brings it in line with the other two functions' query
+// shape rather than fixing a throw that didn't exist here.
 export async function setActiveSizeChart(
   userId: string,
   sizeChartId: string,
 ): Promise<boolean> {
-  const row = await prisma.sizeChart.findUnique({
-    where: { id: sizeChartId },
+  const owned = await prisma.sizeChart.count({
+    where: { id: sizeChartId, userId },
   });
-  if (!row || row.userId !== userId) return false;
+  if (owned === 0) return false;
   await prisma.user.update({
     where: { id: userId },
     data: { activeSizeChartId: sizeChartId },
