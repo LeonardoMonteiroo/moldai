@@ -8,7 +8,7 @@ vi.mock("@anthropic-ai/sdk", () => {
 });
 
 import Anthropic from "@anthropic-ai/sdk";
-import { proposeGarment } from "./index";
+import { proposeGarment, ANTHROPIC_OPTIONS } from "./index";
 
 // shared handle for the mock (the factory reuses the same create fn)
 const create = new (
@@ -103,5 +103,18 @@ describe("proposeGarment", () => {
     await expect(proposeGarment(baseState, false)).rejects.toThrow(
       /max_tokens/,
     );
+  });
+
+  // #61: the SDK's own defaults (10 min timeout, 2 retries) can outlive
+  // TX_OPTS.timeout (30s) — the transaction holding the Pattern+Wallet
+  // locks is already rolled back by the time a slow/retried response
+  // resolves. Bounding the client here keeps the call inside that budget.
+  it("bounds the Anthropic client below the 30s transaction timeout", async () => {
+    create.mockResolvedValue(
+      toolResp({ decision: "decline", assistantMessage: "x" }),
+    );
+    await proposeGarment(baseState, false);
+    expect(Anthropic).toHaveBeenCalledWith(ANTHROPIC_OPTIONS);
+    expect(ANTHROPIC_OPTIONS.timeout).toBeLessThan(30_000);
   });
 });

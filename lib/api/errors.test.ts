@@ -6,6 +6,7 @@ import { ERROR_STATUS, apiError, type SharedErrorCode } from "./errors";
 const ALL_SHARED: SharedErrorCode[] = [
   "bad_body",
   "unauthorized",
+  "service_unavailable",
   "pattern_not_found",
   "size_chart_not_found",
   "account_not_found",
@@ -58,6 +59,18 @@ describe("apiError", () => {
     await expect(res.json()).resolves.toEqual({
       status: "error",
       error: "account_not_found",
+    });
+  });
+
+  it("emits service_unavailable at 503, defaulting to the error status word", async () => {
+    const res = apiError(
+      "service_unavailable",
+      ERROR_STATUS.service_unavailable,
+    );
+    expect(res.status).toBe(503);
+    await expect(res.json()).resolves.toEqual({
+      status: "error",
+      error: "service_unavailable",
     });
   });
 

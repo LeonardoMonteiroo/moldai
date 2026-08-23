@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 
 /** Codes any route can emit, independent of domain. */
-export type RouteErrorCode = "bad_body" | "unauthorized";
+export type RouteErrorCode =
+  "bad_body" | "unauthorized" | "service_unavailable";
 
 /** One per resource kind. */
 export type NotFoundCode =
@@ -19,6 +20,9 @@ export const ERROR_STATUS: Record<SharedErrorCode, number> = {
   size_chart_not_found: 404,
   account_not_found: 404,
   sloper_not_found: 404,
+  // #61: a write-transaction failure (e.g. a slow AI call outliving
+  // TX_OPTS.timeout) that used to escape as a bare, uncoded HTTP 500.
+  service_unavailable: 503,
 };
 
 // The `status` field in the body is NOT the HTTP status — it is the wire

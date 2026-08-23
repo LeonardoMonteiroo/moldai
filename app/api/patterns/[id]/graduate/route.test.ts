@@ -52,6 +52,7 @@ vi.mock("@/lib/db/pattern-wallet", () => ({
 import { POST } from "./route";
 import { requireUser } from "@/lib/auth/guard";
 import { unauthorized } from "@/lib/auth/session";
+import { withPatternAndWallet } from "@/lib/db/pattern-wallet";
 
 function req(body: unknown) {
   return new Request("http://test/api/patterns/m1/graduate", {
@@ -136,5 +137,16 @@ describe("POST /api/patterns/[id]/graduate", () => {
     expect(wallet.balance).toBe(balanceBefore);
     expect(state.pattern.version).toBe(0);
     expect(state.pattern.sizesApplied).not.toContain("G");
+  });
+
+  // #61: a throw past withPatternAndWallet's own transaction close (e.g. it
+  // already timed out) used to escape as a bare, uncoded HTTP 500.
+  it("maps a withPatternAndWallet failure to a coded 503 instead of a bare 500", async () => {
+    vi.mocked(withPatternAndWallet).mockRejectedValueOnce(
+      new Error("Transaction already closed"),
+    );
+    const res = await POST(req({ sizes: ["G"] }), ctx());
+    expect(res.status).toBe(503);
+    expect((await res.json()).error).toBe("service_unavailable");
   });
 });
