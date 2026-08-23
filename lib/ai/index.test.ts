@@ -105,6 +105,45 @@ describe("proposeGarment", () => {
     );
   });
 
+  // #53: block.input is `unknown` from the SDK's own types — the call site
+  // used to `as RawToolInput` it rather than checking anything, so a
+  // malformed payload (not even an object) reached property access as if
+  // every field were guaranteed present.
+  it("rejects a non-object tool_use.input instead of casting it", async () => {
+    create.mockResolvedValue(toolResp(null));
+    await expect(proposeGarment(baseState, false)).rejects.toThrow(
+      /not an object/,
+    );
+  });
+
+  it("rejects an empty object payload rather than fabricating a decision", async () => {
+    create.mockResolvedValue(toolResp({}));
+    await expect(proposeGarment(baseState, false)).rejects.toThrow(
+      /unrecognized decision/,
+    );
+  });
+
+  it("rejects an unrecognized decision value", async () => {
+    create.mockResolvedValue(
+      toolResp({ decision: "banana", assistantMessage: "x" }),
+    );
+    await expect(proposeGarment(baseState, false)).rejects.toThrow(
+      /unrecognized decision/,
+    );
+  });
+
+  // #53: assistantMessage is typed `string` by RawToolInput but that type is
+  // only ever asserted, never checked -- a non-string value must not reach
+  // the persisted chat bubble (`text: decision.assistantMessage` in the
+  // route) as-is.
+  it("coerces a non-string assistantMessage to an empty string rather than passing it through", async () => {
+    create.mockResolvedValue(
+      toolResp({ decision: "decline", assistantMessage: 12345 }),
+    );
+    const d = await proposeGarment(baseState, false);
+    expect(d.assistantMessage).toBe("");
+  });
+
   // #61: the SDK's own defaults (10 min timeout, 2 retries) can outlive
   // TX_OPTS.timeout (30s) — the transaction holding the Pattern+Wallet
   // locks is already rolled back by the time a slow/retried response

@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import type { PatternState } from "@/lib/types";
 import { buildSystem } from "./prompt";
 import { buildHistory } from "./history";
-import { TOOL, type RawToolInput } from "./schema";
+import { TOOL, parseRawToolInput } from "./schema";
 import { resolveDecision, type AiDecision } from "./decision";
 
 export type { AiDecision };
@@ -43,5 +43,5 @@ export async function proposeGarment(
   if (!block || block.type !== "tool_use") {
     throw new Error("Model did not return a tool_use block");
   }
-  return resolveDecision(block.input as RawToolInput, answering);
+  return resolveDecision(parseRawToolInput(block.input), answering);
 }

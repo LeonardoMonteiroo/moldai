@@ -218,6 +218,27 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(lastEntries.map((e) => e.type)).toEqual(["debit", "refund"]);
   });
 
+  // #53: a malformed tool_use payload (not an object, an unrecognized
+  // decision, ...) now throws inside proposeGarment instead of being cast
+  // and trusted -- this asserts the route's existing catch turns that throw
+  // into a refund + status:"error" rather than drafting whatever fell out
+  // of the untrusted payload.
+  it("refunds instead of drafting when proposeGarment rejects", async () => {
+    const balanceBefore = wallet.balance;
+    const versionBefore = state.pattern.version;
+    mockPropose.mockRejectedValue(
+      new Error("propose_garment tool_use.input was not an object"),
+    );
+
+    const res = await POST(req({ message: "uma blusa" }), ctx());
+    const json = await res.json();
+
+    expect(json.status).toBe("error");
+    expect(wallet.balance).toBe(balanceBefore);
+    expect(state.pattern.version).toBe(versionBefore);
+    expect(lastEntries.map((e) => e.type)).toEqual(["debit", "refund"]);
+  });
+
   it("empty message returns 400 without debiting or calling the AI", async () => {
     const balanceBefore = wallet.balance;
     const res = await POST(req({ message: "   " }), ctx());

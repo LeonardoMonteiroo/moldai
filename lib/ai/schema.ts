@@ -19,6 +19,24 @@ export interface RawToolInput {
   assistantMessage: string;
 }
 
+// #53: block.input from the Anthropic SDK is typed `unknown` — the call
+// site used to `as RawToolInput` it, a compile-time-only assertion that
+// checks nothing at runtime. A malformed tool_use.input (null, an array, a
+// primitive — e.g. a response truncated or reshaped in a way the SDK's own
+// parsing tolerates) would reach property access as if every field were
+// guaranteed present, rather than throwing a clear, catchable error the
+// route's existing catch turns into a refund. This only guards the
+// object-shape assumption resolveDecision relies on; it does not itself
+// check `decision`'s enum membership (resolveDecision already does that,
+// #99) or clamp spec/questions (validateSpec/validateQuestions do that
+// downstream, and must keep clamping rather than rejecting).
+export function parseRawToolInput(input: unknown): RawToolInput {
+  if (typeof input !== "object" || input === null || Array.isArray(input)) {
+    throw new Error("propose_garment tool_use.input was not an object");
+  }
+  return input as RawToolInput;
+}
+
 const bounded = (r: { min: number; max: number }) => ({
   type: "number" as const,
   minimum: r.min,

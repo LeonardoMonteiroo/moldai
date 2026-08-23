@@ -121,4 +121,32 @@ describe("resolveDecision", () => {
       ),
     ).toThrow(/decision/);
   });
+
+  // #53: RawToolInput types assistantMessage as `string`, but that is only
+  // ever asserted at the SDK boundary, never checked -- a non-string value
+  // used to pass straight through on decline/apply (only explain's own
+  // blank-message guard happened to catch it, via a *different*, locally
+  // computed variable this return statement didn't actually use).
+  it("coerces a non-string assistantMessage instead of passing it through on decline", () => {
+    const d = resolveDecision(
+      {
+        decision: "decline",
+        assistantMessage: 12345 as unknown as string,
+      },
+      false,
+    );
+    expect(d.assistantMessage).toBe("");
+  });
+
+  it("coerces a non-string assistantMessage instead of passing it through on ask", () => {
+    const d = resolveDecision(
+      {
+        decision: "ask",
+        assistantMessage: 12345 as unknown as string,
+        questions: [{ label: "Neckline", options: ["a", "b"] }],
+      },
+      false,
+    );
+    expect(d.assistantMessage).toBe("");
+  });
 });

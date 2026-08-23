@@ -35,6 +35,14 @@ export function resolveDecision(
   if (!DECISIONS.includes(input.decision)) {
     throw new Error(`unrecognized decision: ${String(input.decision)}`);
   }
+  // #53: RawToolInput types this as `string`, but that's only ever asserted
+  // at the SDK boundary (lib/ai/index.ts), never checked — an absent or
+  // non-string assistantMessage must not reach the persisted chat bubble as
+  // `text: decision.assistantMessage`, which the route writes verbatim.
+  // Computed once, used by both return sites below (the second one used to
+  // return the unchecked `input.assistantMessage` instead of this).
+  const message =
+    typeof input.assistantMessage === "string" ? input.assistantMessage : "";
   if (input.decision === "ask" && !answering) {
     const questions = validateQuestions(input.questions);
     if (questions.length > 0) {
@@ -42,7 +50,7 @@ export function resolveDecision(
         decision: "ask",
         spec: validateSpec(input.spec),
         questions,
-        assistantMessage: input.assistantMessage,
+        assistantMessage: message,
       };
     }
   }
@@ -58,8 +66,6 @@ export function resolveDecision(
   // For explain the message IS the payload, so an empty one is unusable.
   // Throwing puts it through the route's catch (refund + error) rather than
   // charging a credit for an empty bubble.
-  const message =
-    typeof input.assistantMessage === "string" ? input.assistantMessage : "";
   if (decision === "explain" && message.trim() === "") {
     throw new Error("decision=explain without an assistantMessage");
   }
@@ -67,6 +73,6 @@ export function resolveDecision(
     decision,
     spec: validateSpec(input.spec),
     declineReason: input.declineReason,
-    assistantMessage: input.assistantMessage,
+    assistantMessage: message,
   };
 }
