@@ -5,15 +5,24 @@ import type { Translate } from "@/lib/i18n/translate";
 
 const cm = (v: number) => `${v.toFixed(1).replace(".", ",")} cm`;
 
-// annular sector (waist and hem arcs) sampled into points
+// annular sector (waist and hem arcs) sampled into points.
+// `fullSweep` is the angular extent whose arc length equals the full waist
+// measurement (2π for a full circle, π for a half-circle); `panels` is how
+// many equal pieces that arc is cut into. Both derive `r` and `sweep` from
+// the same fullSweep, so r * sweep * panels === waist by construction --
+// #77: these two were previously conflated into one `denom`, which set the
+// radius correctly but sized each panel's angle from the *radius* formula
+// instead of from the panel count, so the assembled waist opening never
+// matched the actual waist measurement.
 function radialSkirt(
   waist: number,
   length: number,
-  denom: number,
+  fullSweep: number,
+  panels: number,
 ): { pts: Pt[]; r: number } {
-  const r = waist / denom; // inner radius (waist)
+  const r = waist / fullSweep; // inner radius (waist)
   const R = r + length; // outer radius (hem)
-  const sweep = (Math.PI * 2) / denom; // angle of ONE quarter-piece (piece cut 4x/2x)
+  const sweep = fullSweep / panels; // angle of ONE panel
   const half = sweep / 2;
   const steps = 12;
   const inner: Pt[] = [];
@@ -50,8 +59,9 @@ export function draftSkirt(
     silhueta === "gore" ||
     silhueta === "half-circle"
   ) {
-    const denom = silhueta === "half-circle" ? Math.PI : 2 * Math.PI;
-    const { pts, r } = radialSkirt(m.waist, length, denom);
+    const fullSweep = silhueta === "half-circle" ? Math.PI : 2 * Math.PI;
+    const panels = silhueta === "half-circle" ? 1 : 2;
+    const { pts, r } = radialSkirt(m.waist, length, fullSweep, panels);
     detailRows.splice(1, 0, { label: t("rows.waistRadius"), value: cm(r) });
     // shift to x>=0
     const minX = Math.min(...pts.map((p) => p[0]));
@@ -63,7 +73,7 @@ export function draftSkirt(
     return {
       id: "skirt",
       name: t("pieceNames.skirt"),
-      qty: silhueta === "half-circle" ? 1 : 2,
+      qty: panels,
       outlineCm,
       curvedSpans: [waistSpan, hemSpan],
       grainlineCm: [

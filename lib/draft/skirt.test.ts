@@ -16,14 +16,46 @@ describe("draftSkirt", () => {
     const s = draftSkirt(M, { skirt: "circle" }, t);
     expect((s.curvedSpans ?? []).length).toBeGreaterThanOrEqual(2);
   });
-  it("circle: waist arc ~ waist/4 (a quarter-piece) with radius waist/2π", () => {
+  it("circle: radius is waist/2π, cut into 2 panels (each a half-circle)", () => {
     const dp = draftSkirt(M, { skirt: "circle", skirtLengthCm: 60 }, t);
     // metadata exposed in the detail rows: waist radius
     const raioRow = dp.detailRows.find((r) => r.label === "rows.waistRadius");
     expect(raioRow).toBeTruthy();
     const raio = parseFloat(raioRow!.value.replace(",", "."));
     expect(raio).toBeCloseTo(74 / (2 * Math.PI), 0);
+    expect(dp.qty).toBe(2);
   });
+
+  // #77: `denom` (the radius formula's divisor) and each panel's angular
+  // sweep were previously computed from the same value, so the assembled
+  // waist opening had nothing to do with the panel count and never matched
+  // the actual waist measurement. This single invariant -- the polyline
+  // length of the waist edge (indices [0, steps], the same span
+  // `curvedSpans`' waistSpan marks) summed across every panel -- is the
+  // guard: it holds regardless of how panels/radius are computed
+  // internally, as long as the assembled skirt actually fits the waist it
+  // was drafted for. A 12-segment polyline chord-approximates the true arc
+  // slightly short, so the tolerance below is not exact equality.
+  it.each([
+    ["circle", 2],
+    ["gore", 2],
+    ["half-circle", 1],
+  ] as const)(
+    "%s: the assembled waist opening across all %i panel(s) equals the waist measurement",
+    (skirt, expectedPanels) => {
+      const dp = draftSkirt(M, { skirt, skirtLengthCm: 60 }, t);
+      expect(dp.qty).toBe(expectedPanels);
+      const steps = 12; // waistSpan is [0, steps] in draftSkirt
+      let panelArcLength = 0;
+      for (let i = 0; i < steps; i++) {
+        const [x0, y0] = dp.outlineCm[i];
+        const [x1, y1] = dp.outlineCm[i + 1];
+        panelArcLength += Math.hypot(x1 - x0, y1 - y0);
+      }
+      const waistOpening = panelArcLength * (dp.qty ?? expectedPanels);
+      expect(waistOpening).toBeCloseTo(M.waist, 0);
+    },
+  );
   it("godet has a wider hem than straight", () => {
     const reta = draftSkirt(M, { skirt: "straight", skirtLengthCm: 60 }, t);
     const gode = draftSkirt(M, { skirt: "gore", skirtLengthCm: 60 }, t);
