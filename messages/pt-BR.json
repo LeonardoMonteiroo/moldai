@@ -544,7 +544,6 @@
     "costGenerate": "Geração · {cost} créditos",
     "costAdjust": "Ajuste · {cost} créditos",
     "costGraduate": "Graduação · {cost} créditos",
-    "costCuttingPlan": "Plano de corte · {cost} créditos",
     "costCorrection": "Correção · {cost} créditos",
     "plans": {
       "free": {

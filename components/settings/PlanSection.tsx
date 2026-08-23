@@ -51,10 +51,12 @@ export function PlanSection({ credits }: { credits: Credits }) {
           {t("costsHeading")}
         </h2>
         <ul className="text-muted-2 text-ui flex flex-col gap-1">
-          <li>{t("costGenerate", { cost: COSTS.generate })}</li>
+          {/* #108: generation debits the same constant as an adjustment —
+              there is no separate, higher "first draft" price. The cut plan
+              has no entry here at all: it's computed client-side and free. */}
+          <li>{t("costGenerate", { cost: COSTS.adjust })}</li>
           <li>{t("costAdjust", { cost: COSTS.adjust })}</li>
           <li>{t("costGraduate", { cost: COSTS.graduate })}</li>
-          <li>{t("costCuttingPlan", { cost: COSTS.cuttingPlan })}</li>
           <li>{t("costCorrection", { cost: COSTS.correction })}</li>
         </ul>
       </section>

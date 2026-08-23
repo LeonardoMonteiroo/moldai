@@ -263,10 +263,13 @@ export interface SloperListItem {
  */
 export const MAX_PATTERN_NAME_LENGTH = 80;
 
+// #108: `generate` and `cuttingPlan` used to exist here too, but nothing
+// ever debited them — the first draft of a pattern debits `adjust` like
+// every later AI-driven change, and the cut plan is computed client-side,
+// free. Keep only actions a real debit site actually charges (or, for
+// `correction`, that a route provably never debits — see prompt.test.ts).
 export const COSTS = {
-  generate: 4,
   adjust: 1,
   graduate: 6,
-  cuttingPlan: 2,
   correction: 0,
 } as const;

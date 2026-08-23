@@ -17,11 +17,25 @@ const MEASUREMENT_LINES = Object.entries(MEASUREMENT_RANGES)
   .map(([k, r]) => `  - ${k}: ${fmtRange(r)}`)
   .join("\n");
 
-const COST_LINES = Object.entries(COSTS)
-  .map(
-    ([action, cost]) => `  - ${action}: ${cost} credit${cost === 1 ? "" : "s"}`,
-  )
-  .join("\n");
+// #108: rendering raw COSTS keys (e.g. "cuttingPlan") let the model quote
+// that camelCase identifier verbatim in an assistantMessage — a code
+// identifier leaking into user-facing prose the model was supposed to
+// translate. A human-readable description per action gives the model
+// something it can actually translate into the user's language, the same
+// way it already handles the rest of this (English) prompt. The number
+// still comes from the same COSTS constant a route debits — see
+// prompt.test.ts's "every rendered cost corresponds to a real debit site".
+// Exported so prompt.test.ts can assert both the rendered text and, per
+// entry, that the constant it quotes has a real debit site — instead of
+// duplicating this list as a second, driftable copy in the test.
+export const COST_DESCRIPTIONS: [string, number][] = [
+  ["generating or adjusting a pattern draft", COSTS.adjust],
+  ["grading sizes", COSTS.graduate],
+  ["a manual sleeve-fit correction", COSTS.correction],
+];
+const COST_LINES = COST_DESCRIPTIONS.map(
+  ([label, cost]) => `  - ${label}: ${cost} credit${cost === 1 ? "" : "s"}`,
+).join("\n");
 
 // Static sections first, per-pattern state last. All numeric bounds render
 // from the same constants validateSpec clamps with — the model is never told
