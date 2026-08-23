@@ -250,6 +250,22 @@
     "sessionExpired": "Sua sessão expirou. Entre novamente para continuar.",
     "retryButton": "Tentar de novo"
   },
+  "AppError": {
+    "heading": "Algo deu errado",
+    "message": "Ocorreu um erro inesperado. Tente novamente ou volte para o início.",
+    "retryButton": "Tentar de novo",
+    "homeLink": "Voltar para o início"
+  },
+  "NotFoundPage": {
+    "heading": "Página não encontrada",
+    "message": "Não encontramos o que você procura.",
+    "homeLink": "Voltar para Meus moldes"
+  },
+  "GlobalError": {
+    "heading": "Algo deu muito errado",
+    "message": "A aplicação encontrou um erro inesperado. Tente recarregar a página.",
+    "retryButton": "Tentar de novo"
+  },
   "ActionErrorNotice": {
     "message": "Algo deu errado e sua última ação não foi aplicada.",
     "dismiss": "Fechar aviso"
