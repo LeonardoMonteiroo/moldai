@@ -1,3 +1,4 @@
+import { DUMMY_HASH } from "./hash";
 import type { UserRecord } from "./types";
 
 export type AuthorizeFailure = "invalid" | "unverified" | "rate_limited";
@@ -43,7 +44,17 @@ export async function authorizeUser(
   const user = await deps.getUserByEmail(email);
   // An unknown email reports `invalid`, never `unverified` -- the gate must not
   // become an account-existence oracle beyond what /signup already reveals.
-  if (!user) return { ok: false, reason: "invalid" };
+  //
+  // #26: it also must not respond measurably *faster* than a known email --
+  // bcrypt's compare below is the slow step, so an unknown email spends the
+  // same cost against a fixed dummy hash before returning. deps.verify is
+  // called exactly once either way (asserted in the test), which is the
+  // testable form of the property; a wall-clock timing assertion would flake
+  // in CI.
+  if (!user) {
+    await deps.verify(password, DUMMY_HASH);
+    return { ok: false, reason: "invalid" };
+  }
 
   if (!(await deps.verify(password, user.passwordHash))) {
     return { ok: false, reason: "invalid" };

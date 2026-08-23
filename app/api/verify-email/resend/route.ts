@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { readJsonObject } from "@/lib/api/body";
 import { getTranslations } from "next-intl/server";
 import { normalizeEmail } from "@/lib/account/signup";
-import { verifyPassword } from "@/lib/auth/hash";
+import { verifyPassword, DUMMY_HASH } from "@/lib/auth/hash";
 import {
   RESEND_COOLDOWN_MS,
   type ResendErrorCode,
@@ -67,7 +67,13 @@ export async function POST(request: Request) {
   }
 
   const user = await getUserByEmail(email);
-  if (!user) return fail("invalid_credentials");
+  // #26: an unknown email spends the same bcrypt cost against a fixed dummy
+  // hash before failing, so this branch doesn't answer measurably faster
+  // than the known-email one below and become an account-existence oracle.
+  if (!user) {
+    await verifyPassword(password, DUMMY_HASH);
+    return fail("invalid_credentials");
+  }
   if (!(await verifyPassword(password, user.passwordHash))) {
     return fail("invalid_credentials");
   }

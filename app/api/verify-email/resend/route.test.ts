@@ -5,7 +5,10 @@ vi.mock("@/lib/db/verification", () => ({
   issueToken: vi.fn(),
   lastIssuedAt: vi.fn(),
 }));
-vi.mock("@/lib/auth/hash", () => ({ verifyPassword: vi.fn() }));
+vi.mock("@/lib/auth/hash", () => ({
+  verifyPassword: vi.fn(),
+  DUMMY_HASH: "DUMMY_HASH_MOCK",
+}));
 vi.mock("@/lib/rate-limit/consume", () => ({ consume: vi.fn() }));
 vi.mock("@/lib/mail/send", () => ({
   sendMail: vi.fn(),
@@ -82,6 +85,21 @@ describe("POST /api/verify-email/resend", () => {
       status: "error",
       error: "invalid_credentials",
     });
+  });
+
+  // #26: an unknown address used to return right after getUserByEmail,
+  // skipping the bcrypt compare a known address pays for -- verifyPassword
+  // being called once either way (against the fixed DUMMY_HASH for the
+  // unknown case) is what equalizes the two branches' cost.
+  it("spends a bcrypt compare on an unknown address too, not just a known one", async () => {
+    vi.mocked(getUserByEmail).mockResolvedValue(null);
+    const res = await POST(req(CREDS));
+    expect(res.status).toBe(401);
+    expect(verifyPassword).toHaveBeenCalledTimes(1);
+    expect(verifyPassword).toHaveBeenCalledWith(
+      CREDS.password,
+      "DUMMY_HASH_MOCK",
+    );
   });
 
   it("409s with already_verified once the address is confirmed", async () => {

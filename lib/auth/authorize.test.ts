@@ -162,4 +162,36 @@ describe("authorizeUser", () => {
     );
     expect(consume).toHaveBeenCalledWith("login", "unknown");
   });
+
+  // #26: an unknown email used to return after a single indexed SELECT,
+  // skipping the bcrypt compare a known email pays for -- a timing gap wide
+  // enough to enumerate registered addresses. deps.verify being called
+  // exactly once either way is the testable form of "equal cost"; a
+  // wall-clock assertion would flake in CI.
+  it("spends a bcrypt compare on an unknown email too, not just a known one", async () => {
+    const verify = vi.fn(async (plain: string) => plain === "correct");
+    const r = await authorizeUser(
+      { ...GOOD, email: "nobody@moldai.local" },
+      deps({ verify, getUserByEmail: async () => null }),
+    );
+    expect(r).toEqual({ ok: false, reason: "invalid" });
+    expect(verify).toHaveBeenCalledTimes(1);
+  });
+
+  it("calls deps.verify the same number of times for a known and an unknown email", async () => {
+    const verifyKnown = vi.fn(async () => false);
+    await authorizeUser(
+      { ...GOOD, password: "wrong" },
+      deps({ verify: verifyKnown }),
+    );
+
+    const verifyUnknown = vi.fn(async () => false);
+    await authorizeUser(
+      { ...GOOD, email: "nobody@moldai.local" },
+      deps({ verify: verifyUnknown, getUserByEmail: async () => null }),
+    );
+
+    expect(verifyKnown).toHaveBeenCalledTimes(1);
+    expect(verifyUnknown).toHaveBeenCalledTimes(1);
+  });
 });
