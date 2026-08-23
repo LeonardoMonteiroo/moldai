@@ -18,6 +18,7 @@ vi.mock("@/lib/db/sizeChart", () => ({
 // route.ts passes this straight through to the (mocked) db functions above
 // as their `tx` argument — see #67's comment in lib/db/sizeChart.ts.
 vi.mock("@/lib/db/prisma", () => ({ prisma: {} }));
+vi.mock("@/lib/rate-limit/consume", () => ({ consume: vi.fn() }));
 
 import { GET, POST } from "./route";
 import { requireUser } from "@/lib/auth/guard";
@@ -27,6 +28,7 @@ import {
   getActiveSizeChartId,
   createSizeChart,
 } from "@/lib/db/sizeChart";
+import { consume } from "@/lib/rate-limit/consume";
 
 function req(body?: unknown) {
   return new Request("http://test/api/size-charts", {
@@ -74,6 +76,22 @@ describe("POST /api/size-charts", () => {
       name: null,
     });
     vi.mocked(createSizeChart).mockReset();
+    vi.mocked(consume).mockReset();
+    vi.mocked(consume).mockResolvedValue({ allowed: true, retryAfterSec: 0 });
+  });
+
+  // #101: same guard as POST /api/patterns -- duplicating a chart had no bucket.
+  it("429s when the account's create bucket is exhausted, creating nothing", async () => {
+    vi.mocked(consume).mockResolvedValue({
+      allowed: false,
+      retryAfterSec: 30,
+    });
+    const res = await POST(req({}));
+    expect(consume).toHaveBeenCalledWith("create", "u1");
+    expect(res.status).toBe(429);
+    expect((await res.json()).error).toBe("rate_limited");
+    expect(res.headers.get("Retry-After")).toBe("30");
+    expect(createSizeChart).not.toHaveBeenCalled();
   });
 
   it("creates a chart, forwarding an optional sourceId", async () => {

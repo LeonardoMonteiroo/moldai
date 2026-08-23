@@ -4,7 +4,11 @@ import { prisma } from "./prisma";
 import { seedPatternState } from "@/lib/editor/state";
 import { buildThumbnailSvg } from "@/lib/editor/thumbnail";
 import { apiError, ERROR_STATUS } from "@/lib/api/errors";
-import type { GarmentType, PatternState } from "@/lib/types";
+import {
+  MAX_PATTERNS_LISTED,
+  type GarmentType,
+  type PatternState,
+} from "@/lib/types";
 import type { Translate } from "@/lib/i18n/translate";
 
 type Tx = Prisma.TransactionClient;
@@ -113,6 +117,7 @@ export async function listPatternsForUser(
   const rows = await prisma.pattern.findMany({
     where: { userId },
     orderBy: { updatedAt: "desc" },
+    take: MAX_PATTERNS_LISTED,
   });
   return rows.map((row) => {
     const state = toState(row.data);

@@ -8,7 +8,8 @@ export type Bucket =
   | "verify"
   | "resend"
   | "resend_email"
-  | "resend_attempt";
+  | "resend_attempt"
+  | "create";
 
 export interface Policy {
   limit: number;
@@ -31,4 +32,12 @@ export const LIMITS: Record<Bucket, Policy> = {
   // above (`resend`) is spoofable without a trusted proxy and cannot do
   // this job on its own.
   resend_attempt: { limit: 10, windowSec: 900 },
+  // #101: the only authenticated-write bucket. Keyed on the account id
+  // (gate.id), not the IP -- every other bucket needs the IP key because it
+  // guards a pre-login endpoint with no account to key on yet, but here the
+  // account is already known and its id can't be spoofed the way
+  // x-forwarded-for can. Covers POST /api/patterns, /api/slopers and
+  // /api/size-charts, whose only cost before this was Postgres row growth
+  // and (for a sloper-backed pattern) a real draftGarment call per request.
+  create: { limit: 60, windowSec: 3600 },
 };

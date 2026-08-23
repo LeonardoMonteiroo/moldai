@@ -20,12 +20,14 @@ vi.mock("@/lib/db/sloper", async () => {
     await vi.importActual<typeof import("@/lib/db/sloper")>("@/lib/db/sloper");
   return { ...actual, listSlopersForUser: vi.fn(), createSloper: vi.fn() };
 });
+vi.mock("@/lib/rate-limit/consume", () => ({ consume: vi.fn() }));
 
 import { GET, POST } from "./route";
 import { requireUser } from "@/lib/auth/guard";
 import { unauthorized } from "@/lib/auth/session";
 import { loadPattern } from "@/lib/db/pattern";
 import { listSlopersForUser, createSloper } from "@/lib/db/sloper";
+import { consume } from "@/lib/rate-limit/consume";
 
 const mockLoadPattern = loadPattern as unknown as ReturnType<typeof vi.fn>;
 const mockList = listSlopersForUser as unknown as ReturnType<typeof vi.fn>;
@@ -80,6 +82,23 @@ describe("/api/slopers", () => {
     mockLoadPattern.mockReset();
     mockList.mockReset();
     mockCreate.mockReset();
+    vi.mocked(consume).mockReset();
+    vi.mocked(consume).mockResolvedValue({ allowed: true, retryAfterSec: 0 });
+  });
+
+  // #101: same guard as POST /api/patterns -- saving a sloper had no bucket.
+  it("POST 429s when the account's create bucket is exhausted, creating nothing", async () => {
+    vi.mocked(consume).mockResolvedValue({
+      allowed: false,
+      retryAfterSec: 45,
+    });
+    const res = await POST(post({ patternId: "p1", name: "base" }));
+    expect(consume).toHaveBeenCalledWith("create", "u1");
+    expect(res.status).toBe(429);
+    expect((await res.json()).error).toBe("rate_limited");
+    expect(res.headers.get("Retry-After")).toBe("45");
+    expect(mockLoadPattern).not.toHaveBeenCalled();
+    expect(mockCreate).not.toHaveBeenCalled();
   });
 
   it("GET returns the user's slopers", async () => {

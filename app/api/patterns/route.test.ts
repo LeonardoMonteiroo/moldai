@@ -14,6 +14,7 @@ vi.mock("@/lib/db/sloper", async () => {
     await vi.importActual<typeof import("@/lib/db/sloper")>("@/lib/db/sloper");
   return { ...actual, loadSloper: vi.fn() };
 });
+vi.mock("@/lib/rate-limit/consume", () => ({ consume: vi.fn() }));
 
 import { GET, POST } from "./route";
 import { requireUser } from "@/lib/auth/guard";
@@ -24,6 +25,7 @@ import {
   createPatternFromState,
 } from "@/lib/db/pattern";
 import { loadSloper } from "@/lib/db/sloper";
+import { consume } from "@/lib/rate-limit/consume";
 import { seedPatternState, applyGarmentSpec } from "@/lib/editor/state";
 import { sloperFromPattern } from "@/lib/slopers/convert";
 import { t as translate } from "@/lib/i18n/test-translate";
@@ -102,6 +104,25 @@ describe("POST /api/patterns", () => {
     mockCreate.mockReset();
     mockCreateFromState.mockReset();
     mockLoadSloper.mockReset();
+    vi.mocked(consume).mockReset();
+    vi.mocked(consume).mockResolvedValue({ allowed: true, retryAfterSec: 0 });
+  });
+
+  // #101: creating a pattern (blank or sloper-backed) had no bucket at all,
+  // unlike generate/graduate which credits gate.
+  it("429s when the account's create bucket is exhausted, creating nothing", async () => {
+    vi.mocked(consume).mockResolvedValue({
+      allowed: false,
+      retryAfterSec: 120,
+    });
+    const res = await POST(post());
+    expect(consume).toHaveBeenCalledWith("create", "u1");
+    expect(res.status).toBe(429);
+    expect((await res.json()).error).toBe("rate_limited");
+    expect(res.headers.get("Retry-After")).toBe("120");
+    expect(mockCreate).not.toHaveBeenCalled();
+    expect(mockCreateFromState).not.toHaveBeenCalled();
+    expect(mockLoadSloper).not.toHaveBeenCalled();
   });
 
   it("creates a blank pattern when the request carries no body at all", async () => {

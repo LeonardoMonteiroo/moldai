@@ -78,8 +78,10 @@ import {
   patternNotFound,
   savePattern,
 } from "./pattern";
+import { prisma } from "@/lib/db/prisma";
 import { seedPatternState, bumpVersion } from "@/lib/editor/state";
 import { t } from "@/lib/i18n/test-translate";
+import { MAX_PATTERNS_LISTED } from "@/lib/types";
 
 // Wires the fake tx to read/write `rows` by (id, userId), mimicking
 // `SELECT ... WHERE id = $1 AND userId = $2 FOR UPDATE` + the final UPDATE.
@@ -248,6 +250,19 @@ describe("listPatternsForUser", () => {
   it("returns only the user's patterns, most recently updated first", async () => {
     const list = await listPatternsForUser("u1");
     expect(list.map((m) => m.id)).toEqual(["m2", "m1"]);
+  });
+
+  // #101: the query had no `take` at all -- an account with many patterns
+  // scanned and deserialized every row (and built a thumbnail for each) on
+  // every dashboard load, with no bound. Asserted against the literal 500,
+  // not just "equals MAX_PATTERNS_LISTED": importing the same constant the
+  // fix reads from would make this pass vacuously (undefined === undefined)
+  // if the fix and the constant were ever reverted together.
+  it("bounds the query with MAX_PATTERNS_LISTED", async () => {
+    await listPatternsForUser("u1");
+    const call = vi.mocked(prisma.pattern.findMany).mock.calls.at(-1)![0];
+    expect(call?.take).toBe(500);
+    expect(MAX_PATTERNS_LISTED).toBe(500);
   });
 
   it("projects name/thumbnail from the stored state", async () => {

@@ -263,6 +263,19 @@ export interface SloperListItem {
  */
 export const MAX_PATTERN_NAME_LENGTH = 80;
 
+/**
+ * #101: `listPatternsForUser` had no `take` at all -- a query bound only by
+ * however many rows an account happens to have, each one deserialized and
+ * built into a thumbnail on every dashboard load. The `create` rate-limit
+ * bucket bounds new growth going forward; this bounds the read itself, so
+ * an account that already has many patterns degrades into "the query stays
+ * fast and returns the most recent N" rather than an unbounded scan. Well
+ * above what any real account approaches today, so no on-screen pagination
+ * or truncation notice exists yet -- there is nothing for a legitimate
+ * account to hit.
+ */
+export const MAX_PATTERNS_LISTED = 500;
+
 // #108: `generate` and `cuttingPlan` used to exist here too, but nothing
 // ever debited them — the first draft of a pattern debits `adjust` like
 // every later AI-driven change, and the cut plan is computed client-side,

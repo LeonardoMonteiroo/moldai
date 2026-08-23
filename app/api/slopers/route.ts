@@ -7,6 +7,7 @@ import { loadPattern, patternNotFound } from "@/lib/db/pattern";
 import { listSlopersForUser, createSloper } from "@/lib/db/sloper";
 import { sloperFromPattern } from "@/lib/slopers/convert";
 import { MAX_PATTERN_NAME_LENGTH } from "@/lib/types";
+import { consume } from "@/lib/rate-limit/consume";
 
 export async function GET() {
   const gate = await requireUser();
@@ -25,6 +26,13 @@ export async function GET() {
 export async function POST(request: Request) {
   const gate = await requireUser();
   if (gate instanceof NextResponse) return gate;
+  // #101: see the identical guard on POST /api/patterns.
+  const limited = await consume("create", gate.id);
+  if (!limited.allowed) {
+    return apiError("rate_limited", 429, {
+      "Retry-After": String(limited.retryAfterSec),
+    });
+  }
 
   const body = await readJsonObject(request);
   if (body instanceof NextResponse) return body;
