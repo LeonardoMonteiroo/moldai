@@ -39,8 +39,18 @@ export async function POST(request: Request, { params }: Ctx) {
         if (state.pattern.pieces.length === 0) {
           return { result: apiError("pattern_not_drafted", 400), entries: [] };
         }
+        // #60: intersect against sizesPending (minus the base size), the
+        // same set PieceDetailsPanel's `gradable` computes -- filtering
+        // against the full `sizes` list let a size that was already
+        // applied (or the base size itself) pass validation, debit the
+        // wallet, bump the version, and post a "graduated" chat message
+        // for a request that changed nothing (applySizes only moves
+        // labels still in sizesPending).
+        const gradable = state.pattern.sizesPending.filter(
+          (s) => s !== state.pattern.baseSize,
+        );
         const sizes = requested.filter((s): s is SizeLabel =>
-          state.pattern.sizes.includes(s as string),
+          gradable.includes(s as string),
         );
         if (sizes.length === 0) {
           return {

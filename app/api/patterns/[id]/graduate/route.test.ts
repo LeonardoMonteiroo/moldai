@@ -139,6 +139,35 @@ describe("POST /api/patterns/[id]/graduate", () => {
     expect(state.pattern.sizesApplied).not.toContain("G");
   });
 
+  // #60: the guard used to check membership in `pattern.sizes` (the full
+  // label list), not `sizesPending` -- so a size already graduated still
+  // passed validation. Two POSTs with the same sizes (double-click, two
+  // tabs, or a direct replay) debited twice for one graduation.
+  it("400s and does not debit a second grade request for an already-applied size", async () => {
+    const first = await POST(req({ sizes: ["G"] }), ctx());
+    expect(first.status).toBe(200);
+    const balanceAfterFirst = wallet.balance;
+    const versionAfterFirst = state.pattern.version;
+
+    const second = await POST(req({ sizes: ["G"] }), ctx());
+    expect(second.status).toBe(400);
+    expect((await second.json()).error).toBe("no_gradable_sizes");
+    expect(wallet.balance).toBe(balanceAfterFirst);
+    expect(state.pattern.version).toBe(versionAfterFirst);
+  });
+
+  // The base size is already the drafted size -- PieceDetailsPanel's
+  // `gradable` list excludes it, and the route must reject it too rather
+  // than relying on the client to never ask.
+  it("400s and does not debit a request for the base size", async () => {
+    const balanceBefore = wallet.balance;
+    const res = await POST(req({ sizes: ["M"] }), ctx());
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe("no_gradable_sizes");
+    expect(wallet.balance).toBe(balanceBefore);
+    expect(state.pattern.version).toBe(0);
+  });
+
   // #61: a throw past withPatternAndWallet's own transaction close (e.g. it
   // already timed out) used to escape as a bare, uncoded HTTP 500.
   it("maps a withPatternAndWallet failure to a coded 503 instead of a bare 500", async () => {
