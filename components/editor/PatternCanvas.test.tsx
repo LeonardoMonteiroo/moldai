@@ -170,6 +170,23 @@ describe("PatternCanvas piece labels", () => {
   });
 });
 
+// #87: the dart's drafted path used to close with a trailing " Z" (see
+// lib/draft/core.ts), so the canvas rendered a fourth segment straight back
+// along the base -- a marking line that isn't part of the dart -- and
+// disagreed with every fixed export format.
+describe("PatternCanvas dart", () => {
+  it("renders the dart path unfilled and open, with no trailing Z", () => {
+    const pieceWithDart: Piece = {
+      ...widePiece,
+      dart: { d: "M30 20 L40 60 L50 20" },
+    };
+    const { container } = renderCanvas({ pieces: [pieceWithDart] });
+    const dartPath = container.querySelector('path[class*="fill-none"]');
+    expect(dartPath).not.toBeNull();
+    expect(dartPath!.getAttribute("d")).not.toMatch(/Z$/);
+  });
+});
+
 const seamConflict = {
   id: "conf-1",
   title: "Cava e manga não batem",

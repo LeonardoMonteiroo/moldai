@@ -54,11 +54,16 @@ export function toSvg(model: ExportModel): string {
       );
     }
     if (p.dart && p.dart.length >= 3) {
+      // #87: open, not closed -- a dart is two legs meeting at a point, and
+      // closing it drew a fourth segment straight back along the base, a
+      // marking line that isn't part of the dart and matches neither the
+      // AAMA exporter's own layer-8 open polyline nor pattern-making
+      // convention.
       const dd = p.dart
         .map((pt, i) => `${i === 0 ? "M" : "L"}${X(pt.x)} ${Y(pt.y)}`)
         .join(" ");
       parts.push(
-        `<path d="${dd} Z" fill="none" stroke="#4a5a3a" stroke-width="0.3"/>`,
+        `<path d="${dd}" fill="none" stroke="#4a5a3a" stroke-width="0.3"/>`,
       );
     }
     parts.push(

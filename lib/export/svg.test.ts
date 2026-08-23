@@ -86,4 +86,34 @@ describe("toSvg", () => {
     const comment = svg.split("\n")[1];
     expect(comment.slice(4, -3)).not.toContain("--");
   });
+
+  // #87: the dart path used to close with a trailing " Z", drawing a fourth
+  // segment straight back along the base -- a marking line that isn't part
+  // of the dart and disagreed with the AAMA exporter's own open polyline
+  // for the identical pattern.
+  it("dart path is open -- no trailing Z, unlike the outline", () => {
+    const dartModel: ExportModel = {
+      ...model,
+      pieces: [
+        {
+          ...model.pieces[0],
+          id: "back",
+          name: "Costas",
+          dart: [
+            { x: 3, y: 2 },
+            { x: 4, y: 6 },
+            { x: 5, y: 2 },
+          ],
+        },
+      ],
+    };
+    const svg = toSvg(dartModel);
+    const dartPath = svg
+      .split("\n")
+      .find((l) => l.includes("<path ") && l.includes('stroke="#4a5a3a"'));
+    expect(dartPath).toBeDefined();
+    expect(dartPath).not.toContain("Z");
+    // 3 dart points -> M + 2 L commands only, no segment closing back to the first
+    expect(dartPath?.match(/[ML]\d/g)?.length).toBe(3);
+  });
 });

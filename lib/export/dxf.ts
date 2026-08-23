@@ -155,7 +155,10 @@ export function toDxf(model: ExportModel): string {
       p(0, "LWPOLYLINE");
       p(8, "INTERNO");
       p(90, piece.dart.length);
-      p(70, 1);
+      // #87: open (0), not closed (1) -- matches the AAMA exporter's own
+      // layer-8 open polyline and pattern-making convention. A closed dart
+      // drew a fourth segment along the base that isn't part of the dart.
+      p(70, 0);
       for (const d of piece.dart) {
         p(10, X(d.x));
         p(20, Y(d.y));

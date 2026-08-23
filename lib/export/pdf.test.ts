@@ -42,6 +42,26 @@ import { toPdf } from "./pdf";
 import type { ExportModel } from "./model";
 import { PDFDocument } from "pdf-lib";
 import { t } from "@/lib/i18n/test-translate";
+import zlib from "node:zlib";
+
+// pdf-lib compresses content streams (FlateDecode); this inflates every
+// stream in the raw PDF bytes and concatenates the ones that decode as text
+// (image/font streams throw and are skipped), so a test can grep the actual
+// drawing operators instead of the compressed binary.
+function inflatedContent(bytes: Uint8Array): string {
+  const text = Buffer.from(bytes).toString("latin1");
+  const re = /stream\r?\n([\s\S]*?)endstream/g;
+  let m: RegExpExecArray | null;
+  let out = "";
+  while ((m = re.exec(text))) {
+    try {
+      out += zlib.inflateSync(Buffer.from(m[1], "latin1")).toString("latin1");
+    } catch {
+      // not a FlateDecode stream (or not valid zlib) -- skip it
+    }
+  }
+  return out;
+}
 
 function modelOf(sheetWcm: number, sheetHcm: number): ExportModel {
   return {
@@ -100,5 +120,33 @@ describe("toPdf", () => {
     const { width, height } = doc.getPage(0).getSize();
     expect(width).toBeCloseTo(21.6 * PT_POR_CM, 1); // (20+1.6) cm in pt
     expect(height).toBeCloseTo(31.6 * PT_POR_CM, 1); // (30+1.6) cm in pt
+  });
+
+  // #87: the dart used to wrap its last leg back to the first point (`%
+  // pc.dart.length`), drawing a fourth segment straight back along the base
+  // -- a marking line that isn't part of the dart and disagreed with the
+  // AAMA exporter's own open polyline for the identical pattern.
+  it("dart draws exactly dart.length - 1 segments, not a closed loop", async () => {
+    const base = modelOf(20, 30);
+    const { grainline: _grainline, ...pieceWithoutGrainline } = base.pieces[0];
+    const model: ExportModel = {
+      ...base,
+      pieces: [
+        {
+          ...pieceWithoutGrainline,
+          dart: [
+            { x: 3, y: 2 },
+            { x: 4, y: 6 },
+            { x: 5, y: 2 },
+          ],
+        },
+      ],
+    };
+    // No grainline on this fixture's piece, so every olive-stroked segment
+    // in the content stream is a dart leg -- an exact count is meaningful.
+    const bytes = await toPdf(model, "single", t);
+    const content = inflatedContent(bytes);
+    const oliveSegments = content.match(/0\.29 0\.35 0\.23 RG/g) ?? [];
+    expect(oliveSegments).toHaveLength(2); // dart.length - 1, not 3
   });
 });

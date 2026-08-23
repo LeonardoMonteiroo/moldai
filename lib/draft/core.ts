@@ -182,8 +182,13 @@ function place(dp: DraftedPiece, dxPx: number, dyPx: number): Piece {
       .split(" ")
       .map((p) => p.split(",").map(Number));
     const [a, b, c] = dd;
+    // #87: open, not closed -- a dart is two legs meeting at a point, and
+    // the trailing Z drew a fourth segment straight back along the base
+    // that isn't part of the dart, mismatching the generic .dxf/svg/pdf
+    // exports (now also fixed) against the AAMA exporter, which was always
+    // open on layer 8.
     piece.dart = {
-      d: `M${a[0] + dxPx} ${a[1] + dyPx} L${b[0] + dxPx} ${b[1] + dyPx} L${c[0] + dxPx} ${c[1] + dyPx} Z`,
+      d: `M${a[0] + dxPx} ${a[1] + dyPx} L${b[0] + dxPx} ${b[1] + dyPx} L${c[0] + dxPx} ${c[1] + dyPx}`,
     };
   }
   return piece;

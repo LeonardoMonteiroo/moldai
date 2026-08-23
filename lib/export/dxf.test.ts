@@ -158,6 +158,24 @@ const cubicModel: ExportModel = {
   ],
 };
 
+// Same 3-point dart shape as lib/export/dxf-aama.test.ts's dartModel, so
+// every serializer's test exercises the identical fixture.
+const dartModel: ExportModel = {
+  ...squareModel,
+  pieces: [
+    {
+      ...squareModel.pieces[0],
+      id: "back",
+      name: "Costas",
+      dart: [
+        { x: 3, y: 2 },
+        { x: 4, y: 6 },
+        { x: 5, y: 2 },
+      ],
+    },
+  ],
+};
+
 describe("toDxf", () => {
   it("header: $INSUNITS = 4 (mm) and a 999 comment with size/allowance", () => {
     const dxf = toDxf(squareModel);
@@ -181,6 +199,16 @@ describe("toDxf", () => {
     expect(dxf).toContain("\nLINE\n");
     expect(dxf).toContain("\nTEXT\n");
     expect(dxf).toContain("FRENTE · 2x");
+  });
+
+  // #87: the dart used to close (p(70,1)), drawing a fourth segment straight
+  // back along the base -- a marking line that isn't part of the dart and
+  // disagreed with the AAMA exporter's own open layer-8 polyline for the
+  // identical pattern.
+  it("dart comes out as an OPEN LWPOLYLINE (70=0) with exactly dart.length vertices", () => {
+    const dxf = toDxf(dartModel);
+    expect(dxf.match(/\nLWPOLYLINE\n/g)?.length).toBe(2); // outline + dart
+    expect(dxf).toMatch(/LWPOLYLINE\n8\nINTERNO\n90\n3\n70\n0\n/);
   });
 
   it("1:1 scale: a 10cm-wide outline spans 100 units (mm)", () => {
