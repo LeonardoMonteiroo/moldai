@@ -6,6 +6,7 @@ import {
   applyPurchase,
   renewWallet,
   renewsInDays,
+  isRenewalDue,
 } from "./wallet";
 
 const NOW = new Date("2026-08-17T12:00:00.000Z");
@@ -100,6 +101,43 @@ describe("renewWallet", () => {
     expect(w.balance).toBe(130); // total (30) + purchased (100), not reset to 30
     expect(w.purchased).toBe(100);
     expect(entry).toEqual({ type: "renew", amount: 30, balanceAfter: 130 });
+  });
+});
+
+// #40: dueness used to be decided once, outside any lock, then acted on
+// unconditionally inside the row-locked transaction with no re-check -- a
+// second process (or a subscribe purchase) racing between the snapshot and
+// the lock renewed an already-renewed wallet again, silently costing the
+// user a whole month's allowance.
+describe("isRenewalDue", () => {
+  it("is due when renewsAt is in the past", () => {
+    const w = seedWallet(NOW);
+    w.renewsAt = new Date(NOW.getTime() - 86_400_000);
+    expect(isRenewalDue(w, NOW)).toBe(true);
+  });
+  it("is due exactly at renewsAt (inclusive, matching the findMany lte query)", () => {
+    const w = seedWallet(NOW);
+    w.renewsAt = NOW;
+    expect(isRenewalDue(w, NOW)).toBe(true);
+  });
+  it("is not due when renewsAt is in the future", () => {
+    const w = seedWallet(NOW);
+    w.renewsAt = new Date(NOW.getTime() + 86_400_000);
+    expect(isRenewalDue(w, NOW)).toBe(false);
+  });
+  it("is not due when renewsAt is null", () => {
+    const w = seedWallet(NOW);
+    w.renewsAt = null;
+    expect(isRenewalDue(w, NOW)).toBe(false);
+  });
+  it("a wallet just renewed by a racing process is no longer due for a second renewal", () => {
+    const w = seedWallet(NOW);
+    w.renewsAt = new Date("2026-08-10T00:00:00.000Z"); // overdue, due at NOW
+    expect(isRenewalDue(w, NOW)).toBe(true);
+    renewWallet(w, NOW); // a "concurrent process" wins the lock first
+    // Re-checking against the now-renewed row is exactly what stops a
+    // second renewal from ever calling renewWallet again for this pass.
+    expect(isRenewalDue(w, NOW)).toBe(false);
   });
 });
 

@@ -93,6 +93,17 @@ export function applyPurchase(
   }
 }
 
+// #40: dueness used to be decided once, by scripts/cron-renew.ts's unlocked
+// findMany, then acted on unconditionally inside the row-locked transaction
+// with no re-check -- a second process (or a subscribe purchase landing
+// between the snapshot and the lock) renews an already-renewed wallet again,
+// silently costing the user a whole month's allowance and leaving two
+// `renew` ledger rows for one period. The renewal callback re-checks this
+// against the locked row itself, immediately before calling renewWallet.
+export function isRenewalDue(wallet: Wallet, now: Date): boolean {
+  return wallet.renewsAt !== null && wallet.renewsAt <= now;
+}
+
 // Called by the renewal cron (scripts/cron-renew.ts) for wallets past renewsAt.
 // Rolls forward from the *scheduled* renewsAt, not `now`, so a cron run that's
 // a few hours (or days) late doesn't push the next renewal date out by the delay.
