@@ -122,4 +122,14 @@ describe("POST /api/size-charts", () => {
     expect(res.status).toBe(200);
     expect(createSizeChart).toHaveBeenCalledWith("u1", "copySuffix", undefined);
   });
+
+  // #64: an explicit-but-unresolved sourceId used to silently substitute the
+  // system chart (200) instead of 404ing -- only the bodyless/no-sourceId
+  // path may fall back.
+  it("404s when an explicit sourceId doesn't resolve", async () => {
+    vi.mocked(createSizeChart).mockResolvedValue(null);
+    const res = await POST(req({ sourceId: "does-not-exist" }));
+    expect(res.status).toBe(404);
+    expect((await res.json()).error).toBe("size_chart_not_found");
+  });
 });

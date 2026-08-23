@@ -93,16 +93,26 @@ export async function getActiveSizeChartId(
 // Duplicates sourceSizeChartId's data (or the system female-adult default if
 // omitted) into a new, always-editable (isSystem: false) chart — backs both
 // "＋ Nova grade" and "Duplicar".
+//
+// #64: a given-but-unresolved sourceSizeChartId (a stale list, another
+// account's id) used to fall through the same `??` chain as "no id given
+// at all" and silently substitute the system female-adult chart -- wrong
+// gender, wrong measurements, no error. Only the "no id given" case falls
+// back now; an id that doesn't resolve returns null so the caller can 404.
 export async function createSizeChart(
   userId: string,
   copySuffix: string,
   sourceSizeChartId?: string,
-): Promise<SizeChartRecord> {
+): Promise<SizeChartRecord | null> {
   const charts = await listSizeChartsForUser(prisma, userId);
-  const source =
-    charts.find((c) => c.id === sourceSizeChartId) ??
-    charts.find((c) => c.isSystem && c.gender === "female") ??
-    charts[0];
+  let source: SizeChartRecord | undefined;
+  if (sourceSizeChartId) {
+    source = charts.find((c) => c.id === sourceSizeChartId);
+    if (!source) return null;
+  } else {
+    source =
+      charts.find((c) => c.isSystem && c.gender === "female") ?? charts[0];
+  }
   const { id: _id, updatedAt: _updatedAt, ...sourceData } = source;
   const data: SizeChartData = {
     ...sourceData,

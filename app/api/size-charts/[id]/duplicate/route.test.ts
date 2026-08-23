@@ -43,4 +43,15 @@ describe("POST /api/size-charts/[id]/duplicate", () => {
     const res = await POST(new Request("http://test"), ctx());
     expect(res.status).toBe(401);
   });
+
+  // #64: createSizeChart used to silently substitute the system chart for
+  // an unresolved id instead of signaling "not found" -- this route is the
+  // one place that regression was reachable from (a stale list, or a
+  // duplicate request for another account's chart id).
+  it("404s when createSizeChart can't resolve the source id", async () => {
+    vi.mocked(createSizeChart).mockResolvedValue(null);
+    const res = await POST(new Request("http://test"), ctx("stale-id"));
+    expect(res.status).toBe(404);
+    expect((await res.json()).error).toBe("size_chart_not_found");
+  });
 });

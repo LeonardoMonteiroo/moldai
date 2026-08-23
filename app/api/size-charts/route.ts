@@ -8,7 +8,7 @@ import {
   getActiveSizeChartId,
   createSizeChart,
 } from "@/lib/db/sizeChart";
-import { apiError } from "@/lib/api/errors";
+import { apiError, ERROR_STATUS } from "@/lib/api/errors";
 import { consume } from "@/lib/rate-limit/consume";
 
 export async function GET() {
@@ -45,5 +45,11 @@ export async function POST(request: Request) {
       : undefined;
   const t = await getTranslations("SizeCharts");
   const chart = await createSizeChart(gate.id, t("copySuffix"), sourceId);
+  // #64: only reachable when an explicit sourceId was given and didn't
+  // resolve -- the bodyless/no-sourceId path always falls back to the
+  // system chart and never returns null.
+  if (!chart) {
+    return apiError("size_chart_not_found", ERROR_STATUS.size_chart_not_found);
+  }
   return NextResponse.json(chart);
 }

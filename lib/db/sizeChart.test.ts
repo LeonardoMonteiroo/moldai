@@ -196,7 +196,7 @@ describe("createSizeChart", () => {
   });
 
   it("duplicates the system female-adult chart by default", async () => {
-    const created = await createSizeChart("u1", SUFFIX);
+    const created = (await createSizeChart("u1", SUFFIX))!;
     expect(created.isSystem).toBe(false);
     expect(created.gender).toBe("female");
     expect(created.name).toContain("(copy-test)");
@@ -205,8 +205,29 @@ describe("createSizeChart", () => {
   it("duplicates a given source chart", async () => {
     const charts = await listSizeChartsForUser(prisma, "u1");
     const male = charts.find((c) => c.gender === "male")!;
-    const created = await createSizeChart("u1", SUFFIX, male.id);
+    const created = (await createSizeChart("u1", SUFFIX, male.id))!;
     expect(created.gender).toBe("male");
+  });
+
+  // #64: a given-but-unresolved sourceSizeChartId (a stale list, another
+  // account's id) used to fall through to the same system-chart fallback as
+  // "no id given at all" -- silently substituting the wrong gender/
+  // measurements with no error. Only omitting the id should fall back now.
+  it("returns null (does not silently substitute the system chart) for an unresolved sourceSizeChartId", async () => {
+    const result = await createSizeChart("u1", SUFFIX, "does-not-exist");
+    expect(result).toBeNull();
+  });
+
+  it("returns null for another account's chart id, without creating a copy", async () => {
+    const otherUsersChart = (await createSizeChart("u2", SUFFIX))!;
+    // Seed u1's own system charts first (an unrelated, expected side effect
+    // of listing) so the count below isolates what this test actually
+    // cares about: no *additional* row gets created for the failed copy.
+    await listSizeChartsForUser(prisma, "u1");
+    const before = rows.filter((r) => r.userId === "u1").length;
+    const result = await createSizeChart("u1", SUFFIX, otherUsersChart.id);
+    expect(result).toBeNull();
+    expect(rows.filter((r) => r.userId === "u1")).toHaveLength(before);
   });
 });
 
@@ -225,14 +246,14 @@ describe("updateSizeChart", () => {
   });
 
   it("merges a partial patch into a custom chart", async () => {
-    const created = await createSizeChart("u1", SUFFIX);
+    const created = (await createSizeChart("u1", SUFFIX))!;
     const updated = await updateSizeChart(created.id, "u1", { name: "Nova" });
     expect(updated!.name).toBe("Nova");
     expect(updated!.gender).toBe(created.gender); // untouched field preserved
   });
 
   it("returns null when the chart isn't owned by the caller", async () => {
-    const created = await createSizeChart("u1", SUFFIX);
+    const created = (await createSizeChart("u1", SUFFIX))!;
     const result = await updateSizeChart(created.id, "someone-else", {
       name: "x",
     });
@@ -254,7 +275,7 @@ describe("deleteSizeChart", () => {
   });
 
   it("deletes a custom chart and clears it as the active chart", async () => {
-    const created = await createSizeChart("u1", SUFFIX);
+    const created = (await createSizeChart("u1", SUFFIX))!;
     await setActiveSizeChart("u1", created.id);
     expect(await deleteSizeChart(created.id, "u1")).toBe(true);
     expect(await getActiveSizeChartId(prisma, "u1")).toBeNull();
@@ -269,18 +290,18 @@ describe("setActiveSizeChart / getSizeChartForGeneration", () => {
   });
 
   it("sets the account's active chart", async () => {
-    const created = await createSizeChart("u1", SUFFIX);
+    const created = (await createSizeChart("u1", SUFFIX))!;
     expect(await setActiveSizeChart("u1", created.id)).toBe(true);
     expect(await getActiveSizeChartId(prisma, "u1")).toBe(created.id);
   });
 
   it("returns false when activating a chart not owned by the caller", async () => {
-    const created = await createSizeChart("u1", SUFFIX);
+    const created = (await createSizeChart("u1", SUFFIX))!;
     expect(await setActiveSizeChart("someone-else", created.id)).toBe(false);
   });
 
   it("uses the active chart when its gender matches the request", async () => {
-    const created = await createSizeChart("u1", SUFFIX); // female, per createSizeChart's default
+    const created = (await createSizeChart("u1", SUFFIX))!; // female, per createSizeChart's default
     await setActiveSizeChart("u1", created.id);
     const { chart, rejectedActiveName } = await getSizeChartForGeneration(
       prisma,
@@ -292,7 +313,7 @@ describe("setActiveSizeChart / getSizeChartForGeneration", () => {
   });
 
   it("falls back to the system chart when the active chart's gender doesn't match", async () => {
-    const created = await createSizeChart("u1", SUFFIX); // female
+    const created = (await createSizeChart("u1", SUFFIX))!; // female
     await setActiveSizeChart("u1", created.id);
     const { chart } = await getSizeChartForGeneration(prisma, "u1", "male");
     expect(chart.isSystem).toBe(true);
@@ -302,7 +323,7 @@ describe("setActiveSizeChart / getSizeChartForGeneration", () => {
   // Reported so the generate route can say so in the chat instead of drafting
   // from measurements the user did not pick, silently.
   it("names the active chart it had to pass over", async () => {
-    const created = await createSizeChart("u1", SUFFIX); // female
+    const created = (await createSizeChart("u1", SUFFIX))!; // female
     await setActiveSizeChart("u1", created.id);
     const { rejectedActiveName } = await getSizeChartForGeneration(
       prisma,
