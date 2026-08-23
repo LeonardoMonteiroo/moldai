@@ -424,7 +424,8 @@
     },
     "addSizeFieldLabel": "Nome do tamanho",
     "addSizeSaveButton": "Adicionar",
-    "addSizeCancelButton": "Cancelar"
+    "addSizeCancelButton": "Cancelar",
+    "maxSizesReachedHint": "Limite de {max} tamanhos atingido."
   },
   "Sidebar": {
     "myPatternsLabel": "Meus moldes",

@@ -9,6 +9,14 @@ import { GENDERS } from "@/lib/draft/garment";
 export const MAX_SIZE_CHART_NAME = 80;
 /** Generous bound on a per-size-step cm delta — a guard, not a design rule. */
 const MAX_PROGRESSION_STEP = 20;
+// #97: generous for PP..GG plus numeric ranges (e.g. 34..54), but bounded --
+// the resolved sizeTable is frozen into every pattern's blob and then
+// JSON.stringify'd into the AI system prompt on *every* subsequent
+// generation for that pattern, so an unbounded list is both an unbounded
+// per-call Anthropic cost and, past the model's context window, a
+// permanently unusable pattern (proposeGarment throws forever).
+export const MAX_SIZE_CHART_SIZES = 40;
+export const MAX_SIZE_LABEL_LENGTH = 12;
 
 function clamp(v: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, v));
@@ -69,18 +77,19 @@ export function validateSizeChartPatch(
     out.bodyType = input.bodyType as SizeChartData["bodyType"];
   }
 
-  // Trimmed, blank-free and de-duplicated: a duplicate label would make
-  // sizes.indexOf() ambiguous in resolveSizeChartSize, and an empty list would
-  // leave the chart with no columns at all.
+  // Trimmed, length-capped, blank-free and de-duplicated: a duplicate label
+  // would make sizes.indexOf() ambiguous in resolveSizeChartSize, an empty
+  // list would leave the chart with no columns at all, and an unbounded
+  // count/length is the #97 cost-and-availability defect above.
   if (Array.isArray(input.sizes)) {
     const sizes = [
       ...new Set(
         input.sizes
           .filter((s): s is string => typeof s === "string")
-          .map((s) => s.trim())
+          .map((s) => s.trim().slice(0, MAX_SIZE_LABEL_LENGTH))
           .filter(Boolean),
       ),
-    ];
+    ].slice(0, MAX_SIZE_CHART_SIZES);
     if (sizes.length > 0) out.sizes = sizes;
   }
 

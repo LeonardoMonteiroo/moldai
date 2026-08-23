@@ -116,6 +116,25 @@ describe("validateSizeChartPatch", () => {
     expect(out.sizes).toEqual(["P", "M", "G"]);
   });
 
+  // #97: sizeTable is resolved from `sizes` and frozen into every pattern's
+  // blob, then JSON.stringify'd into the AI system prompt on *every*
+  // subsequent generation for that pattern -- an unbounded list is an
+  // unbounded per-call Anthropic cost, and past the model's context window
+  // makes the pattern permanently unusable (proposeGarment throws forever).
+  it("caps an oversized size list at MAX_SIZE_CHART_SIZES entries", () => {
+    const out = validateSizeChartPatch(current, {
+      sizes: Array.from({ length: 5000 }, (_, i) => `a${i}`),
+    });
+    expect(out.sizes!.length).toBe(40);
+  });
+
+  it("caps each size label's length at MAX_SIZE_LABEL_LENGTH", () => {
+    const out = validateSizeChartPatch(current, {
+      sizes: ["x".repeat(500), "P"],
+    });
+    expect(out.sizes![0].length).toBeLessThanOrEqual(12);
+  });
+
   it("keeps baseSizeIndex inside the resulting size list", () => {
     expect(
       validateSizeChartPatch(current, { sizes: ["P", "M"], baseSizeIndex: 99 })

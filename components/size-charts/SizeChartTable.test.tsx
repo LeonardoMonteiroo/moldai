@@ -139,3 +139,33 @@ describe("SizeChartTable measurement cells", () => {
     expect(cell).toHaveValue(92);
   });
 });
+
+// #97: the size list is what gets resolved into sizeTable and frozen into
+// every pattern's blob, then re-sent on every subsequent generation for that
+// pattern -- so the UI has to stop the count from growing past the server's
+// own cap, not just report the server's clamp after the fact.
+describe("SizeChartTable size-list cap", () => {
+  it("disables adding a size once the chart is at the cap, with a visible reason", () => {
+    seed({ sizes: Array.from({ length: 40 }, (_, i) => `s${i}`) });
+    renderWithIntl(<SizeChartTable />);
+
+    expect(screen.getByText(ptBR.SizeChartTable.addSizeButton)).toBeDisabled();
+    expect(
+      screen.getByText(
+        ptBR.SizeChartTable.maxSizesReachedHint.replace("{max}", "40"),
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("leaves adding a size enabled, with no reason shown, below the cap", () => {
+    seed({ sizes: ["P", "M", "G"] });
+    renderWithIntl(<SizeChartTable />);
+
+    expect(screen.getByText(ptBR.SizeChartTable.addSizeButton)).toBeEnabled();
+    expect(
+      screen.queryByText(
+        ptBR.SizeChartTable.maxSizesReachedHint.replace("{max}", "40"),
+      ),
+    ).not.toBeInTheDocument();
+  });
+});

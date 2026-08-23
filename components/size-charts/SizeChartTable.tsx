@@ -5,6 +5,7 @@ import { XIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSizeChartsStore } from "@/lib/sizeChartsStore";
 import { resolveSizeChartSize } from "@/lib/sizeCharts/compute";
+import { MAX_SIZE_CHART_SIZES } from "@/lib/sizeCharts/validate";
 import {
   MEASUREMENT_KEYS,
   MEASUREMENT_RANGES,
@@ -83,10 +84,12 @@ export function SizeChartTable() {
     });
   };
 
+  const atSizeCap = draft.sizes.length >= MAX_SIZE_CHART_SIZES;
+
   const addSize = () => {
     const label = newSize.trim();
     setAddingSize(false);
-    if (!label || draft.sizes.includes(label)) return;
+    if (!label || draft.sizes.includes(label) || atSizeCap) return;
     updateDraft({ sizes: [...draft.sizes, label] });
   };
 
@@ -266,17 +269,25 @@ export function SizeChartTable() {
       )}
 
       {!readOnly && (
-        <Button
-          variant="outline"
-          size="chrome"
-          onClick={() => {
-            setNewSize("");
-            setAddingSize(true);
-          }}
-          className="self-start"
-        >
-          {t("addSizeButton")}
-        </Button>
+        <div className="flex flex-col items-start gap-1">
+          <Button
+            variant="outline"
+            size="chrome"
+            onClick={() => {
+              setNewSize("");
+              setAddingSize(true);
+            }}
+            disabled={atSizeCap}
+            className="self-start"
+          >
+            {t("addSizeButton")}
+          </Button>
+          {atSizeCap && (
+            <span className="text-muted text-meta">
+              {t("maxSizesReachedHint", { max: MAX_SIZE_CHART_SIZES })}
+            </span>
+          )}
+        </div>
       )}
 
       <Dialog open={addingSize} onOpenChange={setAddingSize}>
