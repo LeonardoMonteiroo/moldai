@@ -20,7 +20,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   // Self-hosted (Docker/`next start`): Auth.js v5 only trusts the host
   // automatically in dev. In production, without this every auth request fails with UntrustedHost.
   trustHost: true,
-  session: { strategy: "jwt" },
+  // #28: explicit rather than inherited -- @auth/core's own default is also
+  // 30 days (node_modules/@auth/core/lib/init.js), so this changes nothing
+  // today; it makes the session lifetime a decision instead of a value this
+  // repo never chose. requireUser() (lib/auth/guard.ts, #62) is what keeps a
+  // token from outliving the account it names -- this bounds how long a
+  // token can outlive nothing going wrong at all.
+  session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
   pages: { signIn: "/login" },
   providers: [
     Credentials({
