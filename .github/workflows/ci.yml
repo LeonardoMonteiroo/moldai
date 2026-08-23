@@ -7,6 +7,26 @@ on:
 jobs:
   quality:
     runs-on: ubuntu-latest
+    # #104: every repository test replaces PrismaClient with a fake (vi.mock),
+    # so hand-written SQL (lib/db/wallet.ts, lib/db/pattern.ts) was never
+    # parsed by a real Postgres in any automated check -- a migration that
+    # renamed/dropped a column those raw strings reference passed build,
+    # lint, prettier and all tests, and only broke in production, on the
+    # path of every credited action (lockWallet).
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: moldai
+          POSTGRES_PASSWORD: moldai
+          POSTGRES_DB: moldai
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -14,9 +34,34 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci --legacy-peer-deps
+      - name: Apply migrations to an empty database
+        # Proves every migration in prisma/migrations actually applies, in
+        # order, to a database that starts empty -- the same thing a real
+        # deploy does (docker-entrypoint.sh's `prisma migrate deploy`).
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://moldai:moldai@localhost:5432/moldai?schema=public
+      - name: Check schema.prisma against prisma/migrations for drift
+        # `migrate diff` needs its own empty database to build the
+        # migrations' resulting schema into and compare against
+        # schema.prisma -- the `moldai` db above already has that schema
+        # applied (from the step above), so it can't also be the shadow.
+        run: |
+          PGPASSWORD=moldai psql -h localhost -U moldai -d moldai -c "CREATE DATABASE moldai_shadow;"
+          npx prisma migrate diff \
+            --from-migrations prisma/migrations \
+            --to-schema-datamodel prisma/schema.prisma \
+            --shadow-database-url postgresql://moldai:moldai@localhost:5432/moldai_shadow?schema=public \
+            --exit-code
       - run: npm run format:check
       - run: npx eslint app lib components
-      - run: npx vitest run
+      - name: Unit + integration tests
+        # TEST_DATABASE_URL is a distinct var from DATABASE_URL on purpose --
+        # lib/db/sql.integration.test.ts gates on it so a developer's own
+        # .env.local DATABASE_URL is never written to by a local test run.
+        run: npx vitest run
+        env:
+          TEST_DATABASE_URL: postgresql://moldai:moldai@localhost:5432/moldai?schema=public
       - name: Build (typecheck)
         run: npm run build
         env:
