@@ -47,6 +47,25 @@ export async function POST(request: Request) {
   const password = typeof body.password === "string" ? body.password : "";
   if (!email || !password) return fail("invalid_credentials");
 
+  // #23: the `resend` bucket above is IP-keyed and clientIp is spoofable
+  // without a trusted proxy (rotating x-forwarded-for gets a fresh bucket
+  // per request), so nothing capped password *guesses* against a known
+  // address -- this endpoint answered a clean 401/409 oracle at unlimited
+  // speed. This email-keyed bucket must precede verifyPassword, the same
+  // way login_email precedes the password check on the login path.
+  // #23: the `resend` bucket above is IP-keyed and clientIp is spoofable
+  // without a trusted proxy (rotating x-forwarded-for gets a fresh bucket
+  // per request), so nothing capped password *guesses* against a known
+  // address -- this endpoint answered a clean 401/409 oracle at unlimited
+  // speed. This email-keyed bucket must precede verifyPassword, the same
+  // way login_email precedes the password check on the login path.
+  const attemptGate = await consume("resend_attempt", email);
+  if (!attemptGate.allowed) {
+    return fail("rate_limited", {
+      "Retry-After": String(attemptGate.retryAfterSec),
+    });
+  }
+
   const user = await getUserByEmail(email);
   if (!user) return fail("invalid_credentials");
   if (!(await verifyPassword(password, user.passwordHash))) {

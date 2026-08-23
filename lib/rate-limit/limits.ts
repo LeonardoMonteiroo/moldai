@@ -7,7 +7,8 @@ export type Bucket =
   | "login_email"
   | "verify"
   | "resend"
-  | "resend_email";
+  | "resend_email"
+  | "resend_attempt";
 
 export interface Policy {
   limit: number;
@@ -25,4 +26,9 @@ export const LIMITS: Record<Bucket, Policy> = {
   verify: { limit: 20, windowSec: 3600 },
   resend: { limit: 10, windowSec: 3600 },
   resend_email: { limit: 5, windowSec: 3600 },
+  // #23: caps password *attempts* against a known address on this endpoint,
+  // the same way login_email caps them on the login path -- the IP bucket
+  // above (`resend`) is spoofable without a trusted proxy and cannot do
+  // this job on its own.
+  resend_attempt: { limit: 10, windowSec: 900 },
 };

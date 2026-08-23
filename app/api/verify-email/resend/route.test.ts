@@ -176,4 +176,58 @@ describe("POST /api/verify-email/resend", () => {
     await POST(req(CREDS));
     expect(consume).not.toHaveBeenCalledWith("resend_email", expect.anything());
   });
+
+  // #23: without this, the resend IP bucket (spoofable via a rotated
+  // x-forwarded-for) was the only thing standing between an attacker and
+  // unlimited password guesses against a known address -- this email-keyed
+  // bucket is the non-spoofable backstop, the same role resend_email plays
+  // for mail volume, so it must be checked, and must precede verifyPassword.
+  it("consumes resend_attempt keyed on the email before verifying the password", async () => {
+    await POST(req(CREDS));
+    const attemptCallIndex = vi
+      .mocked(consume)
+      .mock.calls.findIndex(
+        ([bucket, key]) => bucket === "resend_attempt" && key === CREDS.email,
+      );
+    expect(attemptCallIndex).toBeGreaterThanOrEqual(0);
+    expect(
+      vi.mocked(verifyPassword).mock.invocationCallOrder[0],
+    ).toBeGreaterThan(
+      vi.mocked(consume).mock.invocationCallOrder[attemptCallIndex],
+    );
+  });
+
+  it("429s when the resend_attempt bucket is exhausted, without touching the repo", async () => {
+    vi.mocked(consume).mockImplementation(async (bucket) => ({
+      allowed: bucket !== "resend_attempt",
+      retryAfterSec: 300,
+    }));
+    const res = await POST(req(CREDS));
+    expect(res.status).toBe(429);
+    expect(res.headers.get("Retry-After")).toBe("300");
+    expect(await res.json()).toEqual({
+      status: "error",
+      error: "rate_limited",
+    });
+    expect(getUserByEmail).not.toHaveBeenCalled();
+    expect(verifyPassword).not.toHaveBeenCalled();
+  });
+
+  it("caps password guesses even when the IP bucket is spoofed fresh every request", async () => {
+    // Simulates an attacker rotating x-forwarded-for so the IP-keyed
+    // `resend` bucket never fills -- only the email-keyed resend_attempt
+    // bucket can still cap them.
+    let attempts = 0;
+    vi.mocked(consume).mockImplementation(async (bucket) => {
+      if (bucket === "resend_attempt") attempts++;
+      return {
+        allowed: !(bucket === "resend_attempt" && attempts > 10),
+        retryAfterSec: 300,
+      };
+    });
+    vi.mocked(verifyPassword).mockResolvedValue(false);
+    for (let i = 0; i < 11; i++) await POST(req(CREDS));
+    const res = await POST(req(CREDS));
+    expect(res.status).toBe(429);
+  });
 });
