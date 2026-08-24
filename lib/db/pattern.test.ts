@@ -204,6 +204,18 @@ describe("loadPattern", () => {
   it("returns null when the id doesn't exist", async () => {
     expect(await loadPattern("nope", "u1")).toBeNull();
   });
+
+  // #58: used to be a bare `data as unknown as PatternState` assertion, so a
+  // row whose baseSize had drifted out of its own sizeTable (or any other
+  // structural corruption) was trusted as-is and fed straight to the
+  // drafter, which computed NaN geometry. It's now rejected at the read
+  // boundary and treated the same as a missing pattern.
+  it("returns null instead of the raw blob when the stored row is unparseable", async () => {
+    const state = seedPatternState(t);
+    delete state.pattern.sizeTable[state.pattern.baseSize];
+    rows = [{ id: "m1", userId: "u1", data: state, updatedAt: new Date() }];
+    expect(await loadPattern("m1", "u1")).toBeNull();
+  });
 });
 
 describe("createPattern", () => {
@@ -296,6 +308,23 @@ describe("listPatternsForUser", () => {
     });
     const list = await listPatternsForUser("u1");
     expect(list[0].garmentType).toBe("blouse");
+  });
+
+  // #58: one drifted blob used to be trusted and fed straight to
+  // buildThumbnailSvg -- now it's skipped and logged, so a single corrupt
+  // pattern costs its own tile, not the whole dashboard load.
+  it("skips an unparseable row instead of throwing or listing corrupt data", async () => {
+    const corrupt = seedPatternState(t);
+    delete corrupt.pattern.sizeTable[corrupt.pattern.baseSize];
+    rows.push({
+      id: "corrupt",
+      userId: "u1",
+      data: corrupt,
+      updatedAt: new Date("2026-05-01"),
+    });
+    const list = await listPatternsForUser("u1");
+    expect(list.map((m) => m.id)).not.toContain("corrupt");
+    expect(list.map((m) => m.id)).toEqual(["m2", "m1"]);
   });
 });
 

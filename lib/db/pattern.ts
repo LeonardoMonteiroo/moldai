@@ -4,6 +4,8 @@ import { prisma } from "./prisma";
 import { seedPatternState } from "@/lib/editor/state";
 import { buildThumbnailSvg } from "@/lib/editor/thumbnail";
 import { apiError, ERROR_STATUS } from "@/lib/api/errors";
+import { reportError } from "@/lib/observability/report";
+import { PatternStateSchema } from "@/lib/schemas/pattern";
 import {
   MAX_PATTERNS_LISTED,
   type GarmentType,
@@ -18,8 +20,21 @@ type Tx = Prisma.TransactionClient;
 // lock during the AI call is intentional: it's what serializes the user's requests.
 export const TX_OPTS = { timeout: 30_000, maxWait: 10_000 } as const;
 
-function toState(data: Prisma.JsonValue): PatternState {
-  return data as unknown as PatternState;
+// #58: used to be a bare assertion (`data as unknown as PatternState`) that
+// trusted the stored blob's shape unconditionally. A row whose `sizeTable`
+// no longer has a key under `baseSize` (or any other structural drift) now
+// fails to parse and returns null instead of feeding NaN geometry to every
+// consumer downstream -- see lib/schemas/pattern.ts's PatternStateSchema.
+function toState(
+  patternId: string,
+  data: Prisma.JsonValue,
+): PatternState | null {
+  const result = PatternStateSchema.safeParse(data);
+  if (!result.success) {
+    reportError("db.pattern.parse", result.error, { patternId });
+    return null;
+  }
+  return result.data;
 }
 
 export function patternNotFound(): NextResponse {
@@ -37,7 +52,7 @@ export async function lockPattern(
 ): Promise<PatternState | null> {
   const rows = await tx.$queryRaw<{ data: Prisma.JsonValue }[]>`
     SELECT "data" FROM "Pattern" WHERE "id" = ${patternId} AND "userId" = ${userId} FOR UPDATE`;
-  return rows[0] ? toState(rows[0].data) : null;
+  return rows[0] ? toState(patternId, rows[0].data) : null;
 }
 
 export async function savePattern(
@@ -83,7 +98,9 @@ export async function loadPattern(
 ): Promise<{ state: PatternState; updatedAt: Date } | null> {
   const row = await prisma.pattern.findUnique({ where: { id: patternId } });
   if (!row || row.userId !== userId) return null;
-  return { state: toState(row.data), updatedAt: row.updatedAt };
+  const state = toState(patternId, row.data);
+  if (!state) return null;
+  return { state, updatedAt: row.updatedAt };
 }
 
 export async function createPatternFromState(
@@ -119,9 +136,13 @@ export async function listPatternsForUser(
     orderBy: { updatedAt: "desc" },
     take: MAX_PATTERNS_LISTED,
   });
-  return rows.map((row) => {
-    const state = toState(row.data);
-    return {
+  // #58: an unparseable row is skipped rather than thrown on -- one drifted
+  // blob costs its own tile, not the whole dashboard.
+  const items: PatternListItem[] = [];
+  for (const row of rows) {
+    const state = toState(row.id, row.data);
+    if (!state) continue;
+    items.push({
       id: row.id,
       name: state.pattern.name,
       // `pattern.spec` always has a default `type` (even pre-generation, for
@@ -133,8 +154,9 @@ export async function listPatternsForUser(
           : null,
       updatedAt: row.updatedAt.toISOString(),
       thumbnailSvg: buildThumbnailSvg(state.pattern),
-    };
-  });
+    });
+  }
+  return items;
 }
 
 export async function renamePattern(

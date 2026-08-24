@@ -244,6 +244,28 @@ describe("ensureSystemSizeCharts / listSizeChartsForUser", () => {
     const charts = await listSizeChartsForUser(prisma, "u1");
     expect(charts.map((c) => c.gender).sort()).toEqual(["female", "male"]);
   });
+
+  // #58: a row whose stored shape has drifted (here, an emptied-out
+  // baseMeasurements -- the exact trigger validateSizeChartPatch already
+  // guards on the write side) used to be trusted as-is, so
+  // resolveSizeChartSize would compute NaN for every consumer of the list.
+  // It's now skipped -- one corrupt chart costs its own library entry, not
+  // the whole list (and, transitively, generation itself).
+  it("skips an unparseable row instead of throwing or returning corrupt data", async () => {
+    await listSizeChartsForUser(prisma, "u1"); // seeds the two system charts
+    rows.push({
+      id: "corrupt",
+      userId: "u1",
+      data: {
+        ...(rows[0].data as Record<string, unknown>),
+        baseMeasurements: {},
+      },
+      updatedAt: new Date(),
+    });
+    const charts = await listSizeChartsForUser(prisma, "u1");
+    expect(charts.map((c) => c.id)).not.toContain("corrupt");
+    expect(charts).toHaveLength(2);
+  });
 });
 
 describe("createSizeChart", () => {
@@ -331,6 +353,18 @@ describe("updateSizeChart", () => {
       updateSizeChart(created.id, "u1", { name: "x" }),
     ).resolves.toBeNull();
   });
+
+  // #58: reading `current.isSystem` off an unguarded cast would have thrown
+  // (or silently continued with garbage) on a corrupt row; it now returns
+  // null the same way an unowned or already-deleted chart does.
+  it("returns null instead of throwing when the stored row is unparseable", async () => {
+    const created = (await createSizeChart("u1", SUFFIX))!;
+    const row = rows.find((r) => r.id === created.id)!;
+    row.data = { ...(row.data as object), baseMeasurements: {} };
+    await expect(
+      updateSizeChart(created.id, "u1", { name: "x" }),
+    ).resolves.toBeNull();
+  });
 });
 
 describe("deleteSizeChart", () => {
@@ -361,6 +395,13 @@ describe("deleteSizeChart", () => {
   it("returns false instead of throwing when the chart is deleted between the read and the write", async () => {
     const created = (await createSizeChart("u1", SUFFIX))!;
     deleteRowOnNextRead = created.id;
+    await expect(deleteSizeChart(created.id, "u1")).resolves.toBe(false);
+  });
+
+  it("returns false instead of throwing when the stored row is unparseable", async () => {
+    const created = (await createSizeChart("u1", SUFFIX))!;
+    const row = rows.find((r) => r.id === created.id)!;
+    row.data = { ...(row.data as object), baseMeasurements: {} };
     await expect(deleteSizeChart(created.id, "u1")).resolves.toBe(false);
   });
 });

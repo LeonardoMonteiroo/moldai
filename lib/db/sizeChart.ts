@@ -3,19 +3,29 @@ import { validateSizeChartPatch } from "@/lib/sizeCharts/validate";
 import { prisma } from "./prisma";
 import { buildSystemSizeChartData } from "@/lib/sizeCharts/seed";
 import { pickSizeChartForGeneration } from "@/lib/sizeCharts/compute";
+import { reportError } from "@/lib/observability/report";
+import { SizeChartDataSchema } from "@/lib/schemas/sizeChart";
 import type { Gender, SizeChartData, SizeChartRecord } from "@/lib/types";
 
 type Tx = Prisma.TransactionClient;
 
+// #58: used to be a bare assertion. A row whose baseMeasurements has drifted
+// (an emptied-out object, a missing key) now fails to parse instead of
+// letting resolveSizeChartSize compute NaN geometry for every consumer.
 function toRecord(row: {
   id: string;
   data: Prisma.JsonValue;
   updatedAt: Date;
-}): SizeChartRecord {
+}): SizeChartRecord | null {
+  const result = SizeChartDataSchema.safeParse(row.data);
+  if (!result.success) {
+    reportError("db.sizeChart.parse", result.error, { sizeChartId: row.id });
+    return null;
+  }
   return {
     id: row.id,
     updatedAt: row.updatedAt.toISOString(),
-    ...(row.data as unknown as SizeChartData),
+    ...result.data,
   };
 }
 
@@ -37,9 +47,10 @@ export async function ensureSystemSizeCharts(
   userId: string,
 ): Promise<void> {
   const existing = await tx.sizeChart.findMany({ where: { userId } });
-  const hasSystem = existing.some(
-    (r) => (r.data as unknown as SizeChartData).isSystem,
-  );
+  const hasSystem = existing.some((r) => {
+    const parsed = SizeChartDataSchema.safeParse(r.data);
+    return parsed.success && parsed.data.isSystem;
+  });
   if (hasSystem) return;
   const female = buildSystemSizeChartData(
     "female",
@@ -76,7 +87,15 @@ export async function listSizeChartsForUser(
     where: { userId },
     orderBy: { updatedAt: "desc" },
   });
-  return rows.map(toRecord);
+  // #58: an unparseable row is skipped rather than thrown on -- one drifted
+  // chart costs its own library entry, not the whole /size-charts screen
+  // (and, transitively, generation itself, which reads this list).
+  const records: SizeChartRecord[] = [];
+  for (const row of rows) {
+    const record = toRecord(row);
+    if (record) records.push(record);
+  }
+  return records;
 }
 
 export async function getActiveSizeChartId(
@@ -149,7 +168,14 @@ export async function updateSizeChart(
     where: { id: sizeChartId },
   });
   if (!row || row.userId !== userId) return null;
-  const current = row.data as unknown as SizeChartData;
+  const parsed = SizeChartDataSchema.safeParse(row.data);
+  if (!parsed.success) {
+    reportError("db.sizeChart.parse", parsed.error, {
+      sizeChartId,
+    });
+    return null;
+  }
+  const current = parsed.data;
   if (current.isSystem) return null; // system charts are read-only
   const next: SizeChartData = {
     ...current,
@@ -177,8 +203,14 @@ export async function deleteSizeChart(
     where: { id: sizeChartId },
   });
   if (!row || row.userId !== userId) return false;
-  const current = row.data as unknown as SizeChartData;
-  if (current.isSystem) return false;
+  const parsed = SizeChartDataSchema.safeParse(row.data);
+  if (!parsed.success) {
+    reportError("db.sizeChart.parse", parsed.error, {
+      sizeChartId,
+    });
+    return false;
+  }
+  if (parsed.data.isSystem) return false;
   const res = await prisma.sizeChart.deleteMany({
     where: { id: sizeChartId, userId },
   });

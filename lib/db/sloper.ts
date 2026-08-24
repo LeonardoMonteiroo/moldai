@@ -4,30 +4,45 @@ import { prisma } from "./prisma";
 import { patternFromSloper } from "@/lib/slopers/convert";
 import { buildThumbnailSvg } from "@/lib/editor/thumbnail";
 import { apiError, ERROR_STATUS } from "@/lib/api/errors";
+import { reportError } from "@/lib/observability/report";
+import { SloperDataSchema } from "@/lib/schemas/sloper";
 import type { SloperData, SloperListItem } from "@/lib/types";
 import type { Translate } from "@/lib/i18n/translate";
 
-type Row = { id: string; data: Prisma.JsonValue; updatedAt: Date };
-
-function toData(data: Prisma.JsonValue): SloperData {
-  return data as unknown as SloperData;
+// #58: used to be a bare assertion. A row whose baseSize has drifted out of
+// its sizeTable (or any other structural drift) now fails to parse instead
+// of feeding patternFromSloper an undefined base row.
+function toData(sloperId: string, data: Prisma.JsonValue): SloperData | null {
+  const result = SloperDataSchema.safeParse(data);
+  if (!result.success) {
+    reportError("db.sloper.parse", result.error, { sloperId });
+    return null;
+  }
+  return result.data;
 }
 
 // The geometry is not stored, so the card's thumbnail is drafted here -- the
 // same per-row work listPatternsForUser does, except the pieces come from
-// draftGarment instead of the blob. Pure geometry, no AI call.
-function toListItem(row: Row, t: Translate): SloperListItem {
-  const data = toData(row.data);
+// draftGarment instead of the blob. Pure geometry, no AI call. Takes an
+// already-parsed SloperData rather than a raw row, so createSloper can build
+// a list item from the data it already validated at the call site instead of
+// re-parsing its own freshly-written row.
+function buildListItem(
+  id: string,
+  updatedAt: Date,
+  data: SloperData,
+  t: Translate,
+): SloperListItem {
   const { pattern } = patternFromSloper(data, t);
   return {
-    id: row.id,
+    id,
     name: data.name,
     garmentType: data.spec.type,
     baseSize: data.baseSize,
     ...(data.sizeChartName === undefined
       ? {}
       : { sizeChartName: data.sizeChartName }),
-    updatedAt: row.updatedAt.toISOString(),
+    updatedAt: updatedAt.toISOString(),
     thumbnailSvg: buildThumbnailSvg(pattern),
   };
 }
@@ -40,7 +55,15 @@ export async function listSlopersForUser(
     where: { userId },
     orderBy: { updatedAt: "desc" },
   });
-  return rows.map((row) => toListItem(row, t));
+  // #58: an unparseable row is skipped rather than thrown on -- one drifted
+  // blob costs its own card, not the whole /slopers list.
+  const items: SloperListItem[] = [];
+  for (const row of rows) {
+    const data = toData(row.id, row.data);
+    if (!data) continue;
+    items.push(buildListItem(row.id, row.updatedAt, data, t));
+  }
+  return items;
 }
 
 // Takes finished SloperData rather than a patternId: the route already owns
@@ -54,18 +77,19 @@ export async function createSloper(
   const row = await prisma.sloper.create({
     data: { userId, data: data as unknown as Prisma.InputJsonValue },
   });
-  return toListItem(row, t);
+  return buildListItem(row.id, row.updatedAt, data, t);
 }
 
-// Ownership-scoped read. Null when missing or not owned -- indistinguishable
-// on purpose, so a 404 never confirms another account's row exists.
+// Ownership-scoped read. Null when missing, not owned, or unparseable --
+// indistinguishable on purpose, so a 404 never confirms another account's
+// row exists.
 export async function loadSloper(
   sloperId: string,
   userId: string,
 ): Promise<SloperData | null> {
   const row = await prisma.sloper.findUnique({ where: { id: sloperId } });
   if (!row || row.userId !== userId) return null;
-  return toData(row.data);
+  return toData(sloperId, row.data);
 }
 
 // A sloper is immutable apart from its name, so no row lock is needed: two
@@ -82,7 +106,9 @@ export async function renameSloper(
 ): Promise<boolean> {
   const row = await prisma.sloper.findUnique({ where: { id: sloperId } });
   if (!row || row.userId !== userId) return false;
-  const next: SloperData = { ...toData(row.data), name };
+  const data = toData(sloperId, row.data);
+  if (!data) return false;
+  const next: SloperData = { ...data, name };
   const res = await prisma.sloper.updateMany({
     where: { id: sloperId, userId },
     data: { data: next as unknown as Prisma.InputJsonValue },
