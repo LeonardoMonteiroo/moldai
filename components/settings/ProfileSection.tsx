@@ -35,12 +35,17 @@ export function ProfileSection({
     }
     setStatus("saving");
     setError(null);
-    const result = await updateProfile(name.trim());
-    if (result.status === "ok") {
-      setStatus("ok");
-    } else {
+    try {
+      const result = await updateProfile(name.trim());
+      if (result.status === "ok") {
+        setStatus("ok");
+      } else {
+        setStatus("error");
+        setError(result.error ? t(`errors.${result.error}`) : t("saveError"));
+      }
+    } catch {
       setStatus("error");
-      setError(result.error ? t(`errors.${result.error}`) : t("saveError"));
+      setError(t("saveError"));
     }
   }
 

@@ -60,13 +60,18 @@ export default function LoginPage() {
     setResending(true);
     setError("");
     setResent(false);
-    const result = await resendVerification(email, password);
-    setResending(false);
-    if (result.status === "error") {
-      setError(t(`errors.${result.error}`));
-      return;
+    try {
+      const result = await resendVerification(email, password);
+      if (result.status === "error") {
+        setError(t(`errors.${result.error}`));
+        return;
+      }
+      setResent(true);
+    } catch {
+      setError(t("errors.bad_body"));
+    } finally {
+      setResending(false);
     }
-    setResent(true);
   }
 
   return (

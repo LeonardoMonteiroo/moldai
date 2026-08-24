@@ -62,4 +62,13 @@ describe("api-client HTTP error handling", () => {
     vi.mocked(fetch).mockResolvedValue(jsonResponse([{ id: "p1" }]));
     await expect(listPatterns()).resolves.toEqual([{ id: "p1" }]);
   });
+
+  // #33: request() has no try/catch around the fetch call itself, so a
+  // rejected fetch (offline, DNS failure, an aborted TLS handshake) is never
+  // wrapped in ApiError -- it propagates as whatever fetch itself rejects
+  // with. Every call site must catch this, not just ApiError specifically.
+  it("propagates a rejected fetch untouched instead of swallowing it", async () => {
+    vi.mocked(fetch).mockRejectedValue(new TypeError("Failed to fetch"));
+    await expect(listPatterns()).rejects.toThrow("Failed to fetch");
+  });
 });

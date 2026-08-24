@@ -34,15 +34,22 @@ export function PasswordSection() {
     if (!canSubmit) return;
     setStatus("saving");
     setError(null);
-    const result = await changePassword(current, next);
-    if (result.status === "ok") {
-      setStatus("ok");
-      setCurrent("");
-      setNext("");
-      setConfirm("");
-    } else {
+    try {
+      const result = await changePassword(current, next);
+      if (result.status === "ok") {
+        setStatus("ok");
+        setCurrent("");
+        setNext("");
+        setConfirm("");
+      } else {
+        setStatus("error");
+        setError(
+          result.error ? t(`errors.${result.error}`) : t("tooShortError"),
+        );
+      }
+    } catch {
       setStatus("error");
-      setError(result.error ? t(`errors.${result.error}`) : t("tooShortError"));
+      setError(t("errors.bad_body"));
     }
   }
 

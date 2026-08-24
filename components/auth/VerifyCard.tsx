@@ -14,13 +14,18 @@ export default function VerifyCard({ token }: { token: string }) {
   async function onConfirm() {
     setStatus("loading");
     setError("");
-    const result = await verifyEmail(token);
-    if (result.status === "error") {
+    try {
+      const result = await verifyEmail(token);
+      if (result.status === "error") {
+        setStatus("idle");
+        setError(t(`errors.${result.error}`));
+        return;
+      }
+      setStatus("done");
+    } catch {
       setStatus("idle");
-      setError(t(`errors.${result.error}`));
-      return;
+      setError(t("errors.bad_body"));
     }
-    setStatus("done");
   }
 
   if (status === "done") {

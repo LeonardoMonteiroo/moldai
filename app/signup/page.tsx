@@ -44,29 +44,39 @@ export default function SignupPage() {
     setLoading(true);
     setError("");
 
-    const result = await signUp(name, email, password);
-    setLoading(false);
-    if (result.status === "error") {
-      setError(t(`errors.${result.error}`));
-      return;
+    try {
+      const result = await signUp(name, email, password);
+      if (result.status === "error") {
+        setError(t(`errors.${result.error}`));
+        return;
+      }
+      // No auto-sign-in: the account starts unverified and cannot be signed in.
+      // The card swaps in place -- no navigation, no new route. The component
+      // keeps email and password in state so resend can satisfy the credential gate.
+      setSent(true);
+    } catch {
+      setError(t("errors.bad_body"));
+    } finally {
+      setLoading(false);
     }
-    // No auto-sign-in: the account starts unverified and cannot be signed in.
-    // The card swaps in place -- no navigation, no new route. The component
-    // keeps email and password in state so resend can satisfy the credential gate.
-    setSent(true);
   }
 
   async function onResend() {
     setResending(true);
     setError("");
     setResent(false);
-    const result = await resendVerification(email, password);
-    setResending(false);
-    if (result.status === "error") {
-      setError(t(`errors.${result.error}`));
-      return;
+    try {
+      const result = await resendVerification(email, password);
+      if (result.status === "error") {
+        setError(t(`errors.${result.error}`));
+        return;
+      }
+      setResent(true);
+    } catch {
+      setError(t("resendError"));
+    } finally {
+      setResending(false);
     }
-    setResent(true);
   }
 
   return (

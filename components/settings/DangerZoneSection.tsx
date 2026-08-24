@@ -26,12 +26,19 @@ export function DangerZoneSection({ userEmail }: { userEmail: string }) {
     if (!canSubmit) return;
     setStatus("deleting");
     setError(null);
-    const result = await deleteAccount(password);
-    if (result.status === "ok") {
-      await signOut({ callbackUrl: "/login" });
-    } else {
+    try {
+      const result = await deleteAccount(password);
+      if (result.status === "ok") {
+        await signOut({ callbackUrl: "/login" });
+      } else {
+        setStatus("error");
+        setError(
+          result.error ? t(`errors.${result.error}`) : t("genericError"),
+        );
+      }
+    } catch {
       setStatus("error");
-      setError(result.error ? t(`errors.${result.error}`) : t("genericError"));
+      setError(t("genericError"));
     }
   }
 

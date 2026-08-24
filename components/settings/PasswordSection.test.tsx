@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import {
   renderWithIntl,
   ptBR,
@@ -10,10 +10,12 @@ import {
 vi.mock("@/lib/api-client", () => ({ changePassword: vi.fn() }));
 
 import { PasswordSection } from "./PasswordSection";
-import { changePassword } from "@/lib/api-client";
+import { changePassword, ApiError } from "@/lib/api-client";
 
 describe("PasswordSection", () => {
-  beforeEach(() => vi.mocked(changePassword).mockReset());
+  // afterEach, not beforeEach: see the identical note in
+  // ProfileSection.test.tsx / UsageSection.test.tsx (#44/#33).
+  afterEach(() => vi.mocked(changePassword).mockReset());
 
   it("renders the catalog text for a wrong_password code", async () => {
     vi.mocked(changePassword).mockResolvedValue({
@@ -109,5 +111,40 @@ describe("PasswordSection", () => {
         screen.getByText(ptBR.PasswordSection.errors.unauthorized),
       ).toBeInTheDocument();
     });
+  });
+
+  // #33: changePassword() throws on a 5xx or a rejected fetch -- previously
+  // uncaught here, so `status` stayed "saving" forever and the button never
+  // re-enabled, with no error shown.
+  it("re-enables the button and shows an error when the save call throws", async () => {
+    vi.mocked(changePassword).mockImplementation(async () => {
+      throw new ApiError(500, "server_error");
+    });
+    renderWithIntl(<PasswordSection />);
+
+    const user = userEvent.setup();
+    await user.type(
+      screen.getByLabelText(ptBR.PasswordSection.currentLabel),
+      "old-password",
+    );
+    await user.type(
+      screen.getByLabelText(ptBR.PasswordSection.newLabel),
+      "new-password-1",
+    );
+    await user.type(
+      screen.getByLabelText(ptBR.PasswordSection.confirmLabel),
+      "new-password-1",
+    );
+    const button = screen.getByRole("button", {
+      name: ptBR.PasswordSection.submitButton,
+    });
+    await user.click(button);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(ptBR.PasswordSection.errors.bad_body),
+      ).toBeVisible();
+    });
+    expect(button).not.toBeDisabled();
   });
 });

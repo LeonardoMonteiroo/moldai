@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import {
   renderWithIntl,
   ptBR,
@@ -10,10 +10,14 @@ import {
 vi.mock("@/lib/api-client", () => ({ updateProfile: vi.fn() }));
 
 import { ProfileSection } from "./ProfileSection";
-import { updateProfile } from "@/lib/api-client";
+import { updateProfile, ApiError } from "@/lib/api-client";
 
 describe("ProfileSection", () => {
-  beforeEach(() => vi.mocked(updateProfile).mockReset());
+  // afterEach, not beforeEach: resetting before a test that configures a
+  // rejecting mockImplementation makes Vitest 2.1.9 misreport the rejection
+  // as unhandled even though the try/catch here does handle it -- see the
+  // identical note in UsageSection.test.tsx (#44).
+  afterEach(() => vi.mocked(updateProfile).mockReset());
 
   it("renders the catalog text for a bad_body code", async () => {
     vi.mocked(updateProfile).mockResolvedValue({
@@ -79,5 +83,28 @@ describe("ProfileSection", () => {
         screen.getByText(ptBR.ProfileSection.errors.unauthorized),
       ).toBeInTheDocument();
     });
+  });
+
+  // #33: updateProfile() throws on a 5xx or a rejected fetch -- previously
+  // uncaught here, so `status` stayed "saving" forever and the button never
+  // re-enabled, with no error shown.
+  it("re-enables the button and shows an error when the save call throws", async () => {
+    vi.mocked(updateProfile).mockImplementation(async () => {
+      throw new ApiError(500, "server_error");
+    });
+    renderWithIntl(
+      <ProfileSection initialName="Dev" email="dev@moldai.local" />,
+    );
+
+    const user = userEvent.setup();
+    const button = screen.getByRole("button", {
+      name: ptBR.ProfileSection.saveButton,
+    });
+    await user.click(button);
+
+    await waitFor(() => {
+      expect(screen.getByText(ptBR.ProfileSection.saveError)).toBeVisible();
+    });
+    expect(button).not.toBeDisabled();
   });
 });

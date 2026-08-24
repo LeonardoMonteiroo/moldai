@@ -328,6 +328,7 @@
     "resendButton": "Reenviar",
     "resendButtonLoading": "Reenviando…",
     "resendDone": "Link reenviado.",
+    "resendError": "Não foi possível reenviar o link. Tente novamente.",
     "errors": {
       "invalid_name": "Informe o seu nome.",
       "invalid_email": "Email inválido.",
