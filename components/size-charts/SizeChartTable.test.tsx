@@ -249,3 +249,30 @@ describe("SizeChartTable progression card", () => {
     expect(screen.queryByText("0.3 cm")).not.toBeInTheDocument();
   });
 });
+
+// #34: nothing gated the Save button against a request already in flight —
+// dirty stayed true for the whole round trip, so a second click fired a
+// second PATCH and the button gave no sign a save was even happening.
+describe("SizeChartTable save button", () => {
+  it("disables the Save button and shows a saving label while a save is in flight", () => {
+    seed();
+    useSizeChartsStore.setState({ dirty: true, saving: true });
+    renderWithIntl(<SizeChartTable />);
+
+    const button = screen.getByRole("button", {
+      name: ptBR.SizeChartTable.saveButtonSaving,
+    });
+    expect(button).toBeDisabled();
+  });
+
+  it("keeps the Save button enabled with its normal label when not saving", () => {
+    seed();
+    useSizeChartsStore.setState({ dirty: true, saving: false });
+    renderWithIntl(<SizeChartTable />);
+
+    const button = screen.getByRole("button", {
+      name: ptBR.SizeChartTable.saveButton,
+    });
+    expect(button).toBeEnabled();
+  });
+});

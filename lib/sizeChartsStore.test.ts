@@ -58,6 +58,7 @@ function resetStore() {
     draft: null,
     editingRule: false,
     dirty: false,
+    saving: false,
   });
 }
 
@@ -125,6 +126,78 @@ describe("sizeChartsStore.updateDraft / save", () => {
     });
     await useSizeChartsStore.getState().save();
     expect(api.updateSizeChart).not.toHaveBeenCalled();
+  });
+
+  // #34: a save's response used to replace the draft outright, so an edit
+  // typed after the PATCH was sent but before it resolved got silently
+  // thrown away and dirty was cleared — the screen read as fully saved with
+  // the newest value gone.
+  it("keeps a draft edited mid-flight instead of overwriting it with the response, and leaves dirty true", async () => {
+    let resolveUpdate!: (
+      v: Awaited<ReturnType<typeof api.updateSizeChart>>,
+    ) => void;
+    vi.mocked(api.updateSizeChart).mockReturnValue(
+      new Promise((resolve) => {
+        resolveUpdate = resolve;
+      }),
+    );
+    useSizeChartsStore.getState().updateDraft({ name: "Primeira edição" });
+    const savePromise = useSizeChartsStore.getState().save();
+
+    // Edit lands while the PATCH for the first edit is still in flight.
+    useSizeChartsStore.getState().updateDraft({ name: "Edição em voo" });
+
+    resolveUpdate(
+      entry({ id: "g1", isSystem: false, name: "Primeira edição" }),
+    );
+    await savePromise;
+
+    const s = useSizeChartsStore.getState();
+    expect(s.draft?.name).toBe("Edição em voo");
+    expect(s.dirty).toBe(true);
+    expect(s.saving).toBe(false);
+  });
+
+  it("does not fire a second PATCH while one is already in flight", async () => {
+    let resolveUpdate!: (
+      v: Awaited<ReturnType<typeof api.updateSizeChart>>,
+    ) => void;
+    vi.mocked(api.updateSizeChart).mockReturnValue(
+      new Promise((resolve) => {
+        resolveUpdate = resolve;
+      }),
+    );
+    useSizeChartsStore.getState().updateDraft({ name: "Renomeada" });
+
+    const first = useSizeChartsStore.getState().save();
+    expect(useSizeChartsStore.getState().saving).toBe(true);
+    const second = useSizeChartsStore.getState().save();
+
+    resolveUpdate(entry({ id: "g1", isSystem: false, name: "Renomeada" }));
+    await Promise.all([first, second]);
+
+    expect(api.updateSizeChart).toHaveBeenCalledTimes(1);
+  });
+
+  // #34: `saving` used to be a bare store-wide flag, so a save started on
+  // one chart and still in flight left the *next* chart's Save button
+  // disabled with a "Salvando…" label after switching -- lying about which
+  // chart was actually being saved.
+  it("resets saving when switching to a different chart mid-save", () => {
+    useSizeChartsStore.setState({
+      charts: [
+        entry({ id: "g1", isSystem: false }),
+        entry({ id: "g2", isSystem: false, name: "Outra grade" }),
+      ],
+    });
+    vi.mocked(api.updateSizeChart).mockReturnValue(new Promise(() => {}));
+    useSizeChartsStore.getState().updateDraft({ name: "Renomeada" });
+    void useSizeChartsStore.getState().save();
+    expect(useSizeChartsStore.getState().saving).toBe(true);
+
+    useSizeChartsStore.getState().select("g2");
+
+    expect(useSizeChartsStore.getState().saving).toBe(false);
   });
 });
 

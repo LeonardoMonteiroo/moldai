@@ -22,6 +22,8 @@ interface SizeChartsStore {
   draft: SizeChartData | null;
   editingRule: boolean;
   dirty: boolean;
+  /** A save PATCH is in flight — gates the Save button against a double click. */
+  saving: boolean;
 
   init: () => Promise<void>;
   select: (id: string) => void;
@@ -54,6 +56,7 @@ export const useSizeChartsStore = create<SizeChartsStore>((set, get) => ({
   draft: null,
   editingRule: false,
   dirty: false,
+  saving: false,
 
   init: async () => {
     set({ ready: false, error: false });
@@ -81,6 +84,13 @@ export const useSizeChartsStore = create<SizeChartsStore>((set, get) => ({
       draft: draftFrom(c),
       editingRule: false,
       dirty: false,
+      // #34: saving is scoped to whichever chart's PATCH is in flight — a
+      // save started before switching away belongs to the *previous* chart,
+      // so it must not leave this one's Save button stuck disabled. The
+      // draft-reference check in save() already keeps the old request from
+      // overwriting whatever's here now; this just stops it from lying about
+      // this chart's own save state too.
+      saving: false,
     });
   },
 
@@ -97,21 +107,31 @@ export const useSizeChartsStore = create<SizeChartsStore>((set, get) => ({
   // dirty stays true on failure: the edit was not persisted, so the screen
   // must not look saved.
   save: async () => {
-    const { selectedId, draft } = get();
-    if (!selectedId || !draft || draft.isSystem) return;
+    const { selectedId, draft, saving } = get();
+    if (!selectedId || !draft || draft.isSystem || saving) return;
+    // #34: the draft object sent, kept by reference. updateDraft always
+    // creates a new object (`{...draft, ...patch}`), so if the store's draft
+    // is still this exact object when the response lands, nothing changed
+    // underneath the request and it's safe to replace it with the server's
+    // version; if it's a *different* object, the user edited mid-flight and
+    // that edit must survive the response instead of being overwritten.
+    const sentDraft = draft;
+    set({ saving: true });
     let updated: Awaited<ReturnType<typeof api.updateSizeChart>>;
     try {
-      updated = await api.updateSizeChart(selectedId, draft);
+      updated = await api.updateSizeChart(selectedId, sentDraft);
     } catch (err) {
-      set({ actionError: errorCode(err) });
+      set({ actionError: errorCode(err), saving: false });
       return;
     }
     set((s) => ({
       charts: s.charts.map((c) =>
         c.id === selectedId ? { ...updated, isActive: c.isActive } : c,
       ),
-      draft: draftFrom(updated),
-      dirty: false,
+      ...(s.draft === sentDraft
+        ? { draft: draftFrom(updated), dirty: false }
+        : {}),
+      saving: false,
     }));
   },
 
@@ -129,6 +149,7 @@ export const useSizeChartsStore = create<SizeChartsStore>((set, get) => ({
       draft: draftFrom(created),
       editingRule: false,
       dirty: false,
+      saving: false, // #34: new chart, unrelated to whatever save may still be in flight
     }));
   },
 
@@ -146,6 +167,7 @@ export const useSizeChartsStore = create<SizeChartsStore>((set, get) => ({
       draft: draftFrom(created),
       editingRule: false,
       dirty: false,
+      saving: false, // #34: new chart, unrelated to whatever save may still be in flight
     }));
   },
 
@@ -166,6 +188,7 @@ export const useSizeChartsStore = create<SizeChartsStore>((set, get) => ({
         draft: next ? draftFrom(next) : null,
         editingRule: false,
         dirty: false,
+        saving: false, // #34: the chart being saved no longer exists
       };
     });
   },

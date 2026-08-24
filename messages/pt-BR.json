@@ -471,6 +471,7 @@
     "useSizeChartButton": "Usar esta grade",
     "activeSizeChartNote": "Grade ativa",
     "saveButton": "Salvar alterações",
+    "saveButtonSaving": "Salvando…",
     "systemReadOnlyNote": "Grades do sistema não podem ser editadas — duplique para personalizar.",
     "deleteModalTitle": "Excluir esta grade?",
     "deleteModalDescription": "Isso apaga a grade e não pode ser desfeito.",

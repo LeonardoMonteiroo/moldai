@@ -39,6 +39,7 @@ export function SizeChartTable() {
   const draft = useSizeChartsStore((s) => s.draft);
   const editingRule = useSizeChartsStore((s) => s.editingRule);
   const dirty = useSizeChartsStore((s) => s.dirty);
+  const saving = useSizeChartsStore((s) => s.saving);
   const selectedId = useSizeChartsStore((s) => s.selectedId);
   const charts = useSizeChartsStore((s) => s.charts);
   const updateDraft = useSizeChartsStore((s) => s.updateDraft);
@@ -356,8 +357,8 @@ export function SizeChartTable() {
         </div>
         <div className="flex w-[220px] flex-col justify-end gap-2">
           {dirty && !readOnly && (
-            <Button variant="accent" onClick={() => save()}>
-              {t("saveButton")}
+            <Button variant="accent" disabled={saving} onClick={() => save()}>
+              {saving ? t("saveButtonSaving") : t("saveButton")}
             </Button>
           )}
           <Button disabled={isActive} onClick={() => activate(selectedId)}>
