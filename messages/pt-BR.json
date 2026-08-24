@@ -215,7 +215,7 @@
       "fromSloper": "Molde criado a partir da base “{name}”. Peça os ajustes por aqui."
     },
     "pdf": {
-      "pageLabel": "Linha {rowNumber} · Coluna {colNumber} de {totalRows}x{totalCols}",
+      "pageLabel": "Página {pageNumber} de {totalPages} · Linha {rowNumber} · Coluna {colNumber} de {totalRows}x{totalCols}",
       "rulerLabel": "10 cm - confira a escala"
     },
     "exportFailed": "A exportação falhou. Tente novamente.",

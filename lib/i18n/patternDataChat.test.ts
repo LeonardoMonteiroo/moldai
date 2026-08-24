@@ -83,15 +83,21 @@ describe("PatternData", () => {
     // "·" here is U+00B7 MIDDLE DOT (matches lib/export/pdf.ts's separator,
     // not U+2212 MINUS SIGN used by chat.creditChip above). Values mirror the
     // real call site: tile.row/tile.col are 0-indexed, +1'd before this call.
+    // #120: pageNumber/totalPages count the tiles actually emitted after
+    // blank ones are skipped, so they needn't line up arithmetically with
+    // rowNumber/colNumber/totalRows/totalCols -- this is the 4th emitted
+    // page of 7, sitting at grid position row 2/col 1 of a 3x3 grid.
     it("renders the tile position exactly as pdf.ts's old template literal did", () => {
       expect(
         t("pdf.pageLabel", {
+          pageNumber: 4,
+          totalPages: 7,
           rowNumber: 2,
           colNumber: 1,
           totalRows: 3,
           totalCols: 3,
         }),
-      ).toBe("Linha 2 · Coluna 1 de 3x3");
+      ).toBe("Página 4 de 7 · Linha 2 · Coluna 1 de 3x3");
     });
   });
 

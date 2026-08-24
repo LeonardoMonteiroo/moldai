@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { Pattern } from "@/lib/types";
 import { exportPattern, ExportFormat } from "@/lib/export";
 import { buildExportModel } from "@/lib/export/model";
-import { planTiles } from "@/lib/export/pdf";
+import { planTiles, pieceBBoxesCm } from "@/lib/export/pdf";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -119,11 +119,17 @@ export function Footer({
         });
 
   // Only re-draws the model when the menu opens (buildExportModel re-drafts in cm).
+  // #120: passes the same piece bboxes toPdf itself filters blank tiles
+  // against, so this estimate and the exported file always agree.
   const a4Pages = useMemo(() => {
     if (!menuOpen || exportDisabled) return 0;
     const model = buildExportModel(pattern, tData, exportSize);
-    return planTiles(model.sheetWidthCm, model.sheetHeightCm, "a4").pages
-      .length;
+    return planTiles(
+      model.sheetWidthCm,
+      model.sheetHeightCm,
+      "a4",
+      pieceBBoxesCm(model.pieces, model.foldLabel),
+    ).pages.length;
   }, [menuOpen, exportDisabled, pattern, tData, exportSize]);
 
   const handleExport = (format: ExportFormat) => {

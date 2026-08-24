@@ -1,11 +1,25 @@
-import type { ExPt, ExportModel } from "./model";
+import type { ExPt, ExportModel, ExportPiece } from "./model";
 import type { Translate } from "@/lib/i18n/translate";
 import { flattenOutlineCm } from "./dxf";
+import { estimateTextWidth } from "@/lib/canvas/pieceLabel";
 
 export type PdfMode = "a4" | "single";
 
 const A4 = { pageWcm: 21, pageHcm: 29.7, marginCm: 0.8 };
 const OVERLAP_A4_CM = 1;
+const PT_POR_CM = 72 / 2.54; // PDF points per cm (physical 1:1)
+// Font sizes of the two text draws in toPdf below -- kept alongside
+// pieceBBoxesCm so its label-extent estimate can't drift from what's
+// actually rendered.
+const LABEL_SIZE_PT = 8;
+const FOLD_LABEL_SIZE_PT = 6;
+
+export interface CmRect {
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+}
 
 export interface TilePlan {
   pageWcm: number;
@@ -14,13 +28,81 @@ export interface TilePlan {
   overlapCm: number;
   cols: number;
   rows: number;
-  pages: { row: number; col: number; originCm: ExPt }[];
+  pages: { row: number; col: number; pageNumber: number; originCm: ExPt }[];
+}
+
+// #120: each piece's printed extent in absolute sheet cm -- cutOutline's own
+// local points (shifted by the piece's own originCm) cover the cut line and,
+// by construction, everything cutOutline always encloses (outline,
+// grainline, darts, notches, fold -- see garment.test.ts's own containment
+// suite plus the #124/#126 placement conventions). The two text draws in
+// toPdf below are the exception: the piece-name/qty label and the fold
+// label have no geometry of their own in cutOutline, and with a 0cm seam
+// allowance (STYLE_LIMITS.seamAllowanceCm.min) a narrow piece's cutOutline
+// is flush with its outline, leaving no slack for a label's rendered width
+// to fall within. Grown here from the same estimateTextWidth fitPieceLabel
+// already uses for the identical shrink-to-fit problem on the canvas, so a
+// tile a label actually reaches into is never dropped as "blank".
+export function pieceBBoxesCm(
+  pieces: ExportPiece[],
+  foldLabel: string,
+): CmRect[] {
+  return pieces.map((pc) => {
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity;
+    const grow = (x: number, y: number) => {
+      if (x < minX) minX = x;
+      if (y < minY) minY = y;
+      if (x > maxX) maxX = x;
+      if (y > maxY) maxY = y;
+    };
+
+    for (const p of [
+      pc.cutOutline.start,
+      ...pc.cutOutline.segs.map((s) => s.to),
+    ]) {
+      grow(pc.originCm.x + p.x, pc.originCm.y + p.y);
+    }
+
+    // piece-name label: drawn at local (0, heightCm), baseline-left,
+    // extending right by its rendered width and padded symmetrically
+    // above/below the baseline to cover ascenders/descenders.
+    const labelText = `${pc.name.toUpperCase()} · ${pc.qty}x`;
+    const labelWCm = estimateTextWidth(labelText, LABEL_SIZE_PT) / PT_POR_CM;
+    const labelHCm = LABEL_SIZE_PT / PT_POR_CM;
+    grow(pc.originCm.x, pc.originCm.y + pc.heightCm - labelHCm);
+    grow(pc.originCm.x + labelWCm, pc.originCm.y + pc.heightCm + labelHCm);
+
+    // fold label: drawn baseline-left at the fold's own midpoint.
+    if (pc.fold) {
+      const [f1, f2] = pc.fold;
+      const midXCm = pc.originCm.x + (f1.x + f2.x) / 2;
+      const midYCm = pc.originCm.y + (f1.y + f2.y) / 2;
+      const foldWCm =
+        estimateTextWidth(foldLabel, FOLD_LABEL_SIZE_PT) / PT_POR_CM;
+      const foldHCm = FOLD_LABEL_SIZE_PT / PT_POR_CM;
+      grow(midXCm, midYCm - foldHCm);
+      grow(midXCm + foldWCm, midYCm + foldHCm);
+    }
+
+    return { minX, minY, maxX, maxY };
+  });
 }
 
 export function planTiles(
   sheetWcm: number,
   sheetHcm: number,
   mode: PdfMode,
+  // #120: a tile is only emitted if its printed rectangle intersects at
+  // least one piece -- `autoLayout`'s shelf-packing leaves real gaps, so the
+  // naive rows x cols grid tiled several blank sheets. Required (not
+  // optional) so every call site has to make an explicit choice: pass
+  // `null` to keep the unfiltered grid (the two grid-shape unit tests
+  // below, which exercise the layout math on its own) rather than silently
+  // getting that behavior by forgetting the argument.
+  pieceBBoxes: CmRect[] | null,
 ): TilePlan {
   if (mode === "single") {
     const marginCm = A4.marginCm;
@@ -31,19 +113,37 @@ export function planTiles(
       overlapCm: 0,
       cols: 1,
       rows: 1,
-      pages: [{ row: 0, col: 0, originCm: { x: 0, y: 0 } }],
+      pages: [{ row: 0, col: 0, pageNumber: 1, originCm: { x: 0, y: 0 } }],
     };
   }
   const { pageWcm, pageHcm, marginCm } = A4;
   const overlapCm = OVERLAP_A4_CM;
   const stepW = pageWcm - 2 * marginCm - overlapCm;
   const stepH = pageHcm - 2 * marginCm - overlapCm;
+  const usableWcm = pageWcm - 2 * marginCm;
+  const usableHcm = pageHcm - 2 * marginCm;
   const cols = Math.max(1, Math.ceil((sheetWcm - overlapCm) / stepW));
   const rows = Math.max(1, Math.ceil((sheetHcm - overlapCm) / stepH));
-  const pages: { row: number; col: number; originCm: ExPt }[] = [];
+
+  const hasGeometry = (originCm: ExPt) => {
+    if (!pieceBBoxes) return true;
+    const tx1 = originCm.x + usableWcm;
+    const ty1 = originCm.y + usableHcm;
+    return pieceBBoxes.some(
+      (b) =>
+        b.minX <= tx1 &&
+        b.maxX >= originCm.x &&
+        b.minY <= ty1 &&
+        b.maxY >= originCm.y,
+    );
+  };
+
+  const pages: TilePlan["pages"] = [];
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
-      pages.push({ row, col, originCm: { x: col * stepW, y: row * stepH } });
+      const originCm = { x: col * stepW, y: row * stepH };
+      if (!hasGeometry(originCm)) continue;
+      pages.push({ row, col, pageNumber: pages.length + 1, originCm });
     }
   }
   return { pageWcm, pageHcm, marginCm, overlapCm, cols, rows, pages };
@@ -55,7 +155,6 @@ export function rulerTicksCm(lengthCm: number): number[] {
   return ticks;
 }
 
-const PT_POR_CM = 72 / 2.54; // PDF points per cm (physical 1:1)
 const TOL_CM = 0.02; // curve flattening (same tolerance as the DXF)
 
 export async function toPdf(
@@ -64,7 +163,12 @@ export async function toPdf(
   t: Translate,
 ): Promise<Uint8Array> {
   const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
-  const plan = planTiles(model.sheetWidthCm, model.sheetHeightCm, mode);
+  const plan = planTiles(
+    model.sheetWidthCm,
+    model.sheetHeightCm,
+    mode,
+    pieceBBoxesCm(model.pieces, model.foldLabel),
+  );
   const doc = await PDFDocument.create();
   const font = await doc.embedFont(StandardFonts.Helvetica);
 
@@ -204,6 +308,8 @@ export async function toPdf(
       });
       page.drawText(
         t("pdf.pageLabel", {
+          pageNumber: tile.pageNumber,
+          totalPages: plan.pages.length,
           rowNumber: tile.row + 1,
           colNumber: tile.col + 1,
           totalRows: plan.rows,

@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { planTiles, rulerTicksCm } from "./pdf";
+import { planTiles, pieceBBoxesCm, rulerTicksCm } from "./pdf";
 
 describe("planTiles", () => {
   it("single: one page the pattern's size + margin", () => {
-    const t = planTiles(20, 30, "single");
+    const t = planTiles(20, 30, "single", null);
     expect(t.cols).toBe(1);
     expect(t.rows).toBe(1);
     expect(t.pages).toHaveLength(1);
@@ -13,14 +13,14 @@ describe("planTiles", () => {
   });
 
   it("a4: a small pattern fits on one sheet", () => {
-    const t = planTiles(15, 20, "a4");
+    const t = planTiles(15, 20, "a4", null);
     expect(t.cols).toBe(1);
     expect(t.rows).toBe(1);
     expect(t.pages).toHaveLength(1);
   });
 
   it("a4: a large pattern slices into a grid with overlap", () => {
-    const t = planTiles(50, 40, "a4");
+    const t = planTiles(50, 40, "a4", null);
     // printableW=19.4, stepW=18.4 -> cols=ceil((50-1)/18.4)=3
     // printableH=28.1, stepH=27.1 -> rows=ceil((40-1)/27.1)=2
     expect(t.cols).toBe(3);
@@ -29,6 +29,106 @@ describe("planTiles", () => {
     // origin advances by the step (printable - overlap)
     expect(t.pages[1].originCm.x).toBeCloseTo(18.4, 6);
     expect(t.pages[3].originCm.y).toBeCloseTo(27.1, 6);
+    // every page numbered consecutively when nothing is filtered out
+    expect(t.pages.map((p) => p.pageNumber)).toEqual([1, 2, 3, 4, 5, 6]);
+  });
+
+  // #120: autoLayout's shelf-packing leaves real gaps between pieces, so the
+  // naive rows x cols grid tiled several blank sheets -- verified live on a
+  // size-M blouse (~30 A4 sheets for a garment that only fills a handful).
+  it("a4: skips tiles with no piece geometry and renumbers the rest consecutively", () => {
+    // same 50x40 grid as above (cols=3, rows=2, 6 tiles total), but only one
+    // small piece sits in the very first tile's printable area.
+    const bboxes = [{ minX: 1, minY: 1, maxX: 13, maxY: 13 }];
+    const t = planTiles(50, 40, "a4", bboxes);
+    expect(t.rows * t.cols).toBe(6);
+    expect(t.pages).toHaveLength(1);
+    expect(t.pages).toEqual([
+      { row: 0, col: 0, pageNumber: 1, originCm: { x: 0, y: 0 } },
+    ]);
+  });
+
+  it("a4: keeps every tile a piece's bbox actually reaches, renumbered 1..n", () => {
+    // a piece spanning the first row's two left tiles (cols 0 and 1), none
+    // of the second row -- exercises renumbering skipping row 1 entirely.
+    const bboxes = [{ minX: 5, minY: 5, maxX: 25, maxY: 10 }];
+    const t = planTiles(50, 40, "a4", bboxes);
+    expect(t.pages.map((p) => [p.row, p.col, p.pageNumber])).toEqual([
+      [0, 0, 1],
+      [0, 1, 2],
+    ]);
+  });
+});
+
+describe("pieceBBoxesCm", () => {
+  it("absolute bbox = piece originCm + local cutOutline extent, when the label fits inside it", () => {
+    const [b] = pieceBBoxesCm(
+      [
+        {
+          id: "front",
+          name: "Frente",
+          qty: 1,
+          widthCm: 10,
+          heightCm: 10,
+          outline: { start: { x: 0, y: 0 }, segs: [] },
+          cutOutline: {
+            start: { x: -1, y: -1 },
+            segs: [
+              { kind: "line", to: { x: 11, y: -1 } },
+              { kind: "line", to: { x: 11, y: 11 } },
+              { kind: "line", to: { x: -1, y: 11 } },
+              { kind: "line", to: { x: -1, y: -1 } },
+            ],
+          },
+          cutWidthCm: 12,
+          cutHeightCm: 12,
+          originCm: { x: 2, y: 2 },
+        },
+      ],
+      "dobra",
+    );
+    expect(b).toEqual({ minX: 1, minY: 1, maxX: 13, maxY: 13 });
+  });
+
+  // #120: with a 0cm seam allowance (a legal value, STYLE_LIMITS.seamAllowanceCm
+  // .min) a narrow piece's cutOutline is flush with its outline -- toPdf still
+  // draws the piece-name label past that edge, so a tile-visibility check
+  // based on cutOutline alone could drop the very tile the label's tail
+  // lands on. The bbox has to reach past the outline to cover it.
+  it("grows the bbox to cover a piece-name label wider than the piece itself", () => {
+    const narrowPiece = {
+      id: "faixa",
+      name: "Faixa Muito Comprida Da Gola",
+      qty: 1,
+      widthCm: 3,
+      heightCm: 10,
+      outline: {
+        start: { x: 0, y: 0 },
+        segs: [
+          { kind: "line" as const, to: { x: 3, y: 0 } },
+          { kind: "line" as const, to: { x: 3, y: 10 } },
+          { kind: "line" as const, to: { x: 0, y: 10 } },
+          { kind: "line" as const, to: { x: 0, y: 0 } },
+        ],
+      },
+      // 0cm allowance -- cutOutline == outline, no slack for the label.
+      cutOutline: {
+        start: { x: 0, y: 0 },
+        segs: [
+          { kind: "line" as const, to: { x: 3, y: 0 } },
+          { kind: "line" as const, to: { x: 3, y: 10 } },
+          { kind: "line" as const, to: { x: 0, y: 10 } },
+          { kind: "line" as const, to: { x: 0, y: 0 } },
+        ],
+      },
+      cutWidthCm: 3,
+      cutHeightCm: 10,
+      originCm: { x: 0, y: 0 },
+    };
+    const [b] = pieceBBoxesCm([narrowPiece], "dobra");
+    // cutOutline alone caps out at x=3; the long label's estimated width
+    // pushes the bbox well past the piece's own edge.
+    expect(b.maxX).toBeGreaterThan(narrowPiece.widthCm);
   });
 });
 
@@ -127,12 +227,24 @@ function modelOf(sheetWcm: number, sheetHcm: number): ExportModel {
 const PT_POR_CM = 72 / 2.54;
 
 describe("toPdf", () => {
-  it("a4: valid PDF (%PDF) and page count = planTiles", async () => {
+  it("a4: valid PDF (%PDF)", async () => {
     const model = modelOf(50, 40);
     const bytes = await toPdf(model, "a4", t);
     expect(new TextDecoder().decode(bytes.slice(0, 5))).toBe("%PDF-");
+  });
+
+  // #120: modelOf's single 12x12cm piece sits near the sheet's origin, but
+  // the sheet itself is declared 50x40 (the shape a real sparse shelf-packed
+  // layout takes) -- the naive rows x cols grid is 6 tiles; only the one
+  // the piece actually reaches should come out of the real PDF.
+  it("a4: skips blank tiles for a sparse layout -- fewer pages than rows × cols", async () => {
+    const model = modelOf(50, 40);
+    const bytes = await toPdf(model, "a4", t);
     const doc = await PDFDocument.load(bytes);
-    expect(doc.getPageCount()).toBe(6); // planTiles(50,40,"a4") = 6
+    const gridPages = planTiles(50, 40, "a4", null).pages.length; // unfiltered: 6
+    expect(gridPages).toBe(6);
+    expect(doc.getPageCount()).toBe(1);
+    expect(doc.getPageCount()).toBeLessThan(gridPages);
   });
 
   it("single: 1 page the pattern's size (1:1)", async () => {
