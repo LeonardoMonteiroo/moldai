@@ -467,6 +467,7 @@
     "addSizeButton": "＋ tamanho",
     "addSizePrompt": "Nome do novo tamanho",
     "removeSizeTitle": "Remover tamanho",
+    "removeBaseSizeTitle": "O tamanho base não pode ser removido — ele define as medidas de referência da grade.",
     "progressionTitle": "Progressão",
     "useSizeChartButton": "Usar esta grade",
     "activeSizeChartNote": "Grade ativa",

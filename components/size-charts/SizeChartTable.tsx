@@ -179,25 +179,46 @@ export function SizeChartTable() {
       <div className="border-border rounded-card bg-surface overflow-x-auto border">
         <div className="bg-surface-alt border-border text-muted text-meta tracking-eyebrow flex border-b px-[14px] py-[10px] font-semibold uppercase">
           <span className="flex-[2]">{t("measurementColumnLabel")}</span>
-          {draft.sizes.map((size) => (
-            <span
-              key={size}
-              className="flex flex-1 items-center justify-end gap-1"
-            >
-              {size}
-              {!readOnly && draft.sizes.length > 1 && (
-                <Button
-                  variant="ghost"
-                  size="icon-xs"
-                  aria-label={t("removeSizeTitle")}
-                  onClick={() => removeSize(size)}
-                  className="text-placeholder hover:text-alert"
-                >
-                  <XIcon />
-                </Button>
-              )}
-            </span>
-          ))}
+          {draft.sizes.map((size, idx) => {
+            const isBaseColumn = idx === draft.baseSizeIndex;
+            return (
+              <span
+                key={size}
+                className="flex flex-1 items-center justify-end gap-1"
+              >
+                {size}
+                {!readOnly &&
+                  draft.sizes.length > 1 &&
+                  (isBaseColumn ? (
+                    // #47: the base column is what baseMeasurements describes
+                    // -- removing it has nowhere to re-anchor to without an
+                    // explicit base reassignment, which this table doesn't
+                    // offer, so it stays visible but disabled rather than
+                    // silently shifting the base onto a neighbouring column.
+                    <Button
+                      variant="ghost"
+                      size="icon-xs"
+                      aria-label={t("removeBaseSizeTitle")}
+                      title={t("removeBaseSizeTitle")}
+                      disabled
+                      className="text-placeholder"
+                    >
+                      <XIcon />
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      size="icon-xs"
+                      aria-label={t("removeSizeTitle")}
+                      onClick={() => removeSize(size)}
+                      className="text-placeholder hover:text-alert"
+                    >
+                      <XIcon />
+                    </Button>
+                  ))}
+              </span>
+            );
+          })}
         </div>
         {MEASUREMENT_KEYS.map((key, i) => (
           <div

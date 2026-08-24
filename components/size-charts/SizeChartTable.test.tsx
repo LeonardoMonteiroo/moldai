@@ -204,6 +204,71 @@ describe("SizeChartTable measurement cells", () => {
   });
 });
 
+// #47: removing the base column had nowhere to re-anchor to, so
+// baseSizeIndex silently pointed at a different size afterward and every
+// pattern drafted from this chart used measurements the user never entered.
+describe("SizeChartTable base column removal", () => {
+  it("disables the remove button on the base column, with a reason", () => {
+    seed(); // BASE: sizes ["P","M","G"], baseSizeIndex: 1 -> base is "M"
+
+    renderWithIntl(<SizeChartTable />);
+
+    const baseRemoveButton = screen.getByRole("button", {
+      name: ptBR.SizeChartTable.removeBaseSizeTitle,
+    });
+    expect(baseRemoveButton).toBeDisabled();
+    // aria-label alone reaches only assistive tech -- a sighted mouse user
+    // hovering a disabled control needs the same reason, so it's also a
+    // native tooltip (the AttachmentChips "em breve" precedent).
+    expect(baseRemoveButton).toHaveAttribute(
+      "title",
+      ptBR.SizeChartTable.removeBaseSizeTitle,
+    );
+  });
+
+  it("keeps the remove button enabled on non-base columns", () => {
+    seed();
+    renderWithIntl(<SizeChartTable />);
+
+    const removeButtons = screen.getAllByRole("button", {
+      name: ptBR.SizeChartTable.removeSizeTitle,
+    });
+    // P and G -- M (the base) is excluded by its own distinct label.
+    expect(removeButtons).toHaveLength(2);
+    removeButtons.forEach((button) => expect(button).toBeEnabled());
+  });
+
+  it("leaves baseSizeIndex and the size list unchanged when the base button is clicked", async () => {
+    seed();
+    renderWithIntl(<SizeChartTable />);
+
+    const baseRemoveButton = screen.getByRole("button", {
+      name: ptBR.SizeChartTable.removeBaseSizeTitle,
+    });
+    await userEvent.click(baseRemoveButton);
+
+    const draft = useSizeChartsStore.getState().draft!;
+    expect(draft.sizes).toEqual(["P", "M", "G"]);
+    expect(draft.baseSizeIndex).toBe(1);
+  });
+
+  it("still removes a non-base size and shifts baseSizeIndex correctly", async () => {
+    seed();
+    renderWithIntl(<SizeChartTable />);
+
+    const removeButtons = screen.getAllByRole("button", {
+      name: ptBR.SizeChartTable.removeSizeTitle,
+    });
+    // The first enabled remove button is "P", which sits before the base.
+    await userEvent.click(removeButtons[0]);
+
+    const draft = useSizeChartsStore.getState().draft!;
+    expect(draft.sizes).toEqual(["M", "G"]);
+    // "M" is still the base, now at index 0.
+    expect(draft.baseSizeIndex).toBe(0);
+  });
+});
+
 // #97: the size list is what gets resolved into sizeTable and frozen into
 // every pattern's blob, then re-sent on every subsequent generation for that
 // pattern -- so the UI has to stop the count from growing past the server's
