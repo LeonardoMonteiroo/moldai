@@ -239,11 +239,34 @@ export function PatternCanvas({
         const labelText = pieceLabelText(piece);
         const label = fitPieceLabel(piece, labelText);
         const overlays = gradedOverlays.filter((o) => o.pieceId === piece.id);
+        // #51: selecting a piece by pointer only ever fires while the cursor
+        // tool is active (handlePointerDown/Up above both gate on it) --
+        // keyboard selection mirrors that instead of introducing a new mode
+        // the pointer path never had.
+        const selectable = activeTool === "cursor";
         return (
           <g
             key={piece.id}
             data-piece-id={piece.id}
-            className={activeTool === "cursor" ? "cursor-pointer" : undefined}
+            tabIndex={selectable ? 0 : undefined}
+            role={selectable ? "button" : undefined}
+            aria-pressed={selectable ? isSelected : undefined}
+            aria-label={selectable ? labelText : undefined}
+            className={
+              selectable
+                ? "focus-visible:outline-olive cursor-pointer outline-none focus-visible:outline-2 focus-visible:outline-offset-2"
+                : undefined
+            }
+            onKeyDown={
+              selectable
+                ? (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      onSelectPiece(piece.id);
+                    }
+                  }
+                : undefined
+            }
           >
             {piece.guideOutline && (
               <OutlineShape

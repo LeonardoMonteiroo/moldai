@@ -30,7 +30,7 @@ export function FloatingToolbar({
       onValueChange={(value) => {
         if (value) onSelect(value as EditorTool);
       }}
-      className="bg-surface border-border rounded-item shadow-card absolute top-5 left-5 flex-col border p-[7px]"
+      className="bg-surface border-border rounded-item shadow-card flex-col border p-[7px]"
     >
       {TOOLS.map(({ id, Icon, labelKey }) => (
         <ToggleGroupItem key={id} value={id} aria-label={t(labelKey)}>

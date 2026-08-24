@@ -172,7 +172,14 @@ export function CanvasArea() {
           </Empty>
         )}
         {!isGenerating && hasPieces && (
-          <FloatingToolbar activeTool={activeTool} onSelect={setActiveTool} />
+          <div className="absolute top-5 left-5 flex flex-col items-start gap-2">
+            <FloatingToolbar activeTool={activeTool} onSelect={setActiveTool} />
+            {activeTool === "measure" && (
+              <p className="bg-surface border-border rounded-item shadow-card text-meta text-muted-2 max-w-[220px] border px-[10px] py-[7px]">
+                {t("measurePointerOnlyNote")}
+              </p>
+            )}
+          </div>
         )}
         {!isGenerating && hasPieces && (
           <ZoomControls

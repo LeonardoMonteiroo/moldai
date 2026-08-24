@@ -63,7 +63,8 @@
   "CanvasArea": {
     "emptyStateTitle": "Molde em branco",
     "emptyStateDescription": "Descreva a peça que você quer no chat ao lado — a IA gera seu primeiro molde do zero.",
-    "clearMeasurementsButton": "Limpar medições"
+    "clearMeasurementsButton": "Limpar medições",
+    "measurePointerOnlyNote": "Marcar pontos de medição ainda exige mouse ou toque — não é possível pelo teclado."
   },
   "TabBar": {
     "tabPattern2d": "Molde 2D",

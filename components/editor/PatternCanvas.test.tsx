@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { createRef } from "react";
 import { fireEvent } from "@testing-library/react";
-import { renderWithIntl, screen } from "@/components/test-utils";
+import { renderWithIntl, screen, userEvent } from "@/components/test-utils";
 import { PatternCanvas } from "./PatternCanvas";
 import type { Piece } from "@/lib/types";
 import {
@@ -100,6 +100,46 @@ describe("PatternCanvas piece selection", () => {
 
     expect(onPan).toHaveBeenCalledWith(20, -20);
     expect(onSelectPiece).not.toHaveBeenCalled();
+  });
+});
+
+// #51: each piece group is now a real focusable button, so keyboard-only
+// users can reach the pieces a generation produces beyond the auto-selected
+// first one -- the pointer path already resolves the same id from
+// data-piece-id, this just gives the keyboard an equivalent entry point.
+describe("PatternCanvas keyboard selection", () => {
+  it("tabs onto each piece and selects it with Enter", async () => {
+    const user = userEvent.setup();
+    const { onSelectPiece } = renderCanvas();
+
+    await user.tab();
+    expect(screen.getByRole("button", { name: /FRENTE/ })).toHaveFocus();
+    await user.keyboard("{Enter}");
+    expect(onSelectPiece).toHaveBeenCalledWith("front");
+
+    await user.tab();
+    expect(screen.getByRole("button", { name: /COSTAS/ })).toHaveFocus();
+    await user.keyboard(" ");
+    expect(onSelectPiece).toHaveBeenCalledWith("back");
+  });
+
+  it("marks the selected piece with aria-pressed", () => {
+    renderCanvas({ selectedPieceId: "back" });
+    expect(screen.getByRole("button", { name: /FRENTE/ })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+    expect(screen.getByRole("button", { name: /COSTAS/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+  });
+
+  it("is not keyboard-focusable while the measure tool is active", () => {
+    renderCanvas({ activeTool: "measure" });
+    expect(
+      screen.queryByRole("button", { name: /FRENTE/ }),
+    ).not.toBeInTheDocument();
   });
 });
 
