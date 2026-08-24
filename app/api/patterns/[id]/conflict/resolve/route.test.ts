@@ -44,7 +44,7 @@ import { unauthorized } from "@/lib/auth/session";
 import { loadWallet } from "@/lib/db/wallet";
 import { setConflict } from "@/lib/editor/state";
 
-function req(action: "fix" | "ignore") {
+function req(action: unknown) {
   return new Request("http://test/api/patterns/m1/conflict/resolve", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -100,5 +100,22 @@ describe("POST /api/patterns/[id]/conflict/resolve", () => {
     vi.mocked(loadWallet).mockResolvedValueOnce(null);
     const res = await POST(req("ignore"), ctx());
     expect(res.status).toBe(401);
+  });
+
+  // #54: an unrecognised action used to fall through to "ignore" -- silently
+  // clearing a real conflict warning and re-enabling Export with divergent
+  // armholes -- instead of being rejected.
+  it("400s on an unrecognised action instead of silently resolving as ignore", async () => {
+    const res = await POST(req("Fix"), ctx());
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe("bad_body");
+    expect(state.conflict).not.toBeNull();
+  });
+
+  it("400s when action is missing entirely", async () => {
+    const res = await POST(req(undefined), ctx());
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe("bad_body");
+    expect(state.conflict).not.toBeNull();
   });
 });

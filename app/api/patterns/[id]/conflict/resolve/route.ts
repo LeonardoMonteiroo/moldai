@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { readJsonObject } from "@/lib/api/body";
+import { apiError, ERROR_STATUS } from "@/lib/api/errors";
 import { getTranslations } from "next-intl/server";
 import { withPattern, patternNotFound } from "@/lib/db/pattern";
 import { loadWallet } from "@/lib/db/wallet";
@@ -22,7 +23,14 @@ export async function POST(request: Request, { params }: Ctx) {
 
   const body = await readJsonObject(request);
   if (body instanceof NextResponse) return body;
-  const action: "fix" | "ignore" = body.action === "fix" ? "fix" : "ignore";
+  // #54: any value other than the exact two allowed actions used to fall
+  // through to "ignore" -- silently clearing a real seam-conflict warning
+  // and re-enabling Export with divergent armholes -- so an unrecognised
+  // action is now rejected instead of resolving anything.
+  if (body.action !== "fix" && body.action !== "ignore") {
+    return apiError("bad_body", ERROR_STATUS.bad_body);
+  }
+  const action = body.action;
 
   const t = await getTranslations("PatternData");
 
