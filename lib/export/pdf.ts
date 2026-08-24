@@ -71,12 +71,14 @@ export async function toPdf(
   const INK = rgb(0, 0, 0);
   const OLIVE = rgb(0.29, 0.35, 0.23);
   const GRAY = rgb(0.6, 0.6, 0.6);
+  const NET = rgb(0.4, 0.4, 0.4); // #123: distinct from GRAY (the fold's own color)
   const TXT = rgb(0.35, 0.34, 0.29);
 
   // flatten each outline once (reused across every page/tile)
   const outlines = model.pieces.map((pc) => ({
     pc,
-    pts: flattenOutlineCm(pc.outline, TOL_CM),
+    cutPts: flattenOutlineCm(pc.cutOutline, TOL_CM),
+    netPts: flattenOutlineCm(pc.outline, TOL_CM),
   }));
 
   plan.pages.forEach((tile, pageIndex) => {
@@ -91,15 +93,35 @@ export async function toPdf(
       y: (plan.pageHcm - plan.marginCm - (sy - tile.originCm.y)) * PT_POR_CM,
     });
 
-    for (const { pc, pts } of outlines) {
+    for (const { pc, cutPts, netPts } of outlines) {
       const P = (lx: number, ly: number) =>
         map(pc.originCm.x + lx, pc.originCm.y + ly);
 
-      // outline (closed polyline)
-      for (let i = 0; i < pts.length; i++) {
-        const a = P(pts[i].x, pts[i].y);
-        const b = P(pts[(i + 1) % pts.length].x, pts[(i + 1) % pts.length].y);
+      // #123: the cut line (with seam allowance) is the primary solid
+      // boundary -- what the a4 tiling/glue overlap is measured against.
+      for (let i = 0; i < cutPts.length; i++) {
+        const a = P(cutPts[i].x, cutPts[i].y);
+        const b = P(
+          cutPts[(i + 1) % cutPts.length].x,
+          cutPts[(i + 1) % cutPts.length].y,
+        );
         page.drawLine({ start: a, end: b, thickness: 0.75, color: INK });
+      }
+      // the net stitch line, dashed in its own gray so it doesn't blend
+      // into the fold's own GRAY dashing.
+      for (let i = 0; i < netPts.length; i++) {
+        const a = P(netPts[i].x, netPts[i].y);
+        const b = P(
+          netPts[(i + 1) % netPts.length].x,
+          netPts[(i + 1) % netPts.length].y,
+        );
+        page.drawLine({
+          start: a,
+          end: b,
+          thickness: 0.4,
+          color: NET,
+          dashArray: [3, 2],
+        });
       }
       // grainline (dashed)
       if (pc.grainline) {

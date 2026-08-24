@@ -1,5 +1,10 @@
 import type { Pattern } from "@/lib/types";
-import { buildExportModel, type ExportPiece } from "./model";
+import {
+  buildExportModel,
+  type ExportPiece,
+  type ExPt,
+  type ExSeg,
+} from "./model";
 import type { Translate } from "@/lib/i18n/translate";
 
 // Most common roll widths in fabric retail (cm).
@@ -15,6 +20,62 @@ export interface CutInstance {
   widthCm: number;
   heightCm: number;
   originCm: { x: number; y: number };
+}
+
+// #123: `cutOutline`'s local frame is anchored to the *net* outline's own
+// bbox (see model.ts), so it can run negative/past cutWidthCm-cutHeightCm on
+// the sides that grew -- fine for ExportPiece, which still needs the net
+// frame for outline/grainline/dart/fold, but wrong for a fresh CutInstance
+// that only ever needs the cut line: shelf-packing `it.originCm` by
+// `cutWidthCm`/`cutHeightCm` while the outline itself starts below (0,0)
+// would place the packer's GAP_CM between nominal cursor positions rather
+// than between the actual drawn shapes, letting two neighbours' real cut
+// lines run closer than GAP_CM apart (worse here than in model.ts's own
+// packer, since GAP_CM is only 3cm against up to ~4-5cm of mitre growth per
+// side, measured against the real drafting matrix at the max allowance).
+// Re-zeroing to the cut line's own bbox once, up front, makes `widthCm`/
+// `heightCm` an honest 0-based extent again, so the packer below is correct
+// without having to special-case anything.
+function outlineBBox(outline: { start: ExPt; segs: ExSeg[] }) {
+  let minX = outline.start.x,
+    minY = outline.start.y,
+    maxX = minX,
+    maxY = minY;
+  const consider = (p: ExPt) => {
+    minX = Math.min(minX, p.x);
+    maxX = Math.max(maxX, p.x);
+    minY = Math.min(minY, p.y);
+    maxY = Math.max(maxY, p.y);
+  };
+  for (const s of outline.segs) {
+    consider(s.to);
+    if (s.kind === "cubic") {
+      consider(s.c1);
+      consider(s.c2);
+    }
+  }
+  return { minX, minY, maxX, maxY };
+}
+
+function shiftOutline(
+  outline: { start: ExPt; segs: ExSeg[] },
+  dx: number,
+  dy: number,
+): { start: ExPt; segs: ExSeg[] } {
+  const shiftPt = (p: ExPt): ExPt => ({ x: p.x - dx, y: p.y - dy });
+  return {
+    start: shiftPt(outline.start),
+    segs: outline.segs.map((s): ExSeg =>
+      s.kind === "line"
+        ? { kind: "line", to: shiftPt(s.to) }
+        : {
+            kind: "cubic",
+            c1: shiftPt(s.c1),
+            c2: shiftPt(s.c2),
+            to: shiftPt(s.to),
+          },
+    ),
+  };
 }
 
 export interface CutPlan {
@@ -38,17 +99,24 @@ export function planCutLayout(
 ): CutPlan {
   const model = buildExportModel(pattern, t);
 
-  // expand qty: each copy is one instance to cut
-  const instances: CutInstance[] = model.pieces.flatMap((p) =>
-    Array.from({ length: p.qty }, (_, k) => ({
+  // #123: nests the real cut line (with seam allowance), not the net
+  // stitch line -- what actually has to be cut from the fabric. Re-zeroed
+  // to its own bbox (see outlineBBox/shiftOutline above) so widthCm/heightCm
+  // are an honest 0-based extent the shelf-packer below can rely on.
+  const instances: CutInstance[] = model.pieces.flatMap((p) => {
+    const b = outlineBBox(p.cutOutline);
+    const outline = shiftOutline(p.cutOutline, b.minX, b.minY);
+    const widthCm = b.maxX - b.minX;
+    const heightCm = b.maxY - b.minY;
+    return Array.from({ length: p.qty }, (_, k) => ({
       id: `${p.id}#${k + 1}`,
       name: p.name,
-      outline: p.outline,
-      widthCm: p.widthCm,
-      heightCm: p.heightCm,
+      outline,
+      widthCm,
+      heightCm,
       originCm: { x: PAD_CM, y: PAD_CM },
-    })),
-  );
+    }));
+  });
 
   const usableW = fabricWidthCm - PAD_CM * 2;
   let overflow = false;

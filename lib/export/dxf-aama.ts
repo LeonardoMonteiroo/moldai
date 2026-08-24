@@ -13,22 +13,24 @@ import { flattenOutlineCm, TOL_CM } from "./dxf";
 //   - R13 version (AC1012) + classic POLYLINE/VERTEX/SEQEND (not LWPOLYLINE,
 //     which is R14) — R13 is what D6673 references and maximizes compat with Audaces/Gerber.
 //
-// This is an honest SUBSET: the ExportModel only carries boundary/fold/
-// grainline/dart/name, so notches (layer 4) and drill holes (13) are NOT
-// emitted — MoldAI doesn't model them yet, and a separate sew line (14) isn't
-// either, since the outline is the net line (no seam allowance baked in),
-// placed on layer 1. The full strict AAMA/ASTM (structured system text,
-// block records, those derived elements) remains a later "Phase 2.5".
+// #123: layer 1 (the piece boundary) is now the real CUT line — `outline`
+// offset outward by the seam allowance — and the net sew line moved to its
+// own layer 14, D6673's reserved slot for it (closing that half of #2's
+// tracked gap). This is an honest SUBSET still: notches (layer 4) and drill
+// holes (13) are NOT emitted — MoldAI doesn't model them yet. The full strict
+// AAMA/ASTM (structured system text, block records, those derived elements)
+// remains a later "Phase 2.5".
 
 const MM = 10; // cm -> mm (1:1)
 const f = (n: number) => (Math.round(n * 100) / 100).toString();
 
 // Numbered layers this subset uses, each with a color (code 62).
 const LAYERS: [string, number][] = [
-  ["1", 7], // boundary — white/black
+  ["1", 7], // boundary (#123: the cut line) — white/black
   ["6", 1], // fold/mirror line (#126) — red
   ["7", 5], // grainline — blue
   ["8", 3], // internal (dart) — green
+  ["14", 4], // sew line (#123: the net line) — cyan
 ];
 
 // Valid DXF BLOCK name: alphanumeric/_/-/$ only; the prefix guarantees a leading letter.
@@ -44,7 +46,7 @@ export function toDxfAama(model: ExportModel): string {
 
   p(
     999,
-    `MoldAI AAMA/ASTM subset · ${model.patternName} · tam ${model.size} · folga ${model.seamAllowanceCm ?? 0}cm (net line, camada 1)`,
+    `MoldAI AAMA/ASTM subset · ${model.patternName} · tam ${model.size} · folga ${model.seamAllowanceCm ?? 0}cm (camada 1 = linha de corte, camada 14 = linha de costura líquida)`,
   );
 
   // HEADER — R13, millimeters, metric.
@@ -81,13 +83,14 @@ export function toDxfAama(model: ExportModel): string {
     const X = (x: number) => f(x * MM);
     const Y = (y: number) => f((h - y) * MM); // +Y up inside the block
 
-    // outline -> closed POLYLINE on layer 1 (flattening helper from the generic DXF)
-    const verts = flattenOutlineCm(piece.outline, TOL_CM);
+    // #123: layer 1 is the cut line (the real piece boundary) -- closed
+    // POLYLINE, same flattening helper the generic DXF uses.
+    const cutVerts = flattenOutlineCm(piece.cutOutline, TOL_CM);
     p(0, "POLYLINE");
     p(8, "1");
     p(66, 1);
     p(70, 1); // 70=1 closed
-    for (const v of verts) {
+    for (const v of cutVerts) {
       p(0, "VERTEX");
       p(8, "1");
       p(10, X(v.x));
@@ -95,6 +98,21 @@ export function toDxfAama(model: ExportModel): string {
     }
     p(0, "SEQEND");
     p(8, "1");
+
+    // #123: layer 14 is the net sew line, D6673's reserved slot for it.
+    const netVerts = flattenOutlineCm(piece.outline, TOL_CM);
+    p(0, "POLYLINE");
+    p(8, "14");
+    p(66, 1);
+    p(70, 1); // 70=1 closed
+    for (const v of netVerts) {
+      p(0, "VERTEX");
+      p(8, "14");
+      p(10, X(v.x));
+      p(20, Y(v.y));
+    }
+    p(0, "SEQEND");
+    p(8, "14");
 
     // name/qty as the piece's system text, on layer 1
     p(0, "TEXT");

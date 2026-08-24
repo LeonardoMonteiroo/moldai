@@ -1,51 +1,11 @@
 import type { ExPt, ExSeg, ExportModel } from "./model";
+import { flattenCubic, TOL_CM } from "./bezier";
 
-export const TOL_CM = 0.02; // 0.2 mm
-const MAX_DEPTH = 16;
-
-const mid = (a: ExPt, b: ExPt): ExPt => ({
-  x: (a.x + b.x) / 2,
-  y: (a.y + b.y) / 2,
-});
-
-// perpendicular distance from p to the line a→b (in cm); degenerate chord → distance to `a`
-function distToLine(p: ExPt, a: ExPt, b: ExPt): number {
-  const dx = b.x - a.x;
-  const dy = b.y - a.y;
-  const len2 = dx * dx + dy * dy;
-  if (len2 < 1e-12) return Math.hypot(p.x - a.x, p.y - a.y);
-  const cross = Math.abs((p.x - a.x) * dy - (p.y - a.y) * dx);
-  return cross / Math.sqrt(len2);
-}
-
-export function flattenCubic(
-  p0: ExPt,
-  c1: ExPt,
-  c2: ExPt,
-  p3: ExPt,
-  tolCm: number,
-): ExPt[] {
-  const out: ExPt[] = [];
-  const recurse = (a: ExPt, b: ExPt, c: ExPt, d: ExPt, depth: number): void => {
-    if (
-      depth >= MAX_DEPTH ||
-      (distToLine(b, a, d) <= tolCm && distToLine(c, a, d) <= tolCm)
-    ) {
-      out.push({ x: d.x, y: d.y });
-      return;
-    }
-    const ab = mid(a, b),
-      bc = mid(b, c),
-      cd = mid(c, d);
-    const abc = mid(ab, bc),
-      bcd = mid(bc, cd);
-    const m = mid(abc, bcd);
-    recurse(a, ab, abc, m, depth + 1);
-    recurse(m, bcd, cd, d, depth + 1);
-  };
-  recurse(p0, c1, c2, p3, 0);
-  return out;
-}
+// Re-exported so existing importers (dxf.test.ts, dxf-aama.ts, pdf.ts) don't
+// need to know the flattening helper moved to its own leaf module (#123 --
+// lib/export/offset.ts needs it too, without importing this file's
+// ExportModel-typed surface).
+export { flattenCubic, TOL_CM };
 
 // Outline flattened to cm: line -> 1 vertex, cubic -> flattenCubic's points.
 // Closed; drops the final vertex if it coincides with the first (dedup).
@@ -78,7 +38,18 @@ export function flattenOutlineCm(
 
 const MM = 10; // cm -> mm (1:1)
 const f = (n: number) => (Math.round(n * 100) / 100).toString();
-const LAYERS = ["CONTORNO", "INTERNO", "GRAINLINE", "TEXTO", "DOBRA"] as const;
+// #123: CONTORNO is now the offset cut line (the real piece boundary a
+// plotter/cutter follows) instead of the net stitch line; COSTURA carries
+// that net line, kept for anyone who still wants it (e.g. tracing seams by
+// hand). Every other layer is unchanged.
+const LAYERS = [
+  "CONTORNO",
+  "COSTURA",
+  "INTERNO",
+  "GRAINLINE",
+  "TEXTO",
+  "DOBRA",
+] as const;
 
 export function toDxf(model: ExportModel): string {
   const L: (string | number)[] = [];
@@ -89,7 +60,7 @@ export function toDxf(model: ExportModel): string {
   // native DXF comment (code 999) — none of the "--" issue an XML comment has
   p(
     999,
-    `MoldAI · ${model.patternName} · tam ${model.size} · folga ${model.seamAllowanceCm ?? 0}cm (net line)`,
+    `MoldAI · ${model.patternName} · tam ${model.size} · folga ${model.seamAllowanceCm ?? 0}cm (CONTORNO = linha de corte, COSTURA = linha de costura líquida)`,
   );
 
   // HEADER
@@ -129,14 +100,24 @@ export function toDxf(model: ExportModel): string {
     // Y flipped: DXF has +Y up; ExportModel has +Y down.
     const Y = (y: number) => f((model.sheetHeightCm - (oy + y)) * MM);
 
-    // outline -> flattened vertices (helper shared with the PDF)
-    const verts = flattenOutlineCm(piece.outline, TOL_CM);
-
+    // #123: CONTORNO is the cut line (the real boundary); COSTURA is the
+    // net stitch line, unchanged from before this existed.
+    const cutVerts = flattenOutlineCm(piece.cutOutline, TOL_CM);
     p(0, "LWPOLYLINE");
     p(8, "CONTORNO");
-    p(90, verts.length);
+    p(90, cutVerts.length);
     p(70, 1);
-    for (const v of verts) {
+    for (const v of cutVerts) {
+      p(10, X(v.x));
+      p(20, Y(v.y));
+    }
+
+    const netVerts = flattenOutlineCm(piece.outline, TOL_CM);
+    p(0, "LWPOLYLINE");
+    p(8, "COSTURA");
+    p(90, netVerts.length);
+    p(70, 1);
+    for (const v of netVerts) {
       p(10, X(v.x));
       p(20, Y(v.y));
     }

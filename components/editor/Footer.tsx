@@ -222,7 +222,7 @@ export function Footer({
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuLabel className="text-muted text-tick leading-snug font-normal">
-            {t("netLineNote")}
+            {t("outlinesNote")}
           </DropdownMenuLabel>
         </DropdownMenuContent>
       </DropdownMenu>

@@ -72,27 +72,27 @@ describe("flattenCubic", () => {
 import { toDxf } from "./dxf";
 import type { ExportModel } from "./model";
 
-// vertex count (code 90) of the first LWPOLYLINE
-function firstLwVertexCount(dxf: string): number {
+// vertices (x,y) of the first LWPOLYLINE on the given layer -- #123: CONTORNO
+// (cut) and COSTURA (net) are both LWPOLYLINEs now, so "the first one" is no
+// longer unambiguous the way it was before this existed.
+function lwVerticesOnLayer(
+  dxf: string,
+  layer: string,
+): { x: number; y: number }[] {
   const lines = dxf.split("\n");
-  const i = lines.indexOf("LWPOLYLINE");
-  const j = lines.indexOf("90", i);
-  return Number(lines[j + 1]);
-}
-
-// vertices (x,y) of the first LWPOLYLINE — 10/20 pairs right after the entity header
-function firstLwVertices(dxf: string): { x: number; y: number }[] {
-  const lines = dxf.split("\n");
-  const i = lines.indexOf("LWPOLYLINE");
-  const count = firstLwVertexCount(dxf);
-  const verts: { x: number; y: number }[] = [];
-  let k = i;
-  while (verts.length < count) {
-    const xi = lines.indexOf("10", k);
-    verts.push({ x: Number(lines[xi + 1]), y: Number(lines[xi + 3]) });
-    k = xi + 4;
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i] !== "LWPOLYLINE" || lines[i + 2] !== layer) continue;
+    const count = Number(lines[i + 4]);
+    const verts: { x: number; y: number }[] = [];
+    let k = i;
+    while (verts.length < count) {
+      const xi = lines.indexOf("10", k);
+      verts.push({ x: Number(lines[xi + 1]), y: Number(lines[xi + 3]) });
+      k = xi + 4;
+    }
+    return verts;
   }
-  return verts;
+  throw new Error(`no LWPOLYLINE found on layer ${layer}`);
 }
 
 const squareModel: ExportModel = {
@@ -119,6 +119,20 @@ const squareModel: ExportModel = {
           { kind: "line", to: { x: 0, y: 0 } },
         ],
       },
+      // #123: the 1cm-allowance cut line, matching what offsetOutlineCm
+      // actually produces for a plain square (see offset.test.ts's own
+      // "grows a square by exactly d" case) -- a 12x12 square.
+      cutOutline: {
+        start: { x: -1, y: -1 },
+        segs: [
+          { kind: "line", to: { x: 11, y: -1 } },
+          { kind: "line", to: { x: 11, y: 11 } },
+          { kind: "line", to: { x: -1, y: 11 } },
+          { kind: "line", to: { x: -1, y: -1 } },
+        ],
+      },
+      cutWidthCm: 12,
+      cutHeightCm: 12,
       grainline: [
         { x: 5, y: 1 },
         { x: 5, y: 9 },
@@ -159,6 +173,20 @@ const cubicModel: ExportModel = {
           { kind: "line", to: { x: 0, y: 0 } },
         ],
       },
+      cutOutline: {
+        start: { x: -1, y: -1 },
+        segs: [
+          {
+            kind: "cubic",
+            c1: { x: -1, y: 11 },
+            c2: { x: 11, y: 11 },
+            to: { x: 11, y: -1 },
+          },
+          { kind: "line", to: { x: -1, y: -1 } },
+        ],
+      },
+      cutWidthCm: 12,
+      cutHeightCm: 12,
       originCm: { x: 2, y: 2 },
     },
   ],
@@ -191,13 +219,16 @@ describe("toDxf", () => {
     expect(dxf).toMatch(/\$INSUNITS\n70\n4/);
     expect(dxf).toContain("999");
     expect(dxf).toContain("tam M");
-    expect(dxf).toContain("folga 1cm (net line)");
+    expect(dxf).toContain(
+      "folga 1cm (CONTORNO = linha de corte, COSTURA = linha de costura líquida)",
+    );
   });
 
-  it("declares the five named layers", () => {
+  it("declares the six named layers", () => {
     const dxf = toDxf(squareModel);
     for (const layer of [
       "CONTORNO",
+      "COSTURA",
       "INTERNO",
       "GRAINLINE",
       "TEXTO",
@@ -207,9 +238,11 @@ describe("toDxf", () => {
     }
   });
 
-  it("one outline LWPOLYLINE per piece, with LINE (grainline + fold) and TEXT (name)", () => {
+  // #123: CONTORNO (the cut line) and COSTURA (the net line) are each their
+  // own LWPOLYLINE now -- there is no dart on this fixture, so exactly two.
+  it("cut + net LWPOLYLINEs per piece, with LINE (grainline + fold) and TEXT (name)", () => {
     const dxf = toDxf(squareModel);
-    expect(dxf.match(/\nLWPOLYLINE\n/g)?.length).toBe(1); // only the outline (no dart)
+    expect(dxf.match(/\nLWPOLYLINE\n/g)?.length).toBe(2);
     expect(dxf.match(/\nLINE\n/g)?.length).toBe(2); // grainline + fold
     expect(dxf).toContain("\nTEXT\n");
     expect(dxf).toContain("FRENTE · 2x");
@@ -233,25 +266,28 @@ describe("toDxf", () => {
   // identical pattern.
   it("dart comes out as an OPEN LWPOLYLINE (70=0) with exactly dart.length vertices", () => {
     const dxf = toDxf(dartModel);
-    expect(dxf.match(/\nLWPOLYLINE\n/g)?.length).toBe(2); // outline + dart
+    expect(dxf.match(/\nLWPOLYLINE\n/g)?.length).toBe(3); // cut + net + dart
     expect(dxf).toMatch(/LWPOLYLINE\n8\nINTERNO\n90\n3\n70\n0\n/);
   });
 
-  it("1:1 scale: a 10cm-wide outline spans 100 units (mm)", () => {
-    const verts = firstLwVertices(toDxf(squareModel));
-    const xs = verts.map((v) => v.x);
-    // 10cm width -> 100-unit (mm) X span, regardless of the Y flip
-    expect(Math.max(...xs) - Math.min(...xs)).toBeCloseTo(100, 6);
+  it("1:1 scale: CONTORNO is the 12cm cut line, COSTURA the 10cm net line (mm)", () => {
+    const dxf = toDxf(squareModel);
+    const cutXs = lwVerticesOnLayer(dxf, "CONTORNO").map((v) => v.x);
+    const netXs = lwVerticesOnLayer(dxf, "COSTURA").map((v) => v.x);
+    expect(Math.max(...cutXs) - Math.min(...cutXs)).toBeCloseTo(120, 6);
+    expect(Math.max(...netXs) - Math.min(...netXs)).toBeCloseTo(100, 6);
   });
 
   it("flattening inserts vertices: an outline with a cubic has more vertices than segs", () => {
     const dxf = toDxf(cubicModel);
-    expect(firstLwVertexCount(dxf)).toBeGreaterThan(2); // 2 segs in the model
+    expect(lwVerticesOnLayer(dxf, "COSTURA").length).toBeGreaterThan(2); // 2 segs in the model
   });
 
   it("a null allowance becomes 0cm in the comment", () => {
     const dxf = toDxf(cubicModel);
-    expect(dxf).toContain("folga 0cm (net line)");
+    expect(dxf).toContain(
+      "folga 0cm (CONTORNO = linha de corte, COSTURA = linha de costura líquida)",
+    );
   });
 });
 

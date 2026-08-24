@@ -2,15 +2,20 @@ import { describe, it, expect } from "vitest";
 import { toDxfAama } from "./dxf-aama";
 import type { ExportModel } from "./model";
 
-// xs (code 10) of the first POLYLINE's VERTEX entries, up to SEQEND (doesn't grab TEXT/LINE)
-function firstPolylineXs(dxf: string): number[] {
+// xs (code 10) of the first POLYLINE on the given layer's VERTEX entries, up
+// to its SEQEND (doesn't grab TEXT/LINE). #123: cut (layer 1) and net (layer
+// 14) are both POLYLINEs now, so "the first one" is no longer unambiguous.
+function polylineXsOnLayer(dxf: string, layer: string): number[] {
   const lines = dxf.split("\n");
-  const start = lines.indexOf("POLYLINE");
-  const end = lines.indexOf("SEQEND", start);
-  const xs: number[] = [];
-  for (let k = start; k < end; k++)
-    if (lines[k] === "10") xs.push(Number(lines[k + 1]));
-  return xs;
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i] !== "POLYLINE" || lines[i + 2] !== layer) continue;
+    const end = lines.indexOf("SEQEND", i);
+    const xs: number[] = [];
+    for (let k = i; k < end; k++)
+      if (lines[k] === "10") xs.push(Number(lines[k + 1]));
+    return xs;
+  }
+  throw new Error(`no POLYLINE found on layer ${layer}`);
 }
 
 const squareModel: ExportModel = {
@@ -37,6 +42,19 @@ const squareModel: ExportModel = {
           { kind: "line", to: { x: 0, y: 0 } },
         ],
       },
+      // #123: the 1cm-allowance cut line, matching dxf.test.ts's own
+      // squareModel fixture -- a 12x12 square.
+      cutOutline: {
+        start: { x: -1, y: -1 },
+        segs: [
+          { kind: "line", to: { x: 11, y: -1 } },
+          { kind: "line", to: { x: 11, y: 11 } },
+          { kind: "line", to: { x: -1, y: 11 } },
+          { kind: "line", to: { x: -1, y: -1 } },
+        ],
+      },
+      cutWidthCm: 12,
+      cutHeightCm: 12,
       grainline: [
         { x: 5, y: 1 },
         { x: 5, y: 9 },
@@ -77,13 +95,14 @@ describe("toDxfAama", () => {
     expect(dxf).toContain("tam M");
   });
 
-  it("declares numbered layers (1/6/7/8), not the generic DXF's named ones", () => {
+  it("declares numbered layers (1/6/7/8/14), not the generic DXF's named ones", () => {
     const dxf = toDxfAama(squareModel);
     // the TABLE LAYER block contains the numeric names
     expect(dxf).toMatch(/LAYER\n2\n1\n/);
     expect(dxf).toMatch(/LAYER\n2\n6\n/);
     expect(dxf).toMatch(/LAYER\n2\n7\n/);
     expect(dxf).toMatch(/LAYER\n2\n8\n/);
+    expect(dxf).toMatch(/LAYER\n2\n14\n/);
     expect(dxf).not.toContain("CONTORNO");
     expect(dxf).not.toContain("GRAINLINE");
   });
@@ -115,19 +134,23 @@ describe("toDxfAama", () => {
     expect(dxf).toContain("FRENTE 2X");
   });
 
-  it("1:1 scale: a 10cm outline spans 100 units (mm)", () => {
-    const xs = firstPolylineXs(toDxfAama(squareModel));
-    expect(xs.length).toBeGreaterThanOrEqual(4);
-    expect(Math.max(...xs) - Math.min(...xs)).toBeCloseTo(100, 6);
+  it("1:1 scale: layer 1 is the 12cm cut line, layer 14 the 10cm net line (mm)", () => {
+    const dxf = toDxfAama(squareModel);
+    const cutXs = polylineXsOnLayer(dxf, "1");
+    const netXs = polylineXsOnLayer(dxf, "14");
+    expect(cutXs.length).toBeGreaterThanOrEqual(4);
+    expect(Math.max(...cutXs) - Math.min(...cutXs)).toBeCloseTo(120, 6);
+    expect(netXs.length).toBeGreaterThanOrEqual(4);
+    expect(Math.max(...netXs) - Math.min(...netXs)).toBeCloseTo(100, 6);
   });
 
   it("dart comes out as an open POLYLINE on layer 8; no dart means no layer 8", () => {
     const withDart = toDxfAama(dartModel);
-    // two POLYLINEs: outline (layer 1) + dart (layer 8)
-    expect(withDart.match(/\nPOLYLINE\n/g)?.length).toBe(2);
+    // three POLYLINEs: cut (layer 1) + net (layer 14) + dart (layer 8)
+    expect(withDart.match(/\nPOLYLINE\n/g)?.length).toBe(3);
     expect(withDart).toMatch(/POLYLINE\n8\n8\n66\n1\n70\n0/); // open on layer 8
     const noDart = toDxfAama(squareModel);
-    expect(noDart.match(/\nPOLYLINE\n/g)?.length).toBe(1); // only the outline
+    expect(noDart.match(/\nPOLYLINE\n/g)?.length).toBe(2); // cut + net only
   });
 
   it("one BLOCK and one INSERT per piece in multi-piece models", () => {

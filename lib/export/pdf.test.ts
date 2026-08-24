@@ -92,6 +92,24 @@ function modelOf(sheetWcm: number, sheetHcm: number): ExportModel {
             { kind: "line", to: { x: 0, y: 0 } },
           ],
         },
+        // #123: a simple 1cm-allowance expansion of the same curved outline
+        // -- exact offset math isn't the point here (that's offset.test.ts's
+        // job), just that toPdf renders a cut line distinct from the net one.
+        cutOutline: {
+          start: { x: -1, y: -1 },
+          segs: [
+            { kind: "line", to: { x: 11, y: -1 } },
+            {
+              kind: "cubic",
+              c1: { x: 11, y: 6 },
+              c2: { x: 6, y: 11 },
+              to: { x: -1, y: 11 },
+            },
+            { kind: "line", to: { x: -1, y: -1 } },
+          ],
+        },
+        cutWidthCm: 12,
+        cutHeightCm: 12,
         grainline: [
           { x: 5, y: 1 },
           { x: 5, y: 9 },
@@ -184,5 +202,17 @@ describe("toPdf", () => {
     const noFoldContent = inflatedContent(noFoldBytes);
     expect(noFoldContent).not.toMatch(/0\.6 0\.6 0\.6 RG/);
     expect(noFoldContent).not.toContain("<646F627261>");
+  });
+
+  // #123: the cut line (with seam allowance) is the primary solid INK
+  // boundary; the net stitch line is drawn dashed in its own gray (0.4),
+  // distinct from the fold's GRAY (0.6) so the two never collide.
+  it("draws both a solid cut line (INK) and a dashed net line (its own gray)", async () => {
+    const model = modelOf(20, 30);
+    const bytes = await toPdf(model, "single", t);
+    const content = inflatedContent(bytes);
+    expect(content).toMatch(/0 0 0 RG/); // cut line, solid INK
+    expect(content).toMatch(/0\.4 0\.4 0\.4 RG/); // net line, its own gray
+    expect(content).toMatch(/\[3 2\] 0 d/); // net line's dash pattern
   });
 });

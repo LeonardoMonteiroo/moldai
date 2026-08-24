@@ -12,6 +12,7 @@ import {
 import { SIZE_TABLE, SIZE_TABLE_MALE } from "@/lib/measurements";
 import { t } from "@/lib/i18n/test-translate";
 import { curveArcLengthCm } from "./core";
+import { DECORATION_CASES } from "./fixtures";
 
 describe("validateSpec", () => {
   it("falls back to defaults on invalid enums and clamps ranges", () => {
@@ -572,77 +573,6 @@ function verticalSpanAt(pts: [number, number][], x: number) {
   }
   return { top, bottom };
 }
-
-const DECORATION_CASES: [string, Parameters<typeof draftPiecesCm>[0]][] = [
-  [
-    "blouse round short",
-    {
-      type: "blouse",
-      gender: "female",
-      measurementOverrides: {},
-      style: { neckline: "round", sleeve: "short", darts: true },
-    },
-  ],
-  [
-    "blouse deep V long",
-    {
-      type: "blouse",
-      gender: "female",
-      measurementOverrides: {},
-      style: {
-        neckline: "V",
-        necklineDepthCm: STYLE_LIMITS.necklineDepthCm.max,
-        sleeve: "long",
-        darts: true,
-      },
-    },
-  ],
-  [
-    "blouse straight sleeveless",
-    {
-      type: "blouse",
-      gender: "female",
-      measurementOverrides: {},
-      style: { neckline: "straight", sleeve: "none", darts: false },
-    },
-  ],
-  [
-    "tshirt male",
-    { type: "tshirt", gender: "male", measurementOverrides: {}, style: {} },
-  ],
-  [
-    "dress a-line",
-    {
-      type: "dress",
-      gender: "female",
-      measurementOverrides: {},
-      style: {
-        neckline: "round",
-        sleeve: "short",
-        darts: true,
-        skirt: "a-line",
-      },
-    },
-  ],
-  [
-    "skirt circle",
-    {
-      type: "skirt",
-      gender: "female",
-      measurementOverrides: {},
-      style: { skirt: "circle" },
-    },
-  ],
-  [
-    "skirt straight",
-    {
-      type: "skirt",
-      gender: "female",
-      measurementOverrides: {},
-      style: { skirt: "straight" },
-    },
-  ],
-];
 
 describe("drafted decorations stay inside their own piece", () => {
   for (const [name, spec] of DECORATION_CASES) {

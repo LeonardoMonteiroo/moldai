@@ -27,6 +27,19 @@ const model: ExportModel = {
           { kind: "line", to: { x: 0, y: 0 } },
         ],
       },
+      // #123: the 1cm-allowance cut line, matching the other serializers'
+      // own squareModel fixture -- a 12x12 square.
+      cutOutline: {
+        start: { x: -1, y: -1 },
+        segs: [
+          { kind: "line", to: { x: 11, y: -1 } },
+          { kind: "line", to: { x: 11, y: 11 } },
+          { kind: "line", to: { x: -1, y: 11 } },
+          { kind: "line", to: { x: -1, y: -1 } },
+        ],
+      },
+      cutWidthCm: 12,
+      cutHeightCm: 12,
       grainline: [
         { x: 5, y: 1 },
         { x: 5, y: 9 },
@@ -55,12 +68,30 @@ describe("toSvg", () => {
     expect(svg).toContain("L120 20");
   });
 
-  it("one outline path per piece + a size/allowance annotation in the header", () => {
+  // #123: a solid cut-line path plus a dashed net-line path per piece.
+  it("two outline paths per piece (cut + net) + a size/allowance annotation in the header", () => {
     const svg = toSvg(model);
-    expect(svg.match(/<path /g)?.length).toBe(1);
+    expect(svg.match(/<path /g)?.length).toBe(2);
     expect(svg).toContain("tam M");
-    expect(svg).toContain("folga 1cm (net line)");
+    expect(svg).toContain(
+      "folga 1cm (contorno sólido = linha de corte, tracejado = linha de costura líquida)",
+    );
     expect(svg).toContain("Camiseta &amp; Cia"); // XML-escaped
+  });
+
+  it("cut line is solid, net line is dashed and visually distinct", () => {
+    const svg = toSvg(model);
+    const paths = svg.split("\n").filter((l) => l.includes("<path "));
+    expect(paths).toHaveLength(2);
+    const cutPath = paths.find(
+      (p) => p.includes('stroke="#000"') && !p.includes("stroke-dasharray"),
+    );
+    const netPath = paths.find((p) => p.includes('stroke-dasharray="3 2"'));
+    expect(cutPath).toBeDefined();
+    expect(netPath).toBeDefined();
+    // cut line spans the 12cm square (origin 2cm -> 10..110mm), net the 10cm one (20..110... )
+    expect(cutPath).toContain("M10 10");
+    expect(netPath).toContain("M20 20");
   });
 
   // #83: XML forbids "--" anywhere inside a comment, and a run ending in "-"

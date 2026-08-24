@@ -1,6 +1,7 @@
 import type { Pattern, SizeLabel } from "@/lib/types";
 import { bbox, type DraftedPiece, type Pt } from "@/lib/draft/core";
 import { draftPiecesCm } from "@/lib/draft/garment";
+import { offsetOutlineCm } from "./offset";
 import type { Translate } from "@/lib/i18n/translate";
 
 export type ExPt = { x: number; y: number };
@@ -14,6 +15,19 @@ export interface ExportPiece {
   widthCm: number;
   heightCm: number;
   outline: { start: ExPt; segs: ExSeg[] };
+  // #123: the real cut line -- the net `outline` above offset outward by
+  // the pattern's `seamAllowanceCm` (0 across a `fold`, see offsetOutlineCm)
+  // and flattened to straight segments, the same way lib/export/dxf.ts
+  // already flattens curves for DXF/PDF (there is no exact cubic offset of
+  // a cubic, and a dense polyline is well within cutting tolerance). Always
+  // present -- unlike `fold`, every piece has a seam allowance, even a
+  // sleeve with no axis of symmetry.
+  cutOutline: { start: ExPt; segs: ExSeg[] };
+  // bbox of cutOutline, in the same local (shifted-to-net-bbox) frame as
+  // widthCm/heightCm -- can run negative/exceed widthCm/heightCm since the
+  // cut line extends past the net line on every non-fold side.
+  cutWidthCm: number;
+  cutHeightCm: number;
   grainline?: [ExPt, ExPt];
   // #122: one entry per dart -- a fitted front/back panel carries two,
   // symmetric about its own centre line.
@@ -100,6 +114,20 @@ export function outlineSegments(
   return { start: P(at(0)), segs };
 }
 
+// #123: wraps an already-flat, already-closed point loop (offsetOutlineCm's
+// output) into the same { start, segs } shape outlineSegments produces, one
+// line-kind seg per edge including the wraparound back to `start` --
+// matching outlineSegments's own edge count (n segs for n points) so
+// flattenOutlineCm's first/last-vertex dedup behaves identically for a cut
+// line as it does for a net line that happens to have no curves.
+function flatLoopToSegments(pts: ExPt[]): { start: ExPt; segs: ExSeg[] } {
+  const n = pts.length;
+  const at = (i: number) => pts[((i % n) + n) % n];
+  const segs: ExSeg[] = [];
+  for (let i = 0; i < n; i++) segs.push({ kind: "line", to: at(i + 1) });
+  return { start: at(0), segs };
+}
+
 // #59: `size` defaults to the base size (unchanged behavior for a pattern
 // with nothing graded); passing an applied size re-drafts the export in that
 // size's own measurements instead of always the base. There is no separate
@@ -115,15 +143,29 @@ export function buildExportModel(
   const resolvedSize = pattern.sizeTable[size] ? size : pattern.baseSize;
   const baseMeasurements = pattern.sizeTable[resolvedSize];
   const drafted: DraftedPiece[] = draftPiecesCm(spec, baseMeasurements, t);
+  const allowanceCm = spec.style.seamAllowanceCm ?? 1;
 
   const padCm = 6;
   const gapCm = 8;
 
   // 1) Normalize each piece to its own bbox (local geometry) and store w/h.
-  const pieces: ExportPiece[] = drafted.map((dp) => {
+  const built = drafted.map((dp) => {
     const b = bbox(dp.outlineCm);
     const shift = (pt: Pt): Pt => [pt[0] - b.minX, pt[1] - b.minY];
     const local = dp.outlineCm.map(shift);
+    // #123: offset computed on the pre-shift outline (translation commutes
+    // with offsetting), then shifted by the same (minX,minY) as the net
+    // outline above so both share one local coordinate frame -- the cut
+    // line legitimately runs negative/past widthCm-heightCm on the sides
+    // that grew, since the net outline's own bbox is what the frame is
+    // anchored to.
+    const cutPts = offsetOutlineCm(
+      dp.outlineCm,
+      dp.curvedSpans ?? [],
+      dp.foldEdge,
+      allowanceCm,
+    ).map((pt) => P(shift([pt.x, pt.y])));
+    const cutB = bbox(cutPts.map((pt) => [pt.x, pt.y] as Pt));
     const ep: ExportPiece = {
       id: dp.id,
       name: dp.name,
@@ -131,6 +173,9 @@ export function buildExportModel(
       widthCm: b.w,
       heightCm: b.h,
       outline: outlineSegments(local, dp.curvedSpans ?? []),
+      cutOutline: flatLoopToSegments(cutPts),
+      cutWidthCm: cutB.w,
+      cutHeightCm: cutB.h,
       originCm: { x: padCm, y: padCm }, // position set by the packing below
     };
     if (dp.grainlineCm) {
@@ -141,37 +186,60 @@ export function buildExportModel(
     if (darts.length)
       ep.darts = darts.map((pts) => pts.map((pt) => P(shift(pt))));
     if (dp.foldEdge) {
-      const [a, b] = dp.foldEdge;
-      ep.fold = [P(shift(dp.outlineCm[a])), P(shift(dp.outlineCm[b]))];
+      const [a, b2] = dp.foldEdge;
+      ep.fold = [P(shift(dp.outlineCm[a])), P(shift(dp.outlineCm[b2]))];
     }
-    return ep;
+    // #123: how far the cut line's own bbox reaches past the net outline's
+    // on each side -- a mitred convex corner can grow further than a plain
+    // edge offset (unbounded as the corner gets sharper), so the packing
+    // below has to reserve exactly this much extra room per piece or two
+    // neighbours' solid cut lines can touch/overlap on the printed sheet.
+    const growLeft = Math.max(0, -cutB.minX);
+    const growTop = Math.max(0, -cutB.minY);
+    const growRight = Math.max(0, cutB.maxX - b.w);
+    const growBottom = Math.max(0, cutB.maxY - b.h);
+    return {
+      ep,
+      growLeft,
+      growTop,
+      effWidthCm: growLeft + b.w + growRight,
+      effHeightCm: growTop + b.h + growBottom,
+    };
   });
 
   // 2) Shelf-packing: instead of a single horizontal row — which produced
   // sheets several meters wide and many A4 pages — it wraps the pieces into
   // rows with a near-square target width. Shrinks the bounding box (fewer
   // A4 pages when printing) without overlapping pieces. Sorts by height desc
-  // for tighter shelves; the returned array's order is preserved.
-  const widest = pieces.reduce((m, p) => Math.max(m, p.widthCm), 0);
-  const totalArea = pieces.reduce((s, p) => s + p.widthCm * p.heightCm, 0);
+  // for tighter shelves; the returned array's order is preserved. Packs by
+  // each piece's EFFECTIVE footprint (net outline padded out to the cut
+  // line's own reach, see growLeft/Top/Right/Bottom above) rather than the
+  // net outline's bbox alone, and offsets `originCm` by (growLeft, growTop)
+  // so the cut line's own bbox -- not the net one -- lands on the cursor:
+  // the actual gap between two neighbours' cut lines is exactly `gapCm`
+  // regardless of how unevenly each one grew.
+  const widest = built.reduce((m, p) => Math.max(m, p.effWidthCm), 0);
+  const totalArea = built.reduce((s, p) => s + p.effWidthCm * p.effHeightCm, 0);
   const targetW = Math.max(widest, Math.sqrt(totalArea * 1.4));
 
-  const order = [...pieces].sort((a, b) => b.heightCm - a.heightCm);
+  const order = [...built].sort((a, b) => b.effHeightCm - a.effHeightCm);
   let cursorX = padCm;
   let cursorY = padCm;
   let rowH = 0;
   let sheetRight = padCm;
   for (const p of order) {
-    if (cursorX > padCm && cursorX - padCm + p.widthCm > targetW) {
+    if (cursorX > padCm && cursorX - padCm + p.effWidthCm > targetW) {
       cursorY += rowH + gapCm; // new shelf
       cursorX = padCm;
       rowH = 0;
     }
-    p.originCm = { x: cursorX, y: cursorY };
-    cursorX += p.widthCm + gapCm;
-    rowH = Math.max(rowH, p.heightCm);
+    p.ep.originCm = { x: cursorX + p.growLeft, y: cursorY + p.growTop };
+    cursorX += p.effWidthCm + gapCm;
+    rowH = Math.max(rowH, p.effHeightCm);
     sheetRight = Math.max(sheetRight, cursorX - gapCm);
   }
+
+  const pieces = built.map((p) => p.ep);
 
   return {
     patternName: pattern.name,

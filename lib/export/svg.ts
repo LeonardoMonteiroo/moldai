@@ -44,8 +44,15 @@ export function toSvg(model: ExportModel): string {
     const X = (x: number) => f((ox + x) * MM);
     const Y = (y: number) => f((oy + y) * MM);
 
+    // #123: the cut line (with seam allowance) is the primary solid
+    // boundary now; the net stitch line is a secondary dashed path, its own
+    // dash pattern distinct from the grainline's (6 4) and the fold's (8 2 2
+    // 2) so all three read apart on screen.
     parts.push(
-      `<path d="${pathD(p.outline.start, p.outline.segs, ox, oy)}" fill="none" stroke="#000" stroke-width="0.3"/>`,
+      `<path d="${pathD(p.cutOutline.start, p.cutOutline.segs, ox, oy)}" fill="none" stroke="#000" stroke-width="0.3"/>`,
+    );
+    parts.push(
+      `<path d="${pathD(p.outline.start, p.outline.segs, ox, oy)}" fill="none" stroke="#666" stroke-width="0.2" stroke-dasharray="3 2"/>`,
     );
     if (p.grainline) {
       const [a, b] = p.grainline;
@@ -87,7 +94,7 @@ export function toSvg(model: ExportModel): string {
 
   return [
     `<?xml version="1.0" encoding="UTF-8"?>`,
-    `<!-- MoldAI · ${escapeXml(xmlCommentText(model.patternName))} · tam ${escapeXml(xmlCommentText(model.size))} · folga ${model.seamAllowanceCm ?? 0}cm (net line) -->`,
+    `<!-- MoldAI · ${escapeXml(xmlCommentText(model.patternName))} · tam ${escapeXml(xmlCommentText(model.size))} · folga ${model.seamAllowanceCm ?? 0}cm (contorno sólido = linha de corte, tracejado = linha de costura líquida) -->`,
     `<svg xmlns="http://www.w3.org/2000/svg" width="${f(w)}mm" height="${f(h)}mm" viewBox="0 0 ${f(w)} ${f(h)}">`,
     ...parts,
     `</svg>`,
