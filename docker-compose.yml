@@ -47,7 +47,15 @@ services:
       # 5433 choice. Reset to nothing in docker-compose.prod.yml.
       - "6380:6379"
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:?set REDIS_PASSWORD in .env.local}", "--no-auth-warning", "ping"]
+      test:
+        [
+          "CMD",
+          "redis-cli",
+          "-a",
+          "${REDIS_PASSWORD:?set REDIS_PASSWORD in .env.local}",
+          "--no-auth-warning",
+          "ping",
+        ]
       interval: 5s
       timeout: 3s
       retries: 10
