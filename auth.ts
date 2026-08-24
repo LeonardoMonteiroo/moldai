@@ -5,6 +5,7 @@ import { getUserByEmail } from "@/lib/db/users";
 import { verifyPassword } from "@/lib/auth/hash";
 import { consume, reset } from "@/lib/rate-limit/consume";
 import { clientIp } from "@/lib/rate-limit/ip";
+import { secureCookiesForEnv } from "@/lib/auth/cookies";
 
 // Auth.js surfaces a CredentialsSignin subclass's `code` to the caller, so
 // /login can tell these apart instead of showing "senha inválida" for both.
@@ -20,6 +21,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   // Self-hosted (Docker/`next start`): Auth.js v5 only trusts the host
   // automatically in dev. In production, without this every auth request fails with UntrustedHost.
   trustHost: true,
+  // #27: without this, @auth/core derives it from the request's own
+  // protocol (node_modules/@auth/core/lib/init.js) -- so a reverse proxy
+  // that terminates TLS but doesn't forward x-forwarded-proto: https would
+  // silently issue the session cookie without Secure/the __Secure- prefix.
+  useSecureCookies: secureCookiesForEnv(process.env.NODE_ENV),
   // #28: explicit rather than inherited -- @auth/core's own default is also
   // 30 days (node_modules/@auth/core/lib/init.js), so this changes nothing
   // today; it makes the session lifetime a decision instead of a value this
