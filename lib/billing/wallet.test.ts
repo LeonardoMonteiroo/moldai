@@ -7,6 +7,7 @@ import {
   renewWallet,
   renewsInDays,
   isRenewalDue,
+  type LedgerEntry,
 } from "./wallet";
 
 const NOW = new Date("2026-08-17T12:00:00.000Z");
@@ -62,9 +63,10 @@ describe("applyPurchase", () => {
     expect(w.balance).toBe(500);
     expect(w.total).toBe(500);
     expect(w.renewsAt).toEqual(new Date("2026-09-16T12:00:00.000Z"));
+    // #38: amount is the balance delta (500 - 10), not the plan size.
     expect(entry).toEqual({
       type: "subscribe",
-      amount: 500,
+      amount: 490,
       balanceAfter: 500,
     });
   });
@@ -74,6 +76,8 @@ describe("applyPurchase", () => {
     const entry = applyPurchase(w, "subscribe", NOW);
     expect(w.balance).toBe(600); // 500 plan + 100 purchased, not just 500
     expect(w.purchased).toBe(100);
+    // #38: amount is the delta (600 - 130), not the flat plan size.
+    expect(entry.amount).toBe(470);
     expect(entry.balanceAfter).toBe(600);
   });
 });
@@ -86,7 +90,9 @@ describe("renewWallet", () => {
     const entry = renewWallet(w, NOW);
     expect(w.balance).toBe(30);
     expect(w.renewsAt).toEqual(new Date("2026-09-16T00:00:00.000Z"));
-    expect(entry).toEqual({ type: "renew", amount: 30, balanceAfter: 30 });
+    // #38: amount is the delta the renewal actually moved (12 -> 30 is +18),
+    // not the flat plan size — the bug this issue closes.
+    expect(entry).toEqual({ type: "renew", amount: 18, balanceAfter: 30 });
   });
   it("rolls forward from the scheduled date, not from now (no drift on late cron runs)", () => {
     const w = seedWallet(NOW);
@@ -100,7 +106,37 @@ describe("renewWallet", () => {
     const entry = renewWallet(w, NOW);
     expect(w.balance).toBe(130); // total (30) + purchased (100), not reset to 30
     expect(w.purchased).toBe(100);
-    expect(entry).toEqual({ type: "renew", amount: 30, balanceAfter: 130 });
+    // #38: the balance was already at the post-renewal value (130), so the
+    // renewal moved it by 0 — a flat plan-size amount would wrongly claim +30.
+    expect(entry).toEqual({ type: "renew", amount: 0, balanceAfter: 130 });
+  });
+});
+
+// #38: amount meant "delta" for debit/refund/topup but "new absolute
+// balance" for renew/subscribe, so summing an append-only ledger — the
+// obvious way to audit one — never reproduced Wallet.balance for any account
+// that had ever renewed or subscribed. This drives every entry type through
+// one wallet and asserts the running sum tracks the balance throughout,
+// using the same sign convention UsageSection.tsx renders with (debit is the
+// only type that *reduces* balance).
+describe("ledger amount invariant", () => {
+  it("summing every entry's signed amount reproduces the balance movement, across all entry types", () => {
+    const w = seedWallet(NOW);
+    let runningBalance = w.balance;
+    const entries: LedgerEntry[] = [];
+
+    entries.push(debitWallet(w, 4, "generate"));
+    entries.push(refundWallet(w, 4, "generate-error"));
+    entries.push(applyPurchase(w, "topup", NOW)); // balance 130, purchased 100
+    w.renewsAt = new Date("2026-08-01T00:00:00.000Z"); // force a renewal to be due
+    entries.push(renewWallet(w, NOW)); // total 30 + purchased 100 = still 130
+    entries.push(applyPurchase(w, "subscribe", NOW)); // 500 + purchased 100
+
+    for (const entry of entries) {
+      runningBalance += entry.type === "debit" ? -entry.amount : entry.amount;
+      expect(runningBalance).toBe(entry.balanceAfter);
+    }
+    expect(runningBalance).toBe(w.balance);
   });
 });
 

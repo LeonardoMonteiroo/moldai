@@ -78,14 +78,21 @@ export function applyPurchase(
       wallet.balance += 100;
       wallet.purchased += 100;
       return { type: "topup", amount: 100, balanceAfter: wallet.balance };
-    case "subscribe":
-      wallet.plan = "atelier";
-      wallet.total = 500;
+    case "subscribe": {
       // Plan allowance plus whatever top-up credits were already bought —
       // upgrading plans must not erase them either (#37).
-      wallet.balance = 500 + wallet.purchased;
+      const newBalance = 500 + wallet.purchased;
+      // #38: amount is the balance *delta*, like every other ledger entry
+      // type — not the plan size — so summing the ledger reproduces
+      // wallet.balance instead of overstating the movement whenever the
+      // account wasn't starting from empty.
+      const delta = newBalance - wallet.balance;
+      wallet.plan = "atelier";
+      wallet.total = 500;
+      wallet.balance = newBalance;
       wallet.renewsAt = new Date(now.getTime() + 30 * DAY_MS);
-      return { type: "subscribe", amount: 500, balanceAfter: wallet.balance };
+      return { type: "subscribe", amount: delta, balanceAfter: wallet.balance };
+    }
     default: {
       const exhaustive: never = type;
       throw new Error(`unhandled purchase type: ${String(exhaustive)}`);
@@ -110,10 +117,15 @@ export function isRenewalDue(wallet: Wallet, now: Date): boolean {
 export function renewWallet(wallet: Wallet, now: Date): LedgerEntry {
   // "Use it or lose it" resets only the monthly plan allowance; purchased
   // top-up credits (#37) are never touched by a renewal.
-  wallet.balance = wallet.total + wallet.purchased;
+  const newBalance = wallet.total + wallet.purchased;
+  // #38: amount is the delta the renewal actually moved the balance by, not
+  // the plan size — a user who ends the month with credits left over sees a
+  // renewal amount smaller than the full allowance, matching what changed.
+  const delta = newBalance - wallet.balance;
+  wallet.balance = newBalance;
   const base = wallet.renewsAt ?? now;
   wallet.renewsAt = new Date(base.getTime() + 30 * DAY_MS);
-  return { type: "renew", amount: wallet.total, balanceAfter: wallet.balance };
+  return { type: "renew", amount: delta, balanceAfter: wallet.balance };
 }
 
 // Wire-facing days-remaining, replaces the old static Credits.renewsInDays.
