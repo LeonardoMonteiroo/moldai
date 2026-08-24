@@ -155,7 +155,7 @@
       "skirt": "Saia"
     },
     "rows": {
-      "seamAllowance": "Folga de costura",
+      "seamAllowance": "Folga de costura (na linha de corte)",
       "chestWidth": "Largura (tórax)",
       "length": "Comprimento",
       "armhole": "Cava (esta peça)",
