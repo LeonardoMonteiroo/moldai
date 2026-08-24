@@ -224,7 +224,7 @@ describe("toDxf", () => {
     );
   });
 
-  it("declares the six named layers", () => {
+  it("declares the seven named layers", () => {
     const dxf = toDxf(squareModel);
     for (const layer of [
       "CONTORNO",
@@ -233,6 +233,7 @@ describe("toDxf", () => {
       "GRAINLINE",
       "TEXTO",
       "DOBRA",
+      "PIQUE",
     ]) {
       expect(dxf).toContain(layer);
     }
@@ -258,6 +259,30 @@ describe("toDxf", () => {
       pieces: [{ ...squareModel.pieces[0], fold: undefined }],
     };
     expect(toDxf(noFold)).not.toContain("DOBRA\n10");
+  });
+
+  // #124: geometry-only, matching the grainline/fold's own no-text
+  // precedent -- one LINE per notch, on its own PIQUE layer.
+  it("each notch comes out as a LINE on the PIQUE layer; no notches means none", () => {
+    const notchModel: ExportModel = {
+      ...squareModel,
+      pieces: [
+        {
+          ...squareModel.pieces[0],
+          notches: [
+            {
+              type: "single",
+              outer: { x: 0, y: 5 },
+              inner: { x: 0.3, y: 5 },
+            },
+          ],
+        },
+      ],
+    };
+    const dxf = toDxf(notchModel);
+    // origin (2,2)cm, sheetHeightCm=30: X=(2+x)*10, Y=(30-(2+y))*10
+    expect(dxf).toMatch(/LINE\n8\nPIQUE\n10\n20\n20\n230\n11\n23\n21\n230/);
+    expect(toDxf(squareModel)).not.toContain("PIQUE\n10");
   });
 
   // #87: the dart used to close (p(70,1)), drawing a fourth segment straight

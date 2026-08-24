@@ -1,4 +1,4 @@
-import type { Pattern, SizeLabel } from "@/lib/types";
+import type { NotchType, Pattern, SizeLabel } from "@/lib/types";
 import { bbox, type DraftedPiece, type Pt } from "@/lib/draft/core";
 import { draftPiecesCm } from "@/lib/draft/garment";
 import { offsetOutlineCm } from "./offset";
@@ -36,7 +36,19 @@ export interface ExportPiece {
   // vertices (see DraftedPiece.foldEdge) -- absent on a piece with no fold
   // (e.g. a sleeve) or drafted before this existed.
   fold?: [ExPt, ExPt];
+  // #124: one tick per notch -- outer (on the net outline) to inner (depth
+  // toward the piece interior). Absent on a piece drafted before this
+  // existed, or one no convention places a mark on.
+  notches?: ExportNotch[];
   originCm: ExPt;
+}
+
+// #124: mirrors lib/draft/core.ts's NotchCm, in the same local (shifted-to-
+// net-bbox) frame as outline/grainline/darts/fold.
+export interface ExportNotch {
+  type: NotchType;
+  outer: ExPt;
+  inner: ExPt;
 }
 
 export interface ExportModel {
@@ -188,6 +200,13 @@ export function buildExportModel(
     if (dp.foldEdge) {
       const [a, b2] = dp.foldEdge;
       ep.fold = [P(shift(dp.outlineCm[a])), P(shift(dp.outlineCm[b2]))];
+    }
+    if (dp.notches?.length) {
+      ep.notches = dp.notches.map((n) => ({
+        type: n.type,
+        outer: P(shift(n.outerCm)),
+        inner: P(shift(n.innerCm)),
+      }));
     }
     // #123: how far the cut line's own bbox reaches past the net outline's
     // on each side -- a mitred convex corner can grow further than a plain

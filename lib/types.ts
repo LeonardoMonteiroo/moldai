@@ -80,6 +80,30 @@ export interface DetailRow {
   value: string;
 }
 
+// #124: the typed set settled by the 2026-08-22 competitive/domain review --
+// single/double is the standard front/back marking convention, triple is a
+// third distinct mark for anything else (currently unused by any drafter,
+// reserved for a future one). There is no per-type geometry beyond depth
+// (see lib/draft/core.ts's NOTCH_DEPTH_CM): the three types are told apart
+// purely by how deep the tick reaches into the seam allowance, which is
+// simultaneously the AC's own "printable size" (3mm/6mm) -- cm depth and
+// printed size are the same number, nothing to keep in sync.
+export type NotchType = "single" | "double" | "triple";
+
+// A notch tick, already placed and oriented in px (canvas/export local
+// space) -- two points, outer (on the net outline) and inner (depth along
+// the local inward normal), the same two-point-line shape `grainline`
+// already uses. Derived at draft time, never user-movable and never
+// persisted onto the blob (lib/draft/core.ts's `place()` builds these from
+// each drafter's `DraftedPiece.notches`).
+export interface PieceNotch {
+  type: NotchType;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}
+
 export interface Piece {
   id: string;
   name: string;
@@ -98,6 +122,9 @@ export interface Piece {
   // walked by `outline` itself. Absent on a piece with no fold (e.g. a
   // sleeve) and on a piece drafted before this existed.
   foldEdge?: [number, number];
+  // #124: absent on a piece drafted before this existed, or one no
+  // convention places a mark on.
+  notches?: PieceNotch[];
   detailRows: DetailRow[];
 }
 

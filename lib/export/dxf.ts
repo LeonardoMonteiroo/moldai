@@ -49,6 +49,7 @@ const LAYERS = [
   "GRAINLINE",
   "TEXTO",
   "DOBRA",
+  "PIQUE", // #124
 ] as const;
 
 export function toDxf(model: ExportModel): string {
@@ -143,6 +144,17 @@ export function toDxf(model: ExportModel): string {
       p(20, Y(a.y));
       p(11, X(b.x));
       p(21, Y(b.y));
+    }
+
+    // #124: one LINE per notch (outer -> inner), geometry-only like the
+    // grainline/fold above.
+    for (const notch of piece.notches ?? []) {
+      p(0, "LINE");
+      p(8, "PIQUE");
+      p(10, X(notch.outer.x));
+      p(20, Y(notch.outer.y));
+      p(11, X(notch.inner.x));
+      p(21, Y(notch.inner.y));
     }
 
     // #87/#122: open (0), not closed (1) -- matches the AAMA exporter's own

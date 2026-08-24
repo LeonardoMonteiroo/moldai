@@ -74,6 +74,14 @@ export function toSvg(model: ExportModel): string {
         `<path d="${dd}" fill="none" stroke="#4a5a3a" stroke-width="0.3"/>`,
       );
     }
+    // #124: one short tick per notch, single/double/triple told apart
+    // purely by how far it reaches (NOTCH_DEPTH_CM), matching the cut
+    // line's own solid black.
+    for (const notch of p.notches ?? []) {
+      parts.push(
+        `<line x1="${X(notch.outer.x)}" y1="${Y(notch.outer.y)}" x2="${X(notch.inner.x)}" y2="${Y(notch.inner.y)}" stroke="#000" stroke-width="0.3"/>`,
+      );
+    }
     if (p.fold) {
       // #126: a chain dash (long-short), distinct from the grainline's even
       // dash, matching the cut-on-fold symbol pattern-making convention.

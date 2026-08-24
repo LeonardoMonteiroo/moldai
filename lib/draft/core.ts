@@ -1,4 +1,4 @@
-import { DetailRow, Piece, PieceOutline } from "@/lib/types";
+import { DetailRow, NotchType, Piece, PieceOutline } from "@/lib/types";
 
 export const SCALE = 4; // px per cm
 export const PX = (cm: number) => Math.round(cm * SCALE * 10) / 10;
@@ -24,8 +24,167 @@ export interface DraftedPiece {
   // existing vertex there insert one exactly on a straight edge it already
   // walks, so the outline's rendered shape is unchanged).
   foldEdge?: [number, number];
+  // #124: derived, never persisted -- see NotchCm below.
+  notches?: NotchCm[];
   detailRows: DetailRow[];
   armholeLenCm?: number;
+}
+
+// #124: depth is the only thing that tells the three NotchTypes apart --
+// see lib/types.ts's PieceNotch doc for why that's also the AC's own
+// "printable size" (3mm/6mm), not a separate number to keep in sync.
+export const NOTCH_DEPTH_CM: Record<NotchType, number> = {
+  single: 0.3,
+  double: 0.6,
+  triple: 0.9,
+};
+
+// A notch, in the drafter's own cm space -- outerCm on the net outline,
+// innerCm nudged inward by NOTCH_DEPTH_CM[type]. core.ts's place() turns
+// this into a Piece's PieceNotch (px, translated into the packed layout).
+export interface NotchCm {
+  type: NotchType;
+  outerCm: Pt;
+  innerCm: Pt;
+}
+
+// A notch tick at `point`, oriented perpendicular to `tangent` and biased
+// toward `insideRef` -- a point the caller knows lies inside the piece --
+// so the tick always points into the fabric regardless of which winding
+// direction that particular outline happens to walk (drafters mix clockwise
+// and counter-clockwise; see lib/export/offset.ts's own self-calibration
+// for the same underlying problem on a whole outline rather than one point).
+export function notchAt(
+  point: Pt,
+  tangent: Pt,
+  insideRef: Pt,
+  type: NotchType,
+): NotchCm {
+  const len = Math.hypot(tangent[0], tangent[1]) || 1;
+  let nx = -tangent[1] / len;
+  let ny = tangent[0] / len;
+  const dx = insideRef[0] - point[0];
+  const dy = insideRef[1] - point[1];
+  if (nx * dx + ny * dy < 0) {
+    nx = -nx;
+    ny = -ny;
+  }
+  const depth = NOTCH_DEPTH_CM[type];
+  return {
+    type,
+    outerCm: point,
+    innerCm: [point[0] + nx * depth, point[1] + ny * depth],
+  };
+}
+
+// A notch exactly at outline vertex `idx`, whose tangent is approximated
+// from its immediate neighbours -- exact when `idx` is (as #126's foldEdge
+// vertices already are) a midpoint inserted on a straight edge, since the
+// neighbours are then collinear with it, and a good approximation at a
+// smooth symmetric peak (a sleeve cap apex), where the true curve tangent
+// is horizontal by symmetry and so is next-minus-prev.
+export function notchAtVertex(
+  ptsCm: Pt[],
+  idx: number,
+  insideRef: Pt,
+  type: NotchType,
+): NotchCm {
+  const n = ptsCm.length;
+  const prev = ptsCm[(idx - 1 + n) % n];
+  const next = ptsCm[(idx + 1) % n];
+  return notchAt(
+    ptsCm[idx],
+    [next[0] - prev[0], next[1] - prev[1]],
+    insideRef,
+    type,
+  );
+}
+
+// Point + local tangent walking `distCm` from vertex `from` toward `to`
+// (`from < to`, following outline order), along the same Catmull-Rom/Bézier
+// geometry curveArcLengthCm measures -- so a notch placed here on one piece
+// and another placed at the same distCm on a mated piece land at truly
+// corresponding positions, "generated as pairs from the same computation"
+// (#124). distCm is clamped to the segment's own arc length in both
+// directions (never lands before `from` or past `to`).
+export function pointAndTangentAtCm(
+  ptsCm: Pt[],
+  curvedSpans: [number, number][],
+  from: number,
+  to: number,
+  distCm: number,
+): { point: Pt; tangent: Pt } {
+  const n = ptsCm.length;
+  const at = (i: number) => ptsCm[(i + n) % n];
+  const spanFor = (i: number) =>
+    curvedSpans.find(([a, b]) => i >= a && i + 1 <= b);
+  const samplesPerEdge = 32;
+  let remaining = Math.max(0, distCm);
+  for (let i = from; i < to; i++) {
+    const p1 = at(i);
+    const p2 = at(i + 1);
+    const span = spanFor(i);
+    const isLastEdge = i === to - 1;
+    if (!span) {
+      const segLen = Math.hypot(p2[0] - p1[0], p2[1] - p1[1]);
+      if (remaining <= segLen || isLastEdge) {
+        const u = segLen === 0 ? 0 : Math.min(1, remaining / segLen);
+        return {
+          point: [p1[0] + (p2[0] - p1[0]) * u, p1[1] + (p2[1] - p1[1]) * u],
+          tangent: [p2[0] - p1[0], p2[1] - p1[1]],
+        };
+      }
+      remaining -= segLen;
+      continue;
+    }
+    const [a, b] = span;
+    const p0 = i === a ? p1 : at(i - 1);
+    const p3 = i + 1 === b ? p2 : at(i + 2);
+    const c1: Pt = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+    const c2: Pt = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+    let prev = p1;
+    for (let s = 1; s <= samplesPerEdge; s++) {
+      const pt = bezierPoint(p1, c1, c2, p2, s / samplesPerEdge);
+      const segLen = Math.hypot(pt[0] - prev[0], pt[1] - prev[1]);
+      if (remaining <= segLen || (isLastEdge && s === samplesPerEdge)) {
+        const u = segLen === 0 ? 0 : Math.min(1, remaining / segLen);
+        return {
+          point: [
+            prev[0] + (pt[0] - prev[0]) * u,
+            prev[1] + (pt[1] - prev[1]) * u,
+          ],
+          tangent: [pt[0] - prev[0], pt[1] - prev[1]],
+        };
+      }
+      remaining -= segLen;
+      prev = pt;
+    }
+  }
+  // from === to: nothing to walk -- land exactly on `from`.
+  const p1 = at(from);
+  const p2 = at(from + 1);
+  return { point: p1, tangent: [p2[0] - p1[0], p2[1] - p1[1]] };
+}
+
+// notchAt + pointAndTangentAtCm combined -- the common case a drafter
+// actually calls.
+export function notchAtArcLengthCm(
+  ptsCm: Pt[],
+  curvedSpans: [number, number][],
+  from: number,
+  to: number,
+  distCm: number,
+  insideRef: Pt,
+  type: NotchType,
+): NotchCm {
+  const { point, tangent } = pointAndTangentAtCm(
+    ptsCm,
+    curvedSpans,
+    from,
+    to,
+    distCm,
+  );
+  return notchAt(point, tangent, insideRef, type);
 }
 
 export function bbox(pts: Pt[]) {
@@ -177,6 +336,15 @@ function place(dp: DraftedPiece, dxPx: number, dyPx: number): Piece {
     y: PX(y) + dyPx,
   }));
   if (dp.foldEdge) piece.foldEdge = dp.foldEdge;
+  if (dp.notches?.length) {
+    piece.notches = dp.notches.map((n) => ({
+      type: n.type,
+      x1: PX(n.outerCm[0]) + dxPx,
+      y1: PX(n.outerCm[1]) + dyPx,
+      x2: PX(n.innerCm[0]) + dxPx,
+      y2: PX(n.innerCm[1]) + dyPx,
+    }));
+  }
   if (dp.guideCm)
     piece.guideOutline = translateOutline(polyPath(dp.guideCm), dxPx, dyPx);
   if (dp.grainlineCm) {

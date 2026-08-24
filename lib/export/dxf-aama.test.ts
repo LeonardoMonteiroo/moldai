@@ -95,10 +95,11 @@ describe("toDxfAama", () => {
     expect(dxf).toContain("tam M");
   });
 
-  it("declares numbered layers (1/6/7/8/14), not the generic DXF's named ones", () => {
+  it("declares numbered layers (1/4/6/7/8/14), not the generic DXF's named ones", () => {
     const dxf = toDxfAama(squareModel);
     // the TABLE LAYER block contains the numeric names
     expect(dxf).toMatch(/LAYER\n2\n1\n/);
+    expect(dxf).toMatch(/LAYER\n2\n4\n/);
     expect(dxf).toMatch(/LAYER\n2\n6\n/);
     expect(dxf).toMatch(/LAYER\n2\n7\n/);
     expect(dxf).toMatch(/LAYER\n2\n8\n/);
@@ -116,6 +117,28 @@ describe("toDxfAama", () => {
       pieces: [{ ...squareModel.pieces[0], fold: undefined }],
     };
     expect(toDxfAama(noFold)).not.toMatch(/\n8\n6\n/);
+  });
+
+  // #124: ASTM D6673 reserves layer 4 for notches.
+  it("each notch comes out as a LINE on layer 4; no notches means no layer 4", () => {
+    const notchModel: ExportModel = {
+      ...squareModel,
+      pieces: [
+        {
+          ...squareModel.pieces[0],
+          notches: [
+            {
+              type: "single",
+              outer: { x: 0, y: 5 },
+              inner: { x: 0.3, y: 5 },
+            },
+          ],
+        },
+      ],
+    };
+    const dxf = toDxfAama(notchModel);
+    expect(dxf).toMatch(/LINE\n8\n4\n10\n0\n20\n50\n11\n3\n21\n50/);
+    expect(toDxfAama(squareModel)).not.toMatch(/\n8\n4\n/);
   });
 
   it("a piece becomes BLOCK + INSERT, with POLYLINE/SEQEND (R13) and no LWPOLYLINE", () => {

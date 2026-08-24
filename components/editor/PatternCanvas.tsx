@@ -287,6 +287,22 @@ export function PatternCanvas({
                 style={{ strokeWidth: 1.2 }}
               />
             ))}
+            {/* #124: a short tick from the outline inward at each notch --
+                single/double/triple are told apart purely by how far the
+                tick reaches (NOTCH_DEPTH_CM), matching the printed/exported
+                marks rather than a second visual channel like color or
+                width. */}
+            {piece.notches?.map((notch, i) => (
+              <line
+                key={i}
+                x1={notch.x1}
+                y1={notch.y1}
+                x2={notch.x2}
+                y2={notch.y2}
+                className="stroke-ink"
+                style={{ strokeWidth: 1.5 }}
+              />
+            ))}
             {piece.foldEdge &&
               piece.vertices &&
               (() => {

@@ -236,6 +236,8 @@ function draftAll(
       back,
       armholeLenCm: a,
       armholeBaseLenCm,
+      pitchNotchCm,
+      basePitchNotchCm,
     } = draftBody(measurements, style, t, opts);
     armholeLenCm = a;
     drafted.push(front, back);
@@ -243,7 +245,21 @@ function draftAll(
     // already been refit (the sleeve-fix action sets style.sleeveRefit). This way
     // an armhole adjustment on the body alone makes the seams diverge → real conflict.
     const sleeveArmhole = style.sleeveRefit ? a : armholeBaseLenCm;
-    const sleeve = draftSleeve(measurements, style, sleeveArmhole, t, opts);
+    // #124: whichever pitch-notch distance matches the armhole the cap was
+    // ACTUALLY drafted against (refit or not) -- the same actual/base choice
+    // as sleeveArmhole above, so the two pieces' pitch notches land at truly
+    // matching positions.
+    const sleevePitchNotchCm = style.sleeveRefit
+      ? pitchNotchCm
+      : basePitchNotchCm;
+    const sleeve = draftSleeve(
+      measurements,
+      style,
+      sleeveArmhole,
+      t,
+      opts,
+      sleevePitchNotchCm,
+    );
     if (sleeve) {
       drafted.push(sleeve);
       // The armhole the drafted cap actually fits, measured from its own
@@ -254,7 +270,9 @@ function draftAll(
     }
   }
   if (spec.type === "skirt" || spec.type === "dress") {
-    drafted.push(draftSkirt(measurements, spec.style, t));
+    drafted.push(
+      draftSkirt(measurements, spec.style, t, spec.type === "dress"),
+    );
   }
 
   return { drafted, measurements, armholeLenCm, sleeveArmholeCm };

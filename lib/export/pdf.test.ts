@@ -215,4 +215,36 @@ describe("toPdf", () => {
     expect(content).toMatch(/0\.4 0\.4 0\.4 RG/); // net line, its own gray
     expect(content).toMatch(/\[3 2\] 0 d/); // net line's dash pattern
   });
+
+  // #124: one solid tick per notch, drawn in the same INK as the cut line
+  // (a notch is a cut mark, not an internal construction line) -- counted
+  // against a model with no notches, since both draw in the identical color.
+  it("draws one additional solid INK segment per notch", async () => {
+    const base = modelOf(20, 30);
+    const inkCount = (content: string) =>
+      (content.match(/0 0 0 RG/g) ?? []).length;
+
+    const baseBytes = await toPdf(base, "single", t);
+    const baseCount = inkCount(inflatedContent(baseBytes));
+
+    const withNotch: ExportModel = {
+      ...base,
+      pieces: [
+        {
+          ...base.pieces[0],
+          notches: [
+            {
+              type: "single",
+              outer: { x: 0, y: 5 },
+              inner: { x: 0.3, y: 5 },
+            },
+          ],
+        },
+      ],
+    };
+    const withNotchBytes = await toPdf(withNotch, "single", t);
+    const withNotchCount = inkCount(inflatedContent(withNotchBytes));
+
+    expect(withNotchCount).toBe(baseCount + 1);
+  });
 });

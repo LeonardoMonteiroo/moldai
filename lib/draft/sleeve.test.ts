@@ -80,4 +80,35 @@ describe("draftSleeve bell cap", () => {
     const sleeve = draftSleeve(M, { sleeve: "short" }, 39.3, t)!;
     expect(sleeve.armholeLenCm).toBeCloseTo(39.3, 1);
   });
+
+  // #124: notches by convention.
+  describe("notches", () => {
+    it("emits a single pitch notch, a double pitch notch, and a cap-apex notch", () => {
+      const sleeve = draftSleeve(M, { sleeve: "short" }, 39.3, t)!;
+      const types = sleeve.notches!.map((n) => n.type);
+      expect(types).toEqual(["single", "double", "single"]);
+    });
+
+    it("the single notch sits nearer the left underarm, the double nearer the right", () => {
+      const sleeve = draftSleeve(M, { sleeve: "short" }, 39.3, t)!;
+      const [single, double] = sleeve.notches!;
+      const [ua0] = sleeve.outlineCm; // left underarm, index 0
+      const ua4 = sleeve.outlineCm[4]; // right underarm
+      const dist = (a: [number, number], b: [number, number]) =>
+        Math.hypot(a[0] - b[0], a[1] - b[1]);
+      expect(dist(single.outerCm, ua0)).toBeLessThan(dist(single.outerCm, ua4));
+      expect(dist(double.outerCm, ua4)).toBeLessThan(dist(double.outerCm, ua0));
+    });
+
+    it("respects the pitchNotchCm passed in, clamped to a fraction of the cap arc", () => {
+      const near = draftSleeve(M, { sleeve: "short" }, 39.3, t, undefined, 2)!;
+      const far = draftSleeve(M, { sleeve: "short" }, 39.3, t, undefined, 8)!;
+      const [ua0] = near.outlineCm;
+      const dist = (a: [number, number], b: [number, number]) =>
+        Math.hypot(a[0] - b[0], a[1] - b[1]);
+      expect(dist(near.notches![0].outerCm, ua0)).toBeLessThan(
+        dist(far.notches![0].outerCm, ua0),
+      );
+    });
+  });
 });

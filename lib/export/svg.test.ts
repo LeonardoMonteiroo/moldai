@@ -48,6 +48,9 @@ const model: ExportModel = {
         { x: 5, y: 0 },
         { x: 5, y: 10 },
       ],
+      notches: [
+        { type: "single", outer: { x: 0, y: 5 }, inner: { x: 0.3, y: 5 } },
+      ],
       originCm: { x: 2, y: 2 },
     },
   ],
@@ -177,5 +180,20 @@ describe("toSvg", () => {
     const noFoldSvg = toSvg(noFoldModel);
     expect(noFoldSvg).not.toContain('stroke-dasharray="8 2 2 2"');
     expect(noFoldSvg).not.toContain(">dobra<");
+  });
+
+  // #124: one solid tick per notch, from its outer to its inner point;
+  // absent when the piece has none.
+  it("renders a solid tick line per notch; no notches means none", () => {
+    const svg = toSvg(model);
+    // origin x=2cm,y=2cm -> outer (0,5)cm -> 20,70mm ; inner (0.3,5)cm -> 23,70mm
+    expect(svg).toContain('<line x1="20" y1="70" x2="23" y2="70"');
+
+    const noNotchModel: ExportModel = {
+      ...model,
+      pieces: [{ ...model.pieces[0], notches: undefined }],
+    };
+    const noNotchSvg = toSvg(noNotchModel);
+    expect(noNotchSvg).not.toContain('x1="20" y1="70"');
   });
 });

@@ -148,6 +148,17 @@ export async function toPdf(
           page.drawLine({ start: a, end: b, thickness: 0.5, color: OLIVE });
         }
       }
+      // #124: one solid tick per notch, single/double/triple told apart
+      // purely by how far it reaches (NOTCH_DEPTH_CM) -- matching the cut
+      // line's own ink rather than a second visual channel.
+      for (const notch of pc.notches ?? []) {
+        page.drawLine({
+          start: P(notch.outer.x, notch.outer.y),
+          end: P(notch.inner.x, notch.inner.y),
+          thickness: 0.75,
+          color: INK,
+        });
+      }
       // #126: cut-on-fold line (dashed, distinct from the grainline's dash)
       // plus the pt-BR "dobra" label at its midpoint.
       if (pc.fold) {

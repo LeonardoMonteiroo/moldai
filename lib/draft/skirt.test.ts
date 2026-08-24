@@ -82,3 +82,35 @@ describe("draftSkirt", () => {
     expect(row(s0)).not.toBe(row(s4)); // the annotation itself still differs
   });
 });
+
+// #124: notches by convention.
+describe("notches (#124)", () => {
+  it.each(["straight", "a-line", "circle", "gore", "half-circle"] as const)(
+    "%s: gets only a single hem-fold notch when not a dress waist",
+    (skirt) => {
+      const dp = draftSkirt(M, { skirt }, t);
+      expect(dp.notches).toHaveLength(1);
+      expect(dp.notches![0].type).toBe("single");
+    },
+  );
+
+  it.each(["straight", "a-line", "circle", "gore", "half-circle"] as const)(
+    "%s: a dress waist adds two double waist-join notches at the outer corners",
+    (skirt) => {
+      const dp = draftSkirt(M, { skirt }, t, true);
+      expect(dp.notches).toHaveLength(3);
+      const types = dp.notches!.map((n) => n.type);
+      expect(types).toEqual(["single", "double", "double"]);
+    },
+  );
+
+  it("straight: the waist-join notches sit on the waist edge, the hem-fold on the hem edge", () => {
+    const dp = draftSkirt(M, { skirt: "straight" }, t, true);
+    const [hemFold, waistL, waistR] = dp.notches!;
+    const b = bbox(dp.outlineCm);
+    expect(hemFold.outerCm[1]).toBeCloseTo(b.maxY, 5);
+    expect(waistL.outerCm[1]).toBeCloseTo(b.minY, 5);
+    expect(waistR.outerCm[1]).toBeCloseTo(b.minY, 5);
+    expect(waistL.outerCm[0]).not.toBeCloseTo(waistR.outerCm[0], 1);
+  });
+});

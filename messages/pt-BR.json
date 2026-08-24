@@ -15,7 +15,7 @@
     "formatSvg": "SVG · 1:1 (plotter)",
     "formatDxf": "DXF · genérico 1:1 (CAD)",
     "formatDxfAama": "DXF · Audaces/AAMA-ASTM · beta",
-    "formatDxfAamaNote": "Camadas numeradas D6673. Ainda sem piques/furos.",
+    "formatDxfAamaNote": "Camadas numeradas D6673. Ainda sem furos.",
     "formatPdfA4": "PDF · A4 (colar em casa)",
     "formatPdfSingle": "PDF · folha única (plotter)",
     "statusConflict": "v{version} · não exportável com conflito",

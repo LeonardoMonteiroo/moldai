@@ -221,3 +221,63 @@ describe("dressHemHalfCm (#79)", () => {
     expect(waistLevelPoints).toHaveLength(2);
   });
 });
+
+// #124: notches by convention.
+describe("notches (#124)", () => {
+  it("front gets two single pitch notches (one per armhole curve) and a hem-fold notch; back gets double pitch notches", () => {
+    const { front, back } = draftBody(M, {}, t, optsM);
+    const frontTypes = front.notches!.map((n) => n.type);
+    const backTypes = back.notches!.map((n) => n.type);
+    expect(frontTypes).toEqual(["single", "single", "single"]);
+    expect(backTypes).toEqual(["double", "double", "single"]);
+  });
+
+  it("the front's two pitch notches sit on opposite sides of the panel's own centre", () => {
+    const { front } = draftBody(M, {}, t, optsM);
+    const b = bbox(front.outlineCm);
+    const cx = (b.minX + b.maxX) / 2;
+    const [left, right] = front.notches!;
+    expect(left.outerCm[0]).toBeLessThan(cx);
+    expect(right.outerCm[0]).toBeGreaterThan(cx);
+  });
+
+  it("the hem-fold notch sits at the piece's own hem-centre point", () => {
+    const { front } = draftBody(M, {}, t, optsM);
+    const [, , hemFold] = front.notches!;
+    const b = bbox(front.outlineCm);
+    const cx = (b.minX + b.maxX) / 2;
+    expect(hemFold.outerCm[0]).toBeCloseTo(cx, 5);
+    expect(hemFold.outerCm[1]).toBeCloseTo(b.maxY, 5);
+  });
+
+  it("a non-dress fitted panel gets no dart-leg notches (the fisheye dart touches no seam)", () => {
+    const { front } = draftBody(M, { darts: true }, t, optsM);
+    // exactly the 2 pitch + 1 hem-fold notches -- nothing dart-related.
+    expect(front.notches).toHaveLength(3);
+  });
+
+  it("a dress bodice hem gets waist-join notches at both outer corners, plus dart-leg notches per dart", () => {
+    const dressOpts: BlockOpts = {
+      ...optsM,
+      lengthCm: M.backLength,
+      dressHemHalfCm: 27,
+    };
+    const { front } = draftBody(M, { darts: true }, t, dressOpts);
+    // 2 pitch + 1 hem-fold + 2 waist-join + (2 darts × 2 legs) = 9
+    expect(front.notches).toHaveLength(9);
+    const types = front.notches!.map((n) => n.type);
+    expect(types.filter((ty) => ty === "double")).toHaveLength(2); // waist-join corners
+    expect(types.filter((ty) => ty === "single")).toHaveLength(7); // 2 pitch + hem-fold + 4 dart legs
+  });
+
+  it("a dress bodice hem with no darts still gets the waist-join notches, no dart-leg ones", () => {
+    const dressOpts: BlockOpts = {
+      ...optsM,
+      lengthCm: M.backLength,
+      dressHemHalfCm: 27,
+    };
+    const { front } = draftBody(M, { darts: false }, t, dressOpts);
+    // 2 pitch + 1 hem-fold + 2 waist-join = 5
+    expect(front.notches).toHaveLength(5);
+  });
+});

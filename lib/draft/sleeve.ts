@@ -1,6 +1,13 @@
 import { Measurements } from "@/lib/measurements";
 import { DetailRow, GarmentStyle } from "@/lib/types";
-import { curveArcLengthCm, DraftedPiece, Pt } from "./core";
+import {
+  curveArcLengthCm,
+  DraftedPiece,
+  notchAtArcLengthCm,
+  notchAtVertex,
+  NotchCm,
+  Pt,
+} from "./core";
 import { BlockOpts } from "./body";
 import { formatCm } from "@/lib/format";
 import type { Translate } from "@/lib/i18n/translate";
@@ -75,6 +82,13 @@ export function draftSleeve(
     lengthCm: 0,
     wearingEaseCm: 8,
   },
+  // #124: the arc-length rise from the underarm at which the body panels
+  // placed their own pitch notches -- garment.ts passes body.ts's own
+  // pitchNotchCm/basePitchNotchCm through unchanged so both sides land at
+  // truly matching positions "generated as pairs from the same computation".
+  // The default here only matters to a caller (a direct unit test) that
+  // doesn't care about cross-piece matching.
+  pitchNotchCm = 8,
 ): DraftedPiece | null {
   if (style.sleeve === "none" || !style.sleeve) return null;
   const wearingEase = opts.knit
@@ -111,6 +125,40 @@ export function draftSleeve(
     [cxTop, 3],
     [cxTop, capH + len - 3],
   ];
+
+  // #124: single notch walked from the left underarm (index 0), double from
+  // the right (index 4) -- an arbitrary but consistent convention, since
+  // this cap is bilaterally symmetric and either physical arm can be cut
+  // from the same flat piece by flipping the fabric. Clamped the same way
+  // body.ts clamps its own pitch distance, so a very short cap never places
+  // one past its own apex. The cap apex notch marks where the shoulder seam
+  // meets the cap; it has no single body-side counterpart to pair with (the
+  // shoulder point exists on both the front AND back panels), so it's
+  // excluded from the mated-pair cross-check in garment.test.ts.
+  const insideRef: Pt = [cxTop, capH + len / 2];
+  const clampedPitchCm = Math.min(pitchNotchCm, measuredCapArcCm * 0.35);
+  const notches: NotchCm[] = [
+    notchAtArcLengthCm(
+      capPts,
+      curvedSpans,
+      0,
+      4,
+      clampedPitchCm,
+      insideRef,
+      "single",
+    ),
+    notchAtArcLengthCm(
+      capPts,
+      curvedSpans,
+      0,
+      4,
+      measuredCapArcCm - clampedPitchCm,
+      insideRef,
+      "double",
+    ),
+    notchAtVertex(capPts, 2, insideRef, "single"),
+  ];
+
   const detailRows: DetailRow[] = [
     { label: t("rows.sleeveType"), value: t("sleeveType." + style.sleeve) },
     { label: t("rows.length"), value: cm(capH + len) },
@@ -124,6 +172,7 @@ export function draftSleeve(
     outlineCm,
     curvedSpans,
     grainlineCm,
+    notches,
     detailRows,
     armholeLenCm: fittedArmholeLenCm,
   };

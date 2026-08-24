@@ -189,6 +189,34 @@ describe("PatternCanvas dart", () => {
   });
 });
 
+// #124: a notch tick renders as a short <line>, one per entry in
+// piece.notches, distinct from the dart/grainline/fold lines already tested
+// above.
+describe("PatternCanvas notches", () => {
+  it("renders one line per notch, from its outer to its inner point", () => {
+    const pieceWithNotches: Piece = {
+      ...widePiece,
+      notches: [
+        { type: "single", x1: 10, y1: 0, x2: 10, y2: 3 },
+        { type: "double", x1: 90, y1: 0, x2: 90, y2: 6 },
+      ],
+    };
+    const { container } = renderCanvas({ pieces: [pieceWithNotches] });
+    const notchLines = container.querySelectorAll('line[class*="stroke-ink"]');
+    expect(notchLines).toHaveLength(2);
+    expect(notchLines[0].getAttribute("x1")).toBe("10");
+    expect(notchLines[0].getAttribute("y2")).toBe("3");
+    expect(notchLines[1].getAttribute("y2")).toBe("6");
+  });
+
+  it("renders no notch lines when the piece has none", () => {
+    const { container } = renderCanvas({ pieces: [widePiece] });
+    expect(
+      container.querySelectorAll('line[class*="stroke-ink"]'),
+    ).toHaveLength(0);
+  });
+});
+
 const seamConflict = {
   id: "conf-1",
   title: "Cava e manga não batem",

@@ -1,6 +1,14 @@
 import { Measurements } from "@/lib/measurements";
-import { DetailRow, GarmentStyle, Gender } from "@/lib/types";
-import { curveArcLengthCm, DraftedPiece, Pt } from "./core";
+import { DetailRow, GarmentStyle, Gender, NotchType } from "@/lib/types";
+import {
+  curveArcLengthCm,
+  DraftedPiece,
+  notchAt,
+  notchAtArcLengthCm,
+  notchAtVertex,
+  NotchCm,
+  Pt,
+} from "./core";
 import { wearingEaseCm } from "./ease";
 import { formatCm } from "@/lib/format";
 import type { Translate } from "@/lib/i18n/translate";
@@ -50,6 +58,8 @@ function bodice(
   armholeEdgeLenCm: number;
   armholeEdgeBaseLenCm: number;
   halfChestCm: number;
+  pitchNotchCm: number;
+  basePitchNotchCm: number;
 } {
   const seamAllowanceCm = style.seamAllowanceCm ?? 1;
   // #125: was the inline constant `opts.knit ? 0 : 2` -- now the caller
@@ -111,14 +121,14 @@ function bodice(
   // both would land two extra vertices exactly on top of the hem's own,
   // retracing that edge and leaving the boundary non-simple.
   if (fitted && !isDressHem) push([cx - waistHalf, waistY]); // left waist
-  push([cx - hemHalf, len]); // left hem
+  const hemL = push([cx - hemHalf, len]); // left hem
   // #126: exactly on the straight hem edge (collinear with left/right hem,
   // same y) -- subdivides that edge into two collinear segments rather than
   // changing the piece's rendered shape, giving the fold line's bottom
   // endpoint a real vertex to reference. The top endpoint is `cf`, the
   // neckline-center point already pushed at index 0.
   const hemCenter = push([cx, len]); // hem center (fold bottom)
-  push([cx + hemHalf, len]); // right hem (straight = hem)
+  const hemR = push([cx + hemHalf, len]); // right hem (straight = hem)
   if (fitted && !isDressHem) push([cx + waistHalf, waistY]); // right waist
   const uaR = push([cx + halfChest, armholeDepth]); // right underarm
   push([cx + armCtrlX, midArmY]); // right armhole ctrl
@@ -148,6 +158,23 @@ function bodice(
     [[0, 2]],
     0,
     2,
+  );
+
+  // #124: pitch notches sit a fixed rise above the underarm on both the
+  // front/back armhole curves and the sleeve cap (single = front, double =
+  // back, the standard pattern-making convention) -- clamped so a very
+  // short armhole never places one past its own shoulder point. Both
+  // pitchNotchCm (off the actual, possibly-deepened curve) and
+  // basePitchNotchCm (off the un-deepened one) are exposed so garment.ts
+  // can hand the sleeve whichever one matches the armhole IT was actually
+  // drafted against (refit or not) -- the same actual/base choice it
+  // already makes for sleeveArmhole, keeping the two "generated as pairs
+  // from the same computation" per #124's acceptance criteria.
+  const PITCH_NOTCH_RISE_CM = 8;
+  const pitchNotchCm = Math.min(PITCH_NOTCH_RISE_CM, armholeEdgeLenCm * 0.7);
+  const basePitchNotchCm = Math.min(
+    PITCH_NOTCH_RISE_CM,
+    armholeEdgeBaseLenCm * 0.7,
   );
 
   const detailRows: DetailRow[] = [
@@ -223,6 +250,58 @@ function bodice(
     [cx, neckDrop + 3],
     [cx, len - 3],
   ];
+
+  // #124: a generic interior reference for every notch this panel places --
+  // safely below the shoulders and above the hem, and safely between the
+  // left/right armholes, for every drafted proportion.
+  const insideRef: Pt = [cx, len / 2];
+  const pitchType: NotchType = frontish ? "single" : "double";
+  const notches: NotchCm[] = [
+    // front/back pitch notches, walked from the SAME underarm-relative
+    // distance the sleeve places its own matching notches at (see
+    // sleeve.ts) -- left armhole curve (shL->uaL) and its mirror (uaR->shR).
+    notchAtArcLengthCm(
+      pts,
+      spans,
+      shL,
+      uaL,
+      armholeEdgeLenCm - pitchNotchCm,
+      insideRef,
+      pitchType,
+    ),
+    notchAtArcLengthCm(
+      pts,
+      spans,
+      uaR,
+      shR,
+      pitchNotchCm,
+      insideRef,
+      pitchType,
+    ),
+    // hem-fold notch: centre front/back at the hem, to line up the fabric fold.
+    notchAtVertex(pts, hemCenter, insideRef, "single"),
+  ];
+  if (isDressHem) {
+    // #124: waist-join notches -- the outer corners of the hem/waist-join
+    // edge this panel shares with the skirt panel it's sewn to (#79).
+    // "double" so they read apart from the hem-fold's own "single" centre
+    // mark.
+    notches.push(
+      notchAtVertex(pts, hemL, insideRef, "double"),
+      notchAtVertex(pts, hemR, insideRef, "double"),
+    );
+    // #124: dart-leg notches, where each dart's legs meet the waist/hem
+    // seam -- only reachable here, since the fisheye (double-ended) dart a
+    // non-dress piece drafts is fully internal and touches no edge to notch.
+    for (const dart of dartsCm ?? []) {
+      const [legL, , legR] = dart;
+      notches.push(
+        notchAt(legL, [1, 0], insideRef, "single"),
+        notchAt(legR, [1, 0], insideRef, "single"),
+      );
+    }
+  }
+
   return {
     piece: {
       id,
@@ -233,12 +312,15 @@ function bodice(
       grainlineCm,
       dartsCm,
       foldEdge: [cf, hemCenter],
+      notches,
       detailRows,
       armholeLenCm: armholeEdgeLenCm,
     },
     armholeEdgeLenCm,
     armholeEdgeBaseLenCm,
     halfChestCm: halfChest,
+    pitchNotchCm,
+    basePitchNotchCm,
   };
 }
 
@@ -270,5 +352,11 @@ export function draftBody(
     // `frontish`), so either's value is the garment's actual bust
     // quarter-width; total bust girth is 4× this.
     halfChestCm: f.halfChestCm,
+    // #124: front and back draft an identical armhole curve (only the
+    // neckline differs by `frontish`), so f.pitchNotchCm === c.pitchNotchCm
+    // by construction -- either's value is the garment's one pitch-notch
+    // distance, which garment.ts hands to draftSleeve unchanged.
+    pitchNotchCm: f.pitchNotchCm,
+    basePitchNotchCm: f.basePitchNotchCm,
   };
 }

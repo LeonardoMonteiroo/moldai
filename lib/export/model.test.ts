@@ -165,6 +165,34 @@ describe("buildExportModel", () => {
     });
   });
 
+  // #124: notches, resolved from DraftedPiece.notches through the same local
+  // (bbox-shifted) coordinates as grainline/dart/fold.
+  describe("notches (#124)", () => {
+    it("carries a body piece's notches into local outline coordinates", () => {
+      const model = buildExportModel(fakePattern(), t);
+      const front = model.pieces.find((p) => p.id === "body-front");
+      expect(front?.notches?.length).toBeGreaterThan(0);
+      for (const n of front!.notches!) {
+        for (const pt of [n.outer, n.inner]) {
+          expect(pt.x).toBeGreaterThanOrEqual(-1e-6);
+          expect(pt.x).toBeLessThanOrEqual(front!.widthCm + 1e-6);
+          expect(pt.y).toBeGreaterThanOrEqual(-1e-6);
+          expect(pt.y).toBeLessThanOrEqual(front!.heightCm + 1e-6);
+        }
+      }
+    });
+
+    it("each notch's inner point sits exactly NOTCH_DEPTH_CM[type] from its outer point", () => {
+      const model = buildExportModel(fakePattern(), t);
+      const front = model.pieces.find((p) => p.id === "body-front")!;
+      const depthOf = { single: 0.3, double: 0.6, triple: 0.9 } as const;
+      for (const n of front.notches!) {
+        const d = Math.hypot(n.inner.x - n.outer.x, n.inner.y - n.outer.y);
+        expect(d).toBeCloseTo(depthOf[n.type], 6);
+      }
+    });
+  });
+
   // #123: turns the seam-allowance annotation into a real cut-line outline,
   // offset outward from the net `outline` -- verified against the actual
   // drafting matrix (lib/draft/fixtures.ts's DECORATION_CASES, the same set

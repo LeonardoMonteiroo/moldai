@@ -16,10 +16,11 @@ import { flattenOutlineCm, TOL_CM } from "./dxf";
 // #123: layer 1 (the piece boundary) is now the real CUT line — `outline`
 // offset outward by the seam allowance — and the net sew line moved to its
 // own layer 14, D6673's reserved slot for it (closing that half of #2's
-// tracked gap). This is an honest SUBSET still: notches (layer 4) and drill
-// holes (13) are NOT emitted — MoldAI doesn't model them yet. The full strict
-// AAMA/ASTM (structured system text, block records, those derived elements)
-// remains a later "Phase 2.5".
+// tracked gap).
+// #124: layer 4 (D6673's reserved notch layer) now carries every notch --
+// this is still an honest SUBSET: drill holes (13) are NOT emitted, MoldAI
+// doesn't model them. The full strict AAMA/ASTM (structured system text,
+// block records, those derived elements) remains a later "Phase 2.5".
 
 const MM = 10; // cm -> mm (1:1)
 const f = (n: number) => (Math.round(n * 100) / 100).toString();
@@ -27,6 +28,7 @@ const f = (n: number) => (Math.round(n * 100) / 100).toString();
 // Numbered layers this subset uses, each with a color (code 62).
 const LAYERS: [string, number][] = [
   ["1", 7], // boundary (#123: the cut line) — white/black
+  ["4", 6], // notches (#124) — magenta
   ["6", 1], // fold/mirror line (#126) — red
   ["7", 5], // grainline — blue
   ["8", 3], // internal (dart) — green
@@ -46,7 +48,7 @@ export function toDxfAama(model: ExportModel): string {
 
   p(
     999,
-    `MoldAI AAMA/ASTM subset · ${model.patternName} · tam ${model.size} · folga ${model.seamAllowanceCm ?? 0}cm (camada 1 = linha de corte, camada 14 = linha de costura líquida)`,
+    `MoldAI AAMA/ASTM subset · ${model.patternName} · tam ${model.size} · folga ${model.seamAllowanceCm ?? 0}cm (camada 1 = linha de corte, camada 14 = linha de costura líquida, camada 4 = piques)`,
   );
 
   // HEADER — R13, millimeters, metric.
@@ -133,6 +135,16 @@ export function toDxfAama(model: ExportModel): string {
       p(20, Y(a.y));
       p(11, X(b.x));
       p(21, Y(b.y));
+    }
+
+    // #124: notches -> LINE on layer 4, D6673's reserved semantics for them.
+    for (const notch of piece.notches ?? []) {
+      p(0, "LINE");
+      p(8, "4");
+      p(10, X(notch.outer.x));
+      p(20, Y(notch.outer.y));
+      p(11, X(notch.inner.x));
+      p(21, Y(notch.inner.y));
     }
 
     // grainline -> LINE on layer 7

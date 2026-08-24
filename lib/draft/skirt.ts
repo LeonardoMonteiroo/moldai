@@ -1,6 +1,6 @@
 import { Measurements } from "@/lib/measurements";
 import { DetailRow, GarmentStyle, SkirtSilhouette } from "@/lib/types";
-import { DraftedPiece, Pt } from "./core";
+import { bbox, DraftedPiece, notchAtVertex, NotchCm, Pt } from "./core";
 import { formatCm } from "@/lib/format";
 import type { Translate } from "@/lib/i18n/translate";
 
@@ -64,6 +64,11 @@ export function draftSkirt(
   m: Measurements,
   style: GarmentStyle,
   t: Translate,
+  // #124: only a dress's skirt panel joins a bodice hem at all (a standalone
+  // skirt's waist joins a waistband instead) -- garment.ts passes
+  // `spec.type === "dress"`, and only then do the waist-edge corners get the
+  // "waist join" notches that mirror body.ts's own isDressHem ones.
+  isDressWaist = false,
 ): DraftedPiece {
   const silhueta: SkirtSilhouette = style.skirt ?? "straight";
   const ease = style.seamAllowanceCm ?? 1;
@@ -98,6 +103,25 @@ export function draftSkirt(
     // arc is appended reversed (`outer.reverse()`, indices steps+1..2*steps+1),
     // so its middle sample lands at `steps+1 + steps/2`.
     const foldEdge: [number, number] = [steps / 2, steps + 1 + steps / 2];
+
+    // #124: bbox centre is a safe interior reference for this convex-ish
+    // fan shape -- simpler than deriving one from r/R, and robust to the
+    // minY normalization radialSkirt already applied above.
+    const b = bbox(outlineCm);
+    const insideRef: Pt = [b.minX + b.w / 2, b.minY + b.h / 2];
+    const notches: NotchCm[] = [
+      // hem-fold notch: centre front/back at the hem.
+      notchAtVertex(outlineCm, foldEdge[1], insideRef, "single"),
+    ];
+    if (isDressWaist) {
+      // #124: waist-join notches -- the two ends of the waist arc, matching
+      // body.ts's own outer-corner notches on the bodice hem it's sewn to.
+      notches.push(
+        notchAtVertex(outlineCm, waistSpan[0], insideRef, "double"),
+        notchAtVertex(outlineCm, waistSpan[1], insideRef, "double"),
+      );
+    }
+
     return {
       id: "skirt",
       name: t("pieceNames.skirt"),
@@ -109,6 +133,7 @@ export function draftSkirt(
         [cxTop, length],
       ],
       foldEdge,
+      notches,
       detailRows,
     };
   }
@@ -139,6 +164,23 @@ export function draftSkirt(
     label: t("rows.waistPanel"),
     value: cm(waistHalf * 2),
   });
+
+  const b = bbox(outlineCm);
+  const insideRef: Pt = [b.minX + b.w / 2, b.minY + b.h / 2];
+  const notches: NotchCm[] = [
+    // hem-fold notch: centre front/back at the hem (index 4, #126).
+    notchAtVertex(outlineCm, 4, insideRef, "single"),
+  ];
+  if (isDressWaist) {
+    // #124: waist-join notches -- the waist edge's own corners (indices 0
+    // and 2), matching body.ts's own outer-corner notches on the bodice
+    // hem it's sewn to.
+    notches.push(
+      notchAtVertex(outlineCm, 0, insideRef, "double"),
+      notchAtVertex(outlineCm, 2, insideRef, "double"),
+    );
+  }
+
   return {
     id: "skirt",
     name: t("pieceNames.skirt"),
@@ -149,6 +191,7 @@ export function draftSkirt(
       [hemHalf, length - 4],
     ],
     foldEdge: [1, 4],
+    notches,
     detailRows,
   };
 }
