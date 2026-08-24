@@ -24,14 +24,14 @@ describe("resetPassword", () => {
     expect(r).toEqual({ ok: false, error: "weak_password" });
   });
 
-  // #55's MAX_PASSWORD_LENGTH cap, reused via validateNewPassword.
-  it("rejects a password over the 200-character cap", async () => {
-    const r = await resetPassword({ hash }, "a".repeat(201));
+  // #30's MAX_PASSWORD_LENGTH cap, reused via validateNewPassword.
+  it("rejects a password over the 72-character cap", async () => {
+    const r = await resetPassword({ hash }, "a".repeat(73));
     expect(r).toEqual({ ok: false, error: "weak_password" });
   });
 
-  it("accepts a password exactly at the 200-character cap", async () => {
-    const r = await resetPassword({ hash }, "a".repeat(200));
+  it("accepts a password exactly at the 72-character cap", async () => {
+    const r = await resetPassword({ hash }, "a".repeat(72));
     expect(r.ok).toBe(true);
   });
 });

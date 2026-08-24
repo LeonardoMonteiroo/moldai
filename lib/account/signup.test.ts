@@ -109,6 +109,26 @@ describe("createAccount", () => {
     expect(vi.mocked(d.createUser)).not.toHaveBeenCalled();
   });
 
+  // #30: bcryptjs silently truncates at 72 bytes -- a longer password must be
+  // rejected here rather than hashed down to a shorter effective secret.
+  it("rejects a password over the 72-character cap, without hashing", async () => {
+    const d = deps();
+    expect(
+      await createAccount(d, { ...VALID, password: "a".repeat(73) }),
+    ).toEqual({ ok: false, error: "weak_password" });
+    expect(vi.mocked(d.hash)).not.toHaveBeenCalled();
+    expect(vi.mocked(d.createUser)).not.toHaveBeenCalled();
+  });
+
+  it("accepts a password exactly at the 72-character cap", async () => {
+    const d = deps();
+    const result = await createAccount(d, {
+      ...VALID,
+      password: "a".repeat(72),
+    });
+    expect(result.ok).toBe(true);
+  });
+
   it("rejects an email that already exists, without hashing", async () => {
     const d = deps({ getUserByEmail: vi.fn(async () => EXISTING) });
     expect(await createAccount(d, VALID)).toEqual({

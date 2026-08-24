@@ -1,11 +1,12 @@
 const MAX_NAME_LENGTH = 80;
-const MIN_PASSWORD_LENGTH = 8;
-// #55: only a minimum was ever enforced -- an unbounded password reaches
-// bcrypt on both the signup and password-change paths (this function's two
-// callers) with nothing capping the input size. 200 is a sanity/DoS bound,
-// not a correctness fix for bcrypt's own well-known 72-byte truncation,
-// which is out of scope here.
-const MAX_PASSWORD_LENGTH = 200;
+export const MIN_PASSWORD_LENGTH = 8;
+// #30: bcryptjs silently truncates its input at 72 bytes (reproduced against
+// this repo's own node_modules) -- two distinct passwords sharing their
+// first 72 bytes verify against the same hash. #55's 200-character cap was a
+// sanity/DoS bound only; it let a longer password through and had it
+// silently reduced to a shorter effective secret. 72 rejects instead of
+// truncating.
+export const MAX_PASSWORD_LENGTH = 72;
 
 export function validateName(name: unknown): string | null {
   if (typeof name !== "string") return null;

@@ -13,8 +13,10 @@ import { Input } from "@/components/ui/input";
 import { useTranslations } from "next-intl";
 import { signUp, resendVerification } from "@/lib/api-client";
 import { Wordmark } from "@/components/shared/Wordmark";
-
-const MIN_PASSWORD_LENGTH = 8;
+import {
+  MIN_PASSWORD_LENGTH,
+  MAX_PASSWORD_LENGTH,
+} from "@/lib/account/settings";
 
 export default function SignupPage() {
   const t = useTranslations("Signup");
@@ -155,6 +157,7 @@ export default function SignupPage() {
                     onChange={(event) => setPassword(event.target.value)}
                     required
                     minLength={MIN_PASSWORD_LENGTH}
+                    maxLength={MAX_PASSWORD_LENGTH}
                     autoComplete="new-password"
                     className="bg-surface-alt"
                   />
@@ -169,6 +172,7 @@ export default function SignupPage() {
                     value={confirm}
                     onChange={(event) => setConfirm(event.target.value)}
                     required
+                    maxLength={MAX_PASSWORD_LENGTH}
                     autoComplete="new-password"
                     aria-invalid={mismatch || undefined}
                     className="bg-surface-alt"

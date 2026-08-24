@@ -12,8 +12,10 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-
-const MIN_PASSWORD_LENGTH = 8;
+import {
+  MIN_PASSWORD_LENGTH,
+  MAX_PASSWORD_LENGTH,
+} from "@/lib/account/settings";
 
 // A blank token renders the request form (reached from "Esqueci minha
 // senha"); a token present renders the new-password form (reached from the
@@ -151,6 +153,7 @@ function ConfirmForm({ token }: { token: string }) {
               onChange={(event) => setPassword(event.target.value)}
               required
               minLength={MIN_PASSWORD_LENGTH}
+              maxLength={MAX_PASSWORD_LENGTH}
               autoComplete="new-password"
               aria-invalid={!!error || undefined}
               className="bg-surface-alt"
@@ -167,6 +170,7 @@ function ConfirmForm({ token }: { token: string }) {
               value={confirm}
               onChange={(event) => setConfirm(event.target.value)}
               required
+              maxLength={MAX_PASSWORD_LENGTH}
               autoComplete="new-password"
               aria-invalid={mismatch || undefined}
               className="bg-surface-alt"

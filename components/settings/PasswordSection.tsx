@@ -11,8 +11,10 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-
-const MIN_PASSWORD_LENGTH = 8;
+import {
+  MIN_PASSWORD_LENGTH,
+  MAX_PASSWORD_LENGTH,
+} from "@/lib/account/settings";
 
 export function PasswordSection() {
   const t = useTranslations("PasswordSection");
@@ -77,6 +79,8 @@ export function PasswordSection() {
             type="password"
             value={next}
             onChange={(event) => setNext(event.target.value)}
+            minLength={MIN_PASSWORD_LENGTH}
+            maxLength={MAX_PASSWORD_LENGTH}
           />
         </Field>
         {/* The mismatch now belongs to the field it describes, instead of floating
@@ -91,6 +95,7 @@ export function PasswordSection() {
             value={confirm}
             aria-invalid={mismatch || undefined}
             onChange={(event) => setConfirm(event.target.value)}
+            maxLength={MAX_PASSWORD_LENGTH}
           />
           {mismatch && <FieldError>{t("mismatchError")}</FieldError>}
         </Field>
