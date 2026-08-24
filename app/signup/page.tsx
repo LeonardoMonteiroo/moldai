@@ -82,8 +82,8 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="bg-paper flex min-h-screen items-center justify-center px-4">
-      <div className="bg-surface border-border rounded-card shadow-card w-full max-w-[380px] border p-7">
+    <div className="bg-paper flex h-full justify-center overflow-y-auto px-4 py-8">
+      <div className="bg-surface border-border rounded-card shadow-card my-auto w-full max-w-[380px] border p-7">
         <Wordmark />
         {sent ? (
           <div className="mt-3">
