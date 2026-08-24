@@ -1,7 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { buildSystemSizeChartData } from "./seed";
 import { buildSizeTable } from "./compute";
-import { SIZE_TABLE, SIZE_TABLE_MALE } from "@/lib/measurements";
+import {
+  MEASUREMENT_KEYS,
+  SIZE_TABLE,
+  SIZE_TABLE_MALE,
+} from "@/lib/measurements";
 
 const SIZES = ["PP", "P", "M", "G", "GG"] as const;
 
@@ -31,4 +35,14 @@ describe("buildSystemSizeChartData", () => {
       buildSystemSizeChartData("male").name,
     );
   });
+
+  it.each(["female", "male"] as const)(
+    "#118: %s chart's progression rule grades all nine measurement keys, none left at 0",
+    (gender) => {
+      const chart = buildSystemSizeChartData(gender);
+      for (const key of MEASUREMENT_KEYS) {
+        expect(chart.progressionRule[key]).not.toBe(0);
+      }
+    },
+  );
 });

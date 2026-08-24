@@ -24,6 +24,23 @@ describe("size tables", () => {
     expect(SIZE_TABLE_MALE.M.shoulder).toBeGreaterThan(SIZE_TABLE.M.shoulder);
     expect(SIZE_TABLE_MALE.M.bust).toBe(100);
   });
+
+  it.each([
+    ["female", SIZE_TABLE],
+    ["male", SIZE_TABLE_MALE],
+  ] as const)(
+    "#118: %s grades skirtLength/shortSleeveLength/longSleeveLength monotonically across PP-GG, instead of holding them constant",
+    (_label, table) => {
+      const order = ["PP", "P", "M", "G", "GG"] as const;
+      for (let i = 1; i < order.length; i++) {
+        const a = table[order[i - 1]],
+          b = table[order[i]];
+        expect(b.skirtLength).toBeGreaterThan(a.skirtLength);
+        expect(b.shortSleeveLength).toBeGreaterThan(a.shortSleeveLength);
+        expect(b.longSleeveLength).toBeGreaterThan(a.longSleeveLength);
+      }
+    },
+  );
 });
 
 describe("resolveMeasurements", () => {

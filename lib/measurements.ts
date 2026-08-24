@@ -27,6 +27,20 @@ export const MEASUREMENT_KEYS: (keyof Measurements)[] = [
   "longSleeveLength",
 ];
 
+// #118: skirtLength/shortSleeveLength/longSleeveLength used to be held
+// constant across every size, so a GG garment got the exact same hemline and
+// sleeve as a PP one. Both correlate with stature the same way backLength
+// and hipHeight already do, so they now step linearly from the base (M) by
+// the same kind of per-size increment, not derived from any single
+// standard — chosen so a longer body segment gets more absolute growth per
+// size than a shorter one, same relationship as backLength (0.5) vs.
+// hipHeight (0.3): skirtLength +2.0 cm/size (full-length hem drop tracks
+// stature the most directly of the three), longSleeveLength +1.5 cm/size
+// (an arm segment, so less than the skirt), shortSleeveLength +0.5 cm/size
+// (the same arm, but a much shorter cut of it, so it grows proportionally
+// less in absolute cm). Both genders share these increments, matching how
+// every other row here already uses identical steps for female and male
+// and differs only in the base values.
 export const SIZE_TABLE: Record<SizeLabel, Measurements> = {
   PP: {
     bust: 84,
@@ -35,9 +49,9 @@ export const SIZE_TABLE: Record<SizeLabel, Measurements> = {
     hipHeight: 20.0,
     backLength: 40.0,
     shoulder: 17.5,
-    skirtLength: 60,
-    shortSleeveLength: 18,
-    longSleeveLength: 58,
+    skirtLength: 56,
+    shortSleeveLength: 17,
+    longSleeveLength: 55,
   },
   P: {
     bust: 88,
@@ -46,9 +60,9 @@ export const SIZE_TABLE: Record<SizeLabel, Measurements> = {
     hipHeight: 20.3,
     backLength: 40.5,
     shoulder: 18.0,
-    skirtLength: 60,
-    shortSleeveLength: 18,
-    longSleeveLength: 58,
+    skirtLength: 58,
+    shortSleeveLength: 17.5,
+    longSleeveLength: 56.5,
   },
   M: {
     bust: 92,
@@ -68,9 +82,9 @@ export const SIZE_TABLE: Record<SizeLabel, Measurements> = {
     hipHeight: 21.0,
     backLength: 41.5,
     shoulder: 19.0,
-    skirtLength: 60,
-    shortSleeveLength: 18,
-    longSleeveLength: 58,
+    skirtLength: 62,
+    shortSleeveLength: 18.5,
+    longSleeveLength: 59.5,
   },
   GG: {
     bust: 100,
@@ -79,9 +93,9 @@ export const SIZE_TABLE: Record<SizeLabel, Measurements> = {
     hipHeight: 21.3,
     backLength: 42.0,
     shoulder: 19.5,
-    skirtLength: 60,
-    shortSleeveLength: 18,
-    longSleeveLength: 58,
+    skirtLength: 64,
+    shortSleeveLength: 19,
+    longSleeveLength: 61,
   },
 };
 
@@ -93,9 +107,9 @@ export const SIZE_TABLE_MALE: Record<SizeLabel, Measurements> = {
     hipHeight: 21.0,
     backLength: 43.0,
     shoulder: 21.0,
-    skirtLength: 60,
-    shortSleeveLength: 22,
-    longSleeveLength: 62,
+    skirtLength: 56,
+    shortSleeveLength: 21,
+    longSleeveLength: 59,
   },
   P: {
     bust: 96,
@@ -104,9 +118,9 @@ export const SIZE_TABLE_MALE: Record<SizeLabel, Measurements> = {
     hipHeight: 21.3,
     backLength: 43.5,
     shoulder: 21.5,
-    skirtLength: 60,
-    shortSleeveLength: 22,
-    longSleeveLength: 62,
+    skirtLength: 58,
+    shortSleeveLength: 21.5,
+    longSleeveLength: 60.5,
   },
   M: {
     bust: 100,
@@ -126,9 +140,9 @@ export const SIZE_TABLE_MALE: Record<SizeLabel, Measurements> = {
     hipHeight: 22.0,
     backLength: 44.5,
     shoulder: 22.5,
-    skirtLength: 60,
-    shortSleeveLength: 22,
-    longSleeveLength: 62,
+    skirtLength: 62,
+    shortSleeveLength: 22.5,
+    longSleeveLength: 63.5,
   },
   GG: {
     bust: 108,
@@ -137,9 +151,9 @@ export const SIZE_TABLE_MALE: Record<SizeLabel, Measurements> = {
     hipHeight: 22.3,
     backLength: 45.0,
     shoulder: 23.0,
-    skirtLength: 60,
-    shortSleeveLength: 22,
-    longSleeveLength: 62,
+    skirtLength: 64,
+    shortSleeveLength: 23,
+    longSleeveLength: 65,
   },
 };
 
