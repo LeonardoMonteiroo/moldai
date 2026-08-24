@@ -435,7 +435,8 @@
     "noMatchesTitle": "Nenhum molde encontrado",
     "noMatchesDescription": "Tente outro termo de busca ou filtro.",
     "importCardLabel": "Importar .dxf · Audaces",
-    "importComingSoonBadge": "em breve"
+    "importComingSoonBadge": "em breve",
+    "emptyAction": "Criar meu primeiro molde"
   },
   "SizeCharts": {
     "title": "Medidas e grades",

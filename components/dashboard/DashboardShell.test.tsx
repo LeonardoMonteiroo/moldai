@@ -1,5 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { renderWithIntl, ptBR, screen, waitFor } from "@/components/test-utils";
+import {
+  renderWithIntl,
+  ptBR,
+  screen,
+  waitFor,
+  userEvent,
+} from "@/components/test-utils";
 import { useDashboardStore } from "@/lib/dashboardStore";
 import { DashboardShell } from "./DashboardShell";
 
@@ -96,6 +102,50 @@ describe("DashboardShell", () => {
 describe("catalog after the header merge", () => {
   it("no longer carries a DashboardTopbar namespace", () => {
     expect("DashboardTopbar" in ptBR).toBe(false);
+  });
+});
+
+// #114: the grid used to own its own `fill`-ed scroll region, stretching to
+// the viewport's full height regardless of content and pinning the summary
+// cards to the bottom edge, far from the (possibly empty) grid above them.
+describe("DashboardShell empty-grid layout (#114)", () => {
+  beforeEach(() => {
+    listPatterns.mockResolvedValue([]);
+    getAccountSummary.mockResolvedValue({
+      credits: { plan: "free", balance: 30, total: 30, renewsInDays: 30 },
+      recentUsage: [],
+    });
+  });
+
+  it("wraps the grid and the summary cards in one scroll region", async () => {
+    const { container } = renderWithIntl(
+      <DashboardShell userEmail="user@example.com" />,
+    );
+
+    const empty = await screen.findByText(ptBR.PatternGrid.emptyTitle);
+    const regions = container.querySelectorAll('[data-slot="scroll-area"]');
+    expect(regions).toHaveLength(1);
+    // Both the (empty) grid and the credits card are descendants of the same
+    // single scroll region -- not the grid alone force-stretched with the
+    // cards pinned outside it.
+    expect(regions[0].contains(empty)).toBe(true);
+    expect(
+      regions[0].querySelector(`[data-slot="empty-content"]`),
+    ).not.toBeNull();
+  });
+
+  it("wires the empty-state create action through to pattern creation", async () => {
+    const { createPattern } = await import("@/lib/api-client");
+    vi.mocked(createPattern).mockResolvedValue({ id: "new-1" });
+    const user = userEvent.setup();
+
+    renderWithIntl(<DashboardShell userEmail="user@example.com" />);
+
+    const button = await screen.findByRole("button", {
+      name: ptBR.PatternGrid.emptyAction,
+    });
+    await user.click(button);
+    expect(createPattern).toHaveBeenCalledTimes(1);
   });
 });
 

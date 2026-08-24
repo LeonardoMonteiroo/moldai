@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { XIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDashboardStore } from "@/lib/dashboardStore";
 import { AppShell } from "@/components/shared/AppShell";
 import { ActionErrorNotice } from "@/components/shared/ActionErrorNotice";
@@ -100,15 +101,22 @@ export function DashboardShell({
         </div>
       )}
       {ready && !error && (
-        <>
-          <PatternGrid onOpen={openPattern} />
-          {credits && (
-            <div className="flex gap-[14px] px-[22px] pb-[22px]">
-              <CreditsCard credits={credits} />
-              <RecentUsageCard entries={recentUsage} />
-            </div>
-          )}
-        </>
+        // #114: one scroll region owns the grid AND the summary cards, so an
+        // empty or lightly-populated grid sizes to its own content and the
+        // cards sit directly beneath it, rather than the grid alone being
+        // stretched to fill the viewport and shoving the cards to the floor.
+        // Deliberately no `fill` -- that's what forces the stretch.
+        <ScrollArea className="min-h-0 flex-1">
+          <div className="flex flex-col gap-4">
+            <PatternGrid onOpen={openPattern} onNewPattern={handleNewPattern} />
+            {credits && (
+              <div className="flex gap-[14px] px-[22px] pb-[22px]">
+                <CreditsCard credits={credits} />
+                <RecentUsageCard entries={recentUsage} />
+              </div>
+            )}
+          </div>
+        </ScrollArea>
       )}
     </AppShell>
   );
