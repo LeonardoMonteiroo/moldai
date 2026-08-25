@@ -256,6 +256,29 @@ describe("draftGarment", () => {
     );
     expect(Math.abs(armholeLenCm! - sleeveArmholeCm!)).toBeLessThan(0.01);
   });
+
+  // #140: an incomplete `baseMeasurements` row (e.g. a corrupted
+  // `Pattern.sizeTable[size]`) used to reach the drafters as `undefined`
+  // fields, which turn into NaN outline coordinates and hang
+  // buildExportModel's offset/curve geometry for 95+ seconds of spinning CPU
+  // instead of failing -- measured against the running app while writing a
+  // TechSheetTab regression test. It must now fail fast instead. The 2s test
+  // timeout is deliberate: if this regresses, the test times out loudly in a
+  // couple of seconds instead of hanging CI for the full 95+.
+  it("throws fast instead of hanging on an incomplete measurements row", () => {
+    expect(() =>
+      draftGarment(
+        {
+          type: "blouse",
+          gender: "female",
+          measurementOverrides: {},
+          style: { sleeve: "short", neckline: "V" },
+        },
+        {} as Measurements,
+        t,
+      ),
+    ).toThrow();
+  }, 2000);
 });
 
 // #139 acceptance criteria: for every sleeved combination in the drafting

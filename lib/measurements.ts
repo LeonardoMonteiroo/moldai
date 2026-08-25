@@ -176,6 +176,27 @@ function clamp(v: number, min: number, max: number) {
   return Math.min(max, Math.max(min, v));
 }
 
+// #140: draftAll (lib/draft/garment.ts) calls this first, so it's the one
+// choke point every drafted garment's base row passes through -- an
+// incomplete/missing-field row (e.g. a corrupted `Pattern.sizeTable[size]`)
+// used to sail through as `undefined`s, which the drafters' arithmetic turns
+// into NaN outline coordinates. NaN comparisons are always false, so
+// lib/export/bezier.ts's flattenCubic never meets its tolerance check and
+// recurses to MAX_DEPTH on every curved span (65536 points each), which then
+// feeds lib/export/offset.ts's O(n²) removeSelfCrossingLoops -- not a true
+// infinite loop, but a combinatorial blowup indistinguishable from one
+// (measured: 95+ seconds of spinning CPU before a forced kill). Failing fast
+// here, before any geometry is touched, is cheaper than bounding every
+// downstream loop against non-finite input individually.
+function assertResolvedMeasurements(base: Measurements): void {
+  const invalid = MEASUREMENT_KEYS.filter((k) => !Number.isFinite(base[k]));
+  if (invalid.length > 0) {
+    throw new Error(
+      `resolveMeasurements: base row is missing or has non-finite field(s): ${invalid.join(", ")}`,
+    );
+  }
+}
+
 // Applies chat-driven overrides on top of an already-resolved base row (from
 // a size chart's sizeTable — see lib/sizeCharts/compute.ts's
 // resolveSizeChartSize) and clamps to MEASUREMENT_RANGES. No longer does a
@@ -185,6 +206,7 @@ export function resolveMeasurements(
   base: Measurements,
   overrides: Partial<Measurements>,
 ): Measurements {
+  assertResolvedMeasurements(base);
   const result = { ...base };
   for (const k of Object.keys(overrides) as (keyof Measurements)[]) {
     const v = overrides[k];

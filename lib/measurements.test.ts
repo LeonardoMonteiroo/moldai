@@ -4,6 +4,7 @@ import {
   SIZE_TABLE_MALE,
   MEASUREMENT_RANGES,
   resolveMeasurements,
+  type Measurements,
 } from "./measurements";
 
 describe("size tables", () => {
@@ -71,5 +72,20 @@ describe("resolveMeasurements", () => {
       waist: "x" as unknown as number,
     });
     expect(r.waist).toBe(SIZE_TABLE.M.waist);
+  });
+
+  // #140: an incomplete base row (a corrupted sizeTable entry) used to sail
+  // through as `undefined` fields, which turn into NaN in the drafters'
+  // arithmetic and hang buildExportModel's offset/curve geometry for tens of
+  // seconds instead of failing. Fail fast at the one choke point every
+  // drafted garment's base row passes through.
+  it("throws on a base row missing required fields, instead of silently producing NaN", () => {
+    expect(() => resolveMeasurements({} as Measurements, {})).toThrow(/bust/);
+  });
+
+  it("throws on a base row with a non-finite field", () => {
+    expect(() =>
+      resolveMeasurements({ ...SIZE_TABLE.M, bust: NaN }, {}),
+    ).toThrow(/bust/);
   });
 });
