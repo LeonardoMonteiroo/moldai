@@ -30,7 +30,12 @@ export function exportPattern(
     fail();
     return;
   }
-  const base = `${slug(pattern.name)}-${model.size}`;
+  // #88: model.size used to be interpolated raw -- a combined size label
+  // like "38/40" (routine in Brazilian charts) put a path separator straight
+  // into a.download, which the browser silently rewrites rather than
+  // rejecting. slug() is the one filename-normalisation point; nothing
+  // upstream bounds a custom chart's size label, so both halves go through it.
+  const base = `${slug(pattern.name)}-${slug(model.size)}`;
   switch (format) {
     case "svg":
       try {
