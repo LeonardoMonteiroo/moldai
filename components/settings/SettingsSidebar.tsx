@@ -26,6 +26,7 @@ export function SettingsSidebar({ active }: { active: SettingsSection }) {
           variant={section === active ? "soft" : "ghost"}
           size="chrome"
           onClick={() => router.replace(`/settings?section=${section}`)}
+          aria-current={section === active ? "page" : undefined}
           className="justify-start"
         >
           {t(LABEL_KEY[section])}

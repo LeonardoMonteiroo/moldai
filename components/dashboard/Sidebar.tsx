@@ -4,7 +4,12 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 
-/** The active section is a plain label; every other entry navigates. */
+/**
+ * #22: the active section used to render as a plain `<span>` -- unfocusable,
+ * skipped by keyboard tabbing, and exposing "current page" through styling
+ * alone. It's a real Button now, still visually the olive-tint label, and
+ * `aria-current="page"` carries the state programmatically.
+ */
 function NavItem({
   label,
   isActive,
@@ -14,18 +19,17 @@ function NavItem({
   isActive: boolean;
   onSelect: () => void;
 }) {
-  if (isActive)
-    return (
-      <span className="bg-olive-tint text-olive rounded-item text-ui px-[10px] py-[7px] font-medium">
-        {label}
-      </span>
-    );
   return (
     <Button
       variant="ghost"
       size="chrome"
       onClick={onSelect}
-      className="text-muted-2 justify-start"
+      aria-current={isActive ? "page" : undefined}
+      className={
+        isActive
+          ? "bg-olive-tint text-olive hover:bg-olive-tint hover:text-olive rounded-item h-auto justify-start px-[10px] py-[7px] font-medium"
+          : "text-muted-2 justify-start"
+      }
     >
       {label}
     </Button>
