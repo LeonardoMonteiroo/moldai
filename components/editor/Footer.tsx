@@ -101,7 +101,11 @@ export function Footer({
         : { tone: "error", text: t("saveAsBaseError") },
     );
   };
-  const pieceCount = pattern.pieces.reduce((sum, p) => sum + p.qty, 0);
+  // #115: copies-to-cut (qty summed across pieces), not the piece count --
+  // a blouse's front×1/back×1/sleeve×2 is 3 pieces but 4 copies, and this
+  // status line used to call that 4 "peças" while the canvas shows 3 and
+  // TechSheetTab lists 3 cards.
+  const copyCount = pattern.pieces.reduce((sum, p) => sum + p.qty, 0);
   const exportDisabled =
     conflictActive ||
     generating ||
@@ -113,7 +117,7 @@ export function Footer({
     : generating
       ? t("statusGenerating")
       : t("statusReady", {
-          pieceCount,
+          copyCount,
           baseSize: pattern.baseSize,
           unit: pattern.unit,
         });

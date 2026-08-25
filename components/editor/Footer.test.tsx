@@ -4,6 +4,7 @@ import {
   screen,
   userEvent,
   ptBR,
+  translatorFor,
 } from "@/components/test-utils";
 import {
   seedPatternState,
@@ -192,5 +193,47 @@ describe("Footer — seletor de tamanho para exportar (#59)", () => {
       expect.any(Function),
       "G",
     );
+  });
+});
+
+// #106: {copyCount} cópias was a hardcoded plural noun -- a single-copy
+// garment (or the pre-generation moment before any piece exists) rendered
+// "1 cópias"/"0 cópias". Covers the plural boundary directly against the
+// catalog's own ICU resolution.
+describe("Footer — status text pluralization (#106)", () => {
+  const tFooter = translatorFor("Footer");
+
+  function patternWithPieceCount(qty: number) {
+    const pattern = draftedPattern();
+    pattern.pieces = [
+      {
+        id: "x",
+        name: "x",
+        qty,
+        outline: { kind: "polygon", points: "0,0" },
+        label: { x: 0, y: 0 },
+        detailRows: [],
+      },
+    ];
+    return pattern;
+  }
+
+  it("pluralizes the copy count correctly at 0, 1 and 2", () => {
+    for (const qty of [0, 1, 2]) {
+      const { unmount } = renderWithIntl(
+        <Footer
+          pattern={patternWithPieceCount(qty)}
+          conflictActive={false}
+          generating={false}
+        />,
+      );
+      const expected = tFooter("statusReady", {
+        copyCount: qty,
+        baseSize: "M",
+        unit: "cm",
+      });
+      expect(screen.getByText(expected)).toBeInTheDocument();
+      unmount();
+    }
   });
 });

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { renderWithIntl, ptBR, screen } from "@/components/test-utils";
 import type { Pattern } from "@/lib/types";
+import { SIZE_TABLE } from "@/lib/measurements";
 import { TechSheetTab } from "./TechSheetTab";
 
 function pattern(overrides: Partial<Pattern> = {}): Pattern {
@@ -26,6 +27,62 @@ function pattern(overrides: Partial<Pattern> = {}): Pattern {
 }
 
 describe("TechSheetTab", () => {
+  // #115: chipPieces used to show the copies-to-cut total (qty summed
+  // across pieces, e.g. a blouse's front×1/back×1/sleeve×2 = 4) mislabeled
+  // as "Peças" -- the canvas shows 3 pieces and this summary agreed with
+  // neither. chipPieces now agrees with the number of piece cards rendered
+  // below, and the copies total gets its own honestly-labeled chip.
+  it("labels the distinct piece count and the copies-to-cut total separately, agreeing with the piece cards rendered", () => {
+    renderWithIntl(
+      <TechSheetTab
+        pattern={pattern({
+          // A real, complete measurements row -- every other test in this
+          // file leaves pieces empty, so this is the first one to actually
+          // exercise buildExportModel (gated on pieces.length > 0); an
+          // empty/partial sizeTable there hangs the drafting pipeline
+          // (a real bug, out of scope for #115, worth its own issue), so
+          // this needs a valid row to test the chip labels in isolation.
+          sizeTable: { M: SIZE_TABLE.M },
+          pieces: [
+            {
+              id: "front",
+              name: "Frente",
+              qty: 1,
+              outline: { kind: "polygon", points: "0,0" },
+              label: { x: 0, y: 0 },
+              detailRows: [],
+            },
+            {
+              id: "back",
+              name: "Costas",
+              qty: 1,
+              outline: { kind: "polygon", points: "0,0" },
+              label: { x: 0, y: 0 },
+              detailRows: [],
+            },
+            {
+              id: "sleeve",
+              name: "Manga",
+              qty: 2,
+              outline: { kind: "polygon", points: "0,0" },
+              label: { x: 0, y: 0 },
+              detailRows: [],
+            },
+          ],
+        })}
+      />,
+    );
+
+    expect(screen.getByText(ptBR.TechSheetTab.chipPieces)).toBeInTheDocument();
+    expect(screen.getByText("3")).toBeInTheDocument(); // distinct pieces, matches the 3 cards below
+    expect(screen.getByText(ptBR.TechSheetTab.chipCopies)).toBeInTheDocument();
+    expect(screen.getByText("4")).toBeInTheDocument(); // copies to cut (front×1 + back×1 + sleeve×2)
+    expect(screen.getAllByText("Frente")).not.toHaveLength(0);
+    expect(screen.getAllByText("Costas")).not.toHaveLength(0);
+    expect(screen.getAllByText("Manga")).not.toHaveLength(0);
+  });
+
+
   // Which grade a pattern was drafted from was recorded nowhere the user could
   // see, which mattered most when generation had substituted a chart.
   it("names the size chart the pattern was drafted from", () => {

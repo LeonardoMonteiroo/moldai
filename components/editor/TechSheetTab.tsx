@@ -20,7 +20,13 @@ export function TechSheetTab({ pattern }: { pattern: Pattern }) {
     }
   }
 
-  const totalPieces = pattern.pieces.reduce((s, p) => s + p.qty, 0);
+  // #115: distinct piece count -- what the cards below this summary actually
+  // enumerate -- kept separate from the copies-to-cut total (qty summed
+  // across pieces), which used to be mislabeled as the piece count. Same
+  // "cópias" wording CutPlanTab's own metric already uses for the identical
+  // number.
+  const pieceCount = pattern.pieces.length;
+  const totalCopies = pattern.pieces.reduce((s, p) => s + p.qty, 0);
   const folga = pattern.spec?.style.seamAllowanceCm ?? 1;
 
   // #125: fit/stretch only apply to the bodice (blouse/dress/tshirt) --
@@ -65,7 +71,8 @@ export function TechSheetTab({ pattern }: { pattern: Pattern }) {
               label={t("chipGender")}
               value={t("gender." + pattern.spec.gender)}
             />
-            <Chip label={t("chipPieces")} value={`${totalPieces}`} />
+            <Chip label={t("chipPieces")} value={`${pieceCount}`} />
+            <Chip label={t("chipCopies")} value={`${totalCopies}`} />
             <Chip label={t("chipSeamAllowance")} value={`${cm(folga)} cm`} />
             {hasBodice && (
               <Chip
