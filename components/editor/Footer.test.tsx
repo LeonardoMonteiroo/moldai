@@ -114,6 +114,50 @@ describe("Footer — salvar como base", () => {
   });
 });
 
+// #116: the export button used to disable silently, with no reason -- unlike
+// its "salvar como base" sibling, which already carried a title.
+describe("Footer — motivo do botão Exportar desabilitado (#116)", () => {
+  it.each([
+    [
+      "a blank pattern",
+      {
+        pattern: seedPatternState(t).pattern,
+        conflictActive: false,
+        generating: false,
+      },
+      ptBR.Footer.exportDisabledBlankTitle,
+    ],
+    [
+      "an active conflict",
+      { pattern: draftedPattern(), conflictActive: true, generating: false },
+      ptBR.Footer.exportDisabledConflictTitle,
+    ],
+    [
+      "a regeneration in progress",
+      { pattern: draftedPattern(), conflictActive: false, generating: true },
+      ptBR.Footer.exportDisabledGeneratingTitle,
+    ],
+  ])("states why for %s", (_label, props, expectedTitle) => {
+    renderWithIntl(<Footer {...props} />);
+    expect(
+      screen.getByRole("button", { name: ptBR.Footer.exportButton }),
+    ).toHaveAttribute("title", expectedTitle);
+  });
+
+  it("carries no title once the pattern is drafted and conflict-free", () => {
+    renderWithIntl(
+      <Footer
+        pattern={draftedPattern()}
+        conflictActive={false}
+        generating={false}
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: ptBR.Footer.exportButton }),
+    ).not.toHaveAttribute("title");
+  });
+});
+
 // #59: export now redrafts from a chosen size's own measurements instead of
 // always the base -- the picker only appears once there's something besides
 // the base to choose from.

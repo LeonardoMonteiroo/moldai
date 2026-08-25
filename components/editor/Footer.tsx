@@ -111,6 +111,17 @@ export function Footer({
     generating ||
     pattern.pieces.length === 0 ||
     !pattern.spec;
+  // #116: a reason per cause, mirroring saveAsBaseDisabledTitle below --
+  // pattern.pieces.length === 0 and !pattern.spec always coincide (both are
+  // set together by applyGarmentSpec), so they share one "nothing drafted"
+  // message rather than needing a third, redundant string.
+  const exportDisabledTitle = conflictActive
+    ? t("exportDisabledConflictTitle")
+    : generating
+      ? t("exportDisabledGeneratingTitle")
+      : pattern.pieces.length === 0 || !pattern.spec
+        ? t("exportDisabledBlankTitle")
+        : undefined;
 
   const statusText = conflictActive
     ? t("statusConflict", { version: pattern.version })
@@ -204,7 +215,11 @@ export function Footer({
 
       <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" disabled={exportDisabled}>
+          <Button
+            variant="outline"
+            disabled={exportDisabled}
+            title={exportDisabledTitle}
+          >
             {t("exportButton")}
           </Button>
         </DropdownMenuTrigger>
