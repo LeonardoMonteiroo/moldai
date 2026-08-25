@@ -444,7 +444,7 @@
   },
   "SizeCharts": {
     "title": "Medidas e grades",
-    "subtitle": "A grade escolhida vale para toda geração e graduação",
+    "subtitle": "A grade ativa vale só para o gênero dela — geração e graduação usam a grade padrão do sistema para o outro",
     "newSizeChartButton": "＋ Nova grade",
     "importLabel": "↥ Importar planilha ou tabela de medidas do Audaces",
     "loading": "Carregando grades…",
