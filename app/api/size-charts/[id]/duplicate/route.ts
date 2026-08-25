@@ -11,7 +11,7 @@ export async function POST(_request: Request, { params }: Ctx) {
   if (gate instanceof NextResponse) return gate;
   const { id } = await params;
   const t = await getTranslations("SizeCharts");
-  const chart = await createSizeChart(gate.id, t("copySuffix"), id);
+  const chart = await createSizeChart(gate.id, t, id);
   if (!chart) {
     return apiError("size_chart_not_found", ERROR_STATUS.size_chart_not_found);
   }

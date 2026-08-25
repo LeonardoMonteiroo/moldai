@@ -34,7 +34,11 @@ describe("POST /api/size-charts/[id]/duplicate", () => {
   it("duplicates the given chart id for the current user", async () => {
     vi.mocked(createSizeChart).mockResolvedValue({ id: "g2" } as never);
     const res = await POST(new Request("http://test"), ctx("g1"));
-    expect(createSizeChart).toHaveBeenCalledWith("u1", "copySuffix", "g1");
+    expect(createSizeChart).toHaveBeenCalledWith(
+      "u1",
+      expect.any(Function),
+      "g1",
+    );
     expect((await res.json()).id).toBe("g2");
   });
 

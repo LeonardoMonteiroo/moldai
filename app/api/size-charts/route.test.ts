@@ -97,14 +97,22 @@ describe("POST /api/size-charts", () => {
   it("creates a chart, forwarding an optional sourceId", async () => {
     vi.mocked(createSizeChart).mockResolvedValue({ id: "g3" } as never);
     const res = await POST(req({ sourceId: "g1" }));
-    expect(createSizeChart).toHaveBeenCalledWith("u1", "copySuffix", "g1");
+    expect(createSizeChart).toHaveBeenCalledWith(
+      "u1",
+      expect.any(Function),
+      "g1",
+    );
     expect((await res.json()).id).toBe("g3");
   });
 
   it("creates a chart with no sourceId when the body is empty", async () => {
     vi.mocked(createSizeChart).mockResolvedValue({ id: "g4" } as never);
     await POST(req({}));
-    expect(createSizeChart).toHaveBeenCalledWith("u1", "copySuffix", undefined);
+    expect(createSizeChart).toHaveBeenCalledWith(
+      "u1",
+      expect.any(Function),
+      undefined,
+    );
   });
 
   it("no session returns 401", async () => {
@@ -120,7 +128,11 @@ describe("POST /api/size-charts", () => {
     vi.mocked(createSizeChart).mockResolvedValue({ id: "g5" } as never);
     const res = await POST(req(null));
     expect(res.status).toBe(200);
-    expect(createSizeChart).toHaveBeenCalledWith("u1", "copySuffix", undefined);
+    expect(createSizeChart).toHaveBeenCalledWith(
+      "u1",
+      expect.any(Function),
+      undefined,
+    );
   });
 
   // #64: an explicit-but-unresolved sourceId used to silently substitute the
