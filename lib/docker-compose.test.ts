@@ -139,3 +139,71 @@ describe("docker cron/healthcheck hardening (#73, #100)", () => {
     expect(appBlock).toMatch(/\/api\/health/);
   });
 });
+
+// #102: the runner stage ran next start as root and shipped the full
+// devDependency tree (tsx, vitest, jsdom, eslint, prettier, the prisma CLI)
+// verbatim -- an RCE or path-traversal in any dependency had the run of the
+// container, with postgresql-client and DATABASE_URL right there for a
+// straight psql dump. This can't be exercised by actually running the
+// image in CI, so it guards the Dockerfile/package.json shape that fixes
+// both: a production-only node_modules stage, and dropping root before the
+// image's entrypoint runs.
+describe("Docker production hardening (#102)", () => {
+  const dockerfile = readFileSync(join(process.cwd(), "Dockerfile"), "utf-8");
+  const pkg = JSON.parse(
+    readFileSync(join(process.cwd(), "package.json"), "utf-8"),
+  ) as {
+    dependencies: Record<string, string>;
+    devDependencies: Record<string, string>;
+    engines?: Record<string, string>;
+  };
+
+  it("builds a production-only node_modules stage with --omit=dev", () => {
+    expect(dockerfile).toMatch(/FROM node:22-alpine AS prod-deps/);
+    const prodDepsStage = dockerfile.slice(
+      dockerfile.indexOf("AS prod-deps"),
+      dockerfile.indexOf("AS dev"),
+    );
+    expect(prodDepsStage).toMatch(/npm ci --omit=dev/);
+  });
+
+  it("copies the runner's node_modules from prod-deps, not build", () => {
+    const runnerStage = dockerfile.slice(dockerfile.indexOf("AS runner"));
+    expect(runnerStage).toMatch(
+      /COPY --from=prod-deps \/app\/node_modules \.\/node_modules/,
+    );
+    expect(runnerStage).not.toMatch(/COPY --from=build \/app\/node_modules/);
+  });
+
+  it("drops root before the runner stage's entrypoint runs", () => {
+    const runnerStage = dockerfile.slice(dockerfile.indexOf("AS runner"));
+    const chownIdx = runnerStage.search(/chown -R node:node \/app/);
+    const userIdx = runnerStage.search(/^USER node$/m);
+    const entrypointIdx = runnerStage.search(/^ENTRYPOINT/m);
+    expect(chownIdx).toBeGreaterThan(-1);
+    expect(userIdx).toBeGreaterThan(chownIdx);
+    expect(entrypointIdx).toBeGreaterThan(userIdx);
+  });
+
+  it("keeps prisma and tsx as real dependencies, not devDependencies, since --omit=dev would otherwise drop the CLI tools the entrypoint and cron service actually run at runtime", () => {
+    expect(pkg.dependencies.prisma).toBeTruthy();
+    expect(pkg.dependencies.tsx).toBeTruthy();
+    expect(pkg.devDependencies.prisma).toBeUndefined();
+    expect(pkg.devDependencies.tsx).toBeUndefined();
+  });
+
+  it("declares the engines.node floor the shipped images actually run", () => {
+    expect(pkg.engines?.node).toBeTruthy();
+  });
+
+  it("tests the same Node major version the Dockerfile images use", () => {
+    const ci = readFileSync(
+      join(process.cwd(), ".github/workflows/ci.yml"),
+      "utf-8",
+    );
+    const dockerMajor = dockerfile.match(/node:(\d+)-alpine/)?.[1];
+    const ciMajor = ci.match(/node-version:\s*(\d+)/)?.[1];
+    expect(dockerMajor).toBeTruthy();
+    expect(ciMajor).toBe(dockerMajor);
+  });
+});

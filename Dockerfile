@@ -8,6 +8,28 @@ COPY package.json package-lock.json ./
 COPY prisma ./prisma
 RUN npm ci --legacy-peer-deps
 
+# ---- prod-deps: production-only node_modules for the runner stage ----
+# #102: the runner stage used to copy node_modules straight from `build`,
+# which inherited it from `deps` above -- the full devDependency tree
+# (tsx, vitest, jsdom, eslint, prettier, typescript...), shipped to
+# production verbatim. `prisma` and `tsx` are real runtime dependencies
+# here (docker-entrypoint.sh's `prisma migrate deploy`, the cron
+# service's `tsx scripts/cron-renew.ts`), so they live in
+# package.json's "dependencies", not "devDependencies" -- --omit=dev
+# keeps them and drops everything that's actually dev-only.
+FROM node:22-alpine AS prod-deps
+WORKDIR /app
+RUN apk add --no-cache libc6-compat openssl
+COPY package.json package-lock.json ./
+COPY prisma ./prisma
+# --ignore-scripts: package.json's root "prepare" script (husky) still runs
+# on a plain `npm ci --omit=dev` even though husky itself is a
+# devDependency and gets omitted -- the install failed outright ("husky:
+# command not found") the first time this was tried. Skipping all
+# lifecycle scripts means "postinstall" (prisma generate) is skipped too,
+# so it's invoked explicitly afterward.
+RUN npm ci --omit=dev --ignore-scripts --legacy-peer-deps && npx prisma generate
+
 # ---- dev: hot reload; code comes in via bind mount at runtime ----
 FROM node:22-alpine AS dev
 WORKDIR /app
@@ -35,7 +57,10 @@ WORKDIR /app
 RUN apk add --no-cache libc6-compat openssl postgresql-client
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-COPY --from=build /app/node_modules ./node_modules
+# #102: from prod-deps, not build -- the full devDependency tree (tsx,
+# vitest, jsdom, eslint, prettier, typescript...) never reaches the image
+# that actually serves requests.
+COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=build /app/.next ./.next
 COPY --from=build /app/public ./public
 COPY --from=build /app/package.json ./package.json
@@ -52,6 +77,14 @@ COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 # container ever applies migrations.
 COPY docker-entrypoint-cron.sh /usr/local/bin/docker-entrypoint-cron.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh /usr/local/bin/docker-entrypoint-cron.sh
+# #102: next start (and the cron loop) used to run as root -- any RCE or
+# path-traversal in a dependency had the run of the container, including
+# postgresql-client and DATABASE_URL sitting right there for a straight
+# psql dump. node:22-alpine already ships an unprivileged "node" user;
+# chown has to happen before the switch, since USER changes who every
+# instruction after it (and the eventual ENTRYPOINT/CMD) runs as.
+RUN chown -R node:node /app
+USER node
 EXPOSE 3000
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["npm", "run", "start", "--", "--hostname", "0.0.0.0"]
