@@ -8,19 +8,29 @@ generator client {
 }
 
 model User {
-  id                 String                   @id @default(cuid())
-  email              String                   @unique
-  passwordHash       String
-  name               String?
-  emailVerified      DateTime?
-  createdAt          DateTime                 @default(now())
-  patterns           Pattern[]
-  wallet             Wallet?
-  sizeCharts         SizeChart[]
-  slopers            Sloper[]
-  verificationTokens EmailVerificationToken[]
+  id                  String                   @id @default(cuid())
+  email               String                   @unique
+  passwordHash        String
+  name                String?
+  emailVerified       DateTime?
+  createdAt           DateTime                 @default(now())
+  patterns            Pattern[]
+  wallet              Wallet?
+  sizeCharts          SizeChart[]              @relation("UserSizeCharts")
+  slopers             Sloper[]
+  verificationTokens  EmailVerificationToken[]
   passwordResetTokens PasswordResetToken[]
-  activeSizeChartId  String?
+  // #71: was a bare scalar with no FK, so a crash between deleteSizeChart's
+  // two writes could leave this naming a row that no longer exists -- the
+  // pointer degraded quietly (every read site treats a dangling id as "no
+  // active chart") rather than being rejected. onDelete: SetNull makes
+  // Postgres null it whenever the chart it names is deleted, which is also
+  // what deleteSizeChart's own $transaction now does at the app level --
+  // this closes the same hole at the schema level, unconditionally.
+  activeSizeChartId   String?
+  activeSizeChart     SizeChart?               @relation("ActiveSizeChart", fields: [activeSizeChartId], references: [id], onDelete: SetNull)
+
+  @@index([activeSizeChartId])
 }
 
 model EmailVerificationToken {
@@ -71,10 +81,15 @@ model Pattern {
 model SizeChart {
   id        String   @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation("UserSizeCharts", fields: [userId], references: [id], onDelete: Cascade)
   data      Json
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
+  // Back-relation for User.activeSizeChart above. Modeled as a list because
+  // Prisma requires it on this side of a one-to-many FK, but in practice at
+  // most one User ever names a given chart -- setActiveSizeChart only ever
+  // points a user's pointer at a chart that same user owns.
+  activeFor User[]   @relation("ActiveSizeChart")
 
   @@index([userId, updatedAt])
 }

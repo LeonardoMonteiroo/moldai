@@ -216,15 +216,20 @@ export async function deleteSizeChart(
     return false;
   }
   if (parsed.data.isSystem) return false;
-  const res = await prisma.sizeChart.deleteMany({
-    where: { id: sizeChartId, userId },
-  });
-  if (res.count === 0) return false;
-  await prisma.user.updateMany({
-    where: { id: userId, activeSizeChartId: sizeChartId },
-    data: { activeSizeChartId: null },
-  });
-  return true;
+  // #71: these two writes used to run as independent awaits -- a crash (a
+  // deploy, a container restart, a pool timeout) between them could delete
+  // the chart while leaving User.activeSizeChartId still naming it, a
+  // dangling id no FK exists to reject or cascade. One $transaction array
+  // (the lib/db/verification.ts issueToken/consumeToken precedent) makes the
+  // pointer unable to outlive the row.
+  const [{ count }] = await prisma.$transaction([
+    prisma.sizeChart.deleteMany({ where: { id: sizeChartId, userId } }),
+    prisma.user.updateMany({
+      where: { id: userId, activeSizeChartId: sizeChartId },
+      data: { activeSizeChartId: null },
+    }),
+  ]);
+  return count > 0;
 }
 
 // #21: the ownership check used to be an unscoped findUnique followed by an
