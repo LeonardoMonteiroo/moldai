@@ -9,7 +9,12 @@ import {
   seamCheck,
   STYLE_LIMITS,
 } from "./garment";
-import { SIZE_TABLE, SIZE_TABLE_MALE } from "@/lib/measurements";
+import {
+  SIZE_TABLE,
+  SIZE_TABLE_MALE,
+  MEASUREMENT_RANGES,
+  type Measurements,
+} from "@/lib/measurements";
 import { t } from "@/lib/i18n/test-translate";
 import { curveArcLengthCm } from "./core";
 import { DECORATION_CASES } from "./fixtures";
@@ -574,28 +579,97 @@ function verticalSpanAt(pts: [number, number][], x: number) {
   return { top, bottom };
 }
 
+function assertDecorationsContained(pieces: ReturnType<typeof draftPiecesCm>) {
+  expect(pieces.length).toBeGreaterThan(0);
+  for (const piece of pieces) {
+    const points = [
+      ...(piece.grainlineCm ?? []),
+      ...(piece.dartsCm ?? []).flat(),
+    ] as [number, number][];
+    for (const [x, y] of points) {
+      const span = verticalSpanAt(piece.outlineCm, x);
+      expect(
+        y,
+        `${piece.id} point (${x.toFixed(1)}, ${y.toFixed(1)}) vs outline y-range [${span.top.toFixed(1)}, ${span.bottom.toFixed(1)}]`,
+      ).toBeGreaterThanOrEqual(span.top);
+      expect(y).toBeLessThanOrEqual(span.bottom);
+    }
+  }
+}
+
 describe("drafted decorations stay inside their own piece", () => {
   for (const [name, spec] of DECORATION_CASES) {
     it(`${name}: grainline and dart never leave the outline`, () => {
       const m = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
-      const pieces = draftPiecesCm(spec, m, t);
-      expect(pieces.length).toBeGreaterThan(0);
-      for (const piece of pieces) {
-        const points = [
-          ...(piece.grainlineCm ?? []),
-          ...(piece.dartsCm ?? []).flat(),
-        ] as [number, number][];
-        for (const [x, y] of points) {
-          const span = verticalSpanAt(piece.outlineCm, x);
-          expect(
-            y,
-            `${piece.id} point (${x.toFixed(1)}, ${y.toFixed(1)}) vs outline y-range [${span.top.toFixed(1)}, ${span.bottom.toFixed(1)}]`,
-          ).toBeGreaterThanOrEqual(span.top);
-          expect(y).toBeLessThanOrEqual(span.bottom);
-        }
-      }
+      assertDecorationsContained(draftPiecesCm(spec, m, t));
     });
   }
+});
+
+// #82: reported against a since-superseded version of the waist dart, which
+// was a single wedge centred exactly at cx -- at that x, a deep V-neck plus a
+// short back could push the piece's own top edge (neckDrop) below the dart's
+// fixed 12 cm apex, floating it above the neckline. #122 (closed after #82
+// was filed) split that into two darts offset toward the side seam
+// (dartOffset = waistHalf * 0.5), which is provably always greater than
+// neckHalf given the drafting formulas here -- so the dart's x can no longer
+// land inside the neckline curve's own span at all, and the escape #82
+// reported is not reachable through today's code. Verified empirically: this
+// matrix (every DECORATION_CASES case, at the MEASUREMENT_RANGES corners for
+// bust/backLength/shoulder, plus the exact reported repro) all pass against
+// body.ts as it stood before this issue was picked up, with no code change
+// needed. Kept anyway as a permanent regression guard, since the previous
+// sweep's real gap -- one fixed measurement row (SIZE_TABLE.M) that never
+// combined a deep neckline with a short back -- is still worth closing.
+const MEASUREMENT_CORNERS: [string, Partial<Measurements>][] = [
+  [
+    "min",
+    {
+      bust: MEASUREMENT_RANGES.bust.min,
+      backLength: MEASUREMENT_RANGES.backLength.min,
+      shoulder: MEASUREMENT_RANGES.shoulder.min,
+    },
+  ],
+  [
+    "max",
+    {
+      bust: MEASUREMENT_RANGES.bust.max,
+      backLength: MEASUREMENT_RANGES.backLength.max,
+      shoulder: MEASUREMENT_RANGES.shoulder.max,
+    },
+  ],
+];
+
+describe("drafted decorations stay inside their own piece, at the measurement range corners", () => {
+  for (const [name, spec] of DECORATION_CASES) {
+    for (const [cornerName, corner] of MEASUREMENT_CORNERS) {
+      it(`${name} @ ${cornerName}: grainline and dart never leave the outline`, () => {
+        const base = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
+        const m = { ...base, ...corner };
+        assertDecorationsContained(draftPiecesCm(spec, m, t));
+      });
+    }
+  }
+
+  // The exact repro from #82.
+  it("deep V-neck on a short back with a large bust: dart apex stays below the neckline", () => {
+    const m: Measurements = {
+      ...SIZE_TABLE.M,
+      bust: MEASUREMENT_RANGES.bust.max,
+      backLength: MEASUREMENT_RANGES.backLength.min,
+    };
+    const spec = {
+      type: "blouse" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: {
+        neckline: "V" as const,
+        necklineDepthCm: STYLE_LIMITS.necklineDepthCm.max,
+        darts: true,
+      },
+    };
+    assertDecorationsContained(draftPiecesCm(spec, m, t));
+  });
 });
 
 // #79: a dress bodice used to push extra fitted-waist vertices at
