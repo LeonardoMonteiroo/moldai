@@ -75,4 +75,15 @@ describe("Sidebar", () => {
     );
     expect(onNewPattern).toHaveBeenCalledTimes(1);
   });
+
+  // #50: the import placeholder card used text-disabled (2.10:1 on white),
+  // below WCAG 1.4.3's 4.5:1 -- it's an inert "em breve" note on a plain div,
+  // not a disabled control.
+  it("colors the import placeholder card with text-muted, not the disabled token", () => {
+    renderWithIntl(<Sidebar active="patterns" onNewPattern={vi.fn()} />);
+
+    const card = screen.getByText(ptBR.Sidebar.importLabel);
+    expect(card.className).toContain("text-muted");
+    expect(card.className).not.toContain("text-disabled");
+  });
 });

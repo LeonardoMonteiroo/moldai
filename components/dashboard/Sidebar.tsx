@@ -70,7 +70,11 @@ export function Sidebar({
         />
       </nav>
       <div className="flex-1" />
-      <div className="border-border rounded-card text-disabled text-meta mb-3 border border-dashed p-[10px] text-center">
+      {/* #50: text-disabled (2.10:1) fails WCAG 1.4.3 for this plain
+          informational card -- it's an inert "em breve" placeholder, not a
+          disabled control, so it needs text-muted's 4.5:1 like every other
+          "em breve" note. */}
+      <div className="border-border rounded-card text-muted text-meta mb-3 border border-dashed p-[10px] text-center">
         {t("importLabel")}
       </div>
       <Button onClick={onNewPattern} disabled={disabled}>

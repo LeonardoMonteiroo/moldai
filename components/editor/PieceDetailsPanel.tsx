@@ -73,7 +73,11 @@ export function PieceDetailsPanel({
                 title={isBase ? t("baseSizeTitle") : undefined}
                 className={[
                   "rounded-[6px] px-[7px] py-[3px] font-semibold",
-                  active ? "bg-olive-tint text-olive" : "text-placeholder",
+                  // #50: text-placeholder fails WCAG 1.4.3 (2.68:1) for
+                  // plain informational text -- this chip isn't a disabled
+                  // control, it's the only place the graded/ungraded
+                  // distinction is shown.
+                  active ? "bg-olive-tint text-olive" : "text-muted",
                   isBase ? "ring-olive-border ring-1" : "",
                 ].join(" ")}
               >

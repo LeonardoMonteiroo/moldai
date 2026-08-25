@@ -21,7 +21,11 @@ const badgeVariants = cva(
         // amber attention pill — credits, warnings, plan notes (bg-amber-bg is used
         // in 10 screens; this is the one place it should be spelled out)
         notice: "bg-amber-bg border-amber-border text-amber-text",
-        quiet: "text-placeholder",
+        // #50: text-placeholder (2.68:1 on surface) is for real input
+        // placeholders and disabled controls, not plain informational text —
+        // this variant's only consumer (TabBar's non-base size chips) needed
+        // text-muted's 4.5:1 instead.
+        quiet: "text-muted",
         soon: "border-dashed border-olive-border bg-accent text-accent-foreground text-tick font-semibold tracking-eyebrow uppercase",
         link: "text-primary underline-offset-4 [a&]:hover:underline",
       },
