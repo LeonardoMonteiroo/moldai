@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { planCutLayout } from "./cutplan";
 import { buildExportModel } from "./model";
 import type { Pattern } from "@/lib/types";
-import { SIZE_TABLE_MALE } from "@/lib/measurements";
+import { SIZE_TABLE, SIZE_TABLE_MALE } from "@/lib/measurements";
 import { t } from "@/lib/i18n/test-translate";
 
 function fakePattern(): Pattern {
@@ -31,6 +31,39 @@ function fakePattern(): Pattern {
       gender: "male",
       measurementOverrides: {},
       style: { seamAllowanceCm: 1 },
+    },
+  };
+}
+
+// #89: a half-circle panel's flat width grows with (waist/π + length), not
+// with waist alone -- it genuinely exceeds the shipped fabric-width presets
+// at ordinary measurements, unlike a body/sleeve piece.
+function halfCircleSkirtPattern(): Pattern {
+  return {
+    id: "p2",
+    name: "Saia Teste",
+    version: 1,
+    baseSize: "M",
+    unit: "cm",
+    sizes: ["PP", "P", "M", "G", "GG"],
+    sizesApplied: [],
+    sizesPending: [],
+    sizeTable: { M: SIZE_TABLE.M },
+    pieces: [
+      {
+        id: "x",
+        name: "x",
+        qty: 1,
+        outline: { kind: "polygon", points: "0,0" },
+        label: { x: 0, y: 0 },
+        detailRows: [],
+      },
+    ],
+    spec: {
+      type: "skirt",
+      gender: "female",
+      measurementOverrides: {},
+      style: { skirt: "half-circle", seamAllowanceCm: 1 },
     },
   };
 }
@@ -123,5 +156,23 @@ describe("planCutLayout", () => {
     const b = planCutLayout(withAllowance, 150, t);
     expect(b.lengthCm).toBeGreaterThan(a.lengthCm);
     expect(b.usedAreaCm2).toBeGreaterThan(a.usedAreaCm2);
+  });
+
+  // #89: efficiency's contract is (0,1], but nothing stopped a piece wider
+  // than the usable fabric from being packed (and counted in usedAreaCm2)
+  // anyway -- a half-circle skirt on the shipped 140cm preset genuinely
+  // overflows, and used to report efficiency > 1 (up to 1.218 measured).
+  it("a half-circle skirt overflows the 140cm preset, and efficiency stays honest", () => {
+    const plan = planCutLayout(halfCircleSkirtPattern(), 140, t);
+    expect(plan.overflow).toBe(true);
+    expect(plan.efficiency).toBeGreaterThan(0);
+    expect(plan.efficiency).toBeLessThanOrEqual(1 + 1e-9);
+  });
+
+  it("a deliberately narrow fabric width overflows a normal piece, and efficiency stays honest", () => {
+    const plan = planCutLayout(fakePattern(), 10, t);
+    expect(plan.overflow).toBe(true);
+    expect(plan.efficiency).toBeGreaterThan(0);
+    expect(plan.efficiency).toBeLessThanOrEqual(1 + 1e-9);
   });
 });

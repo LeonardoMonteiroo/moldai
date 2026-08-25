@@ -82,7 +82,13 @@ export interface CutPlan {
   fabricWidthCm: number;
   lengthCm: number; // fabric length consumed
   usedAreaCm2: number; // sum of the copies' bboxes
-  efficiency: number; // usedArea / (width × length), in (0,1]
+  // #89: usedArea / (effective width × length), in (0,1]. "Effective width"
+  // is fabricWidthCm widened to fit the widest instance whenever a piece
+  // overflows the usable width -- dividing by the nominal fabricWidthCm in
+  // that case (a half-circle skirt on a 140cm roll, measured) produced
+  // efficiency > 1, a nonsense percentage on the card a user reads to buy
+  // fabric.
+  efficiency: number;
   instances: CutInstance[];
   overflow: boolean; // some piece wider than the usable fabric
 }
@@ -143,8 +149,18 @@ export function planCutLayout(
     (s, it) => s + it.widthCm * it.heightCm,
     0,
   );
+  // #89: an overflowing piece is packed into its own row regardless (the
+  // warning fires, but nothing stops the layout), so dividing by the
+  // nominal fabricWidthCm undercounted the width that row actually
+  // consumed. Widening the denominator to whatever the widest instance
+  // actually needs keeps the ratio honest instead of exceeding 1.
+  const widestInstanceCm = instances.reduce(
+    (m, it) => Math.max(m, it.widthCm + PAD_CM * 2),
+    0,
+  );
+  const effectiveWidthCm = Math.max(fabricWidthCm, widestInstanceCm);
   const efficiency =
-    lengthCm > 0 ? usedAreaCm2 / (fabricWidthCm * lengthCm) : 0;
+    lengthCm > 0 ? usedAreaCm2 / (effectiveWidthCm * lengthCm) : 0;
 
   return {
     fabricWidthCm,
