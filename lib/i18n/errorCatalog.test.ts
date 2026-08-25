@@ -171,9 +171,10 @@ const PASSWORD_SECTION_CODES = [
 
 describe("template-built errors.${code} catalog coverage (#56)", () => {
   it.each([
-    // Login: only its resend action builds a key (app/login/page.tsx:66).
+    // Login: only its resend action builds a key (components/auth/LoginCard.tsx).
     ["Login", RESEND_CODES],
-    // Signup: both signUp (:50) and resend (:66) build one, same namespace.
+    // Signup: both signUp and resend build one, same namespace
+    // (components/auth/SignupCard.tsx).
     ["Signup", [...SIGNUP_CODES, ...RESEND_CODES]],
     ["Verify", VERIFY_CODES],
     // PasswordResetCard resolves both routes' codes through one namespace --

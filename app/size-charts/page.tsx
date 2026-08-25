@@ -1,8 +1,15 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { auth } from "@/auth";
 import { loadWallet } from "@/lib/db/wallet";
 import { buildCredits } from "@/lib/api/compose";
 import { SizeChartsShell } from "@/components/size-charts/SizeChartsShell";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("SizeCharts");
+  return { title: t("title") };
+}
 
 export default async function SizeChartsPage() {
   const session = await auth();

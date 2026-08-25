@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import VerifyCard from "@/components/auth/VerifyCard";
 import { Wordmark } from "@/components/shared/Wordmark";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("Verify");
+  return { title: t("heading") };
+}
 
 export default async function VerifyPage({
   searchParams,

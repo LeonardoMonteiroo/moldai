@@ -1,4 +1,6 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { auth } from "@/auth";
 import { getUserById } from "@/lib/db/users";
 import { loadWallet } from "@/lib/db/wallet";
@@ -9,6 +11,11 @@ import {
   SETTINGS_SECTIONS,
   type SettingsSection,
 } from "@/lib/settings/sections";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("SettingsShell");
+  return { title: t("title") };
+}
 
 function parseSection(value: string | undefined): SettingsSection {
   return SETTINGS_SECTIONS.includes(value as SettingsSection)

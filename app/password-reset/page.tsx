@@ -1,5 +1,23 @@
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import PasswordResetCard from "@/components/auth/PasswordResetCard";
 import { Wordmark } from "@/components/shared/Wordmark";
+
+// Branches the same way PasswordResetCard itself does -- a token present is
+// the confirm-new-password form, not the request form, and the tab has to
+// say which one you're actually looking at (a moldai-conventions review
+// caught this on the first pass: the title was hardcoded to requestHeading
+// regardless, so the mailed reset link opened a tab reading "Esqueci minha
+// senha" over a "Nova senha" form).
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ token?: string }>;
+}): Promise<Metadata> {
+  const t = await getTranslations("PasswordReset");
+  const token = (await searchParams).token ?? "";
+  return { title: token ? t("confirmHeading") : t("requestHeading") };
+}
 
 // One of the three centered-card screens that bypass AppShell (with /login
 // and /signup), following app/verify/page.tsx's shape: a thin server

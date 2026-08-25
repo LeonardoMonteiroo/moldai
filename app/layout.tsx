@@ -17,7 +17,14 @@ const archivo = Archivo({
 });
 
 export const metadata: Metadata = {
-  title: "MoldAI — Editor de molde",
+  // #109: every full-page route now sets its own `title` via
+  // generateMetadata, so `default` below is really only the fallback for a
+  // segment that doesn't (there is none left) -- `template` is what turns
+  // each route's plain string into a distinguishable tab, brand suffixed.
+  title: {
+    template: "%s — MoldAI",
+    default: "MoldAI — Editor de molde",
+  },
   description:
     "MoldAI gera moldes de vestuário a partir de linguagem natural, foto, croqui ou tabela de medidas.",
 };

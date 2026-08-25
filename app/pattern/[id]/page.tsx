@@ -1,8 +1,26 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { getUserById } from "@/lib/db/users";
 import { loadPattern } from "@/lib/db/pattern";
 import { EditorShell } from "@/components/editor/EditorShell";
+
+// No session/pattern -- return {} rather than redirecting: the page
+// component below owns the actual redirect (to /login or
+// /?missing=pattern), and a private pattern name must never appear in a tab
+// title for a request that can't prove ownership of it.
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const session = await auth();
+  if (!session?.user?.id) return {};
+  const { id } = await params;
+  const loaded = await loadPattern(id, session.user.id);
+  if (!loaded) return {};
+  return { title: loaded.state.pattern.name };
+}
 
 export default async function PatternPage({
   params,

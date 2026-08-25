@@ -1,8 +1,15 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { auth } from "@/auth";
 import { loadWallet } from "@/lib/db/wallet";
 import { buildCredits } from "@/lib/api/compose";
 import { SlopersShell } from "@/components/slopers/SlopersShell";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("Slopers");
+  return { title: t("title") };
+}
 
 export default async function SlopersPage() {
   const session = await auth();
