@@ -29,16 +29,27 @@ export async function withPatternAndWallet<T>(
     // this transaction holds the Pattern+Wallet locks for the whole call.
     tx: Tx,
   ) =>
-    | { result: T; entries: LedgerEntry[] }
-    | Promise<{ result: T; entries: LedgerEntry[] }>,
+    | { result: T; entries: LedgerEntry[]; dirty?: boolean }
+    | Promise<{ result: T; entries: LedgerEntry[]; dirty?: boolean }>,
 ): Promise<T | null> {
   return prisma.$transaction(async (tx) => {
     const state = await lockPattern(tx, patternId, userId);
     if (!state) return null;
     const wallet = await lockWallet(tx, userId);
-    const { result, entries } = await fn(state, wallet, tx);
-    await savePattern(tx, patternId, userId, state);
-    await saveWallet(tx, userId, wallet);
+    // #43: a rejecting branch (insufficient credits, nothing to graduate)
+    // returns before mutating state or wallet at all, but the unconditional
+    // save below still stamped Pattern.updatedAt=now() -- which
+    // listPatternsForUser sorts by, so a 402/400 that changed nothing bumped
+    // the row to the top of the dashboard and re-serialized its whole JSON
+    // blob for no reason. `dirty` is an explicit per-call signal from fn, not
+    // inferred from entries.length: ask/decline debit nothing but still
+    // addMessage into state, so an entries-based heuristic would wrongly
+    // skip saving them too.
+    const { result, entries, dirty = true } = await fn(state, wallet, tx);
+    if (dirty) {
+      await savePattern(tx, patternId, userId, state);
+      await saveWallet(tx, userId, wallet);
+    }
     await saveLedger(tx, userId, entries);
     return result;
   }, TX_OPTS);

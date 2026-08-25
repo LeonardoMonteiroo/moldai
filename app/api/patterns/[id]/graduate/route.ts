@@ -32,12 +32,23 @@ export async function POST(request: Request, { params }: Ctx) {
     result = await withPatternAndWallet(
       id,
       gate.id,
-      (state, wallet): { result: NextResponse; entries: LedgerEntry[] } => {
+      (
+        state,
+        wallet,
+      ): {
+        result: NextResponse;
+        entries: LedgerEntry[];
+        dirty?: boolean;
+      } => {
         // A blank pattern still carries a seeded `sizes` list, so the size check
         // below cannot stand in for "there is something to grade". Without this,
         // grading nothing bumped the version and debited COSTS.graduate.
         if (state.pattern.pieces.length === 0) {
-          return { result: apiError("pattern_not_drafted", 400), entries: [] };
+          return {
+            result: apiError("pattern_not_drafted", 400),
+            entries: [],
+            dirty: false,
+          };
         }
         // #60: intersect against sizesPending (minus the base size), the
         // same set PieceDetailsPanel's `gradable` computes -- filtering
@@ -56,6 +67,7 @@ export async function POST(request: Request, { params }: Ctx) {
           return {
             result: apiError("no_gradable_sizes", 400),
             entries: [],
+            dirty: false,
           };
         }
         if (wallet.balance < cost) {
@@ -69,6 +81,7 @@ export async function POST(request: Request, { params }: Ctx) {
               { status: 402 },
             ),
             entries: [],
+            dirty: false,
           };
         }
         const entry = debitWallet(wallet, cost, "graduate");

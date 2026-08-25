@@ -22,6 +22,11 @@ const NOW = new Date("2026-08-17T12:00:00.000Z");
 let state: PatternState = draftedState();
 let wallet: Wallet = seedWallet(NOW);
 let ownedPatternId: string | null = "m1";
+// #43: captures fn's raw return (including `dirty`), which the mock below
+// otherwise discards down to just `.result` -- the route's own contract with
+// withPatternAndWallet is what a rejecting branch signals, not what the POST
+// response ends up looking like.
+let lastFnReturn: { entries: LedgerEntry[]; dirty?: boolean } | null = null;
 
 vi.mock("next-intl/server", () => ({
   getTranslations: vi.fn(async () => (key: string) => key),
@@ -41,10 +46,12 @@ vi.mock("@/lib/db/pattern-wallet", () => ({
       fn: (
         s: PatternState,
         w: Wallet,
-      ) => { result: unknown; entries: LedgerEntry[] },
+      ) => { result: unknown; entries: LedgerEntry[]; dirty?: boolean },
     ) => {
       if (patternId !== ownedPatternId) return null;
-      return fn(state, wallet).result;
+      const out = fn(state, wallet);
+      lastFnReturn = { entries: out.entries, dirty: out.dirty };
+      return out.result;
     },
   ),
 }));
@@ -70,6 +77,7 @@ describe("POST /api/patterns/[id]/graduate", () => {
     state = draftedState();
     wallet = seedWallet(NOW);
     ownedPatternId = "m1";
+    lastFnReturn = null;
     vi.mocked(requireUser).mockResolvedValue({
       id: "u1",
       email: "dev@moldai.local",
@@ -85,6 +93,9 @@ describe("POST /api/patterns/[id]/graduate", () => {
     expect(json.state.credits.balance).toBe(balanceBefore - 6);
     expect(state.pattern.sizesApplied).toContain("G");
     expect(state.pattern.version).toBe(1);
+    // #43: a real grade actually changed both rows, so it must not opt out
+    // of the save withPatternAndWallet would otherwise skip.
+    expect(lastFnReturn?.dirty).not.toBe(false);
   });
 
   it("writes the graduated chat message and credit chip through the translator", async () => {
@@ -111,6 +122,10 @@ describe("POST /api/patterns/[id]/graduate", () => {
     wallet.balance = 0;
     const res = await POST(req({ sizes: ["G"] }), ctx());
     expect(res.status).toBe(402);
+    // #43: nothing was mutated before this branch returns, so it must tell
+    // withPatternAndWallet to skip the otherwise-unconditional save --
+    // rejecting a graduate request must not bump the pattern's updatedAt.
+    expect(lastFnReturn?.dirty).toBe(false);
   });
 
   it("404s when the pattern isn't found/owned", async () => {
@@ -137,6 +152,9 @@ describe("POST /api/patterns/[id]/graduate", () => {
     expect(wallet.balance).toBe(balanceBefore);
     expect(state.pattern.version).toBe(0);
     expect(state.pattern.sizesApplied).not.toContain("G");
+    // #43: same reasoning as the 402 case -- a blank pattern must not have
+    // its updatedAt bumped by a request that drafted nothing.
+    expect(lastFnReturn?.dirty).toBe(false);
   });
 
   // #60: the guard used to check membership in `pattern.sizes` (the full
@@ -154,6 +172,7 @@ describe("POST /api/patterns/[id]/graduate", () => {
     expect((await second.json()).error).toBe("no_gradable_sizes");
     expect(wallet.balance).toBe(balanceAfterFirst);
     expect(state.pattern.version).toBe(versionAfterFirst);
+    expect(lastFnReturn?.dirty).toBe(false);
   });
 
   // The base size is already the drafted size -- PieceDetailsPanel's
@@ -166,6 +185,7 @@ describe("POST /api/patterns/[id]/graduate", () => {
     expect((await res.json()).error).toBe("no_gradable_sizes");
     expect(wallet.balance).toBe(balanceBefore);
     expect(state.pattern.version).toBe(0);
+    expect(lastFnReturn?.dirty).toBe(false);
   });
 
   // #61: a throw past withPatternAndWallet's own transaction close (e.g. it

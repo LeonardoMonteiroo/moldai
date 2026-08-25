@@ -49,6 +49,13 @@ export async function POST(request: Request, { params }: Ctx) {
   const answering = body.answering === true;
   const cost = COSTS.adjust;
   const t = await getTranslations("PatternData");
+  // #3: getSizeChartForGeneration -> listSizeChartsForUser now needs its own
+  // translator (for the system chart names it may lazily seed), scoped to
+  // SizeCharts rather than this route's own PatternData one. Resolved here,
+  // outside withPatternAndWallet -- the callback runs inside the interactive
+  // transaction (30s timeout, holding the Pattern+Wallet locks for the whole
+  // AI call), and getTranslations has no reason to run inside that.
+  const tCharts = await getTranslations("SizeCharts");
   const now = new Date();
 
   let result;
@@ -60,7 +67,11 @@ export async function POST(request: Request, { params }: Ctx) {
         state,
         wallet,
         tx,
-      ): Promise<{ result: NextResponse; entries: LedgerEntry[] }> => {
+      ): Promise<{
+        result: NextResponse;
+        entries: LedgerEntry[];
+        dirty?: boolean;
+      }> => {
         if (wallet.balance < cost) {
           return {
             result: NextResponse.json(
@@ -72,6 +83,7 @@ export async function POST(request: Request, { params }: Ctx) {
               { status: 402 },
             ),
             entries: [],
+            dirty: false,
           };
         }
 
@@ -175,6 +187,7 @@ export async function POST(request: Request, { params }: Ctx) {
                     tx,
                     gate.id,
                     decision.spec.gender ?? "female",
+                    tCharts,
                   );
                 seedPatternSizeSnapshot(state, chart);
                 substitutedFrom = rejectedActiveName;

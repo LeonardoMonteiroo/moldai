@@ -11,6 +11,11 @@ let state: PatternState = seedPatternState(t);
 let wallet: Wallet = seedWallet(NOW);
 let ownedPatternId: string | null = "m1";
 let lastEntries: LedgerEntry[] = [];
+// #43: an insufficient-balance rejection returns before touching state or
+// wallet at all, so it must tell withPatternAndWallet to skip the save that
+// would otherwise stamp Pattern.updatedAt=now() for a request that changed
+// nothing.
+let lastDirty: boolean | undefined;
 
 vi.mock("@/lib/ai", () => ({ proposeGarment: vi.fn() }));
 vi.mock("next-intl/server", () => ({
@@ -32,13 +37,18 @@ vi.mock("@/lib/db/pattern-wallet", () => ({
         s: PatternState,
         w: Wallet,
         tx: unknown,
-      ) => Promise<{ result: unknown; entries: LedgerEntry[] }>,
+      ) => Promise<{
+        result: unknown;
+        entries: LedgerEntry[];
+        dirty?: boolean;
+      }>,
     ) => {
       if (patternId !== ownedPatternId) return null;
       // getSizeChartForGeneration is mocked wholesale below and ignores its
       // arguments, so a fake tx is enough here.
-      const { result, entries } = await fn(state, wallet, {});
+      const { result, entries, dirty } = await fn(state, wallet, {});
       lastEntries = entries;
+      lastDirty = dirty;
       return result;
     },
   ),
@@ -99,6 +109,7 @@ describe("POST /api/patterns/[id]/generate", () => {
     wallet = seedWallet(NOW);
     ownedPatternId = "m1";
     lastEntries = [];
+    lastDirty = undefined;
     mockPropose.mockReset();
     vi.mocked(reportError).mockReset();
     vi.mocked(requireUser).mockResolvedValue({
@@ -139,6 +150,9 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(json.state.credits.balance).toBe(balanceBefore);
     expect(state.pattern.version).toBe(versionBefore);
     expect(lastEntries).toEqual([]);
+    // #43: ask has no ledger entries but DOES append a chat message -- an
+    // entries-based "nothing changed" heuristic would wrongly skip saving it.
+    expect(lastDirty).not.toBe(false);
   });
 
   it("apply debits, drafts, and versions", async () => {
@@ -353,6 +367,7 @@ describe("POST /api/patterns/[id]/generate", () => {
     const res = await POST(req({ message: "camiseta" }), ctx());
     expect(res.status).toBe(402);
     expect(mockPropose).not.toHaveBeenCalled();
+    expect(lastDirty).toBe(false);
   });
 
   it("404s when the pattern isn't found/owned, without calling the AI", async () => {

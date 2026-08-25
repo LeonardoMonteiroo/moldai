@@ -159,6 +159,33 @@ describe("withPatternAndWallet", () => {
     expect((walletStore.get("u2") as { balance: number }).balance).toBe(30);
   });
 
+  // #43: a rejecting branch (insufficient credits, nothing to graduate)
+  // returns before mutating anything, but the save used to run unconditionally
+  // anyway -- rewriting Pattern.updatedAt (which listPatternsForUser sorts by)
+  // and re-serializing the whole blob for a request that changed nothing.
+  it("skips saving the pattern and wallet when fn reports dirty: false", async () => {
+    await withPatternAndWallet("m1", "u1", () => ({
+      result: undefined,
+      entries: [],
+      dirty: false,
+    }));
+    expect(callOrder).not.toContain("save-pattern");
+    expect(callOrder).not.toContain("save-wallet");
+  });
+
+  it("still saves by default when fn omits the dirty flag", async () => {
+    await withPatternAndWallet("m1", "u1", (state) => {
+      bumpVersion(state);
+      return { result: undefined, entries: [] };
+    });
+    expect(callOrder).toContain("save-pattern");
+    expect(callOrder).toContain("save-wallet");
+    expect(
+      (patternStore.get("m1")!.data as { pattern: { version: number } }).pattern
+        .version,
+    ).toBe(1);
+  });
+
   it("persists u2's wallet debit independently of u1's, when both exist", async () => {
     patternStore.set("m2", { userId: "u2", data: seedPatternState(t) });
     walletStore.set("u1", seedWallet(NOW));
