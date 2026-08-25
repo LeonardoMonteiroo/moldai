@@ -329,6 +329,43 @@ describe("SizeChartTable body type note", () => {
   });
 });
 
+// #49: in rule-edit mode the header still listed every size column with a
+// live remove button, while the body had already swapped to one unlabelled
+// rule input per row -- the columns no longer matched the cells beneath them,
+// and the sentence explaining what the number means (ruleHint) was written
+// into the catalog but never rendered anywhere.
+describe("SizeChartTable rule-edit mode", () => {
+  it("hides the per-size remove buttons and shows the rule hint", () => {
+    seed();
+    useSizeChartsStore.setState({ editingRule: true });
+
+    renderWithIntl(<SizeChartTable />);
+
+    expect(
+      screen.queryAllByRole("button", {
+        name: ptBR.SizeChartTable.removeSizeTitle,
+      }),
+    ).toHaveLength(0);
+    expect(screen.getByText(ptBR.SizeChartTable.ruleHint)).toBeInTheDocument();
+  });
+
+  it("keeps the size columns and remove buttons when not editing the rule", () => {
+    seed();
+    useSizeChartsStore.setState({ editingRule: false });
+
+    renderWithIntl(<SizeChartTable />);
+
+    expect(
+      screen.getAllByRole("button", {
+        name: ptBR.SizeChartTable.removeSizeTitle,
+      }).length,
+    ).toBeGreaterThan(0);
+    expect(
+      screen.queryByText(ptBR.SizeChartTable.ruleHint),
+    ).not.toBeInTheDocument();
+  });
+});
+
 // #34: nothing gated the Save button against a request already in flight —
 // dirty stayed true for the whole round trip, so a second click fired a
 // second PATCH and the button gave no sign a save was even happening.
