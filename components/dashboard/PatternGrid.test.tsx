@@ -4,6 +4,7 @@ import {
   screen,
   userEvent,
   ptBR,
+  translatorFor,
 } from "@/components/test-utils";
 import type { PatternListItem } from "@/lib/api-client";
 import { useDashboardStore } from "@/lib/dashboardStore";
@@ -77,5 +78,42 @@ describe("PatternGrid", () => {
       <PatternGrid onOpen={vi.fn()} onNewPattern={vi.fn()} />,
     );
     expect(container.querySelector('[data-slot="scroll-area"]')).toBeNull();
+  });
+
+  // #106: CLDR puts 0 in pt's "one" plural category, so the count label
+  // read "0 molde" on an empty dashboard -- correct by CLDR, wrong in
+  // Brazilian usage. Covers 0 (the explicit =0 branch), 1 and 2.
+  it("reads 'Nenhum molde' for zero, and pluralizes correctly at 1 and 2", () => {
+    const tGrid = translatorFor("PatternGrid");
+
+    useDashboardStore.setState({ patterns: [] });
+    const zero = renderWithIntl(
+      <PatternGrid onOpen={vi.fn()} onNewPattern={vi.fn()} />,
+    );
+    expect(
+      screen.getByText(tGrid("countLabel", { count: 0 })),
+    ).toBeInTheDocument();
+    expect(tGrid("countLabel", { count: 0 })).toBe("Nenhum molde");
+    zero.unmount();
+
+    useDashboardStore.setState({ patterns: [PATTERN] });
+    const one = renderWithIntl(
+      <PatternGrid onOpen={vi.fn()} onNewPattern={vi.fn()} />,
+    );
+    expect(
+      screen.getByText(tGrid("countLabel", { count: 1 })),
+    ).toBeInTheDocument();
+    one.unmount();
+
+    useDashboardStore.setState({
+      patterns: [PATTERN, { ...PATTERN, id: "p2" }],
+    });
+    const two = renderWithIntl(
+      <PatternGrid onOpen={vi.fn()} onNewPattern={vi.fn()} />,
+    );
+    expect(
+      screen.getByText(tGrid("countLabel", { count: 2 })),
+    ).toBeInTheDocument();
+    two.unmount();
   });
 });

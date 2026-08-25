@@ -1,29 +1,20 @@
 import { describe, it, expect } from "vitest";
-import { createTranslator } from "next-intl";
-import { renderWithIntl, ptBR, screen } from "@/components/test-utils";
+import {
+  renderWithIntl,
+  screen,
+  translatorFor,
+} from "@/components/test-utils";
 import type { ConflictInfo } from "@/lib/types";
 import { ConflictInfoCard } from "./ConflictInfoCard";
-
-const translate = createTranslator({
-  locale: "pt-BR",
-  messages: ptBR,
-  namespace: "ConflictInfoCard",
-});
 
 // Resolves the catalog's own ICU strings (gapLabel is a select; valueCm
 // interpolates), which a hand-written literal could not do without pasting
 // display text into a test. On a missing key next-intl renders the key path
 // rather than throwing — and the component would render that same path, so
-// comparing the two would pass over a catalog gap. Hence the guard: it fails
-// here, at the source, if the message did not actually resolve.
-function t(key: string, values?: Record<string, string>) {
-  const resolved = translate(
-    key as Parameters<typeof translate>[0],
-    values as never,
-  );
-  expect(resolved).not.toContain(key);
-  return resolved;
-}
+// comparing the two would pass over a catalog gap. Hence the guard (built
+// into translatorFor): it fails here, at the source, if the message did not
+// actually resolve.
+const t = translatorFor("ConflictInfoCard");
 
 function conflict(overrides: Partial<ConflictInfo> = {}): ConflictInfo {
   return {

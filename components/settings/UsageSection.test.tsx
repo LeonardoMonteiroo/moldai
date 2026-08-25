@@ -5,6 +5,7 @@ import {
   screen,
   userEvent,
   waitFor,
+  translatorFor,
 } from "@/components/test-utils";
 import type { Credits } from "@/lib/types";
 import { UsageSection } from "./UsageSection";
@@ -106,5 +107,27 @@ describe("UsageSection", () => {
     expect(
       screen.queryByText(ptBR.ActionErrorNotice.message),
     ).not.toBeInTheDocument();
+  });
+
+  // #106: "renova em {days} dias" was a hardcoded plural noun.
+  it("pluralizes the renewal days at 0, 1 and 2", () => {
+    const tUsage = translatorFor("UsageSection");
+    for (const renewsInDays of [0, 1, 2]) {
+      const credits: Credits = {
+        plan: "free",
+        balance: 15,
+        total: 30,
+        renewsInDays,
+      };
+      const { unmount } = renderWithIntl(
+        <UsageSection credits={credits} initialLedger={[]} />,
+      );
+      expect(
+        screen.getByText(
+          tUsage("outOfTotal", { total: 30, days: renewsInDays }),
+        ),
+      ).toBeInTheDocument();
+      unmount();
+    }
   });
 });

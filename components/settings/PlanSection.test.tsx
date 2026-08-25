@@ -5,6 +5,7 @@ import {
   screen,
   userEvent,
   waitFor,
+  translatorFor,
 } from "@/components/test-utils";
 import type { Credits } from "@/lib/types";
 import { COSTS } from "@/lib/types";
@@ -17,6 +18,15 @@ vi.mock("@/lib/api-client", async () => {
       "@/lib/api-client",
     );
   return { ...actual, purchase: vi.fn() };
+});
+
+// #106: COSTS is a plain object, not frozen -- mocking @/lib/types with a
+// shallow copy of it (rather than the same frozen reference the real module
+// exports) lets these tests force each boundary value (0, 1, 2) through the
+// same COSTS the component reads, without a separate mock per cost key.
+vi.mock("@/lib/types", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/types")>();
+  return { ...actual, COSTS: { ...actual.COSTS } };
 });
 
 const CREDITS: Credits = {
@@ -40,13 +50,37 @@ describe("PlanSection", () => {
 
   it("prices generation and adjustment the same, at the real debited cost", () => {
     renderWithIntl(<PlanSection credits={CREDITS} />);
-    const t = ptBR.PlanSection;
+    const tPlan = translatorFor("PlanSection");
     expect(
-      screen.getByText(t.costGenerate.replace("{cost}", String(COSTS.adjust))),
+      screen.getByText(tPlan("costGenerate", { cost: COSTS.adjust })),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(t.costAdjust.replace("{cost}", String(COSTS.adjust))),
+      screen.getByText(tPlan("costAdjust", { cost: COSTS.adjust })),
     ).toBeInTheDocument();
+  });
+
+  // #106: "{cost} créditos" was a hardcoded plural noun -- COSTS.adjust is 1,
+  // so /settings?section=plan rendered "Ajuste · 1 créditos" on every load.
+  describe("cost line pluralization (#106)", () => {
+    const ORIGINAL_COSTS = { ...COSTS };
+    afterEach(() => Object.assign(COSTS, ORIGINAL_COSTS));
+
+    it.each([
+      ["costGenerate", "adjust"],
+      ["costAdjust", "adjust"],
+      ["costGraduate", "graduate"],
+      ["costCorrection", "correction"],
+    ] as const)("pluralizes %s at 0, 1 and 2 credits", (key, costsKey) => {
+      const tPlan = translatorFor("PlanSection");
+      for (const cost of [0, 1, 2]) {
+        Object.assign(COSTS, { [costsKey]: cost });
+        const { unmount } = renderWithIntl(<PlanSection credits={CREDITS} />);
+        expect(
+          screen.getByText(tPlan(key, { cost })),
+        ).toBeInTheDocument();
+        unmount();
+      }
+    });
   });
 
   // #111: PlanSection badged Ateliê "em breve" while PaywallModal sold it as

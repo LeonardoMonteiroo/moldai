@@ -1,9 +1,15 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { renderWithIntl, ptBR, screen } from "@/components/test-utils";
+import {
+  renderWithIntl,
+  ptBR,
+  screen,
+  translatorFor,
+} from "@/components/test-utils";
 import { useEditorStore } from "@/lib/store";
 import { PaywallModal } from "./PaywallModal";
 
 const t = ptBR.PaywallModal;
+const tPaywall = translatorFor("PaywallModal");
 
 const CREDITS = {
   plan: "free" as const,
@@ -33,10 +39,11 @@ describe("PaywallModal", () => {
     }));
     renderWithIntl(<PaywallModal />);
 
-    const expected = t.description
-      .replace("{action}", t.actions.graduate)
-      .replace("{required}", "3")
-      .replace("{balance}", "1");
+    const expected = tPaywall("description", {
+      action: t.actions.graduate,
+      required: 3,
+      balance: 1,
+    });
     expect(screen.getByText(expected)).toBeInTheDocument();
   });
 
@@ -46,10 +53,11 @@ describe("PaywallModal", () => {
     }));
     renderWithIntl(<PaywallModal />);
 
-    const expected = t.description
-      .replace("{action}", t.actions.adjust)
-      .replace("{required}", "3")
-      .replace("{balance}", "1");
+    const expected = tPaywall("description", {
+      action: t.actions.adjust,
+      required: 3,
+      balance: 1,
+    });
     expect(screen.getByText(expected)).toBeInTheDocument();
   });
 
@@ -82,5 +90,36 @@ describe("PaywallModal", () => {
 
     expect(screen.getByText(t.topupCta).closest("button")).toBeEnabled();
     expect(screen.getByText(t.subscribeCta).closest("button")).toBeEnabled();
+  });
+
+  // #106: {required} créditos and {days} dias were hardcoded plural nouns --
+  // "usa 1 créditos" and "renovam em 1 dias" both rendered on the last day
+  // of a billing cycle / against a single missing credit.
+  it("pluralizes the required-credits description at 0, 1 and 2", () => {
+    for (const required of [0, 1, 2]) {
+      useEditorStore.setState((s) => ({
+        paywall: { ...s.paywall, action: "adjust", required },
+      }));
+      const { unmount } = renderWithIntl(<PaywallModal />);
+      const expected = tPaywall("description", {
+        action: t.actions.adjust,
+        required,
+        balance: 1,
+      });
+      expect(screen.getByText(expected)).toBeInTheDocument();
+      unmount();
+    }
+  });
+
+  it("pluralizes the renewal note at 0, 1 and 2 days", () => {
+    for (const days of [0, 1, 2]) {
+      useEditorStore.setState((s) => ({
+        credits: { ...s.credits!, renewsInDays: days },
+      }));
+      const { unmount } = renderWithIntl(<PaywallModal />);
+      const expected = tPaywall("renewsNote", { days });
+      expect(screen.getByText(expected)).toBeInTheDocument();
+      unmount();
+    }
   });
 });

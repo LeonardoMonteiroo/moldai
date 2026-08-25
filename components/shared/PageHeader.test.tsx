@@ -4,6 +4,7 @@ import {
   ptBR,
   screen,
   userEvent,
+  translatorFor,
 } from "@/components/test-utils";
 import type { Credits } from "@/lib/types";
 import { PageHeader } from "./PageHeader";
@@ -24,6 +25,7 @@ const CREDITS: Credits = {
 };
 
 const t = ptBR.PageHeader;
+const tPageHeader = translatorFor("PageHeader");
 
 beforeEach(() => {
   push.mockClear();
@@ -163,12 +165,35 @@ describe("PageHeader", () => {
           userEmail="a@b.com"
         />,
       );
-      const expected = ptBR.PageHeader.creditsLabel
-        .replace("{planLabel}", ptBR.PlanSection.plans[plan].name)
-        .replace("{balance}", "750");
+      const expected = tPageHeader("creditsLabel", {
+        planLabel: ptBR.PlanSection.plans[plan].name,
+        balance: 750,
+      });
       expect(screen.getByText(expected)).toBeInTheDocument();
       unmount();
     });
+  });
+
+  // #106: {balance} créditos was a hardcoded plural noun -- a balance of 1
+  // (unusual, but Ateliê wallets can drain to exactly 1) rendered "1
+  // créditos". Covers the plural boundary at 0, 1 and 2 directly against
+  // the catalog's own ICU resolution, not a pasted literal.
+  it("pluralizes the credits label correctly at 0, 1 and 2", () => {
+    for (const balance of [0, 1, 2]) {
+      const { unmount } = renderWithIntl(
+        <PageHeader
+          title="Blusa"
+          credits={{ plan: "free", balance, total: 30, renewsInDays: 5 }}
+          userEmail="a@b.com"
+        />,
+      );
+      const expected = tPageHeader("creditsLabel", {
+        planLabel: ptBR.PlanSection.plans.free.name,
+        balance,
+      });
+      expect(screen.getByText(expected)).toBeInTheDocument();
+      unmount();
+    }
   });
 
   it("reaches every settings section from the account menu", async () => {

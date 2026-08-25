@@ -2,7 +2,7 @@
   "PageHeader": {
     "backTitle": "Voltar para meus moldes",
     "backButton": "← Voltar",
-    "creditsLabel": "{planLabel} · {balance} créditos",
+    "creditsLabel": "{planLabel} · {balance, plural, one {# crédito} other {# créditos}}",
     "outOfTotal": "de {total}",
     "buyCreditsButton": "Comprar créditos",
     "signOutButton": "Sair",
@@ -41,7 +41,7 @@
     "title": "Conversa",
     "subtitle": "MoldAI v2 Pro",
     "generationError": "A geração falhou. Seus créditos foram devolvidos — tente novamente.",
-    "generatingCost": "−{cost} crédito · gerando…",
+    "generatingCost": "−{cost, plural, one {# crédito} other {# créditos}} · gerando…",
     "generateButton": "Gerar",
     "cancelButton": "Cancelar"
   },
@@ -51,7 +51,7 @@
   "MessageInput": {
     "placeholder": "Descreva o ajuste…",
     "generateButton": "Gerar",
-    "creditCost": "{cost} crédito"
+    "creditCost": "{cost, plural, one {# crédito} other {# créditos}}"
   },
   "AttachmentChips": {
     "photo": "＋ foto",
@@ -101,7 +101,7 @@
   },
   "PaywallModal": {
     "title": "Seus créditos acabaram",
-    "description": "{action} usa {required} créditos e você tem {balance}. Nada foi perdido — o molde continua salvo.",
+    "description": "{action} usa {required, plural, one {# crédito} other {# créditos}} e você tem {balance}. Nada foi perdido — o molde continua salvo.",
     "topupTitle": "Créditos avulsos",
     "topupPrice": "R$ 19",
     "topupDetail": "100 créditos · sem assinatura",
@@ -110,9 +110,9 @@
     "subscribeBadge": "melhor custo",
     "subscribePrice": "R$ 59",
     "subscribePeriod": "/mês",
-    "subscribeDetail": "500 créditos/mês · renova todo dia 1",
+    "subscribeDetail": "500 créditos/mês · renova a cada 30 dias",
     "subscribeCta": "Assinar ›",
-    "renewsNote": "Seus créditos grátis renovam em {days} dias.",
+    "renewsNote": "Seus créditos grátis renovam em {days, plural, one {# dia} other {# dias}}.",
     "backButton": "Voltar ao molde",
     "actions": {
       "adjust": "Esse ajuste",
@@ -136,7 +136,7 @@
     "sectionLabel": "Peça selecionada",
     "graduationLabel": "Graduação",
     "baseSizeTitle": "tamanho base",
-    "graduateSummary": "Graduar {list} · {cost} créditos",
+    "graduateSummary": "Graduar {list} · {cost, plural, one {# crédito} other {# créditos}}",
     "allGraduated": "Todos os tamanhos graduados",
     "graduateButton": "Graduar",
     "closeAriaLabel": "Fechar detalhes da peça"
@@ -418,7 +418,7 @@
   },
   "CreditsCard": {
     "title": "Créditos do mês",
-    "outOfTotal": "de {total} · renova em {days} dias"
+    "outOfTotal": "de {total} · renova em {days, plural, one {# dia} other {# dias}}"
   },
   "RecentUsageCard": {
     "title": "Uso recente",
@@ -427,7 +427,7 @@
     "reasonGraduate": "Graduação"
   },
   "PatternGrid": {
-    "countLabel": "{count, plural, one {# molde} other {# moldes}}",
+    "countLabel": "{count, plural, =0 {Nenhum molde} one {# molde} other {# moldes}}",
     "searchPlaceholder": "Buscar molde…",
     "typeFilterAll": "Todos os tipos",
     "emptyTitle": "Nenhum molde ainda",
@@ -525,7 +525,7 @@
   "Slopers": {
     "title": "Bases do ateliê",
     "subtitle": "Moldes salvos como ponto de partida para novas peças",
-    "countLabel": "{count, plural, one {# base} other {# bases}}",
+    "countLabel": "{count, plural, =0 {Nenhuma base} one {# base} other {# bases}}",
     "loading": "Carregando bases…",
     "loadError": "Não foi possível carregar suas bases. Tente recarregar a página.",
     "emptyTitle": "Nenhuma base salva",
@@ -604,7 +604,7 @@
   },
   "UsageSection": {
     "heading": "Créditos e uso",
-    "outOfTotal": "de {total} · renova em {days} dias",
+    "outOfTotal": "de {total} · renova em {days, plural, one {# dia} other {# dias}}",
     "topupButton": "Comprar créditos avulsos · R$ 19",
     "historyHeading": "Histórico",
     "empty": "Nenhuma movimentação ainda.",
@@ -624,10 +624,10 @@
     "comingSoonBadge": "em breve",
     "subscribeButton": "Assinar · R$ 59/mês",
     "costsHeading": "Custo por ação",
-    "costGenerate": "Geração · {cost} créditos",
-    "costAdjust": "Ajuste · {cost} créditos",
-    "costGraduate": "Graduação · {cost} créditos",
-    "costCorrection": "Correção · {cost} créditos",
+    "costGenerate": "Geração · {cost, plural, one {# crédito} other {# créditos}}",
+    "costAdjust": "Ajuste · {cost, plural, one {# crédito} other {# créditos}}",
+    "costGraduate": "Graduação · {cost, plural, one {# crédito} other {# créditos}}",
+    "costCorrection": "Correção · {cost, plural, one {# crédito} other {# créditos}}",
     "plans": {
       "free": {
         "name": "Grátis",

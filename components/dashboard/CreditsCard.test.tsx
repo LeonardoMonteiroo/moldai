@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { renderWithIntl, screen } from "@/components/test-utils";
+import {
+  renderWithIntl,
+  screen,
+  translatorFor,
+} from "@/components/test-utils";
 import type { Credits } from "@/lib/types";
 import { CreditsCard } from "./CreditsCard";
 
@@ -31,5 +35,21 @@ describe("CreditsCard", () => {
     expect(bar.style.width).toBe("100%");
     // The true balance is still shown in full, not clamped.
     expect(screen.getByText("130")).toBeInTheDocument();
+  });
+
+  // #106: "renova em {days} dias" was a hardcoded plural noun -- the last day
+  // of every billing cycle rendered "renova em 1 dias".
+  it("pluralizes the renewal days at 0, 1 and 2", () => {
+    const tCredits = translatorFor("CreditsCard");
+    for (const renewsInDays of [0, 1, 2]) {
+      const credits: Credits = { plan: "free", balance: 15, total: 30, renewsInDays };
+      const { unmount } = renderWithIntl(<CreditsCard credits={credits} />);
+      expect(
+        screen.getByText(
+          tCredits("outOfTotal", { total: 30, days: renewsInDays }),
+        ),
+      ).toBeInTheDocument();
+      unmount();
+    }
   });
 });
