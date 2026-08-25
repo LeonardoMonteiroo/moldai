@@ -8,8 +8,15 @@ function clamp(v: number, min: number, max: number): number {
 // Resolves one size's Measurements from a size chart: base row + progression
 // rule scaled by the size's distance from the base column, with any manual
 // per-cell override winning outright, then clamped to MEASUREMENT_RANGES.
+//
+// #3: widened from SizeChartData to Omit<SizeChartData, "name"> -- neither
+// this nor buildSizeTable below ever reads `name`, and the widening lets
+// lib/sizeCharts/seed.ts's name-free buildSystemSizeChart feed straight into
+// this without a placeholder name. Every existing caller passing a full
+// SizeChartData/SizeChartRecord still type-checks (a wider parameter type
+// accepts the narrower value).
 export function resolveSizeChartSize(
-  sizeChart: SizeChartData,
+  sizeChart: Omit<SizeChartData, "name">,
   size: string,
 ): Measurements {
   const idx = sizeChart.sizes.indexOf(size);
@@ -32,7 +39,7 @@ export function resolveSizeChartSize(
 // Every size in the chart, fully resolved — frozen onto a Pattern at first
 // generation (lib/editor/state.ts's seedPatternSizeSnapshot).
 export function buildSizeTable(
-  sizeChart: SizeChartData,
+  sizeChart: Omit<SizeChartData, "name">,
 ): Record<string, Measurements> {
   const table: Record<string, Measurements> = {};
   for (const size of sizeChart.sizes)

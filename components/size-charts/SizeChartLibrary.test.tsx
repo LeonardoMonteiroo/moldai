@@ -76,4 +76,31 @@ describe("SizeChartLibrary", () => {
       screen.queryByText(expected, { exact: false }),
     ).not.toBeInTheDocument();
   });
+
+  // #133: "padrão do sistema" alone didn't say the numbers aren't a
+  // certified standard -- the seeded chart's own name used to claim ABNT
+  // provenance the repo can't back.
+  it("says a system chart is a house standard, not a certified one", () => {
+    useSizeChartsStore.setState({
+      charts: [chart({ id: "g1", isSystem: true })],
+    });
+
+    renderWithIntl(<SizeChartLibrary />);
+
+    expect(
+      screen.getByText(ptBR.SizeChartLibrary.houseStandardNote),
+    ).toBeInTheDocument();
+  });
+
+  it("does not put the house-standard note on a custom chart", () => {
+    useSizeChartsStore.setState({
+      charts: [chart({ id: "g1", isSystem: false })],
+    });
+
+    renderWithIntl(<SizeChartLibrary />);
+
+    expect(
+      screen.queryByText(ptBR.SizeChartLibrary.houseStandardNote),
+    ).not.toBeInTheDocument();
+  });
 });

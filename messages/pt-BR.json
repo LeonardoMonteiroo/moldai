@@ -445,13 +445,18 @@
     "importLabel": "↥ Importar planilha ou tabela de medidas do Audaces",
     "loading": "Carregando grades…",
     "loadError": "Não foi possível carregar suas grades. Tente recarregar a página.",
-    "copySuffix": " (cópia)"
+    "copySuffix": " (cópia)",
+    "systemChartName": {
+      "female": "Feminino adulto",
+      "male": "Masculino adulto"
+    }
   },
   "SizeChartLibrary": {
     "systemBadge": "padrão do sistema",
     "customBadge": "minha grade",
     "activeBadge": "ativa",
     "activeScope": "usada só em peças {gender}",
+    "houseStandardNote": "medidas proporcionais de referência da casa, não uma tabela certificada",
     "gender": {
       "female": "femininas",
       "male": "masculinas"
@@ -465,6 +470,7 @@
     "ruleHint": "cm por tamanho, a partir da base",
     "rangeHint": "Valor fora do intervalo aceito — use entre {min} e {max} cm.",
     "measurementColumnLabel": "Medida (cm)",
+    "bodyTypeNote": "apenas descritivo — não altera o corte",
     "resetOverrideTitle": "Resetar para a regra",
     "addSizeButton": "＋ tamanho",
     "addSizePrompt": "Nome do novo tamanho",

@@ -46,6 +46,14 @@ export function SizeChartLibrary() {
               {tLib("activeScope", { gender: tLib("gender." + c.gender) })}
             </span>
           )}
+          {/* #133: "padrão do sistema" alone didn't say the numbers aren't a
+              certified standard -- the seeded chart's own name used to claim
+              ABNT provenance the repo can't back. */}
+          {c.isSystem && (
+            <span className="text-muted-2 text-meta">
+              {tLib("houseStandardNote")}
+            </span>
+          )}
         </button>
       ))}
 

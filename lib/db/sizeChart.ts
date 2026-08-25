@@ -6,6 +6,7 @@ import { pickSizeChartForGeneration } from "@/lib/sizeCharts/compute";
 import { reportError } from "@/lib/observability/report";
 import { SizeChartDataSchema } from "@/lib/schemas/sizeChart";
 import type { Gender, SizeChartData, SizeChartRecord } from "@/lib/types";
+import type { Translate } from "@/lib/i18n/translate";
 
 type Tx = Prisma.TransactionClient;
 
@@ -45,6 +46,7 @@ function toRecord(row: {
 export async function ensureSystemSizeCharts(
   tx: Tx,
   userId: string,
+  t: Translate,
 ): Promise<void> {
   const existing = await tx.sizeChart.findMany({ where: { userId } });
   const hasSystem = existing.some((r) => {
@@ -54,9 +56,11 @@ export async function ensureSystemSizeCharts(
   if (hasSystem) return;
   const female = buildSystemSizeChartData(
     "female",
+    t,
   ) as unknown as Prisma.InputJsonValue;
   const male = buildSystemSizeChartData(
     "male",
+    t,
   ) as unknown as Prisma.InputJsonValue;
   // updatedAt is set explicitly (not left to @updatedAt) because createMany's
   // handling of @updatedAt defaults is version-sensitive in Prisma — create()
@@ -81,8 +85,9 @@ export async function ensureSystemSizeCharts(
 export async function listSizeChartsForUser(
   tx: Tx,
   userId: string,
+  t: Translate,
 ): Promise<SizeChartRecord[]> {
-  await ensureSystemSizeCharts(tx, userId);
+  await ensureSystemSizeCharts(tx, userId, t);
   const rows = await tx.sizeChart.findMany({
     where: { userId },
     orderBy: { updatedAt: "desc" },
@@ -120,10 +125,10 @@ export async function getActiveSizeChartId(
 // back now; an id that doesn't resolve returns null so the caller can 404.
 export async function createSizeChart(
   userId: string,
-  copySuffix: string,
+  t: Translate,
   sourceSizeChartId?: string,
 ): Promise<SizeChartRecord | null> {
-  const charts = await listSizeChartsForUser(prisma, userId);
+  const charts = await listSizeChartsForUser(prisma, userId, t);
   let source: SizeChartRecord | undefined;
   if (sourceSizeChartId) {
     source = charts.find((c) => c.id === sourceSizeChartId);
@@ -135,7 +140,7 @@ export async function createSizeChart(
   const { id: _id, updatedAt: _updatedAt, ...sourceData } = source;
   const data: SizeChartData = {
     ...sourceData,
-    name: `${sourceData.name}${copySuffix}`,
+    name: `${sourceData.name}${t("copySuffix")}`,
     isSystem: false,
   };
   const row = await prisma.sizeChart.create({
@@ -256,8 +261,9 @@ export async function getSizeChartForGeneration(
   tx: Tx,
   userId: string,
   gender: Gender,
+  t: Translate,
 ): Promise<{ chart: SizeChartData; rejectedActiveName: string | null }> {
-  const charts = await listSizeChartsForUser(tx, userId);
+  const charts = await listSizeChartsForUser(tx, userId, t);
   const activeSizeChartId = await getActiveSizeChartId(tx, userId);
   const { chart: record, rejectedActive } = pickSizeChartForGeneration(
     charts,

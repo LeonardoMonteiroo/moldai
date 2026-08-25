@@ -9,7 +9,7 @@ import {
 } from "@/lib/types";
 import { draftGarment, seamCheck } from "@/lib/draft/garment";
 import { buildSizeTable } from "@/lib/sizeCharts/compute";
-import { buildSystemSizeChartData } from "@/lib/sizeCharts/seed";
+import { buildSystemSizeChart } from "@/lib/sizeCharts/seed";
 import type { Translate } from "@/lib/i18n/translate";
 
 // Marker (dashed circle) over a piece's armhole region, from the bbox
@@ -59,7 +59,10 @@ function detectConflict(
 }
 
 function seedPattern(t: Translate): Pattern {
-  const sizeChart = buildSystemSizeChartData("female");
+  // #3: name-free -- `t` here is scoped to PatternData (newPatternName,
+  // conflict.*), not SizeCharts, and this blank-pattern bootstrap never reads
+  // the chart's name anyway.
+  const sizeChart = buildSystemSizeChart("female");
   const sizeTable = buildSizeTable(sizeChart);
   const baseSize = sizeChart.sizes[sizeChart.baseSizeIndex];
   const spec: GarmentSpec = {

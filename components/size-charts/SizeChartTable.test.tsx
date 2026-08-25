@@ -315,6 +315,20 @@ describe("SizeChartTable progression card", () => {
   });
 });
 
+// #133: bodyType is documented as descriptive metadata that never affects
+// the drafted geometry -- the control has to say so on screen, not just in
+// CLAUDE.md, or a user reasonably assumes changing it reshapes the pattern.
+describe("SizeChartTable body type note", () => {
+  it("states that the body type is descriptive and does not affect the draft", () => {
+    seed();
+    renderWithIntl(<SizeChartTable />);
+
+    expect(
+      screen.getByText(ptBR.SizeChartTable.bodyTypeNote),
+    ).toBeInTheDocument();
+  });
+});
+
 // #34: nothing gated the Save button against a request already in flight —
 // dirty stayed true for the whole round trip, so a second click fired a
 // second PATCH and the button gave no sign a save was even happening.

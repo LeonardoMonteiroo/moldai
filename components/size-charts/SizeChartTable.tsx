@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/select";
 
 const RANGE_HINT_ID = "size-chart-range-hint";
+const BODY_TYPE_NOTE_ID = "size-chart-body-type-note";
 
 export function SizeChartTable() {
   const t = useTranslations("SizeChartTable");
@@ -131,7 +132,16 @@ export function SizeChartTable() {
             updateDraft({ bodyType: value as BodyType })
           }
         >
-          <SelectTrigger size="sm" className="w-[170px]">
+          {/* #133: bodyType is documented (CLAUDE.md) as descriptive metadata
+              that never affects the drafted geometry -- the control has to
+              say so on screen, not just document it, or a user reasonably
+              assumes changing "reto"/"ampulheta" reshapes the pattern. */}
+          <SelectTrigger
+            size="sm"
+            className="w-[170px]"
+            title={t("bodyTypeNote")}
+            aria-describedby={BODY_TYPE_NOTE_ID}
+          >
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -144,6 +154,9 @@ export function SizeChartTable() {
             </SelectGroup>
           </SelectContent>
         </Select>
+        <span id={BODY_TYPE_NOTE_ID} className="text-muted text-meta">
+          {t("bodyTypeNote")}
+        </span>
         <div className="flex-1" />
         {!readOnly && (
           <Button

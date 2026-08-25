@@ -1,5 +1,6 @@
 import { SIZE_TABLE, SIZE_TABLE_MALE, Measurements } from "@/lib/measurements";
 import type { Gender, SizeChartData } from "@/lib/types";
+import type { Translate } from "@/lib/i18n/translate";
 
 const SIZES = ["PP", "P", "M", "G", "GG"];
 const BASE_INDEX = 2; // "M"
@@ -16,11 +17,23 @@ function deriveProgressionRule(
   return rule;
 }
 
-// Builds the SizeChartData for a system-seeded default, from today's static
-// SIZE_TABLE/SIZE_TABLE_MALE. The progression rule is derived from the M->P
-// step; any size where that rule doesn't reproduce the original table exactly
-// gets a manual override, so buildSizeTable(this) === the original table.
-export function buildSystemSizeChartData(gender: Gender): SizeChartData {
+// Builds the name-free SizeChartData for a system-seeded default, from
+// today's static SIZE_TABLE/SIZE_TABLE_MALE. The progression rule is derived
+// from the M->P step; any size where that rule doesn't reproduce the
+// original table exactly gets a manual override, so
+// buildSizeTable(this) === the original table.
+//
+// #3: split out of buildSystemSizeChartData below so seedPattern
+// (lib/editor/state.ts) — the one caller that discards the name entirely —
+// can build a chart without a Translate at all, rather than being handed one
+// scoped to the wrong catalog namespace (its own `t` resolves PatternData.*,
+// not SizeCharts.*, and would log IntlError: MISSING_MESSAGE on every blank
+// pattern). Making the name-free shape the base type (Omit, not a "" or null
+// sentinel) is what makes that mistake a compile error instead of a silent
+// wrong-namespace lookup.
+export function buildSystemSizeChart(
+  gender: Gender,
+): Omit<SizeChartData, "name"> {
   const table = gender === "male" ? SIZE_TABLE_MALE : SIZE_TABLE;
   const baseMeasurements = table[SIZES[BASE_INDEX]];
   const progressionRule = deriveProgressionRule(table);
@@ -39,7 +52,6 @@ export function buildSystemSizeChartData(gender: Gender): SizeChartData {
     if (Object.keys(diffs).length > 0) overrides[size] = diffs;
   }
   return {
-    name: gender === "male" ? "Masculino adulto" : "Feminino adulto · ABNT",
     gender,
     bodyType: "straight",
     isSystem: true,
@@ -49,4 +61,19 @@ export function buildSystemSizeChartData(gender: Gender): SizeChartData {
     progressionRule,
     overrides,
   };
+}
+
+// #133: the female chart used to be named "Feminino adulto · ABNT" — a
+// standards-body provenance the app cannot substantiate (the numbers come
+// from this file's own legacy SIZE_TABLE, not an ABNT document, and the norm
+// it would be citing is flagged cancelled). Both names now resolve from the
+// catalog rather than a literal, so a rename never needs a second sweep.
+//
+// `t` MUST be scoped to the `SizeCharts` namespace — see the comment on
+// buildSystemSizeChart above for why that split exists.
+export function buildSystemSizeChartData(
+  gender: Gender,
+  t: Translate,
+): SizeChartData {
+  return { name: t("systemChartName." + gender), ...buildSystemSizeChart(gender) };
 }

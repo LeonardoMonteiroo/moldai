@@ -2,8 +2,9 @@ import { describe, it, expect } from "vitest";
 import { validateSizeChartPatch } from "./validate";
 import { buildSystemSizeChartData } from "./seed";
 import { MEASUREMENT_RANGES } from "@/lib/measurements";
+import { t } from "@/lib/i18n/test-translate";
 
-const current = buildSystemSizeChartData("female");
+const current = buildSystemSizeChartData("female", t);
 
 describe("validateSizeChartPatch", () => {
   it("passes a valid patch through", () => {
