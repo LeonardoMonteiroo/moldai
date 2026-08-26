@@ -520,6 +520,43 @@
     "addSizeCancelButton": "Cancelar",
     "maxSizesReachedHint": "Limite de {max} tamanhos atingido."
   },
+  "SizeChartImport": {
+    "trigger": "↥ Importar planilha ou tabela de medidas",
+    "dialogTitle": "Importar grade de medidas",
+    "formatNote": "Aceita arquivos .csv e .tsv (texto separado por vírgula, ponto e vírgula ou tabulação) — não lê .xlsx.",
+    "chooseFileButton": "Escolher arquivo",
+    "chooseAnotherFile": "Escolher outro arquivo",
+    "noFileChosen": "Nenhum arquivo selecionado",
+    "nameFieldLabel": "Nome da grade",
+    "defaultName": "Grade importada",
+    "genderFieldLabel": "Gênero",
+    "gender": {
+      "female": "Feminino",
+      "male": "Masculino"
+    },
+    "bodyTypeFieldLabel": "Tipo de corpo",
+    "baseSizeFieldLabel": "Tamanho base",
+    "sizesFoundLabel": "Tamanhos encontrados",
+    "measurementColumnLabel": "Medida (cm)",
+    "previewTitle": "Pré-visualização",
+    "warningsTitle": "Avisos",
+    "warnings": {
+      "unmapped_column": "Coluna \"{detail}\" não reconhecida — ignorada.",
+      "value_out_of_range": "{detail} · tamanho {size}: valor fora do intervalo aceito — ignorado.",
+      "value_not_numeric": "{detail} · tamanho {size}: valor não numérico — ignorado.",
+      "missing_measurement": "Medida \"{detail}\" não encontrada no arquivo — usando um valor padrão."
+    },
+    "errors": {
+      "unsupported_file_type": "Formato de arquivo não suportado. Envie um .csv ou .tsv.",
+      "empty_file": "O arquivo está vazio.",
+      "no_sizes_found": "Não foi possível identificar os tamanhos no arquivo.",
+      "no_measurements_found": "Não foi possível identificar nenhuma medida reconhecida no arquivo.",
+      "parse_failed": "Não foi possível interpretar o arquivo. Verifique o formato e tente novamente."
+    },
+    "cancelButton": "Cancelar",
+    "createButton": "Criar grade",
+    "creatingButton": "Criando…"
+  },
   "Sidebar": {
     "myPatternsLabel": "Meus moldes",
     "measurementsLabel": "Medidas e grades",

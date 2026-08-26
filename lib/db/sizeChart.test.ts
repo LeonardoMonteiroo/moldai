@@ -199,6 +199,7 @@ import {
   listSizeChartsForUser,
   getActiveSizeChartId,
   createSizeChart,
+  createSizeChartFromImport,
   updateSizeChart,
   deleteSizeChart,
   setActiveSizeChart,
@@ -569,6 +570,75 @@ describe("setActiveSizeChart / getSizeChartForGeneration", () => {
       T,
     );
     expect(rejectedActiveName).toBeNull();
+  });
+});
+
+// #12: the import flow's persistence half -- proves createSizeChartFromImport
+// actually runs an untrusted candidate through validateSizeChartPatch (via a
+// system-chart base) rather than trusting it, mirroring updateSizeChart's own
+// coverage above for the PATCH path.
+describe("createSizeChartFromImport", () => {
+  beforeEach(() => {
+    rows = [];
+    users = {};
+    nextId = 1;
+  });
+
+  it("creates a non-system chart from a well-formed candidate", async () => {
+    const created = await createSizeChartFromImport("u1", T, {
+      name: "Grade importada",
+      gender: "male",
+      bodyType: "hourglass",
+      sizes: ["38", "40", "42"],
+      baseSizeIndex: 1,
+      baseMeasurements: { bust: 96 },
+      progressionRule: { bust: 4 },
+      overrides: { "42": { bust: 100 } },
+    });
+    expect(created).not.toBeNull();
+    expect(created!.isSystem).toBe(false);
+    expect(created!.gender).toBe("male");
+    expect(created!.name).toBe("Grade importada");
+    expect(created!.sizes).toEqual(["38", "40", "42"]);
+    expect(created!.baseMeasurements.bust).toBe(96);
+  });
+
+  // The exact bug validateSizeChartPatch exists for (CLAUDE.md's Size charts
+  // section): an invalid gender must never persist verbatim.
+  it("sanitises an invalid gender instead of persisting it", async () => {
+    const created = await createSizeChartFromImport("u1", T, {
+      name: "x",
+      gender: "banana",
+    });
+    expect(created!.gender).toBe("female");
+  });
+
+  it("can never claim isSystem, even if the candidate says so", async () => {
+    const created = await createSizeChartFromImport("u1", T, {
+      name: "x",
+      isSystem: true,
+    });
+    expect(created!.isSystem).toBe(false);
+  });
+
+  // baseMeasurements MERGES onto the system-chart fallback (validateSizeChartPatch's
+  // own contract) -- an incomplete/garbage baseMeasurements can drop a field,
+  // never leave it non-finite.
+  it("falls back to a complete baseMeasurements row when the candidate's is garbage", async () => {
+    const created = await createSizeChartFromImport("u1", T, {
+      name: "x",
+      gender: "female",
+      baseMeasurements: {},
+    });
+    for (const v of Object.values(created!.baseMeasurements)) {
+      expect(Number.isFinite(v)).toBe(true);
+    }
+  });
+
+  it("ignores a non-object candidate rather than throwing", async () => {
+    const created = await createSizeChartFromImport("u1", T, null);
+    expect(created).not.toBeNull();
+    expect(created!.isSystem).toBe(false);
   });
 });
 

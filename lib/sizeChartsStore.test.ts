@@ -13,6 +13,7 @@ vi.mock("./api-client", async () => {
     deleteSizeChart: vi.fn(),
     duplicateSizeChart: vi.fn(),
     activateSizeChart: vi.fn(),
+    importSizeChart: vi.fn(),
   };
 });
 
@@ -260,6 +261,22 @@ describe("sizeChartsStore.create / duplicate / remove / activate", () => {
     expect(s.charts.find((c) => c.id === "g1")?.isActive).toBe(false);
     expect(s.charts.find((c) => c.id === "g2")?.isActive).toBe(true);
   });
+
+  // #12: mirrors create/duplicate above -- importChart appends the new
+  // chart, selects it, and hands the created record back to the caller (the
+  // dialog uses the return value to decide whether to close itself).
+  it("importChart appends the new chart, selects it, and returns it", async () => {
+    vi.mocked(api.importSizeChart).mockResolvedValue(
+      entry({ id: "g4", name: "Grade importada", isSystem: false }),
+    );
+    const result = await useSizeChartsStore
+      .getState()
+      .importChart(entry({ id: "ignored", name: "Grade importada" }));
+    const s = useSizeChartsStore.getState();
+    expect(s.charts.map((c) => c.id)).toEqual(["g1", "g4"]);
+    expect(s.selectedId).toBe("g4");
+    expect(result?.id).toBe("g4");
+  });
 });
 
 // Same gap as the dashboard store: only init() caught, so a failed save left
@@ -316,6 +333,17 @@ describe("sizeChartsStore mutation failures", () => {
 
     await useSizeChartsStore.getState().remove("g1");
 
+    expect(useSizeChartsStore.getState().actionError).toBe("request_failed");
+  });
+
+  it("surfaces a failed import and returns null instead of a record", async () => {
+    vi.mocked(api.importSizeChart).mockRejectedValue(new Error("boom"));
+
+    const result = await useSizeChartsStore
+      .getState()
+      .importChart(entry({ id: "ignored" }));
+
+    expect(result).toBeNull();
     expect(useSizeChartsStore.getState().actionError).toBe("request_failed");
   });
 

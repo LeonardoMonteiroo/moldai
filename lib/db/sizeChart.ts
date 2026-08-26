@@ -3,6 +3,7 @@ import { validateSizeChartPatch } from "@/lib/sizeCharts/validate";
 import { prisma } from "./prisma";
 import { buildSystemSizeChartData } from "@/lib/sizeCharts/seed";
 import { pickSizeChartForGeneration } from "@/lib/sizeCharts/compute";
+import { GENDERS } from "@/lib/draft/garment";
 import { reportError } from "@/lib/observability/report";
 import { SizeChartDataSchema } from "@/lib/schemas/sizeChart";
 import type { Gender, SizeChartData, SizeChartRecord } from "@/lib/types";
@@ -167,6 +168,38 @@ export async function createSizeChart(
     name: `${sourceData.name}${t("copySuffix")}`,
     isSystem: false,
   };
+  const row = await prisma.sizeChart.create({
+    data: { userId, data: data as unknown as Prisma.InputJsonValue },
+  });
+  return toRecord(row);
+}
+
+/**
+ * #12: persists a candidate SizeChartData parsed client-side from an
+ * imported spreadsheet (lib/sizeCharts/import.ts's parseSizeChartFile). The
+ * parser's output is never trusted as-is -- `chart` arrives as `unknown` and
+ * is routed through the exact same validateSizeChartPatch trust boundary a
+ * hand-typed PATCH body goes through (see updateSizeChart below), merged
+ * onto a system chart for the detected/declared gender so every
+ * MEASUREMENT_KEYS field always has a sane fallback even if the import
+ * itself left one out. `isSystem` is forced false regardless of what the
+ * patch resolved to -- an import can never claim to be a system chart.
+ */
+export async function createSizeChartFromImport(
+  userId: string,
+  t: Translate,
+  chart: unknown,
+): Promise<SizeChartRecord | null> {
+  const rawGender =
+    typeof chart === "object" && chart !== null
+      ? (chart as Record<string, unknown>).gender
+      : undefined;
+  const gender: Gender = GENDERS.includes(rawGender as Gender)
+    ? (rawGender as Gender)
+    : "female";
+  const base = buildSystemSizeChartData(gender, t);
+  const patch = validateSizeChartPatch(base, chart);
+  const data: SizeChartData = { ...base, ...patch, isSystem: false };
   const row = await prisma.sizeChart.create({
     data: { userId, data: data as unknown as Prisma.InputJsonValue },
   });

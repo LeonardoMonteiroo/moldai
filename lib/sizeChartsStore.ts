@@ -35,6 +35,13 @@ interface SizeChartsStore {
   duplicate: (id: string) => Promise<void>;
   remove: (id: string) => Promise<void>;
   activate: (id: string) => Promise<void>;
+  /**
+   * #12: persists a chart parsed by ImportSizeChartDialog. Returns the
+   * created record on success (so the dialog knows to close itself) or null
+   * on failure (recorded on actionError like every other mutation here) --
+   * the dialog stays open so the user doesn't lose their file/mapping.
+   */
+  importChart: (chart: SizeChartData) => Promise<SizeChartRecord | null>;
 }
 
 function draftFrom(c: SizeChartRecord): SizeChartData {
@@ -198,5 +205,24 @@ export const useSizeChartsStore = create<SizeChartsStore>((set, get) => ({
     set((s) => ({
       charts: s.charts.map((c) => ({ ...c, isActive: c.id === id })),
     }));
+  },
+
+  importChart: async (chart) => {
+    let created: Awaited<ReturnType<typeof api.importSizeChart>>;
+    try {
+      created = await api.importSizeChart(chart);
+    } catch (err) {
+      set({ actionError: errorCode(err) });
+      return null;
+    }
+    set((s) => ({
+      charts: [...s.charts, { ...created, isActive: false }],
+      selectedId: created.id,
+      draft: draftFrom(created),
+      editingRule: false,
+      dirty: false,
+      saving: false, // #34: new chart, unrelated to whatever save may still be in flight
+    }));
+    return created;
   },
 }));

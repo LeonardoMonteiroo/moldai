@@ -14,6 +14,7 @@ vi.mock("@/lib/db/sizeChart", () => ({
   listSizeChartsForUser: vi.fn(),
   getActiveSizeChartId: vi.fn(),
   createSizeChart: vi.fn(),
+  createSizeChartFromImport: vi.fn(),
 }));
 // route.ts passes this straight through to the (mocked) db functions above
 // as their `tx` argument — see #67's comment in lib/db/sizeChart.ts.
@@ -27,6 +28,7 @@ import {
   listSizeChartsForUser,
   getActiveSizeChartId,
   createSizeChart,
+  createSizeChartFromImport,
 } from "@/lib/db/sizeChart";
 import { consume } from "@/lib/rate-limit/consume";
 
@@ -185,5 +187,26 @@ describe("POST /api/size-charts", () => {
       expect.any(Function),
       undefined,
     );
+  });
+
+  // #12: an imported chart's candidate object is routed to
+  // createSizeChartFromImport instead of createSizeChart -- that function is
+  // what actually calls validateSizeChartPatch, so this only asserts the
+  // routing, not the sanitisation (covered in lib/db/sizeChart's own suite
+  // and lib/sizeCharts/validate.test.ts).
+  it("routes a chart body to createSizeChartFromImport rather than createSizeChart", async () => {
+    vi.mocked(createSizeChartFromImport).mockResolvedValue({
+      id: "g9",
+    } as never);
+    const res = await POST(
+      req({ chart: { name: "Importada", gender: "banana", isSystem: true } }),
+    );
+    expect(createSizeChartFromImport).toHaveBeenCalledWith(
+      "u1",
+      expect.any(Function),
+      { name: "Importada", gender: "banana", isSystem: true },
+    );
+    expect(createSizeChart).not.toHaveBeenCalled();
+    expect((await res.json()).id).toBe("g9");
   });
 });

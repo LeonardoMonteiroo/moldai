@@ -370,6 +370,15 @@ export function duplicateSizeChart(
   return postJson<SizeChartRecord>(`/api/size-charts/${sizeChartId}/duplicate`);
 }
 
+// #12: the parsed-and-reviewed candidate from ImportSizeChartDialog. The
+// server re-validates it through validateSizeChartPatch before persisting --
+// this call carries no more trust than sourceId-based creation does.
+export function importSizeChart(
+  chart: SizeChartData,
+): Promise<SizeChartRecord> {
+  return postJson<SizeChartRecord>("/api/size-charts", { chart });
+}
+
 export async function activateSizeChart(sizeChartId: string): Promise<void> {
   await postJson(`/api/size-charts/${sizeChartId}/activate`);
 }
