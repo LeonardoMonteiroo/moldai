@@ -113,15 +113,27 @@ model Sloper {
 }
 
 model Wallet {
-  userId       String        @id
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plan         String
-  balance      Int
-  total        Int
-  purchased    Int           @default(0)
-  renewsAt     DateTime?
-  updatedAt    DateTime      @updatedAt
-  transactions Transaction[]
+  userId              String        @id
+  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan                String
+  balance             Int
+  total               Int
+  purchased           Int           @default(0)
+  renewsAt            DateTime?
+  updatedAt           DateTime      @updatedAt
+  // #6: real-gateway identity, additive and both nullable -- every existing
+  // wallet (and every wallet created while PAYMENT_PROVIDER=mock, the
+  // default) simply never gets these set. asaasCustomerId is written once,
+  // lazily, on a user's first asaas checkout (lib/db/wallet.ts's
+  // withAsaasCustomerId). asaasSubscriptionId is written
+  // best-effort from a PAYMENT_CONFIRMED webhook that names one; it exists
+  // so a later unit can exclude subscribed wallets from
+  // scripts/cron-renew.ts's past-due sweep (issue #6 step 7, out of this
+  // unit's file list) -- a subscribed wallet is meant to renew only via its
+  // own next payment webhook, not the free-tier cron.
+  asaasCustomerId     String?
+  asaasSubscriptionId String?
+  transactions        Transaction[]
 }
 
 model Transaction {
@@ -132,6 +144,15 @@ model Transaction {
   amount       Int
   balanceAfter Int
   reason       String?
+  // #6: the gateway's own payment/event id. The UNIQUE constraint IS the
+  // idempotency story -- Asaas guarantees at-least-once webhook delivery, so
+  // the same PAYMENT_CONFIRMED WILL arrive twice, and a duplicate insert
+  // hitting this constraint (caught as Prisma P2002 in
+  // lib/db/wallet.ts's withWalletIdempotent) is what makes the second
+  // delivery a no-op instead of a double credit. Null for every ledger row
+  // that isn't gateway-originated (debit/refund/renew, and the mock
+  // purchase path).
+  externalId   String?  @unique
   createdAt    DateTime @default(now())
 
   @@index([userId, createdAt])

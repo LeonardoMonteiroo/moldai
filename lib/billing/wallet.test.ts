@@ -4,6 +4,7 @@ import {
   debitWallet,
   refundWallet,
   applyPurchase,
+  reverseSubscription,
   renewWallet,
   renewsInDays,
   isRenewalDue,
@@ -79,6 +80,38 @@ describe("applyPurchase", () => {
     // #38: amount is the delta (600 - 130), not the flat plan size.
     expect(entry.amount).toBe(470);
     expect(entry.balanceAfter).toBe(600);
+  });
+});
+
+// #6: a PAYMENT_REFUNDED for a subscribe purchase has to undo more than the
+// balance -- debitWallet alone would leave plan/total on "atelier"/500
+// forever, so a refunded subscriber would keep renewing at the full paid
+// allowance every month even though the payment that granted it was given
+// back.
+describe("reverseSubscription", () => {
+  it("debits the balance and downgrades plan/total back to the free tier", () => {
+    const w = seedWallet(NOW);
+    applyPurchase(w, "subscribe", NOW); // plan atelier, balance 500, total 500
+    const entry = reverseSubscription(w, 500);
+    expect(w.plan).toBe("free");
+    expect(w.total).toBe(30);
+    expect(w.balance).toBe(0);
+    expect(entry).toEqual({
+      type: "debit",
+      amount: 500,
+      balanceAfter: 0,
+      reason: "asaas_refund",
+    });
+  });
+
+  it("leaves purchased top-up credits untouched -- a refunded subscription didn't erase a prior top-up", () => {
+    const w = seedWallet(NOW);
+    applyPurchase(w, "topup", NOW); // balance 130, purchased 100
+    applyPurchase(w, "subscribe", NOW); // balance 600 (500 + 100 purchased)
+    reverseSubscription(w, 500);
+    expect(w.balance).toBe(100); // 600 - 500, the purchased credits remain
+    expect(w.purchased).toBe(100);
+    expect(w.plan).toBe("free");
   });
 });
 

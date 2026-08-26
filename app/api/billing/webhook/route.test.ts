@@ -1,0 +1,251 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { seedWallet } from "@/lib/billing/wallet";
+import type { Wallet, LedgerEntry } from "@/lib/billing/wallet";
+
+const NOW = new Date("2026-08-26T12:00:00.000Z");
+const TOKEN = "a".repeat(32);
+
+// A realistic-enough fake of lib/db/wallet.ts's withWalletIdempotent: it
+// actually tracks which externalIds have already been "inserted" in an
+// in-memory Set, so a test that delivers the same event twice genuinely
+// exercises the route's dedup path rather than asserting a mock was called
+// twice with the same args (which would pass even if the route never
+// checked anything). The real atomic implementation (Prisma transaction +
+// unique constraint) is covered separately in lib/db/wallet.test.ts.
+const wallets = new Map<string, Wallet>();
+const seenExternalIds = new Set<string>();
+const ledger: { userId: string; externalId: string; entry: LedgerEntry }[] = [];
+const subscriptionIds = new Map<string, string>();
+
+function wallet(userId: string): Wallet {
+  let w = wallets.get(userId);
+  if (!w) {
+    w = seedWallet(NOW);
+    wallets.set(userId, w);
+  }
+  return w;
+}
+
+vi.mock("@/lib/db/wallet", () => ({
+  withWalletIdempotent: vi.fn(
+    async (
+      userId: string,
+      externalId: string,
+      fn: (w: Wallet) => LedgerEntry,
+    ) => {
+      const w = wallet(userId);
+      const entry = fn(w);
+      if (seenExternalIds.has(externalId)) {
+        // Duplicate delivery: undo fn's in-place mutation, mirroring how the
+        // real implementation never calls saveWallet on this path.
+        if (entry.type === "debit") w.balance += entry.amount;
+        else w.balance -= entry.amount;
+        return { credited: false };
+      }
+      seenExternalIds.add(externalId);
+      ledger.push({ userId, externalId, entry });
+      return { credited: true };
+    },
+  ),
+  findLedgerEntryByExternalId: vi.fn(async (externalId: string) => {
+    const row = ledger.find((r) => r.externalId === externalId);
+    return row
+      ? { userId: row.userId, amount: row.entry.amount, type: row.entry.type }
+      : null;
+  }),
+  setAsaasSubscriptionId: vi.fn(async (userId: string, subId: string) => {
+    subscriptionIds.set(userId, subId);
+  }),
+}));
+
+import { POST } from "./route";
+import { withWalletIdempotent } from "@/lib/db/wallet";
+
+function req(
+  body: unknown,
+  headers: Record<string, string> = { "asaas-access-token": TOKEN },
+) {
+  return new Request("http://test/api/billing/webhook", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...headers },
+    body: JSON.stringify(body),
+  });
+}
+
+const CONFIRMED_PAYLOAD = {
+  event: "PAYMENT_CONFIRMED",
+  payment: { id: "pay_1", externalReference: "u1:topup" },
+};
+
+describe("POST /api/billing/webhook", () => {
+  beforeEach(() => {
+    process.env.ASAAS_WEBHOOK_TOKEN = TOKEN;
+    wallets.clear();
+    seenExternalIds.clear();
+    ledger.length = 0;
+    subscriptionIds.clear();
+    vi.mocked(withWalletIdempotent).mockClear();
+    // A handful of cases deliberately trigger reportError's console.error
+    // (a malformed/no-op payload that must still 200) -- silenced so the
+    // test run stays readable; the response status is what's asserted.
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  it("rejects a wrong asaas-access-token with 401, without ever loading the wallet", async () => {
+    const res = await POST(
+      req(CONFIRMED_PAYLOAD, { "asaas-access-token": "b".repeat(32) }),
+    );
+    expect(res.status).toBe(401);
+    expect(withWalletIdempotent).not.toHaveBeenCalled();
+  });
+
+  it("rejects a request with no token header at all", async () => {
+    const res = await POST(req(CONFIRMED_PAYLOAD, {}));
+    expect(res.status).toBe(401);
+    expect(withWalletIdempotent).not.toHaveBeenCalled();
+  });
+
+  it("rejects when ASAAS_WEBHOOK_TOKEN is not configured server-side", async () => {
+    delete process.env.ASAAS_WEBHOOK_TOKEN;
+    const res = await POST(req(CONFIRMED_PAYLOAD));
+    expect(res.status).toBe(401);
+  });
+
+  it("PAYMENT_CONFIRMED credits the wallet once and writes one ledger row carrying the payment id as externalId", async () => {
+    const res = await POST(req(CONFIRMED_PAYLOAD));
+    expect(res.status).toBe(200);
+    expect(wallet("u1").balance).toBe(130); // seed 30 + topup 100
+    expect(ledger).toHaveLength(1);
+    expect(ledger[0]).toMatchObject({ userId: "u1", externalId: "pay_1" });
+    expect(ledger[0].entry.type).toBe("topup");
+  });
+
+  // This is the test that matters -- at-least-once delivery guarantees this
+  // happens in production.
+  it("the same webhook payload delivered twice credits the account exactly once", async () => {
+    const first = await POST(req(CONFIRMED_PAYLOAD));
+    const second = await POST(req(CONFIRMED_PAYLOAD));
+    expect(first.status).toBe(200);
+    expect(second.status).toBe(200);
+    expect(wallet("u1").balance).toBe(130);
+    expect(ledger).toHaveLength(1);
+  });
+
+  it("credits subscribe checkouts and best-effort persists the subscription id", async () => {
+    const res = await POST(
+      req({
+        event: "PAYMENT_CONFIRMED",
+        payment: {
+          id: "pay_2",
+          externalReference: "u2:subscribe",
+          subscription: "sub_abc",
+        },
+      }),
+    );
+    expect(res.status).toBe(200);
+    expect(wallet("u2").plan).toBe("atelier");
+    expect(subscriptionIds.get("u2")).toBe("sub_abc");
+  });
+
+  it("an unrecognised event returns 200, not 4xx", async () => {
+    const res = await POST(
+      req({ event: "SOME_FUTURE_EVENT", payment: { id: "pay_9" } }),
+    );
+    expect(res.status).toBe(200);
+    expect(withWalletIdempotent).not.toHaveBeenCalled();
+  });
+
+  it("CHECKOUT_EXPIRED and CHECKOUT_CANCELED return 200 without touching any wallet", async () => {
+    const expired = await POST(req({ event: "CHECKOUT_EXPIRED" }));
+    const canceled = await POST(req({ event: "CHECKOUT_CANCELED" }));
+    expect(expired.status).toBe(200);
+    expect(canceled.status).toBe(200);
+    expect(withWalletIdempotent).not.toHaveBeenCalled();
+  });
+
+  it("a PAYMENT_CONFIRMED with no matching prior credit is silently skipped, still 200", async () => {
+    const res = await POST(
+      req({ event: "PAYMENT_REFUNDED", payment: { id: "never-credited" } }),
+    );
+    expect(res.status).toBe(200);
+    expect(withWalletIdempotent).not.toHaveBeenCalled();
+  });
+
+  it("PAYMENT_REFUNDED debits back exactly what the original payment credited", async () => {
+    await POST(req(CONFIRMED_PAYLOAD)); // credits u1 +100 (topup)
+    const res = await POST(
+      req({ event: "PAYMENT_REFUNDED", payment: { id: "pay_1" } }),
+    );
+    expect(res.status).toBe(200);
+    expect(wallet("u1").balance).toBe(30); // back to the seeded balance
+  });
+
+  it("a duplicated PAYMENT_REFUNDED delivery only debits once", async () => {
+    await POST(req(CONFIRMED_PAYLOAD));
+    await POST(req({ event: "PAYMENT_REFUNDED", payment: { id: "pay_1" } }));
+    await POST(req({ event: "PAYMENT_REFUNDED", payment: { id: "pay_1" } }));
+    expect(wallet("u1").balance).toBe(30);
+  });
+
+  it("PAYMENT_CONFIRMED with a missing externalReference is a no-op, still 200", async () => {
+    const res = await POST(
+      req({ event: "PAYMENT_CONFIRMED", payment: { id: "pay_3" } }),
+    );
+    expect(res.status).toBe(200);
+    expect(withWalletIdempotent).not.toHaveBeenCalled();
+  });
+
+  it("PAYMENT_CONFIRMED with an unparseable externalReference is a no-op, still 200", async () => {
+    const res = await POST(
+      req({
+        event: "PAYMENT_CONFIRMED",
+        payment: { id: "pay_4", externalReference: "garbage" },
+      }),
+    );
+    expect(res.status).toBe(200);
+    expect(withWalletIdempotent).not.toHaveBeenCalled();
+  });
+
+  // A non-2xx here counts towards Asaas's 15-consecutive-failure queue
+  // pause exactly like an unrecognised event does -- so even the shared
+  // readJsonObject 400 every other route in this app returns as-is must not
+  // escape from this one.
+  it("a malformed (non-JSON) body still answers 200, not the shared readJsonObject 400", async () => {
+    const res = await POST(
+      new Request("http://test/api/billing/webhook", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "asaas-access-token": TOKEN,
+        },
+        body: "not json",
+      }),
+    );
+    expect(res.status).toBe(200);
+    expect(withWalletIdempotent).not.toHaveBeenCalled();
+  });
+
+  it("PAYMENT_REFUNDED for a subscribe purchase also reverts the plan back to free, not just the balance", async () => {
+    await POST(
+      req({
+        event: "PAYMENT_CONFIRMED",
+        payment: { id: "pay_5", externalReference: "u3:subscribe" },
+      }),
+    );
+    expect(wallet("u3").plan).toBe("atelier");
+    const res = await POST(
+      req({ event: "PAYMENT_REFUNDED", payment: { id: "pay_5" } }),
+    );
+    expect(res.status).toBe(200);
+    expect(wallet("u3").plan).toBe("free");
+    expect(wallet("u3").total).toBe(30);
+    expect(wallet("u3").balance).toBe(30); // back to the seeded free balance
+  });
+
+  it("PAYMENT_REFUNDED for a topup purchase never touches plan/total", async () => {
+    await POST(req(CONFIRMED_PAYLOAD)); // u1:topup
+    await POST(req({ event: "PAYMENT_REFUNDED", payment: { id: "pay_1" } }));
+    expect(wallet("u1").plan).toBe("free");
+    expect(wallet("u1").total).toBe(30);
+  });
+});
