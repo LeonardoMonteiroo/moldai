@@ -421,7 +421,8 @@ export function parseDxf(text: string): DxfDocument {
         const name = codeValue(raw, 2);
         const blockEntities = name ? blocks.get(name) : undefined;
         if (!blockEntities) break; // unresolved reference — skip, don't fabricate geometry
-        const [bpx, bpy] = (name && blockBasePoints.get(name)) ?? [0, 0];
+        const basePoint = name ? blockBasePoints.get(name) : undefined;
+        const [bpx, bpy] = basePoint ?? [0, 0];
         const ix = finiteOr(codeValue(raw, 10), 0);
         const iy = finiteOr(codeValue(raw, 20), 0);
         const sx = finiteOr(codeValue(raw, 41), 1);
