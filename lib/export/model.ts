@@ -1,5 +1,10 @@
 import type { NotchType, Pattern, SizeLabel } from "@/lib/types";
-import { bbox, type DraftedPiece, type Pt } from "@/lib/draft/core";
+import {
+  bbox,
+  catmullRomSegments,
+  type DraftedPiece,
+  type Pt,
+} from "@/lib/draft/core";
 import { draftPiecesCm } from "@/lib/draft/garment";
 import { offsetOutlineCm } from "./offset";
 import type { Translate } from "@/lib/i18n/translate";
@@ -87,6 +92,9 @@ export function buildPathD(
   return d + " Z";
 }
 
+// #86: thin adapter over lib/draft/core.ts's shared catmullRomSegments --
+// the same tangent math outlinePath uses, here fed exact cm (never PX()
+// px-rounded, unlike outlinePath's canvas points) and mapped to ExPt/ExSeg.
 export function outlineSegments(
   ptsCm: Pt[],
   curvedSpans: [number, number][] = [],
@@ -98,32 +106,13 @@ export function outlineSegments(
     for (let i = 1; i < n; i++) segs.push({ kind: "line", to: P(p[i]) });
     return { start: P(p[0] ?? [0, 0]), segs };
   }
-  const at = (i: number) => p[((i % n) + n) % n];
-  const spanFor = (i: number) =>
-    curvedSpans.find(([a, b]) => i >= a && i + 1 <= b);
-  const segs: ExSeg[] = [];
-  for (let i = 0; i < n; i++) {
-    const p1 = at(i),
-      p2 = at(i + 1);
-    const span = spanFor(i);
-    if (!span) {
-      segs.push({ kind: "line", to: P(p2) });
-      continue;
-    }
-    const [a, b] = span;
-    const p0 = i === a ? p1 : at(i - 1);
-    const p3 = i + 1 === b ? p2 : at(i + 2);
-    const c1: ExPt = {
-      x: p1[0] + (p2[0] - p0[0]) / 6,
-      y: p1[1] + (p2[1] - p0[1]) / 6,
-    };
-    const c2: ExPt = {
-      x: p2[0] - (p3[0] - p1[0]) / 6,
-      y: p2[1] - (p3[1] - p1[1]) / 6,
-    };
-    segs.push({ kind: "cubic", c1, c2, to: P(p2) });
-  }
-  return { start: P(at(0)), segs };
+  const { start, segs: cSegs } = catmullRomSegments(p, curvedSpans);
+  const segs: ExSeg[] = cSegs.map((s) =>
+    s.kind === "line"
+      ? { kind: "line", to: P(s.to) }
+      : { kind: "cubic", c1: P(s.c1), c2: P(s.c2), to: P(s.to) },
+  );
+  return { start: P(start), segs };
 }
 
 // #123: wraps an already-flat, already-closed point loop (offsetOutlineCm's

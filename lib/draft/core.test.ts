@@ -4,6 +4,7 @@ import {
   bbox,
   polyPath,
   outlinePath,
+  catmullRomSegments,
   DraftedPiece,
   notchAt,
   notchAtVertex,
@@ -124,6 +125,81 @@ describe("core drafting", () => {
       const o = outlinePath(pts, [[3, 4]]) as { kind: "path"; d: string };
       // 4 vertices; span [3,4] covers edge 3->0 (closing)
       expect(o.d).toMatch(/C[^Z]*Z$/);
+    });
+  });
+
+  // #86: catmullRomSegments is the one Catmull-Rom-to-Bézier implementation
+  // outlinePath (this file) and lib/export/model.ts's outlineSegments now
+  // both adapt -- these tests pin its own tangent math directly, in the
+  // caller-agnostic point/segment shape, so a change to the formula shows up
+  // here rather than only as a diff between the two adapters.
+  describe("catmullRomSegments", () => {
+    const square: [number, number][] = [
+      [0, 0],
+      [10, 0],
+      [10, 10],
+      [0, 10],
+    ];
+
+    it("emits one line seg per edge when no span covers it", () => {
+      const { start, segs } = catmullRomSegments(square, []);
+      expect(start).toEqual([0, 0]);
+      expect(segs).toHaveLength(4);
+      expect(segs.every((s) => s.kind === "line")).toBe(true);
+      expect(segs[0]).toEqual({ kind: "line", to: [10, 0] });
+    });
+
+    it("emits a cubic only for the edge(s) inside curvedSpans", () => {
+      const { segs } = catmullRomSegments(square, [[1, 2]]);
+      expect(segs[0].kind).toBe("line"); // edge 0->1
+      expect(segs[1].kind).toBe("cubic"); // edge 1->2 (the span)
+      expect(segs[2].kind).toBe("line"); // edge 2->3
+      expect(segs[3].kind).toBe("line"); // edge 3->0
+    });
+
+    // Pins the exact tangent formula -- p0/p3 locked to the span's own edge
+    // endpoints (not pulled from outside the span), c1/c2 offset by
+    // (neighbour - opposite)/6. Perturbing the divisor, the sign, or which
+    // neighbour feeds p0/p3 must fail this test.
+    it("computes the exact Catmull-Rom control points for a locked-tangent span", () => {
+      const { segs } = catmullRomSegments(square, [[0, 1]]);
+      const seg = segs[0];
+      if (seg.kind !== "cubic") throw new Error("expected a cubic segment");
+      // span is [0,1] -> i===a===0 so p0=p1=[0,0]; i+1===b===1 so p3=p2=[10,0]
+      // c1 = p1 + (p2 - p0)/6 = [0,0] + ([10,0]-[0,0])/6 = [10/6, 0]
+      // c2 = p2 - (p3 - p1)/6 = [10,0] - ([10,0]-[0,0])/6 = [50/6, 0]
+      expect(seg.c1[0]).toBeCloseTo(10 / 6, 10);
+      expect(seg.c1[1]).toBeCloseTo(0, 10);
+      expect(seg.c2[0]).toBeCloseTo(50 / 6, 10);
+      expect(seg.c2[1]).toBeCloseTo(0, 10);
+      expect(seg.to).toEqual([10, 0]);
+    });
+
+    it("pulls p0/p3 from the outline's real neighbours for an interior span edge", () => {
+      // A hexagon with a 3-edge span [0,3] (covers edges 0->1, 1->2, 2->3):
+      // the middle edge (i=1, seg index 1) is bounded on both sides by
+      // OTHER edges still inside the span, so its p0/p3 come from the
+      // outline's own neighbouring vertices (at(0), at(3)) rather than being
+      // locked to the edge's own p1/p2 the way a span boundary edge is.
+      const hexagon: [number, number][] = [
+        [0, 0],
+        [10, 0],
+        [15, 5],
+        [10, 10],
+        [0, 10],
+        [-5, 5],
+      ];
+      const { segs } = catmullRomSegments(hexagon, [[0, 3]]);
+      const seg = segs[1]; // edge i=1: p1=at(1), p2=at(2)
+      if (seg.kind !== "cubic") throw new Error("expected a cubic segment");
+      const p0 = hexagon[0]; // at(i-1) = at(0)
+      const p1 = hexagon[1];
+      const p2 = hexagon[2];
+      const p3 = hexagon[3]; // at(i+2) = at(3)
+      expect(seg.c1[0]).toBeCloseTo(p1[0] + (p2[0] - p0[0]) / 6, 10);
+      expect(seg.c1[1]).toBeCloseTo(p1[1] + (p2[1] - p0[1]) / 6, 10);
+      expect(seg.c2[0]).toBeCloseTo(p2[0] - (p3[0] - p1[0]) / 6, 10);
+      expect(seg.c2[1]).toBeCloseTo(p2[1] - (p3[1] - p1[1]) / 6, 10);
     });
   });
 
