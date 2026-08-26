@@ -564,7 +564,7 @@
     "measurementsLabel": "Medidas e grades",
     "studioBasesLabel": "Bases do ateliê",
     "comingSoonBadge": "em breve",
-    "importLabel": "Importar molde · Audaces · Molde.me · .dxf",
+    "importLabel": "Importar molde · .dxf",
     "newPatternButton": "＋ Novo molde"
   },
   "DashboardShell": {
@@ -716,5 +716,54 @@
   "AppShell": {
     "openNavLabel": "Abrir menu de navegação",
     "closeNavLabel": "Fechar menu de navegação"
+  },
+  "Import": {
+    "title": "Importar molde",
+    "stepFile": "Passo 1 de 2 · escolher arquivo",
+    "stepMapping": "Passo 2 de 2 · mapear camadas",
+    "betaBadge": "beta",
+    "freeBadge": "importação grátis",
+    "formatNote": "Por enquanto só arquivos .dxf são lidos. Audaces (formato nativo) e Molde.me ainda não — em breve.",
+    "dropHint": "Aceita arquivos .dxf gerados por CAD ou exportados por outro software compatível.",
+    "chooseFileButton": "Escolher arquivo",
+    "changeFileButton": "Trocar arquivo",
+    "loading": "Analisando arquivo…",
+    "fileSummaryFile": "Arquivo",
+    "fileSummaryFormat": "Formato",
+    "fileSummaryPieces": "Peças",
+    "fileSummarySize": "Tamanho",
+    "format": {
+      "dxf-aama": "DXF AAMA/ASTM",
+      "dxf-moldai": "DXF MoldAI",
+      "dxf-generic": "DXF genérico"
+    },
+    "layersSectionLabel": "Camadas detectadas",
+    "layerRole": {
+      "cut": "Linha de corte",
+      "seam": "Linha de costura",
+      "notch": "Pique",
+      "grain": "Fio",
+      "ignore": "Ignorar"
+    },
+    "layerNotFound": "não encontrada",
+    "verificationSectionLabel": "Verificação",
+    "checks": {
+      "unitCm": "Unidade reconhecida: {unit}",
+      "unitUnknown": "Não foi possível identificar a unidade do arquivo — assumindo centímetros",
+      "piecesClosed": "{closed} de {total} contornos fechados",
+      "sizesUnknown": "Este arquivo traz apenas um tamanho — grade não identificada",
+      "missingGrain": "{pieces} peça(s) sem linha de fio identificada nas proximidades",
+      "unsupportedEntities": "Entidades não suportadas ignoradas: {types}",
+      "fileTruncated": "Arquivo grande demais — parte do conteúdo foi descartada durante a leitura"
+    },
+    "cancelButton": "Cancelar",
+    "createButton": "Importar molde",
+    "createComingSoon": "em breve",
+    "createDisabledNote": "A criação de moldes a partir de um arquivo importado ainda não está disponível nesta primeira versão — esta tela analisa o arquivo e mostra o que foi encontrado, sem salvar nada.",
+    "pickError": {
+      "file_too_large": "Este arquivo é grande demais para importar (limite de 10 MB).",
+      "read_failed": "Não foi possível ler este arquivo. Tente novamente.",
+      "no_pieces_found": "Nenhum contorno fechado foi encontrado neste arquivo — verifique se é um .dxf válido."
+    }
   }
 }

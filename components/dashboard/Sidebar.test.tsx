@@ -76,14 +76,23 @@ describe("Sidebar", () => {
     expect(onNewPattern).toHaveBeenCalledTimes(1);
   });
 
-  // #50: the import placeholder card used text-disabled (2.10:1 on white),
-  // below WCAG 1.4.3's 4.5:1 -- it's an inert "em breve" note on a plain div,
-  // not a disabled control.
-  it("colors the import placeholder card with text-muted, not the disabled token", () => {
+  // Issue #11: the import entry used to be an inert dashed placeholder
+  // advertising formats nothing parsed (Audaces/Molde.me native + .dxf). It
+  // is now a real control navigating to the DXF import first pass, and its
+  // label names only the format actually read.
+  it("navigates to the import screen — the entry is no longer a placeholder", async () => {
+    const user = userEvent.setup();
     renderWithIntl(<Sidebar active="patterns" onNewPattern={vi.fn()} />);
 
-    const card = screen.getByText(ptBR.Sidebar.importLabel);
-    expect(card.className).toContain("text-muted");
-    expect(card.className).not.toContain("text-disabled");
+    const entry = screen.getByRole("button", {
+      name: ptBR.Sidebar.importLabel,
+    });
+    expect(entry).toBeEnabled();
+    await user.click(entry);
+    expect(push).toHaveBeenCalledWith("/import");
+    // /import renders no sidebar (the /size-charts precedent), so this
+    // entry is never the active one — matching measurementsLabel's own
+    // hardcoded isActive={false}.
+    expect(entry).not.toHaveAttribute("aria-current");
   });
 });
