@@ -52,6 +52,12 @@ export async function updateUserPasswordHash(
 // Transaction row (onDelete: Cascade), so nothing survives to stamp -- this
 // reportError line is the only trace an operator gets that the account
 // existed and was deleted. Never logs the password, hash, or a token.
+// Deliberately called on the SUCCESS path, not from a catch: every other
+// reportError call site logs a genuine failure, but there's no row left
+// after a successful delete to record this any other way. The distinct
+// "account.delete" scope is what lets a real reporter (see
+// lib/observability/report.ts's header) route this as an audit event
+// rather than an error alert, without a second logging seam.
 export async function deleteUser(id: string): Promise<void> {
   await prisma.user.delete({ where: { id } });
   reportError("account.delete", "account deleted", { userId: id });
