@@ -6,6 +6,7 @@ vi.mock("./api-client", async () => {
     await vi.importActual<typeof import("./api-client")>("./api-client");
   return {
     ApiError: actual.ApiError,
+    errorCode: actual.errorCode,
     listSlopers: vi.fn(),
     createPattern: vi.fn(),
     renameSloper: vi.fn(),

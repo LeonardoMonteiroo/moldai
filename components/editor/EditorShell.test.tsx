@@ -32,6 +32,7 @@ vi.mock("@/lib/api-client", async () => {
     );
   return {
     ApiError: actual.ApiError,
+    errorCode: actual.errorCode,
     fetchPattern: vi.fn(() => new Promise(() => {})),
     generate: vi.fn(),
     graduate: vi.fn(),

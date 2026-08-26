@@ -6,6 +6,7 @@ vi.mock("./api-client", async () => {
     await vi.importActual<typeof import("./api-client")>("./api-client");
   return {
     ApiError: actual.ApiError,
+    errorCode: actual.errorCode,
     listSizeCharts: vi.fn(),
     createSizeChart: vi.fn(),
     updateSizeChart: vi.fn(),
@@ -295,6 +296,19 @@ describe("sizeChartsStore mutation failures", () => {
     await useSizeChartsStore.getState().activate("g1");
 
     expect(useSizeChartsStore.getState().actionError).toBe("request_failed");
+  });
+
+  // #36: errorCode is now shared from api-client.ts -- pin that this store
+  // still surfaces an ApiError's own wire code rather than the generic
+  // fallback, not just the two same-value cases above.
+  it("carries the ApiError's wire code rather than the generic fallback", async () => {
+    vi.mocked(api.activateSizeChart).mockRejectedValue(
+      new ApiError(401, "unauthorized"),
+    );
+
+    await useSizeChartsStore.getState().activate("g1");
+
+    expect(useSizeChartsStore.getState().actionError).toBe("unauthorized");
   });
 
   it("surfaces a failed delete", async () => {

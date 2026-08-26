@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import * as api from "./api-client";
-import { ApiError } from "./api-client";
+import { errorCode } from "./api-client";
 import type { SloperListItem } from "./types";
 
 interface SlopersStore {
@@ -20,11 +20,6 @@ interface SlopersStore {
   rename: (id: string, name: string) => Promise<void>;
   remove: (id: string) => Promise<void>;
   clearActionError: () => void;
-}
-
-/** ApiError carries the wire code; anything else (offline, parse) is generic. */
-function errorCode(err: unknown): string {
-  return err instanceof ApiError ? err.code : "request_failed";
 }
 
 export const useSlopersStore = create<SlopersStore>((set) => ({

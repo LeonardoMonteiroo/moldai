@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import * as api from "./api-client";
-import { ApiError } from "./api-client";
+import { errorCode } from "./api-client";
 import type { PatternListItem, RecentUsageEntry } from "./api-client";
 import type { Credits, GarmentType } from "./types";
 
@@ -32,11 +32,6 @@ interface DashboardStore {
   remove: (id: string) => Promise<void>;
   setSearch: (q: string) => void;
   setTypeFilter: (t: TypeFilter) => void;
-}
-
-/** ApiError carries the wire code; anything else (offline, parse) is generic. */
-function errorCode(err: unknown): string {
-  return err instanceof ApiError ? err.code : "request_failed";
 }
 
 export const useDashboardStore = create<DashboardStore>((set) => ({
