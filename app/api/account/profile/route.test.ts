@@ -79,4 +79,25 @@ describe("PATCH /api/account/profile", () => {
     expect(await res.json()).toEqual({ status: "error", error: "bad_body" });
     expect(updateUserName).not.toHaveBeenCalled();
   });
+
+  // parseBody's schema only proves `name` exists at all -- validateName still
+  // owns the field-level check, so a wrong-typed name answers the domain
+  // code (invalid_name), not the generic parseBody one (bad_body).
+  it("answers invalid_name, not bad_body, for a non-string name", async () => {
+    const res = await PATCH(req({ name: 42 }));
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({
+      status: "error",
+      error: "invalid_name",
+    });
+    expect(updateUserName).not.toHaveBeenCalled();
+  });
+
+  // An array body is valid JSON but not the object parseBody's schema needs.
+  it("answers bad_body for an array body", async () => {
+    const res = await PATCH(req([1, 2, 3]));
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ status: "error", error: "bad_body" });
+    expect(updateUserName).not.toHaveBeenCalled();
+  });
 });

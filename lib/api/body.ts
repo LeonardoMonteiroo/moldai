@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { ZodType } from "zod";
 import { apiError, ERROR_STATUS } from "./errors";
 
 /**
@@ -77,6 +78,43 @@ export async function readJsonObject(
     return apiError("bad_body", ERROR_STATUS.bad_body);
   }
   return parsed as Record<string, unknown>;
+}
+
+/**
+ * Reads a JSON body and validates it against a zod schema, or the 400
+ * response to return instead. Shaped identically to readJsonObject/
+ * requireUser() on purpose -- `if (x instanceof NextResponse) return x;` is
+ * already this repo's guard idiom, and it's what makes a forgotten check a
+ * type error rather than a 500.
+ *
+ * This is the generic form of the same trust boundary validateSpec and
+ * validateSizeChartPatch already enforce by hand: anything off the wire is
+ * untyped until a schema says otherwise. It does NOT replace either of
+ * those -- a route that already clamps (rather than rejects) keeps doing
+ * so; parseBody is for routes whose body has no such downstream clamp.
+ *
+ * On failure this answers a bare `bad_body` -- never the zod issue path or
+ * message, which is English prose that would leak the schema shape to the
+ * client. A route that needs a more specific code for a specific field
+ * keeps doing its own post-parse check (see PATCH /api/account/profile's
+ * validateName), the same way readJsonObject callers already do.
+ */
+export async function parseBody<T>(
+  request: Request,
+  schema: ZodType<T>,
+  maxBytes: number = MAX_BODY_BYTES,
+): Promise<T | NextResponse> {
+  const text = await readBoundedText(request, maxBytes);
+  if (text === null) return apiError("bad_body", ERROR_STATUS.bad_body);
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return apiError("bad_body", ERROR_STATUS.bad_body);
+  }
+  const result = schema.safeParse(parsed);
+  if (!result.success) return apiError("bad_body", ERROR_STATUS.bad_body);
+  return result.data;
 }
 
 /**

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { readJsonObject } from "@/lib/api/body";
+import { parseBody } from "@/lib/api/body";
+import { CreateSizeChartBodySchema } from "@/lib/schemas/sizeChart";
 import { getTranslations } from "next-intl/server";
 import { requireUser } from "@/lib/auth/guard";
 import { prisma } from "@/lib/db/prisma";
@@ -37,13 +38,11 @@ export async function POST(request: Request) {
     });
   }
   // This route tolerates an unusable body -- it just means "no sourceId", i.e.
-  // create a blank chart -- so the guard result is folded into `sourceId`
-  // rather than returned. Only the crash on `null` is being fixed here.
-  const body = await readJsonObject(request);
-  const sourceId =
-    !(body instanceof NextResponse) && typeof body.sourceId === "string"
-      ? body.sourceId
-      : undefined;
+  // create a blank chart -- so the parse result is folded into `sourceId`
+  // rather than returned: a malformed/null/non-object body, or a sourceId of
+  // the wrong type, all resolve to "no sourceId" instead of a 400.
+  const body = await parseBody(request, CreateSizeChartBodySchema);
+  const sourceId = body instanceof NextResponse ? undefined : body.sourceId;
   const t = await getTranslations("SizeCharts");
   const chart = await createSizeChart(gate.id, t, sourceId);
   // #64: only reachable when an explicit sourceId was given and didn't

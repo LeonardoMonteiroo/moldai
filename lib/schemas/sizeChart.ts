@@ -22,3 +22,12 @@ export const SizeChartDataSchema = z.object({
   ),
   overrides: z.record(z.string(), MeasurementsSchema.partial()),
 });
+
+// POST /api/size-charts deliberately tolerates an unusable body -- an
+// absent, malformed, or wrong-typed sourceId all mean the same thing, "no
+// source, create a blank chart" -- so the route folds a failed parse into
+// `sourceId: undefined` instead of returning parseBody's 400. This schema
+// exists only to give that fold a typed shape to parse against.
+export const CreateSizeChartBodySchema = z.object({
+  sourceId: z.string().optional(),
+});

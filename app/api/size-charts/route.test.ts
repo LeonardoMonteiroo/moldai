@@ -144,4 +144,46 @@ describe("POST /api/size-charts", () => {
     expect(res.status).toBe(404);
     expect((await res.json()).error).toBe("size_chart_not_found");
   });
+
+  // parseBody's schema-invalid case still folds into "no sourceId" here --
+  // this route's tolerance for an unusable body covers more than just a
+  // literal null, per its own comment.
+  it("treats a wrong-typed sourceId as no sourceId rather than 400ing", async () => {
+    vi.mocked(createSizeChart).mockResolvedValue({ id: "g6" } as never);
+    const res = await POST(req({ sourceId: 123 }));
+    expect(res.status).toBe(200);
+    expect(createSizeChart).toHaveBeenCalledWith(
+      "u1",
+      expect.any(Function),
+      undefined,
+    );
+  });
+
+  it("treats a malformed JSON body as no sourceId rather than 400ing", async () => {
+    vi.mocked(createSizeChart).mockResolvedValue({ id: "g7" } as never);
+    const res = await POST(
+      new Request("http://test/api/size-charts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "not json",
+      }),
+    );
+    expect(res.status).toBe(200);
+    expect(createSizeChart).toHaveBeenCalledWith(
+      "u1",
+      expect.any(Function),
+      undefined,
+    );
+  });
+
+  it("treats an array body as no sourceId rather than 400ing", async () => {
+    vi.mocked(createSizeChart).mockResolvedValue({ id: "g8" } as never);
+    const res = await POST(req([1, 2, 3]));
+    expect(res.status).toBe(200);
+    expect(createSizeChart).toHaveBeenCalledWith(
+      "u1",
+      expect.any(Function),
+      undefined,
+    );
+  });
 });
