@@ -1,11 +1,53 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { PatternState } from "@/lib/types";
+import type { ImageMediaType } from "@/lib/editor/attachment";
 import { buildSystem } from "./prompt";
-import { buildHistory } from "./history";
+import { buildHistory, type HistoryTurn } from "./history";
 import { TOOL, parseRawToolInput } from "./schema";
 import { resolveDecision, type AiDecision } from "./decision";
 
 export type { AiDecision };
+
+// #18: the prepared (already downscaled/re-encoded) attachment proposeGarment
+// forwards to the model, one image content block per generate call -- never
+// persisted, see lib/editor/attachment.ts.
+export interface ProposeImage {
+  mediaType: ImageMediaType;
+  base64: string;
+}
+
+// Attaches `image` to the FINAL turn's content, converting it from a plain
+// string to the Messages API's content-block-array form. buildHistory stays
+// pure/text-only on purpose (see history.ts) -- this is the one place that
+// needs to know about images, and it runs after buildHistory has already
+// normalized roles/merging. The final turn is always "user": the route
+// appends the new user message to state.chat before calling proposeGarment,
+// so it is always the last chat entry buildHistory sees.
+function withImage(
+  turns: HistoryTurn[],
+  image: ProposeImage | undefined,
+): Anthropic.MessageParam[] {
+  if (!image || turns.length === 0) return turns;
+  const last = turns[turns.length - 1];
+  if (last.role !== "user") return turns;
+  return [
+    ...turns.slice(0, -1),
+    {
+      role: "user",
+      content: [
+        {
+          type: "image",
+          source: {
+            type: "base64",
+            media_type: image.mediaType,
+            data: image.base64,
+          },
+        },
+        { type: "text", text: last.content },
+      ],
+    },
+  ];
+}
 
 // #61: the SDK's own defaults (10 min timeout, 2 retries) can outlive
 // TX_OPTS.timeout (lib/db/pattern.ts, 30s) — the transaction holding the
@@ -19,6 +61,7 @@ export const ANTHROPIC_OPTIONS = { timeout: 20_000, maxRetries: 1 } as const;
 export async function proposeGarment(
   state: PatternState,
   answering: boolean,
+  image?: ProposeImage,
 ): Promise<AiDecision> {
   const client = new Anthropic(ANTHROPIC_OPTIONS);
   const resp = await client.messages.create({
@@ -27,7 +70,7 @@ export async function proposeGarment(
     system: buildSystem(state, answering),
     tools: [TOOL],
     tool_choice: { type: "tool", name: "propose_garment" },
-    messages: buildHistory(state.chat),
+    messages: withImage(buildHistory(state.chat), image),
   });
 
   // #99: a reply that hits max_tokens (routine for a token-heavy Portuguese

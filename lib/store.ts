@@ -10,6 +10,7 @@ import {
   ConflictInfo,
   Measurement,
 } from "./types";
+import type { PreparedAttachment } from "./editor/attachment";
 
 export type EditorTab = "pattern2d" | "proof3d" | "techsheet" | "cutplan";
 export type EditorTool = "cursor" | "measure";
@@ -77,7 +78,7 @@ interface EditorStore {
   clearError: () => void;
   sendMessage: (
     message: string,
-    opts?: { answering?: boolean },
+    opts?: { answering?: boolean; image?: PreparedAttachment },
   ) => Promise<void>;
   cancelGeneration: () => void;
   graduateSizes: (sizes: string[]) => Promise<void>;
@@ -206,7 +207,10 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
   clearError: () => set({ error: null }),
 
-  sendMessage: async (message: string, opts?: { answering?: boolean }) => {
+  sendMessage: async (
+    message: string,
+    opts?: { answering?: boolean; image?: PreparedAttachment },
+  ) => {
     if (!message.trim()) return;
     const patternId = get().patternId;
     if (!patternId) return;
@@ -222,6 +226,9 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
           author: "user",
           text: message,
           createdAt: Date.now(),
+          // #18: the bytes travel with the request only -- this is enough to
+          // render the "imagem enviada" chip, never a thumbnail.
+          ...(opts?.image ? { hasImage: true } : {}),
         },
       ],
     }));
@@ -249,7 +256,12 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
     let result: Awaited<ReturnType<typeof api.generate>>;
     try {
-      result = await api.generate(patternId, message, opts?.answering);
+      result = await api.generate(
+        patternId,
+        message,
+        opts?.answering,
+        opts?.image,
+      );
     } catch (err) {
       clearTimeout(stepTimer);
       if (get().generationRequestId !== requestId) return; // canceled

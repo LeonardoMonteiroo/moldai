@@ -96,11 +96,39 @@ describe("store.sendMessage", () => {
       .getState()
       .sendMessage("gola redonda", { answering: true });
 
-    expect(genMock).toHaveBeenCalledWith("m1", "gola redonda", true);
+    expect(genMock).toHaveBeenCalledWith("m1", "gola redonda", true, undefined);
     expect(useEditorStore.getState().generationStatus).toBe("idle");
     expect(useEditorStore.getState().selectedPieceId).toBeNull();
     const last = useEditorStore.getState().chat.at(-1)!;
     expect(last.questions).toHaveLength(1);
+  });
+
+  // #18: the prepared attachment travels with the request only -- the
+  // optimistic chat message records that one was used (for the "imagem
+  // enviada" chip), never the bytes themselves. Checked mid-flight, before
+  // applyState replaces `chat` wholesale with the server's own response.
+  it("forwards a prepared image to api.generate and marks the optimistic message", async () => {
+    const gen = deferred<Awaited<ReturnType<typeof api.generate>>>();
+    genMock.mockReturnValue(gen.promise);
+    const image = { mediaType: "image/jpeg" as const, base64: "ZmFrZQ==" };
+
+    const promise = useEditorStore
+      .getState()
+      .sendMessage("uma blusa assim", { image });
+
+    expect(genMock).toHaveBeenCalledWith(
+      "m1",
+      "uma blusa assim",
+      undefined,
+      image,
+    );
+    const optimistic = useEditorStore
+      .getState()
+      .chat.find((m) => m.id.startsWith("optimistic-"));
+    expect(optimistic?.hasImage).toBe(true);
+
+    gen.resolve({ status: "clarify", state: emptyState() });
+    await promise;
   });
 });
 

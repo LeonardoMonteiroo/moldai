@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useEditorStore, GENERATION_STEP_COUNT } from "@/lib/store";
 import { ChatBubble } from "./ChatBubble";
-import { AttachmentChips } from "./AttachmentChips";
+import { AttachmentChips, type AttachmentSelection } from "./AttachmentChips";
 import { MessageInput } from "./MessageInput";
 import { ConflictActions } from "./ConflictActions";
 import { COSTS } from "@/lib/types";
@@ -22,6 +22,9 @@ export function ChatPanel() {
   const sendMessage = useEditorStore((s) => s.sendMessage);
   const cancelGeneration = useEditorStore((s) => s.cancelGeneration);
   const resolveConflict = useEditorStore((s) => s.resolveConflict);
+  const [attachment, setAttachment] = useState<AttachmentSelection | null>(
+    null,
+  );
   const listRef = useRef<HTMLDivElement>(null);
   // Was the reader already at the bottom? If they scrolled up to re-read an
   // earlier turn, a generation finishing must not yank them back down.
@@ -127,8 +130,19 @@ export function ChatPanel() {
           </>
         ) : (
           <>
-            <AttachmentChips />
-            <MessageInput disabled={isGenerating} onSend={sendMessage} />
+            <AttachmentChips attachment={attachment} onChange={setAttachment} />
+            <MessageInput
+              disabled={isGenerating || attachment?.status === "preparing"}
+              onSend={(message) => {
+                sendMessage(message, {
+                  image:
+                    attachment?.status === "ready"
+                      ? attachment.prepared
+                      : undefined,
+                });
+                setAttachment(null);
+              }}
+            />
           </>
         )}
       </div>

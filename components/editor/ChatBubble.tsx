@@ -16,7 +16,18 @@ export function ChatBubble({
   if (message.author === "user") {
     return (
       <Bubble align="end">
-        <BubbleContent>{message.text}</BubbleContent>
+        <BubbleContent>
+          {message.text}
+          {message.hasImage && (
+            // #18: the bytes were never persisted -- this says an image was
+            // used, it is not a thumbnail that would vanish on reload.
+            <div className="mt-[9px] flex flex-wrap gap-[6px]">
+              <span className="rounded-pill text-meta bg-surface border-border border px-2 py-[3px]">
+                {t("imageAttached")}
+              </span>
+            </div>
+          )}
+        </BubbleContent>
       </Bubble>
     );
   }

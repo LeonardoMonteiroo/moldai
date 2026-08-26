@@ -30,9 +30,12 @@ export const MAX_BODY_BYTES = 64 * 1024;
 // controls and can lie about) is bounded exactly like one that honestly
 // declares its own size -- checking only the header would leave that case
 // unbounded.
-async function readBoundedText(request: Request): Promise<string | null> {
+async function readBoundedText(
+  request: Request,
+  maxBytes: number,
+): Promise<string | null> {
   const declared = request.headers.get("content-length");
-  if (declared && Number(declared) > MAX_BODY_BYTES) return null;
+  if (declared && Number(declared) > maxBytes) return null;
 
   if (!request.body) return "";
   const reader = request.body.getReader();
@@ -42,7 +45,7 @@ async function readBoundedText(request: Request): Promise<string | null> {
     const { done, value } = await reader.read();
     if (done) break;
     total += value.byteLength;
-    if (total > MAX_BODY_BYTES) {
+    if (total > maxBytes) {
       await reader.cancel();
       return null;
     }
@@ -51,10 +54,18 @@ async function readBoundedText(request: Request): Promise<string | null> {
   return Buffer.concat(chunks).toString("utf-8");
 }
 
+/**
+ * `maxBytes` defaults to MAX_BODY_BYTES, generous for every route that sends
+ * plain form fields. The one exception is the generate route, whose body can
+ * carry an attachment's base64 payload (#18) -- it passes its own larger
+ * ceiling (lib/editor/attachment.ts's MAX_ATTACHMENT_BASE64_CHARS plus
+ * headroom), still a real bound, just not this one.
+ */
 export async function readJsonObject(
   request: Request,
+  maxBytes: number = MAX_BODY_BYTES,
 ): Promise<Record<string, unknown> | NextResponse> {
-  const text = await readBoundedText(request);
+  const text = await readBoundedText(request, maxBytes);
   if (text === null) return apiError("bad_body", ERROR_STATUS.bad_body);
   let parsed: unknown;
   try {

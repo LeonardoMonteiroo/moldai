@@ -49,7 +49,8 @@
     "cancelButton": "Cancelar"
   },
   "ChatBubble": {
-    "questionsAnswered": "Perguntas respondidas."
+    "questionsAnswered": "Perguntas respondidas.",
+    "imageAttached": "imagem enviada"
   },
   "MessageInput": {
     "placeholder": "Descreva o ajuste…",
@@ -60,8 +61,15 @@
     "photo": "＋ foto",
     "sketch": "＋ croqui",
     "dxf": "＋ molde .dxf",
-    "comingSoonTitle": "Anexos chegam em breve",
-    "comingSoonBadge": "em breve"
+    "dxfComingSoonTitle": "Anexar molde .dxf chega em breve",
+    "comingSoonBadge": "em breve",
+    "preparing": "Preparando imagem…",
+    "removeAttachment": "Remover anexo",
+    "errors": {
+      "unsupported_type": "Tipo de arquivo não suportado — envie uma imagem JPEG, PNG, WEBP ou GIF.",
+      "too_large": "Arquivo muito grande — envie uma imagem de até 10 MB.",
+      "decode_failed": "Não foi possível processar essa imagem. Tente outra."
+    }
   },
   "CanvasArea": {
     "emptyStateTitle": "Molde em branco",

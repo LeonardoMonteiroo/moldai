@@ -144,6 +144,11 @@ export interface ChatMessage {
   // account's active size chart.
   tone?: "neutral" | "conflict" | "notice";
   createdAt: number;
+  // #18: set on a user turn that carried a photo/sketch attachment. The
+  // image itself is never persisted -- this is only enough to render an
+  // "imagem enviada" chip, not a thumbnail. Additive/optional, so a message
+  // recorded before this existed simply lacks it.
+  hasImage?: boolean;
 }
 
 export type PlanId = "free" | "atelier" | "studio" | "factory";

@@ -16,17 +16,27 @@ import { composeEditorState } from "@/lib/api/compose";
 import { apiError } from "@/lib/api/errors";
 import { COSTS, MAX_CHAT_MESSAGE_LENGTH } from "@/lib/types";
 import { proposeGarment } from "@/lib/ai";
+import {
+  validateAttachmentInput,
+  MAX_ATTACHMENT_BASE64_CHARS,
+} from "@/lib/editor/attachment";
 import { requireUser } from "@/lib/auth/guard";
 import { reportError } from "@/lib/observability/report";
 
 type Ctx = { params: Promise<{ id: string }> };
+
+// #18: this is the one route whose body can carry an attachment's base64
+// payload -- headroom over MAX_ATTACHMENT_BASE64_CHARS for the JSON envelope
+// plus the message/answering fields, not the shared MAX_BODY_BYTES every
+// other (text-only) route reads through.
+const MAX_GENERATE_BODY_BYTES = MAX_ATTACHMENT_BASE64_CHARS + 16 * 1024;
 
 export async function POST(request: Request, { params }: Ctx) {
   const gate = await requireUser();
   if (gate instanceof NextResponse) return gate;
   const { id } = await params;
 
-  const body = await readJsonObject(request);
+  const body = await readJsonObject(request, MAX_GENERATE_BODY_BYTES);
   if (body instanceof NextResponse) return body;
   const trimmed = typeof body.message === "string" ? body.message.trim() : "";
   // #69: a NUL byte survives .trim() and would otherwise only abort the
@@ -45,6 +55,15 @@ export async function POST(request: Request, { params }: Ctx) {
   // + ActionErrorNotice (see #56).
   if (trimmed.length > MAX_CHAT_MESSAGE_LENGTH) {
     return apiError("message_too_long", 400);
+  }
+  // #18: re-validated here regardless of what the browser's own
+  // prepareImage() already enforced -- that is a UX affordance, not the
+  // trust boundary. Rejected before any debit or Anthropic call, same as
+  // the message-length/NUL checks above.
+  let image: ReturnType<typeof validateAttachmentInput> = null;
+  if (body.image !== undefined) {
+    image = validateAttachmentInput(body.image);
+    if (!image) return apiError("invalid_attachment", 400);
   }
   const answering = body.answering === true;
   const cost = COSTS.adjust;
@@ -92,6 +111,7 @@ export async function POST(request: Request, { params }: Ctx) {
           author: "user",
           text: trimmed,
           createdAt: Date.now(),
+          ...(image ? { hasImage: true } : {}),
         });
         // #39: this used to debit unconditionally here, then refund it in
         // the ask/decline/error branches below -- a debit+refund pair, not
@@ -106,7 +126,13 @@ export async function POST(request: Request, { params }: Ctx) {
         const entries: LedgerEntry[] = [];
 
         try {
-          const decision = await proposeGarment(state, answering);
+          const decision = await proposeGarment(
+            state,
+            answering,
+            image
+              ? { mediaType: image.mediaType, base64: image.data }
+              : undefined,
+          );
 
           // #99: this used to be three positive `if`s (ask/decline/explain)
           // with an implicit else that applied — so any decision value the

@@ -15,6 +15,7 @@ import type {
   ConfirmResetErrorCode,
 } from "./auth/passwordReset";
 import type { SharedErrorCode } from "./api/errors";
+import type { PreparedAttachment } from "./editor/attachment";
 
 export type GenerateResult =
   | {
@@ -199,10 +200,20 @@ export function generate(
   patternId: string,
   message: string,
   answering?: boolean,
+  image?: PreparedAttachment,
 ): Promise<GenerateResult> {
   return postJson<GenerateResult>(
     `/api/patterns/${patternId}/generate`,
-    { message, answering },
+    {
+      message,
+      answering,
+      // #18: the wire field is `data`, matching Anthropic's own
+      // Base64ImageSource -- PreparedAttachment's `base64` is a client-local
+      // name (JSON.stringify drops the key entirely when image is absent).
+      image: image
+        ? { mediaType: image.mediaType, data: image.base64 }
+        : undefined,
+    },
     PAYWALL,
   );
 }

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { seedPatternState } from "@/lib/editor/state";
-import { MAX_CHAT_MESSAGE_LENGTH } from "@/lib/types";
+import { COSTS, MAX_CHAT_MESSAGE_LENGTH } from "@/lib/types";
+import { MEASUREMENT_RANGES } from "@/lib/measurements";
 import { seedWallet } from "@/lib/billing/wallet";
 import { t } from "@/lib/i18n/test-translate";
 import type { PatternState } from "@/lib/types";
@@ -301,6 +302,103 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(json.status).toBe("error");
     expect(wallet.balance).toBe(balanceBefore);
     expect(lastEntries.map((e) => e.type)).toEqual(["debit", "refund"]);
+  });
+
+  // #18: the route re-validates `image` regardless of what the browser's own
+  // prepareImage() already enforced -- rejected before any debit or
+  // Anthropic call, same as the message-length/NUL checks.
+  it("rejects an unrecognized image mediaType before debiting or calling the AI", async () => {
+    const balanceBefore = wallet.balance;
+    const res = await POST(
+      req({
+        message: "uma blusa",
+        image: { mediaType: "text/html", data: "abc" },
+      }),
+      ctx(),
+    );
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe("invalid_attachment");
+    expect(wallet.balance).toBe(balanceBefore);
+    expect(mockPropose).not.toHaveBeenCalled();
+  });
+
+  // Even a base64 payload that would fit inside the route's own raised body
+  // ceiling is still rejected once past MAX_ATTACHMENT_BASE64_CHARS -- the
+  // browser would have caught this first, but the route is the real boundary.
+  it("rejects an oversized image.data before debiting or calling the AI", async () => {
+    const balanceBefore = wallet.balance;
+    const res = await POST(
+      req({
+        message: "uma blusa",
+        image: {
+          mediaType: "image/jpeg",
+          data: "a".repeat(6 * 1024 * 1024 + 1),
+        },
+      }),
+      ctx(),
+    );
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe("invalid_attachment");
+    expect(wallet.balance).toBe(balanceBefore);
+    expect(mockPropose).not.toHaveBeenCalled();
+  });
+
+  it("a valid image reaches proposeGarment and debits exactly COSTS.adjust, same as text-only", async () => {
+    const balanceBefore = wallet.balance;
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+    const res = await POST(
+      req({
+        message: "uma blusa como nessa foto",
+        image: { mediaType: "image/jpeg", data: "ZmFrZS1iYXNlNjQ=" },
+      }),
+      ctx(),
+    );
+    expect(res.status).toBe(200);
+    expect(mockPropose).toHaveBeenCalledWith(expect.anything(), false, {
+      mediaType: "image/jpeg",
+      base64: "ZmFrZS1iYXNlNjQ=",
+    });
+    expect(wallet.balance).toBe(balanceBefore - COSTS.adjust);
+    const userTurn = state.chat.find((m) => m.author === "user");
+    expect(userTurn?.hasImage).toBe(true);
+  });
+
+  // #18: prompt injection via an attached image's own text is not a new
+  // attack surface -- it relies on the same structural defence every other
+  // untrusted spec value already goes through. applyGarmentSpec drafts
+  // through resolveMeasurements, which clamps every measurement to
+  // MEASUREMENT_RANGES no matter what the model claims prompted the value.
+  it("clamps an out-of-range measurement the model returns as if an attached image had instructed it", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: { bust: 500 },
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+    const res = await POST(
+      req({
+        message: "uma blusa como nessa foto",
+        image: { mediaType: "image/jpeg", data: "ZmFrZS1iYXNlNjQ=" },
+      }),
+      ctx(),
+    );
+    expect(res.status).toBe(200);
+    expect(state.pattern.baseMeasurements?.bust).toBe(
+      MEASUREMENT_RANGES.bust.max,
+    );
   });
 
   it("empty message returns 400 without debiting or calling the AI", async () => {
