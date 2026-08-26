@@ -1,9 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  renderWithIntl,
-  screen,
-  translatorFor,
-} from "@/components/test-utils";
+import { renderWithIntl, screen, translatorFor } from "@/components/test-utils";
 import type { ConflictInfo } from "@/lib/types";
 import { ConflictInfoCard } from "./ConflictInfoCard";
 

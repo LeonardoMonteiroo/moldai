@@ -75,5 +75,8 @@ export function buildSystemSizeChartData(
   gender: Gender,
   t: Translate,
 ): SizeChartData {
-  return { name: t("systemChartName." + gender), ...buildSystemSizeChart(gender) };
+  return {
+    name: t("systemChartName." + gender),
+    ...buildSystemSizeChart(gender),
+  };
 }

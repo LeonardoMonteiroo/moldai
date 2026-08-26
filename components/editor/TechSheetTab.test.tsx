@@ -82,7 +82,6 @@ describe("TechSheetTab", () => {
     expect(screen.getAllByText("Manga")).not.toHaveLength(0);
   });
 
-
   // Which grade a pattern was drafted from was recorded nowhere the user could
   // see, which mattered most when generation had substituted a chart.
   it("names the size chart the pattern was drafted from", () => {

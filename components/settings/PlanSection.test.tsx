@@ -75,9 +75,7 @@ describe("PlanSection", () => {
       for (const cost of [0, 1, 2]) {
         Object.assign(COSTS, { [costsKey]: cost });
         const { unmount } = renderWithIntl(<PlanSection credits={CREDITS} />);
-        expect(
-          screen.getByText(tPlan(key, { cost })),
-        ).toBeInTheDocument();
+        expect(screen.getByText(tPlan(key, { cost }))).toBeInTheDocument();
         unmount();
       }
     });

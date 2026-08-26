@@ -6,15 +6,19 @@ import { t } from "@/lib/i18n/test-translate";
 describe("SizeChartDataSchema", () => {
   it("accepts both seeded system charts", () => {
     expect(
-      SizeChartDataSchema.safeParse(buildSystemSizeChartData("female", t)).success,
+      SizeChartDataSchema.safeParse(buildSystemSizeChartData("female", t))
+        .success,
     ).toBe(true);
     expect(
-      SizeChartDataSchema.safeParse(buildSystemSizeChartData("male", t)).success,
+      SizeChartDataSchema.safeParse(buildSystemSizeChartData("male", t))
+        .success,
     ).toBe(true);
   });
 
   it("round-trips through JSON.stringify/parse", () => {
-    const data = JSON.parse(JSON.stringify(buildSystemSizeChartData("female", t)));
+    const data = JSON.parse(
+      JSON.stringify(buildSystemSizeChartData("female", t)),
+    );
     expect(SizeChartDataSchema.safeParse(data).success).toBe(true);
   });
 

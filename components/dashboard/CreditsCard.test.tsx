@@ -1,9 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  renderWithIntl,
-  screen,
-  translatorFor,
-} from "@/components/test-utils";
+import { renderWithIntl, screen, translatorFor } from "@/components/test-utils";
 import type { Credits } from "@/lib/types";
 import { CreditsCard } from "./CreditsCard";
 
@@ -42,7 +38,12 @@ describe("CreditsCard", () => {
   it("pluralizes the renewal days at 0, 1 and 2", () => {
     const tCredits = translatorFor("CreditsCard");
     for (const renewsInDays of [0, 1, 2]) {
-      const credits: Credits = { plan: "free", balance: 15, total: 30, renewsInDays };
+      const credits: Credits = {
+        plan: "free",
+        balance: 15,
+        total: 30,
+        renewsInDays,
+      };
       const { unmount } = renderWithIntl(<CreditsCard credits={credits} />);
       expect(
         screen.getByText(

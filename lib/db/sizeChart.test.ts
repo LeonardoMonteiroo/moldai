@@ -515,12 +515,7 @@ describe("setActiveSizeChart / getSizeChartForGeneration", () => {
   it("falls back to the system chart when the active chart's gender doesn't match", async () => {
     const created = (await createSizeChart("u1", T))!; // female
     await setActiveSizeChart("u1", created.id);
-    const { chart } = await getSizeChartForGeneration(
-      prisma,
-      "u1",
-      "male",
-      T,
-    );
+    const { chart } = await getSizeChartForGeneration(prisma, "u1", "male", T);
     expect(chart.isSystem).toBe(true);
     expect(chart.gender).toBe("male");
   });
