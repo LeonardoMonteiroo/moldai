@@ -14,6 +14,13 @@ model User {
   name                String?
   emailVerified       DateTime?
   createdAt           DateTime                 @default(now())
+  // #29: nullable and additive -- NULL honestly means "never changed since
+  // this column existed," not a fabricated backfill timestamp. Stamped in
+  // the same write as the hash update (lib/db/users.ts's
+  // updateUserPasswordHash), so a successful change can't be recorded
+  // without the hash actually changing, and vice versa. Doubles as the
+  // timestamp a future "sign out everywhere" revocation check would read.
+  passwordChangedAt   DateTime?
   patterns            Pattern[]
   wallet              Wallet?
   sizeCharts          SizeChart[]              @relation("UserSizeCharts")
