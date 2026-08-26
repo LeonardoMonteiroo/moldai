@@ -1,12 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { outlineSegments, buildExportModel, type ExPt } from "./model";
 import { flattenOutlineCm, TOL_CM } from "./dxf";
-import type { Pt } from "@/lib/draft/core";
+import { outlinePath, SCALE, type Pt } from "@/lib/draft/core";
 import type { Pattern } from "@/lib/types";
 import { SIZE_TABLE, SIZE_TABLE_MALE } from "@/lib/measurements";
 import { t } from "@/lib/i18n/test-translate";
 import { DECORATION_CASES } from "@/lib/draft/fixtures";
-import { STYLE_LIMITS } from "@/lib/draft/garment";
+import { STYLE_LIMITS, draftPiecesCm } from "@/lib/draft/garment";
 
 describe("outlineSegments", () => {
   it("emits line on an edge outside a span and cubic inside a span", () => {
@@ -31,6 +31,65 @@ describe("outlineSegments", () => {
       [5, 5],
     ]);
     expect(segs.every((s) => s.kind === "line")).toBe(true);
+  });
+});
+
+// #86: outlinePath (lib/draft/core.ts, feeds the on-screen canvas) and
+// outlineSegments above (feeds every export format) now adapt the same
+// shared lib/draft/core.ts#catmullRomSegments -- this is the "missing
+// cross-path assertion" the issue asked for: the same drafted piece's px
+// canvas outline and its cm export outline must describe the same curve.
+// They aren't bit-identical (outlinePath rounds its input points through
+// PX() before computing tangents; outlineSegments uses exact cm), so the
+// assertion is a bounded tolerance, not equality -- see the module doc on
+// outlineSegments and CLAUDE.md's note that this divergence pre-dates the
+// refactor and is deliberately preserved, not eliminated.
+describe("outlinePath / outlineSegments cross-path parity (#86)", () => {
+  it("outlinePath's C control points equal outlineSegments' * SCALE within PX() rounding, across the drafting matrix", () => {
+    let cubicCount = 0;
+    for (const [, spec] of DECORATION_CASES) {
+      const base = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
+      const pieces = draftPiecesCm(spec, base, t);
+      for (const dp of pieces) {
+        const spans = dp.curvedSpans ?? [];
+        if (spans.length === 0) continue;
+        const path = outlinePath(dp.outlineCm, spans) as {
+          kind: "path";
+          d: string;
+        };
+        const { segs } = outlineSegments(dp.outlineCm, spans);
+        const cubicsFromSegments = segs.filter((s) => s.kind === "cubic") as {
+          kind: "cubic";
+          c1: ExPt;
+          c2: ExPt;
+        }[];
+        const cubicsFromPath = [
+          ...path.d.matchAll(
+            /C([-\d.]+) ([-\d.]+) ([-\d.]+) ([-\d.]+) [-\d.]+ [-\d.]+/g,
+          ),
+        ].map((m) => m.slice(1, 5).map(Number));
+        expect(cubicsFromPath).toHaveLength(cubicsFromSegments.length);
+        cubicsFromPath.forEach(([c1x, c1y, c2x, c2y], i) => {
+          const c = cubicsFromSegments[i];
+          // PX() rounds each input coordinate to the nearest 0.1px (0.025cm)
+          // before the tangent formula runs, so the two control points
+          // differ by at most a small multiple of that rounding -- measured
+          // across the full matrix, well under 0.15px.
+          expect(c1x).toBeGreaterThan(c.c1.x * SCALE - 0.15);
+          expect(c1x).toBeLessThan(c.c1.x * SCALE + 0.15);
+          expect(c1y).toBeGreaterThan(c.c1.y * SCALE - 0.15);
+          expect(c1y).toBeLessThan(c.c1.y * SCALE + 0.15);
+          expect(c2x).toBeGreaterThan(c.c2.x * SCALE - 0.15);
+          expect(c2x).toBeLessThan(c.c2.x * SCALE + 0.15);
+          expect(c2y).toBeGreaterThan(c.c2.y * SCALE - 0.15);
+          expect(c2y).toBeLessThan(c.c2.y * SCALE + 0.15);
+          cubicCount++;
+        });
+      }
+    }
+    // Sanity: the matrix actually exercises curved spans (necklines,
+    // armholes, sleeve caps) -- otherwise the loop above would pass vacuously.
+    expect(cubicCount).toBeGreaterThan(0);
   });
 });
 

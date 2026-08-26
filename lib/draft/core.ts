@@ -202,6 +202,44 @@ export function polyPath(ptsCm: Pt[]): PieceOutline {
   return { kind: "polygon", points };
 }
 
+// #86: one shared segment list for a closed outline, in the caller's own
+// units (px already PX()-rounded for outlinePath below, exact cm for
+// lib/export/model.ts's outlineSegments) -- straight (line) on every edge,
+// except edges covered by a curvedSpan, where it's Catmull-Rom->Bézier with
+// tangents locked at the span's edges (doesn't pull toward the neighboring
+// straight points). Requires n >= 3; each caller keeps its own <3 fallback
+// (a bare polyline has no "curve" to speak of) rather than this function
+// having a third, unused shape for that case.
+export type CurveSeg =
+  { kind: "line"; to: Pt } | { kind: "cubic"; c1: Pt; c2: Pt; to: Pt };
+
+export function catmullRomSegments(
+  pts: Pt[],
+  curvedSpans: [number, number][] = [],
+): { start: Pt; segs: CurveSeg[] } {
+  const n = pts.length;
+  const at = (i: number) => pts[((i % n) + n) % n];
+  const spanFor = (i: number) =>
+    curvedSpans.find(([a, b]) => i >= a && i + 1 <= b);
+  const segs: CurveSeg[] = [];
+  for (let i = 0; i < n; i++) {
+    const p1 = at(i),
+      p2 = at(i + 1);
+    const span = spanFor(i);
+    if (!span) {
+      segs.push({ kind: "line", to: p2 });
+      continue;
+    }
+    const [a, b] = span;
+    const p0 = i === a ? p1 : at(i - 1);
+    const p3 = i + 1 === b ? p2 : at(i + 2);
+    const c1: Pt = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+    const c2: Pt = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+    segs.push({ kind: "cubic", c1, c2, to: p2 });
+  }
+  return { start: at(0), segs };
+}
+
 // Draws a closed outline: straight (L) on every edge, except edges
 // covered by a curvedSpan, where it emits Catmull-Rom->Bézier with the
 // tangents locked at the span's edges (doesn't pull toward the neighboring straight points).
@@ -212,26 +250,14 @@ export function outlinePath(
   const p = ptsCm.map(([x, y]) => [PX(x), PX(y)] as Pt);
   const n = p.length;
   if (n < 3) return polyPath(ptsCm);
-  const at = (i: number) => p[(i + n) % n];
-  const spanFor = (i: number) =>
-    curvedSpans.find(([a, b]) => i >= a && i + 1 <= b);
-  let d = `M${at(0)[0].toFixed(1)} ${at(0)[1].toFixed(1)} `;
-  for (let i = 0; i < n; i++) {
-    const p1 = at(i),
-      p2 = at(i + 1);
-    const span = spanFor(i);
-    if (!span) {
-      d += `L${p2[0].toFixed(1)} ${p2[1].toFixed(1)} `;
-      continue;
+  const { start, segs } = catmullRomSegments(p, curvedSpans);
+  let d = `M${start[0].toFixed(1)} ${start[1].toFixed(1)} `;
+  for (const s of segs) {
+    if (s.kind === "line") {
+      d += `L${s.to[0].toFixed(1)} ${s.to[1].toFixed(1)} `;
+    } else {
+      d += `C${s.c1[0].toFixed(1)} ${s.c1[1].toFixed(1)} ${s.c2[0].toFixed(1)} ${s.c2[1].toFixed(1)} ${s.to[0].toFixed(1)} ${s.to[1].toFixed(1)} `;
     }
-    const [a, b] = span;
-    const p0 = i === a ? p1 : at(i - 1);
-    const p3 = i + 1 === b ? p2 : at(i + 2);
-    const c1x = p1[0] + (p2[0] - p0[0]) / 6,
-      c1y = p1[1] + (p2[1] - p0[1]) / 6;
-    const c2x = p2[0] - (p3[0] - p1[0]) / 6,
-      c2y = p2[1] - (p3[1] - p1[1]) / 6;
-    d += `C${c1x.toFixed(1)} ${c1y.toFixed(1)} ${c2x.toFixed(1)} ${c2y.toFixed(1)} ${p2[0].toFixed(1)} ${p2[1].toFixed(1)} `;
   }
   d += "Z";
   return { kind: "path", d: d.trim() };
