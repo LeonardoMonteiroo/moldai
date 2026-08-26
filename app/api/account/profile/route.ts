@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth/guard";
 import { apiError } from "@/lib/api/errors";
-import { readJsonObject } from "@/lib/api/body";
+import { parseBody } from "@/lib/api/body";
+import { AccountProfilePatchSchema } from "@/lib/schemas/account";
 import { validateName } from "@/lib/account/settings";
 import { updateUserName } from "@/lib/db/users";
 
@@ -9,7 +10,7 @@ export async function PATCH(request: Request) {
   const gate = await requireUser();
   if (gate instanceof NextResponse) return gate;
 
-  const body = await readJsonObject(request);
+  const body = await parseBody(request, AccountProfilePatchSchema);
   if (body instanceof NextResponse) return body;
 
   const name = validateName(body.name);

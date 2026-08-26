@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { NextResponse } from "next/server";
-import { readJsonObject, hasNulByte, MAX_BODY_BYTES } from "./body";
+import { z } from "zod";
+import { readJsonObject, parseBody, hasNulByte, MAX_BODY_BYTES } from "./body";
 
 // A literal control character in a source file is awkward and some tooling
 // rejects it -- build it at runtime instead, per this module's own comment.
@@ -53,6 +54,84 @@ describe("readJsonObject", () => {
 
   it("rejects an absent body", async () => {
     const body = await readJsonObject(req(undefined));
+    expect(body).toBeInstanceOf(NextResponse);
+    expect(await code(body as NextResponse)).toBe("bad_body");
+  });
+});
+
+const ThingSchema = z.object({ name: z.string().min(1) });
+
+// The same guard family as readJsonObject, plus schema validation -- a test
+// that can fail on either half: a body that parses but doesn't match the
+// schema must 400 exactly like one that doesn't parse at all.
+describe("parseBody", () => {
+  it("returns the schema-validated data for a valid body", async () => {
+    const body = await parseBody(
+      req(JSON.stringify({ name: "Blusa" })),
+      ThingSchema,
+    );
+    expect(body).toEqual({ name: "Blusa" });
+  });
+
+  // The bug this whole guard family exists for: "null" is valid JSON, so it
+  // survives request.json() and only throws on the first `body.field` read.
+  it("rejects a literal null body instead of returning it", async () => {
+    const body = await parseBody(req("null"), ThingSchema);
+    expect(body).toBeInstanceOf(NextResponse);
+    expect((body as NextResponse).status).toBe(400);
+    expect(await code(body as NextResponse)).toBe("bad_body");
+  });
+
+  it("rejects a non-object body (array)", async () => {
+    const body = await parseBody(req("[1,2,3]"), ThingSchema);
+    expect(body).toBeInstanceOf(NextResponse);
+    expect((body as NextResponse).status).toBe(400);
+    expect(await code(body as NextResponse)).toBe("bad_body");
+  });
+
+  it("rejects a malformed JSON body", async () => {
+    const body = await parseBody(req("{not json"), ThingSchema);
+    expect(body).toBeInstanceOf(NextResponse);
+    expect(await code(body as NextResponse)).toBe("bad_body");
+  });
+
+  it("rejects a body that parses but fails the schema", async () => {
+    const body = await parseBody(
+      req(JSON.stringify({ name: "" })),
+      ThingSchema,
+    );
+    expect(body).toBeInstanceOf(NextResponse);
+    expect((body as NextResponse).status).toBe(400);
+    expect(await code(body as NextResponse)).toBe("bad_body");
+  });
+
+  it("rejects a body missing a required field", async () => {
+    const body = await parseBody(req(JSON.stringify({})), ThingSchema);
+    expect(body).toBeInstanceOf(NextResponse);
+    expect(await code(body as NextResponse)).toBe("bad_body");
+  });
+
+  // Never leaks zod's own issue path/message -- the wire carries codes only.
+  it("never leaks the zod error message or issue path", async () => {
+    const body = await parseBody(
+      req(JSON.stringify({ name: 42 })),
+      ThingSchema,
+    );
+    expect(body).toBeInstanceOf(NextResponse);
+    const json = await (body as NextResponse).json();
+    expect(json).toEqual({ status: "error", error: "bad_body" });
+  });
+
+  it("rejects a body over the size ceiling, without reading it against the schema", async () => {
+    const raw = JSON.stringify({ name: "x".repeat(70000) });
+    const body = await parseBody(req(raw), ThingSchema);
+    expect(body).toBeInstanceOf(NextResponse);
+    expect(await code(body as NextResponse)).toBe("bad_body");
+  });
+
+  it("respects a custom maxBytes ceiling", async () => {
+    const raw = JSON.stringify({ name: "x".repeat(200) });
+    const body = await parseBody(req(raw), ThingSchema, 50);
     expect(body).toBeInstanceOf(NextResponse);
     expect(await code(body as NextResponse)).toBe("bad_body");
   });
