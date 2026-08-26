@@ -100,6 +100,30 @@ export function applyPurchase(
   }
 }
 
+// #6: reverses a *subscribe* purchase's PAYMENT_REFUNDED. debitWallet alone
+// only undoes the balance movement -- it would leave `plan`/`total` on
+// "atelier"/500 forever, so a refunded subscriber kept renewing at the full
+// paid allowance every month even though the payment that granted it was
+// given back. Downgrades to the same free tier seedWallet issues a brand
+// new account (plan/total only -- `purchased` carry-over top-up credits and
+// `renewsAt` are untouched, matching applyPurchase("subscribe") never
+// touching `purchased` either). Not used for a *topup* refund, which is a
+// plain debitWallet -- a topup never changed plan/total to begin with.
+export function reverseSubscription(
+  wallet: Wallet,
+  amount: number,
+): LedgerEntry {
+  wallet.balance -= amount;
+  wallet.plan = "free";
+  wallet.total = 30;
+  return {
+    type: "debit",
+    amount,
+    balanceAfter: wallet.balance,
+    reason: "asaas_refund",
+  };
+}
+
 // #40: dueness used to be decided once, by scripts/cron-renew.ts's unlocked
 // findMany, then acted on unconditionally inside the row-locked transaction
 // with no re-check -- a second process (or a subscribe purchase landing

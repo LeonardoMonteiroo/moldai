@@ -12,7 +12,9 @@ export type Bucket =
   | "create"
   | "password_reset_request"
   | "password_reset_request_email"
-  | "password_reset_confirm";
+  | "password_reset_confirm"
+  | "purchase"
+  | "purchase_user";
 
 export interface Policy {
   limit: number;
@@ -52,4 +54,13 @@ export const LIMITS: Record<Bucket, Policy> = {
   // request, only a token, and the real backstop is the 256-bit token
   // itself, not a counter.
   password_reset_confirm: { limit: 20, windowSec: 3600 },
+  // #6: POST /api/billing/purchase had no bucket at all -- under the mock
+  // provider that meant unlimited free credits in a loop; under the asaas
+  // provider it means creating hosted checkouts, which costs against a real
+  // third party per request. IP-keyed AND user-keyed, the same dual-bucket
+  // shape as signup/login: `purchase` alone (spoofable IP) can't stop one
+  // account hammering from many IPs, and `purchase_user` alone can't stop
+  // many accounts sharing one IP.
+  purchase: { limit: 10, windowSec: 3600 },
+  purchase_user: { limit: 10, windowSec: 3600 },
 };
