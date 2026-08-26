@@ -1,6 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { toDxfAama } from "./dxf-aama";
-import type { ExportModel } from "./model";
+import { buildExportModel, type ExportModel } from "./model";
+import type { Pattern } from "@/lib/types";
+import { SIZE_TABLE, SIZE_TABLE_MALE } from "@/lib/measurements";
+import { t } from "@/lib/i18n/test-translate";
+import { DECORATION_CASES } from "@/lib/draft/fixtures";
 
 // xs (code 10) of the first POLYLINE on the given layer's VERTEX entries, up
 // to its SEQEND (doesn't grab TEXT/LINE). #123: cut (layer 1) and net (layer
@@ -171,7 +175,10 @@ describe("toDxfAama", () => {
     const withDart = toDxfAama(dartModel);
     // three POLYLINEs: cut (layer 1) + net (layer 14) + dart (layer 8)
     expect(withDart.match(/\nPOLYLINE\n/g)?.length).toBe(3);
-    expect(withDart).toMatch(/POLYLINE\n8\n8\n66\n1\n70\n0/); // open on layer 8
+    // open on layer 8, with its 10/20/30 dummy point ahead of the 70 flag
+    expect(withDart).toMatch(
+      /POLYLINE\n8\n8\n66\n1\n10\n0\n20\n0\n30\n0\n70\n0/,
+    );
     const noDart = toDxfAama(squareModel);
     expect(noDart.match(/\nPOLYLINE\n/g)?.length).toBe(2); // cut + net only
   });
@@ -184,5 +191,83 @@ describe("toDxfAama", () => {
     const dxf = toDxfAama(multi);
     expect(dxf.match(/\nBLOCK\n/g)?.length).toBe(2);
     expect(dxf.match(/\nINSERT\n/g)?.length).toBe(2);
+  });
+
+  // #2: the remaining structural-strictness gap -- an LTYPE table, a
+  // BLOCK_RECORD table, and a dummy point on every classic POLYLINE.
+  it("declares an LTYPE table defining CONTINUOUS", () => {
+    const dxf = toDxfAama(squareModel);
+    expect(dxf).toMatch(/TABLE\n2\nLTYPE\n/);
+    expect(dxf).toMatch(/LTYPE\n2\nCONTINUOUS\n/);
+  });
+
+  it("declares a BLOCK_RECORD table with an entry for every BLOCK inserted", () => {
+    const multi: ExportModel = {
+      ...squareModel,
+      pieces: [squareModel.pieces[0], dartModel.pieces[0]],
+    };
+    const dxf = toDxfAama(multi);
+    expect(dxf).toMatch(/TABLE\n2\nBLOCK_RECORD\n/);
+    // one BLOCK_RECORD entry per distinct piece id -> block name
+    expect(dxf.match(/\nBLOCK_RECORD\n2\nPIECE_FRONT\n/g)?.length).toBe(1);
+    expect(dxf.match(/\nBLOCK_RECORD\n2\nPIECE_BACK\n/g)?.length).toBe(1);
+    // and each INSERT/BLOCK actually names one of those block records
+    expect(dxf).toContain("\nBLOCK\n8\n0\n2\nPIECE_FRONT\n");
+    expect(dxf).toContain("\nINSERT\n8\n0\n2\nPIECE_FRONT\n");
+  });
+
+  it("every classic POLYLINE carries its own 10/20/30 dummy point", () => {
+    const dxf = toDxfAama(squareModel);
+    // cut line (layer 1) and net line (layer 14), each: POLYLINE,8,<layer>,
+    // 66,1, then the dummy point, before the 70 closed flag.
+    expect(dxf).toMatch(/POLYLINE\n8\n1\n66\n1\n10\n0\n20\n0\n30\n0\n70\n1/);
+    expect(dxf).toMatch(/POLYLINE\n8\n14\n66\n1\n10\n0\n20\n0\n30\n0\n70\n1/);
+  });
+
+  it("the '·' separator and any accented text is normalized to plain ASCII", () => {
+    const accented: ExportModel = {
+      ...squareModel,
+      patternName: "Vestido Ateliê Nº2",
+      pieces: [{ ...squareModel.pieces[0], name: "Décote" }],
+    };
+    const dxf = toDxfAama(accented);
+    expect(dxf).not.toContain("·");
+    expect(dxf).not.toContain("Ateliê");
+    expect(dxf).not.toContain("Décote");
+    expect(dxf).toContain("Atelie"); // patternName, accent stripped (999 comment, not upper-cased)
+    expect(dxf).toContain("DECOTE"); // piece name, upper-cased then accent-stripped
+    expect(/^[\x00-\x7f]*$/.test(dxf)).toBe(true);
+  });
+
+  // The cheapest possible guard for the charset rule, run against every
+  // garment/style combination the real drafting matrix produces (not just a
+  // hand-picked fixture) -- matches CLAUDE.md's own DECORATION_CASES
+  // precedent for cross-format invariants.
+  describe("ASCII-only across the real drafting matrix (DECORATION_CASES)", () => {
+    function patternFor(spec: Pattern["spec"]): Pattern {
+      const gender = spec?.gender;
+      const m = gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
+      return {
+        id: "p1",
+        name: "Vestido Ateliê",
+        version: 1,
+        baseSize: "M",
+        unit: "cm",
+        sizes: ["M"],
+        sizesApplied: [],
+        sizesPending: [],
+        sizeTable: { M: m },
+        pieces: [],
+        spec,
+      };
+    }
+
+    for (const [name, spec] of DECORATION_CASES) {
+      it(`${name}: emitted DXF is pure ASCII`, () => {
+        const model = buildExportModel(patternFor(spec), t);
+        const dxf = toDxfAama(model);
+        expect(/^[\x00-\x7f]*$/.test(dxf)).toBe(true);
+      });
+    }
   });
 });
