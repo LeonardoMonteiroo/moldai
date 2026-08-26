@@ -267,6 +267,18 @@ describe("ensureSystemSizeCharts / listSizeChartsForUser", () => {
     expect(MAX_SIZE_CHARTS_LISTED).toBe(500);
   });
 
+  // #66 (code review follow-up): listSizeChartsForUser's own bound above is
+  // undermined if ensureSystemSizeCharts -- its unconditional first call, on
+  // the identical hot path -- still scans every row to answer "does a
+  // system chart already exist". Asserted separately from the test above,
+  // against the same call site's first (not last) findMany invocation.
+  it("also bounds ensureSystemSizeCharts's own existence-check query", async () => {
+    await listSizeChartsForUser(prisma, "u1", T);
+    const calls = vi.mocked(prisma.sizeChart.findMany).mock.calls;
+    const seedCheckCall = calls[calls.length - 2]![0];
+    expect(seedCheckCall?.take).toBe(500);
+  });
+
   // #133 AC: renaming the seeded chart must not retroactively rewrite a row
   // that was already seeded under an older translator -- same precedent as
   // PatternData.newPatternName. A row already in the store, named as if by a

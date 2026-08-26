@@ -59,7 +59,19 @@ export async function ensureSystemSizeCharts(
   userId: string,
   t: Translate,
 ): Promise<void> {
-  const existing = await tx.sizeChart.findMany({ where: { userId } });
+  // #66: this scan was left unbounded even after listSizeChartsForUser (its
+  // only caller) got its own `take` -- an account with many charts still
+  // paid an unbounded read plus a Zod parse per row on every call, just to
+  // answer a boolean. Bounded to the same ceiling as the read it precedes,
+  // rather than a raw JSON-path filter for `isSystem`: no other query in
+  // this repo filters into the JSON blob at the DB level, and the two
+  // system charts are seeded together at account creation, so they are
+  // always among the account's oldest rows -- comfortably inside the first
+  // MAX_SIZE_CHARTS_LISTED regardless of `findMany`'s default ordering.
+  const existing = await tx.sizeChart.findMany({
+    where: { userId },
+    take: MAX_SIZE_CHARTS_LISTED,
+  });
   const hasSystem = existing.some((r) => {
     const parsed = SizeChartDataSchema.safeParse(r.data);
     return parsed.success && parsed.data.isSystem;
