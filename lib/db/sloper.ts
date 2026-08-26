@@ -9,6 +9,18 @@ import { SloperDataSchema } from "@/lib/schemas/sloper";
 import type { SloperData, SloperListItem } from "@/lib/types";
 import type { Translate } from "@/lib/i18n/translate";
 
+/**
+ * #66: listSlopersForUser had no `take` at all -- unlike listPatternsForUser,
+ * whose thumbnail is a cheap re-render of already-drafted pieces, every row
+ * here re-runs draftGarment (via patternFromSloper) to build its thumbnail,
+ * so the missing bound was the same unbounded-list problem plus more
+ * per-row CPU. Same idiom and value as MAX_PATTERNS_LISTED (lib/types.ts):
+ * well above what any real account approaches today, so no on-screen
+ * pagination or truncation notice exists yet -- there is nothing for a
+ * legitimate account to hit.
+ */
+export const MAX_SLOPERS_LISTED = 500;
+
 // #58: used to be a bare assertion. A row whose baseSize has drifted out of
 // its sizeTable (or any other structural drift) now fails to parse instead
 // of feeding patternFromSloper an undefined base row.
@@ -54,6 +66,7 @@ export async function listSlopersForUser(
   const rows = await prisma.sloper.findMany({
     where: { userId },
     orderBy: { updatedAt: "desc" },
+    take: MAX_SLOPERS_LISTED,
   });
   // #58: an unparseable row is skipped rather than thrown on -- one drifted
   // blob costs its own card, not the whole /slopers list.

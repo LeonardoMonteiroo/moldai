@@ -81,7 +81,9 @@ import {
   renameSloper,
   deleteSloper,
   sloperNotFound,
+  MAX_SLOPERS_LISTED,
 } from "./sloper";
+import { prisma } from "@/lib/db/prisma";
 import { sloperFromPattern } from "@/lib/slopers/convert";
 import { seedPatternState, applyGarmentSpec } from "@/lib/editor/state";
 import { t } from "@/lib/i18n/test-translate";
@@ -134,6 +136,20 @@ describe("createSloper / listSlopersForUser", () => {
     });
     const list = await listSlopersForUser("u1", t);
     expect(list.map((s) => s.id)).toEqual([good.id]);
+  });
+
+  // #66: listSlopersForUser had no `take` at all -- an account with many
+  // slopers scanned and deserialized every row, re-running draftGarment for
+  // each one's thumbnail, on every /slopers load. Asserted against the
+  // literal 500, not just "equals MAX_SLOPERS_LISTED": importing the same
+  // constant the fix reads from would make this pass vacuously
+  // (undefined === undefined) if the fix and the constant were ever
+  // reverted together -- the pattern.test.ts precedent for #101.
+  it("bounds the query with MAX_SLOPERS_LISTED", async () => {
+    await listSlopersForUser("u1", t);
+    const call = vi.mocked(prisma.sloper.findMany).mock.calls.at(-1)![0];
+    expect(call?.take).toBe(500);
+    expect(MAX_SLOPERS_LISTED).toBe(500);
   });
 });
 

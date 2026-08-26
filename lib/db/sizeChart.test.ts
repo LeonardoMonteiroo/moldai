@@ -203,6 +203,7 @@ import {
   deleteSizeChart,
   setActiveSizeChart,
   getSizeChartForGeneration,
+  MAX_SIZE_CHARTS_LISTED,
 } from "./sizeChart";
 import { buildSystemSizeChart } from "@/lib/sizeCharts/seed";
 
@@ -251,6 +252,19 @@ describe("ensureSystemSizeCharts / listSizeChartsForUser", () => {
     const other = await listSizeChartsForUser(prisma, "u2", T);
     expect(other).toHaveLength(2);
     expect(rows.filter((r) => r.userId === "u1")).toHaveLength(2);
+  });
+
+  // #66: listSizeChartsForUser had no `take` at all, the same gap
+  // listPatternsForUser was fixed for under #101. Asserted against the
+  // literal 500, not just "equals MAX_SIZE_CHARTS_LISTED": importing the
+  // same constant the fix reads from would make this pass vacuously
+  // (undefined === undefined) if the fix and the constant were ever
+  // reverted together.
+  it("bounds the query with MAX_SIZE_CHARTS_LISTED", async () => {
+    await listSizeChartsForUser(prisma, "u1", T);
+    const call = vi.mocked(prisma.sizeChart.findMany).mock.calls.at(-1)![0];
+    expect(call?.take).toBe(500);
+    expect(MAX_SIZE_CHARTS_LISTED).toBe(500);
   });
 
   // #133 AC: renaming the seeded chart must not retroactively rewrite a row
