@@ -26,6 +26,12 @@ export interface TilePlan {
   pageHcm: number;
   marginCm: number;
   overlapCm: number;
+  // #84: a tile's own printable window (pageWcm/pageHcm minus the margin on
+  // both sides) -- computed once here so planTiles' own page-level filter
+  // and toPdf's per-piece draw skip can't answer "is this tile usable"
+  // differently from one another.
+  usableWcm: number;
+  usableHcm: number;
   cols: number;
   rows: number;
   pages: { row: number; col: number; pageNumber: number; originCm: ExPt }[];
@@ -91,6 +97,27 @@ export function pieceBBoxesCm(
   });
 }
 
+// #84: shared by planTiles' page-level filter (#120) and toPdf's per-piece
+// draw skip -- both ask the identical question ("does this piece's absolute
+// sheet-cm bbox reach into this tile's printable window?"), just at
+// different granularities (which pages to emit vs. which pieces to draw on
+// an emitted page).
+function tileIntersectsBBox(
+  originCm: ExPt,
+  usableWcm: number,
+  usableHcm: number,
+  b: CmRect,
+): boolean {
+  const tx1 = originCm.x + usableWcm;
+  const ty1 = originCm.y + usableHcm;
+  return (
+    b.minX <= tx1 &&
+    b.maxX >= originCm.x &&
+    b.minY <= ty1 &&
+    b.maxY >= originCm.y
+  );
+}
+
 export function planTiles(
   sheetWcm: number,
   sheetHcm: number,
@@ -111,6 +138,8 @@ export function planTiles(
       pageHcm: sheetHcm + 2 * marginCm,
       marginCm,
       overlapCm: 0,
+      usableWcm: sheetWcm,
+      usableHcm: sheetHcm,
       cols: 1,
       rows: 1,
       pages: [{ row: 0, col: 0, pageNumber: 1, originCm: { x: 0, y: 0 } }],
@@ -127,14 +156,8 @@ export function planTiles(
 
   const hasGeometry = (originCm: ExPt) => {
     if (!pieceBBoxes) return true;
-    const tx1 = originCm.x + usableWcm;
-    const ty1 = originCm.y + usableHcm;
-    return pieceBBoxes.some(
-      (b) =>
-        b.minX <= tx1 &&
-        b.maxX >= originCm.x &&
-        b.minY <= ty1 &&
-        b.maxY >= originCm.y,
+    return pieceBBoxes.some((b) =>
+      tileIntersectsBBox(originCm, usableWcm, usableHcm, b),
     );
   };
 
@@ -146,7 +169,17 @@ export function planTiles(
       pages.push({ row, col, pageNumber: pages.length + 1, originCm });
     }
   }
-  return { pageWcm, pageHcm, marginCm, overlapCm, cols, rows, pages };
+  return {
+    pageWcm,
+    pageHcm,
+    marginCm,
+    overlapCm,
+    usableWcm,
+    usableHcm,
+    cols,
+    rows,
+    pages,
+  };
 }
 
 export function rulerTicksCm(lengthCm: number): number[] {
@@ -163,12 +196,8 @@ export async function toPdf(
   t: Translate,
 ): Promise<Uint8Array> {
   const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
-  const plan = planTiles(
-    model.sheetWidthCm,
-    model.sheetHeightCm,
-    mode,
-    pieceBBoxesCm(model.pieces, model.foldLabel),
-  );
+  const bboxes = pieceBBoxesCm(model.pieces, model.foldLabel);
+  const plan = planTiles(model.sheetWidthCm, model.sheetHeightCm, mode, bboxes);
   const doc = await PDFDocument.create();
   const font = await doc.embedFont(StandardFonts.Helvetica);
 
@@ -178,9 +207,13 @@ export async function toPdf(
   const NET = rgb(0.4, 0.4, 0.4); // #123: distinct from GRAY (the fold's own color)
   const TXT = rgb(0.35, 0.34, 0.29);
 
-  // flatten each outline once (reused across every page/tile)
-  const outlines = model.pieces.map((pc) => ({
+  // flatten each outline once (reused across every page/tile), paired with
+  // the same per-piece bbox planTiles already computed above -- #84: reused
+  // per page below so a piece whose bbox can't reach a given tile is never
+  // drawn on it, instead of relying on the page's own bounds to discard it.
+  const outlines = model.pieces.map((pc, i) => ({
     pc,
+    bbox: bboxes[i],
     cutPts: flattenOutlineCm(pc.cutOutline, TOL_CM),
     netPts: flattenOutlineCm(pc.outline, TOL_CM),
   }));
@@ -197,7 +230,18 @@ export async function toPdf(
       y: (plan.pageHcm - plan.marginCm - (sy - tile.originCm.y)) * PT_POR_CM,
     });
 
-    for (const { pc, cutPts, netPts } of outlines) {
+    for (const { pc, bbox, cutPts, netPts } of outlines) {
+      // #84: this tile's printable window can't reach the piece's own
+      // absolute bbox -- nothing of it (outline, grainline, dart, notch,
+      // fold, or either label) can land on this page, so skip the piece
+      // entirely rather than emitting geometry the page bounds would have
+      // discarded anyway.
+      if (
+        !tileIntersectsBBox(tile.originCm, plan.usableWcm, plan.usableHcm, bbox)
+      ) {
+        continue;
+      }
+
       const P = (lx: number, ly: number) =>
         map(pc.originCm.x + lx, pc.originCm.y + ly);
 
@@ -279,7 +323,7 @@ export async function toPdf(
         page.drawText(model.foldLabel, {
           x: (fa.x + fb.x) / 2,
           y: (fa.y + fb.y) / 2,
-          size: 6,
+          size: FOLD_LABEL_SIZE_PT,
           font,
           color: GRAY,
         });
@@ -289,7 +333,7 @@ export async function toPdf(
       page.drawText(`${pc.name.toUpperCase()} · ${pc.qty}x`, {
         x: lbl.x,
         y: lbl.y,
-        size: 8,
+        size: LABEL_SIZE_PT,
         font,
         color: TXT,
       });
@@ -344,8 +388,8 @@ export async function toPdf(
         thickness: 0.75,
         color: INK,
       });
-      for (const t of rulerTicksCm(10)) {
-        const x = (baseXcm + t) * PT_POR_CM;
+      for (const tick of rulerTicksCm(10)) {
+        const x = (baseXcm + tick) * PT_POR_CM;
         page.drawLine({
           start: { x, y: y0 },
           end: { x, y: y0 + 0.35 * PT_POR_CM },

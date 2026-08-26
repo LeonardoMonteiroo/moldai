@@ -359,4 +359,173 @@ describe("toPdf", () => {
 
     expect(withNotchCount).toBe(baseCount + 1);
   });
+
+  // #84: the per-piece draw loop used to iterate every piece unconditionally
+  // on every remaining page, relying on the page's own bounds to discard
+  // off-page geometry -- so a piece confined to one tile still got fully
+  // redrawn (dart, grainline, notch, both labels) on every other surviving
+  // page. Two pieces far apart on a sparse 50x40cm sheet (3x2 A4 grid, but
+  // only the two tiles either piece actually reaches survive #120's
+  // blank-page filter): "near" sits only in the very first tile, "far" only
+  // in the opposite corner's tile. "far" is the only piece with a dart, so
+  // its 2 segments (dart.length - 1) are an exact, unambiguous marker --
+  // they must appear on exactly the one page whose tile its bbox reaches,
+  // never on "near"'s page too.
+  it("a4: a piece confined to one tile is not redrawn on a page belonging to a distant tile", async () => {
+    const model: ExportModel = {
+      patternName: "Camiseta",
+      size: "M",
+      unit: "cm",
+      seamAllowanceCm: 1,
+      sheetWidthCm: 50,
+      sheetHeightCm: 40,
+      foldLabel: "dobra",
+      pieces: [
+        {
+          id: "near",
+          name: "A",
+          qty: 1,
+          widthCm: 10,
+          heightCm: 10,
+          outline: {
+            start: { x: 0, y: 0 },
+            segs: [
+              { kind: "line", to: { x: 10, y: 0 } },
+              { kind: "line", to: { x: 10, y: 10 } },
+              { kind: "line", to: { x: 0, y: 10 } },
+              { kind: "line", to: { x: 0, y: 0 } },
+            ],
+          },
+          cutOutline: {
+            start: { x: -1, y: -1 },
+            segs: [
+              { kind: "line", to: { x: 11, y: -1 } },
+              { kind: "line", to: { x: 11, y: 11 } },
+              { kind: "line", to: { x: -1, y: 11 } },
+              { kind: "line", to: { x: -1, y: -1 } },
+            ],
+          },
+          cutWidthCm: 12,
+          cutHeightCm: 12,
+          originCm: { x: 2, y: 2 },
+        },
+        {
+          id: "far",
+          name: "B",
+          qty: 1,
+          widthCm: 10,
+          heightCm: 10,
+          outline: {
+            start: { x: 0, y: 0 },
+            segs: [
+              { kind: "line", to: { x: 10, y: 0 } },
+              { kind: "line", to: { x: 10, y: 10 } },
+              { kind: "line", to: { x: 0, y: 10 } },
+              { kind: "line", to: { x: 0, y: 0 } },
+            ],
+          },
+          cutOutline: {
+            start: { x: -1, y: -1 },
+            segs: [
+              { kind: "line", to: { x: 11, y: -1 } },
+              { kind: "line", to: { x: 11, y: 11 } },
+              { kind: "line", to: { x: -1, y: 11 } },
+              { kind: "line", to: { x: -1, y: -1 } },
+            ],
+          },
+          cutWidthCm: 12,
+          cutHeightCm: 12,
+          originCm: { x: 40, y: 30 },
+          darts: [
+            [
+              { x: 1, y: 1 },
+              { x: 2, y: 5 },
+              { x: 3, y: 1 },
+            ],
+          ],
+        },
+      ],
+    };
+
+    const bytes = await toPdf(model, "a4", t);
+    const doc = await PDFDocument.load(bytes);
+    // both tiles the two pieces actually reach survive #120's blank-page
+    // filter; every other tile in the 3x2 grid is blank and dropped.
+    expect(doc.getPageCount()).toBe(2);
+
+    const oliveSegments =
+      inflatedContent(bytes).match(/0\.29 0\.35 0\.23 RG/g) ?? [];
+    // "far"'s one dart draws dart.length - 1 = 2 segments, on the single
+    // page its own tile reaches -- never doubled onto "near"'s page too.
+    expect(oliveSegments).toHaveLength(2);
+  });
+
+  // #84 (skip's other edge): the per-piece skip must not turn into an
+  // over-tight filter that drops a piece from a page it genuinely reaches.
+  // A piece whose bbox straddles the seam between two adjacent A4 tiles has
+  // to be drawn in full on BOTH pages -- each page's own MediaBox is what
+  // clips the copy to the portion actually printed on that sheet, the same
+  // "print on both, rely on page bounds for the visible remainder" design
+  // the pre-existing #120 filter already assumes. Same 50x40cm/3x2 grid as
+  // the test above, but one piece spanning tile (row0,col0) and (row0,col1).
+  it("a4: a piece straddling a tile seam is drawn on both of the tiles it reaches", async () => {
+    const model: ExportModel = {
+      patternName: "Camiseta",
+      size: "M",
+      unit: "cm",
+      seamAllowanceCm: 1,
+      sheetWidthCm: 50,
+      sheetHeightCm: 40,
+      foldLabel: "dobra",
+      pieces: [
+        {
+          id: "straddling",
+          name: "C",
+          qty: 1,
+          widthCm: 10,
+          heightCm: 10,
+          outline: {
+            start: { x: 0, y: 0 },
+            segs: [
+              { kind: "line", to: { x: 10, y: 0 } },
+              { kind: "line", to: { x: 10, y: 10 } },
+              { kind: "line", to: { x: 0, y: 10 } },
+              { kind: "line", to: { x: 0, y: 0 } },
+            ],
+          },
+          cutOutline: {
+            start: { x: -1, y: -1 },
+            segs: [
+              { kind: "line", to: { x: 11, y: -1 } },
+              { kind: "line", to: { x: 11, y: 11 } },
+              { kind: "line", to: { x: -1, y: 11 } },
+              { kind: "line", to: { x: -1, y: -1 } },
+            ],
+          },
+          cutWidthCm: 12,
+          cutHeightCm: 12,
+          // absolute cut bbox [15,27]x[1,13]: reaches into both tile
+          // (row0,col0)'s window (x:[0,19.4]) and tile (row0,col1)'s
+          // (x:[18.4,37.8]); confined to row0 (y stays under 28.1).
+          originCm: { x: 16, y: 2 },
+          darts: [
+            [
+              { x: 1, y: 1 },
+              { x: 2, y: 5 },
+              { x: 3, y: 1 },
+            ],
+          ],
+        },
+      ],
+    };
+
+    const bytes = await toPdf(model, "a4", t);
+    const doc = await PDFDocument.load(bytes);
+    expect(doc.getPageCount()).toBe(2);
+
+    const oliveSegments =
+      inflatedContent(bytes).match(/0\.29 0\.35 0\.23 RG/g) ?? [];
+    // drawn in full (2 dart segments) on each of the 2 pages it reaches.
+    expect(oliveSegments).toHaveLength(4);
+  });
 });
