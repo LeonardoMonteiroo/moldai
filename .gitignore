@@ -44,6 +44,11 @@ next-env.d.ts
 # playwright mcp
 /.playwright-mcp/
 
+# ux review screenshots — taken of the running app (often while logged in)
+# for per-issue backlog evidence; regenerate on every review pass and must
+# never land in history.
+/ux-*.png
+
 # playwright — local test-account credentials and saved storageState.
 # Real values for a throwaway account on a local database; never commit.
 /playwright/.auth/

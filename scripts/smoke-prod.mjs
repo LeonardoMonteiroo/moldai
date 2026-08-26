@@ -11,15 +11,37 @@
 // Usage:
 //   node scripts/smoke-prod.mjs            # against SMOKE_URL (default localhost:3000)
 //   SMOKE_URL=http://host:3000 node scripts/smoke-prod.mjs
-// Env: SMOKE_URL, SMOKE_EMAIL, SMOKE_PASSWORD, SMOKE_READY_TIMEOUT_MS
+// Env: SMOKE_URL (optional), SMOKE_EMAIL (required), SMOKE_PASSWORD (required),
+//      SMOKE_READY_TIMEOUT_MS (optional)
 
 const BASE = (process.env.SMOKE_URL ?? "http://localhost:3000").replace(
   /\/$/,
   "",
 );
-const EMAIL = process.env.SMOKE_EMAIL ?? "dev@moldai.local";
-const PASSWORD = process.env.SMOKE_PASSWORD ?? "moldai-dev";
 const READY_TIMEOUT_MS = Number(process.env.SMOKE_READY_TIMEOUT_MS ?? 120000);
+
+function fail(msg) {
+  console.error(`\n✗ ${msg}`);
+  process.exit(1);
+}
+function ok(msg) {
+  console.log(`✓ ${msg}`);
+}
+
+// There is no seed script -- an account is created the same way a production
+// one is, through /signup, then confirmed via the verification link (Mailpit
+// at :8025 in the dev stack). Without these two, the login step below fails
+// with a generic "login rejected (bad credentials?)" that is indistinguishable
+// from a real auth regression -- exactly the signal this script exists to
+// raise -- so fail fast, before even starting, with a named cause instead.
+if (!process.env.SMOKE_EMAIL || !process.env.SMOKE_PASSWORD) {
+  fail(
+    "SMOKE_EMAIL/SMOKE_PASSWORD are required — create an account via /signup, " +
+      "confirm it (Mailpit at :8025 in the dev stack), then export both",
+  );
+}
+const EMAIL = process.env.SMOKE_EMAIL;
+const PASSWORD = process.env.SMOKE_PASSWORD;
 
 // Minimal cookie jar (name -> value); resent on every request.
 const jar = new Map();
@@ -50,14 +72,6 @@ async function req(path, init = {}) {
   });
   storeCookies(res);
   return res;
-}
-
-function fail(msg) {
-  console.error(`\n✗ ${msg}`);
-  process.exit(1);
-}
-function ok(msg) {
-  console.log(`✓ ${msg}`);
 }
 
 async function waitReady() {

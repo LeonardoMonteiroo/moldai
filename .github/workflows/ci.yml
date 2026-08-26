@@ -2,7 +2,18 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
+
+# #105: without this, a push to a branch with an open PR matches both
+# triggers above, so every commit ran two identical `quality` jobs and
+# none of the superseded runs were cancelled. Restricting `push` to main
+# means a PR branch is validated once (by `pull_request`), and this group
+# cancels any still-running run for the same workflow+ref when a newer one
+# starts -- covers both the branch push case and rapid pushes to main.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   quality:
@@ -55,11 +66,15 @@ jobs:
             --exit-code
       - run: npm run format:check
       - run: npx eslint app lib components
-      - name: Unit + integration tests
+      - name: Unit + integration tests (with coverage)
         # TEST_DATABASE_URL is a distinct var from DATABASE_URL on purpose --
         # lib/db/sql.integration.test.ts gates on it so a developer's own
         # .env.local DATABASE_URL is never written to by a local test run.
-        run: npx vitest run
+        # #75: --coverage replaces the plain run rather than adding a second
+        # one, since a full second `vitest run` would double the slowest
+        # non-build step; thresholds live in vitest.config.ts (root-level
+        # only, per Vitest 2) and fail this step on a real coverage drop.
+        run: npx vitest run --coverage
         env:
           TEST_DATABASE_URL: postgresql://moldai:moldai@localhost:5432/moldai?schema=public
       - name: Build (typecheck)
