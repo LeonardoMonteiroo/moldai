@@ -133,4 +133,12 @@ body {
      one element — the MoldAI wordmark, in the 3 auth pages and the 2 headers.
      Named after what it is, since nothing else should reach for it. */
   --tracking-wordmark: -0.4px;
+
+  /* #13: the landing hero's h1 (docs/design/README.md's 5a spec: 44px/1.05,
+     -1.4px) sits above --text-display (26px), the scale's previous ceiling,
+     and needs its own negative tracking -- --tracking-wordmark is reserved
+     for the wordmark alone. Named for its one user, same as --tracking-wordmark. */
+  --text-hero: 44px;
+  --text-hero--line-height: 1.05;
+  --tracking-hero: -1.4px;
 }

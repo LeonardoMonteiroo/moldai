@@ -75,6 +75,11 @@ export interface AccountActionResult {
   error?: AccountErrorCode;
 }
 
+export type OnboardingErrorCode = SharedErrorCode | "invalid_work_style";
+
+export type OnboardingResult =
+  { status: "ok" } | { status: "error"; error: OnboardingErrorCode };
+
 export interface UpdateProfileResult extends AccountActionResult {
   name?: string;
   email?: string;
@@ -285,6 +290,19 @@ export function deleteAccount(password: string): Promise<AccountActionResult> {
     "/api/account",
     "DELETE",
     { password },
+    DOMAIN_ERRORS,
+  );
+}
+
+/** #14: stamps the post-signup onboarding wizard as seen -- "Pular por
+ * agora" calls this with no argument, step 3's successful submit passes the
+ * chosen work style. */
+export function completeOnboarding(
+  workStyle?: string,
+): Promise<OnboardingResult> {
+  return postJson<OnboardingResult>(
+    "/api/account/onboarding",
+    { workStyle },
     DOMAIN_ERRORS,
   );
 }
