@@ -98,7 +98,7 @@ npm run smoke:prod   # brings up the production stack and does a real login (aut
 npm run smoke        # just the login checker, against a server already running (SMOKE_URL=...)
 ```
 
-`smoke` runs the full login flow (CSRF → credentials → session) and requires a valid session at the end — it catches regressions a plain "home responded 200" check wouldn't (e.g. the `trustHost`/`UntrustedHost` issue that only breaks in production).
+`smoke` runs the full login flow (CSRF → credentials → session) and requires a valid session at the end — it catches regressions a plain "home responded 200" check wouldn't (e.g. the `trustHost`/`UntrustedHost` issue that only breaks in production). Both `smoke` and `smoke:prod` require `SMOKE_EMAIL`/`SMOKE_PASSWORD` (see `.env.example`) pointed at a real account created through `/signup` and confirmed — there's no seed script — and the script fails fast with a named error if either is unset.
 
 ## Architecture
 
