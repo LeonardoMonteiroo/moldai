@@ -8,6 +8,7 @@ import {
   listSizeChartsForUser,
   getActiveSizeChartId,
   createSizeChart,
+  createSizeChartFromImport,
 } from "@/lib/db/sizeChart";
 import { apiError, ERROR_STATUS } from "@/lib/api/errors";
 import { consume } from "@/lib/rate-limit/consume";
@@ -43,11 +44,23 @@ export async function POST(request: Request) {
   // the wrong type, all resolve to "no sourceId" instead of a 400.
   const body = await parseBody(request, CreateSizeChartBodySchema);
   const sourceId = body instanceof NextResponse ? undefined : body.sourceId;
+  // #12: an imported spreadsheet's candidate chart, alongside the existing
+  // sourceId path -- createSizeChartFromImport routes it through the same
+  // validateSizeChartPatch trust boundary a hand-typed PATCH body goes
+  // through, so it's forwarded as-is (`unknown`) rather than shaped here.
+  const importedChart =
+    !(body instanceof NextResponse) &&
+    typeof body.chart === "object" &&
+    body.chart !== null
+      ? body.chart
+      : undefined;
   const t = await getTranslations("SizeCharts");
-  const chart = await createSizeChart(gate.id, t, sourceId);
+  const chart = importedChart
+    ? await createSizeChartFromImport(gate.id, t, importedChart)
+    : await createSizeChart(gate.id, t, sourceId);
   // #64: only reachable when an explicit sourceId was given and didn't
-  // resolve -- the bodyless/no-sourceId path always falls back to the
-  // system chart and never returns null.
+  // resolve -- the bodyless/no-sourceId and imported-chart paths always
+  // succeed and never return null.
   if (!chart) {
     return apiError("size_chart_not_found", ERROR_STATUS.size_chart_not_found);
   }

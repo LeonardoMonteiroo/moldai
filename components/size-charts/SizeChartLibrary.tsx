@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useTranslations } from "next-intl";
 import { useSizeChartsStore } from "@/lib/sizeChartsStore";
+import { ImportSizeChartDialog } from "./ImportSizeChartDialog";
 
 export function SizeChartLibrary() {
   const t = useTranslations("SizeCharts");
@@ -59,9 +60,10 @@ export function SizeChartLibrary() {
 
       <div className="flex-1" />
 
-      <div className="border-border rounded-card bg-paper text-muted text-ui border border-dashed p-3 leading-relaxed">
-        {t("importLabel")}
-      </div>
+      {/* #12: was an inert dashed placeholder (SizeCharts.importLabel) with no
+          onClick, no file input, no parser -- ImportSizeChartDialog is the
+          real control now, kept in the same dashed spot in the layout. */}
+      <ImportSizeChartDialog />
 
       <Button onClick={() => create()}>{t("newSizeChartButton")}</Button>
     </div>
