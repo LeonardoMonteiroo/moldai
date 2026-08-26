@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import * as api from "./api-client";
-import { ApiError } from "./api-client";
+import { errorCode } from "./api-client";
 import type {
   SizeChartData,
   SizeChartListEntry,
@@ -40,11 +40,6 @@ interface SizeChartsStore {
 function draftFrom(c: SizeChartRecord): SizeChartData {
   const { id: _id, updatedAt: _updatedAt, ...data } = c;
   return data;
-}
-
-/** ApiError carries the wire code; anything else (offline, parse) is generic. */
-function errorCode(err: unknown): string {
-  return err instanceof ApiError ? err.code : "request_failed";
 }
 
 export const useSizeChartsStore = create<SizeChartsStore>((set, get) => ({

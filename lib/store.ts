@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import * as api from "./api-client";
-import { ApiError } from "./api-client";
+import { errorCode } from "./api-client";
 import {
   ChatMessage,
   Credits,
@@ -94,11 +94,6 @@ interface EditorStore {
   addMeasurement: (m: Measurement) => void;
   removeMeasurement: (id: string) => void;
   clearMeasurements: () => void;
-}
-
-/** ApiError carries the wire code; anything else (offline, parse) is generic. */
-function errorCode(err: unknown): string {
-  return err instanceof ApiError ? err.code : "request_failed";
 }
 
 function applyState(

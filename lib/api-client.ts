@@ -99,6 +99,11 @@ export class ApiError extends Error {
   }
 }
 
+/** ApiError carries the wire code; anything else (offline, parse) is generic. */
+export function errorCode(err: unknown): string {
+  return err instanceof ApiError ? err.code : "request_failed";
+}
+
 /**
  * `handled` lists the HTTP statuses whose *body* is part of the endpoint's
  * contract — a 402 the paywall reads, or a 400 carrying a domain code the

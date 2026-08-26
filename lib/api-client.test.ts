@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { ApiError, fetchPattern, generate, listPatterns } from "./api-client";
+import {
+  ApiError,
+  errorCode,
+  fetchPattern,
+  generate,
+  listPatterns,
+} from "./api-client";
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -70,5 +76,18 @@ describe("api-client HTTP error handling", () => {
   it("propagates a rejected fetch untouched instead of swallowing it", async () => {
     vi.mocked(fetch).mockRejectedValue(new TypeError("Failed to fetch"));
     await expect(listPatterns()).rejects.toThrow("Failed to fetch");
+  });
+});
+
+// #36: errorCode used to be pasted verbatim into all four Zustand stores.
+// It now lives here, next to the ApiError class it reads.
+describe("errorCode", () => {
+  it("carries the ApiError's wire code", () => {
+    expect(errorCode(new ApiError(401, "unauthorized"))).toBe("unauthorized");
+  });
+
+  it("falls back to request_failed for a non-ApiError failure", () => {
+    expect(errorCode(new TypeError("Failed to fetch"))).toBe("request_failed");
+    expect(errorCode("not even an Error")).toBe("request_failed");
   });
 });
