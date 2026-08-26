@@ -30,12 +30,30 @@
  *   - Loop guard: if the payload says the Stop hook already fired (`stop_hook_active`
  *     or any `stop*hook*active`-ish truthy key), exit 0 immediately. Without this, a
  *     blocking Stop hook can re-trigger itself forever.
- *   - Cheap pre-check: `git status --porcelain -uall -- app lib components`. If no
- *     added / modified / renamed / deleted `.ts`/`.tsx` file shows up relative to HEAD,
- *     nothing verifiable changed (conversational turn, docs edit, config tweak) and the
- *     hook exits 0 without spawning anything. Costs ~70ms.
+ *   - Cheap pre-check, in two parts (`changedSourceFiles`):
+ *       1. Working tree/index: `git status --porcelain -uall -- app lib components`,
+ *          relative to HEAD — same as before. If this alone finds a changed .ts/.tsx
+ *          file, the sweep runs, exactly as before. Costs ~70ms.
+ *       2. Committed-but-unpushed work: only when (1) found nothing (a clean tree),
+ *          diff the branch against its merge-base with a resolvable upstream/default
+ *          branch (`@{upstream}`, `origin/HEAD`, `origin/main`, `origin/master`, local
+ *          `main`/`master`, tried in that order; the first that resolves wins). This
+ *          is what makes "the turn ended with the work committed" still trigger the
+ *          sweep — a clean tree no longer reads as "nothing to verify". If no base
+ *          resolves (fresh clone, detached HEAD, no remote), this half is skipped and
+ *          behaviour is exactly the pre-existing status-only check.
+ *     Either half failing to answer (no git, timeout, spawn error) makes the whole
+ *     pre-check answer null, and the caller stays silent — never guesses.
+ *   - Re-verify cache: once the committed-ahead sweep passes for a given HEAD sha, that
+ *     sha is recorded (a small JSON file under the OS temp dir, keyed by the repo root's
+ *     path — never inside the repo, so it can't show up in `git status`). A later Stop
+ *     on the same, still-clean, still-unmoved HEAD short-circuits instead of re-running
+ *     the same sweep on every conversational turn for the rest of the branch's life.
+ *     A failed sweep is never cached, so it keeps blocking until either the code changes
+ *     (new HEAD) or new working-tree edits appear.
  *   - Time budget: 180s total, split across the two commands; a timeout is reported as
- *     a failure with the partial output, never as a hang.
+ *     a failure with the partial output, never as a hang. Unchanged by this widening —
+ *     the extra pre-check cost is a handful of near-instant `git rev-parse`/`diff` calls.
  *   - Any INTERNAL error (bad stdin, no git, tool not installed, spawn failure) exits 0
  *     silently. A broken checker must never block the user's work, and a false positive
  *     is worse than a false negative.
@@ -52,7 +70,10 @@
 
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
+import crypto from "node:crypto";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 const TOTAL_BUDGET_MS = 180_000;
 const GIT_TIMEOUT_MS = 15_000;
@@ -62,6 +83,11 @@ const PER_COMMAND_LINE_CAP = 60;
 const REASON_CHAR_CAP = 4000;
 const SCOPED_DIRS = ["app", "lib", "components"];
 const SOURCE_EXT = /\.tsx?$/i;
+
+/** Candidate refs to diff the branch against, in preference order. The first that
+ *  `git rev-parse --verify` resolves wins; none resolving means "skip the merge-base
+ *  half", not "fail" — a fresh clone / detached HEAD / no-remote checkout is common. */
+const BASE_REF_CANDIDATES = ["@{upstream}", "origin/HEAD", "origin/main", "origin/master", "main", "master"];
 
 /** Silent, non-blocking exit. Every internal failure funnels through here. */
 function ok() {
@@ -150,21 +176,22 @@ function unquotePath(p) {
   return trimmed;
 }
 
-/**
- * Cheap pre-check. Returns the changed .ts/.tsx paths under app/, lib/, components/
- * (index + worktree, relative to HEAD, untracked included), or null if git could not
- * answer — in which case the caller stays silent rather than guessing.
- */
-function changedSourceFiles(root) {
-  const dirs = SCOPED_DIRS.filter((d) => fs.existsSync(path.join(root, d)));
-  if (dirs.length === 0) return [];
-
-  const res = spawnSync("git", ["status", "--porcelain", "--untracked-files=all", "--", ...dirs], {
+function runGit(root, args) {
+  return spawnSync("git", args, {
     cwd: root,
     encoding: "utf8",
     timeout: GIT_TIMEOUT_MS,
     windowsHide: true,
   });
+}
+
+/**
+ * Working tree + index changes under app/lib/components, relative to HEAD (untracked
+ * included). Returns a Set of repo-relative .ts/.tsx paths, or null if git could not
+ * answer at all (caller stays silent rather than guessing).
+ */
+function statusChangedFiles(root, dirs) {
+  const res = runGit(root, ["status", "--porcelain", "--untracked-files=all", "--", ...dirs]);
   if (res.error || res.status !== 0 || typeof res.stdout !== "string") return null;
 
   const changed = new Set();
@@ -180,7 +207,124 @@ function changedSourceFiles(root) {
       changed.add(rel);
     }
   }
-  return [...changed];
+  return changed;
+}
+
+/** First candidate ref that `git rev-parse --verify --quiet` resolves, or null. */
+export function resolveBaseRef(root) {
+  for (const cand of BASE_REF_CANDIDATES) {
+    const res = runGit(root, ["rev-parse", "--verify", "--quiet", cand]);
+    if (!res.error && res.status === 0 && typeof res.stdout === "string" && res.stdout.trim()) {
+      return cand;
+    }
+  }
+  return null;
+}
+
+/**
+ * Files changed on this branch since it diverged from a resolvable upstream/default
+ * branch (`<base>...HEAD`), under app/lib/components, plus the actual merge-base commit
+ * (independently resolved via `git merge-base`, not just the base ref's name — the ref
+ * itself can move). Best-effort: any failure (no resolvable base, git error) returns an
+ * empty Set/null sha rather than null outright — this half is a widening on top of the
+ * status check, never itself a reason to go silent.
+ */
+export function mergeBaseChangedFiles(root, dirs) {
+  const base = resolveBaseRef(root);
+  if (!base) return { changed: new Set(), mergeBaseSha: null };
+
+  const res = runGit(root, ["diff", "--name-only", `${base}...HEAD`, "--", ...dirs]);
+  if (res.error || res.status !== 0 || typeof res.stdout !== "string") {
+    return { changed: new Set(), mergeBaseSha: null };
+  }
+
+  const changed = new Set();
+  for (const raw of res.stdout.split(/\r?\n/)) {
+    const rel = unquotePath(raw).replace(/\\/g, "/");
+    if (!rel) continue;
+    if (!SOURCE_EXT.test(rel)) continue;
+    if (!SCOPED_DIRS.some((d) => rel === d || rel.startsWith(`${d}/`))) continue;
+    changed.add(rel);
+  }
+
+  const mbRes = runGit(root, ["merge-base", "HEAD", base]);
+  const mergeBaseSha =
+    !mbRes.error && mbRes.status === 0 && typeof mbRes.stdout === "string" ? mbRes.stdout.trim() || null : null;
+
+  return { changed, mergeBaseSha };
+}
+
+function resolveHeadSha(root) {
+  const res = runGit(root, ["rev-parse", "HEAD"]);
+  if (res.error || res.status !== 0 || typeof res.stdout !== "string") return null;
+  const sha = res.stdout.trim();
+  return sha || null;
+}
+
+/**
+ * Cheap pre-check. Returns:
+ *   null                                                          -> git could not answer,
+ *                                                                     stay silent
+ *   { changed: Set<string>, committedOnly, headSha, cacheKey }    -> otherwise
+ *
+ * `changed` unions working-tree/index changes with (only when the tree is clean)
+ * committed-but-unpushed changes against the branch's merge-base. `committedOnly` is
+ * true exactly when every changed file came from the merge-base diff (nothing dirty) —
+ * that's the case the re-verify cache below is allowed to short-circuit. `cacheKey`
+ * combines the HEAD sha with the resolved merge-base sha (not just the base ref's
+ * name): if the base ref later moves — a fetch advances origin/main — while HEAD stays
+ * put, the merge-base (and therefore the file set a fresh `base...HEAD` diff would
+ * report) can change too, and the cache must treat that as a different verification,
+ * not the same one it already passed.
+ */
+export function changedSourceFiles(root) {
+  const dirs = SCOPED_DIRS.filter((d) => fs.existsSync(path.join(root, d)));
+  if (dirs.length === 0) return { changed: new Set(), committedOnly: false, headSha: null, cacheKey: null };
+
+  const workingTree = statusChangedFiles(root, dirs);
+  if (workingTree === null) return null; // git could not answer -> caller stays silent
+
+  let committed = new Set();
+  let mergeBaseSha = null;
+  if (workingTree.size === 0) {
+    ({ changed: committed, mergeBaseSha } = mergeBaseChangedFiles(root, dirs));
+  }
+
+  const changed = new Set([...workingTree, ...committed]);
+  const committedOnly = workingTree.size === 0 && committed.size > 0;
+  const headSha = committedOnly ? resolveHeadSha(root) : null;
+  const cacheKey = committedOnly && headSha ? `${headSha}:${mergeBaseSha ?? ""}` : null;
+  return { changed, committedOnly, headSha, cacheKey };
+}
+
+/** Where the re-verify cache for `root` lives: OS temp dir, never inside the repo
+ *  (so it can never show up in `git status` and never needs a .gitignore entry). */
+function cacheFilePath(root) {
+  const hash = crypto.createHash("sha256").update(path.resolve(root)).digest("hex").slice(0, 16);
+  return path.join(os.tmpdir(), "moldai-verify-on-stop", `${hash}.json`);
+}
+
+/** `key` is `changedSourceFiles`'s `cacheKey` — HEAD sha + resolved merge-base sha,
+ *  not a bare commit sha, so a moved base ref invalidates the cache (see that
+ *  function's doc comment). Named "Sha" for historical/call-site brevity. */
+export function readLastVerifiedSha(root) {
+  try {
+    const raw = fs.readFileSync(cacheFilePath(root), "utf8");
+    const data = JSON.parse(raw);
+    return typeof data?.sha === "string" ? data.sha : null;
+  } catch {
+    return null;
+  }
+}
+
+export function writeLastVerifiedSha(root, key) {
+  try {
+    const file = cacheFilePath(root);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, JSON.stringify({ sha: key, at: Date.now() }), "utf8");
+  } catch {
+    /* best-effort cache; a write failure must never affect the hook's pass/fail contract */
+  }
 }
 
 /**
@@ -304,7 +448,7 @@ function condenseEslint(output, root) {
   return capChars(parts.join("\n"));
 }
 
-function main() {
+export function main() {
   const payload = readStdinJson();
   if (alreadyFired(payload)) ok(); // loop guard
 
@@ -312,9 +456,16 @@ function main() {
   const root = findRepoRoot(startCwd);
   if (!root) ok();
 
-  const changed = changedSourceFiles(root);
-  if (changed === null) ok(); // git could not answer -> stay silent
-  if (changed.length === 0) ok(); // nothing verifiable changed -> free stop
+  const precheck = changedSourceFiles(root);
+  if (precheck === null) ok(); // git could not answer -> stay silent
+  const { changed, committedOnly, cacheKey } = precheck;
+  if (changed.size === 0) ok(); // nothing verifiable changed -> free stop
+
+  // Committed-but-unpushed work already verified at this exact HEAD (and merge-base) ->
+  // skip the repeat sweep instead of re-running it on every subsequent conversational turn.
+  if (committedOnly && cacheKey && readLastVerifiedSha(root) === cacheKey) ok();
+
+  const changedList = [...changed];
 
   const deadline = Date.now() + TOTAL_BUDGET_MS;
   const failures = [];
@@ -357,12 +508,15 @@ function main() {
     failures.push("npx eslint app lib components — SKIPPED (180s hook budget exhausted)");
   }
 
-  if (failures.length === 0) ok();
+  if (failures.length === 0) {
+    if (committedOnly && cacheKey) writeLastVerifiedSha(root, cacheKey);
+    ok();
+  }
 
   const scope =
-    changed.length <= 6
-      ? changed.join(", ")
-      : `${changed.slice(0, 6).join(", ")} (+${changed.length - 6} more)`;
+    changedList.length <= 6
+      ? changedList.join(", ")
+      : `${changedList.slice(0, 6).join(", ")} (+${changedList.length - 6} more)`;
 
   let reason =
     "Verification sweep failed — do not report this work as done yet. " +
@@ -376,8 +530,18 @@ function main() {
   block(reason);
 }
 
-try {
-  main();
-} catch {
-  ok();
+const isMain = (() => {
+  try {
+    return Boolean(process.argv[1]) && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href;
+  } catch {
+    return false;
+  }
+})();
+
+if (isMain) {
+  try {
+    main();
+  } catch {
+    ok();
+  }
 }

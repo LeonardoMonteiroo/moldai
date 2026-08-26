@@ -8,11 +8,9 @@ const alias = { "@": path.resolve(__dirname, ".") };
  *
  * "node" is the pre-existing suite (lib/**, app/api/**): pure logic, no DOM,
  * no setup file. Keeping it isolated means the RTL + jest-dom setup below is
- * never loaded for it.
- *
- * "dom" is the component suite. jsdom + a setup file that installs the
- * matchers, auto-cleanup, and the handful of browser APIs jsdom lacks but the
- * Radix primitives in components/ui/ call.
+ * never loaded for it. It also picks up `.claude/hooks/**\/*.test.mjs` — the
+ * Claude Code hook scripts are plain Node ESM, so they share this project's
+ * DOM-free "node" environment rather than needing a third project.
  */
 export default defineWorkspace([
   {
@@ -20,7 +18,11 @@ export default defineWorkspace([
     test: {
       name: "node",
       environment: "node",
-      include: ["lib/**/*.test.{ts,tsx}", "app/**/*.test.{ts,tsx}"],
+      include: [
+        "lib/**/*.test.{ts,tsx}",
+        "app/**/*.test.{ts,tsx}",
+        ".claude/hooks/**/*.test.mjs",
+      ],
     },
   },
   {
