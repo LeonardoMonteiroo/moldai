@@ -10,6 +10,17 @@ import type { Translate } from "@/lib/i18n/translate";
 
 type Tx = Prisma.TransactionClient;
 
+/**
+ * #66: listSizeChartsForUser had the same missing bound as
+ * listPatternsForUser/listSlopersForUser -- no `take`, so the query scaled
+ * with however many charts an account has accumulated. Same idiom and value
+ * as MAX_PATTERNS_LISTED (lib/types.ts): well above what any real account
+ * approaches today (an account gets at most two system charts plus whatever
+ * it duplicates by hand), so no on-screen pagination or truncation notice
+ * exists yet -- there is nothing for a legitimate account to hit.
+ */
+export const MAX_SIZE_CHARTS_LISTED = 500;
+
 // #58: used to be a bare assertion. A row whose baseMeasurements has drifted
 // (an emptied-out object, a missing key) now fails to parse instead of
 // letting resolveSizeChartSize compute NaN geometry for every consumer.
@@ -91,6 +102,7 @@ export async function listSizeChartsForUser(
   const rows = await tx.sizeChart.findMany({
     where: { userId },
     orderBy: { updatedAt: "desc" },
+    take: MAX_SIZE_CHARTS_LISTED,
   });
   // #58: an unparseable row is skipped rather than thrown on -- one drifted
   // chart costs its own library entry, not the whole /size-charts screen
