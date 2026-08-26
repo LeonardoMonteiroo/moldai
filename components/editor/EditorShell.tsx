@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useEditorStore } from "@/lib/store";
 import { relativeTime } from "@/lib/format";
-import { AppShell } from "@/components/shared/AppShell";
+import { AppShell, DESKTOP_MEDIA_QUERY } from "@/components/shared/AppShell";
 import { ActionErrorNotice } from "@/components/shared/ActionErrorNotice";
 import { Button } from "@/components/ui/button";
 import { ChatPanel } from "./ChatPanel";
@@ -12,24 +12,23 @@ import { CanvasArea } from "./CanvasArea";
 import { Footer } from "./Footer";
 import { PaywallModal } from "./PaywallModal";
 
-// #119: the editor (chat beside a canvas with floating overlays) is out of
-// scope to make genuinely responsive -- it gets an honest gate instead. `lg`
-// (1024px) matches the breakpoint every other in-scope screen collapses at.
-const DESKTOP_MEDIA_QUERY = "(min-width: 1024px)";
-
 /**
  * Local to this file on purpose (CLAUDE.md: no new hook unless two unrelated
  * components genuinely need one) -- the editor is the only screen that swaps
  * its entire content for a notice rather than reflowing, so nothing else
- * needs this.
+ * needs this. `DESKTOP_MEDIA_QUERY` itself is shared with AppShell's own
+ * drawer collapse, so the two can't drift apart on what "desktop" means.
  *
- * Starts `null` ("not yet measured") rather than reading matchMedia during
- * render, so the server-rendered/first-hydration pass never disagrees with
- * itself; `null` resolves to "desktop" below, which only costs a real narrow
- * viewport one frame of the editor before the effect corrects it -- cheaper
- * than a hydration mismatch.
+ * Returns the raw tri-state (`null` = "not yet measured") rather than
+ * resolving it to a boolean here: the render below treats `null` as
+ * "desktop" (so the server-rendered/first-hydration pass never disagrees
+ * with itself, at the cost of one frame of the editor on a real narrow
+ * viewport before the effect corrects it -- cheaper than a hydration
+ * mismatch), but the data-loading effect further down treats `null`
+ * differently -- it *waits* rather than assuming, so a real mobile visit
+ * never fires the pattern fetch at all.
  */
-function useIsDesktop() {
+function useDesktopMatch() {
   const [matches, setMatches] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -40,7 +39,7 @@ function useIsDesktop() {
     return () => mql.removeEventListener("change", update);
   }, []);
 
-  return matches !== false;
+  return matches;
 }
 
 export function EditorShell({
@@ -52,7 +51,8 @@ export function EditorShell({
 }) {
   const t = useTranslations("EditorShell");
   const tf = useTranslations("Format");
-  const isDesktop = useIsDesktop();
+  const desktopMatch = useDesktopMatch();
+  const isDesktop = desktopMatch !== false;
   const ready = useEditorStore((s) => s.ready);
   const pattern = useEditorStore((s) => s.pattern);
   const credits = useEditorStore((s) => s.credits);
@@ -64,8 +64,12 @@ export function EditorShell({
   const clearError = useEditorStore((s) => s.clearError);
 
   useEffect(() => {
+    // Waits for a definitive "yes" rather than firing on the same
+    // assume-desktop default the render above uses -- a real mobile visit
+    // never issues this fetch at all, since it never reaches `=== true`.
+    if (desktopMatch !== true) return;
     init(patternId);
-  }, [init, patternId]);
+  }, [init, patternId, desktopMatch]);
 
   // #119: the gate comes before the load/error/loading checks below -- a
   // narrow viewport has nothing to gain from the editor's data loading at

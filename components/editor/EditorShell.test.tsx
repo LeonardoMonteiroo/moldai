@@ -250,4 +250,26 @@ describe("EditorShell desktop-only gate (#119)", () => {
     ).not.toBeInTheDocument();
     expect(screen.getByText("Vestido")).toBeInTheDocument();
   });
+
+  // #119 review: the pattern fetch used to fire unconditionally on mount,
+  // before the gate above could even decide -- a real mobile visit issued a
+  // full GET purely to immediately discard it in favour of the notice.
+  it("never fetches the pattern below the breakpoint", async () => {
+    stubMatchMedia(false);
+    vi.mocked(fetchPattern).mockClear();
+
+    renderWithIntl(<EditorShell userEmail="user@example.com" patternId="p1" />);
+
+    await screen.findByText(ptBR.EditorShell.desktopOnlyTitle);
+    expect(fetchPattern).not.toHaveBeenCalled();
+  });
+
+  it("still fetches the pattern at and above the breakpoint", async () => {
+    stubMatchMedia(true);
+    vi.mocked(fetchPattern).mockClear();
+
+    renderWithIntl(<EditorShell userEmail="user@example.com" patternId="p1" />);
+
+    await waitFor(() => expect(fetchPattern).toHaveBeenCalledTimes(1));
+  });
 });

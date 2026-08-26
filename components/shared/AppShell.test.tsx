@@ -203,6 +203,91 @@ describe("AppShell", () => {
       ).toHaveAttribute("aria-expanded", "false");
     });
 
+    // Escape (and a backdrop click) close from focus that wasn't on the
+    // toggle -- without returning it, the next Tab restarted from the top of
+    // the page instead of continuing from where the user was.
+    it("returns focus to the toggle button after closing on Escape", async () => {
+      const user = userEvent.setup();
+      renderWithIntl(
+        <AppShell
+          title="Blusa"
+          credits={CREDITS}
+          userEmail="a@b.com"
+          sidebar={<span>SIDEBAR</span>}
+        >
+          <span>CONTENT</span>
+        </AppShell>,
+      );
+
+      await user.click(
+        screen.getByRole("button", { name: ptBR.AppShell.openNavLabel }),
+      );
+      await user.keyboard("{Escape}");
+
+      expect(
+        screen.getByRole("button", { name: ptBR.AppShell.openNavLabel }),
+      ).toHaveFocus();
+    });
+
+    // Content sitting behind the dimmed overlay must not be keyboard/AT
+    // reachable while the drawer is open, or Tab leaks from the drawer into
+    // the page behind it.
+    it("makes the main content region inert while the drawer is open", async () => {
+      const user = userEvent.setup();
+      renderWithIntl(
+        <AppShell
+          title="Blusa"
+          credits={CREDITS}
+          userEmail="a@b.com"
+          sidebar={<span>SIDEBAR</span>}
+        >
+          <span>CONTENT</span>
+        </AppShell>,
+      );
+
+      const main = screen.getByRole("main");
+      expect(main).not.toHaveAttribute("inert");
+
+      await user.click(
+        screen.getByRole("button", { name: ptBR.AppShell.openNavLabel }),
+      );
+      expect(main).toHaveAttribute("inert");
+    });
+
+    // #119 review: a same-route navigation (router.replace, e.g. the
+    // settings sidebar's own `?section=` links) doesn't unmount AppShell the
+    // way a real router.push does, so the drawer used to stay open (and its
+    // scrim up) after picking a section on a narrow viewport.
+    it("closes the drawer on any click inside it, not just the toggle", async () => {
+      const user = userEvent.setup();
+      renderWithIntl(
+        <AppShell
+          title="Blusa"
+          credits={CREDITS}
+          userEmail="a@b.com"
+          sidebar={
+            <button type="button" onClick={() => {}}>
+              NAV ITEM
+            </button>
+          }
+        >
+          <span>CONTENT</span>
+        </AppShell>,
+      );
+
+      await user.click(
+        screen.getByRole("button", { name: ptBR.AppShell.openNavLabel }),
+      );
+      expect(
+        screen.getByRole("button", { name: ptBR.AppShell.closeNavLabel }),
+      ).toBeInTheDocument();
+
+      await user.click(screen.getByRole("button", { name: "NAV ITEM" }));
+      expect(
+        screen.getByRole("button", { name: ptBR.AppShell.openNavLabel }),
+      ).toHaveAttribute("aria-expanded", "false");
+    });
+
     it("controls the sidebar drawer via aria-controls", () => {
       renderWithIntl(
         <AppShell
