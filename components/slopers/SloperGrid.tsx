@@ -32,7 +32,7 @@ export function SloperGrid({ onUse }: { onUse: (id: string) => void }) {
             </EmptyHeader>
           </Empty>
         ) : (
-          <div className="grid grid-cols-4 gap-[14px]">
+          <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2 lg:grid-cols-4">
             {slopers.map((s) => (
               <SloperCard key={s.id} sloper={s} onUse={onUse} />
             ))}

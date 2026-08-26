@@ -110,7 +110,7 @@ export function DashboardShell({
           <div className="flex flex-col gap-4">
             <PatternGrid onOpen={openPattern} onNewPattern={handleNewPattern} />
             {credits && (
-              <div className="flex gap-[14px] px-[22px] pb-[22px]">
+              <div className="flex flex-col gap-[14px] px-[22px] pb-[22px] sm:flex-row">
                 <CreditsCard credits={credits} />
                 <RecentUsageCard entries={recentUsage} />
               </div>

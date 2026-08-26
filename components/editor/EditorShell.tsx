@@ -1,16 +1,46 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useEditorStore } from "@/lib/store";
 import { relativeTime } from "@/lib/format";
-import { AppShell } from "@/components/shared/AppShell";
+import { AppShell, DESKTOP_MEDIA_QUERY } from "@/components/shared/AppShell";
 import { ActionErrorNotice } from "@/components/shared/ActionErrorNotice";
 import { Button } from "@/components/ui/button";
 import { ChatPanel } from "./ChatPanel";
 import { CanvasArea } from "./CanvasArea";
 import { Footer } from "./Footer";
 import { PaywallModal } from "./PaywallModal";
+
+/**
+ * Local to this file on purpose (CLAUDE.md: no new hook unless two unrelated
+ * components genuinely need one) -- the editor is the only screen that swaps
+ * its entire content for a notice rather than reflowing, so nothing else
+ * needs this. `DESKTOP_MEDIA_QUERY` itself is shared with AppShell's own
+ * drawer collapse, so the two can't drift apart on what "desktop" means.
+ *
+ * Returns the raw tri-state (`null` = "not yet measured") rather than
+ * resolving it to a boolean here: the render below treats `null` as
+ * "desktop" (so the server-rendered/first-hydration pass never disagrees
+ * with itself, at the cost of one frame of the editor on a real narrow
+ * viewport before the effect corrects it -- cheaper than a hydration
+ * mismatch), but the data-loading effect further down treats `null`
+ * differently -- it *waits* rather than assuming, so a real mobile visit
+ * never fires the pattern fetch at all.
+ */
+function useDesktopMatch() {
+  const [matches, setMatches] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const mql = window.matchMedia(DESKTOP_MEDIA_QUERY);
+    const update = () => setMatches(mql.matches);
+    update();
+    mql.addEventListener("change", update);
+    return () => mql.removeEventListener("change", update);
+  }, []);
+
+  return matches;
+}
 
 export function EditorShell({
   userEmail,
@@ -21,6 +51,8 @@ export function EditorShell({
 }) {
   const t = useTranslations("EditorShell");
   const tf = useTranslations("Format");
+  const desktopMatch = useDesktopMatch();
+  const isDesktop = desktopMatch !== false;
   const ready = useEditorStore((s) => s.ready);
   const pattern = useEditorStore((s) => s.pattern);
   const credits = useEditorStore((s) => s.credits);
@@ -32,8 +64,30 @@ export function EditorShell({
   const clearError = useEditorStore((s) => s.clearError);
 
   useEffect(() => {
+    // Waits for a definitive "yes" rather than firing on the same
+    // assume-desktop default the render above uses -- a real mobile visit
+    // never issues this fetch at all, since it never reaches `=== true`.
+    if (desktopMatch !== true) return;
     init(patternId);
-  }, [init, patternId]);
+  }, [init, patternId, desktopMatch]);
+
+  // #119: the gate comes before the load/error/loading checks below -- a
+  // narrow viewport has nothing to gain from the editor's data loading at
+  // all, and showing "Carregando molde…" first would just replace one
+  // unusable screen with another.
+  if (!isDesktop) {
+    return (
+      <div
+        role="status"
+        className="flex flex-1 flex-col items-center justify-center gap-2 p-[22px] text-center"
+      >
+        <p className="text-control font-semibold">{t("desktopOnlyTitle")}</p>
+        <p className="text-muted text-ui max-w-[320px]">
+          {t("desktopOnlyDescription")}
+        </p>
+      </div>
+    );
+  }
 
   // A failed load has to be distinguishable from a slow one. Without this the
   // store's `ready` stayed false forever on a rejected fetch and the loading

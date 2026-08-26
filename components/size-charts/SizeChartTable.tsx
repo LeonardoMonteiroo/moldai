@@ -112,7 +112,11 @@ export function SizeChartTable() {
   };
 
   return (
-    <div className="flex flex-1 flex-col gap-3">
+    // min-w-0: this sits in a flex row (at `lg` and up) beside
+    // SizeChartLibrary -- without it, the flex item refuses to shrink below
+    // the table's own min-content width, and the *row* overflows horizontally
+    // instead of the table's own overflow-x-auto container ever engaging.
+    <div className="flex min-w-0 flex-1 flex-col gap-3">
       <div className="flex flex-wrap items-center gap-[10px]">
         {readOnly ? (
           <span className="font-display text-body font-semibold">
@@ -382,7 +386,7 @@ export function SizeChartTable() {
         </DialogContent>
       </Dialog>
 
-      <div className="flex gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row">
         <div className="border-border rounded-card bg-surface flex-1 border p-[14px]">
           <span className="text-muted text-meta tracking-eyebrow font-semibold uppercase">
             {t("progressionTitle")}
@@ -400,7 +404,7 @@ export function SizeChartTable() {
             )}
           </div>
         </div>
-        <div className="flex w-[220px] flex-col justify-end gap-2">
+        <div className="flex flex-col justify-end gap-2 sm:w-[220px]">
           {dirty && !readOnly && (
             <Button variant="accent" disabled={saving} onClick={() => save()}>
               {saving ? t("saveButtonSaving") : t("saveButton")}

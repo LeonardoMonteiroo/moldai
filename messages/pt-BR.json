@@ -279,7 +279,9 @@
     "savedVersion": "{savedAgo} · v{version}",
     "loadError": "Não foi possível carregar este molde. Tente novamente.",
     "sessionExpired": "Sua sessão expirou. Entre novamente para continuar.",
-    "retryButton": "Tentar de novo"
+    "retryButton": "Tentar de novo",
+    "desktopOnlyTitle": "Tela pequena demais para o editor",
+    "desktopOnlyDescription": "O editor de moldes combina o chat e o canvas lado a lado e precisa de uma tela maior. Abra o MoldAI em um computador ou tablet para continuar editando este molde."
   },
   "AppError": {
     "heading": "Algo deu errado",
@@ -710,5 +712,9 @@
     "relativeDays": "há {n}d",
     "listConjunction": " e ",
     "dateLocale": "pt-BR"
+  },
+  "AppShell": {
+    "openNavLabel": "Abrir menu de navegação",
+    "closeNavLabel": "Fechar menu de navegação"
   }
 }

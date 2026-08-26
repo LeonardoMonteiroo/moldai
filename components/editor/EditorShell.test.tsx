@@ -45,6 +45,25 @@ import { useEditorStore } from "@/lib/store";
 import { ApiError, fetchPattern } from "@/lib/api-client";
 import { EditorShell } from "./EditorShell";
 
+/**
+ * #119: EditorShell gates its whole content on a `(min-width: 1024px)` match.
+ * Every test below exercises the normal (desktop) editor, so matchMedia is
+ * stubbed to "match" by default here rather than per test; the gate itself
+ * gets its own describe block below with an explicit "no match" stub.
+ */
+function stubMatchMedia(matches: boolean) {
+  window.matchMedia = ((query: string) => ({
+    matches,
+    media: query,
+    onchange: null,
+    addListener() {},
+    removeListener() {},
+    addEventListener() {},
+    removeEventListener() {},
+    dispatchEvent: () => false,
+  })) as unknown as typeof window.matchMedia;
+}
+
 function pattern(updatedAt: string): PatternRecord {
   return {
     id: "p1",
@@ -63,6 +82,7 @@ function pattern(updatedAt: string): PatternRecord {
 
 describe("EditorShell", () => {
   beforeEach(() => {
+    stubMatchMedia(true);
     useEditorStore.setState({
       // #32: init() now resets the whole per-pattern slice when the store's
       // patternId differs from the one it's asked to load, treating that as
@@ -179,5 +199,77 @@ describe("EditorShell", () => {
       .replace("{savedAgo}", ptBR.Format.relativeHours.replace("{n}", "1"))
       .replace("{version}", "3");
     expect(screen.getByText(expected)).toBeInTheDocument();
+  });
+});
+
+// #119: the editor stays desktop-only rather than becoming genuinely
+// responsive -- below the breakpoint it has to say so on screen instead of
+// rendering the chat+canvas layout broken or blank.
+describe("EditorShell desktop-only gate (#119)", () => {
+  beforeEach(() => {
+    useEditorStore.setState({
+      patternId: "p1",
+      generationStatus: "idle",
+      conflict: null,
+      paywall: {
+        open: false,
+        required: 0,
+        balance: 0,
+        action: null,
+        retry: null,
+      },
+      credits: { plan: "free", balance: 30, total: 30, renewsInDays: 30 },
+      ready: true,
+      pattern: pattern(new Date().toISOString()),
+      error: null,
+    });
+  });
+
+  it("shows the desktop-only notice instead of the editor below the breakpoint", () => {
+    stubMatchMedia(false);
+
+    renderWithIntl(<EditorShell userEmail="user@example.com" patternId="p1" />);
+
+    expect(screen.getByRole("status")).toHaveTextContent(
+      ptBR.EditorShell.desktopOnlyTitle,
+    );
+    expect(
+      screen.getByText(ptBR.EditorShell.desktopOnlyDescription),
+    ).toBeInTheDocument();
+    // The real editor never mounts -- not hidden, just not rendered.
+    expect(screen.queryByText("Vestido")).not.toBeInTheDocument();
+  });
+
+  it("renders the normal editor at and above the breakpoint", () => {
+    stubMatchMedia(true);
+
+    renderWithIntl(<EditorShell userEmail="user@example.com" patternId="p1" />);
+
+    expect(
+      screen.queryByText(ptBR.EditorShell.desktopOnlyTitle),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("Vestido")).toBeInTheDocument();
+  });
+
+  // #119 review: the pattern fetch used to fire unconditionally on mount,
+  // before the gate above could even decide -- a real mobile visit issued a
+  // full GET purely to immediately discard it in favour of the notice.
+  it("never fetches the pattern below the breakpoint", async () => {
+    stubMatchMedia(false);
+    vi.mocked(fetchPattern).mockClear();
+
+    renderWithIntl(<EditorShell userEmail="user@example.com" patternId="p1" />);
+
+    await screen.findByText(ptBR.EditorShell.desktopOnlyTitle);
+    expect(fetchPattern).not.toHaveBeenCalled();
+  });
+
+  it("still fetches the pattern at and above the breakpoint", async () => {
+    stubMatchMedia(true);
+    vi.mocked(fetchPattern).mockClear();
+
+    renderWithIntl(<EditorShell userEmail="user@example.com" patternId="p1" />);
+
+    await waitFor(() => expect(fetchPattern).toHaveBeenCalledTimes(1));
   });
 });
