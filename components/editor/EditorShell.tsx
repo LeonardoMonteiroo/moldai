@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useEditorStore } from "@/lib/store";
 import { relativeTime } from "@/lib/format";
@@ -12,6 +12,37 @@ import { CanvasArea } from "./CanvasArea";
 import { Footer } from "./Footer";
 import { PaywallModal } from "./PaywallModal";
 
+// #119: the editor (chat beside a canvas with floating overlays) is out of
+// scope to make genuinely responsive -- it gets an honest gate instead. `lg`
+// (1024px) matches the breakpoint every other in-scope screen collapses at.
+const DESKTOP_MEDIA_QUERY = "(min-width: 1024px)";
+
+/**
+ * Local to this file on purpose (CLAUDE.md: no new hook unless two unrelated
+ * components genuinely need one) -- the editor is the only screen that swaps
+ * its entire content for a notice rather than reflowing, so nothing else
+ * needs this.
+ *
+ * Starts `null` ("not yet measured") rather than reading matchMedia during
+ * render, so the server-rendered/first-hydration pass never disagrees with
+ * itself; `null` resolves to "desktop" below, which only costs a real narrow
+ * viewport one frame of the editor before the effect corrects it -- cheaper
+ * than a hydration mismatch.
+ */
+function useIsDesktop() {
+  const [matches, setMatches] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const mql = window.matchMedia(DESKTOP_MEDIA_QUERY);
+    const update = () => setMatches(mql.matches);
+    update();
+    mql.addEventListener("change", update);
+    return () => mql.removeEventListener("change", update);
+  }, []);
+
+  return matches !== false;
+}
+
 export function EditorShell({
   userEmail,
   patternId,
@@ -21,6 +52,7 @@ export function EditorShell({
 }) {
   const t = useTranslations("EditorShell");
   const tf = useTranslations("Format");
+  const isDesktop = useIsDesktop();
   const ready = useEditorStore((s) => s.ready);
   const pattern = useEditorStore((s) => s.pattern);
   const credits = useEditorStore((s) => s.credits);
@@ -34,6 +66,24 @@ export function EditorShell({
   useEffect(() => {
     init(patternId);
   }, [init, patternId]);
+
+  // #119: the gate comes before the load/error/loading checks below -- a
+  // narrow viewport has nothing to gain from the editor's data loading at
+  // all, and showing "Carregando molde…" first would just replace one
+  // unusable screen with another.
+  if (!isDesktop) {
+    return (
+      <div
+        role="status"
+        className="flex flex-1 flex-col items-center justify-center gap-2 p-[22px] text-center"
+      >
+        <p className="text-control font-semibold">{t("desktopOnlyTitle")}</p>
+        <p className="text-muted text-ui max-w-[320px]">
+          {t("desktopOnlyDescription")}
+        </p>
+      </div>
+    );
+  }
 
   // A failed load has to be distinguishable from a slow one. Without this the
   // store's `ready` stayed false forever on a rejected fetch and the loading

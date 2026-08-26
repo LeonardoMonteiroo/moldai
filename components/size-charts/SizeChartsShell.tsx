@@ -56,11 +56,14 @@ export function SizeChartsShell({
           {t("loadError")}
         </div>
       )}
-      {/* `fill` + `min-h-full`: the two columns are full-height panels, not a
-          stack of cards, so the row has to keep the region's height. */}
+      {/* `fill` + `min-h-full`: at `lg` and up the two columns are full-height
+          panels, not a stack of cards, so the row has to keep the region's
+          height. Below `lg` (#119) they stack instead -- the library's own
+          w-[230px] cards fit a narrow column fine, and the table keeps its own
+          overflow-x-auto for whatever width it ends up with. */}
       {ready && !error && (
         <ScrollArea fill className="min-h-0 flex-1">
-          <div className="flex min-h-full gap-4 p-[22px]">
+          <div className="flex min-h-full flex-col gap-4 p-[22px] lg:flex-row">
             <SizeChartLibrary />
             {draft && <SizeChartTable />}
           </div>

@@ -36,7 +36,7 @@ export function SettingsShell({
       sidebar={<SettingsSidebar active={activeSection} />}
     >
       <ScrollArea className="bg-paper min-h-0 flex-1">
-        <div className="flex flex-col gap-4 px-[24px] py-[22px]">
+        <div className="flex flex-col gap-4 px-[14px] py-[22px] sm:px-[24px]">
           {activeSection === "profile" && (
             <ProfileSection initialName={initialName} email={userEmail} />
           )}

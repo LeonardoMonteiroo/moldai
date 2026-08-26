@@ -49,7 +49,7 @@ export function PatternGrid({
     // takes its natural height instead of stretching to fill the viewport
     // and shoving the cards to the bottom edge.
     <div className="flex flex-col gap-4 p-[22px]">
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <span className="font-display text-display font-semibold">
           {t("countLabel", { count: patterns.length })}
         </span>
@@ -58,13 +58,13 @@ export function PatternGrid({
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder={t("searchPlaceholder")}
-          className="h-[34px] w-[180px]"
+          className="h-[34px] w-full sm:w-[180px]"
         />
         <Select
           value={typeFilter}
           onValueChange={(value) => setTypeFilter(value as typeof typeFilter)}
         >
-          <SelectTrigger size="sm" className="w-[150px]">
+          <SelectTrigger size="sm" className="w-full sm:w-[150px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -102,7 +102,7 @@ export function PatternGrid({
       )}
 
       {!isTrulyEmpty && !hasNoMatches && (
-        <div className="grid grid-cols-4 gap-[14px]">
+        <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2 lg:grid-cols-4">
           {filtered.map((p) => (
             <PatternCard key={p.id} pattern={p} onOpen={onOpen} />
           ))}
