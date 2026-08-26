@@ -17,13 +17,36 @@ import { flattenOutlineCm, TOL_CM } from "./dxf";
 // offset outward by the seam allowance — and the net sew line moved to its
 // own layer 14, D6673's reserved slot for it (closing that half of #2's
 // tracked gap).
-// #124: layer 4 (D6673's reserved notch layer) now carries every notch --
-// this is still an honest SUBSET: drill holes (13) are NOT emitted, MoldAI
-// doesn't model them. The full strict AAMA/ASTM (structured system text,
-// block records, those derived elements) remains a later "Phase 2.5".
+// #124: layer 4 (D6673's reserved notch layer) now carries every notch.
+// #2 (this pass): the file is now structurally strict — an LTYPE table
+// defines CONTINUOUS (every layer references it), a BLOCK_RECORD table
+// declares every BLOCK the file INSERTs, every classic POLYLINE carries its
+// 10/20/30 dummy point, and TEXT/999 content is restricted to plain ASCII
+// (the SVG-inherited "·" separator and any accented character are
+// normalized away — a strict importer can choke on either). This remains an
+// honest SUBSET: drill holes (layer 13) are NOT emitted — MoldAI doesn't
+// model drill-hole geometry anywhere yet (that needs the drafters, a
+// separate change) — so the "beta" tag and its inline note stay, naming
+// exactly that one remaining gap. None of this has been opened in a real
+// CAD importer (Audaces/Gerber); "strict" here means structurally
+// self-consistent DXF, verified by parsing the emitted file back apart in
+// this repo, not verified against a real reader.
 
 const MM = 10; // cm -> mm (1:1)
 const f = (n: number) => (Math.round(n * 100) / 100).toString();
+
+// Strict DXF readers can choke on non-ASCII bytes. The "·" separator was
+// inherited from the SVG export's own punctuation and isn't safe here;
+// replace it with a plain ASCII hyphen, then strip any other accent (NFD +
+// drop combining marks) and fall back to "?" for anything still outside
+// printable ASCII (e.g. an emoji in a user-typed pattern name).
+function asciiSafe(s: string): string {
+  return s
+    .replace(/·/g, " - ")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^\x20-\x7e]/g, "?");
+}
 
 // Numbered layers this subset uses, each with a color (code 62).
 const LAYERS: [string, number][] = [
@@ -48,7 +71,9 @@ export function toDxfAama(model: ExportModel): string {
 
   p(
     999,
-    `MoldAI AAMA/ASTM subset · ${model.patternName} · tam ${model.size} · folga ${model.seamAllowanceCm ?? 0}cm (camada 1 = linha de corte, camada 14 = linha de costura líquida, camada 4 = piques)`,
+    asciiSafe(
+      `MoldAI AAMA/ASTM subset · ${model.patternName} · tam ${model.size} · folga ${model.seamAllowanceCm ?? 0}cm (camada 1 = linha de corte, camada 14 = linha de costura líquida, camada 4 = piques)`,
+    ),
   );
 
   // HEADER — R13, millimeters, metric.
@@ -62,9 +87,23 @@ export function toDxfAama(model: ExportModel): string {
   p(70, 1); // 1 = metric
   p(0, "ENDSEC");
 
-  // TABLES / LAYER — numbered layers.
+  // TABLES / LTYPE — every layer below references "CONTINUOUS" (group 6),
+  // so the table defining it has to exist for a strict reader to resolve it.
   p(0, "SECTION");
   p(2, "TABLES");
+  p(0, "TABLE");
+  p(2, "LTYPE");
+  p(70, 1);
+  p(0, "LTYPE");
+  p(2, "CONTINUOUS");
+  p(70, 0);
+  p(3, "Solid line");
+  p(72, 65);
+  p(73, 0);
+  p(40, 0.0);
+  p(0, "ENDTAB");
+
+  // TABLES / LAYER — numbered layers.
   p(0, "TABLE");
   p(2, "LAYER");
   p(70, LAYERS.length);
@@ -76,6 +115,19 @@ export function toDxfAama(model: ExportModel): string {
     p(6, "CONTINUOUS");
   }
   p(0, "ENDTAB");
+
+  // TABLES / BLOCK_RECORD — one entry per BLOCK the ENTITIES section
+  // INSERTs below; a strict reader resolves an INSERT's block name through
+  // this table, not just the BLOCKS section itself.
+  p(0, "TABLE");
+  p(2, "BLOCK_RECORD");
+  p(70, model.pieces.length);
+  for (const piece of model.pieces) {
+    p(0, "BLOCK_RECORD");
+    p(2, blockName(piece.id));
+  }
+  p(0, "ENDTAB");
+
   p(0, "ENDSEC");
 
   // The piece's local geometry -> DXF-up inside the BLOCK (Y flipped by the
@@ -91,6 +143,9 @@ export function toDxfAama(model: ExportModel): string {
     p(0, "POLYLINE");
     p(8, "1");
     p(66, 1);
+    p(10, 0); // dummy point (always 0,0,0) — classic POLYLINE's own vertices are the VERTEX entities below
+    p(20, 0);
+    p(30, 0);
     p(70, 1); // 70=1 closed
     for (const v of cutVerts) {
       p(0, "VERTEX");
@@ -106,6 +161,9 @@ export function toDxfAama(model: ExportModel): string {
     p(0, "POLYLINE");
     p(8, "14");
     p(66, 1);
+    p(10, 0); // dummy point, see the cut-line POLYLINE above
+    p(20, 0);
+    p(30, 0);
     p(70, 1); // 70=1 closed
     for (const v of netVerts) {
       p(0, "VERTEX");
@@ -122,7 +180,7 @@ export function toDxfAama(model: ExportModel): string {
     p(10, X(0));
     p(20, f(Math.max(0, h * MM - 8)));
     p(40, 8); // text height in mm
-    p(1, `${piece.name.toUpperCase()} ${piece.qty}X`);
+    p(1, asciiSafe(`${piece.name.toUpperCase()} ${piece.qty}X`));
 
     // fold/mirror line -> LINE on layer 6 (#126, ASTM D6673's reserved
     // semantics for it) — geometry only, matching the grainline's own
@@ -165,6 +223,9 @@ export function toDxfAama(model: ExportModel): string {
       p(0, "POLYLINE");
       p(8, "8");
       p(66, 1);
+      p(10, 0); // dummy point, see the cut-line POLYLINE above
+      p(20, 0);
+      p(30, 0);
       p(70, 0);
       for (const d of dart) {
         p(0, "VERTEX");
