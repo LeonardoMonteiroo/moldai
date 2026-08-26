@@ -271,8 +271,24 @@
     "layoutNote": "Encaixe automático first-fit (não ótimo) · fio travado, sem rotação das peças · cada peça repetida pela quantidade a cortar. Linha líquida — sem margem de costura. Encaixe manual e otimizado <em>em breve</em>."
   },
   "Proof3DTab": {
-    "title": "Prova 3D ainda não disponível",
-    "description": "A visualização 3D do molde vestido no corpo virtual está em desenvolvimento."
+    "title": "Prova 3D",
+    "betaBadge": "Beta",
+    "emptyState": "Gere um molde para ver a prova 3D.",
+    "buildError": "Não foi possível gerar a prévia 3D deste molde.",
+    "viewLabel": "Ângulo de visualização",
+    "view": {
+      "front": "Frente",
+      "side": "Lado",
+      "back": "Costas"
+    },
+    "canvasAriaLabel": "Prova 3D de {name}, vista de {view}",
+    "ease": {
+      "bust": "Folga (busto)",
+      "waist": "Folga (cintura)",
+      "hip": "Folga (quadril)"
+    },
+    "easeHint": "circunferência do molde − circunferência do corpo",
+    "approximationNote": "Aproximação paramétrica no tamanho base, projetada a partir da modelagem real sobre um corpo virtual — <em>não</em> é uma simulação de caimento: costuras, pinças e franzidos não são representados, e saias radiais aparecem como um cone simplificado. Simulação de caimento <em>em breve</em>."
   },
   "EditorShell": {
     "loading": "Carregando molde…",
