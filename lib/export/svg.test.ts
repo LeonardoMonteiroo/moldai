@@ -2,6 +2,58 @@ import { describe, it, expect } from "vitest";
 import { toSvg } from "./svg";
 import type { ExportModel } from "./model";
 
+// #85: a structural well-formedness check with no external XML parser --
+// `saxes` is only reachable today as jsdom's transitive dependency, and this
+// file lives under lib/, which runs in the `node` vitest project (no reason
+// to have jsdom's tree present at all). A jsdom bump that drops/renames its
+// XML parser, or a stricter package manager, would break an import of
+// "saxes" here with an unrelated-looking module-resolution error, for a
+// dependency this file has no declared right to use. This checks exactly
+// the shape lib/export/svg.ts actually emits: an XML decl, a single-line
+// header comment, one root <svg>, a body of self-closing tags or single-line
+// <text>...</text> pairs, and a matching </svg> -- rejecting an unescaped
+// "&", an unclosed comment, or any content trailing past the root element,
+// which is exactly how the "--" comment defect (#83) shipped unnoticed.
+const NUM = String.raw`-?\d+(?:\.\d+)?`;
+const PATH_D = new RegExp(
+  `^M${NUM} ${NUM}(?: L${NUM} ${NUM}| C(?:${NUM} ){5}${NUM})*( Z)?$`,
+);
+
+function assertWellFormedSvg(svg: string): void {
+  const lines = svg.split("\n");
+  expect(lines[0]).toBe('<?xml version="1.0" encoding="UTF-8"?>');
+
+  // A single-line header comment, properly opened and closed.
+  expect(lines[1].startsWith("<!--")).toBe(true);
+  expect(lines[1].endsWith("-->")).toBe(true);
+  const commentBody = lines[1].slice(4, -3);
+  expect(commentBody).not.toContain("--");
+  expect(commentBody).not.toContain("<!--");
+
+  // Exactly one root element, opened right after the comment and closed on
+  // the document's very last line -- nothing precedes or trails it.
+  expect(lines[2]).toMatch(/^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg"/);
+  expect(lines[lines.length - 1]).toBe("</svg>");
+
+  // Every line in the body is exactly one balanced element: a self-closing
+  // <path>/<line>, or a <text>…</text> pair on one line -- never an
+  // unclosed tag or stray markup.
+  for (const line of lines.slice(3, -1)) {
+    const isSelfClosing = /^<(path|line)\b[^<>]*\/>$/.test(line);
+    const isTextPair = /^<text\b[^<>]*>[^<>]*<\/text>$/.test(line);
+    expect(isSelfClosing || isTextPair).toBe(true);
+    // No bare "&" that isn't one of the entities escapeXml actually emits.
+    expect(line).not.toMatch(/&(?!amp;|lt;|gt;|quot;)/);
+  }
+
+  // Every path's `d` attribute is a valid, well-formed command sequence
+  // (M start, then only L/C commands, optionally closed with Z) -- never
+  // malformed or truncated coordinate data.
+  for (const d of svg.match(/(?<=<path[^<>]*\bd=")[^"]*(?=")/g) ?? []) {
+    expect(d).toMatch(PATH_D);
+  }
+}
+
 const model: ExportModel = {
   patternName: "Camiseta & Cia",
   size: "M",
@@ -57,6 +109,22 @@ const model: ExportModel = {
 };
 
 describe("toSvg", () => {
+  // #85: svg.test.ts asserted dimensions/scale/piece counts by substring but
+  // never that the output as a whole is well-formed -- exactly how the
+  // `--`-inside-a-comment defect (#83, covered below) shipped unnoticed.
+  it("is well-formed end to end", () => {
+    assertWellFormedSvg(toSvg(model));
+  });
+
+  it("stays well-formed even with untrusted names carrying XML-hostile characters", () => {
+    const svg = toSvg({
+      ...model,
+      patternName: `Vestido <script>"&'-->-- ${"設計圖"}`,
+      size: `M--><!--${"-".repeat(5)}`,
+    });
+    assertWellFormedSvg(svg);
+  });
+
   it("generates 1:1 mm dimensions and a viewBox", () => {
     const svg = toSvg(model);
     expect(svg).toContain('width="200mm"'); // 20cm * 10
