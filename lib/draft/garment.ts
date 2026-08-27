@@ -11,12 +11,16 @@ import {
   GarmentType,
   SleeveLength,
   SkirtSilhouette,
+  CollarType,
+  CuffType,
+  WaistbandType,
   Gender,
   Piece,
   PieceOutline,
 } from "@/lib/types";
 import {
   autoLayout,
+  curveArcLengthCm,
   DraftedPiece,
   PX,
   outlinePath,
@@ -24,8 +28,15 @@ import {
   translateOutline,
 } from "./core";
 import { BlockOpts, draftBody } from "./body";
-import { draftSleeve, CAP_EASE_CM } from "./sleeve";
+import { draftSleeve, CAP_EASE_CM, WRIST_EASE_CM } from "./sleeve";
 import { draftSkirt, skirtWaistHalfCm } from "./skirt";
+import {
+  draftCollar,
+  draftCuff,
+  draftPlacket,
+  draftWaistband,
+  WAISTBAND_OVERLAP_CM,
+} from "./subpieces";
 import { FIT_CLASSES, STRETCH_CLASSES, wearingEaseCm } from "./ease";
 import {
   SeamEdgeRef,
@@ -49,6 +60,12 @@ export const SKIRTS: SkirtSilhouette[] = [
   "half-circle",
   "circle",
 ];
+// #129/#130/#131: one exported source per sub-piece enum, the same rule
+// every other AI-facing catalog here follows -- schema.ts/prompt.ts render
+// from these, never a hardcoded duplicate list.
+export const COLLARS: CollarType[] = ["none", "convertible"];
+export const CUFFS: CuffType[] = ["none", "straight"];
+export const WAISTBANDS: WaistbandType[] = ["none", "straight"];
 // #125: FIT_CLASSES/STRETCH_CLASSES/FIT_EASE_CM/STRETCH_EASE_PCT/wearingEaseCm
 // live in ./ease, a leaf module with no dependency on this file or on
 // body.ts — body.ts needs them too (the actual drafting), and it's a
@@ -147,6 +164,16 @@ export function validateSpec(raw: unknown): GarmentSpec {
           )
         : undefined,
     // sleeveRefit is internal (only the conflict resolver sets it); never comes from the AI.
+    collar:
+      style.collar !== undefined
+        ? pick(style.collar, COLLARS, "none")
+        : undefined,
+    cuff:
+      style.cuff !== undefined ? pick(style.cuff, CUFFS, "none") : undefined,
+    waistband:
+      style.waistband !== undefined
+        ? pick(style.waistband, WAISTBANDS, "straight")
+        : undefined,
   };
   return {
     type: pick(r.type, TYPES, "blouse"),
@@ -358,6 +385,81 @@ function draftAll(
           fixable: false,
         });
       }
+      // #130: a straight cuff (+ placket), drafted from the sleeve's own
+      // measured hem edge -- only meaningful with a long sleeve; a short or
+      // sleeveless garment simply never reaches this branch (`style.cuff` is
+      // otherwise unused, the same "type-mismatched style field is a no-op"
+      // precedent skirt-only fields already follow on a bodice-only spec).
+      if (
+        style.sleeve === "long" &&
+        style.cuff === "straight" &&
+        sleeve.seamEdges
+      ) {
+        const hemArcCm = curveArcLengthCm(
+          sleeve.outlineCm,
+          sleeve.curvedSpans ?? [],
+          ...sleeve.seamEdges.hem,
+        );
+        const wristEase = opts.knit ? WRIST_EASE_CM.knit : WRIST_EASE_CM.woven;
+        const cuff = draftCuff(hemArcCm + wristEase, t);
+        const placket = draftPlacket(t);
+        drafted.push(cuff, placket);
+        if (cuff.seamEdges) {
+          seamPairs.push({
+            key: "cuff-hem",
+            labelKey: "cuffHem",
+            a: [edgeRef(sleeve.id, sleeve.seamEdges.hem)],
+            b: [edgeRef(cuff.id, cuff.seamEdges.hem)],
+            easeCm: wristEase,
+            fixable: false,
+          });
+        }
+      }
+    }
+    // #129: a convertible collar, drafted from the front+back neckline's
+    // own measured arc -- computed directly off the already-drafted panels
+    // (never persisted, never a proportion of the bust), the same
+    // "measure the geometry that was actually emitted" rule the armhole/cap
+    // pair already established.
+    if (style.collar === "convertible" && front.seamEdges && back.seamEdges) {
+      const necklineArcCm =
+        curveArcLengthCm(
+          front.outlineCm,
+          front.curvedSpans ?? [],
+          ...front.seamEdges.necklineLeft,
+        ) +
+        curveArcLengthCm(
+          front.outlineCm,
+          front.curvedSpans ?? [],
+          ...front.seamEdges.necklineRight,
+        ) +
+        curveArcLengthCm(
+          back.outlineCm,
+          back.curvedSpans ?? [],
+          ...back.seamEdges.necklineLeft,
+        ) +
+        curveArcLengthCm(
+          back.outlineCm,
+          back.curvedSpans ?? [],
+          ...back.seamEdges.necklineRight,
+        );
+      const collar = draftCollar(necklineArcCm, t);
+      drafted.push(collar);
+      if (collar.seamEdges) {
+        seamPairs.push({
+          key: "collar-neckline",
+          labelKey: "collarNeckline",
+          a: [
+            edgeRef(front.id, front.seamEdges.necklineLeft),
+            edgeRef(front.id, front.seamEdges.necklineRight),
+            edgeRef(back.id, back.seamEdges.necklineLeft),
+            edgeRef(back.id, back.seamEdges.necklineRight),
+          ],
+          b: [edgeRef(collar.id, collar.seamEdges.neckline)],
+          easeCm: 0,
+          fixable: false,
+        });
+      }
     }
   }
   if (spec.type === "skirt" || spec.type === "dress") {
@@ -400,6 +502,43 @@ function draftAll(
         easeCm: 0,
         fixable: false,
       });
+    }
+    // #131: a straight waistband, drafted from the skirt panel's own
+    // measured waist edge (summed across every cut panel -- the full closed
+    // waist circumference, not one panel's share of it) plus a fixed
+    // closure overlap. Standalone skirt archetype only: a dress joins its
+    // skirt panel directly to the bodice at the natural waist instead (the
+    // waist-join pairs just above, and #177's own tracked gap there) --
+    // waistband and waist-join never both apply to the same garment.
+    // Defaults ON for a skirt (unlike collar/cuff, which default "none"):
+    // a skirt with no waistband is the exact defect this issue exists to
+    // fix, so every skirt gets one unless explicitly turned off.
+    if (
+      spec.type === "skirt" &&
+      (spec.style.waistband ?? "straight") !== "none" &&
+      skirtPiece.seamEdges
+    ) {
+      const waistLenCm =
+        curveArcLengthCm(
+          skirtPiece.outlineCm,
+          skirtPiece.curvedSpans ?? [],
+          ...skirtPiece.seamEdges.waist,
+        ) * skirtPiece.qty;
+      const waistband = draftWaistband(waistLenCm, t);
+      drafted.push(waistband);
+      if (waistband.seamEdges) {
+        const waistRefs = Array.from({ length: skirtPiece.qty }, () =>
+          edgeRef(skirtPiece.id, skirtPiece.seamEdges!.waist),
+        );
+        seamPairs.push({
+          key: "waistband-waist",
+          labelKey: "waistbandWaist",
+          a: waistRefs,
+          b: [edgeRef(waistband.id, waistband.seamEdges.waist)],
+          easeCm: WAISTBAND_OVERLAP_CM,
+          fixable: false,
+        });
+      }
     }
   }
 

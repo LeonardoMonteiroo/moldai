@@ -15,7 +15,14 @@ export const DECORATION_CASES: [string, GarmentSpec][] = [
       type: "blouse",
       gender: "female",
       measurementOverrides: {},
-      style: { neckline: "round", sleeve: "short", darts: true },
+      // #129: exercises the convertible collar across every DECORATION_CASES
+      // consumer (containment, byte-identical-fallback, seam graph, ...).
+      style: {
+        neckline: "round",
+        sleeve: "short",
+        darts: true,
+        collar: "convertible",
+      },
     },
   ],
   [
@@ -29,6 +36,8 @@ export const DECORATION_CASES: [string, GarmentSpec][] = [
         necklineDepthCm: STYLE_LIMITS.necklineDepthCm.max,
         sleeve: "long",
         darts: true,
+        // #130: exercises the cuff + placket across the same matrix.
+        cuff: "straight",
       },
     },
   ],

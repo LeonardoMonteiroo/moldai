@@ -41,6 +41,16 @@ export type SkirtSilhouette =
 // lib/draft/garment.ts's FIT_EASE_CM / STRETCH_EASE_PCT.
 export type FitClass = "close" | "fitted" | "semiFitted" | "loose";
 export type StretchClass = "none" | "low" | "medium" | "high";
+// #129/#130/#131 (Wave 2/W4): the three sub-piece types, each a closed enum
+// of exactly what's actually drafted today plus "none" -- there is no third
+// value the AI can select, unlike a proportion-tunable numeric field. Other
+// shapes (mandarin/Peter Pan collar, shaped cuff, contoured waistband) are
+// "em breve", surfaced inline on the drafted piece's own detail row (see
+// lib/draft/subpieces.ts) and in lib/ai/prompt.ts's guidance, rather than a
+// silently-ignored enum value -- there IS no such value to silently accept.
+export type CollarType = "none" | "convertible";
+export type CuffType = "none" | "straight";
+export type WaistbandType = "none" | "straight";
 
 export interface ClarifyQuestion {
   id: string;
@@ -66,6 +76,26 @@ export interface GarmentStyle {
   // Internal (NOT settable by the AI — validateSpec discards it): set by
   // "Corrigir manga" (sleeve fix) in the resolver, remakes the cap for the adjusted armhole.
   sleeveRefit?: boolean;
+  // #129: a convertible collar, drafted from the front+back neckline's own
+  // measured arc (lib/draft/subpieces.ts's draftCollar). Applies to any
+  // body-having garment (blouse/dress/tshirt); undefined/"none" drafts no
+  // collar at all, unchanged from before this issue.
+  collar?: CollarType;
+  // #130: a straight cuff (plus its placket) drafted from the sleeve's own
+  // measured hem edge. Only meaningful with sleeve: "long" -- a short or
+  // sleeveless garment simply never reaches the drafting branch that reads
+  // this, the same way skirt-only style fields are unused on a bodice.
+  cuff?: CuffType;
+  // #131: a straight waistband drafted from the skirt panel's own measured
+  // waist edge plus a fixed closure overlap. Only applies to the standalone
+  // skirt archetype (spec.type === "skirt") -- a dress's bodice joins the
+  // skirt panel directly at the natural waist (see the seam-conflict section
+  // below), so this field is simply unread for a dress. Undefined defaults
+  // to "straight": unlike collar/cuff (new capabilities the AI must actively
+  // request), a skirt with no waistband is the exact defect #131 exists to
+  // fix, so every newly-drafted skirt gets one unless explicitly set to
+  // "none".
+  waistband?: WaistbandType;
 }
 
 export interface GarmentSpec {

@@ -414,16 +414,34 @@ describe("buildExportModel", () => {
       // it never reduces the perimeter -- the full boundary always gets the
       // full allowance uniformly, which is why `expected` is bare
       // perimeter x allowance with no fold subtraction.
-      it(`${name}: cut-line area growth is within 5% of perimeter x allowance`, () => {
+      it(`${name}: cut-line area growth is within 5% of perimeter x allowance (plus a small fixed corner floor)`, () => {
         const model = buildExportModel(patternFor(spec), t);
+        const allowance = model.seamAllowanceCm!;
         for (const piece of model.pieces) {
           const net = flattenOutlineCm(piece.outline, TOL_CM);
           const cut = flattenOutlineCm(piece.cutOutline, TOL_CM);
-          const expected = perimeter(net) * model.seamAllowanceCm!;
+          const expected = perimeter(net) * allowance;
           const grown = shoelaceArea(cut) - shoelaceArea(net);
-          expect(Math.abs(grown - expected)).toBeLessThanOrEqual(
-            0.05 * expected,
-          );
+          // A mitred (sharp-cornered) uniform offset legitimately grows a
+          // convex polygon's area by MORE than perimeter x allowance alone
+          // -- exactly allowance^2 per 90-degree corner for a plain
+          // rectangle (grow a W x H rect by d on every side: new area =
+          // (W+2d)(H+2d) = WH + perimeter*d + 4d^2). For a large,
+          // curve-heavy body/skirt/sleeve piece that 4d^2 term is a
+          // rounding error against the perimeter term, which is why 5%
+          // alone covered every piece before #129/#130/#131. Those issues
+          // add small, mostly-rectangular band pieces (collar/cuff/
+          // placket/waistband) with only ~4 real corners and a short
+          // perimeter, where the identical, geometrically-correct 4d^2
+          // correction is a real few-cm^2 that a flat 5% relative bound
+          // has no room for. The floor below is 1.5x that exact
+          // 4-right-angle-corner formula (headroom for the gentler,
+          // non-90-degree corners this suite's curved pieces also carry),
+          // and it only matters when `expected` itself is small -- it
+          // changes nothing for any piece where 5% already dominates.
+          const cornerFloor = 6 * allowance * allowance;
+          const tolerance = Math.max(0.05 * expected, cornerFloor);
+          expect(Math.abs(grown - expected)).toBeLessThanOrEqual(tolerance);
         }
       });
     }

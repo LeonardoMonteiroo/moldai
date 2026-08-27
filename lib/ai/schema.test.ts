@@ -4,6 +4,9 @@ import {
   NECKLINES,
   SLEEVES,
   SKIRTS,
+  COLLARS,
+  CUFFS,
+  WAISTBANDS,
   TYPES,
   GENDERS,
   STYLE_LIMITS,
@@ -51,6 +54,12 @@ describe("propose_garment tool schema", () => {
     expect(style.skirt.enum).toEqual(SKIRTS);
     expect(style.fit.enum).toEqual(FIT_CLASSES);
     expect(style.stretch.enum).toEqual(STRETCH_CLASSES);
+    // #129/#130/#131: the sub-piece enums -- exactly what's actually
+    // drafted (plus "none"), never a wider aspirational list the AI could
+    // select but validateSpec would silently clamp away.
+    expect(style.collar.enum).toEqual(COLLARS);
+    expect(style.cuff.enum).toEqual(CUFFS);
+    expect(style.waistband.enum).toEqual(WAISTBANDS);
   });
 
   it("offers all four decisions", () => {

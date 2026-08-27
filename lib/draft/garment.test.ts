@@ -146,6 +146,44 @@ describe("validateSpec", () => {
     expect(s.style.seamAllowanceCm).toBe(STYLE_LIMITS.seamAllowanceCm.max);
     expect(s.style.armholeDeepenCm).toBe(STYLE_LIMITS.armholeDeepenCm.max);
   });
+
+  // #129/#130/#131: collar/cuff/waistband are closed enums (no numeric
+  // range) -- an invalid value falls back to a fixed default the same way
+  // neckline/sleeve/skirt already do, and collar/cuff default "none" while
+  // waistband defaults "straight" (see lib/types.ts's GarmentStyle doc for
+  // why the three don't share one default).
+  it("falls back to none/none/straight on invalid collar/cuff/waistband enums", () => {
+    const s = validateSpec({
+      type: "blouse",
+      style: { collar: "peter-pan", cuff: "tower", waistband: "contoured" },
+      measurementOverrides: {},
+    });
+    expect(s.style.collar).toBe("none");
+    expect(s.style.cuff).toBe("none");
+    expect(s.style.waistband).toBe("straight");
+  });
+
+  it("accepts every valid collar/cuff/waistband value", () => {
+    const s = validateSpec({
+      type: "blouse",
+      style: { collar: "convertible", cuff: "straight", waistband: "none" },
+      measurementOverrides: {},
+    });
+    expect(s.style.collar).toBe("convertible");
+    expect(s.style.cuff).toBe("straight");
+    expect(s.style.waistband).toBe("none");
+  });
+
+  it("leaves collar/cuff/waistband undefined when the spec doesn't mention them", () => {
+    const s = validateSpec({
+      type: "blouse",
+      style: {},
+      measurementOverrides: {},
+    });
+    expect(s.style.collar).toBeUndefined();
+    expect(s.style.cuff).toBeUndefined();
+    expect(s.style.waistband).toBeUndefined();
+  });
 });
 
 describe("draftGarment", () => {
@@ -185,7 +223,7 @@ describe("draftGarment", () => {
       true,
     );
   });
-  it("skirt generates only the skirt piece and viewBox > 0", () => {
+  it("skirt generates the skirt panel plus its default waistband, and viewBox > 0 (#131)", () => {
     const { pieces, viewBox } = draftGarment(
       {
         type: "skirt",
@@ -196,8 +234,22 @@ describe("draftGarment", () => {
       SIZE_TABLE.M,
       t,
     );
-    expect(pieces.map((p) => p.id)).toEqual(["skirt"]);
+    expect(pieces.map((p) => p.id)).toEqual(["skirt", "waistband"]);
     expect(viewBox.w).toBeGreaterThan(0);
+  });
+
+  it('skirt with waistband: "none" generates only the skirt piece (#131)', () => {
+    const { pieces } = draftGarment(
+      {
+        type: "skirt",
+        gender: "female",
+        measurementOverrides: {},
+        style: { skirt: "gore", waistband: "none" },
+      },
+      SIZE_TABLE.M,
+      t,
+    );
+    expect(pieces.map((p) => p.id)).toEqual(["skirt"]);
   });
   it("dress combines body + skirt", () => {
     const { pieces } = draftGarment(
@@ -1213,5 +1265,90 @@ describe("seam graph (#134)", () => {
     for (const m of graph) {
       expect(m.diffCm, `${m.key}: ${m.diffCm}`).toBeLessThan(1);
     }
+  });
+
+  // #129/#130/#131 (Wave 2/W4) acceptance criterion, verbatim: "derived from
+  // the measured [edge], with a test asserting the match within 0.3 cm."
+  // seamCheck's own 1cm SEAM_TOLERANCE_CM is a looser bound meant to catch a
+  // genuine fit defect; these three assert the tighter number the issues
+  // actually ask for, against the real seam graph (not a hand re-derivation
+  // of each drafter's own arithmetic).
+  it("#129: the collar's neckline seam matches the front+back neckline arc within 0.3cm", () => {
+    const spec = {
+      type: "blouse" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: {
+        neckline: "round" as const,
+        sleeve: "none" as const,
+        collar: "convertible" as const,
+      },
+    };
+    const graph = measureSeamGraph(spec, SIZE_TABLE.M, t);
+    const pair = graph.find((m) => m.key === "collar-neckline");
+    expect(pair).toBeDefined();
+    expect(pair!.fixable).toBe(false);
+    expect(pair!.diffCm).toBeLessThan(0.3);
+  });
+
+  it("#130: the cuff's own seam matches the sleeve's measured hem edge (plus wrist ease) within 0.3cm", () => {
+    const spec = {
+      type: "blouse" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { sleeve: "long" as const, cuff: "straight" as const },
+    };
+    const graph = measureSeamGraph(spec, SIZE_TABLE.M, t);
+    const pair = graph.find((m) => m.key === "cuff-hem");
+    expect(pair).toBeDefined();
+    expect(pair!.fixable).toBe(false);
+    expect(pair!.diffCm).toBeLessThan(0.3);
+  });
+
+  it("no cuff is drafted for a short sleeve even when style.cuff is set (cuff only applies to sleeve: long)", () => {
+    const spec = {
+      type: "blouse" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { sleeve: "short" as const, cuff: "straight" as const },
+    };
+    const pieces = draftPiecesCm(spec, SIZE_TABLE.M, t);
+    expect(pieces.map((p) => p.id)).not.toContain("cuff");
+    expect(pieces.map((p) => p.id)).not.toContain("placket");
+  });
+
+  it("#131: the waistband's own seam matches the skirt's measured waist edge (plus overlap) within 0.3cm, for every silhouette", () => {
+    for (const silhouette of [
+      "straight",
+      "a-line",
+      "gore",
+      "half-circle",
+      "circle",
+    ] as const) {
+      const spec = {
+        type: "skirt" as const,
+        gender: "female" as const,
+        measurementOverrides: {},
+        style: { skirt: silhouette },
+      };
+      const graph = measureSeamGraph(spec, SIZE_TABLE.M, t);
+      const pair = graph.find((m) => m.key === "waistband-waist");
+      expect(pair, silhouette).toBeDefined();
+      expect(pair!.fixable, silhouette).toBe(false);
+      expect(pair!.diffCm, silhouette).toBeLessThan(0.3);
+    }
+  });
+
+  it("#131: a dress's skirt panel gets no waistband -- it joins the bodice at the natural waist instead", () => {
+    const spec = {
+      type: "dress" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { sleeve: "none" as const, darts: true, skirt: "a-line" as const },
+    };
+    const graph = measureSeamGraph(spec, SIZE_TABLE.M, t);
+    expect(graph.find((m) => m.key === "waistband-waist")).toBeUndefined();
+    const pieces = draftPiecesCm(spec, SIZE_TABLE.M, t);
+    expect(pieces.map((p) => p.id)).not.toContain("waistband");
   });
 });
