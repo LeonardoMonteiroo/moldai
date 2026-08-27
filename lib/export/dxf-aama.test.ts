@@ -90,6 +90,24 @@ const dartModel: ExportModel = {
   ],
 };
 
+function patternFor(spec: Pattern["spec"]): Pattern {
+  const gender = spec?.gender;
+  const m = gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
+  return {
+    id: "p1",
+    name: "Vestido Ateliê",
+    version: 1,
+    baseSize: "M",
+    unit: "cm",
+    sizes: ["M"],
+    sizesApplied: [],
+    sizesPending: [],
+    sizeTable: { M: m },
+    pieces: [],
+    spec,
+  };
+}
+
 describe("toDxfAama", () => {
   it("R13 header (AC1012), mm, and a 999 AAMA/ASTM-subset comment", () => {
     const dxf = toDxfAama(squareModel);
@@ -155,10 +173,49 @@ describe("toDxfAama", () => {
     expect(dxf).not.toContain("LWPOLYLINE");
   });
 
-  it("name/qty as the piece's system text", () => {
+  it("the system text is structured: the name, then one labelled field per line", () => {
     const dxf = toDxfAama(squareModel);
     expect(dxf).toContain("\nTEXT\n");
-    expect(dxf).toContain("FRENTE 2X");
+    // the name now stands alone -- the old single "FRENTE 2X" line is gone
+    expect(dxf).toContain("\nFRENTE\n");
+    expect(dxf).not.toContain("FRENTE 2X");
+    expect(dxf).toContain("QTD: 2X");
+    expect(dxf).toContain("TAM: M");
+    expect(dxf).toContain("FOLGA: 1CM");
+  });
+
+  it("the structured text names the garment archetype, from a real drafted model", () => {
+    const [, spec] = DECORATION_CASES[0];
+    const dxf = toDxfAama(buildExportModel(patternFor(spec), t));
+    // the stable EN enum value, not a pt-BR catalog label: this string is read
+    // by CAD software and must not move when the copy is rewritten
+    expect(dxf).toContain(`MODELO: ${String(spec?.type).toUpperCase()}`);
+  });
+
+  it("a hand-built model carrying no garmentType simply omits MODELO", () => {
+    expect(toDxfAama(squareModel)).not.toContain("MODELO:");
+  });
+
+  it("at a zero seam allowance the net line is not emitted as a second, coincident polyline", () => {
+    // seamAllowanceCm = 0 is inside STYLE_LIMITS, and at 0 the cut line IS the
+    // net line -- emitting both hands the importer two identical closed
+    // polylines on layers 1 and 14.
+    const flat: ExportModel = {
+      ...squareModel,
+      seamAllowanceCm: 0,
+      pieces: [
+        { ...squareModel.pieces[0], cutOutline: squareModel.pieces[0].outline },
+      ],
+    };
+    const dxf = toDxfAama(flat);
+    expect(() => polylineXsOnLayer(dxf, "1")).not.toThrow();
+    expect(() => polylineXsOnLayer(dxf, "14")).toThrow();
+    // layer 14 stays DECLARED in the LAYER table, so a reader never dangles
+    expect(dxf).toContain("\nLAYER\n");
+  });
+
+  it("a nonzero seam allowance still emits both the cut and the net line", () => {
+    expect(() => polylineXsOnLayer(toDxfAama(squareModel), "14")).not.toThrow();
   });
 
   it("1:1 scale: layer 1 is the 12cm cut line, layer 14 the 10cm net line (mm)", () => {
@@ -272,24 +329,6 @@ describe("toDxfAama", () => {
   // hand-picked fixture) -- matches CLAUDE.md's own DECORATION_CASES
   // precedent for cross-format invariants.
   describe("ASCII-only across the real drafting matrix (DECORATION_CASES)", () => {
-    function patternFor(spec: Pattern["spec"]): Pattern {
-      const gender = spec?.gender;
-      const m = gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
-      return {
-        id: "p1",
-        name: "Vestido Ateliê",
-        version: 1,
-        baseSize: "M",
-        unit: "cm",
-        sizes: ["M"],
-        sizesApplied: [],
-        sizesPending: [],
-        sizeTable: { M: m },
-        pieces: [],
-        spec,
-      };
-    }
-
     for (const [name, spec] of DECORATION_CASES) {
       it(`${name}: emitted DXF is pure ASCII`, () => {
         const model = buildExportModel(patternFor(spec), t);

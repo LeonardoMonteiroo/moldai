@@ -32,6 +32,11 @@ import { flattenOutlineCm, TOL_CM } from "./dxf";
 // back apart in this repo, not verified against a real reader.
 
 const MM = 10; // cm -> mm (1:1)
+// #2: the per-piece system text block. The name leads at a larger height;
+// each labelled field below it is smaller and stacked one step down.
+const TEXT_NAME_H = 8; // mm
+const TEXT_FIELD_H = 5; // mm
+const TEXT_FIELD_STEP = 6; // mm between field baselines
 const f = (n: number) => (Math.round(n * 100) / 100).toString();
 
 // Strict DXF readers can choke on non-ASCII bytes. The "·" separator was
@@ -157,30 +162,62 @@ export function toDxfAama(model: ExportModel): string {
     p(8, "1");
 
     // #123: layer 14 is the net sew line, D6673's reserved slot for it.
-    const netVerts = flattenOutlineCm(piece.outline, TOL_CM);
-    p(0, "POLYLINE");
-    p(8, "14");
-    p(66, 1);
-    p(10, 0); // dummy point, see the cut-line POLYLINE above
-    p(20, 0);
-    p(30, 0);
-    p(70, 1); // 70=1 closed
-    for (const v of netVerts) {
-      p(0, "VERTEX");
+    // #2: emitted ONLY when the allowance actually separates the two lines.
+    // At seamAllowanceCm = 0 -- a value STYLE_LIMITS genuinely allows -- the
+    // cut line IS the net line, and emitting both would hand the importer two
+    // coincident closed polylines on different layers: a reader that honours
+    // layer 14 would draw a sew line exactly on the cut line, and a cutter
+    // reading layer 1 would see a duplicate boundary.
+    if ((model.seamAllowanceCm ?? 0) > 0) {
+      const netVerts = flattenOutlineCm(piece.outline, TOL_CM);
+      p(0, "POLYLINE");
       p(8, "14");
-      p(10, X(v.x));
-      p(20, Y(v.y));
+      p(66, 1);
+      p(10, 0); // dummy point, see the cut-line POLYLINE above
+      p(20, 0);
+      p(30, 0);
+      p(70, 1); // 70=1 closed
+      for (const v of netVerts) {
+        p(0, "VERTEX");
+        p(8, "14");
+        p(10, X(v.x));
+        p(20, Y(v.y));
+      }
+      p(0, "SEQEND");
+      p(8, "14");
     }
-    p(0, "SEQEND");
-    p(8, "14");
 
-    // name/qty as the piece's system text, on layer 1
+    // #2: the piece's system text, on layer 1. Structured into one labelled
+    // field per line instead of the single "NAME NX" string this used to
+    // emit: a cut piece leaves the sheet and has to carry its own identity,
+    // and the size/allowance it was drafted at is exactly what distinguishes
+    // two otherwise identical outlines. DXF TEXT is single-line, so the block
+    // is several stacked TEXT entities rather than one multi-line entity
+    // (MTEXT is R13+ but far less uniformly supported by pattern CAD).
+    const nameY = Math.max(0, h * MM - TEXT_NAME_H);
     p(0, "TEXT");
     p(8, "1");
     p(10, X(0));
-    p(20, f(Math.max(0, h * MM - 8)));
-    p(40, 8); // text height in mm
-    p(1, asciiSafe(`${piece.name.toUpperCase()} ${piece.qty}X`));
+    p(20, f(nameY));
+    p(40, TEXT_NAME_H);
+    p(1, asciiSafe(piece.name.toUpperCase()));
+
+    const fields: [string, string][] = [
+      ["QTD", `${piece.qty}X`],
+      ["TAM", `${model.size}`],
+    ];
+    // Absent only on a hand-built fixture; buildExportModel always sets it.
+    if (model.garmentType)
+      fields.push(["MODELO", model.garmentType.toUpperCase()]);
+    fields.push(["FOLGA", `${model.seamAllowanceCm ?? 0}CM`]);
+    fields.forEach(([label, value], i) => {
+      p(0, "TEXT");
+      p(8, "1");
+      p(10, X(0));
+      p(20, f(Math.max(0, nameY - (i + 1) * TEXT_FIELD_STEP)));
+      p(40, TEXT_FIELD_H);
+      p(1, asciiSafe(`${label}: ${value}`));
+    });
 
     // fold/mirror line -> LINE on layer 6 (#126, ASTM D6673's reserved
     // semantics for it) — geometry only, matching the grainline's own
