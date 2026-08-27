@@ -67,7 +67,9 @@ const tx = {
   },
 };
 
-vi.mock("@/lib/db/prisma", () => ({
+// #166: matches the specifier this file's own subject imports (see
+// lib/db/aliasResolution.test.ts and CLAUDE.md's testing-conventions note).
+vi.mock("./prisma", () => ({
   prisma: {
     $transaction: vi.fn(async (fn: (t: typeof tx) => unknown) => fn(tx)),
     // #62: loadWallet falls back to this when no Wallet row exists yet, to

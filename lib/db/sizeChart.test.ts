@@ -16,7 +16,9 @@ let nextId = 1;
 // existed when read), but is gone from `rows` by the time the write runs.
 let deleteRowOnNextRead: string | null = null;
 
-vi.mock("@/lib/db/prisma", () => ({
+// #166: matches the specifier this file's own subject imports (see
+// lib/db/aliasResolution.test.ts and CLAUDE.md's testing-conventions note).
+vi.mock("./prisma", () => ({
   prisma: {
     // #71: deleteSizeChart's delete+pointer-clear now runs as one
     // $transaction([...]) array, mirroring lib/db/verification.ts's
@@ -193,7 +195,7 @@ vi.mock("@/lib/db/prisma", () => ({
   },
 }));
 
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from "./prisma";
 import {
   ensureSystemSizeCharts,
   listSizeChartsForUser,

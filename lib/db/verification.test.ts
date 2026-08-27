@@ -19,7 +19,9 @@ interface TokenRow {
 let tokens: TokenRow[] = [];
 let userVerifiedAt: Record<string, Date | null> = {};
 
-vi.mock("@/lib/db/prisma", () => ({
+// #166: matches the specifier this file's own subject imports (see
+// lib/db/aliasResolution.test.ts and CLAUDE.md's testing-conventions note).
+vi.mock("./prisma", () => ({
   prisma: {
     $transaction: vi.fn(async (ops: unknown[]) => Promise.all(ops)),
     emailVerificationToken: {
