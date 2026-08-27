@@ -1,4 +1,4 @@
-import { defineWorkspace } from "vitest/config";
+import { defineWorkspace, configDefaults } from "vitest/config";
 import path from "node:path";
 
 // #166: this file's own directory, i.e. the checkout vitest is actually
@@ -44,6 +44,10 @@ export default defineWorkspace([
         "scripts/**/*.test.{ts,tsx}",
         ".claude/hooks/**/*.test.mjs",
       ],
+      // #168: `app/**/*.test.{ts,tsx}` above would otherwise also match the
+      // `*.dom.test.tsx` files the "dom" project below claims, running them
+      // twice -- once without the RTL/jsdom setup they need.
+      exclude: [...configDefaults.exclude, "app/**/*.dom.test.{ts,tsx}"],
     },
   },
   {
@@ -55,7 +59,18 @@ export default defineWorkspace([
     test: {
       name: "dom",
       environment: "jsdom",
-      include: ["components/**/*.test.{ts,tsx}"],
+      include: [
+        "components/**/*.test.{ts,tsx}",
+        // #168: a handful of real Client Components live under app/ rather
+        // than components/ because Next requires them there by filename --
+        // error.tsx, global-error.tsx, not-found.tsx. They are ordinary
+        // React components and belong in this project, but `app/**` as a
+        // whole is the `node` project's (every app/api route test lives
+        // there and must NOT load the DOM setup file). The `.dom.` infix is
+        // the opt-in: a test file under app/ named `*.dom.test.tsx` runs
+        // here, everything else under app/ stays in `node`.
+        "app/**/*.dom.test.{ts,tsx}",
+      ],
       setupFiles: ["./vitest.setup.ts"],
     },
   },

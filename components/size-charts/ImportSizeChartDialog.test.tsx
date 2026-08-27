@@ -155,3 +155,183 @@ describe("ImportSizeChartDialog", () => {
     );
   });
 });
+
+// ---------------------------------------------------------------------------
+// #168: the review controls. The dialog's whole purpose is that an import is
+// REVIEWED before it becomes a chart, and three of its four selects had no
+// test -- yet two of them re-parse the file rather than just relabelling it,
+// which is exactly where a silent mistake lands: pick the wrong gender or
+// base size and the numbers themselves change, because the progression rule
+// is reconstructed around the chosen base column.
+// ---------------------------------------------------------------------------
+
+/** Opens a Radix Select by its label and picks one option by name. */
+async function pickFromSelect(
+  user: ReturnType<typeof userEvent.setup>,
+  label: string,
+  option: string | RegExp,
+) {
+  await user.click(screen.getByLabelText(label));
+  await user.click(await screen.findByRole("option", { name: option }));
+}
+
+describe("ImportSizeChartDialog review controls", () => {
+  beforeEach(() => {
+    useSizeChartsStore.setState({ importChart: vi.fn() });
+  });
+
+  it("defaults the name from the parsed file, and lets it be renamed", async () => {
+    await openDialog();
+    const user = userEvent.setup();
+    await user.upload(fileInput(), csvFile());
+
+    const nameField = await screen.findByLabelText(
+      ptBR.SizeChartImport.nameFieldLabel,
+    );
+    // The parser derives a name from the file itself ("grade.csv"), so the
+    // field arrives prefilled rather than empty; the catalog default only
+    // stands in when nothing usable was found (asserted below).
+    expect(nameField).toHaveValue("grade");
+
+    await user.clear(nameField);
+    await user.type(nameField, "Grade da casa");
+    expect(nameField).toHaveValue("Grade da casa");
+  });
+
+  it("re-parses against the chosen gender, keeping the base column", async () => {
+    await openDialog();
+    const user = userEvent.setup();
+    await user.upload(fileInput(), csvFile());
+    await screen.findByLabelText(ptBR.SizeChartImport.genderFieldLabel);
+
+    await pickFromSelect(
+      user,
+      ptBR.SizeChartImport.genderFieldLabel,
+      ptBR.SizeChartImport.gender.male,
+    );
+
+    // Gender is not a label: the missing measurements are filled from the
+    // matching system table, so the parse has to run again.
+    const importChart = vi.fn();
+    useSizeChartsStore.setState({ importChart });
+    await user.click(
+      screen.getByRole("button", { name: ptBR.SizeChartImport.createButton }),
+    );
+    await waitFor(() => expect(importChart).toHaveBeenCalled());
+    expect(importChart.mock.calls[0][0]).toMatchObject({ gender: "male" });
+  });
+
+  it("re-parses around the chosen base size", async () => {
+    await openDialog();
+    const user = userEvent.setup();
+    await user.upload(fileInput(), csvFile());
+    await screen.findByLabelText(ptBR.SizeChartImport.baseSizeFieldLabel);
+
+    // Column 3 of "38;40;42".
+    await pickFromSelect(user, ptBR.SizeChartImport.baseSizeFieldLabel, "42");
+
+    const importChart = vi.fn();
+    useSizeChartsStore.setState({ importChart });
+    await user.click(
+      screen.getByRole("button", { name: ptBR.SizeChartImport.createButton }),
+    );
+    await waitFor(() => expect(importChart).toHaveBeenCalled());
+    // The base column is what baseMeasurements describes and what the
+    // progression rule is reconstructed around -- so this is a numbers
+    // change, not a display choice.
+    const chart = importChart.mock.calls[0][0] as {
+      baseSizeIndex: number;
+      baseMeasurements: { bust: number };
+    };
+    expect(chart.baseSizeIndex).toBe(2);
+    expect(chart.baseMeasurements.bust).toBe(96);
+  });
+
+  it("carries the chosen body type onto the created chart", async () => {
+    await openDialog();
+    const user = userEvent.setup();
+    await user.upload(fileInput(), csvFile());
+    await screen.findByLabelText(ptBR.SizeChartImport.bodyTypeFieldLabel);
+
+    await pickFromSelect(
+      user,
+      ptBR.SizeChartImport.bodyTypeFieldLabel,
+      ptBR.SizeChartTable.bodyType.hourglass,
+    );
+
+    const importChart = vi.fn();
+    useSizeChartsStore.setState({ importChart });
+    await user.click(
+      screen.getByRole("button", { name: ptBR.SizeChartImport.createButton }),
+    );
+    await waitFor(() => expect(importChart).toHaveBeenCalled());
+    expect(importChart.mock.calls[0][0]).toMatchObject({
+      bodyType: "hourglass",
+    });
+  });
+
+  it("falls back to the catalog default when the name is cleared", async () => {
+    const importChart = vi.fn();
+    await openDialog();
+    const user = userEvent.setup();
+    await user.upload(fileInput(), csvFile());
+    await user.clear(
+      await screen.findByLabelText(ptBR.SizeChartImport.nameFieldLabel),
+    );
+
+    useSizeChartsStore.setState({ importChart });
+    await user.click(
+      screen.getByRole("button", { name: ptBR.SizeChartImport.createButton }),
+    );
+
+    await waitFor(() => expect(importChart).toHaveBeenCalled());
+    // A nameless chart would render as a blank card in the library.
+    expect(importChart.mock.calls[0][0]).toMatchObject({
+      name: ptBR.SizeChartImport.defaultName,
+    });
+  });
+
+  // Closing discards everything: the next open must not start from a
+  // previous attempt's file, name and gender. This is what caught the
+  // Cancel button driving the controlled `open` prop directly and so
+  // skipping reset() (fixed in the same change as this test).
+  it("resets the whole form when the dialog is closed and reopened", async () => {
+    await openDialog();
+    const user = userEvent.setup();
+    await user.upload(fileInput(), csvFile());
+    await screen.findByLabelText(ptBR.SizeChartImport.nameFieldLabel);
+
+    await user.click(
+      screen.getByRole("button", { name: ptBR.SizeChartImport.cancelButton }),
+    );
+    await waitFor(() =>
+      expect(screen.queryByText(ptBR.SizeChartImport.dialogTitle)).toBeNull(),
+    );
+    await user.click(
+      screen.getByRole("button", { name: ptBR.SizeChartImport.trigger }),
+    );
+
+    expect(
+      await screen.findByText(ptBR.SizeChartImport.noFileChosen),
+    ).toBeVisible();
+    expect(
+      screen.queryByLabelText(ptBR.SizeChartImport.nameFieldLabel),
+    ).toBeNull();
+    expect(
+      screen.getByRole("button", { name: ptBR.SizeChartImport.createButton }),
+    ).toBeDisabled();
+  });
+
+  // Nothing to re-parse before a file exists: the handlers guard on
+  // fileText, and without that guard a gender change on an empty dialog
+  // would parse an empty string and surface a spurious error.
+  it("does not surface a parse error when no file has been chosen", async () => {
+    await openDialog();
+    expect(screen.queryByRole("alert")).toBeNull();
+    // The gender/base-size selects do not exist yet, which is the guard
+    // being satisfied structurally rather than by a runtime check.
+    expect(
+      screen.queryByLabelText(ptBR.SizeChartImport.genderFieldLabel),
+    ).toBeNull();
+  });
+});

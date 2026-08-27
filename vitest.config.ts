@@ -43,6 +43,19 @@ export default defineConfig({
         "components/ui/**",
         // Next.js layout shells -- markup and provider wiring, no logic.
         "app/**/layout.tsx",
+        // #168 recorded a decision for `app/**/page.tsx`, and it is TESTED,
+        // not excluded -- so there is deliberately no entry for it here.
+        // Those shells looked like markup-only wiring (which is why they sat
+        // at 0%), but they are where a page render's authorization actually
+        // lives: each re-checks the session, most re-check that the account
+        // still exists (#62), and the pattern-scoped ones re-check ownership
+        // -- none of which `requireUser()` covers, since that guards API
+        // routes only. `app/page-guards.test.tsx` asserts that as one
+        // property over one table (so a new screen shipped without its guard
+        // is a missing row rather than an undetected hole),
+        // `app/auth-pages.test.tsx` covers the four centered-card shells and
+        // their token/metadata branching, and `app/planos/page.test.tsx`
+        // predates both.
         // Test-only modules that live beside the source they support:
         // `lib/draft/fixtures.ts` is the shared DECORATION_CASES matrix and
         // `components/test-utils.tsx` is the renderWithIntl wrapper.
@@ -50,21 +63,27 @@ export default defineConfig({
         "components/test-utils.tsx",
       ],
 
-      // A ratchet, not an aspiration -- but a much tighter one than before,
-      // because the measurement underneath it is now honest. Baseline on
-      // this tree (`npx vitest run --coverage`, both projects):
-      // statements 85.87%, branches 90.13%, functions 78.55%, lines 85.87%.
-      // Each threshold sits a fraction of a point under its measured value,
-      // so an ordinary rounding fluctuation passes while a real drop -- a
-      // deleted test, a large unreached new branch, a whole new screen
-      // shipped untested -- fails the `coverage` job. Raising a threshold
-      // after coverage genuinely improves is the intended way to use this:
-      // move the floor up, never down.
+      // A ratchet, not an aspiration. Each threshold sits a fraction of a
+      // point under its measured value, so an ordinary rounding fluctuation
+      // passes while a real drop -- a deleted test, a large unreached new
+      // branch, a whole new screen shipped untested -- fails the `coverage`
+      // job. Raising a threshold after coverage genuinely improves is the
+      // intended way to use this: move the floor up, never down.
+      //
+      // #168 moved every floor past 90%. Measured on this tree
+      // (`npx vitest run --coverage`, both projects): statements 96.73%,
+      // branches 92.41%, functions 93.03%, lines 96.73% -- up from
+      // 85.87/90.13/78.55/85.87. The functions axis was the one that
+      // mattered most and moved furthest (+14.5 points): an entirely
+      // unexecuted function is the shape an AI-authored regression takes,
+      // and 111 of them were unexecuted, concentrated in whole modules at
+      // 0% (the three auth cards, the app/**/page.tsx shells, the error
+      // boundaries, lib/mail/send.ts, most of lib/api-client.ts).
       thresholds: {
-        statements: 85,
-        branches: 89.5,
-        functions: 78,
-        lines: 85,
+        statements: 96,
+        branches: 92,
+        functions: 92.5,
+        lines: 96,
       },
     },
   },

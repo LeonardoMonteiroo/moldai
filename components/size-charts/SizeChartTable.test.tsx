@@ -442,3 +442,265 @@ describe("SizeChartTable extended measurement rows (#132)", () => {
     ).toBeInTheDocument();
   });
 });
+
+// ---------------------------------------------------------------------------
+// #168: the write paths that had no test at all -- clearing a per-cell
+// override, editing the progression rule, adding a size, changing the body
+// type, and Escape abandoning an edit. Every one of them goes through
+// `updateDraft`, and the failure mode they share is not a crash but a WRONG
+// PATCH: a cleared override that leaves its row behind, a rule edit that
+// replaces the whole rule instead of one key, an added size that silently
+// duplicates an existing column. None of that is visible on screen until the
+// chart is saved and a pattern drafts from it.
+// ---------------------------------------------------------------------------
+
+function ruleCell(measurement: string) {
+  return screen.getByRole("spinbutton", { name: measurement });
+}
+
+/** The draft as it stands after a patch -- what would actually persist. */
+function patched(): Partial<SizeChartData> {
+  return useSizeChartsStore.getState().draft as Partial<SizeChartData>;
+}
+
+describe("SizeChartTable override reset", () => {
+  // A per-cell override wins over the progression rule, so the dot beside it
+  // is the only way back to the rule-derived value.
+  it("shows the reset dot only on an overridden, non-base, editable cell", () => {
+    seed({ overrides: { G: { bust: 99 } } });
+    renderWithIntl(<SizeChartTable />);
+
+    expect(
+      screen.getAllByRole("button", {
+        name: ptBR.SizeChartTable.resetOverrideTitle,
+      }),
+    ).toHaveLength(1);
+  });
+
+  it("offers no reset on a chart with no overrides", () => {
+    seed({ overrides: {} });
+    renderWithIntl(<SizeChartTable />);
+
+    expect(
+      screen.queryByRole("button", {
+        name: ptBR.SizeChartTable.resetOverrideTitle,
+      }),
+    ).toBeNull();
+  });
+
+  // The row itself has to go when its last key does -- an empty {} left
+  // behind is a size that still reads as overridden to every later consumer
+  // of the blob.
+  it("drops the size's whole override row when its last key is reset", async () => {
+    seed({ overrides: { G: { bust: 99 } } });
+    renderWithIntl(<SizeChartTable />);
+    const user = userEvent.setup();
+
+    await user.click(
+      screen.getByRole("button", {
+        name: ptBR.SizeChartTable.resetOverrideTitle,
+      }),
+    );
+
+    expect(patched().overrides).toEqual({});
+  });
+
+  it("keeps the size's other overridden keys when one is reset", async () => {
+    seed({ overrides: { G: { bust: 99, waist: 80 } } });
+    renderWithIntl(<SizeChartTable />);
+    const user = userEvent.setup();
+
+    // Two dots now; the first in DOM order belongs to the bust row.
+    const dots = screen.getAllByRole("button", {
+      name: ptBR.SizeChartTable.resetOverrideTitle,
+    });
+    expect(dots).toHaveLength(2);
+    await user.click(dots[0]);
+
+    expect(patched().overrides).toEqual({ G: { waist: 80 } });
+  });
+});
+
+describe("SizeChartTable progression-rule editing", () => {
+  beforeEach(() => {
+    seed();
+    useSizeChartsStore.setState({ editingRule: true });
+  });
+
+  // Deliberately NOT a MeasurementCell: the rule input is not clamped on
+  // display, so it has no feedback loop to protect against, and 0 is a
+  // meaningful rule value that a commit-on-blur gate would fight.
+  it("patches only the edited key, leaving the rest of the rule alone", async () => {
+    useSizeChartsStore.setState({
+      draft: { ...BASE, progressionRule: { bust: 4, waist: 3 } },
+    });
+    renderWithIntl(<SizeChartTable />);
+    const user = userEvent.setup();
+
+    const cell = ruleCell(ptBR.SizeChartTable.measurement.bust);
+    await user.clear(cell);
+    await user.type(cell, "5");
+
+    expect(patched().progressionRule).toEqual({ bust: 5, waist: 3 });
+  });
+
+  it("accepts 0 as a real rule value rather than treating it as empty", async () => {
+    renderWithIntl(<SizeChartTable />);
+    const user = userEvent.setup();
+
+    const cell = ruleCell(ptBR.SizeChartTable.measurement.bust);
+    await user.clear(cell);
+    await user.type(cell, "0");
+
+    // A chart where one measurement does not grade at all is a real,
+    // expressible chart -- not a cleared field.
+    expect(patched().progressionRule?.bust).toBe(0);
+  });
+});
+
+describe("SizeChartTable adding a size", () => {
+  beforeEach(() => seed());
+
+  async function addSize(label: string, confirm = true) {
+    const user = userEvent.setup();
+    await user.click(
+      screen.getByRole("button", { name: ptBR.SizeChartTable.addSizeButton }),
+    );
+    if (label) {
+      await user.type(
+        screen.getByLabelText(ptBR.SizeChartTable.addSizeFieldLabel),
+        label,
+      );
+    }
+    await user.click(
+      screen.getByRole("button", {
+        name: confirm
+          ? ptBR.SizeChartTable.addSizeSaveButton
+          : ptBR.SizeChartTable.addSizeCancelButton,
+      }),
+    );
+    return user;
+  }
+
+  it("appends the typed label to the size list", async () => {
+    renderWithIntl(<SizeChartTable />);
+    await addSize("GG");
+    expect(patched().sizes).toEqual(["P", "M", "G", "GG"]);
+  });
+
+  it("trims the label rather than creating a padded duplicate column", async () => {
+    renderWithIntl(<SizeChartTable />);
+    await addSize("  GG  ");
+    expect(patched().sizes).toEqual(["P", "M", "G", "GG"]);
+  });
+
+  // A duplicate column would give two columns the same accessible name and
+  // the same overrides key -- unresolvable afterwards.
+  it("refuses a label that already exists, without adding anything", async () => {
+    renderWithIntl(<SizeChartTable />);
+    await addSize("M");
+    expect(patched().sizes).toEqual(["P", "M", "G"]);
+  });
+
+  it("keeps the save action disabled for a blank or whitespace-only label", async () => {
+    renderWithIntl(<SizeChartTable />);
+    const user = userEvent.setup();
+
+    await user.click(
+      screen.getByRole("button", { name: ptBR.SizeChartTable.addSizeButton }),
+    );
+    const save = screen.getByRole("button", {
+      name: ptBR.SizeChartTable.addSizeSaveButton,
+    });
+    expect(save).toBeDisabled();
+
+    await user.type(
+      screen.getByLabelText(ptBR.SizeChartTable.addSizeFieldLabel),
+      "   ",
+    );
+    expect(save).toBeDisabled();
+  });
+
+  it("closes without patching when the dialog is cancelled", async () => {
+    renderWithIntl(<SizeChartTable />);
+    await addSize("GG", false);
+    expect(patched().sizes).toEqual(["P", "M", "G"]);
+  });
+
+  // The field is cleared by the OPEN handler, not by closing, so a
+  // cancelled draft label must not still be sitting there next time.
+  it("reopens the dialog with an empty field after a cancelled attempt", async () => {
+    renderWithIntl(<SizeChartTable />);
+    const user = await addSize("GG", false);
+
+    await user.click(
+      screen.getByRole("button", { name: ptBR.SizeChartTable.addSizeButton }),
+    );
+    expect(
+      screen.getByLabelText(ptBR.SizeChartTable.addSizeFieldLabel),
+    ).toHaveValue("");
+  });
+});
+
+describe("SizeChartTable body type", () => {
+  // #133: descriptive metadata only. The control is real and must patch the
+  // draft -- what it must NOT do is imply a geometry change, which the
+  // caption tied to it by aria-describedby is what states.
+  it("patches bodyType from the select", async () => {
+    seed();
+    renderWithIntl(<SizeChartTable />);
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole("combobox"));
+    await user.click(
+      screen.getByRole("option", {
+        name: ptBR.SizeChartTable.bodyType.hourglass,
+      }),
+    );
+
+    expect(patched().bodyType).toBe("hourglass");
+  });
+
+  it("disables the control entirely on a read-only system chart", () => {
+    seed({ isSystem: true });
+    renderWithIntl(<SizeChartTable />);
+
+    expect(screen.getByRole("combobox")).toBeDisabled();
+    // ...and says why, rather than just refusing the click.
+    expect(
+      screen.getByText(ptBR.SizeChartTable.systemReadOnlyNote),
+    ).toBeVisible();
+  });
+});
+
+describe("SizeChartTable cell keyboard commits", () => {
+  beforeEach(() => seed());
+
+  it("commits on Enter without needing to leave the field", async () => {
+    renderWithIntl(<SizeChartTable />);
+    const user = userEvent.setup();
+
+    await user.clear(bustBaseCell());
+    await user.type(bustBaseCell(), "96{Enter}");
+
+    expect(patched().baseMeasurements?.bust).toBe(96);
+  });
+
+  // Escape restores rather than committing -- and it also has to clear the
+  // range hint, or an abandoned out-of-range edit leaves a stale error
+  // sitting in the live region with no invalid cell to match it.
+  it("abandons the edit and clears the range hint on Escape", async () => {
+    renderWithIntl(<SizeChartTable />);
+    const user = userEvent.setup();
+
+    await user.clear(bustBaseCell());
+    await user.type(bustBaseCell(), "999");
+    expect(screen.getByRole("status")).toBeVisible();
+
+    await user.type(bustBaseCell(), "{Escape}");
+
+    expect(bustBaseCell()).toHaveValue(92);
+    expect(patched().baseMeasurements?.bust).toBe(92);
+    expect(screen.queryByRole("status")).toBeNull();
+  });
+});

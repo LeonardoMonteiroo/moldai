@@ -344,11 +344,20 @@ export function ImportSizeChartDialog() {
         </div>
 
         <DialogFooter>
+          {/* #168: reset() too, not just setOpen(false). Radix only calls
+              onOpenChange for a close IT initiates (Escape, the overlay, the
+              X), so driving the controlled prop directly from here skipped
+              the reset entirely -- cancelling left the chosen file, its
+              parse result, the name and the gender in place, and the next
+              open started from the abandoned attempt. */}
           <Button
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => setOpen(false)}
+            onClick={() => {
+              setOpen(false);
+              reset();
+            }}
           >
             {t("cancelButton")}
           </Button>
