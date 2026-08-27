@@ -79,6 +79,15 @@ export function ChatPanel() {
             <ConflictActions
               onFix={() => resolveConflict("fix")}
               onIgnore={() => resolveConflict("ignore")}
+              // #134: a legacy conflict (no `entries`) was always the
+              // armhole/cap case, so it stays fixable; a live one offers
+              // "Corrigir manga" only while at least one of its divergences
+              // is actually addressed by it.
+              fixable={
+                conflict.entries
+                  ? conflict.entries.some((e) => e.fixable)
+                  : true
+              }
             />
           )}
           {generationStatus === "error" && (

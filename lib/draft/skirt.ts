@@ -135,6 +135,10 @@ export function draftSkirt(
       foldEdge,
       notches,
       detailRows,
+      // #134: the waist arc (whole edge, `waistSpan`) -- only meaningful
+      // when isDressWaist (paired against a bodice hem by garment.ts), but
+      // exposed unconditionally like body.ts's own `hem` edge.
+      seamEdges: { waist: waistSpan },
     };
   }
 
@@ -193,5 +197,9 @@ export function draftSkirt(
     foldEdge: [1, 4],
     notches,
     detailRows,
+    // #134: the waist edge (index 0 to 2, straight -- see the outline
+    // comment above), matching body.ts's own `hem` edge when this is a
+    // dress's skirt panel.
+    seamEdges: { waist: [0, 2] },
   };
 }

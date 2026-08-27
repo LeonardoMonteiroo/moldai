@@ -1,5 +1,6 @@
 import { useTranslations } from "next-intl";
-import { ConflictInfo } from "@/lib/types";
+import { ConflictEntry, ConflictInfo } from "@/lib/types";
+import type { SeamMeasurement } from "@/lib/draft/garment";
 import { formatCm } from "@/lib/format";
 
 // One decimal, the same basis the drafters' own detailRows use — so the card's
@@ -46,19 +47,93 @@ function SeamRow({
   );
 }
 
+// #134: one entry's own pair of bars -- the same visual the single
+// armhole/cap conflict always had, generalised to any pair. A small heading
+// only appears above it when the card is listing more than one entry (a
+// single entry's own heading would just repeat the card's title). The two
+// lengths are NOT read off `entry` (ConflictInfo persists only its diffCm,
+// like the original single-pair shape always did) -- they come from
+// `measurement`, re-derived at render time by the caller
+// (measureSeamGraph), matched back to this entry by `key`. Falls back to
+// the bare diff line when the fresh measurement isn't available (no usable
+// spec, same fallback measureSeams' own absence already causes).
+function EntryRows({
+  entry,
+  measurement,
+  showHeading,
+  t,
+}: {
+  entry: ConflictEntry;
+  measurement?: SeamMeasurement;
+  showHeading: boolean;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  if (!measurement) {
+    return (
+      <div className="flex flex-col gap-[3px]">
+        {showHeading && (
+          <span className="text-muted-2 text-meta font-semibold">
+            {entry.label}
+          </span>
+        )}
+        <span className="text-alert text-ui">
+          {t("entryDiffLabel", { diff: cm(entry.diffCm) })}
+        </span>
+      </div>
+    );
+  }
+  const { aLenCm, bLenCm } = measurement;
+  const longest = Math.max(aLenCm, bLenCm);
+  const aIsLonger = aLenCm > bLenCm;
+  const pct = (v: number) => (longest > 0 ? (v / longest) * 100 : 0);
+  return (
+    <div className="flex flex-col gap-[7px]">
+      {showHeading && (
+        <span className="text-muted-2 text-meta font-semibold">
+          {entry.label}
+        </span>
+      )}
+      <SeamRow
+        label={entry.aLabel}
+        value={t("valueCm", { value: cm(aLenCm) })}
+        fillPct={pct(aLenCm)}
+        showGap={!aIsLonger}
+      />
+      <SeamRow
+        label={entry.bLabel}
+        value={t("valueCm", { value: cm(bLenCm) })}
+        fillPct={pct(bLenCm)}
+        showGap={aIsLonger}
+      />
+      <span className="text-alert text-ui">
+        {t("entryDiffLabel", { diff: cm(entry.diffCm) })}
+      </span>
+    </div>
+  );
+}
+
 export function ConflictInfoCard({
   conflict,
   armholeLenCm,
   sleeveArmholeCm,
+  seamGraph,
 }: {
   conflict: ConflictInfo;
   // Derived at render time from the pattern's spec (lib/draft's measureSeams),
   // not carried by ConflictInfo — absent for a garment the drafter reports no
-  // seams for, and then the card falls back to the bare difference line.
+  // seams for, and then the card falls back to the bare difference line. Only
+  // consulted when `conflict.entries` is absent (a legacy persisted blob) --
+  // a live conflict's own numbers now come from `seamGraph` instead.
   armholeLenCm?: number;
   sleeveArmholeCm?: number;
+  // #134: the FULL seam graph, re-derived by the caller (measureSeamGraph)
+  // the same way armholeLenCm/sleeveArmholeCm above always have been --
+  // matched to each of `conflict.entries` by `key`.
+  seamGraph?: SeamMeasurement[] | null;
 }) {
   const t = useTranslations("ConflictInfoCard");
+  const entries = conflict.entries;
+  const measurementsByKey = new Map((seamGraph ?? []).map((m) => [m.key, m]));
   const hasSeams = armholeLenCm != null && sleeveArmholeCm != null;
   const longest = hasSeams ? Math.max(armholeLenCm, sleeveArmholeCm) : 0;
   const bodyIsLonger = hasSeams && armholeLenCm > sleeveArmholeCm;
@@ -70,7 +145,19 @@ export function ConflictInfoCard({
         {t("sectionLabel")}
       </span>
       <span className="text-ui font-semibold">{conflict.title}</span>
-      {hasSeams ? (
+      {entries && entries.length > 0 ? (
+        <div className="flex flex-col gap-[10px]">
+          {entries.map((entry) => (
+            <EntryRows
+              key={entry.key}
+              entry={entry}
+              measurement={measurementsByKey.get(entry.key)}
+              showHeading={entries.length > 1}
+              t={t}
+            />
+          ))}
+        </div>
+      ) : hasSeams ? (
         <div className="flex flex-col gap-[7px]">
           <SeamRow
             label={t("bodyRowLabel")}

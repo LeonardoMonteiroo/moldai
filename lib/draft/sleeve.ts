@@ -35,8 +35,10 @@ const BICEP_PROPORTION_OF_BUST = 0.3;
 const WEARING_EASE_CM = { knit: 1.5, wovenFemale: 4, wovenMale: 5 };
 // How much longer the cap's own arc is than the armhole it eases into —
 // standard set-in-sleeve practice; a knit needs less because the fabric
-// itself stretches to take up the difference.
-const CAP_EASE_CM = { knit: 1, woven: 2.5 };
+// itself stretches to take up the difference. Exported so garment.ts can
+// declare the armhole/cap SeamPairDecl's own `easeCm` from this SAME table
+// (#134) rather than a second copy of the knit/woven split.
+export const CAP_EASE_CM = { knit: 1, woven: 2.5 };
 
 function capOutline(bicep: number, capH: number): { pts: Pt[]; cxTop: number } {
   const cxTop = bicep / 2;
@@ -181,5 +183,16 @@ export function draftSleeve(
     notches,
     detailRows,
     armholeLenCm: fittedArmholeLenCm,
+    // #134: the cap (0-4, curved, the seam mated to the body's armhole) and
+    // the sleeve's own two side seams -- 4-5 (right underarm: cap end to
+    // hem) and 6-7/0 (left underarm: hem to cap start, wrapping) -- which
+    // sew to each other when the piece is folded into a tube. This outline
+    // shape (5 cap points + 2 hem points, in this exact order) is fixed
+    // regardless of bicep/capH/hemHalf, so these indices never move.
+    seamEdges: {
+      cap: [0, 4],
+      underarmRight: [4, 5],
+      underarmLeft: [6, 7],
+    },
   };
 }

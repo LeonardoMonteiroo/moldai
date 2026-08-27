@@ -135,7 +135,8 @@
     "bodyRowLabel": "Cava · frente",
     "sleeveRowLabel": "Cava · copa",
     "valueCm": "{value} cm",
-    "gapLabel": "{direction, select, larger {falta {diff} cm na copa} smaller {sobra {diff} cm na copa} other {}}"
+    "gapLabel": "{direction, select, larger {falta {diff} cm na copa} smaller {sobra {diff} cm na copa} other {}}",
+    "entryDiffLabel": "diferença de {diff} cm"
   },
   "ConflictActions": {
     "fixButton": "Corrigir manga",
@@ -212,7 +213,44 @@
     "conflict": {
       "title": "Cava e manga não batem",
       "description": "A cava do corpo ficou {diffCm, number, ::.0} cm {direction, select, larger {maior} smaller {menor} other {}} que a copa da manga — as costuras não vão fechar.",
-      "suggestion": "“Corrigir manga” refaz a copa para a cava ajustada, sem custo."
+      "suggestion": "“Corrigir manga” refaz a copa para a cava ajustada, sem custo.",
+      "titleFor": "A costura de {label} não fecha",
+      "descriptionSingle": "Diferença de {diffCm, number, ::.0} cm entre as duas peças.",
+      "titleMultiple": "{count, plural, one {# costura não fecha} other {# costuras não fecham}}",
+      "descriptionMultiple": "Confira o detalhe de cada uma abaixo.",
+      "suggestionGeneric": "Sem correção automática — ajuste as medidas ou o estilo e gere o molde novamente."
+    },
+    "seamPairs": {
+      "shoulder": {
+        "title": "Ombro",
+        "aLabel": "Ombro · frente",
+        "bLabel": "Ombro · costas"
+      },
+      "side": {
+        "title": "Lateral",
+        "aLabel": "Lateral · frente",
+        "bLabel": "Lateral · costas"
+      },
+      "armholeCap": {
+        "title": "Cava e manga",
+        "aLabel": "Cava · frente",
+        "bLabel": "Cava · copa"
+      },
+      "sleeveUnderarm": {
+        "title": "Manga · costura interna",
+        "aLabel": "Manga · lateral direita",
+        "bLabel": "Manga · lateral esquerda"
+      },
+      "waistJoinFront": {
+        "title": "Cintura · frente",
+        "aLabel": "Cintura · corpo (frente)",
+        "bLabel": "Cintura · saia (frente)"
+      },
+      "waistJoinBack": {
+        "title": "Cintura · costas",
+        "aLabel": "Cintura · corpo (costas)",
+        "bLabel": "Cintura · saia (costas)"
+      }
     },
     "chat": {
       "askFallback": "Pra acertar a modelagem, me responde:",

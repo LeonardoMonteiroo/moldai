@@ -8,7 +8,7 @@ import {
   resolvePieceInternals,
 } from "@/lib/types";
 import { EditorTool } from "@/lib/store";
-import type { GradedOverlay } from "@/lib/draft/garment";
+import type { GradedOverlay, SeamMeasurement } from "@/lib/draft/garment";
 import { Viewport, ZOOM_STEP } from "@/lib/canvas/viewport";
 import { nearestSnap } from "@/lib/canvas/measure";
 import { fitPieceLabel, pieceLabelText } from "@/lib/canvas/pieceLabel";
@@ -56,6 +56,7 @@ export function PatternCanvas({
   onRemoveMeasurement,
   armholeLenCm,
   sleeveArmholeCm,
+  seamGraph,
   gradedOverlays = [],
   foldLabel,
 }: {
@@ -79,6 +80,11 @@ export function PatternCanvas({
   // persisted ConflictInfo, which never carried them.
   armholeLenCm?: number;
   sleeveArmholeCm?: number;
+  // #134: the FULL seam graph, re-derived by the caller (measureSeamGraph)
+  // the same way armholeLenCm/sleeveArmholeCm above always have been --
+  // matched to each of `conflict.entries` by `key` for the per-entry marker
+  // labels below.
+  seamGraph?: SeamMeasurement[] | null;
   // #59: one dashed outline per applied graduation size, already aligned onto
   // its piece's placed position by the caller (CanvasArea, via
   // draftGradedOverlays) -- this component only renders them.
@@ -100,18 +106,26 @@ export function PatternCanvas({
     [pieces],
   );
 
-  // detectConflict builds the markers in [pieceAId, pieceBId] order — the body's
-  // armhole first, then the sleeve cap — and drops any piece whose vertices are
-  // missing, which a blob drafted before the measure tool's snap can be. Label
-  // them only when both survived, so a collapsed array can never print the
-  // body's length beside the sleeve.
-  const seamLabels =
+  // #134: legacy fallback -- a conflict persisted before `entries` existed
+  // has none, and detectConflict built its single markers pair in
+  // [pieceAId, pieceBId] order (the body's armhole first, then the sleeve
+  // cap), dropping any piece whose vertices are missing (a blob drafted
+  // before the measure tool's snap can be). A live conflict (always carries
+  // `entries` now) is labelled per-entry below instead, from each entry's
+  // own aLenCm/bLenCm rather than these two props.
+  const legacySeamLabels =
     conflict &&
+    !conflict.entries &&
     conflict.markers.length === 2 &&
     armholeLenCm != null &&
     sleeveArmholeCm != null
       ? [seamValue(armholeLenCm), seamValue(sleeveArmholeCm)]
       : null;
+
+  const seamMeasurementsByKey = useMemo(
+    () => new Map((seamGraph ?? []).map((m) => [m.key, m])),
+    [seamGraph],
+  );
 
   // ~10px screen snap threshold converted to user units, read from the CTM at
   // the moment of the event (exact, not the render-time value)
@@ -433,6 +447,7 @@ export function PatternCanvas({
       })}
 
       {conflict &&
+        !conflict.entries &&
         conflict.markers.map((marker, i) => (
           <g key={i}>
             <circle
@@ -442,7 +457,7 @@ export function PatternCanvas({
               className="stroke-alert fill-none"
               style={{ strokeWidth: 2, strokeDasharray: "4 3" }}
             />
-            {seamLabels && (
+            {legacySeamLabels && (
               // Anchored outside the circle, growing away from the piece: the
               // markers sit at each piece's right edge, so this lands on grid.
               <text
@@ -451,11 +466,41 @@ export function PatternCanvas({
                 className="fill-alert"
                 style={{ fontSize: SEAM_LABEL_FONT_SIZE }}
               >
-                {seamLabels[i]}
+                {legacySeamLabels[i]}
               </text>
             )}
           </g>
         ))}
+
+      {/* #134: one marker pair per divergent seam, each labelled from the
+          FRESHLY re-derived measurement matching its entry's own `key`
+          (seamMeasurementsByKey) -- ConflictInfo itself only persists the
+          entry's diffCm, not the two lengths, the same rule the legacy
+          branch above already followed. */}
+      {conflict?.entries?.flatMap((entry) => {
+        const measurement = seamMeasurementsByKey.get(entry.key);
+        return entry.markers.map((marker, i) => (
+          <g key={`${entry.key}-${i}`}>
+            <circle
+              cx={marker.cx}
+              cy={marker.cy}
+              r={marker.r}
+              className="stroke-alert fill-none"
+              style={{ strokeWidth: 2, strokeDasharray: "4 3" }}
+            />
+            {entry.markers.length === 2 && measurement && (
+              <text
+                x={marker.cx + marker.r + 4}
+                y={marker.cy + 3.5}
+                className="fill-alert"
+                style={{ fontSize: SEAM_LABEL_FONT_SIZE }}
+              >
+                {seamValue(i === 0 ? measurement.aLenCm : measurement.bLenCm)}
+              </text>
+            )}
+          </g>
+        ));
+      })}
 
       <MeasureLayer
         measurements={measurements}
