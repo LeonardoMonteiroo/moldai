@@ -177,6 +177,40 @@ describe("PlanSection", () => {
       expect(refresh).toHaveBeenCalledTimes(1);
     });
 
+    // #161: under the real gateway, purchase() answers {status:"redirect",
+    // url} instead of crediting instantly -- the card grid must not show a
+    // plan switch that hasn't actually happened yet, and router.refresh()
+    // (which re-reads the CURRENT, server-side plan) must not fire either,
+    // since nothing changed on the server.
+    it("navigates to the checkout URL on a redirect result, without updating the plan or refreshing", async () => {
+      const checkoutUrl = "https://sandbox.asaas.com/checkoutSession/show?id=x";
+      vi.mocked(purchase).mockResolvedValue({
+        status: "redirect",
+        url: checkoutUrl,
+      });
+      const assign = vi.fn();
+      const assignSpy = vi
+        .spyOn(window, "location", "get")
+        .mockReturnValue({ assign } as unknown as Location);
+      const user = userEvent.setup();
+      renderWithIntl(<PlanSection credits={CREDITS} />);
+
+      await user.click(
+        screen.getByRole("button", { name: subscribeLabel("studio") }),
+      );
+
+      await waitFor(() => {
+        expect(assign).toHaveBeenCalledWith(checkoutUrl);
+      });
+      // Still an upgrade target -- the card grid never switched to studio.
+      expect(
+        screen.getByRole("button", { name: subscribeLabel("studio") }),
+      ).toBeInTheDocument();
+      expect(refresh).not.toHaveBeenCalled();
+
+      assignSpy.mockRestore();
+    });
+
     it("renders catalog copy resolved from the wire error code and leaves the screen usable", async () => {
       vi.mocked(purchase).mockImplementation(async () => {
         throw new ApiError(400, "plan_not_upgradable");

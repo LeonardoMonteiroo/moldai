@@ -531,6 +531,46 @@ describe("store double submission (#31)", () => {
 
     expect(useEditorStore.getState().purchasing).toBe(false);
   });
+
+  // #161: under the real gateway, purchase() answers {status:"redirect",
+  // url} instead of crediting instantly -- the wallet isn't touched until
+  // the async webhook lands. This pins issue #6's own settled "Drop it"
+  // decision: the paywall closes but `retry` is never invoked, since
+  // retrying sendMessage/graduateSizes now would spend a second credit
+  // hoping the not-yet-confirmed purchase already landed.
+  it("navigates to the checkout URL on a redirect result, applies no state, and never invokes retry", async () => {
+    let retryCalled = false;
+    useEditorStore.setState({
+      paywall: {
+        open: true,
+        required: 6,
+        balance: 1,
+        action: "graduate",
+        retry: () => {
+          retryCalled = true;
+        },
+      },
+    });
+    const checkoutUrl = "https://sandbox.asaas.com/checkoutSession/show?id=x";
+    vi.mocked(api.purchase).mockResolvedValue({
+      status: "redirect",
+      url: checkoutUrl,
+    });
+    // lib/store.test.ts runs in vitest's "node" project (no jsdom `window`
+    // global) -- stubbed locally rather than moving this file into the
+    // "dom" project, since every other test here is DOM-free by design.
+    const assign = vi.fn();
+    vi.stubGlobal("window", { location: { assign } });
+
+    await useEditorStore.getState().purchase("subscribe", "atelier");
+
+    expect(assign).toHaveBeenCalledWith(checkoutUrl);
+    expect(useEditorStore.getState().purchasing).toBe(false);
+    expect(useEditorStore.getState().paywall.open).toBe(false);
+    expect(retryCalled).toBe(false);
+
+    vi.unstubAllGlobals();
+  });
 });
 
 // #32: the store is a module-level singleton, so switching patterns without

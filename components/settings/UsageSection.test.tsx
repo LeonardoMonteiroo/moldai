@@ -109,6 +109,37 @@ describe("UsageSection", () => {
     ).not.toBeInTheDocument();
   });
 
+  // #161: under the real gateway, purchase() answers {status:"redirect",
+  // url} instead of crediting instantly -- the balance/ledger must not be
+  // touched (nothing has actually been granted yet), and the browser
+  // navigates out to the hosted checkout.
+  it("navigates to the checkout URL on a redirect result, without updating the balance", async () => {
+    const checkoutUrl = "https://sandbox.asaas.com/checkoutSession/show?id=x";
+    vi.mocked(purchase).mockResolvedValue({
+      status: "redirect",
+      url: checkoutUrl,
+    });
+    const assign = vi.fn();
+    const assignSpy = vi
+      .spyOn(window, "location", "get")
+      .mockReturnValue({ assign } as unknown as Location);
+    const user = userEvent.setup();
+    renderWithIntl(<UsageSection credits={CREDITS} initialLedger={[]} />);
+
+    await user.click(
+      screen.getByRole("button", { name: ptBR.UsageSection.topupButton }),
+    );
+
+    await waitFor(() => {
+      expect(assign).toHaveBeenCalledWith(checkoutUrl);
+    });
+    // The balance shown is still the one this section was rendered with --
+    // no optimistic "115" (CREDITS.balance + TOPUP_CREDITS) ever appears.
+    expect(screen.getByText(String(CREDITS.balance))).toBeVisible();
+
+    assignSpy.mockRestore();
+  });
+
   // #106: "renova em {days} dias" was a hardcoded plural noun.
   it("pluralizes the renewal days at 0, 1 and 2", () => {
     const tUsage = translatorFor("UsageSection");

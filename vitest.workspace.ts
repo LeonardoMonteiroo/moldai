@@ -21,6 +21,7 @@ export default defineWorkspace([
       include: [
         "lib/**/*.test.{ts,tsx}",
         "app/**/*.test.{ts,tsx}",
+        "scripts/**/*.test.{ts,tsx}",
         ".claude/hooks/**/*.test.mjs",
       ],
     },

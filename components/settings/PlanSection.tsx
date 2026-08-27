@@ -40,6 +40,20 @@ export function PlanSection({ credits: initial }: { credits: Credits }) {
     setError(null);
     try {
       const result = await purchase("subscribe", plan);
+      // #161: under the real gateway this is {status:"redirect", url} --
+      // the wallet isn't touched until the async webhook lands, so there is
+      // no new plan to show yet and no router.refresh() to run (the plan
+      // hasn't changed on the server either). Navigate out to the hosted
+      // checkout instead; on return this section's own server-rendered
+      // load reflects whatever the webhook actually granted.
+      if (result.status === "redirect") {
+        // location.assign(), not `location.href = ...`: the latter is a
+        // property assignment on `window` (defined outside the component),
+        // which react-hooks/immutability flags -- assign() is a method
+        // call and does the identical same-tab navigation.
+        window.location.assign(result.url);
+        return;
+      }
       if ("credits" in result) setCredits(result.credits);
       router.refresh();
     } catch (err) {
