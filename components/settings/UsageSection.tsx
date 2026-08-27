@@ -53,6 +53,20 @@ export function UsageSection({
     setActionError(false);
     try {
       const result = await purchase("topup");
+      // #161: under the real gateway this is {status:"redirect", url} --
+      // the wallet isn't credited yet, so there is nothing to apply here.
+      // Navigate out to the hosted checkout instead; on return the page's
+      // own server-rendered load (app/settings/page.tsx) shows whatever
+      // the webhook actually credited, never an optimistic guess.
+      if (result.status === "redirect") {
+        // location.assign(), not `location.href = ...` (react-hooks/
+        // immutability flags a property assignment on `window`, defined
+        // outside the component, from PlanSection's identical case) --
+        // assign() is a method call and does the identical same-tab
+        // navigation.
+        window.location.assign(result.url);
+        return;
+      }
       if ("credits" in result) {
         setBalance(result.credits.balance);
         setLedger((prev) => [

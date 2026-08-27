@@ -1,5 +1,6 @@
 import { prisma } from "./prisma";
 import { newVerificationToken, isExpired } from "@/lib/auth/verification";
+import { updateUserPasswordHash } from "./users";
 
 export type ConsumeResetTokenResult =
   { ok: true; userId: string } | { ok: false; reason: "invalid" | "expired" };
@@ -26,6 +27,21 @@ export async function issueResetToken(
 // retry with the same link. Consuming and persisting the new hash happen in
 // one transaction, so a token is never deleted without the password actually
 // changing (and vice versa).
+//
+// #155: goes through the SAME lib/db/users.ts#updateUserPasswordHash the
+// /settings password-change path uses, rather than a second, bare
+// `prisma.user.update` that only set `passwordHash` -- that duplicate write
+// was never updated when #29 added the `passwordChangedAt` stamp, so a
+// forgot-password reset (the flow most likely to follow an account
+// compromise -- it's literally how a victim regains control after an
+// attacker gets in) never recorded when the password actually changed.
+// `prisma.$transaction([...])`'s array form can't run an async function
+// like updateUserPasswordHash as one of its own operations, so this moves
+// to the interactive `prisma.$transaction(async (tx) => ...)` form and
+// passes `tx` through -- same atomicity (a token is still never deleted
+// without the password actually changing, and vice versa), same
+// `now` this function already receives, just routed through the shared
+// function instead of a second hand-written update.
 export async function consumeResetToken(
   tokenHash: string,
   newPasswordHash: string,
@@ -41,12 +57,9 @@ export async function consumeResetToken(
     return { ok: false, reason: "expired" };
   }
 
-  await prisma.$transaction([
-    prisma.user.update({
-      where: { id: row.userId },
-      data: { passwordHash: newPasswordHash },
-    }),
-    prisma.passwordResetToken.deleteMany({ where: { userId: row.userId } }),
-  ]);
+  await prisma.$transaction(async (tx) => {
+    await updateUserPasswordHash(row.userId, newPasswordHash, now, tx);
+    await tx.passwordResetToken.deleteMany({ where: { userId: row.userId } });
+  });
   return { ok: true, userId: row.userId };
 }

@@ -147,7 +147,10 @@ async function handleConfirmed(
   // price, not one per PlanId -- so a confirmed subscribe payment is always
   // atelier. Studio/factory are purchasable through the mock provider only
   // (PlanSection); selling them through asaas needs a plan-aware checkout
-  // price, which is out of scope here (see issue #161's own asaas gaps).
+  // price AND a way for this handler to recover which plan a confirmed
+  // payment was for -- tracked as issue #179, filed while closing out #161
+  // (which covers the cron double-renewal exclusion and the client's
+  // redirect-response handling only, not this).
   const purchase: Purchase =
     parsed.type === "subscribe"
       ? { type: "subscribe", plan: "atelier" }

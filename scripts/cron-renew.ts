@@ -1,3 +1,4 @@
+import { pathToFileURL } from "node:url";
 import { PrismaClient } from "@prisma/client";
 import { withWallet } from "../lib/db/wallet";
 import { renewWallet, isRenewalDue } from "../lib/billing/wallet";
@@ -5,10 +6,20 @@ import { reportError } from "../lib/observability/report";
 
 const prisma = new PrismaClient();
 
-async function main() {
+export async function main() {
   const now = new Date();
+  // #161: a wallet with a live `asaasSubscriptionId` is renewed by its own
+  // Asaas subscription payment webhook (app/api/billing/webhook/route.ts's
+  // handleConfirmed -> applyPurchase), not by this sweep -- issue #6's own
+  // step 7 decision. Without this exclusion, a subscribed wallet whose
+  // renewsAt happened to fall past-due before that webhook landed (or in
+  // the same hour as it) would be renewed TWICE: once here, resetting
+  // balance to total+purchased and rolling renewsAt forward 30 days, and
+  // again by the webhook doing the same thing -- silently doubling a paid
+  // wallet's credits with no ledger row flagging it as wrong (both writes
+  // look like ordinary, individually-correct renew/subscribe entries).
   const due = await prisma.wallet.findMany({
-    where: { renewsAt: { lte: now } },
+    where: { renewsAt: { lte: now }, asaasSubscriptionId: null },
     select: { userId: true },
   });
 
@@ -35,10 +46,17 @@ async function main() {
   );
 }
 
-main()
-  .then(() => process.exit(0))
-  .catch((e) => {
-    reportError("cron-renew", e);
-    process.exit(1);
-  })
-  .finally(() => prisma.$disconnect());
+// `main` is exported (and this run-as-entry-point guarded) so
+// scripts/cron-renew.test.ts can import it directly and assert on the
+// findMany/withWallet calls without also triggering process.exit -- an
+// unguarded top-level call would kill the test runner's own process the
+// instant this module is imported.
+if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
+  main()
+    .then(() => process.exit(0))
+    .catch((e) => {
+      reportError("cron-renew", e);
+      process.exit(1);
+    })
+    .finally(() => prisma.$disconnect());
+}

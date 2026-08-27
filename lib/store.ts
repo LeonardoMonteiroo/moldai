@@ -463,6 +463,30 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     // See graduateSizes's identical comment: leave the flag alone when it no
     // longer belongs to this call rather than clear someone else's.
     if (patternId && get().patternId !== patternId) return;
+
+    // #161: under the real gateway, this answers {status:"redirect", url}
+    // instead of crediting instantly -- the wallet isn't touched until the
+    // async webhook lands (app/api/billing/webhook/route.ts). No state is
+    // applied here (there is nothing new to apply yet), and the paywall
+    // closes WITHOUT invoking `retry` -- issue #6's own settled decision
+    // ("Drop it. The paywall.retry thunk dies with the navigation"): the
+    // credits this action needed haven't arrived, so retrying sendMessage/
+    // graduateSizes now would just spend a second credit hoping the
+    // purchase already landed. The user re-sends once they're back, per
+    // that same decision -- the composer still holds their text. Navigating
+    // via window.location.href (a same-tab redirect, matching the "hosted
+    // checkout, redirect out and back" decision) rather than a router push,
+    // since checkout.link is an external Asaas URL, not an app route.
+    if (result.status === "redirect") {
+      set({ purchasing: false, paywall: CLOSED_PAYWALL });
+      // location.assign(), not `location.href = ...` -- matching
+      // UsageSection/PlanSection's identical choice (a property assignment
+      // on `window` there trips react-hooks/immutability; assign() is a
+      // method call and does the identical same-tab navigation).
+      window.location.assign(result.url);
+      return;
+    }
+
     set({ purchasing: false });
     if ("state" in result) applyState(set, result.state);
     else if ("credits" in result) set({ credits: result.credits });
