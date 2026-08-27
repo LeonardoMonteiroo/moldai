@@ -160,12 +160,18 @@ function trouserPanel(
     // for the front, the back rise seam for the back) -- the same self-pair
     // shape sleeve.ts's own two underarm edges already use for its own
     // left/right mirror seam. `inseam`/`outseam` mate against the OTHER
-    // panel (front vs back); `waist` mates against the waistband.
+    // panel (front vs back); `waist` mates against the waistband. #188:
+    // `hem` (the straight edge between the two hem vertices already named
+    // above) is this leg's own bottom edge, exposed unconditionally like
+    // every other edge here -- never claimed by another pair (a trouser
+    // leg's own hem, unlike its waist, is never sewn to anything), so
+    // buildAssemblyOrder always reports a real "hem" step for both panels.
     seamEdges: {
       rise: [waistCF, crotchPt],
       inseam: [crotchPt, hemInner],
       outseam: [hemOuter, waistOuter],
       waist: [waistOuter, pts.length],
+      hem: [hemInner, hemOuter],
     },
   };
 }

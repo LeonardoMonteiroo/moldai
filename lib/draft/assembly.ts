@@ -64,11 +64,14 @@ function phaseRank(key: string): number {
 // piece -- a dress's bodice hem is the body/skirt waist join, and a cuffed
 // sleeve's hem is the cuff seam. Keyed by pieceId -> the pair key(s) that,
 // if present in THIS pattern's own graph, mean that piece's `hem` edge is
-// already spoken for. lib/draft/body.ts/sleeve.ts are the only drafters
-// that declare a `hem` seamEdge at all today -- a skirt panel's own bottom
-// edge and a trouser leg's own hem are not in seamEdges yet, a real,
-// filed-not-fixed-here gap (see the #138 PR description), so neither ever
-// gets a "hem" step, honestly, rather than a wrong one.
+// already spoken for. #188: a standalone skirt panel's own bottom edge
+// (every silhouette, lib/draft/skirt.ts) and a trouser leg's own hem
+// (lib/draft/trousers.ts) now declare `seamEdges.hem` too, alongside
+// body.ts's/sleeve.ts's -- but neither is EVER claimed by another pair (a
+// skirt/trouser leg's own hem, unlike its waist, is never sewn to anything
+// -- not a bodice at a dress's waist join, not a waistband), so "skirt" and
+// "trouser-front"/"trouser-back" deliberately have no entry below and
+// always produce a real "hem" step once the piece is drafted.
 const HEM_CONSUMED_BY: Record<string, string[]> = {
   "body-front": ["waist-join-front"],
   "body-back": ["waist-join-back"],
@@ -127,9 +130,16 @@ export interface AssemblyOrder {
   steps: AssemblyStep[];
   // True when at least one seam step diverges. An empty `steps` array is
   // its own honest signal (nothing could be derived for this piece set --
-  // e.g. a standalone skirt with waistband explicitly "none," which today
-  // declares no mated pair at all); this module never fabricates a step to
-  // avoid reporting either case.
+  // no darts, no mated pair, no free hem edge); this module never
+  // fabricates a step to avoid reporting either case. #188: a standalone
+  // skirt/trousers with `waistband: "none"` used to be the reachable
+  // example of this (neither archetype declared any other mated pair, and
+  // neither declared a `hem` edge either) -- now that both declare their
+  // own `seamEdges.hem` (see HEM_CONSUMED_BY below), that same spec derives
+  // one real "hem" step instead, and an empty order is no longer reachable
+  // from any spec the drafting matrix produces. The shape is kept, not
+  // deleted, for a future piece that genuinely has no darts, no mated pair
+  // and no free hem edge.
   hasConflict: boolean;
 }
 
