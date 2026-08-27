@@ -9,7 +9,6 @@ import {
   applyPurchase,
   debitWallet,
   reverseSubscription,
-  type Purchase,
 } from "@/lib/billing/wallet";
 import {
   withWalletIdempotent,
@@ -142,21 +141,16 @@ async function handleConfirmed(
   // figures, never from anything in the webhook payload -- a payment's
   // `value` is not trusted as the number of credits to grant.
   //
-  // #9: the asaas checkout only ever sells one paid tier today -- the
-  // purchase route's own CHECKOUT_PRICES has a single flat "subscribe"
-  // price, not one per PlanId -- so a confirmed subscribe payment is always
-  // atelier. Studio/factory are purchasable through the mock provider only
-  // (PlanSection); selling them through asaas needs a plan-aware checkout
-  // price AND a way for this handler to recover which plan a confirmed
-  // payment was for -- tracked as issue #179, filed while closing out #161
-  // (which covers the cron double-renewal exclusion and the client's
-  // redirect-response handling only, not this).
-  const purchase: Purchase =
-    parsed.type === "subscribe"
-      ? { type: "subscribe", plan: "atelier" }
-      : { type: "topup" };
+  // #179: `parsed.purchase` is the SAME Purchase the checkout-creation
+  // route built and validated (isPaidPlanId'd) before ever calling
+  // buildExternalReference -- parseExternalReference re-validates it again
+  // here (a subscribe reference's embedded plan must still be a real
+  // PaidPlanId, or parseExternalReference itself returned null above), so
+  // this handler applies whichever paid tier the checkout was actually
+  // created for, never a hardcoded "atelier" and never an arbitrary string
+  // a forged/tampered externalReference might otherwise have carried.
   await withWalletIdempotent(parsed.userId, paymentId, (wallet) =>
-    applyPurchase(wallet, purchase, now),
+    applyPurchase(wallet, parsed.purchase, now),
   );
 
   if (subscriptionId) {

@@ -131,24 +131,61 @@ describe("asaas client error handling", () => {
 });
 
 describe("external reference round trip", () => {
-  it("round-trips userId and purchase type", () => {
-    const ref = buildExternalReference("u1", "topup");
+  it("round-trips userId and a topup purchase", () => {
+    const ref = buildExternalReference("u1", { type: "topup" });
     expect(parseExternalReference(ref)).toEqual({
       userId: "u1",
-      type: "topup",
+      purchase: { type: "topup" },
     });
   });
 
-  it("round-trips subscribe", () => {
-    const ref = buildExternalReference("u2", "subscribe");
+  // #179: a subscribe reference also has to round-trip WHICH paid tier it
+  // was for, not just the bare "subscribe" type.
+  it("round-trips subscribe with its plan", () => {
+    const ref = buildExternalReference("u2", {
+      type: "subscribe",
+      plan: "studio",
+    });
+    expect(ref).toBe("u2:subscribe:studio");
     expect(parseExternalReference(ref)).toEqual({
       userId: "u2",
-      type: "subscribe",
+      purchase: { type: "subscribe", plan: "studio" },
     });
+  });
+
+  it("round-trips every paid tier", () => {
+    for (const plan of ["atelier", "studio", "factory"] as const) {
+      const ref = buildExternalReference("u2", { type: "subscribe", plan });
+      expect(parseExternalReference(ref)).toEqual({
+        userId: "u2",
+        purchase: { type: "subscribe", plan },
+      });
+    }
   });
 
   it("rejects an unrecognised embedded type -- trust boundary, not an assertion", () => {
     expect(parseExternalReference("u1:banana")).toBeNull();
+  });
+
+  // #179: the embedded plan is validated exactly like the type -- an
+  // unknown or "free" plan must not silently become a credited tier, and a
+  // subscribe reference with the wrong number of segments (missing plan,
+  // or a plan tacked onto a topup) is rejected outright rather than
+  // ignoring the extra/missing segment.
+  it("rejects a subscribe reference with an unrecognised embedded plan", () => {
+    expect(parseExternalReference("u1:subscribe:gold")).toBeNull();
+  });
+
+  it('rejects a subscribe reference embedding "free" -- not a paid plan', () => {
+    expect(parseExternalReference("u1:subscribe:free")).toBeNull();
+  });
+
+  it("rejects a subscribe reference with no embedded plan at all", () => {
+    expect(parseExternalReference("u1:subscribe")).toBeNull();
+  });
+
+  it("rejects a topup reference with an unexpected trailing segment", () => {
+    expect(parseExternalReference("u1:topup:atelier")).toBeNull();
   });
 
   it("rejects a malformed reference with no separator", () => {
