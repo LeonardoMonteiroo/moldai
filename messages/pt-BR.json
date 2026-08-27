@@ -679,7 +679,8 @@
       "creditsPill": "◆ {balance, plural, one {# crédito grátis por mês} other {# créditos grátis por mês}}",
       "generateCta": "Gerar meu molde · {cost, plural, one {# crédito} other {# créditos}}",
       "generatingButton": "Gerando…",
-      "generateError": "Não foi possível gerar seu molde agora. Tente de novo."
+      "generateError": "Não foi possível gerar seu molde agora. Tente de novo.",
+      "autoDefaultMessage": "pode gerar com os padrões"
     }
   },
   "VerificationEmail": {

@@ -199,6 +199,49 @@ describe("OnboardingShell", () => {
     expect(api.completeOnboarding).toHaveBeenCalledWith("brand");
   });
 
+  // #215: a vague first message used to strand the user on a generic error --
+  // there is no ClarifyCard here to show the AI's questions. It must instead
+  // silently retry with answering:true (the same mechanism ClarifyCard's own
+  // "gerar assim mesmo" button uses), which forces the AI to apply its best
+  // guess instead of asking again.
+  it("retries with answering:true and defaults when the AI asks a clarifying question", async () => {
+    vi.mocked(api.createPattern).mockResolvedValue({ id: "p1" });
+    vi.mocked(api.generate)
+      .mockResolvedValueOnce({ status: "clarify" } as never)
+      .mockResolvedValueOnce({ status: "ok" } as never);
+
+    const user = userEvent.setup();
+    renderWithIntl(<OnboardingShell credits={CREDITS} />);
+    await goToStep3(user);
+
+    await user.click(
+      screen.getByRole("button", {
+        name: ptBR.Onboarding.step3.suggestionBlouse,
+      }),
+    );
+    await user.click(
+      screen.getByRole("button", {
+        name: translatorFor("Onboarding")("step3.generateCta", {
+          cost: COSTS.adjust,
+        }),
+      }),
+    );
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/pattern/p1"));
+    expect(api.generate).toHaveBeenCalledTimes(2);
+    expect(api.generate).toHaveBeenNthCalledWith(
+      1,
+      "p1",
+      ptBR.Onboarding.step3.suggestionBlouse,
+    );
+    expect(api.generate).toHaveBeenNthCalledWith(
+      2,
+      "p1",
+      ptBR.Onboarding.step3.autoDefaultMessage,
+      true,
+    );
+  });
+
   it("leaves the user on step 3 with an error notice, not navigating, when generation fails", async () => {
     vi.mocked(api.createPattern).mockResolvedValue({ id: "p1" });
     vi.mocked(api.generate).mockResolvedValue({ status: "declined" } as never);
