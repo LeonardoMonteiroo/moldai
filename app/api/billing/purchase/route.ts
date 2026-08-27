@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getTranslations } from "next-intl/server";
-import { readJsonObject } from "@/lib/api/body";
+import { parseBody } from "@/lib/api/body";
+import { PurchaseBodySchema } from "@/lib/schemas/billing";
 import { withWallet, withAsaasCustomerId } from "@/lib/db/wallet";
 import { loadPattern, patternNotFound } from "@/lib/db/pattern";
 import {
@@ -68,7 +69,7 @@ export async function POST(request: Request) {
     });
   }
 
-  const body = await readJsonObject(request);
+  const body = await parseBody(request, PurchaseBodySchema);
   if (body instanceof NextResponse) return body;
   // Validate before any wallet or provider work: an unrecognised type must
   // not reach applyPurchase (mock path) or become a real checkout charge

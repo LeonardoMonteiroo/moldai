@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { readJsonObject } from "@/lib/api/body";
+import { parseBody } from "@/lib/api/body";
+import { AccountPasswordBodySchema } from "@/lib/schemas/account";
 import { requireUser } from "@/lib/auth/guard";
 import { apiError, ERROR_STATUS } from "@/lib/api/errors";
 import { changePassword } from "@/lib/account/settings";
@@ -18,7 +19,7 @@ export async function POST(request: Request) {
   const gate = await requireUser();
   if (gate instanceof NextResponse) return gate;
 
-  const body = await readJsonObject(request);
+  const body = await parseBody(request, AccountPasswordBodySchema);
   if (body instanceof NextResponse) return body;
 
   const user = await getUserById(gate.id);

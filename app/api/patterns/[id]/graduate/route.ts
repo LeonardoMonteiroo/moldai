@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { readJsonObject } from "@/lib/api/body";
+import { parseBody } from "@/lib/api/body";
+import { GraduateBodySchema } from "@/lib/schemas/pattern";
 import { getTranslations } from "next-intl/server";
 import { withPatternAndWallet } from "@/lib/db/pattern-wallet";
 import { patternNotFound } from "@/lib/db/pattern";
@@ -20,7 +21,7 @@ export async function POST(request: Request, { params }: Ctx) {
   if (gate instanceof NextResponse) return gate;
   const { id } = await params;
 
-  const body = await readJsonObject(request);
+  const body = await parseBody(request, GraduateBodySchema);
   if (body instanceof NextResponse) return body;
   const requested = Array.isArray(body.sizes) ? body.sizes : [];
   const cost = COSTS.graduate;

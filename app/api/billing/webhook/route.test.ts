@@ -208,9 +208,9 @@ describe("POST /api/billing/webhook", () => {
 
   // A non-2xx here counts towards Asaas's 15-consecutive-failure queue
   // pause exactly like an unrecognised event does -- so even the shared
-  // readJsonObject 400 every other route in this app returns as-is must not
+  // parseBody 400 every other route in this app returns as-is must not
   // escape from this one.
-  it("a malformed (non-JSON) body still answers 200, not the shared readJsonObject 400", async () => {
+  it("a malformed (non-JSON) body still answers 200, not the shared parseBody 400", async () => {
     const res = await POST(
       new Request("http://test/api/billing/webhook", {
         method: "POST",
@@ -221,6 +221,17 @@ describe("POST /api/billing/webhook", () => {
         body: "not json",
       }),
     );
+    expect(res.status).toBe(200);
+    expect(withWalletIdempotent).not.toHaveBeenCalled();
+  });
+
+  // #152: "null" is valid JSON (unlike "not json" above) -- it survives
+  // parseBody's JSON.parse and fails AsaasWebhookBodySchema's own object
+  // check instead, exercising the schema-rejection branch rather than the
+  // JSON-syntax-error branch. Both must still answer 200, never propagate
+  // the shared bad_body.
+  it("a literal null body still answers 200, not the shared parseBody 400", async () => {
+    const res = await POST(req(null));
     expect(res.status).toBe(200);
     expect(withWalletIdempotent).not.toHaveBeenCalled();
   });

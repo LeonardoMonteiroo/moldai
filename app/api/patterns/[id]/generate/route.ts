@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { readJsonObject, hasNulByte } from "@/lib/api/body";
+import { parseBody, hasNulByte } from "@/lib/api/body";
+import { GenerateBodySchema } from "@/lib/schemas/pattern";
 import { getTranslations } from "next-intl/server";
 import { withPatternAndWallet } from "@/lib/db/pattern-wallet";
 import { patternNotFound } from "@/lib/db/pattern";
@@ -37,7 +38,11 @@ export async function POST(request: Request, { params }: Ctx) {
   if (gate instanceof NextResponse) return gate;
   const { id } = await params;
 
-  const body = await readJsonObject(request, MAX_GENERATE_BODY_BYTES);
+  const body = await parseBody(
+    request,
+    GenerateBodySchema,
+    MAX_GENERATE_BODY_BYTES,
+  );
   if (body instanceof NextResponse) return body;
   const trimmed = typeof body.message === "string" ? body.message.trim() : "";
   // #69: a NUL byte survives .trim() and would otherwise only abort the
