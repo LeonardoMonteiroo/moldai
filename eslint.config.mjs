@@ -22,6 +22,19 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Gitignored local tooling artifacts. ESLint 9's flat config does NOT
+    // read .gitignore, so these have to be named here or a developer who has
+    // run DesignSync lints a vendored React bundle: measured, `npm run lint`
+    // reported 1249 problems against ds-bundle/_vendor/react.js and friends,
+    // none of them this repo's code. CI never saw it (a clean checkout has
+    // neither directory), which is exactly what makes it worth writing down.
+    ".ds-sync/**",
+    "ds-bundle/**",
+    // Agent worktrees are full checkouts of this same repo, complete with
+    // their own node_modules and .next. The patterns above are root-relative,
+    // so a nested checkout's build output is not covered by them -- left
+    // unignored, a stale worktree took the same lint run to 212632 problems.
+    ".claude/worktrees/**",
   ]),
   {
     rules: {
