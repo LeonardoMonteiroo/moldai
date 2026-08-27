@@ -4,6 +4,19 @@ import type { Pattern } from "@/lib/types";
 import { SIZE_TABLE } from "@/lib/measurements";
 import { TechSheetTab } from "./TechSheetTab";
 
+// buildEaseReport (#137) only checks pieces.length > 0 to know a pattern has
+// already been drafted -- it never reads the Piece shape itself (it
+// re-drafts in exact cm from spec + sizeTable, the buildExportModel
+// precedent), so a single stub entry is enough to signal that.
+const STUB_PIECE: Pattern["pieces"][number] = {
+  id: "x",
+  name: "x",
+  qty: 1,
+  outline: { kind: "polygon", points: "0,0" },
+  label: { x: 0, y: 0 },
+  detailRows: [],
+};
+
 function pattern(overrides: Partial<Pattern> = {}): Pattern {
   return {
     id: "p1",
@@ -107,16 +120,13 @@ describe("TechSheetTab", () => {
     ).not.toBeInTheDocument();
   });
 
-  // #125: a woven garment shows the fit class + resulting bust ease; a
-  // pattern with no sizeTable row for its own baseSize (an unrealistic
-  // fixture, but the existing tests above use exactly that) must not crash
-  // computing it -- the ease chip is simply omitted, the chipSizeChart
-  // precedent.
-  it("shows the fit class and resulting bust ease for a woven garment", () => {
+  // #125: a woven garment shows the fit class chip; the ease REPORT (#137)
+  // is a separate section, tested below.
+  it("shows the fit class for a woven garment", () => {
     renderWithIntl(
       <TechSheetTab
         pattern={pattern({
-          sizeTable: { M: { bust: 92 } as never },
+          sizeTable: { M: SIZE_TABLE.M },
           spec: {
             type: "blouse",
             gender: "female",
@@ -129,15 +139,13 @@ describe("TechSheetTab", () => {
 
     expect(screen.getByText(ptBR.TechSheetTab.chipFit)).toBeInTheDocument();
     expect(screen.getByText(ptBR.PatternData.fit.loose)).toBeInTheDocument();
-    expect(screen.getByText(ptBR.TechSheetTab.chipEase)).toBeInTheDocument();
-    expect(screen.getByText("16,0 cm")).toBeInTheDocument();
   });
 
-  it("shows the fabric stretch class and negative ease for a knit garment", () => {
+  it("shows the fabric stretch class for a knit garment", () => {
     renderWithIntl(
       <TechSheetTab
         pattern={pattern({
-          sizeTable: { M: { bust: 100 } as never },
+          sizeTable: { M: SIZE_TABLE.M },
           spec: {
             type: "tshirt",
             gender: "female",
@@ -150,14 +158,13 @@ describe("TechSheetTab", () => {
 
     expect(screen.getByText(ptBR.TechSheetTab.chipFabric)).toBeInTheDocument();
     expect(screen.getByText(ptBR.PatternData.stretch.high)).toBeInTheDocument();
-    expect(screen.getByText("-12,0 cm")).toBeInTheDocument();
   });
 
-  it("omits the fit/fabric and ease chips for a pattern with no bodice (skirt only)", () => {
+  it("omits the fit/fabric chips for a pattern with no bodice (skirt only)", () => {
     renderWithIntl(
       <TechSheetTab
         pattern={pattern({
-          sizeTable: { M: { bust: 92 } as never },
+          sizeTable: { M: SIZE_TABLE.M },
           spec: {
             type: "skirt",
             gender: "female",
@@ -174,17 +181,108 @@ describe("TechSheetTab", () => {
     expect(
       screen.queryByText(ptBR.TechSheetTab.chipFabric),
     ).not.toBeInTheDocument();
-    expect(
-      screen.queryByText(ptBR.TechSheetTab.chipEase),
-    ).not.toBeInTheDocument();
   });
 
-  it("omits the ease chip (but not the fit chip) when the pattern's sizeTable has no row for its own baseSize", () => {
-    renderWithIntl(<TechSheetTab pattern={pattern()} />);
+  // #137: the drafted-ease report -- geometry-measured, not the requested
+  // fit/stretch style field. Renders bust/waist/hip rows with cm/% and the
+  // implied fit class, reusing the same PatternData.fit.* catalog the
+  // chipFit chip above reads.
+  describe("drafted-ease report (#137)", () => {
+    it("renders bust/waist/hip rows with cm, %, and the implied fit class for a woven blouse", () => {
+      renderWithIntl(
+        <TechSheetTab
+          pattern={pattern({
+            sizeTable: { M: SIZE_TABLE.M },
+            pieces: [STUB_PIECE],
+            spec: {
+              type: "blouse",
+              gender: "female",
+              measurementOverrides: {},
+              style: { neckline: "round", sleeve: "short", darts: true },
+            },
+          })}
+        />,
+      );
 
-    expect(screen.getByText(ptBR.TechSheetTab.chipFit)).toBeInTheDocument();
-    expect(
-      screen.queryByText(ptBR.TechSheetTab.chipEase),
-    ).not.toBeInTheDocument();
+      expect(
+        screen.getByText(ptBR.TechSheetTab.easeReport.title),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(ptBR.TechSheetTab.easeReport.girth.bust),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(ptBR.TechSheetTab.easeReport.girth.waist),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(ptBR.TechSheetTab.easeReport.girth.hip),
+      ).toBeInTheDocument();
+      // The default fitted blouse's bust ease reads back near the
+      // FIT_EASE_CM.fitted default (8cm) -- the fit class column shows the
+      // catalog's own "fitted" label, resolved off the measured (not
+      // requested) ease.
+      expect(
+        screen.getAllByText(ptBR.PatternData.fit.fitted).length,
+      ).toBeGreaterThan(0);
+      // Cap ease chips, since this blouse has a sleeve.
+      expect(
+        screen.getByText(ptBR.TechSheetTab.easeReport.capEase),
+      ).toBeInTheDocument();
+    });
+
+    it("shows negative bust ease for a stretchy knit, not hidden or treated as an error", () => {
+      renderWithIntl(
+        <TechSheetTab
+          pattern={pattern({
+            sizeTable: { M: SIZE_TABLE.M },
+            pieces: [STUB_PIECE],
+            spec: {
+              type: "tshirt",
+              gender: "female",
+              measurementOverrides: {},
+              style: { stretch: "high" },
+            },
+          })}
+        />,
+      );
+
+      expect(screen.getAllByText(/-\d+,\d cm/).length).toBeGreaterThan(0);
+    });
+
+    it("marks bust as unavailable for a bust-less garment (skirt), with a stated reason", () => {
+      renderWithIntl(
+        <TechSheetTab
+          pattern={pattern({
+            sizeTable: { M: SIZE_TABLE.M },
+            pieces: [STUB_PIECE],
+            spec: {
+              type: "skirt",
+              gender: "female",
+              measurementOverrides: {},
+              style: { skirt: "straight" },
+            },
+          })}
+        />,
+      );
+
+      expect(
+        screen.getByText(
+          ptBR.TechSheetTab.easeReport.unavailable.noPanel.replace(
+            "{girth}",
+            ptBR.TechSheetTab.easeReport.girth.bust.toLowerCase(),
+          ),
+        ),
+      ).toBeInTheDocument();
+    });
+
+    it("omits the whole report when the pattern's sizeTable has no row for its own baseSize", () => {
+      renderWithIntl(
+        <TechSheetTab pattern={pattern({ pieces: [STUB_PIECE] })} />,
+      );
+
+      expect(screen.getByText(ptBR.TechSheetTab.chipFit)).toBeInTheDocument();
+      expect(
+        screen.queryByText(ptBR.TechSheetTab.easeReport.title),
+      ).not.toBeInTheDocument();
+    });
   });
 });

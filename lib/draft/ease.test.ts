@@ -5,6 +5,7 @@ import {
   FIT_EASE_CM,
   STRETCH_EASE_PCT,
   wearingEaseCm,
+  classifyGirthFit,
 } from "./ease";
 
 // #125: pins the two values that must never drift, per the
@@ -52,5 +53,34 @@ describe("wearingEaseCm", () => {
     expect(wearingEaseCm({ fit: "fitted", stretch: "high" }, false, 100)).toBe(
       8,
     );
+  });
+});
+
+// #137: classifyGirthFit is the drafted-ease report's own fit classifier --
+// it must reuse FIT_EASE_CM's own numbers (never a second, competing scale)
+// and every one of its band CENTRES (the table's own representative
+// figures) must classify back to the class that centre belongs to.
+describe("classifyGirthFit", () => {
+  it("classifies each class's own FIT_EASE_CM.bust figure back to that class", () => {
+    for (const fit of FIT_CLASSES) {
+      expect(classifyGirthFit("bust", FIT_EASE_CM[fit].bust)).toBe(fit);
+    }
+  });
+  it("classifies each class's own FIT_EASE_CM.waist/hip figure back to that class too", () => {
+    for (const fit of FIT_CLASSES) {
+      expect(classifyGirthFit("waist", FIT_EASE_CM[fit].waist)).toBe(fit);
+      expect(classifyGirthFit("hip", FIT_EASE_CM[fit].hip)).toBe(fit);
+    }
+  });
+  it("negative ease (a knit's own convention) classifies as close, not an error", () => {
+    expect(classifyGirthFit("bust", -12)).toBe("close");
+  });
+  it("classifies right at the fitted/semiFitted midpoint as fitted (<=), one step over as semiFitted", () => {
+    const mid = (FIT_EASE_CM.fitted.bust + FIT_EASE_CM.semiFitted.bust) / 2;
+    expect(classifyGirthFit("bust", mid)).toBe("fitted");
+    expect(classifyGirthFit("bust", mid + 0.1)).toBe("semiFitted");
+  });
+  it("an ease far beyond loose's own figure still classifies as loose, not out of range", () => {
+    expect(classifyGirthFit("bust", 100)).toBe("loose");
   });
 });

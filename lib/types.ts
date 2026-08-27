@@ -41,6 +41,11 @@ export type SkirtSilhouette =
 // lib/draft/garment.ts's FIT_EASE_CM / STRETCH_EASE_PCT.
 export type FitClass = "close" | "fitted" | "semiFitted" | "loose";
 export type StretchClass = "none" | "low" | "medium" | "high";
+// #137: the three girths the drafted-ease report compares against the body
+// (lib/draft/easeReport.ts) -- co-located with FitClass/StretchClass since
+// FIT_EASE_CM's own shape (lib/draft/ease.ts) already keys its per-class
+// figures by these same three names.
+export type Girth = "bust" | "waist" | "hip";
 // #129/#130/#131 (Wave 2/W4): the three sub-piece types, each a closed enum
 // of exactly what's actually drafted today plus "none" -- there is no third
 // value the AI can select, unlike a proportion-tunable numeric field. Other
