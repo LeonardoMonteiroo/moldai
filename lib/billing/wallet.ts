@@ -16,6 +16,18 @@ export interface Wallet {
   // allowance only ("use it or lose it"); `purchased` never resets on renew.
   purchased: number;
   renewsAt: Date | null;
+  // #196: the externalId (Asaas payment id) of the ledger entry that
+  // actually set the wallet's CURRENT plan/total -- i.e. the entry that ran
+  // applyPurchase's real upgrade branch (LedgerEntry.planChanged: true) most
+  // recently. Only ever written by the webhook route's handleConfirmed
+  // (lib/billing/wallet.ts stays gateway-agnostic; it just reads/writes this
+  // field like any other Wallet property), since only a gateway-originated
+  // subscribe entry carries an externalId at all -- the mock purchase path
+  // never sets it, and never needs to: it has no refund flow to disambiguate
+  // for. null when the wallet is on the free tier, or was moved there by a
+  // full reverseSubscription reset. reverseRefundedSubscription is the pure
+  // decision of whether a given refunded entry IS this pointer.
+  planSourceExternalId: string | null;
 }
 
 export type LedgerEntryType =
@@ -26,6 +38,17 @@ export interface LedgerEntry {
   amount: number;
   balanceAfter: number;
   reason?: string;
+  // #196: only meaningful on a `type: "subscribe"` entry -- true when this
+  // specific call to applyPurchase actually moved plan/total (the upgrade
+  // branch), false when it folded into `purchased` instead (the #193
+  // monotonicity guard's branch). Persisted (Transaction.planChanged) so a
+  // later refund can tell the two apart: a folded entry never touched the
+  // plan and is fully, precisely reversible; a plan-changing entry might
+  // still be the wallet's CURRENT plan source (full reset) or might have
+  // since been superseded by a later real upgrade (its contribution to
+  // `total` was overwritten wholesale, not additively, so nothing about it
+  // survives to claw back -- see reverseRefundedSubscription).
+  planChanged?: boolean;
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -42,6 +65,7 @@ export function seedWallet(now: Date): Wallet {
     total: PLAN_CREDITS.free,
     purchased: 0,
     renewsAt: new Date(now.getTime() + 30 * DAY_MS),
+    planSourceExternalId: null,
   };
 }
 
@@ -148,6 +172,11 @@ export function applyPurchase(
           amount: planCredits,
           balanceAfter: wallet.balance,
           reason: purchase.plan,
+          // #196: folded into `purchased`, never touched plan/total -- a
+          // later refund of this exact entry can undo precisely this
+          // movement (reverseFoldedSubscription), and must never reset the
+          // plan, since this entry never set it in the first place.
+          planChanged: false,
         };
       }
       // Plan allowance plus whatever top-up credits were already bought —
@@ -172,6 +201,13 @@ export function applyPurchase(
         // Which tier was purchased -- lets UsageSection's ledger row say
         // "Assinatura · Estúdio" instead of just "Assinatura".
         reason: purchase.plan,
+        // #196: this call genuinely moved plan/total -- the webhook route's
+        // handleConfirmed uses this to record wallet.planSourceExternalId,
+        // so a future refund of THIS entry (if it's still the wallet's
+        // current plan source when that refund arrives) knows to do the
+        // full reset, and a refund of any OTHER plan-changing entry knows
+        // it was superseded instead.
+        planChanged: true,
       };
     }
     default: {
@@ -190,6 +226,12 @@ export function applyPurchase(
 // `renewsAt` are untouched, matching applyPurchase("subscribe") never
 // touching `purchased` either). Not used for a *topup* refund, which is a
 // plain debitWallet -- a topup never changed plan/total to begin with.
+//
+// #196: only call this for the entry that IS the wallet's current plan
+// source (reverseRefundedSubscription's "reset" outcome) -- calling it for
+// ANY refunded subscribe entry, regardless of whether that entry is still
+// what backs the current plan, was exactly issue #196's bug. Clears
+// `planSourceExternalId` too: the plan it pointed at no longer exists.
 export function reverseSubscription(
   wallet: Wallet,
   amount: number,
@@ -197,11 +239,93 @@ export function reverseSubscription(
   wallet.balance -= amount;
   wallet.plan = "free";
   wallet.total = PLAN_CREDITS.free;
+  wallet.planSourceExternalId = null;
   return {
     type: "debit",
     amount,
     balanceAfter: wallet.balance,
     reason: "asaas_refund",
+  };
+}
+
+// #196: reverses a *folded* subscribe entry (applyPurchase's #193 guard
+// branch, LedgerEntry.planChanged: false) -- it added `amount` to BOTH
+// `purchased` and `balance` (mirroring a topup), never touched plan/total,
+// so undoing it is the mirrored-undo `debitWallet`-shaped operation the
+// issue's own acceptance criteria ask for: exactly what it added, nothing
+// about the plan.
+export function reverseFoldedSubscription(
+  wallet: Wallet,
+  amount: number,
+): LedgerEntry {
+  wallet.balance -= amount;
+  wallet.purchased -= amount;
+  return {
+    type: "debit",
+    amount,
+    balanceAfter: wallet.balance,
+    reason: "asaas_refund",
+  };
+}
+
+export type RefundedSubscriptionOutcome = "reset" | "folded" | "superseded";
+
+export interface RefundedSubscriptionResult {
+  outcome: RefundedSubscriptionOutcome;
+  ledgerEntry: LedgerEntry;
+}
+
+// #196: the pure decision at the heart of this fix -- given the wallet's
+// CURRENT state, which of three things a refunded `type: "subscribe"`
+// ledger entry actually means:
+//
+//  - "reset": `refundedExternalId` is exactly `wallet.planSourceExternalId`
+//    -- this entry IS what currently backs the wallet's plan. A legitimate
+//    refund of the real plan-setting payment; reverseSubscription's full
+//    reset to free is correct here, same as before this issue.
+//  - "folded": this entry never changed the plan at all (planChanged was
+//    false when it ran -- applyPurchase's #193 guard branch). Its
+//    contribution is precisely tracked (added to `purchased`+`balance`,
+//    never overwritten since), so reverseFoldedSubscription undoes exactly
+//    that, regardless of what plan the wallet is on now. This is the #196
+//    acceptance criterion: refunding a superseded/folded payment must not
+//    touch the plan.
+//  - "superseded": this entry DID change the plan when it ran, but a later
+//    real upgrade has since overwritten `total`/`plan` again (applyPurchase
+//    always assigns, never adds, on that branch) -- e.g. atelier->studio,
+//    then separately studio->factory, then the ORIGINAL atelier payment is
+//    refunded. Nothing this entry contributed survives to claw back: its
+//    delta was folded into a `total` that a later upgrade fully replaced,
+//    and by the time of that replacement `balance` may also have moved
+//    through unrelated debits/top-ups, so there is no honest amount left to
+//    subtract. The wallet is left untouched; the caller is expected to
+//    report this for operator visibility (there is no ledger row shape that
+//    says "acknowledged, no-op" on its own).
+export function reverseRefundedSubscription(
+  wallet: Wallet,
+  entry: { amount: number; planChanged: boolean },
+  refundedExternalId: string,
+): RefundedSubscriptionResult {
+  if (wallet.planSourceExternalId === refundedExternalId) {
+    return {
+      outcome: "reset",
+      ledgerEntry: reverseSubscription(wallet, entry.amount),
+    };
+  }
+  if (!entry.planChanged) {
+    return {
+      outcome: "folded",
+      ledgerEntry: reverseFoldedSubscription(wallet, entry.amount),
+    };
+  }
+  return {
+    outcome: "superseded",
+    ledgerEntry: {
+      type: "debit",
+      amount: 0,
+      balanceAfter: wallet.balance,
+      reason: "asaas_refund_superseded",
+    },
   };
 }
 

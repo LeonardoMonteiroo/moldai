@@ -5,6 +5,8 @@ import {
   refundWallet,
   applyPurchase,
   reverseSubscription,
+  reverseFoldedSubscription,
+  reverseRefundedSubscription,
   renewWallet,
   renewsInDays,
   isRenewalDue,
@@ -21,6 +23,7 @@ describe("seedWallet", () => {
     expect(w.total).toBe(30);
     expect(w.purchased).toBe(0);
     expect(w.renewsAt).toEqual(new Date("2026-09-16T12:00:00.000Z"));
+    expect(w.planSourceExternalId).toBeNull();
   });
 });
 
@@ -70,6 +73,8 @@ describe("applyPurchase", () => {
       amount: 490,
       balanceAfter: 500,
       reason: "atelier",
+      // #196: this call genuinely moved plan/total.
+      planChanged: true,
     });
   });
   it("subscribe keeps any already-purchased top-up credits on top of the new plan allowance (#37)", () => {
@@ -97,6 +102,7 @@ describe("applyPurchase", () => {
       amount: 2000 - 30,
       balanceAfter: 2000,
       reason: "studio",
+      planChanged: true,
     });
   });
 
@@ -157,6 +163,10 @@ describe("applyPurchase", () => {
         amount: 2000,
         balanceAfter: 12000,
         reason: "studio",
+        // #196: folded into `purchased`, never touched plan/total -- the
+        // marker a later refund of THIS entry needs to reverse it precisely
+        // (reverseFoldedSubscription) rather than resetting the plan.
+        planChanged: false,
       });
     });
 
@@ -222,6 +232,119 @@ describe("reverseSubscription", () => {
     expect(w.balance).toBe(100); // 600 - 500, the purchased credits remain
     expect(w.purchased).toBe(100);
     expect(w.plan).toBe("free");
+  });
+
+  it("clears planSourceExternalId -- the plan it pointed at no longer exists (#196)", () => {
+    const w = seedWallet(NOW);
+    applyPurchase(w, { type: "subscribe", plan: "atelier" }, NOW);
+    w.planSourceExternalId = "pay_1";
+    reverseSubscription(w, 500);
+    expect(w.planSourceExternalId).toBeNull();
+  });
+});
+
+// #196: reverses applyPurchase's "folded" subscribe branch (#193's
+// monotonicity guard) -- it added `amount` to BOTH `purchased` and
+// `balance`, never touched plan/total, so undoing it must mirror exactly
+// that, regardless of what plan the wallet is on now.
+describe("reverseFoldedSubscription", () => {
+  it("subtracts the amount from both balance and purchased, leaves plan/total untouched", () => {
+    const w = seedWallet(NOW);
+    applyPurchase(w, { type: "subscribe", plan: "factory" }, NOW); // plan factory, balance 10000
+    applyPurchase(w, { type: "subscribe", plan: "studio" }, NOW); // folded: +2000 purchased/balance
+    expect(w.balance).toBe(12000);
+    expect(w.purchased).toBe(2000);
+    const entry = reverseFoldedSubscription(w, 2000);
+    expect(w.balance).toBe(10000);
+    expect(w.purchased).toBe(0);
+    expect(w.plan).toBe("factory"); // untouched -- this entry never set it
+    expect(w.total).toBe(10000);
+    expect(entry).toEqual({
+      type: "debit",
+      amount: 2000,
+      balanceAfter: 10000,
+      reason: "asaas_refund",
+    });
+  });
+});
+
+// #196: the pure decision reverseRefundedSubscription makes, reproducing
+// this issue's own three acceptance-criteria scenarios directly against the
+// wallet model, independent of the webhook route/DB layer.
+describe("reverseRefundedSubscription", () => {
+  it("resets to free when the refunded entry IS the wallet's current plan source", () => {
+    const w = seedWallet(NOW);
+    applyPurchase(w, { type: "subscribe", plan: "atelier" }, NOW); // balance/total 500
+    w.planSourceExternalId = "pay_atelier";
+    const { outcome, ledgerEntry } = reverseRefundedSubscription(
+      w,
+      { amount: 500, planChanged: true },
+      "pay_atelier",
+    );
+    expect(outcome).toBe("reset");
+    expect(w.plan).toBe("free");
+    expect(w.total).toBe(30);
+    expect(w.planSourceExternalId).toBeNull();
+    expect(ledgerEntry).toEqual({
+      type: "debit",
+      amount: 500,
+      balanceAfter: w.balance,
+      reason: "asaas_refund",
+    });
+  });
+
+  // The issue's own acceptance criterion: wallet upgraded to factory, then a
+  // separate, lower-plan subscribe payment is confirmed (folded into
+  // purchased per #193), then THAT payment is refunded -- the wallet must
+  // stay on factory, not drop to free.
+  it("undoes exactly the folded amount and leaves the plan on factory when the refunded entry never set it", () => {
+    const w = seedWallet(NOW);
+    applyPurchase(w, { type: "subscribe", plan: "factory" }, NOW); // plan factory
+    w.planSourceExternalId = "pay_factory";
+    applyPurchase(w, { type: "subscribe", plan: "studio" }, NOW); // folded: +2000
+    expect(w.balance).toBe(12000);
+    const { outcome, ledgerEntry } = reverseRefundedSubscription(
+      w,
+      { amount: 2000, planChanged: false },
+      "pay_studio_superseded",
+    );
+    expect(outcome).toBe("folded");
+    expect(w.plan).toBe("factory");
+    expect(w.total).toBe(10000);
+    expect(w.balance).toBe(10000);
+    expect(w.purchased).toBe(0);
+    expect(w.planSourceExternalId).toBe("pay_factory"); // untouched
+    expect(ledgerEntry.amount).toBe(2000);
+  });
+
+  // The chain-of-upgrades case named in the issue's own Context section:
+  // refund the ORIGINAL atelier payment after the account later, separately,
+  // upgraded to factory. atelier really did change the plan when it ran
+  // (planChanged: true) -- but it is no longer wallet.planSourceExternalId,
+  // because factory's own later upgrade overwrote plan/total wholesale.
+  // Nothing about atelier's contribution survives to claw back.
+  it("leaves the wallet untouched when a plan-changing entry has since been superseded by a later real upgrade", () => {
+    const w = seedWallet(NOW);
+    applyPurchase(w, { type: "subscribe", plan: "atelier" }, NOW); // pay_atelier would set planSourceExternalId here
+    applyPurchase(w, { type: "subscribe", plan: "factory" }, NOW); // real upgrade -- overwrites plan/total
+    w.planSourceExternalId = "pay_factory";
+    const balanceBefore = w.balance;
+    const { outcome, ledgerEntry } = reverseRefundedSubscription(
+      w,
+      { amount: 490, planChanged: true }, // atelier's own original entry
+      "pay_atelier",
+    );
+    expect(outcome).toBe("superseded");
+    expect(w.plan).toBe("factory");
+    expect(w.total).toBe(10000);
+    expect(w.balance).toBe(balanceBefore); // untouched
+    expect(w.planSourceExternalId).toBe("pay_factory"); // untouched
+    expect(ledgerEntry).toEqual({
+      type: "debit",
+      amount: 0,
+      balanceAfter: balanceBefore,
+      reason: "asaas_refund_superseded",
+    });
   });
 });
 

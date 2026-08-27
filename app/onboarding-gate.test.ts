@@ -134,6 +134,7 @@ describe("app/onboarding/page.tsx (#14)", () => {
       total: 30,
       purchased: 0,
       renewsAt: null,
+      planSourceExternalId: null,
     });
 
     await expect(OnboardingPage()).rejects.toThrow("REDIRECT:/");
@@ -148,6 +149,7 @@ describe("app/onboarding/page.tsx (#14)", () => {
       total: 30,
       purchased: 0,
       renewsAt: null,
+      planSourceExternalId: null,
     });
 
     const result = await OnboardingPage();

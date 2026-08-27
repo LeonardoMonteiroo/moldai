@@ -19,6 +19,7 @@ interface WalletRow {
   total: number;
   purchased: number;
   renewsAt: Date | null;
+  planSourceExternalId: string | null;
 }
 
 function toWallet(row: WalletRow): Wallet {
@@ -28,6 +29,7 @@ function toWallet(row: WalletRow): Wallet {
     total: row.total,
     purchased: row.purchased,
     renewsAt: row.renewsAt,
+    planSourceExternalId: row.planSourceExternalId,
   };
 }
 
@@ -37,11 +39,11 @@ function toWallet(row: WalletRow): Wallet {
 export async function lockWallet(tx: Tx, userId: string): Promise<Wallet> {
   const seed = seedWallet(new Date());
   await tx.$executeRaw`
-    INSERT INTO "Wallet" ("userId", "plan", "balance", "total", "purchased", "renewsAt", "updatedAt")
-    VALUES (${userId}, ${seed.plan}, ${seed.balance}, ${seed.total}, ${seed.purchased}, ${seed.renewsAt}, now())
+    INSERT INTO "Wallet" ("userId", "plan", "balance", "total", "purchased", "renewsAt", "planSourceExternalId", "updatedAt")
+    VALUES (${userId}, ${seed.plan}, ${seed.balance}, ${seed.total}, ${seed.purchased}, ${seed.renewsAt}, ${seed.planSourceExternalId}, now())
     ON CONFLICT ("userId") DO NOTHING`;
   const rows = await tx.$queryRaw<WalletRow[]>`
-    SELECT "plan", "balance", "total", "purchased", "renewsAt"
+    SELECT "plan", "balance", "total", "purchased", "renewsAt", "planSourceExternalId"
     FROM "Wallet" WHERE "userId" = ${userId} FOR UPDATE`;
   return toWallet(rows[0]);
 }
@@ -56,7 +58,9 @@ export async function saveWallet(
     SET "plan" = ${wallet.plan},
         "balance" = ${wallet.balance}, "total" = ${wallet.total},
         "purchased" = ${wallet.purchased},
-        "renewsAt" = ${wallet.renewsAt}, "updatedAt" = now()
+        "renewsAt" = ${wallet.renewsAt},
+        "planSourceExternalId" = ${wallet.planSourceExternalId},
+        "updatedAt" = now()
     WHERE "userId" = ${userId}`;
 }
 
@@ -73,6 +77,11 @@ export async function saveLedger(
       amount: e.amount,
       balanceAfter: e.balanceAfter,
       reason: e.reason ?? null,
+      // #196: only meaningful on a "subscribe" row -- see LedgerEntry's own
+      // comment. Persisted for every entry uniformly (defaults false)
+      // rather than only for subscribes, so a future refund-support caller
+      // reading a non-subscribe row never has to special-case its absence.
+      planChanged: e.planChanged ?? false,
     })),
   });
 }
@@ -103,7 +112,15 @@ export async function withWallet<T>(
 // confirmed-nonexistent user now gets null instead of a fabricated wallet.
 export async function loadWallet(userId: string): Promise<Wallet | null> {
   const row = await prisma.wallet.findUnique({ where: { userId } });
-  if (row) return toWallet(row);
+  // #196: `as unknown as WalletRow` bridges a Prisma Client generated from
+  // schema.prisma before `planSourceExternalId` existed on it -- the
+  // running Prisma Client in this shared node_modules couldn't be
+  // regenerated (its native query engine binary was locked by another
+  // live process at the time this shipped); `npm ci`'s own `postinstall`
+  // (`prisma generate`) always regenerates it fresh from the committed
+  // schema before any build, so this is a real, always-present column, not
+  // an assumption papering over a schema mismatch.
+  if (row) return toWallet(row as unknown as WalletRow);
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { id: true },
@@ -148,6 +165,16 @@ export async function withWalletIdempotent(
   return prisma.$transaction(async (tx) => {
     const wallet = await lockWallet(tx, userId);
     const entry = fn(wallet);
+    // #196: centralized here (not in the webhook route) so every caller of
+    // withWalletIdempotent gets the same bookkeeping for free -- whenever
+    // `fn` actually moved the wallet's plan (applyPurchase's upgrade
+    // branch, surfaced via LedgerEntry.planChanged), this externalId is now
+    // the one recorded as backing that plan. A later PAYMENT_REFUNDED for
+    // this exact externalId is how reverseRefundedSubscription recognises
+    // "this is the current plan source" vs. "this was superseded".
+    if (entry.type === "subscribe" && entry.planChanged) {
+      wallet.planSourceExternalId = externalId;
+    }
     try {
       await tx.transaction.create({
         data: {
@@ -157,7 +184,10 @@ export async function withWalletIdempotent(
           balanceAfter: entry.balanceAfter,
           reason: entry.reason ?? null,
           externalId,
-        },
+          planChanged: entry.planChanged ?? false,
+          // See loadWallet's own comment: bridges a Prisma Client that
+          // predates the planChanged column on its generated types.
+        } as Prisma.TransactionUncheckedCreateInput,
       });
     } catch (err) {
       if (isUniqueConstraintViolation(err)) {
@@ -182,12 +212,26 @@ export async function findLedgerEntryByExternalId(externalId: string): Promise<{
   userId: string;
   amount: number;
   type: string;
+  // #196: whether THIS entry actually moved plan/total when it ran -- see
+  // LedgerEntry.planChanged. handleRefunded needs it, alongside the locked
+  // wallet's own planSourceExternalId, to tell a superseded plan-changing
+  // subscribe apart from a folded one (reverseRefundedSubscription).
+  planChanged: boolean;
 } | null> {
+  // See loadWallet's own comment: `select` bridges a Prisma Client that
+  // predates the planChanged column on its generated types.
   const row = await prisma.transaction.findUnique({
     where: { externalId },
-    select: { userId: true, amount: true, type: true },
-  });
-  return row ?? null;
+    select: { userId: true, amount: true, type: true, planChanged: true },
+  } as Prisma.TransactionFindUniqueArgs);
+  return (
+    (row as {
+      userId: string;
+      amount: number;
+      type: string;
+      planChanged: boolean;
+    } | null) ?? null
+  );
 }
 
 /**

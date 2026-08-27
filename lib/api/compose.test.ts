@@ -57,6 +57,7 @@ describe("buildCredits", () => {
       total: 500,
       purchased: 0,
       renewsAt: new Date("2026-09-01T00:00:00.000Z"),
+      planSourceExternalId: null,
     };
     const now = new Date("2026-08-18T00:00:00.000Z");
     expect(buildCredits(wallet, now)).toEqual({
@@ -74,6 +75,7 @@ describe("buildCredits", () => {
       total: 30,
       purchased: 0,
       renewsAt: new Date("2026-09-16T12:00:00.000Z"),
+      planSourceExternalId: null,
     };
     const now = new Date("2026-08-17T12:00:00.000Z");
     const credits = buildCredits(wallet, now);
