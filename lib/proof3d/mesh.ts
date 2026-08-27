@@ -352,15 +352,26 @@ export function buildProofMesh(pattern: Pattern, t: Translate): ProofMesh {
       ],
     });
 
-    // A straight/a-line panel's own waist edge is sized off the hip
-    // measurement plus a fixed ease (lib/draft/skirt.ts's
+    // A STANDALONE straight/a-line skirt's own waist edge is sized off the
+    // hip measurement plus a fixed ease (lib/draft/skirt.ts's
     // skirtWaistHalfCm) -- so this is the garment's real "hip" comparison,
-    // matching the seam a dress bodice actually joins to. A radial panel
-    // (circle/gore/half-circle) instead sizes its inner radius directly off
-    // the true waist measurement (r = waist / fullSweep), which fits it
-    // exactly by construction -- not a hip comparison, and not a
-    // meaningful ease number, so no fit row is emitted for it.
-    if (!RADIAL_SILHOUETTES.has(silhouette)) {
+    // matching the seam a standalone skirt's own waistband joins to
+    // (lib/draft/subpieces.ts's draftWaistband). #177: a DRESS's own
+    // straight/a-line panel is no longer hip-derived -- it reads
+    // dressWaistHalfCm(waist, ...), the exact value the bodice hem it's
+    // sewn to also reads (lib/draft/garment.ts), so for a dress this row
+    // would compare a waist-derived width against the body's hip
+    // measurement, a fit claim the drafted geometry doesn't actually make.
+    // The "waist" row pushed above (off the bodice's own hem scan) already
+    // surfaces a dress's natural-waist fit, and now equals this exact panel
+    // width by construction -- a second row here would be redundant even
+    // where it wasn't actively misleading, so it's skipped for a dress. A
+    // radial panel (circle/gore/half-circle) sizes its inner radius
+    // directly off the true waist measurement (r = waist / fullSweep)
+    // either way, dress or standalone -- not a hip comparison, and not a
+    // meaningful ease number, so no fit row is emitted for it regardless of
+    // garment type.
+    if (!RADIAL_SILHOUETTES.has(silhouette) && spec.type === "skirt") {
       fit.push({
         key: "hip",
         garmentCm: waistGirthCm,

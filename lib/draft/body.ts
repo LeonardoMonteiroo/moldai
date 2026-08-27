@@ -30,9 +30,13 @@ export interface BlockOpts {
   // over), so the hem IS the waist seam, not a hip-derived blouse hem. When
   // present, this replaces hemHalf and the redundant fitted-only waist
   // vertices (which would otherwise exactly retrace the hem, at the same y)
-  // are skipped. The number is the skirt panel's own waist half-width
-  // (lib/draft/skirt.ts's skirtWaistHalfCm), so the seam a dress joins is
-  // drafted at a length that matches what the skirt panel actually is.
+  // are skipped. #177: the number is `dressWaistHalfCm(waist)`
+  // (lib/draft/skirt.ts) -- deliberately silhouette-independent, since the
+  // bodice describes the body, not whichever skirt it's sewn to (not
+  // skirtWaistHalfCm(hip), which was wrong for a fitted bodice's hem
+  // independent of silhouette -- see CLAUDE.md). Every silhouette's own
+  // waist-panel construction is sized to meet this exact value (see
+  // dressWaistHalfCm's own doc and garment.ts's waist-join pairs).
   dressHemHalfCm?: number;
 }
 

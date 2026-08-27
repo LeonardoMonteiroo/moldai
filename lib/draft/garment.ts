@@ -29,7 +29,7 @@ import {
 } from "./core";
 import { BlockOpts, draftBody } from "./body";
 import { draftSleeve, CAP_EASE_CM, WRIST_EASE_CM } from "./sleeve";
-import { draftSkirt, skirtWaistHalfCm } from "./skirt";
+import { draftSkirt, dressWaistHalfCm } from "./skirt";
 import { draftTrousers } from "./trousers";
 import {
   draftCollar,
@@ -301,12 +301,22 @@ function draftAll(
       knit,
       lengthCm,
       wearingEaseCm: wearingEaseCm(style, knit, measurements.bust),
-      // #79: a dress's bodice ends at the waist (lengthCm === backLength,
-      // above), where it's joined to a separately-drafted skirt panel --
-      // the hem must be drafted at that panel's own waist width, not the
-      // hip-derived width a standalone blouse hem uses.
+      // #79/#177: a dress's bodice ends at the waist (lengthCm ===
+      // backLength, above), where it's joined to a separately-drafted skirt
+      // panel -- the hem must be drafted at that panel's own waist width.
+      // #177 (owner decision, refined post-#185 review): that width is now
+      // derived from the actual WAIST measurement via dressWaistHalfCm(waist)
+      // -- the SAME value regardless of which skirt silhouette this dress
+      // has, since the bodice describes the body, not the skirt it happens
+      // to be sewn to (see dressWaistHalfCm's own doc for why waistCm/4,
+      // with no silhouette parameter, is what every silhouette's own
+      // construction already agrees on). It used to read
+      // skirtWaistHalfCm(hip) here, which was wrong independent of
+      // silhouette -- a fitted bodice ends at the natural waist, not the
+      // hip; the circle/gore/half-circle skirt only made the resulting
+      // mismatch visible (#134's own finding).
       ...(spec.type === "dress"
-        ? { dressHemHalfCm: skirtWaistHalfCm(measurements.hip) }
+        ? { dressHemHalfCm: dressWaistHalfCm(measurements.waist) }
         : {}),
     };
     const {
@@ -489,34 +499,52 @@ function draftAll(
     );
     drafted.push(skirtPiece);
     // #134: the dress bodice's hem/waist-join edge vs the skirt panel's own
-    // waist edge -- one declaration per body panel (front, back), since each
-    // sews to its own skirt panel copy (qty on the skirt piece), a real,
-    // separate seam either way even though front/back are equal by
-    // construction (see the shoulder/side note above). For a
-    // straight/a-line skirt these are ALSO equal by construction
-    // (skirtWaistHalfCm, #79). For a circle/gore/half-circle skirt they are
-    // NOT: the bodice hem is hip-derived (skirtWaistHalfCm) while the waist
-    // arc there is drafted straight from the actual waist measurement --
-    // two different measurements of the same body, genuinely divergent for
-    // most real proportions. This is a real, previously-undetected gap (see
-    // the PR description), not a hypothetical one; #134 surfaces it rather
-    // than papering over it with a fake ease.
-    if (spec.type === "dress" && front?.seamEdges && skirtPiece.seamEdges) {
+    // waist edge -- one declaration per body panel (front, back). #134 found
+    // this pair GENUINELY diverged for a circle/gore/half-circle skirt: the
+    // bodice hem was hip-derived (skirtWaistHalfCm(hip)) while the skirt's
+    // own waist arc was already drafted from the actual waist measurement --
+    // two different measurements of the same body. #177 (owner decision)
+    // closed that gap by moving the bodice hem itself off the hip: both
+    // sides now read dressWaistHalfCm (lib/draft/skirt.ts), which is
+    // silhouette-independent (see its own doc), so the VALUE is equal by
+    // construction for all five silhouettes.
+    //
+    // #185 (found while implementing #177, fixed in the same PR): equal
+    // VALUES aren't enough on their own -- the TOPOLOGY of what each pair
+    // compares also has to match how many physical copies the skirt piece
+    // actually is. When `skirtPiece.qty > 1` (straight/a-line, circle/gore),
+    // each bodice half sews to its own WHOLE, identical cut copy, so both
+    // pairs compare against the same declared `waist` edge, unchanged from
+    // before #185 -- this is #79's own original topology and #185 didn't
+    // touch it. When `skirtPiece.qty === 1` (half-circle: one undivided
+    // panel whose single waist arc already equals the FULL waist), that one
+    // arc has to be shared between the two bodice halves, not matched by
+    // each individually -- `waistFront`/`waistBack` (lib/draft/skirt.ts) are
+    // the two halves of that same arc, split at the panel's own centre
+    // vertex, and are what each pair compares against instead.
+    const singlePanel = skirtPiece.qty === 1;
+    const frontWaistEdge = singlePanel
+      ? skirtPiece.seamEdges?.waistFront
+      : skirtPiece.seamEdges?.waist;
+    const backWaistEdge = singlePanel
+      ? skirtPiece.seamEdges?.waistBack
+      : skirtPiece.seamEdges?.waist;
+    if (spec.type === "dress" && front?.seamEdges && frontWaistEdge) {
       seamPairs.push({
         key: "waist-join-front",
         labelKey: "waistJoinFront",
         a: [edgeRef(front.id, front.seamEdges.hem)],
-        b: [edgeRef(skirtPiece.id, skirtPiece.seamEdges.waist)],
+        b: [edgeRef(skirtPiece.id, frontWaistEdge)],
         easeCm: 0,
         fixable: false,
       });
     }
-    if (spec.type === "dress" && back?.seamEdges && skirtPiece.seamEdges) {
+    if (spec.type === "dress" && back?.seamEdges && backWaistEdge) {
       seamPairs.push({
         key: "waist-join-back",
         labelKey: "waistJoinBack",
         a: [edgeRef(back.id, back.seamEdges.hem)],
-        b: [edgeRef(skirtPiece.id, skirtPiece.seamEdges.waist)],
+        b: [edgeRef(skirtPiece.id, backWaistEdge)],
         easeCm: 0,
         fixable: false,
       });

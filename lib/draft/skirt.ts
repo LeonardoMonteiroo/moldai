@@ -17,13 +17,61 @@ const cm = (v: number) => `${formatCm(v)} cm`;
 // takes no BlockOpts, so a plain module constant is enough.
 const SKIRT_WEARING_EASE_CM = 2;
 
-// Exported so a dress's bodice hem (lib/draft/body.ts, via garment.ts's
-// draftAll) can derive from the exact same number the skirt panel it's sewn
-// to actually uses -- #79: a hip-based skirt waist panel joined to an
-// unrelated bust-taper bodice hem drafted a seam whose two sides disagreed
-// by construction.
+// Standalone skirt only (#177 left this untouched): a skirt with no bodice
+// to join sizes its own straight/a-line waist panel off the hip, same as
+// always.
 export function skirtWaistHalfCm(hipCm: number): number {
   return hipCm / 4 + SKIRT_WEARING_EASE_CM;
+}
+
+// #177: how many equal panels a radial (circle/gore/half-circle) silhouette
+// cuts the waist opening into -- pulled out of draftSkirt/radialSkirt below
+// so dressWaistHalfCm can reuse the exact same mapping rather than a second
+// copy of it drifting alongside.
+function radialPanels(silhueta: SkirtSilhouette): number {
+  return silhueta === "half-circle" ? 1 : 2;
+}
+
+// #177 (owner decision on #177's own issue thread, refined after a
+// follow-up review of the first cut of this fix -- see #185, closed by that
+// review): a fitted bodice ends at the natural WAIST, not the hip -- sizing
+// its hem off skirtWaistHalfCm(hip) was wrong on its own terms, independent
+// of which skirt silhouette it was sewn to. This is the ONE derivation the
+// dress bodice hem reads (body.ts, via garment.ts's dressHemHalfCm opt) --
+// and it takes NO silhouette parameter, on purpose: the bodice describes
+// the BODY, so which skirt happens to be attached cannot change its own
+// hem width, or the exact "two functions that happen to agree today" drift
+// this repo has already had four times (Wallet.planLabel,
+// FREE_PLAN_CREDITS, FORMAT_KEYS, the third Catmull-Rom copy in #151) would
+// just move from "per-silhouette formula" to "silhouette-shaped call site".
+//
+// The value is waistCm/4, with NO added design ease -- not an arbitrary
+// choice, but the one value every silhouette's own already-correct
+// construction can meet exactly:
+//  - circle/gore (panels=2, untouched by this issue): each drafted panel is
+//    a whole, self-contained piece (like a bodice front/back), and its own
+//    waist arc is `r * sweep` = waistCm/panels = waistCm/2 -- exactly TWO
+//    quarters. A bodice hem of waistCm/4 half-width (waistCm/2 full width)
+//    matches that panel's own arc exactly, with no ease term available to
+//    add without changing radialSkirt's own math (out of scope, and #185
+//    said not to touch it).
+//  - half-circle (panels=1): the single undivided panel's own waist arc is
+//    the full waistCm: it is split in half between the two waist-join pairs
+//    (see draftSkirt's waistFront/waistBack below and garment.ts's
+//    draftAll), so each half also needs to be waistCm/2 -- the same value.
+//  - straight/a-line (isDressWaist): sized directly by this function below,
+//    so it trivially matches.
+// Front + back together therefore always sum to exactly waistCm, for every
+// silhouette -- the closed-circumference invariant a dress waist seam
+// actually needs, not an incidental equality.
+//
+// A standalone skirt's OWN waist opening (skirtWaistHalfCm, hip-based)
+// keeps its SKIRT_WEARING_EASE_CM design ease -- that ease exists for a
+// separately-worn waistband sitting at/below the natural waist, comfort
+// room a dress's own natural-waist SEAM (already sewn to an already-eased
+// bodice) doesn't carry the same way.
+export function dressWaistHalfCm(waistCm: number): number {
+  return waistCm / 4;
 }
 
 // annular sector (waist and hem arcs) sampled into points.
@@ -86,7 +134,7 @@ export function draftSkirt(
     silhueta === "half-circle"
   ) {
     const fullSweep = silhueta === "half-circle" ? Math.PI : 2 * Math.PI;
-    const panels = silhueta === "half-circle" ? 1 : 2;
+    const panels = radialPanels(silhueta);
     const { pts, r } = radialSkirt(m.waist, length, fullSweep, panels);
     detailRows.splice(1, 0, { label: t("rows.waistRadius"), value: cm(r) });
     // shift to x>=0
@@ -122,6 +170,27 @@ export function draftSkirt(
       );
     }
 
+    // #185 (found while implementing #177, fixed in the same PR): when this
+    // silhouette cuts the waist opening into a SINGLE undivided panel
+    // (half-circle, panels===1, qty===1), that one panel's own waist arc
+    // already equals the FULL waist measurement -- it has to be shared
+    // between the two bodice halves it's sewn to (front + back TOGETHER
+    // equal the arc), not matched by each individually. `waistFront`/
+    // `waistBack` split the arc at its own centre vertex (`steps/2`, the
+    // same vertex `foldEdge` already anchors on for exactly this reason --
+    // it's the panel's own axis of symmetry). For panels===2
+    // (circle/gore), each cut copy is already a WHOLE panel matching one
+    // bodice half entirely (like circle/gore always has), so these extra
+    // fields are simply unused -- garment.ts picks `waist` vs.
+    // `waistFront`/`waistBack` off `skirtPiece.qty`, not off the
+    // silhouette's name.
+    const half = panels === 1 ? steps / 2 : undefined;
+    const seamEdges: Record<string, [number, number]> = { waist: waistSpan };
+    if (half !== undefined) {
+      seamEdges.waistFront = [waistSpan[0], half];
+      seamEdges.waistBack = [half, waistSpan[1]];
+    }
+
     return {
       id: "skirt",
       name: t("pieceNames.skirt"),
@@ -138,14 +207,19 @@ export function draftSkirt(
       // #134: the waist arc (whole edge, `waistSpan`) -- only meaningful
       // when isDressWaist (paired against a bodice hem by garment.ts), but
       // exposed unconditionally like body.ts's own `hem` edge.
-      seamEdges: { waist: waistSpan },
+      seamEdges,
     };
   }
 
-  // straight / A-line: trapezoid (¼ hip at the waist, hem equal or wider),
-  // symmetric about x=hemHalf -- the whole panel (qty 2 = front + back, each
-  // cut on its own fold), matching the grainline already centred there.
-  const waistHalf = skirtWaistHalfCm(m.hip); // uses hip as the panel's reference width
+  // straight / A-line: trapezoid (¼ hip/waist at the waist, hem equal or
+  // wider), symmetric about x=hemHalf -- the whole panel (qty 2 = front +
+  // back, each cut on its own fold), matching the grainline already centred
+  // there. #177: a dress's own panel is sized off the WAIST (the same
+  // dressWaistHalfCm the bodice hem it's sewn to also reads); a standalone
+  // skirt keeps the hip-based panel it's always had.
+  const waistHalf = isDressWaist
+    ? dressWaistHalfCm(m.waist)
+    : skirtWaistHalfCm(m.hip);
   const flare = silhueta === "a-line" ? 12 : 0;
   const hemHalf = waistHalf + flare;
   const waistLeftX = waistHalf === hemHalf ? 0 : hemHalf - waistHalf;

@@ -195,6 +195,23 @@ describe("buildProofMesh", () => {
     expect(skirtShell.rings[0].yCm).toBeCloseTo(SIZE_TABLE.M.backLength, 5);
   });
 
+  // #177: a dress's straight/a-line skirt panel no longer reads the hip
+  // measurement (it reads dressWaistHalfCm(waist, ...), same as the bodice
+  // hem it's sewn to) -- so a hip fit row here would compare a waist-derived
+  // width against the body's hip, which the drafted geometry doesn't
+  // actually claim. The "waist" row already surfaces the natural-waist fit,
+  // and now equals the skirt panel's own waist width by construction (the
+  // #177 fix itself).
+  it("a dress's straight/a-line skirt panel is waist-derived (#177): no hip fit row, and its waist row matches the skirt panel's own waist girth", () => {
+    const mesh = buildProofMesh(pattern(CASES[2][1], CASES[2][2]), t);
+    expect(mesh.fit.some((r) => r.key === "hip")).toBe(false);
+    const waistRow = mesh.fit.find((r) => r.key === "waist");
+    expect(waistRow).toBeDefined();
+
+    const skirtShell = mesh.garment.find((s) => s.id === "skirt")!;
+    expect(skirtShell.rings[0].girthCm).toBeCloseTo(waistRow!.garmentCm, 1);
+  });
+
   it("a blouse/tshirt/dress body shell exists, and its bust ring girth strictly exceeds the form's at the same height for a woven garment", () => {
     const mesh = buildProofMesh(pattern(CASES[0][1], CASES[0][2]), t);
     const bodyShell = mesh.garment.find((s) => s.id === "body")!;
