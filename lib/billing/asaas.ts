@@ -1,4 +1,5 @@
-import { isPurchaseType, type PurchaseType } from "./wallet";
+import { isPurchaseType, type Purchase } from "./wallet";
+import { isPaidPlanId } from "./plans";
 
 /**
  * #6: the one file that talks to Asaas's REST API -- mirrors lib/ai/index.ts
@@ -141,7 +142,8 @@ export interface CreateCheckoutInput {
   items: CheckoutItem[];
   /** Round-trips through every webhook event for this payment -- see
    * buildExternalReference/parseExternalReference below. Max 200 chars per
-   * Asaas's own limit; well within it for our {userId}:{type} shape. */
+   * Asaas's own limit; well within it for our {userId}:{type}[:{plan}]
+   * shape. */
   externalReference: string;
   successUrl: string;
   cancelUrl: string;
@@ -212,23 +214,35 @@ export async function getPayment(
 }
 
 // externalReference is the one field Asaas echoes back unchanged on every
-// webhook event for a payment/checkout -- encoding {userId, type} into it is
-// what lets the webhook recover which wallet/purchase a payment was for
-// without a second lookup table. Kept in this module because it's purely the
-// wire shape Asaas itself defines; lib/db/wallet.ts and the webhook route
-// only ever see the parsed, already-validated result.
+// webhook event for a payment/checkout -- encoding {userId, purchase} into
+// it is what lets the webhook recover which wallet/purchase a payment was
+// for without a second lookup table. Kept in this module because it's
+// purely the wire shape Asaas itself defines; lib/db/wallet.ts and the
+// webhook route only ever see the parsed, already-validated result.
+//
+// #179: a subscribe checkout also has to round-trip WHICH paid tier it was
+// for -- the checkout route only ever sold one flat "atelier" price before
+// this, so the webhook could safely hardcode plan:"atelier" too. Now that
+// the checkout is priced per PaidPlanId, the plan travels alongside the
+// type: {userId}:subscribe:{plan}, or {userId}:topup with no third segment.
+// Building/parsing take a whole `Purchase` (lib/billing/wallet.ts) rather
+// than a bare `type`+`plan` pair, so the shape can never drift from
+// applyPurchase's own exhaustive union -- a new Purchase variant is a
+// compile error here exactly like it already is there.
 const REF_SEP = ":";
 
 export function buildExternalReference(
   userId: string,
-  type: PurchaseType,
+  purchase: Purchase,
 ): string {
-  return `${userId}${REF_SEP}${type}`;
+  return purchase.type === "subscribe"
+    ? `${userId}${REF_SEP}${purchase.type}${REF_SEP}${purchase.plan}`
+    : `${userId}${REF_SEP}${purchase.type}`;
 }
 
 export interface ParsedExternalReference {
   userId: string;
-  type: PurchaseType;
+  purchase: Purchase;
 }
 
 /**
@@ -237,16 +251,27 @@ export interface ParsedExternalReference {
  * not something this app computed itself in that request -- re-validated
  * the same way validateSpec/isPurchaseType re-validate anything else off
  * the wire. Never throws; an unparseable/invalid reference returns null so
- * the caller can log and no-op rather than crediting an unvalidated type.
+ * the caller can log and no-op rather than crediting an unvalidated
+ * type/plan. #179: a subscribe reference with a missing, unknown, or
+ * "free" embedded plan is rejected here too -- the same isPaidPlanId
+ * narrowing the checkout-creation route itself applies before ever
+ * building the reference, so a forged/tampered externalReference still
+ * cannot name an arbitrary tier; only a real PaidPlanId member ever
+ * reaches applyPurchase.
  */
 export function parseExternalReference(
   ref: string | null | undefined,
 ): ParsedExternalReference | null {
   if (!ref) return null;
-  const idx = ref.indexOf(REF_SEP);
-  if (idx === -1) return null;
-  const userId = ref.slice(0, idx);
-  const type = ref.slice(idx + 1);
+  const parts = ref.split(REF_SEP);
+  const [userId, type, plan] = parts;
   if (!userId || !isPurchaseType(type)) return null;
-  return { userId, type };
+  if (type === "topup") {
+    if (parts.length !== 2) return null;
+    return { userId, purchase: { type: "topup" } };
+  }
+  // subscribe: exactly 3 segments, and the embedded plan must be a real
+  // paid tier -- never an arbitrary string reaching applyPurchase.
+  if (parts.length !== 3 || !isPaidPlanId(plan)) return null;
+  return { userId, purchase: { type: "subscribe", plan } };
 }

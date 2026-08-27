@@ -64,7 +64,8 @@ vi.mock("@/lib/billing/asaas", () => ({
   createCustomer: vi.fn(),
   createCheckout: vi.fn(),
   buildExternalReference: vi.fn(
-    (userId: string, type: string) => `${userId}:${type}`,
+    (userId: string, purchase: { type: string }) =>
+      `${userId}:${purchase.type}`,
   ),
   AsaasError: class AsaasError extends Error {},
 }));
@@ -335,7 +336,7 @@ describe("POST /api/billing/purchase", () => {
     });
 
     it("uses RECURRENT for subscribe and DETACHED for topup", async () => {
-      await POST(req({ type: "subscribe" }));
+      await POST(req({ type: "subscribe", plan: "atelier" }));
       expect(createCheckout).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({ chargeType: "RECURRENT" }),
@@ -348,7 +349,37 @@ describe("POST /api/billing/purchase", () => {
       );
     });
 
-    it("sends the checkout item's price from CHECKOUT_PRICES and a catalog-resolved name, never a hardcoded literal", async () => {
+    // #179: an unusable plan must never reach the provider -- same
+    // trust-boundary shape as the mock path's own plan validation.
+    describe("plan validation (#179)", () => {
+      it("rejects a subscribe with no plan before any provider call", async () => {
+        const res = await POST(req({ type: "subscribe" }));
+        expect(res.status).toBe(400);
+        expect((await res.json()).error).toBe("invalid_plan");
+        expect(createCustomer).not.toHaveBeenCalled();
+        expect(createCheckout).not.toHaveBeenCalled();
+      });
+
+      it("rejects a subscribe to an unknown plan", async () => {
+        const res = await POST(req({ type: "subscribe", plan: "gold" }));
+        expect(res.status).toBe(400);
+        expect((await res.json()).error).toBe("invalid_plan");
+        expect(createCheckout).not.toHaveBeenCalled();
+      });
+
+      it('rejects a subscribe to "free" -- it is not a paid plan', async () => {
+        const res = await POST(req({ type: "subscribe", plan: "free" }));
+        expect(res.status).toBe(400);
+        expect((await res.json()).error).toBe("invalid_plan");
+        expect(createCheckout).not.toHaveBeenCalled();
+      });
+    });
+
+    // #179: the checkout item's price and name now come from the
+    // *requested* plan (lib/billing/plans.ts's PLAN_PRICES), not a single
+    // flat "subscribe" price -- a studio/factory checkout must charge its
+    // own tier's price, not atelier's.
+    it("sends the checkout item's price/name from PLAN_PRICES for a topup, and per-PaidPlanId for subscribe", async () => {
       await POST(req({ type: "topup" }));
       expect(createCheckout).toHaveBeenCalledWith(
         expect.anything(),
@@ -357,13 +388,41 @@ describe("POST /api/billing/purchase", () => {
         }),
       );
       vi.mocked(createCheckout).mockClear();
-      await POST(req({ type: "subscribe" }));
+      await POST(req({ type: "subscribe", plan: "atelier" }));
       expect(createCheckout).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
-          items: [{ name: "subscribeTitle", quantity: 1, value: 59 }],
+          items: [{ name: "plans.atelier.name", quantity: 1, value: 59 }],
         }),
       );
+      vi.mocked(createCheckout).mockClear();
+      await POST(req({ type: "subscribe", plan: "studio" }));
+      expect(createCheckout).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          items: [{ name: "plans.studio.name", quantity: 1, value: 149 }],
+        }),
+      );
+      vi.mocked(createCheckout).mockClear();
+      await POST(req({ type: "subscribe", plan: "factory" }));
+      expect(createCheckout).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          items: [{ name: "plans.factory.name", quantity: 1, value: 399 }],
+        }),
+      );
+    });
+
+    // #179: the plan a subscribe checkout was created for has to travel to
+    // the confirming webhook -- buildExternalReference now takes the whole
+    // validated Purchase, not just its type.
+    it("encodes the requested plan into the checkout's externalReference", async () => {
+      const { buildExternalReference } = await import("@/lib/billing/asaas");
+      await POST(req({ type: "subscribe", plan: "studio" }));
+      expect(buildExternalReference).toHaveBeenCalledWith("u1", {
+        type: "subscribe",
+        plan: "studio",
+      });
     });
 
     it("answers checkout_unavailable when ASAAS_API_KEY is not configured", async () => {

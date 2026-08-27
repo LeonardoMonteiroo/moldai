@@ -137,7 +137,7 @@ describe("POST /api/billing/webhook", () => {
         event: "PAYMENT_CONFIRMED",
         payment: {
           id: "pay_2",
-          externalReference: "u2:subscribe",
+          externalReference: "u2:subscribe:atelier",
           subscription: "sub_abc",
         },
       }),
@@ -145,6 +145,59 @@ describe("POST /api/billing/webhook", () => {
     expect(res.status).toBe(200);
     expect(wallet("u2").plan).toBe("atelier");
     expect(subscriptionIds.get("u2")).toBe("sub_abc");
+  });
+
+  // #179: a confirmed subscribe payment applies whichever paid tier the
+  // checkout was actually created for -- recovered from externalReference,
+  // never hardcoded to atelier regardless of what was paid for.
+  it("credits the plan the checkout was actually created for, not a hardcoded atelier", async () => {
+    const studio = await POST(
+      req({
+        event: "PAYMENT_CONFIRMED",
+        payment: { id: "pay_studio", externalReference: "u4:subscribe:studio" },
+      }),
+    );
+    expect(studio.status).toBe(200);
+    expect(wallet("u4").plan).toBe("studio");
+    expect(wallet("u4").total).toBe(2000);
+
+    const factory = await POST(
+      req({
+        event: "PAYMENT_CONFIRMED",
+        payment: {
+          id: "pay_factory",
+          externalReference: "u5:subscribe:factory",
+        },
+      }),
+    );
+    expect(factory.status).toBe(200);
+    expect(wallet("u5").plan).toBe("factory");
+    expect(wallet("u5").total).toBe(10000);
+  });
+
+  // #179: the embedded plan is itself re-validated (the isPaidPlanId trust
+  // boundary) -- an unrecognised or "free" plan must not silently apply,
+  // and must not fall back to crediting atelier either.
+  it("a subscribe reference with an unrecognised embedded plan is a no-op, still 200", async () => {
+    const res = await POST(
+      req({
+        event: "PAYMENT_CONFIRMED",
+        payment: { id: "pay_bad_plan", externalReference: "u6:subscribe:gold" },
+      }),
+    );
+    expect(res.status).toBe(200);
+    expect(withWalletIdempotent).not.toHaveBeenCalled();
+  });
+
+  it("a subscribe reference missing its embedded plan is a no-op, still 200", async () => {
+    const res = await POST(
+      req({
+        event: "PAYMENT_CONFIRMED",
+        payment: { id: "pay_no_plan", externalReference: "u7:subscribe" },
+      }),
+    );
+    expect(res.status).toBe(200);
+    expect(withWalletIdempotent).not.toHaveBeenCalled();
   });
 
   it("an unrecognised event returns 200, not 4xx", async () => {
@@ -240,7 +293,7 @@ describe("POST /api/billing/webhook", () => {
     await POST(
       req({
         event: "PAYMENT_CONFIRMED",
-        payment: { id: "pay_5", externalReference: "u3:subscribe" },
+        payment: { id: "pay_5", externalReference: "u3:subscribe:atelier" },
       }),
     );
     expect(wallet("u3").plan).toBe("atelier");

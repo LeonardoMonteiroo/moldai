@@ -10,7 +10,12 @@ import {
   type Purchase,
   type PurchaseType,
 } from "@/lib/billing/wallet";
-import { isPaidPlanId, isPlanUpgrade } from "@/lib/billing/plans";
+import {
+  isPaidPlanId,
+  isPlanUpgrade,
+  PLAN_PRICES,
+  TOPUP_PRICE,
+} from "@/lib/billing/plans";
 import { buildCredits, composeEditorState } from "@/lib/api/compose";
 import { apiError } from "@/lib/api/errors";
 import { requireUser } from "@/lib/auth/guard";
@@ -27,24 +32,30 @@ import {
 } from "@/lib/billing/asaas";
 import { reportError } from "@/lib/observability/report";
 
-// #6/#9: the checkout's *price*, sent to Asaas as inline items. Deliberately
-// its own constant rather than lib/billing/plans.ts's PLAN_PRICES/
-// TOPUP_PRICE (#9), even though the numbers happen to match today: this
-// route only ever creates ONE subscribe checkout (see the plan-agnostic
-// comment in handleConfirmed, app/api/billing/webhook/route.ts) while
-// PLAN_PRICES has one entry per PlanId -- importing it here would imply a
-// per-plan checkout that doesn't exist yet. The *credit* a payment
-// ultimately grants always comes from applyPurchase -- never from anything
-// a checkout or webhook payload carries. Only the price (a number, not
-// display text) lives here; the item *name* the payer sees on the Asaas
-// checkout page is resolved from the existing PaywallModal catalog entries
-// below, per the no-hardcoded-display-text convention -- "Créditos
-// avulsos"/"Ateliê" already exist as PaywallModal.topupTitle/subscribeTitle,
-// so this reuses them rather than adding a new key.
-const CHECKOUT_PRICES: Record<PurchaseType, number> = {
-  topup: 19,
-  subscribe: 59,
-};
+// #179: the checkout's *price* now comes straight from lib/billing/plans.ts
+// -- PLAN_PRICES[purchase.plan] for a subscribe checkout, TOPUP_PRICE for a
+// topup -- rather than a second, route-local copy of the same numbers. A
+// prior version of this route kept its own flat CHECKOUT_PRICES.subscribe
+// specifically because it only ever created ONE subscribe checkout
+// (atelier, hardcoded); now that the checkout is priced per the requested
+// PaidPlanId (see resolvePurchase below), duplicating PLAN_PRICES here
+// would be exactly the drift CLAUDE.md documents for the deleted
+// Wallet.planLabel/FREE_PLAN_CREDITS/FORMAT_KEYS facts. The *credit* a
+// payment ultimately grants still always comes from applyPurchase -- never
+// from anything a checkout or webhook payload carries.
+
+/**
+ * #9/#179: an unusable "subscribe" plan -- absent, unknown, or the literal
+ * "free" -- must never reach applyPurchase (mock path) or become a real,
+ * plan-priced checkout charge (asaas path). Shared by both provider
+ * branches so the same isPaidPlanId trust-boundary check guards both --
+ * previously only the mock branch built a validated Purchase at all, and
+ * the asaas branch never even read body.plan.
+ */
+function resolvePurchase(type: PurchaseType, plan: unknown): Purchase | null {
+  if (type !== "subscribe") return { type: "topup" };
+  return isPaidPlanId(plan) ? { type: "subscribe", plan } : null;
+}
 
 export async function POST(request: Request) {
   const gate = await requireUser();
@@ -94,14 +105,9 @@ export async function POST(request: Request) {
     // "free" -- must never reach applyPurchase, the same isPurchaseType
     // trust-boundary shape one level up. Built before the wallet is locked,
     // matching that same "validate before any wallet work" discipline.
-    let purchase: Purchase;
-    if (type === "subscribe") {
-      if (!isPaidPlanId(body.plan)) {
-        return apiError("invalid_plan", 400);
-      }
-      purchase = { type: "subscribe", plan: body.plan };
-    } else {
-      purchase = { type: "topup" };
+    const purchase = resolvePurchase(type, body.plan);
+    if (!purchase) {
+      return apiError("invalid_plan", 400);
     }
 
     // #6: byte-for-byte the pre-existing mock behaviour -- instant credit,
@@ -146,6 +152,15 @@ export async function POST(request: Request) {
   // --- asaas path: creates a hosted checkout. The wallet is not touched by
   // this request at all -- crediting happens only from a later,
   // authenticated PAYMENT_CONFIRMED webhook (app/api/billing/webhook). ---
+  //
+  // #179: an unusable plan must never become a real checkout charge either
+  // -- checked before any provider call, matching the mock branch's own
+  // "validate before any work" discipline.
+  const purchase = resolvePurchase(type, body.plan);
+  if (!purchase) {
+    return apiError("invalid_plan", 400);
+  }
+
   const config = loadAsaasConfig();
   if (!config) {
     reportError(
@@ -173,19 +188,32 @@ export async function POST(request: Request) {
     const returnUrl = loaded
       ? `${appUrl}/pattern/${patternId}`
       : `${appUrl}/settings?section=usage`;
-    const tPaywall = await getTranslations("PaywallModal");
-    const itemName =
-      type === "subscribe"
-        ? tPaywall("subscribeTitle")
-        : tPaywall("topupTitle");
+    // #179: a subscribe checkout's item name now names the actual plan
+    // requested ("Estúdio", "Confecção", ...) via the existing
+    // PlanSection.plans.*.name catalog entries -- the same lookup
+    // PageHeader already resolves a wallet's plan label from -- rather than
+    // PaywallModal.subscribeTitle, which is hardcoded to "Ateliê" (that
+    // modal only ever pitches the single Ateliê upgrade). A topup checkout
+    // is plan-agnostic, so it keeps reading PaywallModal.topupTitle.
+    let itemName: string;
+    let price: number;
+    if (purchase.type === "subscribe") {
+      const tPlan = await getTranslations("PlanSection");
+      itemName = tPlan(`plans.${purchase.plan}.name`);
+      price = PLAN_PRICES[purchase.plan];
+    } else {
+      const tPaywall = await getTranslations("PaywallModal");
+      itemName = tPaywall("topupTitle");
+      price = TOPUP_PRICE;
+    }
     const chargeType: AsaasChargeType =
-      type === "subscribe" ? "RECURRENT" : "DETACHED";
+      purchase.type === "subscribe" ? "RECURRENT" : "DETACHED";
 
     const checkout = await createCheckout(config, {
       customerId,
       chargeType,
-      items: [{ name: itemName, quantity: 1, value: CHECKOUT_PRICES[type] }],
-      externalReference: buildExternalReference(gate.id, type),
+      items: [{ name: itemName, quantity: 1, value: price }],
+      externalReference: buildExternalReference(gate.id, purchase),
       successUrl: returnUrl,
       cancelUrl: returnUrl,
       expiredUrl: returnUrl,
