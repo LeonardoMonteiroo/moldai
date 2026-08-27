@@ -6,8 +6,10 @@ import { loadPattern, patternNotFound } from "@/lib/db/pattern";
 import {
   applyPurchase,
   isPurchaseType,
+  type Purchase,
   type PurchaseType,
 } from "@/lib/billing/wallet";
+import { isPaidPlanId, isPlanUpgrade } from "@/lib/billing/plans";
 import { buildCredits, composeEditorState } from "@/lib/api/compose";
 import { apiError } from "@/lib/api/errors";
 import { requireUser } from "@/lib/auth/guard";
@@ -24,18 +26,20 @@ import {
 } from "@/lib/billing/asaas";
 import { reportError } from "@/lib/observability/report";
 
-// #6: the checkout's *price*, sent to Asaas as inline items. Deliberately
-// NOT lib/billing/plans.ts -- issue #6 reserves that module for a later unit
-// (#9 plan switching / #15 the public pricing screen) to create. Kept in
-// sync with applyPurchase's own hardcoded credit amounts by comment, not by
-// import, since wallet.ts stays a pure module with no notion of price. The
-// *credit* a payment ultimately grants always comes from applyPurchase --
-// never from anything a checkout or webhook payload carries. Only the price
-// (a number, not display text) lives here; the item *name* the payer sees
-// on the Asaas checkout page is resolved from the existing PaywallModal
-// catalog entries below, per the no-hardcoded-display-text convention --
-// "Créditos avulsos"/"Ateliê" already exist as PaywallModal.topupTitle/
-// subscribeTitle, so this reuses them rather than adding a new key.
+// #6/#9: the checkout's *price*, sent to Asaas as inline items. Deliberately
+// its own constant rather than lib/billing/plans.ts's PLAN_PRICES/
+// TOPUP_PRICE (#9), even though the numbers happen to match today: this
+// route only ever creates ONE subscribe checkout (see the plan-agnostic
+// comment in handleConfirmed, app/api/billing/webhook/route.ts) while
+// PLAN_PRICES has one entry per PlanId -- importing it here would imply a
+// per-plan checkout that doesn't exist yet. The *credit* a payment
+// ultimately grants always comes from applyPurchase -- never from anything
+// a checkout or webhook payload carries. Only the price (a number, not
+// display text) lives here; the item *name* the payer sees on the Asaas
+// checkout page is resolved from the existing PaywallModal catalog entries
+// below, per the no-hardcoded-display-text convention -- "Créditos
+// avulsos"/"Ateliê" already exist as PaywallModal.topupTitle/subscribeTitle,
+// so this reuses them rather than adding a new key.
 const CHECKOUT_PRICES: Record<PurchaseType, number> = {
   topup: 19,
   subscribe: 59,
@@ -85,24 +89,56 @@ export async function POST(request: Request) {
   if (patternId && !loaded) return patternNotFound();
 
   if (getPaymentProvider() !== "asaas") {
+    // #9: an unusable "subscribe" plan -- absent, unknown, or the literal
+    // "free" -- must never reach applyPurchase, the same isPurchaseType
+    // trust-boundary shape one level up. Built before the wallet is locked,
+    // matching that same "validate before any wallet work" discipline.
+    let purchase: Purchase;
+    if (type === "subscribe") {
+      if (!isPaidPlanId(body.plan)) {
+        return apiError("invalid_plan", 400);
+      }
+      purchase = { type: "subscribe", plan: body.plan };
+    } else {
+      purchase = { type: "topup" };
+    }
+
     // #6: byte-for-byte the pre-existing mock behaviour -- instant credit,
     // no gateway, no checkout. This stays the default (PAYMENT_PROVIDER
     // unset or anything other than "asaas") until a real deployment opts
     // in.
-    const wallet = await withWallet(gate.id, (wallet) => {
-      const entry = applyPurchase(wallet, type, now);
-      return { result: wallet, entries: [entry] };
-    });
-
-    if (loaded) {
-      return NextResponse.json({
-        status: "ok",
-        state: composeEditorState(loaded.state, wallet, now, loaded.updatedAt),
-      });
-    }
-    return NextResponse.json({
-      status: "ok",
-      credits: buildCredits(wallet, now),
+    //
+    // #9: response construction moves inside the callback (the graduate
+    // route's own shape, app/api/patterns/[id]/graduate/route.ts) so the
+    // upgrade-only check reads the current plan off the row *under its
+    // lock* rather than a value read before it -- a race between two
+    // subscribe requests must not let a downgrade or same-plan request
+    // through just because it looked like an upgrade a moment earlier.
+    // saveWallet still runs (writing unchanged values) on the refusal path,
+    // exactly like the graduate route's own refusals.
+    return await withWallet(gate.id, (wallet) => {
+      if (
+        purchase.type === "subscribe" &&
+        !isPlanUpgrade(wallet.plan, purchase.plan)
+      ) {
+        return { result: apiError("plan_not_upgradable", 400), entries: [] };
+      }
+      const entry = applyPurchase(wallet, purchase, now);
+      const result = loaded
+        ? NextResponse.json({
+            status: "ok",
+            state: composeEditorState(
+              loaded.state,
+              wallet,
+              now,
+              loaded.updatedAt,
+            ),
+          })
+        : NextResponse.json({
+            status: "ok",
+            credits: buildCredits(wallet, now),
+          });
+      return { result, entries: [entry] };
     });
   }
 

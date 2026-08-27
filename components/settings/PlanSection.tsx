@@ -1,61 +1,71 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import type { Credits, PlanId } from "@/lib/types";
-import { COSTS } from "@/lib/types";
+import { COSTS, PLAN_IDS } from "@/lib/types";
+import {
+  PLAN_CREDITS,
+  isPlanUpgrade,
+  type PaidPlanId,
+} from "@/lib/billing/plans";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ActionErrorNotice } from "@/components/shared/ActionErrorNotice";
-import { purchase } from "@/lib/api-client";
+import { purchase, errorCode } from "@/lib/api-client";
 
-const PLAN_IDS: PlanId[] = ["free", "atelier", "studio", "factory"];
-
-// #111: applyPurchase (lib/billing/wallet.ts) only ever issues the atelier
-// plan today -- studio/factory stay badged "em breve" until #9 gives them a
-// real purchase path. This is the one place that distinction is made.
-const PURCHASABLE: PlanId[] = ["atelier"];
-
+// #9: applyPurchase (lib/billing/wallet.ts) can now move a wallet to any
+// paid tier -- a plan above the account's own is a real, working "Assinar"
+// control; a plan below it stays disabled + badged (downgrades are refused
+// server-side, decision 2 of issue #9), and the note below the grid says so
+// rather than leaving the disabled control unexplained.
 export function PlanSection({ credits: initial }: { credits: Credits }) {
   const t = useTranslations("PlanSection");
+  const router = useRouter();
   const [credits, setCredits] = useState(initial);
-  const [subscribing, setSubscribing] = useState(false);
-  const [actionError, setActionError] = useState(false);
+  const [pending, setPending] = useState<PlanId | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  // #111: PlanSection used to badge Ateliê "em breve" while PaywallModal
-  // sold it as a live, working subscribe card -- two screens making opposite
-  // claims about the same purchasable plan. Both now drive the same
-  // purchase("subscribe") call; the try/catch/finally shape mirrors
-  // UsageSection's buyTopup (#44), which purchase() itself was fixed for.
-  async function subscribeAtelier() {
-    setSubscribing(true);
-    setActionError(false);
+  // Both PaywallModal (Ateliê only) and every upgrade card here drive the
+  // same purchase("subscribe", plan) call; the try/catch/finally shape
+  // mirrors UsageSection's buyTopup (#44), which purchase() itself was
+  // fixed for. router.refresh() re-runs app/settings/page.tsx's server
+  // read (the app/login/page.tsx precedent) so the AppShell header's
+  // credits bar and the usage section pick up the new plan too, without a
+  // manual reload -- the local setCredits below is what makes this card
+  // grid update immediately, before that round trip lands.
+  async function subscribe(plan: PaidPlanId) {
+    setPending(plan);
+    setError(null);
     try {
-      const result = await purchase("subscribe");
+      const result = await purchase("subscribe", plan);
       if ("credits" in result) setCredits(result.credits);
-    } catch {
-      setActionError(true);
+      router.refresh();
+    } catch (err) {
+      setError(t(`errors.${errorCode(err)}`));
     } finally {
-      setSubscribing(false);
+      setPending(null);
     }
   }
 
+  const hasLowerTier = credits.plan !== "free";
+
   return (
     <div className="flex flex-col gap-4">
-      {actionError && (
-        <ActionErrorNotice onDismiss={() => setActionError(false)} />
-      )}
       <section className="grid grid-cols-2 gap-3">
         {PLAN_IDS.map((id) => {
           const isCurrent = credits.plan === id;
-          const isPurchasable = !isCurrent && PURCHASABLE.includes(id);
+          const canUpgrade = !isCurrent && isPlanUpgrade(credits.plan, id);
           return (
             <div
               key={id}
               className={
                 isCurrent
                   ? "border-olive bg-olive-tint shadow-plan rounded-card flex flex-col gap-2 border-2 p-[16px]"
-                  : "border-border bg-surface rounded-card flex flex-col gap-2 border p-[16px] opacity-70"
+                  : canUpgrade
+                    ? "border-border bg-surface rounded-card flex flex-col gap-2 border p-[16px]"
+                    : "border-border bg-surface rounded-card flex flex-col gap-2 border p-[16px] opacity-70"
               }
             >
               <div className="flex items-center justify-between">
@@ -66,7 +76,7 @@ export function PlanSection({ credits: initial }: { credits: Credits }) {
                   <span className="bg-olive rounded-pill text-tick px-[9px] py-[3px] font-semibold text-white">
                     {t("currentBadge")}
                   </span>
-                ) : isPurchasable ? null : (
+                ) : canUpgrade ? null : (
                   <Badge variant="soon">{t("comingSoonBadge")}</Badge>
                 )}
               </div>
@@ -74,22 +84,35 @@ export function PlanSection({ credits: initial }: { credits: Credits }) {
                 {t(`plans.${id}.price`)}
               </span>
               <span className="text-muted text-meta">
-                {t(`plans.${id}.creditsLabel`)}
+                {t(`plans.${id}.creditsLabel`, { credits: PLAN_CREDITS[id] })}
               </span>
-              {isPurchasable && (
-                <Button
-                  size="sm"
-                  onClick={subscribeAtelier}
-                  disabled={subscribing}
-                  className="mt-1"
-                >
-                  {t("subscribeButton")}
-                </Button>
-              )}
+              {!isCurrent &&
+                (canUpgrade ? (
+                  <Button
+                    size="sm"
+                    onClick={() => subscribe(id as PaidPlanId)}
+                    disabled={pending !== null}
+                    className="mt-1"
+                  >
+                    {t("subscribeButton", { plan: t(`plans.${id}.name`) })}
+                  </Button>
+                ) : (
+                  <Button size="sm" variant="outline" disabled className="mt-1">
+                    {t("downgradeButton")}
+                  </Button>
+                ))}
             </div>
           );
         })}
       </section>
+      {error && (
+        <p role="alert" className="text-alert text-ui">
+          {error}
+        </p>
+      )}
+      {hasLowerTier && (
+        <p className="text-muted text-ui">{t("downgradeNote")}</p>
+      )}
       <section className="bg-surface border-border rounded-card flex flex-col gap-2 border p-[18px]">
         <h2 className="font-display text-body font-semibold">
           {t("costsHeading")}
@@ -104,6 +127,13 @@ export function PlanSection({ credits: initial }: { credits: Credits }) {
           <li>{t("costCorrection", { cost: COSTS.correction })}</li>
         </ul>
       </section>
+      {/* #15: the public pricing screen -- feature bullets, the annual
+          toggle, and Confecção's "Falar com vendas" don't belong in this
+          three-line card grid, so this links out rather than duplicating
+          them. */}
+      <Link href="/planos" className="text-olive-dark text-ui font-semibold">
+        {t("viewAllPlansLink")}
+      </Link>
     </div>
   );
 }

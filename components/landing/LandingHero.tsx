@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MockupCard } from "./MockupCard";
-import { FREE_PLAN_CREDITS } from "./constants";
+import { PLAN_CREDITS } from "@/lib/billing/plans";
 
 // Decision 3 (issue #13): "Ver um molde real" is disabled + badged "em
 // breve" rather than hidden or faked -- there is no public demo pattern,
@@ -26,7 +26,7 @@ export function LandingHero() {
         <div className="flex items-center gap-[10px]">
           <Button asChild size="lg">
             <Link href="/signup">
-              {t("hero.primaryCta", { credits: FREE_PLAN_CREDITS })}
+              {t("hero.primaryCta", { credits: PLAN_CREDITS.free })}
             </Link>
           </Button>
           <div className="flex items-center gap-1">

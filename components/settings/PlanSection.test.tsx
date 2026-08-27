@@ -12,6 +12,9 @@ import { COSTS } from "@/lib/types";
 import { PlanSection } from "./PlanSection";
 import { purchase, ApiError } from "@/lib/api-client";
 
+const refresh = vi.fn();
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh }) }));
+
 vi.mock("@/lib/api-client", async () => {
   const actual =
     await vi.importActual<typeof import("@/lib/api-client")>(
@@ -35,6 +38,11 @@ const CREDITS: Credits = {
   total: 30,
   renewsInDays: 20,
 };
+
+function subscribeLabel(plan: string) {
+  const tPlan = translatorFor("PlanSection");
+  return tPlan("subscribeButton", { plan: tPlan(`plans.${plan}.name`) });
+}
 
 describe("PlanSection", () => {
   // #108: the cut plan is computed client-side and never debits credits —
@@ -81,55 +89,71 @@ describe("PlanSection", () => {
     });
   });
 
-  // #111: PlanSection badged Ateliê "em breve" while PaywallModal sold it as
-  // a live, working subscribe card -- two screens making opposite claims
-  // about the same purchasable plan.
-  describe("Ateliê purchase (#111)", () => {
-    afterEach(() => vi.mocked(purchase).mockReset());
+  // #9: PLAN_CREDITS's thousands are rendered through {credits, number} ICU
+  // interpolation, not a pasted "2.000" literal in the catalog.
+  it("renders the studio card's credits label with the number formatted for pt-BR", () => {
+    renderWithIntl(<PlanSection credits={CREDITS} />);
+    const tPlan = translatorFor("PlanSection");
+    expect(
+      screen.getByText(tPlan("plans.studio.creditsLabel", { credits: 2000 })),
+    ).toBeInTheDocument();
+  });
 
-    it("is purchasable, not badged em breve, when it isn't the current plan", () => {
+  // #9: applyPurchase can now move a wallet to any paid tier -- every plan
+  // above the account's own is a real, working control, and every plan
+  // below it stays disabled + badged, with the boundary stated on screen.
+  describe("real plan switching (#9)", () => {
+    afterEach(() => {
+      vi.mocked(purchase).mockReset();
+      refresh.mockReset();
+    });
+
+    it("offers an enabled control for every tier above the current plan, from a free account", () => {
       renderWithIntl(<PlanSection credits={CREDITS} />);
+      for (const plan of ["atelier", "studio", "factory"]) {
+        expect(
+          screen.getByRole("button", { name: subscribeLabel(plan) }),
+        ).toBeEnabled();
+      }
+      // No card is both current and disabled-badged.
       expect(
-        screen.getByRole("button", { name: ptBR.PlanSection.subscribeButton }),
-      ).toBeInTheDocument();
-      // Only one "em breve" badge pair should remain visible per non-current,
-      // non-purchasable plan: studio and factory, not atelier.
+        screen.queryAllByText(ptBR.PlanSection.comingSoonBadge),
+      ).toHaveLength(0);
+    });
+
+    it("badges every lower tier em breve with a disabled control, and shows the downgrade note", () => {
+      renderWithIntl(<PlanSection credits={{ ...CREDITS, plan: "studio" }} />);
+      // free and atelier are lower tiers now; factory is still an upgrade.
       expect(
         screen.getAllByText(ptBR.PlanSection.comingSoonBadge),
       ).toHaveLength(2);
-    });
-
-    it("studio and factory stay badged em breve, not purchasable, until #9", () => {
-      renderWithIntl(<PlanSection credits={CREDITS} />);
-      // Exactly one subscribe button exists at all -- proves studio/factory
-      // didn't also grow one, without asserting on their card's DOM shape.
       expect(
         screen.getAllByRole("button", {
-          name: ptBR.PlanSection.subscribeButton,
+          name: ptBR.PlanSection.downgradeButton,
         }),
-      ).toHaveLength(1);
+      ).toHaveLength(2);
+      expect(
+        screen.getByRole("button", { name: subscribeLabel("factory") }),
+      ).toBeEnabled();
+      expect(
+        screen.getByText(ptBR.PlanSection.downgradeNote),
+      ).toBeInTheDocument();
     });
 
-    it("shows no subscribe button once atelier is the current plan", () => {
-      renderWithIntl(<PlanSection credits={{ ...CREDITS, plan: "atelier" }} />);
+    it("shows no downgrade note for a free account (nothing below it to downgrade to)", () => {
+      renderWithIntl(<PlanSection credits={CREDITS} />);
       expect(
-        screen.queryByRole("button", {
-          name: ptBR.PlanSection.subscribeButton,
-        }),
+        screen.queryByText(ptBR.PlanSection.downgradeNote),
       ).not.toBeInTheDocument();
-      // free, studio and factory are all non-current and non-purchasable now.
-      expect(
-        screen.getAllByText(ptBR.PlanSection.comingSoonBadge),
-      ).toHaveLength(3);
     });
 
-    it("moves the current-plan badge to Ateliê and clears the subscribe button on success", async () => {
+    it("subscribes to studio, updates the current-plan badge and refreshes the server data", async () => {
       vi.mocked(purchase).mockResolvedValue({
         status: "ok",
         credits: {
-          plan: "atelier",
-          balance: 500,
-          total: 500,
+          plan: "studio",
+          balance: 2000,
+          total: 2000,
           renewsInDays: 30,
         },
       });
@@ -137,37 +161,65 @@ describe("PlanSection", () => {
       renderWithIntl(<PlanSection credits={CREDITS} />);
 
       await user.click(
-        screen.getByRole("button", { name: ptBR.PlanSection.subscribeButton }),
+        screen.getByRole("button", { name: subscribeLabel("studio") }),
       );
 
+      expect(purchase).toHaveBeenCalledWith("subscribe", "studio");
       await waitFor(() => {
         expect(
-          screen.queryByRole("button", {
-            name: ptBR.PlanSection.subscribeButton,
-          }),
+          screen.queryByRole("button", { name: subscribeLabel("studio") }),
         ).not.toBeInTheDocument();
       });
+      // Only factory is left as an upgrade target now.
       expect(
-        screen.queryByText(ptBR.ActionErrorNotice.message),
-      ).not.toBeInTheDocument();
+        screen.getByRole("button", { name: subscribeLabel("factory") }),
+      ).toBeInTheDocument();
+      expect(refresh).toHaveBeenCalledTimes(1);
     });
 
-    it("shows a notice and re-enables the button when the subscribe call fails", async () => {
+    it("renders catalog copy resolved from the wire error code and leaves the screen usable", async () => {
       vi.mocked(purchase).mockImplementation(async () => {
-        throw new ApiError(500, "server_error");
+        throw new ApiError(400, "plan_not_upgradable");
       });
       const user = userEvent.setup();
       renderWithIntl(<PlanSection credits={CREDITS} />);
 
       const button = screen.getByRole("button", {
-        name: ptBR.PlanSection.subscribeButton,
+        name: subscribeLabel("atelier"),
       });
       await user.click(button);
 
       await waitFor(() => {
-        expect(screen.getByText(ptBR.ActionErrorNotice.message)).toBeVisible();
+        expect(
+          screen.getByText(ptBR.PlanSection.errors.plan_not_upgradable),
+        ).toBeVisible();
       });
       expect(button).not.toBeDisabled();
     });
+
+    it("resolves a generic failure through errors.request_failed", async () => {
+      vi.mocked(purchase).mockImplementation(async () => {
+        throw new Error("network down");
+      });
+      const user = userEvent.setup();
+      renderWithIntl(<PlanSection credits={CREDITS} />);
+
+      await user.click(
+        screen.getByRole("button", { name: subscribeLabel("atelier") }),
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(ptBR.PlanSection.errors.request_failed),
+        ).toBeVisible();
+      });
+    });
+  });
+
+  it('links out to the public /planos screen for the fuller card content ("mais escolhido", feature bullets)', () => {
+    renderWithIntl(<PlanSection credits={CREDITS} />);
+    expect(
+      screen.getByRole("link", { name: ptBR.PlanSection.viewAllPlansLink }),
+    ).toHaveAttribute("href", "/planos");
   });
 });

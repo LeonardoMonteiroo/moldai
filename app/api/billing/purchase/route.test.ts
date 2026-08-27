@@ -20,10 +20,14 @@ vi.mock("@/lib/auth/guard", () => ({
 // exercises real logic rather than a mock configured to already agree.
 const asaasCustomerIds = new Map<string, string>();
 vi.mock("@/lib/db/wallet", () => ({
+  // #9: result is whatever the route's callback returns (a NextResponse,
+  // since the route now builds its response under the lock) -- typed
+  // `unknown` here rather than the route's own return shape so this mock
+  // doesn't need to import NextResponse just to describe it.
   withWallet: vi.fn(
     async (
       _userId: string,
-      fn: (w: Wallet) => { result: Wallet; entries: LedgerEntry[] },
+      fn: (w: Wallet) => { result: unknown; entries: LedgerEntry[] },
     ) => fn(wallet).result,
   ),
   withAsaasCustomerId: vi.fn(
@@ -166,9 +170,72 @@ describe("POST /api/billing/purchase", () => {
     it("still accepts the two real types", async () => {
       expect((await POST(req({ type: "topup" }))).status).toBe(200);
       wallet = seedWallet(NOW);
-      const res = await POST(req({ type: "subscribe" }));
+      const res = await POST(req({ type: "subscribe", plan: "atelier" }));
       expect(res.status).toBe(200);
       expect(wallet.plan).toBe("atelier");
+    });
+
+    // #9: absent, unknown, or the literal "free" must all be rejected
+    // before applyPurchase ever runs -- the same isPurchaseType shape one
+    // level up, now covering the plan a subscribe targets.
+    describe("plan validation (#9)", () => {
+      it("rejects a subscribe with no plan", async () => {
+        const res = await POST(req({ type: "subscribe" }));
+        expect(res.status).toBe(400);
+        expect((await res.json()).error).toBe("invalid_plan");
+        expect(wallet.plan).toBe("free");
+        expect(wallet.balance).toBe(30);
+      });
+
+      it("rejects a subscribe to an unknown plan", async () => {
+        const res = await POST(req({ type: "subscribe", plan: "gold" }));
+        expect(res.status).toBe(400);
+        expect((await res.json()).error).toBe("invalid_plan");
+        expect(wallet.plan).toBe("free");
+      });
+
+      it('rejects a subscribe to "free" -- it is not a paid plan', async () => {
+        const res = await POST(req({ type: "subscribe", plan: "free" }));
+        expect(res.status).toBe(400);
+        expect((await res.json()).error).toBe("invalid_plan");
+        expect(wallet.plan).toBe("free");
+        expect(wallet.balance).toBe(30);
+      });
+
+      it("subscribes a free wallet straight to studio, skipping atelier", async () => {
+        const res = await POST(req({ type: "subscribe", plan: "studio" }));
+        expect(res.status).toBe(200);
+        expect(wallet.plan).toBe("studio");
+        expect(wallet.total).toBe(2000);
+      });
+
+      it("subscribes to factory", async () => {
+        const res = await POST(req({ type: "subscribe", plan: "factory" }));
+        expect(res.status).toBe(200);
+        expect(wallet.plan).toBe("factory");
+        expect(wallet.total).toBe(10000);
+      });
+
+      it("refuses a downgrade under the wallet lock, with no mutation and no ledger row", async () => {
+        wallet.plan = "studio";
+        wallet.total = 2000;
+        wallet.balance = 2000;
+        const res = await POST(req({ type: "subscribe", plan: "atelier" }));
+        expect(res.status).toBe(400);
+        expect((await res.json()).error).toBe("plan_not_upgradable");
+        expect(wallet.plan).toBe("studio");
+        expect(wallet.balance).toBe(2000);
+      });
+
+      it("refuses a same-plan subscribe request", async () => {
+        wallet.plan = "atelier";
+        wallet.total = 500;
+        wallet.balance = 500;
+        const res = await POST(req({ type: "subscribe", plan: "atelier" }));
+        expect(res.status).toBe(400);
+        expect((await res.json()).error).toBe("plan_not_upgradable");
+        expect(wallet.balance).toBe(500);
+      });
     });
 
     it("no session returns 401", async () => {

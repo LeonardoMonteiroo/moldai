@@ -18,6 +18,7 @@ import type {
 } from "./auth/passwordReset";
 import type { SharedErrorCode } from "./api/errors";
 import type { PreparedAttachment } from "./editor/attachment";
+import type { PaidPlanId } from "./billing/plans";
 
 export type GenerateResult =
   | {
@@ -292,9 +293,20 @@ export function resolveConflict(
 
 export function purchase(
   type: "topup" | "subscribe",
+  plan?: PaidPlanId,
   patternId?: string,
 ): Promise<PurchaseResult> {
-  return postJson<PurchaseResult>("/api/billing/purchase", { type, patternId });
+  // #9: no `handled` array -- a 400 (invalid_plan, plan_not_upgradable)
+  // must keep throwing ApiError so PlanSection can read err.code and
+  // resolve it through the catalog, the same reasoning PAYWALL/
+  // DOMAIN_ERRORS documents for every other opted-in status. JSON.stringify
+  // drops `plan` entirely for a topup (undefined), the same trick already
+  // used for `patternId`.
+  return postJson<PurchaseResult>("/api/billing/purchase", {
+    type,
+    plan,
+    patternId,
+  });
 }
 
 export function getAccountSummary(): Promise<AccountSummary> {

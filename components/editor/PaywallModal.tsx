@@ -72,7 +72,9 @@ export function PaywallModal() {
             </span>
           </button>
           <button
-            onClick={() => purchase("subscribe")}
+            // #9: the plan is now named at the call site rather than
+            // defaulted server-side -- this card IS Ateliê per design 5d.
+            onClick={() => purchase("subscribe", "atelier")}
             disabled={purchasing}
             className="border-olive rounded-card bg-olive-tint flex flex-1 flex-col gap-[5px] border-2 p-[14px] text-left transition-[filter] hover:brightness-[0.98] disabled:pointer-events-none disabled:opacity-50"
           >

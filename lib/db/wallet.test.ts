@@ -324,7 +324,7 @@ describe("withWalletIdempotent", () => {
 
   it("credits the wallet and inserts one ledger row carrying externalId", async () => {
     const out = await withWalletIdempotent("u1", "pay_1", (wallet) =>
-      applyPurchase(wallet, "topup", NOW),
+      applyPurchase(wallet, { type: "topup" }, NOW),
     );
     expect(out.credited).toBe(true);
     expect((store.get("u1") as { balance: number }).balance).toBe(130);
@@ -342,10 +342,10 @@ describe("withWalletIdempotent", () => {
   // production.
   it("the same externalId delivered twice credits the wallet exactly once", async () => {
     const first = await withWalletIdempotent("u1", "pay_1", (wallet) =>
-      applyPurchase(wallet, "topup", NOW),
+      applyPurchase(wallet, { type: "topup" }, NOW),
     );
     const second = await withWalletIdempotent("u1", "pay_1", (wallet) =>
-      applyPurchase(wallet, "topup", NOW),
+      applyPurchase(wallet, { type: "topup" }, NOW),
     );
     expect(first.credited).toBe(true);
     expect(second.credited).toBe(false);
@@ -355,11 +355,11 @@ describe("withWalletIdempotent", () => {
 
   it("a duplicate delivery never calls saveWallet -- the row is left exactly as fn's mutation would have changed it, unpersisted", async () => {
     await withWalletIdempotent("u1", "pay_1", (wallet) =>
-      applyPurchase(wallet, "topup", NOW),
+      applyPurchase(wallet, { type: "topup" }, NOW),
     );
     const balanceAfterFirst = (store.get("u1") as { balance: number }).balance;
     await withWalletIdempotent("u1", "pay_1", (wallet) =>
-      applyPurchase(wallet, "topup", NOW),
+      applyPurchase(wallet, { type: "topup" }, NOW),
     );
     expect((store.get("u1") as { balance: number }).balance).toBe(
       balanceAfterFirst,
@@ -368,10 +368,10 @@ describe("withWalletIdempotent", () => {
 
   it("different externalIds for the same user both credit", async () => {
     await withWalletIdempotent("u1", "pay_1", (wallet) =>
-      applyPurchase(wallet, "topup", NOW),
+      applyPurchase(wallet, { type: "topup" }, NOW),
     );
     await withWalletIdempotent("u1", "pay_2", (wallet) =>
-      applyPurchase(wallet, "topup", NOW),
+      applyPurchase(wallet, { type: "topup" }, NOW),
     );
     expect((store.get("u1") as { balance: number }).balance).toBe(230);
     expect(ledger).toHaveLength(2);
@@ -381,7 +381,7 @@ describe("withWalletIdempotent", () => {
     tx.transaction.create.mockRejectedValueOnce(new Error("connection reset"));
     await expect(
       withWalletIdempotent("u1", "pay_1", (wallet) =>
-        applyPurchase(wallet, "topup", NOW),
+        applyPurchase(wallet, { type: "topup" }, NOW),
       ),
     ).rejects.toThrow("connection reset");
   });
@@ -401,7 +401,7 @@ describe("findLedgerEntryByExternalId", () => {
 
   it("returns the userId, amount and type of the matching ledger row", async () => {
     await withWalletIdempotent("u1", "pay_1", (wallet) =>
-      applyPurchase(wallet, "topup", NOW),
+      applyPurchase(wallet, { type: "topup" }, NOW),
     );
     expect(await findLedgerEntryByExternalId("pay_1")).toEqual({
       userId: "u1",
@@ -468,7 +468,11 @@ describe("setAsaasSubscriptionId", () => {
 
   it("persists the subscription id without disturbing an existing balance", async () => {
     await withWallet("u1", (wallet) => {
-      const entry = applyPurchase(wallet, "subscribe", NOW);
+      const entry = applyPurchase(
+        wallet,
+        { type: "subscribe", plan: "atelier" },
+        NOW,
+      );
       return { result: undefined, entries: [entry] };
     });
     await setAsaasSubscriptionId("u1", "sub_abc");

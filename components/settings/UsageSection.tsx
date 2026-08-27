@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import type { Credits, LedgerEntryType, LedgerHistoryEntry } from "@/lib/types";
+import { PLAN_IDS } from "@/lib/types";
 import { purchase } from "@/lib/api-client";
+import { TOPUP_CREDITS } from "@/lib/billing/plans";
 import { relativeTime } from "@/lib/format";
 import { ActionErrorNotice } from "@/components/shared/ActionErrorNotice";
 
@@ -33,6 +35,7 @@ export function UsageSection({
 }) {
   const t = useTranslations("UsageSection");
   const tf = useTranslations("Format");
+  const tPlan = useTranslations("PlanSection");
   const [balance, setBalance] = useState(credits.balance);
   const [ledger, setLedger] = useState(initialLedger);
   const [buying, setBuying] = useState(false);
@@ -56,7 +59,7 @@ export function UsageSection({
           {
             type: "topup",
             reason: null,
-            amount: 100,
+            amount: TOPUP_CREDITS,
             createdAt: new Date().toISOString(),
           },
           ...prev,
@@ -114,6 +117,19 @@ export function UsageSection({
               const reasonKey = entry.reason
                 ? REASON_KEY[entry.reason]
                 : undefined;
+              // #9: a subscribe row's reason is now the purchased PlanId
+              // (lib/billing/wallet.ts's applyPurchase), not one of
+              // REASON_KEY's debit reasons -- resolved through
+              // PlanSection's own plans.{id}.name catalog entries, the
+              // same template-key lookup PageHeader already uses. A row
+              // recorded before this shipped carries reason: null and
+              // keeps rendering with no suffix, nothing retro-invented.
+              const planName =
+                entry.type === "subscribe" &&
+                entry.reason &&
+                (PLAN_IDS as string[]).includes(entry.reason)
+                  ? tPlan(`plans.${entry.reason}.name`)
+                  : undefined;
               const sign = entry.type === "debit" ? "−" : "+";
               const amountClass =
                 entry.type === "debit" ? "text-alert" : "text-olive-dark";
@@ -125,6 +141,7 @@ export function UsageSection({
                   <span>
                     {t(TYPE_KEY[entry.type])}
                     {reasonKey ? ` · ${t(reasonKey)}` : ""}
+                    {planName ? ` · ${planName}` : ""}
                   </span>
                   <span className="text-muted">
                     {relativeTime(tf, entry.createdAt)}
