@@ -7,10 +7,11 @@ import type { PlanId } from "@/lib/types";
 import { COSTS, PLAN_IDS } from "@/lib/types";
 import {
   PLAN_CREDITS,
-  PLAN_PRICES,
+  PLAN_PRICE_CENTS,
+  formatBRL,
   PLAN_FEATURES,
   TOPUP_CREDITS,
-  TOPUP_PRICE,
+  TOPUP_PRICE_CENTS,
 } from "@/lib/billing/plans";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -77,7 +78,7 @@ export function PricingPage({
 
           <div className="flex items-stretch gap-[14px]">
             {PLAN_IDS.map((id) => {
-              const monthly = PLAN_PRICES[id];
+              const monthly = PLAN_PRICE_CENTS[id];
               const price =
                 billing === "annual"
                   ? Math.round(monthly * ANNUAL_FACTOR)
@@ -105,7 +106,15 @@ export function PricingPage({
 
                   <div className="flex items-baseline gap-1">
                     <span className="font-display text-title font-semibold">
-                      {id === "free" ? t("priceFree") : `R$ ${price}`}
+                      {/* #206: formatBRL is the one place centavos become
+                          display text -- no hand-built "R$ ${n}" and no
+                          catalog price literal (the catalog carried
+                          "R$ 0"/"R$ 59"/... which could silently disagree
+                          with what Stripe actually charges). The free tier
+                          renders through the same formatter rather than its
+                          own catalog string, so all four cards share one
+                          format. */}
+                      {formatBRL(price)}
                     </span>
                     {id !== "free" && (
                       <span className="text-muted text-ui">
@@ -175,10 +184,18 @@ export function PricingPage({
             <span className="text-muted-2 text-ui">
               {t("footer.topup", {
                 credits: TOPUP_CREDITS,
-                price: TOPUP_PRICE,
+                price: formatBRL(TOPUP_PRICE_CENTS),
               })}
             </span>
           </div>
+          {/* #206: the gateway's real limitations, stated on the public
+              pricing page rather than discovered at checkout -- the "surface
+              feature limitations on-screen, never silently" rule. All three
+              are permanent properties of a Brazil-based Stripe account, not
+              gaps, so none is an "em breve": BRL-only settlement, a
+              converted local amount shown at checkout, and Visa/Mastercard
+              only (no Elo/Amex/Hipercard/Diners). */}
+          <p className="text-muted-2 text-ui">{t("paymentNote")}</p>
         </div>
       </ScrollArea>
     </div>

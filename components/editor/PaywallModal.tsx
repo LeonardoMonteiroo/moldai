@@ -3,6 +3,11 @@
 import { useTranslations } from "next-intl";
 import { useEditorStore } from "@/lib/store";
 import { Badge } from "@/components/ui/badge";
+import {
+  PLAN_PRICE_CENTS,
+  TOPUP_PRICE_CENTS,
+  formatBRL,
+} from "@/lib/billing/plans";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -63,7 +68,7 @@ export function PaywallModal() {
               {t("topupTitle")}
             </span>
             <span className="font-display text-title font-semibold">
-              {t("topupPrice")}
+              {formatBRL(TOPUP_PRICE_CENTS)}
             </span>
             <span className="text-muted text-meta">{t("topupDetail")}</span>
             <div className="min-h-2 flex-1" />
@@ -86,7 +91,7 @@ export function PaywallModal() {
             </div>
             <div className="flex items-baseline gap-[3px]">
               <span className="font-display text-title font-semibold">
-                {t("subscribePrice")}
+                {formatBRL(PLAN_PRICE_CENTS.atelier)}
               </span>
               <span className="text-muted-2 text-ui">
                 {t("subscribePeriod")}

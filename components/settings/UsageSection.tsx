@@ -6,7 +6,11 @@ import { useTranslations } from "next-intl";
 import type { Credits, LedgerEntryType, LedgerHistoryEntry } from "@/lib/types";
 import { PLAN_IDS } from "@/lib/types";
 import { purchase } from "@/lib/api-client";
-import { TOPUP_CREDITS } from "@/lib/billing/plans";
+import {
+  TOPUP_CREDITS,
+  TOPUP_PRICE_CENTS,
+  formatBRL,
+} from "@/lib/billing/plans";
 import { relativeTime } from "@/lib/format";
 import { ActionErrorNotice } from "@/components/shared/ActionErrorNotice";
 
@@ -112,7 +116,7 @@ export function UsageSection({
           </div>
           <div className="flex-1" />
           <Button onClick={buyTopup} disabled={buying}>
-            {t("topupButton")}
+            {t("topupButton", { price: formatBRL(TOPUP_PRICE_CENTS) })}
           </Button>
         </div>
         <div className="bg-track h-[5px] overflow-hidden rounded-full">

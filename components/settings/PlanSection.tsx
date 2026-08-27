@@ -8,6 +8,8 @@ import type { Credits, PlanId } from "@/lib/types";
 import { COSTS, PLAN_IDS } from "@/lib/types";
 import {
   PLAN_CREDITS,
+  PLAN_PRICE_CENTS,
+  formatBRL,
   isPlanUpgrade,
   type PaidPlanId,
 } from "@/lib/billing/plans";
@@ -95,7 +97,11 @@ export function PlanSection({ credits: initial }: { credits: Credits }) {
                 )}
               </div>
               <span className="font-display text-title font-semibold">
-                {t(`plans.${id}.price`)}
+                {/* #206: from PLAN_PRICE_CENTS through formatBRL, not a
+                    catalog price literal -- this card's price is the one the
+                    subscribe button below actually charges, so a copy of the
+                    number in the catalog could disagree with Stripe. */}
+                {formatBRL(PLAN_PRICE_CENTS[id])}
               </span>
               <span className="text-muted text-meta">
                 {t(`plans.${id}.creditsLabel`, { credits: PLAN_CREDITS[id] })}
@@ -127,6 +133,15 @@ export function PlanSection({ credits: initial }: { credits: Credits }) {
       {hasLowerTier && (
         <p className="text-muted text-ui">{t("downgradeNote")}</p>
       )}
+      {/* #206: the gateway's real limitations, stated where the user is
+          about to pay rather than discovered at the checkout screen -- the
+          "surface feature limitations on-screen, never silently" rule. All
+          three are properties of a Brazil-based Stripe account, not
+          temporary gaps, so none of them is an "em breve": settlement is
+          BRL-only (Brazil is a foreign-exchange-control country), Adaptive
+          Pricing shows a converted local amount at checkout, and only Visa
+          and Mastercard are accepted (Elo/Amex/Hipercard/Diners are not). */}
+      <p className="text-muted text-ui">{t("paymentNote")}</p>
       <section className="bg-surface border-border rounded-card flex flex-col gap-2 border p-[18px]">
         <h2 className="font-display text-body font-semibold">
           {t("costsHeading")}

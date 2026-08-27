@@ -18,25 +18,56 @@ export const PLAN_CREDITS: Record<PlanId, number> = {
   factory: 10000,
 };
 
-// Design 5c's monthly prices in BRL, display-only: no code charges these
-// yet (the mock provider grants credits without moving money). Kept
-// independent of app/api/billing/purchase/route.ts's own CHECKOUT_PRICES,
-// which prices what the asaas checkout actually bills -- that route's own
-// comment explains why the two are not unified.
-export const PLAN_PRICES: Record<PlanId, number> = {
+// #206: the currency every price below is denominated in, and the currency
+// a charge actually SETTLES in. A Brazil-based Stripe account is in a
+// foreign-exchange-control country, so settlement is BRL-only regardless of
+// what currency the buyer is shown -- Adaptive Pricing converts at checkout
+// for presentation, it does not change what we get paid in. Lowercase
+// because that is the literal Stripe expects in `currency`.
+export const CURRENCY = "brl";
+
+// Design 5c's monthly prices, **in the currency's smallest unit** (centavos)
+// -- #206: Stripe's `unit_amount` is always the minor unit, so 5900 charges
+// R$ 59,00. Renamed from PLAN_PRICES/TOPUP_PRICE deliberately rather than
+// silently rescaled in place: every existing call site becomes a compile
+// error, which is the safe direction for a money constant changing units by
+// a factor of 100. Never format one of these by hand -- formatBRL below is
+// the one place that turns centavos into display text.
+export const PLAN_PRICE_CENTS: Record<PlanId, number> = {
   free: 0,
-  atelier: 59,
-  studio: 149,
-  factory: 399,
+  atelier: 5900,
+  studio: 14900,
+  factory: 39900,
 };
 
-// The mock top-up: credits granted and its display price. Was duplicated as
-// a literal 100 in applyPurchase and UsageSection's optimistic ledger row;
-// TOPUP_PRICE matches app/api/billing/purchase/route.ts's own
-// CHECKOUT_PRICES.topup (kept independent there for the same reason as the
-// plan prices above).
+// The top-up: credits granted and its price in centavos. TOPUP_CREDITS was
+// duplicated as a literal 100 in applyPurchase and UsageSection's optimistic
+// ledger row.
 export const TOPUP_CREDITS = 100;
-export const TOPUP_PRICE = 19;
+export const TOPUP_PRICE_CENTS = 1900;
+
+/**
+ * #206: the single place centavos become display text, so no component (and
+ * no catalog entry) hardcodes a currency symbol or a decimal separator
+ * again. The catalog used to carry the literals "R$ 0"/"R$ 59"/"R$ 149"/
+ * "R$ 399" and PricingPage built `R$ ${price}` by hand -- the same
+ * duplicated-fact drift CLAUDE.md documents for the deleted
+ * Wallet.planLabel column, one step worse because a price that disagrees
+ * with what Stripe charges is a money defect rather than a cosmetic one.
+ *
+ * Framework-free (Intl is a JS built-in, not a next-intl call), so this
+ * module stays a plain leaf the way lib/export/formats.ts is. pt-BR is
+ * hardcoded as the locale because this app is single-locale by design
+ * (CLAUDE.md's i18n section) and BRL is the settlement currency above --
+ * when a second locale lands, the locale argument comes from next-intl and
+ * this signature grows a parameter.
+ */
+export function formatBRL(cents: number): string {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: CURRENCY.toUpperCase(),
+  }).format(cents / 100);
+}
 
 /**
  * Narrows an untrusted wire value to a paid PlanId. Same trust-boundary

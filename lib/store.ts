@@ -476,7 +476,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     // that same decision -- the composer still holds their text. Navigating
     // via window.location.href (a same-tab redirect, matching the "hosted
     // checkout, redirect out and back" decision) rather than a router push,
-    // since checkout.link is an external Asaas URL, not an app route.
+    // since checkout.link is an external Stripe URL, not an app route.
     if (result.status === "redirect") {
       set({ purchasing: false, paywall: CLOSED_PAYWALL });
       // location.assign(), not `location.href = ...` -- matching

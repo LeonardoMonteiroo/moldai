@@ -62,6 +62,7 @@
     "code-review@claude-plugins-official": false,
     "github@claude-plugins-official": false,
     "security-guidance@claude-plugins-official": true,
-    "ralph-loop@claude-plugins-official": true
+    "ralph-loop@claude-plugins-official": true,
+    "stripe@claude-plugins-official": true
   }
 }

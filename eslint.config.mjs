@@ -30,6 +30,12 @@ const eslintConfig = defineConfig([
     // neither directory), which is exactly what makes it worth writing down.
     ".ds-sync/**",
     "ds-bundle/**",
+    // Same shape: `npx vitest run --coverage` writes an lcov HTML report
+    // here, and its vendored viewer scripts carry their own eslint-disable
+    // directives that this config has no rules for -- so linting them
+    // reports a warning about someone else's file. .prettierignore already
+    // lists this directory for the same reason.
+    "coverage/**",
     // Agent worktrees are full checkouts of this same repo, complete with
     // their own node_modules and .next. The patterns above are root-relative,
     // so a nested checkout's build output is not covered by them -- left

@@ -14,6 +14,7 @@ vi.mock("./api-client", async () => {
     graduate: vi.fn(),
     resolveConflict: vi.fn(),
     purchase: vi.fn(),
+    createSloper: vi.fn(),
   };
 });
 
@@ -551,7 +552,7 @@ describe("store double submission (#31)", () => {
         },
       },
     });
-    const checkoutUrl = "https://sandbox.asaas.com/checkoutSession/show?id=x";
+    const checkoutUrl = "https://checkout.stripe.com/c/pay/cs_test_x";
     vi.mocked(api.purchase).mockResolvedValue({
       status: "redirect",
       url: checkoutUrl,
@@ -735,5 +736,204 @@ describe("editor store — tool and measurements", () => {
       .addMeasurement({ id: "m1", a: { x: 0, y: 0 }, b: { x: 4, y: 0 } });
     useEditorStore.getState().clearMeasurements();
     expect(useEditorStore.getState().measurements).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// #168: the store's UI-only actions and the two paths that write no pattern
+// state (saveAsSloper, closePaywall). They are one-liners, which is why they
+// had no test -- but three of them carry a real coupling that a one-line
+// edit silently breaks: selectPiece also opens the details panel, a
+// regeneration must invalidate the manual cut placements, and saveAsSloper
+// must NOT report failure through `error` (a failed base save leaves a
+// perfectly usable editor, so it returns a boolean the Footer renders
+// inline instead of an error banner over the whole screen).
+// ---------------------------------------------------------------------------
+
+describe("editor store — UI-only actions", () => {
+  beforeEach(() => {
+    useEditorStore.setState({
+      activeTab: "pattern2d",
+      selectedPieceId: null,
+      detailsPanelOpen: true,
+      activeTool: "cursor",
+      cutFabricWidthCm: 150,
+      nestingMode: "auto",
+      cutPlacements: {},
+    });
+  });
+
+  it("setActiveTab switches the canvas tab", () => {
+    useEditorStore.getState().setActiveTab("cutplan");
+    expect(useEditorStore.getState().activeTab).toBe("cutplan");
+  });
+
+  // The coupling: PieceDetailsPanel is only reachable through a selection,
+  // so selecting a piece has to open it and deselecting has to close it --
+  // otherwise the panel renders for a piece that is no longer selected, and
+  // it shares its slot with ConflictInfoCard.
+  it("selectPiece opens the details panel, and clearing the selection closes it", () => {
+    useEditorStore.getState().selectPiece("body-front");
+    expect(useEditorStore.getState().selectedPieceId).toBe("body-front");
+    expect(useEditorStore.getState().detailsPanelOpen).toBe(true);
+
+    useEditorStore.getState().selectPiece(null);
+    expect(useEditorStore.getState().selectedPieceId).toBeNull();
+    expect(useEditorStore.getState().detailsPanelOpen).toBe(false);
+  });
+
+  it("toggleDetailsPanel flips the panel without touching the selection", () => {
+    useEditorStore.getState().selectPiece("body-front");
+    useEditorStore.getState().toggleDetailsPanel();
+    expect(useEditorStore.getState().detailsPanelOpen).toBe(false);
+    expect(useEditorStore.getState().selectedPieceId).toBe("body-front");
+
+    useEditorStore.getState().toggleDetailsPanel();
+    expect(useEditorStore.getState().detailsPanelOpen).toBe(true);
+  });
+
+  it("setActiveTool switches the floating toolbar's tool", () => {
+    useEditorStore.getState().setActiveTool("measure");
+    expect(useEditorStore.getState().activeTool).toBe("measure");
+  });
+
+  it("setCutFabricWidth and setNestingMode drive the cut plan's inputs", () => {
+    useEditorStore.getState().setCutFabricWidth(90);
+    useEditorStore.getState().setNestingMode("manual");
+    expect(useEditorStore.getState().cutFabricWidthCm).toBe(90);
+    expect(useEditorStore.getState().nestingMode).toBe("manual");
+  });
+
+  it("setCutPlacement merges one instance's origin without dropping the others", () => {
+    const s = useEditorStore.getState();
+    s.setCutPlacement("body-front#0", { x: 1, y: 2 });
+    s.setCutPlacement("sleeve#1", { x: 3, y: 4 });
+    // A per-instance write, not a whole-map replace: dragging one copy must
+    // not reset every other copy the user already positioned.
+    expect(useEditorStore.getState().cutPlacements).toEqual({
+      "body-front#0": { x: 1, y: 2 },
+      "sleeve#1": { x: 3, y: 4 },
+    });
+
+    s.setCutPlacement("body-front#0", { x: 9, y: 9 });
+    expect(useEditorStore.getState().cutPlacements["body-front#0"]).toEqual({
+      x: 9,
+      y: 9,
+    });
+  });
+
+  it("seedCutPlacements replaces the whole map and resetCutPlacements empties it", () => {
+    useEditorStore.getState().seedCutPlacements({ "a#0": { x: 1, y: 1 } });
+    expect(useEditorStore.getState().cutPlacements).toEqual({
+      "a#0": { x: 1, y: 1 },
+    });
+
+    useEditorStore.getState().resetCutPlacements();
+    expect(useEditorStore.getState().cutPlacements).toEqual({});
+  });
+});
+
+describe("store.closePaywall", () => {
+  it("closes the paywall and drops its retry thunk", () => {
+    useEditorStore.setState({
+      paywall: {
+        open: true,
+        required: 6,
+        balance: 1,
+        action: "graduate",
+        retry: () => {},
+      },
+    });
+
+    useEditorStore.getState().closePaywall();
+
+    const { paywall } = useEditorStore.getState();
+    expect(paywall.open).toBe(false);
+    // The thunk has to go with it: a stale retry left behind would fire
+    // against whatever the next paywall happens to be opened for.
+    expect(paywall.retry).toBeNull();
+  });
+});
+
+describe("store.saveAsSloper", () => {
+  beforeEach(() => {
+    (api.createSloper as unknown as ReturnType<typeof vi.fn>).mockReset();
+    useEditorStore.setState({ patternId: "p1", error: null });
+  });
+
+  it("saves the base under the editor's own pattern id", async () => {
+    (api.createSloper as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(
+      { id: "sl1" },
+    );
+
+    await expect(
+      useEditorStore.getState().saveAsSloper("Base blusa"),
+    ).resolves.toBe(true);
+    expect(api.createSloper).toHaveBeenCalledWith("p1", "Base blusa");
+  });
+
+  // Reports through the return value, NOT through `error`: the editor is
+  // still fully usable after a failed base save, so an error banner
+  // replacing the screen would be a worse answer than the Footer's own
+  // inline notice.
+  it("returns false on a failure without setting the screen-level error", async () => {
+    (api.createSloper as unknown as ReturnType<typeof vi.fn>).mockRejectedValue(
+      new ApiError(400, "invalid_name"),
+    );
+
+    await expect(useEditorStore.getState().saveAsSloper("")).resolves.toBe(
+      false,
+    );
+    expect(useEditorStore.getState().error).toBeNull();
+  });
+
+  it("refuses to save before a pattern is loaded, issuing no request", async () => {
+    useEditorStore.setState({ patternId: null });
+    await expect(
+      useEditorStore.getState().saveAsSloper("Base blusa"),
+    ).resolves.toBe(false);
+    expect(api.createSloper).not.toHaveBeenCalled();
+  });
+});
+
+describe("store cut-placement invalidation (#8)", () => {
+  beforeEach(() => {
+    genMock.mockReset();
+    useEditorStore.setState({
+      patternId: "p1",
+      pattern: emptyState().pattern,
+      chat: [],
+      measurements: [{ id: "m1", a: { x: 0, y: 0 }, b: { x: 4, y: 0 } }],
+      cutPlacements: { "body-front#0": { x: 1, y: 2 } },
+    });
+  });
+
+  // A regeneration can change the piece set and each piece's quantity, so a
+  // placement keyed on `pieceId#n` no longer names the same copy -- keeping
+  // it would silently move an unrelated piece on the cut sheet.
+  it("clears manual placements and measurements when the version changes", async () => {
+    const next = emptyState();
+    next.pattern.version = 1;
+    genMock.mockResolvedValue({ status: "ok", state: next });
+
+    await useEditorStore.getState().sendMessage("uma blusa");
+
+    expect(useEditorStore.getState().cutPlacements).toEqual({});
+    expect(useEditorStore.getState().measurements).toEqual([]);
+  });
+
+  // ...but an answer that drafts nothing (a clarifying question, an
+  // explanation) does not bump the version, and must not throw away work the
+  // user did on the cut sheet.
+  it("keeps them when the answer did not bump the version", async () => {
+    const same = emptyState();
+    genMock.mockResolvedValue({ status: "answered", state: same });
+
+    await useEditorStore.getState().sendMessage("por que a manga não fecha?");
+
+    expect(useEditorStore.getState().cutPlacements).toEqual({
+      "body-front#0": { x: 1, y: 2 },
+    });
+    expect(useEditorStore.getState().measurements).toHaveLength(1);
   });
 });

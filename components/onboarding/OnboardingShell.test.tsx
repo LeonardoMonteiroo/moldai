@@ -243,3 +243,208 @@ describe("OnboardingShell", () => {
     expect(api.generate).not.toHaveBeenCalled();
   });
 });
+
+// ---------------------------------------------------------------------------
+// #168: the two paths the existing cases stepped past -- step 1's arrow-key
+// selection and step 2's "use the default chart" action.
+//
+// The radiogroup's arrow keys are not a nicety: the options are custom
+// buttons with role="radio", so nothing gives them the native
+// arrow-to-move behaviour a real radio group has. Without it the group
+// announces itself as a radiogroup and then does not behave like one, which
+// is worse than an unlabelled control.
+//
+// The chart action is where a failure is easiest to hide: it activates a
+// chart, then advances -- so an activate that failed while the wizard
+// advanced anyway would silently leave the account drafting from a chart it
+// never chose.
+// ---------------------------------------------------------------------------
+
+const SYSTEM_FEMALE = {
+  id: "sc-f",
+  isSystem: true,
+  gender: "female",
+} as unknown as Awaited<ReturnType<typeof api.listSizeCharts>>[number];
+
+const CUSTOM = {
+  id: "sc-custom",
+  isSystem: false,
+  gender: "male",
+} as unknown as Awaited<ReturnType<typeof api.listSizeCharts>>[number];
+
+function workStyleRadios() {
+  return [
+    ptBR.Onboarding.step1.patternmaker.title,
+    ptBR.Onboarding.step1.brand.title,
+    ptBR.Onboarding.step1.personal.title,
+  ].map((name) => screen.getByRole("radio", { name }));
+}
+
+function selectedIndex() {
+  return workStyleRadios().findIndex(
+    (r) => r.getAttribute("aria-checked") === "true",
+  );
+}
+
+describe("OnboardingShell step 1 keyboard selection", () => {
+  beforeEach(() => {
+    push.mockReset();
+    vi.mocked(api.completeOnboarding).mockResolvedValue({ status: "ok" });
+  });
+
+  it("selects the first option from nothing on ArrowDown", async () => {
+    const user = userEvent.setup();
+    renderWithIntl(<OnboardingShell credits={CREDITS} />);
+    expect(selectedIndex()).toBe(-1);
+
+    workStyleRadios()[0].focus();
+    await user.keyboard("{ArrowDown}");
+    expect(selectedIndex()).toBe(0);
+  });
+
+  it("moves forward and back, and wraps at both ends like a real radiogroup", async () => {
+    const user = userEvent.setup();
+    renderWithIntl(<OnboardingShell credits={CREDITS} />);
+    workStyleRadios()[0].focus();
+
+    await user.keyboard("{ArrowDown}"); // -> 0
+    await user.keyboard("{ArrowRight}"); // ArrowRight is the same move
+    expect(selectedIndex()).toBe(1);
+
+    await user.keyboard("{ArrowUp}");
+    expect(selectedIndex()).toBe(0);
+
+    // Wrapping backwards off the first option lands on the last.
+    await user.keyboard("{ArrowLeft}");
+    expect(selectedIndex()).toBe(workStyleRadios().length - 1);
+
+    // ...and forwards off the last lands back on the first.
+    await user.keyboard("{ArrowDown}");
+    expect(selectedIndex()).toBe(0);
+  });
+
+  it("ignores keys that are not arrows", async () => {
+    const user = userEvent.setup();
+    renderWithIntl(<OnboardingShell credits={CREDITS} />);
+    workStyleRadios()[0].focus();
+
+    await user.keyboard("{Escape}");
+    await user.keyboard("a");
+    expect(selectedIndex()).toBe(-1);
+  });
+});
+
+describe("OnboardingShell step 2 default chart", () => {
+  beforeEach(() => {
+    push.mockReset();
+    vi.mocked(api.listSizeCharts).mockReset();
+    vi.mocked(api.activateSizeChart).mockReset();
+    vi.mocked(api.completeOnboarding).mockResolvedValue({ status: "ok" });
+  });
+
+  async function chooseDefaultChart() {
+    const user = userEvent.setup();
+    renderWithIntl(<OnboardingShell credits={CREDITS} />);
+    await goToStep2(user);
+    await user.click(
+      screen.getByRole("button", {
+        name: new RegExp(ptBR.SizeCharts.systemChartName.female),
+      }),
+    );
+    return user;
+  }
+
+  it("activates the seeded female system chart and advances to step 3", async () => {
+    vi.mocked(api.listSizeCharts).mockResolvedValue([CUSTOM, SYSTEM_FEMALE]);
+    await chooseDefaultChart();
+
+    // Picked by isSystem + gender, not by list position -- a custom chart
+    // sitting first must not be activated on the user's behalf.
+    await waitFor(() =>
+      expect(api.activateSizeChart).toHaveBeenCalledWith(SYSTEM_FEMALE.id),
+    );
+    expect(await screen.findByText(ptBR.Onboarding.step3.title)).toBeVisible();
+  });
+
+  it("falls back to the first chart when no seeded female one is listed", async () => {
+    vi.mocked(api.listSizeCharts).mockResolvedValue([CUSTOM]);
+    await chooseDefaultChart();
+
+    await waitFor(() =>
+      expect(api.activateSizeChart).toHaveBeenCalledWith(CUSTOM.id),
+    );
+  });
+
+  it("advances without activating anything when the account has no charts", async () => {
+    vi.mocked(api.listSizeCharts).mockResolvedValue([]);
+    await chooseDefaultChart();
+
+    expect(await screen.findByText(ptBR.Onboarding.step3.title)).toBeVisible();
+    expect(api.activateSizeChart).not.toHaveBeenCalled();
+  });
+
+  // The failure that must not be silent: advancing anyway would leave the
+  // account drafting from a chart it never chose.
+  it("stays on step 2 with an alert when activation fails", async () => {
+    vi.mocked(api.listSizeCharts).mockResolvedValue([SYSTEM_FEMALE]);
+    vi.mocked(api.activateSizeChart).mockRejectedValue(
+      new Error("network down"),
+    );
+    await chooseDefaultChart();
+
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        ptBR.Onboarding.step2.chartError,
+      ),
+    );
+    expect(screen.queryByText(ptBR.Onboarding.step3.title)).toBeNull();
+    // And the option is usable again for a retry, not left disabled.
+    expect(
+      screen.getByRole("button", {
+        name: new RegExp(ptBR.SizeCharts.systemChartName.female),
+      }),
+    ).toBeEnabled();
+  });
+
+  it("reports a failure to even list the charts the same way", async () => {
+    vi.mocked(api.listSizeCharts).mockRejectedValue(new Error("network down"));
+    await chooseDefaultChart();
+
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        ptBR.Onboarding.step2.chartError,
+      ),
+    );
+    expect(api.activateSizeChart).not.toHaveBeenCalled();
+  });
+
+  // Step 2 is skippable in both directions -- "Continuar" moves on without
+  // activating anything, which is what the step's own note promises.
+  it("lets the user continue past step 2 without choosing a chart", async () => {
+    const user = userEvent.setup();
+    renderWithIntl(<OnboardingShell credits={CREDITS} />);
+    await goToStep2(user);
+    expect(screen.getByText(ptBR.Onboarding.step2.note)).toBeVisible();
+
+    await user.click(
+      screen.getAllByRole("button", {
+        name: ptBR.Onboarding.continueButton,
+      })[0],
+    );
+    expect(screen.getByText(ptBR.Onboarding.step3.title)).toBeVisible();
+    expect(api.listSizeCharts).not.toHaveBeenCalled();
+  });
+
+  it("goes back to step 1 keeping the chosen work style", async () => {
+    const user = userEvent.setup();
+    renderWithIntl(<OnboardingShell credits={CREDITS} />);
+    await goToStep2(user);
+
+    await user.click(
+      screen.getByRole("button", { name: ptBR.Onboarding.backButton }),
+    );
+    expect(
+      screen.getByRole("radio", { name: ptBR.Onboarding.step1.brand.title }),
+    ).toHaveAttribute("aria-checked", "true");
+  });
+});
