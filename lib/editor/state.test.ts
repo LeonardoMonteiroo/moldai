@@ -65,8 +65,10 @@ describe("applyGarmentSpec / conflict / refit", () => {
       },
       t,
     );
-    expect(s.pattern.pieces.length).toBe(1);
+    // #131: a skirt also drafts its default waistband now.
+    expect(s.pattern.pieces.length).toBe(2);
     expect(s.pattern.pieces[0].id).toBe("skirt");
+    expect(s.pattern.pieces[1].id).toBe("waistband");
     expect(s.pattern.viewBox!.w).toBeGreaterThan(0);
   });
   it("armholeDeepenCm attaches a conflict; no adjustment means no conflict", () => {

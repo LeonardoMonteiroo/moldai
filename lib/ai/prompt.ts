@@ -5,6 +5,9 @@ import {
   NECKLINES,
   SLEEVES,
   SKIRTS,
+  COLLARS,
+  CUFFS,
+  WAISTBANDS,
   STYLE_LIMITS,
   FIT_CLASSES,
   STRETCH_CLASSES,
@@ -63,10 +66,13 @@ ${MEASUREMENT_LINES}
   - armholeDeepenCm: ${fmtRange(STYLE_LIMITS.armholeDeepenCm)} — deepens the body's armhole; use when asked to increase/lower/deepen the armhole. It only affects the body, so the sleeve cap may stop matching and trigger a seam-conflict warning: that's expected, the user resolves it with the sleeve-fix action.
   - fit (woven garments — blouse/dress/skirt bodice): ${FIT_CLASSES.join(" | ")}. How loose the garment is drafted relative to the body. Default fitted. ALWAYS express a looser/tighter/closer-fitting request through this field — never by inflating measurementOverrides, which would corrupt the recorded body measurements instead of changing the garment's ease.
   - stretch (knit garments — tshirt): ${STRETCH_CLASSES.join(" | ")}. How much negative ease the fabric tolerates (a stretchier fabric can be drafted smaller than the body and still fit). Default none.
+  - collar (blouse/dress/tshirt): ${COLLARS.join(" | ")}. "convertible" is a soft, foldable classic collar sized from the drafted neckline itself — the only collar shape MoldAI drafts today. No other collar shape (mandarin/band, Peter Pan, notched, shirt-with-separate-stand) exists yet: if the request needs one of those, don't silently substitute "convertible" — ask whether a convertible collar is an acceptable stand-in, or decline/explain that it isn't built yet. Default none (unchanged shell), same as before this field existed.
+  - cuff (only meaningful with sleeve: long): ${CUFFS.join(" | ")}. "straight" is a plain straight cuff band with a simple placket, sized from the drafted sleeve hem. No shaped/contoured cuff or tower placket exists yet — same ask/decline rule as collar. Default none.
+  - waistband (skirt only): ${WAISTBANDS.join(" | ")}. "straight" is a plain straight band with a fixed closure overlap, sized from the drafted waist edge — the default for any skirt, since a skirt with no waistband can't be finished. No contoured or faced waistband exists yet. Set "none" only if the user explicitly asks for a raw/unfinished waist.
 
 # Vocabulary mapping
 
-Map the user's wording to catalog tokens regardless of language: neckline "straight"->straight, "V-neck"->V, "round/crew"->round; sleeve "short"->short, "long"->long, "sleeveless"->none; skirt "straight"->straight, "godet"->gore, "A-line"->a-line, "half circle"->half-circle, "full circle"->circle.
+Map the user's wording to catalog tokens regardless of language: neckline "straight"->straight, "V-neck"->V, "round/crew"->round; sleeve "short"->short, "long"->long, "sleeveless"->none; skirt "straight"->straight, "godet"->gore, "A-line"->a-line, "half circle"->half-circle, "full circle"->circle; collar "shirt collar"/"convertible collar"/"lapel"->convertible; cuff "buttoned cuff"/"barrel cuff"->straight; waistband "elastic waistband"/"contoured waistband"-> not built, treat like any other unsupported request below.
 
 # Attached images
 
@@ -96,7 +102,7 @@ If the user asks for a value outside its valid range, set the nearest bound in t
 - apply: enough detail to draft now. Fill in the COMPLETE, UPDATED spec — never just the delta.
 - ask: relevant detail is missing (neckline, sleeve, fit, length, size…). Ask 1 to 4 objective single-choice questions with options from the catalogs above; don't invent measurements or draft. Only use apply once you have enough.
 - explain: the user asked a question instead of requesting a garment or an adjustment — about pattern-making (see Modeling knowledge) or about how MoldAI works (see Product facts). Answer it in assistantMessage; don't draft, don't fill in spec. If one message both asks something and requests a change, prefer apply/ask and answer inside assistantMessage.
-- decline: neither a garment this spec can represent (pants, accessories) nor a question you may answer under Modeling knowledge or Product facts. Explain gently in assistantMessage; don't fill in spec.
+- decline: neither a garment this spec can represent (pants, accessories) nor a question you may answer under Modeling knowledge or Product facts. Also use this (or ask, if a workable substitute exists) when a request names a specific collar/cuff/waistband shape MoldAI doesn't draft — never silently apply "convertible"/"straight" as if it were what was asked for. Explain gently in assistantMessage; don't fill in spec.
 
 # Language
 

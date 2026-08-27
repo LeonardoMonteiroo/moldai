@@ -383,11 +383,18 @@ function bodice(
   // list. `hem` is exposed unconditionally (not only when isDressHem): it's
   // simply unreferenced by any pair unless this garment has a skirt to join
   // it to, one shape either way rather than a conditional field.
+  // #129: the two curved spans that together make up this panel's own
+  // neckline -- cf->hpsL (left) and hpsR->wrap-to-cf (right), the exact same
+  // index pair the neckline curvedSpans above already use. garment.ts sums
+  // both, off front AND back, into the total arc a collar's own neckline
+  // seam is sized from.
   const seamEdges: Record<string, [number, number]> = {
     shoulder: [hpsL, shL],
     side: [uaL, hemL],
     armhole: [shL, uaL],
     hem: [hemL, hemR],
+    necklineLeft: [cf, hpsL],
+    necklineRight: [hpsR, pts.length],
   };
 
   return {
