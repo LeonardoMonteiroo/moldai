@@ -5,6 +5,8 @@ import { AsaasWebhookBodySchema } from "@/lib/schemas/billing";
 import { apiError } from "@/lib/api/errors";
 import { reportError } from "@/lib/observability/report";
 import { parseExternalReference } from "@/lib/billing/asaas";
+import { isPlanUpgrade, type PaidPlanId } from "@/lib/billing/plans";
+import type { PlanId } from "@/lib/types";
 import {
   applyPurchase,
   debitWallet,
@@ -149,9 +151,52 @@ async function handleConfirmed(
   // this handler applies whichever paid tier the checkout was actually
   // created for, never a hardcoded "atelier" and never an arbitrary string
   // a forged/tampered externalReference might otherwise have carried.
-  await withWalletIdempotent(parsed.userId, paymentId, (wallet) =>
-    applyPurchase(wallet, parsed.purchase, now),
-  );
+  // #193: applyPurchase's own subscribe branch is what actually refuses a
+  // downgrade/same-tier reapply (it never touches plan/total/renewsAt in
+  // that case, folding the paid credits into `purchased` instead) -- this
+  // closure only captures whether that happened, purely from data already
+  // in hand (the locked wallet's own plan, read before the mutation, and
+  // the pure isPlanUpgrade check), so it can be reported for operator
+  // visibility once the transaction has actually committed. No I/O runs
+  // inside the callback itself: withWalletIdempotent's contract requires
+  // `fn` to stay synchronous and side-effect-free, since it can re-run
+  // against a freshly locked row on a transaction retry.
+  // A box, not a bare `let`, because a `let` reassigned only from inside a
+  // closure passed as an argument gets over-narrowed by TypeScript's CFA
+  // to `null` at every read outside that closure -- a property access
+  // doesn't carry that same (incorrect) narrowing.
+  const superseded: {
+    value: { plan: PaidPlanId; previousPlan: PlanId } | null;
+  } = { value: null };
+  await withWalletIdempotent(parsed.userId, paymentId, (wallet) => {
+    const previousPlan = wallet.plan;
+    const entry = applyPurchase(wallet, parsed.purchase, now);
+    if (
+      parsed.purchase.type === "subscribe" &&
+      !isPlanUpgrade(previousPlan, parsed.purchase.plan)
+    ) {
+      superseded.value = { plan: parsed.purchase.plan, previousPlan };
+    }
+    return entry;
+  });
+  if (superseded.value) {
+    const { plan, previousPlan } = superseded.value;
+    // Best-effort, after the transaction committed -- the credit already
+    // landed (folded into `purchased`, per applyPurchase's own guard) and
+    // must never be rolled back or blocked by this report failing. This is
+    // the operator-visible trace the money itself doesn't carry: the
+    // wallet's ledger row alone can't tell a human this payment arrived
+    // out of order and was NOT applied as a plan change.
+    reportError(
+      "billing-webhook-subscribe-superseded",
+      new Error(
+        `subscribe payment for plan "${plan}" arrived after wallet was ` +
+          `already on "${previousPlan}" (or better) -- credited as ` +
+          `purchased credits instead of changing plan`,
+      ),
+      { userId: parsed.userId, paymentId, plan, previousPlan },
+    );
+  }
 
   if (subscriptionId) {
     try {
