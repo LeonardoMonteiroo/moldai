@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { renderWithIntl, screen, ptBR } from "@/components/test-utils";
+import { EXPORT_FORMATS, EXPORT_FORMAT_LABELS } from "@/lib/export/formats";
 import { LandingPage } from "./LandingPage";
 import { PLAN_CREDITS } from "@/lib/billing/plans";
 
@@ -110,13 +111,21 @@ describe("LandingPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders the formats section reusing the editor's own format labels", () => {
+  // Spot-checking three labels is what let this page drift: it kept its own
+  // hardcoded list of five ids and stayed green while #135/#136 added plt and
+  // pdf-layered, so the landing page silently advertised five of seven
+  // shipped formats. Assert EVERY entry in EXPORT_FORMATS instead -- a format
+  // added to the app now fails this test until the page advertises it.
+  it("advertises every format the app can actually write", () => {
     renderWithIntl(<LandingPage />);
 
     expect(screen.getByText(ptBR.Landing.formats.title)).toBeInTheDocument();
-    expect(screen.getByText(ptBR.Footer.formatSvg)).toBeInTheDocument();
-    expect(screen.getByText(ptBR.Footer.formatDxf)).toBeInTheDocument();
-    expect(screen.getByText(ptBR.Footer.formatPdfA4)).toBeInTheDocument();
+    for (const id of EXPORT_FORMATS) {
+      const labelKey = EXPORT_FORMAT_LABELS[id].labelKey;
+      const label = (ptBR.Footer as Record<string, string>)[labelKey];
+      expect(label, `Footer.${labelKey} missing from the catalog`).toBeTruthy();
+      expect(screen.getByText(label)).toBeInTheDocument();
+    }
   });
 
   it("renders all three step cards with their exact titles and bodies", () => {

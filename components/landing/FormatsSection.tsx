@@ -2,17 +2,13 @@
 
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
+import { EXPORT_FORMATS, EXPORT_FORMAT_LABELS } from "@/lib/export/formats";
 
 // Decision 2 (issue #13): the "Formatos" nav item is a real anchor to this
-// section, reusing Footer's existing format labels rather than inventing
-// new copy -- the same five formats the editor's export menu offers.
-const FORMAT_KEYS = [
-  "formatSvg",
-  "formatDxf",
-  "formatDxfAama",
-  "formatPdfA4",
-  "formatPdfSingle",
-] as const;
+// section, reusing Footer's existing format labels rather than inventing new
+// copy -- the same formats the editor's export menu offers. Derived from
+// EXPORT_FORMATS rather than re-listed here, so a format added to the app is
+// advertised automatically instead of drifting out of this page.
 
 export function FormatsSection() {
   const t = useTranslations("Landing");
@@ -24,9 +20,9 @@ export function FormatsSection() {
         {t("formats.title")}
       </span>
       <div className="flex flex-wrap gap-2">
-        {FORMAT_KEYS.map((key) => (
-          <Badge key={key} variant="outline" className="rounded-pill">
-            {tFooter(key)}
+        {EXPORT_FORMATS.map((id) => (
+          <Badge key={id} variant="outline" className="rounded-pill">
+            {tFooter(EXPORT_FORMAT_LABELS[id].labelKey)}
           </Badge>
         ))}
       </div>
