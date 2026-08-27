@@ -343,6 +343,53 @@
     "message": "Algo deu errado e sua última ação não foi aplicada.",
     "dismiss": "Fechar aviso"
   },
+  "Landing": {
+    "metaTitle": "MoldAI — moldes de costura com IA",
+    "metaDescription": "Descreva a peça que você quer e a IA gera o molde, grada os tamanhos e exporta pronto para cortar.",
+    "nav": {
+      "howItWorks": "Como funciona",
+      "formats": "Formatos",
+      "plans": "Planos",
+      "comingSoonBadge": "em breve",
+      "comingSoonTitle": "Essa tela chega em breve",
+      "login": "Entrar",
+      "signup": "Testar grátis"
+    },
+    "hero": {
+      "eyebrow": "Modelagem com IA",
+      "title": "Do texto ao molde pronto para cortar",
+      "body": "Descreva a peça em uma conversa — a IA desenha o molde, grada os tamanhos pela sua tabela de medidas e exporta em SVG, DXF ou PDF.",
+      "primaryCta": "Começar com {credits} créditos grátis",
+      "secondaryCta": "Ver um molde real",
+      "secondaryCtaTitle": "Galeria de moldes reais chega em breve",
+      "noCardNote": "Sem cartão de crédito para começar."
+    },
+    "mockup": {
+      "promptExample": "blusa manga curta, decote redondo, tamanho M",
+      "canvasAlt": "Peças de um molde de blusa — frente, costas e manga — com a linha de graduação tracejada ao redor",
+      "chipGraduate": "graduar PP–GG",
+      "chipCutPlan": "plano de corte",
+      "chipExport": "exportar SVG/DXF"
+    },
+    "formats": {
+      "title": "Formatos de exportação"
+    },
+    "steps": {
+      "sectionTitle": "Como funciona",
+      "describe": {
+        "title": "1 · Descreva ou envie",
+        "body": "Texto, foto de referência ou croqui — a IA interpreta e propõe o molde."
+      },
+      "adjust": {
+        "title": "2 · Ajuste conversando",
+        "body": "Peça a mudança em linguagem de modelagem. A IA avisa quando as costuras não fecham."
+      },
+      "export": {
+        "title": "3 · Exporte e corte",
+        "body": "Grade os tamanhos pela sua tabela de medidas e exporte em SVG, DXF ou PDF, com ficha técnica."
+      }
+    }
+  },
   "Login": {
     "heading": "Entrar",
     "emailLabel": "Email",
@@ -411,6 +458,56 @@
       "rate_limited": "Muitas tentativas. Aguarde alguns minutos e tente de novo."
     },
     "missingToken": "Link incompleto. Abra o endereço exatamente como ele chegou no seu email."
+  },
+  "Onboarding": {
+    "pageTitle": "Bem-vindo",
+    "stepLabel": "Passo {n} de 3",
+    "backButton": "‹ Voltar",
+    "skipButton": "Pular por agora",
+    "continueButton": "Continuar",
+    "step1": {
+      "title": "Como você trabalha?",
+      "patternmaker": {
+        "title": "Modelista de confecção",
+        "subtitle": "grades completas, exportação técnica e plano de corte"
+      },
+      "brand": {
+        "title": "Marca ou ateliê",
+        "subtitle": "grade própria, ficha técnica"
+      },
+      "personal": {
+        "title": "Costuro para mim",
+        "subtitle": "molde no meu corpo, PDF A4"
+      }
+    },
+    "step2": {
+      "title": "Sua tabela de medidas",
+      "defaultOption": {
+        "subtitle": "Grade padrão do sistema — você pode trocar depois em Medidas e grades."
+      },
+      "importOption": {
+        "title": "Importar planilha ou tabela do Audaces",
+        "comingSoonTitle": "Importação de planilha chega em breve"
+      },
+      "fillOption": {
+        "title": "Preencher agora",
+        "comingSoonTitle": "Preencher agora chega em breve — use a grade padrão por enquanto"
+      },
+      "note": "Pode fazer depois — a IA usa a grade padrão até você trocar.",
+      "comingSoonBadge": "em breve",
+      "chartError": "Não foi possível ativar a grade padrão agora. Tente de novo."
+    },
+    "step3": {
+      "title": "Seu primeiro molde",
+      "placeholder": "Descreva a peça que você quer modelar…",
+      "suggestionBlouse": "blusa básica",
+      "suggestionDress": "vestido evasê",
+      "suggestionTshirt": "camiseta básica",
+      "creditsPill": "◆ {balance, plural, one {# crédito grátis por mês} other {# créditos grátis por mês}}",
+      "generateCta": "Gerar meu molde · {cost, plural, one {# crédito} other {# créditos}}",
+      "generatingButton": "Gerando…",
+      "generateError": "Não foi possível gerar seu molde agora. Tente de novo."
+    }
   },
   "VerificationEmail": {
     "subject": "Confirme seu email · MoldAI",

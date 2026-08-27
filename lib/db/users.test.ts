@@ -5,7 +5,14 @@ const { update, del } = vi.hoisted(() => ({
   del: vi.fn(async (_args: unknown) => undefined),
 }));
 
-vi.mock("@/lib/db/prisma", () => ({
+// #15: mocked by the SAME relative specifier users.ts itself imports
+// ("./prisma", not the "@/lib/db/prisma" alias) -- on this sandbox's
+// Windows/junctioned-node_modules setup, vi.mock's alias-resolved specifier
+// and users.ts's relative import were observed to resolve to distinct
+// module ids, so the mock silently never intercepted and prisma.user.update/
+// delete ran against a real (unreachable) PrismaClient. Matching the exact
+// specifier removes any alias-vs-relative resolution ambiguity.
+vi.mock("./prisma", () => ({
   prisma: {
     user: {
       update,

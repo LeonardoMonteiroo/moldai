@@ -21,6 +21,16 @@ model User {
   // without the hash actually changing, and vice versa. Doubles as the
   // timestamp a future "sign out everywhere" revocation check would read.
   passwordChangedAt   DateTime?
+  // #14: post-signup onboarding wizard tracking, additive. onboardedAt gates
+  // app/page.tsx's redirect to /onboarding by null-ness only -- existing
+  // rows are backfilled to "already onboarded" by this migration (the
+  // 20260820120000_add_email_verification precedent: a bare nullable column
+  // with no backfill would trap every established account in a wizard meant
+  // only for new signups). workStyle is honest, unused research data from
+  // step 1 (lib/db/users.ts's WorkStyle) -- never read by any drafting or
+  // behaviour path.
+  onboardedAt         DateTime?
+  workStyle           String?
   patterns            Pattern[]
   wallet              Wallet?
   sizeCharts          SizeChart[]              @relation("UserSizeCharts")

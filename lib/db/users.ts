@@ -57,6 +57,51 @@ export async function deleteUser(id: string): Promise<void> {
   reportError("account.delete", "account deleted", { userId: id });
 }
 
+// #14: the closed set of self-described "how you work" answers from
+// onboarding step 1. Stored as honest research data (User.workStyle) --
+// never read by any drafting/behaviour path, so a value outside this list is
+// simply rejected rather than silently accepted.
+export const WORK_STYLES = ["patternmaker", "brand", "personal"] as const;
+export type WorkStyle = (typeof WORK_STYLES)[number];
+
+export function isWorkStyle(value: unknown): value is WorkStyle {
+  return (
+    typeof value === "string" &&
+    (WORK_STYLES as readonly string[]).includes(value)
+  );
+}
+
+// A narrow read, separate from getUserById's UserRecord select, so the
+// onboarding gate (app/page.tsx, app/onboarding/page.tsx) doesn't widen the
+// shape every other requireUser()-adjacent caller of getUserById receives. A
+// null return means the account no longer exists -- the #62 precedent every
+// other guard in this file already follows.
+export function getOnboardingStatus(
+  id: string,
+): Promise<{ onboardedAt: Date | null } | null> {
+  return prisma.user.findUnique({
+    where: { id },
+    select: { onboardedAt: true },
+  });
+}
+
+// Stamps the wizard as seen. Idempotent in effect (onboardedAt only ever
+// gates the redirect by null-ness, not by its exact value), so a repeat call
+// -- Pular por agora after already finishing, a double click -- just moves
+// the timestamp forward rather than erroring.
+export async function stampOnboarded(
+  id: string,
+  workStyle?: WorkStyle,
+): Promise<void> {
+  await prisma.user.update({
+    where: { id },
+    data: {
+      onboardedAt: new Date(),
+      ...(workStyle ? { workStyle } : {}),
+    },
+  });
+}
+
 // Returns null when the unique constraint on email fires (P2002) — the
 // read-then-insert race the pre-read in createAccount cannot close. Never
 // throws for that expected failure, matching lib/db/pattern.ts's contract.
