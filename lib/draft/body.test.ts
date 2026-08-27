@@ -347,22 +347,59 @@ describe("#132: extended measurement overrides", () => {
     expect(withKey.front.outlineCm).toEqual(withoutKey.front.outlineCm);
   });
 
-  it("backWidth overrides only the back panel's width, leaving the front bust-derived width alone", () => {
-    const narrow = draftBody({ ...M, backWidth: 30 }, {}, t, optsM);
-    const wide = draftBody({ ...M, backWidth: 80 }, {}, t, optsM);
-    expect(bbox(wide.back.outlineCm).w).toBeGreaterThan(
-      bbox(narrow.back.outlineCm).w,
-    );
+  // #132 (post-review fix): backWidth used to drive halfChest (the
+  // underarm-level width), seeded as bust/2 so the fallback stayed a no-op
+  // -- but the guide text sends the user to measure real across-back
+  // (armpit to armpit, shoulder-blade height, ~36-38cm at a 92cm bust), and
+  // plugging that real ~37 into a halfChest-driving field (46 at bust=92)
+  // drafted a back ~5cm narrower per side than intended. backWidth now
+  // drives the armhole curve's own control point (armCtrlX, at midArmY --
+  // between the shoulder and the underarm, i.e. roughly shoulder-blade
+  // height) instead, leaving halfChest/the underarm itself bust-derived for
+  // both panels always.
+  it("backWidth widens/narrows the back panel's armhole curve, leaving the front's own control point and both panels' underarm width alone", () => {
+    const narrow = draftBody({ ...M, backWidth: 28 }, {}, t, optsM);
+    const wide = draftBody({ ...M, backWidth: 44 }, {}, t, optsM);
+    // index 4 = left armhole control point (see bodice()'s push() order:
+    // 0 cf, 1 ctrl, 2 hpsL, 3 shL, 4 armhole ctrl, 5 uaL).
+    const armCtrlOffset = (d: typeof narrow) =>
+      Math.abs(d.back.outlineCm[4][0] - d.back.outlineCm[0][0]);
+    expect(armCtrlOffset(wide)).toBeGreaterThan(armCtrlOffset(narrow));
+    // The front's own control point, and both panels' underarm (index 5),
+    // are untouched by backWidth.
     expect(bbox(wide.front.outlineCm).w).toBeCloseTo(
       bbox(narrow.front.outlineCm).w,
       5,
     );
+    expect(wide.back.outlineCm[5][0]).toBeCloseTo(
+      narrow.back.outlineCm[5][0],
+      9,
+    );
   });
 
-  it("omitting backWidth reproduces the bust/2 fallback exactly, front and back symmetric", () => {
-    const withKey = draftBody({ ...M, backWidth: M.bust / 2 }, {}, t, optsM);
+  it("omitting backWidth reproduces the shoulder/underarm interpolation exactly, front and back symmetric", () => {
+    // The exact value that makes backWidth/2 + wearingEase equal the
+    // fallback interpolation -- not a round number, just the fallback's own
+    // formula solved for backWidth, since (unlike neckGirth/highBust/
+    // shoulderSlope/bicep) the fallback here depends on the style-driven
+    // wearingEase, not on bust alone.
+    const wearingEase = optsM.wearingEaseCm / 4;
+    const halfChestM = M.bust / 4 + wearingEase;
+    const armCtrlXFallback = (M.shoulder + halfChestM) / 2 - 1;
+    const backWidthEquivalent = (armCtrlXFallback - wearingEase) * 2;
+
+    const withKey = draftBody(
+      { ...M, backWidth: backWidthEquivalent },
+      {},
+      t,
+      optsM,
+    );
     const withoutKey = draftBody(M, {}, t, optsM);
-    expect(withKey.back.outlineCm).toEqual(withoutKey.back.outlineCm);
+    withKey.back.outlineCm.forEach(([x, y], i) => {
+      const [ox, oy] = withoutKey.back.outlineCm[i];
+      expect(x).toBeCloseTo(ox, 9);
+      expect(y).toBeCloseTo(oy, 9);
+    });
     expect(bbox(withoutKey.back.outlineCm).w).toBeCloseTo(
       bbox(withoutKey.front.outlineCm).w,
       5,

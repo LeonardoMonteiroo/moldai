@@ -6,11 +6,24 @@ const SIZES = ["PP", "P", "M", "G", "GG"];
 const BASE_INDEX = 2; // "M"
 
 // #132: computes the six EXTENDED_MEASUREMENT_KEYS for one size row, from
-// values SIZE_TABLE/SIZE_TABLE_MALE already carry, using the exact formulas
-// the drafters fall back to when a field is absent (lib/draft/body.ts's
-// neckHalf/armholeDepthBase/halfChest, lib/draft/sleeve.ts's bicep) — so
-// populating a system chart's baseMeasurements with these changes nothing
-// about what it drafts; it only makes the field real, visible and editable.
+// values SIZE_TABLE/SIZE_TABLE_MALE already carry. Five of them reproduce
+// the exact formula the corresponding drafter falls back to when the field
+// is absent (lib/draft/body.ts's neckHalf/armholeDepthBase, lib/draft/
+// sleeve.ts's bicep) -- populating a system chart's baseMeasurements with
+// those changes nothing about what it drafts; it only makes the field real,
+// visible and editable. `backWidth` is the deliberate exception: it seeds a
+// realistic across-back proportion (bust*0.4, not a value that happens to
+// cancel out in body.ts's formula), because the field IS the across-back
+// measurement a user is told to go measure (SizeChartTable.measurementGuide.
+// backWidth) and body.ts consumes it at the armhole curve's own control
+// point, not at halfChest -- an earlier version of this function seeded
+// bust/2 specifically so it would be a no-op through the OLD (incorrect)
+// wiring, which meant the seeded "across-back" value (~46cm at a 92cm bust)
+// had nothing to do with a real body's ~36-38cm there. Populating the
+// system chart's backWidth with a realistic value is therefore a genuine,
+// intentional geometry change for the default account (a more accurate
+// back than the old bust-derived guess), not a no-op like the other five.
+//
 // Deliberately computed here rather than baked into SIZE_TABLE itself: that
 // constant is spread-and-overridden directly by several tests (varying just
 // `bust` to see geometry respond), and a fixed extended value living
@@ -44,11 +57,14 @@ function extendedMeasurementsFor(
     // here (see seed.test.ts's own note on why this field's progression is
     // legitimately 0, unlike every other measurement).
     shoulderSlope: male ? 4.5 : 4.0,
-    // body.ts: halfChest (back panel) reads (backWidth ?? bust... )/... such
-    // that backWidth/2 + ease == bust/4 + ease for any ease value (the ease
-    // term cancels) -- backWidth = bust/2 reproduces the front/back
-    // symmetric width the fallback formula draws today.
-    backWidth: m.bust / 2,
+    // body.ts: the back panel's armhole-curve control point reads backWidth
+    // (halved, one-side) when present. A common quick-draft rule for
+    // across-back is roughly 0.4x bust circumference (matches the
+    // ~36-38cm range real tape measurements land in around a 92cm bust) --
+    // this is a REAL value, not one chosen to cancel out algebraically the
+    // way the other five fields above are (see this function's own
+    // top-of-file note).
+    backWidth: m.bust * 0.4,
     // sleeve.ts's existing BICEP_PROPORTION_OF_BUST.
     bicep: m.bust * 0.3,
     // No drafter reads this yet (#128 will) -- graded independently by

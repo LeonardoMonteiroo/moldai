@@ -108,6 +108,9 @@ describe("buildSystemSizeChart", () => {
   // Locks in the specific formula-reproducing relationships documented on
   // extendedMeasurementsFor (seed.ts) -- a regression here means a system
   // chart no longer drafts what the fallback proportion draws today.
+  // backWidth is deliberately excluded: it is NOT a fallback-reproducing
+  // value (see extendedMeasurementsFor's own note) -- it seeds a realistic
+  // across-back proportion instead, checked separately below.
   it.each(["female", "male"] as const)(
     "%s chart's extended base values reproduce today's hardcoded proportions",
     (gender) => {
@@ -120,8 +123,27 @@ describe("buildSystemSizeChart", () => {
       expect(base.neckGirth).toBeCloseTo((bust * 3) / 7, 9);
       expect(base.highBust).toBe(bust);
       expect(base.shoulderSlope).toBe(gender === "male" ? 4.5 : 4.0);
-      expect(base.backWidth).toBeCloseTo(bust / 2, 9);
       expect(base.bicep).toBeCloseTo(bust * 0.3, 9);
+    },
+  );
+
+  // #132 (post-review fix): backWidth seeds a REAL across-back proportion
+  // (bust*0.4, matching the guide text's "measure armpit to armpit across
+  // the back" -- ~36-38cm at a 92cm bust), not one chosen to cancel out in
+  // body.ts's formula the way the other five extended fields are. This
+  // means populating the system charts' backWidth is a genuine (small,
+  // more anatomically accurate) geometry change for a brand-new account's
+  // default draft, unlike the other five fields.
+  it.each(["female", "male"] as const)(
+    "%s chart's backWidth is a realistic across-back proportion, not bust/2",
+    (gender) => {
+      const chart = buildSystemSizeChart(gender);
+      const base = resolveSizeChartSize(
+        chart,
+        chart.sizes[chart.baseSizeIndex],
+      );
+      expect(base.backWidth).toBeCloseTo(base.bust * 0.4, 9);
+      expect(base.backWidth).not.toBeCloseTo(base.bust / 2, 1);
     },
   );
 });

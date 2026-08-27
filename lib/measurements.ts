@@ -227,7 +227,7 @@ export const MEASUREMENT_RANGES: Record<
   neckGirth: { min: 28, max: 48 },
   highBust: { min: 65, max: 135 },
   shoulderSlope: { min: 2, max: 7 },
-  backWidth: { min: 30, max: 58 },
+  backWidth: { min: 26, max: 46 },
   bicep: { min: 18, max: 45 },
   rise: { min: 20, max: 36 },
 };

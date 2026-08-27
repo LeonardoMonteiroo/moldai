@@ -68,16 +68,20 @@ function bodice(
   // opts; dividing by 4 gives the per-quarter figure this bodice adds to
   // each of its four panels (front-left/right, back-left/right).
   const wearingEase = opts.wearingEaseCm / 4;
-  // #132: the front panel always sizes off the full bust circumference
-  // (cup included, as before) -- but the back panel now prefers a real
-  // across-back measurement when the chart has one, falling back to the
-  // same bust-derived width otherwise. backWidth is a point-to-point width,
-  // not a girth, so it plays bust's role directly (halved, like bust/4 is a
-  // quarter) rather than needing its own divisor.
-  const halfChest =
-    !frontish && m.backWidth !== undefined
-      ? m.backWidth / 2 + wearingEase
-      : m.bust / 4 + wearingEase;
+  // #132: halfChest stays bust-derived for BOTH panels, front and back --
+  // it's the panel's width at the underarm (bust level; see uaL/uaR below),
+  // and backWidth is not a bust-circumference substitute (a first version of
+  // this deliberately conflated the two: seeding backWidth = bust/2 so the
+  // fallback stayed byte-identical made the seeded "across-back" value
+  // ~46cm at a 92cm bust, while the real measurement the guide text sends a
+  // user to take -- armpit to armpit across the back, at shoulder-blade
+  // height -- is ~36-38cm there; a user who actually measured and entered
+  // that real number into a halfChest-driving field got a back panel ~5cm
+  // narrower per side than intended, the exact fit failure #132 exists to
+  // prevent). backWidth is consumed further down instead, at the armhole
+  // curve's own control point -- roughly shoulder-blade height, above the
+  // underarm -- which is where an across-back measurement actually belongs.
+  const halfChest = m.bust / 4 + wearingEase;
   const armholeDeepen = Math.max(0, style.armholeDeepenCm ?? 0);
   // #132: armhole depth used to scale with the full bust circumference,
   // which bakes cup size into a dimension that's really about frame size --
@@ -129,7 +133,22 @@ function bodice(
   const cx = Math.max(shoulderHalf, halfChest, hemHalf);
   const midArmY = shoulderSlope + (armholeDepth - shoulderSlope) * 0.55;
   const midArmYBase = shoulderSlope + (armholeDepthBase - shoulderSlope) * 0.55;
-  const armCtrlX = (shoulderHalf + halfChest) / 2 - 1; // distance from center
+  // #132: the armhole curve's own control point, at midArmY -- a height
+  // strictly between the shoulder tip (shoulderSlope) and the underarm
+  // (armholeDepth), i.e. roughly shoulder-blade/upper-chest height. That is
+  // where an across-back measurement is actually taken, so the BACK panel's
+  // control point reads backWidth (halved, the same one-side convention
+  // halfChest already uses) when the chart has it, instead of the plain
+  // shoulder/underarm interpolation every panel used before -- the
+  // underarm itself (uaL/uaR, halfChest-driven) is untouched by backWidth,
+  // deliberately, so a narrower back doesn't fight the bust-derived width
+  // it's still sewn to at the side seam. Falls back to the original
+  // interpolation, unchanged, when backWidth is absent (every existing
+  // chart, and the front panel always).
+  const armCtrlX =
+    !frontish && m.backWidth !== undefined
+      ? m.backWidth / 2 + wearingEase
+      : (shoulderHalf + halfChest) / 2 - 1; // distance from center
 
   const pts: Pt[] = [];
   const spans: [number, number][] = [];
@@ -383,20 +402,23 @@ export function draftBody(
     // by construction -- either's value is the garment's one pitch-notch
     // distance, which garment.ts hands to draftSleeve unchanged.
     //
-    // #132: that construction assumes front and back share the same
-    // halfChest, which is no longer forced -- a chart whose backWidth
-    // genuinely differs from bust/2 (a real narrower/wider back, the whole
-    // point of the field) drafts a back armhole a different length than the
-    // front's, so f.pitchNotchCm and c.pitchNotchCm can now legitimately
-    // diverge. Each panel already places its OWN notch from its OWN local
-    // pitch distance (computed inside bodice(), not from this return value),
-    // so that stays correct either way; what's no longer exact is the
-    // sleeve's single/double notch, which still shares ONE distance
-    // (garment.ts hands it whichever of f/c matches the armhole the cap was
-    // actually drafted against) for both sides. A sleeve notch a few
-    // millimetres off a diverged back's own notch is a labelled-cosmetic
-    // precision gap, not a fit defect -- the seams it marks still sew
-    // together at the lengths seamCheck actually verifies.
+    // #132: that construction assumes front and back draft an identical
+    // armCtrlX, which is no longer forced -- a chart whose backWidth
+    // genuinely differs from the shoulder/underarm interpolation (a real
+    // narrower/wider back, the whole point of the field) drafts a back
+    // armhole a different length than the front's, so f.pitchNotchCm and
+    // c.pitchNotchCm can now legitimately diverge (halfChest/the underarm
+    // itself is untouched -- see bodice()'s own note -- so this is strictly
+    // narrower than an earlier version of this comment described). Each
+    // panel already places its OWN notch from its OWN local pitch distance
+    // (computed inside bodice(), not from this return value), so that stays
+    // correct either way; what's no longer exact is the sleeve's
+    // single/double notch, which still shares ONE distance (garment.ts
+    // hands it whichever of f/c matches the armhole the cap was actually
+    // drafted against) for both sides. A sleeve notch a few millimetres off
+    // a diverged back's own notch is a labelled-cosmetic precision gap, not
+    // a fit defect -- the seams it marks still sew together at the lengths
+    // seamCheck actually verifies.
     pitchNotchCm: f.pitchNotchCm,
     basePitchNotchCm: f.basePitchNotchCm,
   };
