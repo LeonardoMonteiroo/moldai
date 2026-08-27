@@ -1222,44 +1222,44 @@ describe("seam graph (#134)", () => {
     expect(conflicts).toEqual([]);
   });
 
-  // A real, previously-undetected gap this issue's own generalisation
-  // surfaces rather than fixes (see the PR description / CLAUDE.md): a
-  // dress's bodice hem is hip-derived (skirtWaistHalfCm), but a
-  // circle/gore/half-circle skirt's own waist arc is drafted straight from
-  // the actual waist measurement -- two different measurements of the same
-  // body. For SIZE_TABLE.M (waist 66, hip 92) these genuinely disagree, so
-  // this is NOT a "should be zero" assertion like the ones above -- it
-  // documents that the graph now catches what it previously could not, with
-  // no automatic fix offered for it.
-  it("#134 finding: a dress with a circle skirt reports a REAL, unfixable waist-join divergence", () => {
-    const spec = {
-      type: "dress" as const,
-      gender: "female" as const,
-      measurementOverrides: {},
-      style: { sleeve: "none" as const, darts: true, skirt: "circle" as const },
-    };
-    const conflicts = seamCheck(measureSeamGraph(spec, SIZE_TABLE.M, t));
-    const waistJoins = conflicts.filter((c) => c.key.startsWith("waist-join"));
-    expect(waistJoins.length).toBeGreaterThan(0);
-    for (const c of waistJoins) {
-      expect(c.fixable).toBe(false);
-      expect(c.diffCm).toBeGreaterThan(1);
+  // #177 (owner decision, superseding the #134 finding this test used to
+  // document): the dress bodice hem no longer reads skirtWaistHalfCm(hip) --
+  // it reads dressWaistHalfCm(waist, silhouette), the exact function the
+  // skirt panel's own dress-mode sizing also calls (lib/draft/skirt.ts), so
+  // the two sides of the waist join are equal by construction for a
+  // circle/gore/half-circle skirt too, not only straight/a-line. Flipped
+  // from "reports a REAL divergence" to "reports zero", per #177's own
+  // acceptance criteria.
+  it("#177: a dress with a circle/gore/half-circle skirt has no waist-join divergence", () => {
+    for (const skirt of ["circle", "gore", "half-circle"] as const) {
+      const spec = {
+        type: "dress" as const,
+        gender: "female" as const,
+        measurementOverrides: {},
+        style: { sleeve: "none" as const, darts: true, skirt },
+      };
+      const conflicts = seamCheck(measureSeamGraph(spec, SIZE_TABLE.M, t));
+      expect(
+        conflicts.filter((c) => c.key.startsWith("waist-join")),
+        skirt,
+      ).toEqual([]);
     }
   });
 
-  it("a straight/a-line dress skirt has no waist-join divergence (equal by construction, #79)", () => {
-    const spec = {
-      type: "dress" as const,
-      gender: "female" as const,
-      measurementOverrides: {},
-      style: {
-        sleeve: "none" as const,
-        darts: true,
-        skirt: "straight" as const,
-      },
-    };
-    const conflicts = seamCheck(measureSeamGraph(spec, SIZE_TABLE.M, t));
-    expect(conflicts.filter((c) => c.key.startsWith("waist-join"))).toEqual([]);
+  it("a straight/a-line dress skirt has no waist-join divergence (equal by construction, #79/#177)", () => {
+    for (const skirt of ["straight", "a-line"] as const) {
+      const spec = {
+        type: "dress" as const,
+        gender: "female" as const,
+        measurementOverrides: {},
+        style: { sleeve: "none" as const, darts: true, skirt },
+      };
+      const conflicts = seamCheck(measureSeamGraph(spec, SIZE_TABLE.M, t));
+      expect(
+        conflicts.filter((c) => c.key.startsWith("waist-join")),
+        skirt,
+      ).toEqual([]);
+    }
   });
 
   it("the full graph includes the equal-by-construction pairs too, not only the divergent ones", () => {
