@@ -2,12 +2,14 @@ import {
   Credits,
   EditorState,
   GarmentType,
+  GarmentSpec,
   SizeChartData,
   SizeChartListEntry,
   SizeChartRecord,
   LedgerHistoryEntry,
   SloperListItem,
 } from "./types";
+import type { Measurements } from "./measurements";
 import type { SignupErrorCode } from "./account/signup";
 import type { VerifyErrorCode, ResendErrorCode } from "./auth/verification";
 import type {
@@ -54,6 +56,27 @@ export interface PatternListItem {
   garmentType: GarmentType | null;
   updatedAt: string;
   thumbnailSvg: string;
+}
+
+// #16: wire mirror of lib/db/patternVersion.ts's PatternVersionRecord --
+// duplicated rather than imported, the PatternListItem precedent above (that
+// one mirrors lib/db/pattern.ts's own PatternListItem the same way). Never
+// carries drafted pieces: a version snapshot is the spec plus the frozen
+// size snapshot, redrafted on demand client-side via draftGarment.
+export type PatternVersionReason =
+  "generate" | "adjust" | "graduate" | "conflict_fix" | "restore";
+
+export interface PatternVersionEntry {
+  id: string;
+  version: number;
+  spec: GarmentSpec;
+  sizes: string[];
+  baseSize: string;
+  sizeTable: Record<string, Measurements>;
+  sizeChartName: string | null;
+  reason: PatternVersionReason;
+  cost: number;
+  createdAt: string;
 }
 
 export interface RecentUsageEntry {
@@ -204,6 +227,23 @@ export async function renamePattern(
 
 export async function deletePattern(patternId: string): Promise<void> {
   await sendJson(`/api/patterns/${patternId}`, "DELETE");
+}
+
+export function listVersions(
+  patternId: string,
+): Promise<PatternVersionEntry[]> {
+  return getJson<PatternVersionEntry[]>(`/api/patterns/${patternId}/versions`);
+}
+
+// Free -- restoring never carries a paywall, so no `handled` list is needed
+// (unlike generate/graduate's PAYWALL).
+export function restoreVersion(
+  patternId: string,
+  versionId: string,
+): Promise<GenerateResult> {
+  return postJson<GenerateResult>(
+    `/api/patterns/${patternId}/versions/${versionId}/restore`,
+  );
 }
 
 export function generate(

@@ -17,6 +17,11 @@ let lastEntries: LedgerEntry[] = [];
 // would otherwise stamp Pattern.updatedAt=now() for a request that changed
 // nothing.
 let lastDirty: boolean | undefined;
+// #16: the same fake tx object flows from withPatternAndWallet's mock into
+// the route's own recordVersion call below -- asserting recordVersion was
+// called WITH this exact reference is what proves the snapshot write is
+// happening inside the same transaction as the debit, not after it.
+const FAKE_TX = {};
 
 vi.mock("@/lib/ai", () => ({ proposeGarment: vi.fn() }));
 vi.mock("next-intl/server", () => ({
@@ -45,15 +50,18 @@ vi.mock("@/lib/db/pattern-wallet", () => ({
       }>,
     ) => {
       if (patternId !== ownedPatternId) return null;
-      // getSizeChartForGeneration is mocked wholesale below and ignores its
-      // arguments, so a fake tx is enough here.
-      const { result, entries, dirty } = await fn(state, wallet, {});
+      // getSizeChartForGeneration is mocked wholesale below and recordVersion
+      // is mocked wholesale too, so a fake tx object is enough here -- what
+      // matters for the atomicity assertion is that it's the SAME reference
+      // both withPatternAndWallet and recordVersion see.
+      const { result, entries, dirty } = await fn(state, wallet, FAKE_TX);
       lastEntries = entries;
       lastDirty = dirty;
       return result;
     },
   ),
 }));
+vi.mock("@/lib/db/patternVersion", () => ({ recordVersion: vi.fn() }));
 const CHART = {
   chart: {
     name: "Feminino adulto · ABNT",
@@ -90,6 +98,7 @@ import { unauthorized } from "@/lib/auth/session";
 import { withPatternAndWallet } from "@/lib/db/pattern-wallet";
 import { reportError } from "@/lib/observability/report";
 import { getSizeChartForGeneration } from "@/lib/db/sizeChart";
+import { recordVersion } from "@/lib/db/patternVersion";
 
 const mockPropose = proposeGarment as unknown as ReturnType<typeof vi.fn>;
 
@@ -113,6 +122,7 @@ describe("POST /api/patterns/[id]/generate", () => {
     lastDirty = undefined;
     mockPropose.mockReset();
     vi.mocked(reportError).mockReset();
+    vi.mocked(recordVersion).mockReset();
     vi.mocked(requireUser).mockResolvedValue({
       id: "u1",
       email: "dev@moldai.local",
@@ -154,6 +164,9 @@ describe("POST /api/patterns/[id]/generate", () => {
     // #43: ask has no ledger entries but DOES append a chat message -- an
     // entries-based "nothing changed" heuristic would wrongly skip saving it.
     expect(lastDirty).not.toBe(false);
+    // #16: no bump means no snapshot -- a version is recorded on bumpVersion,
+    // never on debit (which ask never does anyway).
+    expect(recordVersion).not.toHaveBeenCalled();
   });
 
   it("apply debits, drafts, and versions", async () => {
@@ -174,6 +187,54 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(json.state.credits.balance).toBe(balanceBefore - 1);
     expect(state.pattern.version).toBe(1);
     expect(lastEntries.map((e) => e.type)).toEqual(["debit"]);
+    // #16: a pattern's very first draft (pieces.length was 0 beforehand) is
+    // reason "generate", carries the credit actually debited, and is written
+    // through the SAME tx withPatternAndWallet handed the callback --
+    // proving the write happened inside the transaction, not after it.
+    expect(recordVersion).toHaveBeenCalledWith(
+      FAKE_TX,
+      "m1",
+      "u1",
+      expect.objectContaining({ version: 1 }),
+      "generate",
+      COSTS.adjust,
+    );
+  });
+
+  it("a later apply (not the pattern's first draft) versions with reason 'adjust'", async () => {
+    // Pre-drafted, so pieces.length > 0 before this request's own apply.
+    state.pattern = {
+      ...state.pattern,
+      pieces: [
+        {
+          id: "x",
+          name: "x",
+          qty: 1,
+          outline: { kind: "polygon", points: "0,0" },
+          label: { x: 0, y: 0 },
+          detailRows: [],
+        },
+      ],
+    };
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "tshirt",
+        gender: "male",
+        style: {},
+        measurementOverrides: {},
+      },
+      assistantMessage: "Pronto",
+    });
+    await POST(req({ message: "ajusta a cava" }), ctx());
+    expect(recordVersion).toHaveBeenCalledWith(
+      FAKE_TX,
+      "m1",
+      "u1",
+      expect.anything(),
+      "adjust",
+      COSTS.adjust,
+    );
   });
 
   it("explain answers, keeps the debit, and neither drafts nor versions", async () => {
@@ -203,6 +264,8 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(answer.text).toBe("Pence é a dobra costurada que dá volume à peça.");
     expect(answer.chips?.[0].label).toBe("chat.creditChip");
     expect(answer.chips?.[0].tone).toBe("credit");
+    // #16: explain debits but never bumps the version -- it must not version.
+    expect(recordVersion).not.toHaveBeenCalled();
   });
 
   it("explain writes one debit and no refund", async () => {
@@ -244,6 +307,7 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect((await res.json()).status).toBe("declined");
     expect(wallet.balance).toBe(balanceBefore);
     expect(lastEntries).toEqual([]);
+    expect(recordVersion).not.toHaveBeenCalled();
   });
 
   // #53: a malformed tool_use payload (not an object, an unrecognized
@@ -275,6 +339,7 @@ describe("POST /api/patterns/[id]/generate", () => {
       patternId: "m1",
       userId: "u1",
     });
+    expect(recordVersion).not.toHaveBeenCalled();
   });
 
   // #39's other half: a debit did happen (decision was "apply"), then
@@ -302,6 +367,9 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(json.status).toBe("error");
     expect(wallet.balance).toBe(balanceBefore);
     expect(lastEntries.map((e) => e.type)).toEqual(["debit", "refund"]);
+    // #16: the chart lookup rejected before applyGarmentSpec/bumpVersion ever
+    // ran, so nothing produced a state worth versioning.
+    expect(recordVersion).not.toHaveBeenCalled();
   });
 
   // #18: the route re-validates `image` regardless of what the browser's own

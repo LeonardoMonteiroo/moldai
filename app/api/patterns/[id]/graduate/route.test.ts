@@ -27,6 +27,10 @@ let ownedPatternId: string | null = "m1";
 // withPatternAndWallet is what a rejecting branch signals, not what the POST
 // response ends up looking like.
 let lastFnReturn: { entries: LedgerEntry[]; dirty?: boolean } | null = null;
+// #16: the same fake tx reference both withPatternAndWallet's mock and the
+// route's own recordVersion call see -- proving the snapshot write happens
+// inside the transaction, not after it.
+const FAKE_TX = {};
 
 vi.mock("next-intl/server", () => ({
   getTranslations: vi.fn(async () => (key: string) => key),
@@ -46,20 +50,27 @@ vi.mock("@/lib/db/pattern-wallet", () => ({
       fn: (
         s: PatternState,
         w: Wallet,
-      ) => { result: unknown; entries: LedgerEntry[]; dirty?: boolean },
+        tx: unknown,
+      ) => Promise<{
+        result: unknown;
+        entries: LedgerEntry[];
+        dirty?: boolean;
+      }>,
     ) => {
       if (patternId !== ownedPatternId) return null;
-      const out = fn(state, wallet);
+      const out = await fn(state, wallet, FAKE_TX);
       lastFnReturn = { entries: out.entries, dirty: out.dirty };
       return out.result;
     },
   ),
 }));
+vi.mock("@/lib/db/patternVersion", () => ({ recordVersion: vi.fn() }));
 
 import { POST } from "./route";
 import { requireUser } from "@/lib/auth/guard";
 import { unauthorized } from "@/lib/auth/session";
 import { withPatternAndWallet } from "@/lib/db/pattern-wallet";
+import { recordVersion } from "@/lib/db/patternVersion";
 
 function req(body: unknown) {
   return new Request("http://test/api/patterns/m1/graduate", {
@@ -78,6 +89,7 @@ describe("POST /api/patterns/[id]/graduate", () => {
     wallet = seedWallet(NOW);
     ownedPatternId = "m1";
     lastFnReturn = null;
+    vi.mocked(recordVersion).mockReset();
     vi.mocked(requireUser).mockResolvedValue({
       id: "u1",
       email: "dev@moldai.local",
@@ -96,6 +108,16 @@ describe("POST /api/patterns/[id]/graduate", () => {
     // #43: a real grade actually changed both rows, so it must not opt out
     // of the save withPatternAndWallet would otherwise skip.
     expect(lastFnReturn?.dirty).not.toBe(false);
+    // #16: reason "graduate", the credit actually debited (COSTS.graduate),
+    // written through the same tx withPatternAndWallet handed the callback.
+    expect(recordVersion).toHaveBeenCalledWith(
+      FAKE_TX,
+      "m1",
+      "u1",
+      expect.objectContaining({ version: 1 }),
+      "graduate",
+      6,
+    );
   });
 
   it("writes the graduated chat message and credit chip through the translator", async () => {
@@ -126,6 +148,7 @@ describe("POST /api/patterns/[id]/graduate", () => {
     // withPatternAndWallet to skip the otherwise-unconditional save --
     // rejecting a graduate request must not bump the pattern's updatedAt.
     expect(lastFnReturn?.dirty).toBe(false);
+    expect(recordVersion).not.toHaveBeenCalled();
   });
 
   it("404s when the pattern isn't found/owned", async () => {
@@ -155,6 +178,7 @@ describe("POST /api/patterns/[id]/graduate", () => {
     // #43: same reasoning as the 402 case -- a blank pattern must not have
     // its updatedAt bumped by a request that drafted nothing.
     expect(lastFnReturn?.dirty).toBe(false);
+    expect(recordVersion).not.toHaveBeenCalled();
   });
 
   // #60: the guard used to check membership in `pattern.sizes` (the full

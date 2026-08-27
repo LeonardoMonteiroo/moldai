@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { withPatternAndWallet } from "@/lib/db/pattern-wallet";
 import { patternNotFound } from "@/lib/db/pattern";
 import { getSizeChartForGeneration } from "@/lib/db/sizeChart";
+import { recordVersion } from "@/lib/db/patternVersion";
 import {
   addMessage,
   applyGarmentSpec,
@@ -207,7 +208,12 @@ export async function POST(request: Request, { params }: Ctx) {
               // be passed over, so it is the only moment there is a
               // substitution to report.
               let substitutedFrom: string | null = null;
-              if (state.pattern.pieces.length === 0) {
+              // #16: pieces.length === 0 right here is also "this is the
+              // pattern's first-ever draft" -- captured before
+              // applyGarmentSpec mutates it, so the version snapshot below
+              // gets the right reason code.
+              const isFirstDraft = state.pattern.pieces.length === 0;
+              if (isFirstDraft) {
                 const { chart, rejectedActiveName } =
                   await getSizeChartForGeneration(
                     tx,
@@ -220,6 +226,19 @@ export async function POST(request: Request, { params }: Ctx) {
               }
               applyGarmentSpec(state, decision.spec, t);
               bumpVersion(state);
+              // #16: recorded in the SAME transaction as the debit and the
+              // pattern save -- a version row can never exist without the
+              // state that produced it, and a rolled-back mutation (the
+              // catch below, or the transaction itself timing out) leaves no
+              // orphan snapshot.
+              await recordVersion(
+                tx,
+                id,
+                gate.id,
+                state.pattern,
+                isFirstDraft ? "generate" : "adjust",
+                cost,
+              );
               const conflict = state.conflict;
               addMessage(state, {
                 id: `msg-${Date.now()}-ai`,

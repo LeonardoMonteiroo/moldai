@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { readJsonObject } from "@/lib/api/body";
 import { apiError, ERROR_STATUS } from "@/lib/api/errors";
 import { getTranslations } from "next-intl/server";
-import { withPattern, patternNotFound } from "@/lib/db/pattern";
+import { patternNotFound } from "@/lib/db/pattern";
+import { withPatternVersioned, recordVersion } from "@/lib/db/patternVersion";
 import { loadWallet } from "@/lib/db/wallet";
 import { composeEditorState } from "@/lib/api/compose";
 import {
@@ -34,22 +35,33 @@ export async function POST(request: Request, { params }: Ctx) {
 
   const t = await getTranslations("PatternData");
 
-  const patternState = await withPattern(id, gate.id, (state) => {
-    if (action === "fix") {
-      refitSleeve(state, t);
-      bumpVersion(state);
-      addMessage(state, {
-        id: `msg-${Date.now()}-ai`,
-        author: "ai",
-        text: t("chat.sleeveRefit"),
-        chips: [{ label: t("chat.freeFixChip"), tone: "neutral" }],
-        createdAt: Date.now(),
-      });
-    } else {
-      setConflict(state, null);
-    }
-    return state;
-  });
+  // #16: withPatternVersioned (lib/db/patternVersion.ts) -- a Pattern-only
+  // transaction, never Wallet -- so "fix"'s version snapshot is written in
+  // the same transaction as the pattern save without this route ever
+  // locking (or even reading) the wallet through the combined-lock path.
+  // This action is truly free; see withPatternVersioned's own comment for
+  // why that has to stay true even at the source-text level.
+  const patternState = await withPatternVersioned(
+    id,
+    gate.id,
+    async (state, tx) => {
+      if (action === "fix") {
+        refitSleeve(state, t);
+        bumpVersion(state);
+        addMessage(state, {
+          id: `msg-${Date.now()}-ai`,
+          author: "ai",
+          text: t("chat.sleeveRefit"),
+          chips: [{ label: t("chat.freeFixChip"), tone: "neutral" }],
+          createdAt: Date.now(),
+        });
+        await recordVersion(tx, id, gate.id, state.pattern, "conflict_fix", 0);
+      } else {
+        setConflict(state, null);
+      }
+      return state;
+    },
+  );
   if (!patternState) return patternNotFound();
 
   const wallet = await loadWallet(gate.id);

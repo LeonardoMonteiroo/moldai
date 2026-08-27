@@ -25,8 +25,7 @@
     "exportDisabledConflictTitle": "Resolva o conflito de costura antes de exportar.",
     "exportDisabledGeneratingTitle": "Aguarde a geração terminar antes de exportar.",
     "exportDisabledBlankTitle": "Gere o molde antes de exportar.",
-    "saveVersionTitle": "O molde é salvo automaticamente a cada geração. Versionamento manual chega em breve.",
-    "saveVersionButton": "Salvar versão · em breve",
+    "versionsHistoryButton": "Histórico de versões",
     "saveAsBaseButton": "Salvar como base",
     "saveAsBaseDisabledTitle": "Gere o molde e resolva o conflito de costura antes de salvar como base.",
     "saveAsBaseTitle": "Salvar como base do ateliê",
@@ -219,7 +218,9 @@
       "sleeveRefit": "Copa da manga refeita para a cava ajustada — as costuras voltaram a bater.",
       "freeFixChip": "correção gratuita",
       "sizeChartSubstituted": "Sua grade ativa (“{rejected}”) não serve para esta peça, então usei “{used}”. Para usar a sua, ative uma grade do mesmo gênero em Medidas e grades.",
-      "fromSloper": "Molde criado a partir da base “{name}”. Peça os ajustes por aqui."
+      "fromSloper": "Molde criado a partir da base “{name}”. Peça os ajustes por aqui.",
+      "restored": "Versão restaurada a partir da v{version}.",
+      "restoreChip": "restauração gratuita"
     },
     "pdf": {
       "pageLabel": "Página {pageNumber} de {totalPages} · Linha {rowNumber} · Coluna {colNumber} de {totalRows}x{totalCols}",
@@ -749,6 +750,40 @@
     "deleteModalDescription": "Isso apaga a base do ateliê. Os moldes já criados a partir dela não são afetados.",
     "deleteConfirmButton": "Excluir",
     "deleteCancelButton": "Cancelar"
+  },
+  "VersionsShell": {
+    "tabTitle": "{name} · histórico",
+    "titleWithName": "{name} · histórico",
+    "loading": "Carregando histórico…",
+    "loadError": "Não foi possível carregar o histórico de versões. Tente recarregar a página."
+  },
+  "VersionList": {
+    "versionLabel": "v{version}",
+    "costFree": "grátis",
+    "costCredits": "{cost, plural, one {# crédito} other {# créditos}}",
+    "restoreButton": "Restaurar v{version}",
+    "totalSpent": "Total gasto neste molde: {total, plural, one {# crédito} other {# créditos}}",
+    "restoreModalTitle": "Restaurar v{version}?",
+    "restoreModalDescription": "Isso cria uma nova versão a partir da versão selecionada. O histórico do chat não é restaurado, e nada é apagado.",
+    "restoreModalConfirmButton": "Restaurar",
+    "restoreModalCancelButton": "Cancelar",
+    "reason": {
+      "generate": "Geração inicial",
+      "adjust": "Ajuste",
+      "graduate": "Graduação",
+      "conflict_fix": "Conflito corrigido",
+      "restore": "Restauração"
+    }
+  },
+  "VersionCompare": {
+    "needsTwoVersions": "É preciso pelo menos duas versões para comparar.",
+    "fromLabel": "De",
+    "toLabel": "Para",
+    "versionOption": "v{version}",
+    "overlayToggle": "Sobrepor",
+    "overlayAriaLabel": "Comparação entre v{from} e v{to}",
+    "armholeDeltaLabel": "Cava",
+    "consumptionDeltaLabel": "Consumo"
   },
   "ProfileSection": {
     "heading": "Perfil",

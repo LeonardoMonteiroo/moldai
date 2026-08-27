@@ -3,6 +3,7 @@ import { readJsonObject } from "@/lib/api/body";
 import { getTranslations } from "next-intl/server";
 import { withPatternAndWallet } from "@/lib/db/pattern-wallet";
 import { patternNotFound } from "@/lib/db/pattern";
+import { recordVersion } from "@/lib/db/patternVersion";
 import { addMessage, applySizes, bumpVersion } from "@/lib/editor/state";
 import { debitWallet } from "@/lib/billing/wallet";
 import type { LedgerEntry } from "@/lib/billing/wallet";
@@ -32,14 +33,15 @@ export async function POST(request: Request, { params }: Ctx) {
     result = await withPatternAndWallet(
       id,
       gate.id,
-      (
+      async (
         state,
         wallet,
-      ): {
+        tx,
+      ): Promise<{
         result: NextResponse;
         entries: LedgerEntry[];
         dirty?: boolean;
-      } => {
+      }> => {
         // A blank pattern still carries a seeded `sizes` list, so the size check
         // below cannot stand in for "there is something to grade". Without this,
         // grading nothing bumped the version and debited COSTS.graduate.
@@ -94,6 +96,9 @@ export async function POST(request: Request, { params }: Ctx) {
           chips: [{ label: t("chat.creditChip", { cost }), tone: "credit" }],
           createdAt: Date.now(),
         });
+        // #16: recorded in the same transaction as the debit and the pattern
+        // save -- see the identical comment in generate/route.ts.
+        await recordVersion(tx, id, gate.id, state.pattern, "graduate", cost);
         return {
           result: NextResponse.json({
             status: "ok",

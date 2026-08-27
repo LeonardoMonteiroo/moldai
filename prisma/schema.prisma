@@ -84,6 +84,11 @@ model Pattern {
   data      Json
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
+  // #16: back-relation for PatternVersion below. Cascades away with the
+  // Pattern (onDelete: Cascade is declared on PatternVersion's own side) --
+  // deleting a pattern must take its history with it, matching every other
+  // relation in this schema.
+  versions  PatternVersion[]
 
   @@index([userId, updatedAt])
 }
@@ -166,4 +171,40 @@ model Transaction {
   createdAt    DateTime @default(now())
 
   @@index([userId, createdAt])
+}
+
+// #16: a version-history snapshot, recorded automatically inside the SAME
+// transaction as every bumpVersion (generate/apply, graduate, "Corrigir
+// manga", restore itself) -- so a row can never exist without the state that
+// produced it, and a failed mutation leaves no orphan snapshot.
+//
+// Stores the GarmentSpec plus the frozen size snapshot ONLY -- never the
+// drafted pieces. draftGarment(spec, sizeTable[baseSize], t) is deterministic
+// (the same reasoning CLAUDE.md records for Sloper, whose round-trip test is
+// what licenses not storing geometry), so persisting pieces here would
+// duplicate exactly what spec+sizeTable already determine.
+//
+// userId is denormalized (also reachable via pattern.userId) so ownership can
+// be checked with a single indexed lookup, matching Transaction.userId's own
+// shape above.
+model PatternVersion {
+  id            String   @id @default(cuid())
+  patternId     String
+  pattern       Pattern  @relation(fields: [patternId], references: [id], onDelete: Cascade)
+  userId        String
+  version       Int
+  spec          Json
+  sizes         Json
+  baseSize      String
+  sizeTable     Json
+  sizeChartName String?
+  // Machine-readable: "generate" | "adjust" | "graduate" | "conflict_fix" |
+  // "restore". Never pt-BR prose -- the client resolves it through the
+  // catalog, the wire-error-codes precedent.
+  reason        String
+  cost          Int
+  createdAt     DateTime @default(now())
+
+  @@unique([patternId, version])
+  @@index([patternId, version])
 }
