@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { readJsonObject } from "@/lib/api/body";
-import { apiError, ERROR_STATUS } from "@/lib/api/errors";
+import { parseBody } from "@/lib/api/body";
+import { ConflictResolveBodySchema } from "@/lib/schemas/pattern";
 import { getTranslations } from "next-intl/server";
 import { patternNotFound } from "@/lib/db/pattern";
 import { withPatternVersioned, recordVersion } from "@/lib/db/patternVersion";
@@ -22,15 +22,13 @@ export async function POST(request: Request, { params }: Ctx) {
   if (gate instanceof NextResponse) return gate;
   const { id } = await params;
 
-  const body = await readJsonObject(request);
-  if (body instanceof NextResponse) return body;
   // #54: any value other than the exact two allowed actions used to fall
   // through to "ignore" -- silently clearing a real seam-conflict warning
-  // and re-enabling Export with divergent armholes -- so an unrecognised
-  // action is now rejected instead of resolving anything.
-  if (body.action !== "fix" && body.action !== "ignore") {
-    return apiError("bad_body", ERROR_STATUS.bad_body);
-  }
+  // and re-enabling Export with divergent armholes -- so ConflictResolveBodySchema's
+  // z.enum(["fix", "ignore"]) rejects (as the shared bad_body) an
+  // unrecognised or missing action instead of resolving anything.
+  const body = await parseBody(request, ConflictResolveBodySchema);
+  if (body instanceof NextResponse) return body;
   const action = body.action;
 
   const t = await getTranslations("PatternData");

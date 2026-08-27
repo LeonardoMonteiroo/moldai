@@ -9,3 +9,16 @@ import { z } from "zod";
 export const AccountProfilePatchSchema = z.object({
   name: z.unknown(),
 });
+
+// #152: mirrors AccountProfilePatchSchema's own shape -- changePassword
+// (lib/account/settings.ts) takes both fields as `unknown` and owns the
+// field-level checks itself (wrong_password/weak_password). Both are
+// `.optional()` so an entirely absent key still reaches changePassword
+// (which treats it exactly like any other non-string) and answers that
+// domain code, rather than the schema rejecting it as bad_body first --
+// zod v4 treats a bare z.unknown() key as required-but-any-value, not
+// required-key-optional-absence.
+export const AccountPasswordBodySchema = z.object({
+  currentPassword: z.unknown().optional(),
+  newPassword: z.unknown().optional(),
+});

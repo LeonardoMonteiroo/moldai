@@ -167,6 +167,18 @@ describe("POST /api/billing/purchase", () => {
       expect(wallet.balance).toBe(30);
     });
 
+    // #152: "null" is valid JSON, so it survives parseBody's JSON.parse and
+    // fails PurchaseBodySchema's own object check -- this is the generic
+    // bad_body, distinct from the domain-specific invalid_purchase_type
+    // above (an object body with no usable `type`).
+    it("answers bad_body, not invalid_purchase_type, for a literal null body", async () => {
+      const res = await POST(req(null));
+      expect(res.status).toBe(400);
+      expect((await res.json()).error).toBe("bad_body");
+      expect(wallet.plan).toBe("free");
+      expect(wallet.balance).toBe(30);
+    });
+
     it("still accepts the two real types", async () => {
       expect((await POST(req({ type: "topup" }))).status).toBe(200);
       wallet = seedWallet(NOW);

@@ -1,4 +1,4 @@
-import type { Pt } from "@/lib/draft/core";
+import { catmullRomSegments, type Pt } from "@/lib/draft/core";
 import { flattenCubic, TOL_CM } from "./bezier";
 
 // #123: turns the seam-allowance annotation (`GarmentStyle.seamAllowanceCm`,
@@ -54,14 +54,17 @@ interface FineSeg {
   d: number;
 }
 
-// Walks each coarse edge (same `at`/`spanFor` traversal as outlinePath),
-// flattening curved spans via the same Catmull-Rom tangents outlinePath
-// itself derives, so the fine polyline this offsets matches the shape
-// actually rendered -- not merely the coarse anchor points. Coarse edge `i`
-// gets distance 0 only when `foldEdge` names exactly that one edge
-// (adjacent indices) -- a chord spanning many edges (every current
-// drafter's shape) matches none of them, by design; see the module-level
-// comment above.
+// #151: the coarse-edge-walk + Catmull-Rom-tangent math this used to
+// reimplement now lives once, in lib/draft/core's `catmullRomSegments` (the
+// same function outlinePath/outlineSegments are thin adapters over, per
+// #145) -- this is a third adapter over it rather than a third copy of the
+// formula. `catmullRomSegments` already does the `at`/`spanFor` coarse-edge
+// walk and returns one CurveSeg (line, or tangent-locked cubic) per coarse
+// edge `i`, in the same order toFineSegments needs; this just flattens each
+// cubic (same flattenCubic as before) and tags every fine segment with its
+// offset distance -- 0 only when `foldEdge` names exactly edge `i` (adjacent
+// indices) -- a chord spanning many edges (every current drafter's shape)
+// matches none of them, by design; see the module-level comment above.
 function toFineSegments(
   ptsCm: Pt[],
   curvedSpans: [number, number][],
@@ -69,37 +72,30 @@ function toFineSegments(
   distanceCm: number,
   tolCm: number,
 ): FineSeg[] {
-  const n = ptsCm.length;
-  const at = (i: number): { x: number; y: number } => {
-    const [x, y] = ptsCm[((i % n) + n) % n];
-    return { x, y };
-  };
-  const spanFor = (i: number) =>
-    curvedSpans.find(([a, b]) => i >= a && i + 1 <= b);
   const isFold = (i: number) =>
     !!foldEdge && foldEdge[1] === foldEdge[0] + 1 && i === foldEdge[0];
 
+  const { start, segs: curveSegs } = catmullRomSegments(ptsCm, curvedSpans);
   const segs: FineSeg[] = [];
-  for (let i = 0; i < n; i++) {
-    const p1 = at(i),
-      p2 = at(i + 1);
+  let p1 = { x: start[0], y: start[1] };
+  for (let i = 0; i < curveSegs.length; i++) {
+    const cs = curveSegs[i];
     const d = isFold(i) ? 0 : distanceCm;
-    const span = spanFor(i);
-    if (!span) {
+    const p2 = { x: cs.to[0], y: cs.to[1] };
+    if (cs.kind === "line") {
       segs.push({ p1, p2, d });
+      p1 = p2;
       continue;
     }
-    const [a, b] = span;
-    const p0 = i === a ? p1 : at(i - 1);
-    const p3 = i + 1 === b ? p2 : at(i + 2);
-    const c1 = { x: p1.x + (p2.x - p0.x) / 6, y: p1.y + (p2.y - p0.y) / 6 };
-    const c2 = { x: p2.x - (p3.x - p1.x) / 6, y: p2.y - (p3.y - p1.y) / 6 };
+    const c1 = { x: cs.c1[0], y: cs.c1[1] };
+    const c2 = { x: cs.c2[0], y: cs.c2[1] };
     const flat = flattenCubic(p1, c1, c2, p2, tolCm);
     let prev = p1;
     for (const pt of flat) {
       segs.push({ p1: prev, p2: pt, d });
       prev = pt;
     }
+    p1 = p2;
   }
   return segs;
 }

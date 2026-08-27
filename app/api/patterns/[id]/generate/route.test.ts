@@ -477,6 +477,18 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(mockPropose).not.toHaveBeenCalled();
   });
 
+  // #152: "null" is valid JSON, so it survives parseBody's JSON.parse and
+  // fails GenerateBodySchema's own object check -- the generic bad_body,
+  // before the wallet is ever touched or withPatternAndWallet even runs.
+  it("a literal null body answers bad_body without debiting or calling the AI", async () => {
+    const balanceBefore = wallet.balance;
+    const res = await POST(req(null), ctx());
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe("bad_body");
+    expect(wallet.balance).toBe(balanceBefore);
+    expect(mockPropose).not.toHaveBeenCalled();
+  });
+
   // #69: a NUL code point survives .trim() and used to only abort the
   // jsonb write inside savePattern -- by then the paid Anthropic call had
   // already run and billed. Reject before any of that, at the boundary.

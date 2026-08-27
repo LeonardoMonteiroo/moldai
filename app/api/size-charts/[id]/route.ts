@@ -14,10 +14,16 @@ export async function PATCH(request: Request, { params }: Ctx) {
   const gate = await requireUser();
   if (gate instanceof NextResponse) return gate;
   const { id } = await params;
+  // #152: deliberately still readJsonObject, not parseBody -- forwarded raw
+  // on purpose. updateSizeChart's own lib/sizeCharts/validate.ts
+  // validateSizeChartPatch owns the trust boundary here, with
+  // drop-or-clamp-never-throw merge semantics (it needs the current row to
+  // merge against, which a standalone schema can't see). A parseBody schema
+  // would either duplicate that logic or regress it into reject-on-invalid,
+  // breaking the documented behaviour that an unusable field is ignored
+  // while the rest of the patch applies.
   const body = await readJsonObject(request);
   if (body instanceof NextResponse) return body;
-  // Forwarded raw on purpose: updateSizeChart owns the trust boundary, because
-  // sanitising the patch needs the current row to merge against.
   const updated = await updateSizeChart(id, gate.id, body);
   if (!updated) return notFound();
   return NextResponse.json(updated);

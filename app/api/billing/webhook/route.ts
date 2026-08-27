@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import crypto from "node:crypto";
-import { readJsonObject } from "@/lib/api/body";
+import { parseBody } from "@/lib/api/body";
+import { AsaasWebhookBodySchema } from "@/lib/schemas/billing";
 import { apiError } from "@/lib/api/errors";
 import { reportError } from "@/lib/observability/report";
 import { parseExternalReference } from "@/lib/billing/asaas";
@@ -40,7 +41,7 @@ import {
  * that fails to parse -- answers 200. Asaas pauses an account's ENTIRE
  * webhook queue after 15 consecutive non-2xx responses, so nothing short of
  * the auth check above may ever produce a non-2xx here (the shared
- * readJsonObject 400 that every other route in this app returns as-is would
+ * parseBody 400 that every other route in this app returns as-is would
  * violate exactly that invariant, so this route deliberately does not
  * propagate it).
  */
@@ -50,7 +51,7 @@ export async function POST(request: Request) {
     return apiError("invalid_webhook_token", 401);
   }
 
-  const parsed = await readJsonObject(request);
+  const parsed = await parseBody(request, AsaasWebhookBodySchema);
   if (parsed instanceof NextResponse) {
     // See the header comment: a malformed/oversized body still counts
     // towards Asaas's 15-failure queue pause if this answers non-2xx, so it
