@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { renderWithIntl, screen, ptBR } from "@/components/test-utils";
 import { LandingPage } from "./LandingPage";
-import { FREE_PLAN_CREDITS } from "./constants";
+import { PLAN_CREDITS } from "@/lib/billing/plans";
 
 describe("LandingPage", () => {
   it("renders the nav's real links: howItWorks/formats as same-page anchors, login/signup as auth links", () => {
@@ -25,18 +25,17 @@ describe("LandingPage", () => {
     ).toHaveAttribute("href", "/signup");
   });
 
-  it("marks the unbuilt Planos nav item as disabled and badged, not a dead link", () => {
+  // #15: the public pricing screen shipped -- the nav's "Planos" item is a
+  // real link now, not the disabled+badged placeholder issue #13 shipped.
+  it("links the Planos nav item to the public pricing screen", () => {
     renderWithIntl(<LandingPage />);
 
-    const plans = screen.getByRole("button", { name: ptBR.Landing.nav.plans });
-    expect(plans).toBeDisabled();
-    expect(plans).toHaveAttribute("title", ptBR.Landing.nav.comingSoonTitle);
     expect(
-      screen.getAllByText(ptBR.Landing.nav.comingSoonBadge).length,
-    ).toBeGreaterThan(0);
+      screen.getByRole("link", { name: ptBR.Landing.nav.plans }),
+    ).toHaveAttribute("href", "/planos");
   });
 
-  it("renders the hero copy, with the primary CTA's credit count from FREE_PLAN_CREDITS", () => {
+  it("renders the hero copy, with the primary CTA's credit count from PLAN_CREDITS.free", () => {
     renderWithIntl(<LandingPage />);
 
     expect(screen.getByText(ptBR.Landing.hero.eyebrow)).toBeInTheDocument();
@@ -48,7 +47,7 @@ describe("LandingPage", () => {
 
     const expectedCta = ptBR.Landing.hero.primaryCta.replace(
       "{credits}",
-      String(FREE_PLAN_CREDITS),
+      String(PLAN_CREDITS.free),
     );
     expect(screen.getByRole("link", { name: expectedCta })).toHaveAttribute(
       "href",

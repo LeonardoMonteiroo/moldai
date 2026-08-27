@@ -1,4 +1,5 @@
 import type { PlanId } from "@/lib/types";
+import { PLAN_CREDITS, TOPUP_CREDITS, type PaidPlanId } from "./plans";
 
 export interface Wallet {
   plan: PlanId;
@@ -26,12 +27,14 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 // Every new account starts on the design's Free tier (5c: "Grátis · R$ 0 ·
 // 30 créditos/mês"). Open sign-up must not hand a stranger a paid balance;
-// applyPurchase("subscribe") is the upgrade path to Ateliê.
+// applyPurchase({type: "subscribe", plan}) is the upgrade path to any paid
+// tier (#9 -- atelier/studio/factory are all real destinations now, not
+// just atelier).
 export function seedWallet(now: Date): Wallet {
   return {
     plan: "free",
-    balance: 30,
-    total: 30,
+    balance: PLAN_CREDITS.free,
+    total: PLAN_CREDITS.free,
     purchased: 0,
     renewsAt: new Date(now.getTime() + 30 * DAY_MS),
   };
@@ -66,36 +69,59 @@ export function isPurchaseType(value: unknown): value is PurchaseType {
   return value === "topup" || value === "subscribe";
 }
 
-// Exhaustive on purpose -- the `never` binding makes a new PurchaseType member
+// #9: a "subscribe" carries which paid tier it targets -- studio/factory
+// are real destinations now, not just atelier. `plan` is a PaidPlanId
+// (never "free": isPaidPlanId is the trust-boundary narrowing for the wire
+// value that becomes this) so the type itself makes "subscribe to free"
+// unrepresentable.
+export type Purchase =
+  { type: "topup" } | { type: "subscribe"; plan: PaidPlanId };
+
+// Exhaustive on purpose -- the `never` binding makes a new Purchase variant
 // a compile error here instead of silently taking the subscribe branch.
 export function applyPurchase(
   wallet: Wallet,
-  type: PurchaseType,
+  purchase: Purchase,
   now: Date,
 ): LedgerEntry {
-  switch (type) {
+  switch (purchase.type) {
     case "topup":
-      wallet.balance += 100;
-      wallet.purchased += 100;
-      return { type: "topup", amount: 100, balanceAfter: wallet.balance };
+      wallet.balance += TOPUP_CREDITS;
+      wallet.purchased += TOPUP_CREDITS;
+      return {
+        type: "topup",
+        amount: TOPUP_CREDITS,
+        balanceAfter: wallet.balance,
+      };
     case "subscribe": {
+      const planCredits = PLAN_CREDITS[purchase.plan];
       // Plan allowance plus whatever top-up credits were already bought —
-      // upgrading plans must not erase them either (#37).
-      const newBalance = 500 + wallet.purchased;
+      // upgrading plans must not erase them either (#37). Also applies on a
+      // studio->factory (or any) upgrade: a wallet whose balance already
+      // exceeds the new plan's own total (from a prior top-up) never drops,
+      // since `purchased` always adds on top rather than being clamped away.
+      const newBalance = planCredits + wallet.purchased;
       // #38: amount is the balance *delta*, like every other ledger entry
       // type — not the plan size — so summing the ledger reproduces
       // wallet.balance instead of overstating the movement whenever the
       // account wasn't starting from empty.
       const delta = newBalance - wallet.balance;
-      wallet.plan = "atelier";
-      wallet.total = 500;
+      wallet.plan = purchase.plan;
+      wallet.total = planCredits;
       wallet.balance = newBalance;
       wallet.renewsAt = new Date(now.getTime() + 30 * DAY_MS);
-      return { type: "subscribe", amount: delta, balanceAfter: wallet.balance };
+      return {
+        type: "subscribe",
+        amount: delta,
+        balanceAfter: wallet.balance,
+        // Which tier was purchased -- lets UsageSection's ledger row say
+        // "Assinatura · Estúdio" instead of just "Assinatura".
+        reason: purchase.plan,
+      };
     }
     default: {
-      const exhaustive: never = type;
-      throw new Error(`unhandled purchase type: ${String(exhaustive)}`);
+      const exhaustive: never = purchase;
+      throw new Error(`unhandled purchase: ${JSON.stringify(exhaustive)}`);
     }
   }
 }
@@ -115,7 +141,7 @@ export function reverseSubscription(
 ): LedgerEntry {
   wallet.balance -= amount;
   wallet.plan = "free";
-  wallet.total = 30;
+  wallet.total = PLAN_CREDITS.free;
   return {
     type: "debit",
     amount,

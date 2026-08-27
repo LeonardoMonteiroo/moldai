@@ -11,6 +11,7 @@ import {
   Measurement,
 } from "./types";
 import type { PreparedAttachment } from "./editor/attachment";
+import type { PaidPlanId } from "./billing/plans";
 
 export type EditorTab = "pattern2d" | "proof3d" | "techsheet" | "cutplan";
 export type EditorTool = "cursor" | "measure";
@@ -83,7 +84,7 @@ interface EditorStore {
   cancelGeneration: () => void;
   graduateSizes: (sizes: string[]) => Promise<void>;
   resolveConflict: (action: "fix" | "ignore") => Promise<void>;
-  purchase: (type: "topup" | "subscribe") => Promise<void>;
+  purchase: (type: "topup" | "subscribe", plan?: PaidPlanId) => Promise<void>;
   closePaywall: () => void;
   saveAsSloper: (name: string) => Promise<boolean>;
 
@@ -413,13 +414,13 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   // flight, so a double click sent two purchase requests and granted double
   // credits (lib/billing/wallet.ts's applyPurchase runs once per request,
   // with no idempotency key).
-  purchase: async (type: "topup" | "subscribe") => {
+  purchase: async (type: "topup" | "subscribe", plan?: PaidPlanId) => {
     if (get().purchasing) return;
     const patternId = get().patternId ?? undefined;
     set({ purchasing: true });
     let result: Awaited<ReturnType<typeof api.purchase>>;
     try {
-      result = await api.purchase(type, patternId);
+      result = await api.purchase(type, plan, patternId);
     } catch (err) {
       // The paywall stays open: the retry thunk is still valid, and closing it
       // on a failed purchase would look like the purchase worked.

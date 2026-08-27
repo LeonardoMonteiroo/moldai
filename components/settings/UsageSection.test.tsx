@@ -130,4 +130,48 @@ describe("UsageSection", () => {
       unmount();
     }
   });
+
+  // #9: a subscribe row's reason is the purchased PlanId, resolved through
+  // PlanSection's own catalog rather than REASON_KEY's debit reasons.
+  describe("ledger history (#9)", () => {
+    it("suffixes a subscribe row with the purchased plan's name", () => {
+      renderWithIntl(
+        <UsageSection
+          credits={CREDITS}
+          initialLedger={[
+            {
+              type: "subscribe",
+              reason: "studio",
+              amount: 1970,
+              createdAt: new Date().toISOString(),
+            },
+          ]}
+        />,
+      );
+      expect(
+        screen.getByText(
+          `${ptBR.UsageSection.typeSubscribe} · ${ptBR.PlanSection.plans.studio.name}`,
+        ),
+      ).toBeInTheDocument();
+    });
+
+    it("renders a legacy subscribe row (reason: null) with no plan suffix", () => {
+      renderWithIntl(
+        <UsageSection
+          credits={CREDITS}
+          initialLedger={[
+            {
+              type: "subscribe",
+              reason: null,
+              amount: 470,
+              createdAt: new Date().toISOString(),
+            },
+          ]}
+        />,
+      );
+      expect(
+        screen.getByText(ptBR.UsageSection.typeSubscribe),
+      ).toBeInTheDocument();
+    });
+  });
 });

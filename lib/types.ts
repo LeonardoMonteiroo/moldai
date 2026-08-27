@@ -153,6 +153,12 @@ export interface ChatMessage {
 
 export type PlanId = "free" | "atelier" | "studio" | "factory";
 
+// One exported source for the enum, the same rule BODY_TYPES follows above:
+// display order, ascending credits. lib/billing/plans.ts's PLAN_CREDITS/
+// PLAN_PRICES/PLAN_FEATURES are all keyed off this same PlanId, so a new
+// tier is added in one place.
+export const PLAN_IDS: PlanId[] = ["free", "atelier", "studio", "factory"];
+
 export interface Credits {
   plan: PlanId;
   balance: number;

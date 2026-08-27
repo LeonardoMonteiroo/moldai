@@ -50,7 +50,7 @@ describe("applyPurchase", () => {
   it("topup adds 100 to the balance and to the purchased carry-over, plan/renewsAt untouched", () => {
     const w = seedWallet(NOW);
     const renewsBefore = w.renewsAt;
-    const entry = applyPurchase(w, "topup", NOW);
+    const entry = applyPurchase(w, { type: "topup" }, NOW);
     expect(w.balance).toBe(130);
     expect(w.purchased).toBe(100);
     expect(w.renewsAt).toEqual(renewsBefore);
@@ -59,7 +59,7 @@ describe("applyPurchase", () => {
   it("subscribe resets to the Ateliê plan, 500/500, renews in 30 days", () => {
     const w = seedWallet(NOW);
     w.balance = 10;
-    const entry = applyPurchase(w, "subscribe", NOW);
+    const entry = applyPurchase(w, { type: "subscribe", plan: "atelier" }, NOW);
     expect(w.plan).toBe("atelier");
     expect(w.balance).toBe(500);
     expect(w.total).toBe(500);
@@ -69,17 +69,61 @@ describe("applyPurchase", () => {
       type: "subscribe",
       amount: 490,
       balanceAfter: 500,
+      reason: "atelier",
     });
   });
   it("subscribe keeps any already-purchased top-up credits on top of the new plan allowance (#37)", () => {
     const w = seedWallet(NOW);
-    applyPurchase(w, "topup", NOW); // balance 130, purchased 100
-    const entry = applyPurchase(w, "subscribe", NOW);
+    applyPurchase(w, { type: "topup" }, NOW); // balance 130, purchased 100
+    const entry = applyPurchase(w, { type: "subscribe", plan: "atelier" }, NOW);
     expect(w.balance).toBe(600); // 500 plan + 100 purchased, not just 500
     expect(w.purchased).toBe(100);
     // #38: amount is the delta (600 - 130), not the flat plan size.
     expect(entry.amount).toBe(470);
     expect(entry.balanceAfter).toBe(600);
+  });
+
+  // #9: studio and factory are now real subscribe destinations, not just
+  // atelier -- each takes its own PLAN_CREDITS total.
+  it("subscribe to studio sets plan/total to 2000 and tags the ledger reason", () => {
+    const w = seedWallet(NOW);
+    const entry = applyPurchase(w, { type: "subscribe", plan: "studio" }, NOW);
+    expect(w.plan).toBe("studio");
+    expect(w.balance).toBe(2000);
+    expect(w.total).toBe(2000);
+    expect(w.renewsAt).toEqual(new Date("2026-09-16T12:00:00.000Z"));
+    expect(entry).toEqual({
+      type: "subscribe",
+      amount: 2000 - 30,
+      balanceAfter: 2000,
+      reason: "studio",
+    });
+  });
+
+  it("subscribe to factory sets plan/total to 10000 and tags the ledger reason", () => {
+    const w = seedWallet(NOW);
+    const entry = applyPurchase(w, { type: "subscribe", plan: "factory" }, NOW);
+    expect(w.plan).toBe("factory");
+    expect(w.balance).toBe(10000);
+    expect(w.total).toBe(10000);
+    expect(entry.reason).toBe("factory");
+  });
+
+  // Decision 1 (issue #9): an upgrade never destroys credits already on the
+  // wallet from a prior top-up -- balance ends at the new plan's total plus
+  // whatever was purchased, which happens to equal max(oldBalance, newTotal)
+  // whenever purchased alone (without the plan allowance) doesn't exceed it.
+  it("an upgrade never drops a balance that a prior top-up had pushed above the new plan's total", () => {
+    const w = seedWallet(NOW);
+    applyPurchase(w, { type: "subscribe", plan: "atelier" }, NOW); // balance 500
+    applyPurchase(w, { type: "topup" }, NOW); // balance 600, purchased 100
+    w.balance = 700; // simulate several top-ups pushing balance to 700
+    w.purchased = 200;
+    applyPurchase(w, { type: "subscribe", plan: "studio" }, NOW); // 2000 total
+    // 2000 (studio total) + 200 (purchased) = 2200, comfortably above the
+    // pre-upgrade 700 -- the balance moved up, never down.
+    expect(w.balance).toBe(2200);
+    expect(w.balance).toBeGreaterThanOrEqual(700);
   });
 });
 
@@ -91,7 +135,7 @@ describe("applyPurchase", () => {
 describe("reverseSubscription", () => {
   it("debits the balance and downgrades plan/total back to the free tier", () => {
     const w = seedWallet(NOW);
-    applyPurchase(w, "subscribe", NOW); // plan atelier, balance 500, total 500
+    applyPurchase(w, { type: "subscribe", plan: "atelier" }, NOW); // plan atelier, balance 500, total 500
     const entry = reverseSubscription(w, 500);
     expect(w.plan).toBe("free");
     expect(w.total).toBe(30);
@@ -106,8 +150,8 @@ describe("reverseSubscription", () => {
 
   it("leaves purchased top-up credits untouched -- a refunded subscription didn't erase a prior top-up", () => {
     const w = seedWallet(NOW);
-    applyPurchase(w, "topup", NOW); // balance 130, purchased 100
-    applyPurchase(w, "subscribe", NOW); // balance 600 (500 + 100 purchased)
+    applyPurchase(w, { type: "topup" }, NOW); // balance 130, purchased 100
+    applyPurchase(w, { type: "subscribe", plan: "atelier" }, NOW); // balance 600 (500 + 100 purchased)
     reverseSubscription(w, 500);
     expect(w.balance).toBe(100); // 600 - 500, the purchased credits remain
     expect(w.purchased).toBe(100);
@@ -135,7 +179,7 @@ describe("renewWallet", () => {
   });
   it("leaves purchased top-up credits untouched — 'use it or lose it' governs only the plan allowance (#37)", () => {
     const w = seedWallet(NOW);
-    applyPurchase(w, "topup", NOW); // balance 130, total 30, purchased 100
+    applyPurchase(w, { type: "topup" }, NOW); // balance 130, total 30, purchased 100
     const entry = renewWallet(w, NOW);
     expect(w.balance).toBe(130); // total (30) + purchased (100), not reset to 30
     expect(w.purchased).toBe(100);
@@ -160,10 +204,10 @@ describe("ledger amount invariant", () => {
 
     entries.push(debitWallet(w, 4, "generate"));
     entries.push(refundWallet(w, 4, "generate-error"));
-    entries.push(applyPurchase(w, "topup", NOW)); // balance 130, purchased 100
+    entries.push(applyPurchase(w, { type: "topup" }, NOW)); // balance 130, purchased 100
     w.renewsAt = new Date("2026-08-01T00:00:00.000Z"); // force a renewal to be due
     entries.push(renewWallet(w, NOW)); // total 30 + purchased 100 = still 130
-    entries.push(applyPurchase(w, "subscribe", NOW)); // 500 + purchased 100
+    entries.push(applyPurchase(w, { type: "subscribe", plan: "atelier" }, NOW)); // 500 + purchased 100
 
     for (const entry of entries) {
       runningBalance += entry.type === "debit" ? -entry.amount : entry.amount;

@@ -8,6 +8,7 @@ import {
   applyPurchase,
   debitWallet,
   reverseSubscription,
+  type Purchase,
 } from "@/lib/billing/wallet";
 import {
   withWalletIdempotent,
@@ -139,8 +140,19 @@ async function handleConfirmed(
   // The credited amount always comes from applyPurchase's own fixed
   // figures, never from anything in the webhook payload -- a payment's
   // `value` is not trusted as the number of credits to grant.
+  //
+  // #9: the asaas checkout only ever sells one paid tier today -- the
+  // purchase route's own CHECKOUT_PRICES has a single flat "subscribe"
+  // price, not one per PlanId -- so a confirmed subscribe payment is always
+  // atelier. Studio/factory are purchasable through the mock provider only
+  // (PlanSection); selling them through asaas needs a plan-aware checkout
+  // price, which is out of scope here (see issue #161's own asaas gaps).
+  const purchase: Purchase =
+    parsed.type === "subscribe"
+      ? { type: "subscribe", plan: "atelier" }
+      : { type: "topup" };
   await withWalletIdempotent(parsed.userId, paymentId, (wallet) =>
-    applyPurchase(wallet, parsed.type, now),
+    applyPurchase(wallet, purchase, now),
   );
 
   if (subscriptionId) {

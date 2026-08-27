@@ -368,7 +368,6 @@
       "formats": "Formatos",
       "plans": "Planos",
       "comingSoonBadge": "em breve",
-      "comingSoonTitle": "Essa tela chega em breve",
       "login": "Entrar",
       "signup": "Testar grátis"
     },
@@ -861,7 +860,10 @@
   "PlanSection": {
     "currentBadge": "Plano atual",
     "comingSoonBadge": "em breve",
-    "subscribeButton": "Assinar · R$ 59/mês",
+    "subscribeButton": "Assinar {plan}",
+    "downgradeButton": "Indisponível",
+    "downgradeNote": "Por enquanto só é possível fazer upgrade de plano por aqui.",
+    "viewAllPlansLink": "Ver todos os planos →",
     "costsHeading": "Custo por ação",
     "costGenerate": "Geração · {cost, plural, one {# crédito} other {# créditos}}",
     "costAdjust": "Ajuste · {cost, plural, one {# crédito} other {# créditos}}",
@@ -871,23 +873,72 @@
       "free": {
         "name": "Grátis",
         "price": "R$ 0",
-        "creditsLabel": "30 créditos/mês"
+        "creditsLabel": "{credits, number} créditos/mês"
       },
       "atelier": {
         "name": "Ateliê",
         "price": "R$ 59",
-        "creditsLabel": "500 créditos/mês"
+        "creditsLabel": "{credits, number} créditos/mês"
       },
       "studio": {
         "name": "Estúdio",
         "price": "R$ 149",
-        "creditsLabel": "2.000 créditos/mês"
+        "creditsLabel": "{credits, number} créditos/mês"
       },
       "factory": {
         "name": "Confecção",
         "price": "R$ 399",
-        "creditsLabel": "10.000 créditos/mês"
+        "creditsLabel": "{credits, number} créditos/mês"
       }
+    },
+    "errors": {
+      "invalid_plan": "Plano inválido.",
+      "plan_not_upgradable": "Esse plano não é um upgrade do seu plano atual.",
+      "invalid_purchase_type": "Não foi possível processar a compra.",
+      "bad_body": "Não foi possível processar a solicitação.",
+      "unauthorized": "Sua sessão expirou. Faça login novamente.",
+      "rate_limited": "Muitas tentativas. Tente novamente em instantes.",
+      "request_failed": "Não foi possível trocar de plano agora. Tente novamente."
+    }
+  },
+  "Pricing": {
+    "metaTitle": "Planos",
+    "metaDescription": "Compare os planos do MoldAI: créditos mensais, preço e o que já está disponível em cada um.",
+    "title": "Planos",
+    "subtitle": "Todos os recursos em todos os planos. A diferença é quanto você gera por mês.",
+    "toggleLabel": "Ciclo de cobrança",
+    "toggle": {
+      "monthly": "Mensal",
+      "annual": "Anual · −20%"
+    },
+    "annualBilledNote": "cobrado anualmente",
+    "mostChosenBadge": "mais escolhido",
+    "priceFree": "R$ 0",
+    "priceSuffix": "/mês",
+    "plans": {
+      "free": { "cta": "Começar grátis" },
+      "atelier": { "cta": "Assinar" },
+      "studio": { "cta": "Assinar Estúdio" },
+      "factory": { "cta": "Falar com vendas" }
+    },
+    "feature": {
+      "graduationExport": "Graduação e .dxf liberados",
+      "audacesMoldeme": "Audaces e Molde.me",
+      "ownSizeChart": "Grade própria da marca",
+      "oneUser": "1 usuário",
+      "modelV2Pro": "Modelo v2 Pro — moldes mais precisos",
+      "threeUsers": "3 usuários",
+      "priorityQueueApi": "Fila prioritária e API",
+      "fiveUsers": "5 usuários",
+      "dedicatedSupport": "Suporte dedicado"
+    },
+    "footer": {
+      "costLabel": "Custo em créditos:",
+      "costGenerate": "geração {cost}",
+      "costAdjust": "ajuste {cost}",
+      "costGraduate": "graduação {cost}",
+      "costCorrection": "correção {cost}",
+      "topup": "Créditos avulsos: {credits} por R$ {price}"
     }
   },
   "Dialog": {

@@ -152,11 +152,11 @@ describe("PageHeader", () => {
     // Regression guard for the planLabel column removal: PageHeader must read
     // `PlanSection.plans.{plan}.name` via a template-built key, not a
     // hardcoded two-key { free, atelier } block — a wallet on "studio" or
-    // "factory" (applyPurchase can't issue them yet, but the type allows
-    // them) would fail to resolve against a two-key block, either throwing
-    // or rendering the raw key path instead of the real plan name. Asserting
-    // the exact resolved string (not a substring) is what makes that failure
-    // visible here.
+    // "factory" (applyPurchase can issue both directly since #9) would fail
+    // to resolve against a two-key block, either throwing or rendering the
+    // raw key path instead of the real plan name. Asserting the exact
+    // resolved string (not a substring) is what makes that failure visible
+    // here.
     (["studio", "factory"] as const).forEach((plan) => {
       const { unmount } = renderWithIntl(
         <PageHeader
