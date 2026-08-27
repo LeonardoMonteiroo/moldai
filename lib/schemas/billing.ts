@@ -22,12 +22,14 @@ export const PurchaseBodySchema = z.object({
   plan: z.unknown().optional(),
 });
 
-// #152: the webhook route deliberately never propagates parseBody's 400 (see
-// its own header comment -- Asaas pauses the whole account's webhook queue
-// after 15 consecutive non-2xx responses), so this schema only has to prove
-// the body is an object; every field is read back out with the same
-// hand-rolled `typeof`/shape checks the route already had, unchanged.
-export const AsaasWebhookBodySchema = z.object({
-  event: z.unknown().optional(),
-  payment: z.unknown().optional(),
-});
+// #206: there is deliberately NO webhook body schema any more. The Stripe
+// webhook authenticates an HMAC signature over the RAW request bytes, so it
+// must not parse-and-reserialize the body at all -- re-serializing changes
+// key order and whitespace and the signature stops matching. It reads
+// `request.text()` and hands those exact bytes to the SDK's own
+// constructEvent, which parses only AFTER verifying; the parsed payload is
+// then narrowed by lib/billing/stripe.ts's parseGatewayEvent, which is the
+// trust boundary a zod schema would otherwise have been. That makes the
+// webhook the one documented exception to CLAUDE.md's "every route reads its
+// body through readJsonObject/parseBody" rule -- stated in the route's own
+// header too, at the place a reader meets it.

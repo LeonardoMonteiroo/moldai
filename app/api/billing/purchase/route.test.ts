@@ -15,10 +15,10 @@ vi.mock("@/lib/auth/guard", () => ({
     name: null,
   })),
 }));
-// A stateful-enough fake of withAsaasCustomerId: it actually remembers the
+// A stateful-enough fake of withStripeCustomerId: it actually remembers the
 // id across calls (keyed per test user) so "reuses an existing customer"
 // exercises real logic rather than a mock configured to already agree.
-const asaasCustomerIds = new Map<string, string>();
+const stripeCustomerIds = new Map<string, string>();
 vi.mock("@/lib/db/wallet", () => ({
   // #9: result is whatever the route's callback returns (a NextResponse,
   // since the route now builds its response under the lock) -- typed
@@ -30,13 +30,22 @@ vi.mock("@/lib/db/wallet", () => ({
       fn: (w: Wallet) => { result: unknown; entries: LedgerEntry[] },
     ) => fn(wallet).result,
   ),
-  withAsaasCustomerId: vi.fn(
-    async (userId: string, createCustomer: () => Promise<string>) => {
-      const existing = asaasCustomerIds.get(userId);
-      if (existing) return existing;
+  // #206: also runs the route's `guard` against the (fake) locked wallet
+  // and refuses before any provider call, so the upgrade-only rule is
+  // exercised on the gateway path -- not just the mock one.
+  withStripeCustomerId: vi.fn(
+    async (
+      userId: string,
+      createCustomer: () => Promise<string>,
+      guard?: (w: Wallet) => string | null,
+    ) => {
+      const refusal = guard?.(wallet) ?? null;
+      if (refusal) return { ok: false, error: refusal };
+      const existing = stripeCustomerIds.get(userId);
+      if (existing) return { ok: true, customerId: existing };
       const id = await createCustomer();
-      asaasCustomerIds.set(userId, id);
-      return id;
+      stripeCustomerIds.set(userId, id);
+      return { ok: true, customerId: id };
     },
   ),
 }));
@@ -59,15 +68,14 @@ vi.mock("@/lib/db/pattern", () => ({
 // the mock-purchase behaviour unchanged; individual tests override this to
 // exercise the 429 path.
 vi.mock("@/lib/rate-limit/consume", () => ({ consume: vi.fn() }));
-vi.mock("@/lib/billing/asaas", () => ({
-  loadAsaasConfig: vi.fn(),
+vi.mock("@/lib/billing/stripe", () => ({
+  loadStripeConfig: vi.fn(),
   createCustomer: vi.fn(),
-  createCheckout: vi.fn(),
-  buildExternalReference: vi.fn(
-    (userId: string, purchase: { type: string }) =>
-      `${userId}:${purchase.type}`,
-  ),
-  AsaasError: class AsaasError extends Error {},
+  createCheckoutSession: vi.fn(async () => ({
+    id: "cs_1",
+    url: "https://checkout.stripe.com/c/pay/cs_1",
+  })),
+  StripeGatewayError: class StripeGatewayError extends Error {},
 }));
 
 import { POST } from "./route";
@@ -76,10 +84,11 @@ import { unauthorized } from "@/lib/auth/session";
 import { consume } from "@/lib/rate-limit/consume";
 import { withWallet } from "@/lib/db/wallet";
 import {
-  loadAsaasConfig,
+  loadStripeConfig,
   createCustomer,
-  createCheckout,
-} from "@/lib/billing/asaas";
+  createCheckoutSession,
+} from "@/lib/billing/stripe";
+import { PLAN_PRICE_CENTS, TOPUP_PRICE_CENTS } from "@/lib/billing/plans";
 
 function req(body: unknown) {
   return new Request("http://test/api/billing/purchase", {
@@ -103,10 +112,18 @@ describe("POST /api/billing/purchase", () => {
     vi.mocked(withWallet).mockClear();
     vi.mocked(consume).mockReset();
     vi.mocked(consume).mockResolvedValue({ allowed: true, retryAfterSec: 0 });
-    vi.mocked(loadAsaasConfig).mockReset();
+    vi.mocked(loadStripeConfig).mockReset();
+    vi.mocked(loadStripeConfig).mockReturnValue({
+      secretKey: "sk_test_x",
+      webhookSecret: "whsec_test_x",
+    });
     vi.mocked(createCustomer).mockReset();
-    vi.mocked(createCheckout).mockReset();
-    asaasCustomerIds.clear();
+    vi.mocked(createCheckoutSession).mockReset();
+    vi.mocked(createCheckoutSession).mockResolvedValue({
+      id: "cs_1",
+      url: "https://checkout.stripe.com/c/pay/cs_1",
+    });
+    stripeCustomerIds.clear();
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
@@ -257,9 +274,9 @@ describe("POST /api/billing/purchase", () => {
       expect(res.status).toBe(401);
     });
 
-    it("never calls the asaas client", async () => {
+    it("never calls the stripe client", async () => {
       await POST(req({ type: "topup" }));
-      expect(createCheckout).not.toHaveBeenCalled();
+      expect(createCheckoutSession).not.toHaveBeenCalled();
     });
   });
 
@@ -289,18 +306,14 @@ describe("POST /api/billing/purchase", () => {
     });
   });
 
-  describe("asaas provider (PAYMENT_PROVIDER=asaas)", () => {
+  describe("stripe provider (PAYMENT_PROVIDER=stripe)", () => {
     beforeEach(() => {
-      process.env.PAYMENT_PROVIDER = "asaas";
-      vi.mocked(loadAsaasConfig).mockReturnValue({
-        apiKey: "key",
-        baseUrl: "https://api-sandbox.asaas.com/v3",
+      process.env.PAYMENT_PROVIDER = "stripe";
+      vi.mocked(createCheckoutSession).mockResolvedValue({
+        id: "cs_1",
+        url: "https://checkout.stripe.com/c/pay/cs_1",
       });
-      vi.mocked(createCheckout).mockResolvedValue({
-        id: "chk_1",
-        link: "https://pay.asaas.com/chk_1",
-      });
-      vi.mocked(createCustomer).mockResolvedValue({ id: "cus_new" });
+      vi.mocked(createCustomer).mockResolvedValue("cus_new");
     });
 
     it("returns a redirect and does not change the wallet balance", async () => {
@@ -309,7 +322,7 @@ describe("POST /api/billing/purchase", () => {
       const json = await res.json();
       expect(json).toEqual({
         status: "redirect",
-        url: "https://pay.asaas.com/chk_1",
+        url: "https://checkout.stripe.com/c/pay/cs_1",
       });
       expect(withWallet).not.toHaveBeenCalled();
       expect(wallet.balance).toBe(before);
@@ -318,16 +331,16 @@ describe("POST /api/billing/purchase", () => {
     it("invalid_purchase_type still 400s before any provider call", async () => {
       const res = await POST(req({ type: "nope" }));
       expect(res.status).toBe(400);
-      expect(createCheckout).not.toHaveBeenCalled();
+      expect(createCheckoutSession).not.toHaveBeenCalled();
     });
 
     it("still 404s on an unowned/missing patternId before creating a checkout", async () => {
       const res = await POST(req({ type: "topup", patternId: "not-mine" }));
       expect(res.status).toBe(404);
-      expect(createCheckout).not.toHaveBeenCalled();
+      expect(createCheckoutSession).not.toHaveBeenCalled();
     });
 
-    it("creates an asaas customer on first purchase and reuses it after", async () => {
+    it("creates a stripe customer on first purchase and reuses it after", async () => {
       await POST(req({ type: "topup" }));
       expect(createCustomer).toHaveBeenCalledTimes(1);
 
@@ -335,18 +348,49 @@ describe("POST /api/billing/purchase", () => {
       expect(createCustomer).toHaveBeenCalledTimes(1); // not called again
     });
 
-    it("uses RECURRENT for subscribe and DETACHED for topup", async () => {
+    it("hands the whole validated Purchase to the checkout, so mode/recurrence is decided in one place", async () => {
       await POST(req({ type: "subscribe", plan: "atelier" }));
-      expect(createCheckout).toHaveBeenCalledWith(
+      expect(createCheckoutSession).toHaveBeenCalledWith(
         expect.anything(),
-        expect.objectContaining({ chargeType: "RECURRENT" }),
+        expect.objectContaining({
+          purchase: { type: "subscribe", plan: "atelier" },
+          userId: "u1",
+        }),
       );
-      vi.mocked(createCheckout).mockClear();
+      vi.mocked(createCheckoutSession).mockClear();
       await POST(req({ type: "topup" }));
-      expect(createCheckout).toHaveBeenCalledWith(
+      expect(createCheckoutSession).toHaveBeenCalledWith(
         expect.anything(),
-        expect.objectContaining({ chargeType: "DETACHED" }),
+        expect.objectContaining({ purchase: { type: "topup" } }),
       );
+    });
+
+    // #206: the defect the deleted Asaas branch shipped -- it validated
+    // isPaidPlanId and nothing else, so a DOWNGRADE created a real charge
+    // that applyPurchase's monotonicity guard then folded into `purchased`:
+    // money taken for a plan change that never happened. The refusal is
+    // decided against the locked wallet, before any provider call.
+    it("refuses a downgrade before creating any checkout", async () => {
+      wallet.plan = "factory";
+      const res = await POST(req({ type: "subscribe", plan: "atelier" }));
+      expect(res.status).toBe(400);
+      expect((await res.json()).error).toBe("plan_not_upgradable");
+      expect(createCheckoutSession).not.toHaveBeenCalled();
+    });
+
+    it("refuses a same-tier resubscribe the same way", async () => {
+      wallet.plan = "studio";
+      const res = await POST(req({ type: "subscribe", plan: "studio" }));
+      expect(res.status).toBe(400);
+      expect((await res.json()).error).toBe("plan_not_upgradable");
+      expect(createCheckoutSession).not.toHaveBeenCalled();
+    });
+
+    it("still allows a real upgrade", async () => {
+      wallet.plan = "atelier";
+      const res = await POST(req({ type: "subscribe", plan: "factory" }));
+      expect(res.status).toBe(200);
+      expect(createCheckoutSession).toHaveBeenCalled();
     });
 
     // #179: an unusable plan must never reach the provider -- same
@@ -357,90 +401,75 @@ describe("POST /api/billing/purchase", () => {
         expect(res.status).toBe(400);
         expect((await res.json()).error).toBe("invalid_plan");
         expect(createCustomer).not.toHaveBeenCalled();
-        expect(createCheckout).not.toHaveBeenCalled();
+        expect(createCheckoutSession).not.toHaveBeenCalled();
       });
 
       it("rejects a subscribe to an unknown plan", async () => {
         const res = await POST(req({ type: "subscribe", plan: "gold" }));
         expect(res.status).toBe(400);
         expect((await res.json()).error).toBe("invalid_plan");
-        expect(createCheckout).not.toHaveBeenCalled();
+        expect(createCheckoutSession).not.toHaveBeenCalled();
       });
 
       it('rejects a subscribe to "free" -- it is not a paid plan', async () => {
         const res = await POST(req({ type: "subscribe", plan: "free" }));
         expect(res.status).toBe(400);
         expect((await res.json()).error).toBe("invalid_plan");
-        expect(createCheckout).not.toHaveBeenCalled();
+        expect(createCheckoutSession).not.toHaveBeenCalled();
       });
     });
 
-    // #179: the checkout item's price and name now come from the
-    // *requested* plan (lib/billing/plans.ts's PLAN_PRICES), not a single
-    // flat "subscribe" price -- a studio/factory checkout must charge its
-    // own tier's price, not atelier's.
-    it("sends the checkout item's price/name from PLAN_PRICES for a topup, and per-PaidPlanId for subscribe", async () => {
+    // #179/#206: the checkout amount comes from the *requested* plan
+    // (lib/billing/plans.ts's PLAN_PRICE_CENTS), not a single flat
+    // "subscribe" price -- a studio/factory checkout must charge its own
+    // tier. Asserted against the constants, never a pasted number, so a
+    // price change in plans.ts can't leave this test agreeing with a stale
+    // figure. Amounts are centavos now (Stripe's minor unit).
+    it("prices the checkout from plans.ts per requested tier, in centavos", async () => {
       await POST(req({ type: "topup" }));
-      expect(createCheckout).toHaveBeenCalledWith(
+      expect(createCheckoutSession).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
-          items: [{ name: "topupTitle", quantity: 1, value: 19 }],
+          itemName: "topupTitle",
+          amountCents: TOPUP_PRICE_CENTS,
         }),
       );
-      vi.mocked(createCheckout).mockClear();
-      await POST(req({ type: "subscribe", plan: "atelier" }));
-      expect(createCheckout).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.objectContaining({
-          items: [{ name: "plans.atelier.name", quantity: 1, value: 59 }],
-        }),
-      );
-      vi.mocked(createCheckout).mockClear();
-      await POST(req({ type: "subscribe", plan: "studio" }));
-      expect(createCheckout).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.objectContaining({
-          items: [{ name: "plans.studio.name", quantity: 1, value: 149 }],
-        }),
-      );
-      vi.mocked(createCheckout).mockClear();
-      await POST(req({ type: "subscribe", plan: "factory" }));
-      expect(createCheckout).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.objectContaining({
-          items: [{ name: "plans.factory.name", quantity: 1, value: 399 }],
-        }),
-      );
+      for (const plan of ["atelier", "studio", "factory"] as const) {
+        vi.mocked(createCheckoutSession).mockClear();
+        // A fresh free wallet each time, so the upgrade guard allows every
+        // tier rather than refusing the second one as a downgrade.
+        wallet = seedWallet(NOW);
+        stripeCustomerIds.clear();
+        await POST(req({ type: "subscribe", plan }));
+        expect(createCheckoutSession).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({
+            itemName: `plans.${plan}.name`,
+            amountCents: PLAN_PRICE_CENTS[plan],
+          }),
+        );
+      }
     });
 
-    // #179: the plan a subscribe checkout was created for has to travel to
-    // the confirming webhook -- buildExternalReference now takes the whole
-    // validated Purchase, not just its type.
-    it("encodes the requested plan into the checkout's externalReference", async () => {
-      const { buildExternalReference } = await import("@/lib/billing/asaas");
-      await POST(req({ type: "subscribe", plan: "studio" }));
-      expect(buildExternalReference).toHaveBeenCalledWith("u1", {
-        type: "subscribe",
-        plan: "studio",
-      });
-    });
-
-    it("answers checkout_unavailable when ASAAS_API_KEY is not configured", async () => {
-      vi.mocked(loadAsaasConfig).mockReturnValue(null);
+    it("answers checkout_unavailable when the STRIPE_* secrets are not configured", async () => {
+      vi.mocked(loadStripeConfig).mockReturnValue(null);
       const res = await POST(req({ type: "topup" }));
       expect(res.status).toBe(503);
       expect((await res.json()).error).toBe("checkout_unavailable");
+      expect(createCheckoutSession).not.toHaveBeenCalled();
     });
 
     it("answers checkout_unavailable, never the provider's own error, when the gateway call fails", async () => {
-      const { AsaasError } = await import("@/lib/billing/asaas");
-      vi.mocked(createCheckout).mockRejectedValue(
-        new AsaasError("asaas responded 500"),
+      const { StripeGatewayError } = await import("@/lib/billing/stripe");
+      vi.mocked(createCheckoutSession).mockRejectedValue(
+        new StripeGatewayError("stripe checkout creation failed"),
       );
       const res = await POST(req({ type: "topup" }));
       expect(res.status).toBe(502);
       const json = await res.json();
       expect(json.error).toBe("checkout_unavailable");
+      // The provider's own text must not appear in the client-facing body.
+      expect(JSON.stringify(json)).not.toMatch(/stripe/i);
     });
   });
 });

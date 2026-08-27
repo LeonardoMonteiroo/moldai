@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getTranslations } from "next-intl/server";
 import { parseBody } from "@/lib/api/body";
 import { PurchaseBodySchema } from "@/lib/schemas/billing";
-import { withWallet, withAsaasCustomerId } from "@/lib/db/wallet";
+import { withWallet, withStripeCustomerId } from "@/lib/db/wallet";
 import { loadPattern, patternNotFound } from "@/lib/db/pattern";
 import {
   applyPurchase,
@@ -13,8 +13,8 @@ import {
 import {
   isPaidPlanId,
   isPlanUpgrade,
-  PLAN_PRICES,
-  TOPUP_PRICE,
+  PLAN_PRICE_CENTS,
+  TOPUP_PRICE_CENTS,
 } from "@/lib/billing/plans";
 import { buildCredits, composeEditorState } from "@/lib/api/compose";
 import { apiError } from "@/lib/api/errors";
@@ -23,23 +23,20 @@ import { consume } from "@/lib/rate-limit/consume";
 import { clientIp } from "@/lib/rate-limit/ip";
 import { getPaymentProvider } from "@/lib/billing/provider";
 import {
-  loadAsaasConfig,
+  loadStripeConfig,
   createCustomer,
-  createCheckout,
-  buildExternalReference,
-  AsaasError,
-  type AsaasChargeType,
-} from "@/lib/billing/asaas";
+  createCheckoutSession,
+  StripeGatewayError,
+} from "@/lib/billing/stripe";
 import { reportError } from "@/lib/observability/report";
 
-// #179: the checkout's *price* now comes straight from lib/billing/plans.ts
-// -- PLAN_PRICES[purchase.plan] for a subscribe checkout, TOPUP_PRICE for a
-// topup -- rather than a second, route-local copy of the same numbers. A
-// prior version of this route kept its own flat CHECKOUT_PRICES.subscribe
-// specifically because it only ever created ONE subscribe checkout
-// (atelier, hardcoded); now that the checkout is priced per the requested
-// PaidPlanId (see resolvePurchase below), duplicating PLAN_PRICES here
-// would be exactly the drift CLAUDE.md documents for the deleted
+// #179/#206: the checkout's *price* comes straight from
+// lib/billing/plans.ts -- PLAN_PRICE_CENTS[purchase.plan] for a subscribe
+// checkout, TOPUP_PRICE_CENTS for a topup -- rather than a second,
+// route-local copy of the same numbers, and never from a Price object
+// configured in the Stripe Dashboard (see createCheckoutSession's own
+// comment for why inline price_data wins here). Duplicating the amounts
+// anywhere would be exactly the drift CLAUDE.md documents for the deleted
 // Wallet.planLabel/FREE_PLAN_CREDITS/FORMAT_KEYS facts. The *credit* a
 // payment ultimately grants still always comes from applyPurchase -- never
 // from anything a checkout or webhook payload carries.
@@ -47,10 +44,10 @@ import { reportError } from "@/lib/observability/report";
 /**
  * #9/#179: an unusable "subscribe" plan -- absent, unknown, or the literal
  * "free" -- must never reach applyPurchase (mock path) or become a real,
- * plan-priced checkout charge (asaas path). Shared by both provider
+ * plan-priced checkout charge (stripe path). Shared by both provider
  * branches so the same isPaidPlanId trust-boundary check guards both --
  * previously only the mock branch built a validated Purchase at all, and
- * the asaas branch never even read body.plan.
+ * the gateway branch never even read body.plan.
  */
 function resolvePurchase(type: PurchaseType, plan: unknown): Purchase | null {
   if (type !== "subscribe") return { type: "topup" };
@@ -62,7 +59,7 @@ export async function POST(request: Request) {
   if (gate instanceof NextResponse) return gate;
 
   // #6: this route had no rate-limit bucket at all -- under the mock
-  // provider that meant unlimited free credits in a loop; under asaas it
+  // provider that meant unlimited free credits in a loop; under stripe it
   // means creating hosted checkouts against a real third party per request.
   // The two buckets are independent Redis round trips, run concurrently.
   const [byIp, byUser] = await Promise.all([
@@ -84,7 +81,7 @@ export async function POST(request: Request) {
   if (body instanceof NextResponse) return body;
   // Validate before any wallet or provider work: an unrecognised type must
   // not reach applyPurchase (mock path) or become a real checkout charge
-  // (asaas path).
+  // (stripe path).
   if (!isPurchaseType(body.type)) {
     return apiError("invalid_purchase_type", 400);
   }
@@ -95,12 +92,12 @@ export async function POST(request: Request) {
   // The pattern is resolved *before* anything money-related happens, on
   // both provider paths. Charging first and then 404ing left the mock's
   // credits added but unreported to the client; the same discipline applies
-  // to the asaas path so a checkout's successUrl never targets a pattern
+  // to the stripe path so a checkout's successUrl never targets a pattern
   // this account doesn't own.
   const loaded = patternId ? await loadPattern(patternId, gate.id) : null;
   if (patternId && !loaded) return patternNotFound();
 
-  if (getPaymentProvider() !== "asaas") {
+  if (getPaymentProvider() !== "stripe") {
     // #9: an unusable "subscribe" plan -- absent, unknown, or the literal
     // "free" -- must never reach applyPurchase, the same isPurchaseType
     // trust-boundary shape one level up. Built before the wallet is locked,
@@ -112,7 +109,7 @@ export async function POST(request: Request) {
 
     // #6: byte-for-byte the pre-existing mock behaviour -- instant credit,
     // no gateway, no checkout. This stays the default (PAYMENT_PROVIDER
-    // unset or anything other than "asaas") until a real deployment opts
+    // unset or anything other than "stripe") until a real deployment opts
     // in.
     //
     // #9: response construction moves inside the callback (the graduate
@@ -149,9 +146,9 @@ export async function POST(request: Request) {
     });
   }
 
-  // --- asaas path: creates a hosted checkout. The wallet is not touched by
-  // this request at all -- crediting happens only from a later,
-  // authenticated PAYMENT_CONFIRMED webhook (app/api/billing/webhook). ---
+  // --- stripe path: creates a hosted Checkout Session. The wallet is not
+  // touched by this request at all -- crediting happens only from a later,
+  // signature-verified webhook (app/api/billing/webhook). ---
   //
   // #179: an unusable plan must never become a real checkout charge either
   // -- checked before any provider call, matching the mock branch's own
@@ -161,34 +158,53 @@ export async function POST(request: Request) {
     return apiError("invalid_plan", 400);
   }
 
-  const config = loadAsaasConfig();
+  const config = loadStripeConfig();
   if (!config) {
     reportError(
       "billing-purchase",
-      new Error("PAYMENT_PROVIDER=asaas but ASAAS_API_KEY is unset"),
+      new Error(
+        "PAYMENT_PROVIDER=stripe but STRIPE_SECRET_KEY/STRIPE_WEBHOOK_SECRET is unset",
+      ),
     );
     return apiError("checkout_unavailable", 503);
   }
 
   try {
-    // Atomic get-or-create: the wallet row is locked for the duration of
-    // createCustomer, so two concurrent first-purchase requests from this
-    // account can't both see "no customer id yet" and each create a
-    // separate, orphaned Asaas customer.
-    const customerId = await withAsaasCustomerId(gate.id, async () => {
-      const customer = await createCustomer(config, {
-        name: gate.name ?? gate.email,
-        email: gate.email,
-        externalReference: gate.id,
-      });
-      return customer.id;
-    });
+    // #206: both wallet-lock concerns in one transaction (see
+    // withStripeCustomerId):
+    //
+    //  - the upgrade-only rule, decided against the LOCKED wallet. The
+    //    deleted Asaas branch checked isPaidPlanId and nothing else, so a
+    //    downgrade request created a REAL charge that applyPurchase's
+    //    monotonicity guard then folded into `purchased` -- money taken for
+    //    a plan change that never happened. CLAUDE.md always claimed
+    //    downgrades were "refused server-side, decided inside the wallet
+    //    lock"; that is now true of the gateway path too, not just the mock.
+    //  - atomic get-or-create of the Stripe customer, so two concurrent
+    //    first-purchase requests can't each create an orphaned customer.
+    const prep = await withStripeCustomerId(
+      gate.id,
+      () =>
+        createCustomer(config, {
+          name: gate.name ?? gate.email,
+          email: gate.email,
+          userId: gate.id,
+        }),
+      (wallet) =>
+        purchase.type === "subscribe" &&
+        !isPlanUpgrade(wallet.plan, purchase.plan)
+          ? "plan_not_upgradable"
+          : null,
+    );
+    if (!prep.ok) {
+      return apiError(prep.error, 400);
+    }
 
     const appUrl = process.env.APP_URL ?? "http://localhost:3000";
     const returnUrl = loaded
       ? `${appUrl}/pattern/${patternId}`
       : `${appUrl}/settings?section=usage`;
-    // #179: a subscribe checkout's item name now names the actual plan
+    // #179: a subscribe checkout's item name names the actual plan
     // requested ("Estúdio", "Confecção", ...) via the existing
     // PlanSection.plans.*.name catalog entries -- the same lookup
     // PageHeader already resolves a wallet's plan label from -- rather than
@@ -196,33 +212,31 @@ export async function POST(request: Request) {
     // modal only ever pitches the single Ateliê upgrade). A topup checkout
     // is plan-agnostic, so it keeps reading PaywallModal.topupTitle.
     let itemName: string;
-    let price: number;
+    let amountCents: number;
     if (purchase.type === "subscribe") {
       const tPlan = await getTranslations("PlanSection");
       itemName = tPlan(`plans.${purchase.plan}.name`);
-      price = PLAN_PRICES[purchase.plan];
+      amountCents = PLAN_PRICE_CENTS[purchase.plan];
     } else {
       const tPaywall = await getTranslations("PaywallModal");
       itemName = tPaywall("topupTitle");
-      price = TOPUP_PRICE;
+      amountCents = TOPUP_PRICE_CENTS;
     }
-    const chargeType: AsaasChargeType =
-      purchase.type === "subscribe" ? "RECURRENT" : "DETACHED";
 
-    const checkout = await createCheckout(config, {
-      customerId,
-      chargeType,
-      items: [{ name: itemName, quantity: 1, value: price }],
-      externalReference: buildExternalReference(gate.id, purchase),
+    const session = await createCheckoutSession(config, {
+      customerId: prep.customerId,
+      purchase,
+      userId: gate.id,
+      itemName,
+      amountCents,
       successUrl: returnUrl,
       cancelUrl: returnUrl,
-      expiredUrl: returnUrl,
     });
 
-    return NextResponse.json({ status: "redirect", url: checkout.link });
+    return NextResponse.json({ status: "redirect", url: session.url });
   } catch (err) {
     reportError("billing-purchase", err, { userId: gate.id, type });
-    const status = err instanceof AsaasError ? 502 : 500;
+    const status = err instanceof StripeGatewayError ? 502 : 500;
     return apiError("checkout_unavailable", status);
   }
 }

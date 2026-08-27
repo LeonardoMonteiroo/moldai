@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   PLAN_CREDITS,
-  PLAN_PRICES,
+  PLAN_PRICE_CENTS,
   PLAN_FEATURES,
   TOPUP_CREDITS,
   isPaidPlanId,
@@ -54,13 +54,13 @@ describe("isPlanUpgrade", () => {
   });
 });
 
-describe("PLAN_PRICES / PLAN_FEATURES", () => {
+describe("PLAN_PRICE_CENTS / PLAN_FEATURES", () => {
   it("has an entry for every PlanId, with free priced at 0", () => {
     for (const id of PLAN_IDS) {
-      expect(PLAN_PRICES).toHaveProperty(id);
+      expect(PLAN_PRICE_CENTS).toHaveProperty(id);
       expect(PLAN_FEATURES).toHaveProperty(id);
     }
-    expect(PLAN_PRICES.free).toBe(0);
+    expect(PLAN_PRICE_CENTS.free).toBe(0);
   });
 
   it("never claims automatic cut planning or unlimited version history as a plan differentiator", () => {

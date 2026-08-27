@@ -16,10 +16,10 @@ export interface Wallet {
   // allowance only ("use it or lose it"); `purchased` never resets on renew.
   purchased: number;
   renewsAt: Date | null;
-  // #196: the externalId (Asaas payment id) of the ledger entry that
+  // #196: the externalId (Stripe payment id) of the ledger entry that
   // actually set the wallet's CURRENT plan/total -- i.e. the entry that ran
   // applyPurchase's real upgrade branch (LedgerEntry.planChanged: true) most
-  // recently. Only ever written by the webhook route's handleConfirmed
+  // recently. Only ever written by the webhook route's subscription handler
   // (lib/billing/wallet.ts stays gateway-agnostic; it just reads/writes this
   // field like any other Wallet property), since only a gateway-originated
   // subscribe entry carries an externalId at all -- the mock purchase path
@@ -126,9 +126,9 @@ export function applyPurchase(
       const planCredits = PLAN_CREDITS[purchase.plan];
       // #193: monotonicity guard. The mock path's plan_not_upgradable check
       // (app/api/billing/purchase/route.ts) only runs synchronously, at
-      // checkout-creation time -- under PAYMENT_PROVIDER=asaas the wallet
-      // is instead mutated later, from an async PAYMENT_CONFIRMED webhook
-      // (handleConfirmed, app/api/billing/webhook/route.ts), and Asaas's
+      // checkout-creation time -- under PAYMENT_PROVIDER=stripe the wallet
+      // is instead mutated later, from an async invoice.paid webhook
+      // (handleSubscriptionStarted, app/api/billing/webhook/route.ts), and Stripe's
       // own docs guarantee at-least-once, OUT-OF-ORDER delivery. Two
       // distinct subscribe checkouts for different plans (studio, then
       // factory) can therefore have their webhooks arrive in either order.
@@ -136,12 +136,12 @@ export function applyPurchase(
       // delayed/reordered "studio" confirmation would be silently moved
       // backwards.
       //
-      // Asaas's payload carries nothing this app trusts as a true ordering
+      // Stripe's payload carries nothing this app trusts as a true ordering
       // signal -- the webhook route already documents that a payment's
       // `value` is never trusted, and there is no reliable "this payment
       // was confirmed before that one" timestamp to compare against a
       // per-wallet high-water mark without adding new persisted state. So
-      // the only honest guard achievable from what Asaas actually sends is
+      // the only honest guard achievable from what Stripe actually sends is
       // rank-based: never move `plan`/`total` to a tier whose credit
       // allowance isn't strictly greater than the wallet's current one
       // (isPlanUpgrade, lib/billing/plans.ts -- the exact function the
@@ -163,7 +163,7 @@ export function applyPurchase(
       // (rather than a new/topup type): it is still an accurate record of
       // which tier was actually paid for, just one that didn't change the
       // wallet's plan. The caller (the webhook route) is responsible for
-      // reporting this case for operator visibility -- see handleConfirmed.
+      // reporting this case for operator visibility -- see handleSubscriptionStarted.
       if (!isPlanUpgrade(wallet.plan, purchase.plan)) {
         wallet.purchased += planCredits;
         wallet.balance += planCredits;
@@ -202,7 +202,7 @@ export function applyPurchase(
         // "Assinatura · Estúdio" instead of just "Assinatura".
         reason: purchase.plan,
         // #196: this call genuinely moved plan/total -- the webhook route's
-        // handleConfirmed uses this to record wallet.planSourceExternalId,
+        // withWalletIdempotent uses this to record wallet.planSourceExternalId,
         // so a future refund of THIS entry (if it's still the wallet's
         // current plan source when that refund arrives) knows to do the
         // full reset, and a refund of any OTHER plan-changing entry knows
@@ -217,7 +217,7 @@ export function applyPurchase(
   }
 }
 
-// #6: reverses a *subscribe* purchase's PAYMENT_REFUNDED. debitWallet alone
+// #6: reverses a *subscribe* purchase's charge.refunded. debitWallet alone
 // only undoes the balance movement -- it would leave `plan`/`total` on
 // "atelier"/500 forever, so a refunded subscriber kept renewing at the full
 // paid allowance every month even though the payment that granted it was
@@ -244,7 +244,7 @@ export function reverseSubscription(
     type: "debit",
     amount,
     balanceAfter: wallet.balance,
-    reason: "asaas_refund",
+    reason: "gateway_refund",
   };
 }
 
@@ -274,7 +274,7 @@ export function reversePurchasedCredits(
     type: "debit",
     amount,
     balanceAfter: wallet.balance,
-    reason: "asaas_refund",
+    reason: "gateway_refund",
   };
 }
 
@@ -334,7 +334,7 @@ export function reverseRefundedSubscription(
       type: "debit",
       amount: 0,
       balanceAfter: wallet.balance,
-      reason: "asaas_refund_superseded",
+      reason: "gateway_refund_superseded",
     },
   };
 }
@@ -377,7 +377,7 @@ export function reverseRefundedEntry(
   if (entry.type !== "subscribe") {
     return {
       outcome: "other",
-      ledgerEntry: debitWallet(wallet, entry.amount, "asaas_refund"),
+      ledgerEntry: debitWallet(wallet, entry.amount, "gateway_refund"),
     };
   }
   return reverseRefundedSubscription(wallet, entry, refundedExternalId);

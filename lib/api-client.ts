@@ -28,10 +28,10 @@ export type GenerateResult =
     }
   | { status: "insufficient_credits"; required: number; balance: number };
 
-// #161: under PAYMENT_PROVIDER=asaas, POST /api/billing/purchase never
+// #161: under PAYMENT_PROVIDER=stripe, POST /api/billing/purchase never
 // touches the wallet directly -- it answers {status:"redirect", url} (a
 // hosted-checkout link) and crediting happens later, asynchronously, from
-// POST /api/billing/webhook once Asaas confirms the payment. Every call
+// POST /api/billing/webhook once Stripe confirms the payment. Every call
 // site that reads PurchaseResult has to handle this third shape, not just
 // the two mock-provider "ok" ones -- see lib/store.ts's purchase(),
 // components/settings/UsageSection.tsx's buyTopup, and

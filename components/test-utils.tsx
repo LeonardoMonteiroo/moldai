@@ -55,3 +55,22 @@ export function translatorFor(namespace: keyof typeof messages) {
     return resolved;
   };
 }
+
+/**
+ * #206: the rendered form of a formatBRL price, for a getByText matcher.
+ *
+ * Intl.NumberFormat("pt-BR", {currency:"BRL"}) puts a NON-BREAKING space
+ * (U+00A0) between "R$" and the amount -- correct typography, since the
+ * symbol must not be orphaned at a line break. Testing Library normalizes
+ * the DOM's text (collapsing U+00A0 to a plain space) but compares a string
+ * matcher verbatim, so asserting formatBRL's own output directly fails on
+ * that one invisible byte. This applies the same normalization to the
+ * expected side.
+ *
+ * Takes the already-formatted string rather than the cents, so a test still
+ * reads its expectation out of lib/billing/plans.ts and never pastes a
+ * currency literal of its own.
+ */
+export function priceText(formatted: string): string {
+  return formatted.replace(/\s/g, " ");
+}

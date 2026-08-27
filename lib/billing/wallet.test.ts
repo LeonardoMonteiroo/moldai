@@ -222,7 +222,7 @@ describe("reverseSubscription", () => {
       type: "debit",
       amount: 500,
       balanceAfter: 0,
-      reason: "asaas_refund",
+      reason: "gateway_refund",
     });
   });
 
@@ -265,7 +265,7 @@ describe("reversePurchasedCredits", () => {
       type: "debit",
       amount: 2000,
       balanceAfter: 10000,
-      reason: "asaas_refund",
+      reason: "gateway_refund",
     });
   });
 });
@@ -372,7 +372,7 @@ describe("reverseRefundedSubscription", () => {
       type: "debit",
       amount: 500,
       balanceAfter: w.balance,
-      reason: "asaas_refund",
+      reason: "gateway_refund",
     });
   });
 
@@ -426,7 +426,7 @@ describe("reverseRefundedSubscription", () => {
       type: "debit",
       amount: 0,
       balanceAfter: balanceBefore,
-      reason: "asaas_refund_superseded",
+      reason: "gateway_refund_superseded",
     });
   });
 });

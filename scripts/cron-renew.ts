@@ -8,8 +8,8 @@ const prisma = new PrismaClient();
 
 export async function main() {
   const now = new Date();
-  // #161: a wallet with a live `asaasSubscriptionId` is renewed by its own
-  // Asaas subscription payment webhook (app/api/billing/webhook/route.ts's
+  // #161: a wallet with a live `stripeSubscriptionId` is renewed by its own
+  // Stripe subscription payment webhook (app/api/billing/webhook/route.ts's
   // handleConfirmed -> applyPurchase), not by this sweep -- issue #6's own
   // step 7 decision. Without this exclusion, a subscribed wallet whose
   // renewsAt happened to fall past-due before that webhook landed (or in
@@ -19,7 +19,7 @@ export async function main() {
   // wallet's credits with no ledger row flagging it as wrong (both writes
   // look like ordinary, individually-correct renew/subscribe entries).
   const due = await prisma.wallet.findMany({
-    where: { renewsAt: { lte: now }, asaasSubscriptionId: null },
+    where: { renewsAt: { lte: now }, stripeSubscriptionId: null },
     select: { userId: true },
   });
 
