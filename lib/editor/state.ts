@@ -1,5 +1,6 @@
 import {
   ChatMessage,
+  ConflictEntry,
   ConflictInfo,
   GarmentSpec,
   SizeChartData,
@@ -8,13 +9,16 @@ import {
   Piece,
 } from "@/lib/types";
 import { draftGarment, seamCheck } from "@/lib/draft/garment";
+import type { SeamMeasurement } from "@/lib/draft/garment";
 import { buildSizeTable } from "@/lib/sizeCharts/compute";
 import { buildSystemSizeChart } from "@/lib/sizeCharts/seed";
 import type { Translate } from "@/lib/i18n/translate";
 
-// Marker (dashed circle) over a piece's armhole region, from the bbox
-// of its vertices in px. Illustrative — points at the conflicting seam on the canvas.
-function armholeMarker(
+// Marker (dashed circle) over a piece's own right-edge region, from the bbox
+// of its vertices in px. Illustrative — points near the conflicting seam on
+// the canvas, generic enough for any mated pair (not only the armhole/cap
+// pair it was originally written for).
+function pieceMarker(
   piece: Piece | undefined,
 ): { cx: number; cy: number; r: number } | null {
   const vs = piece?.vertices;
@@ -27,34 +31,103 @@ function armholeMarker(
   return { cx: maxX - 6, cy: minY + (maxY - minY) * 0.28, r: 14 };
 }
 
-// Detects a seam mismatch between the body's armhole and the sleeve cap
-// (deterministic seamCheck) and builds the ConflictInfo with canvas markers.
+// Builds one ConflictEntry from a divergent SeamMeasurement, resolving its
+// pre-baked pt-BR label/aLabel/bLabel from the `seamPairs.<labelKey>`
+// catalog entries (PatternData namespace) — the same draft-time locale
+// snapshot every other piece of drafted display text already follows.
+function buildEntry(
+  pieces: Piece[],
+  m: SeamMeasurement,
+  t: Translate,
+): ConflictEntry {
+  const a = pieces.find((p) => p.id === m.aPieceId);
+  const b = pieces.find((p) => p.id === m.bPieceId);
+  const markers = [pieceMarker(a), pieceMarker(b)].filter(
+    (marker): marker is { cx: number; cy: number; r: number } =>
+      marker !== null,
+  );
+  return {
+    key: m.key,
+    label: t(`seamPairs.${m.labelKey}.title`),
+    aLabel: t(`seamPairs.${m.labelKey}.aLabel`),
+    bLabel: t(`seamPairs.${m.labelKey}.bLabel`),
+    aPieceId: m.aPieceId,
+    bPieceId: m.bPieceId,
+    diffCm: m.diffCm,
+    fixable: m.fixable,
+    markers,
+  };
+}
+
+// #134: walks the FULL seam graph (every mated pair this garment declared)
+// down to the pairs that actually diverge (seamCheck) and builds the
+// ConflictInfo the same way the original armhole-cap-only version did, but
+// generalised to a list. The top-level singular fields (title/description/
+// diffCm/pieceAId/pieceBId/markers) still exist and are populated from the
+// PRIMARY entry -- the armhole/cap one when present (the only divergence
+// possible before this issue), else the first found -- so every consumer
+// written before `entries` existed (a legacy persisted blob, and this
+// function's own pre-#134 callers/tests) keeps reading exactly the values
+// it always did. When the primary divergence is that single legacy
+// armhole/cap case, the title/description text is ALSO byte-identical to
+// before (same catalog keys, same `direction` semantics from the
+// already-ease-adjusted armholeLenCm/sleeveArmholeCm); any other shape (a
+// different pair alone, or more than one divergence) gets the new generic
+// copy instead.
 function detectConflict(
   pieces: Piece[],
   armholeLenCm: number | undefined,
   sleeveArmholeCm: number | undefined,
+  seamGraph: SeamMeasurement[],
   t: Translate,
 ): ConflictInfo | null {
-  const seam = seamCheck(armholeLenCm, sleeveArmholeCm);
-  if (!seam) return null;
-  const front = pieces.find((p) => p.id === "body-front");
-  const sleeve = pieces.find((p) => p.id === "sleeve");
-  const markers = [armholeMarker(front), armholeMarker(sleeve)].filter(
-    (m): m is { cx: number; cy: number; r: number } => m !== null,
-  );
-  const maior = (armholeLenCm ?? 0) > (sleeveArmholeCm ?? 0);
+  const conflicts = seamCheck(seamGraph);
+  if (conflicts.length === 0) return null;
+  const entries = conflicts.map((m) => buildEntry(pieces, m, t));
+  const armholeCap = conflicts.find((c) => c.key === "armhole-cap");
+  const primary = armholeCap ?? conflicts[0];
+  const primaryEntry = entries.find((e) => e.key === primary.key)!;
+  const isLegacySingle =
+    conflicts.length === 1 &&
+    primary.key === "armhole-cap" &&
+    armholeLenCm != null &&
+    sleeveArmholeCm != null;
+
+  let title: string;
+  let description: string;
+  if (isLegacySingle) {
+    const maior = armholeLenCm! > sleeveArmholeCm!;
+    title = t("conflict.title");
+    description = t("conflict.description", {
+      diffCm: primary.diffCm,
+      direction: maior ? "larger" : "smaller",
+    });
+  } else if (conflicts.length === 1) {
+    title = t("conflict.titleFor", { label: primaryEntry.label });
+    description = t("conflict.descriptionSingle", { diffCm: primary.diffCm });
+  } else {
+    title = t("conflict.titleMultiple", { count: conflicts.length });
+    description = t("conflict.descriptionMultiple");
+  }
+  // A conflict resolves through refitSleeve, which addresses only the
+  // armhole/cap pair -- offer the "Corrigir manga" copy only while at least
+  // one entry is actually fixable by it (#134 decision: report the two
+  // lengths, no fix button, when nothing here can be auto-resolved).
+  const anyFixable = conflicts.some((c) => c.fixable);
+  const suggestion = anyFixable
+    ? t("conflict.suggestion")
+    : t("conflict.suggestionGeneric");
+
   return {
     id: `conf-${Date.now()}`,
-    title: t("conflict.title"),
-    description: t("conflict.description", {
-      diffCm: seam.diffCm,
-      direction: maior ? "larger" : "smaller",
-    }),
-    diffCm: seam.diffCm,
-    suggestion: t("conflict.suggestion"),
-    pieceAId: "body-front",
-    pieceBId: "sleeve",
-    markers,
+    title,
+    description,
+    diffCm: primary.diffCm,
+    suggestion,
+    pieceAId: primary.aPieceId,
+    pieceBId: primary.bPieceId,
+    markers: primaryEntry.markers,
+    entries,
   };
 }
 
@@ -159,8 +232,14 @@ export function applyGarmentSpec(
   t: Translate,
 ): void {
   const baseRow = state.pattern.sizeTable[state.pattern.baseSize];
-  const { pieces, viewBox, measurements, armholeLenCm, sleeveArmholeCm } =
-    draftGarment(spec, baseRow, t);
+  const {
+    pieces,
+    viewBox,
+    measurements,
+    armholeLenCm,
+    sleeveArmholeCm,
+    seamGraph,
+  } = draftGarment(spec, baseRow, t);
   state.pattern = {
     ...state.pattern,
     pieces,
@@ -168,7 +247,13 @@ export function applyGarmentSpec(
     spec,
     baseMeasurements: measurements,
   };
-  state.conflict = detectConflict(pieces, armholeLenCm, sleeveArmholeCm, t);
+  state.conflict = detectConflict(
+    pieces,
+    armholeLenCm,
+    sleeveArmholeCm,
+    seamGraph,
+    t,
+  );
 }
 
 // "Corrigir manga" (sleeve fix): sets sleeveRefit and re-drafts — the cap now

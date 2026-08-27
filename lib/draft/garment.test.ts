@@ -6,6 +6,7 @@ import {
   draftPiecesCm,
   draftGradedOverlays,
   measureSeams,
+  measureSeamGraph,
   seamCheck,
   STYLE_LIMITS,
 } from "./garment";
@@ -415,10 +416,12 @@ describe("measureSeams", () => {
     );
     // The body's armhole is the deepened one; the cap is still sized from the base.
     expect(armholeLenCm!).toBeGreaterThan(sleeveArmholeCm!);
-    const seam = seamCheck(armholeLenCm, sleeveArmholeCm);
-    expect(seam).not.toBeNull();
+    const graph = measureSeamGraph(spec, SIZE_TABLE.M, t);
+    const conflicts = seamCheck(graph);
+    const armholeCap = conflicts.find((c) => c.key === "armhole-cap");
+    expect(armholeCap).toBeDefined();
     expect(Math.abs(armholeLenCm! - sleeveArmholeCm!)).toBeCloseTo(
-      seam!.diffCm,
+      armholeCap!.diffCm,
       1,
     );
   });
@@ -1067,5 +1070,148 @@ describe("drafted outlines have no retraced edge (#79)", () => {
     // this test guards, and not more than the one legitimate fold vertex
     // #126 added).
     expect(hemXs).toHaveLength(3);
+  });
+});
+
+// #134: the generalised seam graph. `measureSeamGraph` walks every mated
+// pair a garment declares (lib/draft/seams.ts's walkSeamPairs); `seamCheck`
+// narrows that down to the pairs that actually diverge beyond
+// SEAM_TOLERANCE_CM. These tests are the AC's own "zero divergences once the
+// drafters are correct, and perturbing one drafter produces exactly the
+// expected divergence" -- and the sweep across SIZE_TABLE's every size is
+// the "runs per graded size" AC, since a graded size is exactly a different
+// Measurements row through the same spec/graph-building code.
+describe("seam graph (#134)", () => {
+  it("reports zero divergences for every DECORATION_CASES entry", () => {
+    for (const [name, spec] of DECORATION_CASES) {
+      const base = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
+      const graph = measureSeamGraph(spec, base, t);
+      const conflicts = seamCheck(graph);
+      expect(conflicts, `${name}: ${JSON.stringify(conflicts)}`).toEqual([]);
+    }
+  });
+
+  it("reports zero divergences at the measurement-range corners too", () => {
+    for (const [name, spec] of DECORATION_CASES) {
+      for (const [cornerName, corner] of MEASUREMENT_CORNERS) {
+        const base = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
+        const m = { ...base, ...corner };
+        const conflicts = seamCheck(measureSeamGraph(spec, m, t));
+        expect(
+          conflicts,
+          `${name} @ ${cornerName}: ${JSON.stringify(conflicts)}`,
+        ).toEqual([]);
+      }
+    }
+  });
+
+  // "The check runs per graded size once grading drafts real geometry":
+  // grading redrafts the full piece set at each applied size's own row from
+  // the SAME sizeTable/spec (lib/draft/garment.ts's draftGradedOverlays) --
+  // so walking every SIZE_TABLE row through the graph, for a representative
+  // sample of DECORATION_CASES, is the seam-graph half of that same
+  // per-size redraft. A correctly-drafted garment stays conflict-free at
+  // every size, not only the base.
+  it("reports zero divergences at every graded size (PP..GG), not only the base", () => {
+    const sizes = Object.keys(SIZE_TABLE);
+    expect(sizes.length).toBeGreaterThan(1);
+    for (const [name, spec] of DECORATION_CASES) {
+      const table = spec.gender === "male" ? SIZE_TABLE_MALE : SIZE_TABLE;
+      for (const size of sizes) {
+        const conflicts = seamCheck(measureSeamGraph(spec, table[size], t));
+        expect(
+          conflicts,
+          `${name} @ ${size}: ${JSON.stringify(conflicts)}`,
+        ).toEqual([]);
+      }
+    }
+  });
+
+  it("perturbing armholeDeepenCm without a refit produces EXACTLY the expected armhole-cap divergence, nothing else", () => {
+    const spec = {
+      type: "blouse" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { sleeve: "short" as const, armholeDeepenCm: 3 },
+    };
+    const conflicts = seamCheck(measureSeamGraph(spec, SIZE_TABLE.M, t));
+    expect(conflicts).toHaveLength(1);
+    expect(conflicts[0].key).toBe("armhole-cap");
+    expect(conflicts[0].fixable).toBe(true);
+    expect(conflicts[0].diffCm).toBeGreaterThan(1);
+  });
+
+  it("sleeveRefit closes the armhole-cap divergence the perturbation above created", () => {
+    const spec = {
+      type: "blouse" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: {
+        sleeve: "short" as const,
+        armholeDeepenCm: 3,
+        sleeveRefit: true,
+      },
+    };
+    const conflicts = seamCheck(measureSeamGraph(spec, SIZE_TABLE.M, t));
+    expect(conflicts).toEqual([]);
+  });
+
+  // A real, previously-undetected gap this issue's own generalisation
+  // surfaces rather than fixes (see the PR description / CLAUDE.md): a
+  // dress's bodice hem is hip-derived (skirtWaistHalfCm), but a
+  // circle/gore/half-circle skirt's own waist arc is drafted straight from
+  // the actual waist measurement -- two different measurements of the same
+  // body. For SIZE_TABLE.M (waist 66, hip 92) these genuinely disagree, so
+  // this is NOT a "should be zero" assertion like the ones above -- it
+  // documents that the graph now catches what it previously could not, with
+  // no automatic fix offered for it.
+  it("#134 finding: a dress with a circle skirt reports a REAL, unfixable waist-join divergence", () => {
+    const spec = {
+      type: "dress" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { sleeve: "none" as const, darts: true, skirt: "circle" as const },
+    };
+    const conflicts = seamCheck(measureSeamGraph(spec, SIZE_TABLE.M, t));
+    const waistJoins = conflicts.filter((c) => c.key.startsWith("waist-join"));
+    expect(waistJoins.length).toBeGreaterThan(0);
+    for (const c of waistJoins) {
+      expect(c.fixable).toBe(false);
+      expect(c.diffCm).toBeGreaterThan(1);
+    }
+  });
+
+  it("a straight/a-line dress skirt has no waist-join divergence (equal by construction, #79)", () => {
+    const spec = {
+      type: "dress" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: {
+        sleeve: "none" as const,
+        darts: true,
+        skirt: "straight" as const,
+      },
+    };
+    const conflicts = seamCheck(measureSeamGraph(spec, SIZE_TABLE.M, t));
+    expect(conflicts.filter((c) => c.key.startsWith("waist-join"))).toEqual([]);
+  });
+
+  it("the full graph includes the equal-by-construction pairs too, not only the divergent ones", () => {
+    const spec = {
+      type: "blouse" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { sleeve: "short" as const },
+    };
+    const graph = measureSeamGraph(spec, SIZE_TABLE.M, t);
+    const keys = graph.map((m) => m.key).sort();
+    expect(keys).toEqual(
+      ["armhole-cap", "shoulder", "side", "sleeve-underarm"].sort(),
+    );
+    // Every one of them measures near-zero (well under the 1cm tolerance) --
+    // "equal by construction" as a live assertion, not just a comment.
+    for (const m of graph) {
+      expect(m.diffCm, `${m.key}: ${m.diffCm}`).toBeLessThan(1);
+    }
   });
 });

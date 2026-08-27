@@ -91,3 +91,169 @@ describe("ConflictInfoCard", () => {
     expect(screen.getByText(c.suggestion)).toBeInTheDocument();
   });
 });
+
+// #134: the generalised, `entries`-based rendering path -- what every LIVE
+// conflict uses now (the fixtures above, with no `entries`, cover only the
+// legacy fallback a pre-#134 persisted blob still needs).
+describe("ConflictInfoCard with entries (#134)", () => {
+  function entryConflict(
+    entries: ConflictInfo["entries"],
+    overrides: Partial<ConflictInfo> = {},
+  ): ConflictInfo {
+    return {
+      id: "conf-1",
+      title: "2 costuras não fecham",
+      description: "Confira o detalhe de cada uma abaixo.",
+      diffCm: 3.1,
+      suggestion: "“Corrigir manga” refaz a copa.",
+      pieceAId: "body-front",
+      pieceBId: "sleeve",
+      markers: [],
+      entries,
+      ...overrides,
+    };
+  }
+
+  it("renders one label+two-bar group per entry, from the matching seamGraph measurement", () => {
+    const entries: ConflictInfo["entries"] = [
+      {
+        key: "armhole-cap",
+        label: "Cava e manga",
+        aLabel: "Cava · frente",
+        bLabel: "Cava · copa",
+        aPieceId: "body-front",
+        bPieceId: "sleeve",
+        diffCm: 3.1,
+        fixable: true,
+        markers: [],
+      },
+      {
+        key: "waist-join-front",
+        label: "Cintura · frente",
+        aLabel: "Cintura · corpo (frente)",
+        bLabel: "Cintura · saia (frente)",
+        aPieceId: "body-front",
+        bPieceId: "skirt",
+        diffCm: 4.2,
+        fixable: false,
+        markers: [],
+      },
+    ];
+    renderWithIntl(
+      <ConflictInfoCard
+        conflict={entryConflict(entries)}
+        seamGraph={[
+          {
+            key: "armhole-cap",
+            labelKey: "armholeCap",
+            aPieceId: "body-front",
+            bPieceId: "sleeve",
+            aLenCm: 22.8,
+            bLenCm: 19.7,
+            diffCm: 3.1,
+            fixable: true,
+          },
+          {
+            key: "waist-join-front",
+            labelKey: "waistJoinFront",
+            aPieceId: "body-front",
+            bPieceId: "skirt",
+            aLenCm: 48.0,
+            bLenCm: 43.8,
+            diffCm: 4.2,
+            fixable: false,
+          },
+        ]}
+      />,
+    );
+    // Both entries' own headings render (more than one entry -> heading shown).
+    expect(screen.getByText("Cava e manga")).toBeInTheDocument();
+    expect(screen.getByText("Cintura · frente")).toBeInTheDocument();
+    // Both entries' own row labels render.
+    expect(screen.getByText("Cava · frente")).toBeInTheDocument();
+    expect(screen.getByText("Cava · copa")).toBeInTheDocument();
+    expect(screen.getByText("Cintura · corpo (frente)")).toBeInTheDocument();
+    expect(screen.getByText("Cintura · saia (frente)")).toBeInTheDocument();
+    // Both entries' own lengths render (from seamGraph, not from the entry).
+    expect(
+      screen.getByText(t("valueCm", { value: "22,8" })),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(t("valueCm", { value: "19,7" })),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(t("valueCm", { value: "48,0" })),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(t("valueCm", { value: "43,8" })),
+    ).toBeInTheDocument();
+    // Both entries' own diff lines render.
+    expect(
+      screen.getByText(t("entryDiffLabel", { diff: "3,1" })),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(t("entryDiffLabel", { diff: "4,2" })),
+    ).toBeInTheDocument();
+  });
+
+  it("omits the redundant per-entry heading when there's only one entry", () => {
+    const entries: ConflictInfo["entries"] = [
+      {
+        key: "armhole-cap",
+        label: "Cava e manga",
+        aLabel: "Cava · frente",
+        bLabel: "Cava · copa",
+        aPieceId: "body-front",
+        bPieceId: "sleeve",
+        diffCm: 3.1,
+        fixable: true,
+        markers: [],
+      },
+    ];
+    renderWithIntl(
+      <ConflictInfoCard
+        conflict={entryConflict(entries, { title: "Cava e manga não batem" })}
+        seamGraph={[
+          {
+            key: "armhole-cap",
+            labelKey: "armholeCap",
+            aPieceId: "body-front",
+            bPieceId: "sleeve",
+            aLenCm: 22.8,
+            bLenCm: 19.7,
+            diffCm: 3.1,
+            fixable: true,
+          },
+        ]}
+      />,
+    );
+    // The card's own title already says this; a duplicate entry heading
+    // with the identical text would be redundant.
+    expect(screen.getAllByText("Cava e manga não batem")).toHaveLength(1);
+  });
+
+  it("falls back to the bare diff line when the matching seamGraph measurement is missing", () => {
+    const entries: ConflictInfo["entries"] = [
+      {
+        key: "waist-join-front",
+        label: "Cintura · frente",
+        aLabel: "Cintura · corpo (frente)",
+        bLabel: "Cintura · saia (frente)",
+        aPieceId: "body-front",
+        bPieceId: "skirt",
+        diffCm: 4.2,
+        fixable: false,
+        markers: [],
+      },
+    ];
+    renderWithIntl(
+      <ConflictInfoCard conflict={entryConflict(entries)} seamGraph={null} />,
+    );
+    expect(
+      screen.getByText(t("entryDiffLabel", { diff: "4,2" })),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("Cintura · corpo (frente)"),
+    ).not.toBeInTheDocument();
+  });
+});

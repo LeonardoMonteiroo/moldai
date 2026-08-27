@@ -36,6 +36,16 @@ export interface DraftedPiece {
   notches?: NotchCm[];
   detailRows: DetailRow[];
   armholeLenCm?: number;
+  // #134: named edge-index ranges (into this piece's OWN outlineCm, using
+  // the same [from, to] convention curveArcLengthCm/curvedSpans already use
+  // -- `to` may equal outlineCm.length to mean "wraps back to index 0", the
+  // way the drafters' own closing curvedSpans already do) that this piece
+  // declares as candidates for a mated seam. garment.ts's draftAll is the
+  // one place that knows the WHOLE garment's topology -- which panel sews to
+  // which -- so it is what pairs matching edges across pieces into the
+  // SeamPairDecl entries lib/draft/seams.ts's walkSeamPairs measures. A
+  // piece with nothing to mate (there is none today) simply omits this.
+  seamEdges?: Record<string, [number, number]>;
 }
 
 // #124: depth is the only thing that tells the three NotchTypes apart --

@@ -4,7 +4,11 @@ import { useMemo, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { EditorTab, useEditorStore } from "@/lib/store";
 import { useCanvasViewport } from "@/lib/canvas/useCanvasViewport";
-import { measureSeams, draftGradedOverlays } from "@/lib/draft/garment";
+import {
+  measureSeams,
+  measureSeamGraph,
+  draftGradedOverlays,
+} from "@/lib/draft/garment";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { TabBar } from "./TabBar";
 import { GeneratingOverlay } from "./GeneratingOverlay";
@@ -67,6 +71,20 @@ export function CanvasArea() {
     } catch {
       // No usable spec: the card and the markers fall back to the difference
       // alone, rather than the whole canvas failing to render.
+      return null;
+    }
+  }, [conflict, spec, baseMeasurements, tData]);
+
+  // #134: the FULL seam graph, re-derived the same way `seams` above always
+  // has been (never read off the persisted ConflictInfo, which only ever
+  // carries `diffCm` per entry) -- ConflictInfoCard/PatternCanvas match each
+  // of `conflict.entries`' own divergences back to its measured lengths here
+  // by `key`.
+  const seamGraph = useMemo(() => {
+    if (!conflict?.entries || !spec || !baseMeasurements) return null;
+    try {
+      return measureSeamGraph(spec, baseMeasurements, tData);
+    } catch {
       return null;
     }
   }, [conflict, spec, baseMeasurements, tData]);
@@ -155,6 +173,7 @@ export function CanvasArea() {
             onRemoveMeasurement={removeMeasurement}
             armholeLenCm={seams?.armholeLenCm}
             sleeveArmholeCm={seams?.sleeveArmholeCm}
+            seamGraph={seamGraph}
             gradedOverlays={gradedOverlays}
             foldLabel={tData("foldLabel")}
           />
@@ -204,6 +223,7 @@ export function CanvasArea() {
             conflict={conflict}
             armholeLenCm={seams?.armholeLenCm}
             sleeveArmholeCm={seams?.sleeveArmholeCm}
+            seamGraph={seamGraph}
           />
         )}
         {!isGenerating && !conflict && detailsPanelOpen && selectedPiece && (

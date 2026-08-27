@@ -377,6 +377,19 @@ function bodice(
     }
   }
 
+  // #134: this panel's own edge-index ranges for the seams it participates
+  // in -- garment.ts pairs matching edges across pieces (front vs back,
+  // front/back vs sleeve, front/back vs skirt) into the actual SeamPairDecl
+  // list. `hem` is exposed unconditionally (not only when isDressHem): it's
+  // simply unreferenced by any pair unless this garment has a skirt to join
+  // it to, one shape either way rather than a conditional field.
+  const seamEdges: Record<string, [number, number]> = {
+    shoulder: [hpsL, shL],
+    side: [uaL, hemL],
+    armhole: [shL, uaL],
+    hem: [hemL, hemR],
+  };
+
   return {
     piece: {
       id,
@@ -390,6 +403,7 @@ function bodice(
       notches,
       detailRows,
       armholeLenCm: armholeEdgeLenCm,
+      seamEdges,
     },
     armholeEdgeLenCm,
     armholeEdgeBaseLenCm,

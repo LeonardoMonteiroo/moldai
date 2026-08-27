@@ -34,4 +34,20 @@ describe("ConflictActions", () => {
     );
     expect(onIgnore).toHaveBeenCalledOnce();
   });
+
+  // #134: a conflict made entirely of non-armhole-cap divergences (e.g. the
+  // dress waist-join gap) has no automatic fix -- offering "Corrigir manga"
+  // there would silently do nothing for what's actually wrong.
+  it("hides the fix button (and its free-note) when fixable is false", () => {
+    renderWithIntl(
+      <ConflictActions onFix={() => {}} onIgnore={() => {}} fixable={false} />,
+    );
+    expect(
+      screen.queryByRole("button", { name: catalog.fixButton }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: catalog.ignoreButton }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(catalog.freeNote)).not.toBeInTheDocument();
+  });
 });

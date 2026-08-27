@@ -24,10 +24,19 @@ import {
   translateOutline,
 } from "./core";
 import { BlockOpts, draftBody } from "./body";
-import { draftSleeve } from "./sleeve";
+import { draftSleeve, CAP_EASE_CM } from "./sleeve";
 import { draftSkirt, skirtWaistHalfCm } from "./skirt";
 import { FIT_CLASSES, STRETCH_CLASSES, wearingEaseCm } from "./ease";
+import {
+  SeamEdgeRef,
+  SeamMeasurement,
+  SeamPairDecl,
+  SEAM_TOLERANCE_CM,
+  walkSeamPairs,
+} from "./seams";
 import type { Translate } from "@/lib/i18n/translate";
+
+export type { SeamMeasurement } from "./seams";
 
 export const TYPES: GarmentType[] = ["blouse", "dress", "skirt", "tshirt"];
 export const GENDERS: Gender[] = ["female", "male"];
@@ -172,14 +181,27 @@ export function validateQuestions(raw: unknown): ClarifyQuestion[] {
   return out;
 }
 
-export function seamCheck(
-  armholeLenCm?: number,
-  sleeveArmholeCm?: number,
-): { diffCm: number } | null {
-  if (armholeLenCm == null || sleeveArmholeCm == null) return null;
-  const diff = Math.abs(armholeLenCm - sleeveArmholeCm);
-  return diff > 1 ? { diffCm: Math.round(diff * 10) / 10 } : null;
+// #134: seamCheck used to BE the comparison -- exactly two numbers, the body
+// armhole against the sleeve cap. It is now a CONSUMER of the full seam
+// graph walkSeamPairs (lib/draft/seams.ts) produces: every mated pair this
+// garment declared, not only that one. Narrows the graph down to the pairs
+// whose actual gap misses their own intended ease by more than
+// SEAM_TOLERANCE_CM -- i.e. the real conflicts, in the same shape #138's own
+// sewing-order graph will consume (every pair, divergent or not).
+export function seamCheck(graph: SeamMeasurement[]): SeamMeasurement[] {
+  // diffCm is already a magnitude (lib/draft/seams.ts's walkSeamPairs) --
+  // no second Math.abs needed here.
+  return graph.filter((m) => m.diffCm > SEAM_TOLERANCE_CM);
 }
+
+const edgeRef = (
+  pieceId: string,
+  [from, to]: [number, number],
+): SeamEdgeRef => ({
+  pieceId,
+  from,
+  to,
+});
 
 function draftAll(
   spec: GarmentSpec,
@@ -190,6 +212,7 @@ function draftAll(
   measurements: Measurements;
   armholeLenCm?: number;
   sleeveArmholeCm?: number;
+  seamGraph: SeamMeasurement[];
 } {
   const gender: Gender = spec.gender ?? "female";
   const measurements: Measurements = resolveMeasurements(
@@ -199,6 +222,16 @@ function draftAll(
   const drafted: DraftedPiece[] = [];
   let armholeLenCm: number | undefined;
   let sleeveArmholeCm: number | undefined;
+  // Hoisted out of the `isBody` block below so the dress waist-join pairs
+  // (declared further down, alongside the skirt) can reference the same
+  // front/back panels.
+  let front: DraftedPiece | undefined;
+  let back: DraftedPiece | undefined;
+  // #134: every mated pair this garment's own topology declares -- built up
+  // below as each piece is drafted (garment.ts is the one place that knows
+  // which panel sews to which across the whole garment), then walked once,
+  // at the end, against the pieces actually drafted.
+  const seamPairs: SeamPairDecl[] = [];
 
   const isBody =
     spec.type === "blouse" || spec.type === "dress" || spec.type === "tshirt";
@@ -232,15 +265,42 @@ function draftAll(
         : {}),
     };
     const {
-      front,
-      back,
+      front: f,
+      back: c,
       armholeLenCm: a,
       armholeBaseLenCm,
       pitchNotchCm,
       basePitchNotchCm,
     } = draftBody(measurements, style, t, opts);
+    front = f;
+    back = c;
     armholeLenCm = a;
     drafted.push(front, back);
+    // #134: the shoulder and side seams -- front vs back. Equal by
+    // construction TODAY (see body.ts's own note beside armCtrlX: neither
+    // shoulderHalf/neckHalf, halfChest, waistHalf, hemHalf nor waistY/len
+    // depend on `frontish`), so these are regression guards, not live risk
+    // -- but they're real seams #138's assembly graph needs regardless, and
+    // "equal by construction" is exactly the kind of claim that deserves an
+    // assertion instead of staying an unchecked comment.
+    if (front.seamEdges && back.seamEdges) {
+      seamPairs.push({
+        key: "shoulder",
+        labelKey: "shoulder",
+        a: [edgeRef(front.id, front.seamEdges.shoulder)],
+        b: [edgeRef(back.id, back.seamEdges.shoulder)],
+        easeCm: 0,
+        fixable: false,
+      });
+      seamPairs.push({
+        key: "side",
+        labelKey: "side",
+        a: [edgeRef(front.id, front.seamEdges.side)],
+        b: [edgeRef(back.id, back.seamEdges.side)],
+        easeCm: 0,
+        fixable: false,
+      });
+    }
     // The sleeve cap is sized from the BASE (un-adjusted) armhole — unless it's
     // already been refit (the sleeve-fix action sets style.sleeveRefit). This way
     // an armhole adjustment on the body alone makes the seams diverge → real conflict.
@@ -267,15 +327,84 @@ function draftAll(
       // detect a real cap/armhole mismatch instead of comparing an input to
       // itself.
       sleeveArmholeCm = sleeve.armholeLenCm;
+      // #134: the ONE pair that can genuinely diverge today -- an
+      // armholeDeepenCm without a matching refit. Declared from the RAW
+      // edges (front+back's own armhole curves vs the cap's own raw arc,
+      // [0,4]) with easeCm = the same knit/woven CAP_EASE_CM the cap was
+      // solved against, which reproduces seamCheck's original two-number
+      // comparison exactly (see lib/draft/seams.ts's SeamPairDecl doc).
+      if (front.seamEdges && back.seamEdges && sleeve.seamEdges) {
+        seamPairs.push({
+          key: "armhole-cap",
+          labelKey: "armholeCap",
+          a: [
+            edgeRef(front.id, front.seamEdges.armhole),
+            edgeRef(back.id, back.seamEdges.armhole),
+          ],
+          b: [edgeRef(sleeve.id, sleeve.seamEdges.cap)],
+          easeCm: opts.knit ? CAP_EASE_CM.knit : CAP_EASE_CM.woven,
+          fixable: true,
+        });
+        // #134: the sleeve's own two side seams (underarm), sewn to each
+        // other when the piece is folded into a tube -- equal by
+        // construction (the cap outline is symmetric about its own apex),
+        // a regression guard like shoulder/side above.
+        seamPairs.push({
+          key: "sleeve-underarm",
+          labelKey: "sleeveUnderarm",
+          a: [edgeRef(sleeve.id, sleeve.seamEdges.underarmRight)],
+          b: [edgeRef(sleeve.id, sleeve.seamEdges.underarmLeft)],
+          easeCm: 0,
+          fixable: false,
+        });
+      }
     }
   }
   if (spec.type === "skirt" || spec.type === "dress") {
-    drafted.push(
-      draftSkirt(measurements, spec.style, t, spec.type === "dress"),
+    const skirtPiece = draftSkirt(
+      measurements,
+      spec.style,
+      t,
+      spec.type === "dress",
     );
+    drafted.push(skirtPiece);
+    // #134: the dress bodice's hem/waist-join edge vs the skirt panel's own
+    // waist edge -- one declaration per body panel (front, back), since each
+    // sews to its own skirt panel copy (qty on the skirt piece), a real,
+    // separate seam either way even though front/back are equal by
+    // construction (see the shoulder/side note above). For a
+    // straight/a-line skirt these are ALSO equal by construction
+    // (skirtWaistHalfCm, #79). For a circle/gore/half-circle skirt they are
+    // NOT: the bodice hem is hip-derived (skirtWaistHalfCm) while the waist
+    // arc there is drafted straight from the actual waist measurement --
+    // two different measurements of the same body, genuinely divergent for
+    // most real proportions. This is a real, previously-undetected gap (see
+    // the PR description), not a hypothetical one; #134 surfaces it rather
+    // than papering over it with a fake ease.
+    if (spec.type === "dress" && front?.seamEdges && skirtPiece.seamEdges) {
+      seamPairs.push({
+        key: "waist-join-front",
+        labelKey: "waistJoinFront",
+        a: [edgeRef(front.id, front.seamEdges.hem)],
+        b: [edgeRef(skirtPiece.id, skirtPiece.seamEdges.waist)],
+        easeCm: 0,
+        fixable: false,
+      });
+    }
+    if (spec.type === "dress" && back?.seamEdges && skirtPiece.seamEdges) {
+      seamPairs.push({
+        key: "waist-join-back",
+        labelKey: "waistJoinBack",
+        a: [edgeRef(back.id, back.seamEdges.hem)],
+        b: [edgeRef(skirtPiece.id, skirtPiece.seamEdges.waist)],
+        easeCm: 0,
+        fixable: false,
+      });
+    }
   }
 
-  return { drafted, measurements, armholeLenCm, sleeveArmholeCm };
+  const seamGraph = walkSeamPairs(drafted, seamPairs);
+  return { drafted, measurements, armholeLenCm, sleeveArmholeCm, seamGraph };
 }
 
 export function draftPiecesCm(
@@ -300,6 +429,20 @@ export function measureSeams(
 ): { armholeLenCm?: number; sleeveArmholeCm?: number } {
   const { armholeLenCm, sleeveArmholeCm } = draftAll(spec, baseMeasurements, t);
   return { armholeLenCm, sleeveArmholeCm };
+}
+
+// #134: the FULL seam graph -- every mated pair this garment declares,
+// whether or not it diverges -- derived the same way measureSeams derives
+// its own narrower pair (draftAll, without the pieces or the layout). This
+// is what CanvasArea hands to ConflictInfoCard/PatternCanvas for the
+// multi-entry conflict list, and the shape #138's assembly/sewing-order
+// feature consumes directly.
+export function measureSeamGraph(
+  spec: GarmentSpec,
+  baseMeasurements: Measurements,
+  t: Translate,
+): SeamMeasurement[] {
+  return draftAll(spec, baseMeasurements, t).seamGraph;
 }
 
 export interface GradedOverlay {
@@ -359,11 +502,15 @@ export function draftGarment(
   baseMeasurements: Measurements,
   t: Translate,
 ) {
-  const { drafted, measurements, armholeLenCm, sleeveArmholeCm } = draftAll(
-    spec,
-    baseMeasurements,
-    t,
-  );
+  const { drafted, measurements, armholeLenCm, sleeveArmholeCm, seamGraph } =
+    draftAll(spec, baseMeasurements, t);
   const { pieces, viewBox } = autoLayout(drafted, 8);
-  return { pieces, viewBox, measurements, armholeLenCm, sleeveArmholeCm };
+  return {
+    pieces,
+    viewBox,
+    measurements,
+    armholeLenCm,
+    sleeveArmholeCm,
+    seamGraph,
+  };
 }

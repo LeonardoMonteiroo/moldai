@@ -216,6 +216,32 @@ export interface LedgerHistoryEntry {
   createdAt: string;
 }
 
+// #134: one divergent seam pair out of the full graph lib/draft/seams.ts's
+// walkSeamPairs measures -- what ConflictInfo.entries holds, one per
+// mismatch beyond SEAM_TOLERANCE_CM (not every declared pair). `label`/
+// `aLabel`/`bLabel` are pre-resolved pt-BR text (like ConflictInfo's own
+// title/description/suggestion below), not catalog keys -- the same
+// locale-snapshot precedent every other piece of drafted display text
+// already follows, and `diffCm`/`markers` mirror what the legacy top-level
+// ConflictInfo fields already persisted before this issue. The two actual
+// seam lengths behind `diffCm` are deliberately NOT here -- like the
+// original armhole/cap pair, they're re-derived at render time (this
+// issue's own lib/draft/garment.ts's measureSeamGraph, matched back to an
+// entry by `key`) rather than persisted, the same "nothing new in the blob"
+// rule measureSeams/fitPieceLabel already set and that a bag of per-seam
+// numbers would have broken.
+export interface ConflictEntry {
+  key: string;
+  label: string;
+  aLabel: string;
+  bLabel: string;
+  aPieceId: string;
+  bPieceId: string;
+  diffCm: number;
+  fixable: boolean;
+  markers: { cx: number; cy: number; r: number }[];
+}
+
 export interface ConflictInfo {
   id: string;
   title: string;
@@ -225,6 +251,14 @@ export interface ConflictInfo {
   pieceAId: string;
   pieceBId: string;
   markers: { cx: number; cy: number; r: number }[];
+  // #134: every mated-pair divergence this generation found, not only the
+  // primary one -- absent on a conflict persisted before this existed, so a
+  // legacy blob's card/markers/actions still render exactly as they did
+  // (the singular fields above stay populated as that fallback). New
+  // conflicts always populate this, even when it holds exactly one entry;
+  // ConflictInfoCard/ConflictActions/PatternCanvas render off `entries`
+  // when present and fall back to the legacy singular fields when absent.
+  entries?: ConflictEntry[];
 }
 
 export type GenerationStatus = "idle" | "generating" | "error";
