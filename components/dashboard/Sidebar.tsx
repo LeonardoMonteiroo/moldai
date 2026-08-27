@@ -68,15 +68,20 @@ export function Sidebar({
           isActive={active === "slopers"}
           onSelect={() => router.push("/slopers")}
         />
+        {/* The DXF import first pass (issue #11) shipped in the same commit
+            as this wiring — an inert "em breve" card here while a working
+            beta exists at /import would be the exact silent-limitation
+            failure CLAUDE.md forbids, the inverse of the /slopers rollout
+            (disabled+badged until the screen existed, then a real NavItem).
+            /import renders no sidebar (the /size-charts precedent just
+            above), so this entry is never the active one either. */}
+        <NavItem
+          label={t("importLabel")}
+          isActive={false}
+          onSelect={() => router.push("/import")}
+        />
       </nav>
       <div className="flex-1" />
-      {/* #50: text-disabled (2.10:1) fails WCAG 1.4.3 for this plain
-          informational card -- it's an inert "em breve" placeholder, not a
-          disabled control, so it needs text-muted's 4.5:1 like every other
-          "em breve" note. */}
-      <div className="border-border rounded-card text-muted text-meta mb-3 border border-dashed p-[10px] text-center">
-        {t("importLabel")}
-      </div>
       <Button onClick={onNewPattern} disabled={disabled}>
         {t("newPatternButton")}
       </Button>
