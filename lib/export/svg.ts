@@ -74,6 +74,22 @@ export function toSvg(model: ExportModel): string {
         `<path d="${dd}" fill="none" stroke="#4a5a3a" stroke-width="0.3"/>`,
       );
     }
+    // #127: the dart's own fold line -- where the fabric presses when the
+    // dart is sewn, distinct from both the dart's own solid legs above and
+    // the piece's cut-on-fold axis below (`fold`, a different concept, its
+    // own black chain-dash) -- a fine dotted line in the dart's own color.
+    for (const [a, b] of p.internalFoldLines ?? []) {
+      parts.push(
+        `<line x1="${X(a.x)}" y1="${Y(a.y)}" x2="${X(b.x)}" y2="${Y(b.y)}" stroke="#4a5a3a" stroke-width="0.15" stroke-dasharray="1 1.5"/>`,
+      );
+    }
+    // #127: a drill hole -- a small open circle, 1.0-1.5cm short of the
+    // dart apex it marks (lib/draft/core.ts's DRILL_HOLE_SETBACK_CM).
+    for (const hole of p.drillHoles ?? []) {
+      parts.push(
+        `<circle cx="${X(hole.at.x)}" cy="${Y(hole.at.y)}" r="${f(hole.rCm * MM)}" fill="none" stroke="#000" stroke-width="0.2"/>`,
+      );
+    }
     // #124: one short tick per notch, single/double/triple told apart
     // purely by how far it reaches (NOTCH_DEPTH_CM), matching the cut
     // line's own solid black.

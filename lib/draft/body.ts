@@ -2,7 +2,9 @@ import { Measurements } from "@/lib/measurements";
 import { DetailRow, GarmentStyle, Gender, NotchType } from "@/lib/types";
 import {
   curveArcLengthCm,
+  dartInternals,
   DraftedPiece,
+  InternalCm,
   notchAt,
   notchAtArcLengthCm,
   notchAtVertex,
@@ -248,38 +250,66 @@ function bodice(
   // accept. `dartRiseCm` is the pre-existing single-dart apex offset,
   // unchanged; `dartHalfWidth` is each dart's own half-width, the combined
   // suppression (dartsSuppression) split across 2 darts x 2 legs each.
-  let dartsCm: Pt[][] | undefined;
+  // A dart's own leg outline, plus (#127) the fold line it presses along
+  // when sewn and the free apex(es) that get a drill hole -- see
+  // core.ts's dartInternals().
+  interface DraftedDart {
+    ptsCm: Pt[];
+    foldCm: [Pt, Pt];
+    apexesCm: Pt[];
+  }
+  let dartsStruct: DraftedDart[] | undefined;
+  let internalsCm: InternalCm[] | undefined;
   if (fitted) {
     const dartOffset = waistHalf * 0.5;
     const dartHalfWidth = Math.max(0.9, dartsSuppression / 8);
     const dartRiseCm = 12;
-    const oneDart = (side: -1 | 1): Pt[] => {
+    const oneDart = (side: -1 | 1): DraftedDart => {
       const dx = cx + side * dartOffset;
       if (isDressHem) {
         // The hem IS the waist seam here (#79) -- the dart opens directly
         // onto it: its wide end sits on the seam, tapering to a single
         // point above. No seam to open onto below (there's nothing past the
-        // hem), so it can't be double-ended.
-        return [
-          [dx - dartHalfWidth, waistY],
-          [dx, waistY - dartRiseCm],
-          [dx + dartHalfWidth, waistY],
-        ];
+        // hem), so it can't be double-ended -- one free apex, one seam end
+        // (#127: the fold line runs apex -> seam midpoint; only the apex
+        // gets a drill hole).
+        const apex: Pt = [dx, waistY - dartRiseCm];
+        const seamMid: Pt = [dx, waistY];
+        return {
+          ptsCm: [
+            [dx - dartHalfWidth, waistY],
+            apex,
+            [dx + dartHalfWidth, waistY],
+          ],
+          foldCm: [apex, seamMid],
+          apexesCm: [apex],
+        };
       }
       // The piece continues past the waist (a blouse/t-shirt hem below it),
       // so the dart touches no seam at all -- drafted as a double-ended
       // (fisheye) diamond, closed at both ends, entirely internal to the
       // piece. The first point repeats at the end so it renders as closed
       // without a synthetic straight-line base (see core.ts's place()).
-      return [
-        [dx, waistY - dartRiseCm],
-        [dx + dartHalfWidth, waistY],
-        [dx, waistY + dartRiseCm],
-        [dx - dartHalfWidth, waistY],
-        [dx, waistY - dartRiseCm],
-      ];
+      // #127: both ends are free apexes -- the fold line runs apex to
+      // apex, and each end gets its own drill hole.
+      const apexTop: Pt = [dx, waistY - dartRiseCm];
+      const apexBottom: Pt = [dx, waistY + dartRiseCm];
+      return {
+        ptsCm: [
+          apexTop,
+          [dx + dartHalfWidth, waistY],
+          apexBottom,
+          [dx - dartHalfWidth, waistY],
+          apexTop,
+        ],
+        foldCm: [apexTop, apexBottom],
+        apexesCm: [apexTop, apexBottom],
+      };
     };
-    dartsCm = [oneDart(-1), oneDart(1)];
+    dartsStruct = [oneDart(-1), oneDart(1)];
+    internalsCm = dartsStruct.flatMap((d) =>
+      dartInternals(d.ptsCm, d.foldCm, d.apexesCm),
+    );
     detailRows.splice(4, 0, {
       label: t("rows.dart"),
       value: cm(dartHalfWidth * 2),
@@ -338,8 +368,8 @@ function bodice(
     // #124: dart-leg notches, where each dart's legs meet the waist/hem
     // seam -- only reachable here, since the fisheye (double-ended) dart a
     // non-dress piece drafts is fully internal and touches no edge to notch.
-    for (const dart of dartsCm ?? []) {
-      const [legL, , legR] = dart;
+    for (const dart of dartsStruct ?? []) {
+      const [legL, , legR] = dart.ptsCm;
       notches.push(
         notchAt(legL, [1, 0], insideRef, "single"),
         notchAt(legR, [1, 0], insideRef, "single"),
@@ -355,7 +385,7 @@ function bodice(
       outlineCm: pts,
       curvedSpans: spans,
       grainlineCm,
-      dartsCm,
+      internalsCm,
       foldEdge: [cf, hemCenter],
       notches,
       detailRows,

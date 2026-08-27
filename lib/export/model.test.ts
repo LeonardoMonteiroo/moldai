@@ -252,6 +252,63 @@ describe("buildExportModel", () => {
     });
   });
 
+  // #127: a dart's own fold line and drill hole(s), through the same local
+  // (bbox-shifted) frame as darts/grainline/fold/notches above.
+  describe("internals (#127)", () => {
+    function fittedPattern(): Pattern {
+      return {
+        id: "p1",
+        name: "Teste",
+        version: 1,
+        baseSize: "M",
+        unit: "cm",
+        sizes: ["M"],
+        sizesApplied: [],
+        sizesPending: [],
+        sizeTable: { M: SIZE_TABLE.M },
+        pieces: [],
+        spec: {
+          type: "blouse",
+          gender: "female",
+          measurementOverrides: {},
+          style: { neckline: "round", sleeve: "short", darts: true },
+        },
+      };
+    }
+
+    it("carries a fitted panel's dart fold lines and drill holes into local outline coordinates", () => {
+      const model = buildExportModel(fittedPattern(), t);
+      const front = model.pieces.find((p) => p.id === "body-front")!;
+      expect(front.darts?.length).toBe(2);
+      expect(front.internalFoldLines?.length).toBe(2); // one per dart
+      // a fisheye (non-dress) dart has two free apexes, so 2 darts x 2 = 4.
+      expect(front.drillHoles?.length).toBe(4);
+      for (const [a, b] of front.internalFoldLines!) {
+        for (const pt of [a, b]) {
+          expect(pt.x).toBeGreaterThanOrEqual(-1e-6);
+          expect(pt.x).toBeLessThanOrEqual(front.widthCm + 1e-6);
+          expect(pt.y).toBeGreaterThanOrEqual(-1e-6);
+          expect(pt.y).toBeLessThanOrEqual(front.heightCm + 1e-6);
+        }
+      }
+      for (const hole of front.drillHoles!) {
+        expect(hole.at.x).toBeGreaterThanOrEqual(-1e-6);
+        expect(hole.at.x).toBeLessThanOrEqual(front.widthCm + 1e-6);
+        expect(hole.at.y).toBeGreaterThanOrEqual(-1e-6);
+        expect(hole.at.y).toBeLessThanOrEqual(front.heightCm + 1e-6);
+        expect(hole.rCm).toBeCloseTo(0.15, 6);
+      }
+    });
+
+    it("a piece with no darts carries neither internalFoldLines nor drillHoles", () => {
+      const model = buildExportModel(fakePattern(), t); // tshirt: darts forced false
+      for (const piece of model.pieces) {
+        expect(piece.internalFoldLines).toBeUndefined();
+        expect(piece.drillHoles).toBeUndefined();
+      }
+    });
+  });
+
   // #123: turns the seam-allowance annotation into a real cut-line outline,
   // offset outward from the net `outline` -- verified against the actual
   // drafting matrix (lib/draft/fixtures.ts's DECORATION_CASES, the same set

@@ -173,6 +173,31 @@ export function toDxf(model: ExportModel): string {
       }
     }
 
+    // #127: a dart's own fold line -- INTERNO, same layer as the dart it
+    // belongs to.
+    for (const [a, b] of piece.internalFoldLines ?? []) {
+      p(0, "LINE");
+      p(8, "INTERNO");
+      p(10, X(a.x));
+      p(20, Y(a.y));
+      p(11, X(b.x));
+      p(21, Y(b.y));
+    }
+
+    // #127: a drill hole -- both a POINT (exact centre, machine-readable)
+    // and a CIRCLE (radius, for visual reference), same layer.
+    for (const hole of piece.drillHoles ?? []) {
+      p(0, "POINT");
+      p(8, "INTERNO");
+      p(10, X(hole.at.x));
+      p(20, Y(hole.at.y));
+      p(0, "CIRCLE");
+      p(8, "INTERNO");
+      p(10, X(hole.at.x));
+      p(20, Y(hole.at.y));
+      p(40, f(hole.rCm * MM));
+    }
+
     p(0, "TEXT");
     p(8, "TEXTO");
     p(10, X(piece.outline.start.x));

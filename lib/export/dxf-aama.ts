@@ -8,7 +8,8 @@ import { flattenOutlineCm, TOL_CM } from "./dxf";
 //       1  piece boundary (+ the piece's system text)
 //       6  fold/mirror line (#126 — cut-on-fold, geometry only)
 //       7  grainline
-//       8  internal lines (not cut) — we use it for the dart
+//       8  internal lines (not cut) — the dart and its own fold line (#127)
+//      13  drill holes (#127)
 //   - each piece is a BLOCK, positioned by an INSERT (pieces are blocks in D6673)
 //   - R13 version (AC1012) + classic POLYLINE/VERTEX/SEQEND (not LWPOLYLINE,
 //     which is R14) — R13 is what D6673 references and maximizes compat with Audaces/Gerber.
@@ -23,14 +24,12 @@ import { flattenOutlineCm, TOL_CM } from "./dxf";
 // declares every BLOCK the file INSERTs, every classic POLYLINE carries its
 // 10/20/30 dummy point, and TEXT/999 content is restricted to plain ASCII
 // (the SVG-inherited "·" separator and any accented character are
-// normalized away — a strict importer can choke on either). This remains an
-// honest SUBSET: drill holes (layer 13) are NOT emitted — MoldAI doesn't
-// model drill-hole geometry anywhere yet (that needs the drafters, a
-// separate change) — so the "beta" tag and its inline note stay, naming
-// exactly that one remaining gap. None of this has been opened in a real
-// CAD importer (Audaces/Gerber); "strict" here means structurally
-// self-consistent DXF, verified by parsing the emitted file back apart in
-// this repo, not verified against a real reader.
+// normalized away — a strict importer can choke on either). Drill holes
+// (layer 13) were the one remaining tracked gap at that point — #127 closes
+// it: every dart's free apex now gets a CIRCLE on layer 13. None of this has
+// been opened in a real CAD importer (Audaces/Gerber); "strict" here means
+// structurally self-consistent DXF, verified by parsing the emitted file
+// back apart in this repo, not verified against a real reader.
 
 const MM = 10; // cm -> mm (1:1)
 const f = (n: number) => (Math.round(n * 100) / 100).toString();
@@ -54,7 +53,8 @@ const LAYERS: [string, number][] = [
   ["4", 6], // notches (#124) — magenta
   ["6", 1], // fold/mirror line (#126) — red
   ["7", 5], // grainline — blue
-  ["8", 3], // internal (dart) — green
+  ["8", 3], // internal (dart + its own fold line, #127) — green
+  ["13", 2], // drill holes (#127) — yellow
   ["14", 4], // sew line (#123: the net line) — cyan
 ];
 
@@ -235,6 +235,27 @@ export function toDxfAama(model: ExportModel): string {
       }
       p(0, "SEQEND");
       p(8, "8");
+    }
+
+    // #127: a dart's own fold line -> LINE on layer 8, the same "internal,
+    // not cut" semantics as the dart it belongs to.
+    for (const [a, b] of piece.internalFoldLines ?? []) {
+      p(0, "LINE");
+      p(8, "8");
+      p(10, X(a.x));
+      p(20, Y(a.y));
+      p(11, X(b.x));
+      p(21, Y(b.y));
+    }
+
+    // #127: a drill hole -> CIRCLE on layer 13, D6673's reserved semantics
+    // for it — closes the drill-hole half of issue #2.
+    for (const hole of piece.drillHoles ?? []) {
+      p(0, "CIRCLE");
+      p(8, "13");
+      p(10, X(hole.at.x));
+      p(20, Y(hole.at.y));
+      p(40, f(hole.rCm * MM));
     }
   };
 

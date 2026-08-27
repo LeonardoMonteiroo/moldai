@@ -3,6 +3,7 @@ import {
   bbox,
   catmullRomSegments,
   type DraftedPiece,
+  type InternalCm,
   type Pt,
 } from "@/lib/draft/core";
 import { draftPiecesCm } from "@/lib/draft/garment";
@@ -37,6 +38,15 @@ export interface ExportPiece {
   // #122: one entry per dart -- a fitted front/back panel carries two,
   // symmetric about its own centre line.
   darts?: ExPt[][];
+  // #127: one entry per dart -- the dart's own fold line (apex-to-apex for
+  // a double-ended/fisheye dart, apex-to-seam-midpoint for a single-ended
+  // one). Distinct from `fold` below, which is the piece's own cut-on-fold
+  // axis of symmetry, a different concept.
+  internalFoldLines?: [ExPt, ExPt][];
+  // #127: one entry per free dart apex, 1.0-1.5cm short of the point (see
+  // lib/draft/core.ts's DRILL_HOLE_SETBACK_CM) so the mark hides inside the
+  // sewn dart.
+  drillHoles?: { at: ExPt; rCm: number }[];
   // #126: the piece's cut-on-fold line, both endpoints already real outline
   // vertices (see DraftedPiece.foldEdge) -- absent on a piece with no fold
   // (e.g. a sleeve) or drafted before this existed.
@@ -73,6 +83,33 @@ export interface ExportModel {
 const P = (p: Pt): ExPt => ({ x: p[0], y: p[1] });
 
 const round2 = (n: number) => (Math.round(n * 100) / 100).toString();
+
+// #127: pulls one InternalCm kind's own payload out of a DraftedPiece's
+// internalsCm -- kept here (not duplicated per call site) since InternalCm's
+// discriminant lives in lib/draft/core.ts.
+function dartEntries(internalsCm?: InternalCm[]): Pt[][] {
+  return (internalsCm ?? [])
+    .filter(
+      (e): e is Extract<InternalCm, { kind: "dart" }> => e.kind === "dart",
+    )
+    .map((e) => e.ptsCm);
+}
+function foldLineEntries(internalsCm?: InternalCm[]): [Pt, Pt][] {
+  return (internalsCm ?? [])
+    .filter(
+      (e): e is Extract<InternalCm, { kind: "foldLine" }> =>
+        e.kind === "foldLine",
+    )
+    .map((e) => [e.aCm, e.bCm]);
+}
+function drillHoleEntries(
+  internalsCm?: InternalCm[],
+): { atCm: Pt; rCm: number }[] {
+  return (internalsCm ?? []).filter(
+    (e): e is Extract<InternalCm, { kind: "drillHole" }> =>
+      e.kind === "drillHole",
+  );
+}
 
 // Builds the `d` attribute of a closed outline (start + segs) applying the
 // tx/ty coordinate transforms. Shared by the SVG serializer
@@ -183,9 +220,20 @@ export function buildExportModel(
       const [g1, g2] = dp.grainlineCm;
       ep.grainline = [P(shift(g1)), P(shift(g2))];
     }
-    const darts = (dp.dartsCm ?? []).filter((pts) => pts.length >= 3);
+    const darts = dartEntries(dp.internalsCm).filter((pts) => pts.length >= 3);
     if (darts.length)
       ep.darts = darts.map((pts) => pts.map((pt) => P(shift(pt))));
+    // #127: the dart's own fold line and drill hole(s), through the same
+    // local (shifted-to-net-bbox) frame as darts/grainline/fold above.
+    const foldLines = foldLineEntries(dp.internalsCm).map(
+      ([a, b]) => [P(shift(a)), P(shift(b))] as [ExPt, ExPt],
+    );
+    if (foldLines.length) ep.internalFoldLines = foldLines;
+    const drillHoles = drillHoleEntries(dp.internalsCm).map((h) => ({
+      at: P(shift(h.atCm)),
+      rCm: h.rCm,
+    }));
+    if (drillHoles.length) ep.drillHoles = drillHoles;
     if (dp.foldEdge) {
       const [a, b2] = dp.foldEdge;
       ep.fold = [P(shift(dp.outlineCm[a])), P(shift(dp.outlineCm[b2]))];

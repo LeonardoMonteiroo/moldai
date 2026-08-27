@@ -104,6 +104,31 @@ export interface PieceNotch {
   y2: number;
 }
 
+// #127: typed internal-geometry entries, one level up from
+// lib/draft/core.ts's InternalCm (already in px/canvas-local space --
+// darts/pleat/styleLine are already an SVG `d` string, the same
+// path-string-on-Piece-vs-point-list-on-DraftedPiece asymmetry `notches`/
+// `NotchCm` already has). Three kinds ship geometry today: `dart` (now zero
+// or more per piece, not exactly one -- #122), `foldLine` (a dart's own
+// press line, apex-to-apex for a double-ended/fisheye dart or apex-to-seam
+// for a single-ended one -- distinct from the piece's own cut-on-fold axis,
+// `foldEdge`/`Piece.grainline`'s sibling below), and `drillHole` (1.0-1.5cm
+// short of a dart apex, see lib/draft/core.ts's DRILL_HOLE_SETBACK_CM).
+// `pleat`/`styleLine`/`placementMark` exist so a future pocket/buttonhole/
+// pleat/style-line drafter can attach to this same channel without a second
+// one, but no drafter emits any of the three yet -- #127 decision, settled,
+// not reopened here.
+export type InternalKind =
+  "dart" | "foldLine" | "drillHole" | "pleat" | "styleLine" | "placementMark";
+
+export type PieceInternal =
+  | { kind: "dart"; d: string }
+  | { kind: "foldLine"; x1: number; y1: number; x2: number; y2: number }
+  | { kind: "drillHole"; x: number; y: number; r: number }
+  | { kind: "pleat"; d: string } // reserved -- no drafter emits one yet
+  | { kind: "styleLine"; d: string } // reserved -- no drafter emits one yet
+  | { kind: "placementMark"; x: number; y: number }; // reserved -- no drafter emits one yet
+
 export interface Piece {
   id: string;
   name: string;
@@ -111,10 +136,21 @@ export interface Piece {
   outline: PieceOutline;
   guideOutline?: PieceOutline;
   grainline?: { x1: number; y1: number; x2: number; y2: number };
-  // #122: an array, not a single dart -- a full front/back panel (qty 1,
-  // mirrored about its own centre line) takes two darts, symmetric about
-  // that centre, never one centred on it.
+  // #127 LEGACY: superseded by `internals` below. A pattern drafted before
+  // #127 shipped still carries this key (and no `internals`) in its
+  // persisted blob -- resolvePieceInternals() below is the one place that
+  // reads it; no new draft ever sets it (place(), lib/draft/core.ts, writes
+  // `internals` only). #122's array (not a single dart) already applied
+  // here, before #127 folded it into the new channel.
   darts?: { d: string }[];
+  // #127: drafter-derived internal geometry -- darts, each one's own fold
+  // line, and its drill hole(s); the channel a future pocket/buttonhole/
+  // pleat/drill-mark would also attach to. Absent on a piece with none (a
+  // sleeve, a skirt panel) or drafted before this existed -- call
+  // resolvePieceInternals() below rather than reading this field directly,
+  // so an old blob's `darts` still renders with no reset migration (the
+  // `savedAgo` precedent).
+  internals?: PieceInternal[];
   label: { x: number; y: number };
   vertices?: Point[]; // outline anchors in px, for the measure tool's snap
   // #126: the two `vertices` indices bounding the piece's own cut-on-fold
@@ -358,3 +394,24 @@ export const COSTS = {
   graduate: 6,
   correction: 0,
 } as const;
+
+/**
+ * #127: the one place a legacy `darts` blob is mapped into the new
+ * `internals` shape -- "read the old key once and map it," the `savedAgo`
+ * precedent: no reset migration, an old pattern simply keeps rendering.
+ * Never mixes the two -- a piece redrafted after #127 shipped carries
+ * `internals` and no `darts`; one drafted before it carries `darts` and no
+ * `internals`. Every renderer/exporter of a *persisted* `Piece` (PatternCanvas
+ * today) should call this instead of reading `piece.internals` directly;
+ * export's own `ExportPiece` is always freshly redrafted from `spec` and
+ * never carries the legacy shape at all, so it has no need for this.
+ */
+export function resolvePieceInternals(
+  piece: Pick<Piece, "internals" | "darts">,
+): PieceInternal[] {
+  if (piece.internals) return piece.internals;
+  if (piece.darts?.length) {
+    return piece.darts.map((d) => ({ kind: "dart" as const, d: d.d }));
+  }
+  return [];
+}

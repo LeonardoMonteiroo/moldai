@@ -210,21 +210,26 @@ describe("core drafting", () => {
   it("autoLayout draws each dart open -- no trailing Z, unlike the outline", () => {
     const withDart: DraftedPiece = {
       ...rect("back", 10, 20),
-      dartsCm: [
-        [
-          [3, 2],
-          [4, 6],
-          [5, 2],
-        ],
+      internalsCm: [
+        {
+          kind: "dart",
+          ptsCm: [
+            [3, 2],
+            [4, 6],
+            [5, 2],
+          ],
+        },
       ],
     };
     const { pieces } = autoLayout([withDart], 5);
     const piece = pieces[0];
-    expect(piece.darts).toBeDefined();
-    expect(piece.darts).toHaveLength(1);
-    expect(piece.darts![0].d).not.toMatch(/Z$/);
+    const darts = (piece.internals ?? []).filter((e) => e.kind === "dart");
+    expect(darts).toHaveLength(1);
+    const dart = darts[0];
+    if (dart.kind !== "dart") throw new Error("expected a dart entry");
+    expect(dart.d).not.toMatch(/Z$/);
     // exactly 3 dart points -> 1 M + 2 L commands
-    expect(piece.darts![0].d.match(/[ML]/g)).toHaveLength(3);
+    expect(dart.d.match(/[ML]/g)).toHaveLength(3);
   });
 
   it("autoLayout attaches vertices aligned to the outline's corners", () => {

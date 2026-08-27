@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { SIZE_TABLE, Measurements } from "@/lib/measurements";
 import { draftBody, BlockOpts } from "./body";
-import { bbox, Pt } from "./core";
+import { bbox, dartsOf, Pt } from "./core";
 import { FIT_CLASSES, FIT_EASE_CM, wearingEaseCm } from "./ease";
 import type { FitClass } from "@/lib/types";
 import { t } from "@/lib/i18n/test-translate";
@@ -89,16 +89,54 @@ describe("draftBody sloper", () => {
 
   it("generates two mirrored darts when darts=true (non-knit)", () => {
     const { front } = draftBody(M, { darts: true }, t, optsM);
-    expect(front.dartsCm).toHaveLength(2);
-    for (const dart of front.dartsCm!) {
+    const darts = dartsOf(front.internalsCm);
+    expect(darts).toHaveLength(2);
+    for (const dart of darts) {
       expect(dart.length).toBeGreaterThanOrEqual(3);
     }
     // symmetric about the piece's own centre line (cx), never centred on it
     const b = bbox(front.outlineCm);
     const cx = (b.minX + b.maxX) / 2;
-    const [left, right] = front.dartsCm!;
+    const [left, right] = darts;
     expect(left.every(([x]) => x < cx)).toBe(true);
     expect(right.every(([x]) => x > cx)).toBe(true);
+  });
+
+  // #127: each dart's own fold line/drill hole(s) travel alongside it in
+  // `internalsCm` -- two darts means two of each.
+  it("#127: each dart also gets its own fold line and drill hole(s) in internalsCm", () => {
+    const { front } = draftBody(M, { darts: true }, t, optsM);
+    const kinds = (front.internalsCm ?? []).map((e) => e.kind);
+    expect(kinds.filter((k) => k === "dart")).toHaveLength(2);
+    expect(kinds.filter((k) => k === "foldLine")).toHaveLength(2);
+    // a fisheye (double-ended) dart -- this is the non-dress case -- has two
+    // free apexes, so 2 darts x 2 apexes = 4 drill holes.
+    expect(kinds.filter((k) => k === "drillHole")).toHaveLength(4);
+  });
+
+  // #127 acceptance criterion: drill holes sit 1.0-1.5cm short of the dart
+  // apex they mark, not exactly on it (which would puncture the visible
+  // point) and not further back than the convention allows.
+  it("#127: each drill hole sits 1.0-1.5cm short of the dart apex it marks", () => {
+    const { front } = draftBody(M, { darts: true }, t, optsM);
+    const internals = front.internalsCm ?? [];
+    const darts = internals.filter((e) => e.kind === "dart");
+    const holes = internals.filter((e) => e.kind === "drillHole");
+    expect(holes.length).toBeGreaterThan(0);
+    for (const hole of holes) {
+      if (hole.kind !== "drillHole") continue;
+      // nearest apex across all darts (the fisheye dart's own two ends).
+      let minDist = Infinity;
+      for (const dart of darts) {
+        if (dart.kind !== "dart") continue;
+        for (const [x, y] of dart.ptsCm) {
+          const d = Math.hypot(x - hole.atCm[0], y - hole.atCm[1]);
+          if (d < minDist) minDist = d;
+        }
+      }
+      expect(minDist).toBeGreaterThanOrEqual(1.0 - 1e-6);
+      expect(minDist).toBeLessThanOrEqual(1.5 + 1e-6);
+    }
   });
 
   it("has a straight hem and straight edges (anti-balloon invariant)", () => {
@@ -219,6 +257,34 @@ describe("dressHemHalfCm (#79)", () => {
     const waistY = M.backLength;
     const waistLevelPoints = front.outlineCm.filter(([, y]) => y === waistY);
     expect(waistLevelPoints).toHaveLength(2);
+  });
+
+  // #127: a dress-hem dart is single-ended (its wide end opens onto the
+  // waist seam, #79) -- exactly one free apex per dart, so exactly one
+  // drill hole per dart, each still 1.0-1.5cm short of its own apex.
+  it("#127: a dress-hem (single-ended) dart gets exactly one drill hole, 1.0-1.5cm short of its apex", () => {
+    const { front } = draftBody(M, { darts: true }, t, dressOpts);
+    const internals = front.internalsCm ?? [];
+    const darts = internals.filter((e) => e.kind === "dart");
+    const foldLines = internals.filter((e) => e.kind === "foldLine");
+    const holes = internals.filter((e) => e.kind === "drillHole");
+    expect(darts).toHaveLength(2);
+    expect(foldLines).toHaveLength(2);
+    expect(holes).toHaveLength(2); // one per dart -- single free apex each
+    for (const dart of darts) {
+      if (dart.kind !== "dart") continue;
+      // the apex is the dart's own middle point (leg, apex, leg).
+      const apex = dart.ptsCm[1];
+      const nearest = Math.min(
+        ...holes.map((h) =>
+          h.kind === "drillHole"
+            ? Math.hypot(h.atCm[0] - apex[0], h.atCm[1] - apex[1])
+            : Infinity,
+        ),
+      );
+      expect(nearest).toBeGreaterThanOrEqual(1.0 - 1e-6);
+      expect(nearest).toBeLessThanOrEqual(1.5 + 1e-6);
+    }
   });
 });
 

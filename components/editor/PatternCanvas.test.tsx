@@ -214,18 +214,103 @@ describe("PatternCanvas piece labels", () => {
 // lib/draft/core.ts), so the canvas rendered a fourth segment straight back
 // along the base -- a marking line that isn't part of the dart -- and
 // disagreed with every fixed export format.
-describe("PatternCanvas dart", () => {
+//
+// #127: this also doubles as the legacy-blob regression test -- `darts` (not
+// `internals`) is the shape a pattern drafted before #127 shipped still
+// carries, and resolvePieceInternals() is what has to keep it rendering.
+describe("PatternCanvas dart (legacy `darts` field, still renders -- #127)", () => {
   it("renders each dart path unfilled and open, with no trailing Z", () => {
     const pieceWithDarts: Piece = {
       ...widePiece,
       darts: [{ d: "M30 20 L40 60 L50 20" }, { d: "M60 20 L70 60 L80 20" }],
     };
     const { container } = renderCanvas({ pieces: [pieceWithDarts] });
-    const dartPaths = container.querySelectorAll('path[class*="fill-none"]');
+    const dartPaths = container.querySelectorAll(
+      'path[data-internal-kind="dart"]',
+    );
     expect(dartPaths).toHaveLength(2);
     for (const dartPath of dartPaths) {
       expect(dartPath.getAttribute("d")).not.toMatch(/Z$/);
     }
+  });
+});
+
+// #127: the new internals channel -- dart/foldLine/drillHole each render as
+// a visually distinct SVG element/dash so a piece with more than one dart
+// (and its own fold line/drill holes) reads apart on canvas.
+describe("PatternCanvas internals (#127)", () => {
+  it("renders a dart as a path, its fold line as a dashed line, and a drill hole as a circle", () => {
+    const pieceWithInternals: Piece = {
+      ...widePiece,
+      internals: [
+        { kind: "dart", d: "M30 20 L40 60 L50 20" },
+        { kind: "foldLine", x1: 40, y1: 20, x2: 40, y2: 60 },
+        { kind: "drillHole", x: 40, y: 30, r: 1 },
+      ],
+    };
+    const { container } = renderCanvas({ pieces: [pieceWithInternals] });
+
+    const dart = container.querySelector('path[data-internal-kind="dart"]');
+    expect(dart).not.toBeNull();
+    expect(dart!.getAttribute("d")).toBe("M30 20 L40 60 L50 20");
+
+    const fold = container.querySelector('line[data-internal-kind="foldLine"]');
+    expect(fold).not.toBeNull();
+    expect(fold).toHaveAttribute("x1", "40");
+    expect(fold).toHaveAttribute("y2", "60");
+
+    const hole = container.querySelector(
+      'circle[data-internal-kind="drillHole"]',
+    );
+    expect(hole).not.toBeNull();
+    expect(hole).toHaveAttribute("cx", "40");
+    expect(hole).toHaveAttribute("cy", "30");
+  });
+
+  it("prefers `internals` over the legacy `darts` field when both are present", () => {
+    const piece: Piece = {
+      ...widePiece,
+      darts: [{ d: "M1 1 L2 2 L3 1" }],
+      internals: [{ kind: "drillHole", x: 40, y: 30, r: 1 }],
+    };
+    const { container } = renderCanvas({ pieces: [piece] });
+    expect(
+      container.querySelectorAll('path[data-internal-kind="dart"]'),
+    ).toHaveLength(0);
+    expect(
+      container.querySelectorAll('circle[data-internal-kind="drillHole"]'),
+    ).toHaveLength(1);
+  });
+
+  // Reserved kinds (#127 decision) -- no drafter emits any of the three yet,
+  // but the renderer already handles them so a future drafter doesn't also
+  // need a canvas change.
+  it("renders the reserved pleat/styleLine/placementMark kinds too, each distinctly", () => {
+    const piece: Piece = {
+      ...widePiece,
+      internals: [
+        { kind: "pleat", d: "M10 10 L20 20" },
+        { kind: "styleLine", d: "M30 30 L40 40" },
+        { kind: "placementMark", x: 50, y: 50 },
+      ],
+    };
+    const { container } = renderCanvas({ pieces: [piece] });
+    expect(
+      container.querySelector('path[data-internal-kind="pleat"]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('path[data-internal-kind="styleLine"]'),
+    ).not.toBeNull();
+    const mark = container.querySelector(
+      'circle[data-internal-kind="placementMark"]',
+    );
+    expect(mark).not.toBeNull();
+    expect(mark).toHaveAttribute("cx", "50");
+  });
+
+  it("renders nothing internal for a piece with neither `internals` nor `darts`", () => {
+    const { container } = renderCanvas({ pieces: [widePiece] });
+    expect(container.querySelectorAll("[data-internal-kind]")).toHaveLength(0);
   });
 });
 

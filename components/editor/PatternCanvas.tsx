@@ -5,6 +5,7 @@ import {
   PieceOutline,
   Point,
   Measurement,
+  resolvePieceInternals,
 } from "@/lib/types";
 import { EditorTool } from "@/lib/store";
 import type { GradedOverlay } from "@/lib/draft/garment";
@@ -302,14 +303,74 @@ export function PatternCanvas({
                 style={{ strokeWidth: 1.2, strokeDasharray: "7 5" }}
               />
             )}
-            {piece.darts?.map((dart, i) => (
-              <path
-                key={i}
-                d={dart.d}
-                className="stroke-olive fill-none"
-                style={{ strokeWidth: 1.2 }}
-              />
-            ))}
+            {/* #127: darts (now possibly more than one), each dart's own
+                fold line, and its drill hole(s) -- resolvePieceInternals()
+                falls back to the legacy `piece.darts` field for a pattern
+                drafted before this channel existed, so an old blob keeps
+                rendering its dart(s) with no reset migration. Each kind
+                renders as a visually distinct element/dash so they read
+                apart on canvas. */}
+            {resolvePieceInternals(piece).map((entry, i) => {
+              switch (entry.kind) {
+                case "dart":
+                case "pleat":
+                case "styleLine":
+                  return (
+                    <path
+                      key={i}
+                      d={entry.d}
+                      data-internal-kind={entry.kind}
+                      className="stroke-olive fill-none"
+                      style={
+                        entry.kind === "dart"
+                          ? { strokeWidth: 1.2 }
+                          : { strokeWidth: 1.2, strokeDasharray: "3 2" }
+                      }
+                    />
+                  );
+                case "foldLine":
+                  // A dart's own press line -- distinct from both the
+                  // dart's solid legs above and the piece's cut-on-fold
+                  // axis rendered further below (its own longer chain-dash).
+                  return (
+                    <line
+                      key={i}
+                      x1={entry.x1}
+                      y1={entry.y1}
+                      x2={entry.x2}
+                      y2={entry.y2}
+                      data-internal-kind="foldLine"
+                      className="stroke-olive"
+                      style={{ strokeWidth: 0.8, strokeDasharray: "2 2" }}
+                    />
+                  );
+                case "drillHole":
+                  return (
+                    <circle
+                      key={i}
+                      cx={entry.x}
+                      cy={entry.y}
+                      r={Math.max(2, entry.r)}
+                      data-internal-kind="drillHole"
+                      className="stroke-ink fill-none"
+                      style={{ strokeWidth: 1 }}
+                    />
+                  );
+                case "placementMark":
+                  return (
+                    <circle
+                      key={i}
+                      cx={entry.x}
+                      cy={entry.y}
+                      r={2}
+                      data-internal-kind="placementMark"
+                      className="fill-ink"
+                    />
+                  );
+                default:
+                  return null;
+              }
+            })}
             {/* #124: a short tick from the outline inward at each notch --
                 single/double/triple are told apart purely by how far the
                 tick reaches (NOTCH_DEPTH_CM), matching the printed/exported

@@ -31,6 +31,7 @@ export const PLT_PENS = {
   dart: 5,
   notch: 6,
   text: 7,
+  drillHole: 8, // #127
 } as const;
 
 const u = (cm: number) => Math.round(cm * UNITS_PER_CM);
@@ -148,6 +149,19 @@ export function toPlt(model: ExportModel, opts: PltOptions = {}): string {
       // told apart purely by NOTCH_DEPTH_CM like every other format.
       for (const notch of piece.notches ?? []) {
         emitLine(PLT_PENS.notch, notch.outer, notch.inner);
+      }
+      // #127: a dart's own fold line, on the dart's own pen -- both are the
+      // dart's own construction marks.
+      for (const [a, b] of piece.internalFoldLines ?? []) {
+        emitLine(PLT_PENS.dart, a, b);
+      }
+      // #127: a drill hole -- HPGL/2's native CI (circle) command, centred
+      // by a PU move first; radius in plotter units like everything else
+      // here.
+      for (const hole of piece.drillHoles ?? []) {
+        lines.push(`SP${PLT_PENS.drillHole};`);
+        lines.push(`PU${X(hole.at.x)},${Y(hole.at.y)};`);
+        lines.push(`CI${u(hole.rCm)};`);
       }
 
       // Piece name + qty label, HPGL LB (label), terminated by ETX (\x03) --
