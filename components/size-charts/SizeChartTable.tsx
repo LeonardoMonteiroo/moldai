@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { XIcon } from "lucide-react";
+import { InfoIcon, XIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSizeChartsStore } from "@/lib/sizeChartsStore";
 import { resolveSizeChartSize } from "@/lib/sizeCharts/compute";
@@ -23,6 +23,11 @@ import {
 } from "@/components/ui/dialog";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -255,8 +260,30 @@ export function SizeChartTable() {
               i < MEASUREMENT_KEYS.length - 1 ? "border-line border-b" : "",
             ].join(" ")}
           >
-            <span className="text-muted flex-[2]">
+            <span className="text-muted flex flex-[2] items-center gap-1">
               {t(`measurement.${key}`)}
+              {/* #132: a guided definition — where to put the tape — for
+                  every measurement row, reachable right where the row lives
+                  rather than only documented elsewhere. Popover (not a
+                  hover-only `title`) so it's reachable by keyboard/touch
+                  too, not just a mouse hover. */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon-xs"
+                    aria-label={t("measurementGuideLabel", {
+                      name: t(`measurement.${key}`),
+                    })}
+                    className="text-placeholder hover:text-muted"
+                  >
+                    <InfoIcon />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent side="right" className="text-ui w-64">
+                  {t(`measurementGuide.${key}`)}
+                </PopoverContent>
+              </Popover>
             </span>
             {editingRule ? (
               <input
@@ -445,7 +472,12 @@ function MeasurementCell({
   ariaLabel,
   describedBy,
 }: {
-  value: number;
+  // #132: undefined for an EXTENDED field a chart never set -- a legacy
+  // custom chart, or a system chart from before this shipped. Shown as a
+  // blank cell (the drafter's own fallback proportion still applies at
+  // draft time; this cell is just silent about the exact number), not
+  // substituted with 0 or a stale value.
+  value: number | undefined;
   min: number;
   max: number;
   disabled?: boolean;
@@ -457,16 +489,22 @@ function MeasurementCell({
 }) {
   // null means "not editing" — show the stored value.
   const [editing, setEditing] = useState<string | null>(null);
+  // While editing, Number(editing) is always a `number` (never undefined) --
+  // only the not-editing branch can be undefined (an EXTENDED field the
+  // chart never set). `invalid` only ever evaluates the editing branch (it's
+  // gated on `editing !== null`), so the `parsed === undefined` arm below is
+  // unreachable in practice; it exists to satisfy that at the type level too.
   const parsed = editing === null ? value : Number(editing);
   const invalid =
     editing !== null &&
     (editing.trim() === "" ||
+      parsed === undefined ||
       !Number.isFinite(parsed) ||
       parsed < min ||
       parsed > max);
 
   const finish = () => {
-    if (editing !== null && !invalid) onCommit(parsed);
+    if (editing !== null && !invalid && parsed !== undefined) onCommit(parsed);
     setEditing(null);
     onInvalid(null);
   };
@@ -477,7 +515,7 @@ function MeasurementCell({
       step="0.1"
       min={min}
       max={max}
-      value={editing ?? value}
+      value={editing ?? value ?? ""}
       disabled={disabled}
       aria-invalid={invalid || undefined}
       aria-label={ariaLabel}

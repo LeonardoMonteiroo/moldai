@@ -68,12 +68,38 @@ function bodice(
   // opts; dividing by 4 gives the per-quarter figure this bodice adds to
   // each of its four panels (front-left/right, back-left/right).
   const wearingEase = opts.wearingEaseCm / 4;
-  const halfChest = m.bust / 4 + wearingEase;
+  // #132: the front panel always sizes off the full bust circumference
+  // (cup included, as before) -- but the back panel now prefers a real
+  // across-back measurement when the chart has one, falling back to the
+  // same bust-derived width otherwise. backWidth is a point-to-point width,
+  // not a girth, so it plays bust's role directly (halved, like bust/4 is a
+  // quarter) rather than needing its own divisor.
+  const halfChest =
+    !frontish && m.backWidth !== undefined
+      ? m.backWidth / 2 + wearingEase
+      : m.bust / 4 + wearingEase;
   const armholeDeepen = Math.max(0, style.armholeDeepenCm ?? 0);
-  const armholeDepthBase = m.bust / 8 + (opts.gender === "male" ? 10.5 : 9.5);
+  // #132: armhole depth used to scale with the full bust circumference,
+  // which bakes cup size into a dimension that's really about frame size --
+  // two people with the same 92cm bust but different cups need the same
+  // armhole depth, not one scaled up for the cup. highBust (chest above the
+  // bust, below the arms) is the frame measurement that survives cup
+  // differences, so it takes over here when the chart has it; a chart that
+  // doesn't (including every existing one) falls back to bust exactly as
+  // before -- see lib/measurements.ts's own note on why the system charts'
+  // seeded highBust (== bust) doesn't change this fallback's output either.
+  const armholeDepthBase =
+    (m.highBust ?? m.bust) / 8 + (opts.gender === "male" ? 10.5 : 9.5);
   const armholeDepth = armholeDepthBase + armholeDeepen; // deepened armhole, visible in the outline
-  const shoulderSlope = opts.gender === "male" ? 4.5 : 4.0;
-  const neckHalf = m.bust / 14 + (opts.gender === "male" ? 0.8 : 0);
+  const shoulderSlope = m.shoulderSlope ?? (opts.gender === "male" ? 4.5 : 4.0);
+  // #132: neck opening half-width is a standard 1/6 of the neck
+  // circumference (a common block-drafting ratio) plus the same small male
+  // ease this proportion already carried -- falls back to the old
+  // bust-derived approximation (bust/14) when the chart has no neckGirth.
+  const neckHalf =
+    m.neckGirth !== undefined
+      ? m.neckGirth / 6 + (opts.gender === "male" ? 0.8 : 0)
+      : m.bust / 14 + (opts.gender === "male" ? 0.8 : 0);
   const shoulderHalf = m.shoulder;
   const len = opts.lengthCm;
   const isDressHem = opts.dressHemHalfCm !== undefined;
@@ -356,6 +382,21 @@ export function draftBody(
     // neckline differs by `frontish`), so f.pitchNotchCm === c.pitchNotchCm
     // by construction -- either's value is the garment's one pitch-notch
     // distance, which garment.ts hands to draftSleeve unchanged.
+    //
+    // #132: that construction assumes front and back share the same
+    // halfChest, which is no longer forced -- a chart whose backWidth
+    // genuinely differs from bust/2 (a real narrower/wider back, the whole
+    // point of the field) drafts a back armhole a different length than the
+    // front's, so f.pitchNotchCm and c.pitchNotchCm can now legitimately
+    // diverge. Each panel already places its OWN notch from its OWN local
+    // pitch distance (computed inside bodice(), not from this return value),
+    // so that stays correct either way; what's no longer exact is the
+    // sleeve's single/double notch, which still shares ONE distance
+    // (garment.ts hands it whichever of f/c matches the armhole the cap was
+    // actually drafted against) for both sides. A sleeve notch a few
+    // millimetres off a diverged back's own notch is a labelled-cosmetic
+    // precision gap, not a fit defect -- the seams it marks still sew
+    // together at the lengths seamCheck actually verifies.
     pitchNotchCm: f.pitchNotchCm,
     basePitchNotchCm: f.basePitchNotchCm,
   };

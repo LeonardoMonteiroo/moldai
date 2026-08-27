@@ -281,3 +281,91 @@ describe("notches (#124)", () => {
     expect(front.notches).toHaveLength(5);
   });
 });
+
+// #132: the four EXTENDED_MEASUREMENT_KEYS body.ts reads (neckGirth,
+// highBust, shoulderSlope, backWidth) each override a today-hardcoded
+// proportion when present, and reproduce it exactly when absent -- M
+// (SIZE_TABLE.M) never carries these fields, so every "without" draft below
+// already exercises the fallback branch.
+describe("#132: extended measurement overrides", () => {
+  // Point order for a no-dart, non-dress panel (see bodice()'s push()
+  // sequence): 0 = neckline centre (cf), 2 = left HPS (hpsL), 3 = left
+  // shoulder tip (shL), 5 = left underarm (uaL).
+  it("neckGirth widens the neckline instead of the bust-derived proportion", () => {
+    const narrow = draftBody({ ...M, neckGirth: 24 }, {}, t, optsM);
+    const wide = draftBody({ ...M, neckGirth: 48 }, {}, t, optsM);
+    const neckHalf = (d: typeof narrow) =>
+      Math.abs(d.front.outlineCm[2][0] - d.front.outlineCm[0][0]);
+    expect(neckHalf(wide)).toBeGreaterThan(neckHalf(narrow));
+  });
+
+  it("omitting neckGirth reproduces the bust/14 fallback exactly", () => {
+    // (bust*6)/14, then re-divided by 6 inside the drafter's neckGirth/6,
+    // isn't bit-for-bit bust/14 in IEEE 754 (division/multiplication by the
+    // same constant don't always invert exactly) -- toBeCloseTo per
+    // coordinate is the tolerance every other float geometry assertion in
+    // this file already uses, not a bit-exact toEqual.
+    const withKey = draftBody(
+      { ...M, neckGirth: (M.bust * 6) / 14 },
+      {},
+      t,
+      optsM,
+    );
+    const withoutKey = draftBody(M, {}, t, optsM);
+    withKey.front.outlineCm.forEach(([x, y], i) => {
+      const [ox, oy] = withoutKey.front.outlineCm[i];
+      expect(x).toBeCloseTo(ox, 9);
+      expect(y).toBeCloseTo(oy, 9);
+    });
+  });
+
+  it("highBust overrides the bust-derived armhole depth", () => {
+    const shallow = draftBody({ ...M, highBust: 60 }, {}, t, optsM);
+    const deep = draftBody({ ...M, highBust: 130 }, {}, t, optsM);
+    expect(deep.front.outlineCm[5][1]).toBeGreaterThan(
+      shallow.front.outlineCm[5][1],
+    );
+  });
+
+  it("omitting highBust reproduces the bust-derived armhole depth exactly", () => {
+    const withKey = draftBody({ ...M, highBust: M.bust }, {}, t, optsM);
+    const withoutKey = draftBody(M, {}, t, optsM);
+    expect(withKey.front.outlineCm).toEqual(withoutKey.front.outlineCm);
+  });
+
+  it("shoulderSlope overrides the fixed per-gender constant", () => {
+    const shallow = draftBody({ ...M, shoulderSlope: 2 }, {}, t, optsM);
+    const steep = draftBody({ ...M, shoulderSlope: 7 }, {}, t, optsM);
+    expect(steep.front.outlineCm[3][1]).toBeGreaterThan(
+      shallow.front.outlineCm[3][1],
+    );
+  });
+
+  it("omitting shoulderSlope reproduces the 4.0/4.5 constant exactly", () => {
+    const withKey = draftBody({ ...M, shoulderSlope: 4.0 }, {}, t, optsM);
+    const withoutKey = draftBody(M, {}, t, optsM);
+    expect(withKey.front.outlineCm).toEqual(withoutKey.front.outlineCm);
+  });
+
+  it("backWidth overrides only the back panel's width, leaving the front bust-derived width alone", () => {
+    const narrow = draftBody({ ...M, backWidth: 30 }, {}, t, optsM);
+    const wide = draftBody({ ...M, backWidth: 80 }, {}, t, optsM);
+    expect(bbox(wide.back.outlineCm).w).toBeGreaterThan(
+      bbox(narrow.back.outlineCm).w,
+    );
+    expect(bbox(wide.front.outlineCm).w).toBeCloseTo(
+      bbox(narrow.front.outlineCm).w,
+      5,
+    );
+  });
+
+  it("omitting backWidth reproduces the bust/2 fallback exactly, front and back symmetric", () => {
+    const withKey = draftBody({ ...M, backWidth: M.bust / 2 }, {}, t, optsM);
+    const withoutKey = draftBody(M, {}, t, optsM);
+    expect(withKey.back.outlineCm).toEqual(withoutKey.back.outlineCm);
+    expect(bbox(withoutKey.back.outlineCm).w).toBeCloseTo(
+      bbox(withoutKey.front.outlineCm).w,
+      5,
+    );
+  });
+});

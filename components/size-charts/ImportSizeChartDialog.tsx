@@ -302,8 +302,13 @@ export function ImportSizeChartDialog() {
                       </span>
                       {success.chart.sizes.map((size) => (
                         <span key={size} className="flex-1 text-right">
+                          {/* Non-null: parseSizeChartFile (lib/sizeCharts/import.ts)
+                              always sets every MEASUREMENT_KEYS entry, mapped from
+                              the file or a system-default fallback -- Measurements
+                              only marks the EXTENDED keys optional for charts in
+                              general, not for one this preview was built from. */}
                           {formatCm(
-                            resolveSizeChartSize(success.chart, size)[key],
+                            resolveSizeChartSize(success.chart, size)[key]!,
                           )}
                         </span>
                       ))}

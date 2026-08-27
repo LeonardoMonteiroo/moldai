@@ -629,6 +629,67 @@ describe("drafted decorations stay inside their own piece", () => {
   }
 });
 
+// #132 acceptance criterion: "a chart with none of the new keys drafts
+// byte-identical geometry to today". For each DECORATION_CASES case, drafts
+// twice from the SAME core measurements: once with the six EXTENDED keys
+// entirely absent (a chart written before this issue, or one that simply
+// never sets them -- the real-world case this guards), and once with them
+// explicitly set to literally today's hardcoded proportion, reconstructed
+// here from the same expressions body.ts/sleeve.ts fall back to -- not from
+// lib/sizeCharts/seed.ts's derivation, so this test doesn't just check that
+// module against itself. If the fallback branch in body.ts/sleeve.ts ever
+// stops being a no-op (a wrong divisor, an accidentally-always-taken
+// branch), the two drafts diverge and this fails.
+// Reconstructing neckGirth as (bust*6)/14 so that neckGirth/6 "equals"
+// bust/14 is true mathematically but not bit-for-bit in IEEE 754 (division
+// and multiplication by the same constant don't always invert exactly) --
+// verified empirically: (92*6/14)/6 !== 92/14, off by ~1e-15. That's noise
+// four orders of magnitude below anything a cm-precision pattern cares
+// about, so the comparison below rounds every number in both drafts to 1e-9
+// cm before comparing structurally, rather than asserting bit-exactness
+// floating point arithmetic doesn't actually offer here.
+function roundNumbersDeep<T>(value: T): T {
+  if (typeof value === "number") {
+    return (Number.isFinite(value)
+      ? Math.round(value * 1e9) / 1e9
+      : value) as unknown as T;
+  }
+  if (Array.isArray(value)) {
+    return value.map((v) => roundNumbersDeep(v)) as unknown as T;
+  }
+  if (value !== null && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      out[k] = roundNumbersDeep(v);
+    }
+    return out as T;
+  }
+  return value;
+}
+
+describe("#132: drafting with no extended measurement keys is byte-identical to reconstructing today's formula explicitly", () => {
+  for (const [name, spec] of DECORATION_CASES) {
+    it(name, () => {
+      const male = spec.gender === "male";
+      const base = male ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
+      const withoutExtended: Measurements = { ...base };
+
+      const withFormula: Measurements = {
+        ...base,
+        neckGirth: (base.bust * 6) / 14,
+        highBust: base.bust,
+        shoulderSlope: male ? 4.5 : 4.0,
+        backWidth: base.bust / 2,
+        bicep: base.bust * 0.3,
+      };
+
+      const a = draftPiecesCm(spec, withoutExtended, t);
+      const b = draftPiecesCm(spec, withFormula, t);
+      expect(roundNumbersDeep(b)).toEqual(roundNumbersDeep(a));
+    });
+  }
+});
+
 // #82: reported against a since-superseded version of the waist dart, which
 // was a single wedge centred exactly at cx -- at that x, a deep V-neck plus a
 // short back could push the piece's own top edge (neckDrop) below the dart's

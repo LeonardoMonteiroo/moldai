@@ -88,6 +88,17 @@ const SYNONYMS: Record<string, keyof Measurements> = {
   saia: "skirtLength",
   "manga curta": "shortSleeveLength",
   "manga longa": "longSleeveLength",
+  // #132
+  pescoco: "neckGirth",
+  "circunferencia do pescoco": "neckGirth",
+  "busto alto": "highBust",
+  "contorno acima do busto": "highBust",
+  "declive do ombro": "shoulderSlope",
+  "caimento do ombro": "shoulderSlope",
+  "largura das costas": "backWidth",
+  biceps: "bicep",
+  braco: "bicep",
+  gancho: "rise",
 };
 
 function normalizeHeader(raw: string): string {
@@ -276,7 +287,13 @@ export function parseSizeChartFile(
       ? baseSizeIndex
       : Math.floor((sizeColumns.length - 1) / 2);
 
-  const fallback = buildSystemSizeChart(gender).baseMeasurements;
+  // #132: buildSystemSizeChart's baseMeasurements always carries every
+  // EXTENDED key too (seed.ts computes them from the same table), so this
+  // cast just tells TS what's already true at runtime -- Measurements
+  // itself still marks those keys optional, since a size chart in general
+  // need not set them.
+  const fallback = buildSystemSizeChart(gender)
+    .baseMeasurements as Required<Measurements>;
   const baseMeasurements = {} as Measurements;
   const progressionRule: Partial<Record<keyof Measurements, number>> = {};
   const overrides: Record<string, Partial<Measurements>> = {};

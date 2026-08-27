@@ -2,7 +2,10 @@ import { describe, it, expect } from "vitest";
 import { parseSizeChartFile, type ImportResult } from "./import";
 import { resolveSizeChartSize } from "@/lib/sizeCharts/compute";
 import { buildSystemSizeChart } from "@/lib/sizeCharts/seed";
-import { MEASUREMENT_RANGES } from "@/lib/measurements";
+import {
+  EXTENDED_MEASUREMENT_KEYS,
+  MEASUREMENT_RANGES,
+} from "@/lib/measurements";
 
 // The same measurement table (sizes 38/40/42/44, base "40"), expressed three
 // ways: pt-BR semicolon+comma-decimal, comma+dot-decimal, and transposed
@@ -110,7 +113,14 @@ describe("parseSizeChartFile", () => {
     const { chart, warnings } = ok(
       parseSizeChartFile(SEMI_COMMA_CSV, "grade.csv", "female"),
     );
-    expect(warnings).toEqual([]);
+    // #132: the fixture maps only the original nine columns, so each of the
+    // six new EXTENDED fields legitimately falls back to the system default
+    // with its own missing_measurement warning -- nothing else should be
+    // flagged, since every core column IS present and in range.
+    expect(warnings.every((w) => w.code === "missing_measurement")).toBe(true);
+    expect(warnings.map((w) => w.detail).sort()).toEqual(
+      [...EXTENDED_MEASUREMENT_KEYS].sort(),
+    );
     expect(chart.sizes).toEqual(["38", "40", "42", "44"]);
     expect(chart.baseSizeIndex).toBe(1);
     expect(chart.baseMeasurements.bust).toBe(92);

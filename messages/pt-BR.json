@@ -689,7 +689,13 @@
       "shoulder": "Ombro",
       "skirtLength": "Comprimento de saia",
       "shortSleeveLength": "Manga curta",
-      "longSleeveLength": "Manga longa"
+      "longSleeveLength": "Manga longa",
+      "neckGirth": "Circunferência do pescoço",
+      "highBust": "Busto alto",
+      "shoulderSlope": "Declive do ombro",
+      "backWidth": "Largura das costas",
+      "bicep": "Circunferência do braço",
+      "rise": "Gancho"
     },
     "bodyType": {
       "straight": "reto",
@@ -700,7 +706,25 @@
     "addSizeFieldLabel": "Nome do tamanho",
     "addSizeSaveButton": "Adicionar",
     "addSizeCancelButton": "Cancelar",
-    "maxSizesReachedHint": "Limite de {max} tamanhos atingido."
+    "maxSizesReachedHint": "Limite de {max} tamanhos atingido.",
+    "measurementGuideLabel": "Como medir: {name}",
+    "measurementGuide": {
+      "bust": "Meça ao redor da parte mais cheia do busto, mantendo a fita paralela ao chão.",
+      "waist": "Meça ao redor da cintura natural, no ponto mais fino do tronco.",
+      "hip": "Meça ao redor do quadril, na parte mais larga do bumbum.",
+      "hipHeight": "Meça da cintura até a linha do quadril, na lateral do corpo.",
+      "backLength": "Meça da base da nuca até a cintura, seguindo a coluna.",
+      "shoulder": "Meça do centro do pescoço até a ponta do ombro.",
+      "skirtLength": "Meça da cintura até o comprimento desejado da barra da saia.",
+      "shortSleeveLength": "Meça do ombro até o ponto desejado da manga curta.",
+      "longSleeveLength": "Meça do ombro até o pulso, com o braço levemente dobrado.",
+      "neckGirth": "Meça ao redor da base do pescoço, onde ficaria a gola.",
+      "highBust": "Meça ao redor do tórax, logo acima do busto e abaixo das axilas.",
+      "shoulderSlope": "Meça a queda do ombro: a distância vertical entre a base do pescoço e a ponta do ombro.",
+      "backWidth": "Meça de axila a axila pelas costas, na altura das omoplatas.",
+      "bicep": "Meça ao redor do braço, no ponto mais largo do bíceps.",
+      "rise": "Meça sentada(o), da cintura até o assento, passando entre as pernas."
+    }
   },
   "SizeChartImport": {
     "trigger": "↥ Importar planilha ou tabela de medidas",
