@@ -10,6 +10,16 @@ export function formatCm(v: number): string {
   return v.toFixed(1).replace(".", ",");
 }
 
+// One decimal place, pt-BR comma, an explicit leading "+" for a positive
+// value (a bare "8,3%" reads as neutral; the drafted-ease report, #137,
+// needs the sign to read at a glance since both directions are meaningful —
+// negative is a real, intentional value for a knit, not an error). A
+// negative value already carries its own "-" from toFixed.
+export function formatPct(v: number): string {
+  const sign = v > 0 ? "+" : "";
+  return `${sign}${v.toFixed(1).replace(".", ",")}%`;
+}
+
 // Joins a list as prose. The conjunction is pt-BR in the catalog, not here.
 export function formatList(t: Translate, items: string[]): string {
   if (items.length <= 1) return items.join("");

@@ -1,4 +1,4 @@
-import { FitClass, StretchClass, GarmentStyle } from "@/lib/types";
+import { FitClass, StretchClass, GarmentStyle, Girth } from "@/lib/types";
 
 // A leaf module with no dependency on garment.ts or body.ts: both need these
 // tables (garment.ts's validateSpec/prompt/schema exposure, body.ts's actual
@@ -74,4 +74,28 @@ export function wearingEaseCm(
   return knit
     ? 0 - (bustCm * STRETCH_EASE_PCT[style.stretch ?? "none"]) / 100
     : FIT_EASE_CM[style.fit ?? "fitted"].bust;
+}
+
+// #137: classifies a MEASURED ease value (a drafted-ease report's own
+// finishedCm - bodyCm, lib/draft/easeReport.ts) into one of FIT_CLASSES,
+// using FIT_EASE_CM's own representative points as band centres -- the
+// boundary between two adjacent classes is their midpoint, so a bust ease
+// reading right between "fitted" (8cm) and "semiFitted" (11cm) lands at
+// 9.5cm. This is the SAME table wearingEaseCm draws from (and the one
+// #125's doc comment above cites the published Aldrich bands for), so a
+// MEASURED ease and a REQUESTED one are judged on one shared scale, never a
+// second, competing set of numbers -- per CLAUDE.md's rule that a threshold
+// the AI could reason about has to come from the same exported constant
+// lib/ai/prompt.ts renders from (FIT_CLASSES, via garment.ts's re-export).
+// Below the tightest class's own boundary -- including negative, a knit's
+// own convention (see wearingEaseCm above) -- still reads as "close":
+// there's no class below it to distinguish among, and negative ease is a
+// real, intentional value here, not an error state.
+export function classifyGirthFit(girth: Girth, easeCm: number): FitClass {
+  for (let i = 0; i < FIT_CLASSES.length - 1; i++) {
+    const a = FIT_EASE_CM[FIT_CLASSES[i]][girth];
+    const b = FIT_EASE_CM[FIT_CLASSES[i + 1]][girth];
+    if (easeCm <= (a + b) / 2) return FIT_CLASSES[i];
+  }
+  return FIT_CLASSES[FIT_CLASSES.length - 1];
 }

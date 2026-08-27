@@ -350,10 +350,30 @@
     "chipSeamAllowance": "Folga de costura",
     "chipFit": "Caimento",
     "chipFabric": "Tecido",
-    "chipEase": "Folga (busto)",
     "chipSizeChart": "Grade usada",
     "dimensionsLabel": "Dimensões (larg × alt)",
     "noDetails": "Sem detalhes.",
+    "easeReport": {
+      "title": "Folga do molde",
+      "subtitle": "Molde pronto comparado ao corpo da grade usada",
+      "colGirth": "Medida",
+      "colFinished": "Molde pronto",
+      "colBody": "Corpo (grade)",
+      "colDiff": "Folga",
+      "colFit": "Caimento",
+      "girth": {
+        "bust": "Busto",
+        "waist": "Cintura",
+        "hip": "Quadril"
+      },
+      "unavailable": {
+        "noPanel": "Essa peça não tem uma medida de {girth}.",
+        "unsupportedSilhouette": "Não dá pra medir o {girth} nessa silhueta de saia."
+      },
+      "capArmhole": "Cava (corpo)",
+      "capSleeve": "Copa (manga)",
+      "capEase": "Folga da cava/copa"
+    },
     "garmentType": {
       "blouse": "Blusa",
       "dress": "Vestido",

@@ -1,10 +1,21 @@
 import { useTranslations } from "next-intl";
 import { Pattern } from "@/lib/types";
 import { buildExportModel } from "@/lib/export/model";
-import { wearingEaseCm } from "@/lib/draft/garment";
-import { formatCm as cm } from "@/lib/format";
+import {
+  buildEaseReport,
+  GIRTHS,
+  type EaseReport,
+} from "@/lib/draft/easeReport";
+import { formatCm as cm, formatPct } from "@/lib/format";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export function TechSheetTab({ pattern }: { pattern: Pattern }) {
   const t = useTranslations("TechSheetTab");
@@ -38,11 +49,14 @@ export function TechSheetTab({ pattern }: { pattern: Pattern }) {
     (pattern.spec.type === "blouse" ||
       pattern.spec.type === "dress" ||
       pattern.spec.type === "tshirt");
-  const baseBustCm = pattern.sizeTable[pattern.baseSize]?.bust;
-  const easeCm =
-    hasBodice && pattern.spec && baseBustCm !== undefined
-      ? wearingEaseCm(pattern.spec.style, knit, baseBustCm)
-      : undefined;
+
+  // #137: the drafted-ease report -- finished garment girth vs. the frozen
+  // sizeTable row it was drafted from, measured off the actual geometry
+  // (never the wearingEaseCm the drafter was merely ASKED for, which the
+  // chipFit/chipFabric chips above already surface). Pure/null-safe -- no
+  // try/catch needed, buildEaseReport returns null itself rather than
+  // throwing when there's nothing to measure yet.
+  const easeReport = pattern.spec ? buildEaseReport(pattern, tData) : null;
 
   return (
     <ScrollArea className="min-h-0 flex-1">
@@ -86,15 +100,16 @@ export function TechSheetTab({ pattern }: { pattern: Pattern }) {
                 }
               />
             )}
-            {easeCm !== undefined && (
-              <Chip label={t("chipEase")} value={`${cm(easeCm)} cm`} />
-            )}
             {/* Absent on patterns drafted before the snapshot recorded it —
                 omitted rather than guessed at. */}
             {pattern.sizeChartName && (
               <Chip label={t("chipSizeChart")} value={pattern.sizeChartName} />
             )}
           </div>
+        )}
+
+        {easeReport && (
+          <EaseReportCard report={easeReport} t={t} tData={tData} />
         )}
 
         <div className="flex flex-col gap-3">
@@ -151,6 +166,96 @@ export function TechSheetTab({ pattern }: { pattern: Pattern }) {
         </div>
       </div>
     </ScrollArea>
+  );
+}
+
+// #137: the drafted-ease report -- finished garment girth vs. the frozen
+// sizeTable row, cm and %, plus the fit class those numbers imply
+// (tData("fit." + …), the SAME PatternData.fit.* catalog the chipFit chip
+// above reads, per the catalog-lookup-keyed-by-EN-enum rule: never a second
+// label map). A girth with no matching panel (or, for a radial skirt
+// silhouette, no reliable height scan) renders as an explicit note instead
+// of a row -- CLAUDE.md's "surface a scope boundary where the user meets
+// it," never a silent omission.
+function EaseReportCard({
+  report,
+  t,
+  tData,
+}: {
+  report: EaseReport;
+  t: ReturnType<typeof useTranslations>;
+  tData: ReturnType<typeof useTranslations>;
+}) {
+  return (
+    <div className="border-border rounded-card bg-surface mb-4 overflow-hidden border">
+      <div className="bg-surface-alt border-line flex items-baseline gap-2 border-b px-3 py-[9px]">
+        <span className="text-control font-semibold">
+          {t("easeReport.title")}
+        </span>
+        <span className="text-muted text-ui">{t("easeReport.subtitle")}</span>
+      </div>
+      {report.girths.length > 0 && (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t("easeReport.colGirth")}</TableHead>
+              <TableHead>{t("easeReport.colFinished")}</TableHead>
+              <TableHead>{t("easeReport.colBody")}</TableHead>
+              <TableHead>{t("easeReport.colDiff")}</TableHead>
+              <TableHead>{t("easeReport.colFit")}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {GIRTHS.map((girth) => {
+              const g = report.girths.find((e) => e.girth === girth);
+              if (!g) return null;
+              return (
+                <TableRow key={girth}>
+                  <TableCell className="font-medium">
+                    {t("easeReport.girth." + girth)}
+                  </TableCell>
+                  <TableCell>{cm(g.finishedCm)} cm</TableCell>
+                  <TableCell>{cm(g.bodyCm)} cm</TableCell>
+                  {/* Negative ease is shown as such (a knit is drafted that
+                      way on purpose), never hidden or treated as an error. */}
+                  <TableCell>
+                    {cm(g.diffCm)} cm ({formatPct(g.diffPct)})
+                  </TableCell>
+                  <TableCell>{tData("fit." + g.fitClass)}</TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      )}
+      {report.unavailable.length > 0 && (
+        <div className="text-muted text-ui flex flex-col gap-1 px-3 py-[9px]">
+          {report.unavailable.map((u) => (
+            <span key={u.girth}>
+              {t(`easeReport.unavailable.${u.reason}`, {
+                girth: t(`easeReport.girth.${u.girth}`).toLowerCase(),
+              })}
+            </span>
+          ))}
+        </div>
+      )}
+      {report.cap && (
+        <div className="border-line flex flex-wrap gap-2 border-t px-3 py-[9px]">
+          <Chip
+            label={t("easeReport.capArmhole")}
+            value={`${cm(report.cap.armholeArcCm)} cm`}
+          />
+          <Chip
+            label={t("easeReport.capSleeve")}
+            value={`${cm(report.cap.capArcCm)} cm`}
+          />
+          <Chip
+            label={t("easeReport.capEase")}
+            value={`${cm(report.cap.easeCm)} cm`}
+          />
+        </div>
+      )}
+    </div>
   );
 }
 

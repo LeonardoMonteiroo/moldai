@@ -15,6 +15,8 @@ import {
 import { MEASUREMENT_RANGES } from "@/lib/measurements";
 import { COSTS } from "@/lib/types";
 import { EXPORT_FORMATS } from "@/lib/export/formats";
+import { buildEaseReport } from "@/lib/draft/easeReport";
+import type { Translate } from "@/lib/i18n/translate";
 
 const fmtRange = (r: { min: number; max: number }) => `${r.min}–${r.max} cm`;
 
@@ -81,7 +83,7 @@ The user's message may include an attached photo or sketch of a garment. Use it 
 
 # Modeling knowledge
 
-The user may ask a question instead of ordering a garment: what a pence (dart) is, what the cava (armhole), copa (sleeve cap) or fio (grain) means, why a sleeve won't close, how graduação (grading) works, what changes between knit and woven fabric. Answer those from your pattern-making knowledge with decision=explain. Keep it short and practical — two or three sentences, plain words, no lecture — and relate it to the pattern on screen when that helps.
+The user may ask a question instead of ordering a garment: what a pence (dart) is, what the cava (armhole), copa (sleeve cap) or fio (grain) means, why a sleeve won't close, how graduação (grading) works, what changes between knit and woven fabric. Answer those from your pattern-making knowledge with decision=explain. Keep it short and practical — two or three sentences, plain words, no lecture — and relate it to the pattern on screen when that helps. If the user asks whether the pattern will fit tight/loose/apertado/largo, cite the real numbers from "Drafted ease report" below (finished garment girth vs. body, in cm and %, plus the fit class those numbers imply) rather than guessing — it is derived from the actual drafted geometry, not from the requested fit/stretch style field.
 
 # Product facts
 
@@ -109,6 +111,14 @@ If the user asks for a value outside its valid range, set the nearest bound in t
 
 Write assistantMessage, and any question labels/options, in the natural language of the user's most recent message — mirror it exactly, never default to a fixed language.`;
 
+// #137: buildEaseReport needs a Translate (draftPiecesCm/measureSeamGraph's
+// own signature, used elsewhere to resolve drafter-emitted display text)
+// but this module never renders any -- the report's own fields are plain
+// numbers/enum strings, and this whole prompt is deliberately English/
+// i18n-free (see the file-top note). An identity resolver is enough; it is
+// never actually invoked for any string the AI reads.
+const NO_OP_T: Translate = (key) => key;
+
 export function buildSystem(state: PatternState, answering: boolean): string {
   const isEmpty = state.pattern.pieces.length === 0;
   const lines = [
@@ -132,5 +142,18 @@ export function buildSystem(state: PatternState, answering: boolean): string {
     "Current pattern spec:",
     JSON.stringify(state.pattern.spec ?? null),
   );
+  // #137: the drafted-ease report -- finished garment girth vs. the frozen
+  // sizeTable row, cm/%/fit class, plus cap ease -- so an explain answer
+  // about fit can cite real numbers instead of guessing from the spec
+  // alone. null (no spec yet, or nothing measurable) simply omits the
+  // section rather than printing a misleading empty one.
+  const ease = buildEaseReport(state.pattern, NO_OP_T);
+  if (ease) {
+    lines.push(
+      "",
+      "Drafted ease report (finished garment vs. body; girths in cm/%, fit class from the same table 'fit' above uses; cap ease = sleeve cap arc minus full armhole arc):",
+      JSON.stringify(ease),
+    );
+  }
   return `${STATIC_SECTIONS}\n\n${lines.join("\n")}`;
 }
