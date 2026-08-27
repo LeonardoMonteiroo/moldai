@@ -1,5 +1,6 @@
 import { EXPORT_FORMATS, type ExportFormat } from "./formats";
 import { FABRIC_WIDTHS_CM } from "./cutplan";
+import type { PdfPageSize } from "./pdf";
 
 // #17: the "O que vai no arquivo" panel's remembered choices. Most of these
 // fields are inert today — Margem de costura/Piques e fio/Nome das peças
@@ -20,6 +21,12 @@ export interface ExportPreset {
   marks: MarksMode;
   pieceNaming: PieceNamingMode;
   fabricWidthCm: number;
+  // #136: which named page format the tiled pdf-a4 mode tiles onto.
+  pageSize: PdfPageSize;
+  // #135/#136: roll width in cm for the pdf-single/plt copyshop-plotter
+  // split -- null means "no split" (a plain single sheet / one HPGL page),
+  // the pre-existing behavior for both formats.
+  rollWidthCm: number | null;
 }
 
 export const DEFAULT_EXPORT_PRESET: ExportPreset = {
@@ -28,6 +35,8 @@ export const DEFAULT_EXPORT_PRESET: ExportPreset = {
   marks: "include",
   pieceNaming: "moldai",
   fabricWidthCm: 150,
+  pageSize: "a4",
+  rollWidthCm: null,
 };
 
 function isExportFormat(value: unknown): value is ExportFormat {
@@ -41,6 +50,31 @@ function isFabricWidth(value: unknown): value is number {
   return (
     typeof value === "number" &&
     (FABRIC_WIDTHS_CM as readonly number[]).includes(value)
+  );
+}
+
+const PAGE_SIZES: readonly PdfPageSize[] = ["a4", "a0", "letter"];
+
+function isPageSize(value: unknown): value is PdfPageSize {
+  return (
+    typeof value === "string" &&
+    (PAGE_SIZES as readonly string[]).includes(value)
+  );
+}
+
+// A free numeric input (issue #135's decision), not just the three presets
+// -- clamped to a sane physical range rather than restricted to the preset
+// list, the same "drop or clamp, never throw" trust-boundary shape
+// validateSizeChartPatch uses.
+const MIN_ROLL_WIDTH_CM = 20;
+const MAX_ROLL_WIDTH_CM = 500;
+
+function isRollWidth(value: unknown): value is number {
+  return (
+    typeof value === "number" &&
+    Number.isFinite(value) &&
+    value >= MIN_ROLL_WIDTH_CM &&
+    value <= MAX_ROLL_WIDTH_CM
   );
 }
 
@@ -67,5 +101,9 @@ export function validateExportPreset(input: unknown): ExportPreset {
     fabricWidthCm: isFabricWidth(obj.fabricWidthCm)
       ? obj.fabricWidthCm
       : DEFAULT_EXPORT_PRESET.fabricWidthCm,
+    pageSize: isPageSize(obj.pageSize)
+      ? obj.pageSize
+      : DEFAULT_EXPORT_PRESET.pageSize,
+    rollWidthCm: isRollWidth(obj.rollWidthCm) ? obj.rollWidthCm : null,
   };
 }

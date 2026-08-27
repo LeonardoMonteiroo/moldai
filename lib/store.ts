@@ -12,6 +12,7 @@ import {
 } from "./types";
 import type { PreparedAttachment } from "./editor/attachment";
 import type { PaidPlanId } from "./billing/plans";
+import type { NestingMode } from "./export/cutplan";
 
 export type EditorTab = "pattern2d" | "proof3d" | "techsheet" | "cutplan";
 export type EditorTool = "cursor" | "measure";
@@ -59,6 +60,16 @@ interface EditorStore {
   activeTool: EditorTool;
   measurements: Measurement[];
 
+  // #8: the cut-plan tab's own UI state, lifted here because Radix
+  // unmounts the inactive TabsContent (no forceMount), so a plain
+  // component-local useState died on every tab switch -- including the
+  // fabric-width choice that already existed before this. Clamping stays in
+  // lib/export/cutplan.ts (clampOriginCm) and is applied by the caller: the
+  // store itself doesn't know piece sizes.
+  cutFabricWidthCm: number;
+  nestingMode: NestingMode;
+  cutPlacements: Record<string, { x: number; y: number }>;
+
   generationStatus: GenerationStatus;
   generationStepIndex: number;
   generationRequestId: number;
@@ -95,6 +106,12 @@ interface EditorStore {
   addMeasurement: (m: Measurement) => void;
   removeMeasurement: (id: string) => void;
   clearMeasurements: () => void;
+
+  setCutFabricWidth: (widthCm: number) => void;
+  setNestingMode: (mode: NestingMode) => void;
+  setCutPlacement: (id: string, originCm: { x: number; y: number }) => void;
+  seedCutPlacements: (record: Record<string, { x: number; y: number }>) => void;
+  resetCutPlacements: () => void;
 }
 
 function applyState(
@@ -130,6 +147,10 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   detailsPanelOpen: true,
   activeTool: "cursor",
   measurements: [],
+
+  cutFabricWidthCm: 150,
+  nestingMode: "auto",
+  cutPlacements: {},
 
   generationStatus: "idle",
   generationStepIndex: 0,
@@ -167,6 +188,9 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
             selectedPieceId: null,
             detailsPanelOpen: true,
             measurements: [],
+            cutFabricWidthCm: 150,
+            nestingMode: "auto" as NestingMode,
+            cutPlacements: {},
             generationStatus: "idle" as GenerationStatus,
             generationStepIndex: 0,
             generationRequestId: get().generationRequestId + 1,
@@ -318,8 +342,15 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       ...(shouldSelectFirst
         ? { selectedPieceId: result.state.pattern.pieces[0].id }
         : {}),
+      // #8: a regeneration changes the copy set (piece count/quantities can
+      // change), so placements keyed on `pieceId#n` become meaningless --
+      // same reset trigger as measurements above.
       ...(result.state.pattern.version !== prevVersion
-        ? { measurements: [] }
+        ? {
+            measurements: [],
+            cutPlacements: {},
+            nestingMode: "auto" as NestingMode,
+          }
         : {}),
     });
   },
@@ -471,6 +502,13 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   removeMeasurement: (id) =>
     set((s) => ({ measurements: s.measurements.filter((m) => m.id !== id) })),
   clearMeasurements: () => set({ measurements: [] }),
+
+  setCutFabricWidth: (widthCm) => set({ cutFabricWidthCm: widthCm }),
+  setNestingMode: (mode) => set({ nestingMode: mode }),
+  setCutPlacement: (id, originCm) =>
+    set((s) => ({ cutPlacements: { ...s.cutPlacements, [id]: originCm } })),
+  seedCutPlacements: (record) => set({ cutPlacements: record }),
+  resetCutPlacements: () => set({ cutPlacements: {} }),
 }));
 
 export { GENERATION_STEP_COUNT };

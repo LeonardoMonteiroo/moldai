@@ -18,6 +18,10 @@
     "formatDxfAamaNote": "Camadas numeradas D6673. Ainda sem furos.",
     "formatPdfA4": "PDF · A4 (colar em casa)",
     "formatPdfSingle": "PDF · folha única (plotter)",
+    "formatPdfLayered": "PDF · tamanhos em camadas",
+    "formatPdfLayeredNote": "Inclui o tamanho-base e os tamanhos já graduados, uma camada por tamanho, com legenda.",
+    "formatPlt": "PLT · HPGL/2 (plotter)",
+    "formatPltNote": "Testado em um plotter HPGL/2 genérico — variantes Audaces/Molde.me podem ter diferenças de dialeto.",
     "statusConflict": "v{version} · não exportável com conflito",
     "statusGenerating": "gerando molde…",
     "statusReady": "{copyCount, plural, one {# cópia} other {# cópias}} · base {baseSize} · unidade {unit}",
@@ -224,6 +228,8 @@
     },
     "pdf": {
       "pageLabel": "Página {pageNumber} de {totalPages} · Linha {rowNumber} · Coluna {colNumber} de {totalRows}x{totalCols}",
+      "stripLabel": "Faixa {stripNumber} de {totalStrips}",
+      "layerConfigName": "Tamanhos",
       "rulerLabel": "10 cm - confira a escala"
     },
     "exportFailed": "A exportação falhou. Tente novamente.",
@@ -265,7 +271,18 @@
     "metricPieceCountLabel": "Peças no corte",
     "metricPieceCountHint": "cópias (peça × quantidade)",
     "overflowWarning": "Alguma peça é mais larga que o tecido — use um tecido mais largo ou reduza a peça.",
-    "layoutNote": "Encaixe automático first-fit (não ótimo) · fio travado, sem rotação das peças · cada peça repetida pela quantidade a cortar. Linha líquida — sem margem de costura. Encaixe manual e otimizado <em>em breve</em>."
+    "overlapWarning": "Há cópias sobrepostas — o consumo e o aproveitamento não valem enquanto isso.",
+    "modeLabel": "Encaixe",
+    "mode": {
+      "auto": "Automático",
+      "manual": "Manual"
+    },
+    "manualHint": "Arraste uma cópia para reposicionar, ou use as setas do teclado — Shift para passos maiores.",
+    "resetManual": "Refazer encaixe automático",
+    "instanceLabel": "{name} · {x} cm × {y} cm",
+    "movedAnnouncement": "{name} em {x} cm × {y} cm",
+    "layoutNoteAuto": "Melhor de dois encaixes automáticos (prateleiras e skyline) · encaixa a caixa delimitadora de cada peça, não o contorno · fio travado, sem rotação das peças · cada peça repetida pela quantidade a cortar · linha de corte, já com a margem de costura.",
+    "layoutNoteManual": "Arraste ou use o teclado para reposicionar cada cópia · fio travado, sem rotação das peças · linha de corte, já com a margem de costura. Salvar o encaixe manual entre sessões <em>em breve</em>."
   },
   "Export": {
     "title": "Exportar",
@@ -277,15 +294,25 @@
     "comingSoonTitle": "Este formato ainda não existe — acompanhe no backlog.",
     "format": {
       "moldeme": "Molde.me · .dxf + metadados",
-      "plotter": "Plotter · .plt · .hpgl",
       "techsheet": "Ficha técnica · .pdf · .xlsx"
     },
-    "formatPlotterNote": "Acompanhe o progresso na issue #135.",
     "optionsHeading": "O que vai no arquivo",
     "sizeLabel": "Tamanhos",
     "sizeBaseOption": "{size} (base)",
     "sizeSingleOnlyNote": "Um tamanho por arquivo — exportação com vários tamanhos no mesmo arquivo chega em breve.",
     "sizeNoOtherSizesTitle": "Grade este molde para exportar outros tamanhos além do base.",
+    "pageSizeLabel": "Tamanho da página",
+    "pageSize": {
+      "a4": "A4",
+      "a0": "A0 (gráfica)",
+      "letter": "Carta (Letter)"
+    },
+    "pageSizeNote": "Formato das folhas do PDF ladrilhado.",
+    "rollWidthLabel": "Largura do rolo",
+    "rollWidthNoneOption": "Sem divisão (folha única)",
+    "rollWidthCustomPlaceholder": "Outra largura (cm)",
+    "rollWidthCustomLabel": "Largura do rolo personalizada, em centímetros",
+    "rollWidthNote": "Divide o molde em faixas numeradas quando ele é mais largo que o rolo.",
     "seamAllowanceLabel": "Margem de costura",
     "seamAllowanceIncludedOption": "{cm} cm incluída",
     "seamAllowanceDisabledTitle": "A linha de corte já inclui essa margem em todo formato exportado — desativar ou trocar o valor aqui chega em breve.",

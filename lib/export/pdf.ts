@@ -2,10 +2,37 @@ import type { ExPt, ExportModel, ExportPiece } from "./model";
 import type { Translate } from "@/lib/i18n/translate";
 import { flattenOutlineCm } from "./dxf";
 import { estimateTextWidth } from "@/lib/canvas/pieceLabel";
+import { planRollStrips, STRIP_OVERLAP_CM } from "./strips";
 
-export type PdfMode = "a4" | "single";
+// #136: "a4" here means the *tiled* mode (the original name, kept for
+// backward compatibility with every existing call site/test that already
+// passes the literal string) -- which named page format it tiles onto is
+// now a separate `pageSize` option (below), not implied by this value.
+// "roll" is the new copyshop/plotter mode: a single continuous strip per
+// column, split at `rollWidthCm` when the pattern is wider than the roll
+// (shared math with the PLT writer's own strip splitting, lib/export/strips.ts).
+export type PdfMode = "a4" | "single" | "roll";
 
-const A4 = { pageWcm: 21, pageHcm: 29.7, marginCm: 0.8 };
+// #136: the tiled mode's page format -- A4 (unchanged default), A0 (the
+// copyshop plotter format), and Letter (US paper, ~nothing extra to support
+// once the size is a parameter). Each has its own margin: A0's is widened a
+// little for handling/binding at that size, matching common printshop
+// convention; Letter keeps A4's.
+export type PdfPageSize = "a4" | "a0" | "letter";
+
+export const PDF_PAGE_SIZES: Record<
+  PdfPageSize,
+  { pageWcm: number; pageHcm: number; marginCm: number }
+> = {
+  a4: { pageWcm: 21, pageHcm: 29.7, marginCm: 0.8 },
+  a0: { pageWcm: 84.1, pageHcm: 118.9, marginCm: 1.5 },
+  letter: { pageWcm: 21.59, pageHcm: 27.94, marginCm: 0.8 },
+};
+
+// "single" mode (no tiling) has always used A4's own margin regardless of
+// the tiled pageSize choice -- kept exactly as before so every existing
+// pdf-single caller/test is unaffected by pageSize being introduced.
+const SINGLE_MARGIN_CM = PDF_PAGE_SIZES.a4.marginCm;
 const OVERLAP_A4_CM = 1;
 const PT_POR_CM = 72 / 2.54; // PDF points per cm (physical 1:1)
 // Font sizes of the two text draws in toPdf below -- kept alongside
@@ -118,6 +145,16 @@ function tileIntersectsBBox(
   );
 }
 
+export interface PlanTilesOptions {
+  // #136: which named page format the tiled ("a4") mode tiles onto.
+  // Defaults to "a4", preserving every pre-existing call's behavior.
+  pageSize?: PdfPageSize;
+  // #135/#136: the roll's physical width, only used in "roll" mode. When
+  // omitted (or when the sheet already fits), "roll" degenerates to a
+  // single full-length strip.
+  rollWidthCm?: number;
+}
+
 export function planTiles(
   sheetWcm: number,
   sheetHcm: number,
@@ -130,9 +167,10 @@ export function planTiles(
   // below, which exercise the layout math on its own) rather than silently
   // getting that behavior by forgetting the argument.
   pieceBBoxes: CmRect[] | null,
+  opts: PlanTilesOptions = {},
 ): TilePlan {
   if (mode === "single") {
-    const marginCm = A4.marginCm;
+    const marginCm = SINGLE_MARGIN_CM;
     return {
       pageWcm: sheetWcm + 2 * marginCm,
       pageHcm: sheetHcm + 2 * marginCm,
@@ -145,7 +183,54 @@ export function planTiles(
       pages: [{ row: 0, col: 0, pageNumber: 1, originCm: { x: 0, y: 0 } }],
     };
   }
-  const { pageWcm, pageHcm, marginCm } = A4;
+
+  // #135/#136: the copyshop/plotter roll mode -- a single row of numbered
+  // strips, each up to `rollWidthCm` wide and the sheet's FULL height (roll
+  // length is unconstrained, unlike the tiled mode's page height), overlapping
+  // by STRIP_OVERLAP_CM so neighbouring strips can be taped/aligned in
+  // register. Shares its splitting math with the PLT writer
+  // (lib/export/strips.ts) so the two formats report the same strip count
+  // for the same roll width.
+  if (mode === "roll") {
+    const marginCm = SINGLE_MARGIN_CM;
+    const rollWidthCm =
+      opts.rollWidthCm && opts.rollWidthCm > 0 ? opts.rollWidthCm : sheetWcm;
+    const usableWcm = Math.max(1, rollWidthCm - 2 * marginCm);
+    const usableHcm = sheetHcm;
+    const { strips } = planRollStrips(sheetWcm, usableWcm, STRIP_OVERLAP_CM);
+
+    const hasGeometry = (originCm: ExPt) => {
+      if (!pieceBBoxes) return true;
+      return pieceBBoxes.some((b) =>
+        tileIntersectsBBox(originCm, usableWcm, usableHcm, b),
+      );
+    };
+
+    const pages: TilePlan["pages"] = [];
+    for (const strip of strips) {
+      const originCm = { x: strip.originCm.x, y: 0 };
+      if (!hasGeometry(originCm)) continue;
+      pages.push({
+        row: 0,
+        col: strip.stripNumber - 1,
+        pageNumber: pages.length + 1,
+        originCm,
+      });
+    }
+    return {
+      pageWcm: rollWidthCm,
+      pageHcm: sheetHcm + 2 * marginCm,
+      marginCm,
+      overlapCm: STRIP_OVERLAP_CM,
+      usableWcm,
+      usableHcm,
+      cols: strips.length,
+      rows: 1,
+      pages,
+    };
+  }
+
+  const { pageWcm, pageHcm, marginCm } = PDF_PAGE_SIZES[opts.pageSize ?? "a4"];
   const overlapCm = OVERLAP_A4_CM;
   const stepW = pageWcm - 2 * marginCm - overlapCm;
   const stepH = pageHcm - 2 * marginCm - overlapCm;
@@ -194,10 +279,17 @@ export async function toPdf(
   model: ExportModel,
   mode: PdfMode,
   t: Translate,
+  opts: PlanTilesOptions = {},
 ): Promise<Uint8Array> {
   const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
   const bboxes = pieceBBoxesCm(model.pieces, model.foldLabel);
-  const plan = planTiles(model.sheetWidthCm, model.sheetHeightCm, mode, bboxes);
+  const plan = planTiles(
+    model.sheetWidthCm,
+    model.sheetHeightCm,
+    mode,
+    bboxes,
+    opts,
+  );
   const doc = await PDFDocument.create();
   const font = await doc.embedFont(StandardFonts.Helvetica);
 
@@ -339,7 +431,7 @@ export async function toPdf(
       });
     }
 
-    if (mode === "a4") {
+    if (mode === "a4" || (mode === "roll" && plan.pages.length > 1)) {
       // usable-area rectangle (cut/glue line)
       page.drawRectangle({
         x: plan.marginCm * PT_POR_CM,
@@ -350,23 +442,31 @@ export async function toPdf(
         borderWidth: 0.5,
         borderDashArray: [3, 2],
       });
-      page.drawText(
-        t("pdf.pageLabel", {
-          pageNumber: tile.pageNumber,
-          totalPages: plan.pages.length,
-          rowNumber: tile.row + 1,
-          colNumber: tile.col + 1,
-          totalRows: plan.rows,
-          totalCols: plan.cols,
-        }),
-        {
-          x: plan.marginCm * PT_POR_CM,
-          y: plan.marginCm * 0.3 * PT_POR_CM,
-          size: 7,
-          font,
-          color: TXT,
-        },
-      );
+      // #136: "roll" is one row of numbered strips (no vertical tiling, the
+      // roll's length is unconstrained) -- its own label key rather than
+      // reusing pdf.pageLabel's row/col phrasing, which describes a grid
+      // this mode doesn't have. Only drawn once the sheet actually needed
+      // splitting (pages.length > 1); a single-strip roll export stays as
+      // unmarked as a plain "single" sheet always has been.
+      const labelKey = mode === "roll" ? "pdf.stripLabel" : "pdf.pageLabel";
+      const labelValues: Record<string, string | number> =
+        mode === "roll"
+          ? { stripNumber: tile.pageNumber, totalStrips: plan.pages.length }
+          : {
+              pageNumber: tile.pageNumber,
+              totalPages: plan.pages.length,
+              rowNumber: tile.row + 1,
+              colNumber: tile.col + 1,
+              totalRows: plan.rows,
+              totalCols: plan.cols,
+            };
+      page.drawText(t(labelKey, labelValues), {
+        x: plan.marginCm * PT_POR_CM,
+        y: plan.marginCm * 0.3 * PT_POR_CM,
+        size: 7,
+        font,
+        color: TXT,
+      });
     }
 
     // 10 cm calibration ruler — 1st page (a4) or the single page (single)
@@ -405,6 +505,206 @@ export async function toPdf(
         color: TXT,
       });
     }
+  });
+
+  return await doc.save();
+}
+
+// #136: distinguishable per-size line colors -- pdf-lib has no native dash
+// "style" concept beyond dashArray, and every size needs to stay legible
+// overlaid on the same page, so color is the "distinct line style" this
+// legend/layer feature promises. Cycles if there are more sizes than colors.
+const LAYER_PALETTE: readonly [number, number, number][] = [
+  [0, 0, 0], // base/first size: plain ink
+  [0.72, 0.18, 0.18], // red
+  [0.16, 0.35, 0.68], // blue
+  [0.2, 0.55, 0.28], // green
+  [0.58, 0.32, 0.68], // purple
+];
+
+// Cycles rather than indexing out of bounds for a 6th+ size.
+function paletteColor(i: number): [number, number, number] {
+  return LAYER_PALETTE[i % LAYER_PALETTE.length] ?? LAYER_PALETTE[0]!;
+}
+
+const LEGEND_ROW_H_CM = 0.6;
+const LEGEND_MARGIN_CM = 1;
+
+export interface SizedExportModel {
+  size: string;
+  model: ExportModel;
+}
+
+/**
+ * #136: a single-page, multi-size PDF -- each size's cut line + grainline +
+ * notches drawn in its own color, wrapped in a real PDF Optional Content
+ * Group (OCG) so a PDF viewer with a layers panel can toggle sizes on/off,
+ * plus an always-visible legend (color swatch + size label) and the same
+ * 10cm calibration ruler every other mode carries. Requires at least one
+ * size; a single size still produces a valid (if trivial) one-layer PDF.
+ *
+ * This is deliberately NOT layered onto the tiled/roll modes above -- a
+ * layered comparison is inherently a single-page "everything overlaid"
+ * artifact, the same way a real cutting room's graded-nest reference sheet
+ * works, and grading is scoped down at #59 to real per-size geometry via
+ * buildExportModel's own `size` parameter (each entry here is redrafted
+ * from the pattern's frozen sizeTable, not guessed).
+ */
+export async function toPdfLayered(
+  sizedModels: SizedExportModel[],
+  t: Translate,
+): Promise<Uint8Array> {
+  if (sizedModels.length === 0) {
+    throw new Error("toPdfLayered: at least one size is required");
+  }
+  const {
+    PDFDocument,
+    StandardFonts,
+    rgb,
+    PDFName,
+    PDFString,
+    PDFOperator,
+    PDFOperatorNames,
+  } = await import("pdf-lib");
+
+  const marginCm = SINGLE_MARGIN_CM;
+  const sheetWcm = Math.max(...sizedModels.map((s) => s.model.sheetWidthCm));
+  const sheetHcm = Math.max(...sizedModels.map((s) => s.model.sheetHeightCm));
+  const legendHcm = LEGEND_MARGIN_CM + sizedModels.length * LEGEND_ROW_H_CM;
+  const pageWcm = sheetWcm + 2 * marginCm;
+  const pageHcm = sheetHcm + 2 * marginCm + legendHcm;
+
+  const doc = await PDFDocument.create();
+  const font = await doc.embedFont(StandardFonts.Helvetica);
+  const page = doc.addPage([pageWcm * PT_POR_CM, pageHcm * PT_POR_CM]);
+
+  // sheet coord (cm, +Y down) -> page point (pt, +Y up); the legend strip
+  // sits below the drafted geometry, so the sheet origin is pushed up by it.
+  const map = (sx: number, sy: number) => ({
+    x: (marginCm + sx) * PT_POR_CM,
+    y: (pageHcm - marginCm - legendHcm - sy) * PT_POR_CM,
+  });
+
+  // One real OCG per size, registered in the document catalog's
+  // /OCProperties with a /D (default) configuration naming an /Order and
+  // an /ON list -- every size visible by default, matching how the page
+  // renders before any viewer toggles a layer off.
+  const ocgRefs = sizedModels.map((s) =>
+    doc.context.register(
+      doc.context.obj({ Type: "OCG", Name: PDFString.of(s.size) }),
+    ),
+  );
+  doc.catalog.set(
+    PDFName.of("OCProperties"),
+    doc.context.obj({
+      OCGs: ocgRefs,
+      D: {
+        Name: PDFString.of(t("pdf.layerConfigName")),
+        Order: ocgRefs,
+        ON: ocgRefs,
+      },
+    }),
+  );
+  const propsDict = doc.context.obj({});
+  const localNames = sizedModels.map((_, i) => `OC${i}`);
+  localNames.forEach((name, i) => propsDict.set(PDFName.of(name), ocgRefs[i]!));
+  const resources = page.node.Resources();
+  if (resources) resources.set(PDFName.of("Properties"), propsDict);
+
+  sizedModels.forEach(({ model }, i) => {
+    const [r, g, b] = paletteColor(i);
+    const color = rgb(r, g, b);
+
+    page.pushOperators(
+      PDFOperator.of(PDFOperatorNames.BeginMarkedContentSequence, [
+        PDFName.of("OC"),
+        PDFName.of(localNames[i]!),
+      ]),
+    );
+
+    for (const pc of model.pieces) {
+      const P = (lx: number, ly: number) =>
+        map(pc.originCm.x + lx, pc.originCm.y + ly);
+      const cutPts = flattenOutlineCm(pc.cutOutline, TOL_CM);
+      for (let k = 0; k < cutPts.length; k++) {
+        const a = P(cutPts[k].x, cutPts[k].y);
+        const bpt = P(
+          cutPts[(k + 1) % cutPts.length].x,
+          cutPts[(k + 1) % cutPts.length].y,
+        );
+        page.drawLine({ start: a, end: bpt, thickness: 0.6, color });
+      }
+      if (pc.grainline) {
+        const [g1, g2] = pc.grainline;
+        page.drawLine({
+          start: P(g1.x, g1.y),
+          end: P(g2.x, g2.y),
+          thickness: 0.4,
+          color,
+          dashArray: [4, 3],
+        });
+      }
+      for (const notch of pc.notches ?? []) {
+        page.drawLine({
+          start: P(notch.outer.x, notch.outer.y),
+          end: P(notch.inner.x, notch.inner.y),
+          thickness: 0.6,
+          color,
+        });
+      }
+    }
+
+    page.pushOperators(PDFOperator.of(PDFOperatorNames.EndMarkedContent, []));
+  });
+
+  // Legend -- always visible (outside any OC block), so a size stays
+  // identifiable even after its own layer is hidden in a viewer.
+  const legendTopCm = pageHcm - legendHcm + LEGEND_MARGIN_CM * 0.4;
+  sizedModels.forEach(({ size }, i) => {
+    const [r, g, b] = paletteColor(i);
+    const rowYcm = legendTopCm + i * LEGEND_ROW_H_CM;
+    const yPt = (pageHcm - rowYcm) * PT_POR_CM;
+    page.drawLine({
+      start: { x: marginCm * PT_POR_CM, y: yPt },
+      end: { x: (marginCm + 1.2) * PT_POR_CM, y: yPt },
+      thickness: 1.5,
+      color: rgb(r, g, b),
+    });
+    page.drawText(size, {
+      x: (marginCm + 1.6) * PT_POR_CM,
+      y: yPt - 3,
+      size: 8,
+      font,
+      color: rgb(0.35, 0.34, 0.29),
+    });
+  });
+
+  // 10cm calibration ruler, same convention as every other mode -- placed
+  // near the top of the drafted-geometry area (above the legend strip).
+  const baseXcm = marginCm + 0.3;
+  const boxYcm = pageHcm - marginCm - legendHcm - 1.2;
+  const y0 = (boxYcm + 0.2) * PT_POR_CM;
+  page.drawLine({
+    start: { x: baseXcm * PT_POR_CM, y: y0 },
+    end: { x: (baseXcm + 10) * PT_POR_CM, y: y0 },
+    thickness: 0.75,
+    color: rgb(0, 0, 0),
+  });
+  for (const tick of rulerTicksCm(10)) {
+    const x = (baseXcm + tick) * PT_POR_CM;
+    page.drawLine({
+      start: { x, y: y0 },
+      end: { x, y: y0 + 0.35 * PT_POR_CM },
+      thickness: 0.75,
+      color: rgb(0, 0, 0),
+    });
+  }
+  page.drawText(t("pdf.rulerLabel"), {
+    x: baseXcm * PT_POR_CM,
+    y: (boxYcm + 0.7) * PT_POR_CM,
+    size: 7,
+    font,
+    color: rgb(0.35, 0.34, 0.29),
   });
 
   return await doc.save();
