@@ -2,32 +2,20 @@
 
 import { useTranslations } from "next-intl";
 import type { ExportFormat } from "@/lib/export";
+import { EXPORT_FORMATS, EXPORT_FORMAT_LABELS } from "@/lib/export/formats";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
+// Order and labels come from EXPORT_FORMATS/EXPORT_FORMAT_LABELS
+// (lib/export/formats.ts) so this menu and the public landing page's format
+// strip cannot disagree about what the app writes. The per-format caveats
+// live in the same table: formatDxfAamaNote (drill holes, layer 13, still
+// unemitted), formatPdfLayeredNote (the layered PDF omits the net sewing
+// line and the fold for legibility), formatPltNote (HPGL/2 written to spec
+// and verified structurally, never plotted on physical hardware, plus the
+// plotter-internal-font limit on the piece label).
 const REAL_FORMATS: { id: ExportFormat; labelKey: string; noteKey?: string }[] =
-  [
-    { id: "svg", labelKey: "formatSvg" },
-    { id: "dxf", labelKey: "formatDxf" },
-    { id: "dxf-aama", labelKey: "formatDxfAama", noteKey: "formatDxfAamaNote" },
-    { id: "pdf-a4", labelKey: "formatPdfA4" },
-    { id: "pdf-single", labelKey: "formatPdfSingle" },
-    // #136: one page, every graded size (base + sizesApplied) layered as
-    // real Optional Content Groups plus a legend -- a single ungraded
-    // pattern still produces a valid, if trivial, one-layer file.
-    {
-      id: "pdf-layered",
-      labelKey: "formatPdfLayered",
-      noteKey: "formatPdfLayeredNote",
-    },
-    // #135: HPGL/2, written to spec and verified structurally (syntax,
-    // 0.02cm coordinate round-trip, strip count, distinct pens) but never
-    // plotted on physical hardware -- badged 'beta' in its own catalog
-    // label (formatPlt), same marker formatDxfAama uses for its known gap;
-    // formatPltNote states the untested-hardware caveat plus the LB-text
-    // font limitation.
-    { id: "plt", labelKey: "formatPlt", noteKey: "formatPltNote" },
-  ];
+  EXPORT_FORMATS.map((id) => ({ id, ...EXPORT_FORMAT_LABELS[id] }));
 
 // #17 decisions (issue body): two of the design's five format rows have no
 // writer in lib/export yet. They render disabled + "em breve" rather than
