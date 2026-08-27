@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import type { GarmentSpec, Pattern } from "@/lib/types";
+import type { GarmentSpec, Pattern, SkirtSilhouette } from "@/lib/types";
 import { SIZE_TABLE, SIZE_TABLE_MALE } from "@/lib/measurements";
 import { t } from "@/lib/i18n/test-translate";
 import { DECORATION_CASES } from "./fixtures";
@@ -187,7 +187,7 @@ describe("buildAssemblyOrder", () => {
     expect(seamKeys).toContain("cuff-hem");
   });
 
-  it("trousers always dart both panels, and order: darts, rise (self-pairs), inseam/outseam, waistband", () => {
+  it("trousers always dart both panels, and order: darts, rise (self-pairs), inseam/outseam, waistband, then hems (#188)", () => {
     const spec: GarmentSpec = {
       type: "trousers",
       gender: "female",
@@ -205,13 +205,23 @@ describe("buildAssemblyOrder", () => {
       "trouser-inseam",
       "trouser-outseam",
       "trouser-waistband-waist",
+      "hem",
+      "hem",
     ]);
-    // No trouser leg hem is reported -- seamEdges carries no such edge yet
-    // (a real, filed gap -- see the #138 PR description).
-    expect(order.steps.some((s) => s.kind === "hem")).toBe(false);
+    // #188: each leg's own hem is a free finishing edge -- the waistband
+    // pair claims `waist`, never `hem` -- so both panels report a real
+    // "hem" step, in drafting order (front, then back).
+    const hemSteps = order.steps.filter(
+      (s): s is Extract<AssemblyStep, { kind: "hem" }> => s.kind === "hem",
+    );
+    expect(hemSteps.map((s) => s.pieceId)).toEqual([
+      "trouser-front",
+      "trouser-back",
+    ]);
+    for (const s of hemSteps) expect(s.lengthCm).toBeGreaterThan(0);
   });
 
-  it("a standalone skirt with waistband explicitly 'none' derives an honest empty order, not a fabricated one", () => {
+  it("a standalone skirt with waistband explicitly 'none' still hems its own bottom edge (#188) -- only the waistband pair is absent", () => {
     const spec: GarmentSpec = {
       type: "skirt",
       gender: "female",
@@ -220,8 +230,57 @@ describe("buildAssemblyOrder", () => {
     };
     const p = fakePattern(spec);
     const order = buildAssemblyOrder(p, t)!;
-    expect(order.steps).toEqual([]);
+    // No darts, no waistband, no other mated pair -- but the skirt panel's
+    // own bottom hem is a free finishing edge regardless, so the order is
+    // one real hem step, not the empty array this exact spec derived before
+    // seamEdges.hem existed for skirt panels.
+    expect(order.steps).toHaveLength(1);
+    const [step] = order.steps as [Extract<AssemblyStep, { kind: "hem" }>];
+    expect(step.kind).toBe("hem");
+    expect(step.pieceId).toBe("skirt");
+    expect(step.lengthCm).toBeGreaterThan(0);
     expect(order.hasConflict).toBe(false);
+  });
+
+  it("a skirt panel hems its own bottom edge across every silhouette, standalone and as a dress's skirt panel (#188)", () => {
+    const silhouettes: SkirtSilhouette[] = [
+      "straight",
+      "a-line",
+      "circle",
+      "gore",
+      "half-circle",
+    ];
+    for (const skirt of silhouettes) {
+      for (const type of ["skirt", "dress"] as const) {
+        const spec: GarmentSpec = {
+          type,
+          gender: "female",
+          measurementOverrides: {},
+          style:
+            type === "dress"
+              ? { neckline: "round", sleeve: "short", darts: true, skirt }
+              : { skirt },
+        };
+        const p = fakePattern(spec);
+        const order = buildAssemblyOrder(p, t)!;
+        const skirtHem = order.steps.find(
+          (s): s is Extract<AssemblyStep, { kind: "hem" }> =>
+            s.kind === "hem" && s.pieceId === "skirt",
+        );
+        expect(skirtHem, `${type} ${skirt}`).toBeDefined();
+        expect(skirtHem!.lengthCm, `${type} ${skirt}`).toBeGreaterThan(0);
+        // For a dress, the BODICE's own hem stays consumed by the waist
+        // join (unaffected by #188) -- only the skirt panel's own bottom
+        // gets a free "hem" step.
+        if (type === "dress") {
+          const hemPieceIds = order.steps
+            .filter((s) => s.kind === "hem")
+            .map((s) => s.pieceId);
+          expect(hemPieceIds, `${type} ${skirt}`).not.toContain("body-front");
+          expect(hemPieceIds, `${type} ${skirt}`).not.toContain("body-back");
+        }
+      }
+    }
   });
 
   it("hasConflict is false across the whole matrix (every DECORATION_CASES entry closes as designed)", () => {

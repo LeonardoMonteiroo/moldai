@@ -185,7 +185,17 @@ export function draftSkirt(
     // `waistFront`/`waistBack` off `skirtPiece.qty`, not off the
     // silhouette's name.
     const half = panels === 1 ? steps / 2 : undefined;
-    const seamEdges: Record<string, [number, number]> = { waist: waistSpan };
+    // #188: `hem` is this panel's own bottom/outer arc (`hemSpan`, already
+    // curved) -- exposed unconditionally, the same "not only when relevant
+    // to a mated pair" shape `waist` above and body.ts's/sleeve.ts's own
+    // `hem` already use. Unlike `waist`, it is never claimed by another
+    // seamEdges.hem entry buildAssemblyOrder's own HEM_CONSUMED_BY reads
+    // (a skirt's own bottom is never sewn to anything, dress or standalone),
+    // so every silhouette's own panel always reports a real "hem" step.
+    const seamEdges: Record<string, [number, number]> = {
+      waist: waistSpan,
+      hem: hemSpan,
+    };
     if (half !== undefined) {
       seamEdges.waistFront = [waistSpan[0], half];
       seamEdges.waistBack = [half, waistSpan[1]];
@@ -273,7 +283,12 @@ export function draftSkirt(
     detailRows,
     // #134: the waist edge (index 0 to 2, straight -- see the outline
     // comment above), matching body.ts's own `hem` edge when this is a
-    // dress's skirt panel.
-    seamEdges: { waist: [0, 2] },
+    // dress's skirt panel. #188: `hem` (index 3 to 5, straight through the
+    // fold-bottom vertex at 4 -- the mirror of `waist`'s own 0-to-2 span
+    // across the panel) is this panel's own bottom edge, exposed
+    // unconditionally like `waist` above -- never claimed by another pair
+    // (a skirt's own bottom is never sewn to anything), so it always
+    // reports a real "hem" step regardless of silhouette or waistband.
+    seamEdges: { waist: [0, 2], hem: [3, 5] },
   };
 }
