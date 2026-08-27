@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { SIZE_TABLE } from "@/lib/measurements";
-import { draftSkirt } from "./skirt";
+import { curveArcLengthCm } from "./core";
+import { draftSkirt, dressWaistHalfCm } from "./skirt";
 import { bbox } from "./core";
 import { t } from "@/lib/i18n/test-translate";
 
@@ -113,4 +114,58 @@ describe("notches (#124)", () => {
     expect(waistR.outerCm[1]).toBeCloseTo(b.minY, 5);
     expect(waistL.outerCm[0]).not.toBeCloseTo(waistR.outerCm[0], 1);
   });
+});
+
+// #177/#185: dressWaistHalfCm is the ONE derivation the dress bodice hem
+// (body.ts, via garment.ts) and every dress-mode skirt panel's own waist
+// sizing (below) both read -- silhouette-independent, waistCm/4.
+describe("dressWaistHalfCm (#177)", () => {
+  it("is silhouette-independent: waistCm / 4, with no added ease", () => {
+    expect(dressWaistHalfCm(74)).toBeCloseTo(18.5, 5);
+    expect(dressWaistHalfCm(100)).toBeCloseTo(25, 5);
+  });
+
+  it.each(["straight", "a-line", "circle", "gore", "half-circle"] as const)(
+    "%s: a dress-mode skirt panel's own drafted waist width matches dressWaistHalfCm(waist) * 2",
+    (skirt) => {
+      const dp = draftSkirt(M, { skirt }, t, true);
+      const expectedWidthCm = dressWaistHalfCm(M.waist) * 2;
+      if (skirt === "straight" || skirt === "a-line") {
+        // straight-edge waist, indices [0, 2] -- see draftSkirt's own outline comment.
+        const [wL] = dp.outlineCm[0];
+        const [wR] = dp.outlineCm[2];
+        expect(wR - wL).toBeCloseTo(expectedWidthCm, 1);
+      } else if (skirt === "half-circle") {
+        // #185: a single undivided panel -- its own waistFront/waistBack
+        // halves must each equal dressWaistHalfCm(waist), and TOGETHER
+        // equal the panel's one full waist arc (the actual waist).
+        const [frontEdge, backEdge] = [
+          dp.seamEdges!.waistFront,
+          dp.seamEdges!.waistBack,
+        ];
+        const frontLen = curveArcLengthCm(
+          dp.outlineCm,
+          dp.curvedSpans ?? [],
+          ...frontEdge,
+        );
+        const backLen = curveArcLengthCm(
+          dp.outlineCm,
+          dp.curvedSpans ?? [],
+          ...backEdge,
+        );
+        expect(frontLen).toBeCloseTo(expectedWidthCm, 1);
+        expect(backLen).toBeCloseTo(expectedWidthCm, 1);
+        expect(frontLen + backLen).toBeCloseTo(M.waist, 1);
+      } else {
+        // circle/gore: panels=2, each cut copy is a whole panel matching
+        // dressWaistHalfCm(waist) * 2 on its own single `waist` edge.
+        const arc = curveArcLengthCm(
+          dp.outlineCm,
+          dp.curvedSpans ?? [],
+          ...dp.seamEdges!.waist,
+        );
+        expect(arc).toBeCloseTo(expectedWidthCm, 1);
+      }
+    },
+  );
 });
