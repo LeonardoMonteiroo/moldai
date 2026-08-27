@@ -131,12 +131,14 @@ export function Footer({
         {t("saveAsBaseButton")}
       </Button>
 
-      <Button
-        disabled
-        title={t("saveVersionTitle")}
-        className="cursor-not-allowed"
-      >
-        {t("saveVersionButton")}
+      {/* #16: the pattern is now versioned automatically on every credit-
+          charging (or free-but-state-changing) mutation -- there is nothing
+          left to manually "save", so the disabled button became a link to
+          the history it produces. */}
+      <Button variant="outline" asChild>
+        <Link href={`/pattern/${pattern.id}/versions`}>
+          {t("versionsHistoryButton")}
+        </Link>
       </Button>
 
       <Dialog open={savingBase} onOpenChange={setSavingBase}>

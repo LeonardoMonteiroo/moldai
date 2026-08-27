@@ -7,6 +7,10 @@ import type { PatternState } from "@/lib/types";
 const NOW = new Date("2026-08-17T12:00:00.000Z");
 let state: PatternState = seedPatternState(t);
 let ownedPatternId: string | null = "m1";
+// #16: the same fake tx reference both withPatternVersioned's mock and the
+// route's own recordVersion call see, proving the "fix" snapshot write
+// happens inside the transaction, not after it.
+const FAKE_TX = {};
 
 vi.mock("next-intl/server", () => ({
   getTranslations: vi.fn(async () => (key: string) => key),
@@ -18,22 +22,23 @@ vi.mock("@/lib/auth/guard", () => ({
     name: null,
   })),
 }));
-vi.mock("@/lib/db/pattern", async () => {
-  const actual =
-    await vi.importActual<typeof import("@/lib/db/pattern")>(
-      "@/lib/db/pattern",
-    );
-  return {
-    ...actual,
-    withPattern: vi.fn(
-      async (
-        patternId: string,
-        _userId: string,
-        fn: (s: PatternState) => PatternState,
-      ) => (patternId === ownedPatternId ? fn(state) : null),
-    ),
-  };
-});
+// #16: withPatternVersioned replaces withPattern here -- a Pattern-only
+// transaction (never Wallet) that also records "fix"'s version snapshot.
+// recordVersion is mocked wholesale, matching the route/generate/graduate
+// test precedent.
+vi.mock("@/lib/db/patternVersion", () => ({
+  withPatternVersioned: vi.fn(
+    async (
+      patternId: string,
+      _userId: string,
+      fn: (
+        s: PatternState,
+        tx: unknown,
+      ) => PatternState | Promise<PatternState>,
+    ) => (patternId === ownedPatternId ? fn(state, FAKE_TX) : null),
+  ),
+  recordVersion: vi.fn(),
+}));
 vi.mock("@/lib/db/wallet", () => ({
   loadWallet: vi.fn(async () => seedWallet(NOW)),
 }));
@@ -42,6 +47,7 @@ import { POST } from "./route";
 import { requireUser } from "@/lib/auth/guard";
 import { unauthorized } from "@/lib/auth/session";
 import { loadWallet } from "@/lib/db/wallet";
+import { recordVersion } from "@/lib/db/patternVersion";
 import { setConflict } from "@/lib/editor/state";
 
 function req(action: unknown) {
@@ -69,6 +75,7 @@ describe("POST /api/patterns/[id]/conflict/resolve", () => {
       markers: [],
     });
     ownedPatternId = "m1";
+    vi.mocked(recordVersion).mockReset();
     vi.mocked(requireUser).mockResolvedValue({
       id: "u1",
       email: "dev@moldai.local",
@@ -76,11 +83,29 @@ describe("POST /api/patterns/[id]/conflict/resolve", () => {
     });
   });
 
-  it("ignore clears the conflict for free", async () => {
+  it("ignore clears the conflict for free and does not version", async () => {
     const res = await POST(req("ignore"), ctx());
     const json = await res.json();
     expect(json.status).toBe("ok");
     expect(state.conflict).toBeNull();
+    // #16: "ignore" never calls bumpVersion, so it must not snapshot either.
+    expect(recordVersion).not.toHaveBeenCalled();
+  });
+
+  it("fix refits the sleeve, versions, and records the free reason inside the same tx", async () => {
+    const versionBefore = state.pattern.version;
+    const res = await POST(req("fix"), ctx());
+    const json = await res.json();
+    expect(json.status).toBe("ok");
+    expect(state.pattern.version).toBe(versionBefore + 1);
+    expect(recordVersion).toHaveBeenCalledWith(
+      FAKE_TX,
+      "m1",
+      "u1",
+      expect.objectContaining({ version: versionBefore + 1 }),
+      "conflict_fix",
+      0,
+    );
   });
 
   it("no session returns 401", async () => {

@@ -1,16 +1,45 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  renderWithIntl,
-  screen,
-  userEvent,
-  ptBR,
-  translatorFor,
-} from "@/components/test-utils";
+import type { ReactElement } from "react";
+import { render } from "@testing-library/react";
+import { NextIntlClientProvider, createTranslator } from "next-intl";
+import { screen, userEvent } from "@/components/test-utils";
+// #16: relative, not @/components/test-utils' renderWithIntl/ptBR/
+// translatorFor -- this sandbox's vitest intermittently resolves the "@"
+// alias for messages/pt-BR.json to stale/incomplete content (reproduced
+// with a minimal probe: a relative import of the same file is unaffected).
+// A relative import sidesteps it for this file too.
+import messages from "../../messages/pt-BR.json";
 import { seedPatternState, applyGarmentSpec } from "@/lib/editor/state";
 import { t } from "@/lib/i18n/test-translate";
 import type { GarmentSpec, Pattern } from "@/lib/types";
 import { Footer } from "./Footer";
 import { useEditorStore } from "@/lib/store";
+
+const ptBR = messages;
+
+function renderWithIntl(ui: ReactElement) {
+  return render(
+    <NextIntlClientProvider locale="pt-BR" messages={messages}>
+      {ui}
+    </NextIntlClientProvider>,
+  );
+}
+
+function translatorFor(namespace: keyof typeof messages) {
+  const translate = createTranslator({
+    locale: "pt-BR",
+    messages,
+    namespace,
+  } as never);
+  return function t(key: string, values?: Record<string, string | number>) {
+    const resolved = (translate as (k: string, v?: unknown) => string)(
+      key,
+      values,
+    );
+    expect(resolved).not.toContain(key);
+    return resolved;
+  };
+}
 
 const BLOUSE: GarmentSpec = {
   type: "blouse",
@@ -168,6 +197,22 @@ describe("Footer — link para a tela de exportação (#17)", () => {
     expect(
       screen.getByRole("button", { name: ptBR.Footer.exportButton }),
     ).toBeDisabled();
+  });
+});
+
+// #16: the disabled "Salvar versão · em breve" button was replaced by a link
+// into the new version-history screen -- automatic recording means there is
+// nothing left to manually save.
+describe("Footer — link para o histórico de versões (#16)", () => {
+  it("links to the pattern's own history screen", () => {
+    const pattern = draftedPattern();
+    renderWithIntl(
+      <Footer pattern={pattern} conflictActive={false} generating={false} />,
+    );
+    const link = screen.getByRole("link", {
+      name: ptBR.Footer.versionsHistoryButton,
+    });
+    expect(link).toHaveAttribute("href", `/pattern/${pattern.id}/versions`);
   });
 });
 
