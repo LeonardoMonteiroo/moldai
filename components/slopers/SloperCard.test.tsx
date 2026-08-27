@@ -73,3 +73,102 @@ describe("SloperCard", () => {
     expect(remove).toHaveBeenCalledWith("s1");
   });
 });
+
+// ---------------------------------------------------------------------------
+// #168: the rename dialog, the same shape (and the same three silent
+// failure modes) as PatternCard's -- an unchanged name still issuing a
+// PATCH, a whitespace-only name reaching a route that rejects it, and a
+// cancelled draft surviving into the next open. Asserted here separately
+// rather than shared, because the two cards read different stores and
+// different catalog namespaces: a rename recorded on the dashboard's store
+// would surface its error on a screen that isn't showing.
+// ---------------------------------------------------------------------------
+
+async function openMenu(
+  user: ReturnType<typeof userEvent.setup>,
+  option: string,
+) {
+  await user.click(
+    screen.getByRole("button", { name: ptBR.SloperCard.menuAriaLabel }),
+  );
+  await user.click(screen.getByRole("menuitem", { name: option }));
+}
+
+function renameField() {
+  return screen.getByLabelText(ptBR.SloperCard.renamePrompt);
+}
+
+function saveRename() {
+  return screen.getByRole("button", {
+    name: ptBR.SloperCard.renameSaveButton,
+  });
+}
+
+describe("SloperCard rename", () => {
+  beforeEach(() => {
+    rename.mockReset();
+    remove.mockReset();
+    useSlopersStore.setState({ rename, remove });
+  });
+
+  it("opens the dialog prefilled with the current name", async () => {
+    renderWithIntl(<SloperCard sloper={SLOPER} onUse={vi.fn()} />);
+    const user = userEvent.setup();
+
+    await openMenu(user, ptBR.SloperCard.renameOption);
+
+    expect(screen.getByText(ptBR.SloperCard.renameTitle)).toBeVisible();
+    expect(renameField()).toHaveValue(SLOPER.name);
+  });
+
+  it("renames with the trimmed value on this screen's own store", async () => {
+    renderWithIntl(<SloperCard sloper={SLOPER} onUse={vi.fn()} />);
+    const user = userEvent.setup();
+
+    await openMenu(user, ptBR.SloperCard.renameOption);
+    await user.clear(renameField());
+    await user.type(renameField(), "  base blusa  ");
+    await user.click(saveRename());
+
+    expect(rename).toHaveBeenCalledWith(SLOPER.id, "base blusa");
+    expect(screen.queryByText(ptBR.SloperCard.renameTitle)).toBeNull();
+  });
+
+  it("issues no request when the name is unchanged", async () => {
+    renderWithIntl(<SloperCard sloper={SLOPER} onUse={vi.fn()} />);
+    const user = userEvent.setup();
+
+    await openMenu(user, ptBR.SloperCard.renameOption);
+    await user.click(saveRename());
+
+    expect(rename).not.toHaveBeenCalled();
+  });
+
+  it("keeps save disabled for a blank or whitespace-only name", async () => {
+    renderWithIntl(<SloperCard sloper={SLOPER} onUse={vi.fn()} />);
+    const user = userEvent.setup();
+
+    await openMenu(user, ptBR.SloperCard.renameOption);
+    await user.clear(renameField());
+    expect(saveRename()).toBeDisabled();
+
+    await user.type(renameField(), "   ");
+    expect(saveRename()).toBeDisabled();
+  });
+
+  it("discards the draft on cancel and reopens from the stored name", async () => {
+    renderWithIntl(<SloperCard sloper={SLOPER} onUse={vi.fn()} />);
+    const user = userEvent.setup();
+
+    await openMenu(user, ptBR.SloperCard.renameOption);
+    await user.clear(renameField());
+    await user.type(renameField(), "abandonado");
+    await user.click(
+      screen.getByRole("button", { name: ptBR.SloperCard.renameCancelButton }),
+    );
+    expect(rename).not.toHaveBeenCalled();
+
+    await openMenu(user, ptBR.SloperCard.renameOption);
+    expect(renameField()).toHaveValue(SLOPER.name);
+  });
+});
