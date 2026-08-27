@@ -160,6 +160,16 @@ model Wallet {
   // own next payment webhook, not the free-tier cron.
   asaasCustomerId     String?
   asaasSubscriptionId String?
+  // #196: the externalId of the Transaction row that currently backs this
+  // wallet's plan/total -- see lib/billing/wallet.ts's Wallet.planSourceExternalId
+  // doc comment for the full reasoning. Additive/nullable, written only by
+  // lib/db/wallet.ts's withWalletIdempotent (so only ever set for a
+  // gateway-originated, plan-CHANGING subscribe entry -- the mock purchase
+  // path has no externalId to point at and never sets this). Migration
+  // 20260827130000_add_wallet_plan_source backfills it (and Transaction's
+  // sibling planChanged column) for every wallet already on a paid plan,
+  // best-effort -- see that migration's own comment for the known limit.
+  planSourceExternalId String?
   transactions        Transaction[]
 }
 
@@ -180,6 +190,11 @@ model Transaction {
   // that isn't gateway-originated (debit/refund/renew, and the mock
   // purchase path).
   externalId   String?  @unique
+  // #196: true only for a "subscribe" row that actually moved plan/total
+  // (applyPurchase's upgrade branch) -- false for every other row, including
+  // a "subscribe" that folded into `purchased` instead (the #193 guard).
+  // See lib/billing/wallet.ts's LedgerEntry.planChanged doc comment.
+  planChanged  Boolean  @default(false)
   createdAt    DateTime @default(now())
 
   @@index([userId, createdAt])

@@ -9,7 +9,7 @@ const ledger: unknown[] = [];
 // the mock purchase path) never set it.
 const ledgerByExternalId = new Map<
   string,
-  { userId: string; amount: number; type: string }
+  { userId: string; amount: number; type: string; planChanged: boolean }
 >();
 
 function uniqueConstraintError() {
@@ -48,6 +48,7 @@ const tx = {
           balanceAfter: number;
           reason: string | null;
           externalId?: string | null;
+          planChanged?: boolean;
         };
       }) => {
         if (data.externalId) {
@@ -58,6 +59,7 @@ const tx = {
             userId: data.userId,
             amount: data.amount,
             type: data.type,
+            planChanged: data.planChanged ?? false,
           });
         }
         ledger.push(data);
@@ -154,14 +156,26 @@ function wireTx() {
       const sql = Array.isArray(strings) ? strings.join("") : String(strings);
       if (sql.includes("INSERT")) {
         // vals order matches lockWallet: userId, plan, balance, total,
-        // purchased, renewsAt. Mirrors ON CONFLICT DO NOTHING -- only seeds
-        // when the row doesn't already exist.
-        const [userId, plan, balance, total, purchased, renewsAt] = vals as [
-          string,
-          ...unknown[],
-        ];
+        // purchased, renewsAt, planSourceExternalId. Mirrors ON CONFLICT DO
+        // NOTHING -- only seeds when the row doesn't already exist.
+        const [
+          userId,
+          plan,
+          balance,
+          total,
+          purchased,
+          renewsAt,
+          planSourceExternalId,
+        ] = vals as [string, ...unknown[]];
         if (!store.has(userId)) {
-          store.set(userId, { plan, balance, total, purchased, renewsAt });
+          store.set(userId, {
+            plan,
+            balance,
+            total,
+            purchased,
+            renewsAt,
+            planSourceExternalId,
+          });
         }
       } else if (sql.includes('"asaasCustomerId"')) {
         // withAsaasCustomerId's own UPDATE: vals = [customerId, userId] --
@@ -172,8 +186,17 @@ function wireTx() {
         store.set(userId, { ...current, asaasCustomerId: customerId });
       } else if (sql.includes("UPDATE")) {
         // vals order matches saveWallet: plan, balance, total, purchased,
-        // renewsAt, userId -- userId is last.
-        const [plan, balance, total, purchased, renewsAt, userId] = vals as [
+        // renewsAt, planSourceExternalId, userId -- userId is last.
+        const [
+          plan,
+          balance,
+          total,
+          purchased,
+          renewsAt,
+          planSourceExternalId,
+          userId,
+        ] = vals as [
+          unknown,
           unknown,
           unknown,
           unknown,
@@ -189,6 +212,7 @@ function wireTx() {
           total,
           purchased,
           renewsAt,
+          planSourceExternalId,
         });
       }
       return 0;
@@ -236,6 +260,27 @@ describe("withWallet", () => {
       balanceAfter: 26,
       reason: "generate",
     });
+  });
+
+  // #196: the mock purchase route (app/api/billing/purchase) has no
+  // externalId concept at all, so withWallet -- unlike withWalletIdempotent
+  // -- never has anything to record here, even for a real plan upgrade. A
+  // mock-originated subscribe therefore has no refund path (there is no
+  // gateway to deliver a PAYMENT_REFUNDED for it), which is exactly why
+  // this is safe: the field simply stays whatever it already was.
+  it("never sets planSourceExternalId, even for a real plan-changing subscribe", async () => {
+    await withWallet("u1", (wallet) => {
+      const entry = applyPurchase(
+        wallet,
+        { type: "subscribe", plan: "atelier" },
+        NOW,
+      );
+      return { result: undefined, entries: [entry] };
+    });
+    expect(
+      (store.get("u1") as { planSourceExternalId: string | null })
+        .planSourceExternalId,
+    ).toBeNull();
   });
 
   it("inserts no ledger rows when fn returns no entries", async () => {
@@ -339,6 +384,45 @@ describe("withWalletIdempotent", () => {
     });
   });
 
+  // #196: withWalletIdempotent itself records which externalId now backs
+  // the wallet's plan -- centralized here so every caller gets it for free,
+  // rather than each webhook handler having to remember to set it.
+  it("records planSourceExternalId when fn's entry actually changed the plan", async () => {
+    await withWalletIdempotent("u1", "pay_atelier", (wallet) =>
+      applyPurchase(wallet, { type: "subscribe", plan: "atelier" }, NOW),
+    );
+    expect(
+      (store.get("u1") as { planSourceExternalId: string | null })
+        .planSourceExternalId,
+    ).toBe("pay_atelier");
+  });
+
+  it("does not set planSourceExternalId for a folded subscribe (plan unchanged)", async () => {
+    await withWalletIdempotent("u1", "pay_factory", (wallet) =>
+      applyPurchase(wallet, { type: "subscribe", plan: "factory" }, NOW),
+    );
+    await withWalletIdempotent(
+      "u1",
+      "pay_studio_later",
+      (wallet) =>
+        applyPurchase(wallet, { type: "subscribe", plan: "studio" }, NOW), // folded
+    );
+    expect(
+      (store.get("u1") as { planSourceExternalId: string | null })
+        .planSourceExternalId,
+    ).toBe("pay_factory"); // still the real plan-setter, not the folded one
+  });
+
+  it("does not set planSourceExternalId for a non-subscribe entry", async () => {
+    await withWalletIdempotent("u1", "pay_1", (wallet) =>
+      applyPurchase(wallet, { type: "topup" }, NOW),
+    );
+    expect(
+      (store.get("u1") as { planSourceExternalId: string | null })
+        .planSourceExternalId,
+    ).toBeNull();
+  });
+
   // This is the test that matters -- Asaas guarantees at-least-once webhook
   // delivery, so the same event WILL be delivered more than once in
   // production.
@@ -401,7 +485,7 @@ describe("findLedgerEntryByExternalId", () => {
     expect(await findLedgerEntryByExternalId("nope")).toBeNull();
   });
 
-  it("returns the userId, amount and type of the matching ledger row", async () => {
+  it("returns the userId, amount, type and planChanged of the matching ledger row", async () => {
     await withWalletIdempotent("u1", "pay_1", (wallet) =>
       applyPurchase(wallet, { type: "topup" }, NOW),
     );
@@ -409,6 +493,19 @@ describe("findLedgerEntryByExternalId", () => {
       userId: "u1",
       amount: 100,
       type: "topup",
+      planChanged: false,
+    });
+  });
+
+  // #196: the field a refund needs to tell a real plan-changing subscribe
+  // apart from one that only folded into `purchased`.
+  it("reports planChanged: true for a subscribe entry that actually moved plan/total", async () => {
+    await withWalletIdempotent("u1", "pay_atelier", (wallet) =>
+      applyPurchase(wallet, { type: "subscribe", plan: "atelier" }, NOW),
+    );
+    expect(await findLedgerEntryByExternalId("pay_atelier")).toMatchObject({
+      type: "subscribe",
+      planChanged: true,
     });
   });
 });

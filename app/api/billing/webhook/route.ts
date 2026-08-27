@@ -5,12 +5,13 @@ import { AsaasWebhookBodySchema } from "@/lib/schemas/billing";
 import { apiError } from "@/lib/api/errors";
 import { reportError } from "@/lib/observability/report";
 import { parseExternalReference } from "@/lib/billing/asaas";
-import { isPlanUpgrade, type PaidPlanId } from "@/lib/billing/plans";
+import type { PaidPlanId } from "@/lib/billing/plans";
 import type { PlanId } from "@/lib/types";
 import {
   applyPurchase,
   debitWallet,
-  reverseSubscription,
+  reverseRefundedSubscription,
+  type RefundedSubscriptionOutcome,
 } from "@/lib/billing/wallet";
 import {
   withWalletIdempotent,
@@ -153,14 +154,16 @@ async function handleConfirmed(
   // a forged/tampered externalReference might otherwise have carried.
   // #193: applyPurchase's own subscribe branch is what actually refuses a
   // downgrade/same-tier reapply (it never touches plan/total/renewsAt in
-  // that case, folding the paid credits into `purchased` instead) -- this
-  // closure only captures whether that happened, purely from data already
-  // in hand (the locked wallet's own plan, read before the mutation, and
-  // the pure isPlanUpgrade check), so it can be reported for operator
-  // visibility once the transaction has actually committed. No I/O runs
-  // inside the callback itself: withWalletIdempotent's contract requires
-  // `fn` to stay synchronous and side-effect-free, since it can re-run
-  // against a freshly locked row on a transaction retry.
+  // that case, folding the paid credits into `purchased` instead). #196:
+  // applyPurchase now surfaces exactly that outcome on the returned entry
+  // itself (LedgerEntry.planChanged), so this closure just reads it back
+  // rather than recomputing isPlanUpgrade a second time -- one function
+  // decides what counts as an upgrade, this route only observes the
+  // decision. Captured purely from data already in hand, so it can be
+  // reported for operator visibility once the transaction has actually
+  // committed. No I/O runs inside the callback itself: withWalletIdempotent's
+  // contract requires `fn` to stay synchronous and side-effect-free, since
+  // it can re-run against a freshly locked row on a transaction retry.
   // A box, not a bare `let`, because a `let` reassigned only from inside a
   // closure passed as an argument gets over-narrowed by TypeScript's CFA
   // to `null` at every read outside that closure -- a property access
@@ -171,10 +174,7 @@ async function handleConfirmed(
   await withWalletIdempotent(parsed.userId, paymentId, (wallet) => {
     const previousPlan = wallet.plan;
     const entry = applyPurchase(wallet, parsed.purchase, now);
-    if (
-      parsed.purchase.type === "subscribe" &&
-      !isPlanUpgrade(previousPlan, parsed.purchase.plan)
-    ) {
+    if (parsed.purchase.type === "subscribe" && entry.planChanged === false) {
       superseded.value = { plan: parsed.purchase.plan, previousPlan };
     }
     return entry;
@@ -229,18 +229,51 @@ async function handleRefunded(paymentId: string | null): Promise<void> {
   // PAYMENT_REFUNDED delivery is caught by the same unique-constraint
   // idempotency instead of double-debiting.
   //
-  // A refunded *subscribe* purchase also has to revert plan/total -- a
-  // plain debit alone would leave the wallet on "atelier"/500 forever, so a
-  // refunded subscriber would keep renewing at the full paid allowance
-  // every month even though the payment that granted it was given back.
-  // A refunded *topup* never touched plan/total to begin with, so it stays
-  // a plain debit.
+  // A refunded *subscribe* purchase might also have to revert plan/total --
+  // but #196: only when THIS entry is actually what currently backs the
+  // wallet's plan. reverseRefundedSubscription (lib/billing/wallet.ts) is
+  // the pure decision, made against the locked wallet inside this same
+  // callback: "reset" (this entry IS wallet.planSourceExternalId -- full
+  // plan/total revert, the pre-#196 behaviour), "folded" (this entry never
+  // changed the plan -- undo exactly the purchased/balance it added), or
+  // "superseded" (this entry changed the plan when it ran, but a LATER real
+  // upgrade has since overwritten that -- nothing survives to claw back,
+  // wallet left untouched). A refunded *topup* never touched plan/total to
+  // begin with, so it stays a plain debit, unchanged from before.
+  const outcome: { value: RefundedSubscriptionOutcome | null } = {
+    value: null,
+  };
   await withWalletIdempotent(
     original.userId,
     `${paymentId}:refund`,
-    (wallet) =>
-      original.type === "subscribe"
-        ? reverseSubscription(wallet, original.amount)
-        : debitWallet(wallet, original.amount, "asaas_refund"),
+    (wallet) => {
+      if (original.type !== "subscribe") {
+        return debitWallet(wallet, original.amount, "asaas_refund");
+      }
+      const result = reverseRefundedSubscription(
+        wallet,
+        { amount: original.amount, planChanged: original.planChanged },
+        paymentId,
+      );
+      outcome.value = result.outcome;
+      return result.ledgerEntry;
+    },
   );
+  if (outcome.value === "superseded") {
+    // Best-effort, after the transaction committed -- there is nothing to
+    // roll back (the wallet was deliberately left untouched) and this must
+    // never block the refund's own idempotent ledger row from landing. The
+    // operator-visible trace the ledger's zero-amount row alone can't
+    // carry: WHY nothing moved.
+    reportError(
+      "billing-webhook-refund-superseded",
+      new Error(
+        `refund for payment "${paymentId}" targeted a subscribe entry ` +
+          `that is no longer the wallet's plan source -- a later real ` +
+          `upgrade already overwrote its contribution to plan/total, so ` +
+          `there is nothing left to claw back; wallet left unchanged`,
+      ),
+      { userId: original.userId, paymentId },
+    );
+  }
 }

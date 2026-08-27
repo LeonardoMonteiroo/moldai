@@ -42,6 +42,13 @@ vi.mock("@/lib/db/wallet", () => ({
         else w.balance -= entry.amount;
         return { credited: false };
       }
+      // #196: mirrors lib/db/wallet.ts's own withWalletIdempotent -- records
+      // which externalId now backs the wallet's plan whenever fn's entry
+      // actually moved it, so route-level tests exercise the same
+      // reverseRefundedSubscription decision the real DB layer feeds.
+      if (entry.type === "subscribe" && entry.planChanged) {
+        w.planSourceExternalId = externalId;
+      }
       seenExternalIds.add(externalId);
       ledger.push({ userId, externalId, entry });
       return { credited: true };
@@ -50,7 +57,12 @@ vi.mock("@/lib/db/wallet", () => ({
   findLedgerEntryByExternalId: vi.fn(async (externalId: string) => {
     const row = ledger.find((r) => r.externalId === externalId);
     return row
-      ? { userId: row.userId, amount: row.entry.amount, type: row.entry.type }
+      ? {
+          userId: row.userId,
+          amount: row.entry.amount,
+          type: row.entry.type,
+          planChanged: row.entry.planChanged ?? false,
+        }
       : null;
   }),
   setAsaasSubscriptionId: vi.fn(async (userId: string, subId: string) => {
@@ -352,5 +364,131 @@ describe("POST /api/billing/webhook", () => {
     // Both payments left their own ledger trace (idempotency keyed by
     // payment id, unaffected by this guard).
     expect(ledger.filter((r) => r.userId === "u8")).toHaveLength(2);
+  });
+
+  // #196: the issue's own acceptance criterion. Wallet upgraded to factory,
+  // then a SEPARATE, lower-plan subscribe payment is confirmed (superseded
+  // per #193 -- folded into purchased, plan untouched), then THAT payment
+  // is refunded. The wallet must stay on factory, not drop to free.
+  describe("PAYMENT_REFUNDED plan-source tracking (#196)", () => {
+    it("refunding a superseded (folded) subscribe payment undoes exactly what it added, leaving the wallet on its real plan", async () => {
+      await POST(
+        req({
+          event: "PAYMENT_CONFIRMED",
+          payment: {
+            id: "pay_factory",
+            externalReference: "u9:subscribe:factory",
+          },
+        }),
+      );
+      expect(wallet("u9").plan).toBe("factory");
+      expect(wallet("u9").balance).toBe(10000);
+
+      await POST(
+        req({
+          event: "PAYMENT_CONFIRMED",
+          payment: {
+            id: "pay_studio_superseded",
+            externalReference: "u9:subscribe:studio",
+          },
+        }),
+      );
+      expect(wallet("u9").plan).toBe("factory"); // unchanged -- #193's guard
+      expect(wallet("u9").balance).toBe(12000); // 10000 + 2000 folded
+      expect(wallet("u9").purchased).toBe(2000);
+
+      const res = await POST(
+        req({
+          event: "PAYMENT_REFUNDED",
+          payment: { id: "pay_studio_superseded" },
+        }),
+      );
+      expect(res.status).toBe(200);
+      // The bug this issue fixes: this must NOT reset to free.
+      expect(wallet("u9").plan).toBe("factory");
+      expect(wallet("u9").total).toBe(10000);
+      // It DOES precisely undo what the folded payment added.
+      expect(wallet("u9").balance).toBe(10000);
+      expect(wallet("u9").purchased).toBe(0);
+    });
+
+    it("refunding the actual plan-setting payment still fully resets to free, even after an unrelated fold happened in between", async () => {
+      await POST(
+        req({
+          event: "PAYMENT_CONFIRMED",
+          payment: {
+            id: "pay_factory_2",
+            externalReference: "u10:subscribe:factory",
+          },
+        }),
+      );
+      await POST(
+        req({
+          event: "PAYMENT_CONFIRMED",
+          payment: {
+            id: "pay_studio_superseded_2",
+            externalReference: "u10:subscribe:studio",
+          },
+        }),
+      ); // folded, +2000 purchased/balance -- must not confuse the refund below
+      expect(wallet("u10").balance).toBe(12000);
+
+      const res = await POST(
+        req({
+          event: "PAYMENT_REFUNDED",
+          payment: { id: "pay_factory_2" },
+        }),
+      );
+      expect(res.status).toBe(200);
+      expect(wallet("u10").plan).toBe("free");
+      expect(wallet("u10").total).toBe(30);
+      // reverseSubscription undoes the ORIGINAL subscribe entry's own
+      // stored delta (10000 - 30 = 9970), not the plan's flat total --
+      // matching how every other subscribe/refund pair in this suite
+      // already behaves. Balance lands at 12000 - 9970 = 2030: the seeded
+      // 30 plus the 2000 the later, unrelated fold added and was never
+      // itself refunded. A real gateway would refund at most one of these
+      // two payments in a single event; this ordering is a deliberately
+      // pessimistic stress case; the acceptance criterion it proves is that
+      // the fold in between never confuses which entry is being reversed.
+      expect(wallet("u10").balance).toBe(2030);
+    });
+
+    // The chain-of-upgrades case named in the issue's own Context section:
+    // refund the ORIGINAL atelier->studio payment after the account later,
+    // separately, upgraded to factory. Pre-#196 this reset the wallet to
+    // free even though factory is the real, currently-active plan.
+    it("refunding a real plan-changing payment that was later superseded by a further upgrade leaves the wallet untouched", async () => {
+      await POST(
+        req({
+          event: "PAYMENT_CONFIRMED",
+          payment: {
+            id: "pay_atelier_3",
+            externalReference: "u11:subscribe:atelier",
+          },
+        }),
+      );
+      expect(wallet("u11").plan).toBe("atelier");
+
+      await POST(
+        req({
+          event: "PAYMENT_CONFIRMED",
+          payment: {
+            id: "pay_factory_3",
+            externalReference: "u11:subscribe:factory",
+          },
+        }),
+      );
+      expect(wallet("u11").plan).toBe("factory");
+      const balanceAfterFactory = wallet("u11").balance;
+
+      const res = await POST(
+        req({ event: "PAYMENT_REFUNDED", payment: { id: "pay_atelier_3" } }),
+      );
+      expect(res.status).toBe(200);
+      expect(wallet("u11").plan).toBe("factory");
+      expect(wallet("u11").total).toBe(10000);
+      expect(wallet("u11").balance).toBe(balanceAfterFactory); // untouched
+    });
   });
 });

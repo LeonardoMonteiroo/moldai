@@ -43,6 +43,7 @@ describe("app/planos/page", () => {
       total: 2000,
       purchased: 0,
       renewsAt: null,
+      planSourceExternalId: null,
     });
     const element = await PlanosPage();
     expect(element.props.signedIn).toBe(true);
