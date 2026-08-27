@@ -5,13 +5,15 @@ import {
   refundWallet,
   applyPurchase,
   reverseSubscription,
-  reverseFoldedSubscription,
+  reversePurchasedCredits,
   reverseRefundedSubscription,
+  reverseRefundedEntry,
   renewWallet,
   renewsInDays,
   isRenewalDue,
   type LedgerEntry,
 } from "./wallet";
+import { PLAN_CREDITS, TOPUP_CREDITS } from "./plans";
 
 const NOW = new Date("2026-08-17T12:00:00.000Z");
 
@@ -165,7 +167,7 @@ describe("applyPurchase", () => {
         reason: "studio",
         // #196: folded into `purchased`, never touched plan/total -- the
         // marker a later refund of THIS entry needs to reverse it precisely
-        // (reverseFoldedSubscription) rather than resetting the plan.
+        // (reversePurchasedCredits) rather than resetting the plan.
         planChanged: false,
       });
     });
@@ -247,14 +249,14 @@ describe("reverseSubscription", () => {
 // monotonicity guard) -- it added `amount` to BOTH `purchased` and
 // `balance`, never touched plan/total, so undoing it must mirror exactly
 // that, regardless of what plan the wallet is on now.
-describe("reverseFoldedSubscription", () => {
+describe("reversePurchasedCredits", () => {
   it("subtracts the amount from both balance and purchased, leaves plan/total untouched", () => {
     const w = seedWallet(NOW);
     applyPurchase(w, { type: "subscribe", plan: "factory" }, NOW); // plan factory, balance 10000
     applyPurchase(w, { type: "subscribe", plan: "studio" }, NOW); // folded: +2000 purchased/balance
     expect(w.balance).toBe(12000);
     expect(w.purchased).toBe(2000);
-    const entry = reverseFoldedSubscription(w, 2000);
+    const entry = reversePurchasedCredits(w, 2000);
     expect(w.balance).toBe(10000);
     expect(w.purchased).toBe(0);
     expect(w.plan).toBe("factory"); // untouched -- this entry never set it
@@ -265,6 +267,87 @@ describe("reverseFoldedSubscription", () => {
       balanceAfter: 10000,
       reason: "asaas_refund",
     });
+  });
+});
+
+// #198: the topup half of the same operation. A topup adds to BOTH
+// `purchased` and `balance`; reversing only the balance half (the plain
+// debitWallet this used to be) left `purchased` inflated forever.
+describe("reversePurchasedCredits (refunded topup, #198)", () => {
+  it("returns purchased to its pre-topup value, not just balance", () => {
+    const w = seedWallet(NOW);
+    const before = { balance: w.balance, purchased: w.purchased };
+    const topup = applyPurchase(w, { type: "topup" }, NOW);
+    expect(w.purchased).toBe(TOPUP_CREDITS);
+
+    reversePurchasedCredits(w, topup.amount);
+
+    expect(w.purchased).toBe(before.purchased);
+    expect(w.balance).toBe(before.balance);
+  });
+
+  it("a renewal after a refunded topup no longer regrants the refunded credits", () => {
+    const w = seedWallet(NOW);
+    const topup = applyPurchase(w, { type: "topup" }, NOW);
+    debitWallet(w, 10, "generate");
+    reversePurchasedCredits(w, topup.amount);
+
+    // Past due, so the renewal actually runs.
+    w.renewsAt = new Date(NOW.getTime() - 1000);
+    renewWallet(w, NOW);
+
+    // The plan allowance only -- exactly what a wallet that had never
+    // bought (and been refunded) a topup would renew to.
+    expect(w.balance).toBe(w.total);
+    expect(w.purchased).toBe(0);
+  });
+});
+
+// #198: the dispatch the webhook route delegates to wholesale, so these
+// cases exercise the branch selection itself rather than a copy of it.
+describe("reverseRefundedEntry", () => {
+  it("routes a topup entry to the purchased-and-balance reversal", () => {
+    const w = seedWallet(NOW);
+    const topup = applyPurchase(w, { type: "topup" }, NOW);
+
+    const result = reverseRefundedEntry(
+      w,
+      { type: "topup", amount: topup.amount, planChanged: false },
+      "pay_1",
+    );
+
+    expect(result.outcome).toBe("topup");
+    expect(w.purchased).toBe(0);
+    expect(w.balance).toBe(PLAN_CREDITS.free);
+  });
+
+  it("routes a subscribe entry to the plan-source decision", () => {
+    const w = seedWallet(NOW);
+    const sub = applyPurchase(w, { type: "subscribe", plan: "atelier" }, NOW);
+    w.planSourceExternalId = "pay_1";
+
+    const result = reverseRefundedEntry(
+      w,
+      { type: "subscribe", amount: sub.amount, planChanged: true },
+      "pay_1",
+    );
+
+    expect(result.outcome).toBe("reset");
+    expect(w.plan).toBe("free");
+  });
+
+  it("degrades an unrecognised entry type to a plain balance debit", () => {
+    const w = seedWallet(NOW);
+
+    const result = reverseRefundedEntry(
+      w,
+      { type: "renew", amount: 5, planChanged: false },
+      "pay_1",
+    );
+
+    expect(result.outcome).toBe("other");
+    expect(w.balance).toBe(PLAN_CREDITS.free - 5);
+    expect(w.purchased).toBe(0);
   });
 });
 

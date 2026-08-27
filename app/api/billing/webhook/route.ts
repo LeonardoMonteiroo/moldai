@@ -9,9 +9,8 @@ import type { PaidPlanId } from "@/lib/billing/plans";
 import type { PlanId } from "@/lib/types";
 import {
   applyPurchase,
-  debitWallet,
-  reverseRefundedSubscription,
-  type RefundedSubscriptionOutcome,
+  reverseRefundedEntry,
+  type RefundedEntryOutcome,
 } from "@/lib/billing/wallet";
 import {
   withWalletIdempotent,
@@ -238,21 +237,27 @@ async function handleRefunded(paymentId: string | null): Promise<void> {
   // changed the plan -- undo exactly the purchased/balance it added), or
   // "superseded" (this entry changed the plan when it ran, but a LATER real
   // upgrade has since overwritten that -- nothing survives to claw back,
-  // wallet left untouched). A refunded *topup* never touched plan/total to
-  // begin with, so it stays a plain debit, unchanged from before.
-  const outcome: { value: RefundedSubscriptionOutcome | null } = {
-    value: null,
-  };
+  // wallet left untouched).
+  //
+  // #198: a refunded *topup* never touched plan/total either, but it is NOT
+  // a plain debit -- applyPurchase's topup branch adds to BOTH `balance` and
+  // `purchased`, so reversing only the balance half leaves `purchased`
+  // (the pool renewWallet never resets) permanently inflated, re-granting
+  // the refunded credits at every renewal from then on. It reverses through
+  // the exact same reversePurchasedCredits a *folded* subscribe entry uses,
+  // because the two entries perform the identical wallet movement.
+  const outcome: { value: RefundedEntryOutcome | null } = { value: null };
   await withWalletIdempotent(
     original.userId,
     `${paymentId}:refund`,
     (wallet) => {
-      if (original.type !== "subscribe") {
-        return debitWallet(wallet, original.amount, "asaas_refund");
-      }
-      const result = reverseRefundedSubscription(
+      const result = reverseRefundedEntry(
         wallet,
-        { amount: original.amount, planChanged: original.planChanged },
+        {
+          type: original.type,
+          amount: original.amount,
+          planChanged: original.planChanged,
+        },
         paymentId,
       );
       outcome.value = result.outcome;

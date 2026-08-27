@@ -174,7 +174,7 @@ export function applyPurchase(
           reason: purchase.plan,
           // #196: folded into `purchased`, never touched plan/total -- a
           // later refund of this exact entry can undo precisely this
-          // movement (reverseFoldedSubscription), and must never reset the
+          // movement (reversePurchasedCredits), and must never reset the
           // plan, since this entry never set it in the first place.
           planChanged: false,
         };
@@ -248,13 +248,23 @@ export function reverseSubscription(
   };
 }
 
-// #196: reverses a *folded* subscribe entry (applyPurchase's #193 guard
-// branch, LedgerEntry.planChanged: false) -- it added `amount` to BOTH
-// `purchased` and `balance` (mirroring a topup), never touched plan/total,
-// so undoing it is the mirrored-undo `debitWallet`-shaped operation the
-// issue's own acceptance criteria ask for: exactly what it added, nothing
-// about the plan.
-export function reverseFoldedSubscription(
+// Reverses any purchase that added `amount` to BOTH `purchased` and
+// `balance` and never touched plan/total. Two entry shapes do exactly that,
+// which is why this is one function rather than two:
+//
+//  - a `type: "topup"` entry (applyPurchase's topup branch);
+//  - a *folded* `type: "subscribe"` entry (applyPurchase's #193 monotonicity
+//    guard branch, LedgerEntry.planChanged: false), which deliberately
+//    mirrors a topup rather than moving the plan.
+//
+// #198: the topup half used to be a plain `debitWallet`, which undoes only
+// the balance movement and leaves `purchased` permanently inflated by the
+// refunded amount -- and `purchased` is the pool a renewal never resets
+// (renewWallet: `newBalance = total + purchased`), so every renewal from
+// then on silently re-granted credits that had already been given back,
+// with no ledger row ever explaining the drift. A reversal has to mirror
+// exactly what the original entry added, not just its balance-facing half.
+export function reversePurchasedCredits(
   wallet: Wallet,
   amount: number,
 ): LedgerEntry {
@@ -286,7 +296,7 @@ export interface RefundedSubscriptionResult {
 //  - "folded": this entry never changed the plan at all (planChanged was
 //    false when it ran -- applyPurchase's #193 guard branch). Its
 //    contribution is precisely tracked (added to `purchased`+`balance`,
-//    never overwritten since), so reverseFoldedSubscription undoes exactly
+//    never overwritten since), so reversePurchasedCredits undoes exactly
 //    that, regardless of what plan the wallet is on now. This is the #196
 //    acceptance criterion: refunding a superseded/folded payment must not
 //    touch the plan.
@@ -315,7 +325,7 @@ export function reverseRefundedSubscription(
   if (!entry.planChanged) {
     return {
       outcome: "folded",
-      ledgerEntry: reverseFoldedSubscription(wallet, entry.amount),
+      ledgerEntry: reversePurchasedCredits(wallet, entry.amount),
     };
   }
   return {
@@ -327,6 +337,50 @@ export function reverseRefundedSubscription(
       reason: "asaas_refund_superseded",
     },
   };
+}
+
+// #198: the whole "what does refunding THIS ledger entry mean" decision,
+// for every entry shape a gateway refund can name -- pure, so the webhook
+// route (app/api/billing/webhook/route.ts) is a plain observer of the
+// outcome rather than the place the branching lives. Extracted when the
+// topup case turned out to need its own reversal (reversePurchasedCredits,
+// not a plain debitWallet): keeping the dispatch in the route would have
+// meant the invariant tests could only re-implement it, never exercise it.
+//
+//  - "topup" / "folded" / "reset" / "superseded": see
+//    reversePurchasedCredits and reverseRefundedSubscription above.
+//  - "other": no entry shape reaches this today. Only withWalletIdempotent
+//    ever writes an externalId, and the only entries it writes one for are
+//    a confirmed topup/subscribe and a refund's own `<id>:refund` row
+//    (which a gateway can never name as a payment id). Kept so a future
+//    gateway-originated entry type degrades to undoing the balance movement
+//    rather than silently reversing nothing.
+export type RefundedEntryOutcome =
+  "topup" | RefundedSubscriptionOutcome | "other";
+
+export interface RefundedEntryResult {
+  outcome: RefundedEntryOutcome;
+  ledgerEntry: LedgerEntry;
+}
+
+export function reverseRefundedEntry(
+  wallet: Wallet,
+  entry: { type: string; amount: number; planChanged: boolean },
+  refundedExternalId: string,
+): RefundedEntryResult {
+  if (entry.type === "topup") {
+    return {
+      outcome: "topup",
+      ledgerEntry: reversePurchasedCredits(wallet, entry.amount),
+    };
+  }
+  if (entry.type !== "subscribe") {
+    return {
+      outcome: "other",
+      ledgerEntry: debitWallet(wallet, entry.amount, "asaas_refund"),
+    };
+  }
+  return reverseRefundedSubscription(wallet, entry, refundedExternalId);
 }
 
 // #40: dueness used to be decided once, by scripts/cron-renew.ts's unlocked

@@ -325,6 +325,23 @@ describe("POST /api/billing/webhook", () => {
     expect(wallet("u1").total).toBe(30);
   });
 
+  // #198: this route's own half of the fix. The assertion above (plan/total
+  // untouched) is exactly what the pre-#198 test checked -- and it passed
+  // throughout, because `purchased` is neither of those. A topup grants BOTH
+  // balance and purchased, so reversing only the balance half left the
+  // carry-over pool inflated and every later renewal re-granted the refunded
+  // credits (renewWallet: total + purchased).
+  it("PAYMENT_REFUNDED for a topup returns purchased, not just balance", async () => {
+    await POST(req(CONFIRMED_PAYLOAD)); // u1:topup, +100 to balance AND purchased
+    expect(wallet("u1").balance).toBe(130);
+    expect(wallet("u1").purchased).toBe(100);
+
+    await POST(req({ event: "PAYMENT_REFUNDED", payment: { id: "pay_1" } }));
+
+    expect(wallet("u1").balance).toBe(30);
+    expect(wallet("u1").purchased).toBe(0);
+  });
+
   // #193: the acceptance criterion itself -- confirm factory, then confirm
   // an OLDER, lower-plan studio payment for the same account (Asaas
   // guarantees at-least-once, out-of-order delivery). The wallet must stay
