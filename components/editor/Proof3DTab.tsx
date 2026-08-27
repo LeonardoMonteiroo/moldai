@@ -53,12 +53,22 @@ export function Proof3DTab() {
   const pattern = useEditorStore((s) => s.pattern);
   const [view, setView] = useState<ProofView>("front");
 
+  // #128: buildProofMesh only knows the body/sleeve/skirt piece ids -- a
+  // trousers pattern's pieces ("trouser-front"/"trouser-back") match none of
+  // them, so it would silently return a bare mannequin with zero garment
+  // shells instead of failing. Rather than let that render as an unlabeled
+  // empty preview (indistinguishable from a real bug), this tab treats
+  // trousers as an honest, named gap -- the same "surface the limitation
+  // where the user meets it" rule the DXF import screen's own
+  // createDisabledNote and this tab's existing beta badge already follow.
+  const unsupportedType = pattern?.spec?.type === "trousers";
+
   // Re-derived from the pattern's own spec/measurements every time the
   // pattern object changes (a new version after a regeneration included) --
   // never persisted, mirroring buildExportModel/planCutLayout's own
   // client-side, credit-less re-draft.
   const { mesh, failed, error } = useMemo<MeshResult>(() => {
-    if (!pattern?.spec || pattern.pieces.length === 0) {
+    if (!pattern?.spec || pattern.pieces.length === 0 || unsupportedType) {
       return { mesh: null, failed: false, error: null };
     }
     try {
@@ -70,7 +80,7 @@ export function Proof3DTab() {
     } catch (err) {
       return { mesh: null, failed: true, error: err };
     }
-  }, [pattern, tData]);
+  }, [pattern, tData, unsupportedType]);
 
   // Logged as a side effect (not inline in the useMemo above, which must
   // stay pure) -- the one seam CLAUDE.md documents for wiring in a real
@@ -109,7 +119,9 @@ export function Proof3DTab() {
           </div>
         ) : !mesh || !projection ? (
           <div className="border-pattern-guide rounded-card bg-surface-alt flex min-h-[200px] flex-1 items-center justify-center border border-dashed">
-            <span className="text-muted text-ui">{t("emptyState")}</span>
+            <span className="text-muted text-ui">
+              {unsupportedType ? t("notSupportedForTrousers") : t("emptyState")}
+            </span>
           </div>
         ) : (
           <>

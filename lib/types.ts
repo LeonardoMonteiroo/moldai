@@ -28,7 +28,7 @@ export interface Measurement {
   b: Point;
 }
 
-export type GarmentType = "blouse" | "dress" | "skirt" | "tshirt";
+export type GarmentType = "blouse" | "dress" | "skirt" | "tshirt" | "trousers";
 export type Gender = "female" | "male";
 export type Neckline = "straight" | "V" | "round";
 export type SleeveLength = "none" | "short" | "long";
@@ -86,16 +86,28 @@ export interface GarmentStyle {
   // sleeveless garment simply never reaches the drafting branch that reads
   // this, the same way skirt-only style fields are unused on a bodice.
   cuff?: CuffType;
-  // #131: a straight waistband drafted from the skirt panel's own measured
-  // waist edge plus a fixed closure overlap. Only applies to the standalone
-  // skirt archetype (spec.type === "skirt") -- a dress's bodice joins the
-  // skirt panel directly at the natural waist (see the seam-conflict section
-  // below), so this field is simply unread for a dress. Undefined defaults
-  // to "straight": unlike collar/cuff (new capabilities the AI must actively
-  // request), a skirt with no waistband is the exact defect #131 exists to
-  // fix, so every newly-drafted skirt gets one unless explicitly set to
-  // "none".
+  // #131/#128: a straight waistband drafted from the skirt/trousers panel's
+  // own measured waist edge plus a fixed closure overlap. Applies to the
+  // standalone skirt archetype (spec.type === "skirt") and to trousers
+  // (spec.type === "trousers", #128 reuses this same field/drafter rather
+  // than a second one) -- a dress's bodice joins the skirt panel directly at
+  // the natural waist instead (see the seam-conflict section below), so this
+  // field is simply unread for a dress. Undefined defaults to "straight":
+  // unlike collar/cuff (new capabilities the AI must actively request), a
+  // skirt or trousers with no waistband can't be finished, so every
+  // newly-drafted one gets a band unless explicitly set to "none".
   waistband?: WaistbandType;
+  // #128: total waist-to-hem length for the (straight-leg only) trousers
+  // block, AI/user-settable and clamped like skirtLengthCm. Unlike
+  // skirtLengthCm there is no per-size Measurements field to fall back to
+  // (no drafter has ever needed a trouser leg length before #128) -- absent,
+  // it defaults to a flat per-gender constant
+  // (lib/draft/trousers.ts's TROUSER_DEFAULT_LENGTH_CM), the same size, at
+  // every graded size, until a future measurement-vocabulary issue adds a
+  // real per-size leg-length field. Simply unread for any other garment
+  // type, the same "type-mismatched style field is a no-op" precedent
+  // skirtLengthCm/waistband already follow.
+  trouserLengthCm?: number;
 }
 
 export interface GarmentSpec {

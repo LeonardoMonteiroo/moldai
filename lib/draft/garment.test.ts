@@ -1063,7 +1063,13 @@ describe("fold edge is additive metadata, not a geometry change (#126)", () => {
       const m = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
       const pieces = draftPiecesCm(spec, m, t);
       const withFold = pieces.filter((p) => p.foldEdge);
-      expect(withFold.length).toBeGreaterThan(0);
+      // #128: trousers legitimately drafts NO on-fold piece -- a straight
+      // trouser leg panel is not symmetric about any centre line the way a
+      // bodice/skirt panel is (its own inseam and outseam are different
+      // edges, not mirror halves), so front/back/waistband declare no
+      // foldEdge at all. The "at least one case in the whole matrix
+      // exercises a fold edge" coverage check moved to its own assertion
+      // below rather than being required of every single case.
       for (const piece of withFold) {
         const pts = piece.outlineCm as [number, number][];
         const spans = piece.curvedSpans ?? [];
@@ -1078,6 +1084,14 @@ describe("fold edge is additive metadata, not a geometry change (#126)", () => {
       }
     });
   }
+
+  it("at least one DECORATION_CASES entry drafts an on-fold piece", () => {
+    const anyFold = DECORATION_CASES.some(([, spec]) => {
+      const m = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
+      return draftPiecesCm(spec, m, t).some((p) => p.foldEdge);
+    });
+    expect(anyFold).toBe(true);
+  });
 });
 
 describe("drafted outlines have no retraced edge (#79)", () => {
@@ -1350,5 +1364,100 @@ describe("seam graph (#134)", () => {
     expect(graph.find((m) => m.key === "waistband-waist")).toBeUndefined();
     const pieces = draftPiecesCm(spec, SIZE_TABLE.M, t);
     expect(pieces.map((p) => p.id)).not.toContain("waistband");
+  });
+
+  // #128: the trousers block declares four kinds of seam -- front/back's own
+  // rise (self-paired, the mirrored-leg fly/back seam), inseam, outseam
+  // (front vs back, equal by construction -- see lib/draft/trousers.ts) and
+  // the waistband, reusing #131's draftWaistband verbatim. Every pair must
+  // be present and, other than the waistband's own deliberate
+  // WAISTBAND_OVERLAP_CM ease, essentially exact.
+  it("#128: every trouser seam is declared and closes within 0.3cm", () => {
+    const spec = {
+      type: "trousers" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: {},
+    };
+    const graph = measureSeamGraph(spec, SIZE_TABLE.M, t);
+    const keys = graph.map((m) => m.key).sort();
+    expect(keys).toEqual(
+      [
+        "trouser-front-rise",
+        "trouser-back-rise",
+        "trouser-inseam",
+        "trouser-outseam",
+        "trouser-waistband-waist",
+      ].sort(),
+    );
+    for (const pair of graph) {
+      expect(pair.fixable, pair.key).toBe(false);
+      expect(pair.diffCm, pair.key).toBeLessThan(0.3);
+    }
+    expect(seamCheck(graph)).toEqual([]);
+  });
+
+  it("#128: no waistband is drafted for trousers when style.waistband is 'none'", () => {
+    const spec = {
+      type: "trousers" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { waistband: "none" as const },
+    };
+    const graph = measureSeamGraph(spec, SIZE_TABLE.M, t);
+    expect(
+      graph.find((m) => m.key === "trouser-waistband-waist"),
+    ).toBeUndefined();
+    const pieces = draftPiecesCm(spec, SIZE_TABLE.M, t);
+    expect(pieces.map((p) => p.id)).not.toContain("waistband");
+  });
+
+  // The shared MEASUREMENT_CORNERS matrix above only perturbs
+  // bust/backLength/shoulder -- none of which the trousers block reads.
+  // hip/waist/rise are what actually drive its geometry, so they get their
+  // own dedicated sweep here (both the seam graph and full containment).
+  const TROUSER_CORNERS: [string, Partial<Measurements>][] = [
+    [
+      "min",
+      {
+        hip: MEASUREMENT_RANGES.hip.min,
+        waist: MEASUREMENT_RANGES.waist.min,
+        rise: MEASUREMENT_RANGES.rise.min,
+      },
+    ],
+    [
+      "max",
+      {
+        hip: MEASUREMENT_RANGES.hip.max,
+        waist: MEASUREMENT_RANGES.waist.max,
+        rise: MEASUREMENT_RANGES.rise.max,
+      },
+    ],
+    // waist very close to hip (near-zero dart suppression) and waist far
+    // below hip (large dart suppression) -- the two edges of the dart-sizing
+    // formula in lib/draft/trousers.ts.
+    ["waist near hip", { hip: 100, waist: 96, rise: 28 }],
+    ["waist far below hip", { hip: 150, waist: 55, rise: 36 }],
+    // no chart-provided rise at all -- exercises the hip-derived fallback.
+    ["no rise (fallback)", { hip: 100, waist: 74, rise: undefined }],
+  ];
+
+  describe("#128: trousers at the hip/waist/rise corners", () => {
+    for (const [cornerName, corner] of TROUSER_CORNERS) {
+      it(`${cornerName}: seam graph closes and geometry stays contained`, () => {
+        const spec = {
+          type: "trousers" as const,
+          gender: "female" as const,
+          measurementOverrides: {},
+          style: {},
+        };
+        const m: Measurements = { ...SIZE_TABLE.M, ...corner };
+        const conflicts = seamCheck(measureSeamGraph(spec, m, t));
+        expect(conflicts, JSON.stringify(conflicts)).toEqual([]);
+        const pieces = draftPiecesCm(spec, m, t);
+        assertPositiveGeometry(pieces);
+        assertDecorationsContained(pieces);
+      });
+    }
   });
 });

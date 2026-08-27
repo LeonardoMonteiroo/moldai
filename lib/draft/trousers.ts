@@ -1,0 +1,218 @@
+import { Measurements } from "@/lib/measurements";
+import { DetailRow, Gender, GarmentStyle } from "@/lib/types";
+import {
+  bbox,
+  dartInternals,
+  DraftedPiece,
+  notchAt,
+  NotchCm,
+  Pt,
+} from "./core";
+import { formatCm } from "@/lib/format";
+import type { Translate } from "@/lib/i18n/translate";
+
+const cm = (v: number) => `${formatCm(v)} cm`;
+
+// #128: a straight-leg trouser block only (the issue's own scope decision --
+// tapered/wide/flared legs are a follow-up). Front and back are each a
+// SINGLE (non-mirrored) leg panel, cut x2 -- unlike a bodice/skirt panel,
+// a trouser leg's inseam and outseam are not symmetric about any centre
+// line, so neither panel declares a foldEdge; the "other leg" is the exact
+// same cut piece with the fabric flipped, not a second half joined at a
+// fold.
+//
+// Front and back deliberately share the SAME rise depth, total length and
+// hip quarter-width (an equal front/back split, the same simplification
+// lib/draft/skirt.ts's own hip/4 panel already makes) -- only the crotch
+// curve's own extension differs between them (the back's own seat curve
+// reaches further out than the front's). That is what keeps the inseam and
+// the outseam an IDENTICAL length front vs back "by construction" (#134):
+// both edges are plumb verticals sharing the same dy (and, for the outseam,
+// the same x), so their arc length depends only on riseCm/totalLengthCm --
+// never on the crotch extension that tells front and back apart.
+const TROUSER_WEARING_EASE_CM = 3; // total ease added to the hip circumference
+const FRONT_CROTCH_EXT_RATIO = 1 / 20; // of hip+ease -- front rise extends out modestly
+const BACK_CROTCH_EXT_RATIO = 1 / 9; // of hip+ease -- back (seat) rise extends further
+const DART_DEPTH_CM = 10; // same order of magnitude as body.ts's own dartRiseCm
+
+// #132: no per-size "leg length"/"inside leg" measurement exists in
+// Measurements yet (#128's own dependency, the measurement-vocabulary issue,
+// added only `rise`) -- style.trouserLengthCm (see lib/types.ts) is the
+// total waist-to-hem length, and this is its default when the request
+// doesn't set one. Unlike skirtLengthCm there is no per-size table value to
+// fall back to, so every graded size gets this SAME flat per-gender number
+// -- a documented simplification, the same "not graded across sizes" shape
+// shoulderSlope's own flat per-gender constant already uses for a different
+// field (see lib/draft/body.ts) -- not an oversight. Exported for
+// garment.test.ts.
+export const TROUSER_DEFAULT_LENGTH_CM: Record<Gender, number> = {
+  female: 100,
+  male: 104,
+};
+
+// One trouser leg panel (front or back). `isFront` only controls the crotch
+// curve's own extension and the single/double notch convention -- every
+// other formula is identical between the two calls in draftTrousers below,
+// which is exactly what makes the inseam/outseam pairs equal by
+// construction.
+function trouserPanel(
+  id: string,
+  name: string,
+  isFront: boolean,
+  hipQuarterCm: number,
+  waistQuarterRawCm: number,
+  riseCm: number,
+  totalLengthCm: number,
+  seamAllowanceCm: number,
+  t: Translate,
+): DraftedPiece {
+  const crotchExtCm =
+    hipQuarterCm *
+    (isFront ? FRONT_CROTCH_EXT_RATIO : BACK_CROTCH_EXT_RATIO) *
+    4;
+
+  // Same waist-suppression idea body.ts already uses for its own bodice
+  // (hip-derived width minus waist-derived width, removed via a dart) --
+  // here entirely via the dart, since the outseam is a plumb vertical with
+  // no side-seam taper to share the suppression with the way the bodice's
+  // side seam does.
+  const waistSuppression = Math.max(0, hipQuarterCm - waistQuarterRawCm);
+  const dartHalfWidth = Math.max(0.6, waistSuppression / 2);
+  const dartCenterX = hipQuarterCm * 0.55;
+
+  const pts: Pt[] = [];
+  const push = (p: Pt) => (pts.push(p), pts.length - 1);
+
+  const waistCF = push([0, 0]); // waist at centre front/back -- top of the rise
+  push([crotchExtCm * 0.55, riseCm * 0.4]); // rise-curve control point
+  const crotchPt = push([crotchExtCm, riseCm]); // bottom of the rise curve
+  const spans: [number, number][] = [[waistCF, crotchPt]];
+  const hemInner = push([crotchExtCm, totalLengthCm]); // inseam: plumb vertical
+  const hemOuter = push([hipQuarterCm, totalLengthCm]); // hem edge
+  const waistOuter = push([hipQuarterCm, 0]); // outseam: plumb vertical
+
+  const b = bbox(pts);
+  const insideRef: Pt = [b.minX + b.w / 2, b.minY + b.h / 2];
+
+  // #127: one waist dart per panel, touching the waist seam -- the same
+  // single-ended (apex-to-seam-midpoint) shape body.ts's own isDressHem dart
+  // uses, since this edge (like a dress's hem/waist join) has nothing below
+  // it for a second, double-ended apex to open onto.
+  const dartLegL: Pt = [dartCenterX - dartHalfWidth, 0];
+  const dartApex: Pt = [dartCenterX, DART_DEPTH_CM];
+  const dartLegR: Pt = [dartCenterX + dartHalfWidth, 0];
+  const dartSeamMid: Pt = [dartCenterX, 0];
+  const internalsCm = dartInternals(
+    [dartLegL, dartApex, dartLegR],
+    [dartApex, dartSeamMid],
+    [dartApex],
+  );
+
+  // #124: single marks the front, double the back -- the same convention
+  // every other mated pair (pitch notches, dress waist-join corners) already
+  // uses. The crotch-point notch helps line up the inseam at assembly; the
+  // waist-corner notches mark where the waistband aligns (double, matching
+  // body.ts's own dress-hem outer-corner convention); the dart-leg notches
+  // mark where the dart interrupts the waist seam.
+  const pitchType = isFront ? "single" : "double";
+  const notches: NotchCm[] = [
+    notchAt(pts[crotchPt], [0, 1], insideRef, pitchType),
+    notchAt(dartLegL, [1, 0], insideRef, "single"),
+    notchAt(dartLegR, [1, 0], insideRef, "single"),
+    notchAt(pts[waistCF], [1, 0], insideRef, "double"),
+    notchAt(pts[waistOuter], [1, 0], insideRef, "double"),
+  ];
+
+  // Inside the leg's own rectangle (y in [riseCm, totalLengthCm], x in
+  // [crotchExtCm, hipQuarterCm]) -- see the top-of-file note on why that
+  // region is a true rectangle, not merely "usually clear".
+  const grainlineCm: [Pt, Pt] = [
+    [(crotchExtCm + hipQuarterCm) / 2, riseCm + 3],
+    [(crotchExtCm + hipQuarterCm) / 2, totalLengthCm - 3],
+  ];
+
+  const detailRows: DetailRow[] = [
+    { label: t("rows.trouserLeg"), value: t("trouserLeg.straight") },
+    { label: t("rows.seamAllowance"), value: cm(seamAllowanceCm) },
+    { label: t("rows.rise"), value: cm(riseCm) },
+    { label: t("rows.length"), value: cm(totalLengthCm) },
+    { label: t("rows.waistPanel"), value: cm(waistQuarterRawCm * 2) },
+    { label: t("rows.dart"), value: cm(dartHalfWidth * 2) },
+    { label: t("rows.grain"), value: t("grainValue") },
+    // #128 (following the collar/cuff/waistband precedent, #129/#130/#131):
+    // this is the only leg shape MoldAI drafts today -- tapered/wide/flared
+    // are surfaced "em breve" right on the piece itself, not silently.
+    { label: t("rows.trouserOtherLegs"), value: t("comingSoonBadge") },
+  ];
+
+  return {
+    id,
+    name,
+    qty: 2, // one leg mirrors the other -- cut 2, flipping the fabric
+    outlineCm: pts,
+    curvedSpans: spans,
+    grainlineCm,
+    internalsCm,
+    notches,
+    detailRows,
+    // #134: `rise` is this panel's own centre-front/back edge, sewn to the
+    // MIRRORED COPY of itself when the two leg cuts are joined (the fly seam
+    // for the front, the back rise seam for the back) -- the same self-pair
+    // shape sleeve.ts's own two underarm edges already use for its own
+    // left/right mirror seam. `inseam`/`outseam` mate against the OTHER
+    // panel (front vs back); `waist` mates against the waistband.
+    seamEdges: {
+      rise: [waistCF, crotchPt],
+      inseam: [crotchPt, hemInner],
+      outseam: [hemOuter, waistOuter],
+      waist: [waistOuter, pts.length],
+    },
+  };
+}
+
+export function draftTrousers(
+  m: Measurements,
+  style: GarmentStyle,
+  gender: Gender,
+  t: Translate,
+): { front: DraftedPiece; back: DraftedPiece } {
+  const seamAllowanceCm = style.seamAllowanceCm ?? 1;
+  const hipQuarterCm = m.hip / 4 + TROUSER_WEARING_EASE_CM / 4;
+  const waistQuarterRawCm = m.waist / 4;
+  // #132: `rise` is the trouser-specific EXTENDED_MEASUREMENT_KEYS field --
+  // read when the chart has it, falling back to a documented hip-derived
+  // proportion (a common quick-draft crotch-depth rule) when it doesn't, the
+  // same "documented proportion when absent" scheme every other extended
+  // key already follows (lib/draft/body.ts's neckHalf/armholeDepthBase/
+  // backWidth, lib/draft/sleeve.ts's bicep -- see CLAUDE.md's Drafting
+  // engine section). Both seeded system charts already set a real,
+  // per-size-graded `rise`, so this fallback is a robustness path for a
+  // custom chart that doesn't, not the common case.
+  const riseCm = m.rise ?? m.hip / 4 + 4;
+  const totalLengthCm =
+    style.trouserLengthCm ?? TROUSER_DEFAULT_LENGTH_CM[gender];
+
+  const front = trouserPanel(
+    "trouser-front",
+    t("pieceNames.front"),
+    true,
+    hipQuarterCm,
+    waistQuarterRawCm,
+    riseCm,
+    totalLengthCm,
+    seamAllowanceCm,
+    t,
+  );
+  const back = trouserPanel(
+    "trouser-back",
+    t("pieceNames.back"),
+    false,
+    hipQuarterCm,
+    waistQuarterRawCm,
+    riseCm,
+    totalLengthCm,
+    seamAllowanceCm,
+    t,
+  );
+  return { front, back };
+}
