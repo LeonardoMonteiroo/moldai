@@ -1,5 +1,10 @@
 import type { PlanId } from "@/lib/types";
-import { PLAN_CREDITS, TOPUP_CREDITS, type PaidPlanId } from "./plans";
+import {
+  PLAN_CREDITS,
+  TOPUP_CREDITS,
+  isPlanUpgrade,
+  type PaidPlanId,
+} from "./plans";
 
 export interface Wallet {
   plan: PlanId;
@@ -95,6 +100,56 @@ export function applyPurchase(
       };
     case "subscribe": {
       const planCredits = PLAN_CREDITS[purchase.plan];
+      // #193: monotonicity guard. The mock path's plan_not_upgradable check
+      // (app/api/billing/purchase/route.ts) only runs synchronously, at
+      // checkout-creation time -- under PAYMENT_PROVIDER=asaas the wallet
+      // is instead mutated later, from an async PAYMENT_CONFIRMED webhook
+      // (handleConfirmed, app/api/billing/webhook/route.ts), and Asaas's
+      // own docs guarantee at-least-once, OUT-OF-ORDER delivery. Two
+      // distinct subscribe checkouts for different plans (studio, then
+      // factory) can therefore have their webhooks arrive in either order.
+      // Without this guard, a factory wallet that later processes a
+      // delayed/reordered "studio" confirmation would be silently moved
+      // backwards.
+      //
+      // Asaas's payload carries nothing this app trusts as a true ordering
+      // signal -- the webhook route already documents that a payment's
+      // `value` is never trusted, and there is no reliable "this payment
+      // was confirmed before that one" timestamp to compare against a
+      // per-wallet high-water mark without adding new persisted state. So
+      // the only honest guard achievable from what Asaas actually sends is
+      // rank-based: never move `plan`/`total` to a tier whose credit
+      // allowance isn't strictly greater than the wallet's current one
+      // (isPlanUpgrade, lib/billing/plans.ts -- the exact function the
+      // mock path's own synchronous check already uses, so both paths
+      // agree on what counts as an upgrade). A same-tier confirmation is
+      // refused by the identical check (isPlanUpgrade is false when the
+      // credits are equal), covering the "reapply a same-tier" half of the
+      // guard too.
+      //
+      // The payment itself is real and already settled by the time this
+      // runs, so refusing it outright would silently swallow money the
+      // customer already paid (the money-path prohibition this issue was
+      // filed over). Instead: `plan`/`total`/`renewsAt` stay exactly as
+      // they are, and the paid tier's credit value is folded into
+      // `purchased` -- the same carry-over pool a top-up uses, never reset
+      // by a renewal -- so the account keeps every credit it paid for
+      // without ever losing the higher plan it was already on. The ledger
+      // entry keeps `type: "subscribe"` with `reason: purchase.plan`
+      // (rather than a new/topup type): it is still an accurate record of
+      // which tier was actually paid for, just one that didn't change the
+      // wallet's plan. The caller (the webhook route) is responsible for
+      // reporting this case for operator visibility -- see handleConfirmed.
+      if (!isPlanUpgrade(wallet.plan, purchase.plan)) {
+        wallet.purchased += planCredits;
+        wallet.balance += planCredits;
+        return {
+          type: "subscribe",
+          amount: planCredits,
+          balanceAfter: wallet.balance,
+          reason: purchase.plan,
+        };
+      }
       // Plan allowance plus whatever top-up credits were already bought —
       // upgrading plans must not erase them either (#37). Also applies on a
       // studio->factory (or any) upgrade: a wallet whose balance already

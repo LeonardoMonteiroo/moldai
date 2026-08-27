@@ -125,6 +125,72 @@ describe("applyPurchase", () => {
     expect(w.balance).toBe(2200);
     expect(w.balance).toBeGreaterThanOrEqual(700);
   });
+
+  // #193: out-of-order webhook delivery -- a lower/equal-plan subscribe
+  // payment confirmed after a higher one already landed must not move the
+  // wallet backwards. The mock path's synchronous plan_not_upgradable check
+  // has no equivalent once the mutation happens async from a webhook, so
+  // applyPurchase itself has to be the one place this can't be bypassed.
+  describe("subscribe monotonicity guard (#193)", () => {
+    it("a lower-plan subscribe confirmed after a higher one never downgrades plan/total/renewsAt", () => {
+      const w = seedWallet(NOW);
+      applyPurchase(w, { type: "subscribe", plan: "factory" }, NOW);
+      const renewsAtAfterFactory = w.renewsAt;
+      // A later timestamp, simulating the delayed/reordered webhook -- if
+      // renewsAt moved at all it would prove the guard let the lower plan
+      // through.
+      const LATER = new Date("2026-08-20T12:00:00.000Z");
+      const entry = applyPurchase(
+        w,
+        { type: "subscribe", plan: "studio" },
+        LATER,
+      );
+      expect(w.plan).toBe("factory");
+      expect(w.total).toBe(10000);
+      expect(w.renewsAt).toEqual(renewsAtAfterFactory);
+      // The payment is still honoured: studio's own credit value (2000) is
+      // folded into balance/purchased rather than silently dropped.
+      expect(w.balance).toBe(12000); // 10000 (factory) + 2000 (studio, as purchased)
+      expect(w.purchased).toBe(2000);
+      expect(entry).toEqual({
+        type: "subscribe",
+        amount: 2000,
+        balanceAfter: 12000,
+        reason: "studio",
+      });
+    });
+
+    it("a same-tier subscribe confirmation is also refused as a plan change, but still credits the payment", () => {
+      const w = seedWallet(NOW);
+      applyPurchase(w, { type: "subscribe", plan: "atelier" }, NOW); // balance 500
+      const renewsAtAfterFirst = w.renewsAt;
+      const entry = applyPurchase(
+        w,
+        { type: "subscribe", plan: "atelier" },
+        new Date("2026-08-20T12:00:00.000Z"),
+      );
+      expect(w.plan).toBe("atelier");
+      expect(w.total).toBe(500);
+      expect(w.renewsAt).toEqual(renewsAtAfterFirst);
+      expect(w.balance).toBe(1000); // 500 + 500, both honoured
+      expect(w.purchased).toBe(500);
+      expect(entry.amount).toBe(500);
+    });
+
+    it("purchased credits folded in by a superseded subscribe survive a later real upgrade, same as any other top-up (#37)", () => {
+      const w = seedWallet(NOW);
+      applyPurchase(w, { type: "subscribe", plan: "factory" }, NOW); // 10000
+      applyPurchase(w, { type: "subscribe", plan: "studio" }, NOW); // superseded: +2000 purchased
+      expect(w.purchased).toBe(2000);
+      // A same-tier factory re-confirmation isn't an upgrade either (equal
+      // credits, not strictly greater) -- it also stays folded, for its
+      // own full plan value, rather than being treated as a plan reset.
+      applyPurchase(w, { type: "subscribe", plan: "factory" }, NOW);
+      expect(w.plan).toBe("factory");
+      expect(w.purchased).toBe(12000); // 2000 + 10000
+      expect(w.balance).toBe(22000); // 10000 + 2000 + 10000
+    });
+  });
 });
 
 // #6: a PAYMENT_REFUNDED for a subscribe purchase has to undo more than the

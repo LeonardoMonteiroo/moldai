@@ -312,4 +312,45 @@ describe("POST /api/billing/webhook", () => {
     expect(wallet("u1").plan).toBe("free");
     expect(wallet("u1").total).toBe(30);
   });
+
+  // #193: the acceptance criterion itself -- confirm factory, then confirm
+  // an OLDER, lower-plan studio payment for the same account (Asaas
+  // guarantees at-least-once, out-of-order delivery). The wallet must stay
+  // on factory; the studio payment must still be credited, not dropped.
+  it("an out-of-order lower-plan confirmation arriving after a higher one leaves the wallet on the higher plan", async () => {
+    const factory = await POST(
+      req({
+        event: "PAYMENT_CONFIRMED",
+        payment: {
+          id: "pay_factory",
+          externalReference: "u8:subscribe:factory",
+        },
+      }),
+    );
+    expect(factory.status).toBe(200);
+    expect(wallet("u8").plan).toBe("factory");
+    expect(wallet("u8").total).toBe(10000);
+
+    // The reordered/delayed studio confirmation -- a genuinely distinct
+    // payment id, not a duplicate delivery of the same one.
+    const studio = await POST(
+      req({
+        event: "PAYMENT_CONFIRMED",
+        payment: {
+          id: "pay_studio_late",
+          externalReference: "u8:subscribe:studio",
+        },
+      }),
+    );
+    expect(studio.status).toBe(200);
+    expect(wallet("u8").plan).toBe("factory");
+    expect(wallet("u8").total).toBe(10000);
+    // The studio payment is still honoured -- folded into balance as
+    // purchased credits, not silently dropped.
+    expect(wallet("u8").balance).toBe(12000); // 10000 + 2000
+    expect(wallet("u8").purchased).toBe(2000);
+    // Both payments left their own ledger trace (idempotency keyed by
+    // payment id, unaffected by this guard).
+    expect(ledger.filter((r) => r.userId === "u8")).toHaveLength(2);
+  });
 });
