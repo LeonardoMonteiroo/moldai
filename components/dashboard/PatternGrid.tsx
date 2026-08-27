@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { GarmentType } from "@/lib/types";
+import { TYPES as GARMENT_TYPES } from "@/lib/draft/garment";
 import {
   Empty,
   EmptyContent,
@@ -21,8 +21,6 @@ import {
   EmptyHeader,
   EmptyTitle,
 } from "@/components/ui/empty";
-
-const GARMENT_TYPES: GarmentType[] = ["blouse", "dress", "skirt", "tshirt"];
 
 export function PatternGrid({
   onOpen,

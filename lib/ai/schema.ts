@@ -97,6 +97,7 @@ export const TOOL: Anthropic.Tool = {
               collar: { type: "string", enum: [...COLLARS] },
               cuff: { type: "string", enum: [...CUFFS] },
               waistband: { type: "string", enum: [...WAISTBANDS] },
+              trouserLengthCm: bounded(STYLE_LIMITS.trouserLengthCm),
             },
           },
         },

@@ -130,10 +130,12 @@ describe("buildSystemSizeChart", () => {
   // #132 (post-review fix): backWidth seeds a REAL across-back proportion
   // (bust*0.4, matching the guide text's "measure armpit to armpit across
   // the back" -- ~36-38cm at a 92cm bust), not one chosen to cancel out in
-  // body.ts's formula the way the other five extended fields are. This
-  // means populating the system charts' backWidth is a genuine (small,
-  // more anatomically accurate) geometry change for a brand-new account's
-  // default draft, unlike the other five fields.
+  // body.ts's formula the way the other four (bust-derived) extended fields
+  // are. This means populating the system charts' backWidth is a genuine
+  // (small, more anatomically accurate) geometry change for a brand-new
+  // account's default draft, unlike those four -- rise (#128) is the other
+  // field that isn't a fallback-reproducing value either, but for a
+  // different reason (see extendedMeasurementsFor's own note in seed.ts).
   it.each(["female", "male"] as const)(
     "%s chart's backWidth is a realistic across-back proportion, not bust/2",
     (gender) => {

@@ -189,12 +189,18 @@
       "cuffOtherTypes": "Punho moldado e carcela tipo tower",
       "waistbandType": "Tipo de cós",
       "waistbandClosureMark": "Marca de fechamento (botão/zíper)",
-      "overlap": "Sobreposição (fechamento)"
+      "overlap": "Sobreposição (fechamento)",
+      "rise": "Gancho",
+      "trouserLeg": "Modelagem da perna",
+      "trouserOtherLegs": "Outras modelagens (afunilada, pantalona, cargo)"
     },
     "neckline": {
       "straight": "reto",
       "V": "V",
       "round": "redondo"
+    },
+    "trouserLeg": {
+      "straight": "reta"
     },
     "skirtSilhouette": {
       "straight": "reta",
@@ -286,6 +292,31 @@
         "title": "Cós e cintura",
         "aLabel": "Cintura · saia",
         "bLabel": "Cós"
+      },
+      "trouserFrontRise": {
+        "title": "Gancho dianteiro",
+        "aLabel": "Gancho · perna esquerda",
+        "bLabel": "Gancho · perna direita"
+      },
+      "trouserBackRise": {
+        "title": "Gancho traseiro",
+        "aLabel": "Gancho · perna esquerda",
+        "bLabel": "Gancho · perna direita"
+      },
+      "trouserInseam": {
+        "title": "Entreperna",
+        "aLabel": "Entreperna · frente",
+        "bLabel": "Entreperna · costas"
+      },
+      "trouserOutseam": {
+        "title": "Lateral (calça)",
+        "aLabel": "Lateral · frente",
+        "bLabel": "Lateral · costas"
+      },
+      "waistbandWaistTrousers": {
+        "title": "Cós e cintura",
+        "aLabel": "Cintura · calça",
+        "bLabel": "Cós"
       }
     },
     "chat": {
@@ -327,7 +358,8 @@
       "blouse": "Blusa",
       "dress": "Vestido",
       "skirt": "Saia",
-      "tshirt": "Camiseta"
+      "tshirt": "Camiseta",
+      "trousers": "Calça"
     },
     "gender": {
       "male": "masculina",
@@ -416,6 +448,7 @@
     "title": "Prova 3D",
     "betaBadge": "Beta",
     "emptyState": "Gere um molde para ver a prova 3D.",
+    "notSupportedForTrousers": "A prova 3D ainda não cobre calças — em breve.",
     "buildError": "Não foi possível gerar a prévia 3D deste molde.",
     "viewLabel": "Ângulo de visualização",
     "view": {

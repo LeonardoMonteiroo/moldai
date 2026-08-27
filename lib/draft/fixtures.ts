@@ -86,4 +86,24 @@ export const DECORATION_CASES: [string, GarmentSpec][] = [
       style: { skirt: "straight" },
     },
   ],
+  [
+    "trousers straight",
+    {
+      type: "trousers",
+      gender: "female",
+      measurementOverrides: {},
+      style: {},
+    },
+  ],
+  [
+    "trousers male cropped",
+    {
+      type: "trousers",
+      gender: "male",
+      measurementOverrides: {},
+      // #128: exercises the AI/user-settable trouserLengthCm across the same
+      // matrix every other style field already gets exercised in.
+      style: { trouserLengthCm: STYLE_LIMITS.trouserLengthCm.min },
+    },
+  ],
 ];

@@ -6,23 +6,32 @@ const SIZES = ["PP", "P", "M", "G", "GG"];
 const BASE_INDEX = 2; // "M"
 
 // #132: computes the six EXTENDED_MEASUREMENT_KEYS for one size row, from
-// values SIZE_TABLE/SIZE_TABLE_MALE already carry. Five of them reproduce
+// values SIZE_TABLE/SIZE_TABLE_MALE already carry. Four of them reproduce
 // the exact formula the corresponding drafter falls back to when the field
 // is absent (lib/draft/body.ts's neckHalf/armholeDepthBase, lib/draft/
 // sleeve.ts's bicep) -- populating a system chart's baseMeasurements with
 // those changes nothing about what it drafts; it only makes the field real,
-// visible and editable. `backWidth` is the deliberate exception: it seeds a
-// realistic across-back proportion (bust*0.4, not a value that happens to
-// cancel out in body.ts's formula), because the field IS the across-back
-// measurement a user is told to go measure (SizeChartTable.measurementGuide.
-// backWidth) and body.ts consumes it at the armhole curve's own control
-// point, not at halfChest -- an earlier version of this function seeded
-// bust/2 specifically so it would be a no-op through the OLD (incorrect)
-// wiring, which meant the seeded "across-back" value (~46cm at a 92cm bust)
-// had nothing to do with a real body's ~36-38cm there. Populating the
-// system chart's backWidth with a realistic value is therefore a genuine,
-// intentional geometry change for the default account (a more accurate
-// back than the old bust-derived guess), not a no-op like the other five.
+// visible and editable. `backWidth` and `rise` are the two deliberate
+// exceptions, each for its own reason. `backWidth` seeds a realistic
+// across-back proportion (bust*0.4, not a value that happens to cancel out
+// in body.ts's formula), because the field IS the across-back measurement a
+// user is told to go measure (SizeChartTable.measurementGuide.backWidth) and
+// body.ts consumes it at the armhole curve's own control point, not at
+// halfChest -- an earlier version of this function seeded bust/2
+// specifically so it would be a no-op through the OLD (incorrect) wiring,
+// which meant the seeded "across-back" value (~46cm at a 92cm bust) had
+// nothing to do with a real body's ~36-38cm there. Populating the system
+// chart's backWidth with a realistic value is therefore a genuine,
+// intentional geometry change for the default account (a more accurate back
+// than the old bust-derived guess), not a no-op like the other four. `rise`
+// is seeded as a real, independently-graded crotch depth (see its own
+// comment below) rather than reproducing lib/draft/trousers.ts's own
+// hip-derived fallback (hip/4 + 4) -- that fallback exists for a chart that
+// doesn't set rise at all (a custom chart predating #128, or one built
+// without it); a system chart populating it with a real measured-adjacent
+// value is exactly what the field is for, the same reasoning as backWidth's
+// own exception, even though the two started from different gaps (backWidth
+// corrected a wrong wiring; rise simply had no drafter to reproduce yet).
 //
 // Deliberately computed here rather than baked into SIZE_TABLE itself: that
 // constant is spread-and-overridden directly by several tests (varying just
@@ -67,10 +76,11 @@ function extendedMeasurementsFor(
     backWidth: m.bust * 0.4,
     // sleeve.ts's existing BICEP_PROPORTION_OF_BUST.
     bicep: m.bust * 0.3,
-    // No drafter reads this yet (#128 will) -- graded independently by
-    // size, the same "linear step off the base" shape as
-    // skirtLength/hipHeight above, since there's no proportion to
-    // reproduce.
+    // #128: lib/draft/trousers.ts reads this now. Graded independently by
+    // size -- the same "linear step off the base" shape as
+    // skirtLength/hipHeight above -- rather than reproducing trousers.ts's
+    // own hip-derived fallback (hip/4 + 4), which exists only for a chart
+    // that has no rise of its own at all (see the top-of-file note).
     rise: (male ? 27 : 26) + 0.5 * sizeIndex,
   };
 }

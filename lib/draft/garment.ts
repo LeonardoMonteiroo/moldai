@@ -30,6 +30,7 @@ import {
 import { BlockOpts, draftBody } from "./body";
 import { draftSleeve, CAP_EASE_CM, WRIST_EASE_CM } from "./sleeve";
 import { draftSkirt, skirtWaistHalfCm } from "./skirt";
+import { draftTrousers } from "./trousers";
 import {
   draftCollar,
   draftCuff,
@@ -49,7 +50,13 @@ import type { Translate } from "@/lib/i18n/translate";
 
 export type { SeamMeasurement } from "./seams";
 
-export const TYPES: GarmentType[] = ["blouse", "dress", "skirt", "tshirt"];
+export const TYPES: GarmentType[] = [
+  "blouse",
+  "dress",
+  "skirt",
+  "tshirt",
+  "trousers",
+];
 export const GENDERS: Gender[] = ["female", "male"];
 export const NECKLINES: Neckline[] = ["straight", "V", "round"];
 export const SLEEVES: SleeveLength[] = ["none", "short", "long"];
@@ -89,6 +96,9 @@ export const STYLE_LIMITS = {
   skirtLengthCm: { min: 25, max: 120 },
   seamAllowanceCm: { min: 0, max: 4 },
   armholeDeepenCm: { min: 0, max: 6 },
+  // #128: total waist-to-hem trouser length -- shorts/capri at the low end
+  // up to a full-length ankle trouser at the high end.
+  trouserLengthCm: { min: 60, max: 115 },
 } as const;
 
 const clamp = (v: number, min: number, max: number) =>
@@ -173,6 +183,14 @@ export function validateSpec(raw: unknown): GarmentSpec {
     waistband:
       style.waistband !== undefined
         ? pick(style.waistband, WAISTBANDS, "straight")
+        : undefined,
+    trouserLengthCm:
+      style.trouserLengthCm !== undefined
+        ? clamp(
+            num(style.trouserLengthCm, 100),
+            STYLE_LIMITS.trouserLengthCm.min,
+            STYLE_LIMITS.trouserLengthCm.max,
+          )
         : undefined,
   };
   return {
@@ -533,6 +551,108 @@ function draftAll(
         seamPairs.push({
           key: "waistband-waist",
           labelKey: "waistbandWaist",
+          a: waistRefs,
+          b: [edgeRef(waistband.id, waistband.seamEdges.waist)],
+          easeCm: WAISTBAND_OVERLAP_CM,
+          fixable: false,
+        });
+      }
+    }
+  }
+  // #128: the trousers block -- front + back panels (straight-leg only,
+  // scope decision), each declaring its own rise/inseam/outseam/waist edges
+  // (lib/draft/trousers.ts). Every seam gets a real graph entry, the same
+  // way #129/#130/#131's sub-pieces do:
+  //  - rise: front's own centre-front edge sewn to its own mirrored copy
+  //    (the fly seam), and back's own centre-back edge likewise -- the same
+  //    self-pair shape sleeve.ts's own two underarm edges already use.
+  //  - inseam / outseam: front vs back, equal by construction (both panels
+  //    share the same rise depth and total length -- see trousers.ts's
+  //    top-of-file note).
+  //  - waistband-waist: #131's own draftWaistband, REUSED verbatim (not
+  //    forked) -- summed across both panels' own measured waist edges (each
+  //    times its own qty), the same "closed circumference, not one panel's
+  //    share of it" rule the skirt's own waistband already follows.
+  if (spec.type === "trousers") {
+    const { front: tf, back: tb } = draftTrousers(
+      measurements,
+      spec.style,
+      gender,
+      t,
+    );
+    drafted.push(tf, tb);
+    if (tf.seamEdges) {
+      seamPairs.push({
+        key: "trouser-front-rise",
+        labelKey: "trouserFrontRise",
+        a: [edgeRef(tf.id, tf.seamEdges.rise)],
+        b: [edgeRef(tf.id, tf.seamEdges.rise)],
+        easeCm: 0,
+        fixable: false,
+      });
+    }
+    if (tb.seamEdges) {
+      seamPairs.push({
+        key: "trouser-back-rise",
+        labelKey: "trouserBackRise",
+        a: [edgeRef(tb.id, tb.seamEdges.rise)],
+        b: [edgeRef(tb.id, tb.seamEdges.rise)],
+        easeCm: 0,
+        fixable: false,
+      });
+    }
+    if (tf.seamEdges && tb.seamEdges) {
+      seamPairs.push({
+        key: "trouser-inseam",
+        labelKey: "trouserInseam",
+        a: [edgeRef(tf.id, tf.seamEdges.inseam)],
+        b: [edgeRef(tb.id, tb.seamEdges.inseam)],
+        easeCm: 0,
+        fixable: false,
+      });
+      seamPairs.push({
+        key: "trouser-outseam",
+        labelKey: "trouserOutseam",
+        a: [edgeRef(tf.id, tf.seamEdges.outseam)],
+        b: [edgeRef(tb.id, tb.seamEdges.outseam)],
+        easeCm: 0,
+        fixable: false,
+      });
+    }
+    // #131: every trouser gets a waistband unless explicitly turned off --
+    // same default-ON rationale as the skirt's own, generalised.
+    if (
+      (spec.style.waistband ?? "straight") !== "none" &&
+      tf.seamEdges &&
+      tb.seamEdges
+    ) {
+      const waistLenCm =
+        curveArcLengthCm(
+          tf.outlineCm,
+          tf.curvedSpans ?? [],
+          ...tf.seamEdges.waist,
+        ) *
+          tf.qty +
+        curveArcLengthCm(
+          tb.outlineCm,
+          tb.curvedSpans ?? [],
+          ...tb.seamEdges.waist,
+        ) *
+          tb.qty;
+      const waistband = draftWaistband(waistLenCm, t);
+      drafted.push(waistband);
+      if (waistband.seamEdges) {
+        const waistRefs = [
+          ...Array.from({ length: tf.qty }, () =>
+            edgeRef(tf.id, tf.seamEdges!.waist),
+          ),
+          ...Array.from({ length: tb.qty }, () =>
+            edgeRef(tb.id, tb.seamEdges!.waist),
+          ),
+        ];
+        seamPairs.push({
+          key: "trouser-waistband-waist",
+          labelKey: "waistbandWaistTrousers",
           a: waistRefs,
           b: [edgeRef(waistband.id, waistband.seamEdges.waist)],
           easeCm: WAISTBAND_OVERLAP_CM,
