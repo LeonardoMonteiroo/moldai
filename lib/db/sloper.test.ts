@@ -12,7 +12,9 @@ interface Row {
 let rows: Row[] = [];
 let nextId = 1;
 
-vi.mock("@/lib/db/prisma", () => ({
+// #166: matches the specifier this file's own subject imports (see
+// lib/db/aliasResolution.test.ts and CLAUDE.md's testing-conventions note).
+vi.mock("./prisma", () => ({
   prisma: {
     sloper: {
       findMany: vi.fn(async ({ where }: { where: { userId: string } }) =>
@@ -83,7 +85,7 @@ import {
   sloperNotFound,
   MAX_SLOPERS_LISTED,
 } from "./sloper";
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from "./prisma";
 import { sloperFromPattern } from "@/lib/slopers/convert";
 import { seedPatternState, applyGarmentSpec } from "@/lib/editor/state";
 import { t } from "@/lib/i18n/test-translate";
