@@ -1,191 +1,225 @@
 import { NextResponse } from "next/server";
-import crypto from "node:crypto";
-import { parseBody } from "@/lib/api/body";
-import { AsaasWebhookBodySchema } from "@/lib/schemas/billing";
 import { apiError } from "@/lib/api/errors";
 import { reportError } from "@/lib/observability/report";
-import { parseExternalReference } from "@/lib/billing/asaas";
+import {
+  loadStripeConfig,
+  verifyWebhookEvent,
+  parseGatewayEvent,
+  resolveInvoicePaymentIntent,
+  type GatewayEvent,
+  type StripeConfig,
+  type StripeDeps,
+} from "@/lib/billing/stripe";
 import type { PaidPlanId } from "@/lib/billing/plans";
 import type { PlanId } from "@/lib/types";
 import {
   applyPurchase,
+  renewWallet,
   reverseRefundedEntry,
   type RefundedEntryOutcome,
 } from "@/lib/billing/wallet";
 import {
   withWalletIdempotent,
   findLedgerEntryByExternalId,
-  setAsaasSubscriptionId,
+  findWalletUserIdByStripeSubscriptionId,
 } from "@/lib/db/wallet";
 
 /**
- * #6: unauthenticated by necessity -- Asaas cannot carry this app's session
- * cookie. Joins POST /api/signup, POST /api/verify-email(+/resend),
+ * #206: unauthenticated by necessity -- Stripe cannot carry this app's
+ * session cookie. Joins POST /api/signup, POST /api/verify-email(+/resend),
  * POST /api/password-reset/(request|confirm), and GET /api/health as the
  * small, deliberately documented set of route handlers with no
  * requireUser() gate (CLAUDE.md's API routes section).
  *
- * Authenticity comes entirely from the `asaas-access-token` header, checked
- * with a timing-safe comparison BEFORE any body parsing -- consume() (the
- * rate limiter) fails open when Redis is unreachable, so it is not, and
- * must not be treated as, the security boundary here. An unauthenticated
- * webhook that credits wallets is a free-money endpoint.
+ * DELIBERATE EXCEPTION to CLAUDE.md's "every route that reads a body does it
+ * through readJsonObject/parseBody" rule: authenticity here is an HMAC
+ * signature over the RAW request bytes, and re-serializing a parsed object
+ * changes key order and whitespace, so the signature would never match. The
+ * body is therefore read with `request.text()` and handed to
+ * verifyWebhookEvent untouched; nothing in this route reads a field off the
+ * body before that verification succeeds. consume() (the rate limiter) is
+ * NOT and must not be treated as the security boundary -- it fails open when
+ * Redis is unreachable, and an unauthenticated webhook that credits wallets
+ * is a free-money endpoint.
  *
- * Only PAYMENT_CONFIRMED is credited, matching the settled design decision:
- * confirmed means approved but not yet settled (for card, up to 32 days
- * behind PAYMENT_RECEIVED) -- crediting on RECEIVED would make a card buyer
- * wait a month for credits they already paid for. That accepts settlement
- * risk as the normal trade-off; refunds arrive as PAYMENT_REFUNDED and
- * reverse it.
+ * ## Status codes, re-decided for Stripe rather than copied from Asaas
  *
- * Every other event -- including ones this app doesn't act on, AND a body
- * that fails to parse -- answers 200. Asaas pauses an account's ENTIRE
- * webhook queue after 15 consecutive non-2xx responses, so nothing short of
- * the auth check above may ever produce a non-2xx here (the shared
- * parseBody 400 that every other route in this app returns as-is would
- * violate exactly that invariant, so this route deliberately does not
- * propagate it).
+ * The deleted Asaas webhook answered 200 to absolutely everything except a
+ * bad token, because Asaas pauses an account's ENTIRE webhook queue after 15
+ * consecutive non-2xx responses. Stripe has no such cliff -- it retries a
+ * failed delivery with exponential backoff for ~3 days -- so blanket-200 is
+ * no longer the safe default; it would silently discard a credit that a
+ * retry could have landed. The split:
+ *
+ *  - **400, never retried:** the signature is missing or invalid. This is
+ *    not a Stripe event, so there is nothing to retry and answering 200
+ *    would hide a misconfigured secret (or a probe) completely.
+ *  - **200, do not retry:** the event is genuine but permanently
+ *    unprocessable by this app -- an event type we don't act on, or one
+ *    whose ids/metadata cannot be read honestly. Retrying cannot change any
+ *    of those, so it is logged and acknowledged.
+ *  - **500, please retry:** a transient failure on our side (the database
+ *    is down, the invoice retrieve failed). This is the case Asaas's queue
+ *    pause made unusable and Stripe's backoff makes correct.
  */
 export async function POST(request: Request) {
-  const provided = request.headers.get("asaas-access-token");
-  if (!isValidWebhookToken(provided)) {
-    return apiError("invalid_webhook_token", 401);
-  }
-
-  const parsed = await parseBody(request, AsaasWebhookBodySchema);
-  if (parsed instanceof NextResponse) {
-    // See the header comment: a malformed/oversized body still counts
-    // towards Asaas's 15-failure queue pause if this answers non-2xx, so it
-    // is logged and swallowed rather than returned as the shared 400.
+  const config = loadStripeConfig();
+  if (!config) {
     reportError(
       "billing-webhook",
-      new Error(`unparseable webhook body (status ${parsed.status})`),
+      new Error("stripe webhook received but STRIPE_* secrets are unset"),
+    );
+    return apiError("checkout_unavailable", 503);
+  }
+
+  // Raw bytes, before anything else -- see the header comment.
+  const rawBody = await request.text();
+  const signature = request.headers.get("stripe-signature");
+
+  let event: GatewayEvent;
+  let eventId: string;
+  try {
+    const verified = verifyWebhookEvent(config, rawBody, signature);
+    eventId = verified.id;
+    event = parseGatewayEvent(verified);
+  } catch (err) {
+    // Logged, not echoed: the client learns only that the signature failed.
+    reportError("billing-webhook-signature", err);
+    return apiError("invalid_webhook_signature", 400);
+  }
+
+  if (event.kind === "ignored") {
+    // Named no-op rather than silence, so an operator wondering why an
+    // event did nothing finds the reason in the log.
+    reportError(
+      "billing-webhook-ignored",
+      new Error(`ignored stripe event: ${event.reason}`),
+      { eventId },
     );
     return NextResponse.json({ status: "ok" });
   }
-  const body = parsed;
-
-  const event = typeof body.event === "string" ? body.event : "";
-  const payment =
-    typeof body.payment === "object" &&
-    body.payment !== null &&
-    !Array.isArray(body.payment)
-      ? (body.payment as Record<string, unknown>)
-      : null;
-  const paymentId =
-    payment && typeof payment.id === "string" ? payment.id : null;
-  const externalReference =
-    payment && typeof payment.externalReference === "string"
-      ? payment.externalReference
-      : null;
-  const subscriptionId =
-    payment && typeof payment.subscription === "string"
-      ? payment.subscription
-      : null;
 
   try {
-    switch (event) {
-      case "PAYMENT_CONFIRMED":
-        await handleConfirmed(paymentId, externalReference, subscriptionId);
-        break;
-      case "PAYMENT_REFUNDED":
-        await handleRefunded(paymentId);
-        break;
-      case "CHECKOUT_EXPIRED":
-      case "CHECKOUT_CANCELED":
-        // The wallet is never touched until PAYMENT_CONFIRMED, so there is
-        // nothing to undo here -- these exist as named cases (rather than
-        // falling into `default`) purely so a future reader doesn't have to
-        // rediscover that this is intentional.
-        break;
-      default:
-        break;
-    }
+    await handle(config, event, eventId);
   } catch (err) {
-    // Never let a processing failure escape as a non-2xx -- see the header
-    // comment above about Asaas's 15-failure queue pause. Logged for a human
-    // to reconcile from the ledger / Asaas dashboard.
-    reportError("billing-webhook", err, { event, paymentId });
+    if (err instanceof Unprocessable) {
+      // Genuine event, permanently unactionable -- acknowledged so Stripe
+      // stops retrying something no retry can fix.
+      reportError("billing-webhook", err, { eventId, kind: event.kind });
+      return NextResponse.json({ status: "ok" });
+    }
+    // Transient: let Stripe retry with backoff.
+    reportError("billing-webhook", err, { eventId, kind: event.kind });
+    return apiError("webhook_processing_failed", 500);
   }
 
   return NextResponse.json({ status: "ok" });
 }
 
-function isValidWebhookToken(provided: string | null): boolean {
-  const expected = process.env.ASAAS_WEBHOOK_TOKEN;
-  if (!expected || !provided) return false;
-  const expectedBuf = Buffer.from(expected);
-  const providedBuf = Buffer.from(provided);
-  // timingSafeEqual throws on a length mismatch rather than returning false
-  // -- length is checked first (a `===` on lengths only, not on the secret's
-  // content, so this does not reopen the timing side-channel the
-  // timing-safe comparison exists to close).
-  if (expectedBuf.length !== providedBuf.length) return false;
-  return crypto.timingSafeEqual(expectedBuf, providedBuf);
+/**
+ * Marks a failure as "do not retry" -- the event is real but this app can
+ * never act on it (a missing id, metadata that doesn't name a known
+ * account). Anything thrown that is NOT this becomes a 500 so Stripe retries.
+ */
+class Unprocessable extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "Unprocessable";
+  }
 }
 
-async function handleConfirmed(
-  paymentId: string | null,
-  externalReference: string | null,
-  subscriptionId: string | null,
+/**
+ * `ignored` is excluded from the parameter type rather than handled here:
+ * POST already answered 200 for it, so the exhaustive `never` below is a
+ * compile-time guarantee that every ACTIONABLE event kind has a handler --
+ * a new GatewayEvent member becomes a type error instead of a silent no-op
+ * on a money path.
+ */
+async function handle(
+  config: StripeConfig,
+  event: Exclude<GatewayEvent, { kind: "ignored" }>,
+  eventId: string,
+  deps: StripeDeps = {},
 ): Promise<void> {
-  if (!paymentId) {
-    throw new Error("PAYMENT_CONFIRMED webhook missing payment.id");
+  switch (event.kind) {
+    case "topupPaid":
+      // The credited amount always comes from applyPurchase's own fixed
+      // figures, never from anything in the webhook payload -- a payment's
+      // amount is not trusted as the number of credits to grant.
+      await withWalletIdempotent(event.userId, event.paymentIntentId, (w) =>
+        applyPurchase(w, { type: "topup" }, new Date()),
+      );
+      return;
+    case "subscriptionStarted":
+      await handleSubscriptionStarted(config, event, eventId, deps);
+      return;
+    case "subscriptionRenewed":
+      await handleSubscriptionRenewed(config, event, deps);
+      return;
+    case "refunded":
+      await handleRefunded(event);
+      return;
+    default: {
+      const exhaustive: never = event;
+      throw new Unprocessable(
+        `unhandled gateway event: ${JSON.stringify(exhaustive)}`,
+      );
+    }
   }
-  const parsed = parseExternalReference(externalReference);
-  if (!parsed) {
-    throw new Error(
-      "PAYMENT_CONFIRMED webhook missing or unparseable externalReference",
-    );
-  }
+}
+
+/**
+ * The subscription's FIRST payment: a real plan change, so it routes through
+ * applyPurchase like any other subscribe.
+ */
+async function handleSubscriptionStarted(
+  config: StripeConfig,
+  event: Extract<GatewayEvent, { kind: "subscriptionStarted" }>,
+  eventId: string,
+  deps: StripeDeps,
+): Promise<void> {
+  const paymentIntentId = await paymentIntentFor(config, event.invoiceId, deps);
   const now = new Date();
-  // The credited amount always comes from applyPurchase's own fixed
-  // figures, never from anything in the webhook payload -- a payment's
-  // `value` is not trusted as the number of credits to grant.
-  //
-  // #179: `parsed.purchase` is the SAME Purchase the checkout-creation
-  // route built and validated (isPaidPlanId'd) before ever calling
-  // buildExternalReference -- parseExternalReference re-validates it again
-  // here (a subscribe reference's embedded plan must still be a real
-  // PaidPlanId, or parseExternalReference itself returned null above), so
-  // this handler applies whichever paid tier the checkout was actually
-  // created for, never a hardcoded "atelier" and never an arbitrary string
-  // a forged/tampered externalReference might otherwise have carried.
-  // #193: applyPurchase's own subscribe branch is what actually refuses a
+  // #193/#196: applyPurchase's own subscribe branch is what refuses a
   // downgrade/same-tier reapply (it never touches plan/total/renewsAt in
-  // that case, folding the paid credits into `purchased` instead). #196:
-  // applyPurchase now surfaces exactly that outcome on the returned entry
-  // itself (LedgerEntry.planChanged), so this closure just reads it back
-  // rather than recomputing isPlanUpgrade a second time -- one function
-  // decides what counts as an upgrade, this route only observes the
-  // decision. Captured purely from data already in hand, so it can be
-  // reported for operator visibility once the transaction has actually
-  // committed. No I/O runs inside the callback itself: withWalletIdempotent's
-  // contract requires `fn` to stay synchronous and side-effect-free, since
-  // it can re-run against a freshly locked row on a transaction retry.
-  // A box, not a bare `let`, because a `let` reassigned only from inside a
-  // closure passed as an argument gets over-narrowed by TypeScript's CFA
-  // to `null` at every read outside that closure -- a property access
-  // doesn't carry that same (incorrect) narrowing.
+  // that case, folding the paid credits into `purchased` instead), and it
+  // surfaces that outcome on the returned entry itself
+  // (LedgerEntry.planChanged), so this closure just reads the decision back
+  // rather than recomputing isPlanUpgrade. Captured in a box, not a bare
+  // `let`: a `let` reassigned only from inside a closure passed as an
+  // argument gets over-narrowed by TypeScript's CFA to `null` at every read
+  // outside that closure.
   const superseded: {
     value: { plan: PaidPlanId; previousPlan: PlanId } | null;
   } = { value: null };
-  await withWalletIdempotent(parsed.userId, paymentId, (wallet) => {
-    const previousPlan = wallet.plan;
-    const entry = applyPurchase(wallet, parsed.purchase, now);
-    if (parsed.purchase.type === "subscribe" && entry.planChanged === false) {
-      superseded.value = { plan: parsed.purchase.plan, previousPlan };
-    }
-    return entry;
-  });
+  await withWalletIdempotent(
+    event.userId,
+    paymentIntentId,
+    (wallet) => {
+      const previousPlan = wallet.plan;
+      const entry = applyPurchase(
+        wallet,
+        { type: "subscribe", plan: event.plan },
+        now,
+      );
+      if (entry.planChanged === false) {
+        superseded.value = { plan: event.plan, previousPlan };
+      }
+      return entry;
+    },
+    // Committed WITH the credit, never after it -- see withWalletIdempotent's
+    // own comment for why a lost subscription id is a double-renewal bug
+    // rather than a cosmetic gap.
+    event.subscriptionId,
+  );
   if (superseded.value) {
     const { plan, previousPlan } = superseded.value;
     // Best-effort, after the transaction committed -- the credit already
     // landed (folded into `purchased`, per applyPurchase's own guard) and
     // must never be rolled back or blocked by this report failing. This is
     // the operator-visible trace the money itself doesn't carry: the
-    // wallet's ledger row alone can't tell a human this payment arrived
-    // out of order and was NOT applied as a plan change.
+    // ledger row alone can't tell a human this payment arrived out of order
+    // and was NOT applied as a plan change.
     reportError(
       "billing-webhook-subscribe-superseded",
       new Error(
@@ -193,63 +227,96 @@ async function handleConfirmed(
           `already on "${previousPlan}" (or better) -- credited as ` +
           `purchased credits instead of changing plan`,
       ),
-      { userId: parsed.userId, paymentId, plan, previousPlan },
+      { userId: event.userId, eventId, plan, previousPlan },
     );
-  }
-
-  if (subscriptionId) {
-    try {
-      await setAsaasSubscriptionId(parsed.userId, subscriptionId);
-    } catch (err) {
-      // Best-effort: the credit above already committed. Losing this field
-      // only means a later cron-renewal split (issue #6 step 7) can't yet
-      // recognise this wallet as subscribed -- it must never roll back or
-      // block the credit that already landed.
-      reportError("billing-webhook-subscription-id", err, {
-        userId: parsed.userId,
-        paymentId,
-      });
-    }
   }
 }
 
-async function handleRefunded(paymentId: string | null): Promise<void> {
-  if (!paymentId) {
-    throw new Error("PAYMENT_REFUNDED webhook missing payment.id");
+/**
+ * The monthly cycle. #206: this is renewWallet, NOT
+ * applyPurchase({type:"subscribe"}), and the distinction is a money
+ * invariant rather than a style choice.
+ *
+ * The deleted Asaas webhook ran EVERY confirmed payment -- first and
+ * recurring alike -- through applyPurchase. For a recurring payment the plan
+ * is unchanged, so isPlanUpgrade is false and the #193 monotonicity guard
+ * folds the whole plan allowance into `purchased`: the carry-over pool a
+ * renewal never resets. Since scripts/cron-renew.ts deliberately excludes
+ * subscribed wallets (#161), that webhook was the ONLY renewal path for a
+ * subscriber -- so instead of renewing, every month permanently added
+ * PLAN_CREDITS[plan] to `purchased`, and `renewWallet`'s own
+ * `total + purchased` then compounded it. That is exactly CLAUDE.md's
+ * invariant 1 ("a renewal never touches `purchased`") violated by the path
+ * meant to implement it. Never exercised in production (Asaas never ran
+ * against a real account), and not inherited here.
+ *
+ * Dueness is deliberately NOT re-checked with isRenewalDue: Stripe's own
+ * billing clock is what decided a new cycle was paid for, and the ledger's
+ * unique externalId (this invoice's payment intent) is what makes a
+ * duplicate delivery a no-op. Gating on our own renewsAt could refuse a
+ * legitimately-paid cycle whose local date drifted.
+ */
+async function handleSubscriptionRenewed(
+  config: StripeConfig,
+  event: Extract<GatewayEvent, { kind: "subscriptionRenewed" }>,
+  deps: StripeDeps,
+): Promise<void> {
+  // Prefer this app's OWN recorded fact (the subscription id written with
+  // the first payment's credit) over the gateway-echoed metadata; the
+  // metadata is the fallback for a subscription whose id write predates
+  // this column, and vice versa.
+  const userId =
+    (await findWalletUserIdByStripeSubscriptionId(event.subscriptionId)) ??
+    event.userId;
+  if (!userId) {
+    throw new Unprocessable(
+      `renewal invoice for unknown subscription ${event.subscriptionId}`,
+    );
   }
-  const original = await findLedgerEntryByExternalId(paymentId);
+  const paymentIntentId = await paymentIntentFor(config, event.invoiceId, deps);
+  const now = new Date();
+  await withWalletIdempotent(userId, paymentIntentId, (wallet) =>
+    renewWallet(wallet, now),
+  );
+}
+
+async function handleRefunded(
+  event: Extract<GatewayEvent, { kind: "refunded" }>,
+): Promise<void> {
+  if (!event.full) {
+    // #206: reverseRefundedEntry reverses a ledger entry's WHOLE
+    // contribution, so applying it to a partial refund would claw back more
+    // credits than were actually given back. Partial refunds are not
+    // modelled (nothing in this app can issue one -- every price is a fixed
+    // whole-plan or whole-topup amount), so this is reported for manual
+    // reconciliation rather than approximated. Acknowledged, not retried:
+    // a retry would arrive just as partial.
+    throw new Unprocessable(
+      `partial refund for payment intent ${event.paymentIntentId} is not modelled`,
+    );
+  }
+  const original = await findLedgerEntryByExternalId(event.paymentIntentId);
   if (!original) {
-    // Nothing was ever credited under this externalId (e.g. a payment that
-    // was refunded before ever reaching PAYMENT_CONFIRMED) -- no clawback
-    // needed, matching the settled "no clawback" decision for cancellation.
+    // Nothing was ever credited under this id (e.g. a payment refunded
+    // before its own credit ever landed) -- no clawback needed, matching
+    // the settled "no clawback" decision for cancellation.
     return;
   }
   // A distinct externalId from the original credit's, so a duplicate
-  // PAYMENT_REFUNDED delivery is caught by the same unique-constraint
-  // idempotency instead of double-debiting.
+  // delivery is caught by the same unique-constraint idempotency instead of
+  // double-debiting.
   //
-  // A refunded *subscribe* purchase might also have to revert plan/total --
-  // but #196: only when THIS entry is actually what currently backs the
-  // wallet's plan. reverseRefundedSubscription (lib/billing/wallet.ts) is
-  // the pure decision, made against the locked wallet inside this same
-  // callback: "reset" (this entry IS wallet.planSourceExternalId -- full
-  // plan/total revert, the pre-#196 behaviour), "folded" (this entry never
-  // changed the plan -- undo exactly the purchased/balance it added), or
-  // "superseded" (this entry changed the plan when it ran, but a LATER real
-  // upgrade has since overwritten that -- nothing survives to claw back,
-  // wallet left untouched).
-  //
-  // #198: a refunded *topup* never touched plan/total either, but it is NOT
-  // a plain debit -- applyPurchase's topup branch adds to BOTH `balance` and
-  // `purchased`, so reversing only the balance half leaves `purchased`
-  // (the pool renewWallet never resets) permanently inflated, re-granting
-  // the refunded credits at every renewal from then on. It reverses through
-  // the exact same reversePurchasedCredits a *folded* subscribe entry uses,
-  // because the two entries perform the identical wallet movement.
+  // reverseRefundedEntry (lib/billing/wallet.ts) is the one pure dispatch
+  // for every shape a refund can name -- "topup"/"folded" (undo exactly the
+  // purchased+balance the entry added), "reset" (this entry IS the wallet's
+  // current plan source: full revert to free), "superseded" (it moved the
+  // plan once, but a later upgrade has overwritten that, so there is
+  // nothing left to claw back). The decision is made against the LOCKED
+  // wallet inside this same callback.
   const outcome: { value: RefundedEntryOutcome | null } = { value: null };
   await withWalletIdempotent(
     original.userId,
-    `${paymentId}:refund`,
+    `${event.paymentIntentId}:refund`,
     (wallet) => {
       const result = reverseRefundedEntry(
         wallet,
@@ -258,7 +325,7 @@ async function handleRefunded(paymentId: string | null): Promise<void> {
           amount: original.amount,
           planChanged: original.planChanged,
         },
-        paymentId,
+        event.paymentIntentId,
       );
       outcome.value = result.outcome;
       return result.ledgerEntry;
@@ -268,17 +335,46 @@ async function handleRefunded(paymentId: string | null): Promise<void> {
     // Best-effort, after the transaction committed -- there is nothing to
     // roll back (the wallet was deliberately left untouched) and this must
     // never block the refund's own idempotent ledger row from landing. The
-    // operator-visible trace the ledger's zero-amount row alone can't
-    // carry: WHY nothing moved.
+    // operator-visible trace the zero-amount row alone can't carry: WHY
+    // nothing moved.
     reportError(
       "billing-webhook-refund-superseded",
       new Error(
-        `refund for payment "${paymentId}" targeted a subscribe entry ` +
-          `that is no longer the wallet's plan source -- a later real ` +
-          `upgrade already overwrote its contribution to plan/total, so ` +
-          `there is nothing left to claw back; wallet left unchanged`,
+        `refund for payment intent "${event.paymentIntentId}" targeted a ` +
+          `subscribe entry that is no longer the wallet's plan source -- a ` +
+          `later real upgrade already overwrote its contribution to ` +
+          `plan/total, so there is nothing left to claw back; wallet ` +
+          `left unchanged`,
       ),
-      { userId: original.userId, paymentId },
+      { userId: original.userId, paymentIntentId: event.paymentIntentId },
     );
   }
+}
+
+/**
+ * Every credit is keyed on the payment-intent id, because that is the ONLY
+ * id a refund and its original credit can both name -- see
+ * resolveInvoicePaymentIntent's own comment. An invoice that cannot yield
+ * one is unprocessable rather than credited under a guessed key: crediting
+ * under an id a refund could never match would make the payment silently
+ * irreversible.
+ */
+async function paymentIntentFor(
+  config: StripeConfig,
+  invoiceId: string,
+  deps: StripeDeps,
+): Promise<string> {
+  // A StripeGatewayError from the retrieve propagates untouched: a failed
+  // API call IS transient, so the route answers 500 and Stripe retries.
+  const paymentIntentId = await resolveInvoicePaymentIntent(
+    config,
+    invoiceId,
+    deps,
+  );
+  if (!paymentIntentId) {
+    throw new Unprocessable(
+      `invoice ${invoiceId} carried no payment intent to key its credit on`,
+    );
+  }
+  return paymentIntentId;
 }

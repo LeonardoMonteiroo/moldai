@@ -24,7 +24,7 @@ vi.mock("../lib/db/wallet", () => ({ withWallet }));
 
 vi.mock("../lib/observability/report", () => ({ reportError: vi.fn() }));
 
-describe("cron-renew (#161: skip wallets a live Asaas subscription already renews)", () => {
+describe("cron-renew (#161: skip wallets a live Stripe subscription already renews)", () => {
   const now = new Date("2026-08-27T12:00:00.000Z");
 
   beforeEach(() => {
@@ -41,25 +41,25 @@ describe("cron-renew (#161: skip wallets a live Asaas subscription already renew
     // A tiny fake table standing in for the WHERE clause a real Postgres
     // query would apply -- filtering here on the exact same shape main()
     // passes in is what makes this a real regression guard: dropping the
-    // `asaasSubscriptionId: null` filter from the subject file would make
+    // `stripeSubscriptionId: null` filter from the subject file would make
     // this fake return BOTH rows, and the withWallet assertion below would
     // then fail (called twice, including for the subscribed wallet).
     const table = [
-      { userId: "free-user", asaasSubscriptionId: null },
-      { userId: "subscribed-user", asaasSubscriptionId: "sub_123" },
+      { userId: "free-user", stripeSubscriptionId: null },
+      { userId: "subscribed-user", stripeSubscriptionId: "sub_123" },
     ];
     findMany.mockImplementation(
       async ({
         where,
       }: {
-        where: { renewsAt: { lte: Date }; asaasSubscriptionId?: null };
+        where: { renewsAt: { lte: Date }; stripeSubscriptionId?: null };
       }) => {
         expect(where.renewsAt.lte).toEqual(now);
         return table
           .filter(
             (row) =>
-              !("asaasSubscriptionId" in where) ||
-              row.asaasSubscriptionId === where.asaasSubscriptionId,
+              !("stripeSubscriptionId" in where) ||
+              row.stripeSubscriptionId === where.stripeSubscriptionId,
           )
           .map((row) => ({ userId: row.userId }));
       },
@@ -70,7 +70,7 @@ describe("cron-renew (#161: skip wallets a live Asaas subscription already renew
     await main();
 
     expect(findMany).toHaveBeenCalledWith({
-      where: { renewsAt: { lte: now }, asaasSubscriptionId: null },
+      where: { renewsAt: { lte: now }, stripeSubscriptionId: null },
       select: { userId: true },
     });
     // Only the unsubscribed wallet is ever handed to withWallet -- the

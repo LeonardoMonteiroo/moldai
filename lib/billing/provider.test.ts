@@ -14,13 +14,13 @@ describe("getPaymentProvider", () => {
     expect(getPaymentProvider()).toBe("mock");
   });
 
-  it("is asaas only for the exact literal value", () => {
-    process.env.PAYMENT_PROVIDER = "asaas";
-    expect(getPaymentProvider()).toBe("asaas");
+  it("is stripe only for the exact literal value", () => {
+    process.env.PAYMENT_PROVIDER = "stripe";
+    expect(getPaymentProvider()).toBe("stripe");
   });
 
   // A misconfigured flag must fail towards mock, never towards real charges.
-  it.each(["Asaas", "ASAAS", "asaass", "", "true", "1"])(
+  it.each(["Stripe", "STRIPE", "stripee", "asaas", "", "true", "1"])(
     "falls back to mock for an unrecognised value: %s",
     (value) => {
       process.env.PAYMENT_PROVIDER = value;

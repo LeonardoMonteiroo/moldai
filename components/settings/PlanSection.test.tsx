@@ -183,7 +183,7 @@ describe("PlanSection", () => {
     // (which re-reads the CURRENT, server-side plan) must not fire either,
     // since nothing changed on the server.
     it("navigates to the checkout URL on a redirect result, without updating the plan or refreshing", async () => {
-      const checkoutUrl = "https://sandbox.asaas.com/checkoutSession/show?id=x";
+      const checkoutUrl = "https://checkout.stripe.com/c/pay/cs_test_x";
       vi.mocked(purchase).mockResolvedValue({
         status: "redirect",
         url: checkoutUrl,

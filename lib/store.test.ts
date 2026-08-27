@@ -552,7 +552,7 @@ describe("store double submission (#31)", () => {
         },
       },
     });
-    const checkoutUrl = "https://sandbox.asaas.com/checkoutSession/show?id=x";
+    const checkoutUrl = "https://checkout.stripe.com/c/pay/cs_test_x";
     vi.mocked(api.purchase).mockResolvedValue({
       status: "redirect",
       url: checkoutUrl,

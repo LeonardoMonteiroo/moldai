@@ -127,8 +127,8 @@ export interface IdempotentMutationResult {
 }
 
 /**
- * #6: used by the Asaas webhook (app/api/billing/webhook/route.ts) to apply
- * exactly one wallet mutation per gateway event id, even though Asaas
+ * #6: used by the Stripe webhook (app/api/billing/webhook/route.ts) to apply
+ * exactly one wallet mutation per gateway event id, even though Stripe
  * guarantees only *at-least-once* delivery (the same event WILL arrive more
  * than once, out of order, and potentially concurrently).
  *
@@ -153,6 +153,18 @@ export async function withWalletIdempotent(
   userId: string,
   externalId: string,
   fn: (wallet: Wallet) => LedgerEntry,
+  // #206: written in the SAME transaction as the credit it accompanies,
+  // never after it. The deleted Asaas path set its subscription id
+  // best-effort *outside* the money transaction, on the reasoning that
+  // losing it must not block a credit that already landed -- but losing it
+  // is not harmless: scripts/cron-renew.ts excludes wallets carrying a
+  // subscription id precisely so the gateway's own renewal webhook is the
+  // only thing that renews them. A credit that commits without this column
+  // therefore leaves a subscribed wallet in the free-tier cron's sweep AND
+  // reachable by its own renewal webhook -- the exact double-renewal #161
+  // exists to prevent. Committing both together makes that state
+  // unreachable rather than merely unlikely.
+  stripeSubscriptionId?: string,
 ): Promise<IdempotentMutationResult> {
   return prisma.$transaction(async (tx) => {
     const wallet = await lockWallet(tx, userId);
@@ -161,7 +173,7 @@ export async function withWalletIdempotent(
     // withWalletIdempotent gets the same bookkeeping for free -- whenever
     // `fn` actually moved the wallet's plan (applyPurchase's upgrade
     // branch, surfaced via LedgerEntry.planChanged), this externalId is now
-    // the one recorded as backing that plan. A later PAYMENT_REFUNDED for
+    // the one recorded as backing that plan. A later charge.refunded for
     // this exact externalId is how reverseRefundedSubscription recognises
     // "this is the current plan source" vs. "this was superseded".
     if (entry.type === "subscribe" && entry.planChanged) {
@@ -188,14 +200,23 @@ export async function withWalletIdempotent(
       throw err;
     }
     await saveWallet(tx, userId, wallet);
+    if (stripeSubscriptionId) {
+      // A plain UPDATE, not an upsert: lockWallet's own lazy-seed above
+      // guarantees the row exists, so there is no "create" case. Written
+      // unconditionally rather than only-when-null so a resubscribe after a
+      // cancellation points at the live subscription instead of a dead one.
+      await tx.$executeRaw`
+        UPDATE "Wallet" SET "stripeSubscriptionId" = ${stripeSubscriptionId}
+        WHERE "userId" = ${userId}`;
+    }
     return { credited: true };
   }, TX_OPTS);
 }
 
 /**
  * Looks up the ledger row a prior gateway event created, keyed by its own
- * externalId (e.g. the Asaas payment id from PAYMENT_CONFIRMED) -- used by
- * the webhook's PAYMENT_REFUNDED handler to recover how much to reverse,
+ * externalId (the Stripe payment-intent id behind the credit) -- used by
+ * the webhook's charge.refunded handler to recover how much to reverse,
  * for which account, and (via `type`) whether it was a subscribe purchase
  * that also needs its plan reverted, without a second table tracking the
  * same information.
@@ -226,50 +247,66 @@ export async function findLedgerEntryByExternalId(externalId: string): Promise<{
   );
 }
 
+export type CheckoutPrepResult =
+  { ok: true; customerId: string } | { ok: false; error: string };
+
 /**
- * Atomically gets-or-creates this account's Asaas customer id. The wallet
- * row is locked (and lazily seeded, if this is literally the account's
- * first-ever wallet touch) for the duration of `createCustomer` -- without
- * that lock, two concurrent first-purchase requests could both observe "no
- * customer id yet" and each create a separate, orphaned Asaas customer.
+ * #206: everything the checkout-creation route has to decide under the
+ * wallet's own row lock, in one transaction:
+ *
+ *  1. `guard` gets the LOCKED wallet and may refuse the purchase outright
+ *     by returning a wire error code. This is where the upgrade-only rule
+ *     is enforced for the gateway path -- CLAUDE.md says downgrades are
+ *     "refused server-side, decided inside the wallet lock", which was
+ *     true only of the mock branch before this: the Stripe branch validated
+ *     isPaidPlanId and nothing else, so a downgrade created a REAL charge
+ *     that applyPurchase's monotonicity guard then folded into `purchased`
+ *     -- money taken for a plan change that never happened.
+ *  2. Atomically gets-or-creates this account's Stripe customer id. The row
+ *     stays locked for the duration of `createCustomer` -- without that
+ *     lock, two concurrent first-purchase requests could both observe "no
+ *     customer id yet" and each create a separate, orphaned customer.
+ *
  * Holding a DB lock across a real network call has a precedent in this
  * codebase: withPatternAndWallet already does it for the (much slower)
  * Anthropic generate call, which is why TX_OPTS's timeout is 30s.
  */
-export async function withAsaasCustomerId(
+export async function withStripeCustomerId(
   userId: string,
   createCustomer: () => Promise<string>,
-): Promise<string> {
+  guard?: (wallet: Wallet) => string | null,
+): Promise<CheckoutPrepResult> {
   return prisma.$transaction(async (tx) => {
-    await lockWallet(tx, userId); // lazy-seed + row lock, held for the tx
-    const rows = await tx.$queryRaw<{ asaasCustomerId: string | null }[]>`
-      SELECT "asaasCustomerId" FROM "Wallet" WHERE "userId" = ${userId}`;
-    const existing = rows[0]?.asaasCustomerId ?? null;
-    if (existing) return existing;
+    const wallet = await lockWallet(tx, userId); // lazy-seed + row lock
+    const refusal = guard?.(wallet) ?? null;
+    if (refusal) return { ok: false as const, error: refusal };
+    const rows = await tx.$queryRaw<{ stripeCustomerId: string | null }[]>`
+      SELECT "stripeCustomerId" FROM "Wallet" WHERE "userId" = ${userId}`;
+    const existing = rows[0]?.stripeCustomerId ?? null;
+    if (existing) return { ok: true as const, customerId: existing };
     const customerId = await createCustomer();
     await tx.$executeRaw`
-      UPDATE "Wallet" SET "asaasCustomerId" = ${customerId}, "updatedAt" = now()
+      UPDATE "Wallet" SET "stripeCustomerId" = ${customerId}, "updatedAt" = now()
       WHERE "userId" = ${userId}`;
-    return customerId;
+    return { ok: true as const, customerId };
   }, TX_OPTS);
 }
 
-// Best-effort: written from a PAYMENT_CONFIRMED webhook that names a
-// subscription, so a later unit can exclude subscribed wallets from
-// scripts/cron-renew.ts's past-due sweep (issue #6 step 7 -- that file is
-// outside this unit's own file list, so the cron query itself is
-// unchanged here). Failure to persist this must never block crediting the
-// wallet, so the webhook route calls this outside the money transaction.
-// A plain UPDATE, not an upsert: by the time this is called,
-// withWalletIdempotent has already credited this exact userId, and
-// lockWallet's own lazy-seed guarantees the row exists -- there is no
-// "create" case to handle.
-export async function setAsaasSubscriptionId(
-  userId: string,
-  asaasSubscriptionId: string,
-): Promise<void> {
-  await prisma.wallet.update({
-    where: { userId },
-    data: { asaasSubscriptionId },
+/**
+ * #206: routes a subscription RENEWAL back to the wallet that owns it.
+ *
+ * A renewal invoice's only reliable link to an account is the subscription
+ * id, and unlike webhook metadata that id is this app's OWN recorded fact
+ * (written by withWalletIdempotent in the same transaction as the first
+ * payment's credit), not gateway-echoed input. UNIQUE per migration
+ * 20260827180000, so this can never be ambiguous.
+ */
+export async function findWalletUserIdByStripeSubscriptionId(
+  stripeSubscriptionId: string,
+): Promise<string | null> {
+  const row = await prisma.wallet.findFirst({
+    where: { stripeSubscriptionId },
+    select: { userId: true },
   });
+  return row?.userId ?? null;
 }

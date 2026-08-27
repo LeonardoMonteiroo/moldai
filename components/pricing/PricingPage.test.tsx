@@ -4,9 +4,10 @@ import {
   ptBR,
   screen,
   userEvent,
+  priceText,
 } from "@/components/test-utils";
 import { PricingPage } from "./PricingPage";
-import { PLAN_PRICES } from "@/lib/billing/plans";
+import { PLAN_PRICE_CENTS, formatBRL } from "@/lib/billing/plans";
 import { COSTS, PLAN_IDS } from "@/lib/types";
 
 // #106/#9's own precedent: COSTS is a plain object, not frozen -- mocking
@@ -35,13 +36,17 @@ describe("PricingPage", () => {
         screen.getByText(ptBR.PlanSection.plans[id].name),
       ).toBeInTheDocument();
     }
-    // Free renders its own literal ("R$ 0"); every paid tier renders
-    // "R$ {PLAN_PRICES[id]}" -- changing PLAN_PRICES changes the rendered
-    // text, since nothing here pastes the number separately.
-    expect(screen.getByText(ptBR.Pricing.priceFree)).toBeInTheDocument();
-    expect(screen.getByText(`R$ ${PLAN_PRICES.atelier}`)).toBeInTheDocument();
-    expect(screen.getByText(`R$ ${PLAN_PRICES.studio}`)).toBeInTheDocument();
-    expect(screen.getByText(`R$ ${PLAN_PRICES.factory}`)).toBeInTheDocument();
+    // #206: every tier -- free included -- renders through the same
+    // formatBRL(PLAN_PRICE_CENTS[id]), so changing a price in plans.ts
+    // changes the rendered text and nothing here pastes a currency literal.
+    // Asserted via formatBRL rather than a hand-written "R$ 59,00" for the
+    // same reason the catalog no longer carries one: a second copy of the
+    // format is a second thing that can disagree.
+    for (const id of PLAN_IDS) {
+      expect(
+        screen.getByText(priceText(formatBRL(PLAN_PRICE_CENTS[id]))),
+      ).toBeInTheDocument();
+    }
   });
 
   it("gives the Estúdio card the 2px olive border and the mais escolhido badge", () => {
@@ -100,7 +105,9 @@ describe("PricingPage", () => {
       await user.click(screen.getByText(ptBR.Pricing.toggle.annual));
 
       expect(
-        screen.getByText(`R$ ${Math.round(PLAN_PRICES.atelier * 0.8)}`),
+        screen.getByText(
+          priceText(formatBRL(Math.round(PLAN_PRICE_CENTS.atelier * 0.8))),
+        ),
       ).toBeInTheDocument();
       expect(
         screen.getByRole("button", { name: ptBR.Pricing.plans.atelier.cta }),

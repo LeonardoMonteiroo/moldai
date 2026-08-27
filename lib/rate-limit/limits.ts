@@ -55,7 +55,7 @@ export const LIMITS: Record<Bucket, Policy> = {
   // itself, not a counter.
   password_reset_confirm: { limit: 20, windowSec: 3600 },
   // #6: POST /api/billing/purchase had no bucket at all -- under the mock
-  // provider that meant unlimited free credits in a loop; under the asaas
+  // provider that meant unlimited free credits in a loop; under the Stripe
   // provider it means creating hosted checkouts, which costs against a real
   // third party per request. IP-keyed AND user-keyed, the same dual-bucket
   // shape as signup/login: `purchase` alone (spoofable IP) can't stop one

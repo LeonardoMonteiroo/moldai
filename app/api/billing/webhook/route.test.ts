@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import Stripe from "stripe";
 import { seedWallet } from "@/lib/billing/wallet";
 import type { Wallet, LedgerEntry } from "@/lib/billing/wallet";
+import { PLAN_CREDITS, TOPUP_CREDITS } from "@/lib/billing/plans";
 
 const NOW = new Date("2026-08-26T12:00:00.000Z");
-const TOKEN = "a".repeat(32);
 
 // A realistic-enough fake of lib/db/wallet.ts's withWalletIdempotent: it
 // actually tracks which externalIds have already been "inserted" in an
@@ -32,14 +33,17 @@ vi.mock("@/lib/db/wallet", () => ({
       userId: string,
       externalId: string,
       fn: (w: Wallet) => LedgerEntry,
+      stripeSubscriptionId?: string,
     ) => {
       const w = wallet(userId);
+      // Snapshotted rather than un-applied field by field: the real
+      // implementation simply never calls saveWallet on the duplicate path,
+      // so NOTHING it mutated is persisted -- including renewsAt, which a
+      // per-field undo would silently get wrong for a `renew` entry.
+      const before = { ...w };
       const entry = fn(w);
       if (seenExternalIds.has(externalId)) {
-        // Duplicate delivery: undo fn's in-place mutation, mirroring how the
-        // real implementation never calls saveWallet on this path.
-        if (entry.type === "debit") w.balance += entry.amount;
-        else w.balance -= entry.amount;
+        Object.assign(w, before);
         return { credited: false };
       }
       // #196: mirrors lib/db/wallet.ts's own withWalletIdempotent -- records
@@ -48,6 +52,10 @@ vi.mock("@/lib/db/wallet", () => ({
       // reverseRefundedSubscription decision the real DB layer feeds.
       if (entry.type === "subscribe" && entry.planChanged) {
         w.planSourceExternalId = externalId;
+      }
+      // #206: written in the SAME call as the credit, not afterwards.
+      if (stripeSubscriptionId) {
+        subscriptionIds.set(userId, stripeSubscriptionId);
       }
       seenExternalIds.add(externalId);
       ledger.push({ userId, externalId, entry });
@@ -65,447 +73,441 @@ vi.mock("@/lib/db/wallet", () => ({
         }
       : null;
   }),
-  setAsaasSubscriptionId: vi.fn(async (userId: string, subId: string) => {
-    subscriptionIds.set(userId, subId);
+  findWalletUserIdByStripeSubscriptionId: vi.fn(async (subId: string) => {
+    for (const [userId, id] of subscriptionIds) {
+      if (id === subId) return userId;
+    }
+    return null;
   }),
 }));
 
-import { POST } from "./route";
-import { withWalletIdempotent } from "@/lib/db/wallet";
+// Partial mock ON PURPOSE: parseGatewayEvent stays REAL, so these tests
+// exercise the route talking to the actual payload parser rather than to a
+// stub that already agrees with it. Only the two members that need a live
+// Stripe client are replaced -- signature verification (covered against real
+// HMAC in lib/billing/stripe.test.ts) and the invoice retrieve.
+vi.mock("@/lib/billing/stripe", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/billing/stripe")>();
+  return {
+    ...actual,
+    loadStripeConfig: vi.fn(() => ({
+      secretKey: "sk_test_x",
+      webhookSecret: "whsec_test_x",
+    })),
+    verifyWebhookEvent: vi.fn(),
+    resolveInvoicePaymentIntent: vi.fn(async () => "pi_default"),
+  };
+});
 
-function req(
-  body: unknown,
-  headers: Record<string, string> = { "asaas-access-token": TOKEN },
-) {
+import { POST } from "./route";
+import {
+  loadStripeConfig,
+  verifyWebhookEvent,
+  resolveInvoicePaymentIntent,
+  StripeGatewayError,
+  buildPurchaseMetadata,
+} from "@/lib/billing/stripe";
+
+function req(body = "{}") {
   return new Request("http://test/api/billing/webhook", {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...headers },
-    body: JSON.stringify(body),
+    headers: { "stripe-signature": "t=1,v1=ok" },
+    body,
   });
 }
 
-const CONFIRMED_PAYLOAD = {
-  event: "PAYMENT_CONFIRMED",
-  payment: { id: "pay_1", externalReference: "u1:topup" },
-};
+/** The minimal verified-event shape parseGatewayEvent reads. */
+function stripeEvent(type: string, object: unknown): Stripe.Event {
+  return { id: "evt_1", type, data: { object } } as unknown as Stripe.Event;
+}
+
+function topupSession(paymentIntentId = "pi_topup") {
+  return stripeEvent("checkout.session.completed", {
+    mode: "payment",
+    metadata: buildPurchaseMetadata("u1", { type: "topup" }),
+    payment_intent: paymentIntentId,
+  });
+}
+
+function subscriptionInvoice(
+  billingReason: string,
+  { invoiceId = "in_1", subscriptionId = "sub_1", plan = "atelier" } = {},
+) {
+  return stripeEvent("invoice.paid", {
+    id: invoiceId,
+    billing_reason: billingReason,
+    parent: {
+      subscription_details: {
+        subscription: subscriptionId,
+        metadata: buildPurchaseMetadata("u1", {
+          type: "subscribe",
+          plan: plan as "atelier" | "studio" | "factory",
+        }),
+      },
+    },
+  });
+}
+
+function refundCharge(paymentIntentId: string, full = true) {
+  return stripeEvent("charge.refunded", {
+    payment_intent: paymentIntentId,
+    amount: 5900,
+    amount_refunded: full ? 5900 : 1000,
+  });
+}
 
 describe("POST /api/billing/webhook", () => {
   beforeEach(() => {
-    process.env.ASAAS_WEBHOOK_TOKEN = TOKEN;
     wallets.clear();
     seenExternalIds.clear();
     ledger.length = 0;
     subscriptionIds.clear();
-    vi.mocked(withWalletIdempotent).mockClear();
-    // A handful of cases deliberately trigger reportError's console.error
-    // (a malformed/no-op payload that must still 200) -- silenced so the
-    // test run stays readable; the response status is what's asserted.
+    vi.mocked(loadStripeConfig).mockReturnValue({
+      secretKey: "sk_test_x",
+      webhookSecret: "whsec_test_x",
+    });
+    vi.mocked(verifyWebhookEvent).mockReset();
+    vi.mocked(resolveInvoicePaymentIntent).mockReset();
+    vi.mocked(resolveInvoicePaymentIntent).mockResolvedValue("pi_default");
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
-  it("rejects a wrong asaas-access-token with 401, without ever loading the wallet", async () => {
-    const res = await POST(
-      req(CONFIRMED_PAYLOAD, { "asaas-access-token": "b".repeat(32) }),
-    );
-    expect(res.status).toBe(401);
-    expect(withWalletIdempotent).not.toHaveBeenCalled();
-  });
-
-  it("rejects a request with no token header at all", async () => {
-    const res = await POST(req(CONFIRMED_PAYLOAD, {}));
-    expect(res.status).toBe(401);
-    expect(withWalletIdempotent).not.toHaveBeenCalled();
-  });
-
-  it("rejects when ASAAS_WEBHOOK_TOKEN is not configured server-side", async () => {
-    delete process.env.ASAAS_WEBHOOK_TOKEN;
-    const res = await POST(req(CONFIRMED_PAYLOAD));
-    expect(res.status).toBe(401);
-  });
-
-  it("PAYMENT_CONFIRMED credits the wallet once and writes one ledger row carrying the payment id as externalId", async () => {
-    const res = await POST(req(CONFIRMED_PAYLOAD));
-    expect(res.status).toBe(200);
-    expect(wallet("u1").balance).toBe(130); // seed 30 + topup 100
-    expect(ledger).toHaveLength(1);
-    expect(ledger[0]).toMatchObject({ userId: "u1", externalId: "pay_1" });
-    expect(ledger[0].entry.type).toBe("topup");
-  });
-
-  // This is the test that matters -- at-least-once delivery guarantees this
-  // happens in production.
-  it("the same webhook payload delivered twice credits the account exactly once", async () => {
-    const first = await POST(req(CONFIRMED_PAYLOAD));
-    const second = await POST(req(CONFIRMED_PAYLOAD));
-    expect(first.status).toBe(200);
-    expect(second.status).toBe(200);
-    expect(wallet("u1").balance).toBe(130);
-    expect(ledger).toHaveLength(1);
-  });
-
-  it("credits subscribe checkouts and best-effort persists the subscription id", async () => {
-    const res = await POST(
-      req({
-        event: "PAYMENT_CONFIRMED",
-        payment: {
-          id: "pay_2",
-          externalReference: "u2:subscribe:atelier",
-          subscription: "sub_abc",
-        },
-      }),
-    );
-    expect(res.status).toBe(200);
-    expect(wallet("u2").plan).toBe("atelier");
-    expect(subscriptionIds.get("u2")).toBe("sub_abc");
-  });
-
-  // #179: a confirmed subscribe payment applies whichever paid tier the
-  // checkout was actually created for -- recovered from externalReference,
-  // never hardcoded to atelier regardless of what was paid for.
-  it("credits the plan the checkout was actually created for, not a hardcoded atelier", async () => {
-    const studio = await POST(
-      req({
-        event: "PAYMENT_CONFIRMED",
-        payment: { id: "pay_studio", externalReference: "u4:subscribe:studio" },
-      }),
-    );
-    expect(studio.status).toBe(200);
-    expect(wallet("u4").plan).toBe("studio");
-    expect(wallet("u4").total).toBe(2000);
-
-    const factory = await POST(
-      req({
-        event: "PAYMENT_CONFIRMED",
-        payment: {
-          id: "pay_factory",
-          externalReference: "u5:subscribe:factory",
-        },
-      }),
-    );
-    expect(factory.status).toBe(200);
-    expect(wallet("u5").plan).toBe("factory");
-    expect(wallet("u5").total).toBe(10000);
-  });
-
-  // #179: the embedded plan is itself re-validated (the isPaidPlanId trust
-  // boundary) -- an unrecognised or "free" plan must not silently apply,
-  // and must not fall back to crediting atelier either.
-  it("a subscribe reference with an unrecognised embedded plan is a no-op, still 200", async () => {
-    const res = await POST(
-      req({
-        event: "PAYMENT_CONFIRMED",
-        payment: { id: "pay_bad_plan", externalReference: "u6:subscribe:gold" },
-      }),
-    );
-    expect(res.status).toBe(200);
-    expect(withWalletIdempotent).not.toHaveBeenCalled();
-  });
-
-  it("a subscribe reference missing its embedded plan is a no-op, still 200", async () => {
-    const res = await POST(
-      req({
-        event: "PAYMENT_CONFIRMED",
-        payment: { id: "pay_no_plan", externalReference: "u7:subscribe" },
-      }),
-    );
-    expect(res.status).toBe(200);
-    expect(withWalletIdempotent).not.toHaveBeenCalled();
-  });
-
-  it("an unrecognised event returns 200, not 4xx", async () => {
-    const res = await POST(
-      req({ event: "SOME_FUTURE_EVENT", payment: { id: "pay_9" } }),
-    );
-    expect(res.status).toBe(200);
-    expect(withWalletIdempotent).not.toHaveBeenCalled();
-  });
-
-  it("CHECKOUT_EXPIRED and CHECKOUT_CANCELED return 200 without touching any wallet", async () => {
-    const expired = await POST(req({ event: "CHECKOUT_EXPIRED" }));
-    const canceled = await POST(req({ event: "CHECKOUT_CANCELED" }));
-    expect(expired.status).toBe(200);
-    expect(canceled.status).toBe(200);
-    expect(withWalletIdempotent).not.toHaveBeenCalled();
-  });
-
-  it("a PAYMENT_CONFIRMED with no matching prior credit is silently skipped, still 200", async () => {
-    const res = await POST(
-      req({ event: "PAYMENT_REFUNDED", payment: { id: "never-credited" } }),
-    );
-    expect(res.status).toBe(200);
-    expect(withWalletIdempotent).not.toHaveBeenCalled();
-  });
-
-  it("PAYMENT_REFUNDED debits back exactly what the original payment credited", async () => {
-    await POST(req(CONFIRMED_PAYLOAD)); // credits u1 +100 (topup)
-    const res = await POST(
-      req({ event: "PAYMENT_REFUNDED", payment: { id: "pay_1" } }),
-    );
-    expect(res.status).toBe(200);
-    expect(wallet("u1").balance).toBe(30); // back to the seeded balance
-  });
-
-  it("a duplicated PAYMENT_REFUNDED delivery only debits once", async () => {
-    await POST(req(CONFIRMED_PAYLOAD));
-    await POST(req({ event: "PAYMENT_REFUNDED", payment: { id: "pay_1" } }));
-    await POST(req({ event: "PAYMENT_REFUNDED", payment: { id: "pay_1" } }));
-    expect(wallet("u1").balance).toBe(30);
-  });
-
-  it("PAYMENT_CONFIRMED with a missing externalReference is a no-op, still 200", async () => {
-    const res = await POST(
-      req({ event: "PAYMENT_CONFIRMED", payment: { id: "pay_3" } }),
-    );
-    expect(res.status).toBe(200);
-    expect(withWalletIdempotent).not.toHaveBeenCalled();
-  });
-
-  it("PAYMENT_CONFIRMED with an unparseable externalReference is a no-op, still 200", async () => {
-    const res = await POST(
-      req({
-        event: "PAYMENT_CONFIRMED",
-        payment: { id: "pay_4", externalReference: "garbage" },
-      }),
-    );
-    expect(res.status).toBe(200);
-    expect(withWalletIdempotent).not.toHaveBeenCalled();
-  });
-
-  // A non-2xx here counts towards Asaas's 15-consecutive-failure queue
-  // pause exactly like an unrecognised event does -- so even the shared
-  // parseBody 400 every other route in this app returns as-is must not
-  // escape from this one.
-  it("a malformed (non-JSON) body still answers 200, not the shared parseBody 400", async () => {
-    const res = await POST(
-      new Request("http://test/api/billing/webhook", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "asaas-access-token": TOKEN,
-        },
-        body: "not json",
-      }),
-    );
-    expect(res.status).toBe(200);
-    expect(withWalletIdempotent).not.toHaveBeenCalled();
-  });
-
-  // #152: "null" is valid JSON (unlike "not json" above) -- it survives
-  // parseBody's JSON.parse and fails AsaasWebhookBodySchema's own object
-  // check instead, exercising the schema-rejection branch rather than the
-  // JSON-syntax-error branch. Both must still answer 200, never propagate
-  // the shared bad_body.
-  it("a literal null body still answers 200, not the shared parseBody 400", async () => {
-    const res = await POST(req(null));
-    expect(res.status).toBe(200);
-    expect(withWalletIdempotent).not.toHaveBeenCalled();
-  });
-
-  it("PAYMENT_REFUNDED for a subscribe purchase also reverts the plan back to free, not just the balance", async () => {
-    await POST(
-      req({
-        event: "PAYMENT_CONFIRMED",
-        payment: { id: "pay_5", externalReference: "u3:subscribe:atelier" },
-      }),
-    );
-    expect(wallet("u3").plan).toBe("atelier");
-    const res = await POST(
-      req({ event: "PAYMENT_REFUNDED", payment: { id: "pay_5" } }),
-    );
-    expect(res.status).toBe(200);
-    expect(wallet("u3").plan).toBe("free");
-    expect(wallet("u3").total).toBe(30);
-    expect(wallet("u3").balance).toBe(30); // back to the seeded free balance
-  });
-
-  it("PAYMENT_REFUNDED for a topup purchase never touches plan/total", async () => {
-    await POST(req(CONFIRMED_PAYLOAD)); // u1:topup
-    await POST(req({ event: "PAYMENT_REFUNDED", payment: { id: "pay_1" } }));
-    expect(wallet("u1").plan).toBe("free");
-    expect(wallet("u1").total).toBe(30);
-  });
-
-  // #198: this route's own half of the fix. The assertion above (plan/total
-  // untouched) is exactly what the pre-#198 test checked -- and it passed
-  // throughout, because `purchased` is neither of those. A topup grants BOTH
-  // balance and purchased, so reversing only the balance half left the
-  // carry-over pool inflated and every later renewal re-granted the refunded
-  // credits (renewWallet: total + purchased).
-  it("PAYMENT_REFUNDED for a topup returns purchased, not just balance", async () => {
-    await POST(req(CONFIRMED_PAYLOAD)); // u1:topup, +100 to balance AND purchased
-    expect(wallet("u1").balance).toBe(130);
-    expect(wallet("u1").purchased).toBe(100);
-
-    await POST(req({ event: "PAYMENT_REFUNDED", payment: { id: "pay_1" } }));
-
-    expect(wallet("u1").balance).toBe(30);
-    expect(wallet("u1").purchased).toBe(0);
-  });
-
-  // #193: the acceptance criterion itself -- confirm factory, then confirm
-  // an OLDER, lower-plan studio payment for the same account (Asaas
-  // guarantees at-least-once, out-of-order delivery). The wallet must stay
-  // on factory; the studio payment must still be credited, not dropped.
-  it("an out-of-order lower-plan confirmation arriving after a higher one leaves the wallet on the higher plan", async () => {
-    const factory = await POST(
-      req({
-        event: "PAYMENT_CONFIRMED",
-        payment: {
-          id: "pay_factory",
-          externalReference: "u8:subscribe:factory",
-        },
-      }),
-    );
-    expect(factory.status).toBe(200);
-    expect(wallet("u8").plan).toBe("factory");
-    expect(wallet("u8").total).toBe(10000);
-
-    // The reordered/delayed studio confirmation -- a genuinely distinct
-    // payment id, not a duplicate delivery of the same one.
-    const studio = await POST(
-      req({
-        event: "PAYMENT_CONFIRMED",
-        payment: {
-          id: "pay_studio_late",
-          externalReference: "u8:subscribe:studio",
-        },
-      }),
-    );
-    expect(studio.status).toBe(200);
-    expect(wallet("u8").plan).toBe("factory");
-    expect(wallet("u8").total).toBe(10000);
-    // The studio payment is still honoured -- folded into balance as
-    // purchased credits, not silently dropped.
-    expect(wallet("u8").balance).toBe(12000); // 10000 + 2000
-    expect(wallet("u8").purchased).toBe(2000);
-    // Both payments left their own ledger trace (idempotency keyed by
-    // payment id, unaffected by this guard).
-    expect(ledger.filter((r) => r.userId === "u8")).toHaveLength(2);
-  });
-
-  // #196: the issue's own acceptance criterion. Wallet upgraded to factory,
-  // then a SEPARATE, lower-plan subscribe payment is confirmed (superseded
-  // per #193 -- folded into purchased, plan untouched), then THAT payment
-  // is refunded. The wallet must stay on factory, not drop to free.
-  describe("PAYMENT_REFUNDED plan-source tracking (#196)", () => {
-    it("refunding a superseded (folded) subscribe payment undoes exactly what it added, leaving the wallet on its real plan", async () => {
-      await POST(
-        req({
-          event: "PAYMENT_CONFIRMED",
-          payment: {
-            id: "pay_factory",
-            externalReference: "u9:subscribe:factory",
-          },
-        }),
-      );
-      expect(wallet("u9").plan).toBe("factory");
-      expect(wallet("u9").balance).toBe(10000);
-
-      await POST(
-        req({
-          event: "PAYMENT_CONFIRMED",
-          payment: {
-            id: "pay_studio_superseded",
-            externalReference: "u9:subscribe:studio",
-          },
-        }),
-      );
-      expect(wallet("u9").plan).toBe("factory"); // unchanged -- #193's guard
-      expect(wallet("u9").balance).toBe(12000); // 10000 + 2000 folded
-      expect(wallet("u9").purchased).toBe(2000);
-
-      const res = await POST(
-        req({
-          event: "PAYMENT_REFUNDED",
-          payment: { id: "pay_studio_superseded" },
-        }),
-      );
-      expect(res.status).toBe(200);
-      // The bug this issue fixes: this must NOT reset to free.
-      expect(wallet("u9").plan).toBe("factory");
-      expect(wallet("u9").total).toBe(10000);
-      // It DOES precisely undo what the folded payment added.
-      expect(wallet("u9").balance).toBe(10000);
-      expect(wallet("u9").purchased).toBe(0);
+  describe("authenticity", () => {
+    // 400, never 200: an invalid signature is not a Stripe event at all, so
+    // there is nothing for a retry to fix, and answering 200 would hide a
+    // misconfigured secret (or a probe) completely.
+    it("rejects an unverifiable payload with 400 and never touches a wallet", async () => {
+      vi.mocked(verifyWebhookEvent).mockImplementation(() => {
+        throw new StripeGatewayError("stripe webhook signature invalid");
+      });
+      const res = await POST(req());
+      expect(res.status).toBe(400);
+      expect((await res.json()).error).toBe("invalid_webhook_signature");
+      expect(wallets.size).toBe(0);
     });
 
-    it("refunding the actual plan-setting payment still fully resets to free, even after an unrelated fold happened in between", async () => {
-      await POST(
-        req({
-          event: "PAYMENT_CONFIRMED",
-          payment: {
-            id: "pay_factory_2",
-            externalReference: "u10:subscribe:factory",
-          },
-        }),
-      );
-      await POST(
-        req({
-          event: "PAYMENT_CONFIRMED",
-          payment: {
-            id: "pay_studio_superseded_2",
-            externalReference: "u10:subscribe:studio",
-          },
-        }),
-      ); // folded, +2000 purchased/balance -- must not confuse the refund below
-      expect(wallet("u10").balance).toBe(12000);
-
-      const res = await POST(
-        req({
-          event: "PAYMENT_REFUNDED",
-          payment: { id: "pay_factory_2" },
-        }),
-      );
-      expect(res.status).toBe(200);
-      expect(wallet("u10").plan).toBe("free");
-      expect(wallet("u10").total).toBe(30);
-      // reverseSubscription undoes the ORIGINAL subscribe entry's own
-      // stored delta (10000 - 30 = 9970), not the plan's flat total --
-      // matching how every other subscribe/refund pair in this suite
-      // already behaves. Balance lands at 12000 - 9970 = 2030: the seeded
-      // 30 plus the 2000 the later, unrelated fold added and was never
-      // itself refunded. A real gateway would refund at most one of these
-      // two payments in a single event; this ordering is a deliberately
-      // pessimistic stress case; the acceptance criterion it proves is that
-      // the fold in between never confuses which entry is being reversed.
-      expect(wallet("u10").balance).toBe(2030);
+    it("answers 503 when the STRIPE_* secrets are unset, rather than accepting unverified events", async () => {
+      vi.mocked(loadStripeConfig).mockReturnValue(null);
+      const res = await POST(req());
+      expect(res.status).toBe(503);
+      expect(verifyWebhookEvent).not.toHaveBeenCalled();
     });
 
-    // The chain-of-upgrades case named in the issue's own Context section:
-    // refund the ORIGINAL atelier->studio payment after the account later,
-    // separately, upgraded to factory. Pre-#196 this reset the wallet to
-    // free even though factory is the real, currently-active plan.
-    it("refunding a real plan-changing payment that was later superseded by a further upgrade leaves the wallet untouched", async () => {
-      await POST(
-        req({
-          event: "PAYMENT_CONFIRMED",
-          payment: {
-            id: "pay_atelier_3",
-            externalReference: "u11:subscribe:atelier",
-          },
-        }),
+    // The signature covers the exact bytes, so the route must hand the raw
+    // body through -- a parse-and-reserialize would break every real event.
+    it("passes the raw request body to verification, byte for byte", async () => {
+      const raw = '{\n  "id": "evt_1",\n  "type": "customer.created"\n}';
+      vi.mocked(verifyWebhookEvent).mockReturnValue(
+        stripeEvent("customer.created", {}),
       );
-      expect(wallet("u11").plan).toBe("atelier");
+      await POST(req(raw));
+      expect(verifyWebhookEvent).toHaveBeenCalledWith(
+        expect.anything(),
+        raw,
+        "t=1,v1=ok",
+      );
+    });
+  });
 
-      await POST(
-        req({
-          event: "PAYMENT_CONFIRMED",
-          payment: {
-            id: "pay_factory_3",
-            externalReference: "u11:subscribe:factory",
-          },
-        }),
-      );
-      expect(wallet("u11").plan).toBe("factory");
-      const balanceAfterFactory = wallet("u11").balance;
-
-      const res = await POST(
-        req({ event: "PAYMENT_REFUNDED", payment: { id: "pay_atelier_3" } }),
-      );
+  describe("topup", () => {
+    it("credits TOPUP_CREDITS once, keyed on the payment intent", async () => {
+      vi.mocked(verifyWebhookEvent).mockReturnValue(topupSession());
+      const res = await POST(req());
       expect(res.status).toBe(200);
-      expect(wallet("u11").plan).toBe("factory");
-      expect(wallet("u11").total).toBe(10000);
-      expect(wallet("u11").balance).toBe(balanceAfterFactory); // untouched
+      expect(wallet("u1").balance).toBe(PLAN_CREDITS.free + TOPUP_CREDITS);
+      expect(ledger).toHaveLength(1);
+      expect(ledger[0].externalId).toBe("pi_topup");
+    });
+
+    it("is idempotent across a duplicate delivery", async () => {
+      vi.mocked(verifyWebhookEvent).mockReturnValue(topupSession());
+      await POST(req());
+      const after = wallet("u1").balance;
+      const res = await POST(req());
+      expect(res.status).toBe(200);
+      expect(wallet("u1").balance).toBe(after);
+      expect(ledger).toHaveLength(1);
+    });
+
+    it("acknowledges (200) a session whose metadata names no account, without crediting", async () => {
+      vi.mocked(verifyWebhookEvent).mockReturnValue(
+        stripeEvent("checkout.session.completed", {
+          mode: "payment",
+          metadata: {},
+          payment_intent: "pi_x",
+        }),
+      );
+      const res = await POST(req());
+      expect(res.status).toBe(200);
+      expect(wallets.size).toBe(0);
+    });
+  });
+
+  describe("subscription first payment", () => {
+    it("applies the plan and records the subscription id in the same call", async () => {
+      vi.mocked(resolveInvoicePaymentIntent).mockResolvedValue("pi_sub1");
+      vi.mocked(verifyWebhookEvent).mockReturnValue(
+        subscriptionInvoice("subscription_create"),
+      );
+      const res = await POST(req());
+      expect(res.status).toBe(200);
+      const w = wallet("u1");
+      expect(w.plan).toBe("atelier");
+      expect(w.total).toBe(PLAN_CREDITS.atelier);
+      expect(subscriptionIds.get("u1")).toBe("sub_1");
+      expect(ledger[0].externalId).toBe("pi_sub1");
+    });
+
+    // A subscription checkout must be credited exactly once. The session
+    // completion is deliberately a money no-op; invoice.paid is the credit.
+    it("does not also credit from the checkout session for a subscription", async () => {
+      vi.mocked(verifyWebhookEvent).mockReturnValue(
+        stripeEvent("checkout.session.completed", {
+          mode: "subscription",
+          metadata: buildPurchaseMetadata("u1", {
+            type: "subscribe",
+            plan: "atelier",
+          }),
+          payment_intent: null,
+        }),
+      );
+      const res = await POST(req());
+      expect(res.status).toBe(200);
+      expect(ledger).toHaveLength(0);
+      expect(wallets.size).toBe(0);
+    });
+
+    it("keeps the monotonicity guard: a late lower-tier confirmation never walks the plan down", async () => {
+      vi.mocked(resolveInvoicePaymentIntent).mockResolvedValue("pi_factory");
+      vi.mocked(verifyWebhookEvent).mockReturnValue(
+        subscriptionInvoice("subscription_create", {
+          invoiceId: "in_f",
+          plan: "factory",
+        }),
+      );
+      await POST(req());
+      expect(wallet("u1").plan).toBe("factory");
+
+      vi.mocked(resolveInvoicePaymentIntent).mockResolvedValue("pi_atelier");
+      vi.mocked(verifyWebhookEvent).mockReturnValue(
+        subscriptionInvoice("subscription_create", {
+          invoiceId: "in_a",
+          plan: "atelier",
+        }),
+      );
+      const balanceBefore = wallet("u1").balance;
+      await POST(req());
+      const w = wallet("u1");
+      // Plan untouched; the settled payment is NOT swallowed -- its credit
+      // value folds into `purchased` instead.
+      expect(w.plan).toBe("factory");
+      expect(w.balance).toBe(balanceBefore + PLAN_CREDITS.atelier);
+      expect(w.purchased).toBe(PLAN_CREDITS.atelier);
+    });
+
+    it("acknowledges (200) without crediting when the invoice yields no payment intent", async () => {
+      vi.mocked(resolveInvoicePaymentIntent).mockResolvedValue(null);
+      vi.mocked(verifyWebhookEvent).mockReturnValue(
+        subscriptionInvoice("subscription_create"),
+      );
+      const res = await POST(req());
+      expect(res.status).toBe(200);
+      expect(ledger).toHaveLength(0);
+    });
+
+    // A retrieve failure is transient, so Stripe should retry -- this is the
+    // case the deleted Asaas route's blanket-200 made unusable.
+    it("answers 500 so Stripe retries when the invoice retrieve fails", async () => {
+      vi.mocked(resolveInvoicePaymentIntent).mockRejectedValue(
+        new StripeGatewayError("stripe invoice retrieve failed"),
+      );
+      vi.mocked(verifyWebhookEvent).mockReturnValue(
+        subscriptionInvoice("subscription_create"),
+      );
+      const res = await POST(req());
+      expect(res.status).toBe(500);
+      expect(ledger).toHaveLength(0);
+    });
+  });
+
+  describe("subscription renewal", () => {
+    async function subscribeFirst() {
+      vi.mocked(resolveInvoicePaymentIntent).mockResolvedValue("pi_sub1");
+      vi.mocked(verifyWebhookEvent).mockReturnValue(
+        subscriptionInvoice("subscription_create"),
+      );
+      await POST(req());
+    }
+
+    // #206: THE money invariant this issue's design turns on. The deleted
+    // Asaas route ran every confirmed payment -- recurring included --
+    // through applyPurchase, where a same-plan subscribe is refused by the
+    // monotonicity guard and folded into `purchased`: the carry-over pool a
+    // renewal must never touch. Because cron-renew excludes subscribed
+    // wallets, that was the ONLY renewal path, so a subscriber's
+    // `purchased` grew by a whole plan allowance every month, forever.
+    it("renews (resetting balance to total + purchased) and never inflates `purchased`", async () => {
+      await subscribeFirst();
+      const w = wallet("u1");
+      // Spend some of the allowance, so a real renewal is observable.
+      w.balance -= 200;
+      const purchasedBefore = w.purchased;
+
+      vi.mocked(resolveInvoicePaymentIntent).mockResolvedValue("pi_cycle1");
+      vi.mocked(verifyWebhookEvent).mockReturnValue(
+        subscriptionInvoice("subscription_cycle", { invoiceId: "in_2" }),
+      );
+      const res = await POST(req());
+      expect(res.status).toBe(200);
+
+      expect(w.balance).toBe(w.total + w.purchased);
+      expect(w.purchased).toBe(purchasedBefore);
+      expect(w.plan).toBe("atelier");
+      expect(ledger.at(-1)?.entry.type).toBe("renew");
+    });
+
+    it("stays flat across many renewals rather than compounding", async () => {
+      await subscribeFirst();
+      const w = wallet("u1");
+      for (let i = 0; i < 6; i++) {
+        vi.mocked(resolveInvoicePaymentIntent).mockResolvedValue(`pi_c${i}`);
+        vi.mocked(verifyWebhookEvent).mockReturnValue(
+          subscriptionInvoice("subscription_cycle", { invoiceId: `in_c${i}` }),
+        );
+        await POST(req());
+      }
+      expect(w.purchased).toBe(0);
+      expect(w.balance).toBe(PLAN_CREDITS.atelier);
+    });
+
+    it("routes the renewal by the recorded subscription id", async () => {
+      await subscribeFirst();
+      expect(subscriptionIds.get("u1")).toBe("sub_1");
+      vi.mocked(resolveInvoicePaymentIntent).mockResolvedValue("pi_cycle1");
+      vi.mocked(verifyWebhookEvent).mockReturnValue(
+        subscriptionInvoice("subscription_cycle", { invoiceId: "in_2" }),
+      );
+      await POST(req());
+      expect(ledger.at(-1)?.userId).toBe("u1");
+    });
+
+    it("is idempotent across a duplicate renewal delivery", async () => {
+      await subscribeFirst();
+      const w = wallet("u1");
+      w.balance -= 100;
+      vi.mocked(resolveInvoicePaymentIntent).mockResolvedValue("pi_cycle1");
+      vi.mocked(verifyWebhookEvent).mockReturnValue(
+        subscriptionInvoice("subscription_cycle", { invoiceId: "in_2" }),
+      );
+      await POST(req());
+      const afterFirst = { ...w };
+      await POST(req());
+      expect(w.balance).toBe(afterFirst.balance);
+      expect(w.renewsAt?.getTime()).toBe(afterFirst.renewsAt?.getTime());
+    });
+
+    it("acknowledges (200) a renewal for a subscription no wallet claims", async () => {
+      vi.mocked(verifyWebhookEvent).mockReturnValue(
+        stripeEvent("invoice.paid", {
+          id: "in_orphan",
+          billing_reason: "subscription_cycle",
+          parent: {
+            subscription_details: {
+              subscription: "sub_unknown",
+              metadata: null,
+            },
+          },
+        }),
+      );
+      const res = await POST(req());
+      expect(res.status).toBe(200);
+      expect(ledger).toHaveLength(0);
+    });
+  });
+
+  describe("refund", () => {
+    it("reverses a refunded topup's purchased credits, not just its balance", async () => {
+      vi.mocked(verifyWebhookEvent).mockReturnValue(topupSession("pi_topup"));
+      await POST(req());
+      const w = wallet("u1");
+      expect(w.purchased).toBe(TOPUP_CREDITS);
+
+      vi.mocked(verifyWebhookEvent).mockReturnValue(refundCharge("pi_topup"));
+      const res = await POST(req());
+      expect(res.status).toBe(200);
+      expect(w.purchased).toBe(0);
+      expect(w.balance).toBe(PLAN_CREDITS.free);
+    });
+
+    it("resets the plan when the refunded entry IS the wallet's plan source", async () => {
+      vi.mocked(resolveInvoicePaymentIntent).mockResolvedValue("pi_sub1");
+      vi.mocked(verifyWebhookEvent).mockReturnValue(
+        subscriptionInvoice("subscription_create"),
+      );
+      await POST(req());
+      expect(wallet("u1").plan).toBe("atelier");
+
+      vi.mocked(verifyWebhookEvent).mockReturnValue(refundCharge("pi_sub1"));
+      await POST(req());
+      const w = wallet("u1");
+      expect(w.plan).toBe("free");
+      expect(w.total).toBe(PLAN_CREDITS.free);
+      expect(w.planSourceExternalId).toBeNull();
+    });
+
+    it("no-ops for a payment intent nothing was ever credited under", async () => {
+      vi.mocked(verifyWebhookEvent).mockReturnValue(refundCharge("pi_never"));
+      const res = await POST(req());
+      expect(res.status).toBe(200);
+      expect(wallets.size).toBe(0);
+    });
+
+    // #206: reverseRefundedEntry undoes an entry's WHOLE contribution, so
+    // applying it to a partial refund would claw back more than was given
+    // back. Nothing in this app can issue a partial refund, so it is
+    // reported for reconciliation rather than approximated.
+    it("never claws back a whole entry for a PARTIAL refund", async () => {
+      vi.mocked(verifyWebhookEvent).mockReturnValue(topupSession("pi_topup"));
+      await POST(req());
+      const w = wallet("u1");
+      const before = { balance: w.balance, purchased: w.purchased };
+
+      vi.mocked(verifyWebhookEvent).mockReturnValue(
+        refundCharge("pi_topup", false),
+      );
+      const res = await POST(req());
+      expect(res.status).toBe(200);
+      expect(w.balance).toBe(before.balance);
+      expect(w.purchased).toBe(before.purchased);
+    });
+
+    it("is idempotent across a duplicate refund delivery", async () => {
+      vi.mocked(verifyWebhookEvent).mockReturnValue(topupSession("pi_topup"));
+      await POST(req());
+      vi.mocked(verifyWebhookEvent).mockReturnValue(refundCharge("pi_topup"));
+      await POST(req());
+      const w = wallet("u1");
+      const after = { balance: w.balance, purchased: w.purchased };
+      await POST(req());
+      expect(w.balance).toBe(after.balance);
+      expect(w.purchased).toBe(after.purchased);
+    });
+  });
+
+  describe("unrelated events", () => {
+    it("acknowledges every event type it does not act on, without touching a wallet", async () => {
+      for (const type of [
+        "customer.created",
+        "payment_intent.succeeded",
+        "invoice.payment_failed",
+        "checkout.session.expired",
+      ]) {
+        vi.mocked(verifyWebhookEvent).mockReturnValue(stripeEvent(type, {}));
+        const res = await POST(req());
+        expect(res.status).toBe(200);
+      }
+      expect(wallets.size).toBe(0);
+      expect(ledger).toHaveLength(0);
     });
   });
 });

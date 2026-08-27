@@ -88,6 +88,20 @@ vi.mock("./prisma", () => ({
         const data = store.get(where.userId);
         return data === undefined ? null : data;
       }),
+      // #206: findWalletUserIdByStripeSubscriptionId's own lookup -- scans
+      // the store the way a real indexed WHERE would, so the test exercises
+      // "no row matches" as a real outcome rather than a mocked null.
+      findFirst: vi.fn(
+        async ({ where }: { where: { stripeSubscriptionId: string } }) => {
+          for (const [userId, row] of store) {
+            const r = row as { stripeSubscriptionId?: string };
+            if (r.stripeSubscriptionId === where.stripeSubscriptionId) {
+              return { userId };
+            }
+          }
+          return null;
+        },
+      ),
       upsert: vi.fn(
         async ({
           where,
@@ -139,8 +153,8 @@ import {
   loadWallet,
   withWalletIdempotent,
   findLedgerEntryByExternalId,
-  withAsaasCustomerId,
-  setAsaasSubscriptionId,
+  withStripeCustomerId,
+  findWalletUserIdByStripeSubscriptionId,
 } from "./wallet";
 import { prisma } from "./prisma";
 import { seedWallet, debitWallet, applyPurchase } from "@/lib/billing/wallet";
@@ -177,13 +191,21 @@ function wireTx() {
             planSourceExternalId,
           });
         }
-      } else if (sql.includes('"asaasCustomerId"')) {
-        // withAsaasCustomerId's own UPDATE: vals = [customerId, userId] --
+      } else if (sql.includes('"stripeCustomerId"')) {
+        // withStripeCustomerId's own UPDATE: vals = [customerId, userId] --
         // a distinct shape from saveWallet's, checked first so it isn't
         // mis-destructured by the generic branch below.
         const [customerId, userId] = vals as [string, string];
         const current = (store.get(userId) ?? {}) as Record<string, unknown>;
-        store.set(userId, { ...current, asaasCustomerId: customerId });
+        store.set(userId, { ...current, stripeCustomerId: customerId });
+      } else if (sql.includes('"stripeSubscriptionId"')) {
+        // #206: withWalletIdempotent's in-transaction subscription-id write.
+        // vals = [subscriptionId, userId] -- same distinct two-value shape
+        // as the customer-id branch above, checked before the generic
+        // saveWallet branch so it isn't mis-destructured.
+        const [subscriptionId, userId] = vals as [string, string];
+        const current = (store.get(userId) ?? {}) as Record<string, unknown>;
+        store.set(userId, { ...current, stripeSubscriptionId: subscriptionId });
       } else if (sql.includes("UPDATE")) {
         // vals order matches saveWallet: plan, balance, total, purchased,
         // renewsAt, planSourceExternalId, userId -- userId is last.
@@ -350,7 +372,7 @@ describe("loadWallet", () => {
   });
 });
 
-// #6: the atomic half of the Asaas webhook's idempotency story -- see the
+// #6: the atomic half of the Stripe webhook's idempotency story -- see the
 // header comment on withWalletIdempotent itself. app/api/billing/webhook's
 // own route.test.ts covers the route logic against a lighter fake; this
 // exercises the REAL implementation (a Prisma transaction + a P2002 caught
@@ -423,7 +445,7 @@ describe("withWalletIdempotent", () => {
     ).toBeNull();
   });
 
-  // This is the test that matters -- Asaas guarantees at-least-once webhook
+  // This is the test that matters -- Stripe guarantees at-least-once webhook
   // delivery, so the same event WILL be delivered more than once in
   // production.
   it("the same externalId delivered twice credits the wallet exactly once", async () => {
@@ -510,7 +532,7 @@ describe("findLedgerEntryByExternalId", () => {
   });
 });
 
-describe("withAsaasCustomerId", () => {
+describe("withStripeCustomerId", () => {
   beforeEach(() => {
     store.clear();
     tx.$executeRaw.mockReset();
@@ -520,11 +542,11 @@ describe("withAsaasCustomerId", () => {
 
   it("creates and persists a customer id, seeding the wallet row if needed", async () => {
     const createCustomer = vi.fn(async () => "cus_new");
-    const id = await withAsaasCustomerId("u1", createCustomer);
-    expect(id).toBe("cus_new");
+    const result = await withStripeCustomerId("u1", createCustomer);
+    expect(result).toEqual({ ok: true, customerId: "cus_new" });
     expect(createCustomer).toHaveBeenCalledTimes(1);
     expect(
-      (store.get("u1") as { asaasCustomerId?: string }).asaasCustomerId,
+      (store.get("u1") as { stripeCustomerId?: string }).stripeCustomerId,
     ).toBe("cus_new");
     // Seeded a real wallet row in the process, not just the one field.
     expect((store.get("u1") as { balance: number }).balance).toBe(30);
@@ -532,10 +554,51 @@ describe("withAsaasCustomerId", () => {
 
   it("reuses an existing customer id without calling the callback again", async () => {
     const createCustomer = vi.fn(async () => "cus_new");
-    await withAsaasCustomerId("u1", createCustomer);
-    const id = await withAsaasCustomerId("u1", createCustomer);
-    expect(id).toBe("cus_new");
+    await withStripeCustomerId("u1", createCustomer);
+    const result = await withStripeCustomerId("u1", createCustomer);
+    expect(result).toEqual({ ok: true, customerId: "cus_new" });
     expect(createCustomer).toHaveBeenCalledTimes(1);
+  });
+
+  // #206: the guard runs against the LOCKED wallet and refuses BEFORE any
+  // provider call. This is the regression guard for the defect the deleted
+  // Asaas branch shipped: it validated isPaidPlanId and nothing else, so a
+  // downgrade request created a real charge that applyPurchase's
+  // monotonicity guard then folded into `purchased` -- money taken for a
+  // plan change that never happened.
+  it("refuses via the guard without creating a customer, and never mutates the wallet", async () => {
+    const createCustomer = vi.fn(async () => "cus_new");
+    const result = await withStripeCustomerId(
+      "u1",
+      createCustomer,
+      () => "plan_not_upgradable",
+    );
+    expect(result).toEqual({ ok: false, error: "plan_not_upgradable" });
+    expect(createCustomer).not.toHaveBeenCalled();
+    expect(
+      (store.get("u1") as { stripeCustomerId?: string }).stripeCustomerId,
+    ).toBeUndefined();
+  });
+
+  it("passes the locked wallet to the guard so the decision reads committed state", async () => {
+    await withWallet("u1", (wallet) => {
+      const entry = applyPurchase(
+        wallet,
+        { type: "subscribe", plan: "studio" },
+        NOW,
+      );
+      return { result: undefined, entries: [entry] };
+    });
+    let seenPlan: string | null = null;
+    await withStripeCustomerId(
+      "u1",
+      async () => "cus_new",
+      (wallet) => {
+        seenPlan = wallet.plan;
+        return null;
+      },
+    );
+    expect(seenPlan).toBe("studio");
   });
 
   it("does not clobber an existing wallet's balance when creating a customer id", async () => {
@@ -543,43 +606,101 @@ describe("withAsaasCustomerId", () => {
       const entry = debitWallet(wallet, 4, "generate");
       return { result: undefined, entries: [entry] };
     });
-    await withAsaasCustomerId("u1", async () => "cus_123");
+    await withStripeCustomerId("u1", async () => "cus_123");
     expect((store.get("u1") as { balance: number }).balance).toBe(26);
     expect(
-      (store.get("u1") as { asaasCustomerId?: string }).asaasCustomerId,
+      (store.get("u1") as { stripeCustomerId?: string }).stripeCustomerId,
     ).toBe("cus_123");
   });
 
   it("keeps a previously set customer id when the wallet is later saved by an unrelated mutation", async () => {
-    await withAsaasCustomerId("u1", async () => "cus_123");
+    await withStripeCustomerId("u1", async () => "cus_123");
     await withWallet("u1", (wallet) => {
       const entry = debitWallet(wallet, 4, "generate");
       return { result: undefined, entries: [entry] };
     });
     expect(
-      (store.get("u1") as { asaasCustomerId?: string }).asaasCustomerId,
+      (store.get("u1") as { stripeCustomerId?: string }).stripeCustomerId,
     ).toBe("cus_123");
   });
 });
 
-describe("setAsaasSubscriptionId", () => {
-  beforeEach(() => store.clear());
+// #206: the subscription id is written INSIDE withWalletIdempotent's own
+// transaction, not by a separate best-effort call afterwards. The deleted
+// Asaas path did the latter, which meant a failed write left a subscribed
+// wallet still visible to scripts/cron-renew.ts's past-due sweep AND
+// reachable by its own renewal webhook -- the exact double-renewal #161
+// exists to prevent.
+describe("withWalletIdempotent (stripeSubscriptionId)", () => {
+  beforeEach(() => {
+    store.clear();
+    ledger.length = 0;
+    ledgerByExternalId.clear();
+    tx.$executeRaw.mockReset();
+    tx.$queryRaw.mockReset();
+    tx.transaction.create.mockClear();
+    wireTx();
+  });
 
-  it("persists the subscription id without disturbing an existing balance", async () => {
-    await withWallet("u1", (wallet) => {
-      const entry = applyPurchase(
-        wallet,
-        { type: "subscribe", plan: "atelier" },
-        NOW,
-      );
-      return { result: undefined, entries: [entry] };
-    });
-    await setAsaasSubscriptionId("u1", "sub_abc");
+  it("persists the subscription id in the same transaction as the credit", async () => {
+    await withWalletIdempotent(
+      "u1",
+      "pi_first",
+      (wallet) =>
+        applyPurchase(wallet, { type: "subscribe", plan: "atelier" }, NOW),
+      "sub_abc",
+    );
     const row = store.get("u1") as {
       balance: number;
-      asaasSubscriptionId?: string;
+      stripeSubscriptionId?: string;
     };
     expect(row.balance).toBe(500);
-    expect(row.asaasSubscriptionId).toBe("sub_abc");
+    expect(row.stripeSubscriptionId).toBe("sub_abc");
+  });
+
+  it("writes no subscription id when none is passed", async () => {
+    await withWalletIdempotent("u1", "pi_topup", (wallet) =>
+      applyPurchase(wallet, { type: "topup" }, NOW),
+    );
+    expect(
+      (store.get("u1") as { stripeSubscriptionId?: string })
+        .stripeSubscriptionId,
+    ).toBeUndefined();
+  });
+
+  it("does not write the subscription id when the credit was a duplicate no-op", async () => {
+    await withWalletIdempotent(
+      "u1",
+      "pi_first",
+      (wallet) =>
+        applyPurchase(wallet, { type: "subscribe", plan: "atelier" }, NOW),
+      "sub_abc",
+    );
+    const second = await withWalletIdempotent(
+      "u1",
+      "pi_first",
+      (wallet) =>
+        applyPurchase(wallet, { type: "subscribe", plan: "factory" }, NOW),
+      "sub_other",
+    );
+    expect(second.credited).toBe(false);
+    // The duplicate delivery changed nothing -- neither the balance nor the
+    // subscription id moved to the second call's values.
+    const row = store.get("u1") as {
+      balance: number;
+      stripeSubscriptionId?: string;
+    };
+    expect(row.balance).toBe(500);
+    expect(row.stripeSubscriptionId).toBe("sub_abc");
+  });
+});
+
+describe("findWalletUserIdByStripeSubscriptionId", () => {
+  beforeEach(() => store.clear());
+
+  it("returns the owning userId, and null for an unknown subscription", async () => {
+    store.set("u1", { plan: "atelier", stripeSubscriptionId: "sub_abc" });
+    expect(await findWalletUserIdByStripeSubscriptionId("sub_abc")).toBe("u1");
+    expect(await findWalletUserIdByStripeSubscriptionId("sub_nope")).toBeNull();
   });
 });

@@ -148,18 +148,22 @@ model Wallet {
   purchased           Int           @default(0)
   renewsAt            DateTime?
   updatedAt           DateTime      @updatedAt
-  // #6: real-gateway identity, additive and both nullable -- every existing
-  // wallet (and every wallet created while PAYMENT_PROVIDER=mock, the
-  // default) simply never gets these set. asaasCustomerId is written once,
-  // lazily, on a user's first asaas checkout (lib/db/wallet.ts's
-  // withAsaasCustomerId). asaasSubscriptionId is written
-  // best-effort from a PAYMENT_CONFIRMED webhook that names one; it exists
-  // so a later unit can exclude subscribed wallets from
-  // scripts/cron-renew.ts's past-due sweep (issue #6 step 7, out of this
-  // unit's file list) -- a subscribed wallet is meant to renew only via its
-  // own next payment webhook, not the free-tier cron.
-  asaasCustomerId     String?
-  asaasSubscriptionId String?
+  // #206: real-gateway identity, additive and both nullable -- every
+  // existing wallet (and every wallet created while PAYMENT_PROVIDER=mock,
+  // the default) simply never gets these set. stripeCustomerId is written
+  // once, lazily, on a user's first Stripe checkout (lib/db/wallet.ts's
+  // withStripeCustomerId). stripeSubscriptionId is written by the
+  // invoice.paid/subscription_create webhook, INSIDE the same transaction
+  // as the credit it accompanies (unlike the deleted asaas column's
+  // best-effort write after the fact) -- scripts/cron-renew.ts excludes
+  // wallets carrying one, so losing it would silently hand a subscribed
+  // wallet back to the free-tier cron and double-renew it.
+  //
+  // These replaced asaasCustomerId/asaasSubscriptionId in migration
+  // 20260827180000_replace_asaas_with_stripe. No backfill: Asaas never ran
+  // against a real account, so no row ever held either value.
+  stripeCustomerId     String?
+  stripeSubscriptionId String?  @unique
   // #196: the externalId of the Transaction row that currently backs this
   // wallet's plan/total -- see lib/billing/wallet.ts's Wallet.planSourceExternalId
   // doc comment for the full reasoning. Additive/nullable, written only by
@@ -182,7 +186,7 @@ model Transaction {
   balanceAfter Int
   reason       String?
   // #6: the gateway's own payment/event id. The UNIQUE constraint IS the
-  // idempotency story -- Asaas guarantees at-least-once webhook delivery, so
+  // idempotency story -- Stripe guarantees at-least-once webhook delivery, so
   // the same PAYMENT_CONFIRMED WILL arrive twice, and a duplicate insert
   // hitting this constraint (caught as Prisma P2002 in
   // lib/db/wallet.ts's withWalletIdempotent) is what makes the second

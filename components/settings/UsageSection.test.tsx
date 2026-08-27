@@ -10,6 +10,7 @@ import {
 import type { Credits } from "@/lib/types";
 import { UsageSection } from "./UsageSection";
 import { purchase, ApiError } from "@/lib/api-client";
+import { TOPUP_PRICE_CENTS, formatBRL } from "@/lib/billing/plans";
 
 vi.mock("@/lib/api-client", async () => {
   const actual =
@@ -25,6 +26,19 @@ const CREDITS: Credits = {
   total: 30,
   renewsInDays: 10,
 };
+
+// #206: the top-up button's label now interpolates the price from
+// lib/billing/plans.ts instead of carrying "R$ 19" as a catalog literal, so
+// the expected text has to be resolved through the catalog rather than read
+// off it raw -- translatorFor also asserts the key actually exists.
+//
+// NOT run through priceText, unlike a getByText matcher: an accessible name
+// is computed from the DOM and compared without Testing Library's text
+// normalizer, so the non-breaking space Intl emits between "R$" and the
+// amount has to stay intact on this side too.
+const topupLabel = translatorFor("UsageSection")("topupButton", {
+  price: formatBRL(TOPUP_PRICE_CENTS),
+});
 
 describe("UsageSection", () => {
   // Deliberately afterEach, not beforeEach: resetting the mock in beforeEach
@@ -79,7 +93,7 @@ describe("UsageSection", () => {
     renderWithIntl(<UsageSection credits={CREDITS} initialLedger={[]} />);
 
     const button = screen.getByRole("button", {
-      name: ptBR.UsageSection.topupButton,
+      name: topupLabel,
     });
     await user.click(button);
 
@@ -97,9 +111,7 @@ describe("UsageSection", () => {
     const user = userEvent.setup();
     renderWithIntl(<UsageSection credits={CREDITS} initialLedger={[]} />);
 
-    await user.click(
-      screen.getByRole("button", { name: ptBR.UsageSection.topupButton }),
-    );
+    await user.click(screen.getByRole("button", { name: topupLabel }));
 
     await waitFor(() => {
       expect(screen.getByText("115")).toBeVisible();
@@ -114,7 +126,7 @@ describe("UsageSection", () => {
   // touched (nothing has actually been granted yet), and the browser
   // navigates out to the hosted checkout.
   it("navigates to the checkout URL on a redirect result, without updating the balance", async () => {
-    const checkoutUrl = "https://sandbox.asaas.com/checkoutSession/show?id=x";
+    const checkoutUrl = "https://checkout.stripe.com/c/pay/cs_test_x";
     vi.mocked(purchase).mockResolvedValue({
       status: "redirect",
       url: checkoutUrl,
@@ -126,9 +138,7 @@ describe("UsageSection", () => {
     const user = userEvent.setup();
     renderWithIntl(<UsageSection credits={CREDITS} initialLedger={[]} />);
 
-    await user.click(
-      screen.getByRole("button", { name: ptBR.UsageSection.topupButton }),
-    );
+    await user.click(screen.getByRole("button", { name: topupLabel }));
 
     await waitFor(() => {
       expect(assign).toHaveBeenCalledWith(checkoutUrl);
