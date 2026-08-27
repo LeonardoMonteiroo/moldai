@@ -55,6 +55,10 @@ export const TROUSER_DEFAULT_LENGTH_CM: Record<Gender, number> = {
 // other formula is identical between the two calls in draftTrousers below,
 // which is exactly what makes the inseam/outseam pairs equal by
 // construction.
+// #2: how far inboard of the centre-front/back corner the waist alignment
+// notch sits, as a fraction of the crotch extension.
+const WAIST_NOTCH_INSET_RATIO = 0.25;
+
 function trouserPanel(
   id: string,
   name: string,
@@ -119,7 +123,22 @@ function trouserPanel(
     notchAt(pts[crotchPt], [0, 1], insideRef, pitchType),
     notchAt(dartLegL, [1, 0], insideRef, "single"),
     notchAt(dartLegR, [1, 0], insideRef, "single"),
-    notchAt(pts[waistCF], [1, 0], insideRef, "double"),
+    // #2: NOT at pts[waistCF] itself. That corner is where the horizontal
+    // waist edge meets the sloping rise curve, and the wedge between them is
+    // too narrow for a 0.6cm notch to fit in ANY direction -- the tip landed
+    // outside the piece (measured: 0.6cm out at the base size, still 0.01-0.14cm
+    // out at the measurement-range corners even when aimed along the corner
+    // bisector), and that reaches all five export formats. Depth is not free to
+    // clamp: NOTCH_DEPTH_CM is simultaneously the single/double/triple signal.
+    // So the mark moves a little inboard along the waist edge, to where the
+    // rise curve has dropped well clear of it. Scaled off the crotch extension
+    // rather than a flat cm so it holds across the whole measurement range.
+    notchAt(
+      [crotchExtCm * WAIST_NOTCH_INSET_RATIO, 0],
+      [1, 0],
+      insideRef,
+      "double",
+    ),
     notchAt(pts[waistOuter], [1, 0], insideRef, "double"),
   ];
 

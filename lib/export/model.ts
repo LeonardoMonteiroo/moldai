@@ -1,4 +1,4 @@
-import type { NotchType, Pattern, SizeLabel } from "@/lib/types";
+import type { GarmentType, NotchType, Pattern, SizeLabel } from "@/lib/types";
 import {
   bbox,
   catmullRomSegments,
@@ -78,6 +78,13 @@ export interface ExportModel {
   // (the same namespace every drafter row already reads `t` from) rather
   // than per-serializer, so svg/pdf print the same label the catalog owns.
   foldLabel: string;
+  // #2: the garment archetype, as the stable ENGLISH enum value rather than a
+  // catalog label -- the AAMA/ASTM per-piece system text is read by CAD
+  // software, not rendered as UI, so it wants an identifier that does not
+  // move when the pt-BR copy is rewritten (the seam-pair `key` precedent).
+  // Optional only so the hand-built ExportModel fixtures in the serializer
+  // tests keep compiling; buildExportModel always sets it.
+  garmentType?: GarmentType;
 }
 
 const P = (p: Pt): ExPt => ({ x: p[0], y: p[1] });
@@ -306,5 +313,6 @@ export function buildExportModel(
     sheetHeightCm: cursorY + rowH + padCm,
     pieces,
     foldLabel: t("foldLabel"),
+    garmentType: spec.type,
   };
 }

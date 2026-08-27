@@ -17,7 +17,7 @@ import {
   type Measurements,
 } from "@/lib/measurements";
 import { t } from "@/lib/i18n/test-translate";
-import { curveArcLengthCm, bbox } from "./core";
+import { curveArcLengthCm, bbox, catmullRomSegments } from "./core";
 import { DECORATION_CASES } from "./fixtures";
 
 describe("validateSpec", () => {
@@ -657,6 +657,48 @@ function verticalSpanAt(pts: [number, number][], x: number) {
   return { top, bottom };
 }
 
+// #2: the vertex polygon UNDERCUTS the real boundary wherever an edge range
+// is curved -- a Catmull-Rom cap bulges above the chord between its own two
+// vertices. Every other decoration kind is interior by construction, so the
+// cheap vertex-polygon span is fine for it; a notch, by contrast, is placed
+// ON the boundary and its tip sits one notch-depth inside, which puts it
+// squarely inside that chord-vs-curve gap. Measured: a sleeve-cap notch tip
+// reads 0.26cm "outside" a chord it is really inside. So notch tips are
+// checked against a densified outline sampled off the same Catmull-Rom
+// geometry the drafter placed them on.
+function densifiedOutline(
+  ptsCm: [number, number][],
+  curvedSpans?: [number, number][],
+): [number, number][] {
+  const { start, segs } = catmullRomSegments(ptsCm, curvedSpans ?? []);
+  const out: [number, number][] = [start];
+  let cur = start;
+  const STEPS = 24;
+  for (const seg of segs) {
+    if (seg.kind === "line") {
+      out.push(seg.to);
+      cur = seg.to;
+      continue;
+    }
+    for (let i = 1; i <= STEPS; i++) {
+      const u = i / STEPS;
+      const v = 1 - u;
+      out.push([
+        v * v * v * cur[0] +
+          3 * v * v * u * seg.c1[0] +
+          3 * v * u * u * seg.c2[0] +
+          u * u * u * seg.to[0],
+        v * v * v * cur[1] +
+          3 * v * v * u * seg.c1[1] +
+          3 * v * u * u * seg.c2[1] +
+          u * u * u * seg.to[1],
+      ]);
+    }
+    cur = seg.to;
+  }
+  return out;
+}
+
 function assertDecorationsContained(pieces: ReturnType<typeof draftPiecesCm>) {
   expect(pieces.length).toBeGreaterThan(0);
   for (const piece of pieces) {
@@ -683,6 +725,26 @@ function assertDecorationsContained(pieces: ReturnType<typeof draftPiecesCm>) {
           break;
       }
     }
+    // #2: a notch's inward tip is decoration placed off the boundary just
+    // like a grainline or a drill hole, and it was the one kind this sweep
+    // never checked -- notchAt() picks its inward normal by biasing toward a
+    // caller-supplied interior point, so a wrong reference point on a scooped
+    // or tapered edge sends the tip straight out of the piece. The outer
+    // point is asserted to sit ON the boundary elsewhere; here we only need
+    // the tip, and the check below is boundary-inclusive anyway.
+    if (piece.notches?.length) {
+      const dense = densifiedOutline(piece.outlineCm, piece.curvedSpans);
+      for (const notch of piece.notches) {
+        const [nx, ny] = notch.innerCm;
+        const span = verticalSpanAt(dense, nx);
+        expect(
+          ny,
+          `${piece.id} notch tip (${nx.toFixed(1)}, ${ny.toFixed(1)}) vs outline y-range [${span.top.toFixed(1)}, ${span.bottom.toFixed(1)}]`,
+        ).toBeGreaterThanOrEqual(span.top);
+        expect(ny).toBeLessThanOrEqual(span.bottom);
+      }
+    }
+
     for (const [x, y] of points) {
       const span = verticalSpanAt(piece.outlineCm, x);
       expect(
