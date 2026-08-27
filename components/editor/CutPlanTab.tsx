@@ -8,7 +8,6 @@ import {
   FABRIC_WIDTHS_CM,
   NESTING_MODES,
 } from "@/lib/export/cutplan";
-import { toUser } from "@/lib/canvas/useCanvasViewport";
 import { useEditorStore } from "@/lib/store";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -30,7 +29,6 @@ export function CutPlanTab({ pattern }: { pattern: Pattern }) {
   const seedCutPlacements = useEditorStore((s) => s.seedCutPlacements);
   const resetCutPlacements = useEditorStore((s) => s.resetCutPlacements);
 
-  const svgRef = useRef<SVGSVGElement>(null);
   const [announcement, setAnnouncement] = useState("");
 
   // Real nesting: only recalculates when the pattern, width, mode or manual
@@ -101,12 +99,6 @@ export function CutPlanTab({ pattern }: { pattern: Pattern }) {
       }),
     );
   }
-
-  const screenToUser = (clientX: number, clientY: number) => {
-    const svg = svgRef.current;
-    if (!svg) return { x: 0, y: 0 };
-    return toUser(svg, clientX, clientY);
-  };
 
   return (
     // `fill` + `min-h-full`: the empty state below is `flex-1`, so the column
@@ -235,7 +227,6 @@ export function CutPlanTab({ pattern }: { pattern: Pattern }) {
                 fabricWidthCm={fabricWidthCm}
                 manual={nestingMode === "manual"}
                 overlapIds={plan.overlaps}
-                screenToUser={screenToUser}
                 onMove={handleMove}
                 onNudgeAnnounce={handleNudgeAnnounce}
                 labelFor={labelFor}

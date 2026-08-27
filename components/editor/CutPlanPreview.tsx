@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { buildPathD } from "@/lib/export/model";
+import { toUser } from "@/lib/canvas/useCanvasViewport";
 import { clampOriginCm, type CutPlan } from "@/lib/export/cutplan";
 
 const NUDGE_CM = 1;
@@ -10,10 +11,14 @@ const COARSE_NUDGE_CM = 5;
 /**
  * #8: the cut-plan nesting preview, extracted out of CutPlanTab so it can
  * carry drag/keyboard interaction for manual mode without bloating the tab.
- * `screenToUser` is injected exactly like PatternCanvas's own viewport hook
- * (lib/canvas/useCanvasViewport.ts's `toUser`) -- jsdom gives the svg zero
- * width and no getScreenCTM, so injection is the only testable route; the
- * real one CutPlanTab builds comes from that same exported helper.
+ * `screenToUser` maps client coords into the fabric-cm user space. It
+ * defaults to this component's OWN <svg> via useCanvasViewport's `toUser`;
+ * the prop exists only so a test can inject a deterministic mapping. It used
+ * to be REQUIRED, and CutPlanTab supplied one backed by an `svgRef` it
+ * declared but never attached to any element -- so `svgRef.current` was
+ * always null, every drag mapped to {0,0}, dx/dy were always 0 and no piece
+ * ever moved. The drag tests passed throughout because they inject the prop
+ * and so never exercised the production wiring.
  */
 export function CutPlanPreview({
   plan,
@@ -29,12 +34,19 @@ export function CutPlanPreview({
   fabricWidthCm: number;
   manual: boolean;
   overlapIds: string[];
-  screenToUser: (clientX: number, clientY: number) => { x: number; y: number };
+  screenToUser?: (clientX: number, clientY: number) => { x: number; y: number };
   onMove: (id: string, originCm: { x: number; y: number }) => void;
   onNudgeAnnounce: (id: string) => void;
   labelFor: (instance: CutPlan["instances"][number]) => string;
 }) {
   const svgRef = useRef<SVGSVGElement>(null);
+
+  const mapPoint =
+    screenToUser ??
+    ((clientX: number, clientY: number) => {
+      const svg = svgRef.current;
+      return svg ? toUser(svg, clientX, clientY) : { x: 0, y: 0 };
+    });
   const dragRef = useRef<{
     id: string;
     startUser: { x: number; y: number };
@@ -57,7 +69,7 @@ export function CutPlanPreview({
     if (!svg) return;
     dragRef.current = {
       id,
-      startUser: screenToUser(e.clientX, e.clientY),
+      startUser: mapPoint(e.clientX, e.clientY),
       startOrigin: { ...it.originCm },
     };
     svg.setPointerCapture(e.pointerId);
@@ -69,7 +81,7 @@ export function CutPlanPreview({
     if (!drag) return;
     const it = plan.instances.find((i) => i.id === drag.id);
     if (!it) return;
-    const user = screenToUser(e.clientX, e.clientY);
+    const user = mapPoint(e.clientX, e.clientY);
     const dx = user.x - drag.startUser.x;
     const dy = user.y - drag.startUser.y;
     move(it.id, it, {
@@ -122,6 +134,8 @@ export function CutPlanPreview({
       style={{ maxHeight: 460 }}
       preserveAspectRatio="xMidYMin meet"
       onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
     >
       <rect
         x={0}
@@ -143,7 +157,6 @@ export function CutPlanPreview({
             aria-label={manual ? labelFor(it) : undefined}
             className={manual ? "cursor-grab focus:outline-none" : undefined}
             onPointerDown={(e) => handlePointerDown(e, it.id)}
-            onPointerUp={handlePointerUp}
             onKeyDown={(e) => handleKeyDown(e, it.id)}
           >
             <path

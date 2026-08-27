@@ -22,8 +22,24 @@ export function toUser(
 ): Point {
   const ctm = svg.getScreenCTM();
   if (!ctm) return { x: 0, y: 0 };
-  const p = new DOMPoint(clientX, clientY).matrixTransform(ctm.inverse());
-  return { x: p.x, y: p.y };
+  // An SVG screen CTM is a plain affine matrix, so the inverse-transform is
+  // six lines of arithmetic. This used to be
+  // `new DOMPoint(x, y).matrixTransform(ctm.inverse())`, which is equivalent
+  // but pulls in two browser globals jsdom does not implement (DOMPoint and
+  // DOMMatrix are both `undefined` there, verified). That made this function
+  // unrunnable in the dom test project, which is why CutPlanPreview grew an
+  // injected `screenToUser` seam "because jsdom gives the svg no
+  // getScreenCTM" -- and why the seam's PRODUCTION side went untested and
+  // shipped broken (CutPlanTab held an svgRef it never attached, so every
+  // real drag mapped to 0,0 and no piece moved). Doing the arithmetic here
+  // keeps the behaviour identical and makes the real path testable with
+  // nothing more than a stubbed getScreenCTM.
+  const { a, b, c, d, e, f } = ctm;
+  const det = a * d - b * c;
+  if (!det) return { x: 0, y: 0 };
+  const x = clientX - e;
+  const y = clientY - f;
+  return { x: (x * d - y * c) / det, y: (y * a - x * b) / det };
 }
 
 export function useCanvasViewport(

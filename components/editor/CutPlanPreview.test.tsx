@@ -42,6 +42,64 @@ const identity = (clientX: number, clientY: number) => ({
 });
 
 describe("CutPlanPreview", () => {
+  // The production wiring, with NO injected screenToUser. CutPlanTab used to
+  // pass a mapper backed by an svgRef it never attached, so every real drag
+  // resolved to {0,0} and no piece moved -- while every test here passed,
+  // because they all inject `identity` and so never touched that path.
+  it("drags using its own <svg> when no screenToUser is injected", () => {
+    const onMove = vi.fn();
+    renderWithIntl(
+      <CutPlanPreview
+        plan={planOf()}
+        fabricWidthCm={150}
+        manual
+        overlapIds={[]}
+        onMove={onMove}
+        onNudgeAnnounce={vi.fn()}
+        labelFor={(it) => `${it.name}`}
+      />,
+    );
+    const g = screen.getByRole("button", { name: "A" });
+    const svg = g.closest("svg") as SVGSVGElement;
+    // 2 client px per user unit, origin offset by (30, 20).
+    svg.getScreenCTM = () =>
+      ({ a: 2, b: 0, c: 0, d: 2, e: 30, f: 20 }) as unknown as DOMMatrix;
+
+    fireEvent.pointerDown(g, { clientX: 30, clientY: 20, pointerId: 1 });
+    fireEvent.pointerMove(svg, { clientX: 50, clientY: 40, pointerId: 1 });
+
+    // 20 client px / 2 = 10 user cm on each axis, from origin (4, 4).
+    expect(onMove).toHaveBeenCalledWith("a#1", { x: 14, y: 14 });
+  });
+
+  it("ends the drag on the svg's own pointerup, not the piece's", () => {
+    const onMove = vi.fn();
+    renderWithIntl(
+      <CutPlanPreview
+        plan={planOf()}
+        fabricWidthCm={150}
+        manual
+        overlapIds={[]}
+        screenToUser={identity}
+        onMove={onMove}
+        onNudgeAnnounce={vi.fn()}
+        labelFor={(it) => `${it.name}`}
+      />,
+    );
+    const g = screen.getByRole("button", { name: "A" });
+    const svg = g.closest("svg") as SVGSVGElement;
+    fireEvent.pointerDown(g, { clientX: 10, clientY: 10, pointerId: 1 });
+    fireEvent.pointerMove(svg, { clientX: 15, clientY: 10, pointerId: 1 });
+    expect(onMove).toHaveBeenCalledTimes(1);
+
+    // setPointerCapture targets the <svg>, so the browser retargets every
+    // later pointer event there -- a pointerup handler on the <g> would never
+    // fire, leaving the drag latched and the piece stuck to the cursor.
+    fireEvent.pointerUp(svg, { clientX: 15, clientY: 10, pointerId: 1 });
+    fireEvent.pointerMove(svg, { clientX: 90, clientY: 90, pointerId: 1 });
+    expect(onMove).toHaveBeenCalledTimes(1);
+  });
+
   it("manual drag: pointerDown -> pointerMove -> pointerUp calls onMove with the clamped delta", () => {
     const onMove = vi.fn();
     renderWithIntl(
