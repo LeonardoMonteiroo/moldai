@@ -82,7 +82,15 @@ export interface PlanFeature {
 export const PLAN_FEATURES: Record<PlanId, PlanFeature[]> = {
   free: [
     { key: "graduationExport", status: "shipped" },
-    { key: "audacesMoldeme", status: "shipped" },
+    // Split out of a single "Audaces e Molde.me" bullet that claimed both as
+    // shipped. Audaces is real -- the AAMA/ASTM DXF subset, itself tagged
+    // "beta" in the export menu for its own disclosed gaps. Molde.me is not:
+    // ExportFormatList's SOON_FORMATS carries "moldeme", and the import
+    // screen's formatNote already tells the user Molde.me is "ainda nao --
+    // em breve". A public pricing page must not sell what two other screens
+    // admit does not exist.
+    { key: "audaces", status: "shipped" },
+    { key: "moldeme", status: "soon" },
   ],
   atelier: [
     { key: "ownSizeChart", status: "shipped" },

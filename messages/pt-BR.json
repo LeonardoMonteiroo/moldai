@@ -982,7 +982,8 @@
     },
     "feature": {
       "graduationExport": "Graduação e .dxf liberados",
-      "audacesMoldeme": "Audaces e Molde.me",
+      "audaces": "Exportação Audaces (AAMA/ASTM)",
+      "moldeme": "Formato nativo Molde.me",
       "ownSizeChart": "Grade própria da marca",
       "oneUser": "1 usuário",
       "modelV2Pro": "Modelo v2 Pro — moldes mais precisos",
