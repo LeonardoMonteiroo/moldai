@@ -19,9 +19,9 @@
     "formatPdfA4": "PDF · A4 (colar em casa)",
     "formatPdfSingle": "PDF · folha única (plotter)",
     "formatPdfLayered": "PDF · tamanhos em camadas",
-    "formatPdfLayeredNote": "Inclui o tamanho-base e os tamanhos já graduados, uma camada por tamanho, com legenda.",
-    "formatPlt": "PLT · HPGL/2 (plotter)",
-    "formatPltNote": "Testado em um plotter HPGL/2 genérico — variantes Audaces/Molde.me podem ter diferenças de dialeto.",
+    "formatPdfLayeredNote": "Inclui o tamanho-base e os tamanhos já graduados, uma camada por tamanho, com legenda — cada camada mostra a linha de corte, o fio e os piques; a linha de costura líquida e a dobra não aparecem, para manter a sobreposição legível.",
+    "formatPlt": "PLT · HPGL/2 (plotter) · beta",
+    "formatPltNote": "Segue o padrão HPGL/2 e foi verificado apenas de forma estrutural (sintaxe, arredondamento de coordenadas, contagem de faixas, canetas distintas) — nunca plotado em um equipamento físico. O nome da peça usa a fonte interna do plotter, não uma tipografia específica; variantes de dialeto Audaces/Molde.me também podem diferir.",
     "statusConflict": "v{version} · não exportável com conflito",
     "statusGenerating": "gerando molde…",
     "statusReady": "{copyCount, plural, one {# cópia} other {# cópias}} · base {baseSize} · unidade {unit}",
@@ -943,10 +943,18 @@
     "priceFree": "R$ 0",
     "priceSuffix": "/mês",
     "plans": {
-      "free": { "cta": "Começar grátis" },
-      "atelier": { "cta": "Assinar" },
-      "studio": { "cta": "Assinar Estúdio" },
-      "factory": { "cta": "Falar com vendas" }
+      "free": {
+        "cta": "Começar grátis"
+      },
+      "atelier": {
+        "cta": "Assinar"
+      },
+      "studio": {
+        "cta": "Assinar Estúdio"
+      },
+      "factory": {
+        "cta": "Falar com vendas"
+      }
     },
     "feature": {
       "graduationExport": "Graduação e .dxf liberados",

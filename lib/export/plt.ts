@@ -2,12 +2,19 @@ import type { ExPt, ExportModel, ExportPiece } from "./model";
 import { flattenOutlineCm, TOL_CM } from "./dxf";
 import { planRollStrips, stripIntersectsBBox, type RollPlan } from "./strips";
 
-// #135: one dialect -- standard HPGL/2, plotter units of 1016/inch (0.025mm,
-// the format's own native resolution). Tested against a generic HPGL/2
-// roll plotter (the export menu names this); Molde.me/Audaces each ship
-// their own vendor variants (.plt/.hpgl/.dmpl dialect quirks) this file does
-// not attempt to reproduce -- one honestly-labelled variant beats three
-// untested ones (issue #135's own decision).
+// #135: one dialect -- standard HPGL/2, plotter units of 1016/inch
+// (0.025mm, the format's own native resolution). Written to the spec and
+// verified structurally (valid HPGL syntax, coordinates round-trip to the
+// input cm within 0.02cm, strip count matches the roll-splitting math,
+// distinguishable pens are present) -- never plotted on a physical device,
+// since no plotter or vendor software was available in this environment.
+// The export menu badges this format 'beta', the same marker formatDxfAama
+// uses for its own known gap, and states the untested-hardware caveat
+// plus that piece-name (LB) text renders in whatever font the physical
+// plotter has loaded, not a specific typeface. Molde.me/Audaces each ship
+// their own vendor variants (.plt/.hpgl/.dmpl dialect quirks) this file
+// does not attempt to reproduce -- one honestly-labelled variant beats
+// three untested ones (issue #135's own decision).
 const UNITS_PER_CM = 1016 / 2.54; // exactly 400
 
 // #135: "Grainline, piece name, notches and the cut line are emitted on

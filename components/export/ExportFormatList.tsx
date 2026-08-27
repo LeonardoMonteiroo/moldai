@@ -20,8 +20,12 @@ const REAL_FORMATS: { id: ExportFormat; labelKey: string; noteKey?: string }[] =
       labelKey: "formatPdfLayered",
       noteKey: "formatPdfLayeredNote",
     },
-    // #135: HPGL/2, tested against a generic roll plotter -- see
-    // formatPltNote for the honest one-dialect disclosure.
+    // #135: HPGL/2, written to spec and verified structurally (syntax,
+    // 0.02cm coordinate round-trip, strip count, distinct pens) but never
+    // plotted on physical hardware -- badged 'beta' in its own catalog
+    // label (formatPlt), same marker formatDxfAama uses for its known gap;
+    // formatPltNote states the untested-hardware caveat plus the LB-text
+    // font limitation.
     { id: "plt", labelKey: "formatPlt", noteKey: "formatPltNote" },
   ];
 
