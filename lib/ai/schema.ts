@@ -22,6 +22,15 @@ export interface RawToolInput {
   questions?: unknown;
   declineReason?: string;
   assistantMessage: string;
+  // #138: only meaningful alongside decision=explain -- true when
+  // assistantMessage narrates the sewing/assembly order from the "Assembly
+  // order" structure in the system prompt (lib/ai/prompt.ts). Lets the
+  // route (app/api/patterns/[id]/generate) tag the persisted ChatMessage so
+  // the client can attach the catalog-sourced "AI-generated guidance, not
+  // verified construction advice" disclaimer -- chrome that must come from
+  // the catalog (#138 decision), not from the model's own prose, so it
+  // needs a structured signal rather than sniffing assistantMessage's text.
+  assemblyOrder?: boolean;
 }
 
 // #53: block.input from the Anthropic SDK is typed `unknown` — the call
@@ -125,6 +134,11 @@ export const TOOL: Anthropic.Tool = {
       declineReason: {
         type: "string",
         description: "Only when decision=decline.",
+      },
+      assemblyOrder: {
+        type: "boolean",
+        description:
+          "Only when decision=explain: set true when assistantMessage narrates the sewing/assembly order from the 'Assembly order' structure in the system prompt. Otherwise omit or false.",
       },
       assistantMessage: {
         type: "string",

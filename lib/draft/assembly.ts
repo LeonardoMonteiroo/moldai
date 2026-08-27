@@ -1,0 +1,242 @@
+import { Pattern } from "@/lib/types";
+import { draftPiecesCm, measureSeamGraph, seamCheck } from "./garment";
+import type { SeamMeasurement } from "./seams";
+import { DraftedPiece, dartsOf, curveArcLengthCm } from "./core";
+import type { Translate } from "@/lib/i18n/translate";
+
+// #138: sewing-order / assembly instructions -- derived, never persisted,
+// from the same seam graph #134 built for conflict detection (lib/draft/
+// seams.ts's walkSeamPairs) plus each drafted piece's own dart/hem-edge
+// data. This module produces STRUCTURED DATA ONLY: which step comes before
+// which, and which pieces/lengths/ease each one names. lib/ai/prompt.ts
+// hands this JSON to the model and instructs it to narrate each step in the
+// user's own language without inventing, skipping, or reordering anything
+// -- the same "derive the numbers, let the model only phrase them" split
+// lib/draft/easeReport.ts already established for fit questions.
+
+// ---- ordering ------------------------------------------------------------
+
+// Which stage of construction a mated pair belongs to -- a property of the
+// PAIR'S OWN IDENTITY (its `key`, declared once in garment.ts beside the
+// pair itself), never of which garment archetype produced it. Sorting the
+// walked graph by this is what lets buildAssemblyOrder "walk the graph,
+// don't hardcode a sequence per archetype" (#138's own instruction): a
+// future archetype's new pair only needs an entry added to PHASE_BY_KEY
+// below, never a new branch keyed on spec.type.
+const SEAM_PHASE_ORDER = [
+  "primary", // first structural closure: a bodice's shoulder seam; a trouser leg's own rise (fly/back seam), sewn to its own mirrored copy
+  "sleeve", // set-in sleeve: cap into armhole, and the sleeve's own underarm closing it into a tube
+  "side", // side seam; a trouser leg's inseam/outseam
+  "attach", // a sub-piece sewn onto an already-shaped edge: collar, cuff
+  "waistJoin", // a dress bodice sewn directly to its skirt panel at the natural waist
+  "band", // a waistband, sewn on last, over an already-finished waist edge
+  "other", // a pair key this table has not been extended for yet -- sewn last among seams, never dropped silently (see assembly.test.ts's exhaustiveness guard)
+] as const;
+type SeamPhase = (typeof SEAM_PHASE_ORDER)[number];
+
+// Exported so assembly.test.ts can assert every pair key any DECORATION_CASES
+// spec's seam graph actually produces has a real entry here (never silently
+// falls to "other") -- a regression guard the same shape prompt.test.ts's
+// "every rendered cost corresponds to a real debit site" already is.
+export const PHASE_BY_KEY: Record<string, SeamPhase> = {
+  shoulder: "primary",
+  "trouser-front-rise": "primary",
+  "trouser-back-rise": "primary",
+  "armhole-cap": "sleeve",
+  "sleeve-underarm": "sleeve",
+  side: "side",
+  "trouser-inseam": "side",
+  "trouser-outseam": "side",
+  "collar-neckline": "attach",
+  "cuff-hem": "attach",
+  "waist-join-front": "waistJoin",
+  "waist-join-back": "waistJoin",
+  "waistband-waist": "band",
+  "trouser-waistband-waist": "band",
+};
+
+function phaseRank(key: string): number {
+  return SEAM_PHASE_ORDER.indexOf(PHASE_BY_KEY[key] ?? "other");
+}
+
+// A piece's own `seamEdges.hem`, if declared, is only a free edge needing a
+// finishing step when nothing ELSE in the graph already sews it to another
+// piece -- a dress's bodice hem is the body/skirt waist join, and a cuffed
+// sleeve's hem is the cuff seam. Keyed by pieceId -> the pair key(s) that,
+// if present in THIS pattern's own graph, mean that piece's `hem` edge is
+// already spoken for. lib/draft/body.ts/sleeve.ts are the only drafters
+// that declare a `hem` seamEdge at all today -- a skirt panel's own bottom
+// edge and a trouser leg's own hem are not in seamEdges yet, a real,
+// filed-not-fixed-here gap (see the #138 PR description), so neither ever
+// gets a "hem" step, honestly, rather than a wrong one.
+const HEM_CONSUMED_BY: Record<string, string[]> = {
+  "body-front": ["waist-join-front"],
+  "body-back": ["waist-join-back"],
+  sleeve: ["cuff-hem"],
+};
+
+// ---- structure -------------------------------------------------------------
+
+export interface AssemblyDartStep {
+  kind: "dart";
+  pieceId: string;
+  pieceName: string;
+  count: number;
+}
+
+export interface AssemblySeamStep {
+  kind: "seam";
+  // The pair's own stable identifier (e.g. "armhole-cap", "waist-join-front")
+  // -- deliberately NOT a resolved catalog label. This structure is prompt
+  // context for the model (lib/ai/prompt.ts), which already has the
+  // pattern-making vocabulary to phrase "armhole-cap" naturally in the
+  // user's own language, the same "hand the model an English semantic
+  // label and let it translate/phrase it" precedent lib/ai/prompt.ts's own
+  // COST_DESCRIPTIONS/EXPORT_FORMATS already use -- a resolved pt-BR label
+  // would also need a real Translate threaded in here, and this pair's own
+  // aLabel/bLabel already exist for on-SCREEN use (the seamPairs.<labelKey>
+  // catalog entries lib/editor/state.ts's ConflictEntry reads).
+  key: string;
+  aPieceId: string;
+  aPieceName: string;
+  bPieceId: string;
+  bPieceName: string;
+  aLenCm: number;
+  bLenCm: number;
+  easeCm: number; // intended ease to distribute -- 0 for a seam meant to close exactly
+  diffCm: number; // real divergence beyond easeCm, magnitude, 0 when the seam matches as designed
+  fixable: boolean;
+  // True when this specific seam is a live conflict (from seamCheck, not a
+  // second threshold of this module's own) -- the order still includes it
+  // (still real, still useful to know the sequence), but a consumer must
+  // say so rather than presenting a plausible-looking, fully-closing seam.
+  diverges: boolean;
+}
+
+export interface AssemblyHemStep {
+  kind: "hem";
+  pieceId: string;
+  pieceName: string;
+  lengthCm: number;
+}
+
+export type AssemblyStep =
+  AssemblyDartStep | AssemblySeamStep | AssemblyHemStep;
+
+export interface AssemblyOrder {
+  steps: AssemblyStep[];
+  // True when at least one seam step diverges. An empty `steps` array is
+  // its own honest signal (nothing could be derived for this piece set --
+  // e.g. a standalone skirt with waistband explicitly "none," which today
+  // declares no mated pair at all); this module never fabricates a step to
+  // avoid reporting either case.
+  hasConflict: boolean;
+}
+
+// Resolves a piece's DISPLAY name from the pattern's own already-persisted,
+// already-locale-resolved piece list (`pattern.pieces`) rather than from a
+// fresh redraft -- the "draft-time-locale snapshot" precedent CLAUDE.md's
+// i18n section documents for piece labels/conflict text. This is what keeps
+// a step's `pieceName` byte-identical to what TechSheetTab/the canvas
+// already show for the same piece, and it means this module needs no
+// Translate of its own for display text -- `t` below is only for the
+// geometry redraft (draftPiecesCm/measureSeamGraph), whose own resolved
+// piece.name/detailRows are never read back out of it. Falls back to the
+// bare pieceId on a genuine miss (never crashes, never fabricates a name).
+function pieceDisplayName(pattern: Pattern, id: string): string {
+  return pattern.pieces.find((p) => p.id === id)?.name ?? id;
+}
+
+// Pure: takes a Pattern (spec + the frozen sizeTable it was drafted from)
+// and returns the derived sewing order. Works for a pattern drafted before
+// this feature existed -- no new blob key, everything comes from the
+// already-stored spec + sizeTable, the measureSeams/measureSeamGraph/
+// buildEaseReport precedent. Returns null when there is nothing to derive
+// from (no spec yet, no matching sizeTable row, or a blank pattern).
+export function buildAssemblyOrder(
+  pattern: Pattern,
+  t: Translate,
+): AssemblyOrder | null {
+  const spec = pattern.spec;
+  // Optional chaining, not a plain index -- this is called from
+  // lib/ai/prompt.ts's buildSystem on every generate request, including
+  // against test/legacy fixtures whose `pattern` carries no sizeTable at
+  // all (the same reason lib/draft/easeReport.ts's buildEaseReport does).
+  const bodyRow = pattern.sizeTable?.[pattern.baseSize];
+  if (!spec || !bodyRow || pattern.pieces.length === 0) return null;
+
+  let pieces: DraftedPiece[];
+  let seamGraph: SeamMeasurement[];
+  try {
+    pieces = draftPiecesCm(spec, bodyRow, t);
+    seamGraph = measureSeamGraph(spec, bodyRow, t);
+  } catch {
+    return null;
+  }
+
+  const divergentKeys = new Set(seamCheck(seamGraph).map((m) => m.key));
+
+  const steps: AssemblyStep[] = [];
+
+  // Darts first, always. A piece's darts are what SHAPE it, sewn before any
+  // seam that joins it to another piece; putting every piece's darts ahead
+  // of every seam step (rather than interleaving per-piece) is a stricter,
+  // still-correct ordering -- real, standard construction advice, not a
+  // simplification of it.
+  for (const piece of pieces) {
+    const darts = dartsOf(piece.internalsCm);
+    if (darts.length > 0) {
+      steps.push({
+        kind: "dart",
+        pieceId: piece.id,
+        pieceName: pieceDisplayName(pattern, piece.id),
+        count: darts.length,
+      });
+    }
+  }
+
+  // One step per graph entry, no more, no fewer -- what assembly.test.ts's
+  // matrix test asserts. Order among them comes only from phaseRank, a
+  // stable sort so ties fall back to walkSeamPairs' own declaration order.
+  const seamSteps: AssemblySeamStep[] = seamGraph.map((m) => ({
+    kind: "seam",
+    key: m.key,
+    aPieceId: m.aPieceId,
+    aPieceName: pieceDisplayName(pattern, m.aPieceId),
+    bPieceId: m.bPieceId,
+    bPieceName: pieceDisplayName(pattern, m.bPieceId),
+    aLenCm: m.aLenCm,
+    bLenCm: m.bLenCm,
+    easeCm: m.easeCm,
+    diffCm: m.diffCm,
+    fixable: m.fixable,
+    diverges: divergentKeys.has(m.key),
+  }));
+  seamSteps.sort((x, y) => phaseRank(x.key) - phaseRank(y.key));
+  steps.push(...seamSteps);
+
+  // Free hems last -- a finishing step on an edge nothing else in the graph
+  // already claimed (see HEM_CONSUMED_BY above).
+  for (const piece of pieces) {
+    const hemEdge = piece.seamEdges?.hem;
+    if (!hemEdge) continue;
+    const consumers = HEM_CONSUMED_BY[piece.id] ?? [];
+    const consumed = consumers.some((key) =>
+      seamGraph.some((m) => m.key === key),
+    );
+    if (consumed) continue;
+    const lengthCm =
+      Math.round(
+        curveArcLengthCm(piece.outlineCm, piece.curvedSpans ?? [], ...hemEdge) *
+          10,
+      ) / 10;
+    steps.push({
+      kind: "hem",
+      pieceId: piece.id,
+      pieceName: pieceDisplayName(pattern, piece.id),
+      lengthCm,
+    });
+  }
+
+  return { steps, hasConflict: divergentKeys.size > 0 };
+}

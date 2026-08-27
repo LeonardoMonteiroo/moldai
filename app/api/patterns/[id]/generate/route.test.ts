@@ -285,6 +285,56 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(lastEntries.map((e) => e.type)).toEqual(["debit"]);
   });
 
+  // #138: assemblyOrder is the structured signal proposeGarment/
+  // resolveDecision carry through on an explain answer that walked the
+  // sewing/assembly order (lib/ai/decision.ts) -- the route must tag the
+  // persisted ChatMessage so ChatBubble can attach the catalog-sourced
+  // disclaimer, same debit/no-draft/no-version shape as every other
+  // explain answer.
+  it("explain with assemblyOrder=true tags the chat message with assembly:true", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "explain",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage:
+        "1. Pences. 2. Ombro. 3. Cava/manga. 4. Lateral. 5. Barra.",
+      assemblyOrder: true,
+    });
+
+    const res = await POST(
+      req({ message: "qual a ordem de montagem?" }),
+      ctx(),
+    );
+    const json = await res.json();
+
+    expect(json.status).toBe("answered");
+    const answer = state.chat.at(-1)!;
+    expect(answer.assembly).toBe(true);
+    expect(answer.chips?.[0].tone).toBe("credit");
+  });
+
+  it("an ordinary explain answer (no assemblyOrder) leaves assembly unset", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "explain",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pence é a dobra costurada que dá volume à peça.",
+    });
+
+    await POST(req({ message: "o que é pence?" }), ctx());
+
+    const answer = state.chat.at(-1)!;
+    expect(answer.assembly).toBeUndefined();
+  });
+
   // The contrast case: explain is the only non-drafting decision that is
   // paid. #39: decline used to debit then refund in the same request -- a
   // real ledger pair, not a no-op -- now it never touches the wallet.

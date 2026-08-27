@@ -152,6 +152,7 @@ describe("ConflictInfoCard with entries (#134)", () => {
             bLenCm: 19.7,
             diffCm: 3.1,
             fixable: true,
+            easeCm: 2.5,
           },
           {
             key: "waist-join-front",
@@ -162,6 +163,7 @@ describe("ConflictInfoCard with entries (#134)", () => {
             bLenCm: 43.8,
             diffCm: 4.2,
             fixable: false,
+            easeCm: 0,
           },
         ]}
       />,
@@ -223,6 +225,7 @@ describe("ConflictInfoCard with entries (#134)", () => {
             bLenCm: 19.7,
             diffCm: 3.1,
             fixable: true,
+            easeCm: 2.5,
           },
         ]}
       />,

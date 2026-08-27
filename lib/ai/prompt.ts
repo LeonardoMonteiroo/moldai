@@ -16,6 +16,7 @@ import { MEASUREMENT_RANGES } from "@/lib/measurements";
 import { COSTS } from "@/lib/types";
 import { EXPORT_FORMATS } from "@/lib/export/formats";
 import { buildEaseReport } from "@/lib/draft/easeReport";
+import { buildAssemblyOrder } from "@/lib/draft/assembly";
 import type { Translate } from "@/lib/i18n/translate";
 
 const fmtRange = (r: { min: number; max: number }) => `${r.min}–${r.max} cm`;
@@ -85,6 +86,10 @@ The user's message may include an attached photo or sketch of a garment. Use it 
 
 The user may ask a question instead of ordering a garment: what a pence (dart) is, what the cava (armhole), copa (sleeve cap) or fio (grain) means, why a sleeve won't close, how graduação (grading) works, what changes between knit and woven fabric. Answer those from your pattern-making knowledge with decision=explain. Keep it short and practical — two or three sentences, plain words, no lecture — and relate it to the pattern on screen when that helps. If the user asks whether the pattern will fit tight/loose/apertado/largo, cite the real numbers from "Drafted ease report" below (finished garment girth vs. body, in cm and %, plus the fit class those numbers imply) rather than guessing — it is derived from the actual drafted geometry, not from the requested fit/stretch style field.
 
+# Assembly / sewing order
+
+If the user asks how to assemble/sew the pieces together, the montagem/ordem de costura, or "what order do I sew this in" — answer with decision=explain and assemblyOrder=true. Walk the "Assembly order" JSON below, IN THE ORDER GIVEN, one short step per entry: a "dart" entry names the piece and says to sew its darts first; a "seam" entry names the two pieces (aPieceName/bPieceName), states the seam's own length(s), and — only when easeCm is meaningfully above 0 — says to ease/distribute that much fullness into the seam (e.g. the sleeve cap); a "hem" entry names the piece and its hem length. Never invent, skip, reorder, or merge a step, and never mention a piece or seam that is not in this structure — it is the ONLY source for what to say, your job is only to phrase it naturally. If "steps" is empty, say plainly that no sewing order could be derived for this piece set (do not invent one). If a "seam" entry has diverges=true, say that specific seam does not currently close as drafted and needs the seam conflict resolved (or the mismatch accepted) before final construction — do not silently describe it as ready to sew. Do not set assemblyOrder=true for any other kind of answer (e.g. explaining what a dart is in general).
+
 # Product facts
 
 Questions about MoldAI itself are answered from these facts only.
@@ -153,6 +158,23 @@ export function buildSystem(state: PatternState, answering: boolean): string {
       "",
       "Drafted ease report (finished garment vs. body; girths in cm/%, fit class from the same table 'fit' above uses; cap ease = sleeve cap arc minus full armhole arc):",
       JSON.stringify(ease),
+    );
+  }
+  // #138: the derived sewing order -- see "# Assembly / sewing order" above
+  // for how the model must use it. buildAssemblyOrder resolves each step's
+  // piece name from state.pattern.pieces itself (the draft-time-locale
+  // snapshot every persisted piece name already is), not from a fresh
+  // redraft, so the identity NO_OP_T here (matching the ease report above)
+  // never leaks an unresolved catalog key into the prompt -- it is only
+  // used internally to re-measure geometry, the same "derive, don't
+  // persist" reason measureSeamGraph/buildEaseReport already take a
+  // Translate they don't surface either.
+  const assembly = buildAssemblyOrder(state.pattern, NO_OP_T);
+  if (assembly) {
+    lines.push(
+      "",
+      'Assembly order (structured; darts first, then each mated seam in this exact order, then any free edges left to hem — see "# Assembly / sewing order" above for how to use this):',
+      JSON.stringify(assembly),
     );
   }
   return `${STATIC_SECTIONS}\n\n${lines.join("\n")}`;
