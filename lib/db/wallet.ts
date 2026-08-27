@@ -112,15 +112,7 @@ export async function withWallet<T>(
 // confirmed-nonexistent user now gets null instead of a fabricated wallet.
 export async function loadWallet(userId: string): Promise<Wallet | null> {
   const row = await prisma.wallet.findUnique({ where: { userId } });
-  // #196: `as unknown as WalletRow` bridges a Prisma Client generated from
-  // schema.prisma before `planSourceExternalId` existed on it -- the
-  // running Prisma Client in this shared node_modules couldn't be
-  // regenerated (its native query engine binary was locked by another
-  // live process at the time this shipped); `npm ci`'s own `postinstall`
-  // (`prisma generate`) always regenerates it fresh from the committed
-  // schema before any build, so this is a real, always-present column, not
-  // an assumption papering over a schema mismatch.
-  if (row) return toWallet(row as unknown as WalletRow);
+  if (row) return toWallet(row);
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { id: true },
@@ -187,7 +179,7 @@ export async function withWalletIdempotent(
           planChanged: entry.planChanged ?? false,
           // See loadWallet's own comment: bridges a Prisma Client that
           // predates the planChanged column on its generated types.
-        } as Prisma.TransactionUncheckedCreateInput,
+        },
       });
     } catch (err) {
       if (isUniqueConstraintViolation(err)) {
@@ -223,7 +215,7 @@ export async function findLedgerEntryByExternalId(externalId: string): Promise<{
   const row = await prisma.transaction.findUnique({
     where: { externalId },
     select: { userId: true, amount: true, type: true, planChanged: true },
-  } as Prisma.TransactionFindUniqueArgs);
+  });
   return (
     (row as {
       userId: string;
