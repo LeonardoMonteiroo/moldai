@@ -472,12 +472,14 @@
     "notSupportedForTrousers": "A prova 3D ainda não cobre calças — em breve.",
     "buildError": "Não foi possível gerar a prévia 3D deste molde.",
     "viewLabel": "Ângulo de visualização",
+    "rotateLabel": "Girar a prova 3D — arraste ou use as setas do teclado",
     "view": {
       "front": "Frente",
       "side": "Lado",
       "back": "Costas"
     },
     "canvasAriaLabel": "Prova 3D de {name}, vista de {view}",
+    "canvasAriaLabelDeg": "Prova 3D de {name}, ângulo de {deg}°",
     "ease": {
       "bust": "Folga (busto)",
       "waist": "Folga (cintura)",

@@ -16,6 +16,18 @@ export interface ProjectedFace {
 export const YAW_STEP_DEG = 3;
 const PITCH_DEG = 8;
 
+// #10 follow-up: continuous drag/keyboard rotation. Snaps an arbitrary yaw
+// (a drag delta, or a nudge off the current value) to the nearest
+// YAW_STEP_DEG multiple and wraps it into [0, 360) -- projectMesh itself
+// already accepts any yawDeg (the three fixed camera angles were a UI
+// choice in the component, never a limitation of the projection), so a
+// drag/keyboard control only ever needed this one pure quantize step, no
+// change to the projection math itself.
+export function quantizeYaw(deg: number): number {
+  const stepped = Math.round(deg / YAW_STEP_DEG) * YAW_STEP_DEG;
+  return ((stepped % 360) + 360) % 360;
+}
+
 function toRad(deg: number): number {
   return (deg * Math.PI) / 180;
 }

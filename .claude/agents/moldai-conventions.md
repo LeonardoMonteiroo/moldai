@@ -74,7 +74,7 @@ A scope boundary, an unsupported case, or a mock standing in for the real thing 
 
 Real anchors in this codebase:
 
-- `components/editor/Proof3DTab.tsx` — the whole tab is an honest empty state; `messages/pt-BR.json:205` is `"Prova 3D ainda não disponível"` with a description of what's in development. The tab is *shown*, not hidden.
+- `components/editor/Proof3DTab.tsx` — the tab itself shipped (#165/#10): a working parametric 3D preview, not an empty state. Its own remaining honest limitation is narrower and still a good anchor: a trousers pattern gets a named, distinct message (`Proof3DTab.notSupportedForTrousers`, "a prova 3D ainda não cobre calças — em breve") rather than either a fake preview or being indistinguishable from the ordinary "generate a pattern first" empty state (`Proof3DTab.emptyState`). Do not flag any reference to "Prova 3D" as unavailable/empty-state-only — that description is stale as of #165.
 - `messages/pt-BR.json:13` — `"formatDxfAama": "DXF · Audaces/AAMA-ASTM · beta"`, with `:14` `"formatDxfAamaNote": "Camadas numeradas D6673. Ainda sem piques/furos/linha de costura."` The gaps in the AAMA/ASTM subset (no notches, no drill holes, no separate sew line) are stated inline at the menu item, wired at `components/editor/Footer.tsx:19-20`.
 - `components/dashboard/Sidebar.tsx:30-33` — "Bases do ateliê" renders as a disabled row carrying the `comingSoonBadge` ("em breve", `messages/pt-BR.json:308`), not removed from the nav.
 - `components/size-charts/SizeChartLibrary.tsx:45-46` — the Audaces spreadsheet import is an inert dashed-border placeholder on the screen rather than a missing feature.

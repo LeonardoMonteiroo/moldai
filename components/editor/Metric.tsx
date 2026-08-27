@@ -1,10 +1,8 @@
-// A small labelled metric card -- lifted out of CutPlanTab.tsx (its own
-// private `Metric`, components/editor/CutPlanTab.tsx:156-174) so Proof3DTab
-// can reuse the exact same card rather than a second, driftable copy.
-// CutPlanTab.tsx is out of scope for this change (another unit owns it in
-// this branch's parallel worktree split) so it still renders its own private
-// copy for now; the two are kept byte-for-byte identical on purpose so a
-// follow-up can point CutPlanTab at this one with no visual change.
+// A small labelled metric card -- originally lifted out of CutPlanTab.tsx's
+// own private `Metric` so Proof3DTab could reuse the exact same card rather
+// than a second, driftable copy. CutPlanTab.tsx now imports this one too
+// (#10 follow-up) -- its private copy, kept byte-for-byte identical in the
+// meantime, is gone.
 export function Metric({
   label,
   value,
