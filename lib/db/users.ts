@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, type PrismaClient } from "@prisma/client";
 import { prisma } from "./prisma";
 import type { UserRecord } from "@/lib/auth/types";
 import type { NewUser } from "@/lib/account/signup";
@@ -38,13 +38,28 @@ export async function updateUserName(id: string, name: string): Promise<void> {
 // successful password change can never be recorded without the hash
 // actually changing (and vice versa) -- no separate audit write to fall out
 // of sync with.
+//
+// #155: `now` and `client` are optional so every existing caller keeps
+// working unchanged -- the /settings password-change route
+// (app/api/account/password/route.ts) still calls this as just
+// `(id, passwordHash)`, stamping `new Date()` against the module-level
+// `prisma` singleton exactly as before. The forgot-password reset path
+// (lib/db/passwordReset.ts's consumeResetToken) needed this same write to
+// be atomic with deleting the single-use reset token, so it passes its own
+// `now` plus an interactive transaction's `tx` client. A bare PrismaClient
+// is structurally assignable to Prisma.TransactionClient (the
+// lib/db/sizeChart.ts#ensureSystemSizeCharts precedent for exactly this
+// "same function works transactionally or not" shape), so the default
+// `client = prisma` needs no separate non-transactional code path.
 export async function updateUserPasswordHash(
   id: string,
   passwordHash: string,
+  now: Date = new Date(),
+  client: PrismaClient | Prisma.TransactionClient = prisma,
 ): Promise<void> {
-  await prisma.user.update({
+  await client.user.update({
     where: { id },
-    data: { passwordHash, passwordChangedAt: new Date() },
+    data: { passwordHash, passwordChangedAt: now },
   });
 }
 
