@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
+import { fireEvent } from "@testing-library/react";
 import { renderWithIntl, ptBR, screen, act } from "@/components/test-utils";
 import { useEditorStore } from "@/lib/store";
 import type { Pattern, PatternRecord } from "@/lib/types";
@@ -176,5 +177,99 @@ describe("Proof3DTab", () => {
     renderWithIntl(<Proof3DTab />);
     const leading = ptBR.Proof3DTab.approximationNote.split("<em>")[0].trim();
     expect(document.body.textContent).toContain(leading);
+  });
+
+  // #10 follow-up: continuous drag/keyboard rotation, on top of the three
+  // fixed-angle presets above.
+  describe("continuous rotation", () => {
+    it("starts at yaw 0 with the front preset pressed", () => {
+      useEditorStore.setState({ pattern: draftedPattern() });
+      renderWithIntl(<Proof3DTab />);
+      const slider = screen.getByRole("slider", {
+        name: ptBR.Proof3DTab.rotateLabel,
+      });
+      expect(slider).toHaveAttribute("aria-valuenow", "0");
+      expect(
+        screen.getByRole("radio", { name: ptBR.Proof3DTab.view.front }),
+      ).toHaveAttribute("aria-checked", "true");
+    });
+
+    it("ArrowRight/ArrowLeft nudge yaw by the 3-degree step, wrapping at the ends", () => {
+      useEditorStore.setState({ pattern: draftedPattern() });
+      renderWithIntl(<Proof3DTab />);
+      const slider = screen.getByRole("slider", {
+        name: ptBR.Proof3DTab.rotateLabel,
+      });
+
+      fireEvent.keyDown(slider, { key: "ArrowRight" });
+      expect(slider).toHaveAttribute("aria-valuenow", "3");
+
+      fireEvent.keyDown(slider, { key: "ArrowLeft" });
+      fireEvent.keyDown(slider, { key: "ArrowLeft" });
+      expect(slider).toHaveAttribute("aria-valuenow", "357");
+    });
+
+    it("Shift+ArrowRight nudges by the coarse (5x) step and reaches the side preset", () => {
+      useEditorStore.setState({ pattern: draftedPattern() });
+      renderWithIntl(<Proof3DTab />);
+      const slider = screen.getByRole("slider", {
+        name: ptBR.Proof3DTab.rotateLabel,
+      });
+
+      // 6 coarse nudges of 15 degrees each == 90, the "side" preset.
+      for (let i = 0; i < 6; i++) {
+        fireEvent.keyDown(slider, { key: "ArrowRight", shiftKey: true });
+      }
+      expect(slider).toHaveAttribute("aria-valuenow", "90");
+      expect(
+        screen.getByRole("radio", { name: ptBR.Proof3DTab.view.side }),
+      ).toHaveAttribute("aria-checked", "true");
+      expect(
+        screen.getByRole("radio", { name: ptBR.Proof3DTab.view.front }),
+      ).toHaveAttribute("aria-checked", "false");
+    });
+
+    it("dragging the preview rotates continuously and deselects the presets off-angle", () => {
+      useEditorStore.setState({ pattern: draftedPattern() });
+      renderWithIntl(<Proof3DTab />);
+      const slider = screen.getByRole("slider", {
+        name: ptBR.Proof3DTab.rotateLabel,
+      });
+
+      fireEvent.pointerDown(slider, { clientX: 0, pointerId: 1 });
+      // 200px * 0.5deg/px = 100deg from yaw 0, quantized to the nearest
+      // 3-degree step (99).
+      fireEvent.pointerMove(slider, { clientX: 200, pointerId: 1 });
+      expect(slider).toHaveAttribute("aria-valuenow", "99");
+      // No preset sits at 99 degrees -- none of the three should read pressed.
+      for (const view of ["front", "side", "back"] as const) {
+        expect(
+          screen.getByRole("radio", { name: ptBR.Proof3DTab.view[view] }),
+        ).toHaveAttribute("aria-checked", "false");
+      }
+
+      fireEvent.pointerUp(slider, { clientX: 200, pointerId: 1 });
+      // A further move after pointerUp must not keep rotating.
+      fireEvent.pointerMove(slider, { clientX: 400, pointerId: 1 });
+      expect(slider).toHaveAttribute("aria-valuenow", "99");
+    });
+
+    it("clicking a preset after a drag snaps yaw back to that preset's fixed angle", () => {
+      useEditorStore.setState({ pattern: draftedPattern() });
+      renderWithIntl(<Proof3DTab />);
+      const slider = screen.getByRole("slider", {
+        name: ptBR.Proof3DTab.rotateLabel,
+      });
+
+      fireEvent.pointerDown(slider, { clientX: 0, pointerId: 1 });
+      fireEvent.pointerMove(slider, { clientX: 200, pointerId: 1 });
+      fireEvent.pointerUp(slider, { clientX: 200, pointerId: 1 });
+      expect(slider).toHaveAttribute("aria-valuenow", "99");
+
+      fireEvent.click(
+        screen.getByRole("radio", { name: ptBR.Proof3DTab.view.back }),
+      );
+      expect(slider).toHaveAttribute("aria-valuenow", "180");
+    });
   });
 });

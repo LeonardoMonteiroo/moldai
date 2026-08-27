@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Pattern } from "@/lib/types";
 import {
@@ -13,6 +13,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Button } from "@/components/ui/button";
 import { CutPlanPreview } from "./CutPlanPreview";
+import { Metric } from "./Metric";
 
 const meters = (cm: number) => (cm / 100).toFixed(2).replace(".", ",") + " m";
 const cmFmt = (cm: number) => cm.toFixed(1).replace(".", ",");
@@ -246,25 +247,5 @@ export function CutPlanTab({ pattern }: { pattern: Pattern }) {
         )}
       </div>
     </ScrollArea>
-  );
-}
-
-function Metric({
-  label,
-  value,
-  hint,
-}: {
-  label: string;
-  value: string;
-  hint: string;
-}) {
-  return (
-    <div className="border-border rounded-card bg-surface flex min-w-[150px] flex-col gap-1 border p-[14px]">
-      <span className="text-muted text-meta tracking-eyebrow font-semibold uppercase">
-        {label}
-      </span>
-      <span className="font-display text-title font-semibold">{value}</span>
-      <span className="text-muted text-tick">{hint}</span>
-    </div>
   );
 }

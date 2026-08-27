@@ -3,7 +3,7 @@ import type { GarmentSpec, Pattern } from "@/lib/types";
 import { SIZE_TABLE, SIZE_TABLE_MALE } from "@/lib/measurements";
 import { t } from "@/lib/i18n/test-translate";
 import { buildProofMesh, RING_SAMPLES } from "./mesh";
-import { projectMesh, YAW_STEP_DEG } from "./project";
+import { projectMesh, quantizeYaw, YAW_STEP_DEG } from "./project";
 
 function pattern(spec: GarmentSpec, baseMeasurements = SIZE_TABLE.M): Pattern {
   return {
@@ -131,5 +131,35 @@ describe("projectMesh", () => {
     expect(empty.faces).toHaveLength(0);
     expect(Number.isFinite(empty.viewBox.x)).toBe(true);
     expect(Number.isFinite(empty.viewBox.w)).toBe(true);
+  });
+});
+
+describe("quantizeYaw", () => {
+  it("snaps to the nearest YAW_STEP_DEG multiple", () => {
+    expect(quantizeYaw(1)).toBe(0);
+    expect(quantizeYaw(2)).toBe(3);
+    expect(quantizeYaw(4)).toBe(3);
+    expect(quantizeYaw(5)).toBe(6);
+  });
+
+  it("wraps a value past 360 back into [0, 360)", () => {
+    expect(quantizeYaw(361)).toBe(0);
+    // Nearest 3-degree multiple to 362 is 363, which wraps to 3.
+    expect(quantizeYaw(362)).toBe(3);
+  });
+
+  it("wraps a negative value into [0, 360)", () => {
+    expect(quantizeYaw(-1)).toBe(0);
+    expect(quantizeYaw(-3)).toBe(357);
+    expect(quantizeYaw(-4)).toBe(357);
+  });
+
+  it("every result is a non-negative multiple of YAW_STEP_DEG below 360", () => {
+    for (let deg = -720; deg <= 720; deg += 7) {
+      const q = quantizeYaw(deg);
+      expect(q).toBeGreaterThanOrEqual(0);
+      expect(q).toBeLessThan(360);
+      expect(q % YAW_STEP_DEG).toBe(0);
+    }
   });
 });
