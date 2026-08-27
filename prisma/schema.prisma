@@ -46,6 +46,18 @@ model User {
   // this closes the same hole at the schema level, unconditionally.
   activeSizeChartId   String?
   activeSizeChart     SizeChart?               @relation("ActiveSizeChart", fields: [activeSizeChartId], references: [id], onDelete: SetNull)
+  // #17: the export screen's "Salvar preset" -- one preset per account
+  // (design 5h has no per-pattern or multi-preset concept), additive and
+  // nullable so NULL honestly means "never saved," distinct from "saved,
+  // every field at its default." Not a new table: SizeChart/Sloper/Wallet
+  // are all one-row-per-entity JSON blobs, but there is only ever one of
+  // these per account, so a bare scalar on User (the activeSizeChartId
+  // precedent for a small account-level value) fits without the extra
+  // ownership-scoped CRUD a table would need. Untrusted on read exactly
+  // like SizeChart.data -- lib/db/exportPreset.ts revalidates through
+  // lib/export/preset.ts's validateExportPreset (drop-or-clamp,
+  // never-throw) before this ever reaches the export screen.
+  exportPreset        Json?
 
   @@index([activeSizeChartId])
 }
