@@ -6,22 +6,11 @@ import {
   ptBR,
   translatorFor,
 } from "@/components/test-utils";
-import {
-  seedPatternState,
-  applyGarmentSpec,
-  applySizes,
-} from "@/lib/editor/state";
+import { seedPatternState, applyGarmentSpec } from "@/lib/editor/state";
 import { t } from "@/lib/i18n/test-translate";
 import type { GarmentSpec, Pattern } from "@/lib/types";
 import { Footer } from "./Footer";
 import { useEditorStore } from "@/lib/store";
-import { exportPattern } from "@/lib/export";
-
-vi.mock("@/lib/export", async () => {
-  const actual =
-    await vi.importActual<typeof import("@/lib/export")>("@/lib/export");
-  return { ...actual, exportPattern: vi.fn() };
-});
 
 const BLOUSE: GarmentSpec = {
   type: "blouse",
@@ -33,15 +22,6 @@ const BLOUSE: GarmentSpec = {
 function draftedPattern(): Pattern {
   const state = seedPatternState(t);
   applyGarmentSpec(state, BLOUSE, t);
-  return state.pattern;
-}
-
-// #59: a pattern with at least one graduated size (base "M" is seeded with
-// "G" also pending, per the system female chart's PP/P/M/G/GG list).
-function gradedPattern(): Pattern {
-  const state = seedPatternState(t);
-  applyGarmentSpec(state, BLOUSE, t);
-  applySizes(state, ["G"]);
   return state.pattern;
 }
 
@@ -152,91 +132,42 @@ describe("Footer — motivo do botão Exportar desabilitado (#116)", () => {
         generating={false}
       />,
     );
+    // #17: an enabled Exportar is now a link to the dedicated export
+    // screen (Button asChild renders the Link's own <a>, not a <button>),
+    // so it carries no "title" at all -- there is nothing left to explain.
     expect(
-      screen.getByRole("button", { name: ptBR.Footer.exportButton }),
+      screen.getByRole("link", { name: ptBR.Footer.exportButton }),
     ).not.toHaveAttribute("title");
   });
 });
 
-// #59: export now redrafts from a chosen size's own measurements instead of
-// always the base -- the picker only appears once there's something besides
-// the base to choose from.
-describe("Footer — seletor de tamanho para exportar (#59)", () => {
-  beforeEach(() => {
-    vi.mocked(exportPattern).mockClear();
+// #17: the dropdown that used to live here was removed in favor of a
+// dedicated /pattern/[id]/export screen -- Exportar just navigates there.
+describe("Footer — link para a tela de exportação (#17)", () => {
+  it("links to the pattern's dedicated export screen when enabled", () => {
+    const pattern = draftedPattern();
+    renderWithIntl(
+      <Footer pattern={pattern} conflictActive={false} generating={false} />,
+    );
+    expect(
+      screen.getByRole("link", { name: ptBR.Footer.exportButton }),
+    ).toHaveAttribute("href", `/pattern/${pattern.id}/export`);
   });
 
-  it("hides the size picker for a pattern with nothing graded", () => {
+  it("renders no link at all while disabled — there is nothing to navigate to yet", () => {
     renderWithIntl(
       <Footer
-        pattern={draftedPattern()}
+        pattern={seedPatternState(t).pattern}
         conflictActive={false}
         generating={false}
       />,
     );
     expect(
-      screen.queryByRole("combobox", { name: ptBR.Footer.exportSizeLabel }),
+      screen.queryByRole("link", { name: ptBR.Footer.exportButton }),
     ).not.toBeInTheDocument();
-  });
-
-  it("shows the size picker once a size is graduated, defaulting to the base size", () => {
-    renderWithIntl(
-      <Footer
-        pattern={gradedPattern()}
-        conflictActive={false}
-        generating={false}
-      />,
-    );
-    const picker = screen.getByRole("combobox", {
-      name: ptBR.Footer.exportSizeLabel,
-    });
-    expect(picker).toHaveTextContent(
-      ptBR.Footer.exportSizeBaseOption.replace("{size}", "M"),
-    );
-  });
-
-  it("exports the base size by default, and the picked size after selecting one", async () => {
-    const user = userEvent.setup();
-    renderWithIntl(
-      <Footer
-        pattern={gradedPattern()}
-        conflictActive={false}
-        generating={false}
-      />,
-    );
-
-    await user.click(
+    expect(
       screen.getByRole("button", { name: ptBR.Footer.exportButton }),
-    );
-    await user.click(
-      await screen.findByRole("menuitem", { name: ptBR.Footer.formatSvg }),
-    );
-    expect(exportPattern).toHaveBeenLastCalledWith(
-      expect.anything(),
-      "svg",
-      expect.anything(),
-      expect.any(Function),
-      "M",
-    );
-
-    await user.click(
-      screen.getByRole("combobox", { name: ptBR.Footer.exportSizeLabel }),
-    );
-    await user.click(await screen.findByRole("option", { name: "G" }));
-
-    await user.click(
-      screen.getByRole("button", { name: ptBR.Footer.exportButton }),
-    );
-    await user.click(
-      await screen.findByRole("menuitem", { name: ptBR.Footer.formatSvg }),
-    );
-    expect(exportPattern).toHaveBeenLastCalledWith(
-      expect.anything(),
-      "svg",
-      expect.anything(),
-      expect.any(Function),
-      "G",
-    );
+    ).toBeDisabled();
   });
 });
 

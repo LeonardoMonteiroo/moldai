@@ -1,29 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { Pattern } from "@/lib/types";
-import { exportPattern, ExportFormat } from "@/lib/export";
-import { buildExportModel } from "@/lib/export/model";
-import { planTiles, pieceBBoxesCm } from "@/lib/export/pdf";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useEditorStore } from "@/lib/store";
 import {
   Dialog,
@@ -36,22 +17,6 @@ import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { MAX_PATTERN_NAME_LENGTH } from "@/lib/types";
 
-const FORMATS: {
-  id: ExportFormat;
-  labelKey: string;
-  noteKey?: string;
-}[] = [
-  { id: "svg", labelKey: "formatSvg" },
-  { id: "dxf", labelKey: "formatDxf" },
-  {
-    id: "dxf-aama",
-    labelKey: "formatDxfAama",
-    noteKey: "formatDxfAamaNote",
-  },
-  { id: "pdf-a4", labelKey: "formatPdfA4" },
-  { id: "pdf-single", labelKey: "formatPdfSingle" },
-];
-
 export function Footer({
   pattern,
   conflictActive,
@@ -62,19 +27,6 @@ export function Footer({
   generating: boolean;
 }) {
   const t = useTranslations("Footer");
-  const tData = useTranslations("PatternData");
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [exportError, setExportError] = useState<string | null>(null);
-  // #59: which size's measurements the export is redrafted from. Only shown
-  // once something is actually graded -- an ungraded pattern always exports
-  // the base size, unchanged from before this existed.
-  const [exportSize, setExportSize] = useState(pattern.baseSize);
-
-  useEffect(() => {
-    if (!exportError) return;
-    const timeout = setTimeout(() => setExportError(null), 6000);
-    return () => clearTimeout(timeout);
-  }, [exportError]);
 
   const saveAsSloper = useEditorStore((s) => s.saveAsSloper);
   const [savingBase, setSavingBase] = useState(false);
@@ -111,10 +63,14 @@ export function Footer({
     generating ||
     pattern.pieces.length === 0 ||
     !pattern.spec;
-  // #116: a reason per cause, mirroring saveAsBaseDisabledTitle below --
+  // #116/#17: a reason per cause, mirroring saveAsBaseDisabledTitle below --
   // pattern.pieces.length === 0 and !pattern.spec always coincide (both are
   // set together by applyGarmentSpec), so they share one "nothing drafted"
-  // message rather than needing a third, redundant string.
+  // message rather than needing a third, redundant string. #17 removed the
+  // dropdown that used to live here — Exportar now just links to the
+  // dedicated /pattern/[id]/export screen, which repeats this same
+  // disabled-with-a-reason contract on its own download button rather than
+  // silently letting a blocked visitor land on a screen with nothing to do.
   const exportDisabledTitle = conflictActive
     ? t("exportDisabledConflictTitle")
     : generating
@@ -133,44 +89,10 @@ export function Footer({
           unit: pattern.unit,
         });
 
-  // Only re-draws the model when the menu opens (buildExportModel re-drafts in cm).
-  // #120: passes the same piece bboxes toPdf itself filters blank tiles
-  // against, so this estimate and the exported file always agree.
-  const a4Pages = useMemo(() => {
-    if (!menuOpen || exportDisabled) return 0;
-    const model = buildExportModel(pattern, tData, exportSize);
-    return planTiles(
-      model.sheetWidthCm,
-      model.sheetHeightCm,
-      "a4",
-      pieceBBoxesCm(model.pieces, model.foldLabel),
-    ).pages.length;
-  }, [menuOpen, exportDisabled, pattern, tData, exportSize]);
-
-  const handleExport = (format: ExportFormat) => {
-    setExportError(null);
-    exportPattern(
-      pattern,
-      format,
-      tData,
-      (msg) => setExportError(msg),
-      exportSize,
-    );
-  };
-
   return (
     <div className="bg-surface border-border flex items-center gap-[10px] border-t px-4 py-3">
       <span className="text-muted text-ui">{statusText}</span>
       <div className="flex-1" />
-
-      {exportError && (
-        <span
-          role="alert"
-          className="text-alert bg-amber-bg border-amber-border rounded-item text-meta border px-[10px] py-[5px]"
-        >
-          {exportError}
-        </span>
-      )}
 
       {baseNotice && (
         <span
@@ -185,72 +107,17 @@ export function Footer({
         </span>
       )}
 
-      {pattern.sizesApplied.length > 0 && (
-        <Select
-          value={exportSize}
-          onValueChange={setExportSize}
-          disabled={exportDisabled}
-        >
-          <SelectTrigger
-            size="sm"
-            className="w-[120px]"
-            aria-label={t("exportSizeLabel")}
-          >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem value={pattern.baseSize}>
-                {t("exportSizeBaseOption", { size: pattern.baseSize })}
-              </SelectItem>
-              {pattern.sizesApplied.map((size) => (
-                <SelectItem key={size} value={size}>
-                  {size}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      )}
-
-      <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="outline"
-            disabled={exportDisabled}
-            title={exportDisabledTitle}
-          >
+      {exportDisabled ? (
+        <Button variant="outline" disabled title={exportDisabledTitle}>
+          {t("exportButton")}
+        </Button>
+      ) : (
+        <Button variant="outline" asChild>
+          <Link href={`/pattern/${pattern.id}/export`}>
             {t("exportButton")}
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" side="top" className="w-[230px]">
-          <DropdownMenuGroup>
-            {FORMATS.map((fmt) => (
-              <DropdownMenuItem
-                key={fmt.id}
-                onSelect={() => handleExport(fmt.id)}
-                className="flex-col items-start gap-0"
-              >
-                <span className="text-ui">{t(fmt.labelKey)}</span>
-                {fmt.id === "pdf-a4" && a4Pages > 0 && (
-                  <span className="text-muted text-meta">
-                    {t("a4PageCount", { count: a4Pages })}
-                  </span>
-                )}
-                {fmt.noteKey && (
-                  <span className="text-muted text-meta leading-snug">
-                    {t(fmt.noteKey)}
-                  </span>
-                )}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuLabel className="text-muted text-tick leading-snug font-normal">
-            {t("outlinesNote")}
-          </DropdownMenuLabel>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          </Link>
+        </Button>
+      )}
 
       <Button
         variant="outline"
