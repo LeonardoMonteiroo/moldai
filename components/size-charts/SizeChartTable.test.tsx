@@ -392,3 +392,53 @@ describe("SizeChartTable save button", () => {
     expect(button).toBeEnabled();
   });
 });
+
+// #132: the six new fields are picked up from MEASUREMENT_KEYS generically
+// (no per-key edits to this component), and BASE's fixture never sets them
+// — the same shape as a real chart persisted before this issue shipped.
+describe("SizeChartTable extended measurement rows (#132)", () => {
+  it("renders a row, with its catalog label, for every extended measurement", () => {
+    seed();
+    renderWithIntl(<SizeChartTable />);
+
+    expect(
+      screen.getByText(ptBR.SizeChartTable.measurement.neckGirth),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(ptBR.SizeChartTable.measurement.bicep),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(ptBR.SizeChartTable.measurement.rise),
+    ).toBeInTheDocument();
+  });
+
+  // The fixture's baseMeasurements never set bicep -- resolveSizeChartSize
+  // resolves it as undefined, and the cell must show that as blank rather
+  // than crashing or substituting 0.
+  it("shows a blank cell, not 0, for an extended field the chart never set", () => {
+    seed();
+    renderWithIntl(<SizeChartTable />);
+
+    const cell = screen.getByRole("spinbutton", {
+      name: `${ptBR.SizeChartTable.measurement.bicep} · M`,
+    }) as HTMLInputElement;
+    expect(cell).toHaveValue(null);
+  });
+
+  it("exposes a guided definition for a measurement, reachable from its row", async () => {
+    seed();
+    renderWithIntl(<SizeChartTable />);
+
+    const trigger = screen.getByRole("button", {
+      name: ptBR.SizeChartTable.measurementGuideLabel.replace(
+        "{name}",
+        ptBR.SizeChartTable.measurement.neckGirth,
+      ),
+    });
+    await userEvent.click(trigger);
+
+    expect(
+      screen.getByText(ptBR.SizeChartTable.measurementGuide.neckGirth),
+    ).toBeInTheDocument();
+  });
+});

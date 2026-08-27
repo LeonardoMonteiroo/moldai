@@ -3,6 +3,9 @@ import {
   SIZE_TABLE,
   SIZE_TABLE_MALE,
   MEASUREMENT_RANGES,
+  MEASUREMENT_KEYS,
+  CORE_MEASUREMENT_KEYS,
+  EXTENDED_MEASUREMENT_KEYS,
   resolveMeasurements,
   type Measurements,
 } from "./measurements";
@@ -87,5 +90,77 @@ describe("resolveMeasurements", () => {
     expect(() =>
       resolveMeasurements({ ...SIZE_TABLE.M, bust: NaN }, {}),
     ).toThrow(/bust/);
+  });
+
+  // #132: EXTENDED_MEASUREMENT_KEYS are optional -- a base row that simply
+  // omits them (every real size chart persisted before this issue, and
+  // SIZE_TABLE.M itself) must NOT throw the way a missing CORE field does.
+  it("does not throw when a base row omits every EXTENDED measurement key", () => {
+    expect(() => resolveMeasurements(SIZE_TABLE.M, {})).not.toThrow();
+  });
+
+  it("passes an EXTENDED override straight through, clamped to its own range", () => {
+    const r = resolveMeasurements(SIZE_TABLE.M, { bicep: 999 });
+    expect(r.bicep).toBe(MEASUREMENT_RANGES.bicep.max);
+  });
+
+  it("leaves an EXTENDED field undefined when neither the base row nor the override sets it", () => {
+    const r = resolveMeasurements(SIZE_TABLE.M, {});
+    expect(r.neckGirth).toBeUndefined();
+  });
+
+  // #132: an EXTENDED field IS present on the base row (e.g. from a size
+  // chart) but non-finite -- this is the corrupted-data case #140 already
+  // guards for the nine CORE fields, extended to cover the six new ones.
+  it("throws on a base row with a non-finite EXTENDED field", () => {
+    expect(() =>
+      resolveMeasurements({ ...SIZE_TABLE.M, bicep: NaN }, {}),
+    ).toThrow(/bicep/);
+  });
+});
+
+describe("CORE_MEASUREMENT_KEYS / EXTENDED_MEASUREMENT_KEYS / MEASUREMENT_KEYS (#132)", () => {
+  it("MEASUREMENT_KEYS is exactly CORE followed by EXTENDED, no overlap", () => {
+    expect(MEASUREMENT_KEYS).toEqual([
+      ...CORE_MEASUREMENT_KEYS,
+      ...EXTENDED_MEASUREMENT_KEYS,
+    ]);
+    const overlap = CORE_MEASUREMENT_KEYS.filter((k) =>
+      (EXTENDED_MEASUREMENT_KEYS as string[]).includes(k),
+    );
+    expect(overlap).toEqual([]);
+  });
+
+  it("CORE_MEASUREMENT_KEYS still has exactly the original nine keys", () => {
+    expect(CORE_MEASUREMENT_KEYS).toEqual([
+      "bust",
+      "waist",
+      "hip",
+      "hipHeight",
+      "backLength",
+      "shoulder",
+      "skirtLength",
+      "shortSleeveLength",
+      "longSleeveLength",
+    ]);
+  });
+
+  it("EXTENDED_MEASUREMENT_KEYS carries the six #132 additions", () => {
+    expect(EXTENDED_MEASUREMENT_KEYS).toEqual([
+      "neckGirth",
+      "highBust",
+      "shoulderSlope",
+      "backWidth",
+      "bicep",
+      "rise",
+    ]);
+  });
+
+  it("every MEASUREMENT_KEYS entry has a MEASUREMENT_RANGES entry with min < max", () => {
+    for (const key of MEASUREMENT_KEYS) {
+      const range = MEASUREMENT_RANGES[key];
+      expect(range).toBeDefined();
+      expect(range.min).toBeLessThan(range.max);
+    }
   });
 });

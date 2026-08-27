@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { SIZE_TABLE } from "@/lib/measurements";
 import { draftSleeve } from "./sleeve";
 import { curveArcLengthCm, bbox } from "./core";
+import type { BlockOpts } from "./body";
 import { t } from "@/lib/i18n/test-translate";
 
 const M = SIZE_TABLE.M;
@@ -109,6 +110,54 @@ describe("draftSleeve bell cap", () => {
       expect(dist(near.notches![0].outerCm, ua0)).toBeLessThan(
         dist(far.notches![0].outerCm, ua0),
       );
+    });
+  });
+
+  // #132: m.bicep overrides BICEP_PROPORTION_OF_BUST when present, and
+  // reproduces it exactly when absent -- M (SIZE_TABLE.M) never carries the
+  // field, so every "without" draft below already exercises the fallback.
+  describe("#132: bicep override", () => {
+    const sleeveOpts: BlockOpts = {
+      gender: "female",
+      knit: false,
+      lengthCm: 0,
+      wearingEaseCm: 8, // unused by this drafter -- see sleeve.ts's own WEARING_EASE_CM
+    };
+
+    it("uses m.bicep directly instead of the bust-derived proportion when present", () => {
+      const narrow = draftSleeve(
+        { ...M, bicep: 20 },
+        { sleeve: "short" },
+        39.3,
+        t,
+        sleeveOpts,
+      )!;
+      const wide = draftSleeve(
+        { ...M, bicep: 40 },
+        { sleeve: "short" },
+        39.3,
+        t,
+        sleeveOpts,
+      )!;
+      expect(bbox(wide.outlineCm).w).toBeGreaterThan(bbox(narrow.outlineCm).w);
+    });
+
+    it("omitting bicep reproduces the BICEP_PROPORTION_OF_BUST fallback exactly", () => {
+      const withKey = draftSleeve(
+        { ...M, bicep: M.bust * 0.3 },
+        { sleeve: "short" },
+        39.3,
+        t,
+        sleeveOpts,
+      )!;
+      const withoutKey = draftSleeve(
+        M,
+        { sleeve: "short" },
+        39.3,
+        t,
+        sleeveOpts,
+      )!;
+      expect(withKey.outlineCm).toEqual(withoutKey.outlineCm);
     });
   });
 });

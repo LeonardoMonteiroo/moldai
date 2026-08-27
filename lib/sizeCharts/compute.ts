@@ -26,8 +26,13 @@ export function resolveSizeChartSize(
   for (const key of Object.keys(
     sizeChart.baseMeasurements,
   ) as (keyof Measurements)[]) {
+    // Non-null: `key` came from Object.keys(sizeChart.baseMeasurements)
+    // itself, so its value is present by construction -- generic `keyof
+    // Measurements` indexing only sees `number | undefined` because SOME
+    // measurement keys are optional on the type, not because this specific
+    // one might be missing at runtime.
     const ruleValue =
-      sizeChart.baseMeasurements[key] +
+      sizeChart.baseMeasurements[key]! +
       (sizeChart.progressionRule[key] ?? 0) * step;
     const value = override[key] ?? ruleValue;
     const range = MEASUREMENT_RANGES[key];

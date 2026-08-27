@@ -5,8 +5,99 @@ import type { Translate } from "@/lib/i18n/translate";
 const SIZES = ["PP", "P", "M", "G", "GG"];
 const BASE_INDEX = 2; // "M"
 
+// #132: computes the six EXTENDED_MEASUREMENT_KEYS for one size row, from
+// values SIZE_TABLE/SIZE_TABLE_MALE already carry. Five of them reproduce
+// the exact formula the corresponding drafter falls back to when the field
+// is absent (lib/draft/body.ts's neckHalf/armholeDepthBase, lib/draft/
+// sleeve.ts's bicep) -- populating a system chart's baseMeasurements with
+// those changes nothing about what it drafts; it only makes the field real,
+// visible and editable. `backWidth` is the deliberate exception: it seeds a
+// realistic across-back proportion (bust*0.4, not a value that happens to
+// cancel out in body.ts's formula), because the field IS the across-back
+// measurement a user is told to go measure (SizeChartTable.measurementGuide.
+// backWidth) and body.ts consumes it at the armhole curve's own control
+// point, not at halfChest -- an earlier version of this function seeded
+// bust/2 specifically so it would be a no-op through the OLD (incorrect)
+// wiring, which meant the seeded "across-back" value (~46cm at a 92cm bust)
+// had nothing to do with a real body's ~36-38cm there. Populating the
+// system chart's backWidth with a realistic value is therefore a genuine,
+// intentional geometry change for the default account (a more accurate
+// back than the old bust-derived guess), not a no-op like the other five.
+//
+// Deliberately computed here rather than baked into SIZE_TABLE itself: that
+// constant is spread-and-overridden directly by several tests (varying just
+// `bust` to see geometry respond), and a fixed extended value living
+// alongside would go stale — un-scaled — the moment such a test changes
+// bust on its own.
+function extendedMeasurementsFor(
+  m: Measurements,
+  gender: Gender,
+  sizeIndex: number,
+): Required<
+  Pick<
+    Measurements,
+    "neckGirth" | "highBust" | "shoulderSlope" | "backWidth" | "bicep" | "rise"
+  >
+> {
+  const male = gender === "male";
+  return {
+    // body.ts: neckHalf = neckGirth/6 + offset. The offset is applied
+    // outside neckGirth either way (present or absent), so neckGirth/6 ==
+    // bust/14 for ANY offset -- neckGirth itself doesn't need to vary by
+    // gender.
+    neckGirth: (m.bust * 3) / 7,
+    // body.ts: armholeDepthBase reads (highBust ?? bust)/8 + offset. The
+    // legacy tables never modelled a cup difference from bust, so "no
+    // assumption" -- highBust === bust -- is the honest default; a user who
+    // knows their real high-bust measurement can override it per size.
+    highBust: m.bust,
+    // body.ts: a flat per-gender constant (4.0 female / 4.5 male),
+    // independent of size -- a shoulder slope is a frame characteristic,
+    // not a girth that scales with bust, so it is NOT graded across sizes
+    // here (see seed.test.ts's own note on why this field's progression is
+    // legitimately 0, unlike every other measurement).
+    shoulderSlope: male ? 4.5 : 4.0,
+    // body.ts: the back panel's armhole-curve control point reads backWidth
+    // (halved, one-side) when present. A common quick-draft rule for
+    // across-back is roughly 0.4x bust circumference (matches the
+    // ~36-38cm range real tape measurements land in around a 92cm bust) --
+    // this is a REAL value, not one chosen to cancel out algebraically the
+    // way the other five fields above are (see this function's own
+    // top-of-file note).
+    backWidth: m.bust * 0.4,
+    // sleeve.ts's existing BICEP_PROPORTION_OF_BUST.
+    bicep: m.bust * 0.3,
+    // No drafter reads this yet (#128 will) -- graded independently by
+    // size, the same "linear step off the base" shape as
+    // skirtLength/hipHeight above, since there's no proportion to
+    // reproduce.
+    rise: (male ? 27 : 26) + 0.5 * sizeIndex,
+  };
+}
+
+// The five SIZE_TABLE/SIZE_TABLE_MALE rows for one gender, each widened with
+// extendedMeasurementsFor's six fields -- the table buildSystemSizeChart
+// actually reads from, so its progression-rule/override derivation below
+// (which already iterates Object.keys of whatever it's handed) covers all
+// fifteen keys without change. Typed `Required<Measurements>` (every row
+// genuinely has every field, unlike a Measurements row in general) so the
+// arithmetic below reads plain `number`s instead of `number | undefined` --
+// the EXTENDED keys are optional on Measurements itself, but not here.
+function extendedTable(gender: Gender): Record<string, Required<Measurements>> {
+  const raw: Record<string, Measurements> =
+    gender === "male" ? SIZE_TABLE_MALE : SIZE_TABLE;
+  const table: Record<string, Required<Measurements>> = {};
+  SIZES.forEach((size, idx) => {
+    table[size] = {
+      ...raw[size],
+      ...extendedMeasurementsFor(raw[size], gender, idx),
+    };
+  });
+  return table;
+}
+
 function deriveProgressionRule(
-  table: Record<string, Measurements>,
+  table: Record<string, Required<Measurements>>,
 ): Partial<Record<keyof Measurements, number>> {
   const base = table[SIZES[BASE_INDEX]];
   const prev = table[SIZES[BASE_INDEX - 1]];
@@ -34,7 +125,7 @@ function deriveProgressionRule(
 export function buildSystemSizeChart(
   gender: Gender,
 ): Omit<SizeChartData, "name"> {
-  const table = gender === "male" ? SIZE_TABLE_MALE : SIZE_TABLE;
+  const table = extendedTable(gender);
   const baseMeasurements = table[SIZES[BASE_INDEX]];
   const progressionRule = deriveProgressionRule(table);
   const overrides: Record<string, Partial<Measurements>> = {};

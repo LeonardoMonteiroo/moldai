@@ -16,7 +16,7 @@ import {
   type Measurements,
 } from "@/lib/measurements";
 import { t } from "@/lib/i18n/test-translate";
-import { curveArcLengthCm } from "./core";
+import { curveArcLengthCm, bbox } from "./core";
 import { DECORATION_CASES } from "./fixtures";
 
 describe("validateSpec", () => {
@@ -627,6 +627,171 @@ describe("drafted decorations stay inside their own piece", () => {
       assertDecorationsContained(draftPiecesCm(spec, m, t));
     });
   }
+});
+
+// #132 acceptance criterion: "a chart with none of the new keys drafts
+// byte-identical geometry to today". For each DECORATION_CASES case, drafts
+// twice from the SAME core measurements: once with the six EXTENDED keys
+// entirely absent (a chart written before this issue, or one that simply
+// never sets them -- the real-world case this guards), and once with them
+// explicitly set to literally today's hardcoded proportion, reconstructed
+// here from the same expressions body.ts/sleeve.ts fall back to -- not from
+// lib/sizeCharts/seed.ts's derivation, so this test doesn't just check that
+// module against itself. If the fallback branch in body.ts/sleeve.ts ever
+// stops being a no-op (a wrong divisor, an accidentally-always-taken
+// branch), the two drafts diverge and this fails.
+// Reconstructing neckGirth as (bust*6)/14 so that neckGirth/6 "equals"
+// bust/14 is true mathematically but not bit-for-bit in IEEE 754 (division
+// and multiplication by the same constant don't always invert exactly) --
+// verified empirically: (92*6/14)/6 !== 92/14, off by ~1e-15. That's noise
+// four orders of magnitude below anything a cm-precision pattern cares
+// about, so the comparison below rounds every number in both drafts to 1e-9
+// cm before comparing structurally, rather than asserting bit-exactness
+// floating point arithmetic doesn't actually offer here.
+function roundNumbersDeep<T>(value: T): T {
+  if (typeof value === "number") {
+    return (Number.isFinite(value)
+      ? Math.round(value * 1e9) / 1e9
+      : value) as unknown as T;
+  }
+  if (Array.isArray(value)) {
+    return value.map((v) => roundNumbersDeep(v)) as unknown as T;
+  }
+  if (value !== null && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      out[k] = roundNumbersDeep(v);
+    }
+    return out as T;
+  }
+  return value;
+}
+
+// backWidth is deliberately excluded from withFormula below: unlike the
+// other four (pure bust/gender proportions, independent of style), its
+// fallback -- the armhole curve's shoulder/underarm interpolation in
+// body.ts -- depends on the style-driven wearingEase, so no single fixed
+// Measurements.backWidth value reproduces it across every DECORATION_CASES
+// style. body.test.ts's own "omitting backWidth reproduces the
+// shoulder/underarm interpolation exactly" test covers that field's
+// absent-vs-present-with-the-fallback's-own-value equivalence directly, for
+// one fixed style/ease. Omitting it from both `withoutExtended` and
+// `withFormula` here still exercises the true "chart has none of the new
+// keys" case this suite exists to prove -- backWidth is absent in both.
+describe("#132: drafting with no extended measurement keys is byte-identical to reconstructing today's formula explicitly", () => {
+  for (const [name, spec] of DECORATION_CASES) {
+    it(name, () => {
+      const male = spec.gender === "male";
+      const base = male ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
+      const withoutExtended: Measurements = { ...base };
+
+      const withFormula: Measurements = {
+        ...base,
+        neckGirth: (base.bust * 6) / 14,
+        highBust: base.bust,
+        shoulderSlope: male ? 4.5 : 4.0,
+        bicep: base.bust * 0.3,
+      };
+
+      const a = draftPiecesCm(spec, withoutExtended, t);
+      const b = draftPiecesCm(spec, withFormula, t);
+      expect(roundNumbersDeep(b)).toEqual(roundNumbersDeep(a));
+    });
+  }
+});
+
+// #132 (post-review): every prior test above the "reconstruct today's
+// formula" one exercises the ABSENT branch. Nothing exercised a chart that
+// actually SETS a plausible, non-neutral value for every extended
+// key at once -- exactly the path a real user takes (the DangerZone this
+// issue exists to close), and the one that caught the backWidth defect
+// (a real ~37cm across-back value drove a real ~10cm-narrower garment,
+// because the field was wired to the wrong height in the drafter). Two
+// personas at opposite ends of MEASUREMENT_RANGES, both plausible bodies a
+// real chart could describe (all values loosely proportioned around a
+// smaller/larger frame, not an inconsistent mix of extremes) -- verified
+// against the SAME full-drafting invariant (assertDecorationsContained)
+// the fallback path already has to satisfy, plus explicit positive-width
+// and finite-coordinate checks a self-intersecting or collapsed piece
+// would fail.
+const PERSONAS: [string, Partial<Measurements>][] = [
+  [
+    "petite frame",
+    {
+      neckGirth: 33,
+      highBust: 78,
+      shoulderSlope: 3.3,
+      backWidth: 31,
+      bicep: 22,
+    },
+  ],
+  [
+    "fuller frame",
+    {
+      neckGirth: 45,
+      highBust: 118,
+      shoulderSlope: 6.5,
+      backWidth: 44,
+      bicep: 42,
+    },
+  ],
+];
+
+function assertPositiveGeometry(pieces: ReturnType<typeof draftPiecesCm>) {
+  expect(pieces.length).toBeGreaterThan(0);
+  for (const piece of pieces) {
+    expect(bbox(piece.outlineCm).w).toBeGreaterThan(0);
+    expect(bbox(piece.outlineCm).h).toBeGreaterThan(0);
+    for (const [x, y] of piece.outlineCm) {
+      expect(Number.isFinite(x), `${piece.id} x`).toBe(true);
+      expect(Number.isFinite(y), `${piece.id} y`).toBe(true);
+    }
+  }
+}
+
+describe("#132: a chart carrying a plausible value for every extended key drafts sane, contained geometry", () => {
+  for (const [personaName, persona] of PERSONAS) {
+    for (const [name, spec] of DECORATION_CASES) {
+      it(`${personaName} / ${name}`, () => {
+        const base = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
+        const m: Measurements = { ...base, ...persona };
+        const pieces = draftPiecesCm(spec, m, t);
+        assertPositiveGeometry(pieces);
+        assertDecorationsContained(pieces);
+      });
+    }
+  }
+
+  // The specific regression this review round exists to close: a realistic
+  // across-back value must not collapse the back panel narrower than the
+  // front's own bust-derived armhole-level width, and a fuller across-back
+  // value must genuinely widen the back's armhole curve relative to a
+  // petite one -- proven through the full draftGarment path (garment.ts),
+  // not just draftBody in isolation.
+  it("a fuller-frame backWidth drafts a wider back armhole curve than a petite one, both plausible", () => {
+    // The armhole control point (index 4, see bodice()'s push() order) is
+    // what backWidth actually moves -- the overall piece bbox is dominated
+    // by the hip-derived hem in both personas (hemHalf unaffected by
+    // backWidth), so it wouldn't show this difference at all.
+    const spec = DECORATION_CASES[0][1];
+    const petite = draftPiecesCm(
+      spec,
+      { ...SIZE_TABLE.M, ...PERSONAS[0][1] },
+      t,
+    );
+    const fuller = draftPiecesCm(
+      spec,
+      { ...SIZE_TABLE.M, ...PERSONAS[1][1] },
+      t,
+    );
+    const back = (pieces: typeof petite) =>
+      pieces.find((p) => p.id === "body-back")!;
+    const armCtrlOffset = (piece: ReturnType<typeof back>) =>
+      Math.abs(piece.outlineCm[4][0] - piece.outlineCm[0][0]);
+    expect(armCtrlOffset(back(fuller))).toBeGreaterThan(
+      armCtrlOffset(back(petite)),
+    );
+  });
 });
 
 // #82: reported against a since-superseded version of the waist dart, which
