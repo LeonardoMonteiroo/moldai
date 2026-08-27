@@ -11,7 +11,15 @@ import {
   ZOOM_STEP,
 } from "./viewport";
 
-function toUser(svg: SVGSVGElement, clientX: number, clientY: number): Point {
+// #8: exported so CutPlanTab can build the identical screen->user mapping
+// for its own SVG (CutPlanPreview's manual-mode drag), the same DOM-coupled
+// helper this hook already used internally -- no purity is lost by exporting
+// it, since it was already reaching into the DOM (getScreenCTM).
+export function toUser(
+  svg: SVGSVGElement,
+  clientX: number,
+  clientY: number,
+): Point {
   const ctm = svg.getScreenCTM();
   if (!ctm) return { x: 0, y: 0 };
   const p = new DOMPoint(clientX, clientY).matrixTransform(ctm.inverse());

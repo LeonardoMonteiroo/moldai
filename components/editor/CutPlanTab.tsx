@@ -1,29 +1,112 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Pattern } from "@/lib/types";
-import { buildPathD } from "@/lib/export/model";
-import { planCutLayout, FABRIC_WIDTHS_CM } from "@/lib/export/cutplan";
+import {
+  planCutLayout,
+  FABRIC_WIDTHS_CM,
+  NESTING_MODES,
+} from "@/lib/export/cutplan";
+import { toUser } from "@/lib/canvas/useCanvasViewport";
+import { useEditorStore } from "@/lib/store";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Button } from "@/components/ui/button";
+import { CutPlanPreview } from "./CutPlanPreview";
 
 const meters = (cm: number) => (cm / 100).toFixed(2).replace(".", ",") + " m";
+const cmFmt = (cm: number) => cm.toFixed(1).replace(".", ",");
 
 export function CutPlanTab({ pattern }: { pattern: Pattern }) {
   const t = useTranslations("CutPlanTab");
   const tData = useTranslations("PatternData");
-  const [fabricWidthCm, setFabricWidthCm] = useState<number>(150);
+  const fabricWidthCm = useEditorStore((s) => s.cutFabricWidthCm);
+  const setFabricWidthCm = useEditorStore((s) => s.setCutFabricWidth);
+  const nestingMode = useEditorStore((s) => s.nestingMode);
+  const setNestingMode = useEditorStore((s) => s.setNestingMode);
+  const cutPlacements = useEditorStore((s) => s.cutPlacements);
+  const setCutPlacement = useEditorStore((s) => s.setCutPlacement);
+  const seedCutPlacements = useEditorStore((s) => s.seedCutPlacements);
+  const resetCutPlacements = useEditorStore((s) => s.resetCutPlacements);
 
-  // Real nesting: only recalculates when the pattern or the width changes.
-  const plan = useMemo(() => {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [announcement, setAnnouncement] = useState("");
+
+  // Real nesting: only recalculates when the pattern, width, mode or manual
+  // placements change. Auto mode is computed either way -- switching into
+  // manual seeds it from the auto layout so the user nudges from a good
+  // start rather than an empty sheet.
+  const autoPlan = useMemo(() => {
     if (!pattern.spec || pattern.pieces.length === 0) return null;
     try {
-      return planCutLayout(pattern, fabricWidthCm, tData);
+      return planCutLayout(pattern, fabricWidthCm, tData, { mode: "auto" });
     } catch {
       return null;
     }
   }, [pattern, fabricWidthCm, tData]);
+
+  const plan = useMemo(() => {
+    if (!autoPlan) return null;
+    if (nestingMode === "auto") return autoPlan;
+    try {
+      return planCutLayout(pattern, fabricWidthCm, tData, {
+        mode: "manual",
+        placements: cutPlacements,
+      });
+    } catch {
+      return autoPlan;
+    }
+  }, [autoPlan, nestingMode, pattern, fabricWidthCm, tData, cutPlacements]);
+
+  function labelFor(it: { name: string; widthCm: number; heightCm: number }) {
+    return t("instanceLabel", {
+      name: it.name,
+      x: cmFmt(it.widthCm),
+      y: cmFmt(it.heightCm),
+    });
+  }
+
+  function handleModeChange(value: string) {
+    if (!value) return;
+    if (value === "manual" && autoPlan) {
+      const seed: Record<string, { x: number; y: number }> = {};
+      for (const it of autoPlan.instances) seed[it.id] = it.originCm;
+      seedCutPlacements(seed);
+    }
+    setNestingMode(value as "auto" | "manual");
+  }
+
+  function handleResetManual() {
+    resetCutPlacements();
+    if (autoPlan) {
+      const seed: Record<string, { x: number; y: number }> = {};
+      for (const it of autoPlan.instances) seed[it.id] = it.originCm;
+      seedCutPlacements(seed);
+    }
+  }
+
+  function handleMove(id: string, originCm: { x: number; y: number }) {
+    setCutPlacement(id, originCm);
+  }
+
+  function handleNudgeAnnounce(id: string) {
+    const it = plan?.instances.find((i) => i.id === id);
+    if (!it) return;
+    setAnnouncement(
+      t("movedAnnouncement", {
+        name: it.name,
+        x: cmFmt(it.originCm.x),
+        y: cmFmt(it.originCm.y),
+      }),
+    );
+  }
+
+  const screenToUser = (clientX: number, clientY: number) => {
+    const svg = svgRef.current;
+    if (!svg) return { x: 0, y: 0 };
+    return toUser(svg, clientX, clientY);
+  };
 
   return (
     // `fill` + `min-h-full`: the empty state below is `flex-1`, so the column
@@ -43,26 +126,48 @@ export function CutPlanTab({ pattern }: { pattern: Pattern }) {
           </div>
         ) : (
           <>
-            {/* seletor de largura de tecido */}
-            <div className="flex flex-col gap-[6px]">
-              <span className="text-muted text-meta tracking-eyebrow font-semibold uppercase">
-                {t("fabricWidthLabel")}
-              </span>
-              <ToggleGroup
-                type="single"
-                variant="outline"
-                value={String(fabricWidthCm)}
-                aria-label={t("fabricWidthLabel")}
-                onValueChange={(value) => {
-                  if (value) setFabricWidthCm(Number(value));
-                }}
-              >
-                {FABRIC_WIDTHS_CM.map((w) => (
-                  <ToggleGroupItem key={w} value={String(w)}>
-                    {meters(w)}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
+            <div className="flex flex-wrap gap-4">
+              {/* seletor de largura de tecido */}
+              <div className="flex flex-col gap-[6px]">
+                <span className="text-muted text-meta tracking-eyebrow font-semibold uppercase">
+                  {t("fabricWidthLabel")}
+                </span>
+                <ToggleGroup
+                  type="single"
+                  variant="outline"
+                  value={String(fabricWidthCm)}
+                  aria-label={t("fabricWidthLabel")}
+                  onValueChange={(value) => {
+                    if (value) setFabricWidthCm(Number(value));
+                  }}
+                >
+                  {FABRIC_WIDTHS_CM.map((w) => (
+                    <ToggleGroupItem key={w} value={String(w)}>
+                      {meters(w)}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
+              </div>
+
+              {/* seletor de modo de encaixe */}
+              <div className="flex flex-col gap-[6px]">
+                <span className="text-muted text-meta tracking-eyebrow font-semibold uppercase">
+                  {t("modeLabel")}
+                </span>
+                <ToggleGroup
+                  type="single"
+                  variant="outline"
+                  value={nestingMode}
+                  aria-label={t("modeLabel")}
+                  onValueChange={handleModeChange}
+                >
+                  {NESTING_MODES.map((m) => (
+                    <ToggleGroupItem key={m} value={m}>
+                      {t(`mode.${m}`)}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
+              </div>
             </div>
 
             {/* metrics */}
@@ -93,58 +198,58 @@ export function CutPlanTab({ pattern }: { pattern: Pattern }) {
               </span>
             )}
 
+            {plan.overlaps.length > 0 && (
+              <span
+                role="alert"
+                className="text-alert bg-amber-bg border-amber-border rounded-item text-meta border px-[10px] py-[6px]"
+              >
+                {t("overlapWarning")}
+              </span>
+            )}
+
+            {nestingMode === "manual" && (
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-muted text-tick leading-snug">
+                  {t("manualHint")}
+                </p>
+                <Button
+                  variant="outline"
+                  size="chrome"
+                  onClick={handleResetManual}
+                >
+                  {t("resetManual")}
+                </Button>
+              </div>
+            )}
+
+            {/* live region: keyboard nudges only -- a drag must not feed it,
+                or it fires every frame. */}
+            <span role="status" className="sr-only">
+              {announcement}
+            </span>
+
             {/* nesting preview */}
             <div className="border-border rounded-card bg-surface-alt overflow-auto border p-3">
-              <svg
-                viewBox={`0 0 ${fabricWidthCm} ${plan.lengthCm}`}
-                className="h-auto w-full"
-                style={{ maxHeight: 460 }}
-                preserveAspectRatio="xMidYMin meet"
-              >
-                <rect
-                  x={0}
-                  y={0}
-                  width={fabricWidthCm}
-                  height={plan.lengthCm}
-                  fill="var(--color-surface)"
-                  stroke="var(--color-pattern-guide)"
-                  strokeWidth={0.6}
-                />
-                {plan.instances.map((it) => (
-                  <g key={it.id}>
-                    <path
-                      d={buildPathD(
-                        it.outline.start,
-                        it.outline.segs,
-                        (x) => it.originCm.x + x,
-                        (y) => it.originCm.y + y,
-                      )}
-                      fill="var(--color-olive-tint)"
-                      stroke="var(--color-ink)"
-                      strokeWidth={1}
-                      vectorEffect="non-scaling-stroke"
-                    />
-                    <text
-                      x={it.originCm.x + it.widthCm / 2}
-                      y={it.originCm.y + it.heightCm / 2}
-                      fontSize={Math.max(3, fabricWidthCm / 34)}
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      fill="var(--color-muted-2)"
-                    >
-                      {it.name}
-                    </text>
-                  </g>
-                ))}
-              </svg>
+              <CutPlanPreview
+                plan={plan}
+                fabricWidthCm={fabricWidthCm}
+                manual={nestingMode === "manual"}
+                overlapIds={plan.overlaps}
+                screenToUser={screenToUser}
+                onMove={handleMove}
+                onNudgeAnnounce={handleNudgeAnnounce}
+                labelFor={labelFor}
+              />
             </div>
 
             <p className="text-muted text-tick leading-snug">
-              {t.rich("layoutNote", {
-                em: (chunks) => (
-                  <span className="text-olive font-semibold">{chunks}</span>
-                ),
-              })}
+              {nestingMode === "manual"
+                ? t.rich("layoutNoteManual", {
+                    em: (chunks) => (
+                      <span className="text-olive font-semibold">{chunks}</span>
+                    ),
+                  })
+                : t("layoutNoteAuto")}
             </p>
           </>
         )}

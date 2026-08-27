@@ -76,7 +76,7 @@ describe("ExportShell — molde em branco", () => {
 });
 
 describe("ExportShell — lista de formatos", () => {
-  it("renders the five real formats as selectable and the three unbuilt ones disabled and badged", () => {
+  it("renders the seven real formats as selectable and the two unbuilt ones disabled and badged", () => {
     renderWithIntl(
       <ExportShell
         pattern={draftedPattern()}
@@ -92,6 +92,8 @@ describe("ExportShell — lista de formatos", () => {
       "formatDxfAama",
       "formatPdfA4",
       "formatPdfSingle",
+      "formatPdfLayered",
+      "formatPlt",
     ] as const) {
       const row = screen.getByRole("radio", {
         name: byLabel(ptBR.Footer[labelKey]),
@@ -99,7 +101,7 @@ describe("ExportShell — lista de formatos", () => {
       expect(row).toBeEnabled();
     }
 
-    for (const id of ["moldeme", "plotter", "techsheet"] as const) {
+    for (const id of ["moldeme", "techsheet"] as const) {
       const row = screen.getByRole("radio", {
         name: byLabel(ptBR.Export.format[id]),
       });
@@ -107,7 +109,7 @@ describe("ExportShell — lista de formatos", () => {
     }
     expect(
       screen.getAllByText(ptBR.Export.comingSoonBadge).length,
-    ).toBeGreaterThanOrEqual(3);
+    ).toBeGreaterThanOrEqual(2);
   });
 
   it("selects dxf-aama by default, in the accent (olive) styling", () => {
@@ -250,6 +252,7 @@ describe("ExportShell — baixar arquivo", () => {
       expect.anything(),
       expect.any(Function),
       pattern.baseSize,
+      { pageSize: "a4", rollWidthCm: undefined },
     );
   });
 
@@ -318,5 +321,77 @@ describe("ExportShell — preset salvo (#17)", () => {
         screen.getByRole("radio", { name: ptBR.Footer.formatSvg }),
       ).toHaveAttribute("aria-checked", "true");
     });
+  });
+});
+
+// #135/#136: the page-size (pdf-a4) and roll-width (pdf-single/plt)
+// controls only appear for the formats they actually affect, and forward
+// the chosen value through to exportPattern's options.
+describe("ExportShell — tamanho da página e largura do rolo (#135/#136)", () => {
+  it("shows the page size selector only for pdf-a4, not for dxf-aama (the default)", () => {
+    renderWithIntl(
+      <ExportShell
+        pattern={draftedPattern()}
+        conflictActive={false}
+        credits={CREDITS}
+        userEmail="a@b.com"
+      />,
+    );
+    expect(
+      screen.queryByText(ptBR.Export.pageSizeLabel),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows the page size selector after choosing PDF A4, and forwards the pageSize choice", async () => {
+    const user = userEvent.setup();
+    const pattern = draftedPattern();
+    renderWithIntl(
+      <ExportShell
+        pattern={pattern}
+        conflictActive={false}
+        credits={CREDITS}
+        userEmail="a@b.com"
+      />,
+    );
+    await user.click(
+      screen.getByRole("radio", { name: ptBR.Footer.formatPdfA4 }),
+    );
+    expect(screen.getByText(ptBR.Export.pageSizeLabel)).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", { name: ptBR.Export.downloadButton }),
+    );
+    expect(exportPattern).toHaveBeenCalledWith(
+      pattern,
+      "pdf-a4",
+      expect.anything(),
+      expect.any(Function),
+      pattern.baseSize,
+      { pageSize: "a4", rollWidthCm: undefined },
+    );
+  });
+
+  it("shows the roll-width selector for pdf-single and plt, offering the 'no split' default", async () => {
+    const user = userEvent.setup();
+    renderWithIntl(
+      <ExportShell
+        pattern={draftedPattern()}
+        conflictActive={false}
+        credits={CREDITS}
+        userEmail="a@b.com"
+      />,
+    );
+    await user.click(
+      screen.getByRole("radio", { name: ptBR.Footer.formatPdfSingle }),
+    );
+    expect(screen.getByText(ptBR.Export.rollWidthLabel)).toBeInTheDocument();
+    expect(
+      screen.getByText(ptBR.Export.rollWidthNoneOption),
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("radio", { name: byLabel(ptBR.Footer.formatPlt) }),
+    );
+    expect(screen.getByText(ptBR.Export.rollWidthLabel)).toBeInTheDocument();
   });
 });

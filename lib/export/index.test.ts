@@ -8,7 +8,8 @@ import { buildExportModel } from "./model";
 import { toSvg } from "./svg";
 import { toDxf } from "./dxf";
 import { toDxfAama } from "./dxf-aama";
-import { toPdf } from "./pdf";
+import { toPdf, toPdfLayered } from "./pdf";
+import { toPlt } from "./plt";
 import ptBR from "@/messages/pt-BR.json";
 
 // #88: model.size used to be interpolated into the download filename raw --
@@ -30,7 +31,11 @@ vi.mock("./model", () => ({
 vi.mock("./svg", () => ({ toSvg: vi.fn(() => "<svg/>") }));
 vi.mock("./dxf", () => ({ toDxf: vi.fn(() => "dxf") }));
 vi.mock("./dxf-aama", () => ({ toDxfAama: vi.fn(() => "dxf-aama") }));
-vi.mock("./pdf", () => ({ toPdf: vi.fn(async () => new Uint8Array()) }));
+vi.mock("./pdf", () => ({
+  toPdf: vi.fn(async () => new Uint8Array()),
+  toPdfLayered: vi.fn(async () => new Uint8Array()),
+}));
+vi.mock("./plt", () => ({ toPlt: vi.fn(() => "plt-content") }));
 
 const t = ((key: string) => key) as Translate;
 
@@ -131,9 +136,11 @@ describe("exportPattern dispatch (#85)", () => {
     );
   });
 
-  it("pdf-a4: calls toPdf(model, 'a4', t) and, once resolved, downloads it under the '-a4.pdf' filename/mime", async () => {
+  it("pdf-a4: calls toPdf(model, 'a4', t, opts) and, once resolved, downloads it under the '-a4.pdf' filename/mime", async () => {
     exportPattern(pattern("Vestido floral"), "pdf-a4", t);
-    expect(toPdf).toHaveBeenCalledWith({ size: "38/40" }, "a4", t);
+    expect(toPdf).toHaveBeenCalledWith({ size: "38/40" }, "a4", t, {
+      pageSize: undefined,
+    });
     expect(downloadFile).not.toHaveBeenCalled(); // fire-and-forget: not yet
     await vi.waitFor(() => expect(downloadFile).toHaveBeenCalled());
     expect(downloadFile).toHaveBeenCalledWith(
@@ -143,14 +150,114 @@ describe("exportPattern dispatch (#85)", () => {
     );
   });
 
+  it("pdf-a4: forwards an explicit pageSize option", () => {
+    exportPattern(
+      pattern("Vestido floral"),
+      "pdf-a4",
+      t,
+      undefined,
+      undefined,
+      {
+        pageSize: "a0",
+      },
+    );
+    expect(toPdf).toHaveBeenCalledWith({ size: "38/40" }, "a4", t, {
+      pageSize: "a0",
+    });
+  });
+
   it("pdf-single: calls toPdf(model, 'single', t) and, once resolved, downloads it under the '-folha.pdf' filename/mime", async () => {
     exportPattern(pattern("Vestido floral"), "pdf-single", t);
-    expect(toPdf).toHaveBeenCalledWith({ size: "38/40" }, "single", t);
+    expect(toPdf).toHaveBeenCalledWith({ size: "38/40" }, "single", t, {});
     await vi.waitFor(() => expect(downloadFile).toHaveBeenCalled());
     expect(downloadFile).toHaveBeenCalledWith(
       "vestido-floral-38-40-folha.pdf",
       "application/pdf",
       expect.any(Uint8Array),
+    );
+  });
+
+  // #135/#136: a roll width switches pdf-single into the "roll" (copyshop)
+  // mode instead of a plain single sheet.
+  it("pdf-single: a rollWidthCm option dispatches to toPdf(model, 'roll', t, {rollWidthCm})", () => {
+    exportPattern(
+      pattern("Vestido floral"),
+      "pdf-single",
+      t,
+      undefined,
+      undefined,
+      {
+        rollWidthCm: 150,
+      },
+    );
+    expect(toPdf).toHaveBeenCalledWith({ size: "38/40" }, "roll", t, {
+      rollWidthCm: 150,
+    });
+  });
+
+  // #135
+  it("plt: calls toPlt and downloads it under the .plt filename/mime", () => {
+    exportPattern(pattern("Vestido floral"), "plt", t);
+    expect(toPlt).toHaveBeenCalledWith(
+      { size: "38/40" },
+      { rollWidthCm: undefined },
+    );
+    expect(downloadFile).toHaveBeenCalledWith(
+      "vestido-floral-38-40.plt",
+      "application/vnd.hp-hpgl",
+      "plt-content",
+    );
+  });
+
+  it("plt: forwards an explicit rollWidthCm option", () => {
+    exportPattern(pattern("Vestido floral"), "plt", t, undefined, undefined, {
+      rollWidthCm: 150,
+    });
+    expect(toPlt).toHaveBeenCalledWith({ size: "38/40" }, { rollWidthCm: 150 });
+  });
+
+  // #136
+  it("pdf-layered: builds one model per graded size (base + sizesApplied) and downloads the result", async () => {
+    const pat = {
+      name: "Vestido floral",
+      spec: {},
+      pieces: [{}],
+      baseSize: "M",
+      sizesApplied: ["G", "GG"],
+    } as unknown as Pattern;
+    exportPattern(pat, "pdf-layered", t);
+    await vi.waitFor(() => expect(downloadFile).toHaveBeenCalled());
+    expect(toPdfLayered).toHaveBeenCalledWith(
+      [
+        { size: "M", model: { size: "38/40" } },
+        { size: "G", model: { size: "38/40" } },
+        { size: "GG", model: { size: "38/40" } },
+      ],
+      t,
+    );
+    expect(downloadFile).toHaveBeenCalledWith(
+      "vestido-floral-graduado.pdf",
+      "application/pdf",
+      expect.any(Uint8Array),
+    );
+  });
+
+  it("pdf-layered: dedupes when the base size is also in sizesApplied", async () => {
+    const pat = {
+      name: "Vestido floral",
+      spec: {},
+      pieces: [{}],
+      baseSize: "M",
+      sizesApplied: ["M", "G"],
+    } as unknown as Pattern;
+    exportPattern(pat, "pdf-layered", t);
+    await vi.waitFor(() => expect(downloadFile).toHaveBeenCalled());
+    expect(toPdfLayered).toHaveBeenCalledWith(
+      [
+        { size: "M", model: { size: "38/40" } },
+        { size: "G", model: { size: "38/40" } },
+      ],
+      t,
     );
   });
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { planTiles, pieceBBoxesCm, rulerTicksCm } from "./pdf";
+import { planTiles, pieceBBoxesCm, rulerTicksCm, PDF_PAGE_SIZES } from "./pdf";
 
 describe("planTiles", () => {
   it("single: one page the pattern's size + margin", () => {
@@ -135,6 +135,60 @@ describe("pieceBBoxesCm", () => {
 describe("rulerTicksCm", () => {
   it("10 cm -> 11 ticks from 0 to 10", () => {
     expect(rulerTicksCm(10)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+  });
+});
+
+// #136: page size is now a parameter of the tiled ("a4") mode -- A4 default
+// unchanged, plus A0 (copyshop) and Letter.
+describe("planTiles page size (#136)", () => {
+  it("defaults to A4 when pageSize is omitted, unchanged from before", () => {
+    const withDefault = planTiles(50, 40, "a4", null);
+    const withExplicitA4 = planTiles(50, 40, "a4", null, { pageSize: "a4" });
+    expect(withDefault).toEqual(withExplicitA4);
+    expect(withDefault.pageWcm).toBeCloseTo(PDF_PAGE_SIZES.a4.pageWcm, 6);
+  });
+
+  it("A0 tiles a large pattern onto far fewer pages than A4", () => {
+    const a4 = planTiles(70, 70, "a4", null, { pageSize: "a4" });
+    const a0 = planTiles(70, 70, "a4", null, { pageSize: "a0" });
+    expect(a0.pageWcm).toBeCloseTo(PDF_PAGE_SIZES.a0.pageWcm, 6);
+    expect(a0.pages.length).toBeLessThan(a4.pages.length);
+    // A0's usable width/height (84.1/118.9cm minus margins) comfortably
+    // covers a 70x70cm pattern in one tile; A4's does not.
+    expect(a0.pages.length).toBe(1);
+    expect(a4.pages.length).toBeGreaterThan(1);
+  });
+
+  it("Letter uses its own page dimensions, distinct from A4", () => {
+    const letter = planTiles(15, 20, "a4", null, { pageSize: "letter" });
+    expect(letter.pageWcm).toBeCloseTo(PDF_PAGE_SIZES.letter.pageWcm, 6);
+    expect(letter.pageHcm).toBeCloseTo(PDF_PAGE_SIZES.letter.pageHcm, 6);
+  });
+});
+
+// #135/#136: "roll" mode -- a single row of numbered strips, splitting only
+// when the pattern is wider than the chosen roll.
+describe("planTiles roll mode (#135/#136)", () => {
+  it("a pattern narrower than the roll produces exactly one strip, unnumbered by the caller's own count check", () => {
+    const plan = planTiles(80, 200, "roll", null, { rollWidthCm: 150 });
+    expect(plan.pages).toHaveLength(1);
+    expect(plan.rows).toBe(1);
+  });
+
+  it("a pattern wider than the roll splits into the expected number of numbered strips", () => {
+    const plan = planTiles(400, 100, "roll", null, { rollWidthCm: 150 });
+    expect(plan.pages.length).toBeGreaterThan(1);
+    expect(plan.pages.map((p) => p.pageNumber)).toEqual(
+      plan.pages.map((_, i) => i + 1),
+    );
+    // every strip's own row is 0 -- roll mode never tiles vertically
+    expect(plan.pages.every((p) => p.row === 0)).toBe(true);
+  });
+
+  it("carries the roll width as pageWcm and the full sheet height as pageHcm (no vertical tiling)", () => {
+    const plan = planTiles(80, 200, "roll", null, { rollWidthCm: 150 });
+    expect(plan.pageWcm).toBeCloseTo(150, 6);
+    expect(plan.pageHcm).toBeCloseTo(200 + 2 * plan.marginCm, 6);
   });
 });
 
@@ -527,5 +581,142 @@ describe("toPdf", () => {
       inflatedContent(bytes).match(/0\.29 0\.35 0\.23 RG/g) ?? [];
     // drawn in full (2 dart segments) on each of the 2 pages it reaches.
     expect(oliveSegments).toHaveLength(4);
+  });
+
+  // #136: page size is now a real toPdf parameter.
+  it("a4 mode honors an explicit pageSize (A0 fits a large pattern on one page)", async () => {
+    const model = modelOf(150, 150);
+    const bytes = await toPdf(model, "a4", t, { pageSize: "a0" });
+    const doc = await PDFDocument.load(bytes);
+    expect(doc.getPageCount()).toBe(1);
+    const { width } = doc.getPage(0).getSize();
+    expect(width).toBeCloseTo(84.1 * PT_POR_CM, 0);
+  });
+
+  // #135/#136: the copyshop/plotter roll mode -- splits into numbered
+  // strips, each carrying the calibration ruler convention on its first page
+  // only, same as every other mode.
+  describe("roll mode", () => {
+    it("a pattern narrower than the roll produces one full-length page", async () => {
+      const model = modelOf(80, 200);
+      const bytes = await toPdf(model, "roll", t, { rollWidthCm: 150 });
+      const doc = await PDFDocument.load(bytes);
+      expect(doc.getPageCount()).toBe(1);
+    });
+
+    // #120's blank-tile filter means a strip with no geometry in its window
+    // is simply not emitted -- modelOf's own single small piece near the
+    // sheet origin would leave every OTHER strip blank, so this fixture
+    // places a second copy of the piece far along the width (near the far
+    // edge of a 400cm sheet), landing it in a later strip.
+    function modelSpanningWidth(
+      sheetWcm: number,
+      sheetHcm: number,
+    ): ExportModel {
+      const base = modelOf(sheetWcm, sheetHcm);
+      const farPiece = {
+        ...base.pieces[0],
+        id: "back",
+        name: "Costas",
+        originCm: { x: sheetWcm - 14, y: 2 },
+      };
+      return { ...base, pieces: [...base.pieces, farPiece] };
+    }
+
+    it("a pattern wider than the roll splits into multiple numbered strips", async () => {
+      const model = modelSpanningWidth(400, 100);
+      const bytes = await toPdf(model, "roll", t, { rollWidthCm: 150 });
+      const doc = await PDFDocument.load(bytes);
+      expect(doc.getPageCount()).toBeGreaterThan(1);
+      const content = inflatedContent(bytes);
+      // the test-translate stub returns the raw key -- pdf-lib hex-encodes
+      // Tj text operands, so the strip label's key shows up hex-encoded
+      // once it's actually drawn on a real multi-strip export.
+      const hex = (s: string) =>
+        Buffer.from(s, "latin1").toString("hex").toUpperCase();
+      expect(content).toContain(`<${hex("pdf.stripLabel")}`);
+    });
+
+    it("carries the calibration ruler on the first strip", async () => {
+      const model = modelSpanningWidth(400, 100);
+      const bytes = await toPdf(model, "roll", t, { rollWidthCm: 150 });
+      const content = inflatedContent(bytes);
+      const hex = (s: string) =>
+        Buffer.from(s, "latin1").toString("hex").toUpperCase();
+      expect(content).toContain(`<${hex("pdf.rulerLabel")}`);
+    });
+  });
+});
+
+// #136: the layered multi-size PDF -- one page, one real Optional Content
+// Group per size.
+import { toPdfLayered } from "./pdf";
+
+describe("toPdfLayered", () => {
+  function sizedModel(
+    size: string,
+    sheetWcm = 20,
+    sheetHcm = 30,
+  ): { size: string; model: ExportModel } {
+    return { size, model: modelOf(sheetWcm, sheetHcm) };
+  }
+
+  it("produces a valid single-page PDF", async () => {
+    const bytes = await toPdfLayered(
+      [sizedModel("P"), sizedModel("M"), sizedModel("G")],
+      t,
+    );
+    expect(new TextDecoder().decode(bytes.slice(0, 5))).toBe("%PDF-");
+    const doc = await PDFDocument.load(bytes);
+    expect(doc.getPageCount()).toBe(1);
+  });
+
+  it("throws on an empty size list rather than producing a blank PDF", async () => {
+    await expect(toPdfLayered([], t)).rejects.toThrow();
+  });
+
+  // #136 AC: "Sizes are exposed as Optional Content Groups, with a test
+  // asserting /OCProperties, the /D configuration and the /Order array are
+  // present and well formed." pdf-lib compresses the catalog into an object
+  // stream by default, so this inflates every stream the same way the rest
+  // of this file's toPdf assertions already do.
+  it("exposes sizes as real Optional Content Groups: /OCProperties, /D, /Order all present", async () => {
+    const bytes = await toPdfLayered(
+      [sizedModel("P"), sizedModel("M"), sizedModel("G")],
+      t,
+    );
+    const content = inflatedContent(bytes);
+    expect(content).toContain("/OCProperties");
+    expect(content).toContain("/OCGs");
+    expect(content).toMatch(/\/D\s*<</);
+    expect(content).toMatch(/\/Order\s*\[/);
+    expect(content).toMatch(/\/ON\s*\[/);
+    // one /Type/OCG dictionary per size
+    const ocgCount = (content.match(/\/Type\s*\/OCG\b/g) ?? []).length;
+    expect(ocgCount).toBe(3);
+    // each size's own geometry is wrapped in BDC ... EMC marked content
+    const bdcCount = (content.match(/\/OC\s*\/OC\d+\s*BDC/g) ?? []).length;
+    expect(bdcCount).toBe(3);
+    expect((content.match(/EMC/g) ?? []).length).toBe(3);
+  });
+
+  it("draws a distinct color per size and a legend line", async () => {
+    const bytes = await toPdfLayered(
+      [sizedModel("P"), sizedModel("M"), sizedModel("G")],
+      t,
+    );
+    const content = inflatedContent(bytes);
+    // three distinct RG (stroke color) ops from LAYER_PALETTE, beyond the
+    // plain 0 0 0 ink every mode already uses for the ruler.
+    expect(content).toMatch(/0\.72 0\.18 0\.18 RG/);
+    expect(content).toMatch(/0\.16 0\.35 0\.68 RG/);
+  });
+
+  it("a single size still produces a valid one-layer PDF", async () => {
+    const bytes = await toPdfLayered([sizedModel("M")], t);
+    const doc = await PDFDocument.load(bytes);
+    expect(doc.getPageCount()).toBe(1);
+    const content = inflatedContent(bytes);
+    expect((content.match(/\/Type\s*\/OCG\b/g) ?? []).length).toBe(1);
   });
 });

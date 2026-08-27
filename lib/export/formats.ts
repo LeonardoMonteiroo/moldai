@@ -8,6 +8,11 @@ export const EXPORT_FORMATS = [
   "dxf-aama",
   "pdf-a4",
   "pdf-single",
+  // #136: a single-page PDF layering every graded size (base + sizesApplied)
+  // as real Optional Content Groups, one per size, plus a legend.
+  "pdf-layered",
+  // #135: HPGL/2 plotter output.
+  "plt",
 ] as const;
 
 export type ExportFormat = (typeof EXPORT_FORMATS)[number];

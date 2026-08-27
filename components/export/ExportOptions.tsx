@@ -3,6 +3,9 @@
 import { useTranslations } from "next-intl";
 import type { Pattern } from "@/lib/types";
 import { formatCm } from "@/lib/format";
+import type { ExportFormat } from "@/lib/export";
+import type { PdfPageSize } from "@/lib/export/pdf";
+import { ROLL_WIDTH_PRESETS_CM } from "@/lib/export/strips";
 import {
   Select,
   SelectContent,
@@ -11,12 +14,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import {
   Field,
   FieldContent,
   FieldDescription,
   FieldLabel,
 } from "@/components/ui/field";
+
+const PAGE_SIZES: PdfPageSize[] = ["a4", "a0", "letter"];
+
+// #135 decision: 841mm / 24in / 36in, each with its own real-world origin
+// label rather than a generically-derived one (84,1cm isn't "33 inches" to
+// anyone buying paper by the roll).
+const ROLL_WIDTH_LABELS: Record<number, string> = {
+  84.1: "841 mm",
+  60.96: '24"',
+  91.44: '36"',
+};
 
 /**
  * The design's four "O que vai no arquivo" selects (screen 5h). Three are
@@ -32,15 +47,30 @@ export function ExportOptions({
   pattern,
   selectedSize,
   onSizeChange,
+  format,
+  pageSize,
+  onPageSizeChange,
+  rollWidthCm,
+  onRollWidthChange,
 }: {
   pattern: Pattern;
   selectedSize: string;
   onSizeChange: (size: string) => void;
+  format: ExportFormat;
+  pageSize: PdfPageSize;
+  onPageSizeChange: (size: PdfPageSize) => void;
+  rollWidthCm: number | null;
+  onRollWidthChange: (widthCm: number | null) => void;
 }) {
   const t = useTranslations("Export");
   const otherSizes = pattern.sizesApplied.filter((s) => s !== pattern.baseSize);
   const hasOtherSizes = otherSizes.length > 0;
   const seamAllowanceCm = pattern.spec?.style.seamAllowanceCm ?? 1;
+  // #136: page size only matters for the tiled A4/A0/Letter mode.
+  const showPageSize = format === "pdf-a4";
+  // #135/#136: a roll width (with a "no split" default) only matters for
+  // the two large-format outputs that can genuinely exceed a roll.
+  const showRollWidth = format === "pdf-single" || format === "plt";
 
   return (
     <div className="border-border bg-surface rounded-card flex flex-col gap-4 border p-[16px]">
@@ -83,6 +113,94 @@ export function ExportOptions({
             </FieldDescription>
           </FieldContent>
         </Field>
+
+        {showPageSize && (
+          <Field>
+            <FieldLabel htmlFor="export-page-size">
+              {t("pageSizeLabel")}
+            </FieldLabel>
+            <FieldContent>
+              <Select
+                value={pageSize}
+                onValueChange={(v) => onPageSizeChange(v as PdfPageSize)}
+              >
+                <SelectTrigger
+                  id="export-page-size"
+                  size="sm"
+                  className="w-full"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {PAGE_SIZES.map((size) => (
+                      <SelectItem key={size} value={size}>
+                        {t(`pageSize.${size}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <FieldDescription id="export-page-size-note">
+                {t("pageSizeNote")}
+              </FieldDescription>
+            </FieldContent>
+          </Field>
+        )}
+
+        {showRollWidth && (
+          <Field>
+            <FieldLabel htmlFor="export-roll-width">
+              {t("rollWidthLabel")}
+            </FieldLabel>
+            <FieldContent>
+              <Select
+                value={rollWidthCm === null ? "none" : String(rollWidthCm)}
+                onValueChange={(v) =>
+                  onRollWidthChange(v === "none" ? null : Number(v))
+                }
+              >
+                <SelectTrigger
+                  id="export-roll-width"
+                  size="sm"
+                  className="w-full"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value="none">
+                      {t("rollWidthNoneOption")}
+                    </SelectItem>
+                    {ROLL_WIDTH_PRESETS_CM.map((w) => (
+                      <SelectItem key={w} value={String(w)}>
+                        {ROLL_WIDTH_LABELS[w] ?? `${formatCm(w)} cm`}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <Input
+                id="export-roll-width-custom"
+                type="number"
+                min={20}
+                max={500}
+                className="mt-2"
+                placeholder={t("rollWidthCustomPlaceholder")}
+                aria-label={t("rollWidthCustomLabel")}
+                onChange={(e) => {
+                  const n = Number(e.target.value);
+                  if (e.target.value !== "" && Number.isFinite(n) && n > 0) {
+                    onRollWidthChange(n);
+                  }
+                }}
+              />
+              <FieldDescription id="export-roll-width-note">
+                {t("rollWidthNote")}
+              </FieldDescription>
+            </FieldContent>
+          </Field>
+        )}
 
         <Field>
           <FieldLabel htmlFor="export-seam">

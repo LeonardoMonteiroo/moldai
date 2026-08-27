@@ -149,6 +149,10 @@ export function ExportShell({
       tData,
       (msg) => setExportError(msg),
       selectedSize,
+      {
+        pageSize: preset.pageSize,
+        rollWidthCm: preset.rollWidthCm ?? undefined,
+      },
     );
   }
 
@@ -214,6 +218,15 @@ export function ExportShell({
               pattern={pattern}
               selectedSize={selectedSize}
               onSizeChange={setSelectedSize}
+              format={preset.format}
+              pageSize={preset.pageSize}
+              onPageSizeChange={(pageSize) =>
+                updatePreset((p) => ({ ...p, pageSize }))
+              }
+              rollWidthCm={preset.rollWidthCm}
+              onRollWidthChange={(rollWidthCm) =>
+                updatePreset((p) => ({ ...p, rollWidthCm }))
+              }
             />
 
             <ExportChecklist

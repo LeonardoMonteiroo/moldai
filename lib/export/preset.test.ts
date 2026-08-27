@@ -91,7 +91,30 @@ describe("validateExportPreset", () => {
       marks: "omit",
       pieceNaming: "short",
       fabricWidthCm: 160,
+      pageSize: "a0",
+      rollWidthCm: 91.44,
     };
     expect(validateExportPreset(preset)).toEqual(preset);
+  });
+
+  // #136
+  it("keeps a valid pageSize and falls back to a4 on an unknown one", () => {
+    expect(validateExportPreset({ pageSize: "a0" }).pageSize).toBe("a0");
+    expect(validateExportPreset({ pageSize: "letter" }).pageSize).toBe(
+      "letter",
+    );
+    expect(validateExportPreset({ pageSize: "b1" }).pageSize).toBe("a4");
+    expect(validateExportPreset({ pageSize: 42 }).pageSize).toBe("a4");
+  });
+
+  // #135/#136
+  it("accepts a roll width inside the sane physical range, defaults to null (no split) otherwise", () => {
+    expect(validateExportPreset({ rollWidthCm: 91.44 }).rollWidthCm).toBe(
+      91.44,
+    );
+    expect(validateExportPreset({ rollWidthCm: 0 }).rollWidthCm).toBeNull();
+    expect(validateExportPreset({ rollWidthCm: 99999 }).rollWidthCm).toBeNull();
+    expect(validateExportPreset({ rollWidthCm: "150" }).rollWidthCm).toBeNull();
+    expect(validateExportPreset({}).rollWidthCm).toBeNull();
   });
 });

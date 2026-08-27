@@ -82,7 +82,7 @@ Questions about MoldAI itself are answered from these facts only.
 
 - Credit cost per action:
 ${COST_LINES}
-- Export formats the editor writes: ${EXPORT_FORMATS.join(", ")}. Export runs in the browser, costs no credits, and outputs the net sewing line — seam allowance is annotated, not offset into the outline.
+- Export formats the editor writes: ${EXPORT_FORMATS.join(", ")}. Export runs in the browser and costs no credits. Every format includes both the net sewing line and the cut line (the net line offset outward by the seam allowance) — the cut line is the primary boundary a cutter/plotter follows.
 - "Corrigir manga" re-drafts the sleeve cap for the adjusted armhole at no cost; "Ignorar" keeps the two seams divergent.
 - Body measurements come from the size charts in "Medidas e grades". A pattern freezes the chart it was drafted from at its first generation, so editing a chart afterwards never rewrites an existing pattern.
 - If you are not sure about a MoldAI behaviour, say you are not sure. Never invent a price, a format, a screen or a feature.
