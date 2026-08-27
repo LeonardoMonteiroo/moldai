@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 // #25: an operator following the README ran `npm run docker:prod` on a VPS.
@@ -197,13 +197,27 @@ describe("Docker production hardening (#102)", () => {
   });
 
   it("tests the same Node major version the Dockerfile images use", () => {
-    const ci = readFileSync(
-      join(process.cwd(), ".github/workflows/ci.yml"),
-      "utf-8",
-    );
+    // Every `node-version:` under .github, not one hardcoded file path: the
+    // declaration moved out of ci.yml when the serial `quality` job was split
+    // into parallel ones and setup-node went into a composite action, and
+    // this test kept passing against a file that no longer had the line --
+    // `ci.match(...)?.[1]` was simply undefined. Sweeping the directory means
+    // a future move can't quietly hollow the assertion out again, and it also
+    // catches the case a second workflow pins a DIFFERENT major.
     const dockerMajor = dockerfile.match(/node:(\d+)-alpine/)?.[1];
-    const ciMajor = ci.match(/node-version:\s*(\d+)/)?.[1];
     expect(dockerMajor).toBeTruthy();
-    expect(ciMajor).toBe(dockerMajor);
+
+    const dir = join(process.cwd(), ".github");
+    const declared = readdirSync(dir, { recursive: true, encoding: "utf-8" })
+      .filter((f) => /\.ya?ml$/.test(f))
+      .flatMap((f) => [
+        ...readFileSync(join(dir, f), "utf-8").matchAll(
+          /node-version:\s*["']?(\d+)/g,
+        ),
+      ])
+      .map((m) => m[1]);
+
+    expect(declared.length).toBeGreaterThan(0);
+    expect([...new Set(declared)]).toEqual([dockerMajor]);
   });
 });

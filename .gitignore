@@ -12,6 +12,9 @@
 
 # testing
 /coverage
+# vitest blob reports — what `--reporter=blob` writes so a split test run can
+# be merged back into one report (CI's test-node/test-dom -> coverage jobs).
+/.vitest-reports
 
 # next.js
 /.next/

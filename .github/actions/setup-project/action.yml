@@ -1,0 +1,32 @@
+name: Setup project
+description: >-
+  Node 22 plus this repo's node_modules, restored from cache and installed
+  only on a miss. Every CI job needs the identical dependency tree, so this
+  lives in a composite action rather than an install job the others `needs:`
+  — an install job would serialize the whole matrix behind it, while a cache
+  restore lets all of them start at once.
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        # The npm download cache, not node_modules — it is what makes the
+        # cache-miss path below cheap.
+        cache: npm
+
+    - id: node-modules
+      uses: actions/cache@v4
+      with:
+        path: node_modules
+        # prisma/schema.prisma is part of the key because package.json's
+        # `postinstall: prisma generate` writes the generated client INTO
+        # node_modules (.prisma/client). Keying on package-lock.json alone
+        # would restore a client generated from an older schema whenever a
+        # migration changed the models without touching a dependency.
+        key: node-modules-${{ runner.os }}-node22-${{ hashFiles('package-lock.json', 'prisma/schema.prisma') }}
+
+    - if: steps.node-modules.outputs.cache-hit != 'true'
+      shell: bash
+      run: npm ci --legacy-peer-deps

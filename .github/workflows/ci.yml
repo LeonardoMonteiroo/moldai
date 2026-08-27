@@ -6,24 +6,121 @@ on:
   pull_request:
 
 # #105: without this, a push to a branch with an open PR matches both
-# triggers above, so every commit ran two identical `quality` jobs and
-# none of the superseded runs were cancelled. Restricting `push` to main
-# means a PR branch is validated once (by `pull_request`), and this group
-# cancels any still-running run for the same workflow+ref when a newer one
-# starts -- covers both the branch push case and rapid pushes to main.
+# triggers above, so every commit ran two identical CI runs and none of the
+# superseded runs were cancelled. Restricting `push` to main means a PR
+# branch is validated once (by `pull_request`), and this group cancels any
+# still-running run for the same workflow+ref when a newer one starts --
+# covers both the branch push case and rapid pushes to main.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # Coverage thresholds (vitest.config.ts) describe the WHOLE application,
+  # so they can only be applied to the merged report in the `coverage` job.
+  # The two test jobs below each measure one project and would legitimately
+  # miss everything the other one covers, so they run with the gate off.
+  # Passed as a variable rather than repeated inline so the two jobs cannot
+  # drift apart -- and so it stays obvious that exactly one job gates.
+  COVERAGE_GATE_OFF: >-
+    --coverage.thresholds.statements=0
+    --coverage.thresholds.branches=0
+    --coverage.thresholds.functions=0
+    --coverage.thresholds.lines=0
+
 jobs:
-  quality:
+  # ---------------------------------------------------------------------
+  # These seven jobs replace the single serial `quality` job. Each one is
+  # an independent assertion with its own runner, so a prettier violation
+  # is reported in ~40s instead of behind a five-minute test run, and the
+  # slowest job -- not the sum of all of them -- sets the wall clock.
+  # None of them `needs:` an install job: the composite action at
+  # .github/actions/setup-project restores node_modules from cache, so
+  # every job starts immediately and in parallel.
+  # ---------------------------------------------------------------------
+
+  format:
+    name: Format (prettier)
     runs-on: ubuntu-latest
-    # #104: every repository test replaces PrismaClient with a fake (vi.mock),
-    # so hand-written SQL (lib/db/wallet.ts, lib/db/pattern.ts) was never
-    # parsed by a real Postgres in any automated check -- a migration that
-    # renamed/dropped a column those raw strings reference passed build,
-    # lint, prettier and all tests, and only broke in production, on the
-    # path of every credited action (lockWallet).
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-project
+      - run: npm run format:check
+
+  lint:
+    name: Lint (eslint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-project
+      - run: npx eslint app lib components
+
+  build:
+    name: Build (typecheck)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-project
+      - run: npm run build
+        env:
+          # Non-secret dummies: the build imports routes that instantiate PrismaClient
+          # (lib/db/prisma.ts) and NextAuth, which require these envs at import time —
+          # but the build does NOT connect to anything. Never put real secrets here.
+          DATABASE_URL: "postgresql://user:pass@localhost:5432/db?schema=public"
+          AUTH_SECRET: "ci-dummy-not-a-real-secret"
+          ANTHROPIC_API_KEY: "sk-ci-dummy"
+
+  migrations:
+    name: Migrations (apply + drift)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: moldai
+          POSTGRES_PASSWORD: moldai
+          POSTGRES_DB: moldai
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://moldai:moldai@localhost:5432/moldai?schema=public
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-project
+      - name: Apply migrations to an empty database
+        # Proves every migration in prisma/migrations actually applies, in
+        # order, to a database that starts empty -- the same thing a real
+        # deploy does (docker-entrypoint.sh's `prisma migrate deploy`).
+        run: npx prisma migrate deploy
+      - name: Check schema.prisma against prisma/migrations for drift
+        # `migrate diff` needs its own empty database to build the
+        # migrations' resulting schema into and compare against
+        # schema.prisma -- the `moldai` db above already has that schema
+        # applied (from the step above), so it can't also be the shadow.
+        run: |
+          PGPASSWORD=moldai psql -h localhost -U moldai -d moldai -c "CREATE DATABASE moldai_shadow;"
+          npx prisma migrate diff \
+            --from-migrations prisma/migrations \
+            --to-schema-datamodel prisma/schema.prisma \
+            --shadow-database-url postgresql://moldai:moldai@localhost:5432/moldai_shadow?schema=public \
+            --exit-code
+
+  test-node:
+    name: Tests — node project
+    runs-on: ubuntu-latest
+    # #104: every repository test replaces PrismaClient with a fake
+    # (vi.mock), so hand-written SQL (lib/db/wallet.ts, lib/db/pattern.ts)
+    # was never parsed by a real Postgres in any automated check -- a
+    # migration that renamed/dropped a column those raw strings reference
+    # passed build, lint, prettier and all tests, and only broke in
+    # production, on the path of every credited action (lockWallet).
+    # lib/db/sql.integration.test.ts is the one test that needs this
+    # service, and it lives in the node project.
     services:
       postgres:
         image: postgres:16
@@ -40,49 +137,100 @@ jobs:
           --health-retries 10
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci --legacy-peer-deps
-      - name: Apply migrations to an empty database
-        # Proves every migration in prisma/migrations actually applies, in
-        # order, to a database that starts empty -- the same thing a real
-        # deploy does (docker-entrypoint.sh's `prisma migrate deploy`).
+      - uses: ./.github/actions/setup-project
+      - name: Prepare the integration database
         run: npx prisma migrate deploy
         env:
           DATABASE_URL: postgresql://moldai:moldai@localhost:5432/moldai?schema=public
-      - name: Check schema.prisma against prisma/migrations for drift
-        # `migrate diff` needs its own empty database to build the
-        # migrations' resulting schema into and compare against
-        # schema.prisma -- the `moldai` db above already has that schema
-        # applied (from the step above), so it can't also be the shadow.
-        run: |
-          PGPASSWORD=moldai psql -h localhost -U moldai -d moldai -c "CREATE DATABASE moldai_shadow;"
-          npx prisma migrate diff \
-            --from-migrations prisma/migrations \
-            --to-schema-datamodel prisma/schema.prisma \
-            --shadow-database-url postgresql://moldai:moldai@localhost:5432/moldai_shadow?schema=public \
-            --exit-code
-      - run: npm run format:check
-      - run: npx eslint app lib components
-      - name: Unit + integration tests (with coverage)
+      - name: lib/** + app/** (pure logic, no DOM)
+        # The blob report is this job's real output: it carries both the
+        # test results and the raw coverage data, so the `coverage` job can
+        # merge the two projects back into the single report the thresholds
+        # in vitest.config.ts are written against.
+        #
         # TEST_DATABASE_URL is a distinct var from DATABASE_URL on purpose --
         # lib/db/sql.integration.test.ts gates on it so a developer's own
         # .env.local DATABASE_URL is never written to by a local test run.
-        # #75: --coverage replaces the plain run rather than adding a second
-        # one, since a full second `vitest run` would double the slowest
-        # non-build step; thresholds live in vitest.config.ts (root-level
-        # only, per Vitest 2) and fail this step on a real coverage drop.
-        run: npx vitest run --coverage
+        run: >-
+          npx vitest run --project node --coverage $COVERAGE_GATE_OFF
+          --reporter=default --reporter=blob
+          --outputFile.blob=.vitest-reports/node.json
         env:
           TEST_DATABASE_URL: postgresql://moldai:moldai@localhost:5432/moldai?schema=public
-      - name: Build (typecheck)
-        run: npm run build
-        env:
-          # Non-secret dummies: the build imports routes that instantiate PrismaClient
-          # (lib/db/prisma.ts) and NextAuth, which require these envs at import time —
-          # but the build does NOT connect to anything. Never put real secrets here.
-          DATABASE_URL: "postgresql://user:pass@localhost:5432/db?schema=public"
-          AUTH_SECRET: "ci-dummy-not-a-real-secret"
-          ANTHROPIC_API_KEY: "sk-ci-dummy"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: blob-report-node
+          path: .vitest-reports/node.json
+          retention-days: 1
+
+  test-dom:
+    name: Tests — dom project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-project
+      - name: components/** (jsdom + React Testing Library)
+        run: >-
+          npx vitest run --project dom --coverage $COVERAGE_GATE_OFF
+          --reporter=default --reporter=blob
+          --outputFile.blob=.vitest-reports/dom.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: blob-report-dom
+          path: .vitest-reports/dom.json
+          retention-days: 1
+
+  coverage:
+    name: Coverage gate
+    runs-on: ubuntu-latest
+    needs: [test-node, test-dom]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-project
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: blob-report-*
+          merge-multiple: true
+          path: .vitest-reports
+      - name: Merge both projects and enforce the thresholds
+        # `--mergeReports` re-reports the recorded blobs without running a
+        # single test again, and reconstitutes their coverage into one
+        # report -- so the percentage gated on here is identical to the one
+        # a local `npx vitest run --coverage` prints, even though the two
+        # projects ran on different machines. This is the ONLY job where
+        # vitest.config.ts's thresholds apply; it fails when coverage drops
+        # below the floor recorded there.
+        run: npx vitest run --mergeReports=.vitest-reports --coverage
+      - name: Publish the numbers to the run summary
+        # Runs even on failure: when the gate trips, the summary is where
+        # you see which of the four metrics fell and by how much, without
+        # opening the job log.
+        if: always()
+        run: npx tsx scripts/coverage-summary.ts >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
+
+  # Single required status check for branch protection: it turns red if any
+  # job above failed, was cancelled, or was skipped, so adding a job to this
+  # workflow never silently escapes the gate.
+  ci:
+    name: CI
+    runs-on: ubuntu-latest
+    needs: [format, lint, build, migrations, test-node, test-dom, coverage]
+    if: always()
+    steps:
+      - name: Verify every job succeeded
+        # `needs.*.result` holds one entry per job above. Anything that is
+        # not `success` -- including `skipped`, which is what a job whose own
+        # dependency failed reports -- fails this gate.
+        if: >-
+          contains(needs.*.result, 'failure')
+          || contains(needs.*.result, 'cancelled')
+          || contains(needs.*.result, 'skipped')
+        run: |
+          echo "One or more CI jobs did not succeed: ${{ join(needs.*.result, ', ') }}"
+          exit 1
