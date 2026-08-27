@@ -9,8 +9,10 @@ import {
 import { seedPatternState, applyGarmentSpec } from "@/lib/editor/state";
 import { t } from "@/lib/i18n/test-translate";
 import type { Credits, GarmentSpec, PatternRecord } from "@/lib/types";
+import { DEFAULT_EXPORT_PRESET } from "@/lib/export/preset";
 import { ExportShell } from "./ExportShell";
 import { exportPattern } from "@/lib/export";
+import { getExportPreset, saveExportPreset } from "@/lib/api-client";
 
 // PageHeader (rendered via AppShell) calls useRouter() for the avatar menu's
 // sign-out; jsdom has no App Router mounted, matching every other
@@ -21,6 +23,20 @@ vi.mock("@/lib/export", async () => {
   const actual =
     await vi.importActual<typeof import("@/lib/export")>("@/lib/export");
   return { ...actual, exportPattern: vi.fn() };
+});
+
+// #17: the preset now round-trips through the account, not localStorage --
+// api-client's getExportPreset/saveExportPreset are the seam.
+vi.mock("@/lib/api-client", async () => {
+  const actual =
+    await vi.importActual<typeof import("@/lib/api-client")>(
+      "@/lib/api-client",
+    );
+  return {
+    ...actual,
+    getExportPreset: vi.fn(),
+    saveExportPreset: vi.fn(),
+  };
 });
 
 const BLOUSE: GarmentSpec = {
@@ -57,6 +73,18 @@ const CREDITS: Credits = {
 function byLabel(label: string) {
   return new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
 }
+
+// Every test gets a harmless default: "the account has never saved a
+// preset" and "saving echoes back whatever was sent" — tests that actually
+// exercise persistence override these explicitly.
+beforeEach(() => {
+  vi.mocked(getExportPreset).mockReset();
+  vi.mocked(saveExportPreset).mockReset();
+  vi.mocked(getExportPreset).mockResolvedValue({ preset: null });
+  vi.mocked(saveExportPreset).mockImplementation(async (preset) => ({
+    preset,
+  }));
+});
 
 describe("ExportShell — molde em branco", () => {
   it("shows an empty state instead of format/options/checklist for a blank pattern", () => {
@@ -280,17 +308,15 @@ describe("ExportShell — baixar arquivo", () => {
   });
 });
 
-describe("ExportShell — preset salvo (#17)", () => {
-  beforeEach(() => {
-    window.localStorage.clear();
-  });
-
-  it("round-trips the selected format through a save + remount", async () => {
+// #17 AC: "Salvar preset persists the options on the account and they are
+// restored on the next visit" — now a real GET/PUT round trip through
+// lib/api-client.ts, not localStorage.
+describe("ExportShell — preset salvo na conta (#17)", () => {
+  it("saves the selected format through PUT /api/account/export-preset", async () => {
     const user = userEvent.setup();
-    const pattern = draftedPattern();
-    const { unmount } = renderWithIntl(
+    renderWithIntl(
       <ExportShell
-        pattern={pattern}
+        pattern={draftedPattern()}
         conflictActive={false}
         credits={CREDITS}
         userEmail="a@b.com"
@@ -303,24 +329,143 @@ describe("ExportShell — preset salvo (#17)", () => {
     await user.click(
       screen.getByRole("button", { name: ptBR.Export.savePresetButton }),
     );
+
+    expect(saveExportPreset).toHaveBeenCalledWith(
+      expect.objectContaining({ format: "svg" }),
+    );
     expect(
       await screen.findByText(ptBR.Export.presetSaved),
     ).toBeInTheDocument();
-    unmount();
+  });
 
+  it("restores a preset already saved on the account, on mount", async () => {
+    vi.mocked(getExportPreset).mockResolvedValue({
+      preset: { ...DEFAULT_EXPORT_PRESET, format: "svg" },
+    });
     renderWithIntl(
       <ExportShell
-        pattern={pattern}
+        pattern={draftedPattern()}
         conflictActive={false}
         credits={CREDITS}
         userEmail="a@b.com"
       />,
+    );
+    // First paint (before the fetch resolves) is the default, dxf-aama —
+    // it flips to svg once the account's saved preset arrives.
+    await waitFor(() => {
+      expect(
+        screen.getByRole("radio", { name: ptBR.Footer.formatSvg }),
+      ).toHaveAttribute("aria-checked", "true");
+    });
+  });
+
+  it("adopts the server's sanitised response, not the raw preset that was sent", async () => {
+    // The server is the trust boundary — it can correct what it's handed
+    // (e.g. an out-of-range custom roll width the visitor typed).
+    vi.mocked(saveExportPreset).mockResolvedValue({
+      preset: { ...DEFAULT_EXPORT_PRESET, format: "svg" },
+    });
+    const user = userEvent.setup();
+    renderWithIntl(
+      <ExportShell
+        pattern={draftedPattern()}
+        conflictActive={false}
+        credits={CREDITS}
+        userEmail="a@b.com"
+      />,
+    );
+    await user.click(
+      screen.getByRole("radio", { name: ptBR.Footer.formatPdfA4 }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: ptBR.Export.savePresetButton }),
     );
     await waitFor(() => {
       expect(
         screen.getByRole("radio", { name: ptBR.Footer.formatSvg }),
       ).toHaveAttribute("aria-checked", "true");
     });
+  });
+
+  it("does not let a saved preset load clobber an edit already in progress", async () => {
+    let resolveFetch!: (v: { preset: typeof DEFAULT_EXPORT_PRESET }) => void;
+    vi.mocked(getExportPreset).mockReturnValue(
+      new Promise((resolve) => {
+        resolveFetch = resolve;
+      }),
+    );
+    const user = userEvent.setup();
+    renderWithIntl(
+      <ExportShell
+        pattern={draftedPattern()}
+        conflictActive={false}
+        credits={CREDITS}
+        userEmail="a@b.com"
+      />,
+    );
+
+    // The visitor picks svg before the account's saved preset (pdf-a4)
+    // arrives.
+    await user.click(
+      screen.getByRole("radio", { name: ptBR.Footer.formatSvg }),
+    );
+    resolveFetch({ preset: { ...DEFAULT_EXPORT_PRESET, format: "pdf-a4" } });
+
+    // Give the resolved promise a tick to (not) apply.
+    await new Promise((r) => setTimeout(r, 0));
+    expect(
+      screen.getByRole("radio", { name: ptBR.Footer.formatSvg }),
+    ).toHaveAttribute("aria-checked", "true");
+  });
+
+  it("shows a load-error notice with a retry, and does not throw or block the screen", async () => {
+    vi.mocked(getExportPreset).mockRejectedValue(new Error("network"));
+    renderWithIntl(
+      <ExportShell
+        pattern={draftedPattern()}
+        conflictActive={false}
+        credits={CREDITS}
+        userEmail="a@b.com"
+      />,
+    );
+    expect(
+      await screen.findByText(ptBR.Export.presetLoadError),
+    ).toBeInTheDocument();
+    // The rest of the screen still works — the default format is selected
+    // and usable.
+    expect(
+      screen.getByRole("radio", { name: byLabel(ptBR.Footer.formatDxfAama) }),
+    ).toHaveAttribute("aria-checked", "true");
+
+    vi.mocked(getExportPreset).mockResolvedValueOnce({ preset: null });
+    const user = userEvent.setup();
+    await user.click(
+      screen.getByRole("button", { name: ptBR.Export.presetLoadRetry }),
+    );
+    await waitFor(() => {
+      expect(
+        screen.queryByText(ptBR.Export.presetLoadError),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  it("surfaces a failed save instead of swallowing it", async () => {
+    vi.mocked(saveExportPreset).mockRejectedValue(new Error("network"));
+    const user = userEvent.setup();
+    renderWithIntl(
+      <ExportShell
+        pattern={draftedPattern()}
+        conflictActive={false}
+        credits={CREDITS}
+        userEmail="a@b.com"
+      />,
+    );
+    await user.click(
+      screen.getByRole("button", { name: ptBR.Export.savePresetButton }),
+    );
+    expect(
+      await screen.findByText(ptBR.Export.presetSaveError),
+    ).toBeInTheDocument();
   });
 });
 

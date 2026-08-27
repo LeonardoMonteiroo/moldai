@@ -19,6 +19,7 @@ import type {
 import type { SharedErrorCode } from "./api/errors";
 import type { PreparedAttachment } from "./editor/attachment";
 import type { PaidPlanId } from "./billing/plans";
+import type { ExportPreset } from "./export/preset";
 
 export type GenerateResult =
   | {
@@ -196,7 +197,7 @@ function postJson<T>(
 
 function sendJson<T>(
   url: string,
-  method: "PATCH" | "DELETE",
+  method: "PATCH" | "PUT" | "DELETE",
   body?: unknown,
   handled: number[] = [],
 ): Promise<T> {
@@ -325,6 +326,24 @@ export function getAccountSummary(): Promise<AccountSummary> {
 
 export function getLedgerHistory(): Promise<{ ledger: LedgerHistoryEntry[] }> {
   return getJson<{ ledger: LedgerHistoryEntry[] }>("/api/account/ledger");
+}
+
+// #17: the export screen's "Salvar preset" -- account-level, not
+// pattern-scoped, matching where the export screen's own state lives
+// (lib/export/preset.ts's ExportPreset has no patternId). `preset: null`
+// means the account has never saved one.
+export function getExportPreset(): Promise<{ preset: ExportPreset | null }> {
+  return getJson<{ preset: ExportPreset | null }>("/api/account/export-preset");
+}
+
+export function saveExportPreset(
+  preset: ExportPreset,
+): Promise<{ preset: ExportPreset }> {
+  return sendJson<{ preset: ExportPreset }>(
+    "/api/account/export-preset",
+    "PUT",
+    preset,
+  );
 }
 
 export function updateProfile(name: string): Promise<UpdateProfileResult> {
