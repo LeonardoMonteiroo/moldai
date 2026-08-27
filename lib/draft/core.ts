@@ -1,4 +1,10 @@
-import { DetailRow, NotchType, Piece, PieceOutline } from "@/lib/types";
+import {
+  DetailRow,
+  NotchType,
+  Piece,
+  PieceInternal,
+  PieceOutline,
+} from "@/lib/types";
 
 export const SCALE = 4; // px per cm
 export const PX = (cm: number) => Math.round(cm * SCALE * 10) / 10;
@@ -13,11 +19,13 @@ export interface DraftedPiece {
   curvedSpans?: [number, number][];
   guideCm?: Pt[];
   grainlineCm?: [Pt, Pt];
-  // #122: one entry per dart, each an open point list (>=3 points, first
-  // point repeated at the end for a double-ended/fisheye dart so it reads as
-  // closed without a synthetic straight-line base). Two mirrored darts on a
-  // fitted front/back panel, never a single one on the centre line.
-  dartsCm?: Pt[][];
+  // #127: typed internal-geometry entries -- darts (#122: zero or more, not
+  // exactly one; each an open point list, >=3 points, first point repeated
+  // at the end for a double-ended/fisheye dart so it reads as closed without
+  // a synthetic straight-line base), each dart's own fold line, and its
+  // drill hole(s). See InternalCm below and lib/types.ts's PieceInternal,
+  // the px-space shape place() builds this into.
+  internalsCm?: InternalCm[];
   // #126: the two `outlineCm` indices bounding this piece's cut-on-fold line
   // (its own axis of symmetry) -- both indices must already exist in
   // outlineCm (additive metadata; drafters that need a fold endpoint with no
@@ -185,6 +193,82 @@ export function notchAtArcLengthCm(
     distCm,
   );
   return notchAt(point, tangent, insideRef, type);
+}
+
+// #127: cm-space internal-geometry entry a drafter attaches to a
+// DraftedPiece's `internalsCm`, alongside notches/grainline. Three kinds
+// ship geometry today (dart, foldLine, drillHole, via dartInternals()
+// below); pleat/styleLine/placementMark are reserved for a future
+// pocket/buttonhole/pleat/style-line drafter to attach to this same channel
+// without a second one -- #127 decision, settled, not reopened here.
+export type InternalCm =
+  | { kind: "dart"; ptsCm: Pt[] }
+  | { kind: "foldLine"; aCm: Pt; bCm: Pt }
+  | { kind: "drillHole"; atCm: Pt; rCm: number }
+  | { kind: "pleat"; ptsCm: Pt[] } // reserved -- no drafter emits one yet
+  | { kind: "styleLine"; ptsCm: Pt[] } // reserved -- no drafter emits one yet
+  | { kind: "placementMark"; atCm: Pt }; // reserved -- no drafter emits one yet
+
+// #127: ASTM/pattern-making convention -- a drill mark sits 1.0-1.5cm short
+// of the dart's own apex so the hole hides inside the sewn dart rather than
+// piercing the visible point. ~3mm-diameter hole, the industrial-pattern
+// norm.
+export const DRILL_HOLE_SETBACK_CM = 1.25;
+export const DRILL_HOLE_RADIUS_CM = 0.15;
+
+const ptEq = (a: Pt, b: Pt) => a[0] === b[0] && a[1] === b[1];
+
+// A drill hole set back from `apexCm`, walking toward `towardCm` along the
+// dart's own fold line -- clamped to at most 90% of that leg's own length so
+// a very short dart never places the hole past its own centre (or back out
+// past the apex it marks).
+function drillHoleFromApex(apexCm: Pt, towardCm: Pt): InternalCm {
+  const dx = towardCm[0] - apexCm[0];
+  const dy = towardCm[1] - apexCm[1];
+  const len = Math.hypot(dx, dy) || 1;
+  const d = Math.min(DRILL_HOLE_SETBACK_CM, len * 0.9);
+  return {
+    kind: "drillHole",
+    atCm: [apexCm[0] + (dx / len) * d, apexCm[1] + (dy / len) * d],
+    rCm: DRILL_HOLE_RADIUS_CM,
+  };
+}
+
+// #127: a dart's own three internal marks -- its leg outline (`ptsCm`, the
+// same shape dartsCm entries always were), the fold line it presses along
+// when sewn (`fold`: apex-to-apex for a double-ended/fisheye dart, or
+// apex-to-seam-midpoint for a single-ended one -- distinct from the piece's
+// own cut-on-fold axis, `foldEdge` below, which is a different concept: the
+// piece's axis of symmetry, not a dart's own press line), and a drill hole
+// per free apex (`apexesCm`, the subset of `fold`'s own two endpoints that
+// are true dart points rather than seam ends -- a single-ended dart marks
+// only its one free apex, a fisheye dart marks both).
+export function dartInternals(
+  ptsCm: Pt[],
+  fold: [Pt, Pt],
+  apexesCm: Pt[],
+): InternalCm[] {
+  const out: InternalCm[] = [
+    { kind: "dart", ptsCm },
+    { kind: "foldLine", aCm: fold[0], bCm: fold[1] },
+  ];
+  for (const apex of apexesCm) {
+    const toward = ptEq(apex, fold[0]) ? fold[1] : fold[0];
+    out.push(drillHoleFromApex(apex, toward));
+  }
+  return out;
+}
+
+// Extracts just the dart entries' own point lists from an internals array --
+// the shape dartsCm used to be directly. Used by tests and by
+// lib/proof3d/mesh.ts's "does this piece have darts" check, so InternalCm's
+// discriminant stays defined in one place.
+export function dartsOf(internalsCm?: InternalCm[]): Pt[][] {
+  return (internalsCm ?? [])
+    .filter(
+      (e): e is Extract<InternalCm, { kind: "dart" }> => e.kind === "dart",
+    )
+    .map((e) => e.ptsCm);
 }
 
 export function bbox(pts: Pt[]) {
@@ -382,22 +466,61 @@ function place(dp: DraftedPiece, dxPx: number, dyPx: number): Piece {
       y2: PX(y2) + dyPx,
     };
   }
-  const darts = (dp.dartsCm ?? []).filter((pts) => pts.length >= 3);
-  if (darts.length) {
-    // #87: open, not closed -- a dart is two legs meeting at a point, and a
-    // trailing Z would draw a segment straight back along the base that
-    // isn't part of the dart. A double-ended (fisheye) dart repeats its
-    // first point at the end of its own list instead, so it reads as closed
-    // without that synthetic base line.
-    piece.darts = darts.map((pts) => ({
-      d: pts
-        .map(
-          ([x, y], i) =>
-            `${i === 0 ? "M" : "L"}${PX(x) + dxPx} ${PX(y) + dyPx}`,
-        )
-        .join(" "),
-    }));
+  // #127: translates each cm-space InternalCm entry into its px/canvas-local
+  // PieceInternal shape. Dart/pleat/styleLine are path-based (#87: open, not
+  // closed -- a dart is two legs meeting at a point, and a trailing Z would
+  // draw a segment straight back along the base that isn't part of the
+  // dart; a double-ended/fisheye dart repeats its first point at the end of
+  // its own list instead, so it reads as closed without that synthetic base
+  // line). No new draft ever sets the legacy `piece.darts` field --
+  // lib/types.ts's resolvePieceInternals() is what maps an old blob's
+  // `darts` back into this same shape at render time.
+  const internals: PieceInternal[] = [];
+  for (const entry of dp.internalsCm ?? []) {
+    switch (entry.kind) {
+      case "dart":
+      case "pleat":
+      case "styleLine": {
+        const minPts = entry.kind === "dart" ? 3 : 2;
+        if (entry.ptsCm.length < minPts) break;
+        internals.push({
+          kind: entry.kind,
+          d: entry.ptsCm
+            .map(
+              ([x, y], i) =>
+                `${i === 0 ? "M" : "L"}${PX(x) + dxPx} ${PX(y) + dyPx}`,
+            )
+            .join(" "),
+        });
+        break;
+      }
+      case "foldLine":
+        internals.push({
+          kind: "foldLine",
+          x1: PX(entry.aCm[0]) + dxPx,
+          y1: PX(entry.aCm[1]) + dyPx,
+          x2: PX(entry.bCm[0]) + dxPx,
+          y2: PX(entry.bCm[1]) + dyPx,
+        });
+        break;
+      case "drillHole":
+        internals.push({
+          kind: "drillHole",
+          x: PX(entry.atCm[0]) + dxPx,
+          y: PX(entry.atCm[1]) + dyPx,
+          r: PX(entry.rCm),
+        });
+        break;
+      case "placementMark":
+        internals.push({
+          kind: "placementMark",
+          x: PX(entry.atCm[0]) + dxPx,
+          y: PX(entry.atCm[1]) + dyPx,
+        });
+        break;
+    }
   }
+  if (internals.length) piece.internals = internals;
   return piece;
 }
 

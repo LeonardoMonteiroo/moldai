@@ -605,10 +605,29 @@ function verticalSpanAt(pts: [number, number][], x: number) {
 function assertDecorationsContained(pieces: ReturnType<typeof draftPiecesCm>) {
   expect(pieces.length).toBeGreaterThan(0);
   for (const piece of pieces) {
-    const points = [
-      ...(piece.grainlineCm ?? []),
-      ...(piece.dartsCm ?? []).flat(),
-    ] as [number, number][];
+    const points: [number, number][] = [...(piece.grainlineCm ?? [])];
+    // #127: every internal-geometry kind's own point(s) -- dart legs,
+    // fold-line endpoints, drill-hole centres. Dart legs are the one
+    // exception the acceptance criterion carves out: a single-ended dart's
+    // wide end sits exactly ON the seam it opens onto, not strictly inside
+    // -- the boundary-inclusive check below (>=/<=) already accommodates
+    // that, the same way it always has for dartsCm.
+    for (const entry of piece.internalsCm ?? []) {
+      switch (entry.kind) {
+        case "dart":
+        case "pleat":
+        case "styleLine":
+          points.push(...entry.ptsCm);
+          break;
+        case "foldLine":
+          points.push(entry.aCm, entry.bCm);
+          break;
+        case "drillHole":
+        case "placementMark":
+          points.push(entry.atCm);
+          break;
+      }
+    }
     for (const [x, y] of points) {
       const span = verticalSpanAt(piece.outlineCm, x);
       expect(

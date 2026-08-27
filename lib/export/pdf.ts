@@ -67,8 +67,9 @@ export interface TilePlan {
 // #120: each piece's printed extent in absolute sheet cm -- cutOutline's own
 // local points (shifted by the piece's own originCm) cover the cut line and,
 // by construction, everything cutOutline always encloses (outline,
-// grainline, darts, notches, fold -- see garment.test.ts's own containment
-// suite plus the #124/#126 placement conventions). The two text draws in
+// grainline, darts, notches, fold, and #127's own dart fold lines/drill
+// holes -- see garment.test.ts's own containment suite plus the #124/#126
+// placement conventions). The two text draws in
 // toPdf below are the exception: the piece-name/qty label and the fold
 // label have no geometry of their own in cutOutline, and with a 0cm seam
 // allowance (STYLE_LIMITS.seamAllowanceCm.min) a narrow piece's cutOutline
@@ -387,6 +388,30 @@ export async function toPdf(
           const b = P(dart[i + 1].x, dart[i + 1].y);
           page.drawLine({ start: a, end: b, thickness: 0.5, color: OLIVE });
         }
+      }
+      // #127: the dart's own fold line -- thin dotted olive, distinct from
+      // the dart's own solid legs above and from the piece's cut-on-fold
+      // axis below (pc.fold, a different concept, its own dashed gray).
+      for (const [fa1, fa2] of pc.internalFoldLines ?? []) {
+        page.drawLine({
+          start: P(fa1.x, fa1.y),
+          end: P(fa2.x, fa2.y),
+          thickness: 0.25,
+          color: OLIVE,
+          dashArray: [1, 1.5],
+        });
+      }
+      // #127: a drill hole -- a small open circle, 1.0-1.5cm short of the
+      // dart apex it marks.
+      for (const hole of pc.drillHoles ?? []) {
+        const c = P(hole.at.x, hole.at.y);
+        page.drawCircle({
+          x: c.x,
+          y: c.y,
+          size: hole.rCm * PT_POR_CM,
+          borderColor: INK,
+          borderWidth: 0.5,
+        });
       }
       // #124: one solid tick per notch, single/double/triple told apart
       // purely by how far it reaches (NOTCH_DEPTH_CM) -- matching the cut

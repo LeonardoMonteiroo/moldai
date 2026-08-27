@@ -295,6 +295,34 @@ describe("toDxf", () => {
     expect(dxf).toMatch(/LWPOLYLINE\n8\nINTERNO\n90\n3\n70\n0\n/);
   });
 
+  // #127: a dart's own fold line -> LINE on INTERNO, the same layer as the
+  // dart itself; a drill hole -> both a POINT and a CIRCLE, also on INTERNO.
+  it("internal fold line and drill hole come out on INTERNO", () => {
+    const internalsModel: ExportModel = {
+      ...squareModel,
+      pieces: [
+        {
+          ...squareModel.pieces[0],
+          internalFoldLines: [
+            [
+              { x: 4, y: 2 },
+              { x: 4, y: 6 },
+            ],
+          ],
+          drillHoles: [{ at: { x: 4, y: 3 }, rCm: 0.15 }],
+        },
+      ],
+    };
+    const dxf = toDxf(internalsModel);
+    // origin (2,2)cm, sheetHeightCm=30: X=(2+x)*10, Y=(30-(2+y))*10
+    expect(dxf).toMatch(/LINE\n8\nINTERNO\n10\n60\n20\n260\n11\n60\n21\n220/);
+    expect(dxf).toMatch(/POINT\n8\nINTERNO\n10\n60\n20\n250/);
+    expect(dxf).toMatch(/CIRCLE\n8\nINTERNO\n10\n60\n20\n250\n40\n1\.5/);
+    const noInternals = toDxf(squareModel);
+    expect(noInternals).not.toContain("\nPOINT\n");
+    expect(noInternals).not.toContain("\nCIRCLE\n");
+  });
+
   it("1:1 scale: CONTORNO is the 12cm cut line, COSTURA the 10cm net line (mm)", () => {
     const dxf = toDxf(squareModel);
     const cutXs = lwVerticesOnLayer(dxf, "CONTORNO").map((v) => v.x);

@@ -1,7 +1,13 @@
 import type { Pattern } from "@/lib/types";
 import { Measurements, resolveMeasurements } from "@/lib/measurements";
 import { draftPiecesCm } from "@/lib/draft/garment";
-import { bbox, catmullRomSegments, DraftedPiece, Pt } from "@/lib/draft/core";
+import {
+  bbox,
+  catmullRomSegments,
+  dartsOf,
+  DraftedPiece,
+  Pt,
+} from "@/lib/draft/core";
 import type { Translate } from "@/lib/i18n/translate";
 
 // #10 (Prova 3D): a 2D-projected proxy of the drafted pattern hung on a
@@ -282,7 +288,7 @@ export function buildProofMesh(pattern: Pattern, t: Translate): ProofMesh {
     // panel), not from re-checking spec.style.darts/spec.type the way
     // lib/draft/body.ts's own `fitted` flag does -- so this can never drift
     // from what was actually drafted (e.g. a t-shirt's forced darts:false).
-    const fitted = !!front.dartsCm?.length;
+    const fitted = dartsOf(front.internalsCm).length > 0;
     if (fitted) {
       fit.push({
         key: "waist",

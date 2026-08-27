@@ -233,6 +233,35 @@ describe("toSvg", () => {
     }
   });
 
+  // #127: a dart's own fold line renders as a fine dotted <line> (distinct
+  // dasharray from both the dart's own solid path and the piece's
+  // cut-on-fold axis below), and a drill hole as a small open <circle>.
+  it("internal fold line is a dotted line; drill hole is an open circle", () => {
+    const internalsModel: ExportModel = {
+      ...model,
+      pieces: [
+        {
+          ...model.pieces[0],
+          internalFoldLines: [
+            [
+              { x: 4, y: 2 },
+              { x: 4, y: 6 },
+            ],
+          ],
+          drillHoles: [{ at: { x: 4, y: 3 }, rCm: 0.15 }],
+        },
+      ],
+    };
+    const svg = toSvg(internalsModel);
+    expect(svg).toContain('stroke-dasharray="1 1.5"');
+    const circle = svg.split("\n").find((l) => l.includes("<circle "));
+    expect(circle).toBeDefined();
+    expect(circle).toContain('stroke="#000"');
+    expect(circle).toContain('fill="none"');
+    const noInternals = toSvg(model);
+    expect(noInternals).not.toContain("<circle ");
+  });
+
   // #126: rendered as a dashed <line> (distinct dasharray from the
   // grainline's) plus the pt-BR foldLabel text at its midpoint; absent when
   // the piece has no fold.

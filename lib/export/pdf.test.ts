@@ -347,6 +347,38 @@ describe("toPdf", () => {
     expect(oliveSegments).toHaveLength(4); // 2 darts x (dart.length - 1)
   });
 
+  // #127: a dart's own fold line draws thin and dotted (its own dash
+  // pattern, distinct from the net line's [3 2] and the cut-on-fold axis's
+  // [8 2 2 2]); a drill hole draws as a small open circle in INK -- an extra
+  // ink-colored stroke over a model with no holes at all.
+  it("internal fold line draws its own dash pattern; drill hole adds an ink-colored circle", async () => {
+    const base = modelOf(20, 30);
+    const model: ExportModel = {
+      ...base,
+      pieces: [
+        {
+          ...base.pieces[0],
+          internalFoldLines: [
+            [
+              { x: 4, y: 2 },
+              { x: 4, y: 6 },
+            ],
+          ],
+          drillHoles: [{ at: { x: 4, y: 3 }, rCm: 0.15 }],
+        },
+      ],
+    };
+    const withInternalsContent = inflatedContent(
+      await toPdf(model, "single", t),
+    );
+    const baseContent = inflatedContent(await toPdf(base, "single", t));
+    expect(withInternalsContent).toMatch(/\[1 1\.5\] 0 d/);
+    const inkCount = (s: string) => (s.match(/0 0 0 RG/g) ?? []).length;
+    expect(inkCount(withInternalsContent)).toBeGreaterThan(
+      inkCount(baseContent),
+    );
+  });
+
   // #126: fold is drawn gray-dashed (reusing the usable-area rectangle's
   // GRAY) with the pt-BR "dobra" label at its midpoint; absent when the
   // piece has no fold.

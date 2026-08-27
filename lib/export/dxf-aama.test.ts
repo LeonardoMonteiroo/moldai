@@ -183,6 +183,34 @@ describe("toDxfAama", () => {
     expect(noDart.match(/\nPOLYLINE\n/g)?.length).toBe(2); // cut + net only
   });
 
+  // #127: a dart's own fold line -> LINE on layer 8 (same "internal, not
+  // cut" semantics as the dart); a drill hole -> CIRCLE on layer 13,
+  // D6673's reserved semantics for it -- closes the drill-hole half of #2.
+  it("internal fold line comes out on layer 8; drill hole as a CIRCLE on layer 13", () => {
+    const internalsModel: ExportModel = {
+      ...squareModel,
+      pieces: [
+        {
+          ...squareModel.pieces[0],
+          internalFoldLines: [
+            [
+              { x: 4, y: 2 },
+              { x: 4, y: 6 },
+            ],
+          ],
+          drillHoles: [{ at: { x: 4, y: 3 }, rCm: 0.15 }],
+        },
+      ],
+    };
+    const dxf = toDxfAama(internalsModel);
+    // block-local coords: X(x)=f(x*10), Y(y)=f((heightCm=10 - y)*10)
+    expect(dxf).toMatch(/LINE\n8\n8\n10\n40\n20\n80\n11\n40\n21\n40/);
+    expect(dxf).toMatch(/CIRCLE\n8\n13\n10\n40\n20\n70\n40\n1\.5/);
+    expect(dxf).toContain("13");
+    const noInternals = toDxfAama(squareModel);
+    expect(noInternals).not.toContain("\nCIRCLE\n");
+  });
+
   it("one BLOCK and one INSERT per piece in multi-piece models", () => {
     const multi: ExportModel = {
       ...squareModel,

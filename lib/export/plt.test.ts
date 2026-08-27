@@ -98,6 +98,27 @@ describe("toPlt", () => {
     expect(PLT_PENS.cut).not.toBe(PLT_PENS.text);
   });
 
+  // #127: a dart's own fold line shares the dart's own pen (both are the
+  // dart's own construction marks); a drill hole gets its own pen and is
+  // emitted as HPGL/2's native CI (circle) command.
+  it("draws the dart's fold line on the dart pen and a drill hole as a CI circle on its own pen", () => {
+    const pat = patternFor({
+      type: "blouse",
+      gender: "female",
+      measurementOverrides: {},
+      style: { neckline: "round", sleeve: "short", darts: true },
+    });
+    const model = buildExportModel(pat, t);
+    const front = model.pieces.find((p) => p.id === "body-front")!;
+    expect(front.internalFoldLines?.length).toBeGreaterThan(0);
+    expect(front.drillHoles?.length).toBeGreaterThan(0);
+    const out = toPlt(model);
+    expect(out).toContain(`SP${PLT_PENS.drillHole};`);
+    expect(out).toMatch(/SP8;\nPU-?\d+,-?\d+;\nCI\d+;/);
+    expect(PLT_PENS.drillHole).not.toBe(PLT_PENS.dart);
+    expect(PLT_PENS.drillHole).not.toBe(PLT_PENS.notch);
+  });
+
   it("piece name label is present (LB) and quantity annotated", () => {
     const pat = patternFor({
       type: "tshirt",
