@@ -196,6 +196,10 @@ export async function POST(request: Request, { params }: Ctx) {
                 chips: [
                   { label: t("chat.creditChip", { cost }), tone: "credit" },
                 ],
+                // #138: tags a sewing/assembly-order answer so ChatBubble can
+                // attach the catalog-sourced disclaimer -- see
+                // decision.assemblyOrder's own doc (lib/ai/decision.ts).
+                ...(decision.assemblyOrder ? { assembly: true } : {}),
                 createdAt: Date.now(),
               });
               return {

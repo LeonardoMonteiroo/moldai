@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { buildSystem, COST_DESCRIPTIONS } from "./prompt";
 import type { PatternState } from "@/lib/types";
 import { STYLE_LIMITS, COLLARS, CUFFS, WAISTBANDS } from "@/lib/draft/garment";
-import { MEASUREMENT_RANGES } from "@/lib/measurements";
+import { MEASUREMENT_RANGES, SIZE_TABLE } from "@/lib/measurements";
 import { COSTS } from "@/lib/types";
 import { EXPORT_FORMATS } from "@/lib/export/formats";
 
@@ -148,5 +148,59 @@ describe("buildSystem", () => {
     for (const v of CUFFS) expect(s).toContain(v);
     for (const v of WAISTBANDS) expect(s).toContain(v);
     expect(s).toContain("don't silently substitute");
+  });
+
+  // #138: the sewing-order feature. The instruction section is always
+  // present (it doesn't depend on a draft existing); the actual "Assembly
+  // order" JSON only appears once buildAssemblyOrder can derive one (a
+  // real spec/pieces/sizeTable/baseSize) -- state(0)'s own fixture never
+  // sets baseSize (see the top-of-file `state()` helper), matching how
+  // this file never asserts on the ease-report JSON's presence either.
+  it("carries the assembly/sewing-order instruction and never-invent-a-step rule", () => {
+    const s = buildSystem(state(0), false);
+    expect(s).toContain("# Assembly / sewing order");
+    expect(s).toContain("assemblyOrder=true");
+    expect(s).toContain("Never invent, skip, reorder, or merge a step");
+    expect(s).not.toContain('"steps":');
+  });
+
+  it("embeds the derived Assembly order JSON once a real spec/pieces/sizeTable/baseSize exist", () => {
+    const withPieces: PatternState = {
+      pattern: {
+        id: "p1",
+        name: "Molde",
+        version: 1,
+        baseSize: "M",
+        unit: "cm",
+        sizes: ["PP", "P", "M", "G", "GG"],
+        sizesApplied: [],
+        sizesPending: [],
+        sizeTable: { M: SIZE_TABLE.M },
+        pieces: [
+          {
+            id: "body-front",
+            name: "Frente",
+            qty: 1,
+            outline: { kind: "polygon", points: "0,0" },
+            label: { x: 0, y: 0 },
+            detailRows: [],
+          },
+        ],
+        spec: {
+          type: "blouse",
+          gender: "female",
+          measurementOverrides: {},
+          style: { sleeve: "short", darts: true },
+        },
+      },
+      chat: [],
+      conflict: null,
+    };
+    const s = buildSystem(withPieces, false);
+    expect(s).toContain("Assembly order (structured");
+    expect(s).toContain('"steps":');
+    expect(s).toContain('"hasConflict":false');
+    expect(s).toContain('"key":"shoulder"');
+    expect(s).toContain('"key":"armhole-cap"');
   });
 });

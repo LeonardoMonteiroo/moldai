@@ -232,6 +232,12 @@ export interface ChatMessage {
   // "imagem enviada" chip, not a thumbnail. Additive/optional, so a message
   // recorded before this existed simply lacks it.
   hasImage?: boolean;
+  // #138: set on an "ai" turn that answered a sewing/assembly-order
+  // question (decision=explain + assemblyOrder=true, see lib/ai/decision.ts)
+  // -- lets ChatBubble attach the catalog-sourced "AI-generated guidance,
+  // not verified construction advice" disclaimer without parsing the
+  // model's own prose. Additive/optional, like hasImage.
+  assembly?: boolean;
 }
 
 export type PlanId = "free" | "atelier" | "studio" | "factory";

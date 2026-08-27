@@ -78,6 +78,15 @@ export function ChatBubble({
             ))}
           </div>
         )}
+        {message.assembly && (
+          // #138: the disclaimer is catalog chrome, not model prose (the
+          // step text itself is AI-produced and stays outside the pt-BR
+          // catalog, exactly like assistantMessage) -- this is what labels
+          // it "AI-generated guidance, not verified construction advice."
+          <p className="text-muted text-meta mt-[9px]">
+            {t("assemblyDisclaimer")}
+          </p>
+        )}
       </BubbleContent>
     </Bubble>
   );

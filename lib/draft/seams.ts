@@ -51,6 +51,13 @@ export interface SeamMeasurement {
   // away from 0 is a genuine mismatch the fabric's own give won't absorb.
   diffCm: number;
   fixable: boolean;
+  // #138: the pair's own declared `easeCm`, carried through unchanged (not
+  // re-derived) -- the "ease to distribute" a sewing-order step cites (e.g.
+  // the sleeve cap's CAP_EASE_CM, a waistband's WAISTBAND_OVERLAP_CM). 0 for
+  // a seam meant to close exactly. Additive: every existing consumer of
+  // SeamMeasurement (seamCheck, ConflictEntry) reads a strict subset of its
+  // fields and is unaffected.
+  easeCm: number;
 }
 
 function sumEdgeLenCm(
@@ -101,6 +108,7 @@ export function walkSeamPairs(
       // field's sign.
       diffCm: Math.round(Math.abs(bLen - aLen - pair.easeCm) * 10) / 10,
       fixable: pair.fixable,
+      easeCm: pair.easeCm,
     });
   }
   return out;

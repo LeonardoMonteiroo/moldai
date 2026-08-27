@@ -11,6 +11,10 @@ export interface AiDecision {
   questions?: ClarifyQuestion[];
   declineReason?: string;
   assistantMessage: string;
+  // #138: only ever true for decision="explain" -- see RawToolInput's own
+  // doc (lib/ai/schema.ts) for why this needs to be a structured signal
+  // rather than the route sniffing assistantMessage's text.
+  assemblyOrder?: boolean;
 }
 
 // Pure post-processing of the model's raw tool payload. Normalizes ask→apply
@@ -74,5 +78,12 @@ export function resolveDecision(
     spec: validateSpec(input.spec),
     declineReason: input.declineReason,
     assistantMessage: message,
+    // #138: only carried through for explain -- an apply/decline that
+    // happened to echo the flag (a model quirk, not a valid combination per
+    // the prompt's own instruction) must not tag an applied draft's chat
+    // bubble with the assembly disclaimer.
+    ...(decision === "explain" && input.assemblyOrder === true
+      ? { assemblyOrder: true }
+      : {}),
   };
 }

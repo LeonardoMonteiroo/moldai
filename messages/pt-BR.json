@@ -49,7 +49,8 @@
   },
   "ChatBubble": {
     "questionsAnswered": "Perguntas respondidas.",
-    "imageAttached": "imagem enviada"
+    "imageAttached": "imagem enviada",
+    "assemblyDisclaimer": "Ordem de montagem gerada por IA a partir da modelagem — não substitui a verificação de um(a) costureiro(a)."
   },
   "MessageInput": {
     "placeholder": "Descreva o ajuste…",

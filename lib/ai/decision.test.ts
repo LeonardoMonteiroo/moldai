@@ -88,6 +88,45 @@ describe("resolveDecision", () => {
     expect(d.decision).toBe("explain");
   });
 
+  // #138: assemblyOrder is a structured signal for the route (so it can tag
+  // the persisted ChatMessage for the catalog-sourced disclaimer) -- it
+  // must survive resolveDecision only for explain, and only when the model
+  // actually set it true.
+  it("carries assemblyOrder through for an explain answer that set it", () => {
+    const d = resolveDecision(
+      {
+        decision: "explain",
+        assistantMessage: "1. Pences. 2. Ombro. ...",
+        assemblyOrder: true,
+      },
+      false,
+    );
+    expect(d.decision).toBe("explain");
+    expect(d.assemblyOrder).toBe(true);
+  });
+
+  it("omits assemblyOrder for an ordinary explain answer", () => {
+    const d = resolveDecision(
+      { decision: "explain", assistantMessage: "Pence é uma dobra costurada." },
+      false,
+    );
+    expect(d.assemblyOrder).toBeUndefined();
+  });
+
+  it("never carries assemblyOrder through for apply, even if the model set it", () => {
+    const d = resolveDecision(
+      {
+        decision: "apply",
+        assistantMessage: "ok",
+        spec: SPEC,
+        assemblyOrder: true,
+      },
+      false,
+    );
+    expect(d.decision).toBe("apply");
+    expect(d.assemblyOrder).toBeUndefined();
+  });
+
   it("throws on explain with a blank message instead of posting an empty bubble", () => {
     expect(() =>
       resolveDecision({ decision: "explain", assistantMessage: "   " }, false),
