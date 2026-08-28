@@ -99,10 +99,22 @@ export function OnboardingShell({ credits }: { credits: Credits }) {
     setGenError(null);
     try {
       const { id } = await api.createPattern();
-      const result = await api.generate(id, trimmed);
-      // Anything other than a real draft (declined/clarify/error/
-      // insufficient_credits, or a thrown ApiError below) leaves the user on
-      // this step with a notice rather than navigating to a blank pattern.
+      let result = await api.generate(id, trimmed);
+      // #215: this step has no ClarifyCard to show the AI's questions, so a
+      // vague first message ("clarify") used to strand the user with a
+      // generic error on their very first pattern. Reusing the exact
+      // mechanism ClarifyCard's own "gerar assim mesmo" button uses --
+      // resend with `answering: true`, which lib/ai/decision.ts's answering
+      // guard forces to apply (with the model's best-guess defaults) even if
+      // it tries to ask again -- means onboarding never blocks on a question
+      // it has no UI to ask. This costs the one credit apply always costs;
+      // the first, clarifying attempt itself was free (ask never debits).
+      if (result.status === "clarify") {
+        result = await api.generate(id, t("step3.autoDefaultMessage"), true);
+      }
+      // Anything other than a real draft (declined/error/insufficient_credits,
+      // or a thrown ApiError below) leaves the user on this step with a
+      // notice rather than navigating to a blank pattern.
       if (result.status !== "ok" && result.status !== "conflict") {
         setGenError(t("step3.generateError"));
         setSubmitting(false);
