@@ -51,6 +51,41 @@ export const CAP_EASE_CM = { knit: 1, woven: 2.5 };
 // cuff-first/wrist-based sleeve fit -- see draftCuff in subpieces.ts.
 export const WRIST_EASE_CM = { knit: 1.5, woven: 2.5 };
 
+// #226: this is ONE cap-curve family (a fixed 5-point profile: two low
+// underarm corners, two 0.3*capH control points, one apex), parameterized
+// only by bicep width and a solved-for height -- every sleeve.sleeve style
+// (short/long, the only two lengths GarmentStyle has) walks the same shape,
+// just solved against a different target arc. That is correct ONLY because
+// this repo drafts a single sleeve silhouette: a fitted, structured set-in
+// sleeve. A verified source (ikatbag.com, "Subtleties in Drafting Sleeves")
+// says angle of set is a real construction variable, not just a proportion:
+// the more downward-sloping/structured the sleeve, the narrower and higher
+// its cap needs to be; a more horizontal silhouette (kimono/dropped-shoulder)
+// needs a genuinely wider, flatter cap -- a different curve family, not this
+// same 5-point profile solved for a shorter capH. Nothing in GarmentStyle
+// today names that axis at all (SleeveLength is length-only: "none" |
+// "short" | "long", lib/types.ts) -- there is no silhouette/angle-of-set
+// concept to branch on here even if we wanted to.
+//
+// This is deliberately NOT implemented as part of #226 -- the issue is
+// scoped to recording the decision, not shipping a new archetype. Adding a
+// kimono/dropped-shoulder silhouette for real would need: (1) its own
+// capOutline-shaped curve family in this file (wider/flatter, likely fewer
+// or differently-placed control points, since a very shallow cap starts
+// approaching a straight-ish extension of the shoulder rather than a domed
+// cap), (2) a new GarmentStyle.sleeve-adjacent enum (e.g. a `sleeveStyle` or
+// `angleOfSet` field alongside `sleeve: SleeveLength`) clamped by
+// validateSpec exactly like CollarType/CuffType/WaistbandType/
+// FrontClosureType are today, and (3) that enum rendered into the AI
+// prompt/schema (lib/ai/prompt.ts + lib/ai/schema.ts) from the same
+// exported-constants pattern every other style field follows. None of that
+// is attempted here.
+//
+// CAP_EASE_CM (2.5cm woven / 1cm knit, above) is untouched by this note and
+// stays correct as-is: it's the ease for the CURRENT fitted set-in
+// silhouette, an independent source corroborated the ~2.5cm woven figure
+// directly, and it says nothing about cap shape -- a future kimono curve
+// family would need its own ease figure, not a change to this one.
 function capOutline(bicep: number, capH: number): { pts: Pt[]; cxTop: number } {
   const cxTop = bicep / 2;
   return {
