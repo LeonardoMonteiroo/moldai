@@ -49,7 +49,7 @@ Also note the snapshot semantics when reviewing: a pattern freezes its size char
 
 ## Translate, don't transliterate — check this BEFORE the name is locked in
 
-MoldAI's design source is pt-BR (`docs/design/`), the code is English (`CLAUDE.md`'s language boundary). When a diff introduces a new domain noun that is heading for a Prisma model, a column, a route segment, or a persisted field name, check that the pt-BR term was **translated**, not spelled in English letters:
+MoldAI's product/design vocabulary is pt-BR, the code is English (`CLAUDE.md`'s language boundary) — see CLAUDE.md's "Design source of truth" note (no handoff doc is currently checked in). When a diff introduces a new domain noun that is heading for a Prisma model, a column, a route segment, or a persisted field name, check that the pt-BR term was **translated**, not spelled in English letters:
 
 - "grades" → `SizeChart`, **not** `Grade`
 - "molde" → `Pattern`, **not** `Molde`

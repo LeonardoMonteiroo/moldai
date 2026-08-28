@@ -102,9 +102,9 @@ Requires `ANTHROPIC_API_KEY`, `DATABASE_URL`, and `AUTH_SECRET` in `.env.local`.
 
 **Shipped since, past that original five** (all detailed under Screens): the public landing at `/` (#13), `/planos` (#15), the post-signup wizard `/onboarding` (#14), version history at `/pattern/[id]/versions` (#16), the export screen `/pattern/[id]/export` (#17), and the DXF import flow `/import` (#11, read-and-verify only — creating a pattern from a parsed file is still "em breve").
 
-### Design source of truth: `docs/design/`
+### Design source of truth
 
-The official design handoff for the whole platform: `README.md` (design tokens, per-screen specs, interaction/state model) and `MoldAI Wireframes.dc.html` (one navigable HTML prototype; each screen is a `div.dv-opt[id]`). Shipped high-fidelity screens: `4a` (editor), `4b` (dashboard), `5d` (paywall, shipped inline in the editor), `5e` (seam conflict, shipped inline in the editor), `5i` (measurement grids, shipped scoped-down as `/size-charts`). Low-fi wireframes (`1a`–`1f`, `2a`, `3a`–`3g`) are structure/flow only, not final UI. It is **reference to recreate in this codebase's patterns, not code to copy**. `docs/design/` has no screen for Configurações do usuário — `/settings` is original design work.
+There is currently no design handoff directory in this repo. `docs/design/` (the `README.md` design-token/per-screen spec doc and the `MoldAI Wireframes.dc.html` navigable prototype, referenced by screen id — `4a`, `4b`, `5d`, `5e`, `5i`, etc. — throughout this file) was removed pending a redo; the design-`Nx` ids still cited elsewhere in this file are historical pointers into that retired doc, not currently-resolvable references. Once a new handoff lands, restore this section to point at it.
 
 ## Architecture
 
