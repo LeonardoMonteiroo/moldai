@@ -141,10 +141,16 @@ collar/cuff (a new capability the AI must actively request), not waistband (whic
 defaults on because an unfinished waist is a defect, not a style choice — an unfinished
 front is simply today's existing pullover-style front, not a defect).
 
-Only meaningful for `spec.type === "blouse" | "dress"` and non-knit (`!opts.knit`) — a
-`tshirt` is a pullover knit archetype by construction and stays out of scope, the same
-"type-mismatched style field is a no-op" precedent `skirtLengthCm`/`cuff` already follow
-on a type that can't use them.
+Only meaningful for `spec.type === "blouse"` — narrowed from "blouse/dress" during
+planning (see Non-goals): a dress's bodice hem is also the waist-join edge sewn to the
+skirt panel (`waist-join-front`/`waist-join-back`, further down in `draftAll`), and that
+pairing assumes `front.seamEdges.hem` is the FULL front hem width. A front-closure half
+panel's own `hem` edge is only half that width, which would need the skirt-side pairing
+reworked too — a real, separate problem the issue's own acceptance criteria don't ask
+for. `tshirt` is out of scope for the same "type-mismatched style field is a no-op"
+reason `skirtLengthCm`/`cuff` already follow on a type that can't use them; also
+`!opts.knit`, redundant with `spec.type === "blouse"` today but kept as an explicit guard
+since it's the real invariant the drafter depends on, not the type check itself.
 
 `lib/ai/prompt.ts`/`schema.ts` render `FRONT_CLOSURES` into the tool schema and prompt
 exactly like every other style enum — never a hardcoded duplicate list.
@@ -206,12 +212,18 @@ New keys: `pieceNames.buttonStand`, `rows.buttonStandType` (or reuse `rows.lengt
 - Asymmetric overlap/underlap width (a researched claim for the _sleeve_ placket, #225,
   that did not generalize here) — both stand pieces are identical.
 - `tshirt` support — a knit pullover archetype, out of scope by construction.
-- Combining `frontClosure` with a _fitted dress hem_ dart-on-hem case (`isDressHem`):
-  the half-panel logic composes with `isDressHem` the same way the existing whole-panel
-  logic does (one dart present when `isDressHem`, still one apex, still on this half) —
-  no special-casing needed, but called out here because it's the one place two existing
-  conditionals (`isDressHem`, `frontClosure`) genuinely interact and needs its own test
-  case.
+- **`dress` support — found during planning, not just deferred up front.** A dress
+  bodice's own `hem` edge doubles as the waist-join seam to the skirt panel
+  (`waist-join-front`/`waist-join-back`, in `draftAll`). That pairing measures
+  `front.seamEdges.hem` expecting the FULL front hem width; a front-closure half panel's
+  `hem` edge is only half of that, so the pairing would need its own rework (matching the
+  skirt's front waist share against _both_ mirrored halves, the same `singlePanel`-style
+  bookkeeping `waistFront`/`waistBack` already do on the skirt side) to stay correct —
+  real, separate work the issue's own acceptance criteria don't ask for. `frontClosure`
+  is gated on `spec.type === "blouse"` only; a follow-up issue can extend it to `dress`
+  once the waist-join side is reworked to match. Because of this, `frontClosure` and
+  `isDressHem` (only ever true for a dress) can never both be active — no interaction to
+  test.
 
 ## Testing
 
