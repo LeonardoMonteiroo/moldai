@@ -35,12 +35,14 @@ import { draftTrousers } from "./trousers";
 import {
   draftCollar,
   draftBandCollar,
+  draftShirtCollar,
   draftCuff,
   draftPlacket,
   draftWaistband,
   draftButtonStand,
   WAISTBAND_OVERLAP_CM,
   BAND_COLLAR_FRONT_EXTENSION_CM,
+  BUTTON_STAND_WIDTH_CM,
 } from "./subpieces";
 import { FIT_CLASSES, STRETCH_CLASSES, wearingEaseCm } from "./ease";
 import {
@@ -71,10 +73,10 @@ export const SKIRTS: SkirtSilhouette[] = [
   "half-circle",
   "circle",
 ];
-// #129/#130/#131/#221: one exported source per sub-piece enum, the same rule
-// every other AI-facing catalog here follows -- schema.ts/prompt.ts render
-// from these, never a hardcoded duplicate list.
-export const COLLARS: CollarType[] = ["none", "convertible", "band"];
+// #129/#130/#131/#221/#222: one exported source per sub-piece enum, the same
+// rule every other AI-facing catalog here follows -- schema.ts/prompt.ts
+// render from these, never a hardcoded duplicate list.
+export const COLLARS: CollarType[] = ["none", "convertible", "band", "shirt"];
 export const CUFFS: CuffType[] = ["none", "straight"];
 export const WAISTBANDS: WaistbandType[] = ["none", "straight"];
 // #223: same footing as the three above -- the AI-facing catalog, rendered
@@ -455,17 +457,19 @@ function draftAll(
         }
       }
     }
-    // #129/#221: a convertible OR band collar, drafted from the front+back
-    // neckline's own measured arc -- computed directly off the
+    // #129/#221/#222: a convertible, band, OR shirt collar, drafted from the
+    // front+back neckline's own measured arc -- computed directly off the
     // already-drafted panels (never persisted, never a proportion of the
     // bust), the same "measure the geometry that was actually emitted" rule
-    // the armhole/cap pair already established. For "band", body.ts has
-    // already lowered that neckline (its own BAND_COLLAR_*_DROP_CM deltas)
-    // BEFORE these panels were drafted, so the arc summed here is already
-    // the lowered one -- this branch itself only picks which drafter/ease
-    // to use.
+    // the armhole/cap pair already established. For "band"/"shirt", body.ts
+    // has already lowered that neckline (its own BAND_COLLAR_*_DROP_CM
+    // deltas) BEFORE these panels were drafted, so the arc summed here is
+    // already the lowered one -- this branch itself only picks which
+    // drafter/ease to use.
     if (
-      (style.collar === "convertible" || style.collar === "band") &&
+      (style.collar === "convertible" ||
+        style.collar === "band" ||
+        style.collar === "shirt") &&
       front.seamEdges &&
       back.seamEdges
     ) {
@@ -505,32 +509,67 @@ function draftAll(
           back.curvedSpans ?? [],
           ...back.seamEdges.necklineRight,
         );
-      // #221: "band" drafts a straight-up stand instead of the convertible
-      // fold shape -- same neckline arc, but its own finished length adds
-      // the front-edge closure extension (draftBandCollar's own
-      // BAND_COLLAR_FRONT_EXTENSION_CM), so the seam pair's `easeCm` has to
-      // match: 0 for convertible (a tight, exact seam) vs the extension for
-      // band (walkSeamPairs' diffCm is |bLen - aLen - easeCm|, which is
-      // exactly the sewn length minus the arc minus the extension -- zero by
-      // construction either way).
-      const isBand = style.collar === "band";
-      const collar = isBand
-        ? draftBandCollar(necklineArcCm, t)
-        : draftCollar(necklineArcCm, t);
-      drafted.push(collar);
-      if (collar.seamEdges) {
-        seamPairs.push({
-          key: "collar-neckline",
-          labelKey: "collarNeckline",
-          a: [
-            ...frontNeckEdges.map((edge) => edgeRef(frontPiece.id, edge)),
-            edgeRef(back.id, back.seamEdges.necklineLeft),
-            edgeRef(back.id, back.seamEdges.necklineRight),
-          ],
-          b: [edgeRef(collar.id, collar.seamEdges.neckline)],
-          easeCm: isBand ? BAND_COLLAR_FRONT_EXTENSION_CM : 0,
-          fixable: false,
-        });
+      // #221/#222: "band" drafts a straight-up stand instead of the
+      // convertible fold shape -- same neckline arc, but its own finished
+      // length adds the front-edge closure extension (draftBandCollar's own
+      // BAND_COLLAR_FRONT_EXTENSION_CM). "shirt" drafts the SAME kind of
+      // stand (draftShirtCollar) plus a separate fall mated to the stand's
+      // own upper seam, and its stand's own extension is the button-stand
+      // width (#223's BUTTON_STAND_WIDTH_CM, per the issue's own formula --
+      // see draftShirtCollar's doc). Either way the pair's `easeCm` has to
+      // match whichever extension the drafted piece actually added, so
+      // walkSeamPairs' diffCm = |bLen - aLen - easeCm| still lands at zero
+      // by construction.
+      const necklinePairA = [
+        ...frontNeckEdges.map((edge) => edgeRef(frontPiece.id, edge)),
+        edgeRef(back.id, back.seamEdges.necklineLeft),
+        edgeRef(back.id, back.seamEdges.necklineRight),
+      ];
+      if (style.collar === "shirt") {
+        const { stand, fall } = draftShirtCollar(necklineArcCm, t);
+        drafted.push(stand, fall);
+        if (stand.seamEdges?.neckline) {
+          seamPairs.push({
+            key: "collar-neckline",
+            labelKey: "collarNeckline",
+            a: necklinePairA,
+            b: [edgeRef(stand.id, stand.seamEdges.neckline)],
+            easeCm: BUTTON_STAND_WIDTH_CM,
+            fixable: false,
+          });
+        }
+        // #222: the stand's own upper seam vs the fall's own neckline seam
+        // -- both measured off the ACTUALLY-drafted pieces (draftShirtCollar
+        // sizes the fall to the stand's own measured, shortened upper seam),
+        // so this pair matches by construction, easeCm 0, the same
+        // "measure what was really emitted" rule cuff-hem/waistband-waist
+        // already established.
+        if (stand.seamEdges?.fallSeam && fall.seamEdges?.neckline) {
+          seamPairs.push({
+            key: "collar-stand-fall",
+            labelKey: "collarStandFall",
+            a: [edgeRef(stand.id, stand.seamEdges.fallSeam)],
+            b: [edgeRef(fall.id, fall.seamEdges.neckline)],
+            easeCm: 0,
+            fixable: false,
+          });
+        }
+      } else {
+        const isBand = style.collar === "band";
+        const collar = isBand
+          ? draftBandCollar(necklineArcCm, t)
+          : draftCollar(necklineArcCm, t);
+        drafted.push(collar);
+        if (collar.seamEdges) {
+          seamPairs.push({
+            key: "collar-neckline",
+            labelKey: "collarNeckline",
+            a: necklinePairA,
+            b: [edgeRef(collar.id, collar.seamEdges.neckline)],
+            easeCm: isBand ? BAND_COLLAR_FRONT_EXTENSION_CM : 0,
+            fixable: false,
+          });
+        }
       }
     }
     // #223: a button stand, drafted from the front bodice's own measured

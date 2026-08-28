@@ -45,6 +45,26 @@ export const DECORATION_CASES: [string, GarmentSpec][] = [
     },
   ],
   [
+    // #222: exercises the classic two-piece shirt collar (stand + fall)
+    // across every DECORATION_CASES consumer -- containment (both pieces'
+    // grainlines stay inside their own outlines, including the stand's own
+    // shortened+curved top edge), the seam graph (collar-neckline AND the
+    // new collar-stand-fall pair), assembly's exhaustiveness guard, and
+    // every export format's cut-line/nesting suite.
+    "blouse round short shirt collar",
+    {
+      type: "blouse",
+      gender: "female",
+      measurementOverrides: {},
+      style: {
+        neckline: "round",
+        sleeve: "short",
+        darts: true,
+        collar: "shirt",
+      },
+    },
+  ],
+  [
     "blouse deep V long",
     {
       type: "blouse",

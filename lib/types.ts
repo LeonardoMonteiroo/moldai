@@ -57,9 +57,14 @@ export type Girth = "bust" | "waist" | "hip";
 // collar shape -- a straight-up stand with no folded-over fall, drafted by
 // lib/draft/subpieces.ts's draftBandCollar against a neckline lowered by
 // small position-specific deltas (see body.ts's own note beside
-// BAND_COLLAR_SHOULDER_DROP_CM). Still a closed enum: any OTHER stand-alike
-// shape (a two-piece stand+fall, #222) is still "em breve".
-export type CollarType = "none" | "convertible" | "band";
+// BAND_COLLAR_SHOULDER_DROP_CM).
+// #222: "shirt" is the classic two-piece shirt collar -- a stand (the SAME
+// lowered-neckline construction as "band") plus a separate fall (the
+// "convertible" shape) sewn on top of it, drafted as TWO mated
+// DraftedPieces by lib/draft/subpieces.ts's draftShirtCollar. Still a
+// closed enum: any OTHER stand-alike shape (a Peter Pan, a notched collar)
+// is still "em breve".
+export type CollarType = "none" | "convertible" | "band" | "shirt";
 export type CuffType = "none" | "straight";
 export type WaistbandType = "none" | "straight";
 // #223: closed enum, same shape as the three above -- "buttonStand" is the
@@ -97,6 +102,10 @@ export interface GarmentStyle {
   // collar at all, unchanged from before this issue.
   // #221: "band" drafts a straight-up stand instead (draftBandCollar), off
   // the SAME neckline arc but lowered first -- see body.ts.
+  // #222: "shirt" drafts a stand (same lowered neckline + shape as "band",
+  // sized wider by the button-stand width) PLUS a separate fall (the
+  // "convertible" shape) sewn on top of it -- draftShirtCollar, two mated
+  // pieces instead of one.
   collar?: CollarType;
   // #130: a straight cuff (plus its placket) drafted from the sleeve's own
   // measured hem edge. Only meaningful with sleeve: "long" -- a short or
