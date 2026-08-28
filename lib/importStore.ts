@@ -6,7 +6,11 @@ import {
   hasClosedPolyline,
 } from "./import/analyze";
 import { parseRul, analyzeRul } from "./import/rul";
-import type { ImportAnalysis, LayerRole } from "./import/types";
+import type { ImportAnalysis, LayerRole, PieceLabel } from "./import/types";
+import * as api from "./api-client";
+import { detectPieces, type DetectedPiece } from "./import/pieces";
+import { buildReconstructionContext } from "./import/reconstructMeta";
+import type { PreparedAttachment } from "./editor/attachment";
 
 /**
  * Client-side cap on the *source* file, mirroring lib/editor/attachment.ts's
@@ -30,6 +34,9 @@ export const MAX_RUL_FILE_BYTES = 2 * 1024 * 1024;
 export type ImportPickErrorCode =
   "file_too_large" | "read_failed" | "no_pieces_found";
 
+/** Wire-ish code `createPatternFromImport()` can leave in `actionError`. */
+export type ImportCreateErrorCode = "create_failed";
+
 /** Wire-ish codes `pickRul()` can leave in `rulActionError`, resolved per-code by RulCompanionCard. */
 export type RulPickErrorCode = "rul_file_too_large" | "rul_read_failed";
 
@@ -43,10 +50,18 @@ interface ImportStore {
   roles: Record<string, LayerRole>;
   /** The layer group currently hovered/focused in LayerMappingPanel — highlighted in LayerPreviewCanvas, dimming every other layer. Null when nothing is hovered. */
   hoveredLayers: string[] | null;
+  /** One entry per closed polyline on a cut-role layer — recomputed alongside `roles` (#238 follow-up: creating a Pattern from an import). */
+  pieces: DetectedPiece[];
+  /** User-assigned garment-part label per DetectedPiece.key, keyed the same way. Optional — marking a piece never blocks anything. */
+  pieceLabels: Record<string, { label: PieceLabel; customName?: string }>;
+  /** The specific piece currently hovered/focused in PieceLabelPanel — spotlighted in LayerPreviewCanvas. Null when nothing is hovered. */
+  hoveredPieceKey: string | null;
+  /** True while createPatternFromImport is running its create+generate round trip. */
+  creating: boolean;
   /** True while a picked file is being read/parsed — the screen's one live region. */
   loading: boolean;
   /** Code for the last failed pick, or null — resolved through the catalog per-code. */
-  actionError: ImportPickErrorCode | null;
+  actionError: ImportPickErrorCode | ImportCreateErrorCode | null;
   /** Code for the last failed `.RUL` pick, or null — independent of `actionError`: a RUL companion is additive, so its own failure must never block the DXF-only flow. */
   rulActionError: RulPickErrorCode | null;
   pick: (file: File) => Promise<void>;
@@ -58,6 +73,23 @@ interface ImportStore {
   /** Same as `setRole`, applied to every layer in one group at once (LayerMappingPanel's grouped rows). */
   setRoleForLayers: (layers: string[], role: LayerRole) => void;
   setHoveredLayers: (layers: string[] | null) => void;
+  setPieceLabel: (key: string, label: PieceLabel, customName?: string) => void;
+  setHoveredPieceKey: (key: string | null) => void;
+  /**
+   * Creates a blank Pattern and reconstructs it from this import: the
+   * rendered layer-preview image plus measured piece data/labels, through
+   * the ordinary generate/attachment pipeline (#238 follow-up). `message`
+   * and `autoDefaultMessage` are pre-resolved catalog strings — this store
+   * stays translation-agnostic, matching every other display-text boundary
+   * in the app. Returns the new pattern id on success, or null (with
+   * `actionError` set) on any failure, the `dashboardStore.create()`
+   * precedent.
+   */
+  createPatternFromImport: (
+    image: PreparedAttachment,
+    message: string,
+    autoDefaultMessage: string,
+  ) => Promise<string | null>;
   reset: () => void;
   clearActionError: () => void;
 }
@@ -77,6 +109,10 @@ export const useImportStore = create<ImportStore>((set, get) => ({
   analysis: null,
   roles: {},
   hoveredLayers: null,
+  pieces: [],
+  pieceLabels: {},
+  hoveredPieceKey: null,
+  creating: false,
   loading: false,
   actionError: null,
   rulActionError: null,
@@ -117,6 +153,11 @@ export const useImportStore = create<ImportStore>((set, get) => ({
       fileName: file.name,
       fileSizeBytes: file.size,
       roles: { ...analysis.suggestedRoles },
+      pieces: detectPieces(
+        doc,
+        analysis.suggestedRoles,
+        analysis.unitScaleToCm,
+      ),
       step: 2,
       loading: false,
     });
@@ -143,10 +184,60 @@ export const useImportStore = create<ImportStore>((set, get) => ({
     set({
       roles: nextRoles,
       analysis: { ...analysis, pieceCount, checks },
+      pieces: detectPieces(doc, nextRoles, analysis.unitScaleToCm),
     });
   },
 
   setHoveredLayers: (layers) => set({ hoveredLayers: layers }),
+
+  setPieceLabel: (key, label, customName) =>
+    set((s) => ({
+      pieceLabels: {
+        ...s.pieceLabels,
+        [key]: customName !== undefined ? { label, customName } : { label },
+      },
+    })),
+
+  setHoveredPieceKey: (key) => set({ hoveredPieceKey: key }),
+
+  createPatternFromImport: async (image, message, autoDefaultMessage) => {
+    const { doc, analysis, pieces, pieceLabels } = get();
+    if (!doc || !analysis) return null;
+    set({ creating: true, actionError: null });
+    const importContext = buildReconstructionContext(
+      analysis.fileName,
+      pieces,
+      pieceLabels,
+    );
+    try {
+      const { id } = await api.createPattern();
+      let result = await api.generate(
+        id,
+        message,
+        undefined,
+        image,
+        importContext,
+      );
+      if (result.status === "clarify") {
+        result = await api.generate(
+          id,
+          autoDefaultMessage,
+          true,
+          image,
+          importContext,
+        );
+      }
+      if (result.status !== "ok" && result.status !== "conflict") {
+        set({ creating: false, actionError: "create_failed" });
+        return null;
+      }
+      set({ creating: false });
+      return id;
+    } catch {
+      set({ creating: false, actionError: "create_failed" });
+      return null;
+    }
+  },
 
   // Additive companion — requires a DXF already loaded (step 2), never
   // gates or replaces it. Failure leaves `analysis.rul` untouched rather
@@ -195,6 +286,10 @@ export const useImportStore = create<ImportStore>((set, get) => ({
       analysis: null,
       roles: {},
       hoveredLayers: null,
+      pieces: [],
+      pieceLabels: {},
+      hoveredPieceKey: null,
+      creating: false,
       actionError: null,
       rulActionError: null,
       loading: false,

@@ -1,10 +1,20 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { useImportStore, MAX_IMPORT_FILE_BYTES } from "./importStore";
 import { buildExportModel } from "@/lib/export/model";
 import { toDxf } from "@/lib/export/dxf";
 import { t } from "@/lib/i18n/test-translate";
 import { SIZE_TABLE } from "@/lib/measurements";
 import type { Pattern } from "@/lib/types";
+
+vi.mock("@/lib/api-client", async () => {
+  const actual =
+    await vi.importActual<typeof import("@/lib/api-client")>(
+      "@/lib/api-client",
+    );
+  return { ...actual, createPattern: vi.fn(), generate: vi.fn() };
+});
+
+import * as api from "@/lib/api-client";
 
 function fakePattern(): Pattern {
   return {
@@ -74,6 +84,10 @@ beforeEach(() => {
     doc: null,
     analysis: null,
     roles: {},
+    pieces: [],
+    pieceLabels: {},
+    hoveredPieceKey: null,
+    creating: false,
     loading: false,
     actionError: null,
   });
@@ -186,5 +200,136 @@ describe("useImportStore.setRole / reset / clearActionError", () => {
     await useImportStore.getState().pick(file);
     useImportStore.getState().clearActionError();
     expect(useImportStore.getState().actionError).toBeNull();
+  });
+});
+
+describe("piece labeling", () => {
+  it("setPieceLabel records a label, and setHoveredPieceKey records the hover", () => {
+    useImportStore.getState().setPieceLabel("0", "front");
+    expect(useImportStore.getState().pieceLabels["0"]).toEqual({
+      label: "front",
+    });
+    useImportStore.getState().setHoveredPieceKey("0");
+    expect(useImportStore.getState().hoveredPieceKey).toBe("0");
+    useImportStore.getState().setHoveredPieceKey(null);
+    expect(useImportStore.getState().hoveredPieceKey).toBeNull();
+  });
+
+  it("setPieceLabel records a custom name for 'other'", () => {
+    useImportStore.getState().setPieceLabel("0", "other", "yoke");
+    expect(useImportStore.getState().pieceLabels["0"]).toEqual({
+      label: "other",
+      customName: "yoke",
+    });
+  });
+
+  it("reset() clears piece labels and hover state", () => {
+    useImportStore.getState().setPieceLabel("0", "front");
+    useImportStore.getState().setHoveredPieceKey("0");
+    useImportStore.getState().reset();
+    expect(useImportStore.getState().pieceLabels).toEqual({});
+    expect(useImportStore.getState().hoveredPieceKey).toBeNull();
+  });
+});
+
+describe("createPatternFromImport", () => {
+  const image = { mediaType: "image/jpeg" as const, base64: "abc" };
+
+  beforeEach(() => {
+    vi.mocked(api.createPattern).mockReset();
+    vi.mocked(api.generate).mockReset();
+  });
+
+  it("returns null without calling the API when no file has been picked", async () => {
+    const id = await useImportStore
+      .getState()
+      .createPatternFromImport(image, "msg", "auto");
+    expect(id).toBeNull();
+    expect(api.createPattern).not.toHaveBeenCalled();
+  });
+
+  it("creates a pattern and generates with the image and importContext, returning the id on ok", async () => {
+    useImportStore.setState({
+      doc: {} as never,
+      analysis: { fileName: "oskar.dxf" } as never,
+    });
+    vi.mocked(api.createPattern).mockResolvedValue({ id: "p1" });
+    vi.mocked(api.generate).mockResolvedValue({
+      status: "ok",
+      state: {} as never,
+    });
+
+    const id = await useImportStore
+      .getState()
+      .createPatternFromImport(image, "msg", "auto");
+
+    expect(id).toBe("p1");
+    expect(api.generate).toHaveBeenCalledWith(
+      "p1",
+      "msg",
+      undefined,
+      image,
+      expect.stringContaining("oskar.dxf"),
+    );
+  });
+
+  it("auto-resends once with answering:true on a clarify response", async () => {
+    useImportStore.setState({
+      doc: {} as never,
+      analysis: { fileName: "oskar.dxf" } as never,
+    });
+    vi.mocked(api.createPattern).mockResolvedValue({ id: "p1" });
+    vi.mocked(api.generate)
+      .mockResolvedValueOnce({ status: "clarify", state: {} as never })
+      .mockResolvedValueOnce({ status: "ok", state: {} as never });
+
+    const id = await useImportStore
+      .getState()
+      .createPatternFromImport(image, "msg", "auto fallback");
+
+    expect(id).toBe("p1");
+    expect(api.generate).toHaveBeenCalledTimes(2);
+    expect(api.generate).toHaveBeenNthCalledWith(
+      2,
+      "p1",
+      "auto fallback",
+      true,
+      image,
+      expect.stringContaining("oskar.dxf"),
+    );
+  });
+
+  it("sets actionError and returns null when generate declines", async () => {
+    useImportStore.setState({
+      doc: {} as never,
+      analysis: { fileName: "oskar.dxf" } as never,
+    });
+    vi.mocked(api.createPattern).mockResolvedValue({ id: "p1" });
+    vi.mocked(api.generate).mockResolvedValue({
+      status: "declined",
+      state: {} as never,
+    });
+
+    const id = await useImportStore
+      .getState()
+      .createPatternFromImport(image, "msg", "auto");
+
+    expect(id).toBeNull();
+    expect(useImportStore.getState().actionError).toBe("create_failed");
+  });
+
+  it("sets actionError and returns null when createPattern throws", async () => {
+    useImportStore.setState({
+      doc: {} as never,
+      analysis: { fileName: "oskar.dxf" } as never,
+    });
+    vi.mocked(api.createPattern).mockRejectedValue(new Error("boom"));
+
+    const id = await useImportStore
+      .getState()
+      .createPatternFromImport(image, "msg", "auto");
+
+    expect(id).toBeNull();
+    expect(useImportStore.getState().actionError).toBe("create_failed");
   });
 });
