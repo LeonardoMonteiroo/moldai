@@ -55,9 +55,6 @@ export const TROUSER_DEFAULT_LENGTH_CM: Record<Gender, number> = {
 // other formula is identical between the two calls in draftTrousers below,
 // which is exactly what makes the inseam/outseam pairs equal by
 // construction.
-// #2: how far inboard of the centre-front/back corner the waist alignment
-// notch sits, as a fraction of the crotch extension.
-const WAIST_NOTCH_INSET_RATIO = 0.25;
 
 function trouserPanel(
   id: string,
@@ -115,30 +112,28 @@ function trouserPanel(
   // #124: single marks the front, double the back -- the same convention
   // every other mated pair (pitch notches, dress waist-join corners) already
   // uses. The crotch-point notch helps line up the inseam at assembly; the
-  // waist-corner notches mark where the waistband aligns (double, matching
-  // body.ts's own dress-hem outer-corner convention); the dart-leg notches
-  // mark where the dart interrupts the waist seam.
+  // dart-leg notches mark where the dart interrupts the waist seam; the
+  // outseam's waist corner (double, matching body.ts's own dress-hem
+  // outer-corner convention) marks where the waistband aligns there.
+  // #214: the centre-front/back waist corner (pts[waistCF]) deliberately
+  // gets NO notch. #208 had tried marking it a little inboard instead of
+  // exactly on the corner -- the corner itself is too narrow a wedge for a
+  // 0.6cm notch to fit in any direction -- but that inset scales off
+  // FRONT_CROTCH_EXT_RATIO/BACK_CROTCH_EXT_RATIO, which disagree, so front
+  // and back ended up with two different, undocumented relationships to the
+  // same landmark. A corner where two seams meet is already the match
+  // point; industrial practice doesn't notch it, and the waistband
+  // (lib/draft/subpieces.ts) emits no notches of its own to mate against
+  // this one anyway. The outseam's OWN waist corner keeps its notch above,
+  // unlike this one -- that mark isn't standing in for an ambiguous corner,
+  // it's there for symmetry with body.ts's dress-hem/skirt outer-corner
+  // convention, which always marks that pairing regardless of whether the
+  // opposite piece carries a reciprocal notch.
   const pitchType = isFront ? "single" : "double";
   const notches: NotchCm[] = [
     notchAt(pts[crotchPt], [0, 1], insideRef, pitchType),
     notchAt(dartLegL, [1, 0], insideRef, "single"),
     notchAt(dartLegR, [1, 0], insideRef, "single"),
-    // #2: NOT at pts[waistCF] itself. That corner is where the horizontal
-    // waist edge meets the sloping rise curve, and the wedge between them is
-    // too narrow for a 0.6cm notch to fit in ANY direction -- the tip landed
-    // outside the piece (measured: 0.6cm out at the base size, still 0.01-0.14cm
-    // out at the measurement-range corners even when aimed along the corner
-    // bisector), and that reaches all five export formats. Depth is not free to
-    // clamp: NOTCH_DEPTH_CM is simultaneously the single/double/triple signal.
-    // So the mark moves a little inboard along the waist edge, to where the
-    // rise curve has dropped well clear of it. Scaled off the crotch extension
-    // rather than a flat cm so it holds across the whole measurement range.
-    notchAt(
-      [crotchExtCm * WAIST_NOTCH_INSET_RATIO, 0],
-      [1, 0],
-      insideRef,
-      "double",
-    ),
     notchAt(pts[waistOuter], [1, 0], insideRef, "double"),
   ];
 
