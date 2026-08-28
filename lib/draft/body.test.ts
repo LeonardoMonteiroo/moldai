@@ -170,6 +170,71 @@ describe("draftBody sloper", () => {
   });
 });
 
+describe("draftBody front closure (#223)", () => {
+  it("splits the front into a half-panel: qty 2, no foldEdge, has a centerFront edge", () => {
+    const { front, back } = draftBody(
+      M,
+      { frontClosure: "buttonStand" },
+      t,
+      optsM,
+    );
+    expect(front.qty).toBe(2);
+    expect(front.foldEdge).toBeUndefined();
+    expect(front.seamEdges?.centerFront).toBeDefined();
+    expect(front.centerXCm).toBeDefined();
+    // The back panel is a front-only concept -- completely unaffected.
+    expect(back.qty).toBe(1);
+    expect(back.foldEdge).toBeDefined();
+    expect(back.seamEdges?.centerFront).toBeUndefined();
+  });
+
+  it("the half-panel's own outline never crosses past its true center front", () => {
+    const { front } = draftBody(M, { frontClosure: "buttonStand" }, t, optsM);
+    const cx = front.centerXCm!;
+    for (const [x] of front.outlineCm) {
+      expect(x).toBeLessThanOrEqual(cx + 1e-6);
+    }
+  });
+
+  it("keeps exactly one waist dart (not two) when fitted", () => {
+    const { front } = draftBody(
+      M,
+      { darts: true, frontClosure: "buttonStand" },
+      t,
+      optsM,
+    );
+    expect(dartsOf(front.internalsCm).length).toBe(1);
+  });
+
+  it("does not split the front for a knit garment even if frontClosure is requested", () => {
+    const knitOpts: BlockOpts = { ...optsM, knit: true };
+    const { front } = draftBody(
+      M,
+      { frontClosure: "buttonStand" },
+      t,
+      knitOpts,
+    );
+    expect(front.qty).toBe(1);
+    expect(front.foldEdge).toBeDefined();
+  });
+
+  it("does not split the front for a dress even if frontClosure is requested", () => {
+    const dressOpts: BlockOpts = {
+      ...optsM,
+      lengthCm: M.backLength,
+      dressHemHalfCm: 30,
+    };
+    const { front } = draftBody(
+      M,
+      { frontClosure: "buttonStand" },
+      t,
+      dressOpts,
+    );
+    expect(front.qty).toBe(1);
+    expect(front.foldEdge).toBeDefined();
+  });
+});
+
 // #125: bust girth is 4× halfChestCm (four quarter-panels: front-left/right,
 // back-left/right), and the drafter's only ease knob is opts.wearingEaseCm --
 // asserting against the DRAFTED geometry (not just wearingEaseCm's own return

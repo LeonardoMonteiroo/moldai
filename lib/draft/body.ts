@@ -125,6 +125,18 @@ function bodice(
   const neckDrop = frontish ? frontNeckDrop : backNeckDrop;
 
   const fitted = !!style.darts && !opts.knit;
+  // #223: a front-closure blouse front splits into a mirrored half-panel
+  // instead of the usual whole, cut-on-fold piece -- see docs/superpowers/
+  // specs/2026-08-28-front-button-stand-design.md. Gated on `!opts.knit`
+  // (excludes tshirt) and `opts.dressHemHalfCm === undefined` (excludes
+  // dress, whose bodice hem doubles as the waist-join seam and assumes the
+  // front's FULL hem width -- see the spec's Non-goals) rather than
+  // threading spec.type into this function.
+  const frontClosure =
+    frontish &&
+    style.frontClosure === "buttonStand" &&
+    !opts.knit &&
+    opts.dressHemHalfCm === undefined;
   const waistY = m.backLength;
   // #122: the panel's total waist suppression (bust/hip-driven, as before)
   // is now split rather than applied in full twice over -- half narrows the
@@ -179,15 +191,27 @@ function bodice(
   // endpoint a real vertex to reference. The top endpoint is `cf`, the
   // neckline-center point already pushed at index 0.
   const hemCenter = push([cx, len]); // hem center (fold bottom)
-  const hemR = push([cx + hemHalf, len]); // right hem (straight = hem)
-  if (fitted && !isDressHem) push([cx + waistHalf, waistY]); // right waist
-  const uaR = push([cx + halfChest, armholeDepth]); // right underarm
-  push([cx + armCtrlX, midArmY]); // right armhole ctrl
-  const shR = push([cx + shoulderHalf, shoulderSlope]); // right shoulder
-  spans.push([uaR, shR]); // right armhole (curved)
-  const hpsR = push([cx + neckHalf, 0]); // right HPS (straight shR->hpsR)
-  push([cx + neckHalf * 0.6, neckDrop * 0.55]); // right neckline ctrl
-  spans.push([hpsR, pts.length]); // right neckline + closing (curved)
+
+  // #223: a front-closure half-panel stops here -- the polygon closes
+  // directly from hemCenter back to cf (index 0), which IS the vertical
+  // center-front line, now a real boundary edge instead of the interior
+  // fold chord the whole-panel case marks below. Every "right side" vertex
+  // (hemR/uaR/shR/hpsR) simply doesn't exist for this half.
+  let hemR: number | undefined;
+  let uaR: number | undefined;
+  let shR: number | undefined;
+  let hpsR: number | undefined;
+  if (!frontClosure) {
+    hemR = push([cx + hemHalf, len]); // right hem (straight = hem)
+    if (fitted && !isDressHem) push([cx + waistHalf, waistY]); // right waist
+    uaR = push([cx + halfChest, armholeDepth]); // right underarm
+    push([cx + armCtrlX, midArmY]); // right armhole ctrl
+    shR = push([cx + shoulderHalf, shoulderSlope]); // right shoulder
+    spans.push([uaR, shR]); // right armhole (curved)
+    hpsR = push([cx + neckHalf, 0]); // right HPS (straight shR->hpsR)
+    push([cx + neckHalf * 0.6, neckDrop * 0.55]); // right neckline ctrl
+    spans.push([hpsR, pts.length]); // right neckline + closing (curved)
+  }
 
   // This piece's own armhole edge (shoulder -> control point -> underarm),
   // measured from the real curve outlinePath will draw — not a straight-line
@@ -310,7 +334,10 @@ function bodice(
         apexesCm: [apexTop, apexBottom],
       };
     };
-    dartsStruct = [oneDart(-1), oneDart(1)];
+    // #223: a front-closure half-panel is cut twice (qty:2, mirrored), so
+    // one dart here reproduces both darts across the finished garment --
+    // the whole-panel case still needs both, since it's cut once.
+    dartsStruct = frontClosure ? [oneDart(-1)] : [oneDart(-1), oneDart(1)];
     internalsCm = dartsStruct.flatMap((d) =>
       dartInternals(d.ptsCm, d.foldCm, d.apexesCm),
     );
@@ -333,7 +360,13 @@ function bodice(
   // #124: a generic interior reference for every notch this panel places --
   // safely below the shoulders and above the hem, and safely between the
   // left/right armholes, for every drafted proportion.
-  const insideRef: Pt = [cx, len / 2];
+  // #223: on a front-closure half-panel, [cx, len/2] sits exactly on the
+  // new center-front boundary edge -- degenerate for notch orientation
+  // (notchAt needs a reference strictly inside the piece). Shifted toward
+  // the shoulder side, the same "-" direction every vertex on this half uses.
+  const insideRef: Pt = frontClosure
+    ? [cx - shoulderHalf * 0.3, len / 2]
+    : [cx, len / 2];
   const pitchType: NotchType = frontish ? "single" : "double";
   const notches: NotchCm[] = [
     // front/back pitch notches, walked from the SAME underarm-relative
@@ -348,26 +381,35 @@ function bodice(
       insideRef,
       pitchType,
     ),
-    notchAtArcLengthCm(
-      pts,
-      spans,
-      uaR,
-      shR,
-      pitchNotchCm,
-      insideRef,
-      pitchType,
-    ),
-    // hem-fold notch: centre front/back at the hem, to line up the fabric fold.
-    notchAtVertex(pts, hemCenter, insideRef, "single"),
   ];
+  // #223: the mirror-side pitch notch and the hem-fold notch both mark
+  // geometry a front-closure half-panel simply doesn't draft (no right
+  // armhole, no fold at center front).
+  if (!frontClosure) {
+    notches.push(
+      notchAtArcLengthCm(
+        pts,
+        spans,
+        uaR!,
+        shR!,
+        pitchNotchCm,
+        insideRef,
+        pitchType,
+      ),
+      // hem-fold notch: centre front/back at the hem, to line up the fabric fold.
+      notchAtVertex(pts, hemCenter, insideRef, "single"),
+    );
+  }
   if (isDressHem) {
     // #124: waist-join notches -- the outer corners of the hem/waist-join
     // edge this panel shares with the skirt panel it's sewn to (#79).
     // "double" so they read apart from the hem-fold's own "single" centre
-    // mark.
+    // mark. frontClosure is never true here -- isDressHem implies a dress,
+    // and frontClosure excludes dress (see its own doc above) -- so hemR is
+    // always defined on this branch.
     notches.push(
       notchAtVertex(pts, hemL, insideRef, "double"),
-      notchAtVertex(pts, hemR, insideRef, "double"),
+      notchAtVertex(pts, hemR!, insideRef, "double"),
     );
     // #124: dart-leg notches, where each dart's legs meet the waist/hem
     // seam -- only reachable here, since the fisheye (double-ended) dart a
@@ -396,25 +438,40 @@ function bodice(
     shoulder: [hpsL, shL],
     side: [uaL, hemL],
     armhole: [shL, uaL],
-    hem: [hemL, hemR],
+    // #223: a front-closure half-panel's own hem edge is only [hemL,
+    // hemCenter] (half the width) -- there is no hemR to name.
+    hem: [hemL, frontClosure ? hemCenter : hemR!],
     necklineLeft: [cf, hpsL],
-    necklineRight: [hpsR, pts.length],
   };
+  if (frontClosure) {
+    // #223: the polygon's own closing edge (hemCenter wraps back to cf,
+    // index 0) -- the new center-front boundary, the button stand's mate.
+    seamEdges.centerFront = [hemCenter, pts.length];
+  } else {
+    seamEdges.necklineRight = [hpsR!, pts.length];
+  }
 
   return {
     piece: {
       id,
       name,
-      qty: 1,
+      qty: frontClosure ? 2 : 1,
       outlineCm: pts,
       curvedSpans: spans,
       grainlineCm,
       internalsCm,
-      foldEdge: [cf, hemCenter],
+      // #223: no fold on a front-closure half-panel -- this edge is a real
+      // seam now (its own seamEdges.centerFront above), not a cut-on-fold
+      // axis.
+      foldEdge: frontClosure ? undefined : [cf, hemCenter],
       notches,
       detailRows,
       armholeLenCm: armholeEdgeLenCm,
       seamEdges,
+      // #223: this half-panel isn't symmetric about its own bounding box,
+      // so a bbox-midpoint (lib/proof3d/mesh.ts's pieceCx) can't find its
+      // true axis -- cx is the same local variable that placed cf/hemCenter.
+      centerXCm: frontClosure ? cx : undefined,
     },
     armholeEdgeLenCm,
     armholeEdgeBaseLenCm,

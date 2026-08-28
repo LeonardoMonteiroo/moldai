@@ -46,6 +46,12 @@ export interface DraftedPiece {
   // SeamPairDecl entries lib/draft/seams.ts's walkSeamPairs measures. A
   // piece with nothing to mate (there is none today) simply omits this.
   seamEdges?: Record<string, [number, number]>;
+  // #223: this piece's own true axis of symmetry, when it is NOT the
+  // bounding-box midpoint -- an asymmetric half-panel (a front-closure
+  // bodice front, lib/draft/body.ts). Absent for every symmetric piece
+  // (every piece today except that one); lib/proof3d/mesh.ts reads it
+  // instead of computing a bbox-based center when present.
+  centerXCm?: number;
 }
 
 // #124: depth is the only thing that tells the three NotchTypes apart --
