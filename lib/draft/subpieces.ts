@@ -1,5 +1,5 @@
 import { DetailRow } from "@/lib/types";
-import { DraftedPiece, Pt } from "./core";
+import { DraftedPiece, InternalCm, Pt } from "./core";
 import { formatCm } from "@/lib/format";
 import type { Translate } from "@/lib/i18n/translate";
 
@@ -167,19 +167,60 @@ export function draftCuff(sewLenCm: number, t: Translate): DraftedPiece {
 // it has no distinct edge on the already-drafted sleeve piece to mate
 // against, so it declares no seamEdges (lib/draft/core.ts: "a piece with
 // nothing to mate simply omits this").
+//
+// #225: the strip's two long edges (the vertical PLACKET_LENGTH_CM-long
+// sides) fold under by two DIFFERENT amounts rather than one symmetric
+// allowance -- a verified shirt-sleeve-placket construction detail
+// (so-sew-easy.com, "Placket Pattern Tutorial": "fold at 3/8" on one side
+// and 1/4" on the opposite side"). The wider fold becomes the visible
+// overlap edge once finished; the narrower one becomes the underlap that
+// sits beneath it. (A stronger claim -- that overlap/underlap are two
+// distinct mirror-paired pieces -- did not survive verification, so #225
+// scopes itself to this fold-width asymmetry on the existing single strip,
+// qty:2, unchanged.) PLACKET_WIDTH_CM stays the strip's own finished
+// (post-fold) width; the flat cut width below adds both raw-edge
+// turn-under allowances on top of it.
+export const PLACKET_FOLD_OVERLAP_CM = 0.9525; // 3/8"
+export const PLACKET_FOLD_UNDERLAP_CM = 0.635; // 1/4"
+
 export function draftPlacket(t: Translate): DraftedPiece {
+  const cutWidthCm =
+    PLACKET_WIDTH_CM + PLACKET_FOLD_OVERLAP_CM + PLACKET_FOLD_UNDERLAP_CM;
   const pts: Pt[] = [
     [0, 0],
-    [PLACKET_WIDTH_CM, 0],
-    [PLACKET_WIDTH_CM, PLACKET_LENGTH_CM],
+    [cutWidthCm, 0],
+    [cutWidthCm, PLACKET_LENGTH_CM],
     [0, PLACKET_LENGTH_CM],
   ];
   const grainlineCm: [Pt, Pt] = [
-    [PLACKET_WIDTH_CM / 2, PLACKET_LENGTH_CM * 0.1],
-    [PLACKET_WIDTH_CM / 2, PLACKET_LENGTH_CM * 0.9],
+    [cutWidthCm / 2, PLACKET_LENGTH_CM * 0.1],
+    [cutWidthCm / 2, PLACKET_LENGTH_CM * 0.9],
+  ];
+  // The two fold lines themselves, inset from each long edge by that edge's
+  // own fold allowance -- so the gap between a fold line and its edge is
+  // asymmetric by construction, not just described in a detail row.
+  const internalsCm: InternalCm[] = [
+    {
+      kind: "foldLine",
+      aCm: [PLACKET_FOLD_OVERLAP_CM, 0],
+      bCm: [PLACKET_FOLD_OVERLAP_CM, PLACKET_LENGTH_CM],
+    },
+    {
+      kind: "foldLine",
+      aCm: [cutWidthCm - PLACKET_FOLD_UNDERLAP_CM, 0],
+      bCm: [cutWidthCm - PLACKET_FOLD_UNDERLAP_CM, PLACKET_LENGTH_CM],
+    },
   ];
   const detailRows: DetailRow[] = [
     { label: t("rows.length"), value: cm(PLACKET_LENGTH_CM) },
+    {
+      label: t("rows.placketFoldOverlap"),
+      value: cm(PLACKET_FOLD_OVERLAP_CM),
+    },
+    {
+      label: t("rows.placketFoldUnderlap"),
+      value: cm(PLACKET_FOLD_UNDERLAP_CM),
+    },
     { label: t("rows.grain"), value: t("grainValue") },
   ];
   return {
@@ -188,6 +229,7 @@ export function draftPlacket(t: Translate): DraftedPiece {
     qty: 2, // one per sleeve opening
     outlineCm: pts,
     grainlineCm,
+    internalsCm,
     detailRows,
   };
 }

@@ -187,6 +187,8 @@
       "collarOtherTypes": "Outros tipos de gola (padre, chinesa, Peter Pan)",
       "cuffType": "Tipo de punho",
       "cuffOtherTypes": "Punho moldado e carcela tipo tower",
+      "placketFoldOverlap": "Dobra de sobreposição",
+      "placketFoldUnderlap": "Dobra interna",
       "waistbandType": "Tipo de cós",
       "waistbandClosureMark": "Marca de fechamento (botão/zíper)",
       "buttonStandMark": "Marca de botão/casa",
