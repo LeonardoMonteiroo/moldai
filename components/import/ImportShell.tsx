@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useImportStore } from "@/lib/importStore";
 import { FileSummaryCard } from "./FileSummaryCard";
 import { LayerMappingPanel } from "./LayerMappingPanel";
+import { LayerPreviewCanvas } from "./LayerPreviewCanvas";
 import { VerificationPanel } from "./VerificationPanel";
 import { RulCompanionCard } from "./RulCompanionCard";
 
@@ -49,6 +50,7 @@ export function ImportShell({ userEmail }: { userEmail: string }) {
           {step === 2 && analysis && (
             <>
               <RulCompanionCard />
+              <LayerPreviewCanvas />
               <div className="grid min-h-0 flex-1 grid-cols-2 gap-[18px]">
                 <LayerMappingPanel />
                 <VerificationPanel />

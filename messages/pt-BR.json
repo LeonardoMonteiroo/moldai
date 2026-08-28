@@ -1191,6 +1191,8 @@
       "ignore": "Ignorar"
     },
     "layerNotFound": "não encontrada",
+    "layerGroupCount": "{count} camadas",
+    "previewSectionLabel": "Prévia",
     "verificationSectionLabel": "Verificação",
     "checks": {
       "unitCm": "Unidade reconhecida: {unit}",

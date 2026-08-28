@@ -56,6 +56,7 @@ beforeEach(() => {
     doc: null,
     analysis: null,
     roles: {},
+    hoveredLayers: null,
     loading: false,
     actionError: null,
     rulActionError: null,
@@ -164,6 +165,128 @@ describe("ImportShell — expected-but-absent role", () => {
         `${tImport("layerRole.seam")}: ${tImport("layerNotFound")}`,
       ),
     ).toBeInTheDocument();
+  });
+});
+
+describe("ImportShell — grouped layer preview (#238)", () => {
+  function setStateWithSamePenAcrossTwoPages() {
+    useImportStore.setState({
+      step: 2,
+      fileName: "oskar.dxf",
+      fileSizeBytes: 10,
+      doc: {
+        insUnits: 5,
+        acadVer: null,
+        entities: [
+          {
+            kind: "polyline",
+            layer: "P1_R150G62B151_CONTINUOUS",
+            closed: true,
+            vertices: [
+              [0, 0],
+              [5, 0],
+              [5, 5],
+            ],
+          },
+          {
+            kind: "polyline",
+            layer: "P2_R150G62B151_CONTINUOUS",
+            closed: true,
+            vertices: [
+              [10, 10],
+              [15, 10],
+              [15, 15],
+            ],
+          },
+        ],
+        unsupported: [],
+        truncated: false,
+      },
+      analysis: {
+        format: "dxf-generic",
+        fileName: "oskar.dxf",
+        fileSizeBytes: 10,
+        unitScaleToCm: 1,
+        layers: [
+          { name: "P1_R150G62B151_CONTINUOUS", entityCount: 1 },
+          { name: "P2_R150G62B151_CONTINUOUS", entityCount: 1 },
+        ],
+        suggestedRoles: {
+          P1_R150G62B151_CONTINUOUS: "ignore",
+          P2_R150G62B151_CONTINUOUS: "ignore",
+        },
+        pieceCount: 0,
+        checks: [],
+      },
+      roles: {
+        P1_R150G62B151_CONTINUOUS: "ignore",
+        P2_R150G62B151_CONTINUOUS: "ignore",
+      },
+      hoveredLayers: null,
+      loading: false,
+      actionError: null,
+    });
+  }
+
+  it("collapses two same-pen layers (differing only by a page prefix) into one row with a count badge", () => {
+    setStateWithSamePenAcrossTwoPages();
+    renderWithIntl(<ImportShell userEmail="a@b.com" />);
+
+    expect(
+      screen.getByRole("combobox", { name: "R150G62B151_CONTINUOUS" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("combobox", {
+        name: "P1_R150G62B151_CONTINUOUS",
+      }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText(tImport("layerGroupCount", { count: 2 })),
+    ).toBeInTheDocument();
+  });
+
+  it("choosing a role for the group applies it to every layer the group represents", async () => {
+    setStateWithSamePenAcrossTwoPages();
+    const user = userEvent.setup();
+    renderWithIntl(<ImportShell userEmail="a@b.com" />);
+
+    await user.click(
+      screen.getByRole("combobox", { name: "R150G62B151_CONTINUOUS" }),
+    );
+    await user.click(
+      await screen.findByRole("option", { name: tImport("layerRole.cut") }),
+    );
+
+    expect(useImportStore.getState().roles).toEqual({
+      P1_R150G62B151_CONTINUOUS: "cut",
+      P2_R150G62B151_CONTINUOUS: "cut",
+    });
+  });
+
+  it("hovering the grouped row highlights both underlying layers for the preview canvas", async () => {
+    setStateWithSamePenAcrossTwoPages();
+    const user = userEvent.setup();
+    renderWithIntl(<ImportShell userEmail="a@b.com" />);
+
+    const row = screen.getByText("R150G62B151_CONTINUOUS").closest("li")!;
+    await user.hover(row);
+    expect(useImportStore.getState().hoveredLayers).toEqual([
+      "P1_R150G62B151_CONTINUOUS",
+      "P2_R150G62B151_CONTINUOUS",
+    ]);
+
+    await user.unhover(row);
+    expect(useImportStore.getState().hoveredLayers).toBeNull();
+  });
+
+  it("renders one SVG path per detected layer in the preview canvas", () => {
+    setStateWithSamePenAcrossTwoPages();
+    renderWithIntl(<ImportShell userEmail="a@b.com" />);
+
+    const previewSvg = screen.getByText(tImport("previewSectionLabel"))
+      .nextElementSibling as SVGSVGElement;
+    expect(previewSvg.tagName).toBe("svg");
+    expect(previewSvg.querySelectorAll("path")).toHaveLength(2);
   });
 });
 

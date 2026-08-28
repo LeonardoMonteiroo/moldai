@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { useImportStore } from "@/lib/importStore";
 import { LAYER_ROLES, type LayerRole } from "@/lib/import/types";
+import { groupLayers } from "@/lib/import/groups";
 
 // The roles a real pattern-cutting file is expected to carry at least one
 // layer for. `notch`/`ignore` are assignable (matching design 5g's mapping
@@ -18,22 +19,28 @@ import { LAYER_ROLES, type LayerRole } from "@/lib/import/types";
 const EXPECTED_ROLES: LayerRole[] = ["cut", "seam", "grain"];
 
 /**
- * One row per detected layer, each with a role Select over the single
- * exported LAYER_ROLES list — a catalog lookup keyed by the EN value
- * (t("layerRole." + role)), never a hand-written label map. A mapped row's
- * chip sits on the olive-tint token; an expected-but-absent role gets its
- * own amber notice badge.
+ * One row per detected LAYER GROUP (lib/import/groups.ts — layers that
+ * differ only by a leading page prefix, the "same pen drawn once per page"
+ * shape a plot-to-DXF export routinely produces), each with a role Select
+ * over the single exported LAYER_ROLES list — a catalog lookup keyed by the
+ * EN value (t("layerRole." + role)), never a hand-written label map.
+ * Choosing a role applies it to every layer in the group at once. A mapped
+ * row's chip sits on the olive-tint token; an expected-but-absent role gets
+ * its own amber notice badge. Hovering/focusing a row highlights the whole
+ * group in LayerPreviewCanvas via `hoveredLayers`.
  */
 export function LayerMappingPanel() {
   const t = useTranslations("Import");
   const analysis = useImportStore((s) => s.analysis);
   const roles = useImportStore((s) => s.roles);
-  const setRole = useImportStore((s) => s.setRole);
+  const setRoleForLayers = useImportStore((s) => s.setRoleForLayers);
+  const setHoveredLayers = useImportStore((s) => s.setHoveredLayers);
 
   if (!analysis) return null;
 
   const mappedRoles = new Set(Object.values(roles));
   const missingExpected = EXPECTED_ROLES.filter((r) => !mappedRoles.has(r));
+  const groups = groupLayers(analysis.layers.map((l) => l.name));
 
   return (
     <div className="border-border bg-surface flex min-h-0 flex-col gap-[10px] rounded-lg border p-[18px]">
@@ -50,29 +57,47 @@ export function LayerMappingPanel() {
         </div>
       )}
       <ul className="flex flex-col gap-[8px]">
-        {analysis.layers.map((layer) => {
-          const role = roles[layer.name] ?? "ignore";
+        {groups.map((group) => {
+          const role = roles[group.layers[0]] ?? "ignore";
+          const label = group.layers.length > 1 ? group.key : group.layers[0];
           return (
+            // Pointer-only highlight of this group in LayerPreviewCanvas —
+            // there is no interactive ARIA role for "hover region," and the
+            // row's real interactive control (the Select below) carries its
+            // own onFocus/onBlur for keyboard users.
+            // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
             <li
-              key={layer.name}
+              key={group.key}
               className="flex items-center justify-between gap-[10px]"
+              onMouseEnter={() => setHoveredLayers(group.layers)}
+              onMouseLeave={() => setHoveredLayers(null)}
             >
               <span
                 className={
-                  "text-control min-w-0 truncate rounded-md px-[8px] py-[3px] " +
+                  "text-control flex min-w-0 items-center gap-[6px] truncate rounded-md px-[8px] py-[3px] " +
                   (role !== "ignore" ? "bg-accent text-accent-foreground" : "")
                 }
-                title={layer.name}
+                title={group.layers.join(", ")}
               >
-                {layer.name}
+                <span className="min-w-0 truncate">{label}</span>
+                {group.layers.length > 1 && (
+                  <Badge variant="outline" size="chip">
+                    {t("layerGroupCount", { count: group.layers.length })}
+                  </Badge>
+                )}
               </span>
               <Select
                 value={role}
                 onValueChange={(value) =>
-                  setRole(layer.name, value as LayerRole)
+                  setRoleForLayers(group.layers, value as LayerRole)
                 }
               >
-                <SelectTrigger size="sm" aria-label={layer.name}>
+                <SelectTrigger
+                  size="sm"
+                  aria-label={label}
+                  onFocus={() => setHoveredLayers(group.layers)}
+                  onBlur={() => setHoveredLayers(null)}
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

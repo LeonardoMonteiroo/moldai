@@ -41,6 +41,8 @@ interface ImportStore {
   doc: DxfDocument | null;
   analysis: ImportAnalysis | null;
   roles: Record<string, LayerRole>;
+  /** The layer group currently hovered/focused in LayerMappingPanel — highlighted in LayerPreviewCanvas, dimming every other layer. Null when nothing is hovered. */
+  hoveredLayers: string[] | null;
   /** True while a picked file is being read/parsed — the screen's one live region. */
   loading: boolean;
   /** Code for the last failed pick, or null — resolved through the catalog per-code. */
@@ -53,6 +55,9 @@ interface ImportStore {
   /** Drops the attached `.RUL` summary so the user can pick a different companion file. */
   clearRul: () => void;
   setRole: (layer: string, role: LayerRole) => void;
+  /** Same as `setRole`, applied to every layer in one group at once (LayerMappingPanel's grouped rows). */
+  setRoleForLayers: (layers: string[], role: LayerRole) => void;
+  setHoveredLayers: (layers: string[] | null) => void;
   reset: () => void;
   clearActionError: () => void;
 }
@@ -71,6 +76,7 @@ export const useImportStore = create<ImportStore>((set, get) => ({
   doc: null,
   analysis: null,
   roles: {},
+  hoveredLayers: null,
   loading: false,
   actionError: null,
   rulActionError: null,
@@ -119,8 +125,14 @@ export const useImportStore = create<ImportStore>((set, get) => ({
   // Recomputes pieceCount/checks from the CURRENT role map — step 2's entire
   // purpose is correcting the mapping, and the count/checks shown must
   // reflect that correction instead of staying frozen at the initial guess.
-  setRole: (layer, role) => {
-    const nextRoles = { ...get().roles, [layer]: role };
+  setRole: (layer, role) => get().setRoleForLayers([layer], role),
+
+  // Same recompute, applied to every layer in a group at once — the layer
+  // list groups same-pen layers that differ only by a page prefix (#238),
+  // and correcting one member's role must correct the whole group's.
+  setRoleForLayers: (layers, role) => {
+    const nextRoles = { ...get().roles };
+    for (const layer of layers) nextRoles[layer] = role;
     const doc = get().doc;
     const analysis = get().analysis;
     if (!doc || !analysis) {
@@ -133,6 +145,8 @@ export const useImportStore = create<ImportStore>((set, get) => ({
       analysis: { ...analysis, pieceCount, checks },
     });
   },
+
+  setHoveredLayers: (layers) => set({ hoveredLayers: layers }),
 
   // Additive companion — requires a DXF already loaded (step 2), never
   // gates or replaces it. Failure leaves `analysis.rul` untouched rather
@@ -180,6 +194,7 @@ export const useImportStore = create<ImportStore>((set, get) => ({
       doc: null,
       analysis: null,
       roles: {},
+      hoveredLayers: null,
       actionError: null,
       rulActionError: null,
       loading: false,
