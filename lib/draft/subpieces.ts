@@ -1,5 +1,5 @@
 import { DetailRow } from "@/lib/types";
-import { DraftedPiece, InternalCm, Pt } from "./core";
+import { curveArcLengthCm, DraftedPiece, InternalCm, Pt } from "./core";
 import { formatCm } from "@/lib/format";
 import type { Translate } from "@/lib/i18n/translate";
 
@@ -31,13 +31,25 @@ const cm = (v: number) => `${formatCm(v)} cm`;
 // decision: "one type, name it precisely, mark the rest em breve").
 const COLLAR_HEIGHT_CM = 6.5; // outer edge to neckline seam
 
-// necklineArcCm is the FULL measured neckline circumference (front + back,
-// both halves already summed by the caller) -- the collar's own neckline
-// seam edge is drafted to exactly that length (a straight edge, so the
-// match is exact to floating-point precision, comfortably inside the AC's
-// 0.3cm tolerance), never a proportion of the bust.
-export function draftCollar(necklineArcCm: number, t: Translate): DraftedPiece {
-  const halfLen = necklineArcCm / 2;
+// #222: the geometry-building half of draftCollar, extracted so the shirt
+// collar's own FALL piece (draftShirtCollar below) can reuse the identical
+// soft-curved-outer-edge shape -- sources describe the fall as literally
+// "the standard one-piece collar" sewn on top of a separate stand, i.e. this
+// exact shape, sized off a different (shorter) seam length. Only the
+// returned DraftedPiece's own id/name/detailRows differ by caller.
+//
+// seamLenCm is the FULL measured length the collar's own straight neckline
+// seam is drafted to -- the front+back neckline arc for draftCollar below,
+// or the shirt stand's own measured (shortened) upper seam for the fall --
+// never a proportion of the bust.
+function convertibleFallShape(seamLenCm: number): {
+  pts: Pt[];
+  curvedSpans: [number, number][];
+  grainlineCm: [Pt, Pt];
+  foldEdge: [number, number];
+  seamEdge: [number, number];
+} {
+  const halfLen = seamLenCm / 2;
   const cx = halfLen;
   const pts: Pt[] = [];
   const push = (p: Pt) => (pts.push(p), pts.length - 1);
@@ -65,6 +77,25 @@ export function draftCollar(necklineArcCm: number, t: Translate): DraftedPiece {
     [cx, 1],
     [cx, COLLAR_HEIGHT_CM - 1],
   ];
+  return {
+    pts,
+    curvedSpans,
+    grainlineCm,
+    foldEdge: [tc, seamC],
+    // The straight neckline seam edge (seamL -> seamC -> seamR) -- a single
+    // contiguous range since no curvedSpan covers it, summing to exactly
+    // halfLen*2 === seamLenCm.
+    seamEdge: [seamL, seamR],
+  };
+}
+
+// necklineArcCm is the FULL measured neckline circumference (front + back,
+// both halves already summed by the caller) -- the collar's own neckline
+// seam edge is drafted to exactly that length (a straight edge, so the
+// match is exact to floating-point precision, comfortably inside the AC's
+// 0.3cm tolerance), never a proportion of the bust.
+export function draftCollar(necklineArcCm: number, t: Translate): DraftedPiece {
+  const shape = convertibleFallShape(necklineArcCm);
   const detailRows: DetailRow[] = [
     { label: t("rows.collarType"), value: t("collarType.convertible") },
     { label: t("rows.length"), value: cm(necklineArcCm) },
@@ -80,15 +111,12 @@ export function draftCollar(necklineArcCm: number, t: Translate): DraftedPiece {
     id: "collar",
     name: t("pieceNames.collar"),
     qty: 1, // cut on fold (center back)
-    outlineCm: pts,
-    curvedSpans,
-    grainlineCm,
-    foldEdge: [tc, seamC],
+    outlineCm: shape.pts,
+    curvedSpans: shape.curvedSpans,
+    grainlineCm: shape.grainlineCm,
+    foldEdge: shape.foldEdge,
     detailRows,
-    // The straight neckline seam edge (seamL -> seamC -> seamR) -- a single
-    // contiguous range since no curvedSpan covers it, summing to exactly
-    // halfLen*2 === necklineArcCm.
-    seamEdges: { neckline: [seamL, seamR] },
+    seamEdges: { neckline: shape.seamEdge },
   };
 }
 
@@ -391,4 +419,167 @@ export function draftButtonStand(
     detailRows,
     seamEdges: { centerFront: seamEdge },
   };
+}
+
+// ---------------------------------------------------------------------------
+// Shirt collar: stand + fall (#222)
+// ---------------------------------------------------------------------------
+
+// #222: sources describe the classic shirt collar as a composite of TWO
+// collars sewn together -- a Mandarin/band collar as the base (the stand)
+// plus the standard one-piece collar shape as the top (the fall), not a
+// single piece (dresspatternmaking.com's "Collars": "The Shirt Collar is
+// actually made from two other collars; the base is the Mandarin (or Band)
+// Collar, and the top part is the standard one-piece collar."). The stand
+// reuses BAND_COLLAR_HEIGHT_CM (its own construction IS the band collar's,
+// per that source) and the fall reuses convertibleFallShape above (the
+// SAME "standard one-piece collar" shape draftCollar already drafts).
+//
+// The stand's own upper seam (where the fall sews on) is drafted shorter
+// than its lower (neckline) seam AND curved -- stitchpaperscissors.com's
+// "How to Draft a Shirt Pattern" describes exactly this refinement ("the
+// upper seam is curved to reduce gaping" at the neck). No verified
+// industry-standard shorten AMOUNT exists (the same "no citable multiplier"
+// gap BUTTON_STAND_WIDTH_CM above already documents), so this is a
+// deliberate, reasonable constant on the same footing -- a FIXED cm inset
+// per side (not a proportion of the stand's own length): #123's cut-line
+// offset mitres a sharp polygon corner into an outsized wedge (see
+// draftCollar's own ctrl-point comment above), and a proportional inset
+// would grow with the neckline arc while the stand's own height doesn't,
+// making the corner where the straight neckline seam meets this taper
+// progressively SHARPER on a larger stand. A fixed cm inset keeps that
+// corner's own angle constant regardless of size.
+const STAND_TOP_INSET_CM = 1.2;
+
+// #222 AC: "the width of the half of the neckline plus the final width of
+// the button stand" (stitchpaperscissors.com) -- necklineArcCm here is
+// already the FULL front+back arc (this repo's own convention, matching
+// every other collar/band above), so the per-half formula scales up to
+// "the full arc plus one button-stand width", the same "front-edge closure
+// extension added once to the full arc" shape draftBandCollar's own
+// BAND_COLLAR_FRONT_EXTENSION_CM already establishes -- reusing
+// BUTTON_STAND_WIDTH_CM (#223) rather than a second, new constant, since
+// it's the SAME finished button-stand width the front-closure work already
+// derived, not a fresh guess.
+function shirtStandShape(standLenCm: number): {
+  pts: Pt[];
+  curvedSpans: [number, number][];
+  grainlineCm: [Pt, Pt];
+  neckSeamEdge: [number, number];
+  fallSeamEdge: [number, number];
+} {
+  const cx = standLenCm / 2;
+  const pts: Pt[] = [];
+  const push = (p: Pt) => (pts.push(p), pts.length - 1);
+
+  // Walk the perimeter once: the straight neckline seam (bottom) left to
+  // right, a short straight taper up the right side, across the
+  // shortened+curved fall seam (top) right to left, then a short straight
+  // taper back down the left side, closing back to the start. Six vertices
+  // total -- the same count draftCollar/draftBandCollar's own shapes use.
+  const neckL = push([0, BAND_COLLAR_HEIGHT_CM]); // bottom-left (neckline seam)
+  push([cx, BAND_COLLAR_HEIGHT_CM]); // bottom-centre -- walked so the straight
+  // neckline seam is one contiguous range (seamL -> seamC -> seamR), the
+  // "vertex at the straight edge's own midpoint" idiom straightBand's own
+  // callers use, without changing the rendered shape.
+  const neckR = push([standLenCm, BAND_COLLAR_HEIGHT_CM]); // bottom-right
+  // fallR/fallL sit only STAND_TOP_INSET_CM inward from directly above
+  // neckR/neckL -- a small, fixed horizontal step against a much larger
+  // vertical rise (BAND_COLLAR_HEIGHT_CM), which keeps the neckR->fallR and
+  // fallL->neckL taper edges close to vertical (a gentle corner at neckR/
+  // neckL, not a sharp mitre-prone one -- the same "meets close to a right
+  // angle" idiom draftCollar's own ctrl points establish for its curve).
+  const fallR = push([
+    standLenCm - STAND_TOP_INSET_CM,
+    BAND_COLLAR_HEIGHT_CM * 0.15,
+  ]); // top-right
+  push([cx, 0]); // top-centre apex -- the piece's own topmost point, walked
+  // only as the curve's own middle sample point (see curvedSpans below).
+  const fallL = push([STAND_TOP_INSET_CM, BAND_COLLAR_HEIGHT_CM * 0.15]); // top-left
+
+  // Only the fall seam (top) is curved -- fallR -> fallC -> fallL, a real,
+  // shallow Catmull-Rom curve through those three points (see core.ts's
+  // catmullRomSegments), never a straight line as #221's plain band uses.
+  const curvedSpans: [number, number][] = [[fallR, fallL]];
+  // Near the neckline seam, where the piece is still full-width (0 to
+  // standLenCm) rather than already tapering in toward the shortened top.
+  const grainlineCm: [Pt, Pt] = [
+    [standLenCm * 0.1, BAND_COLLAR_HEIGHT_CM * 0.85],
+    [standLenCm * 0.9, BAND_COLLAR_HEIGHT_CM * 0.85],
+  ];
+  return {
+    pts,
+    curvedSpans,
+    grainlineCm,
+    neckSeamEdge: [neckL, neckR],
+    fallSeamEdge: [fallR, fallL],
+  };
+}
+
+// The shirt collar's own fall -- literally draftCollar's shape (see
+// convertibleFallShape above), sized to the stand's own MEASURED (already
+// shortened) upper seam rather than the full neckline arc, and labelled
+// as its own distinct piece rather than "convertible" (a fall sewn onto a
+// stand is not the standalone convertible collar draftCollar produces).
+function draftShirtFall(fallSeamLenCm: number, t: Translate): DraftedPiece {
+  const shape = convertibleFallShape(fallSeamLenCm);
+  const detailRows: DetailRow[] = [
+    { label: t("rows.collarType"), value: t("collarType.shirt") },
+    { label: t("rows.length"), value: cm(fallSeamLenCm) },
+    { label: t("rows.grain"), value: t("grainValue") },
+    { label: t("rows.collarOtherTypes"), value: t("comingSoonBadge") },
+  ];
+  return {
+    id: "collar-fall",
+    name: t("pieceNames.collarFall"),
+    qty: 1,
+    outlineCm: shape.pts,
+    curvedSpans: shape.curvedSpans,
+    grainlineCm: shape.grainlineCm,
+    foldEdge: shape.foldEdge,
+    detailRows,
+    seamEdges: { neckline: shape.seamEdge },
+  };
+}
+
+// necklineArcCm is the FULL measured (already-lowered, same as "band")
+// front+back neckline arc -- the caller (garment.ts) computes it exactly
+// like it does for draftBandCollar above. Returns BOTH mated pieces; the
+// fall's own seam length is measured off the stand's ACTUALLY-drafted upper
+// seam (never a proportion, the same "measure the geometry that was really
+// emitted" rule every other sub-piece here follows), so the two pieces
+// match by construction.
+export function draftShirtCollar(
+  necklineArcCm: number,
+  t: Translate,
+): { stand: DraftedPiece; fall: DraftedPiece } {
+  const standLenCm = necklineArcCm + BUTTON_STAND_WIDTH_CM;
+  const shape = shirtStandShape(standLenCm);
+  const fallSeamLenCm = curveArcLengthCm(
+    shape.pts,
+    shape.curvedSpans,
+    ...shape.fallSeamEdge,
+  );
+  const detailRows: DetailRow[] = [
+    { label: t("rows.collarType"), value: t("collarType.shirt") },
+    { label: t("rows.length"), value: cm(standLenCm) },
+    { label: t("rows.overlap"), value: cm(BUTTON_STAND_WIDTH_CM) },
+    { label: t("rows.grain"), value: t("grainValue") },
+    { label: t("rows.collarOtherTypes"), value: t("comingSoonBadge") },
+  ];
+  const stand: DraftedPiece = {
+    id: "collar-stand",
+    name: t("pieceNames.collarStand"),
+    qty: 1,
+    outlineCm: shape.pts,
+    curvedSpans: shape.curvedSpans,
+    grainlineCm: shape.grainlineCm,
+    detailRows,
+    seamEdges: {
+      neckline: shape.neckSeamEdge,
+      fallSeam: shape.fallSeamEdge,
+    },
+  };
+  const fall = draftShirtFall(fallSeamLenCm, t);
+  return { stand, fall };
 }

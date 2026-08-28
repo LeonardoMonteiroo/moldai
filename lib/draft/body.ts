@@ -127,25 +127,30 @@ function bodice(
   else if (style.neckline === "round")
     frontNeckDrop = neckHalf + (opts.knit ? 2.0 : 1.0);
   else frontNeckDrop = neckHalf * 0.7;
-  // #221: a band (stand) collar sits close to the throat with no folded
-  // fall to absorb ease, so the neckline it seats against is opened up a
-  // little first -- small, position-specific deltas (lib/draft/subpieces.ts's
-  // BAND_COLLAR_*_DROP_CM, sourced from muellerundsohn.com's stand-collar
-  // construction), applied BEFORE this panel's own seamEdges are measured so
-  // the collar-neckline seam pair in garment.ts measures the ALREADY-lowered
-  // curve. Centre back/front only get their own panel's delta (frontish
-  // picks which); the shoulder-point delta below is added identically on
-  // both panels so the shoulder seam (front hpsL->shL vs back hpsL->shL)
-  // stays equal by construction, unperturbed by this change.
-  const isBandCollar = style.collar === "band";
+  // #221/#222: a band (stand) collar -- or a shirt collar's own stand,
+  // which is the SAME construction (dresspatternmaking.com's "Collars":
+  // "the base is the Mandarin (or Band) Collar") -- sits close to the
+  // throat with no folded fall to absorb ease, so the neckline it seats
+  // against is opened up a little first -- small, position-specific deltas
+  // (lib/draft/subpieces.ts's BAND_COLLAR_*_DROP_CM, sourced from
+  // muellerundsohn.com's stand-collar construction), applied BEFORE this
+  // panel's own seamEdges are measured so the collar-neckline seam pair in
+  // garment.ts measures the ALREADY-lowered curve. Centre back/front only
+  // get their own panel's delta (frontish picks which); the shoulder-point
+  // delta below is added identically on both panels so the shoulder seam
+  // (front hpsL->shL vs back hpsL->shL) stays equal by construction,
+  // unperturbed by this change.
+  const usesStandNeckline = style.collar === "band" || style.collar === "shirt";
   const neckDrop =
     (frontish ? frontNeckDrop : backNeckDrop) +
-    (isBandCollar
+    (usesStandNeckline
       ? frontish
         ? BAND_COLLAR_FRONT_NECK_DROP_CM
         : BAND_COLLAR_BACK_NECK_DROP_CM
       : 0);
-  const shoulderNeckDropCm = isBandCollar ? BAND_COLLAR_SHOULDER_DROP_CM : 0;
+  const shoulderNeckDropCm = usesStandNeckline
+    ? BAND_COLLAR_SHOULDER_DROP_CM
+    : 0;
 
   const fitted = !!style.darts && !opts.knit;
   // #223: a front-closure blouse front splits into a mirrored half-panel

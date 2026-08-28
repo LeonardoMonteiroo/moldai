@@ -48,6 +48,13 @@ export const PHASE_BY_KEY: Record<string, SeamPhase> = {
   "trouser-inseam": "side",
   "trouser-outseam": "side",
   "collar-neckline": "attach",
+  // #222: the fall sews onto the stand's own already-attached upper seam --
+  // still the same "attach" phase as collar-neckline itself (a sub-piece
+  // sewn onto an already-shaped edge), just one step later for the same
+  // garment; phaseRank is a stable sort, so seamGraph's own declaration
+  // order (collar-neckline pushed before collar-stand-fall in garment.ts)
+  // breaks the tie correctly without a second phase.
+  "collar-stand-fall": "attach",
   "cuff-hem": "attach",
   "button-stand-center-front": "attach",
   "waist-join-front": "waistJoin",

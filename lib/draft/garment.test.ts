@@ -24,7 +24,11 @@ import {
   type InternalCm,
 } from "./core";
 import { DECORATION_CASES } from "./fixtures";
-import { PLACKET_FOLD_OVERLAP_CM, PLACKET_FOLD_UNDERLAP_CM } from "./subpieces";
+import {
+  PLACKET_FOLD_OVERLAP_CM,
+  PLACKET_FOLD_UNDERLAP_CM,
+  BUTTON_STAND_WIDTH_CM,
+} from "./subpieces";
 
 function isFoldLine(
   e: InternalCm,
@@ -195,6 +199,18 @@ describe("validateSpec", () => {
       measurementOverrides: {},
     });
     expect(s.style.collar).toBe("band");
+  });
+
+  // #222: "shirt" (the two-piece stand+fall assembly) is the third real
+  // collar shape -- accepted exactly like "convertible"/"band", never
+  // falling back to either.
+  it("accepts collar: shirt", () => {
+    const s = validateSpec({
+      type: "blouse",
+      style: { collar: "shirt" },
+      measurementOverrides: {},
+    });
+    expect(s.style.collar).toBe("shirt");
   });
 
   it("leaves collar/cuff/waistband undefined when the spec doesn't mention them", () => {
@@ -1517,6 +1533,120 @@ describe("seam graph (#134)", () => {
     expect(collar).toBeDefined();
     expect(collar.curvedSpans ?? []).toHaveLength(0);
     expect(collar.outlineCm).toHaveLength(6); // straightBand()'s own rectangle
+  });
+
+  // #222 AC: the classic two-piece shirt collar -- a stand mated to the
+  // body's neckline (same construction as "band") PLUS a separate fall
+  // mated to the stand's own upper seam, instead of the single-piece
+  // convertible/band shape.
+  it("#222 AC: drafts TWO mated pieces (stand + fall), not the single-piece convertible/band shape", () => {
+    const spec = {
+      type: "blouse" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { neckline: "round" as const, collar: "shirt" as const },
+    };
+    const pieces = draftPiecesCm(spec, SIZE_TABLE.M, t);
+    const ids = pieces.map((p) => p.id);
+    expect(ids).toContain("collar-stand");
+    expect(ids).toContain("collar-fall");
+    expect(ids).not.toContain("collar");
+  });
+
+  it("#222: the shirt collar's stand-neckline seam matches the (lowered) front+back neckline arc plus the button-stand width, within 0.3cm", () => {
+    const spec = {
+      type: "blouse" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { neckline: "round" as const, collar: "shirt" as const },
+    };
+    const graph = measureSeamGraph(spec, SIZE_TABLE.M, t);
+    const pair = graph.find((m) => m.key === "collar-neckline");
+    expect(pair).toBeDefined();
+    expect(pair!.fixable).toBe(false);
+    expect(pair!.easeCm).toBe(BUTTON_STAND_WIDTH_CM);
+    expect(pair!.diffCm).toBeLessThan(0.3);
+  });
+
+  // #222 AC: the stand's own upper seam (where the fall sews on) is joined
+  // to the fall's own neckline seam via its own declared seam-graph pair,
+  // like every other sub-piece pairing in this file -- and the fall's seam
+  // length is measured off the stand's ACTUALLY-drafted (shortened) upper
+  // seam, so the two match by construction.
+  it("#222: the stand's own upper seam matches the fall's own neckline seam (collar-stand-fall) within 0.3cm", () => {
+    const spec = {
+      type: "blouse" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { neckline: "round" as const, collar: "shirt" as const },
+    };
+    const graph = measureSeamGraph(spec, SIZE_TABLE.M, t);
+    const pair = graph.find((m) => m.key === "collar-stand-fall");
+    expect(pair).toBeDefined();
+    expect(pair!.fixable).toBe(false);
+    expect(pair!.diffCm).toBeLessThan(0.3);
+  });
+
+  // #222 AC: "the stand's upper seam is drafted as a curve, shortened
+  // relative to its lower (neckline) edge -- not a straight edge like
+  // #221's plain band."
+  it("#222 AC: the stand's own upper (fall) seam is a genuine curve, shorter than its own lower (neckline) seam", () => {
+    const spec = {
+      type: "blouse" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { neckline: "round" as const, collar: "shirt" as const },
+    };
+    const pieces = draftPiecesCm(spec, SIZE_TABLE.M, t);
+    const stand = pieces.find((p) => p.id === "collar-stand")!;
+    expect(stand).toBeDefined();
+    expect(stand.curvedSpans ?? []).not.toHaveLength(0);
+    const neckLenCm = curveArcLengthCm(
+      stand.outlineCm,
+      stand.curvedSpans ?? [],
+      ...stand.seamEdges!.neckline,
+    );
+    const fallSeamLenCm = curveArcLengthCm(
+      stand.outlineCm,
+      stand.curvedSpans ?? [],
+      ...stand.seamEdges!.fallSeam,
+    );
+    expect(fallSeamLenCm).toBeLessThan(neckLenCm);
+  });
+
+  // #222 AC: "the stand's width is derived from the measured half-neckline
+  // plus the button-stand width ..., not a fixed constant." Two different
+  // bodies (female vs male base measurements) draft two different measured
+  // neckline arcs, so a fixed constant would fail this; the ONLY constant
+  // reused is BUTTON_STAND_WIDTH_CM itself, the same extension #223's own
+  // front-closure work already derived.
+  it("#222 AC: the stand's own width tracks the measured neckline arc plus the button-stand width, not a fixed constant", () => {
+    const spec = {
+      type: "blouse" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { neckline: "round" as const, collar: "shirt" as const },
+    };
+    const femalePair = measureSeamGraph(spec, SIZE_TABLE.M, t).find(
+      (m) => m.key === "collar-neckline",
+    )!;
+    const malePair = measureSeamGraph(
+      { ...spec, gender: "male" as const },
+      SIZE_TABLE_MALE.M,
+      t,
+    ).find((m) => m.key === "collar-neckline")!;
+    // Different bodies -> genuinely different measured neckline arcs.
+    expect(femalePair.aLenCm).not.toBeCloseTo(malePair.aLenCm, 0);
+    // Each stand's own finished length (bLenCm) is still exactly its own
+    // measured arc plus the SAME button-stand width either way.
+    expect(femalePair.bLenCm - femalePair.aLenCm).toBeCloseTo(
+      BUTTON_STAND_WIDTH_CM,
+      1,
+    );
+    expect(malePair.bLenCm - malePair.aLenCm).toBeCloseTo(
+      BUTTON_STAND_WIDTH_CM,
+      1,
+    );
   });
 
   it("#130: the cuff's own seam matches the sleeve's measured hem edge (plus wrist ease) within 0.3cm", () => {

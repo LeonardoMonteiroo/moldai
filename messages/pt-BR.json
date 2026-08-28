@@ -168,7 +168,9 @@
       "cuff": "Punho",
       "placket": "Carcela",
       "waistband": "Cós",
-      "buttonStand": "Carcela de botões"
+      "buttonStand": "Carcela de botões",
+      "collarStand": "Pé de gola",
+      "collarFall": "Viradinha da gola"
     },
     "rows": {
       "seamAllowance": "Folga de costura (na linha de corte)",
@@ -184,7 +186,7 @@
       "sleeveType": "Tipo",
       "sleeveCap": "Cava (copa)",
       "collarType": "Tipo de gola",
-      "collarOtherTypes": "Outros tipos de gola (padre, Peter Pan, gola com pé e virada separada)",
+      "collarOtherTypes": "Outros tipos de gola (padre, Peter Pan)",
       "cuffType": "Tipo de punho",
       "cuffOtherTypes": "Punho moldado e carcela tipo tower",
       "placketFoldOverlap": "Dobra de sobreposição",
@@ -218,7 +220,8 @@
     },
     "collarType": {
       "convertible": "esporte (dobrável)",
-      "band": "chinesa (em pé, sem virada)"
+      "band": "chinesa (em pé, sem virada)",
+      "shirt": "camiseira (pé + viradinha)"
     },
     "cuffType": {
       "straight": "reto, com carcela"
@@ -296,6 +299,11 @@
         "title": "Carcela e centro-frente",
         "aLabel": "Centro-frente · corpo",
         "bLabel": "Carcela de botões"
+      },
+      "collarStandFall": {
+        "title": "Pé de gola e viradinha",
+        "aLabel": "Pé de gola · costura superior",
+        "bLabel": "Viradinha · decote"
       },
       "waistbandWaist": {
         "title": "Cós e cintura",
