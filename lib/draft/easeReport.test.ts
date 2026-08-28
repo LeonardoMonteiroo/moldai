@@ -229,4 +229,20 @@ describe("buildEaseReport", () => {
       }
     }
   });
+
+  it("#223: a front-closure blouse reports the same bust/waist/hip ease as the equivalent whole-front blouse", () => {
+    const withoutClosure = buildEaseReport(fakePattern(blouseSpec), t)!;
+    const withClosure = buildEaseReport(
+      fakePattern({
+        ...blouseSpec,
+        style: { ...blouseSpec.style, frontClosure: "buttonStand" },
+      }),
+      t,
+    )!;
+    expect(withoutClosure).not.toBeNull();
+    expect(withClosure).not.toBeNull();
+    expect(withClosure.girths.map((g) => g.finishedCm)).toEqual(
+      withoutClosure.girths.map((g) => g.finishedCm),
+    );
+  });
 });
