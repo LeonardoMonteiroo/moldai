@@ -219,6 +219,27 @@ describe("buildProofMesh", () => {
     const bustRing = bodyShell.rings[0];
     expect(bustRing.girthCm).toBeGreaterThan(SIZE_TABLE.M.bust);
   });
+
+  it("#223: a front-closure blouse's bust/waist mesh girth matches the equivalent whole-front blouse", () => {
+    const base = buildProofMesh(pattern(CASES[0][1], CASES[0][2]), t);
+    const closure = buildProofMesh(
+      pattern(
+        {
+          ...CASES[0][1],
+          style: { ...CASES[0][1].style, frontClosure: "buttonStand" },
+        },
+        CASES[0][2],
+      ),
+      t,
+    );
+    const baseBust = base.fit.find((r) => r.key === "bust")!;
+    const closureBust = closure.fit.find((r) => r.key === "bust")!;
+    expect(closureBust.easeCm).toBeCloseTo(baseBust.easeCm, 5);
+
+    const baseWaist = base.fit.find((r) => r.key === "waist")!;
+    const closureWaist = closure.fit.find((r) => r.key === "waist")!;
+    expect(closureWaist.easeCm).toBeCloseTo(baseWaist.easeCm, 5);
+  });
 });
 
 // Regression for a review finding: scanHalfWidthAtY/widestVertexInRange used

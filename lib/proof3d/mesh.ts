@@ -247,7 +247,12 @@ export function buildProofMesh(pattern: Pattern, t: Translate): ProofMesh {
     // piece's real rendered silhouette, not its sparse control polygon.
     const ptsF = flattenOutline(front.outlineCm, front.curvedSpans ?? []);
     const ptsB = flattenOutline(back.outlineCm, back.curvedSpans ?? []);
-    const cxF = pieceCx(ptsF);
+    // #223: a front-closure half-panel isn't symmetric about its own
+    // bounding box -- centerXCm (set only on that piece, in the SAME
+    // outlineCm coordinate space flattening never moves an existing
+    // vertex in) names its true axis instead. Every other piece keeps
+    // today's bbox-midpoint behavior.
+    const cxF = front.centerXCm ?? pieceCx(ptsF);
     const cxB = pieceCx(ptsB);
     const bF = bbox(ptsF);
     const bB = bbox(ptsB);
