@@ -145,12 +145,12 @@ describe("PatternData", () => {
       expect(
         t("conflict.description", { diffCm: 3.7, direction: "larger" }),
       ).toBe(
-        "A cava do corpo ficou 3,7 cm maior que a copa da manga — as costuras não vão fechar.",
+        "A cava do corpo ficou 3,7 cm maior que a copa da manga, então as costuras não vão fechar.",
       );
       expect(
         t("conflict.description", { diffCm: 3.7, direction: "smaller" }),
       ).toBe(
-        "A cava do corpo ficou 3,7 cm menor que a copa da manga — as costuras não vão fechar.",
+        "A cava do corpo ficou 3,7 cm menor que a copa da manga, então as costuras não vão fechar.",
       );
     });
   });

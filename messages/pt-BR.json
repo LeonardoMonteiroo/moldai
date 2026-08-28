@@ -15,13 +15,13 @@
     "formatSvg": "SVG · 1:1 (plotter)",
     "formatDxf": "DXF · genérico 1:1 (CAD)",
     "formatDxfAama": "DXF · Audaces/AAMA-ASTM · beta",
-    "formatDxfAamaNote": "Camadas numeradas D6673, incluindo furos de marcação (camada 13). Verificado apenas de forma estrutural — nunca aberto em um leitor CAD real (Audaces/Gerber).",
+    "formatDxfAamaNote": "Camadas numeradas D6673, incluindo furos de marcação (camada 13). Verificado apenas de forma estrutural, nunca aberto em um leitor CAD real (Audaces/Gerber).",
     "formatPdfA4": "PDF · A4 (colar em casa)",
     "formatPdfSingle": "PDF · folha única (plotter)",
     "formatPdfLayered": "PDF · tamanhos em camadas",
-    "formatPdfLayeredNote": "Inclui o tamanho-base e os tamanhos já graduados, uma camada por tamanho, com legenda — cada camada mostra a linha de corte, o fio e os piques; a linha de costura líquida e a dobra não aparecem, para manter a sobreposição legível.",
+    "formatPdfLayeredNote": "Inclui o tamanho-base e os tamanhos já graduados, uma camada por tamanho, com legenda. Cada camada mostra a linha de corte, o fio e os piques; a linha de costura líquida e a dobra não aparecem, para manter a sobreposição legível.",
     "formatPlt": "PLT · HPGL/2 (plotter) · beta",
-    "formatPltNote": "Segue o padrão HPGL/2 e foi verificado apenas de forma estrutural (sintaxe, arredondamento de coordenadas, contagem de faixas, canetas distintas) — nunca plotado em um equipamento físico. O nome da peça usa a fonte interna do plotter, não uma tipografia específica; variantes de dialeto Audaces/Molde.me também podem diferir.",
+    "formatPltNote": "Segue o padrão HPGL/2 e foi verificado apenas de forma estrutural (sintaxe, arredondamento de coordenadas, contagem de faixas, canetas distintas), mas nunca plotado em um equipamento físico. O nome da peça usa a fonte interna do plotter, não uma tipografia específica; variantes de dialeto Audaces/Molde.me também podem diferir.",
     "statusConflict": "v{version} · não exportável com conflito",
     "statusGenerating": "gerando molde…",
     "statusReady": "{copyCount, plural, one {# cópia} other {# cópias}} · base {baseSize} · unidade {unit}",
@@ -42,7 +42,7 @@
   "ChatPanel": {
     "title": "Conversa",
     "subtitle": "MoldAI v2 Pro",
-    "generationError": "A geração falhou. Seus créditos foram devolvidos — tente novamente.",
+    "generationError": "A geração falhou, mas seus créditos foram devolvidos. Tente novamente.",
     "generatingCost": "−{cost, plural, one {# crédito} other {# créditos}} · gerando…",
     "generateButton": "Gerar",
     "cancelButton": "Cancelar"
@@ -50,7 +50,7 @@
   "ChatBubble": {
     "questionsAnswered": "Perguntas respondidas.",
     "imageAttached": "imagem enviada",
-    "assemblyDisclaimer": "Ordem de montagem gerada por IA a partir da modelagem — não substitui a verificação de um(a) costureiro(a)."
+    "assemblyDisclaimer": "Ordem de montagem gerada por IA a partir da modelagem; não substitui a verificação de um(a) costureiro(a)."
   },
   "MessageInput": {
     "placeholder": "Descreva o ajuste…",
@@ -66,16 +66,16 @@
     "preparing": "Preparando imagem…",
     "removeAttachment": "Remover anexo",
     "errors": {
-      "unsupported_type": "Tipo de arquivo não suportado — envie uma imagem JPEG, PNG, WEBP ou GIF.",
-      "too_large": "Arquivo muito grande — envie uma imagem de até 10 MB.",
+      "unsupported_type": "Tipo de arquivo não suportado. Envie uma imagem JPEG, PNG, WEBP ou GIF.",
+      "too_large": "Arquivo muito grande. Envie uma imagem de até 10 MB.",
       "decode_failed": "Não foi possível processar essa imagem. Tente outra."
     }
   },
   "CanvasArea": {
     "emptyStateTitle": "Molde em branco",
-    "emptyStateDescription": "Descreva a peça que você quer no chat ao lado — a IA gera seu primeiro molde do zero.",
+    "emptyStateDescription": "Descreva a peça que você quer no chat ao lado, e a IA gera seu primeiro molde do zero.",
     "clearMeasurementsButton": "Limpar medições",
-    "measurePointerOnlyNote": "Marcar pontos de medição ainda exige mouse ou toque — não é possível pelo teclado."
+    "measurePointerOnlyNote": "Marcar pontos de medição ainda exige mouse ou toque; não é possível pelo teclado."
   },
   "TabBar": {
     "tabPattern2d": "Molde 2D",
@@ -112,7 +112,7 @@
   },
   "PaywallModal": {
     "title": "Seus créditos acabaram",
-    "description": "{action} usa {required, plural, one {# crédito} other {# créditos}} e você tem {balance}. Nada foi perdido — o molde continua salvo.",
+    "description": "{action} usa {required, plural, one {# crédito} other {# créditos}} e você tem {balance}. Nada foi perdido: o molde continua salvo.",
     "topupTitle": "Créditos avulsos",
     "topupDetail": "100 créditos · sem assinatura",
     "topupCta": "Comprar ›",
@@ -238,13 +238,13 @@
     "comingSoonBadge": "em breve",
     "conflict": {
       "title": "Cava e manga não batem",
-      "description": "A cava do corpo ficou {diffCm, number, ::.0} cm {direction, select, larger {maior} smaller {menor} other {}} que a copa da manga — as costuras não vão fechar.",
+      "description": "A cava do corpo ficou {diffCm, number, ::.0} cm {direction, select, larger {maior} smaller {menor} other {}} que a copa da manga, então as costuras não vão fechar.",
       "suggestion": "“Corrigir manga” refaz a copa para a cava ajustada, sem custo.",
       "titleFor": "A costura de {label} não fecha",
       "descriptionSingle": "Diferença de {diffCm, number, ::.0} cm entre as duas peças.",
       "titleMultiple": "{count, plural, one {# costura não fecha} other {# costuras não fecham}}",
       "descriptionMultiple": "Confira o detalhe de cada uma abaixo.",
-      "suggestionGeneric": "Sem correção automática — ajuste as medidas ou o estilo e gere o molde novamente."
+      "suggestionGeneric": "Sem correção automática: ajuste as medidas ou o estilo e gere o molde novamente."
     },
     "seamPairs": {
       "shoulder": {
@@ -323,7 +323,7 @@
       "declineFallback": "Não consegui aplicar esse pedido.",
       "creditChip": "−{cost, plural, one {# crédito} other {# créditos}}",
       "graduated": "Graduação aplicada para {list}.",
-      "sleeveRefit": "Copa da manga refeita para a cava ajustada — as costuras voltaram a bater.",
+      "sleeveRefit": "Copa da manga refeita para a cava ajustada; as costuras voltaram a bater.",
       "freeFixChip": "correção gratuita",
       "sizeChartSubstituted": "Sua grade ativa (“{rejected}”) não serve para esta peça, então usei “{used}”. Para usar a sua, ative uma grade do mesmo gênero em Medidas e grades.",
       "fromSloper": "Molde criado a partir da base “{name}”. Peça os ajustes por aqui.",
@@ -395,14 +395,14 @@
     "metricEfficiencyHint": "área útil / área do tecido",
     "metricPieceCountLabel": "Peças no corte",
     "metricPieceCountHint": "cópias (peça × quantidade)",
-    "overflowWarning": "Alguma peça é mais larga que o tecido — use um tecido mais largo ou reduza a peça.",
-    "overlapWarning": "Há cópias sobrepostas — o consumo e o aproveitamento não valem enquanto isso.",
+    "overflowWarning": "Alguma peça é mais larga que o tecido. Use um tecido mais largo ou reduza a peça.",
+    "overlapWarning": "Há cópias sobrepostas: o consumo e o aproveitamento não valem enquanto isso.",
     "modeLabel": "Encaixe",
     "mode": {
       "auto": "Automático",
       "manual": "Manual"
     },
-    "manualHint": "Arraste uma cópia para reposicionar, ou use as setas do teclado — Shift para passos maiores.",
+    "manualHint": "Arraste uma cópia para reposicionar, ou use as setas do teclado (Shift para passos maiores).",
     "resetManual": "Refazer encaixe automático",
     "instanceLabel": "{name} · {x} cm × {y} cm",
     "movedAnnouncement": "{name} em {x} cm × {y} cm",
@@ -416,7 +416,7 @@
     "backToEditorButton": "Voltar para o editor",
     "formatsHeading": "Formato do arquivo",
     "comingSoonBadge": "em breve",
-    "comingSoonTitle": "Este formato ainda não existe — acompanhe no backlog.",
+    "comingSoonTitle": "Este formato ainda não existe. Acompanhe no backlog.",
     "format": {
       "moldeme": "Molde.me · .dxf + metadados",
       "techsheet": "Ficha técnica · .pdf · .xlsx"
@@ -424,7 +424,7 @@
     "optionsHeading": "O que vai no arquivo",
     "sizeLabel": "Tamanhos",
     "sizeBaseOption": "{size} (base)",
-    "sizeSingleOnlyNote": "Um tamanho por arquivo — exportação com vários tamanhos no mesmo arquivo chega em breve.",
+    "sizeSingleOnlyNote": "Um tamanho por arquivo. Exportação com vários tamanhos no mesmo arquivo chega em breve.",
     "sizeNoOtherSizesTitle": "Grade este molde para exportar outros tamanhos além do base.",
     "pageSizeLabel": "Tamanho da página",
     "pageSize": {
@@ -440,27 +440,27 @@
     "rollWidthNote": "Divide o molde em faixas numeradas quando ele é mais largo que o rolo.",
     "seamAllowanceLabel": "Margem de costura",
     "seamAllowanceIncludedOption": "{cm} cm incluída",
-    "seamAllowanceDisabledTitle": "A linha de corte já inclui essa margem em todo formato exportado — desativar ou trocar o valor aqui chega em breve.",
+    "seamAllowanceDisabledTitle": "A linha de corte já inclui essa margem em todo formato exportado. Desativar ou trocar o valor aqui chega em breve.",
     "marksLabel": "Piques e fio",
     "marksIncludeOption": "Incluir",
-    "marksDisabledTitle": "Piques e fio de urdidura são sempre incluídos no arquivo — omiti-los chega em breve.",
+    "marksDisabledTitle": "Piques e fio de urdidura são sempre incluídos no arquivo. Omiti-los chega em breve.",
     "namingLabel": "Nome das peças",
     "namingMoldaiOption": "Padrão MoldAI",
     "namingDisabledTitle": "Outros padrões de nomenclatura para as peças chegam em breve.",
     "checklistHeading": "Checagem antes de baixar",
     "checklistConflictPass": "Sem conflitos de costura",
-    "checklistConflictFail": "Conflito de costura ativo — resolva no editor antes de exportar.",
+    "checklistConflictFail": "Conflito de costura ativo. Resolva no editor antes de exportar.",
     "checklistPiecesPass": "{closed} de {total} peças fechadas",
     "checklistPiecesFail": "Alguma peça do molde não está fechada.",
     "checklistConsumptionValue": "Consumo estimado {length} em tecido de {width}",
     "checklistConsumptionUnavailable": "Não foi possível estimar o consumo.",
-    "checklistConsumptionNote": "Estimativa para o tamanho-base, com encaixe automático first-fit — pode variar para outros tamanhos ou um encaixe manual.",
+    "checklistConsumptionNote": "Estimativa para o tamanho-base, com encaixe automático first-fit; pode variar para outros tamanhos ou um encaixe manual.",
     "fabricWidthLabel": "Largura do tecido",
     "presetStorageNote": "O preset é salvo na sua conta e usado automaticamente na próxima visita, em qualquer dispositivo.",
     "savePresetButton": "Salvar preset",
     "presetSaved": "Preset salvo na sua conta.",
     "presetSaveError": "Não foi possível salvar o preset. Tente novamente.",
-    "presetLoadError": "Não foi possível carregar seu preset salvo — mostrando os valores padrão.",
+    "presetLoadError": "Não foi possível carregar seu preset salvo. Mostrando os valores padrão.",
     "presetLoadRetry": "Tentar novamente",
     "downloadButton": "Baixar arquivo",
     "downloadDisabledConflictTitle": "Resolva o conflito de costura antes de exportar."
@@ -469,10 +469,10 @@
     "title": "Prova 3D",
     "betaBadge": "Beta",
     "emptyState": "Gere um molde para ver a prova 3D.",
-    "notSupportedForTrousers": "A prova 3D ainda não cobre calças — em breve.",
+    "notSupportedForTrousers": "A prova 3D ainda não cobre calças. Em breve.",
     "buildError": "Não foi possível gerar a prévia 3D deste molde.",
     "viewLabel": "Ângulo de visualização",
-    "rotateLabel": "Girar a prova 3D — arraste ou use as setas do teclado",
+    "rotateLabel": "Girar a prova 3D: arraste ou use as setas do teclado",
     "view": {
       "front": "Frente",
       "side": "Lado",
@@ -486,7 +486,7 @@
       "hip": "Folga (quadril)"
     },
     "easeHint": "circunferência do molde − circunferência do corpo",
-    "approximationNote": "Aproximação paramétrica no tamanho base, projetada a partir da modelagem real sobre um corpo virtual — <em>não</em> é uma simulação de caimento: costuras, pinças e franzidos não são representados, e saias radiais aparecem como um cone simplificado. Simulação de caimento <em>em breve</em>."
+    "approximationNote": "Aproximação paramétrica no tamanho base, projetada a partir da modelagem real sobre um corpo virtual. <em>Não</em> é uma simulação de caimento: costuras, pinças e franzidos não são representados, e saias radiais aparecem como um cone simplificado. Simulação de caimento <em>em breve</em>."
   },
   "EditorShell": {
     "loading": "Carregando molde…",
@@ -531,7 +531,7 @@
     "hero": {
       "eyebrow": "Modelagem com IA",
       "title": "Do texto ao molde pronto para cortar",
-      "body": "Descreva a peça em uma conversa — a IA desenha o molde, grada os tamanhos pela sua tabela de medidas e exporta em SVG, DXF ou PDF.",
+      "body": "Descreva a peça em uma conversa, e a IA desenha o molde, grada os tamanhos pela sua tabela de medidas e exporta em SVG, DXF ou PDF.",
       "primaryCta": "Começar com {credits} créditos grátis",
       "secondaryCta": "Ver um molde real",
       "secondaryCtaTitle": "Galeria de moldes reais chega em breve",
@@ -539,7 +539,7 @@
     },
     "mockup": {
       "promptExample": "blusa manga curta, decote redondo, tamanho M",
-      "canvasAlt": "Peças de um molde de blusa — frente, costas e manga — com a linha de graduação tracejada ao redor",
+      "canvasAlt": "Peças de um molde de blusa (frente, costas e manga), com a linha de graduação tracejada ao redor",
       "chipGraduate": "graduar PP–GG",
       "chipCutPlan": "plano de corte",
       "chipExport": "exportar SVG/DXF"
@@ -551,7 +551,7 @@
       "sectionTitle": "Como funciona",
       "describe": {
         "title": "1 · Descreva ou envie",
-        "body": "Texto, foto de referência ou croqui — a IA interpreta e propõe o molde."
+        "body": "Texto, foto de referência ou croqui: a IA interpreta e propõe o molde."
       },
       "adjust": {
         "title": "2 · Ajuste conversando",
@@ -656,7 +656,7 @@
     "step2": {
       "title": "Sua tabela de medidas",
       "defaultOption": {
-        "subtitle": "Grade padrão do sistema — você pode trocar depois em Medidas e grades."
+        "subtitle": "Grade padrão do sistema. Você pode trocar depois em Medidas e grades."
       },
       "importOption": {
         "title": "Importar planilha ou tabela do Audaces",
@@ -664,9 +664,9 @@
       },
       "fillOption": {
         "title": "Preencher agora",
-        "comingSoonTitle": "Preencher agora chega em breve — use a grade padrão por enquanto"
+        "comingSoonTitle": "Preencher agora chega em breve; use a grade padrão por enquanto"
       },
-      "note": "Pode fazer depois — a IA usa a grade padrão até você trocar.",
+      "note": "Pode fazer depois: a IA usa a grade padrão até você trocar.",
       "comingSoonBadge": "em breve",
       "chartError": "Não foi possível ativar a grade padrão agora. Tente de novo."
     },
@@ -725,7 +725,7 @@
     "button": "Redefinir minha senha",
     "linkFallback": "Se o botão não funcionar, copie e cole este endereço no navegador:",
     "expiry": "Este link vale por {hours} horas e só pode ser usado uma vez.",
-    "ignore": "Se você não pediu essa alteração, pode ignorar esta mensagem — sua senha continua a mesma."
+    "ignore": "Se você não pediu essa alteração, pode ignorar esta mensagem: sua senha continua a mesma."
   },
   "PatternCard": {
     "menuAriaLabel": "Mais opções",
@@ -764,7 +764,7 @@
   },
   "SizeCharts": {
     "title": "Medidas e grades",
-    "subtitle": "A grade ativa vale só para o gênero dela — geração e graduação usam a grade padrão do sistema para o outro",
+    "subtitle": "A grade ativa vale só para o gênero dela; geração e graduação usam a grade padrão do sistema para o outro",
     "newSizeChartButton": "＋ Nova grade",
     "importLabel": "↥ Importar planilha ou tabela de medidas do Audaces",
     "loading": "Carregando grades…",
@@ -792,20 +792,20 @@
     "editRuleButton": "Editar regra de progressão",
     "doneEditingRuleButton": "Concluir edição da regra",
     "ruleHint": "cm por tamanho, a partir da base",
-    "rangeHint": "Valor fora do intervalo aceito — use entre {min} e {max} cm.",
+    "rangeHint": "Valor fora do intervalo aceito. Use entre {min} e {max} cm.",
     "measurementColumnLabel": "Medida (cm)",
-    "bodyTypeNote": "apenas descritivo — não altera o corte",
+    "bodyTypeNote": "apenas descritivo; não altera o corte",
     "resetOverrideTitle": "Resetar para a regra",
     "addSizeButton": "＋ tamanho",
     "addSizePrompt": "Nome do novo tamanho",
     "removeSizeTitle": "Remover tamanho",
-    "removeBaseSizeTitle": "O tamanho base não pode ser removido — ele define as medidas de referência da grade.",
+    "removeBaseSizeTitle": "O tamanho base não pode ser removido: ele define as medidas de referência da grade.",
     "progressionTitle": "Progressão",
     "useSizeChartButton": "Usar esta grade",
     "activeSizeChartNote": "Grade ativa",
     "saveButton": "Salvar alterações",
     "saveButtonSaving": "Salvando…",
-    "systemReadOnlyNote": "Grades do sistema não podem ser editadas — duplique para personalizar.",
+    "systemReadOnlyNote": "Grades do sistema não podem ser editadas. Duplique para personalizar.",
     "deleteModalTitle": "Excluir esta grade?",
     "deleteModalDescription": "Isso apaga a grade e não pode ser desfeito.",
     "deleteConfirmButton": "Excluir",
@@ -859,7 +859,7 @@
   "SizeChartImport": {
     "trigger": "↥ Importar planilha ou tabela de medidas",
     "dialogTitle": "Importar grade de medidas",
-    "formatNote": "Aceita arquivos .csv e .tsv (texto separado por vírgula, ponto e vírgula ou tabulação) — não lê .xlsx.",
+    "formatNote": "Aceita arquivos .csv e .tsv (texto separado por vírgula, ponto e vírgula ou tabulação); não lê .xlsx.",
     "chooseFileButton": "Escolher arquivo",
     "chooseAnotherFile": "Escolher outro arquivo",
     "noFileChosen": "Nenhum arquivo selecionado",
@@ -877,10 +877,10 @@
     "previewTitle": "Pré-visualização",
     "warningsTitle": "Avisos",
     "warnings": {
-      "unmapped_column": "Coluna \"{detail}\" não reconhecida — ignorada.",
-      "value_out_of_range": "{detail} · tamanho {size}: valor fora do intervalo aceito — ignorado.",
-      "value_not_numeric": "{detail} · tamanho {size}: valor não numérico — ignorado.",
-      "missing_measurement": "Medida \"{detail}\" não encontrada no arquivo — usando um valor padrão."
+      "unmapped_column": "Coluna \"{detail}\" não reconhecida, ignorada.",
+      "value_out_of_range": "{detail} · tamanho {size}: valor fora do intervalo aceito, ignorado.",
+      "value_not_numeric": "{detail} · tamanho {size}: valor não numérico, ignorado.",
+      "missing_measurement": "Medida \"{detail}\" não encontrada no arquivo; usando um valor padrão."
     },
     "errors": {
       "unsupported_file_type": "Formato de arquivo não suportado. Envie um .csv ou .tsv.",
@@ -904,7 +904,7 @@
   "DashboardShell": {
     "loading": "Carregando moldes…",
     "loadError": "Não foi possível carregar seus moldes. Tente recarregar a página.",
-    "patternMissing": "Esse molde não existe mais — talvez tenha sido excluído.",
+    "patternMissing": "Esse molde não existe mais; talvez tenha sido excluído.",
     "dismissPatternMissing": "Fechar aviso"
   },
   "Slopers": {
@@ -1113,7 +1113,7 @@
       "moldeme": "Formato nativo Molde.me",
       "ownSizeChart": "Grade própria da marca",
       "oneUser": "1 usuário",
-      "modelV2Pro": "Modelo v2 Pro — moldes mais precisos",
+      "modelV2Pro": "Modelo v2 Pro: moldes mais precisos",
       "threeUsers": "3 usuários",
       "priorityQueueApi": "Fila prioritária e API",
       "fiveUsers": "5 usuários",
@@ -1149,7 +1149,7 @@
     "stepMapping": "Passo 2 de 2 · mapear camadas",
     "betaBadge": "beta",
     "freeBadge": "importação grátis",
-    "formatNote": "Por enquanto só arquivos .dxf são lidos. Audaces (formato nativo) e Molde.me ainda não — em breve.",
+    "formatNote": "Por enquanto só arquivos .dxf são lidos. Audaces (formato nativo) e Molde.me ainda não; chegam em breve.",
     "dropHint": "Aceita arquivos .dxf gerados por CAD ou exportados por outro software compatível.",
     "chooseFileButton": "Escolher arquivo",
     "changeFileButton": "Trocar arquivo",
@@ -1175,21 +1175,21 @@
     "verificationSectionLabel": "Verificação",
     "checks": {
       "unitCm": "Unidade reconhecida: {unit}",
-      "unitUnknown": "Não foi possível identificar a unidade do arquivo — assumindo centímetros",
+      "unitUnknown": "Não foi possível identificar a unidade do arquivo; assumindo centímetros",
       "piecesClosed": "{closed} de {total} contornos fechados",
-      "sizesUnknown": "Este arquivo traz apenas um tamanho — grade não identificada",
+      "sizesUnknown": "Este arquivo traz apenas um tamanho; grade não identificada",
       "missingGrain": "{pieces} peça(s) sem linha de fio identificada nas proximidades",
       "unsupportedEntities": "Entidades não suportadas ignoradas: {types}",
-      "fileTruncated": "Arquivo grande demais — parte do conteúdo foi descartada durante a leitura"
+      "fileTruncated": "Arquivo grande demais; parte do conteúdo foi descartada durante a leitura"
     },
     "cancelButton": "Cancelar",
     "createButton": "Importar molde",
     "createComingSoon": "em breve",
-    "createDisabledNote": "A criação de moldes a partir de um arquivo importado ainda não está disponível nesta primeira versão — esta tela analisa o arquivo e mostra o que foi encontrado, sem salvar nada.",
+    "createDisabledNote": "A criação de moldes a partir de um arquivo importado ainda não está disponível nesta primeira versão. Esta tela analisa o arquivo e mostra o que foi encontrado, sem salvar nada.",
     "pickError": {
       "file_too_large": "Este arquivo é grande demais para importar (limite de 10 MB).",
       "read_failed": "Não foi possível ler este arquivo. Tente novamente.",
-      "no_pieces_found": "Nenhum contorno fechado foi encontrado neste arquivo — verifique se é um .dxf válido."
+      "no_pieces_found": "Nenhum contorno fechado foi encontrado neste arquivo. Verifique se é um .dxf válido."
     }
   }
 }
