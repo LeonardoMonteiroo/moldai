@@ -3,7 +3,13 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { buildSystem, COST_DESCRIPTIONS } from "./prompt";
 import type { PatternState } from "@/lib/types";
-import { STYLE_LIMITS, COLLARS, CUFFS, WAISTBANDS } from "@/lib/draft/garment";
+import {
+  STYLE_LIMITS,
+  COLLARS,
+  CUFFS,
+  WAISTBANDS,
+  FRONT_CLOSURES,
+} from "@/lib/draft/garment";
 import { MEASUREMENT_RANGES, SIZE_TABLE } from "@/lib/measurements";
 import { COSTS } from "@/lib/types";
 import { EXPORT_FORMATS } from "@/lib/export/formats";
@@ -142,11 +148,12 @@ describe("buildSystem", () => {
   // #129/#130/#131: the sub-piece catalogs render from the same exported
   // constants the schema/validator use, and the model is told not to
   // silently substitute an unsupported shape.
-  it("quotes the collar/cuff/waistband catalogs and tells the model not to silently substitute", () => {
+  it("quotes the collar/cuff/waistband/frontClosure catalogs and tells the model not to silently substitute", () => {
     const s = buildSystem(state(0), false);
     for (const v of COLLARS) expect(s).toContain(v);
     for (const v of CUFFS) expect(s).toContain(v);
     for (const v of WAISTBANDS) expect(s).toContain(v);
+    for (const v of FRONT_CLOSURES) expect(s).toContain(v);
     expect(s).toContain("don't silently substitute");
   });
 

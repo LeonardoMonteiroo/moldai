@@ -7,6 +7,7 @@ import {
   COLLARS,
   CUFFS,
   WAISTBANDS,
+  FRONT_CLOSURES,
   TYPES,
   GENDERS,
   STYLE_LIMITS,
@@ -60,6 +61,7 @@ describe("propose_garment tool schema", () => {
     expect(style.collar.enum).toEqual(COLLARS);
     expect(style.cuff.enum).toEqual(CUFFS);
     expect(style.waistband.enum).toEqual(WAISTBANDS);
+    expect(style.frontClosure.enum).toEqual(FRONT_CLOSURES);
   });
 
   it("offers all four decisions", () => {

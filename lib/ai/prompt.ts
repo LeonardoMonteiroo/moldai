@@ -8,6 +8,7 @@ import {
   COLLARS,
   CUFFS,
   WAISTBANDS,
+  FRONT_CLOSURES,
   STYLE_LIMITS,
   FIT_CLASSES,
   STRETCH_CLASSES,
@@ -72,11 +73,12 @@ ${MEASUREMENT_LINES}
   - collar (blouse/dress/tshirt): ${COLLARS.join(" | ")}. "convertible" is a soft, foldable classic collar sized from the drafted neckline itself — the only collar shape MoldAI drafts today. No other collar shape (mandarin/band, Peter Pan, notched, shirt-with-separate-stand) exists yet: if the request needs one of those, don't silently substitute "convertible" — ask whether a convertible collar is an acceptable stand-in, or decline/explain that it isn't built yet. Default none (unchanged shell), same as before this field existed.
   - cuff (only meaningful with sleeve: long): ${CUFFS.join(" | ")}. "straight" is a plain straight cuff band with a simple placket, sized from the drafted sleeve hem. No shaped/contoured cuff or tower placket exists yet — same ask/decline rule as collar. Default none.
   - waistband (skirt and trousers only): ${WAISTBANDS.join(" | ")}. "straight" is a plain straight band with a fixed closure overlap, sized from the drafted waist edge — the default for any skirt or trousers, since neither can be finished without one. No contoured or faced waistband exists yet. Set "none" only if the user explicitly asks for a raw/unfinished waist.
+  - frontClosure (blouse only): ${FRONT_CLOSURES.join(" | ")}. "buttonStand" adds a button-stand strip sewn to the front bodice's own center-front edge, sized from the drafted opening — the only front-closure shape MoldAI drafts today. Not available for a dress or tshirt (a bodice sewn to a skirt, or a knit pullover) — treat a request for either like any other unsupported combination below. No button/buttonhole placement mark exists yet. Default none (unchanged, pullover-style front).
   - trouserLengthCm (trousers only): ${fmtRange(STYLE_LIMITS.trouserLengthCm)}. Total waist-to-hem length. Defaults to a fixed adult length if unset (not sized per body/height).
 
 # Vocabulary mapping
 
-Map the user's wording to catalog tokens regardless of language: neckline "straight"->straight, "V-neck"->V, "round/crew"->round; sleeve "short"->short, "long"->long, "sleeveless"->none; skirt "straight"->straight, "godet"->gore, "A-line"->a-line, "half circle"->half-circle, "full circle"->circle; collar "shirt collar"/"convertible collar"/"lapel"->convertible; cuff "buttoned cuff"/"barrel cuff"->straight; waistband "elastic waistband"/"contoured waistband"-> not built, treat like any other unsupported request below; "trousers"/"pants"/"calça reta"/"calça social"->type=trousers (straight leg only — "skinny"/"flare"/"wide-leg"/"cargo"/"jeans with tapered leg" have no matching silhouette yet, so treat those like any other unsupported request below).
+Map the user's wording to catalog tokens regardless of language: neckline "straight"->straight, "V-neck"->V, "round/crew"->round; sleeve "short"->short, "long"->long, "sleeveless"->none; skirt "straight"->straight, "godet"->gore, "A-line"->a-line, "half circle"->half-circle, "full circle"->circle; collar "shirt collar"/"convertible collar"/"lapel"->convertible; cuff "buttoned cuff"/"barrel cuff"->straight; waistband "elastic waistband"/"contoured waistband"-> not built, treat like any other unsupported request below; "trousers"/"pants"/"calça reta"/"calça social"->type=trousers (straight leg only — "skinny"/"flare"/"wide-leg"/"cargo"/"jeans with tapered leg" have no matching silhouette yet, so treat those like any other unsupported request below); "button placket"/"button-down front"/"botão na frente"->frontClosure=buttonStand (blouse only).
 
 # Attached images
 
