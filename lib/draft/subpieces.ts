@@ -125,6 +125,16 @@ function straightBand(
 // sewLenCm is the sleeve's own MEASURED hem edge plus the wrist ease
 // (lib/draft/sleeve.ts's WRIST_EASE_CM) -- computed by the caller so this
 // module stays free of any knit/woven or gender branching of its own.
+//
+// #224: deliberately sleeve-first, not cuff-first. The cuff is sized off
+// the sleeve's own already-drafted hem rather than the sleeve being fit
+// to a wrist-based cuff width, so the cuff stays genuinely fitted to
+// whatever hem the sleeve actually drafted (and the cuff-hem SeamPairDecl
+// in garment.ts matches by construction). A source cited in #224 argues
+// standard shirt-cuff sequencing runs cuff-first, but that citation was
+// adversarially verified 2-1, not unanimous -- kept as-is per the issue's
+// own accepted resolution rather than inverting a working, seam-graph-
+// verified mated pair on a non-unanimous claim.
 export function draftCuff(sewLenCm: number, t: Translate): DraftedPiece {
   const { pts, seamEdge } = straightBand(sewLenCm, CUFF_HEIGHT_CM);
   const grainlineCm: [Pt, Pt] = [
