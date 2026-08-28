@@ -51,6 +51,24 @@ export const DECORATION_CASES: [string, GarmentSpec][] = [
     },
   ],
   [
+    // #223: exercises the button-stand front split (qty:2, no fold, a real
+    // centerFront edge) across every DECORATION_CASES consumer --
+    // containment, the seam graph, assembly's exhaustiveness guard, and
+    // every export format's cut-line/nesting suite.
+    "blouse buttonstand",
+    {
+      type: "blouse",
+      gender: "female",
+      measurementOverrides: {},
+      style: {
+        neckline: "round",
+        sleeve: "short",
+        darts: true,
+        frontClosure: "buttonStand",
+      },
+    },
+  ],
+  [
     "tshirt male",
     { type: "tshirt", gender: "male", measurementOverrides: {}, style: {} },
   ],

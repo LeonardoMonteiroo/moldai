@@ -49,6 +49,7 @@ export const PHASE_BY_KEY: Record<string, SeamPhase> = {
   "trouser-outseam": "side",
   "collar-neckline": "attach",
   "cuff-hem": "attach",
+  "button-stand-center-front": "attach",
   "waist-join-front": "waistJoin",
   "waist-join-back": "waistJoin",
   "waistband-waist": "band",
