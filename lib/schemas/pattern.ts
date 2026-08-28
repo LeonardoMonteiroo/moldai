@@ -87,6 +87,7 @@ export const GenerateBodySchema = z.object({
   message: z.unknown().optional(),
   image: z.unknown().optional(),
   answering: z.unknown().optional(),
+  importContext: z.unknown().optional(),
 });
 
 // graduate: `sizes` is read with `Array.isArray(body.sizes) ? body.sizes :

@@ -22,6 +22,7 @@ import {
   validateAttachmentInput,
   MAX_ATTACHMENT_BASE64_CHARS,
 } from "@/lib/editor/attachment";
+import { MAX_IMPORT_CONTEXT_CHARS } from "@/lib/import/reconstructMeta";
 import { requireUser } from "@/lib/auth/guard";
 import { reportError } from "@/lib/observability/report";
 
@@ -72,6 +73,17 @@ export async function POST(request: Request, { params }: Ctx) {
     if (!image) return apiError("invalid_attachment", 400);
   }
   const answering = body.answering === true;
+  // Client-computed metadata from a DXF import reconstruction (#238
+  // follow-up) -- never user-typed prose, never persisted, only used to
+  // enrich THIS call's system prompt (see lib/ai/prompt.ts's "Imported
+  // pattern reconstruction" section). Silently capped rather than rejected:
+  // its size is bounded by how many pieces a real file has, and a truncated
+  // tail still lets the model fall back to ask/decline rather than blocking
+  // the whole request.
+  const importContext =
+    typeof body.importContext === "string"
+      ? body.importContext.slice(0, MAX_IMPORT_CONTEXT_CHARS)
+      : undefined;
   const cost = COSTS.adjust;
   const t = await getTranslations("PatternData");
   // #3: getSizeChartForGeneration -> listSizeChartsForUser now needs its own
@@ -138,6 +150,7 @@ export async function POST(request: Request, { params }: Ctx) {
             image
               ? { mediaType: image.mediaType, base64: image.data }
               : undefined,
+            importContext,
           );
 
           // #99: this used to be three positive `if`s (ask/decline/explain)

@@ -481,10 +481,12 @@ describe("POST /api/patterns/[id]/generate", () => {
       ctx(),
     );
     expect(res.status).toBe(200);
-    expect(mockPropose).toHaveBeenCalledWith(expect.anything(), false, {
-      mediaType: "image/jpeg",
-      base64: "ZmFrZS1iYXNlNjQ=",
-    });
+    expect(mockPropose).toHaveBeenCalledWith(
+      expect.anything(),
+      false,
+      { mediaType: "image/jpeg", base64: "ZmFrZS1iYXNlNjQ=" },
+      undefined,
+    );
     expect(wallet.balance).toBe(balanceBefore - COSTS.adjust);
     const userTurn = state.chat.find((m) => m.author === "user");
     expect(userTurn?.hasImage).toBe(true);
@@ -517,6 +519,42 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(state.pattern.baseMeasurements?.bust).toBe(
       MEASUREMENT_RANGES.bust.max,
     );
+  });
+
+  it("passes importContext through to proposeGarment but never persists it in chat", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "explain",
+      assistantMessage: "ok",
+    });
+    const res = await POST(
+      req({ message: "reconstruct", importContext: "MARKER TEXT" }),
+      ctx(),
+    );
+    expect(res.status).toBe(200);
+    expect(mockPropose).toHaveBeenCalledWith(
+      expect.anything(),
+      false,
+      undefined,
+      "MARKER TEXT",
+    );
+    const userTurn = state.chat.find((m) => m.author === "user");
+    expect(userTurn?.text).toBe("reconstruct");
+    expect(userTurn?.text).not.toContain("MARKER TEXT");
+  });
+
+  it("caps an oversized importContext instead of rejecting the request", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "explain",
+      assistantMessage: "ok",
+    });
+    const huge = "x".repeat(10_000);
+    const res = await POST(
+      req({ message: "reconstruct", importContext: huge }),
+      ctx(),
+    );
+    expect(res.status).toBe(200);
+    const [, , , sentContext] = mockPropose.mock.calls[0];
+    expect((sentContext as string).length).toBeLessThanOrEqual(4000);
   });
 
   it("empty message returns 400 without debiting or calling the AI", async () => {

@@ -263,6 +263,7 @@ export function generate(
   message: string,
   answering?: boolean,
   image?: PreparedAttachment,
+  importContext?: string,
 ): Promise<GenerateResult> {
   return postJson<GenerateResult>(
     `/api/patterns/${patternId}/generate`,
@@ -275,6 +276,7 @@ export function generate(
       image: image
         ? { mediaType: image.mediaType, data: image.base64 }
         : undefined,
+      importContext,
     },
     PAYWALL,
   );
