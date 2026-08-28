@@ -25,6 +25,40 @@ export const LAYER_ROLES: LayerRole[] = [
 ];
 
 /**
+ * A garment-part vocabulary for a detected imported piece (#238 follow-up:
+ * creating a Pattern from an import). Fixed + "other" rather than free text,
+ * so the reconstruction prompt gets a known token it can trust literally
+ * instead of an arbitrary string — the same catalog-enum-over-label-map
+ * reasoning LayerRole already follows.
+ */
+export type PieceLabel =
+  | "front"
+  | "back"
+  | "sleeve"
+  | "collar"
+  | "cuff"
+  | "waistband"
+  | "skirtFront"
+  | "skirtBack"
+  | "trouserFront"
+  | "trouserBack"
+  | "other";
+
+export const PIECE_LABELS: PieceLabel[] = [
+  "front",
+  "back",
+  "sleeve",
+  "collar",
+  "cuff",
+  "waistband",
+  "skirtFront",
+  "skirtBack",
+  "trouserFront",
+  "trouserBack",
+  "other",
+];
+
+/**
  * Only DXF is actually parsed this pass — Audaces' and Molde.me's own native
  * formats are explicitly out of scope (see the PR body). The three values
  * here distinguish the two *DXF* vocabularies this app itself recognises
