@@ -77,9 +77,7 @@ function emptyDocument(): RulDocument {
 const DELTA_PAIR_RE = /(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/g;
 
 /** Parses a "RULE: DELTA <n> <dx>,<dy> <dx>,<dy> ..." line's remainder (after "RULE:"). */
-function parseRuleLine(
-  rest: string,
-): {
+function parseRuleLine(rest: string): {
   ruleNumber: number;
   deltas: [number, number][];
   truncated: boolean;
