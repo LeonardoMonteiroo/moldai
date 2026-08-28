@@ -126,7 +126,11 @@ Write assistantMessage, and any question labels/options, in the natural language
 // never actually invoked for any string the AI reads.
 const NO_OP_T: Translate = (key) => key;
 
-export function buildSystem(state: PatternState, answering: boolean): string {
+export function buildSystem(
+  state: PatternState,
+  answering: boolean,
+  importContext?: string,
+): string {
   const isEmpty = state.pattern.pieces.length === 0;
   const lines = [
     "# Current state",
@@ -177,6 +181,23 @@ export function buildSystem(state: PatternState, answering: boolean): string {
       "",
       'Assembly order (structured; darts first, then each mated seam in this exact order, then any free edges left to hem — see "# Assembly / sewing order" above for how to use this):',
       JSON.stringify(assembly),
+    );
+  }
+  if (importContext) {
+    lines.push(
+      "",
+      "# Imported pattern reconstruction",
+      "",
+      "The following was measured directly from an imported file's own " +
+        "traced geometry (and any label the user assigned by hand) — trust " +
+        "it, and any attached image, over guessing from a plain-text " +
+        "request alone. Prefer decision=ask or decision=decline over a " +
+        "guess neither the image nor this data supports. State in " +
+        "assistantMessage, in the user's own language, that this is an AI " +
+        "reconstruction from an imported reference and may diverge from " +
+        "the original file.",
+      "",
+      importContext,
     );
   }
   return `${STATIC_SECTIONS}\n\n${lines.join("\n")}`;

@@ -62,12 +62,13 @@ export async function proposeGarment(
   state: PatternState,
   answering: boolean,
   image?: ProposeImage,
+  importContext?: string,
 ): Promise<AiDecision> {
   const client = new Anthropic(ANTHROPIC_OPTIONS);
   const resp = await client.messages.create({
     model: "claude-sonnet-5",
     max_tokens: 1024,
-    system: buildSystem(state, answering),
+    system: buildSystem(state, answering, importContext),
     tools: [TOOL],
     tool_choice: { type: "tool", name: "propose_garment" },
     messages: withImage(buildHistory(state.chat), image),

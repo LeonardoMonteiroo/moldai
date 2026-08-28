@@ -45,6 +45,24 @@ describe("buildSystem", () => {
     expect(s).not.toContain("already applied");
   });
 
+  it("omits the import-reconstruction section when importContext is not given", () => {
+    expect(buildSystem(state(0), false)).not.toContain(
+      "Imported pattern reconstruction",
+    );
+  });
+
+  it("adds an import-reconstruction section that embeds importContext verbatim", () => {
+    const ctx = "Detected 2 piece(s) on the file's own cut-line layer(s).";
+    const s = buildSystem(state(0), false, ctx);
+    expect(s).toContain("Imported pattern reconstruction");
+    expect(s).toContain(ctx);
+  });
+
+  it("tells the model to trust measured data over its own visual read", () => {
+    const s = buildSystem(state(0), false, "some context");
+    expect(s).toMatch(/trust/i);
+  });
+
   it("existing spec gets the full-updated-spec rule and embeds the spec JSON", () => {
     const s = buildSystem(state(3, { type: "tshirt" }), false);
     expect(s).toContain("already applied");

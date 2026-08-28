@@ -224,6 +224,24 @@ describe("proposeGarment", () => {
     expect(d.spec.measurementOverrides.bust).toBe(500);
   });
 
+  it("threads importContext through into the system prompt sent to Anthropic", async () => {
+    create.mockResolvedValue(
+      toolResp({ decision: "decline", assistantMessage: "x" }),
+    );
+    await proposeGarment(baseState, false, undefined, "IMPORT CONTEXT MARKER");
+    const call = create.mock.calls[create.mock.calls.length - 1][0];
+    expect(call.system).toContain("IMPORT CONTEXT MARKER");
+  });
+
+  it("omits the import-reconstruction section from the system prompt when importContext is not given", async () => {
+    create.mockResolvedValue(
+      toolResp({ decision: "decline", assistantMessage: "x" }),
+    );
+    await proposeGarment(baseState, false);
+    const call = create.mock.calls[create.mock.calls.length - 1][0];
+    expect(call.system).not.toContain("Imported pattern reconstruction");
+  });
+
   // #61: the SDK's own defaults (10 min timeout, 2 retries) can outlive
   // TX_OPTS.timeout (30s) — the transaction holding the Pattern+Wallet
   // locks is already rolled back by the time a slow/retried response
