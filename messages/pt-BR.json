@@ -289,6 +289,11 @@
         "aLabel": "Manga · barra",
         "bLabel": "Punho"
       },
+      "buttonStandCenterFront": {
+        "title": "Carcela e centro-frente",
+        "aLabel": "Centro-frente · corpo",
+        "bLabel": "Carcela de botões"
+      },
       "waistbandWaist": {
         "title": "Cós e cintura",
         "aLabel": "Cintura · saia",

@@ -37,6 +37,7 @@ import {
   draftCuff,
   draftPlacket,
   draftWaistband,
+  draftButtonStand,
   WAISTBAND_OVERLAP_CM,
 } from "./subpieces";
 import { FIT_CLASSES, STRETCH_CLASSES, wearingEaseCm } from "./ease";
@@ -458,16 +459,31 @@ function draftAll(
     // "measure the geometry that was actually emitted" rule the armhole/cap
     // pair already established.
     if (style.collar === "convertible" && front.seamEdges && back.seamEdges) {
+      // Narrowed into a local const -- `front` is a `let` (reassigned once,
+      // earlier, from draftBody's own return), and TS resets that narrowing
+      // inside the closures below (.reduce/.map) since it can't prove the
+      // outer variable stays defined across a later reassignment it can't
+      // see into.
+      const frontPiece = front;
+      const frontSeamEdges = front.seamEdges;
+      // #223: a front-closure front (body.ts's frontClosure mode, signalled
+      // by qty:2) drafts only one half and has no necklineRight at all --
+      // both of its neckline-curve contributions come from necklineLeft,
+      // counted twice (both mirrored halves draft the identical curve).
+      const frontNeckEdges: [number, number][] =
+        frontPiece.qty === 2
+          ? [frontSeamEdges.necklineLeft, frontSeamEdges.necklineLeft]
+          : [frontSeamEdges.necklineLeft, frontSeamEdges.necklineRight];
       const necklineArcCm =
-        curveArcLengthCm(
-          front.outlineCm,
-          front.curvedSpans ?? [],
-          ...front.seamEdges.necklineLeft,
-        ) +
-        curveArcLengthCm(
-          front.outlineCm,
-          front.curvedSpans ?? [],
-          ...front.seamEdges.necklineRight,
+        frontNeckEdges.reduce(
+          (sum, edge) =>
+            sum +
+            curveArcLengthCm(
+              frontPiece.outlineCm,
+              frontPiece.curvedSpans ?? [],
+              ...edge,
+            ),
+          0,
         ) +
         curveArcLengthCm(
           back.outlineCm,
@@ -486,12 +502,34 @@ function draftAll(
           key: "collar-neckline",
           labelKey: "collarNeckline",
           a: [
-            edgeRef(front.id, front.seamEdges.necklineLeft),
-            edgeRef(front.id, front.seamEdges.necklineRight),
+            ...frontNeckEdges.map((edge) => edgeRef(frontPiece.id, edge)),
             edgeRef(back.id, back.seamEdges.necklineLeft),
             edgeRef(back.id, back.seamEdges.necklineRight),
           ],
           b: [edgeRef(collar.id, collar.seamEdges.neckline)],
+          easeCm: 0,
+          fixable: false,
+        });
+      }
+    }
+    // #223: a button stand, drafted from the front bodice's own measured
+    // center-front edge -- reachable only when body.ts's frontClosure mode
+    // actually split the front (the piece's own seamEdges.centerFront is
+    // the single source of truth for that, not a re-check of style here).
+    if (front.seamEdges?.centerFront) {
+      const centerFrontLenCm = curveArcLengthCm(
+        front.outlineCm,
+        front.curvedSpans ?? [],
+        ...front.seamEdges.centerFront,
+      );
+      const stand = draftButtonStand(centerFrontLenCm, t);
+      drafted.push(stand);
+      if (stand.seamEdges) {
+        seamPairs.push({
+          key: "button-stand-center-front",
+          labelKey: "buttonStandCenterFront",
+          a: [edgeRef(front.id, front.seamEdges.centerFront)],
+          b: [edgeRef(stand.id, stand.seamEdges.centerFront)],
           easeCm: 0,
           fixable: false,
         });

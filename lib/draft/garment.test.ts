@@ -1444,6 +1444,52 @@ describe("seam graph (#134)", () => {
     expect(pair!.diffCm).toBeLessThan(0.3);
   });
 
+  it("#223: the button stand's own seam matches the front's measured center-front edge within 0.3cm", () => {
+    const spec = {
+      type: "blouse" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { frontClosure: "buttonStand" as const },
+    };
+    const graph = measureSeamGraph(spec, SIZE_TABLE.M, t);
+    const pair = graph.find((m) => m.key === "button-stand-center-front");
+    expect(pair).toBeDefined();
+    expect(pair!.fixable).toBe(false);
+    expect(pair!.diffCm).toBeLessThan(0.3);
+  });
+
+  it("#223: no button stand is drafted when frontClosure is unset", () => {
+    const spec = {
+      type: "blouse" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: {},
+    };
+    // draftPiecesCm, not draftAll -- draftAll is not exported from this
+    // file; draftPiecesCm is the exported wrapper the existing "no cuff is
+    // drafted for a short sleeve..." test above already uses for the
+    // identical shape of assertion.
+    const pieces = draftPiecesCm(spec, SIZE_TABLE.M, t);
+    expect(pieces.map((p) => p.id)).not.toContain("button-stand");
+  });
+
+  it("#223: a collar drafted together with a button stand still matches the front+back neckline arc (front counted from ONE half, doubled)", () => {
+    const spec = {
+      type: "blouse" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: {
+        neckline: "round" as const,
+        collar: "convertible" as const,
+        frontClosure: "buttonStand" as const,
+      },
+    };
+    const graph = measureSeamGraph(spec, SIZE_TABLE.M, t);
+    const pair = graph.find((m) => m.key === "collar-neckline");
+    expect(pair).toBeDefined();
+    expect(pair!.diffCm).toBeLessThan(0.3);
+  });
+
   it("no cuff is drafted for a short sleeve even when style.cuff is set (cuff only applies to sleeve: long)", () => {
     const spec = {
       type: "blouse" as const,
