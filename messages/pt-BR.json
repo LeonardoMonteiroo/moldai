@@ -1157,7 +1157,7 @@
     "stepMapping": "Passo 2 de 2 · mapear camadas",
     "betaBadge": "beta",
     "freeBadge": "importação grátis",
-    "formatNote": "Por enquanto só arquivos .dxf são lidos. Audaces (formato nativo) e Molde.me ainda não; chegam em breve.",
+    "formatNote": "Por enquanto só arquivos .dxf são lidos. Audaces (formato nativo) ainda não; chega em breve.",
     "dropHint": "Aceita arquivos .dxf gerados por CAD ou exportados por outro software compatível.",
     "chooseFileButton": "Escolher arquivo",
     "changeFileButton": "Trocar arquivo",

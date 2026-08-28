@@ -116,10 +116,12 @@ export const PLAN_FEATURES: Record<PlanId, PlanFeature[]> = {
     // Split out of a single "Audaces e Molde.me" bullet that claimed both as
     // shipped. Audaces is real -- the AAMA/ASTM DXF subset, itself tagged
     // "beta" in the export menu for its own disclosed gaps. Molde.me is not:
-    // ExportFormatList's SOON_FORMATS carries "moldeme", and the import
-    // screen's formatNote already tells the user Molde.me is "ainda nao --
-    // em breve". A public pricing page must not sell what two other screens
-    // admit does not exist.
+    // ExportFormatList's SOON_FORMATS still carries "moldeme" as an unbuilt
+    // export target. (#213 dropped the parallel Molde.me *import* promise
+    // from Import.formatNote instead of leaving it "em breve" forever --
+    // that format is proprietary with no spec or sample to build against --
+    // but this export-side bullet is its own, still-open gap.) A public
+    // pricing page must not sell what another screen admits does not exist.
     { key: "audaces", status: "shipped" },
     { key: "moldeme", status: "soon" },
   ],
