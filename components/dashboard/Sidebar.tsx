@@ -50,7 +50,7 @@ export function Sidebar({
   const router = useRouter();
 
   return (
-    <div className="border-border bg-surface flex w-[186px] flex-col border-r p-[14px]">
+    <div className="border-border bg-surface flex h-full w-[186px] flex-col border-r p-[14px]">
       <nav className="flex flex-col gap-1">
         <NavItem
           label={t("myPatternsLabel")}

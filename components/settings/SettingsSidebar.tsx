@@ -19,7 +19,7 @@ export function SettingsSidebar({ active }: { active: SettingsSection }) {
   const router = useRouter();
 
   return (
-    <div className="border-border bg-surface flex w-[186px] flex-col gap-1 border-r p-[14px]">
+    <div className="border-border bg-surface flex h-full w-[186px] flex-col gap-1 border-r p-[14px]">
       {SETTINGS_SECTIONS.map((section) => (
         <Button
           key={section}
