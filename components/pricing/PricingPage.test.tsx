@@ -118,6 +118,37 @@ describe("PricingPage", () => {
     });
   });
 
+  // #218: the top nav is LandingNav, reused from the public landing page --
+  // it used to always render the signed-out "Entrar"/"Testar grátis" pair
+  // regardless of the session PricingPage itself already knows about.
+  describe("top nav", () => {
+    it("shows Entrar/Testar grátis for an anonymous visitor", () => {
+      renderWithIntl(<PricingPage signedIn={false} currentPlan={null} />);
+      expect(
+        screen.getByRole("link", { name: ptBR.Landing.nav.login }),
+      ).toHaveAttribute("href", "/login");
+      expect(
+        screen.getByRole("link", { name: ptBR.Landing.nav.signup }),
+      ).toHaveAttribute("href", "/signup");
+      expect(
+        screen.queryByRole("link", { name: ptBR.Landing.nav.dashboard }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("shows a link back to the dashboard for a signed-in visitor, not Entrar/Testar grátis", () => {
+      renderWithIntl(<PricingPage signedIn={true} currentPlan="free" />);
+      expect(
+        screen.getByRole("link", { name: ptBR.Landing.nav.dashboard }),
+      ).toHaveAttribute("href", "/");
+      expect(
+        screen.queryByRole("link", { name: ptBR.Landing.nav.login }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("link", { name: ptBR.Landing.nav.signup }),
+      ).not.toBeInTheDocument();
+    });
+  });
+
   describe("CTA destinations", () => {
     it("sends every actionable CTA to /signup when there is no session", () => {
       renderWithIntl(<PricingPage signedIn={false} currentPlan={null} />);
