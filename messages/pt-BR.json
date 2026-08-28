@@ -167,7 +167,8 @@
       "collar": "Gola",
       "cuff": "Punho",
       "placket": "Carcela",
-      "waistband": "Cós"
+      "waistband": "Cós",
+      "buttonStand": "Carcela de botões"
     },
     "rows": {
       "seamAllowance": "Folga de costura (na linha de corte)",
@@ -188,6 +189,7 @@
       "cuffOtherTypes": "Punho moldado e carcela tipo tower",
       "waistbandType": "Tipo de cós",
       "waistbandClosureMark": "Marca de fechamento (botão/zíper)",
+      "buttonStandMark": "Marca de botão/casa",
       "overlap": "Sobreposição (fechamento)",
       "rise": "Gancho",
       "trouserLeg": "Modelagem da perna",

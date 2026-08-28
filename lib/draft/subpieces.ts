@@ -225,3 +225,49 @@ export function draftWaistband(waistLenCm: number, t: Translate): DraftedPiece {
     seamEdges: { waist: seamEdge },
   };
 }
+
+// ---------------------------------------------------------------------------
+// Button stand (#223)
+// ---------------------------------------------------------------------------
+
+// Finished width of the stand extension -- a documented, reasonable shirt
+// button-stand figure. The issue's own research found no verified
+// industry-standard multiplier to cite, so this is a deliberate constant,
+// the same footing as WAISTBAND_OVERLAP_CM above.
+export const BUTTON_STAND_WIDTH_CM = 4;
+
+// centerFrontLenCm is the front bodice half-panel's own MEASURED
+// center-front edge (lib/draft/body.ts's frontClosure mode) -- the button
+// stand is a separate piece mated to that edge via the seam graph, never a
+// distortion of the front panel's own outline, so center front stays the
+// fixed button-placement line the issue's source describes. Reuses
+// straightBand exactly like draftCuff/draftWaistband above.
+export function draftButtonStand(
+  centerFrontLenCm: number,
+  t: Translate,
+): DraftedPiece {
+  const { pts, seamEdge } = straightBand(
+    centerFrontLenCm,
+    BUTTON_STAND_WIDTH_CM,
+  );
+  const grainlineCm: [Pt, Pt] = [
+    [centerFrontLenCm * 0.1, BUTTON_STAND_WIDTH_CM / 2],
+    [centerFrontLenCm * 0.9, BUTTON_STAND_WIDTH_CM / 2],
+  ];
+  const detailRows: DetailRow[] = [
+    { label: t("rows.length"), value: cm(centerFrontLenCm) },
+    { label: t("rows.grain"), value: t("grainValue") },
+    // #223 AC: the button/buttonhole placement mark is missing -- surfaced
+    // "em breve" on the piece's own card, the waistbandClosureMark precedent.
+    { label: t("rows.buttonStandMark"), value: t("comingSoonBadge") },
+  ];
+  return {
+    id: "button-stand",
+    name: t("pieceNames.buttonStand"),
+    qty: 2, // one per front half
+    outlineCm: pts,
+    grainlineCm,
+    detailRows,
+    seamEdges: { centerFront: seamEdge },
+  };
+}
