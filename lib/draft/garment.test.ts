@@ -184,6 +184,33 @@ describe("validateSpec", () => {
     expect(s.style.cuff).toBeUndefined();
     expect(s.style.waistband).toBeUndefined();
   });
+
+  it("falls back to none on an invalid frontClosure enum", () => {
+    const s = validateSpec({
+      type: "blouse",
+      style: { frontClosure: "zipper" },
+      measurementOverrides: {},
+    });
+    expect(s.style.frontClosure).toBe("none");
+  });
+
+  it("accepts frontClosure: buttonStand", () => {
+    const s = validateSpec({
+      type: "blouse",
+      style: { frontClosure: "buttonStand" },
+      measurementOverrides: {},
+    });
+    expect(s.style.frontClosure).toBe("buttonStand");
+  });
+
+  it("leaves frontClosure undefined when the spec doesn't mention it", () => {
+    const s = validateSpec({
+      type: "blouse",
+      style: {},
+      measurementOverrides: {},
+    });
+    expect(s.style.frontClosure).toBeUndefined();
+  });
 });
 
 describe("draftGarment", () => {

@@ -14,6 +14,7 @@ import {
   CollarType,
   CuffType,
   WaistbandType,
+  FrontClosureType,
   Gender,
   Piece,
   PieceOutline,
@@ -73,6 +74,9 @@ export const SKIRTS: SkirtSilhouette[] = [
 export const COLLARS: CollarType[] = ["none", "convertible"];
 export const CUFFS: CuffType[] = ["none", "straight"];
 export const WAISTBANDS: WaistbandType[] = ["none", "straight"];
+// #223: same footing as the three above -- the AI-facing catalog, rendered
+// into the prompt/schema from this one export, never a hardcoded duplicate.
+export const FRONT_CLOSURES: FrontClosureType[] = ["none", "buttonStand"];
 // #125: FIT_CLASSES/STRETCH_CLASSES/FIT_EASE_CM/STRETCH_EASE_PCT/wearingEaseCm
 // live in ./ease, a leaf module with no dependency on this file or on
 // body.ts — body.ts needs them too (the actual drafting), and it's a
@@ -183,6 +187,10 @@ export function validateSpec(raw: unknown): GarmentSpec {
     waistband:
       style.waistband !== undefined
         ? pick(style.waistband, WAISTBANDS, "straight")
+        : undefined,
+    frontClosure:
+      style.frontClosure !== undefined
+        ? pick(style.frontClosure, FRONT_CLOSURES, "none")
         : undefined,
     trouserLengthCm:
       style.trouserLengthCm !== undefined

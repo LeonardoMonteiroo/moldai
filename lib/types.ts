@@ -56,6 +56,10 @@ export type Girth = "bust" | "waist" | "hip";
 export type CollarType = "none" | "convertible";
 export type CuffType = "none" | "straight";
 export type WaistbandType = "none" | "straight";
+// #223: closed enum, same shape as the three above -- "buttonStand" is the
+// only front-closure shape MoldAI drafts; anything else is "em breve",
+// surfaced by lib/ai/prompt.ts's guidance rather than a silent substitute.
+export type FrontClosureType = "none" | "buttonStand";
 
 export interface ClarifyQuestion {
   id: string;
@@ -102,6 +106,14 @@ export interface GarmentStyle {
   // skirt or trousers with no waistband can't be finished, so every
   // newly-drafted one gets a band unless explicitly set to "none".
   waistband?: WaistbandType;
+  // #223: a button-stand extension sewn to the front bodice's own
+  // center-front edge (lib/draft/subpieces.ts's draftButtonStand). Applies
+  // only to spec.type === "blouse" (lib/draft/body.ts gates it off dress and
+  // tshirt internally -- see docs/superpowers/specs/2026-08-28-front-button-
+  // stand-design.md's Non-goals for why dress is excluded). Opt-in, default
+  // "none", the collar/cuff precedent (a new capability the AI must
+  // actively request) rather than waistband's "defaults on".
+  frontClosure?: FrontClosureType;
   // #128: total waist-to-hem length for the (straight-leg only) trousers
   // block, AI/user-settable and clamped like skirtLengthCm. Unlike
   // skirtLengthCm there is no per-size Measurements field to fall back to
