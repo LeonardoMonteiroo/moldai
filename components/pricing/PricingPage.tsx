@@ -47,7 +47,7 @@ export function PricingPage({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <LandingNav />
+      <LandingNav signedIn={signedIn} />
       <ScrollArea className="min-h-0 flex-1">
         <div className="mx-auto flex max-w-[1040px] flex-col gap-5 px-[26px] py-[28px]">
           <div className="flex items-end gap-4">
