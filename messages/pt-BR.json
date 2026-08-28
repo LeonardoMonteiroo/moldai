@@ -1168,7 +1168,7 @@
     "stepMapping": "Passo 2 de 2 · mapear camadas",
     "betaBadge": "beta",
     "freeBadge": "importação grátis",
-    "formatNote": "Por enquanto só arquivos .dxf são lidos. Audaces (formato nativo) ainda não; chega em breve.",
+    "formatNote": "Por enquanto só arquivos .dxf são lidos, com suporte opcional a um .rul complementar trazendo as regras de gradação. Audaces (formato nativo) ainda não; chega em breve.",
     "dropHint": "Aceita arquivos .dxf gerados por CAD ou exportados por outro software compatível.",
     "chooseFileButton": "Escolher arquivo",
     "changeFileButton": "Trocar arquivo",
@@ -1199,7 +1199,13 @@
       "sizesUnknown": "Este arquivo traz apenas um tamanho; grade não identificada",
       "missingGrain": "{pieces} peça(s) sem linha de fio identificada nas proximidades",
       "unsupportedEntities": "Entidades não suportadas ignoradas: {types}",
-      "fileTruncated": "Arquivo grande demais; parte do conteúdo foi descartada durante a leitura"
+      "fileTruncated": "Arquivo grande demais; parte do conteúdo foi descartada durante a leitura",
+      "rulLoaded": "{count} regra(s) de gradação lida(s)",
+      "rulNoRulesFound": "Nenhuma regra de gradação reconhecida neste arquivo .rul",
+      "rulUnrecognizedLines": "{lines} linha(s) do arquivo .rul não reconhecida(s) e ignorada(s)",
+      "rulUnitsUnknown": "Não foi possível identificar a unidade das regras de gradação",
+      "rulFileTruncated": "Arquivo .rul grande demais; parte do conteúdo foi descartada durante a leitura",
+      "rulNameMismatch": "O nome do arquivo .rul ({rulName}) não corresponde ao .dxf carregado ({dxfName})"
     },
     "cancelButton": "Cancelar",
     "createButton": "Importar molde",
@@ -1208,7 +1214,19 @@
     "pickError": {
       "file_too_large": "Este arquivo é grande demais para importar (limite de 10 MB).",
       "read_failed": "Não foi possível ler este arquivo. Tente novamente.",
-      "no_pieces_found": "Nenhum contorno fechado foi encontrado neste arquivo. Verifique se é um .dxf válido."
-    }
+      "no_pieces_found": "Nenhum contorno fechado foi encontrado neste arquivo. Verifique se é um .dxf válido.",
+      "rul_file_too_large": "Este arquivo .rul é grande demais para importar (limite de 2 MB).",
+      "rul_read_failed": "Não foi possível ler o arquivo .rul. Tente novamente."
+    },
+    "rulSectionLabel": "Regras de gradação (.rul)",
+    "rulNotProvidedNote": "Nenhum arquivo .rul correspondente foi carregado; as regras de gradação deste molde não foram lidas.",
+    "rulChooseButton": "Escolher arquivo .rul",
+    "rulChangeButton": "Trocar arquivo .rul",
+    "rulFile": "Arquivo",
+    "rulTableId": "Tabela",
+    "rulProduct": "Produto",
+    "rulSizeList": "Tamanhos",
+    "rulRuleCount": "Regras de gradação",
+    "rulBetaNote": "A leitura do arquivo .rul ainda não foi verificada com um arquivo exportado por um sistema de CAD real; trate os valores como preliminares."
   }
 }

@@ -40,7 +40,13 @@ export type ImportCheckCode =
   | "sizesUnknown"
   | "missingGrain"
   | "unsupportedEntities"
-  | "fileTruncated";
+  | "fileTruncated"
+  | "rulLoaded"
+  | "rulNoRulesFound"
+  | "rulUnrecognizedLines"
+  | "rulUnitsUnknown"
+  | "rulFileTruncated"
+  | "rulNameMismatch";
 
 /**
  * Machine-readable, never prose — the wire-carries-codes rule (CLAUDE.md's
@@ -59,6 +65,27 @@ export interface DetectedLayer {
   entityCount: number;
 }
 
+/**
+ * What was recovered from an optional `.RUL` companion file (#231) — the
+ * ANSI/AAMA "grade rule table" that routinely ships alongside an AAMA/ASTM
+ * DXF export to carry the grading deltas a bare DXF has no way to encode.
+ * Absent (`ImportAnalysis.rul` is `undefined`) whenever no `.RUL` was
+ * uploaded — that state, not an empty object, is what the screen reads to
+ * show "no companion found" rather than a table with nothing in it.
+ */
+export interface RulSummary {
+  fileName: string;
+  /** From "GRADE RULE TABLE: <id>" — the table's own identifier, not a piece name. */
+  tableId: string | null;
+  product: string | null;
+  author: string | null;
+  units: "metric" | "english" | null;
+  sizeList: string[];
+  sampleSize: string | null;
+  ruleCount: number;
+  checks: ImportCheck[];
+}
+
 export interface ImportAnalysis {
   format: ImportFormat;
   fileName: string;
@@ -70,4 +97,6 @@ export interface ImportAnalysis {
   /** Closed polylines on whichever layer(s) resolve to the "cut" role. */
   pieceCount: number;
   checks: ImportCheck[];
+  /** Set only once a `.RUL` companion has been uploaded alongside this DXF. */
+  rul?: RulSummary;
 }

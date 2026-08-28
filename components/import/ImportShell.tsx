@@ -8,6 +8,7 @@ import { useImportStore } from "@/lib/importStore";
 import { FileSummaryCard } from "./FileSummaryCard";
 import { LayerMappingPanel } from "./LayerMappingPanel";
 import { VerificationPanel } from "./VerificationPanel";
+import { RulCompanionCard } from "./RulCompanionCard";
 
 /**
  * /import — a two-step "parse, analyse, verify" flow (design 5g's high-
@@ -46,10 +47,13 @@ export function ImportShell({ userEmail }: { userEmail: string }) {
           <p className="text-muted text-ui max-w-[640px]">{t("formatNote")}</p>
           <FileSummaryCard />
           {step === 2 && analysis && (
-            <div className="grid min-h-0 flex-1 grid-cols-2 gap-[18px]">
-              <LayerMappingPanel />
-              <VerificationPanel />
-            </div>
+            <>
+              <RulCompanionCard />
+              <div className="grid min-h-0 flex-1 grid-cols-2 gap-[18px]">
+                <LayerMappingPanel />
+                <VerificationPanel />
+              </div>
+            </>
           )}
         </div>
       </ScrollArea>

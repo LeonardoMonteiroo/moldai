@@ -58,8 +58,16 @@ beforeEach(() => {
     roles: {},
     loading: false,
     actionError: null,
+    rulActionError: null,
   });
 });
+
+function rulFile(
+  name = "molde.rul",
+  content = "SIZE LIST: M L\nSAMPLE SIZE: M\nRULE: DELTA 1 0.000, 0.000 1.000, 1.000\n",
+): File {
+  return new File([content], name, { type: "text/plain" });
+}
 
 async function uploadFixture() {
   const user = userEvent.setup();
@@ -191,5 +199,73 @@ describe("ImportShell — creating a pattern is 'em breve', not shipped this pas
     });
     expect(createButton).toBeDisabled();
     expect(screen.getByText(tImport("createComingSoon"))).toBeInTheDocument();
+  });
+});
+
+describe("ImportShell — optional .RUL grading-rule companion (#231)", () => {
+  it("states plainly that no companion was found before one is picked", async () => {
+    await uploadFixture();
+    expect(screen.getByText(tImport("rulNotProvidedNote"))).toBeInTheDocument();
+  });
+
+  it("picking a .rul attaches its summary without touching the DXF-only state", async () => {
+    const user = await uploadFixture();
+    const pieceCountBefore = screen.getByText(
+      String(buildExportModel(fakePattern(), testT).pieces.length),
+    );
+    expect(pieceCountBefore).toBeInTheDocument();
+
+    const input = screen.getByLabelText(tImport("rulChooseButton"));
+    await user.upload(input, rulFile());
+
+    await waitFor(() =>
+      expect(screen.getByText("molde.rul")).toBeInTheDocument(),
+    );
+    expect(useImportStore.getState().analysis?.rul?.ruleCount).toBe(1);
+    // The DXF summary above is untouched by an additive companion.
+    expect(screen.getByText(tImport("format.dxf-moldai"))).toBeInTheDocument();
+  });
+
+  it("Trocar arquivo .rul clears the companion and returns to the picker", async () => {
+    const user = await uploadFixture();
+    const input = screen.getByLabelText(tImport("rulChooseButton"));
+    await user.upload(input, rulFile());
+    await waitFor(() =>
+      expect(screen.getByText("molde.rul")).toBeInTheDocument(),
+    );
+
+    await user.click(screen.getByText(tImport("rulChangeButton")));
+
+    expect(useImportStore.getState().analysis?.rul).toBeUndefined();
+    expect(screen.getByText(tImport("rulNotProvidedNote"))).toBeInTheDocument();
+  });
+
+  it("a too-large .rul pick reports its own error without discarding the DXF analysis", () => {
+    useImportStore.setState({
+      step: 2,
+      fileName: "x.dxf",
+      fileSizeBytes: 10,
+      analysis: {
+        format: "dxf-generic",
+        fileName: "x.dxf",
+        fileSizeBytes: 10,
+        unitScaleToCm: 1,
+        layers: [{ name: "L1", entityCount: 1 }],
+        suggestedRoles: { L1: "cut" },
+        pieceCount: 1,
+        checks: [],
+      },
+      roles: { L1: "cut" },
+      loading: false,
+      actionError: null,
+      rulActionError: "rul_file_too_large",
+    });
+
+    renderWithIntl(<ImportShell userEmail="a@b.com" />);
+
+    expect(
+      screen.getByText(tImport("pickError.rul_file_too_large")),
+    ).toBeInTheDocument();
+    expect(useImportStore.getState().analysis).not.toBeNull();
   });
 });
