@@ -184,7 +184,7 @@
       "sleeveType": "Tipo",
       "sleeveCap": "Cava (copa)",
       "collarType": "Tipo de gola",
-      "collarOtherTypes": "Outros tipos de gola (padre, chinesa, Peter Pan)",
+      "collarOtherTypes": "Outros tipos de gola (padre, Peter Pan, gola com pé e virada separada)",
       "cuffType": "Tipo de punho",
       "cuffOtherTypes": "Punho moldado e carcela tipo tower",
       "waistbandType": "Tipo de cós",
@@ -215,7 +215,8 @@
       "long": "longa"
     },
     "collarType": {
-      "convertible": "esporte (dobrável)"
+      "convertible": "esporte (dobrável)",
+      "band": "chinesa (em pé, sem virada)"
     },
     "cuffType": {
       "straight": "reto, com carcela"

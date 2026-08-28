@@ -26,6 +26,25 @@ export const DECORATION_CASES: [string, GarmentSpec][] = [
     },
   ],
   [
+    // #221: exercises the band (stand/mandarin) collar across every
+    // DECORATION_CASES consumer -- containment (the lowered neckline stays
+    // inside the panel), the seam graph (collar-neckline pair, its own
+    // easeCm), and every export format's straight-band cut-line/nesting
+    // suite, alongside "blouse round short"'s pre-existing convertible case.
+    "blouse round short band collar",
+    {
+      type: "blouse",
+      gender: "female",
+      measurementOverrides: {},
+      style: {
+        neckline: "round",
+        sleeve: "short",
+        darts: true,
+        collar: "band",
+      },
+    },
+  ],
+  [
     "blouse deep V long",
     {
       type: "blouse",

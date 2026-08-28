@@ -227,6 +227,75 @@ export function draftWaistband(waistLenCm: number, t: Translate): DraftedPiece {
 }
 
 // ---------------------------------------------------------------------------
+// Band (stand/mandarin) collar (#221)
+// ---------------------------------------------------------------------------
+
+// Band-collar geometry: a straight-up stand with NO folded-over fall --
+// structurally different from the convertible shape above
+// (muellerundsohn.com's "Pattern construction for stand-up collar": "does
+// not have a fall"). Drafted as the same plain rectangular band
+// straightBand() already gives the cuff/waistband above (both "a straight
+// band" per their own issue's decision) rather than a second bespoke shape
+// -- a flat stand has no outer curve to draft at all, so there is nothing
+// convertible's Catmull-Rom fold construction would add here.
+const BAND_COLLAR_HEIGHT_CM = 4; // stand height only -- shorter than COLLAR_HEIGHT_CM (6.5), which also carries the fall
+
+// #221: the neckline lowering deltas a stand collar needs BEFORE its own
+// seam edge is measured (muellerundsohn.com's own figures, 3-0 verified) --
+// a stand sits close to the throat with no fall to absorb ease, so the
+// neckline itself has to open up a little first. Applied in body.ts's
+// bodice(), gated on style.collar === "band" so the convertible/no-collar
+// geometry stays byte-identical. Exported so body.ts (the only other
+// consumer) never re-derives or duplicates these figures.
+export const BAND_COLLAR_SHOULDER_DROP_CM = 0.5; // 0-1cm at the shoulder seam -- same amount on front AND back, so their shoulder-seam lengths stay equal
+export const BAND_COLLAR_BACK_NECK_DROP_CM = 0.3; // 0-0.5cm at centre back
+export const BAND_COLLAR_FRONT_NECK_DROP_CM = 2; // up to 2cm at centre front
+
+// +3-4cm at the front edge -- the closure overlap allowance a stand
+// collar's own front ends need (button/snap stand), the same footing as
+// WAISTBAND_OVERLAP_CM/BUTTON_STAND_WIDTH_CM above/below. Declared as the
+// mated seam pair's own `easeCm` in garment.ts (not folded silently into
+// the drafted length), so seamCheck's "gap minus intended ease" comparison
+// reproduces "sewn length - neckline arc === extension" exactly, the same
+// pattern the waistband's WAISTBAND_OVERLAP_CM already establishes.
+export const BAND_COLLAR_FRONT_EXTENSION_CM = 3.5;
+
+// necklineArcCm is the FULL measured (already-lowered) neckline
+// circumference, exactly like draftCollar's own parameter above -- the
+// caller (garment.ts) computes it off the front+back panels AFTER body.ts
+// has applied the drop deltas, never a proportion of the bust.
+export function draftBandCollar(
+  necklineArcCm: number,
+  t: Translate,
+): DraftedPiece {
+  const sewLenCm = necklineArcCm + BAND_COLLAR_FRONT_EXTENSION_CM;
+  const { pts, seamEdge } = straightBand(sewLenCm, BAND_COLLAR_HEIGHT_CM);
+  const grainlineCm: [Pt, Pt] = [
+    [sewLenCm * 0.05, BAND_COLLAR_HEIGHT_CM / 2],
+    [sewLenCm * 0.95, BAND_COLLAR_HEIGHT_CM / 2],
+  ];
+  const detailRows: DetailRow[] = [
+    { label: t("rows.collarType"), value: t("collarType.band") },
+    { label: t("rows.length"), value: cm(sewLenCm) },
+    { label: t("rows.overlap"), value: cm(BAND_COLLAR_FRONT_EXTENSION_CM) },
+    { label: t("rows.grain"), value: t("grainValue") },
+    // Other collar shapes (a Peter Pan, a two-piece stand+fall) are still
+    // "em breve" -- the same note draftCollar's own card carries, since
+    // this issue instantiates one new shape, not every possible one.
+    { label: t("rows.collarOtherTypes"), value: t("comingSoonBadge") },
+  ];
+  return {
+    id: "collar",
+    name: t("pieceNames.collar"),
+    qty: 1, // one continuous strip spanning the whole neckline, no fold
+    outlineCm: pts,
+    grainlineCm,
+    detailRows,
+    seamEdges: { neckline: seamEdge },
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Button stand (#223)
 // ---------------------------------------------------------------------------
 
