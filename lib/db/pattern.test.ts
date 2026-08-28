@@ -161,6 +161,17 @@ describe("withPattern", () => {
     expect(out).toBe("resp");
   });
 
+  // #216: lockPattern shares toState with loadPattern, so a mutation path
+  // (generate/graduate/etc.) sees the corrected id too, not just a plain
+  // read -- and the id it sees is what gets persisted back on save.
+  it("sees the row's real id, not the blob's stale one, inside a mutation", async () => {
+    let seen: string | null = null;
+    await withPattern("m1", "u1", (state) => {
+      seen = state.pattern.id;
+    });
+    expect(seen).toBe("m1");
+  });
+
   // #72: every current caller only reaches savePattern after lockPattern has
   // already verified ownership inside the same transaction, so this can't be
   // exploited through withPattern's own API today -- it guards a future
@@ -217,6 +228,17 @@ describe("loadPattern", () => {
     delete state.pattern.sizeTable[state.pattern.baseSize];
     rows = [{ id: "m1", userId: "u1", data: state, updatedAt: new Date() }];
     expect(await loadPattern("m1", "u1")).toBeNull();
+  });
+
+  // #216: seedPattern() bakes id: "demo" into every blank pattern's blob and
+  // nothing ever rewrote it, so the editor footer's "Exportar"/"Histórico de
+  // versões" links (which read pattern.id off the composed EditorState)
+  // always pointed at /pattern/demo/... instead of the row it was actually
+  // reading. The row's real id must win over whatever the blob claims.
+  it("overrides the blob's own (possibly stale) pattern.id with the row's real id", async () => {
+    const s = await loadPattern("m1", "u1");
+    expect(s?.state.pattern.id).toBe("m1");
+    expect(s?.state.pattern.id).not.toBe("demo");
   });
 });
 
