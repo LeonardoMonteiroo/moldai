@@ -45,6 +45,10 @@ export const CAP_EASE_CM = { knit: 1, woven: 2.5 };
 // is bicep-derived and much wider than an actual wrist), the same
 // knit/woven-table shape as CAP_EASE_CM above. Represents the fastening/hand
 // clearance allowance a cuff needs over the fabric it gathers onto.
+//
+// #224: this sleeve-first direction (hem sized off bicep, cuff sized off
+// the hem) was considered and kept as-is rather than inverted to a
+// cuff-first/wrist-based sleeve fit -- see draftCuff in subpieces.ts.
 export const WRIST_EASE_CM = { knit: 1.5, woven: 2.5 };
 
 function capOutline(bicep: number, capH: number): { pts: Pt[]; cxTop: number } {
