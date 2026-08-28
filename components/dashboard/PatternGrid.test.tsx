@@ -10,6 +10,9 @@ import type { PatternListItem } from "@/lib/api-client";
 import { useDashboardStore } from "@/lib/dashboardStore";
 import { PatternGrid } from "./PatternGrid";
 
+const push = vi.fn();
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
+
 const PATTERN: PatternListItem = {
   id: "p1",
   name: "Blusa manga longa",
@@ -19,6 +22,7 @@ const PATTERN: PatternListItem = {
 };
 
 beforeEach(() => {
+  push.mockReset();
   useDashboardStore.setState({
     patterns: [],
     search: "",
@@ -78,6 +82,22 @@ describe("PatternGrid", () => {
       <PatternGrid onOpen={vi.fn()} onNewPattern={vi.fn()} />,
     );
     expect(container.querySelector('[data-slot="scroll-area"]')).toBeNull();
+  });
+
+  // Issue #210: the import card used to be an inert dashed placeholder badged
+  // "em breve" for a DXF import flow that had already shipped at /import
+  // (#163). It's a real control now, matching Sidebar's own fix for the
+  // identical defect (#11).
+  it("navigates to the import screen — the card is no longer a placeholder", async () => {
+    useDashboardStore.setState({ patterns: [PATTERN] });
+    const user = userEvent.setup();
+    renderWithIntl(<PatternGrid onOpen={vi.fn()} onNewPattern={vi.fn()} />);
+
+    const card = screen.getByRole("button", {
+      name: ptBR.PatternGrid.importCardLabel,
+    });
+    await user.click(card);
+    expect(push).toHaveBeenCalledWith("/import");
   });
 
   // #106: CLDR puts 0 in pt's "one" plural category, so the count label

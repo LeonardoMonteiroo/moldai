@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useDashboardStore, filteredPatterns } from "@/lib/dashboardStore";
 import { PatternCard } from "./PatternCard";
@@ -31,6 +32,7 @@ export function PatternGrid({
 }) {
   const t = useTranslations("PatternGrid");
   const tGarment = useTranslations("TechSheetTab");
+  const router = useRouter();
   const patterns = useDashboardStore((s) => s.patterns);
   const search = useDashboardStore((s) => s.search);
   const typeFilter = useDashboardStore((s) => s.typeFilter);
@@ -104,12 +106,19 @@ export function PatternGrid({
           {filtered.map((p) => (
             <PatternCard key={p.id} pattern={p} onOpen={onOpen} />
           ))}
-          <div className="border-border rounded-card text-muted text-ui flex h-[168px] flex-col items-center justify-center gap-1 border border-dashed text-center">
-            <span>{t("importCardLabel")}</span>
-            <span className="bg-amber-bg border-amber-border text-amber-text rounded-pill text-tick border px-[7px] py-[2px] font-semibold">
-              {t("importComingSoonBadge")}
-            </span>
-          </div>
+          {/* Issue #210: this used to be an inert dashed placeholder badged
+              "em breve" for a DXF import flow that had already shipped at
+              /import (#163) -- the Sidebar entry linked straight into it
+              while this card three columns over still claimed it didn't
+              exist. It's a real control now, matching Sidebar's own fix for
+              the identical defect (#11). */}
+          <button
+            type="button"
+            onClick={() => router.push("/import")}
+            className="border-border rounded-card text-muted text-ui hover:bg-surface-alt flex h-[168px] flex-col items-center justify-center gap-1 border border-dashed text-center transition-colors"
+          >
+            {t("importCardLabel")}
+          </button>
         </div>
       )}
     </div>
