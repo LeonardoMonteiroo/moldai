@@ -49,11 +49,17 @@ export type Girth = "bust" | "waist" | "hip";
 // #129/#130/#131 (Wave 2/W4): the three sub-piece types, each a closed enum
 // of exactly what's actually drafted today plus "none" -- there is no third
 // value the AI can select, unlike a proportion-tunable numeric field. Other
-// shapes (mandarin/Peter Pan collar, shaped cuff, contoured waistband) are
-// "em breve", surfaced inline on the drafted piece's own detail row (see
+// shapes (Peter Pan collar, shaped cuff, contoured waistband) are "em
+// breve", surfaced inline on the drafted piece's own detail row (see
 // lib/draft/subpieces.ts) and in lib/ai/prompt.ts's guidance, rather than a
 // silently-ignored enum value -- there IS no such value to silently accept.
-export type CollarType = "none" | "convertible";
+// #221: "band" (stand/mandarin collar) joined "convertible" as a second real
+// collar shape -- a straight-up stand with no folded-over fall, drafted by
+// lib/draft/subpieces.ts's draftBandCollar against a neckline lowered by
+// small position-specific deltas (see body.ts's own note beside
+// BAND_COLLAR_SHOULDER_DROP_CM). Still a closed enum: any OTHER stand-alike
+// shape (a two-piece stand+fall, #222) is still "em breve".
+export type CollarType = "none" | "convertible" | "band";
 export type CuffType = "none" | "straight";
 export type WaistbandType = "none" | "straight";
 // #223: closed enum, same shape as the three above -- "buttonStand" is the
@@ -89,6 +95,8 @@ export interface GarmentStyle {
   // measured arc (lib/draft/subpieces.ts's draftCollar). Applies to any
   // body-having garment (blouse/dress/tshirt); undefined/"none" drafts no
   // collar at all, unchanged from before this issue.
+  // #221: "band" drafts a straight-up stand instead (draftBandCollar), off
+  // the SAME neckline arc but lowered first -- see body.ts.
   collar?: CollarType;
   // #130: a straight cuff (plus its placket) drafted from the sleeve's own
   // measured hem edge. Only meaningful with sleeve: "long" -- a short or

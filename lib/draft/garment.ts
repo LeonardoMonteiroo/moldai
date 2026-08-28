@@ -34,11 +34,13 @@ import { draftSkirt, dressWaistHalfCm } from "./skirt";
 import { draftTrousers } from "./trousers";
 import {
   draftCollar,
+  draftBandCollar,
   draftCuff,
   draftPlacket,
   draftWaistband,
   draftButtonStand,
   WAISTBAND_OVERLAP_CM,
+  BAND_COLLAR_FRONT_EXTENSION_CM,
 } from "./subpieces";
 import { FIT_CLASSES, STRETCH_CLASSES, wearingEaseCm } from "./ease";
 import {
@@ -69,10 +71,10 @@ export const SKIRTS: SkirtSilhouette[] = [
   "half-circle",
   "circle",
 ];
-// #129/#130/#131: one exported source per sub-piece enum, the same rule
+// #129/#130/#131/#221: one exported source per sub-piece enum, the same rule
 // every other AI-facing catalog here follows -- schema.ts/prompt.ts render
 // from these, never a hardcoded duplicate list.
-export const COLLARS: CollarType[] = ["none", "convertible"];
+export const COLLARS: CollarType[] = ["none", "convertible", "band"];
 export const CUFFS: CuffType[] = ["none", "straight"];
 export const WAISTBANDS: WaistbandType[] = ["none", "straight"];
 // #223: same footing as the three above -- the AI-facing catalog, rendered
@@ -453,12 +455,20 @@ function draftAll(
         }
       }
     }
-    // #129: a convertible collar, drafted from the front+back neckline's
-    // own measured arc -- computed directly off the already-drafted panels
-    // (never persisted, never a proportion of the bust), the same
-    // "measure the geometry that was actually emitted" rule the armhole/cap
-    // pair already established.
-    if (style.collar === "convertible" && front.seamEdges && back.seamEdges) {
+    // #129/#221: a convertible OR band collar, drafted from the front+back
+    // neckline's own measured arc -- computed directly off the
+    // already-drafted panels (never persisted, never a proportion of the
+    // bust), the same "measure the geometry that was actually emitted" rule
+    // the armhole/cap pair already established. For "band", body.ts has
+    // already lowered that neckline (its own BAND_COLLAR_*_DROP_CM deltas)
+    // BEFORE these panels were drafted, so the arc summed here is already
+    // the lowered one -- this branch itself only picks which drafter/ease
+    // to use.
+    if (
+      (style.collar === "convertible" || style.collar === "band") &&
+      front.seamEdges &&
+      back.seamEdges
+    ) {
       // Narrowed into a local const -- `front` is a `let` (reassigned once,
       // earlier, from draftBody's own return), and TS resets that narrowing
       // inside the closures below (.reduce/.map) since it can't prove the
@@ -495,7 +505,18 @@ function draftAll(
           back.curvedSpans ?? [],
           ...back.seamEdges.necklineRight,
         );
-      const collar = draftCollar(necklineArcCm, t);
+      // #221: "band" drafts a straight-up stand instead of the convertible
+      // fold shape -- same neckline arc, but its own finished length adds
+      // the front-edge closure extension (draftBandCollar's own
+      // BAND_COLLAR_FRONT_EXTENSION_CM), so the seam pair's `easeCm` has to
+      // match: 0 for convertible (a tight, exact seam) vs the extension for
+      // band (walkSeamPairs' diffCm is |bLen - aLen - easeCm|, which is
+      // exactly the sewn length minus the arc minus the extension -- zero by
+      // construction either way).
+      const isBand = style.collar === "band";
+      const collar = isBand
+        ? draftBandCollar(necklineArcCm, t)
+        : draftCollar(necklineArcCm, t);
       drafted.push(collar);
       if (collar.seamEdges) {
         seamPairs.push({
@@ -507,7 +528,7 @@ function draftAll(
             edgeRef(back.id, back.seamEdges.necklineRight),
           ],
           b: [edgeRef(collar.id, collar.seamEdges.neckline)],
-          easeCm: 0,
+          easeCm: isBand ? BAND_COLLAR_FRONT_EXTENSION_CM : 0,
           fixable: false,
         });
       }

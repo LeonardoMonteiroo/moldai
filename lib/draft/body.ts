@@ -14,6 +14,11 @@ import {
 import { wearingEaseCm } from "./ease";
 import { formatCm } from "@/lib/format";
 import type { Translate } from "@/lib/i18n/translate";
+import {
+  BAND_COLLAR_SHOULDER_DROP_CM,
+  BAND_COLLAR_BACK_NECK_DROP_CM,
+  BAND_COLLAR_FRONT_NECK_DROP_CM,
+} from "./subpieces";
 
 const cm = (v: number) => `${formatCm(v)} cm`;
 
@@ -122,7 +127,25 @@ function bodice(
   else if (style.neckline === "round")
     frontNeckDrop = neckHalf + (opts.knit ? 2.0 : 1.0);
   else frontNeckDrop = neckHalf * 0.7;
-  const neckDrop = frontish ? frontNeckDrop : backNeckDrop;
+  // #221: a band (stand) collar sits close to the throat with no folded
+  // fall to absorb ease, so the neckline it seats against is opened up a
+  // little first -- small, position-specific deltas (lib/draft/subpieces.ts's
+  // BAND_COLLAR_*_DROP_CM, sourced from muellerundsohn.com's stand-collar
+  // construction), applied BEFORE this panel's own seamEdges are measured so
+  // the collar-neckline seam pair in garment.ts measures the ALREADY-lowered
+  // curve. Centre back/front only get their own panel's delta (frontish
+  // picks which); the shoulder-point delta below is added identically on
+  // both panels so the shoulder seam (front hpsL->shL vs back hpsL->shL)
+  // stays equal by construction, unperturbed by this change.
+  const isBandCollar = style.collar === "band";
+  const neckDrop =
+    (frontish ? frontNeckDrop : backNeckDrop) +
+    (isBandCollar
+      ? frontish
+        ? BAND_COLLAR_FRONT_NECK_DROP_CM
+        : BAND_COLLAR_BACK_NECK_DROP_CM
+      : 0);
+  const shoulderNeckDropCm = isBandCollar ? BAND_COLLAR_SHOULDER_DROP_CM : 0;
 
   const fitted = !!style.darts && !opts.knit;
   // #223: a front-closure blouse front splits into a mirrored half-panel
@@ -174,7 +197,7 @@ function bodice(
 
   const cf = push([cx, neckDrop]); // neckline center
   push([cx - neckHalf * 0.6, neckDrop * 0.55]); // left neckline ctrl
-  const hpsL = push([cx - neckHalf, 0]); // left HPS
+  const hpsL = push([cx - neckHalf, shoulderNeckDropCm]); // left HPS
   spans.push([cf, hpsL]); // left neckline (curved)
   const shL = push([cx - shoulderHalf, shoulderSlope]); // left shoulder (straight hpsL->shL)
   push([cx - armCtrlX, midArmY]); // left armhole ctrl
@@ -208,7 +231,7 @@ function bodice(
     push([cx + armCtrlX, midArmY]); // right armhole ctrl
     shR = push([cx + shoulderHalf, shoulderSlope]); // right shoulder
     spans.push([uaR, shR]); // right armhole (curved)
-    hpsR = push([cx + neckHalf, 0]); // right HPS (straight shR->hpsR)
+    hpsR = push([cx + neckHalf, shoulderNeckDropCm]); // right HPS (straight shR->hpsR)
     push([cx + neckHalf * 0.6, neckDrop * 0.55]); // right neckline ctrl
     spans.push([hpsR, pts.length]); // right neckline + closing (curved)
   }

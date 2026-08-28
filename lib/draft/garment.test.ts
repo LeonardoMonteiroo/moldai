@@ -186,6 +186,17 @@ describe("validateSpec", () => {
     expect(s.style.waistband).toBe("none");
   });
 
+  // #221: "band" is the second real collar shape -- accepted exactly like
+  // "convertible", never falling back to it.
+  it("accepts collar: band", () => {
+    const s = validateSpec({
+      type: "blouse",
+      style: { collar: "band" },
+      measurementOverrides: {},
+    });
+    expect(s.style.collar).toBe("band");
+  });
+
   it("leaves collar/cuff/waistband undefined when the spec doesn't mention them", () => {
     const s = validateSpec({
       type: "blouse",
@@ -1440,6 +1451,72 @@ describe("seam graph (#134)", () => {
     expect(pair).toBeDefined();
     expect(pair!.fixable).toBe(false);
     expect(pair!.diffCm).toBeLessThan(0.3);
+  });
+
+  // #221: same acceptance shape as #129's convertible test above, for the
+  // new "band" (stand/mandarin) collar type -- its own seam pair carries a
+  // non-zero easeCm (the front-edge closure extension), so a genuine match
+  // depends on walkSeamPairs' "gap minus intended ease" comparison, not
+  // just on the two raw lengths happening to agree.
+  it("#221: the band collar's neckline seam matches the (lowered) front+back neckline arc plus its own front extension, within 0.3cm", () => {
+    const spec = {
+      type: "blouse" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: {
+        neckline: "round" as const,
+        sleeve: "none" as const,
+        collar: "band" as const,
+      },
+    };
+    const graph = measureSeamGraph(spec, SIZE_TABLE.M, t);
+    const pair = graph.find((m) => m.key === "collar-neckline");
+    expect(pair).toBeDefined();
+    expect(pair!.fixable).toBe(false);
+    expect(pair!.easeCm).toBeGreaterThan(0);
+    expect(pair!.diffCm).toBeLessThan(0.3);
+  });
+
+  // #221 AC: the neckline the band collar seats against must be genuinely
+  // lowered BEFORE it's measured, not just accepted at its pre-existing
+  // size -- a band spec's own neckline arc (the seam pair's `a` side) has to
+  // come out larger than the identical spec drafted with "convertible"
+  // (which doesn't touch the neckline at all).
+  it("#221: choosing collar: band genuinely enlarges the neckline arc the collar mates against, vs. convertible", () => {
+    const base = {
+      type: "blouse" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { neckline: "round" as const, sleeve: "none" as const },
+    };
+    const convertibleArc = measureSeamGraph(
+      { ...base, style: { ...base.style, collar: "convertible" as const } },
+      SIZE_TABLE.M,
+      t,
+    ).find((m) => m.key === "collar-neckline")!.aLenCm;
+    const bandArc = measureSeamGraph(
+      { ...base, style: { ...base.style, collar: "band" as const } },
+      SIZE_TABLE.M,
+      t,
+    ).find((m) => m.key === "collar-neckline")!.aLenCm;
+    expect(bandArc).toBeGreaterThan(convertibleArc);
+  });
+
+  // #221 AC: "straight-up stand, no fall" -- unlike the convertible shape
+  // (two curved outer-edge spans, see draftCollar), the band collar's own
+  // outline is a plain rectangle with no curvature at all.
+  it("#221: the band collar drafts a plain rectangular stand, with no curved spans (no fall)", () => {
+    const spec = {
+      type: "blouse" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { neckline: "round" as const, collar: "band" as const },
+    };
+    const pieces = draftPiecesCm(spec, SIZE_TABLE.M, t);
+    const collar = pieces.find((p) => p.id === "collar")!;
+    expect(collar).toBeDefined();
+    expect(collar.curvedSpans ?? []).toHaveLength(0);
+    expect(collar.outlineCm).toHaveLength(6); // straightBand()'s own rectangle
   });
 
   it("#130: the cuff's own seam matches the sleeve's measured hem edge (plus wrist ease) within 0.3cm", () => {
