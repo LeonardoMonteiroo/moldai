@@ -204,13 +204,14 @@ export function OnboardingShell({ credits }: { credits: Credits }) {
                 );
               })}
             </div>
-            <Button
-              className="self-end"
-              disabled={workStyle === null}
-              onClick={() => setStep(2)}
-            >
-              {t("continueButton")}
-            </Button>
+            <div className="flex items-center justify-end gap-[10px]">
+              <Button variant="link" onClick={handleSkip} disabled={skipping}>
+                {t("skipButton")}
+              </Button>
+              <Button disabled={workStyle === null} onClick={() => setStep(2)}>
+                {t("continueButton")}
+              </Button>
+            </div>
           </div>
         )}
 
@@ -315,14 +316,23 @@ export function OnboardingShell({ credits }: { credits: Credits }) {
               >
                 {t("backButton")}
               </Button>
-              <Button
-                disabled={!message.trim() || submitting}
-                onClick={handleGenerate}
-              >
-                {submitting
-                  ? t("step3.generatingButton")
-                  : t("step3.generateCta", { cost: COSTS.adjust })}
-              </Button>
+              <div className="flex items-center gap-[10px]">
+                <Button
+                  variant="link"
+                  onClick={handleSkip}
+                  disabled={skipping || submitting}
+                >
+                  {t("skipButton")}
+                </Button>
+                <Button
+                  disabled={!message.trim() || submitting}
+                  onClick={handleGenerate}
+                >
+                  {submitting
+                    ? t("step3.generatingButton")
+                    : t("step3.generateCta", { cost: COSTS.adjust })}
+                </Button>
+              </div>
             </div>
           </div>
         )}

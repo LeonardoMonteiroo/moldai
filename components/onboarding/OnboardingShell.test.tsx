@@ -272,10 +272,37 @@ describe("OnboardingShell", () => {
     expect(screen.getByText(ptBR.Onboarding.step3.title)).toBeInTheDocument();
   });
 
-  it("Pular por agora stamps onboarding and navigates home without generating", async () => {
+  it("step 2: Pular por agora stamps onboarding and navigates home without generating", async () => {
     const user = userEvent.setup();
     renderWithIntl(<OnboardingShell credits={CREDITS} />);
     await goToStep2(user);
+
+    await user.click(
+      screen.getByRole("button", { name: ptBR.Onboarding.skipButton }),
+    );
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/"));
+    expect(api.completeOnboarding).toHaveBeenCalledWith("brand");
+    expect(api.generate).not.toHaveBeenCalled();
+  });
+
+  it("step 1: Pular por agora is available before any work style is chosen", async () => {
+    const user = userEvent.setup();
+    renderWithIntl(<OnboardingShell credits={CREDITS} />);
+
+    await user.click(
+      screen.getByRole("button", { name: ptBR.Onboarding.skipButton }),
+    );
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/"));
+    expect(api.completeOnboarding).toHaveBeenCalledWith(undefined);
+    expect(api.generate).not.toHaveBeenCalled();
+  });
+
+  it("step 3: Pular por agora stamps onboarding and navigates home without generating", async () => {
+    const user = userEvent.setup();
+    renderWithIntl(<OnboardingShell credits={CREDITS} />);
+    await goToStep3(user);
 
     await user.click(
       screen.getByRole("button", { name: ptBR.Onboarding.skipButton }),
