@@ -17,8 +17,20 @@ import {
   type Measurements,
 } from "@/lib/measurements";
 import { t } from "@/lib/i18n/test-translate";
-import { curveArcLengthCm, bbox, catmullRomSegments } from "./core";
+import {
+  curveArcLengthCm,
+  bbox,
+  catmullRomSegments,
+  type InternalCm,
+} from "./core";
 import { DECORATION_CASES } from "./fixtures";
+import { PLACKET_FOLD_OVERLAP_CM, PLACKET_FOLD_UNDERLAP_CM } from "./subpieces";
+
+function isFoldLine(
+  e: InternalCm,
+): e is Extract<InternalCm, { kind: "foldLine" }> {
+  return e.kind === "foldLine";
+}
 
 describe("validateSpec", () => {
   it("falls back to defaults on invalid enums and clamps ranges", () => {
@@ -1500,6 +1512,53 @@ describe("seam graph (#134)", () => {
     const pieces = draftPiecesCm(spec, SIZE_TABLE.M, t);
     expect(pieces.map((p) => p.id)).not.toContain("cuff");
     expect(pieces.map((p) => p.id)).not.toContain("placket");
+  });
+
+  // #225: a verified source on sleeve-placket construction states the
+  // overlap piece is finished with an asymmetric fold -- 3/8" on one long
+  // edge, 1/4" on the other -- not the symmetric strip this drafter used to
+  // cut. Reuses the "blouse deep V long" DECORATION_CASES style (long sleeve
+  // + straight cuff) so this is the same spec shape the containment/offset
+  // matrix already exercises the placket through.
+  it("#225: the placket's two long edges carry different fold allowances (overlap vs underlap), not a symmetric rectangle", () => {
+    const spec = {
+      type: "blouse" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { sleeve: "long" as const, cuff: "straight" as const },
+    };
+    const pieces = draftPiecesCm(spec, SIZE_TABLE.M, t);
+    const placket = pieces.find((p) => p.id === "placket");
+    expect(placket).toBeDefined();
+
+    expect(PLACKET_FOLD_OVERLAP_CM).not.toBe(PLACKET_FOLD_UNDERLAP_CM);
+
+    const width = bbox(placket!.outlineCm).w;
+    const foldLines = (placket!.internalsCm ?? []).filter(isFoldLine);
+    expect(foldLines).toHaveLength(2);
+
+    // Each fold line's distance from its OWN nearest long edge -- the
+    // asymmetry the issue is about, not just two arbitrary internal lines.
+    const distancesFromNearestEdge = foldLines
+      .map((f) => f.aCm[0])
+      .map((x) => Math.min(x, width - x))
+      .sort((a, b) => a - b);
+    expect(distancesFromNearestEdge[0]).toBeCloseTo(
+      PLACKET_FOLD_UNDERLAP_CM,
+      5,
+    );
+    expect(distancesFromNearestEdge[1]).toBeCloseTo(PLACKET_FOLD_OVERLAP_CM, 5);
+
+    // The piece card states both measurements explicitly (#225 AC), through
+    // the same injected Translate/PatternData catalog path every other
+    // subpiece detail row already uses -- t() is the identity function in
+    // tests, so the label IS the catalog key here.
+    expect(
+      placket!.detailRows.some((r) => r.label === "rows.placketFoldOverlap"),
+    ).toBe(true);
+    expect(
+      placket!.detailRows.some((r) => r.label === "rows.placketFoldUnderlap"),
+    ).toBe(true);
   });
 
   it("#131: the waistband's own seam matches the skirt's measured waist edge (plus overlap) within 0.3cm, for every silhouette", () => {
