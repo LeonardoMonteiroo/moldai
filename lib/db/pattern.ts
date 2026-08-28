@@ -34,7 +34,16 @@ function toState(
     reportError("db.pattern.parse", result.error, { patternId });
     return null;
   }
-  return result.data;
+  // #216: seedPattern() bakes a placeholder `id: "demo"` into the blob, and
+  // nothing ever rewrote it -- every consumer of PatternState.pattern.id
+  // (the editor footer's export/versions links, ExportShell's back link)
+  // inherited that placeholder instead of the row's real id. This is the one
+  // place every blob becomes a typed PatternState, so it's the one place
+  // that can guarantee pattern.id always matches the row it was read from.
+  return {
+    ...result.data,
+    pattern: { ...result.data.pattern, id: patternId },
+  };
 }
 
 export function patternNotFound(): NextResponse {
