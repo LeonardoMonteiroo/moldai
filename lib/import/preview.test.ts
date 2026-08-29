@@ -1,6 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { parseDxf } from "./dxf";
-import { buildLayerPreview, colorForLayer } from "./preview";
+import {
+  buildLayerPreview,
+  buildPiecePreviewPath,
+  colorForLayer,
+} from "./preview";
 
 function docFrom(codes: (string | number)[]): ReturnType<typeof parseDxf> {
   return parseDxf(
@@ -153,5 +157,36 @@ describe("colorForLayer", () => {
 
   it("returns a valid hsl() color string", () => {
     expect(colorForLayer("CONTORNO")).toMatch(/^hsl\(\d+, \d+%, \d+%\)$/);
+  });
+});
+
+describe("buildPiecePreviewPath", () => {
+  it("returns the Y-flipped path for the polyline at doc.entities[index]", () => {
+    const doc = docFrom([
+      "0",
+      "LWPOLYLINE",
+      "8",
+      "CUTLAYER",
+      "70",
+      "1",
+      "10",
+      "0",
+      "20",
+      "0",
+      "10",
+      "5",
+      "20",
+      "0",
+      "10",
+      "5",
+      "20",
+      "5",
+    ]);
+    expect(buildPiecePreviewPath(doc, "0")).toBe("M 0 0 L 5 0 L 5 -5 Z");
+  });
+
+  it("returns null for a key that isn't a polyline index", () => {
+    const doc = docFrom([]);
+    expect(buildPiecePreviewPath(doc, "0")).toBeNull();
   });
 });

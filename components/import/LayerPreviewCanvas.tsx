@@ -2,7 +2,11 @@
 
 import { useTranslations } from "next-intl";
 import { useImportStore } from "@/lib/importStore";
-import { buildLayerPreview, colorForLayer } from "@/lib/import/preview";
+import {
+  buildLayerPreview,
+  buildPiecePreviewPath,
+  colorForLayer,
+} from "@/lib/import/preview";
 
 /**
  * A single SVG overlay of every detected layer's real geometry — the ground
@@ -21,6 +25,7 @@ export function LayerPreviewCanvas() {
   const t = useTranslations("Import");
   const doc = useImportStore((s) => s.doc);
   const hoveredLayers = useImportStore((s) => s.hoveredLayers);
+  const hoveredPieceKey = useImportStore((s) => s.hoveredPieceKey);
 
   if (!doc) return null;
   const preview = buildLayerPreview(doc);
@@ -55,6 +60,20 @@ export function LayerPreviewCanvas() {
             />
           );
         })}
+        {hoveredPieceKey &&
+          (() => {
+            const d = buildPiecePreviewPath(doc, hoveredPieceKey);
+            if (!d) return null;
+            return (
+              <path
+                d={d}
+                fill="none"
+                stroke="var(--color-primary)"
+                strokeWidth={3}
+                vectorEffect="non-scaling-stroke"
+              />
+            );
+          })()}
       </svg>
     </div>
   );

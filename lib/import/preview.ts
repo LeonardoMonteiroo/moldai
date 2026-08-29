@@ -38,6 +38,35 @@ function flip(y: number): number {
   return -y;
 }
 
+function polylinePath(
+  vertices: [number, number][],
+  closed: boolean,
+): string | null {
+  if (vertices.length < 2) return null;
+  const points = vertices.map(([x, y]): [number, number] => [x, flip(y)]);
+  const [first, ...rest] = points;
+  let d = `M ${fmt(first[0])} ${fmt(first[1])}`;
+  for (const [x, y] of rest) d += ` L ${fmt(x)} ${fmt(y)}`;
+  if (closed) d += " Z";
+  return d;
+}
+
+/**
+ * The single polyline at doc.entities[Number(key)] as its own path -- used
+ * to highlight one specific detected piece (lib/import/pieces.ts's
+ * DetectedPiece key IS its entities index) independently of its layer's own
+ * merged path (#238 follow-up).
+ */
+export function buildPiecePreviewPath(
+  doc: DxfDocument,
+  key: string,
+): string | null {
+  const index = Number(key);
+  const entity = doc.entities[index];
+  if (!entity || entity.kind !== "polyline") return null;
+  return polylinePath(entity.vertices, entity.closed);
+}
+
 export function buildLayerPreview(doc: DxfDocument): LayerPreview {
   const fragmentsByLayer = new Map<string, string[]>();
   let minX = Infinity;
@@ -59,13 +88,13 @@ export function buildLayerPreview(doc: DxfDocument): LayerPreview {
 
   for (const e of doc.entities) {
     if (e.kind === "polyline") {
-      if (e.vertices.length < 2) continue;
-      const points = e.vertices.map(([x, y]): [number, number] => [x, flip(y)]);
-      for (const [x, y] of points) touch(x, y);
-      const [first, ...rest] = points;
-      let d = `M ${fmt(first[0])} ${fmt(first[1])}`;
-      for (const [x, y] of rest) d += ` L ${fmt(x)} ${fmt(y)}`;
-      if (e.closed) d += " Z";
+      const d = polylinePath(e.vertices, e.closed);
+      if (!d) continue;
+      for (const [x, y] of e.vertices.map(([x, y]): [number, number] => [
+        x,
+        flip(y),
+      ]))
+        touch(x, y);
       push(e.layer, d);
     } else if (e.kind === "line") {
       const ax = e.a[0];
