@@ -1193,6 +1193,22 @@
     "layerNotFound": "não encontrada",
     "layerGroupCount": "{count} camadas",
     "previewSectionLabel": "Prévia",
+    "piecesSectionLabel": "Identificar peças (opcional)",
+    "pieceRowLabel": "Peça {index}",
+    "pieceCustomNamePlaceholder": "Nome da peça",
+    "pieceLabel": {
+      "front": "Frente",
+      "back": "Costas",
+      "sleeve": "Manga",
+      "collar": "Gola",
+      "cuff": "Punho",
+      "waistband": "Cintura/faixa",
+      "skirtFront": "Frente da saia",
+      "skirtBack": "Costas da saia",
+      "trouserFront": "Frente da calça",
+      "trouserBack": "Costas da calça",
+      "other": "Outro"
+    },
     "verificationSectionLabel": "Verificação",
     "checks": {
       "unitCm": "Unidade reconhecida: {unit}",
