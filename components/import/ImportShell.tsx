@@ -49,15 +49,25 @@ export function ImportShell({ userEmail }: { userEmail: string }) {
           <p className="text-muted text-ui max-w-[640px]">{t("formatNote")}</p>
           <FileSummaryCard />
           {step === 2 && analysis && (
-            <>
-              <RulCompanionCard />
-              <LayerPreviewCanvas />
-              <PieceLabelPanel />
-              <div className="grid min-h-0 flex-1 grid-cols-2 gap-[18px]">
-                <LayerMappingPanel />
-                <VerificationPanel />
+            // The preview stays pinned in its own column (lg:sticky) so a
+            // long "Identificar peças" or layer list never scrolls it out of
+            // view -- hovering a row to spotlight/isolate its shape only
+            // works if the drawing is still on screen while the user reads
+            // the list beside it. Below lg it falls back to one stacked
+            // column (no sticky sidebar on a narrow viewport).
+            <div className="grid min-h-0 flex-1 gap-[18px] lg:grid-cols-[420px_1fr] lg:items-start">
+              <div className="lg:sticky lg:top-[22px]">
+                <LayerPreviewCanvas />
               </div>
-            </>
+              <div className="flex min-w-0 flex-col gap-[18px]">
+                <RulCompanionCard />
+                <PieceLabelPanel />
+                <div className="grid min-h-0 grid-cols-2 gap-[18px]">
+                  <LayerMappingPanel />
+                  <VerificationPanel />
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </ScrollArea>

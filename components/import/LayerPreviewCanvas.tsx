@@ -41,7 +41,7 @@ export function LayerPreviewCanvas() {
       <svg
         viewBox={preview.viewBox}
         aria-hidden="true"
-        className="mt-[10px] h-[280px] w-full"
+        className="mt-[10px] h-[280px] w-full lg:h-[calc(100vh-160px)]"
       >
         {preview.segments.map((segment) => {
           const isHighlighted = hovered?.has(segment.layer) ?? false;
