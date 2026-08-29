@@ -2,48 +2,52 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MockupCard } from "./MockupCard";
 import { PLAN_CREDITS } from "@/lib/billing/plans";
 
-// Decision 3 (issue #13): "Ver um molde real" is disabled + badged "em
-// breve" rather than hidden or faked -- there is no public demo pattern,
-// and every /pattern/[id] route requires a session.
+// The design's own hero drops the earlier disabled "Ver um molde real"
+// secondary CTA entirely rather than keeping a permanently-disabled control
+// -- a single real CTA plus the no-card note underneath it. The hero image
+// is a real screenshot of the editor (public/landing/hero-editor.jpg),
+// captured mid-conversation with a generated and adjusted pattern already
+// on canvas -- replacing the earlier hand-drawn MockupCard illustration,
+// which read as a fabrication of the UI rather than the UI itself.
 export function LandingHero() {
   const t = useTranslations("Landing");
 
   return (
-    <div className="flex gap-[34px] px-[30px] pt-[44px] pb-[34px]">
-      <div className="flex w-[430px] flex-col gap-[18px]">
-        <span className="text-olive text-meta tracking-eyebrow font-semibold uppercase">
-          {t("hero.eyebrow")}
-        </span>
-        <h1 className="font-display text-hero tracking-hero font-semibold">
-          {t("hero.title")}
-        </h1>
-        <p className="text-muted-2 text-body max-w-[390px]">{t("hero.body")}</p>
-        <div className="flex items-center gap-[10px]">
-          <Button asChild size="lg">
-            <Link href="/signup">
-              {t("hero.primaryCta", { credits: PLAN_CREDITS.free })}
-            </Link>
-          </Button>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="outline"
-              size="lg"
-              disabled
-              title={t("hero.secondaryCtaTitle")}
-            >
-              {t("hero.secondaryCta")}
+    <section className="border-border bg-paper border-b">
+      <div className="mx-auto flex max-w-[1040px] flex-wrap items-center gap-12 px-[30px] py-16">
+        <div className="flex min-w-0 flex-1 basis-[360px] flex-col gap-5">
+          <span className="text-olive text-meta tracking-eyebrow font-semibold uppercase">
+            {t("hero.eyebrow")}
+          </span>
+          <h1 className="font-display text-hero tracking-hero font-semibold">
+            {t("hero.title")}
+          </h1>
+          <p className="text-muted-2 text-body max-w-[390px]">
+            {t("hero.body")}
+          </p>
+          <div className="flex flex-col items-start gap-[9px]">
+            <Button asChild size="lg">
+              <Link href="/signup">
+                {t("hero.primaryCta", { credits: PLAN_CREDITS.free })}
+              </Link>
             </Button>
-            <Badge variant="soon">{t("nav.comingSoonBadge")}</Badge>
+            <span className="text-muted text-ui">{t("hero.noCardNote")}</span>
           </div>
         </div>
-        <span className="text-muted text-ui">{t("hero.noCardNote")}</span>
+        <div className="border-border rounded-modal shadow-modal min-w-0 flex-1 basis-[560px] overflow-hidden border">
+          {/* eslint-disable-next-line @next/next/no-img-element -- a fixed
+              local screenshot; no repo precedent for next/image and none of
+              its optimization pipeline applies to a single static asset. */}
+          <img
+            src="/landing/hero-editor.jpg"
+            alt={t("hero.imageAlt")}
+            className="h-full w-full object-cover object-top"
+          />
+        </div>
       </div>
-      <MockupCard />
-    </div>
+    </section>
   );
 }

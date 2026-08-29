@@ -42,3 +42,27 @@ export const EXPORT_FORMAT_LABELS: Record<
   },
   plt: { labelKey: "formatPlt", noteKey: "formatPltNote" },
 };
+
+// The public landing page's "Exporta para" strip groups formats by what
+// they're for rather than listing all seven flat -- a Record (not a
+// hardcoded subset array) so a new ExportFormat is a compile error here
+// until it's placed in a group, the same anti-drift shape as
+// EXPORT_FORMAT_LABELS above.
+export const EXPORT_FORMAT_USE_CASE: Record<
+  ExportFormat,
+  "plotter" | "cad" | "print"
+> = {
+  svg: "plotter",
+  "pdf-single": "plotter",
+  plt: "plotter",
+  dxf: "cad",
+  "dxf-aama": "cad",
+  "pdf-a4": "print",
+  "pdf-layered": "print",
+};
+
+export const EXPORT_FORMAT_USE_CASE_ORDER = [
+  "plotter",
+  "cad",
+  "print",
+] as const;

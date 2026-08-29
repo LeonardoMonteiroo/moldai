@@ -5,10 +5,11 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Wordmark } from "@/components/shared/Wordmark";
 
-// #13: "Como funciona"/"Formatos" are real same-page anchors (Decision 2 =
-// B) -- both sections already exist below (StepCards' #how-it-works,
-// FormatsSection's #formats), inventing no new copy. "Planos" was disabled
-// + badged until the public plans screen shipped (#15) -- now a real link.
+// #13: "Como funciona"/"Dúvidas" are real same-page anchors (Decision 2 =
+// B) -- both sections already exist below (StepsSection's #how-it-works,
+// FaqSection's #faq), inventing no new copy. "Planos" was disabled + badged
+// until the public plans screen shipped (#15) -- now a real link to the
+// dedicated pricing page, not a same-page anchor.
 //
 // #218: also reused by /planos (PricingPage), which is reachable while
 // signed in -- it used to always render the signed-out "Entrar"/"Testar
@@ -29,7 +30,7 @@ export function LandingNav({ signedIn = false }: { signedIn?: boolean }) {
         <a href="#how-it-works">{t("nav.howItWorks")}</a>
       </Button>
       <Button asChild variant="ghost" size="chrome" className="text-muted-2">
-        <a href="#formats">{t("nav.formats")}</a>
+        <a href="#faq">{t("nav.faq")}</a>
       </Button>
       <Button asChild variant="ghost" size="chrome" className="text-muted-2">
         <Link href="/planos">{t("nav.plans")}</Link>

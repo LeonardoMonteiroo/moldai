@@ -540,9 +540,8 @@
     "metaDescription": "Descreva a peça que você quer e a IA gera o molde, grada os tamanhos e exporta pronto para cortar.",
     "nav": {
       "howItWorks": "Como funciona",
-      "formats": "Formatos",
+      "faq": "Dúvidas",
       "plans": "Planos",
-      "comingSoonBadge": "em breve",
       "login": "Entrar",
       "signup": "Testar grátis",
       "dashboard": "Meus moldes"
@@ -550,36 +549,80 @@
     "hero": {
       "eyebrow": "Modelagem com IA",
       "title": "Do texto ao molde pronto para cortar",
-      "body": "Descreva a peça em uma conversa, e a IA desenha o molde, grada os tamanhos pela sua tabela de medidas e exporta em SVG, DXF ou PDF.",
+      "body": "Descreva a peça em uma conversa. A IA pergunta o que falta, desenha as peças e grada os tamanhos pela sua tabela de medidas.",
       "primaryCta": "Começar com {credits} créditos grátis",
-      "secondaryCta": "Ver um molde real",
-      "secondaryCtaTitle": "Galeria de moldes reais chega em breve",
-      "noCardNote": "Sem cartão de crédito para começar."
-    },
-    "mockup": {
-      "promptExample": "blusa manga curta, decote redondo, tamanho M",
-      "canvasAlt": "Peças de um molde de blusa (frente, costas e manga), com a linha de graduação tracejada ao redor",
-      "chipGraduate": "graduar PP–GG",
-      "chipCutPlan": "plano de corte",
-      "chipExport": "exportar SVG/DXF"
-    },
-    "formats": {
-      "title": "Formatos de exportação"
+      "noCardNote": "Sem cartão de crédito.",
+      "imageAlt": "Editor do MoldAI com a conversa sobre uma camisa básica, incluindo as perguntas de detalhamento da IA, e o molde já gerado"
     },
     "steps": {
-      "sectionTitle": "Como funciona",
+      "eyebrow": "Como funciona",
+      "sectionTitle": "Três passos entre a ideia e o tecido",
       "describe": {
-        "title": "1 · Descreva ou envie",
-        "body": "Texto, foto de referência ou croqui: a IA interpreta e propõe o molde."
+        "step": "Passo 1",
+        "title": "Descreva ou envie",
+        "body": "Texto, foto de referência ou croqui. Quando falta um detalhe de modelagem, a IA pergunta antes de desenhar.",
+        "imageAlt": "Peça de frente de uma camisa gerada a partir da descrição no chat"
       },
       "adjust": {
-        "title": "2 · Ajuste conversando",
-        "body": "Peça a mudança em linguagem de modelagem. A IA avisa quando as costuras não fecham."
+        "step": "Passo 2",
+        "title": "Ajuste conversando",
+        "body": "Peça a mudança em linguagem de modelagem (copa da manga, cava, pence, comprimento) e veja a peça mudar.",
+        "imageAlt": "Peça de manga de uma camisa, com a linha de dobra marcada"
       },
       "export": {
-        "title": "3 · Exporte e corte",
-        "body": "Grade os tamanhos pela sua tabela de medidas e exporte em SVG, DXF ou PDF, com ficha técnica."
+        "step": "Passo 3",
+        "title": "Grade e exporte",
+        "body": "Grade a coleção pela sua tabela de medidas e exporte em escala 1:1 para plotter, CAD ou folha A4.",
+        "imageAlt": "Peça de frente posicionada no plano de corte"
       }
+    },
+    "faq": {
+      "eyebrow": "Dúvidas de quem modela",
+      "sectionTitle": "O que a IA faz, e o que ela não faz",
+      "seamCheck": {
+        "question": "E se o ajuste que eu pedir não fechar?",
+        "answer": "Cada pedido é remedido antes de virar molde. Se o ajuste que você pediu deixa a copa da manga menor que a cava, o molde não é dado como pronto: a diferença aparece em centímetros, na peça, e você escolhe corrigir ou seguir assim."
+      },
+      "sizeChart": {
+        "question": "Usa a minha tabela de medidas?",
+        "answer": "Sim. Cadastre a grade do ateliê, com a sua regra de progressão por medida, e ela passa a valer para a geração e para a graduação. Há grades padrão para começar."
+      },
+      "dxf": {
+        "question": "O DXF abre no meu sistema de CAD?",
+        "answer": "A exportação DXF segue AAMA/ASTM com camadas numeradas D6673. O formato está em beta."
+      },
+      "readyToCut": {
+        "question": "O molde sai pronto para cortar?",
+        "answer": "Sai em escala 1:1, com margem de costura, piques e sentido do fio, mais o plano de corte com o consumo estimado de tecido. A prova de modelagem continua sendo sua."
+      }
+    },
+    "credits": {
+      "eyebrow": "Créditos",
+      "title": "Você paga pelo que gera",
+      "body": "Sem limite de moldes, de peças ou de exportações. O crédito é gasto na geração.",
+      "exportLabel": "Exporta para",
+      "planEyebrow": "Plano grátis",
+      "planUnit": "créditos por mês",
+      "planNote": "Graduação e exportação .dxf liberadas, inclusive DXF AAMA/ASTM (em beta). Renova a cada 30 dias.",
+      "planCta": "Criar minha conta",
+      "planUpsell": "Precisa de mais? Ateliê a {price}/mês, com {credits} créditos."
+    },
+    "formatGroups": {
+      "plotter": "Plotter",
+      "cad": "CAD",
+      "print": "Imprimir em casa"
+    },
+    "formatShort": {
+      "svg": "SVG 1:1",
+      "dxf": "DXF genérico",
+      "dxf-aama": "DXF AAMA/ASTM (beta)",
+      "pdf-a4": "PDF A4 ladrilhado",
+      "pdf-single": "PDF folha única",
+      "pdf-layered": "PDF com tamanhos em camadas",
+      "plt": "PLT HPGL/2 (beta)"
+    },
+    "footer": {
+      "billingNote": "Cobrança processada pela Stripe"
     }
   },
   "Login": {
