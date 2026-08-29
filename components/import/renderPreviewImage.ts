@@ -25,6 +25,10 @@ export async function renderPreviewImage(preview: LayerPreview): Promise<File> {
   if (ctx) {
     const [minX, minY, w, h] = parseViewBox(preview.viewBox);
     const scale = Math.min(RENDER_SIZE_PX / w, RENDER_SIZE_PX / h);
+    // Raw hex, not a design token: this canvas is rasterized into an
+    // Anthropic image attachment, never rendered on screen -- the same
+    // "output never touches the app's Tailwind/@theme pipeline" precedent
+    // lib/export/*.ts's SVG/DXF/PLT serializers already follow.
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, RENDER_SIZE_PX, RENDER_SIZE_PX);
     ctx.translate(-minX * scale, -minY * scale);

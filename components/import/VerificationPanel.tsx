@@ -2,12 +2,12 @@
 
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useImportStore } from "@/lib/importStore";
 import { buildLayerPreview } from "@/lib/import/preview";
 import { renderPreviewImage } from "./renderPreviewImage";
-import { prepareImage } from "@/lib/editor/attachment";
 import { COSTS } from "@/lib/types";
 
 /**
@@ -36,10 +36,8 @@ export function VerificationPanel() {
   async function handleImport() {
     const preview = buildLayerPreview(doc!);
     const file = await renderPreviewImage(preview);
-    const prepared = await prepareImage(file);
-    if ("error" in prepared) return;
     const id = await createPatternFromImport(
-      { mediaType: prepared.mediaType, base64: prepared.base64 },
+      file,
       t("reconstructionMessage", { fileName: analysis!.fileName }),
       t("autoDefaultMessage"),
     );
@@ -65,9 +63,22 @@ export function VerificationPanel() {
         ))}
       </ul>
       <div className="mt-auto flex flex-col gap-[10px] border-t pt-[14px]">
-        {actionError && (
-          <p className="text-ui text-amber-text">{t("createError")}</p>
+        {actionError === "insufficient_credits" && (
+          <p className="text-ui text-amber-text">
+            {t("insufficientCreditsError")}{" "}
+            <Link href="/settings?section=plan" className="underline">
+              {t("buyCreditsLink")}
+            </Link>
+          </p>
         )}
+        {actionError === "image_failed" && (
+          <p className="text-ui text-amber-text">{t("imageFailedError")}</p>
+        )}
+        {actionError &&
+          actionError !== "insufficient_credits" &&
+          actionError !== "image_failed" && (
+            <p className="text-ui text-amber-text">{t("createError")}</p>
+          )}
         <div className="flex items-center justify-end gap-[10px]">
           <Button variant="outline" onClick={reset}>
             {t("cancelButton")}

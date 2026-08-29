@@ -1229,6 +1229,9 @@
     "createButton": "Importar molde · {cost, plural, one {# crédito} other {# créditos}}",
     "creatingLabel": "Reconstruindo molde…",
     "createError": "Não foi possível reconstruir o molde a partir deste arquivo. Tente novamente.",
+    "imageFailedError": "Não foi possível preparar a imagem de prévia para envio. Tente novamente.",
+    "insufficientCreditsError": "Você não tem créditos suficientes para reconstruir este molde.",
+    "buyCreditsLink": "Comprar créditos",
     "autoDefaultMessage": "Use seu melhor palpite com base na imagem e nas medidas fornecidas.",
     "reconstructionMessage": "Reconstruir molde a partir do arquivo importado ({fileName}).",
     "pickError": {

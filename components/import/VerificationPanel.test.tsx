@@ -17,23 +17,6 @@ vi.mock("./renderPreviewImage", () => ({
   ),
 }));
 
-// prepareImage's real decode path needs a browser image decoder jsdom does
-// not provide (the same scope limit lib/editor/attachment.test.ts's own
-// suite documents) -- mocked here so this test exercises the click handler's
-// own logic rather than an unrelated decode failure.
-vi.mock("@/lib/editor/attachment", async () => {
-  const actual = await vi.importActual<
-    typeof import("@/lib/editor/attachment")
-  >("@/lib/editor/attachment");
-  return {
-    ...actual,
-    prepareImage: vi.fn(async () => ({
-      mediaType: "image/jpeg" as const,
-      base64: "abc",
-    })),
-  };
-});
-
 const push = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
 
@@ -149,6 +132,32 @@ describe("VerificationPanel — real Importar molde", () => {
     await waitFor(() =>
       expect(screen.getByText(tImport("createError"))).toBeInTheDocument(),
     );
+    expect(push).not.toHaveBeenCalled();
+  });
+
+  it("shows the insufficient-credits notice with a link to buy credits, distinct from the generic error", async () => {
+    useImportStore.setState({
+      createPatternFromImport: vi.fn(async () => {
+        useImportStore.setState({ actionError: "insufficient_credits" });
+        return null;
+      }),
+    });
+    const user = userEvent.setup();
+    renderWithIntl(<VerificationPanel />);
+    await user.click(
+      screen.getByRole("button", {
+        name: tImport("createButton", { cost: COSTS.adjust }),
+      }),
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByText(tImport("insufficientCreditsError")),
+      ).toBeInTheDocument(),
+    );
+    expect(screen.queryByText(tImport("createError"))).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: tImport("buyCreditsLink") }),
+    ).toHaveAttribute("href", "/settings?section=plan");
     expect(push).not.toHaveBeenCalled();
   });
 });

@@ -8,9 +8,10 @@ import {
 import { parseRul, analyzeRul } from "./import/rul";
 import type { ImportAnalysis, LayerRole, PieceLabel } from "./import/types";
 import * as api from "./api-client";
+import { errorCode } from "./api-client";
 import { detectPieces, type DetectedPiece } from "./import/pieces";
 import { buildReconstructionContext } from "./import/reconstructMeta";
-import type { PreparedAttachment } from "./editor/attachment";
+import { prepareImage } from "./editor/attachment";
 
 /**
  * Client-side cap on the *source* file, mirroring lib/editor/attachment.ts's
@@ -34,8 +35,17 @@ export const MAX_RUL_FILE_BYTES = 2 * 1024 * 1024;
 export type ImportPickErrorCode =
   "file_too_large" | "read_failed" | "no_pieces_found";
 
-/** Wire-ish code `createPatternFromImport()` can leave in `actionError`. */
-export type ImportCreateErrorCode = "create_failed";
+/**
+ * Wire-ish codes `createPatternFromImport()` can leave in `actionError` —
+ * `"insufficient_credits"` and `"image_failed"` are deliberate, resolved to
+ * their own message by VerificationPanel; anything else is whatever
+ * `errorCode()` extracts from a thrown `ApiError` (or `"request_failed"`),
+ * the same loose-string convention `dashboardStore`'s own `actionError`
+ * already uses for the same reason — a real server/network failure can
+ * name any wire code, not a fixed enum this module can exhaustively predict.
+ */
+export type ImportCreateErrorCode =
+  "create_failed" | "insufficient_credits" | "image_failed" | string;
 
 /** Wire-ish codes `pickRul()` can leave in `rulActionError`, resolved per-code by RulCompanionCard. */
 export type RulPickErrorCode = "rul_file_too_large" | "rul_read_failed";
@@ -60,8 +70,10 @@ interface ImportStore {
   creating: boolean;
   /** True while a picked file is being read/parsed — the screen's one live region. */
   loading: boolean;
-  /** Code for the last failed pick, or null — resolved through the catalog per-code. */
+  /** Code for the last failed pick or reconstruction attempt, or null — resolved through the catalog per-code. */
   actionError: ImportPickErrorCode | ImportCreateErrorCode | null;
+  /** Set once `api.createPattern()` succeeds inside `createPatternFromImport`, so a retry (e.g. after buying credits) reuses the same blank Pattern instead of orphaning a new one on every attempt. Cleared on success or on `reset()`. */
+  pendingPatternId: string | null;
   /** Code for the last failed `.RUL` pick, or null — independent of `actionError`: a RUL companion is additive, so its own failure must never block the DXF-only flow. */
   rulActionError: RulPickErrorCode | null;
   pick: (file: File) => Promise<void>;
@@ -78,15 +90,21 @@ interface ImportStore {
   /**
    * Creates a blank Pattern and reconstructs it from this import: the
    * rendered layer-preview image plus measured piece data/labels, through
-   * the ordinary generate/attachment pipeline (#238 follow-up). `message`
-   * and `autoDefaultMessage` are pre-resolved catalog strings — this store
-   * stays translation-agnostic, matching every other display-text boundary
-   * in the app. Returns the new pattern id on success, or null (with
-   * `actionError` set) on any failure, the `dashboardStore.create()`
-   * precedent.
+   * the ordinary generate/attachment pipeline (#238 follow-up). Takes the
+   * raw preview `File` (not a `PreparedAttachment`) and runs it through
+   * `prepareImage` itself, so an image-prep failure is reported the same
+   * way every other failure here is, instead of the caller silently
+   * no-op'ing. `message` and `autoDefaultMessage` are pre-resolved catalog
+   * strings — this store stays translation-agnostic, matching every other
+   * display-text boundary in the app. Returns the new pattern id on
+   * success, or null (with `actionError` set) on any failure, the
+   * `dashboardStore.create()` precedent. On `insufficient_credits`, the
+   * created Pattern's id is kept (`pendingPatternId`) so calling this again
+   * — e.g. after the user buys credits — resumes the SAME blank Pattern
+   * instead of creating another one.
    */
   createPatternFromImport: (
-    image: PreparedAttachment,
+    imageFile: File,
     message: string,
     autoDefaultMessage: string,
   ) => Promise<string | null>;
@@ -115,6 +133,7 @@ export const useImportStore = create<ImportStore>((set, get) => ({
   creating: false,
   loading: false,
   actionError: null,
+  pendingPatternId: null,
   rulActionError: null,
 
   pick: async (file) => {
@@ -200,17 +219,25 @@ export const useImportStore = create<ImportStore>((set, get) => ({
 
   setHoveredPieceKey: (key) => set({ hoveredPieceKey: key }),
 
-  createPatternFromImport: async (image, message, autoDefaultMessage) => {
-    const { doc, analysis, pieces, pieceLabels } = get();
+  createPatternFromImport: async (imageFile, message, autoDefaultMessage) => {
+    const { doc, analysis, pieces, pieceLabels, pendingPatternId } = get();
     if (!doc || !analysis) return null;
     set({ creating: true, actionError: null });
+
+    const prepared = await prepareImage(imageFile);
+    if ("error" in prepared) {
+      set({ creating: false, actionError: "image_failed" });
+      return null;
+    }
+    const image = { mediaType: prepared.mediaType, base64: prepared.base64 };
     const importContext = buildReconstructionContext(
       analysis.fileName,
       pieces,
       pieceLabels,
     );
     try {
-      const { id } = await api.createPattern();
+      const id = pendingPatternId ?? (await api.createPattern()).id;
+      set({ pendingPatternId: id });
       let result = await api.generate(
         id,
         message,
@@ -227,14 +254,18 @@ export const useImportStore = create<ImportStore>((set, get) => ({
           importContext,
         );
       }
+      if (result.status === "insufficient_credits") {
+        set({ creating: false, actionError: "insufficient_credits" });
+        return null;
+      }
       if (result.status !== "ok" && result.status !== "conflict") {
         set({ creating: false, actionError: "create_failed" });
         return null;
       }
-      set({ creating: false });
+      set({ creating: false, pendingPatternId: null });
       return id;
-    } catch {
-      set({ creating: false, actionError: "create_failed" });
+    } catch (err) {
+      set({ creating: false, actionError: errorCode(err) });
       return null;
     }
   },
@@ -291,6 +322,7 @@ export const useImportStore = create<ImportStore>((set, get) => ({
       hoveredPieceKey: null,
       creating: false,
       actionError: null,
+      pendingPatternId: null,
       rulActionError: null,
       loading: false,
     }),

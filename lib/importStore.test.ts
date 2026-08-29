@@ -14,7 +14,15 @@ vi.mock("@/lib/api-client", async () => {
   return { ...actual, createPattern: vi.fn(), generate: vi.fn() };
 });
 
+vi.mock("@/lib/editor/attachment", async () => {
+  const actual = await vi.importActual<
+    typeof import("@/lib/editor/attachment")
+  >("@/lib/editor/attachment");
+  return { ...actual, prepareImage: vi.fn() };
+});
+
 import * as api from "@/lib/api-client";
+import { prepareImage } from "@/lib/editor/attachment";
 
 function fakePattern(): Pattern {
   return {
@@ -88,6 +96,7 @@ beforeEach(() => {
     pieceLabels: {},
     hoveredPieceKey: null,
     creating: false,
+    pendingPatternId: null,
     loading: false,
     actionError: null,
   });
@@ -233,22 +242,26 @@ describe("piece labeling", () => {
 });
 
 describe("createPatternFromImport", () => {
-  const image = { mediaType: "image/jpeg" as const, base64: "abc" };
+  const file = new File([], "import-preview.png", { type: "image/png" });
+  const preparedImage = { mediaType: "image/jpeg" as const, base64: "abc" };
 
   beforeEach(() => {
     vi.mocked(api.createPattern).mockReset();
     vi.mocked(api.generate).mockReset();
+    vi.mocked(prepareImage).mockReset();
+    vi.mocked(prepareImage).mockResolvedValue(preparedImage);
+    useImportStore.setState({ pendingPatternId: null });
   });
 
   it("returns null without calling the API when no file has been picked", async () => {
     const id = await useImportStore
       .getState()
-      .createPatternFromImport(image, "msg", "auto");
+      .createPatternFromImport(file, "msg", "auto");
     expect(id).toBeNull();
     expect(api.createPattern).not.toHaveBeenCalled();
   });
 
-  it("creates a pattern and generates with the image and importContext, returning the id on ok", async () => {
+  it("creates a pattern and generates with the prepared image and importContext, returning the id on ok", async () => {
     useImportStore.setState({
       doc: {} as never,
       analysis: { fileName: "oskar.dxf" } as never,
@@ -261,16 +274,17 @@ describe("createPatternFromImport", () => {
 
     const id = await useImportStore
       .getState()
-      .createPatternFromImport(image, "msg", "auto");
+      .createPatternFromImport(file, "msg", "auto");
 
     expect(id).toBe("p1");
     expect(api.generate).toHaveBeenCalledWith(
       "p1",
       "msg",
       undefined,
-      image,
+      preparedImage,
       expect.stringContaining("oskar.dxf"),
     );
+    expect(useImportStore.getState().pendingPatternId).toBeNull();
   });
 
   it("auto-resends once with answering:true on a clarify response", async () => {
@@ -285,7 +299,7 @@ describe("createPatternFromImport", () => {
 
     const id = await useImportStore
       .getState()
-      .createPatternFromImport(image, "msg", "auto fallback");
+      .createPatternFromImport(file, "msg", "auto fallback");
 
     expect(id).toBe("p1");
     expect(api.generate).toHaveBeenCalledTimes(2);
@@ -294,9 +308,25 @@ describe("createPatternFromImport", () => {
       "p1",
       "auto fallback",
       true,
-      image,
+      preparedImage,
       expect.stringContaining("oskar.dxf"),
     );
+  });
+
+  it("sets actionError to image_failed and never calls the API when prepareImage fails", async () => {
+    useImportStore.setState({
+      doc: {} as never,
+      analysis: { fileName: "oskar.dxf" } as never,
+    });
+    vi.mocked(prepareImage).mockResolvedValue({ error: "decode_failed" });
+
+    const id = await useImportStore
+      .getState()
+      .createPatternFromImport(file, "msg", "auto");
+
+    expect(id).toBeNull();
+    expect(useImportStore.getState().actionError).toBe("image_failed");
+    expect(api.createPattern).not.toHaveBeenCalled();
   });
 
   it("sets actionError and returns null when generate declines", async () => {
@@ -312,13 +342,63 @@ describe("createPatternFromImport", () => {
 
     const id = await useImportStore
       .getState()
-      .createPatternFromImport(image, "msg", "auto");
+      .createPatternFromImport(file, "msg", "auto");
 
     expect(id).toBeNull();
     expect(useImportStore.getState().actionError).toBe("create_failed");
   });
 
-  it("sets actionError and returns null when createPattern throws", async () => {
+  it("sets actionError to insufficient_credits and keeps pendingPatternId for a retry, without creating a second pattern", async () => {
+    useImportStore.setState({
+      doc: {} as never,
+      analysis: { fileName: "oskar.dxf" } as never,
+    });
+    vi.mocked(api.createPattern).mockResolvedValue({ id: "p1" });
+    vi.mocked(api.generate).mockResolvedValue({
+      status: "insufficient_credits",
+      required: 1,
+      balance: 0,
+    });
+
+    const id = await useImportStore
+      .getState()
+      .createPatternFromImport(file, "msg", "auto");
+
+    expect(id).toBeNull();
+    expect(useImportStore.getState().actionError).toBe("insufficient_credits");
+    expect(useImportStore.getState().pendingPatternId).toBe("p1");
+
+    // Retrying (e.g. after buying credits) reuses the same pattern instead
+    // of creating another blank one.
+    vi.mocked(api.generate).mockResolvedValue({
+      status: "ok",
+      state: {} as never,
+    });
+    const retryId = await useImportStore
+      .getState()
+      .createPatternFromImport(file, "msg", "auto");
+    expect(retryId).toBe("p1");
+    expect(api.createPattern).toHaveBeenCalledTimes(1);
+  });
+
+  it("preserves the real ApiError wire code, rather than a fixed literal, when createPattern throws", async () => {
+    useImportStore.setState({
+      doc: {} as never,
+      analysis: { fileName: "oskar.dxf" } as never,
+    });
+    vi.mocked(api.createPattern).mockRejectedValue(
+      new api.ApiError(500, "service_unavailable"),
+    );
+
+    const id = await useImportStore
+      .getState()
+      .createPatternFromImport(file, "msg", "auto");
+
+    expect(id).toBeNull();
+    expect(useImportStore.getState().actionError).toBe("service_unavailable");
+  });
+
+  it("falls back to request_failed for a non-ApiError throw", async () => {
     useImportStore.setState({
       doc: {} as never,
       analysis: { fileName: "oskar.dxf" } as never,
@@ -327,9 +407,9 @@ describe("createPatternFromImport", () => {
 
     const id = await useImportStore
       .getState()
-      .createPatternFromImport(image, "msg", "auto");
+      .createPatternFromImport(file, "msg", "auto");
 
     expect(id).toBeNull();
-    expect(useImportStore.getState().actionError).toBe("create_failed");
+    expect(useImportStore.getState().actionError).toBe("request_failed");
   });
 });
