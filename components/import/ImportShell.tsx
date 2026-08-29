@@ -8,6 +8,7 @@ import { useImportStore } from "@/lib/importStore";
 import { FileSummaryCard } from "./FileSummaryCard";
 import { LayerMappingPanel } from "./LayerMappingPanel";
 import { LayerPreviewCanvas } from "./LayerPreviewCanvas";
+import { PieceLabelPanel } from "./PieceLabelPanel";
 import { VerificationPanel } from "./VerificationPanel";
 import { RulCompanionCard } from "./RulCompanionCard";
 
@@ -51,6 +52,7 @@ export function ImportShell({ userEmail }: { userEmail: string }) {
             <>
               <RulCompanionCard />
               <LayerPreviewCanvas />
+              <PieceLabelPanel />
               <div className="grid min-h-0 flex-1 grid-cols-2 gap-[18px]">
                 <LayerMappingPanel />
                 <VerificationPanel />

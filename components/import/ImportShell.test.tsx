@@ -57,6 +57,10 @@ beforeEach(() => {
     analysis: null,
     roles: {},
     hoveredLayers: null,
+    pieces: [],
+    pieceLabels: {},
+    hoveredPieceKey: null,
+    creating: false,
     loading: false,
     actionError: null,
     rulActionError: null,
@@ -310,18 +314,6 @@ describe("ImportShell — pick failures explain themselves (found by code review
     expect(tImport("pickError.file_too_large")).not.toBe(
       tImport("pickError.no_pieces_found"),
     );
-  });
-});
-
-describe("ImportShell — creating a pattern is 'em breve', not shipped this pass", () => {
-  it("the Importar molde button is disabled and badged em breve", async () => {
-    await uploadFixture();
-
-    const createButton = screen.getByRole("button", {
-      name: tImport("createButton"),
-    });
-    expect(createButton).toBeDisabled();
-    expect(screen.getByText(tImport("createComingSoon"))).toBeInTheDocument();
   });
 });
 
