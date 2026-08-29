@@ -1226,9 +1226,11 @@
       "rulNameMismatch": "O nome do arquivo .rul ({rulName}) não corresponde ao .dxf carregado ({dxfName})"
     },
     "cancelButton": "Cancelar",
-    "createButton": "Importar molde",
-    "createComingSoon": "em breve",
-    "createDisabledNote": "A criação de moldes a partir de um arquivo importado ainda não está disponível nesta primeira versão. Esta tela analisa o arquivo e mostra o que foi encontrado, sem salvar nada.",
+    "createButton": "Importar molde · {cost, plural, one {# crédito} other {# créditos}}",
+    "creatingLabel": "Reconstruindo molde…",
+    "createError": "Não foi possível reconstruir o molde a partir deste arquivo. Tente novamente.",
+    "autoDefaultMessage": "Use seu melhor palpite com base na imagem e nas medidas fornecidas.",
+    "reconstructionMessage": "Reconstruir molde a partir do arquivo importado ({fileName}).",
     "pickError": {
       "file_too_large": "Este arquivo é grande demais para importar (limite de 10 MB).",
       "read_failed": "Não foi possível ler este arquivo. Tente novamente.",

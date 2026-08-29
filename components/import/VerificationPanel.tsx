@@ -1,24 +1,50 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useImportStore } from "@/lib/importStore";
+import { buildLayerPreview } from "@/lib/import/preview";
+import { renderPreviewImage } from "./renderPreviewImage";
+import { prepareImage } from "@/lib/editor/attachment";
+import { COSTS } from "@/lib/types";
 
 /**
- * What was found in the file, before anything is persisted — the
- * verification step CLAUDE.md asks for. One live region (`role="status"`)
- * for the checks, plus the honest limitation of this pass: creating a
- * Pattern from the parsed geometry is "em breve", not shipped here (see the
- * PR body for why — it needs a persisted-blob change this unit is
- * deliberately not making).
+ * What was found in the file, before anything is persisted, plus the real
+ * "Importar molde" action (#238 follow-up): render the layer preview to an
+ * image, attach it to a brand-new Pattern's first `generate` call alongside
+ * measured piece data, and navigate to the result. See
+ * docs/superpowers/specs/2026-08-28-dxf-import-pattern-creation-design.md
+ * for why the created Pattern is an ordinary AI-drafted one, not a literal
+ * trace of the file.
  */
 export function VerificationPanel() {
   const t = useTranslations("Import");
+  const router = useRouter();
   const analysis = useImportStore((s) => s.analysis);
+  const doc = useImportStore((s) => s.doc);
   const reset = useImportStore((s) => s.reset);
+  const creating = useImportStore((s) => s.creating);
+  const actionError = useImportStore((s) => s.actionError);
+  const createPatternFromImport = useImportStore(
+    (s) => s.createPatternFromImport,
+  );
 
-  if (!analysis) return null;
+  if (!analysis || !doc) return null;
+
+  async function handleImport() {
+    const preview = buildLayerPreview(doc!);
+    const file = await renderPreviewImage(preview);
+    const prepared = await prepareImage(file);
+    if ("error" in prepared) return;
+    const id = await createPatternFromImport(
+      { mediaType: prepared.mediaType, base64: prepared.base64 },
+      t("reconstructionMessage", { fileName: analysis!.fileName }),
+      t("autoDefaultMessage"),
+    );
+    if (id) router.push(`/pattern/${id}`);
+  }
 
   return (
     <div className="border-border bg-surface flex min-h-0 flex-col gap-[14px] rounded-lg border p-[18px]">
@@ -39,13 +65,22 @@ export function VerificationPanel() {
         ))}
       </ul>
       <div className="mt-auto flex flex-col gap-[10px] border-t pt-[14px]">
-        <p className="text-meta text-muted">{t("createDisabledNote")}</p>
+        {actionError && (
+          <p className="text-ui text-amber-text">{t("createError")}</p>
+        )}
         <div className="flex items-center justify-end gap-[10px]">
           <Button variant="outline" onClick={reset}>
             {t("cancelButton")}
           </Button>
-          <Button disabled>{t("createButton")}</Button>
-          <Badge variant="soon">{t("createComingSoon")}</Badge>
+          <Button
+            disabled={analysis.pieceCount === 0 || creating}
+            onClick={handleImport}
+          >
+            {creating
+              ? t("creatingLabel")
+              : t("createButton", { cost: COSTS.adjust })}
+          </Button>
+          <Badge variant="soon">{t("betaBadge")}</Badge>
         </div>
       </div>
     </div>
