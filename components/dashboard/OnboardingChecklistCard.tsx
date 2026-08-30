@@ -141,7 +141,7 @@ export function OnboardingChecklistCard({
   const pct = Math.round((doneCount / TOTAL_STEPS) * 100);
 
   return (
-    <div className="border-border rounded-card mx-[22px] flex flex-col gap-[14px] border bg-white p-[18px]">
+    <div className="border-border rounded-card mx-[22px] mt-[22px] flex flex-col gap-[14px] border bg-white p-[18px]">
       <div className="flex items-center justify-between gap-[10px]">
         <span className="text-ui font-semibold">
           {t("title")} ·{" "}
