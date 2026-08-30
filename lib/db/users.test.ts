@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { update, del, findUnique, create } = vi.hoisted(() => ({
+const { update, updateMany, del, findUnique, create } = vi.hoisted(() => ({
   update: vi.fn(async (_args: unknown) => undefined),
+  updateMany: vi.fn(async (_args: unknown) => undefined),
   del: vi.fn(async (_args: unknown) => undefined),
   findUnique: vi.fn(async (_args: unknown): Promise<unknown> => null),
   create: vi.fn(async (_args: unknown): Promise<unknown> => null),
@@ -18,6 +19,7 @@ vi.mock("./prisma", () => ({
   prisma: {
     user: {
       update,
+      updateMany,
       delete: del,
       findUnique,
       create,
@@ -40,6 +42,7 @@ import {
   createUser,
   isWorkStyle,
   WORK_STYLES,
+  stampEmailVerifiedIfMissing,
 } from "./users";
 import { reportError } from "@/lib/observability/report";
 import { Prisma } from "@prisma/client";
@@ -298,4 +301,37 @@ describe("createUser", () => {
       ).rejects.toBe(error);
     },
   );
+});
+
+describe("stampEmailVerifiedIfMissing", () => {
+  beforeEach(() => updateMany.mockClear());
+
+  // #235: an existing Credentials account that never clicked its own mail
+  // link, now proven by Google instead. The WHERE clause (not a
+  // read-then-write) is what makes this a single atomic statement rather
+  // than a race between a read and a write.
+  it("targets only a row whose emailVerified is still null", async () => {
+    const before = Date.now();
+    await stampEmailVerifiedIfMissing("u1");
+    const after = Date.now();
+
+    expect(updateMany).toHaveBeenCalledTimes(1);
+    const call = updateMany.mock.calls[0][0] as {
+      where: { id: string; emailVerified: null };
+      data: { emailVerified: Date };
+    };
+    expect(call.where).toEqual({ id: "u1", emailVerified: null });
+    const stampedAt = call.data.emailVerified.getTime();
+    expect(stampedAt).toBeGreaterThanOrEqual(before);
+    expect(stampedAt).toBeLessThanOrEqual(after);
+  });
+
+  it("accepts an injected `now` for deterministic tests", async () => {
+    const now = new Date("2026-08-30T12:00:00.000Z");
+    await stampEmailVerifiedIfMissing("u1", now);
+    expect(updateMany).toHaveBeenCalledWith({
+      where: { id: "u1", emailVerified: null },
+      data: { emailVerified: now },
+    });
+  });
 });

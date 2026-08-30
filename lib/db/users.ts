@@ -63,6 +63,24 @@ export async function updateUserPasswordHash(
   });
 }
 
+// #235: retroactive verification on a Google link. An existing Credentials
+// account that signed up but never clicked its own verification mail
+// (emailVerified: null) gets it stamped here the moment it links a Google
+// identity -- Google's own proof of ownership is strictly stronger evidence
+// than an unclicked link, and this is what unblocks that account's
+// Credentials login going forward too. A single updateMany with the null
+// check in the WHERE clause (not a read-then-write) makes this one atomic
+// statement -- it is simply a no-op for an already-verified row.
+export async function stampEmailVerifiedIfMissing(
+  userId: string,
+  now: Date = new Date(),
+): Promise<void> {
+  await prisma.user.updateMany({
+    where: { id: userId, emailVerified: null },
+    data: { emailVerified: now },
+  });
+}
+
 // #29: account deletion cascades away every Pattern/SizeChart/Sloper/Wallet/
 // Transaction row (onDelete: Cascade), so nothing survives to stamp -- this
 // reportError line is the only trace an operator gets that the account
