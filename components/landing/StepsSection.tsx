@@ -18,7 +18,7 @@ export function StepsSection() {
 
   return (
     <section id="how-it-works" className="bg-surface">
-      <div className="mx-auto flex max-w-[1040px] flex-col gap-[22px] px-[30px] py-14">
+      <div className="mx-auto flex max-w-[1160px] flex-col gap-[22px] px-[34px] py-14">
         <div className="flex flex-col gap-1.5">
           <span className="text-olive text-meta tracking-eyebrow font-semibold uppercase">
             {t("steps.eyebrow")}

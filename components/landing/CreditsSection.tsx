@@ -22,7 +22,7 @@ export function CreditsSection() {
 
   return (
     <section id="plans" className="bg-surface">
-      <div className="mx-auto grid max-w-[1040px] grid-cols-[1fr_360px] items-start gap-8 px-[30px] py-16">
+      <div className="mx-auto grid max-w-[1160px] grid-cols-[1fr_360px] items-start gap-8 px-[34px] py-16">
         <div className="flex flex-col gap-[18px]">
           <div className="flex flex-col gap-1.5">
             <span className="text-olive text-meta tracking-eyebrow font-semibold uppercase">

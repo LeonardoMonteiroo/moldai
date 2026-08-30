@@ -16,7 +16,7 @@ import { LandingFooter } from "./LandingFooter";
 // `h-screen overflow-hidden` -- the SettingsShell ScrollArea precedent.
 //
 // Each section owns its own full-bleed background band (paper/surface,
-// alternating) and centers its own max-w-[1040px] content -- there is no
+// alternating) and centers its own max-w-[1160px] content -- there is no
 // shared outer max-width wrapper, so a section's background can run edge to
 // edge behind its border-top/bottom.
 export function LandingPage() {

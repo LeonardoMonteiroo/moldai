@@ -17,7 +17,7 @@ export function LandingHero() {
 
   return (
     <section className="border-border bg-paper border-b">
-      <div className="mx-auto flex max-w-[1040px] flex-wrap items-center gap-12 px-[30px] py-16">
+      <div className="mx-auto flex max-w-[1160px] flex-wrap items-center gap-12 px-[34px] py-16">
         <div className="flex min-w-0 flex-1 basis-[360px] flex-col gap-5">
           <span className="text-olive text-meta tracking-eyebrow font-semibold uppercase">
             {t("hero.eyebrow")}
