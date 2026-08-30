@@ -7,4 +7,5 @@ prisma/migrations/
 .claude/
 .superpowers/
 AGENTS.md
+docs/design/screens/
 package-lock.json
