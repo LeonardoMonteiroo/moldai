@@ -58,6 +58,19 @@ model User {
   // lib/export/preset.ts's validateExportPreset (drop-or-clamp,
   // never-throw) before this ever reaches the export screen.
   exportPreset        Json?
+  // #232: dashboard onboarding checklist's "exportar um PDF" / "importar
+  // moldes existentes" steps. Both flows are otherwise client-side with no
+  // server trace at all, so these are a minimal, additive "this happened
+  // once" signal -- not a full audit log, never rewritten once set. Null
+  // means "not known to have happened," including for every existing
+  // account: their real history before this column existed is genuinely
+  // unknowable, so there is no backfill (the onboardedAt precedent's
+  // backfill doesn't apply -- there the alternative was re-trapping every
+  // established account in a wizard; here it's just one checklist row
+  // staying unchecked for something an old account may have already done,
+  // low-severity and dismissable anyway).
+  firstExportedAt     DateTime?
+  firstImportedAt     DateTime?
 
   @@index([activeSizeChartId])
 }
