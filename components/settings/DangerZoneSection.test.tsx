@@ -25,7 +25,9 @@ describe("DangerZoneSection", () => {
       status: "error",
       error: "wrong_password",
     });
-    renderWithIntl(<DangerZoneSection userEmail={USER_EMAIL} />);
+    renderWithIntl(
+      <DangerZoneSection userEmail={USER_EMAIL} hasPassword={true} />,
+    );
 
     const user = userEvent.setup();
     await user.type(
@@ -56,7 +58,9 @@ describe("DangerZoneSection", () => {
       status: "error",
       error: "account_not_found",
     });
-    renderWithIntl(<DangerZoneSection userEmail={USER_EMAIL} />);
+    renderWithIntl(
+      <DangerZoneSection userEmail={USER_EMAIL} hasPassword={true} />,
+    );
 
     const user = userEvent.setup();
     await user.type(
@@ -90,7 +94,9 @@ describe("DangerZoneSection", () => {
       status: "error",
       error: "unauthorized",
     });
-    renderWithIntl(<DangerZoneSection userEmail={USER_EMAIL} />);
+    renderWithIntl(
+      <DangerZoneSection userEmail={USER_EMAIL} hasPassword={true} />,
+    );
 
     const user = userEvent.setup();
     await user.type(
@@ -123,7 +129,9 @@ describe("DangerZoneSection", () => {
     vi.mocked(deleteAccount).mockImplementation(async () => {
       throw new ApiError(500, "server_error");
     });
-    renderWithIntl(<DangerZoneSection userEmail={USER_EMAIL} />);
+    renderWithIntl(
+      <DangerZoneSection userEmail={USER_EMAIL} hasPassword={true} />,
+    );
 
     const user = userEvent.setup();
     await user.type(
@@ -147,5 +155,83 @@ describe("DangerZoneSection", () => {
       ).toBeVisible();
     });
     expect(button).not.toBeDisabled();
+  });
+});
+
+describe("DangerZoneSection when the account has no password", () => {
+  afterEach(() => vi.mocked(deleteAccount).mockReset());
+
+  it("renders with no password field, gated on the typed email alone", async () => {
+    renderWithIntl(
+      <DangerZoneSection userEmail={USER_EMAIL} hasPassword={false} />,
+    );
+    expect(
+      screen.queryByLabelText(ptBR.DangerZoneSection.passwordLabel),
+    ).toBeNull();
+
+    const user = userEvent.setup();
+    const button = screen.getByRole("button", {
+      name: ptBR.DangerZoneSection.submitButton,
+    });
+    expect(button).toBeDisabled();
+
+    await user.type(
+      screen.getByLabelText(
+        ptBR.DangerZoneSection.emailConfirmLabel.replace("{email}", USER_EMAIL),
+      ),
+      USER_EMAIL,
+    );
+    expect(button).not.toBeDisabled();
+  });
+
+  it("calls deleteAccount with no password", async () => {
+    vi.mocked(deleteAccount).mockResolvedValue({ status: "ok" });
+    renderWithIntl(
+      <DangerZoneSection userEmail={USER_EMAIL} hasPassword={false} />,
+    );
+
+    const user = userEvent.setup();
+    await user.type(
+      screen.getByLabelText(
+        ptBR.DangerZoneSection.emailConfirmLabel.replace("{email}", USER_EMAIL),
+      ),
+      USER_EMAIL,
+    );
+    await user.click(
+      screen.getByRole("button", {
+        name: ptBR.DangerZoneSection.submitButton,
+      }),
+    );
+
+    expect(deleteAccount).toHaveBeenCalledWith(undefined);
+  });
+
+  it("still shows an error from a failed delete with no password field to attach it to", async () => {
+    vi.mocked(deleteAccount).mockResolvedValue({
+      status: "error",
+      error: "account_not_found",
+    });
+    renderWithIntl(
+      <DangerZoneSection userEmail={USER_EMAIL} hasPassword={false} />,
+    );
+
+    const user = userEvent.setup();
+    await user.type(
+      screen.getByLabelText(
+        ptBR.DangerZoneSection.emailConfirmLabel.replace("{email}", USER_EMAIL),
+      ),
+      USER_EMAIL,
+    );
+    await user.click(
+      screen.getByRole("button", {
+        name: ptBR.DangerZoneSection.submitButton,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(ptBR.DangerZoneSection.errors.account_not_found),
+      ).toBeInTheDocument();
+    });
   });
 });

@@ -383,7 +383,9 @@ export function changePassword(
   );
 }
 
-export function deleteAccount(password: string): Promise<AccountActionResult> {
+export function deleteAccount(
+  password: string | undefined,
+): Promise<AccountActionResult> {
   return sendJson<AccountActionResult>(
     "/api/account",
     "DELETE",

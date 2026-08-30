@@ -46,7 +46,10 @@ export function SettingsShell({
             <PasswordSection hasPassword={hasPassword} />
           )}
           {activeSection === "danger" && (
-            <DangerZoneSection userEmail={userEmail} />
+            <DangerZoneSection
+              userEmail={userEmail}
+              hasPassword={hasPassword}
+            />
           )}
           {activeSection === "usage" && (
             <UsageSection credits={credits} initialLedger={ledger} />

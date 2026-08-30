@@ -13,21 +13,28 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 
-export function DangerZoneSection({ userEmail }: { userEmail: string }) {
+export function DangerZoneSection({
+  userEmail,
+  hasPassword,
+}: {
+  userEmail: string;
+  hasPassword: boolean;
+}) {
   const t = useTranslations("DangerZoneSection");
   const [typedEmail, setTypedEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<"idle" | "deleting" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
 
-  const canSubmit = typedEmail === userEmail && password.length > 0;
+  const canSubmit =
+    typedEmail === userEmail && (hasPassword ? password.length > 0 : true);
 
   async function submit() {
     if (!canSubmit) return;
     setStatus("deleting");
     setError(null);
     try {
-      const result = await deleteAccount(password);
+      const result = await deleteAccount(hasPassword ? password : undefined);
       if (result.status === "ok") {
         await signOut({ callbackUrl: "/login" });
       } else {
@@ -60,21 +67,26 @@ export function DangerZoneSection({ userEmail }: { userEmail: string }) {
             onChange={(event) => setTypedEmail(event.target.value)}
           />
         </Field>
-        <Field data-invalid={status === "error" || undefined}>
-          <FieldLabel htmlFor="danger-password">
-            {t("passwordLabel")}
-          </FieldLabel>
-          <Input
-            id="danger-password"
-            className="bg-surface"
-            type="password"
-            value={password}
-            aria-invalid={status === "error" || undefined}
-            onChange={(event) => setPassword(event.target.value)}
-          />
-          {status === "error" && error && <FieldError>{error}</FieldError>}
-        </Field>
+        {hasPassword && (
+          <Field data-invalid={status === "error" || undefined}>
+            <FieldLabel htmlFor="danger-password">
+              {t("passwordLabel")}
+            </FieldLabel>
+            <Input
+              id="danger-password"
+              className="bg-surface"
+              type="password"
+              value={password}
+              aria-invalid={status === "error" || undefined}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+            {status === "error" && error && <FieldError>{error}</FieldError>}
+          </Field>
+        )}
       </FieldGroup>
+      {!hasPassword && status === "error" && error && (
+        <p className="text-alert text-ui">{error}</p>
+      )}
       <div>
         <Button
           variant="destructiveOutline"
