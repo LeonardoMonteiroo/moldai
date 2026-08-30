@@ -12,6 +12,11 @@ vi.mock("@/lib/api-client", () => ({
   resendVerification: vi.fn(),
 }));
 
+const signIn = vi.fn();
+vi.mock("next-auth/react", () => ({
+  signIn: (...args: unknown[]) => signIn(...args),
+}));
+
 import SignupCard from "./SignupCard";
 import { signUp, resendVerification } from "@/lib/api-client";
 import { MIN_PASSWORD_LENGTH } from "@/lib/account/settings";
@@ -248,5 +253,14 @@ describe("SignupCard", () => {
     expect(
       screen.getAllByRole("link").map((a) => a.getAttribute("href")),
     ).toContain("/login");
+  });
+
+  it("starts the Google OAuth flow with a real redirect", async () => {
+    renderWithIntl(<SignupCard />);
+    const user = userEvent.setup();
+    await user.click(
+      screen.getByRole("button", { name: ptBR.Signup.continueWithGoogle }),
+    );
+    expect(signIn).toHaveBeenCalledWith("google", { callbackUrl: "/" });
   });
 });

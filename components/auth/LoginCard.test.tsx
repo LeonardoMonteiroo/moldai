@@ -230,4 +230,13 @@ describe("LoginCard", () => {
       screen.getAllByRole("link").map((a) => a.getAttribute("href")),
     ).toContain("/signup");
   });
+
+  it("starts the Google OAuth flow with a real redirect", async () => {
+    renderWithIntl(<LoginCard />);
+    const user = userEvent.setup();
+    await user.click(
+      screen.getByRole("button", { name: ptBR.Login.continueWithGoogle }),
+    );
+    expect(signIn).toHaveBeenCalledWith("google", { callbackUrl: "/" });
+  });
 });

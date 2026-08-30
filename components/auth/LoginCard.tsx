@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { resendVerification } from "@/lib/api-client";
+import { GoogleIcon } from "@/components/auth/GoogleIcon";
 
 // #109: the page heading moved to app/login/page.tsx (a Server Component,
 // so it can also export generateMetadata for the tab title) -- this keeps
@@ -130,6 +131,20 @@ export default function LoginCard() {
           {loading ? t("submitButtonLoading") : t("submitButton")}
         </Button>
       </form>
+      <div className="my-1 flex items-center gap-3">
+        <div className="bg-border h-px flex-1" />
+        <span className="text-muted text-meta">{t("orDivider")}</span>
+        <div className="bg-border h-px flex-1" />
+      </div>
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => signIn("google", { callbackUrl: "/" })}
+        className="gap-2"
+      >
+        <GoogleIcon className="size-4" />
+        {t("continueWithGoogle")}
+      </Button>
       <p className="text-muted text-meta mt-4">
         {t.rich("signupNote", {
           a: (chunks) => (

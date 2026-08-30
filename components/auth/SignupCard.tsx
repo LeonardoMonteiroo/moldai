@@ -11,11 +11,13 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useTranslations } from "next-intl";
+import { signIn } from "next-auth/react";
 import { signUp, resendVerification } from "@/lib/api-client";
 import {
   MIN_PASSWORD_LENGTH,
   MAX_PASSWORD_LENGTH,
 } from "@/lib/account/settings";
+import { GoogleIcon } from "@/components/auth/GoogleIcon";
 
 // #109: the page heading moved to app/signup/page.tsx (a Server Component,
 // so it can also export generateMetadata for the tab title) -- this keeps
@@ -185,6 +187,24 @@ export default function SignupCard() {
             {loading ? t("submitButtonLoading") : t("submitButton")}
           </Button>
         </form>
+      )}
+      {!sent && (
+        <>
+          <div className="my-1 flex items-center gap-3">
+            <div className="bg-border h-px flex-1" />
+            <span className="text-muted text-meta">{t("orDivider")}</span>
+            <div className="bg-border h-px flex-1" />
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => signIn("google", { callbackUrl: "/" })}
+            className="gap-2"
+          >
+            <GoogleIcon className="size-4" />
+            {t("continueWithGoogle")}
+          </Button>
+        </>
       )}
       <p className="text-muted text-meta mt-4">
         {t.rich("loginNote", {

@@ -639,6 +639,8 @@
     "resendButtonLoading": "Reenviando…",
     "resendDone": "Link reenviado. Confira seu email.",
     "forgotPasswordLink": "Esqueci minha senha",
+    "orDivider": "ou",
+    "continueWithGoogle": "Continuar com Google",
     "errors": {
       "invalid_credentials": "Email ou senha inválidos.",
       "already_verified": "Este email já está confirmado. Tente entrar novamente.",
@@ -655,6 +657,8 @@
     "passwordLabel": "Senha",
     "confirmLabel": "Confirmar senha",
     "mismatchError": "As senhas não conferem.",
+    "orDivider": "ou",
+    "continueWithGoogle": "Continuar com Google",
     "submitButton": "Criar conta",
     "submitButtonLoading": "Criando conta…",
     "loginNote": "Já tem uma conta? <a>Entrar</a>.",

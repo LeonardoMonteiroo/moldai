@@ -40,6 +40,16 @@
   --color-track: #ece8dd;
   --color-overlay: rgba(28, 28, 25, 0.28);
 
+  /* #235: Google's own brand mark colors for the "Continuar com Google"
+     button's icon (components/auth/GoogleIcon.tsx) -- fixed by Google's
+     sign-in button guidelines, not a MoldAI palette choice, so they are
+     named tokens like every other color rather than a design decision this
+     repo is free to retint. */
+  --color-google-blue: #4285f4;
+  --color-google-green: #34a853;
+  --color-google-yellow: #fbbc05;
+  --color-google-red: #ea4335;
+
   --radius-chip: 6.5px;
   --radius-btn: 9.5px;
   --radius-item: 11px;
