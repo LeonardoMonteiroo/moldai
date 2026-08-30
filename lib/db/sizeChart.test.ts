@@ -206,9 +206,13 @@ import {
   deleteSizeChart,
   setActiveSizeChart,
   getSizeChartForGeneration,
+  hasCustomActiveSizeChart,
   MAX_SIZE_CHARTS_LISTED,
 } from "./sizeChart";
-import { buildSystemSizeChart } from "@/lib/sizeCharts/seed";
+import {
+  buildSystemSizeChart,
+  buildSystemSizeChartData,
+} from "@/lib/sizeCharts/seed";
 
 // #3: deliberately distinct from the real catalog's " (cópia)" and
 // "Feminino adulto"/"Masculino adulto" so these tests prove the name/suffix
@@ -496,6 +500,50 @@ describe("deleteSizeChart", () => {
     const row = rows.find((r) => r.id === created.id)!;
     row.data = { ...(row.data as object), baseMeasurements: {} };
     await expect(deleteSizeChart(created.id, "u1")).resolves.toBe(false);
+  });
+});
+
+describe("hasCustomActiveSizeChart", () => {
+  beforeEach(() => {
+    rows = [];
+    users = {};
+  });
+
+  it("is false when the account has no active chart", async () => {
+    users.u1 = { activeSizeChartId: null };
+    expect(await hasCustomActiveSizeChart(prisma, "u1")).toBe(false);
+  });
+
+  it("is false when the active chart is a system chart", async () => {
+    rows = [
+      {
+        id: "g1",
+        userId: "u1",
+        data: buildSystemSizeChartData("female", T),
+        updatedAt: new Date(),
+      },
+    ];
+    users.u1 = { activeSizeChartId: "g1" };
+    expect(await hasCustomActiveSizeChart(prisma, "u1")).toBe(false);
+  });
+
+  it("is true when the active chart is a real custom chart", async () => {
+    rows = [
+      {
+        id: "g2",
+        userId: "u1",
+        data: { ...buildSystemSizeChartData("female", T), isSystem: false },
+        updatedAt: new Date(),
+      },
+    ];
+    users.u1 = { activeSizeChartId: "g2" };
+    expect(await hasCustomActiveSizeChart(prisma, "u1")).toBe(true);
+  });
+
+  it("is false when the active chart id points at a row that no longer exists", async () => {
+    rows = [];
+    users.u1 = { activeSizeChartId: "gone" };
+    expect(await hasCustomActiveSizeChart(prisma, "u1")).toBe(false);
   });
 });
 

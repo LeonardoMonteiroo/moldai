@@ -139,6 +139,27 @@ export async function getActiveSizeChartId(
   return user?.activeSizeChartId ?? null;
 }
 
+/**
+ * #232: backs the dashboard onboarding checklist's "configurar tabela de
+ * medidas" step. False for no active chart (falls back to a system chart)
+ * or a parse failure (the safe default, same as every other
+ * SizeChartDataSchema.safeParse failure in this file) -- only a real,
+ * successfully-parsed, non-system chart counts as "configured."
+ */
+export async function hasCustomActiveSizeChart(
+  tx: Tx,
+  userId: string,
+): Promise<boolean> {
+  const activeSizeChartId = await getActiveSizeChartId(tx, userId);
+  if (!activeSizeChartId) return false;
+  const row = await tx.sizeChart.findUnique({
+    where: { id: activeSizeChartId },
+  });
+  if (!row || row.userId !== userId) return false;
+  const parsed = SizeChartDataSchema.safeParse(row.data);
+  return parsed.success && !parsed.data.isSystem;
+}
+
 // Duplicates sourceSizeChartId's data (or the system female-adult default if
 // omitted) into a new, always-editable (isSystem: false) chart — backs both
 // "＋ Nova grade" and "Duplicar".
