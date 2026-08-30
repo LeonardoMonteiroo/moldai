@@ -11,6 +11,7 @@ import { toDxfAama } from "./dxf-aama";
 import { toPdf, toPdfLayered } from "./pdf";
 import { toPlt } from "./plt";
 import ptBR from "@/messages/pt-BR.json";
+import { recordChecklistEvent } from "@/lib/api-client";
 
 // #88: model.size used to be interpolated into the download filename raw --
 // a combined size label like "38/40" (routine in Brazilian charts) put a
@@ -24,6 +25,10 @@ vi.mock("./download", async (importOriginal) => {
   const actual = await importOriginal<typeof import("./download")>();
   return { ...actual, downloadFile: vi.fn() };
 });
+
+vi.mock("@/lib/api-client", () => ({
+  recordChecklistEvent: vi.fn(() => Promise.resolve()),
+}));
 
 vi.mock("./model", () => ({
   buildExportModel: vi.fn(() => ({ size: "38/40" })),
@@ -112,6 +117,11 @@ describe("exportPattern dispatch (#85)", () => {
       "image/svg+xml",
       "<svg/>",
     );
+  });
+
+  it("pings the onboarding checklist after a successful export", () => {
+    exportPattern(pattern("Vestido floral"), "svg", t);
+    expect(recordChecklistEvent).toHaveBeenCalledWith("exported");
   });
 
   it("dxf: calls toDxf and downloads it under the .dxf filename/mime", () => {
@@ -308,6 +318,16 @@ describe("exportPattern failure paths (#85)", () => {
     expect(onError).toHaveBeenCalledTimes(1);
     expect(onError).toHaveBeenCalledWith(ptBR.PatternData.exportFailed);
     expect(downloadFile).not.toHaveBeenCalled();
+  });
+
+  it("does not ping the checklist when the export fails", () => {
+    vi.mocked(toSvg).mockImplementationOnce(() => {
+      throw new Error("boom");
+    });
+    const onError = vi.fn();
+    exportPattern(pattern("Vestido floral"), "svg", tCatalog, onError);
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(recordChecklistEvent).not.toHaveBeenCalled();
   });
 
   it("calls onError when the dxf serializer throws synchronously", () => {

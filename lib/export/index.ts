@@ -7,10 +7,23 @@ import { toDxfAama } from "./dxf-aama";
 import { toPdf, toPdfLayered, type PdfPageSize } from "./pdf";
 import { toPlt } from "./plt";
 import { downloadFile, slug } from "./download";
+import { recordChecklistEvent } from "@/lib/api-client";
 
 import type { ExportFormat } from "./formats";
 
 export { EXPORT_FORMATS, type ExportFormat } from "./formats";
+
+// #232: the one new server touchpoint the export flow gets -- a best-effort
+// "this happened" ping for the dashboard onboarding checklist. Swallowed on
+// failure: a network hiccup here must never surface as an export failure.
+function finishDownload(
+  filename: string,
+  mime: string,
+  data: string | Uint8Array,
+): void {
+  downloadFile(filename, mime, data);
+  void recordChecklistEvent("exported").catch(() => {});
+}
 
 // #135/#136: extra render-time options beyond the single `size` param --
 // none of the five original formats needed one, so this stays optional and
@@ -51,7 +64,7 @@ export function exportPattern(
       }));
       toPdfLayered(sizedModels, t)
         .then((bytes) =>
-          downloadFile(
+          finishDownload(
             `${slug(pattern.name)}-graduado.pdf`,
             "application/pdf",
             bytes,
@@ -80,21 +93,21 @@ export function exportPattern(
   switch (format) {
     case "svg":
       try {
-        downloadFile(`${base}.svg`, "image/svg+xml", toSvg(model));
+        finishDownload(`${base}.svg`, "image/svg+xml", toSvg(model));
       } catch {
         fail();
       }
       return;
     case "dxf":
       try {
-        downloadFile(`${base}.dxf`, "image/vnd.dxf", toDxf(model));
+        finishDownload(`${base}.dxf`, "image/vnd.dxf", toDxf(model));
       } catch {
         fail();
       }
       return;
     case "dxf-aama":
       try {
-        downloadFile(`${base}-aama.dxf`, "image/vnd.dxf", toDxfAama(model));
+        finishDownload(`${base}-aama.dxf`, "image/vnd.dxf", toDxfAama(model));
       } catch {
         fail();
       }
@@ -103,7 +116,7 @@ export function exportPattern(
       // toPdf is async (pdf-lib); fire-and-forget — doesn't change the void signature
       toPdf(model, "a4", t, { pageSize: opts.pageSize })
         .then((bytes) =>
-          downloadFile(`${base}-a4.pdf`, "application/pdf", bytes),
+          finishDownload(`${base}-a4.pdf`, "application/pdf", bytes),
         )
         .catch(fail);
       return;
@@ -118,13 +131,13 @@ export function exportPattern(
         opts.rollWidthCm ? { rollWidthCm: opts.rollWidthCm } : {},
       )
         .then((bytes) =>
-          downloadFile(`${base}-folha.pdf`, "application/pdf", bytes),
+          finishDownload(`${base}-folha.pdf`, "application/pdf", bytes),
         )
         .catch(fail);
       return;
     case "plt":
       try {
-        downloadFile(
+        finishDownload(
           `${base}.plt`,
           "application/vnd.hp-hpgl",
           toPlt(model, { rollWidthCm: opts.rollWidthCm }),
