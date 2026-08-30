@@ -13,6 +13,7 @@ import { Sidebar } from "./Sidebar";
 import { PatternGrid } from "./PatternGrid";
 import { CreditsCard } from "./CreditsCard";
 import { RecentUsageCard } from "./RecentUsageCard";
+import { OnboardingChecklistCard } from "./OnboardingChecklistCard";
 
 export function DashboardShell({
   userEmail,
@@ -28,6 +29,8 @@ export function DashboardShell({
   const ready = useDashboardStore((s) => s.ready);
   const error = useDashboardStore((s) => s.error);
   const credits = useDashboardStore((s) => s.credits);
+  const checklist = useDashboardStore((s) => s.checklist);
+  const patterns = useDashboardStore((s) => s.patterns);
   const recentUsage = useDashboardStore((s) => s.recentUsage);
   const init = useDashboardStore((s) => s.init);
   const actionError = useDashboardStore((s) => s.actionError);
@@ -108,6 +111,12 @@ export function DashboardShell({
         // Deliberately no `fill` -- that's what forces the stretch.
         <ScrollArea className="min-h-0 flex-1">
           <div className="flex flex-col gap-4">
+            {checklist && (
+              <OnboardingChecklistCard
+                patterns={patterns}
+                checklist={checklist}
+              />
+            )}
             <PatternGrid onOpen={openPattern} onNewPattern={handleNewPattern} />
             {credits && (
               <div className="flex flex-col gap-[14px] px-[22px] pb-[22px] sm:flex-row">

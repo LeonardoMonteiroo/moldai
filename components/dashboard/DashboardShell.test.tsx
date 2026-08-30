@@ -32,6 +32,7 @@ beforeEach(() => {
     error: false,
     patterns: [],
     credits: null,
+    checklist: null,
     recentUsage: [],
     search: "",
     typeFilter: "all",
@@ -114,6 +115,11 @@ describe("DashboardShell empty-grid layout (#114)", () => {
     getAccountSummary.mockResolvedValue({
       credits: { plan: "free", balance: 30, total: 30, renewsInDays: 30 },
       recentUsage: [],
+      checklist: {
+        hasCustomSizeChart: false,
+        hasExported: false,
+        hasImported: false,
+      },
     });
   });
 
@@ -157,6 +163,11 @@ describe("DashboardShell missing-pattern notice", () => {
     getAccountSummary.mockResolvedValue({
       credits: { plan: "free", balance: 30, total: 30, renewsInDays: 30 },
       recentUsage: [],
+      checklist: {
+        hasCustomSizeChart: false,
+        hasExported: false,
+        hasImported: false,
+      },
     });
   });
 
@@ -176,6 +187,40 @@ describe("DashboardShell missing-pattern notice", () => {
     await waitFor(() => expect(useDashboardStore.getState().ready).toBe(true));
     expect(
       screen.queryByText(ptBR.DashboardShell.patternMissing),
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe("DashboardShell onboarding checklist (#232)", () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    listPatterns.mockResolvedValue([]);
+    getAccountSummary.mockResolvedValue({
+      credits: { plan: "free", balance: 30, total: 30, renewsInDays: 30 },
+      recentUsage: [],
+      checklist: {
+        hasCustomSizeChart: false,
+        hasExported: false,
+        hasImported: false,
+      },
+    });
+  });
+
+  it("renders the checklist once the summary loads", async () => {
+    renderWithIntl(<DashboardShell userEmail="user@example.com" />);
+    expect(
+      await screen.findByText(ptBR.OnboardingChecklistCard.title, {
+        exact: false,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("stays hidden when already dismissed", async () => {
+    window.localStorage.setItem("moldai.onboardingChecklistDismissed", "1");
+    renderWithIntl(<DashboardShell userEmail="user@example.com" />);
+    await waitFor(() => expect(useDashboardStore.getState().ready).toBe(true));
+    expect(
+      screen.queryByText(ptBR.OnboardingChecklistCard.title, { exact: false }),
     ).not.toBeInTheDocument();
   });
 });
