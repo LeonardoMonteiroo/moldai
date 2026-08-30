@@ -139,4 +139,22 @@ describe("VersionCompare", () => {
       .closest("div");
     expect(armholeCard?.textContent).toMatch(/→/);
   });
+
+  it("shows a comprimento delta alongside cava and consumo (#234)", () => {
+    const [older, newer] = makeVersions();
+    renderWithIntl(<VersionCompare versions={[newer, older]} />);
+
+    const lengthCard = screen
+      .getByText(ptBR.VersionCompare.lengthDeltaLabel)
+      .closest("div");
+    expect(lengthCard?.textContent).toMatch(/→/);
+    expect(lengthCard?.textContent).toMatch(/cm/);
+    // Shown alongside the existing two, not replacing them.
+    expect(
+      screen.getByText(ptBR.VersionCompare.armholeDeltaLabel),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(ptBR.VersionCompare.consumptionDeltaLabel),
+    ).toBeInTheDocument();
+  });
 });

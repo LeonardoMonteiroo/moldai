@@ -1025,6 +1025,7 @@
     "overlayToggle": "Sobrepor",
     "overlayAriaLabel": "Comparação entre v{from} e v{to}",
     "armholeDeltaLabel": "Cava",
+    "lengthDeltaLabel": "Comprimento",
     "consumptionDeltaLabel": "Consumo"
   },
   "ProfileSection": {

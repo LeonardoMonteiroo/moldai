@@ -554,6 +554,7 @@ describe("measureSeams", () => {
     expect(measureSeams(spec, SIZE_TABLE.M, t)).toEqual({
       armholeLenCm: drafted.armholeLenCm,
       sleeveArmholeCm: drafted.sleeveArmholeCm,
+      garmentLengthCm: drafted.garmentLengthCm,
     });
   });
   it("reports no seams for a garment without an armhole", () => {
@@ -569,6 +570,62 @@ describe("measureSeams", () => {
     );
     expect(armholeLenCm).toBeUndefined();
     expect(sleeveArmholeCm).toBeUndefined();
+  });
+
+  // #234: one length figure per archetype -- a bodice's own length, a dress's
+  // bodice-to-waist plus its skirt panel, a standalone skirt's own length,
+  // and a trouser's own waist-to-hem length -- each the same formula the
+  // relevant drafter resolves internally, asserted here rather than a
+  // duplicated hardcoded cm figure.
+  it("reports the blouse/tshirt body length", () => {
+    for (const type of ["blouse", "tshirt"] as const) {
+      const { garmentLengthCm } = measureSeams(
+        { type, gender: "female", measurementOverrides: {}, style: {} },
+        SIZE_TABLE.M,
+        t,
+      );
+      expect(garmentLengthCm).toBeCloseTo(
+        SIZE_TABLE.M.backLength + SIZE_TABLE.M.hipHeight + 5,
+        5,
+      );
+    }
+  });
+  it("reports a dress's bodice-to-waist length plus its skirt panel", () => {
+    const { garmentLengthCm } = measureSeams(
+      {
+        type: "dress",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      SIZE_TABLE.M,
+      t,
+    );
+    expect(garmentLengthCm).toBeCloseTo(
+      SIZE_TABLE.M.backLength + SIZE_TABLE.M.skirtLength,
+      5,
+    );
+  });
+  it("reports a standalone skirt's own length", () => {
+    const { garmentLengthCm } = measureSeams(
+      { type: "skirt", gender: "female", measurementOverrides: {}, style: {} },
+      SIZE_TABLE.M,
+      t,
+    );
+    expect(garmentLengthCm).toBeCloseTo(SIZE_TABLE.M.skirtLength, 5);
+  });
+  it("reports the trouser's own waist-to-hem length, style override included", () => {
+    const { garmentLengthCm } = measureSeams(
+      {
+        type: "trousers",
+        gender: "female",
+        measurementOverrides: {},
+        style: { trouserLengthCm: 95 },
+      },
+      SIZE_TABLE.M,
+      t,
+    );
+    expect(garmentLengthCm).toBeCloseTo(95, 5);
   });
 });
 

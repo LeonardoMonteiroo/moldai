@@ -31,7 +31,7 @@ import {
 import { BlockOpts, draftBody } from "./body";
 import { draftSleeve, CAP_EASE_CM, WRIST_EASE_CM } from "./sleeve";
 import { draftSkirt, dressWaistHalfCm } from "./skirt";
-import { draftTrousers } from "./trousers";
+import { draftTrousers, TROUSER_DEFAULT_LENGTH_CM } from "./trousers";
 import {
   draftCollar,
   draftBandCollar,
@@ -270,6 +270,7 @@ function draftAll(
   measurements: Measurements;
   armholeLenCm?: number;
   sleeveArmholeCm?: number;
+  garmentLengthCm?: number;
   seamGraph: SeamMeasurement[];
 } {
   const gender: Gender = spec.gender ?? "female";
@@ -280,6 +281,13 @@ function draftAll(
   const drafted: DraftedPiece[] = [];
   let armholeLenCm: number | undefined;
   let sleeveArmholeCm: number | undefined;
+  // #234: the garment's own overall length -- a bodice archetype's own
+  // lengthCm below the shoulder, a dress's bodice-to-waist plus its skirt
+  // panel's own length, a standalone skirt's own length, or a trouser's own
+  // waist-to-hem length. Undefined for nothing today (every archetype drafts
+  // a length), but kept optional to match armholeLenCm's own
+  // undefined-for-what-doesn't-apply shape rather than a fabricated 0.
+  let garmentLengthCm: number | undefined;
   // Hoisted out of the `isBody` block below so the dress waist-join pairs
   // (declared further down, alongside the skirt) can reference the same
   // front/back panels.
@@ -299,6 +307,9 @@ function draftAll(
       spec.type === "dress"
         ? measurements.backLength
         : measurements.backLength + measurements.hipHeight + 5;
+    // A dress's own bodice ends at the waist (lengthCm above) -- the skirt
+    // block below adds its own panel length on top once it's drafted.
+    garmentLengthCm = lengthCm;
     // T-shirt base model: round neckline, no darts, short sleeve by default.
     const style: GarmentStyle =
       spec.type === "tshirt"
@@ -604,6 +615,14 @@ function draftAll(
       spec.type === "dress",
     );
     drafted.push(skirtPiece);
+    // #234: the skirt panel's own length -- the same formula draftSkirt
+    // itself resolves internally (style.skirtLengthCm, falling back to the
+    // chart's own skirtLength) but doesn't expose on the piece. A dress adds
+    // this on top of its bodice-to-waist length (set above); a standalone
+    // skirt has no bodice, so this IS the whole garment length.
+    const skirtLenCm = spec.style.skirtLengthCm ?? measurements.skirtLength;
+    garmentLengthCm =
+      spec.type === "dress" ? (garmentLengthCm ?? 0) + skirtLenCm : skirtLenCm;
     // #134: the dress bodice's hem/waist-join edge vs the skirt panel's own
     // waist edge -- one declaration per body panel (front, back). #134 found
     // this pair GENUINELY diverged for a circle/gore/half-circle skirt: the
@@ -708,6 +727,9 @@ function draftAll(
   //    times its own qty), the same "closed circumference, not one panel's
   //    share of it" rule the skirt's own waistband already follows.
   if (spec.type === "trousers") {
+    // #234: the same waist-to-hem formula draftTrousers resolves internally.
+    garmentLengthCm =
+      spec.style.trouserLengthCm ?? TROUSER_DEFAULT_LENGTH_CM[gender];
     const { front: tf, back: tb } = draftTrousers(
       measurements,
       spec.style,
@@ -797,7 +819,14 @@ function draftAll(
   }
 
   const seamGraph = walkSeamPairs(drafted, seamPairs);
-  return { drafted, measurements, armholeLenCm, sleeveArmholeCm, seamGraph };
+  return {
+    drafted,
+    measurements,
+    armholeLenCm,
+    sleeveArmholeCm,
+    garmentLengthCm,
+    seamGraph,
+  };
 }
 
 export function draftPiecesCm(
@@ -819,9 +848,17 @@ export function measureSeams(
   spec: GarmentSpec,
   baseMeasurements: Measurements,
   t: Translate,
-): { armholeLenCm?: number; sleeveArmholeCm?: number } {
-  const { armholeLenCm, sleeveArmholeCm } = draftAll(spec, baseMeasurements, t);
-  return { armholeLenCm, sleeveArmholeCm };
+): {
+  armholeLenCm?: number;
+  sleeveArmholeCm?: number;
+  garmentLengthCm?: number;
+} {
+  const { armholeLenCm, sleeveArmholeCm, garmentLengthCm } = draftAll(
+    spec,
+    baseMeasurements,
+    t,
+  );
+  return { armholeLenCm, sleeveArmholeCm, garmentLengthCm };
 }
 
 // #134: the FULL seam graph -- every mated pair this garment declares,
@@ -895,8 +932,14 @@ export function draftGarment(
   baseMeasurements: Measurements,
   t: Translate,
 ) {
-  const { drafted, measurements, armholeLenCm, sleeveArmholeCm, seamGraph } =
-    draftAll(spec, baseMeasurements, t);
+  const {
+    drafted,
+    measurements,
+    armholeLenCm,
+    sleeveArmholeCm,
+    garmentLengthCm,
+    seamGraph,
+  } = draftAll(spec, baseMeasurements, t);
   const { pieces, viewBox } = autoLayout(drafted, 8);
   return {
     pieces,
@@ -904,6 +947,7 @@ export function draftGarment(
     measurements,
     armholeLenCm,
     sleeveArmholeCm,
+    garmentLengthCm,
     seamGraph,
   };
 }

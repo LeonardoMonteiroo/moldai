@@ -121,6 +121,8 @@ export function VersionCompare({
     return {
       armholeFrom: fromSeams.armholeLenCm,
       armholeTo: toSeams.armholeLenCm,
+      garmentLengthFrom: fromSeams.garmentLengthCm,
+      garmentLengthTo: toSeams.garmentLengthCm,
       lengthFromCm: fromCut.lengthCm,
       lengthToCm: toCut.lengthCm,
     };
@@ -251,6 +253,18 @@ export function VersionCompare({
                 <p className="text-control">
                   {formatCm(deltas.armholeFrom)} → {formatCm(deltas.armholeTo)}{" "}
                   cm
+                </p>
+              </div>
+            )}
+          {deltas.garmentLengthFrom !== undefined &&
+            deltas.garmentLengthTo !== undefined && (
+              <div className="border-border rounded-item border p-[10px]">
+                <span className="text-muted text-meta">
+                  {t("lengthDeltaLabel")}
+                </span>
+                <p className="text-control">
+                  {formatCm(deltas.garmentLengthFrom)} →{" "}
+                  {formatCm(deltas.garmentLengthTo)} cm
                 </p>
               </div>
             )}
