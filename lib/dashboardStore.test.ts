@@ -39,6 +39,7 @@ describe("dashboardStore.init", () => {
       error: false,
       patterns: [],
       credits: null,
+      checklist: null,
       recentUsage: [],
       search: "",
       typeFilter: "all",
@@ -55,12 +56,36 @@ describe("dashboardStore.init", () => {
         renewsInDays: 12,
       },
       recentUsage: [],
+      checklist: {
+        hasCustomSizeChart: false,
+        hasExported: false,
+        hasImported: false,
+      },
     });
     await useDashboardStore.getState().init();
     const s = useDashboardStore.getState();
     expect(s.ready).toBe(true);
     expect(s.patterns).toHaveLength(1);
     expect(s.credits?.balance).toBe(320);
+  });
+
+  it("stores the checklist progress from the account summary", async () => {
+    vi.mocked(api.listPatterns).mockResolvedValue([]);
+    vi.mocked(api.getAccountSummary).mockResolvedValue({
+      credits: { plan: "atelier", balance: 320, total: 500, renewsInDays: 12 },
+      recentUsage: [],
+      checklist: {
+        hasCustomSizeChart: true,
+        hasExported: false,
+        hasImported: true,
+      },
+    });
+    await useDashboardStore.getState().init();
+    expect(useDashboardStore.getState().checklist).toEqual({
+      hasCustomSizeChart: true,
+      hasExported: false,
+      hasImported: true,
+    });
   });
 
   it("sets error and ready on failure, without throwing", async () => {
@@ -73,6 +98,11 @@ describe("dashboardStore.init", () => {
         renewsInDays: 0,
       },
       recentUsage: [],
+      checklist: {
+        hasCustomSizeChart: false,
+        hasExported: false,
+        hasImported: false,
+      },
     });
     await useDashboardStore.getState().init();
     const s = useDashboardStore.getState();

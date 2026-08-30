@@ -1,7 +1,11 @@
 import { create } from "zustand";
 import * as api from "./api-client";
 import { errorCode } from "./api-client";
-import type { PatternListItem, RecentUsageEntry } from "./api-client";
+import type {
+  PatternListItem,
+  RecentUsageEntry,
+  AccountSummary,
+} from "./api-client";
 import type { Credits, GarmentType } from "./types";
 
 export type TypeFilter = GarmentType | "all";
@@ -20,6 +24,7 @@ interface DashboardStore {
   actionError: string | null;
   patterns: PatternListItem[];
   credits: Credits | null;
+  checklist: AccountSummary["checklist"] | null;
   recentUsage: RecentUsageEntry[];
   search: string;
   typeFilter: TypeFilter;
@@ -40,6 +45,7 @@ export const useDashboardStore = create<DashboardStore>((set) => ({
   actionError: null,
   patterns: [],
   credits: null,
+  checklist: null,
   recentUsage: [],
   search: "",
   typeFilter: "all",
@@ -54,6 +60,7 @@ export const useDashboardStore = create<DashboardStore>((set) => ({
       set({
         patterns,
         credits: summary.credits,
+        checklist: summary.checklist,
         recentUsage: summary.recentUsage,
         ready: true,
       });
