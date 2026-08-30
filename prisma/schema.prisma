@@ -10,8 +10,17 @@ generator client {
 model User {
   id                  String                   @id @default(cuid())
   email               String                   @unique
-  passwordHash        String
+  // #235: nullable -- a Google-only account (no Credentials signup) has no
+  // password at all. authorizeUser (lib/auth/authorize.ts) returns a
+  // dedicated `no_password` reason for a Credentials attempt against one,
+  // rather than comparing against nothing. /settings' PasswordSection lets
+  // such an account set a password once (see lib/account/settings.ts).
+  passwordHash        String?
   name                String?
+  // #235: required by @auth/prisma-adapter's createUser -- Google's OAuth
+  // profile includes an avatar URL, and PrismaAdapter passes it straight
+  // into `prisma.user.create`. Written, never read by any screen today.
+  image               String?
   emailVerified       DateTime?
   createdAt           DateTime                 @default(now())
   // #29: nullable and additive -- NULL honestly means "never changed since
@@ -31,6 +40,14 @@ model User {
   // behaviour path.
   onboardedAt         DateTime?
   workStyle           String?
+  // #235: Auth.js account-linking. A Credentials-only user has zero rows
+  // here; a Google sign-in gets exactly one, added by the adapter itself.
+  accounts            Account[]
+  // #235: standard adapter shape, never actually written -- this app keeps
+  // JWT sessions (session.strategy: "jwt" in auth.ts), so no database
+  // Session row is ever created. Kept only because @auth/prisma-adapter is
+  // typed against the full standard schema.
+  sessions            Session[]
   patterns            Pattern[]
   wallet              Wallet?
   sizeCharts          SizeChart[]              @relation("UserSizeCharts")
@@ -73,6 +90,51 @@ model User {
   firstImportedAt     DateTime?
 
   @@index([activeSizeChartId])
+}
+
+// #235: real and load-bearing -- this is how a Google identity resolves to
+// a User.id. @@unique([provider, providerAccountId]) is what the adapter's
+// getUserByAccount looks up on every Google sign-in.
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+// #235: standard Auth.js adapter shape, kept for contract compatibility --
+// never written to. This app keeps JWT sessions (no database Session row is
+// ever created) and already has its own EmailVerificationToken/
+// PasswordResetToken (Auth.js's own VerificationToken backs its Email/
+// magic-link provider only, which this app doesn't use). Two empty tables
+// are the conscious cost of choosing the full adapter over a lightweight
+// column -- see docs/decisions.md's Authentication section.
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expires      DateTime
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
 
 model EmailVerificationToken {
