@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   renderWithIntl,
   ptBR,
@@ -9,7 +9,11 @@ import {
 
 const push = vi.fn();
 const refresh = vi.fn();
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push, refresh }) }));
+const useSearchParamsMock = vi.fn(() => new URLSearchParams());
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push, refresh }),
+  useSearchParams: () => useSearchParamsMock(),
+}));
 
 const signIn = vi.fn();
 vi.mock("next-auth/react", () => ({
@@ -238,5 +242,33 @@ describe("LoginCard", () => {
       screen.getByRole("button", { name: ptBR.Login.continueWithGoogle }),
     );
     expect(signIn).toHaveBeenCalledWith("google", { callbackUrl: "/" });
+  });
+});
+
+describe("LoginCard OAuth error banner", () => {
+  afterEach(() => {
+    useSearchParamsMock.mockReturnValue(new URLSearchParams());
+  });
+
+  it("shows a cancelled-login message when Google returns AccessDenied", () => {
+    useSearchParamsMock.mockReturnValue(
+      new URLSearchParams("error=AccessDenied"),
+    );
+    renderWithIntl(<LoginCard />);
+    expect(screen.getByText(ptBR.Login.errors.AccessDenied)).toBeVisible();
+  });
+
+  it("shows a generic OAuth error for an unrecognised code", () => {
+    useSearchParamsMock.mockReturnValue(
+      new URLSearchParams("error=Configuration"),
+    );
+    renderWithIntl(<LoginCard />);
+    expect(screen.getByText(ptBR.Login.errors.oauth_generic)).toBeVisible();
+  });
+
+  it("shows no OAuth error banner when there is no error param", () => {
+    renderWithIntl(<LoginCard />);
+    expect(screen.queryByText(ptBR.Login.errors.AccessDenied)).toBeNull();
+    expect(screen.queryByText(ptBR.Login.errors.oauth_generic)).toBeNull();
   });
 });

@@ -10,11 +10,26 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { resendVerification } from "@/lib/api-client";
 import { GoogleIcon } from "@/components/auth/GoogleIcon";
+
+// #235: Auth.js redirects a failed Google flow back to /login?error=<code>.
+// AccessDenied (the user cancelled Google's consent screen) gets its own
+// message; every other code -- including OAuthAccountNotLinked, which
+// should never actually fire given auth.ts's allowDangerousEmailAccountLinking
+// -- falls back to a generic one rather than asserting copy for a code this
+// config shouldn't produce.
+const KNOWN_OAUTH_ERROR_CODES = ["AccessDenied"] as const;
+
+function resolveOAuthErrorKey(code: string | null): string | null {
+  if (!code) return null;
+  return (KNOWN_OAUTH_ERROR_CODES as readonly string[]).includes(code)
+    ? code
+    : "oauth_generic";
+}
 
 // #109: the page heading moved to app/login/page.tsx (a Server Component,
 // so it can also export generateMetadata for the tab title) -- this keeps
@@ -22,6 +37,8 @@ import { GoogleIcon } from "@/components/auth/GoogleIcon";
 export default function LoginCard() {
   const t = useTranslations("Login");
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const oauthErrorKey = resolveOAuthErrorKey(searchParams.get("error"));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -79,6 +96,11 @@ export default function LoginCard() {
 
   return (
     <>
+      {oauthErrorKey && (
+        <p className="text-alert text-ui mt-3">
+          {t(`errors.${oauthErrorKey}`)}
+        </p>
+      )}
       <form onSubmit={onSubmit} className="mt-4 flex flex-col gap-3">
         <FieldGroup>
           <Field data-invalid={!!error || undefined}>

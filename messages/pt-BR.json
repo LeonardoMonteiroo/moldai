@@ -642,6 +642,8 @@
     "orDivider": "ou",
     "continueWithGoogle": "Continuar com Google",
     "errors": {
+      "AccessDenied": "Você cancelou o login com Google.",
+      "oauth_generic": "Não foi possível entrar com o Google. Tente novamente.",
       "invalid_credentials": "Email ou senha inválidos.",
       "already_verified": "Este email já está confirmado. Tente entrar novamente.",
       "cooldown": "Aguarde um minuto antes de pedir outro link.",
