@@ -9,6 +9,13 @@ interface Row {
 }
 let rows: Row[] = [];
 
+interface UserRow {
+  id: string;
+  firstExportedAt: Date | null;
+  firstImportedAt: Date | null;
+}
+let userRows: Record<string, UserRow> = {};
+
 // #166: matches the specifier this file's own subject imports (see
 // lib/db/aliasResolution.test.ts and CLAUDE.md's testing-conventions note).
 vi.mock("./prisma", () => ({
@@ -38,10 +45,42 @@ vi.mock("./prisma", () => ({
             .slice(0, take),
       ),
     },
+    user: {
+      findUnique: vi.fn(
+        async ({ where }: { where: { id: string } }) =>
+          userRows[where.id] ?? null,
+      ),
+      updateMany: vi.fn(
+        async ({
+          where,
+          data,
+        }: {
+          where: { id: string } & Partial<
+            Record<"firstExportedAt" | "firstImportedAt", null>
+          >;
+          data: Partial<Record<"firstExportedAt" | "firstImportedAt", Date>>;
+        }) => {
+          const u = userRows[where.id];
+          if (!u) return { count: 0 };
+          const column = (
+            "firstExportedAt" in where ? "firstExportedAt" : "firstImportedAt"
+          ) as "firstExportedAt" | "firstImportedAt";
+          if (u[column] !== null) return { count: 0 };
+          userRows[where.id] = { ...u, [column]: data[column] };
+          return { count: 1 };
+        },
+      ),
+    },
   },
 }));
 
-import { getRecentUsage, getLedgerHistory } from "./account";
+import {
+  getRecentUsage,
+  getLedgerHistory,
+  isChecklistEvent,
+  recordChecklistEvent,
+  getChecklistProgress,
+} from "./account";
 
 describe("getRecentUsage", () => {
   beforeEach(() => {
@@ -185,5 +224,63 @@ describe("getLedgerHistory", () => {
     expect(ledger.some((e) => e.amount === 4 && e.reason === "generate")).toBe(
       false,
     );
+  });
+});
+
+describe("isChecklistEvent", () => {
+  it("accepts exactly the two known events", () => {
+    expect(isChecklistEvent("exported")).toBe(true);
+    expect(isChecklistEvent("imported")).toBe(true);
+  });
+
+  it("rejects anything else", () => {
+    expect(isChecklistEvent("invited")).toBe(false);
+    expect(isChecklistEvent(undefined)).toBe(false);
+    expect(isChecklistEvent(42)).toBe(false);
+  });
+});
+
+describe("recordChecklistEvent / getChecklistProgress", () => {
+  beforeEach(() => {
+    userRows = {
+      u1: { id: "u1", firstExportedAt: null, firstImportedAt: null },
+    };
+  });
+
+  it("reports both flags false before anything is recorded", async () => {
+    expect(await getChecklistProgress("u1")).toEqual({
+      hasExported: false,
+      hasImported: false,
+    });
+  });
+
+  it("sets firstExportedAt on the first 'exported' event", async () => {
+    await recordChecklistEvent("u1", "exported");
+    expect(await getChecklistProgress("u1")).toEqual({
+      hasExported: true,
+      hasImported: false,
+    });
+  });
+
+  it("sets firstImportedAt on the first 'imported' event, independently", async () => {
+    await recordChecklistEvent("u1", "imported");
+    expect(await getChecklistProgress("u1")).toEqual({
+      hasExported: false,
+      hasImported: true,
+    });
+  });
+
+  it("never overwrites an already-set timestamp (first-write-wins)", async () => {
+    await recordChecklistEvent("u1", "exported");
+    const firstRun = userRows.u1.firstExportedAt;
+    await recordChecklistEvent("u1", "exported");
+    expect(userRows.u1.firstExportedAt).toBe(firstRun);
+  });
+
+  it("reports both flags false for an account with no row (defensive default)", async () => {
+    expect(await getChecklistProgress("ghost")).toEqual({
+      hasExported: false,
+      hasImported: false,
+    });
   });
 });

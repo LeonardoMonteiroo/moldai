@@ -43,3 +43,42 @@ export async function getLedgerHistory(
     createdAt: r.createdAt.toISOString(),
   }));
 }
+
+/** The two events the dashboard onboarding checklist (#232) can record. */
+export type ChecklistEvent = "exported" | "imported";
+
+export function isChecklistEvent(value: unknown): value is ChecklistEvent {
+  return value === "exported" || value === "imported";
+}
+
+const CHECKLIST_EVENT_COLUMN = {
+  exported: "firstExportedAt",
+  imported: "firstImportedAt",
+} as const satisfies Record<ChecklistEvent, string>;
+
+// First-write-wins: `updateMany` is scoped to the column still being NULL,
+// so a duplicate ping (the client fires this best-effort, more than once is
+// expected) never overwrites the real first-occurrence timestamp.
+export async function recordChecklistEvent(
+  userId: string,
+  event: ChecklistEvent,
+): Promise<void> {
+  const column = CHECKLIST_EVENT_COLUMN[event];
+  await prisma.user.updateMany({
+    where: { id: userId, [column]: null },
+    data: { [column]: new Date() },
+  });
+}
+
+export async function getChecklistProgress(
+  userId: string,
+): Promise<{ hasExported: boolean; hasImported: boolean }> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { firstExportedAt: true, firstImportedAt: true },
+  });
+  return {
+    hasExported: user?.firstExportedAt != null,
+    hasImported: user?.firstImportedAt != null,
+  };
+}
