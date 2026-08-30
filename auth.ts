@@ -1,7 +1,10 @@
 import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
+import { PrismaAdapter } from "@auth/prisma-adapter";
 import { authorizeUser } from "@/lib/auth/authorize";
-import { getUserByEmail } from "@/lib/db/users";
+import { getUserByEmail, stampEmailVerifiedIfMissing } from "@/lib/db/users";
+import { prisma } from "@/lib/db/prisma";
 import { verifyPassword } from "@/lib/auth/hash";
 import { consume, reset } from "@/lib/rate-limit/consume";
 import { clientIp } from "@/lib/rate-limit/ip";
@@ -22,6 +25,10 @@ class NoPasswordError extends CredentialsSignin {
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  // #235: only used for Google account-linking (Account rows) -- session
+  // storage stays JWT (below), so Session/VerificationToken are never
+  // actually written. See docs/decisions.md's Authentication section.
+  adapter: PrismaAdapter(prisma),
   // Self-hosted (Docker/`next start`): Auth.js v5 only trusts the host
   // automatically in dev. In production, without this every auth request fails with UntrustedHost.
   trustHost: true,
@@ -56,8 +63,34 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return null;
       },
     }),
+    Google({
+      // #235: Google verifies email ownership itself -- exactly the trust
+      // this repo already places in its own mailed verification link -- so
+      // a Google sign-in auto-links to an existing Credentials row sharing
+      // that email instead of throwing OAuthAccountNotLinked. The signIn
+      // callback below adds one more check on top: it refuses the sign-in
+      // outright if Google's own profile claims the email is NOT verified,
+      // so this flag is never trusted blindly on its own.
+      allowDangerousEmailAccountLinking: true,
+    }),
   ],
   callbacks: {
+    async signIn({ account, user, profile }) {
+      if (account?.provider !== "google") return true;
+      // #235: the raw Google profile (not the adapter-mapped `user`) is
+      // what carries email_verified -- a defensive second check on top of
+      // allowDangerousEmailAccountLinking, never trusting that flag alone.
+      const emailVerified =
+        (profile as { email_verified?: boolean } | undefined)
+          ?.email_verified === true;
+      if (!emailVerified) return false;
+      // Retroactive verification: an existing Credentials row that never
+      // clicked its own mail link gets emailVerified stamped now, from
+      // strictly stronger evidence. No-ops for an already-verified row and
+      // for a brand-new user (the adapter already stamped it on creation).
+      if (user.id) await stampEmailVerifiedIfMissing(user.id);
+      return true;
+    },
     jwt({ token, user }) {
       if (user) token.uid = (user as { id: string }).id;
       return token;
