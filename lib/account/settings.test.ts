@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   validateName,
   validateNewPassword,
@@ -95,5 +95,34 @@ describe("verifyForDeletion", () => {
     const d = deps({ verify: async () => ((called = true), true) });
     expect(await verifyForDeletion(d, undefined, "HASH")).toBe(false);
     expect(called).toBe(false);
+  });
+});
+
+describe("changePassword with no existing password (Google-only account)", () => {
+  it("sets a new password without checking any current password", async () => {
+    const verify = vi.fn(async () => false); // would fail this test if ever called
+    const r = await changePassword(
+      deps({ verify }),
+      undefined,
+      "newpassword1",
+      null,
+    );
+    expect(r).toEqual({ ok: true, newHash: "HASHED(newpassword1)" });
+    expect(verify).not.toHaveBeenCalled();
+  });
+
+  it("still rejects a too-short new password", async () => {
+    const r = await changePassword(deps(), undefined, "short", null);
+    expect(r).toEqual({ ok: false, error: "weak_password" });
+  });
+});
+
+describe("verifyForDeletion with no existing password (Google-only account)", () => {
+  it("returns true regardless of the supplied password", async () => {
+    const verify = vi.fn(async () => false);
+    expect(await verifyForDeletion(deps({ verify }), undefined, null)).toBe(
+      true,
+    );
+    expect(verify).not.toHaveBeenCalled();
   });
 });

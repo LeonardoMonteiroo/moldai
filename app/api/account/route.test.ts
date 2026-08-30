@@ -50,6 +50,14 @@ describe("DELETE /api/account", () => {
     expect(await res.json()).toEqual({ status: "ok" });
   });
 
+  it("deletes the account with no password when the account has none set", async () => {
+    vi.mocked(getUserById).mockResolvedValue({ ...user, passwordHash: null });
+    const res = await DELETE(req({}));
+    expect(verifyPassword).not.toHaveBeenCalled();
+    expect(deleteUser).toHaveBeenCalledWith("u1");
+    expect(await res.json()).toEqual({ status: "ok" });
+  });
+
   it("400s on wrong password", async () => {
     vi.mocked(verifyPassword).mockResolvedValue(false);
     const res = await DELETE(req({ password: "wrong" }));

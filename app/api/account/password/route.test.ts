@@ -57,6 +57,15 @@ describe("POST /api/account/password", () => {
     expect(await res.json()).toEqual({ status: "ok" });
   });
 
+  it("sets a password with no currentPassword when the account has none yet", async () => {
+    vi.mocked(getUserById).mockResolvedValue({ ...user, passwordHash: null });
+    vi.mocked(hashPassword).mockResolvedValue("NEW_HASH");
+    const res = await POST(req({ newPassword: "newpassword1" }));
+    expect(verifyPassword).not.toHaveBeenCalled();
+    expect(updateUserPasswordHash).toHaveBeenCalledWith("u1", "NEW_HASH");
+    expect(await res.json()).toEqual({ status: "ok" });
+  });
+
   it("400s on wrong current password", async () => {
     vi.mocked(verifyPassword).mockResolvedValue(false);
     const res = await POST(

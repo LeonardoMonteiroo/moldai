@@ -36,12 +36,18 @@ export async function changePassword(
   deps: PasswordDeps,
   currentPassword: unknown,
   newPassword: unknown,
-  storedHash: string,
+  storedHash: string | null,
 ): Promise<ChangePasswordResult> {
-  const currentOk =
-    typeof currentPassword === "string" &&
-    (await deps.verify(currentPassword, storedHash));
-  if (!currentOk) return { ok: false, error: "wrong_password" };
+  // #235: a Google-only account (storedHash null) has nothing to verify a
+  // current password against -- this is the "Definir senha" flow, not
+  // "Alterar senha", so the check is skipped entirely rather than treated
+  // as an always-wrong comparison.
+  if (storedHash !== null) {
+    const currentOk =
+      typeof currentPassword === "string" &&
+      (await deps.verify(currentPassword, storedHash));
+    if (!currentOk) return { ok: false, error: "wrong_password" };
+  }
 
   if (!validateNewPassword(newPassword)) {
     return { ok: false, error: "weak_password" };
@@ -54,8 +60,12 @@ export async function changePassword(
 export async function verifyForDeletion(
   deps: Pick<PasswordDeps, "verify">,
   password: unknown,
-  storedHash: string,
+  storedHash: string | null,
 ): Promise<boolean> {
+  // #235: ownership is already established by the session -- for a
+  // Google-only account the password check was always the second factor,
+  // never the only one, so there is nothing to verify against here.
+  if (storedHash === null) return true;
   if (typeof password !== "string") return false;
   return deps.verify(password, storedHash);
 }
