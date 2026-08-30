@@ -9,7 +9,7 @@ export type SettingsSection =
 export const SETTINGS_SECTIONS: SettingsSection[] = [
   "profile",
   "password",
-  "danger",
   "usage",
   "plan",
+  "danger",
 ];
