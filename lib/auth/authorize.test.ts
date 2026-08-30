@@ -90,6 +90,17 @@ describe("authorizeUser", () => {
     expect(r).toEqual({ ok: false, reason: "invalid" });
   });
 
+  it("a null passwordHash (Google-only account) is 'no_password', without hashing", async () => {
+    const verify = vi.fn(async () => true);
+    const googleUser: UserRecord = { ...user, passwordHash: null };
+    const r = await authorizeUser(
+      GOOD,
+      deps({ verify, getUserByEmail: async () => googleUser }),
+    );
+    expect(r).toEqual({ ok: false, reason: "no_password" });
+    expect(verify).not.toHaveBeenCalled();
+  });
+
   it("denies over the IP limit without ever hashing", async () => {
     const verify = vi.fn(async () => true);
     const getUserByEmail = vi.fn(async () => user);

@@ -1,7 +1,7 @@
 export interface UserRecord {
   id: string;
   email: string;
-  passwordHash: string;
+  passwordHash: string | null;
   name: string | null;
   emailVerified: Date | null;
 }

@@ -1,7 +1,8 @@
 import { DUMMY_HASH } from "./hash";
 import type { UserRecord } from "./types";
 
-export type AuthorizeFailure = "invalid" | "unverified" | "rate_limited";
+export type AuthorizeFailure =
+  "invalid" | "unverified" | "rate_limited" | "no_password";
 
 // Written once with all three reasons. auth.ts maps `invalid` to Auth.js's
 // generic null and the other two to coded CredentialsSignin subclasses, so
@@ -54,6 +55,14 @@ export async function authorizeUser(
   if (!user) {
     await deps.verify(password, DUMMY_HASH);
     return { ok: false, reason: "invalid" };
+  }
+
+  // #235: a Google-only account has no hash to compare against at all --
+  // returning here (before any deps.verify call) is what keeps this
+  // distinct from a wrong-password "invalid", both in the wire code /login
+  // shows and in the fact that no hashing work is spent on it.
+  if (user.passwordHash === null) {
+    return { ok: false, reason: "no_password" };
   }
 
   if (!(await deps.verify(password, user.passwordHash))) {

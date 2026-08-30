@@ -17,6 +17,10 @@ class RateLimitedError extends CredentialsSignin {
   code = "rate_limited";
 }
 
+class NoPasswordError extends CredentialsSignin {
+  code = "no_password";
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   // Self-hosted (Docker/`next start`): Auth.js v5 only trusts the host
   // automatically in dev. In production, without this every auth request fails with UntrustedHost.
@@ -48,6 +52,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (result.ok) return result.user;
         if (result.reason === "unverified") throw new UnverifiedEmailError();
         if (result.reason === "rate_limited") throw new RateLimitedError();
+        if (result.reason === "no_password") throw new NoPasswordError();
         return null;
       },
     }),

@@ -74,6 +74,15 @@ export async function POST(request: Request) {
     await verifyPassword(password, DUMMY_HASH);
     return fail("invalid_credentials");
   }
+  // #235: a Google-only account has no hash to compare against -- it also
+  // has no verification mail to resend (Google signups skip that flow
+  // entirely, see auth.ts), so this can never legitimately succeed. Spends
+  // the same dummy-hash cost as the unknown-email branch above rather than
+  // returning early, so the two stay indistinguishable by timing.
+  if (user.passwordHash === null) {
+    await verifyPassword(password, DUMMY_HASH);
+    return fail("invalid_credentials");
+  }
   if (!(await verifyPassword(password, user.passwordHash))) {
     return fail("invalid_credentials");
   }

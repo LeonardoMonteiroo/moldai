@@ -102,6 +102,27 @@ describe("POST /api/verify-email/resend", () => {
     );
   });
 
+  // #235: a Google-only account has no passwordHash to compare against --
+  // it also can never legitimately reach this route, since Google signups
+  // skip MoldAI's own verification mail entirely (emailVerified is stamped
+  // immediately). This must 401 rather than throw on bcrypt.compare(pw, null).
+  it("401s on a Google-only account (null passwordHash) with the same code", async () => {
+    vi.mocked(getUserByEmail).mockResolvedValue({
+      ...UNVERIFIED,
+      passwordHash: null,
+    });
+    const res = await POST(req(CREDS));
+    expect(res.status).toBe(401);
+    expect(await res.json()).toEqual({
+      status: "error",
+      error: "invalid_credentials",
+    });
+    expect(verifyPassword).toHaveBeenCalledWith(
+      CREDS.password,
+      "DUMMY_HASH_MOCK",
+    );
+  });
+
   it("409s with already_verified once the address is confirmed", async () => {
     vi.mocked(getUserByEmail).mockResolvedValue({
       ...UNVERIFIED,
