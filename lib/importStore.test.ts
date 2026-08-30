@@ -11,7 +11,12 @@ vi.mock("@/lib/api-client", async () => {
     await vi.importActual<typeof import("@/lib/api-client")>(
       "@/lib/api-client",
     );
-  return { ...actual, createPattern: vi.fn(), generate: vi.fn() };
+  return {
+    ...actual,
+    createPattern: vi.fn(),
+    generate: vi.fn(),
+    recordChecklistEvent: vi.fn(() => Promise.resolve()),
+  };
 });
 
 vi.mock("@/lib/editor/attachment", async () => {
@@ -250,6 +255,9 @@ describe("createPatternFromImport", () => {
     vi.mocked(api.generate).mockReset();
     vi.mocked(prepareImage).mockReset();
     vi.mocked(prepareImage).mockResolvedValue(preparedImage);
+    // Cleared, not reset -- keeps the factory's Promise-resolving default
+    // (recordChecklistEvent's real return type), only forgetting call history.
+    vi.mocked(api.recordChecklistEvent).mockClear();
     useImportStore.setState({ pendingPatternId: null });
   });
 
@@ -285,6 +293,43 @@ describe("createPatternFromImport", () => {
       expect.stringContaining("oskar.dxf"),
     );
     expect(useImportStore.getState().pendingPatternId).toBeNull();
+  });
+
+  it("pings the onboarding checklist once import succeeds", async () => {
+    useImportStore.setState({
+      doc: {} as never,
+      analysis: { fileName: "oskar.dxf" } as never,
+    });
+    vi.mocked(api.createPattern).mockResolvedValue({ id: "p1" });
+    vi.mocked(api.generate).mockResolvedValue({
+      status: "ok",
+      state: {} as never,
+    });
+
+    await useImportStore
+      .getState()
+      .createPatternFromImport(file, "msg", "auto");
+
+    expect(api.recordChecklistEvent).toHaveBeenCalledWith("imported");
+  });
+
+  it("does not ping the checklist when import fails", async () => {
+    useImportStore.setState({
+      doc: {} as never,
+      analysis: { fileName: "oskar.dxf" } as never,
+    });
+    vi.mocked(api.createPattern).mockResolvedValue({ id: "p1" });
+    vi.mocked(api.generate).mockResolvedValue({
+      status: "error",
+      state: {} as never,
+    });
+
+    const id = await useImportStore
+      .getState()
+      .createPatternFromImport(file, "msg", "auto");
+
+    expect(id).toBeNull();
+    expect(api.recordChecklistEvent).not.toHaveBeenCalled();
   });
 
   it("auto-resends once with answering:true on a clarify response", async () => {

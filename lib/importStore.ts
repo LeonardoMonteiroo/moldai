@@ -263,6 +263,9 @@ export const useImportStore = create<ImportStore>((set, get) => ({
         return null;
       }
       set({ creating: false, pendingPatternId: null });
+      // #232: best-effort ping for the dashboard onboarding checklist --
+      // swallowed on failure, must never affect the result of a real import.
+      void api.recordChecklistEvent("imported").catch(() => {});
       return id;
     } catch (err) {
       set({ creating: false, actionError: errorCode(err) });
