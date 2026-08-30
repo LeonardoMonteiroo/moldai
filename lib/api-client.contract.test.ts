@@ -26,6 +26,7 @@ import {
   listSlopers,
   listVersions,
   purchase,
+  recordChecklistEvent,
   renamePattern,
   renameSloper,
   requestPasswordReset,
@@ -197,6 +198,13 @@ const SHAPE_CASES: ShapeCase[] = [
     name: "getAccountSummary",
     call: () => getAccountSummary(),
     url: "/api/account/summary",
+  },
+  {
+    name: "recordChecklistEvent",
+    call: () => recordChecklistEvent("exported"),
+    url: "/api/account/checklist-progress",
+    method: "POST",
+    body: { event: "exported" },
   },
   {
     name: "getLedgerHistory",

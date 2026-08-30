@@ -100,6 +100,11 @@ export interface RecentUsageEntry {
 export interface AccountSummary {
   credits: Credits;
   recentUsage: RecentUsageEntry[];
+  checklist: {
+    hasCustomSizeChart: boolean;
+    hasExported: boolean;
+    hasImported: boolean;
+  };
 }
 
 export type AccountErrorCode =
@@ -324,6 +329,16 @@ export function purchase(
 
 export function getAccountSummary(): Promise<AccountSummary> {
   return getJson<AccountSummary>("/api/account/summary");
+}
+
+// #232: best-effort ping backing the dashboard onboarding checklist's
+// export/import steps -- callers (lib/export/index.ts, lib/importStore.ts)
+// swallow a rejection themselves; this function does not do it for them,
+// so a call site that forgets to .catch() fails loudly in its own tests.
+export function recordChecklistEvent(
+  event: "exported" | "imported",
+): Promise<void> {
+  return postJson<void>("/api/account/checklist-progress", { event });
 }
 
 export function getLedgerHistory(): Promise<{ ledger: LedgerHistoryEntry[] }> {
