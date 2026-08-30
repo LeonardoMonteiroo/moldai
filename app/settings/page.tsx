@@ -47,6 +47,7 @@ export default async function SettingsPage({
     <SettingsShell
       userEmail={session.user.email}
       initialName={user?.name ?? ""}
+      hasPassword={user.passwordHash !== null}
       credits={buildCredits(wallet, new Date())}
       ledger={ledger}
       activeSection={parseSection(params.section)}

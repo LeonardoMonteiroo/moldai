@@ -1072,6 +1072,10 @@
     "mismatchError": "As senhas não coincidem.",
     "tooShortError": "A nova senha deve ter pelo menos 8 caracteres.",
     "successMessage": "Senha alterada com sucesso.",
+    "setHeading": "Definir senha",
+    "setNote": "Sua conta usa login com Google. Defina uma senha para também poder entrar com email e senha.",
+    "setSubmitButton": "Definir senha",
+    "setSuccessMessage": "Senha definida com sucesso.",
     "errors": {
       "bad_body": "Não foi possível alterar a senha. Tente novamente.",
       "account_not_found": "Não foi possível alterar a senha. Tente novamente.",

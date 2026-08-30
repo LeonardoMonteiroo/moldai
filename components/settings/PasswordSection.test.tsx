@@ -22,7 +22,7 @@ describe("PasswordSection", () => {
       status: "error",
       error: "wrong_password",
     });
-    renderWithIntl(<PasswordSection />);
+    renderWithIntl(<PasswordSection hasPassword={true} />);
 
     const user = userEvent.setup();
     await user.type(
@@ -53,7 +53,7 @@ describe("PasswordSection", () => {
       status: "error",
       error: "weak_password",
     });
-    renderWithIntl(<PasswordSection />);
+    renderWithIntl(<PasswordSection hasPassword={true} />);
 
     const user = userEvent.setup();
     await user.type(
@@ -87,7 +87,7 @@ describe("PasswordSection", () => {
       status: "error",
       error: "unauthorized",
     });
-    renderWithIntl(<PasswordSection />);
+    renderWithIntl(<PasswordSection hasPassword={true} />);
 
     const user = userEvent.setup();
     await user.type(
@@ -120,7 +120,7 @@ describe("PasswordSection", () => {
     vi.mocked(changePassword).mockImplementation(async () => {
       throw new ApiError(500, "server_error");
     });
-    renderWithIntl(<PasswordSection />);
+    renderWithIntl(<PasswordSection hasPassword={true} />);
 
     const user = userEvent.setup();
     await user.type(
@@ -146,5 +146,47 @@ describe("PasswordSection", () => {
       ).toBeVisible();
     });
     expect(button).not.toBeDisabled();
+  });
+});
+
+describe("PasswordSection when the account has no password yet", () => {
+  afterEach(() => vi.mocked(changePassword).mockReset());
+
+  it("renders the 'Definir senha' heading with no current-password field", () => {
+    renderWithIntl(<PasswordSection hasPassword={false} />);
+
+    expect(
+      screen.getByRole("heading", { name: ptBR.PasswordSection.setHeading }),
+    ).toBeVisible();
+    expect(
+      screen.queryByLabelText(ptBR.PasswordSection.currentLabel),
+    ).toBeNull();
+  });
+
+  it("submits with no current password and shows the set-specific success message", async () => {
+    vi.mocked(changePassword).mockResolvedValue({ status: "ok" });
+    renderWithIntl(<PasswordSection hasPassword={false} />);
+
+    const user = userEvent.setup();
+    await user.type(
+      screen.getByLabelText(ptBR.PasswordSection.newLabel),
+      "new-password-1",
+    );
+    await user.type(
+      screen.getByLabelText(ptBR.PasswordSection.confirmLabel),
+      "new-password-1",
+    );
+    await user.click(
+      screen.getByRole("button", {
+        name: ptBR.PasswordSection.setSubmitButton,
+      }),
+    );
+
+    expect(changePassword).toHaveBeenCalledWith(undefined, "new-password-1");
+    await waitFor(() => {
+      expect(
+        screen.getByText(ptBR.PasswordSection.setSuccessMessage),
+      ).toBeVisible();
+    });
   });
 });

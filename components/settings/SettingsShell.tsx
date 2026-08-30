@@ -15,12 +15,14 @@ import { PlanSection } from "./PlanSection";
 export function SettingsShell({
   userEmail,
   initialName,
+  hasPassword,
   credits,
   ledger,
   activeSection,
 }: {
   userEmail: string;
   initialName: string;
+  hasPassword: boolean;
   credits: Credits;
   ledger: LedgerHistoryEntry[];
   activeSection: SettingsSection;
@@ -40,7 +42,9 @@ export function SettingsShell({
           {activeSection === "profile" && (
             <ProfileSection initialName={initialName} email={userEmail} />
           )}
-          {activeSection === "password" && <PasswordSection />}
+          {activeSection === "password" && (
+            <PasswordSection hasPassword={hasPassword} />
+          )}
           {activeSection === "danger" && (
             <DangerZoneSection userEmail={userEmail} />
           )}

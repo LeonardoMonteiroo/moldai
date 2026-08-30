@@ -373,7 +373,7 @@ export function updateProfile(name: string): Promise<UpdateProfileResult> {
 }
 
 export function changePassword(
-  currentPassword: string,
+  currentPassword: string | undefined,
   newPassword: string,
 ): Promise<AccountActionResult> {
   return postJson<AccountActionResult>(

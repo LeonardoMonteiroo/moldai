@@ -16,7 +16,7 @@ import {
   MAX_PASSWORD_LENGTH,
 } from "@/lib/account/settings";
 
-export function PasswordSection() {
+export function PasswordSection({ hasPassword }: { hasPassword: boolean }) {
   const t = useTranslations("PasswordSection");
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
@@ -28,7 +28,7 @@ export function PasswordSection() {
 
   const mismatch = next.length > 0 && confirm.length > 0 && next !== confirm;
   const canSubmit =
-    current.length > 0 &&
+    (hasPassword ? current.length > 0 : true) &&
     next.length >= MIN_PASSWORD_LENGTH &&
     next === confirm;
 
@@ -37,7 +37,10 @@ export function PasswordSection() {
     setStatus("saving");
     setError(null);
     try {
-      const result = await changePassword(current, next);
+      const result = await changePassword(
+        hasPassword ? current : undefined,
+        next,
+      );
       if (result.status === "ok") {
         setStatus("ok");
         setCurrent("");
@@ -57,22 +60,29 @@ export function PasswordSection() {
 
   return (
     <section className="bg-surface border-border rounded-card flex flex-col gap-3 border p-[18px]">
-      <h2 className="font-display text-body font-semibold">{t("heading")}</h2>
+      <h2 className="font-display text-body font-semibold">
+        {hasPassword ? t("heading") : t("setHeading")}
+      </h2>
+      {!hasPassword && (
+        <p className="text-muted-2 text-ui leading-[1.5]">{t("setNote")}</p>
+      )}
       <FieldGroup className="max-w-[420px]">
-        <Field data-invalid={status === "error" || undefined}>
-          <FieldLabel htmlFor="password-current">
-            {t("currentLabel")}
-          </FieldLabel>
-          <Input
-            id="password-current"
-            type="password"
-            value={current}
-            aria-invalid={status === "error" || undefined}
-            onChange={(event) => setCurrent(event.target.value)}
-          />
-          {status === "error" && error && <FieldError>{error}</FieldError>}
-        </Field>
-        <Field>
+        {hasPassword && (
+          <Field data-invalid={status === "error" || undefined}>
+            <FieldLabel htmlFor="password-current">
+              {t("currentLabel")}
+            </FieldLabel>
+            <Input
+              id="password-current"
+              type="password"
+              value={current}
+              aria-invalid={status === "error" || undefined}
+              onChange={(event) => setCurrent(event.target.value)}
+            />
+            {status === "error" && error && <FieldError>{error}</FieldError>}
+          </Field>
+        )}
+        <Field data-invalid={(!hasPassword && status === "error") || undefined}>
           <FieldLabel htmlFor="password-new">{t("newLabel")}</FieldLabel>
           <Input
             id="password-new"
@@ -82,9 +92,10 @@ export function PasswordSection() {
             minLength={MIN_PASSWORD_LENGTH}
             maxLength={MAX_PASSWORD_LENGTH}
           />
+          {!hasPassword && status === "error" && error && (
+            <FieldError>{error}</FieldError>
+          )}
         </Field>
-        {/* The mismatch now belongs to the field it describes, instead of floating
-            at the end of the form with nothing associating it to a control. */}
         <Field data-invalid={mismatch || undefined}>
           <FieldLabel htmlFor="password-confirm">
             {t("confirmLabel")}
@@ -93,19 +104,21 @@ export function PasswordSection() {
             id="password-confirm"
             type="password"
             value={confirm}
-            aria-invalid={mismatch || undefined}
             onChange={(event) => setConfirm(event.target.value)}
             maxLength={MAX_PASSWORD_LENGTH}
+            aria-invalid={mismatch || undefined}
           />
           {mismatch && <FieldError>{t("mismatchError")}</FieldError>}
         </Field>
       </FieldGroup>
       <div className="flex items-center gap-3">
         <Button onClick={submit} disabled={!canSubmit || status === "saving"}>
-          {t("submitButton")}
+          {hasPassword ? t("submitButton") : t("setSubmitButton")}
         </Button>
         {status === "ok" && (
-          <span className="text-olive-dark text-ui">{t("successMessage")}</span>
+          <span className="text-olive-dark text-ui">
+            {hasPassword ? t("successMessage") : t("setSuccessMessage")}
+          </span>
         )}
       </div>
     </section>

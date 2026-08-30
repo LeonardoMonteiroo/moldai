@@ -57,11 +57,15 @@ const PANEL_MARKER: Record<SettingsSection, string> = {
   plan: ptBR.PlanSection.costsHeading,
 };
 
-function renderShell(activeSection: SettingsSection) {
+function renderShell(
+  activeSection: SettingsSection,
+  hasPassword: boolean = true,
+) {
   return renderWithIntl(
     <SettingsShell
       userEmail="ana@example.com"
       initialName="Ana"
+      hasPassword={hasPassword}
       credits={CREDITS}
       ledger={LEDGER}
       activeSection={activeSection}
