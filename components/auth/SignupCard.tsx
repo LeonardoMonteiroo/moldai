@@ -199,7 +199,7 @@ export default function SignupCard() {
             type="button"
             variant="outline"
             onClick={() => signIn("google", { callbackUrl: "/" })}
-            className="gap-2"
+            className="w-full gap-2"
           >
             <GoogleIcon className="size-4" />
             {t("continueWithGoogle")}

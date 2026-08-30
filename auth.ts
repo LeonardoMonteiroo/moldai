@@ -64,9 +64,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
     Google({
-      // #235: Google verifies email ownership itself -- exactly the trust
-      // this repo already places in its own mailed verification link -- so
-      // a Google sign-in auto-links to an existing Credentials row sharing
+      // #235: read explicitly, matching how every other credential in this
+      // repo is wired (e.g. lib/billing/stripe.ts's STRIPE_SECRET_KEY) --
+      // Auth.js v5 only auto-populates a provider's clientId/clientSecret
+      // from env vars named AUTH_<PROVIDER>_ID/_SECRET (@auth/core's
+      // setEnvDefaults), never from an arbitrary name, so GOOGLE_CLIENT_ID/
+      // SECRET (the name this repo's .env.example already uses) would
+      // silently stay undefined without this.
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      // Google verifies email ownership itself -- exactly the trust this
+      // repo already places in its own mailed verification link -- so a
+      // Google sign-in auto-links to an existing Credentials row sharing
       // that email instead of throwing OAuthAccountNotLinked. The signIn
       // callback below adds one more check on top: it refuses the sign-in
       // outright if Google's own profile claims the email is NOT verified,
