@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/fonts/fonts.css">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/_ds_bundle.css">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/styles.css">
+  <script src="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/_ds_bundle.js"></script>
+  <style>
+    html, body { margin: 0; height: 100%; }
+    body { background: var(--color-paper); color: var(--color-ink); font-family: Archivo, system-ui, sans-serif; }
+    a { color: var(--color-olive); }
+    a:hover { color: var(--color-olive-dark); }
+  </style>
+</helmet>
+<div data-screen-label="Importar molde" style="display: flex; flex-direction: column; height: 100vh; min-height: 0; background: var(--color-surface); color: var(--color-ink); font-family: Archivo, system-ui, sans-serif; overflow: hidden">
+
+  <header style="display: flex; align-items: center; gap: 14px; flex: none; border-bottom: 1px solid var(--color-border); background: var(--color-surface); padding: 10px 16px">
+    <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 18px; font-weight: 700; letter-spacing: -0.4px">Mold<span style="color: var(--color-olive)">AI</span></span>
+    <button type="button" aria-label="Voltar para meus moldes" title="Voltar para meus moldes" style="display: flex; align-items: center; justify-content: center; flex: none; width: 28px; height: 28px; border: 1px solid var(--color-border); border-radius: var(--radius-btn); background: var(--color-surface); color: var(--color-muted-2); cursor: pointer">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+    </button>
+    <div style="display: flex; align-items: baseline; gap: 9px; min-width: 0">
+      <h1 style="margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -0.1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Importar molde</h1>
+      <span style="color: var(--color-muted); font-size: 11.5px; white-space: nowrap">{{ stepLabel }}</span>
+    </div>
+    <div style="flex: 1"></div>
+    <button type="button" aria-label="Conta" title="ana@atelie.com.br" style="display: flex; align-items: center; gap: 5px; flex: none; height: 28px; padding: 0 2px; border: 0; background: transparent; border-radius: var(--radius-btn); color: var(--color-ink); cursor: pointer">
+      <span style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 1px solid #d7ddc9; border-radius: 9999px; background: var(--color-olive-tint); color: var(--color-olive); font-size: 11.5px; font-weight: 600">AN</span>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+    </button>
+  </header>
+
+  <div style="flex: 1; min-height: 0; overflow-y: auto; background: var(--color-surface)">
+    <div style="display: flex; min-height: 100%; flex-direction: column; gap: 18px; padding: 22px">
+
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+        <x-import component-from-global-scope="MoldAIUI.Badge" variant="soon" hint-size="auto,20px">beta</x-import>
+      </div>
+
+      <p style="margin: 0; max-width: 640px; color: var(--color-muted); font-size: 12.5px; line-height: 1.5">Por enquanto só arquivos .dxf são lidos, com suporte opcional a um .rul complementar trazendo as regras de gradação. Audaces (formato nativo) ainda não; chega em breve.</p>
+
+      <div style="border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); padding: 18px">
+        <sc-if value="{{ isStep1 }}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 10px">
+            <p style="margin: 0; max-width: 520px; color: var(--color-muted); font-size: 12.5px; line-height: 1.5">Aceita arquivos .dxf gerados por CAD ou exportados por outro software compatível.</p>
+            <x-import component-from-global-scope="MoldAIUI.Button" disabled="{{ isLoading }}" hint-size="auto,36px">Escolher arquivo</x-import>
+            <sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}">
+              <span role="status" style="color: var(--color-muted); font-size: 11.5px">Analisando arquivo…</span>
+            </sc-if>
+            <sc-if value="{{ hasPickError }}" hint-placeholder-val="{{ false }}">
+              <p role="status" style="margin: 0; color: var(--color-alert); font-size: 12.5px">{{ pickErrorText }}</p>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isStep2 }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 22px">
+              <svg viewBox="0 0 400 300" aria-hidden="true" style="flex: none; width: 44px; height: 34px; border: 1px solid var(--color-border); border-radius: 4px; background: var(--color-surface-alt)">
+                <path d="M20,20 L140,20 L150,280 L10,280 Z" fill="none" stroke="var(--color-olive-dark)" stroke-width="6"></path>
+                <path d="M160,20 L280,20 L290,280 L150,280 Z" fill="none" stroke="var(--color-olive-dark)" stroke-width="6"></path>
+                <path d="M300,40 Q340,20 380,60 L370,180 L300,160 Z" fill="none" stroke="var(--color-olive-dark)" stroke-width="6"></path>
+                <path d="M300,190 L380,190 L380,210 L300,210 Z" fill="none" stroke="var(--color-olive-dark)" stroke-width="6"></path>
+              </svg>
+              <div>
+                <div style="color: var(--color-muted); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase">Arquivo</div>
+                <div title="blusa-base.dxf" style="max-width: 220px; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">blusa-base.dxf</div>
+              </div>
+              <div>
+                <div style="color: var(--color-muted); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase">Formato</div>
+                <div style="font-size: 13.5px">DXF AAMA/ASTM</div>
+              </div>
+              <div>
+                <div style="color: var(--color-muted); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase">Peças</div>
+                <div style="font-size: 13.5px">4</div>
+              </div>
+              <div>
+                <div style="color: var(--color-muted); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase">Tamanho</div>
+                <div style="font-size: 13.5px">742.3 KB</div>
+              </div>
+            </div>
+            <x-import component-from-global-scope="MoldAIUI.Button" variant="outline" hint-size="auto,36px">Trocar arquivo</x-import>
+          </div>
+        </sc-if>
+      </div>
+
+      <sc-if value="{{ isStep2 }}" hint-placeholder-val="{{ false }}">
+        <div style="display: grid; grid-template-columns: {{ previewGridCols }}; align-items: start; gap: 18px; flex: 1; min-height: 0">
+
+          <div style="position: sticky; top: 0; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); padding: 18px">
+            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px">
+              <span style="color: var(--color-muted); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase">Prévia</span>
+              <button type="button" onClick="{{ resetPreviewView }}" style="border: 0; background: transparent; color: var(--color-olive); font-size: 11.5px; cursor: pointer; padding: 0">restaurar zoom</button>
+            </div>
+            <p style="margin: 4px 0 0; color: var(--color-muted); font-size: 10.5px">role para dar zoom, arraste para mover</p>
+            <div style="position: relative">
+              <svg viewBox="0 0 400 300" aria-hidden="true" onWheel="{{ onPreviewWheel }}" onMouseDown="{{ onPreviewPanStart }}" style="margin-top: 6px; height: calc(100vh - 240px); min-height: 260px; width: 100%; cursor: grab; touch-action: none">
+                <g transform="{{ previewTransform }}">
+                  <sc-for list="{{ segments }}" as="seg" hint-placeholder-count="8">
+                    <path d="{{ seg.d }}" fill="none" stroke="{{ seg.stroke }}" stroke-width="{{ seg.width }}" stroke-dasharray="{{ seg.dash }}" opacity="{{ seg.opacity }}" vector-effect="non-scaling-stroke"></path>
+                  </sc-for>
+                  <sc-if value="{{ hoveredPiecePath }}" hint-placeholder-val="{{ null }}">
+                    <path d="{{ hoveredPiecePath }}" fill="none" stroke="var(--color-olive)" stroke-width="3" vector-effect="non-scaling-stroke"></path>
+                  </sc-if>
+                </g>
+              </svg>
+              <sc-if value="{{ hasNoCutMapped }}" hint-placeholder-val="{{ false }}">
+                <div style="position: absolute; inset: 6px 0 0; display: flex; align-items: center; justify-content: center; pointer-events: none">
+                  <span style="max-width: 220px; text-align: center; color: var(--color-muted); font-size: 12.5px">Nenhuma linha de corte mapeada ainda</span>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+          <div onMouseDown="{{ onResizeStart }}" style="align-self: stretch; width: 6px; margin: 0 -3px; cursor: col-resize; background: transparent"></div>
+
+          <div style="display: flex; min-width: 0; flex-direction: column; gap: 18px">
+
+            <div style="display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); padding: 18px">
+              <div style="display: flex; align-items: center; gap: 8px">
+                <span style="color: var(--color-muted); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase">Regras de gradação (.rul)</span>
+                <sc-if value="{{ hasRul }}" hint-placeholder-val="{{ false }}">
+                  <x-import component-from-global-scope="MoldAIUI.Badge" variant="soon" hint-size="auto,18px">beta</x-import>
+                </sc-if>
+              </div>
+
+              <sc-if value="{{ hasRul }}" hint-placeholder-val="{{ false }}">
+                <div style="display: flex; flex-direction: column; gap: 10px">
+                  <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 22px">
+                    <div>
+                      <div style="color: var(--color-muted); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase">Arquivo</div>
+                      <div title="blusa-base.rul" style="max-width: 220px; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">blusa-base.rul</div>
+                    </div>
+                    <div>
+                      <div style="color: var(--color-muted); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase">Tabela</div>
+                      <div style="font-size: 13.5px">GRD-0142</div>
+                    </div>
+                    <div>
+                      <div style="color: var(--color-muted); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase">Produto</div>
+                      <div style="font-size: 13.5px">Blusa manga longa</div>
+                    </div>
+                    <div>
+                      <div style="color: var(--color-muted); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase">Tamanhos</div>
+                      <div style="font-size: 13.5px">PP, P, M, G, GG</div>
+                    </div>
+                    <div>
+                      <div style="color: var(--color-muted); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase">Regras de gradação</div>
+                      <div style="font-size: 13.5px">36</div>
+                    </div>
+                  </div>
+                  <ul role="status" style="display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; list-style: none">
+                    <li style="font-size: 12.5px; color: var(--color-olive-dark)">36 regra(s) de gradação lida(s)</li>
+                    <li style="font-size: 12.5px; color: #7a5f14">2 linha(s) do arquivo .rul não reconhecida(s) e ignorada(s)</li>
+                  </ul>
+                  <p style="margin: 0; color: var(--color-muted); font-size: 11.5px">A leitura do arquivo .rul ainda não foi verificada com um arquivo exportado por um sistema de CAD real; trate os valores como preliminares.</p>
+                  <div><x-import component-from-global-scope="MoldAIUI.Button" variant="outline" hint-size="auto,36px">Trocar arquivo .rul</x-import></div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ hasNoRul }}" hint-placeholder-val="{{ true }}">
+                <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px">
+                  <p style="margin: 0; max-width: 520px; color: var(--color-muted); font-size: 12.5px; line-height: 1.5">Nenhum arquivo .rul correspondente foi carregado; as regras de gradação deste molde não foram lidas.</p>
+                  <x-import component-from-global-scope="MoldAIUI.Button" variant="outline" hint-size="auto,36px">Escolher arquivo .rul</x-import>
+                </div>
+              </sc-if>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); padding: 18px">
+              <span style="color: var(--color-muted); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase">Identificar peças (opcional)</span>
+              <sc-if value="{{ hasDuplicateLabels }}" hint-placeholder-val="{{ false }}">
+                <p style="margin: 0; color: #7a5f14; font-size: 11.5px">Mais de uma peça está marcada como "{{ duplicateLabelText }}" — confira se está correto.</p>
+              </sc-if>
+              <ul style="display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none">
+                <sc-for list="{{ pieces }}" as="piece" hint-placeholder-count="4">
+                  <li style="{{ piece.rowStyle }}" onMouseEnter="{{ piece.onEnter }}" onMouseLeave="{{ piece.onLeave }}">
+                    <span style="display: flex; min-width: 0; flex-direction: column">
+                      <span style="font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ piece.rowLabel }}</span>
+                      <span style="color: var(--color-muted); font-size: 11.5px">{{ piece.dims }}</span>
+                    </span>
+                    <div style="display: flex; align-items: center; gap: 8px">
+                      <button type="button" aria-label="{{ piece.rowLabel }}" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 168px; flex: none; height: 32px; padding: 0 10px; border: 1px solid var(--color-border); border-radius: var(--radius-btn); background: var(--color-surface); color: var(--color-ink); font-size: 12.5px; font-family: inherit; cursor: pointer">
+                        <span>{{ piece.labelText }}</span>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+                      </button>
+                      <sc-if value="{{ piece.isOther }}" hint-placeholder-val="{{ false }}">
+                        <x-import component-from-global-scope="MoldAIUI.Input" placeholder="Nome da peça" default-value="{{ piece.customName }}" style="width: 140px" hint-size="140px,32px"></x-import>
+                      </sc-if>
+                    </div>
+                  </li>
+                </sc-for>
+              </ul>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px">
+
+              <div style="display: flex; min-height: 0; flex-direction: column; gap: 10px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); padding: 18px">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+                  <span style="color: var(--color-muted); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase">Camadas detectadas</span>
+                  <span style="color: var(--color-muted); font-size: 11.5px">{{ mappedProgressText }}</span>
+                </div>
+                <sc-if value="{{ hasMissingRoles }}" hint-placeholder-val="{{ false }}">
+                  <div style="display: flex; flex-wrap: wrap; gap: 6px">
+                    <x-import component-from-global-scope="MoldAIUI.Badge" variant="notice" hint-size="auto,20px">Linha de costura: não encontrada</x-import>
+                  </div>
+                </sc-if>
+                <ul style="display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none">
+                  <sc-for list="{{ groups }}" as="group" hint-placeholder-count="5">
+                    <li style="{{ group.rowStyle }}" onMouseEnter="{{ group.onEnter }}" onMouseLeave="{{ group.onLeave }}">
+                      <span title="{{ group.title }}" style="{{ group.chipStyle }}">
+                        <span style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ group.label }}</span>
+                        <sc-if value="{{ group.hasCount }}" hint-placeholder-val="{{ false }}">
+                          <x-import component-from-global-scope="MoldAIUI.Badge" variant="outline" size="chip" hint-size="auto,16px">{{ group.countLabel }}</x-import>
+                        </sc-if>
+                      </span>
+                      <button type="button" aria-label="{{ group.label }}" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 148px; flex: none; height: 32px; padding: 0 10px; border: 1px solid var(--color-border); border-radius: var(--radius-btn); background: var(--color-surface); color: var(--color-ink); font-size: 12.5px; font-family: inherit; cursor: pointer">
+                        <span>{{ group.role }}</span>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+                      </button>
+                    </li>
+                  </sc-for>
+                </ul>
+              </div>
+
+              <div style="display: flex; min-height: 0; flex-direction: column; gap: 14px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); padding: 18px">
+                <span style="color: var(--color-muted); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase">Verificação</span>
+                <ul role="status" style="display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none">
+                  <sc-for list="{{ checks }}" as="check" hint-placeholder-count="4">
+                    <li style="font-size: 12.5px; line-height: 1.45; color: {{ check.color }}">{{ check.text }}</li>
+                  </sc-for>
+                </ul>
+                <div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--color-border); padding-top: 14px">
+                  <sc-if value="{{ isInsufficientCredits }}" hint-placeholder-val="{{ false }}">
+                    <p style="margin: 0; color: #7a5f14; font-size: 12.5px">Você não tem créditos suficientes para reconstruir este molde. <a href="./Planos.dc.html" style="text-decoration: underline">Comprar créditos</a></p>
+                  </sc-if>
+                  <sc-if value="{{ isImageFailed }}" hint-placeholder-val="{{ false }}">
+                    <p style="margin: 0; color: #7a5f14; font-size: 12.5px">Não foi possível preparar a imagem de prévia para envio. Tente novamente.</p>
+                  </sc-if>
+                  <sc-if value="{{ isCreateFailed }}" hint-placeholder-val="{{ false }}">
+                    <p style="margin: 0; color: #7a5f14; font-size: 12.5px">Não foi possível reconstruir o molde a partir deste arquivo. Tente novamente.</p>
+                  </sc-if>
+                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px">
+                    <span style="color: var(--color-muted); font-size: 11.5px">Saldo: 12 créditos</span>
+                    <div style="display: flex; align-items: center; gap: 10px">
+                      <x-import component-from-global-scope="MoldAIUI.Button" variant="outline" hint-size="auto,36px">Cancelar</x-import>
+                      <x-import component-from-global-scope="MoldAIUI.Button" disabled="{{ isCreating }}" hint-size="auto,36px">{{ createButtonLabel }}</x-import>
+                      <x-import component-from-global-scope="MoldAIUI.Badge" variant="soon" hint-size="auto,18px">beta</x-import>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;state&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;chooseFile&quot;,&quot;loading&quot;,&quot;errorTooLarge&quot;,&quot;errorRead&quot;,&quot;errorNoPieces&quot;,&quot;mapping&quot;,&quot;rulLoaded&quot;,&quot;creating&quot;,&quot;errorInsufficientCredits&quot;,&quot;errorImageFailed&quot;,&quot;errorCreateFailed&quot;],&quot;default&quot;:&quot;mapping&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Estado da tela&quot;}}">
+const LAYERS = [
+  { name: "P1_CUT_LINE", group: "CUT_LINE", role: "cut", mapped: true },
+  { name: "P2_CUT_LINE", group: "CUT_LINE", role: "cut", mapped: true },
+  { name: "GRAIN", group: "GRAIN", role: "grain", mapped: true },
+  { name: "NOTCH_1", group: "NOTCH_1", role: "notch", mapped: true },
+  { name: "TEXT_PIECE_NAME", group: "TEXT_PIECE_NAME", role: "ignore", mapped: false },
+  { name: "DEFPOINTS", group: "DEFPOINTS", role: "ignore", mapped: false },
+];
+
+const ROLE_LABEL = { cut: "Linha de corte", seam: "Linha de costura", notch: "Pique", grain: "Fio", ignore: "Ignorar" };
+
+const CHECKS = [
+  { level: "ok", text: "Unidade reconhecida: cm" },
+  { level: "ok", text: "4 de 4 contornos fechados" },
+  { level: "warn", text: "Este arquivo traz apenas um tamanho; grade não identificada" },
+  { level: "warn", text: "1 peça(s) sem linha de fio identificada nas proximidades" },
+  { level: "warn", text: "Entidades não suportadas ignoradas: SPLINE, HATCH" },
+];
+
+const PIECES = [
+  { key: "p1", index: 1, label: "front", dims: "38.2 x 62.0 cm", path: "M20,20 L140,20 L150,280 L10,280 Z" },
+  { key: "p2", index: 2, label: "back", dims: "39.0 x 62.0 cm", path: "M160,20 L280,20 L290,280 L150,280 Z" },
+  { key: "p3", index: 3, label: "sleeve", dims: "22.5 x 46.0 cm", path: "M300,40 Q340,20 380,60 L370,180 L300,160 Z" },
+  { key: "p4", index: 4, label: "other", customName: "Golinha", dims: "12.0 x 5.4 cm", path: "M300,190 L380,190 L380,210 L300,210 Z" },
+];
+
+const PIECE_LABEL_TEXT = {
+  front: "Frente", back: "Costas", sleeve: "Manga", collar: "Gola", cuff: "Punho",
+  waistband: "Cintura/faixa", skirtFront: "Frente da saia", skirtBack: "Costas da saia",
+  trouserFront: "Frente da calça", trouserBack: "Costas da calça", other: "Outro",
+};
+
+const PICK_ERRORS = {
+  errorTooLarge: "Este arquivo é grande demais para importar (limite de 10 MB).",
+  errorRead: "Não foi possível ler este arquivo. Tente novamente.",
+  errorNoPieces: "Nenhum contorno fechado foi encontrado neste arquivo. Verifique se é um .dxf válido.",
+};
+
+const STEP1_STATES = ["chooseFile", "loading", "errorTooLarge", "errorRead", "errorNoPieces"];
+
+class Component extends DCLogic {
+  state = { hoveredGroup: null, hoveredPiece: null, previewZoom: 1, previewPan: { x: 0, y: 0 }, panelWidth: 420 };
+  _drag = null;
+
+  componentDidMount() {
+    window.addEventListener("mousemove", this.handleMouseMove);
+    window.addEventListener("mouseup", this.handleMouseUp);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener("mousemove", this.handleMouseMove);
+    window.removeEventListener("mouseup", this.handleMouseUp);
+  }
+
+  handleMouseMove = (e) => {
+    if (!this._drag) return;
+    if (this._drag.type === "pan") {
+      const dx = (e.clientX - this._drag.startX) / this.state.previewZoom;
+      const dy = (e.clientY - this._drag.startY) / this.state.previewZoom;
+      this.setState({ previewPan: { x: this._drag.origPan.x + dx, y: this._drag.origPan.y + dy } });
+    } else if (this._drag.type === "resize") {
+      const dx = e.clientX - this._drag.startX;
+      const w = Math.min(640, Math.max(300, this._drag.origWidth + dx));
+      this.setState({ panelWidth: w });
+    }
+  };
+
+  handleMouseUp = () => { this._drag = null; };
+
+  onPreviewWheel = (e) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.15 : 0.15;
+    this.setState((s) => ({ previewZoom: Math.min(4, Math.max(0.6, s.previewZoom + delta)) }));
+  };
+
+  onPreviewPanStart = (e) => {
+    this._drag = { type: "pan", startX: e.clientX, startY: e.clientY, origPan: this.state.previewPan };
+  };
+
+  onResizeStart = (e) => {
+    this._drag = { type: "resize", startX: e.clientX, origWidth: this.state.panelWidth };
+  };
+
+  resetPreviewView = () => {
+    this.setState({ previewZoom: 1, previewPan: { x: 0, y: 0 } });
+  };
+
+  renderVals() {
+    const s = this.props.state ?? "mapping";
+    const isStep1 = STEP1_STATES.includes(s);
+    const isStep2 = !isStep1;
+    const hovered = this.state.hoveredGroup;
+
+    const groups = [];
+    const seen = new Map();
+    for (const l of LAYERS) {
+      if (!seen.has(l.group)) { seen.set(l.group, { key: l.group, layers: [], role: l.role, mapped: l.mapped }); groups.push(seen.get(l.group)); }
+      seen.get(l.group).layers.push(l.name);
+    }
+    const mappedRoles = new Set(groups.filter((g) => g.role !== "ignore").map((g) => g.role));
+    const missing = ["cut", "seam", "grain"].filter((r) => !mappedRoles.has(r));
+
+    const segColors = { CUT_LINE: "var(--color-olive-dark)", GRAIN: "#b8860b", NOTCH_1: "#8a8a8a" };
+    const segments = PIECES.flatMap((p) => {
+      const isHov = hovered && hovered !== "CUT_LINE";
+      return [{ d: p.path, stroke: isHov ? "var(--color-border)" : segColors.CUT_LINE, width: hovered === "CUT_LINE" ? 2 : 1, opacity: isHov ? 0.4 : 1, dash: "" }];
+    }).concat([
+      { d: "M35,40 L35,260", stroke: hovered && hovered !== "GRAIN" ? "var(--color-border)" : segColors.GRAIN, width: hovered === "GRAIN" ? 2 : 1, opacity: hovered && hovered !== "GRAIN" ? 0.4 : 1, dash: "4 4" },
+      { d: "M215,40 L215,260", stroke: hovered && hovered !== "GRAIN" ? "var(--color-border)" : segColors.GRAIN, width: hovered === "GRAIN" ? 2 : 1, opacity: hovered && hovered !== "GRAIN" ? 0.4 : 1, dash: "4 4" },
+      { d: "M20,150 L28,150", stroke: hovered && hovered !== "NOTCH_1" ? "var(--color-border)" : segColors.NOTCH_1, width: hovered === "NOTCH_1" ? 2 : 1, opacity: hovered && hovered !== "NOTCH_1" ? 0.4 : 1, dash: "" },
+      { d: "M282,150 L290,150", stroke: hovered && hovered !== "NOTCH_1" ? "var(--color-border)" : segColors.NOTCH_1, width: hovered === "NOTCH_1" ? 2 : 1, opacity: hovered && hovered !== "NOTCH_1" ? 0.4 : 1, dash: "" },
+    ]);
+
+    const hoveredPiece = PIECES.find((p) => p.key === this.state.hoveredPiece);
+
+    const labelCounts = {};
+    for (const p of PIECES) if (p.label !== "other") labelCounts[p.label] = (labelCounts[p.label] || 0) + 1;
+    const dupLabel = Object.keys(labelCounts).find((k) => labelCounts[k] > 1);
+    const zoom = this.state.previewZoom;
+    const pan = this.state.previewPan;
+
+    return {
+      mappedProgressText: (3 - missing.length) + " de 3 papéis esperados mapeados",
+      hasDuplicateLabels: !!dupLabel,
+      duplicateLabelText: dupLabel ? PIECE_LABEL_TEXT[dupLabel] : "",
+      hasNoCutMapped: missing.includes("cut"),
+      previewTransform: "translate(" + pan.x + "," + pan.y + ") scale(" + zoom + ")",
+      previewGridCols: this.state.panelWidth + "px 6px 1fr",
+      resetPreviewView: this.resetPreviewView,
+      onPreviewWheel: this.onPreviewWheel,
+      onPreviewPanStart: this.onPreviewPanStart,
+      onResizeStart: this.onResizeStart,
+      isStep1, isStep2,
+      stepLabel: isStep2 ? "Passo 2 de 2 · mapear camadas" : "Passo 1 de 2 · escolher arquivo",
+      isLoading: s === "loading",
+      hasPickError: s in PICK_ERRORS,
+      pickErrorText: PICK_ERRORS[s] ?? "",
+      hasRul: s === "rulLoaded",
+      hasNoRul: s !== "rulLoaded",
+      isCreating: s === "creating",
+      isInsufficientCredits: s === "errorInsufficientCredits",
+      isImageFailed: s === "errorImageFailed",
+      isCreateFailed: s === "errorCreateFailed",
+      createButtonLabel: s === "creating" ? "Reconstruindo molde…" : "Importar molde · 3 créditos",
+      hasMissingRoles: missing.length > 0,
+      segments,
+      hoveredPiecePath: hoveredPiece ? hoveredPiece.path : null,
+      groups: groups.map((g) => ({
+        key: g.key,
+        title: g.layers.join(", "),
+        label: g.layers.length > 1 ? g.key : g.layers[0],
+        hasCount: g.layers.length > 1,
+        countLabel: g.layers.length + " camadas",
+        role: ROLE_LABEL[g.role],
+        chipStyle: "display: flex; min-width: 0; align-items: center; gap: 6px; border-radius: 6px; padding: 3px 8px; font-size: 13.5px;" +
+          (g.mapped ? " background: var(--color-olive-tint); color: var(--color-olive-dark);" : " background: transparent; color: var(--color-ink);"),
+        rowStyle: "display: flex; align-items: center; justify-content: space-between; gap: 10px; border-radius: 6px; padding: 2px 4px; margin: -2px -4px;" +
+          (hovered === g.key ? " background: var(--color-olive-tint);" : ""),
+        onEnter: () => this.setState({ hoveredGroup: g.key }),
+        onLeave: () => this.setState({ hoveredGroup: null }),
+      })),
+      pieces: PIECES.map((p) => ({
+        key: p.key,
+        rowLabel: "Peça " + p.index,
+        dims: p.dims,
+        labelText: PIECE_LABEL_TEXT[p.label],
+        isOther: p.label === "other",
+        customName: p.customName ?? "",
+        rowStyle: "display: flex; align-items: center; justify-content: space-between; gap: 10px; border-radius: 6px; padding: 2px 4px; margin: -2px -4px;" +
+          (this.state.hoveredPiece === p.key ? " background: var(--color-olive-tint);" : ""),
+        onEnter: () => this.setState({ hoveredPiece: p.key }),
+        onLeave: () => this.setState({ hoveredPiece: null }),
+      })),
+      checks: CHECKS.map((c) => ({ text: c.text, color: c.level === "ok" ? "var(--color-olive-dark)" : "#7a5f14" })),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

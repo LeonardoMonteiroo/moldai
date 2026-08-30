@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/fonts/fonts.css">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/_ds_bundle.css">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/styles.css">
+  <script src="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/_ds_bundle.js"></script>
+  <script src="./image-slot.js"></script>
+  <style>
+    html, body { margin: 0; }
+    body { background: var(--color-surface); color: var(--color-ink); font-family: Archivo, system-ui, sans-serif; }
+    a { color: var(--color-olive); }
+    a:hover { color: var(--color-olive-dark); }
+  </style>
+</helmet>
+<div data-screen-label="Landing" style="background: var(--color-surface); color: var(--color-ink); font-family: Archivo, system-ui, sans-serif">
+
+  <div style="display: flex; align-items: center; gap: 26px; border-bottom: 1px solid var(--color-border); background: var(--color-surface); padding: 16px 30px; position: sticky; top: 0; z-index: 20">
+    <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 21px; font-weight: 700; letter-spacing: -0.4px">Mold<span style="color: var(--color-olive)">AI</span></span>
+    <div style="flex: 1"></div>
+    <x-import component-from-global-scope="MoldAIUI.Button" variant="ghost" size="chrome" class-name="text-muted-2" hint-size="auto,30px">Como funciona</x-import>
+    <x-import component-from-global-scope="MoldAIUI.Button" variant="ghost" size="chrome" class-name="text-muted-2" hint-size="auto,30px">Dúvidas</x-import>
+    <x-import component-from-global-scope="MoldAIUI.Button" variant="ghost" size="chrome" class-name="text-muted-2" hint-size="auto,30px">Planos</x-import>
+    <x-import component-from-global-scope="MoldAIUI.Button" variant="outline" size="chrome" hint-size="auto,30px">Entrar</x-import>
+    <x-import component-from-global-scope="MoldAIUI.Button" size="chrome" hint-size="auto,30px">Testar grátis</x-import>
+  </div>
+
+  <section style="border-bottom: 1px solid var(--color-border); background: var(--color-paper)">
+    <div style="margin: 0 auto; max-width: 1160px; display: flex; flex-wrap: wrap; gap: 48px; align-items: center; padding: 64px 34px 60px">
+      <div style="display: flex; flex: 1 1 360px; min-width: 0; max-width: 460px; flex-direction: column; gap: 20px">
+        <span style="color: var(--color-olive); font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">Modelagem com IA</span>
+        <h1 style="margin: 0; font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 54px; font-weight: 600; line-height: 1.02; letter-spacing: -1.6px; text-wrap: pretty">Do texto ao molde pronto para cortar</h1>
+        <p style="margin: 0; color: var(--color-muted-2); font-size: 15px; line-height: 1.55; text-wrap: pretty">Descreva a peça em uma conversa. A IA pergunta o que falta, desenha as peças e grada os tamanhos pela sua tabela de medidas.</p>
+        <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 9px">
+          <x-import component-from-global-scope="MoldAIUI.Button" size="lg" hint-size="auto,44px">Começar com 30 créditos grátis</x-import>
+          <span style="color: var(--color-muted); font-size: 12.5px">Sem cartão de crédito.</span>
+        </div>
+      </div>
+
+      <div style="display: flex; flex: 1 1 560px; min-width: 0; flex-direction: column; gap: 0; border: 1px solid var(--color-border); border-radius: 14px; background: var(--color-surface); box-shadow: 0 18px 44px rgba(28, 28, 25, 0.09); overflow: hidden">
+        <image-slot id="hero-conversation" shape="rect" placeholder="Captura da conversa com a IA gerando o molde" style="width: 100%; height: 560px"></image-slot>
+      
+      </div>
+    </div>
+  </section>
+
+  <section id="how-it-works" style="margin: 0 auto; max-width: 1160px; display: flex; flex-direction: column; gap: 22px; padding: 60px 34px 56px">
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <span style="color: var(--color-olive); font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">Como funciona</span>
+      <h2 style="margin: 0; max-width: 620px; font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 30px; font-weight: 600; letter-spacing: -0.6px; text-wrap: pretty">Três passos entre a ideia e o tecido</h2>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px">
+      <sc-for list="{{ steps }}" as="s" hint-placeholder-count="3">
+        <div style="display: flex; flex-direction: column; gap: 12px; border: 1px solid var(--color-border); border-radius: 14px; background: var(--color-surface); padding: 18px">
+          <div style="height: 148px; border-radius: var(--radius-item); overflow: hidden">
+            <image-slot id="{{ s.kind }}-thumb" shape="rect" placeholder="{{ s.title }}" style="width: 100%; height: 100%"></image-slot>
+          </div>
+          <span style="color: var(--color-olive); font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">{{ s.step }}</span>
+          <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 17px; font-weight: 600">{{ s.title }}</span>
+          <span style="color: var(--color-muted-2); font-size: 13px; line-height: 1.5; text-wrap: pretty">{{ s.body }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section id="faq" style="border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); background: var(--color-paper)">
+    <div style="margin: 0 auto; max-width: 1160px; display: flex; flex-direction: column; gap: 22px; padding: 56px 34px">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <span style="color: var(--color-olive); font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">Dúvidas de quem modela</span>
+        <h2 style="margin: 0; max-width: 620px; font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 30px; font-weight: 600; letter-spacing: -0.6px; text-wrap: pretty">O que a IA faz, e o que ela não faz</h2>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px">
+        <sc-for list="{{ faqs }}" as="q" hint-placeholder-count="4">
+          <div style="display: flex; flex-direction: column; gap: 7px; border: 1px solid var(--color-border); border-radius: 14px; background: var(--color-surface); padding: 18px">
+            <span style="font-size: 14px; font-weight: 600">{{ q.question }}</span>
+            <span style="color: var(--color-muted-2); font-size: 13px; line-height: 1.55; text-wrap: pretty">{{ q.answer }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section id="plans" style="margin: 0 auto; max-width: 1160px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 380px); gap: 34px; align-items: start; padding: 56px 34px 64px">
+    <div style="display: flex; flex-direction: column; gap: 18px">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <span style="color: var(--color-olive); font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">Créditos</span>
+        <h2 style="margin: 0; font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 30px; font-weight: 600; letter-spacing: -0.6px; text-wrap: pretty">Você paga pelo que gera</h2>
+        <p style="margin: 4px 0 0; max-width: 480px; color: var(--color-muted-2); font-size: 13.5px; line-height: 1.55">Sem limite de moldes, de peças ou de exportações. O crédito é gasto na geração.</p>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--color-line); padding-top: 18px">
+        <span style="color: var(--color-muted); font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">Exporta para</span>
+        <div style="display: flex; flex-direction: column; gap: 7px">
+          <sc-for list="{{ formatGroups }}" as="g" hint-placeholder-count="3">
+            <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px">
+              <span style="width: 116px; flex: none; color: var(--color-muted-2); font-size: 12.5px">{{ g.use }}</span>
+              <span style="color: var(--color-ink); font-size: 12.5px; font-weight: 500">{{ g.formats }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 14px; border: 2px solid var(--color-olive); border-radius: 14px; background: var(--color-olive-tint); padding: 24px">
+      <span style="color: var(--color-olive); font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">Plano grátis</span>
+      <div style="display: flex; align-items: baseline; gap: 6px">
+        <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 42px; font-weight: 600; letter-spacing: -1px">30</span>
+        <span style="color: var(--color-olive-dark); font-size: 14px">créditos por mês</span>
+      </div>
+      <p style="margin: 0; color: var(--color-olive-dark); font-size: 13px; line-height: 1.55">Graduação e exportação .dxf liberadas, inclusive DXF AAMA/ASTM (em beta). Renova a cada 30 dias.</p>
+      <x-import component-from-global-scope="MoldAIUI.Button" size="lg" hint-size="100%,44px">Criar minha conta</x-import>
+      <span style="color: var(--color-olive); font-size: 12.5px">Precisa de mais? Ateliê a R$ 59,00/mês, com 500 créditos.</span>
+    </div>
+  </section>
+
+  <div style="border-top: 1px solid var(--color-border); background: var(--color-surface)">
+    <div style="margin: 0 auto; max-width: 1160px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 22px 34px 34px">
+      <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 17px; font-weight: 700; letter-spacing: -0.3px">Mold<span style="color: var(--color-olive)">AI</span></span>
+      <div style="flex: 1"></div>
+      <span style="color: var(--color-muted); font-size: 12.5px">Cobrança processada pela Stripe</span>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const STEPS = [
+  {
+    step: "Passo 1",
+    title: "Descreva ou envie",
+    body: "Texto, foto de referência ou croqui. Quando falta um detalhe de modelagem, a IA pergunta antes de desenhar.",
+    kind: "describe",
+  },
+  {
+    step: "Passo 2",
+    title: "Ajuste conversando",
+    body: "Peça a mudança em linguagem de modelagem — copa da manga, cava, pence, comprimento — e veja a peça mudar.",
+    kind: "adjust",
+  },
+  {
+    step: "Passo 3",
+    title: "Grade e exporte",
+    body: "Grade a coleção pela sua tabela de medidas e exporte em escala 1:1 para plotter, CAD ou folha A4.",
+    kind: "export",
+  },
+];
+
+const FAQS = [
+  {
+    question: "E se o ajuste que eu pedir não fechar?",
+    answer: "Cada pedido é remedido antes de virar molde. Se o ajuste que você pediu deixa a copa da manga menor que a cava, o molde não é dado como pronto: a diferença aparece em centímetros, na peça, e você escolhe corrigir ou seguir assim.",
+  },
+  {
+    question: "Usa a minha tabela de medidas?",
+    answer: "Sim. Cadastre a grade do ateliê, com a sua regra de progressão por medida, e ela passa a valer para a geração e para a graduação. Há grades padrão para começar.",
+  },
+  {
+    question: "O DXF abre no meu sistema de CAD?",
+    answer: "A exportação DXF segue AAMA/ASTM com camadas numeradas D6673. O formato está em beta.",
+  },
+  {
+    question: "O molde sai pronto para cortar?",
+    answer: "Sai em escala 1:1, com margem de costura, piques e sentido do fio, mais o plano de corte com o consumo estimado de tecido. A prova de modelagem continua sendo sua.",
+  },
+];
+
+
+const FORMAT_GROUPS = [
+  { use: "Plotter", formats: "SVG 1:1 · PDF folha única · PLT HPGL/2 (beta)" },
+  { use: "CAD", formats: "DXF genérico · DXF AAMA/ASTM (beta)" },
+  { use: "Imprimir em casa", formats: "PDF A4 ladrilhado · PDF com tamanhos em camadas" },
+];
+
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      steps: STEPS,
+      faqs: FAQS,
+      formatGroups: FORMAT_GROUPS,
+    };
+  }
+}
+</script>
+</body>
+</html>

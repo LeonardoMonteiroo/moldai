@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/fonts/fonts.css">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/_ds_bundle.css">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/styles.css">
+  <script src="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/_ds_bundle.js"></script>
+  <style>
+    html, body { margin: 0; height: 100%; }
+    body { background: var(--color-paper); color: var(--color-ink); font-family: Archivo, system-ui, sans-serif; }
+    a { color: var(--color-olive); }
+    a:hover { color: var(--color-olive-dark); }
+  </style>
+</helmet>
+<div data-screen-label="Entrar / Criar conta" style="display: flex; height: 100vh; justify-content: center; overflow-y: auto; background: var(--color-paper); color: var(--color-ink); font-family: Archivo, system-ui, sans-serif; padding: 32px 16px">
+  <div style="margin: auto; width: 100%; max-width: {{ cardWidth }}; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); box-shadow: var(--shadow-card); padding: 28px">
+    <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 21px; font-weight: 700; letter-spacing: -0.4px">Mold<span style="color: var(--color-olive)">AI</span></span>
+    <h1 style="margin: 16px 0 0; font-size: 16px; font-weight: 600">{{ heading }}</h1>
+
+    <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
+      <form style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px">
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <label for="login-email" style="font-size: 12.5px; font-weight: 500">Email</label>
+          <x-import component-from-global-scope="MoldAIUI.Input" id="login-email" type="email" autocomplete="username" class-name="bg-surface-alt" aria-invalid="{{ hasLoginError }}" on-change="{{ noop }}" hint-size="100%,36px"></x-import>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <label for="login-password" style="font-size: 12.5px; font-weight: 500">Senha</label>
+          <x-import component-from-global-scope="MoldAIUI.Input" id="login-password" type="password" autocomplete="current-password" class-name="bg-surface-alt" aria-invalid="{{ hasLoginError }}" on-change="{{ noop }}" hint-size="100%,36px"></x-import>
+          <sc-if value="{{ hasLoginError }}" hint-placeholder-val="{{ false }}">
+            <span style="color: var(--color-alert); font-size: 11.5px; line-height: 1.4">{{ loginErrorText }}</span>
+          </sc-if>
+        </div>
+        <a href="#" style="align-self: flex-end; color: var(--color-muted-2); font-size: 11.5px">Esqueci minha senha</a>
+        <sc-if value="{{ isUnverified }}" hint-placeholder-val="{{ false }}">
+          <x-import component-from-global-scope="MoldAIUI.Button" variant="outline" hint-size="100%,36px">Reenviar link de confirmação</x-import>
+        </sc-if>
+        <sc-if value="{{ isResent }}" hint-placeholder-val="{{ false }}">
+          <p style="margin: 0; color: var(--color-olive-dark); font-size: 12.5px">Link reenviado. Confira seu email.</p>
+        </sc-if>
+        <x-import component-from-global-scope="MoldAIUI.Button" disabled="{{ loginLoading }}" class-name="mt-1" hint-size="100%,36px">{{ loginButtonLabel }}</x-import>
+        <div style="display: flex; align-items: center; gap: 10px; margin-top: 4px">
+          <div style="flex: 1; height: 1px; background: var(--color-border)"></div>
+          <span style="color: #a8a396; font-size: 11px">ou</span>
+          <div style="flex: 1; height: 1px; background: var(--color-border)"></div>
+        </div>
+        <x-import component-from-global-scope="MoldAIUI.Button" variant="outline" hint-size="100%,36px"><span style="display: flex; align-items: center; gap: 8px; justify-content: center"><svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20.5H24v7h11.3c-1.6 4.6-6 8-11.3 8-6.9 0-12.5-5.6-12.5-12.5S17.1 10.5 24 10.5c3.2 0 6.1 1.2 8.3 3.2l5-5C33.8 5.4 29.2 3.5 24 3.5 12.7 3.5 3.5 12.7 3.5 24S12.7 44.5 24 44.5 44.5 35.3 44.5 24c0-1.2-.1-2.4-.3-3.5z"></path><path fill="#FF3D00" d="M6.3 14.7l5.8 4.2C13.6 15.1 18.4 12 24 12c3.2 0 6.1 1.2 8.3 3.2l5-5C33.8 6.9 29.2 5 24 5c-7.5 0-14 4.2-17.7 10.4z"></path><path fill="#4CAF50" d="M24 44.5c5.1 0 9.7-2 13.1-5.1l-6-4.9c-1.9 1.4-4.4 2.3-7.1 2.3-5.3 0-9.7-3.4-11.3-8l-6 4.6C9.9 40.1 16.4 44.5 24 44.5z"></path><path fill="#1976D2" d="M43.6 20.5H42V20.5H24v7h11.3c-.8 2.2-2.2 4.1-4.1 5.5l6 4.9c3.5-3.2 5.8-8 5.8-13.9 0-1.2-.1-2.4-.4-3.5z"></path></svg>Continuar com Google</span></x-import>
+      </form>
+      <p style="margin: 16px 0 0; color: var(--color-muted); font-size: 11.5px; line-height: 1.5">Ainda não tem conta? <a href="#" style="color: rgb(56, 69, 44); font-weight: 500;">Criar conta</a>.</p>
+    </sc-if>
+
+    <sc-if value="{{ isSignup }}" hint-placeholder-val="{{ false }}">
+      <form style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px">
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <label for="signup-name" style="font-size: 12.5px; font-weight: 500">Nome</label>
+          <x-import component-from-global-scope="MoldAIUI.Input" id="signup-name" class-name="bg-surface-alt" on-change="{{ noop }}" hint-size="100%,36px"></x-import>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <label for="signup-email" style="font-size: 12.5px; font-weight: 500">Email</label>
+          <x-import component-from-global-scope="MoldAIUI.Input" id="signup-email" type="email" class-name="bg-surface-alt" aria-invalid="{{ hasSignupEmailError }}" on-change="{{ noop }}" hint-size="100%,36px"></x-import>
+          <sc-if value="{{ hasSignupEmailError }}" hint-placeholder-val="{{ false }}">
+            <span style="color: var(--color-alert); font-size: 11.5px; line-height: 1.4">{{ signupEmailErrorText }}</span>
+          </sc-if>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <label for="signup-password" style="font-size: 12.5px; font-weight: 500">Senha</label>
+          <x-import component-from-global-scope="MoldAIUI.Input" id="signup-password" type="password" class-name="bg-surface-alt" on-change="{{ noop }}" hint-size="100%,36px"></x-import>
+          <span style="color: #a8a396; font-size: 11px; line-height: 1.4">Mínimo de 8 caracteres, com letras e números.</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <label for="signup-confirm" style="font-size: 12.5px; font-weight: 500">Confirmar senha</label>
+          <x-import component-from-global-scope="MoldAIUI.Input" id="signup-confirm" type="password" class-name="bg-surface-alt" aria-invalid="{{ hasSignupConfirmError }}" on-change="{{ noop }}" hint-size="100%,36px"></x-import>
+          <sc-if value="{{ hasSignupConfirmError }}" hint-placeholder-val="{{ false }}">
+            <span style="color: var(--color-alert); font-size: 11.5px; line-height: 1.4">{{ signupConfirmErrorText }}</span>
+          </sc-if>
+        </div>
+        <x-import component-from-global-scope="MoldAIUI.Button" disabled="{{ signupLoading }}" class-name="mt-1" hint-size="100%,36px">{{ signupButtonLabel }}</x-import>
+        <div style="display: flex; align-items: center; gap: 10px; margin-top: 4px">
+          <div style="flex: 1; height: 1px; background: var(--color-border)"></div>
+          <span style="color: #a8a396; font-size: 11px">ou</span>
+          <div style="flex: 1; height: 1px; background: var(--color-border)"></div>
+        </div>
+        <x-import component-from-global-scope="MoldAIUI.Button" variant="outline" hint-size="100%,36px"><span style="display: flex; align-items: center; gap: 8px; justify-content: center"><svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20.5H24v7h11.3c-1.6 4.6-6 8-11.3 8-6.9 0-12.5-5.6-12.5-12.5S17.1 10.5 24 10.5c3.2 0 6.1 1.2 8.3 3.2l5-5C33.8 5.4 29.2 3.5 24 3.5 12.7 3.5 3.5 12.7 3.5 24S12.7 44.5 24 44.5 44.5 35.3 44.5 24c0-1.2-.1-2.4-.3-3.5z"></path><path fill="#FF3D00" d="M6.3 14.7l5.8 4.2C13.6 15.1 18.4 12 24 12c3.2 0 6.1 1.2 8.3 3.2l5-5C33.8 6.9 29.2 5 24 5c-7.5 0-14 4.2-17.7 10.4z"></path><path fill="#4CAF50" d="M24 44.5c5.1 0 9.7-2 13.1-5.1l-6-4.9c-1.9 1.4-4.4 2.3-7.1 2.3-5.3 0-9.7-3.4-11.3-8l-6 4.6C9.9 40.1 16.4 44.5 24 44.5z"></path><path fill="#1976D2" d="M43.6 20.5H42V20.5H24v7h11.3c-.8 2.2-2.2 4.1-4.1 5.5l6 4.9c3.5-3.2 5.8-8 5.8-13.9 0-1.2-.1-2.4-.4-3.5z"></path></svg>Continuar com Google</span></x-import>
+      </form>
+      <p style="margin: 16px 0 0; color: var(--color-muted); font-size: 11.5px">Já tem uma conta? <a href="#" style="color: var(--color-olive-dark); font-weight: 500">Entrar</a>.</p>
+    </sc-if>
+
+    <sc-if value="{{ isSignupSent }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px">
+        <p style="margin: 0; font-size: 12.5px; line-height: 1.6">Enviamos um link de confirmação para <b>ana@atelie.com.br</b>. Abra o link para liberar o acesso à sua conta.</p>
+        <p style="margin: 0; color: var(--color-muted); font-size: 11.5px">Não chegou? Verifique o spam ou reenvie.</p>
+        <x-import component-from-global-scope="MoldAIUI.Button" variant="outline" hint-size="100%,36px">Reenviar</x-import>
+        <a href="#" style="align-self: center; color: var(--color-muted-2); font-size: 11.5px; margin-top: 4px">Voltar para login</a>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isForgot }}" hint-placeholder-val="{{ false }}">
+      <form style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px">
+        <p style="margin: 0; font-size: 12.5px; line-height: 1.6; color: var(--color-muted-2)">Informe seu email e enviaremos um link para redefinir sua senha.</p>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <label for="forgot-email" style="font-size: 12.5px; font-weight: 500">Email</label>
+          <x-import component-from-global-scope="MoldAIUI.Input" id="forgot-email" type="email" class-name="bg-surface-alt" on-change="{{ noop }}" hint-size="100%,36px"></x-import>
+        </div>
+        <x-import component-from-global-scope="MoldAIUI.Button" class-name="mt-1" hint-size="100%,36px">Enviar link</x-import>
+      </form>
+      <p style="margin: 16px 0 0; text-align: center; color: var(--color-muted); font-size: 11.5px">Voltar para <a href="#" style="color: var(--color-olive-dark); font-weight: 500">login</a>.</p>
+    </sc-if>
+
+    <sc-if value="{{ isForgotSent }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px">
+        <p style="margin: 0; font-size: 12.5px; line-height: 1.6">Enviamos um link de redefinição de senha para <b>ana@atelie.com.br</b>. Abra o link para criar uma nova senha.</p>
+        <p style="margin: 0; color: var(--color-muted); font-size: 11.5px">Não chegou? Verifique o spam ou reenvie.</p>
+        <x-import component-from-global-scope="MoldAIUI.Button" variant="outline" hint-size="100%,36px">Reenviar</x-import>
+        <a href="#" style="align-self: center; color: var(--color-muted-2); font-size: 11.5px; margin-top: 4px">Voltar para login</a>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isVerify }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px">
+        <p style="margin: 0; font-size: 12.5px; line-height: 1.6">Clique no botão para confirmar que este email é seu e liberar o acesso à sua conta.</p>
+        <sc-if value="{{ hasVerifyError }}" hint-placeholder-val="{{ false }}">
+          <p role="alert" style="margin: 0; color: var(--color-alert); font-size: 12.5px; line-height: 1.4">Este link expirou.</p>
+        </sc-if>
+        <sc-if value="{{ hasVerifyError }}" hint-placeholder-val="{{ false }}">
+          <x-import component-from-global-scope="MoldAIUI.Button" hint-size="100%,36px">Reenviar link de confirmação</x-import>
+        </sc-if>
+        <sc-if value="{{ isVerifyOk }}" hint-placeholder-val="{{ true }}">
+          <x-import component-from-global-scope="MoldAIUI.Button" hint-size="100%,36px">Confirmar meu email</x-import>
+        </sc-if>
+        <a href="#" style="align-self: center; color: var(--color-muted-2); font-size: 11.5px; margin-top: 4px">Voltar para login</a>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isVerified }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px">
+        <p style="margin: 0; font-size: 12.5px; line-height: 1.6">Tudo certo. Agora é só entrar com sua senha.</p>
+        <x-import component-from-global-scope="MoldAIUI.Button" hint-size="100%,36px">Ir para o login</x-import>
+      </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;state&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;login&quot;,&quot;loginInvalid&quot;,&quot;loginUnverified&quot;,&quot;loginRateLimited&quot;,&quot;loginResent&quot;,&quot;loginLoading&quot;,&quot;signup&quot;,&quot;signupMismatch&quot;,&quot;signupTaken&quot;,&quot;signupLoading&quot;,&quot;signupSent&quot;,&quot;forgotPassword&quot;,&quot;forgotPasswordSent&quot;,&quot;verify&quot;,&quot;verifyExpired&quot;,&quot;verified&quot;],&quot;default&quot;:&quot;login&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Tela / estado&quot;}}">
+const LOGIN_ERRORS = {
+  loginInvalid: "Email ou senha inválidos.",
+  loginUnverified: "Confirme seu email antes de entrar. Enviamos um link quando você criou a conta.",
+  loginRateLimited: "Muitas tentativas. Aguarde alguns minutos e tente de novo.",
+};
+
+const SIGNUP_CONFIRM_ERRORS = {
+  signupMismatch: "As senhas não conferem.",
+};
+
+const SIGNUP_EMAIL_ERRORS = {
+  signupTaken: "Este email já está cadastrado.",
+};
+
+class Component extends DCLogic {
+  renderVals() {
+    const state = this.props.state ?? "login";
+    const isLogin = state === "login" || state === "loginLoading" || state in LOGIN_ERRORS || state === "loginResent";
+    const isSignup = state === "signup" || state === "signupLoading" || state in SIGNUP_CONFIRM_ERRORS || state in SIGNUP_EMAIL_ERRORS;
+    return {
+      isLogin,
+      isSignup,
+      isSignupSent: state === "signupSent",
+      isForgot: state === "forgotPassword",
+      isForgotSent: state === "forgotPasswordSent",
+      isVerify: state === "verify" || state === "verifyExpired",
+      isVerified: state === "verified",
+      cardWidth: isSignup || state === "signupSent" ? "420px" : "380px",
+      heading:
+        isLogin ? "Entrar"
+        : isSignup ? "Criar conta"
+        : state === "signupSent" ? "Confirme seu email"
+        : state === "forgotPassword" ? "Redefinir senha"
+        : state === "forgotPasswordSent" ? "Verifique seu email"
+        : state === "verified" ? "Email confirmado!"
+        : "Confirmar email",
+      hasLoginError: state in LOGIN_ERRORS,
+      loginErrorText: LOGIN_ERRORS[state] ?? "",
+      isUnverified: state === "loginUnverified",
+      isResent: state === "loginResent",
+      loginLoading: state === "loginLoading",
+      loginButtonLabel: state === "loginLoading" ? "Entrando…" : "Entrar",
+      hasSignupConfirmError: state in SIGNUP_CONFIRM_ERRORS,
+      signupConfirmErrorText: SIGNUP_CONFIRM_ERRORS[state] ?? "",
+      hasSignupEmailError: state in SIGNUP_EMAIL_ERRORS,
+      signupEmailErrorText: SIGNUP_EMAIL_ERRORS[state] ?? "",
+      signupLoading: state === "signupLoading",
+      signupButtonLabel: state === "signupLoading" ? "Criando conta…" : "Criar conta",
+      hasVerifyError: state === "verifyExpired",
+      isVerifyOk: state !== "verifyExpired",
+      noop: () => {},
+    };
+  }
+}
+</script>
+</body>
+</html>

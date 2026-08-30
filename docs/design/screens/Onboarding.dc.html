@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/fonts/fonts.css">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/_ds_bundle.css">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/styles.css">
+  <script src="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/_ds_bundle.js"></script>
+  <script src="./image-slot.js"></script>
+  <style>
+    html, body { margin: 0; height: 100%; }
+    body { font-family: Archivo, system-ui, sans-serif; }
+    a { color: #4a5a3a; }
+    a:hover { color: #38452c; }
+  </style>
+</helmet>
+<div data-screen-label="Onboarding" class="bg-paper" style="display: flex; height: 100vh; justify-content: center; overflow-y: auto; color: #1c1c19; padding: 32px 16px">
+  <div class="bg-surface border border-border rounded-card" style="margin: auto; width: 100%; max-width: 600px; box-shadow: 0 2px 10px rgba(28, 28, 25, 0.07); padding: 28px">
+    <span class="font-display text-title font-bold" style="letter-spacing: -0.4px">Mold<span class="text-primary">AI</span></span>
+
+    <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 18px">
+      <span class="text-meta text-muted-2 tracking-eyebrow" style="text-transform: uppercase">{{ stepLabel }}</span>
+      <x-import component-from-global-scope="MoldAIUI.Progress" value="{{ progressValue }}" aria-label="{{ stepLabel }}" class-name="bg-track" hint-size="100%,6px" style="height: 6px"></x-import>
+    </div>
+
+    <sc-if value="{{ isStep1 }}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 20px">
+        <h1 class="font-display text-title" style="margin: 0">Como você trabalha?</h1>
+        <div role="radiogroup" aria-label="Como você trabalha?" style="display: flex; flex-direction: column; gap: 10px">
+          <sc-for list="{{ workStyles }}" as="w" hint-placeholder-count="3">
+            <button type="button" role="radio" aria-checked="{{ w.checked }}" aria-label="{{ w.title }}" class="{{ w.className }} rounded-lg" style="display: flex; flex-direction: column; gap: 4px; padding: 14px; text-align: left; font-family: inherit; color: #1c1c19; cursor: pointer">
+              <span class="text-control font-semibold">{{ w.title }}</span>
+              <span class="text-ui text-muted-2">{{ w.subtitle }}</span>
+            </button>
+          </sc-for>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 10px">
+          <x-import component-from-global-scope="MoldAIUI.Button" variant="link" hint-size="auto,36px">Pular por agora</x-import>
+          <x-import component-from-global-scope="MoldAIUI.Button" disabled="{{ continueDisabled }}" hint-size="auto,36px">Continuar</x-import>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isStep2 }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 20px">
+        <h1 class="font-display text-title" style="margin: 0">Sua tabela de medidas</h1>
+        <div role="radiogroup" aria-label="Sua tabela de medidas" style="display: flex; flex-direction: column; gap: 10px">
+          <sc-for list="{{ measurementOptions }}" as="m" hint-placeholder-count="3">
+            <button type="button" role="radio" aria-checked="{{ m.checked }}" aria-label="{{ m.title }}" class="{{ m.className }} rounded-lg" style="display: flex; flex-direction: column; gap: 4px; padding: 14px; text-align: left; font-family: inherit; color: #1c1c19; cursor: pointer">
+              <span class="text-control font-semibold">{{ m.title }}</span>
+              <span class="text-ui text-muted-2">{{ m.subtitle }}</span>
+            </button>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{ showImportError }}" hint-placeholder-val="{{ false }}">
+          <div role="alert" class="border border-destructive bg-surface rounded-lg" style="display: flex; flex-direction: column; gap: 8px; padding: 10px 12px">
+            <span class="text-ui text-destructive font-semibold">Não foi possível importar sua planilha</span>
+            <span class="text-ui text-muted-foreground">Verifique se o arquivo está em .xlsx ou .csv e com as colunas de medida no topo.</span>
+            <div style="display: flex; gap: 8px">
+              <x-import component-from-global-scope="MoldAIUI.Button" variant="outline" size="sm" hint-size="auto,30px">Tentar novo arquivo</x-import>
+              <x-import component-from-global-scope="MoldAIUI.Button" variant="ghost" size="sm" hint-size="auto,30px">Preencher manualmente</x-import>
+            </div>
+          </div>
+        </sc-if>
+
+        <p class="text-ui text-muted-foreground" style="margin: 0">Pode fazer depois: a IA usa a grade padrão até você trocar.</p>
+        <div style="display: flex; align-items: center; justify-content: space-between">
+          <x-import component-from-global-scope="MoldAIUI.Button" variant="ghost" hint-size="auto,36px">‹ Voltar</x-import>
+          <div style="display: flex; align-items: center; gap: 10px">
+            <x-import component-from-global-scope="MoldAIUI.Button" variant="link" hint-size="auto,36px">Pular por agora</x-import>
+            <x-import component-from-global-scope="MoldAIUI.Button" hint-size="auto,36px">Continuar</x-import>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isStep3 }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 20px">
+        <h1 class="font-display text-title" style="margin: 0">Seu primeiro molde</h1>
+        <x-import component-from-global-scope="MoldAIUI.Textarea" placeholder="Descreva a peça que você quer modelar…" class-name="bg-surface-alt" hint-size="100%,88px"></x-import>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 8px">
+          <sc-for list="{{ examples }}" as="ex" hint-placeholder-count="3">
+            <button type="button" class="bg-surface border border-border rounded-lg" style="display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; font-family: inherit; cursor: pointer; color: #1c1c19">
+              <image-slot id="{{ ex.slotId }}" shape="rounded" radius="6" style="width: 28px; height: 28px; flex: none" placeholder="{{ ex.title }}"></image-slot>
+              <span class="text-ui font-medium">{{ ex.title }}</span>
+            </button>
+          </sc-for>
+        </div>
+
+        <span class="bg-amber-bg border border-amber-border text-amber-text text-meta font-medium" style="width: fit-content; border-radius: 9999px; padding: 2px 8px">◆ 30 créditos grátis por mês</span>
+
+        <sc-if value="{{ showGenError }}" hint-placeholder-val="{{ false }}">
+          <p role="alert" class="border border-destructive text-destructive text-ui rounded-lg bg-surface" style="margin: 0; padding: 8px 10px">Não foi possível gerar seu molde agora. Tente de novo.</p>
+        </sc-if>
+        <div style="display: flex; align-items: center; justify-content: space-between">
+          <x-import component-from-global-scope="MoldAIUI.Button" variant="ghost" disabled="{{ submitting }}" hint-size="auto,36px">‹ Voltar</x-import>
+          <div style="display: flex; align-items: center; gap: 10px">
+            <x-import component-from-global-scope="MoldAIUI.Button" variant="link" disabled="{{ submitting }}" hint-size="auto,36px">Pular por agora</x-import>
+            <x-import component-from-global-scope="MoldAIUI.Button" disabled="{{ generateDisabled }}" hint-size="auto,36px">{{ generateLabel }}</x-import>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:656,&quot;height&quot;:600},&quot;state&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;step1&quot;,&quot;step1Selected&quot;,&quot;step2&quot;,&quot;step2ImportError&quot;,&quot;step3&quot;,&quot;generating&quot;,&quot;genError&quot;],&quot;default&quot;:&quot;step1&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Passo / estado&quot;}}">
+const WORK_STYLES = [
+  { title: "Modelista de confecção", subtitle: "grades completas, exportação técnica e plano de corte" },
+  { title: "Marca ou ateliê", subtitle: "grade própria, ficha técnica" },
+  { title: "Costuro para mim", subtitle: "molde no meu corpo, PDF A4" },
+];
+
+const MEASUREMENT_OPTIONS = [
+  { title: "Grades do sistema", subtitle: "Escolha entre as grades padrão (feminino, masculino, infantil). Você pode trocar depois em Medidas e grades." },
+  { title: "Importar planilha ou tabela", subtitle: "Suba seu arquivo e a IA mapeia as medidas automaticamente." },
+  { title: "Preencher agora", subtitle: "Digite suas próprias medidas antes de continuar." },
+];
+
+const EXAMPLES = [
+  { key: "camiseta", title: "camiseta básica" },
+  { key: "blusa", title: "blusa manga longa" },
+  { key: "vestido", title: "vestido evasê" },
+];
+
+class Component extends DCLogic {
+  renderVals() {
+    const state = this.props.state ?? "step1";
+    const step = state.startsWith("step2") ? 2
+      : state.startsWith("step3") || state === "generating" || state === "genError" ? 3
+      : 1;
+    const submitting = state === "generating";
+    const selected = state === "step1Selected" ? 1 : -1;
+
+    const examples = EXAMPLES.map((ex) => ({
+      title: ex.title,
+      slotId: "onboarding-example-" + ex.key,
+    }));
+
+    return {
+      progressValue: Math.round((step / 3) * 100),
+      stepLabel: "Passo " + step + " de 3",
+      isStep1: step === 1,
+      isStep2: step === 2,
+      isStep3: step === 3,
+      workStyles: WORK_STYLES.map((w, i) => ({
+        title: w.title,
+        subtitle: w.subtitle,
+        checked: i === selected ? "true" : "false",
+        className: i === selected ? "bg-accent border-2 border-olive" : "bg-surface border border-border",
+      })),
+      measurementOptions: MEASUREMENT_OPTIONS.map((m, i) => ({
+        title: m.title,
+        subtitle: m.subtitle,
+        checked: i === 0 ? "true" : "false",
+        className: i === 0 ? "bg-accent border-2 border-olive" : "bg-surface border border-border",
+      })),
+      showImportError: state === "step2ImportError",
+      continueDisabled: selected < 0,
+      examples,
+      showGenError: state === "genError",
+      submitting,
+      generateDisabled: state === "step3" || submitting,
+      generateLabel: submitting ? "Gerando molde…" : "Gerar meu molde · 1 crédito",
+    };
+  }
+}
+
+</script>
+</body>
+</html>

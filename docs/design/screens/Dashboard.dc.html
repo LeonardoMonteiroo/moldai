@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/fonts/fonts.css">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/_ds_bundle.css">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/styles.css">
+  <script src="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/_ds_bundle.js"></script>
+  <script src="./image-slot.js"></script>
+  <style>
+    html, body { margin: 0; height: 100%; }
+    body { background: var(--color-paper); color: var(--color-ink); font-family: Archivo, system-ui, sans-serif; }
+    a { color: var(--color-olive); }
+    a:hover { color: var(--color-olive-dark); }
+    @keyframes skeleton-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .skeleton { background: var(--color-surface-alt); border-radius: var(--radius-btn); animation: skeleton-pulse 1.4s ease-in-out infinite; }
+  </style>
+</helmet>
+<div data-screen-label="Dashboard" style="display: flex; flex-direction: column; height: 100vh; min-height: 0; background: var(--color-paper); color: var(--color-ink); font-family: Archivo, system-ui, sans-serif; position: relative; overflow: hidden">
+
+  <header style="display: flex; align-items: center; gap: 14px; flex: none; border-bottom: 1px solid var(--color-border); background: var(--color-surface); padding: 10px 16px">
+    <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 18px; font-weight: 700; letter-spacing: -0.4px">Mold<span style="color: var(--color-olive)">AI</span></span>
+    <div style="width: 1px; height: 22px; background: var(--color-border)"></div>
+    <div style="display: flex; align-items: baseline; gap: 9px; min-width: 0">
+      <h1 style="margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -0.1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Meus moldes</h1>
+    </div>
+    <div style="flex: 1"></div>
+    <div style="display: flex; align-items: center; gap: 8px; flex: none; height: 30px; padding: 0 4px 0 11px; border: 1px solid var(--color-border); border-radius: 9999px; background: var(--color-surface-alt)">
+      <span style="color: var(--color-muted-2); font-size: 11.5px; font-variant-numeric: tabular-nums; white-space: nowrap">34<span style="color: var(--color-muted)"> de 60</span></span>
+      <div style="width: 44px; height: 4px; border-radius: 9999px; background: #ece8dd; overflow: hidden"><div style="width: 57%; height: 100%; background: var(--color-olive)"></div></div>
+      <a href="./Planos.dc.html" title="Comprar créditos" style="display: flex; align-items: center; flex: none; height: 24px; padding: 0 9px; border-radius: 9999px; color: var(--color-olive); font-size: 11.5px; font-weight: 600; text-decoration: none; white-space: nowrap">comprar</a>
+    </div>
+    <button type="button" aria-label="Conta" title="ana@atelie.com.br" style="display: flex; align-items: center; gap: 5px; flex: none; height: 28px; padding: 0 2px; border: 0; background: transparent; border-radius: var(--radius-btn); color: var(--color-ink); cursor: pointer">
+      <span style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 1px solid #d7ddc9; border-radius: 9999px; background: var(--color-olive-tint); color: var(--color-olive); font-size: 11.5px; font-weight: 600">AN</span>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+    </button>
+  </header>
+
+  <div style="position: relative; display: flex; flex: 1; min-height: 0">
+
+    <div style="width: 200px; flex: none; display: flex; flex-direction: column; border-right: 1px solid var(--color-border); background: var(--color-surface); padding: 14px; gap: 14px">
+      <nav style="display: flex; flex-direction: column; gap: 4px">
+        <button type="button" aria-current="page" style="display: flex; align-items: center; justify-content: flex-start; gap: 9px; padding: 7px 10px; border: 0; border-radius: var(--radius-item); background: var(--color-olive-tint); color: var(--color-olive); font-size: 12.5px; font-weight: 600; font-family: inherit; cursor: pointer; text-align: left">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg>
+          Meus moldes
+        </button>
+        <a href="./Medidas e grades.dc.html" style="display: flex; align-items: center; justify-content: flex-start; gap: 9px; height: 30px; padding: 0 10px; border-radius: var(--radius-btn); color: var(--color-muted-2); font-size: 12.5px; font-weight: 500; text-decoration: none">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0Z"></path><path d="m14.5 12.5 2-2"></path><path d="m11.5 9.5 2-2"></path><path d="m8.5 6.5 2-2"></path><path d="m17.5 15.5 2-2"></path></svg>
+          Medidas e grades
+        </a>
+        <a href="./Bases do atelie.dc.html" style="display: flex; align-items: center; justify-content: flex-start; gap: 9px; height: 30px; padding: 0 10px; border-radius: var(--radius-btn); color: var(--color-muted-2); font-size: 12.5px; font-weight: 500; text-decoration: none">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"></path><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"></path><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"></path></svg>
+          Bases e modelos
+        </a>
+      </nav>
+      <div style="flex: 1"></div>
+    </div>
+
+    <main style="display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0">
+
+      <sc-if value="{{ showActionError }}" hint-placeholder-val="{{ false }}">
+        <div role="status" style="display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #f0dfa8; background: #fdf3d8; padding: 9px 22px">
+          <span style="flex: 1; font-size: 12.5px">Algo deu errado e sua última ação não foi aplicada.</span>
+          <button type="button" aria-label="Fechar aviso" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: var(--radius-btn); background: transparent; color: var(--color-ink); cursor: pointer">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+          </button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ showLoading }}" hint-placeholder-val="{{ false }}">
+        <div role="status" aria-label="Carregando moldes" style="flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 16px; padding: 22px">
+          <div style="display: flex; align-items: center; gap: 12px">
+            <div class="skeleton" style="width: 120px; height: 26px"></div>
+            <div style="flex: 1"></div>
+            <div class="skeleton" style="width: 200px; height: 34px"></div>
+            <div class="skeleton" style="width: 150px; height: 34px"></div>
+            <div class="skeleton" style="width: 120px; height: 34px"></div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px">
+            <sc-for list="{{ skeletonCards }}" as="s" hint-placeholder-count="6">
+              <div style="display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: 10px">
+                <div class="skeleton" style="height: 128px; width: 100%; border-radius: var(--radius-item)"></div>
+                <div class="skeleton" style="height: 13px; width: 70%"></div>
+                <div class="skeleton" style="height: 11px; width: 45%"></div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ showError }}" hint-placeholder-val="{{ false }}">
+        <div role="alert" style="flex: 1; display: flex; align-items: center; justify-content: center; color: var(--color-alert); font-size: 13.5px">Não foi possível carregar seus moldes. Tente recarregar a página.</div>
+      </sc-if>
+
+      <sc-if value="{{ showContent }}" hint-placeholder-val="{{ true }}">
+        <div style="flex: 1; min-height: 0; overflow-y: auto">
+          <div style="display: flex; flex-direction: column; gap: 16px; padding: 22px">
+
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+              <span class="font-display" style="font-size: 26px; font-weight: 600">{{ countLabel }}</span>
+              <div style="flex: 1"></div>
+              <x-import component-from-global-scope="MoldAIUI.Input" placeholder="Buscar molde…" value="{{ searchValue }}" on-change="{{ noop }}" style="width: 200px; box-shadow: 0 1px 2px rgba(28, 28, 25, 0.08)" hint-size="200px,34px"></x-import>
+              <x-import component-from-global-scope="MoldAIUI.Select" open="{{ false }}" value="all" on-value-change="{{ noop }}" style="width: 150px; box-shadow: 0 1px 2px rgba(28, 28, 25, 0.08)" hint-size="150px,34px">
+                <x-import component-from-global-scope="MoldAIUI.SelectTrigger" size="sm" hint-size="150px,34px">
+                  <x-import component-from-global-scope="MoldAIUI.SelectValue" hint-size="auto,20px"></x-import>
+                </x-import>
+                <x-import component-from-global-scope="MoldAIUI.SelectContent" hint-size="150px,auto">
+                  <x-import component-from-global-scope="MoldAIUI.SelectGroup" hint-size="150px,auto">
+                    <x-import component-from-global-scope="MoldAIUI.SelectItem" value="all" hint-size="auto,28px">Todos os tipos</x-import>
+                    <x-import component-from-global-scope="MoldAIUI.SelectItem" value="blouse" hint-size="auto,28px">Blusa</x-import>
+                    <x-import component-from-global-scope="MoldAIUI.SelectItem" value="dress" hint-size="auto,28px">Vestido</x-import>
+                    <x-import component-from-global-scope="MoldAIUI.SelectItem" value="skirt" hint-size="auto,28px">Saia</x-import>
+                    <x-import component-from-global-scope="MoldAIUI.SelectItem" value="tshirt" hint-size="auto,28px">Camiseta</x-import>
+                  </x-import>
+                </x-import>
+              </x-import>
+              <x-import component-from-global-scope="MoldAIUI.Button" size="sm" on-click="{{ openNewMolde }}" hint-size="auto,34px">+ Novo molde</x-import>
+            </div>
+
+            <sc-if value="{{ showChecklist }}" hint-placeholder-val="{{ true }}">
+              <div style="display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: 14px 16px">
+                <div style="display: flex; align-items: center; gap: 10px">
+                  <span style="font-size: 13.5px; font-weight: 600; flex: 1">Comece com o pé direito · {{ checklistDoneCount }} de {{ checklistTotal }}</span>
+                  <button type="button" aria-label="Ocultar checklist" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: var(--radius-btn); background: transparent; color: var(--color-muted); cursor: pointer">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                  </button>
+                </div>
+                <div style="height: 5px; background: #ece8dd; border-radius: 9999px; overflow: hidden">
+                  <div style="height: 100%; width: {{ checklistPct }}%; background: var(--color-olive)"></div>
+                </div>
+                <div style="display: flex; flex-direction: column">
+                  <sc-for list="{{ checklistItems }}" as="c" hint-placeholder-count="3">
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 9px 2px; border-top: 1px solid var(--color-border)">
+                      <span style="display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; flex: none; border-radius: 9999px; font-size: 12px; background: {{ c.iconBg }}; color: {{ c.iconColor }}">{{ c.icon }}</span>
+                      <div style="display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0">
+                        <span style="font-size: 13px; font-weight: 600; color: {{ c.labelColor }}">{{ c.label }}</span>
+                        <span style="color: var(--color-muted); font-size: 11.5px">{{ c.description }}</span>
+                      </div>
+                      <sc-if value="{{ c.done }}" hint-placeholder-val="{{ false }}">
+                        <span style="color: var(--color-muted); font-size: 11.5px; flex: none">Concluído</span>
+                      </sc-if>
+                      <sc-if value="{{ !c.done }}" hint-placeholder-val="{{ true }}">
+                        <button type="button" style="display: flex; align-items: center; gap: 4px; flex: none; border: 0; background: transparent; color: var(--color-olive); font-size: 12.5px; font-weight: 600; font-family: inherit; cursor: pointer; padding: 4px 2px" style-hover="color: var(--color-olive-dark)">
+                          {{ c.cta }}
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                        </button>
+                      </sc-if>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex: 1; min-width: 0; flex-direction: column; align-items: center; justify-content: center; gap: 24px; border: 1px dashed var(--color-border); border-radius: var(--radius-item); padding: 48px; text-align: center">
+                <div style="display: flex; max-width: 384px; flex-direction: column; align-items: center; gap: 8px; text-align: center">
+                  <div style="font-size: 16px; font-weight: 500; letter-spacing: -0.01em">Nenhum molde ainda</div>
+                  <div style="color: var(--color-muted); font-size: 12.5px; line-height: 1.625">Crie seu primeiro molde para começar.</div>
+                </div>
+                <div style="display: flex; width: 100%; max-width: 384px; flex-direction: column; align-items: center; gap: 16px; font-size: 12.5px">
+                  <x-import component-from-global-scope="MoldAIUI.Button" hint-size="auto,36px">Criar meu primeiro molde</x-import>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isNoMatches }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex: 1; min-width: 0; flex-direction: column; align-items: center; justify-content: center; gap: 24px; border: 1px dashed var(--color-border); border-radius: var(--radius-item); padding: 48px; text-align: center">
+                <div style="display: flex; max-width: 384px; flex-direction: column; align-items: center; gap: 8px; text-align: center">
+                  <div style="font-size: 16px; font-weight: 500; letter-spacing: -0.01em">Nenhum molde encontrado</div>
+                  <div style="color: var(--color-muted); font-size: 12.5px; line-height: 1.625">Tente outro termo de busca ou filtro.</div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}">
+              <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px">
+                <sc-for list="{{ patterns }}" as="p" hint-placeholder-count="6">
+                  <div style="position: relative; display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: 10px" style-hover="border-color: var(--color-olive)">
+                    <div style="position: relative; display: flex; align-items: center; justify-content: center; height: 128px; width: 100%; overflow: hidden; border-radius: var(--radius-item); background: var(--color-surface-alt)">
+                      <sc-if value="{{ !p.isBlank }}" hint-placeholder-val="{{ true }}">
+                        <image-slot id="{{ p.id }}" shape="rect" placeholder="Miniatura do molde"></image-slot>
+                      </sc-if>
+                      <sc-if value="{{ p.isBlank }}" hint-placeholder-val="{{ false }}">
+                        <span style="color: var(--color-muted); font-size: 11.5px">em branco</span>
+                      </sc-if>
+                      <x-import component-from-global-scope="MoldAIUI.Badge" variant="quiet" size="chip" style="position: absolute; top: 8px; left: 8px" hint-size="auto,20px">{{ p.typeLabel }}</x-import>
+                    </div>
+                    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 4px">
+                      <div style="display: flex; min-width: 0; flex-direction: column; gap: 1px">
+                        <span style="font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ p.name }}</span>
+                        <span style="color: var(--color-muted); font-size: 11.5px">Editado {{ p.updated }}</span>
+                      </div>
+                      <button type="button" aria-label="Mais opções" style="width: 32px; height: 32px; flex: none; display: flex; align-items: center; justify-content: center; border: 0; border-radius: var(--radius-btn); background: transparent; color: var(--color-ink); opacity: 0; cursor: pointer" style-hover="opacity: 1">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+                      </button>
+                    </div>
+                  </div>
+                </sc-for>
+                <button type="button" onClick="{{ openNewMolde }}" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 1px dashed var(--color-border); border-radius: var(--radius-card); background: transparent; color: var(--color-muted); font-size: 12.5px; font-family: inherit; text-align: center; cursor: pointer" style-hover="background: var(--color-surface-alt)">+ Novo molde</button>
+              </div>
+            </sc-if>
+
+          </div>
+        </div>
+      </sc-if>
+
+    </main>
+  </div>
+
+  <sc-if value="{{ showRename }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; z-index: 50; background: rgba(28, 28, 25, 0.28)"></div>
+    <div role="dialog" aria-modal="true" style="position: absolute; top: 50%; left: 50%; z-index: 50; transform: translate(-50%, -50%); display: grid; gap: 16px; width: 100%; max-width: 512px; border: 1px solid var(--color-border); border-radius: var(--radius-item); background: var(--color-surface); padding: 24px; box-shadow: 0 10px 15px -3px rgba(28, 28, 25, 0.1), 0 4px 6px -4px rgba(28, 28, 25, 0.1)">
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 16px; font-weight: 600; line-height: 1">Renomear molde</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; padding: 16px 0">
+        <label for="rename-1" style="font-size: 12.5px; font-weight: 500; line-height: 1">Novo nome do molde</label>
+        <x-import component-from-global-scope="MoldAIUI.Input" id="rename-1" value="{{ renameValue }}" on-change="{{ noop }}" hint-size="100%,36px"></x-import>
+      </div>
+      <div style="display: flex; gap: 8px; justify-content: flex-end">
+        <x-import component-from-global-scope="MoldAIUI.Button" variant="outline" size="sm" hint-size="auto,32px">Cancelar</x-import>
+        <x-import component-from-global-scope="MoldAIUI.Button" size="sm" hint-size="auto,32px">Salvar</x-import>
+      </div>
+      <button type="button" aria-label="Fechar" style="position: absolute; top: 16px; right: 16px; border: 0; background: transparent; color: var(--color-ink); opacity: 0.7; cursor: pointer; padding: 0; display: flex">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+      </button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showNewMolde }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; z-index: 50; background: rgba(28, 28, 25, 0.28)" onClick="{{ closeNewMolde }}"></div>
+    <sc-if value="{{ isNewMoldeOptions }}" hint-placeholder-val="{{ true }}">
+      <div role="dialog" aria-modal="true" style="position: absolute; top: 50%; left: 50%; z-index: 50; transform: translate(-50%, -50%); display: grid; gap: 16px; width: 100%; max-width: 420px; border: 1px solid var(--color-border); border-radius: var(--radius-item); background: var(--color-surface); padding: 24px; box-shadow: 0 10px 15px -3px rgba(28, 28, 25, 0.1), 0 4px 6px -4px rgba(28, 28, 25, 0.1)">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 16px; font-weight: 600; line-height: 1">Novo molde</span>
+          <span style="color: var(--color-muted); font-size: 12.5px">Como você quer começar?</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <a href="./Editor.dc.html" style="display: flex; align-items: center; gap: 12px; border: 1px solid var(--color-border); border-radius: var(--radius-btn); padding: 12px; text-decoration: none; color: var(--color-ink)" style-hover="border-color: var(--color-olive); background: var(--color-olive-tint)">
+            <span style="display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; flex: none; border-radius: 9999px; background: var(--color-surface-alt)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+            </span>
+            <span style="display: flex; flex-direction: column; gap: 1px">
+              <span style="font-size: 13.5px; font-weight: 600">Começar com prompt</span>
+              <span style="color: var(--color-muted); font-size: 11.5px">Descreva a peça em texto livre e a IA gera o molde.</span>
+            </span>
+          </a>
+          <button type="button" onClick="{{ openNewMoldeForm }}" style="display: flex; align-items: center; gap: 12px; border: 1px solid var(--color-border); border-radius: var(--radius-btn); padding: 12px; background: transparent; font-family: inherit; text-align: left; color: var(--color-ink); cursor: pointer" style-hover="border-color: var(--color-olive); background: var(--color-olive-tint)">
+            <span style="display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; flex: none; border-radius: 9999px; background: var(--color-surface-alt)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12h6"></path><path d="M9 16h6"></path><path d="M9 8h6"></path><rect x="4" y="3" width="16" height="18" rx="2"></rect></svg>
+            </span>
+            <span style="display: flex; flex-direction: column; gap: 1px">
+              <span style="font-size: 13.5px; font-weight: 600">Preencher formulário</span>
+              <span style="color: var(--color-muted); font-size: 11.5px">Responda um passo a passo e a IA monta o molde.</span>
+            </span>
+          </button>
+          <a href="./Importacao.dc.html" style="display: flex; align-items: center; gap: 12px; border: 1px solid var(--color-border); border-radius: var(--radius-btn); padding: 12px; text-decoration: none; color: var(--color-ink)" style-hover="border-color: var(--color-olive); background: var(--color-olive-tint)">
+            <span style="display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; flex: none; border-radius: 9999px; background: var(--color-surface-alt)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path></svg>
+            </span>
+            <span style="display: flex; flex-direction: column; gap: 1px">
+              <span style="font-size: 13.5px; font-weight: 600">Importar molde</span>
+              <span style="color: var(--color-muted); font-size: 11.5px">Envie um arquivo .dxf existente.</span>
+            </span>
+          </a>
+        </div>
+        <button type="button" aria-label="Fechar" onClick="{{ closeNewMolde }}" style="position: absolute; top: 16px; right: 16px; border: 0; background: transparent; color: var(--color-ink); opacity: 0.7; cursor: pointer; padding: 0; display: flex">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+        </button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isNewMoldeForm }}" hint-placeholder-val="{{ false }}">
+      <div role="dialog" aria-modal="true" style="position: absolute; top: 50%; left: 50%; z-index: 50; transform: translate(-50%, -50%); display: grid; gap: 18px; width: 100%; max-width: 460px; border: 1px solid var(--color-border); border-radius: var(--radius-item); background: var(--color-surface); padding: 24px; box-shadow: 0 10px 15px -3px rgba(28, 28, 25, 0.1), 0 4px 6px -4px rgba(28, 28, 25, 0.1)">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 16px; font-weight: 600; line-height: 1">Preencher formulário</span>
+          <span style="color: var(--color-muted); font-size: 12.5px">Descreva a peça e a IA monta um molde inicial.</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 14px">
+          <x-import component-from-global-scope="MoldAIUI.Field" hint-size="100%,58px">
+            <x-import component-from-global-scope="MoldAIUI.FieldLabel" for="nm-name" hint-size="auto,16px">Nome do molde</x-import>
+            <x-import component-from-global-scope="MoldAIUI.Input" id="nm-name" placeholder="ex: Blusa manga longa" value="{{ formName }}" on-change="{{ noop }}" hint-size="100%,36px"></x-import>
+          </x-import>
+          <x-import component-from-global-scope="MoldAIUI.Field" hint-size="100%,58px">
+            <x-import component-from-global-scope="MoldAIUI.FieldLabel" for="nm-type" hint-size="auto,16px">Tipo de peça</x-import>
+            <x-import component-from-global-scope="MoldAIUI.Select" open="{{ false }}" value="blouse" on-value-change="{{ noop }}" hint-size="100%,36px">
+              <x-import component-from-global-scope="MoldAIUI.SelectTrigger" id="nm-type" hint-size="100%,36px">
+                <x-import component-from-global-scope="MoldAIUI.SelectValue" hint-size="auto,20px"></x-import>
+              </x-import>
+              <x-import component-from-global-scope="MoldAIUI.SelectContent" hint-size="100%,auto">
+                <x-import component-from-global-scope="MoldAIUI.SelectGroup" hint-size="100%,auto">
+                  <x-import component-from-global-scope="MoldAIUI.SelectItem" value="blouse" hint-size="auto,28px">Blusa</x-import>
+                  <x-import component-from-global-scope="MoldAIUI.SelectItem" value="dress" hint-size="auto,28px">Vestido</x-import>
+                  <x-import component-from-global-scope="MoldAIUI.SelectItem" value="skirt" hint-size="auto,28px">Saia</x-import>
+                  <x-import component-from-global-scope="MoldAIUI.SelectItem" value="tshirt" hint-size="auto,28px">Camiseta</x-import>
+                  <x-import component-from-global-scope="MoldAIUI.SelectItem" value="trousers" hint-size="auto,28px">Calça</x-import>
+                </x-import>
+              </x-import>
+            </x-import>
+          </x-import>
+          <x-import component-from-global-scope="MoldAIUI.Field" hint-size="100%,58px">
+            <x-import component-from-global-scope="MoldAIUI.FieldLabel" for="nm-grade" hint-size="auto,16px">Tabela de medidas</x-import>
+            <x-import component-from-global-scope="MoldAIUI.Select" open="{{ false }}" value="default" on-value-change="{{ noop }}" hint-size="100%,36px">
+              <x-import component-from-global-scope="MoldAIUI.SelectTrigger" id="nm-grade" hint-size="100%,36px">
+                <x-import component-from-global-scope="MoldAIUI.SelectValue" hint-size="auto,20px"></x-import>
+              </x-import>
+              <x-import component-from-global-scope="MoldAIUI.SelectContent" hint-size="100%,auto">
+                <x-import component-from-global-scope="MoldAIUI.SelectGroup" hint-size="100%,auto">
+                  <x-import component-from-global-scope="MoldAIUI.SelectItem" value="default" hint-size="auto,28px">Grade padrão P–GG</x-import>
+                  <x-import component-from-global-scope="MoldAIUI.SelectItem" value="custom" hint-size="auto,28px">Minhas medidas</x-import>
+                </x-import>
+              </x-import>
+            </x-import>
+          </x-import>
+          <x-import component-from-global-scope="MoldAIUI.Field" hint-size="100%,84px">
+            <x-import component-from-global-scope="MoldAIUI.FieldLabel" hint-size="auto,16px">Fotos e croquis (opcional)</x-import>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap">
+              <div style="position: relative; width: 64px; height: 64px; border-radius: var(--radius-btn); overflow: hidden">
+                <image-slot id="nm-photo-0" shape="rounded" placeholder="Foto"></image-slot>
+              </div>
+              <button type="button" style="width: 64px; height: 64px; flex: none; display: flex; align-items: center; justify-content: center; border: 1px dashed var(--color-border); border-radius: var(--radius-btn); background: transparent; color: var(--color-muted); font-size: 22px; font-family: inherit; cursor: pointer" style-hover="background: var(--color-surface-alt)">+</button>
+            </div>
+          </x-import>
+          <x-import component-from-global-scope="MoldAIUI.Field" hint-size="100%,84px">
+            <x-import component-from-global-scope="MoldAIUI.FieldLabel" for="nm-desc" hint-size="auto,16px">Detalhes da peça</x-import>
+            <x-import component-from-global-scope="MoldAIUI.Textarea" id="nm-desc" placeholder="ex: manga longa com punho, gola redonda, fechamento com zíper invisível nas costas" value="{{ formDesc }}" on-change="{{ noop }}" hint-size="100%,64px"></x-import>
+          </x-import>
+        </div>
+        <div style="display: flex; gap: 8px; justify-content: flex-end">
+          <x-import component-from-global-scope="MoldAIUI.Button" variant="outline" size="sm" on-click="{{ backToOptions }}" hint-size="auto,32px">Voltar</x-import>
+          <x-import component-from-global-scope="MoldAIUI.Button" size="sm" on-click="{{ closeNewMolde }}" hint-size="auto,32px">Gerar molde com IA</x-import>
+        </div>
+        <button type="button" aria-label="Fechar" onClick="{{ closeNewMolde }}" style="position: absolute; top: 16px; right: 16px; border: 0; background: transparent; color: var(--color-ink); opacity: 0.7; cursor: pointer; padding: 0; display: flex">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+        </button>
+      </div>
+    </sc-if>
+  </sc-if>
+
+  <sc-if value="{{ showDelete }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; z-index: 50; background: rgba(28, 28, 25, 0.28)"></div>
+    <div role="alertdialog" aria-modal="true" style="position: absolute; top: 50%; left: 50%; z-index: 50; transform: translate(-50%, -50%); display: grid; gap: 16px; width: 100%; max-width: 320px; border: 1px solid var(--color-border); border-radius: var(--radius-item); background: var(--color-surface); padding: 24px; box-shadow: 0 10px 15px -3px rgba(28, 28, 25, 0.1), 0 4px 6px -4px rgba(28, 28, 25, 0.1)">
+      <div style="display: grid; place-items: center; gap: 6px; text-align: center">
+        <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 16px; font-weight: 600">Excluir este molde?</span>
+        <span style="color: var(--color-muted); font-size: 12.5px">Isso apaga o molde e toda a conversa, e não pode ser desfeito.</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+        <x-import component-from-global-scope="MoldAIUI.Button" variant="outline" size="sm" hint-size="100%,32px">Cancelar</x-import>
+        <x-import component-from-global-scope="MoldAIUI.Button" variant="destructiveOutline" size="sm" hint-size="100%,32px">Excluir</x-import>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;state&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;default&quot;,&quot;empty&quot;,&quot;noMatches&quot;,&quot;loading&quot;,&quot;error&quot;,&quot;actionError&quot;,&quot;rename&quot;,&quot;delete&quot;,&quot;newMolde&quot;],&quot;default&quot;:&quot;default&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Estado da tela&quot;},&quot;showChecklist&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Ativação&quot;}}">
+const PATTERNS = [
+  { name: "Blusa manga longa", updated: "há 12 min", kind: "blouse", label: "Blusa" },
+  { name: "Vestido evasê", updated: "há 3h", kind: "dress", label: "Vestido" },
+  { name: "Saia gode", updated: "há 1d", kind: "skirt", label: "Saia" },
+  { name: "Camiseta básica", updated: "há 2d", kind: "tshirt", label: "Camiseta" },
+  { name: "Calça alfaiataria", updated: "há 4d", kind: "trousers", label: "Calça" },
+  { name: "Novo molde", updated: "há 6d", kind: "blank", label: "" },
+];
+
+class Component extends DCLogic {
+  state = { newMoldeOpen: false, newMoldeStep: "options" };
+  renderVals() {
+    const state = this.props.state ?? "default";
+    const isEmpty = state === "empty";
+    const isNoMatches = state === "noMatches";
+    const showContent = !["loading", "error"].includes(state);
+    const patterns = PATTERNS.map((p, i) => ({
+      name: p.name,
+      updated: p.updated,
+      isBlank: p.kind === "blank",
+      typeLabel: p.label,
+      id: "pattern-thumb-" + i,
+    }));
+    return {
+      patterns,
+      isEmpty,
+      isNoMatches,
+      showContent,
+      showGrid: !isEmpty && !isNoMatches,
+      showLoading: state === "loading",
+      skeletonCards: [0, 1, 2, 3, 4, 5],
+      showError: state === "error",
+      showActionError: state === "actionError",
+      showRename: state === "rename",
+      showDelete: state === "delete",
+      showNewMolde: this.state.newMoldeOpen || state === "newMolde",
+      isNewMoldeOptions: this.state.newMoldeStep === "options",
+      isNewMoldeForm: this.state.newMoldeStep === "form",
+      openNewMolde: () => this.setState({ newMoldeOpen: true, newMoldeStep: "options" }),
+      closeNewMolde: () => this.setState({ newMoldeOpen: false, newMoldeStep: "options" }),
+      openNewMoldeForm: () => this.setState({ newMoldeStep: "form" }),
+      backToOptions: () => this.setState({ newMoldeStep: "options" }),
+      formName: "",
+      formDesc: "",
+      countLabel: isEmpty ? "Nenhum molde" : "6 moldes",
+      searchValue: isNoMatches ? "corset" : "",
+      renameValue: "Blusa manga longa",
+      noop: () => {},
+      showChecklist: this.props.showChecklist ?? true,
+      checklistDoneCount: 1,
+      checklistTotal: 5,
+      checklistPct: 20,
+      checklistItems: [
+        {
+          label: "Gerar seu primeiro molde",
+          description: "Você já criou seu primeiro molde com a IA.",
+          icon: "✓",
+          done: true,
+          iconBg: "var(--color-olive-tint)",
+          iconColor: "var(--color-olive)",
+          labelColor: "var(--color-muted)",
+        },
+        {
+          label: "Configurar tabela de medidas",
+          description: "Cadastre as medidas do seu público para graduar moldes automaticamente.",
+          icon: "2",
+          done: false,
+          cta: "Configurar",
+          iconBg: "var(--color-surface-alt)",
+          iconColor: "var(--color-muted)",
+          labelColor: "var(--color-ink)",
+        },
+        {
+          label: "Exportar um PDF",
+          description: "Baixe seu molde pronto para impressão e corte.",
+          icon: "3",
+          done: false,
+          cta: "Exportar",
+          iconBg: "var(--color-surface-alt)",
+          iconColor: "var(--color-muted)",
+          labelColor: "var(--color-ink)",
+        },
+        {
+          label: "Importar moldes existentes",
+          description: "Já tem moldes em .dxf? Importe para continuar trabalhando neles aqui.",
+          icon: "4",
+          done: false,
+          cta: "Importar",
+          iconBg: "var(--color-surface-alt)",
+          iconColor: "var(--color-muted)",
+          labelColor: "var(--color-ink)",
+        },
+        {
+          label: "Convidar alguém da equipe",
+          description: "Compartilhe o ateliê com quem também vai criar e ajustar moldes.",
+          icon: "5",
+          done: false,
+          cta: "Convidar",
+          iconBg: "var(--color-surface-alt)",
+          iconColor: "var(--color-muted)",
+          labelColor: "var(--color-ink)",
+        },
+      ],
+    };
+  }
+}
+
+</script>
+</body>
+</html>

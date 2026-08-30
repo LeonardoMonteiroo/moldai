@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/fonts/fonts.css">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/_ds_bundle.css">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/styles.css">
+  <script src="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/_ds_bundle.js"></script>
+  <style>
+    html, body { margin: 0; height: 100%; }
+    body { background: var(--color-paper); color: var(--color-ink); font-family: Archivo, system-ui, sans-serif; }
+    a { color: var(--color-olive); }
+    a:hover { color: var(--color-olive-dark); }
+    @keyframes skeleton-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+  </style>
+</helmet>
+<div data-screen-label="Histórico de versões" style="position: relative; display: flex; flex-direction: column; height: 100vh; min-height: 0; background: var(--color-surface); color: var(--color-ink); font-family: Archivo, system-ui, sans-serif; overflow: hidden">
+
+  <header style="display: flex; align-items: center; gap: 14px; flex: none; border-bottom: 1px solid var(--color-border); background: var(--color-surface); padding: 10px 16px">
+    <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 18px; font-weight: 700; letter-spacing: -0.4px">Mold<span style="color: var(--color-olive)">AI</span></span>
+    <button type="button" aria-label="Voltar para meus moldes" title="Voltar para meus moldes" style="display: flex; align-items: center; justify-content: center; flex: none; width: 28px; height: 28px; border: 1px solid var(--color-border); border-radius: var(--radius-btn); background: var(--color-surface); color: var(--color-muted-2); cursor: pointer">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+    </button>
+    <div style="display: flex; align-items: baseline; gap: 9px; min-width: 0">
+      <h1 style="margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -0.1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Blusa manga longa</h1>
+      <span style="color: var(--color-muted); font-size: 11.5px; white-space: nowrap">histórico de versões</span>
+    </div>
+    <div style="flex: 1"></div>
+    <div style="display: flex; align-items: center; gap: 8px; flex: none; height: 30px; padding: 0 4px 0 11px; border: 1px solid var(--color-border); border-radius: 9999px; background: var(--color-surface-alt)">
+      <span style="color: var(--color-muted-2); font-size: 11.5px; font-variant-numeric: tabular-nums; white-space: nowrap">18<span style="color: var(--color-muted)"> de 30</span></span>
+      <div style="width: 44px; height: 4px; border-radius: 9999px; background: #ece8dd; overflow: hidden"><div style="width: 60%; height: 100%; background: var(--color-olive)"></div></div>
+      <a href="./Planos.dc.html" title="Comprar créditos" style="display: flex; align-items: center; flex: none; height: 24px; padding: 0 9px; border-radius: 9999px; color: var(--color-olive); font-size: 11.5px; font-weight: 600; text-decoration: none; white-space: nowrap">comprar</a>
+    </div>
+    <button type="button" aria-label="Conta" title="ana@atelie.com.br" style="display: flex; align-items: center; gap: 5px; flex: none; height: 28px; padding: 0 2px; border: 0; background: transparent; border-radius: var(--radius-btn); color: var(--color-ink); cursor: pointer">
+      <span style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 1px solid #d7ddc9; border-radius: 9999px; background: var(--color-olive-tint); color: var(--color-olive); font-size: 11.5px; font-weight: 600">AN</span>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+    </button>
+  </header>
+
+  <sc-if value="{{ showActionError }}" hint-placeholder-val="{{ false }}">
+    <div role="status" style="display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #f0dfa8; background: #fdf3d8; padding: 9px 22px; color: #7a5f14; flex: none">
+      <span style="flex: 1; font-size: 12.5px">Algo deu errado e sua última ação não foi aplicada.</span>
+      <button type="button" aria-label="Fechar aviso" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: var(--radius-btn); background: transparent; color: inherit; cursor: pointer">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+      </button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showLoading }}" hint-placeholder-val="{{ false }}">
+    <div role="status" aria-label="Carregando histórico de versões" style="flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 16px; padding: 18px 22px 22px; overflow: hidden">
+      <div style="display: flex; flex: none; flex-direction: column; gap: 9px">
+        <div style="display: flex; align-items: center; gap: 10px">
+          <div style="width: 64px; height: 11px; border-radius: 4px; background: var(--color-surface-alt); animation: skeleton-pulse 1.4s ease-in-out infinite"></div>
+          <div style="flex: 1"></div>
+          <div style="width: 168px; height: 11px; border-radius: 4px; background: var(--color-surface-alt); animation: skeleton-pulse 1.4s ease-in-out infinite"></div>
+        </div>
+        <div style="display: flex; gap: 10px">
+          <sc-for list="{{ skeletonCards }}" as="s" hint-placeholder-count="5">
+            <div style="display: flex; flex: none; flex-direction: column; width: 152px; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); overflow: hidden; animation: skeleton-pulse 1.4s ease-in-out infinite; animation-delay: {{ s.delay }}">
+              <div style="aspect-ratio: 4 / 3; border-bottom: 1px solid var(--color-border); background: var(--color-surface-alt)"></div>
+              <div style="display: flex; flex-direction: column; gap: 6px; padding: 10px">
+                <div style="width: 52px; height: 10px; border-radius: 4px; background: var(--color-surface-alt)"></div>
+                <div style="width: 88px; height: 10px; border-radius: 4px; background: var(--color-surface-alt)"></div>
+                <div style="width: 64px; height: 24px; margin-top: 4px; border-radius: var(--radius-btn); background: var(--color-surface-alt)"></div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display: flex; flex: 1; min-height: 0; gap: 14px">
+        <div style="flex: 1; min-width: 0; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface-alt); animation: skeleton-pulse 1.4s ease-in-out infinite"></div>
+        <div style="display: flex; width: 268px; flex: none; flex-direction: column; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); overflow: hidden">
+          <div style="display: flex; flex: none; align-items: center; border-bottom: 1px solid var(--color-border); padding: 11px 14px">
+            <div style="width: 104px; height: 11px; border-radius: 4px; background: var(--color-surface-alt); animation: skeleton-pulse 1.4s ease-in-out infinite"></div>
+          </div>
+          <sc-for list="{{ skeletonRows }}" as="r" hint-placeholder-count="3">
+            <div style="display: flex; align-items: center; gap: 10px; flex: none; border-bottom: 1px solid var(--color-border); padding: 11px 14px; animation: skeleton-pulse 1.4s ease-in-out infinite; animation-delay: {{ r.delay }}">
+              <div style="flex: 1; height: 10px; border-radius: 4px; background: var(--color-surface-alt)"></div>
+              <div style="width: 46px; height: 10px; border-radius: 4px; background: var(--color-surface-alt)"></div>
+            </div>
+          </sc-for>
+          <div style="display: flex; flex-direction: column; gap: 9px; flex: none; margin-top: auto; border-top: 1px solid var(--color-border); background: var(--color-surface-alt); padding: 12px 14px">
+            <div style="width: 100%; height: 10px; border-radius: 4px; background: #ece8dd"></div>
+            <div style="width: 72%; height: 10px; border-radius: 4px; background: #ece8dd"></div>
+            <div style="width: 100%; height: 32px; border-radius: var(--radius-btn); background: #ece8dd"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showLoadError }}" hint-placeholder-val="{{ false }}">
+    <div role="alert" style="flex: 1; display: flex; align-items: center; justify-content: center; color: var(--color-alert); font-size: 13.5px">Não foi possível carregar o histórico de versões. Tente recarregar a página.</div>
+  </sc-if>
+
+  <sc-if value="{{ showContent }}" hint-placeholder-val="{{ true }}">
+    <div style="flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 16px; padding: 18px 22px 22px; overflow: hidden">
+
+      <section style="display: flex; flex: none; flex-direction: column; gap: 9px; min-width: 0">
+        <div style="display: flex; align-items: baseline; gap: 10px">
+          <h2 style="margin: 0; font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-muted-2)">Versões</h2>
+          <span style="color: var(--color-muted); font-size: 11.5px">clique em duas para comparar</span>
+          <div style="flex: 1"></div>
+          <span style="color: var(--color-muted); font-size: 11.5px">Total gasto neste molde: <span style="color: var(--color-muted-2); font-variant-numeric: tabular-nums">9 créditos</span></span>
+        </div>
+
+        <div style="display: flex; gap: 10px; min-width: 0; padding-bottom: 2px; overflow-x: auto">
+          <sc-for list="{{ versions }}" as="v" hint-placeholder-count="5">
+            <div role="button" tabIndex="0" aria-pressed="{{ v.pressed }}" onClick="{{ v.onSelect }}" title="{{ v.selectHint }}" style="position: relative; display: flex; flex: none; flex-direction: column; width: 152px; border: 1px solid {{ v.borderColor }}; border-radius: var(--radius-card); background: var(--color-surface); box-shadow: {{ v.shadow }}; cursor: pointer; overflow: hidden">
+              <div style="position: relative; aspect-ratio: 4 / 3; border-bottom: 1px solid var(--color-border); background: var(--color-surface-alt)">
+                <svg viewBox="0 0 160 120" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%">
+                  <g transform="{{ v.miniTransform }}" fill="none" stroke="var(--color-muted-2)" stroke-width="1.6">
+                    <polygon points="22,16 62,16 65,48 62,80 51,104 25,104 20,80 17,48"></polygon>
+                    <polygon points="80,16 120,16 123,48 120,80 109,104 83,104 78,80 75,48"></polygon>
+                  </g>
+                </svg>
+                <sc-if value="{{ v.showBadge }}" hint-placeholder-val="{{ true }}">
+                  <span style="position: absolute; top: 7px; left: 7px; display: flex; align-items: center; height: 19px; padding: 0 7px; border-radius: 9999px; background: {{ v.badgeBg }}; color: {{ v.badgeColor }}; font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase">{{ v.badgeLabel }}</span>
+                </sc-if>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 2px; padding: 9px 10px 10px">
+                <div style="display: flex; align-items: baseline; gap: 6px">
+                  <span style="font-size: 13.5px; font-weight: 600">v{{ v.version }}</span>
+                  <span style="color: var(--color-muted); font-size: 11.5px">{{ v.ago }}</span>
+                </div>
+                <span style="font-size: 11.5px; color: var(--color-muted-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ v.reason }}</span>
+                <span style="color: var(--color-muted); font-size: 10.5px; font-variant-numeric: tabular-nums">{{ v.costLabel }}</span>
+                <sc-if value="{{ v.showRestore }}" hint-placeholder-val="{{ true }}">
+                  <button type="button" disabled="{{ restoring }}" style="align-self: flex-start; margin-top: 5px; height: 24px; padding: 0 8px; border: 1px solid var(--color-border); border-radius: var(--radius-btn); background: var(--color-surface); color: var(--color-muted-2); font-size: 11.5px; font-family: inherit; cursor: pointer" style-hover="border-color: var(--color-olive); color: var(--color-olive-dark)">{{ v.restoreLabel }}</button>
+                </sc-if>
+                <sc-if value="{{ v.isCurrent }}" hint-placeholder-val="{{ false }}">
+                  <span style="align-self: flex-start; margin-top: 5px; display: flex; align-items: center; height: 24px; color: var(--color-olive-dark); font-size: 11.5px; font-weight: 600">Versão atual</span>
+                </sc-if>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <sc-if value="{{ hasCompare }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex: 1; min-height: 0; gap: 14px">
+
+          <section style="display: flex; flex: 1; min-width: 0; flex-direction: column; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); overflow: hidden">
+            <div style="display: flex; align-items: center; gap: 10px; flex: none; border-bottom: 1px solid var(--color-border); padding: 10px 14px">
+              <div style="display: flex; align-items: center; gap: 7px; min-width: 0">
+                <span style="display: flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600"><span style="width: 12px; height: 0; border-top: 1.5px dashed var(--color-muted-2)"></span><span>v{{ fromVersion }}</span></span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                <span style="display: flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600"><span style="width: 12px; height: 0; border-top: 1.5px solid var(--color-ink)"></span><span>v{{ toVersion }}</span></span>
+              </div>
+              <div style="flex: 1"></div>
+              <button type="button" aria-pressed="{{ overlayPressed }}" onClick="{{ toggleOverlay }}" style="display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 11px; border: 1px solid {{ overlayBorder }}; border-radius: var(--radius-btn); background: {{ overlayBackground }}; color: {{ overlayColor }}; font-size: 12.5px; font-weight: 500; font-family: inherit; cursor: pointer">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="13" height="13" rx="2"></rect><path d="M8 21h11a2 2 0 0 0 2-2V8"></path></svg>
+                Sobrepor
+              </button>
+            </div>
+
+            <div style="position: relative; flex: 1; min-height: 0; background: var(--color-surface-alt)">
+              <svg viewBox="0 0 620 380" role="img" aria-label="{{ compareLabel }}" preserveAspectRatio="xMidYMid meet" style="position: absolute; inset: 12px; width: calc(100% - 24px); height: calc(100% - 24px)">
+                <sc-if value="{{ overlayOn }}" hint-placeholder-val="{{ true }}">
+                  <g fill="none" stroke="var(--color-pattern-guide)" stroke-width="1.1" stroke-dasharray="5 4">
+                    <polygon points="40,30 148,30 156,120 148,210 118,350 44,350 34,210 28,120"></polygon>
+                    <polygon points="210,30 318,30 324,120 318,210 290,350 214,350 204,210 198,120"></polygon>
+                    <path d="M400 124 q30 -78 86 -78 q56 0 86 78 l-22 206 q-64 22 -128 0z"></path>
+                  </g>
+                </sc-if>
+                <g fill="none" stroke="var(--color-ink)" stroke-width="1.4">
+                  <polygon points="40,30 150,30 158,120 150,210 120,350 44,350 34,210 28,120"></polygon>
+                  <polygon points="210,30 320,30 326,120 320,210 292,350 214,350 204,210 198,120"></polygon>
+                  <path d="M400 120 q30 -80 88 -80 q58 0 88 80 l-22 210 q-66 22 -132 0z"></path>
+                </g>
+              </svg>
+              <span style="position: absolute; bottom: 10px; left: 14px; color: var(--color-muted); font-size: 10.5px">Frente · Costas · Manga</span>
+            </div>
+          </section>
+
+          <section style="display: flex; width: 268px; flex: none; flex-direction: column; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); overflow: hidden">
+            <div style="display: flex; align-items: baseline; gap: 8px; flex: none; border-bottom: 1px solid var(--color-border); padding: 10px 14px">
+              <h2 style="margin: 0; font-size: 12.5px; font-weight: 600">O que mudou</h2>
+              <span style="color: var(--color-muted); font-size: 11.5px"><span>v{{ fromVersion }}</span> → <span>v{{ toVersion }}</span></span>
+            </div>
+            <ul style="display: flex; flex: 1 1 auto; min-height: 0; flex-direction: column; margin: 0; padding: 0; list-style: none; overflow-y: auto">
+              <sc-for list="{{ diffs }}" as="d" hint-placeholder-count="3">
+                <li style="display: flex; align-items: baseline; gap: 8px; border-bottom: 1px solid var(--color-border); padding: 8px 14px">
+                  <span style="flex: 1; min-width: 0; color: var(--color-muted-2); font-size: 12.5px">{{ d.label }}</span>
+                  <span style="font-size: 12.5px; font-variant-numeric: tabular-nums; white-space: nowrap">{{ d.range }}</span>
+                  <span style="width: 52px; text-align: right; color: {{ d.deltaColor }}; font-size: 11.5px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap">{{ d.delta }}</span>
+                </li>
+              </sc-for>
+            </ul>
+            <div style="display: flex; flex-direction: column; gap: 9px; flex: none; border-top: 1px solid var(--color-border); background: var(--color-surface-alt); padding: 12px 14px">
+              <p style="margin: 0; color: var(--color-muted); font-size: 11.5px; line-height: 1.45; text-wrap: pretty">{{ reasonNote }}</p>
+              <x-import component-from-global-scope="MoldAIUI.Button" variant="outline" size="sm" disabled="{{ restoring }}" hint-size="100%,32px">{{ restoreFromLabel }}</x-import>
+            </div>
+          </section>
+
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ needsTwo }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex: 1; align-items: center; justify-content: center; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: 32px; text-align: center; color: var(--color-muted); font-size: 13.5px">É preciso pelo menos duas versões para comparar.</div>
+      </sc-if>
+
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showRestoreModal }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; z-index: 50; background: rgba(28, 28, 25, 0.28)"></div>
+    <div role="alertdialog" aria-modal="true" style="position: absolute; top: 50%; left: 50%; z-index: 50; transform: translate(-50%, -50%); display: grid; gap: 16px; width: 100%; max-width: 320px; border: 1px solid var(--color-border); border-radius: var(--radius-item); background: var(--color-surface); padding: 24px; box-shadow: 0 10px 15px -3px rgba(28, 28, 25, 0.1)">
+      <div style="display: grid; place-items: center; gap: 6px; text-align: center">
+        <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 16px; font-weight: 600">Restaurar v3?</span>
+        <span style="color: var(--color-muted); font-size: 12.5px; line-height: 1.45">Isso cria uma nova versão a partir da versão selecionada. O histórico do chat não é restaurado, e nada é apagado.</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+        <x-import component-from-global-scope="MoldAIUI.Button" variant="outline" size="sm" hint-size="100%,32px">Cancelar</x-import>
+        <x-import component-from-global-scope="MoldAIUI.Button" size="sm" hint-size="100%,32px">Restaurar</x-import>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;state&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;default&quot;,&quot;overlayOff&quot;,&quot;singleVersion&quot;,&quot;restoring&quot;,&quot;restoreModal&quot;,&quot;actionError&quot;,&quot;loading&quot;,&quot;loadError&quot;],&quot;default&quot;:&quot;default&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Estado da tela&quot;}}">
+const VERSIONS = [
+  { version: 5, ago: "há 2 min", reason: "Ajuste de cava", cost: 1, cava: 22.7, consumo: 1.42, comprimento: 63.5, note: "Cava alargada 1,2 cm a pedido; consumo subiu um pouco." },
+  { version: 4, ago: "há 1h", reason: "Graduação PP–GG", cost: 6, cava: 21.5, consumo: 1.38, comprimento: 63.0, note: "Grade completa gerada a partir da v3." },
+  { version: 3, ago: "há 3h", reason: "Conflito corrigido", cost: 0, cava: 21.2, consumo: 1.35, comprimento: 63.0, note: "Sobreposição entre frente e manga resolvida." },
+  { version: 2, ago: "há 1d", reason: "Comprimento +1 cm", cost: 1, cava: 21.2, consumo: 1.33, comprimento: 62.0, note: "Barra alongada em 1 cm." },
+  { version: 1, ago: "há 2d", reason: "Geração inicial", cost: 1, cava: 21.0, consumo: 1.30, comprimento: 62.0, note: "Primeira geração a partir das medidas base." },
+];
+
+const num = (v, d) => v.toFixed(d).replace(".", ",");
+
+class Component extends DCLogic {
+  state = { from: 4, to: 5, overlay: null };
+
+  select(version) {
+    this.setState(s => {
+      if (version === s.to) return { from: version, to: s.from };
+      if (version === s.from) return {};
+      return { from: s.to, to: version };
+    });
+  }
+
+  renderVals() {
+    const state = this.props.state ?? "default";
+    const single = state === "singleVersion";
+    const list = single ? VERSIONS.slice(0, 1) : VERSIONS;
+    const overlayOn = this.state.overlay === null ? state !== "overlayOff" : this.state.overlay;
+    const from = VERSIONS.find(v => v.version === this.state.from) ?? VERSIONS[1];
+    const to = VERSIONS.find(v => v.version === this.state.to) ?? VERSIONS[0];
+
+    const diff = (label, key, unit, d) => {
+      const a = from[key], b = to[key];
+      const delta = b - a;
+      return {
+        label,
+        range: num(a, d) + " → " + num(b, d) + " " + unit,
+        delta: delta === 0 ? "—" : (delta > 0 ? "+" : "−") + num(Math.abs(delta), d),
+        deltaColor: delta === 0 ? "var(--color-muted)" : "var(--color-olive-dark)",
+      };
+    };
+
+    return {
+      showActionError: state === "actionError",
+      showLoading: state === "loading",
+      skeletonCards: [0, 1, 2, 3, 4].map(i => ({ delay: i * 90 + "ms" })),
+      skeletonRows: [0, 1, 2].map(i => ({ delay: i * 120 + "ms" })),
+      showLoadError: state === "loadError",
+      showContent: !["loading", "loadError"].includes(state),
+      restoring: state === "restoring",
+      versions: list.map((v, i) => {
+        const isFrom = v.version === from.version && !single;
+        const isTo = v.version === to.version && !single;
+        const selected = isFrom || isTo;
+        return {
+          version: v.version,
+          ago: v.ago,
+          reason: v.reason,
+          costLabel: v.cost === 0 ? "grátis" : v.cost + (v.cost === 1 ? " crédito" : " créditos"),
+          isCurrent: i === 0,
+          showRestore: i !== 0,
+          restoreLabel: "Restaurar",
+          onSelect: () => this.select(v.version),
+          selectHint: selected ? "Selecionada para comparação" : "Comparar v" + v.version,
+          pressed: selected ? "true" : "false",
+          borderColor: selected ? "var(--color-olive)" : "var(--color-border)",
+          shadow: selected ? "0 0 0 1px var(--color-olive)" : "none",
+          showBadge: selected,
+          badgeLabel: isTo ? "Para" : "De",
+          badgeBg: isTo ? "var(--color-olive)" : "var(--color-olive-tint)",
+          badgeColor: isTo ? "#fff" : "var(--color-olive-dark)",
+          miniTransform: "translate(80 60) scale(" + (0.94 + v.consumo * 0.04).toFixed(3) + " 1) translate(-80 -60)",
+        };
+      }),
+      hasCompare: !single,
+      needsTwo: single,
+      fromVersion: from.version,
+      toVersion: to.version,
+      compareLabel: "Comparação entre v" + from.version + " e v" + to.version,
+      diffs: [
+        diff("Cava", "cava", "cm", 1),
+        diff("Comprimento", "comprimento", "cm", 1),
+        diff("Consumo de tecido", "consumo", "m", 2),
+      ],
+      reasonNote: to.note,
+      restoreFromLabel: "Restaurar v" + from.version,
+      overlayOn,
+      toggleOverlay: () => this.setState({ overlay: !overlayOn }),
+      overlayPressed: overlayOn ? "true" : "false",
+      overlayBorder: overlayOn ? "var(--color-olive)" : "var(--color-border)",
+      overlayBackground: overlayOn ? "var(--color-olive-tint)" : "var(--color-surface)",
+      overlayColor: overlayOn ? "var(--color-olive-dark)" : "var(--color-muted-2)",
+      showRestoreModal: state === "restoreModal",
+    };
+  }
+}
+</script>
+</body>
+</html>

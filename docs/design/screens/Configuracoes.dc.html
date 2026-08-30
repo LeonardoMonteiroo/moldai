@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/fonts/fonts.css">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/_ds_bundle.css">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/styles.css">
+  <script src="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/_ds_bundle.js"></script>
+  <style>
+    html, body { margin: 0; height: 100%; }
+    body { background: var(--color-paper); color: var(--color-ink); font-family: Archivo, system-ui, sans-serif; }
+    a { color: var(--color-olive-dark); }
+    a:hover { color: var(--color-olive); }
+  </style>
+</helmet>
+<div data-screen-label="Configurações" style="display: flex; flex-direction: column; height: 100vh; min-height: 0; background: var(--color-surface); color: var(--color-ink); font-family: Archivo, system-ui, sans-serif; overflow: hidden">
+
+  <header style="display: flex; align-items: center; gap: 14px; flex: none; border-bottom: 1px solid var(--color-border); background: var(--color-surface); padding: 10px 16px">
+    <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 18px; font-weight: 700; letter-spacing: -0.4px">Mold<span style="color: var(--color-olive)">AI</span></span>
+    <button type="button" aria-label="Voltar para meus moldes" title="Voltar para meus moldes" style="display: flex; align-items: center; justify-content: center; flex: none; width: 28px; height: 28px; border: 1px solid var(--color-border); border-radius: var(--radius-btn); background: var(--color-surface); color: var(--color-muted-2); cursor: pointer">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+    </button>
+    <div style="display: flex; align-items: baseline; gap: 9px; min-width: 0">
+      <h1 style="margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -0.1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Configurações</h1>
+    </div>
+    <div style="flex: 1"></div>
+    <div style="display: flex; align-items: center; gap: 8px; flex: none; height: 30px; padding: 0 4px 0 11px; border: 1px solid var(--color-border); border-radius: 9999px; background: var(--color-surface-alt)">
+      <span style="color: var(--color-muted-2); font-size: 11.5px; font-variant-numeric: tabular-nums; white-space: nowrap">18<span style="color: var(--color-muted)"> de 30</span></span>
+      <div style="width: 44px; height: 4px; border-radius: 9999px; background: #ece8dd; overflow: hidden"><div style="width: 60%; height: 100%; background: var(--color-olive)"></div></div>
+      <a href="./Planos.dc.html" title="Comprar créditos" style="display: flex; align-items: center; flex: none; height: 24px; padding: 0 9px; border-radius: 9999px; color: var(--color-olive); font-size: 11.5px; font-weight: 600; text-decoration: none; white-space: nowrap">comprar</a>
+    </div>
+    <button type="button" aria-label="Conta" title="ana@atelie.com.br" style="display: flex; align-items: center; gap: 5px; flex: none; height: 28px; padding: 0 2px; border: 0; background: transparent; border-radius: var(--radius-btn); color: var(--color-ink); cursor: pointer">
+      <span style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 1px solid #d7ddc9; border-radius: 9999px; background: var(--color-olive-tint); color: var(--color-olive); font-size: 11.5px; font-weight: 600">AN</span>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+    </button>
+  </header>
+
+  <div style="display: flex; flex: 1; min-height: 0">
+
+    <nav style="display: flex; width: 172px; flex: none; flex-direction: column; gap: 2px; border-right: 1px solid var(--color-border); background: var(--color-surface); padding: 14px 12px">
+      <span style="padding: 0 11px 8px; color: var(--color-muted); font-size: 10.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase">Conta</span>
+      <sc-for list="{{ sections }}" as="s" hint-placeholder-count="4">
+        <button type="button" aria-current="{{ s.current }}" style="display: flex; align-items: center; justify-content: flex-start; height: 30px; padding: 0 11px; border: 0; border-radius: var(--radius-btn); background: {{ s.background }}; color: {{ s.color }}; font-size: 12.5px; font-weight: 500; font-family: inherit; text-align: left; cursor: pointer">{{ s.label }}</button>
+      </sc-for>
+    </nav>
+
+    <div style="flex: 1; min-width: 0; min-height: 0; overflow-y: auto; background: var(--color-paper)">
+      <div style="display: flex; flex-direction: column; gap: 14px; padding: 20px 24px 40px; max-width: 1080px">
+
+        <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ true }}">
+          <div style="display: grid; grid-template-columns: minmax(0, 2.1fr) minmax(210px, 1fr); gap: 14px; align-items: start">
+            <div style="display: flex; flex-direction: column; gap: 14px; min-width: 0">
+              <section style="display: flex; flex-direction: column; gap: 14px; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: 16px 18px">
+                <h2 style="margin: 0; font-family: var(--font-bricolage), 'Bricolage Grotesque', Archivo, sans-serif; font-size: 16px; font-weight: 600">Perfil</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px 14px">
+                  <div style="display: flex; flex-direction: column; gap: 5px; min-width: 0">
+                    <label for="profile-name" style="font-size: 12.5px; font-weight: 500">Nome</label>
+                    <x-import component-from-global-scope="MoldAIUI.Input" id="profile-name" value="Ana Ribeiro" on-change="{{ noop }}" hint-size="100%,36px"></x-import>
+                  </div>
+                  <div style="display: flex; flex-direction: column; gap: 5px; min-width: 0">
+                    <label for="profile-atelier" style="font-size: 12.5px; font-weight: 500">Ateliê</label>
+                    <x-import component-from-global-scope="MoldAIUI.Input" id="profile-atelier" value="Ateliê Ribeiro" on-change="{{ noop }}" hint-size="100%,36px"></x-import>
+                  </div>
+                  <div style="display: flex; flex-direction: column; gap: 5px; min-width: 0">
+                    <label for="profile-email" style="font-size: 12.5px; font-weight: 500; color: var(--color-muted)">E-mail</label>
+                    <x-import component-from-global-scope="MoldAIUI.Input" id="profile-email" value="ana@atelie.com.br" disabled="{{ true }}" on-change="{{ noop }}" hint-size="100%,36px"></x-import>
+                    <span style="color: var(--color-muted); font-size: 11.5px">Não pode ser alterado por aqui.</span>
+                  </div>
+                  <div style="display: flex; flex-direction: column; gap: 5px; min-width: 0">
+                    <label for="profile-phone" style="font-size: 12.5px; font-weight: 500">Telefone</label>
+                    <x-import component-from-global-scope="MoldAIUI.Input" id="profile-phone" value="(11) 98765-4321" on-change="{{ noop }}" hint-size="100%,36px"></x-import>
+                  </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px; border-top: 1px solid var(--color-line); padding-top: 12px">
+                  <x-import component-from-global-scope="MoldAIUI.Button" hint-size="auto,36px">Salvar</x-import>
+                  <sc-if value="{{ showSaved }}" hint-placeholder-val="{{ false }}">
+                    <span style="color: var(--color-olive-dark); font-size: 12.5px">Alterações salvas.</span>
+                  </sc-if>
+                </div>
+              </section>
+            </div>
+
+            <aside style="display: flex; flex-direction: column; gap: 12px; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: 16px">
+              <div style="display: flex; align-items: center; gap: 10px">
+                <span style="width: 38px; height: 38px; flex: none; border-radius: 9999px; border: 1px solid #d7ddc9; background: var(--color-olive-tint); color: var(--color-olive); font-size: 13.5px; font-weight: 600; display: flex; align-items: center; justify-content: center">AN</span>
+                <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
+                  <span style="font-size: 12.5px; font-weight: 600">Ana Ribeiro</span>
+                  <span style="color: var(--color-muted); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">ana@atelie.com.br</span>
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 5px; border-top: 1px solid var(--color-line); padding-top: 12px">
+                <div style="display: flex; align-items: baseline; justify-content: space-between">
+                  <span style="font-size: 12.5px; font-weight: 500">Plano Grátis</span>
+                  <span style="color: var(--color-muted); font-size: 11.5px">18/30</span>
+                </div>
+                <div style="height: 5px; background: #ece8dd; border-radius: 9999px; overflow: hidden">
+                  <div style="height: 100%; width: 60%; background: var(--color-olive)"></div>
+                </div>
+                <span style="color: var(--color-muted); font-size: 11.5px">Renova em 12 dias.</span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--color-line); padding-top: 12px">
+                <span style="color: var(--color-muted); font-size: 11.5px">Membro desde março de 2026 · 24 moldes</span>
+              </div>
+            </aside>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isPassword }}" hint-placeholder-val="{{ false }}">
+          <section style="display: flex; flex-direction: column; gap: 14px; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: 16px 18px; max-width: 720px">
+            <div style="display: flex; flex-direction: column; gap: 3px">
+              <h2 style="margin: 0; font-family: var(--font-bricolage), 'Bricolage Grotesque', Archivo, sans-serif; font-size: 16px; font-weight: 600">Alterar senha</h2>
+              <p style="margin: 0; color: var(--color-muted); font-size: 11.5px">Mínimo de 8 caracteres, com um número.</p>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px 14px">
+              <div style="display: flex; flex-direction: column; gap: 5px; min-width: 0">
+                <label for="password-current" style="font-size: 12.5px; font-weight: 500">Senha atual</label>
+                <x-import component-from-global-scope="MoldAIUI.Input" id="password-current" type="password" on-change="{{ noop }}" hint-size="100%,36px"></x-import>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 5px; min-width: 0">
+                <label for="password-new" style="font-size: 12.5px; font-weight: 500">Nova senha</label>
+                <x-import component-from-global-scope="MoldAIUI.Input" id="password-new" type="password" on-change="{{ noop }}" hint-size="100%,36px"></x-import>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 5px; min-width: 0">
+                <label for="password-confirm" style="font-size: 12.5px; font-weight: 500">Confirmar</label>
+                <x-import component-from-global-scope="MoldAIUI.Input" id="password-confirm" type="password" on-change="{{ noop }}" hint-size="100%,36px"></x-import>
+                <sc-if value="{{ showMismatch }}" hint-placeholder-val="{{ false }}">
+                  <span style="color: var(--color-alert); font-size: 11.5px">As senhas não conferem.</span>
+                </sc-if>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px; border-top: 1px solid var(--color-line); padding-top: 12px">
+              <x-import component-from-global-scope="MoldAIUI.Button" disabled="{{ passwordDisabled }}" hint-size="auto,36px">Alterar senha</x-import>
+              <span style="color: var(--color-muted); font-size: 11.5px">Você seguirá conectada neste dispositivo.</span>
+            </div>
+          </section>
+        </sc-if>
+
+        <sc-if value="{{ isUsage }}" hint-placeholder-val="{{ false }}">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px">
+            <sc-for list="{{ usageStats }}" as="k" hint-placeholder-count="3">
+              <div style="display: flex; flex-direction: column; gap: 2px; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: 14px 16px">
+                <span style="color: var(--color-muted); font-size: 11.5px">{{ k.label }}</span>
+                <span style="font-family: var(--font-bricolage), 'Bricolage Grotesque', Archivo, sans-serif; font-size: 21px; font-weight: 600">{{ k.value }}</span>
+                <span style="color: var(--color-muted-2); font-size: 11.5px">{{ k.hint }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <section style="display: flex; flex-direction: column; gap: 12px; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: 16px 18px">
+            <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap">
+              <div style="display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 240px">
+                <div style="display: flex; align-items: baseline; justify-content: space-between">
+                  <span style="font-size: 12.5px; font-weight: 600">18 de 30 créditos</span>
+                  <span style="color: var(--color-muted); font-size: 11.5px">renova em 12 dias</span>
+                </div>
+                <div style="height: 5px; background: #ece8dd; border-radius: 9999px; overflow: hidden">
+                  <div style="height: 100%; width: 60%; background: var(--color-olive)"></div>
+                </div>
+              </div>
+              <x-import component-from-global-scope="MoldAIUI.Button" hint-size="auto,36px">Comprar avulsos · R$ 19,00</x-import>
+            </div>
+          </section>
+          <div style="display: grid; grid-template-columns: minmax(0, 2fr) minmax(190px, 1fr); gap: 14px; align-items: start">
+            <section style="display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: 16px 18px; min-width: 0">
+              <h2 style="margin: 0; font-family: var(--font-bricolage), 'Bricolage Grotesque', Archivo, sans-serif; font-size: 16px; font-weight: 600">Histórico</h2>
+              <ul style="display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none">
+                <sc-for list="{{ ledger }}" as="e" hint-placeholder-count="6">
+                  <li style="display: grid; grid-template-columns: minmax(0, 1fr) auto 52px; align-items: center; gap: 10px; border-bottom: 1px solid var(--color-line); padding: 7px 0; font-size: 12.5px">
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ e.label }}</span>
+                    <span style="color: var(--color-muted); font-size: 11.5px">{{ e.ago }}</span>
+                    <span style="font-weight: 500; text-align: right; font-variant-numeric: tabular-nums; color: {{ e.color }}">{{ e.amount }}</span>
+                  </li>
+                </sc-for>
+              </ul>
+            </section>
+            <section style="display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: 16px; align-self: stretch">
+              <h2 style="margin: 0; font-family: var(--font-bricolage), 'Bricolage Grotesque', Archivo, sans-serif; font-size: 13.5px; font-weight: 600">Custo por ação</h2>
+              <ul style="display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; font-size: 12.5px">
+                <sc-for list="{{ costs }}" as="c" hint-placeholder-count="4">
+                  <li style="display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid var(--color-line); padding: 6px 0">
+                    <span>{{ c.label }}</span>
+                    <span style="color: var(--color-muted-2); font-variant-numeric: tabular-nums">{{ c.value }}</span>
+                  </li>
+                </sc-for>
+              </ul>
+            </section>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isPlan }}" hint-placeholder-val="{{ false }}">
+          <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px">
+            <sc-for list="{{ plans }}" as="p" hint-placeholder-count="4">
+              <div style="display: flex; flex-direction: column; gap: 7px; border: {{ p.border }}; border-radius: var(--radius-card); background: {{ p.background }}; padding: 14px 15px; opacity: {{ p.opacity }}">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 20px">
+                  <span style="font-size: 13.5px; font-weight: 600">{{ p.name }}</span>
+                  <sc-if value="{{ p.isCurrent }}" hint-placeholder-val="{{ false }}">
+                    <span style="border-radius: 9999px; background: var(--color-olive); color: #f7f7f2; padding: 3px 9px; font-size: 10.5px; font-weight: 600; white-space: nowrap">Plano atual</span>
+                  </sc-if>
+                  <sc-if value="{{ p.showSoon }}" hint-placeholder-val="{{ false }}">
+                    <x-import component-from-global-scope="MoldAIUI.Badge" variant="soon" hint-size="auto,18px">em breve</x-import>
+                  </sc-if>
+                </div>
+                <span style="font-family: var(--font-bricolage), 'Bricolage Grotesque', Archivo, sans-serif; font-size: 21px; font-weight: 600">{{ p.price }}</span>
+                <span style="color: var(--color-muted); font-size: 11.5px">{{ p.creditsLabel }}</span>
+                <div style="flex: 1"></div>
+                <sc-if value="{{ p.canUpgrade }}" hint-placeholder-val="{{ false }}">
+                  <x-import component-from-global-scope="MoldAIUI.Button" size="sm" class-name="mt-1 w-full" hint-size="100%,32px">{{ p.upgradeLabel }}</x-import>
+                </sc-if>
+                <sc-if value="{{ p.showUnavailable }}" hint-placeholder-val="{{ false }}">
+                  <x-import component-from-global-scope="MoldAIUI.Button" size="sm" variant="outline" disabled="{{ true }}" class-name="mt-1 w-full" hint-size="100%,32px">Indisponível</x-import>
+                </sc-if>
+              </div>
+            </sc-for>
+          </section>
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; flex-wrap: wrap; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: 14px 16px">
+            <p style="margin: 0; max-width: 560px; color: var(--color-muted-2); font-size: 12.5px; line-height: 1.5">A cobrança é feita em reais (BRL). Se você estiver fora do Brasil, o valor aparece convertido para a sua moeda na hora do pagamento, mas a cobrança final é em reais. Aceitamos apenas Visa e Mastercard.</p>
+            <a href="#" style="font-size: 12.5px; font-weight: 600; white-space: nowrap">Ver todos os planos →</a>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isDanger }}" hint-placeholder-val="{{ false }}">
+          <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px 18px; border: 1px solid var(--color-alert); border-radius: var(--radius-card); background: #fdf3d8; padding: 16px 18px; max-width: 720px">
+            <div style="display: flex; flex-direction: column; gap: 8px; min-width: 0">
+              <h2 style="margin: 0; color: var(--color-alert); font-family: var(--font-bricolage), 'Bricolage Grotesque', Archivo, sans-serif; font-size: 16px; font-weight: 600">Excluir conta</h2>
+              <p style="margin: 0; color: var(--color-muted-2); font-size: 12.5px; line-height: 1.5">Excluir a conta apaga seus moldes, grades, bases e histórico de créditos. Essa ação não pode ser desfeita.</p>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 12px; min-width: 0">
+              <div style="display: flex; flex-direction: column; gap: 5px">
+                <label for="danger-email" style="font-size: 12.5px; font-weight: 500">Digite ana@atelie.com.br</label>
+                <x-import component-from-global-scope="MoldAIUI.Input" id="danger-email" class-name="bg-surface" on-change="{{ noop }}" hint-size="100%,36px"></x-import>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 5px">
+                <label for="danger-password" style="font-size: 12.5px; font-weight: 500">Senha</label>
+                <x-import component-from-global-scope="MoldAIUI.Input" id="danger-password" type="password" class-name="bg-surface" on-change="{{ noop }}" hint-size="100%,36px"></x-import>
+                <sc-if value="{{ showDangerError }}" hint-placeholder-val="{{ false }}">
+                  <span style="color: var(--color-alert); font-size: 11.5px">Senha incorreta.</span>
+                </sc-if>
+              </div>
+              <x-import component-from-global-scope="MoldAIUI.Button" variant="destructiveOutline" disabled="{{ dangerDisabled }}" hint-size="auto,36px">Excluir minha conta</x-import>
+            </div>
+          </section>
+        </sc-if>
+
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;state&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;profile&quot;,&quot;profileSaved&quot;,&quot;password&quot;,&quot;passwordMismatch&quot;,&quot;usage&quot;,&quot;plan&quot;,&quot;danger&quot;,&quot;dangerError&quot;],&quot;default&quot;:&quot;profile&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Seção / estado&quot;}}">
+const SECTIONS = [
+  { id: "profile", label: "Perfil" },
+  { id: "password", label: "Alterar senha" },
+  { id: "usage", label: "Créditos e uso" },
+  { id: "plan", label: "Plano e cobrança" },
+  { id: "danger", label: "Excluir conta" },
+];
+
+const LEDGER = [
+  { label: "Uso · Ajuste", ago: "há 2h", amount: "−1", debit: true },
+  { label: "Uso · Graduação", ago: "há 1d", amount: "−6", debit: true },
+  { label: "Créditos avulsos", ago: "há 3d", amount: "+100", debit: false },
+  { label: "Uso · Ajuste", ago: "há 4d", amount: "−1", debit: true },
+  { label: "Estorno · Erro", ago: "há 4d", amount: "+1", debit: false },
+  { label: "Renovação", ago: "há 18d", amount: "+30", debit: false },
+];
+
+const COSTS = [
+  { label: "Geração", value: "1" },
+  { label: "Ajuste", value: "1" },
+  { label: "Graduação", value: "6" },
+  { label: "Correção", value: "0" },
+];
+
+const PLANS = [
+  { id: "free", name: "Grátis", cents: 0, credits: 30 },
+  { id: "atelier", name: "Ateliê", cents: 5900, credits: 500 },
+  { id: "studio", name: "Estúdio", cents: 14900, credits: 2000 },
+  { id: "factory", name: "Confecção", cents: 39900, credits: 10000 },
+];
+
+const brl = (cents) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
+const num = (n) => new Intl.NumberFormat("pt-BR").format(n);
+
+const SECTION_OF_STATE = {
+  profile: "profile", profileSaved: "profile",
+  password: "password", passwordMismatch: "password",
+  usage: "usage",
+  plan: "plan",
+  danger: "danger", dangerError: "danger",
+};
+
+class Component extends DCLogic {
+  renderVals() {
+    const state = this.props.state ?? "profile";
+    const section = SECTION_OF_STATE[state] ?? "profile";
+    const currentPlan = "free";
+    return {
+      sections: SECTIONS.map((s) => ({
+        label: s.label,
+        current: s.id === section ? "page" : "false",
+        background: s.id === section ? "var(--color-olive-tint)" : "transparent",
+        color: s.id === section ? "var(--color-olive-dark)" : "var(--color-muted-2)",
+      })),
+      isProfile: section === "profile",
+      isPassword: section === "password",
+      isUsage: section === "usage",
+      isPlan: section === "plan",
+      isDanger: section === "danger",
+      showSaved: state === "profileSaved",
+      showMismatch: state === "passwordMismatch",
+      passwordDisabled: state !== "passwordMismatch",
+      showDangerError: state === "dangerError",
+      dangerDisabled: state !== "dangerError",
+      usageStats: [
+        { label: "Créditos restantes", value: "18", hint: "de 30 no ciclo" },
+        { label: "Usados neste ciclo", value: "12", hint: "8 gerações · 4 ajustes" },
+        { label: "Moldes ativos", value: "24", hint: "3 criados esta semana" },
+      ],
+      costs: COSTS,
+      ledger: LEDGER.map((e) => ({
+        label: e.label,
+        ago: e.ago,
+        amount: e.amount,
+        color: e.debit ? "var(--color-alert)" : "var(--color-olive-dark)",
+      })),
+      plans: PLANS.map((p) => {
+        const isCurrent = p.id === currentPlan;
+        const canUpgrade = !isCurrent && p.credits > 30;
+        return {
+          name: p.name,
+          price: brl(p.cents),
+          creditsLabel: num(p.credits) + " créditos/mês",
+          isCurrent,
+          canUpgrade,
+          showUnavailable: !isCurrent && !canUpgrade,
+          showSoon: !isCurrent && !canUpgrade,
+          upgradeLabel: "Assinar " + p.name,
+          border: isCurrent ? "2px solid var(--color-olive)" : "1px solid var(--color-border)",
+          background: isCurrent ? "var(--color-olive-tint)" : "var(--color-surface)",
+          opacity: !isCurrent && !canUpgrade ? "0.7" : "1",
+        };
+      }),
+      noop: () => {},
+    };
+  }
+}
+</script>
+</body>
+</html>

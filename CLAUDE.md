@@ -104,7 +104,18 @@ Requires `ANTHROPIC_API_KEY`, `DATABASE_URL`, and `AUTH_SECRET` in `.env.local`.
 
 ### Design source of truth
 
-There is currently no design handoff directory in this repo. `docs/design/` (the `README.md` design-token/per-screen spec doc and the `MoldAI Wireframes.dc.html` navigable prototype, referenced by screen id — `4a`, `4b`, `5d`, `5e`, `5i`, etc. — throughout this file) was removed pending a redo; the design-`Nx` ids still cited elsewhere in this file are historical pointers into that retired doc, not currently-resolvable references. Once a new handoff lands, restore this section to point at it.
+`docs/design/` holds a redesign handoff (added 2026-08-30): `README.md` (a screen-by-screen comparison against the current implementation, calling out the real content/behavior changes) plus `screens/*.dc.html` (11 reference files, one per screen — Autenticação covers Login/Signup/Reset/Verify under one shared card) and `screenshots/*.png` (rendered captures — the `.dc.html` files depend on an internal editor runtime and don't run standalone, so the screenshots are the fastest way to see the result). It reuses the `moldai-ui` tokens already in `app/globals.css` (verified: `--color-olive`, `--radius-card`/`--radius-btn`, the `text-tick`…`text-hero` scale all check out against the real file) rather than inventing a new visual language, so most of it is layout/spacing refinement to review component-by-component against the screenshots, not a content change.
+
+**This is a different document from the original numbered-screen (`4a`/`4b`/`5d`/`5e`/`5i`, etc.) wireframe spec that was removed pending a redo** — it's a new redesign-vs-current-app comparison, not a restoration of that one, so the `design-Nx` ids still cited elsewhere in this file remain historical, unresolvable pointers into that still-retired document.
+
+Four real content/behavior changes came out of the README's diff against the current app, each flagged there with an open question to resolve before building it:
+
+1. **Dashboard gains an onboarding checklist** ("Comece com o pé direito · N de 5", 5 steps) — `DashboardShell.tsx` renders none today. Its "convidar alguém da equipe" step implies multi-user-per-account, which the schema/auth don't support — confirm scope (build it / external link / placeholder) before implementing.
+2. **Settings menu reorder** — move "Excluir conta" from 3rd to last in `SETTINGS_SECTIONS` (today: profile, password, danger, usage, plan).
+3. **Version comparison gains a Comprimento (length) delta** alongside the existing Cava/Consumo deltas — `VersionCompare.tsx` computes only `armholeDeltaLabel`/`consumptionDeltaLabel` today.
+4. **Login gains a "Continuar com Google" button** — decorative unless `auth.ts` first gets a real Google OAuth provider (today: Credentials only); confirm before implementing.
+
+Everything else in the package (Landing, Onboarding, Bases do ateliê, Medidas e grades, Importação, Editor, Planos, Versões layout) is visual/layout refinement of content that already matches `messages/pt-BR.json` and the current components — verify screen-by-screen against the screenshot, but treat it as a styling pass, not new scope.
 
 ## Architecture
 

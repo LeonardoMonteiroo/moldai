@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/fonts/fonts.css">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/_ds_bundle.css">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/styles.css">
+  <script src="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/_ds_bundle.js"></script>
+  <script src="./image-slot.js"></script>
+  <style>
+    html, body { margin: 0; height: 100%; }
+    body { background: var(--color-paper); color: var(--color-ink); font-family: Archivo, system-ui, sans-serif; }
+    a { color: var(--color-olive); }
+    a:hover { color: var(--color-olive-dark); }
+    @keyframes skeleton-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .skeleton { background: var(--color-surface-alt); border-radius: var(--radius-btn); animation: skeleton-pulse 1.4s ease-in-out infinite; }
+  </style>
+</helmet>
+<div data-screen-label="Bases do ateliê" style="display: flex; flex-direction: column; height: 100vh; min-height: 0; background: var(--color-paper); color: var(--color-ink); font-family: Archivo, system-ui, sans-serif; position: relative; overflow: hidden">
+
+  <header style="display: flex; align-items: center; gap: 14px; flex: none; border-bottom: 1px solid var(--color-border); background: var(--color-surface); padding: 10px 16px">
+    <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 18px; font-weight: 700; letter-spacing: -0.4px">Mold<span style="color: var(--color-olive)">AI</span></span>
+    <div style="width: 1px; height: 22px; background: var(--color-border)"></div>
+    <div style="display: flex; align-items: baseline; gap: 9px; min-width: 0">
+      <h1 style="margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -0.1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Bases e modelos</h1>
+    </div>
+    <div style="flex: 1"></div>
+    <div style="display: flex; align-items: center; gap: 8px; flex: none; height: 30px; padding: 0 4px 0 11px; border: 1px solid var(--color-border); border-radius: 9999px; background: var(--color-surface-alt)">
+      <span style="color: var(--color-muted-2); font-size: 11.5px; font-variant-numeric: tabular-nums; white-space: nowrap">34<span style="color: var(--color-muted)"> de 60</span></span>
+      <div style="width: 44px; height: 4px; border-radius: 9999px; background: #ece8dd; overflow: hidden"><div style="width: 57%; height: 100%; background: var(--color-olive)"></div></div>
+      <a href="./Planos.dc.html" title="Comprar créditos" style="display: flex; align-items: center; flex: none; height: 24px; padding: 0 9px; border-radius: 9999px; color: var(--color-olive); font-size: 11.5px; font-weight: 600; text-decoration: none; white-space: nowrap">comprar</a>
+    </div>
+    <button type="button" aria-label="Conta" title="ana@atelie.com.br" style="display: flex; align-items: center; gap: 5px; flex: none; height: 28px; padding: 0 2px; border: 0; background: transparent; border-radius: var(--radius-btn); color: var(--color-ink); cursor: pointer">
+      <span style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 1px solid #d7ddc9; border-radius: 9999px; background: var(--color-olive-tint); color: var(--color-olive); font-size: 11.5px; font-weight: 600">AN</span>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+    </button>
+  </header>
+
+  <div style="position: relative; display: flex; flex: 1; min-height: 0">
+
+    <div style="width: 200px; flex: none; display: flex; flex-direction: column; border-right: 1px solid var(--color-border); background: var(--color-surface); padding: 14px; gap: 14px">
+      <nav style="display: flex; flex-direction: column; gap: 4px">
+        <a href="./Dashboard.dc.html" style="display: flex; align-items: center; justify-content: flex-start; gap: 9px; height: 30px; padding: 0 10px; border-radius: var(--radius-btn); color: var(--color-muted-2); font-size: 12.5px; font-weight: 500; text-decoration: none">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg>
+          Meus moldes
+        </a>
+        <a href="./Medidas e grades.dc.html" style="display: flex; align-items: center; justify-content: flex-start; gap: 9px; height: 30px; padding: 0 10px; border-radius: var(--radius-btn); color: var(--color-muted-2); font-size: 12.5px; font-weight: 500; text-decoration: none">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0Z"></path><path d="m14.5 12.5 2-2"></path><path d="m11.5 9.5 2-2"></path><path d="m8.5 6.5 2-2"></path><path d="m17.5 15.5 2-2"></path></svg>
+          Medidas e grades
+        </a>
+        <button type="button" aria-current="page" style="display: flex; align-items: center; justify-content: flex-start; gap: 9px; padding: 7px 10px; border: 0; border-radius: var(--radius-item); background: var(--color-olive-tint); color: var(--color-olive); font-size: 12.5px; font-weight: 600; font-family: inherit; cursor: pointer; text-align: left">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"></path><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"></path><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"></path></svg>
+          Bases e modelos
+        </button>
+      </nav>
+      <div style="flex: 1"></div>
+    </div>
+
+    <main style="display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0">
+
+      <sc-if value="{{ showActionError }}" hint-placeholder-val="{{ false }}">
+        <div role="status" style="display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #f0dfa8; background: #fdf3d8; padding: 9px 22px">
+          <span style="flex: 1; font-size: 12.5px">Algo deu errado e sua última ação não foi aplicada.</span>
+          <button type="button" aria-label="Fechar aviso" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: var(--radius-btn); background: transparent; color: var(--color-ink); cursor: pointer">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+          </button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ showLoading }}" hint-placeholder-val="{{ false }}">
+        <div role="status" aria-label="Carregando bases" style="flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 16px; padding: 22px">
+          <div style="display: flex; align-items: center; gap: 12px">
+            <div class="skeleton" style="width: 100px; height: 26px"></div>
+            <div style="flex: 1"></div>
+            <div class="skeleton" style="width: 200px; height: 34px"></div>
+            <div class="skeleton" style="width: 150px; height: 34px"></div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px">
+            <sc-for list="{{ skeletonCards }}" as="s" hint-placeholder-count="4">
+              <div style="display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: 10px">
+                <div class="skeleton" style="height: 112px; width: 100%; border-radius: var(--radius-item)"></div>
+                <div class="skeleton" style="height: 13px; width: 70%"></div>
+                <div class="skeleton" style="height: 11px; width: 45%"></div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ showLoadError }}" hint-placeholder-val="{{ false }}">
+        <div role="alert" style="flex: 1; display: flex; align-items: center; justify-content: center; color: var(--color-alert); font-size: 13.5px">Não foi possível carregar suas bases. Tente recarregar a página.</div>
+      </sc-if>
+
+      <sc-if value="{{ showContent }}" hint-placeholder-val="{{ true }}">
+        <div style="flex: 1; min-height: 0; overflow-y: auto">
+          <div style="display: flex; flex-direction: column; gap: 16px; padding: 22px">
+
+            <div style="display: flex; flex-direction: column; gap: 2px">
+              <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+                <span class="font-display" style="font-size: 26px; font-weight: 600">{{ countLabel }}</span>
+              </div>
+              <span style="color: var(--color-muted); font-size: 11.5px">Uma base nasce de um molde: abra um molde no editor e use "Salvar como base" para guardá-lo aqui como ponto de partida reutilizável.</span>
+            </div>
+
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+              <div style="flex: 1"></div>
+              <x-import component-from-global-scope="MoldAIUI.Input" placeholder="Buscar base…" value="{{ searchValue }}" on-change="{{ noop }}" style="width: 200px; box-shadow: 0 1px 2px rgba(28, 28, 25, 0.08)" hint-size="200px,34px"></x-import>
+              <x-import component-from-global-scope="MoldAIUI.Select" open="{{ false }}" value="all" on-value-change="{{ noop }}" style="width: 150px; box-shadow: 0 1px 2px rgba(28, 28, 25, 0.08)" hint-size="150px,34px">
+                <x-import component-from-global-scope="MoldAIUI.SelectTrigger" size="sm" hint-size="150px,34px">
+                  <x-import component-from-global-scope="MoldAIUI.SelectValue" hint-size="auto,20px"></x-import>
+                </x-import>
+                <x-import component-from-global-scope="MoldAIUI.SelectContent" hint-size="150px,auto">
+                  <x-import component-from-global-scope="MoldAIUI.SelectGroup" hint-size="150px,auto">
+                    <x-import component-from-global-scope="MoldAIUI.SelectItem" value="all" hint-size="auto,28px">Todos os tipos</x-import>
+                    <x-import component-from-global-scope="MoldAIUI.SelectItem" value="blouse" hint-size="auto,28px">Blusa</x-import>
+                    <x-import component-from-global-scope="MoldAIUI.SelectItem" value="dress" hint-size="auto,28px">Vestido</x-import>
+                    <x-import component-from-global-scope="MoldAIUI.SelectItem" value="skirt" hint-size="auto,28px">Saia</x-import>
+                    <x-import component-from-global-scope="MoldAIUI.SelectItem" value="trousers" hint-size="auto,28px">Calça</x-import>
+                  </x-import>
+                </x-import>
+              </x-import>
+            </div>
+
+            <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex: 1; min-width: 0; flex-direction: column; align-items: center; justify-content: center; gap: 24px; border: 1px dashed var(--color-border); border-radius: var(--radius-item); padding: 48px; text-align: center">
+                <div style="display: flex; max-width: 384px; flex-direction: column; align-items: center; gap: 8px; text-align: center">
+                  <div style="font-size: 16px; font-weight: 500; letter-spacing: -0.01em">Nenhuma base salva</div>
+                  <div style="color: var(--color-muted); font-size: 12.5px; line-height: 1.625">Abra um molde já gerado e use "Salvar como base" no rodapé do editor.</div>
+                </div>
+                <a href="./Dashboard.dc.html" style="text-decoration: none">
+                  <x-import component-from-global-scope="MoldAIUI.Button" variant="outline" hint-size="auto,36px">Ir para meus moldes</x-import>
+                </a>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ showGrid }}" hint-placeholder-val="{{ true }}">
+              <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px">
+                <sc-for list="{{ slopers }}" as="s" hint-placeholder-count="4">
+                  <div style="position: relative; display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: 10px" style-hover="border-color: var(--color-olive)">
+                    <div style="position: relative; display: flex; align-items: center; justify-content: center; height: 112px; width: 100%; overflow: hidden; border-radius: var(--radius-item); background: var(--color-surface-alt)">
+                      <image-slot id="{{ s.id }}" shape="rect" placeholder="Miniatura da base"></image-slot>
+                      <x-import component-from-global-scope="MoldAIUI.Badge" variant="quiet" size="chip" style="position: absolute; top: 8px; left: 8px" hint-size="auto,20px">{{ s.typeLabel }}</x-import>
+                    </div>
+                    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 4px">
+                      <div style="display: flex; min-width: 0; flex-direction: column; gap: 1px">
+                        <span style="font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ s.name }}</span>
+                        <span style="color: var(--color-muted); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ s.chart }}</span>
+                      </div>
+                      <button type="button" aria-label="Mais opções" style="width: 28px; height: 28px; flex: none; display: flex; align-items: center; justify-content: center; border: 0; border-radius: var(--radius-btn); background: transparent; color: var(--color-ink); opacity: 0; cursor: pointer" style-hover="opacity: 1">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+                      </button>
+                    </div>
+                    <x-import component-from-global-scope="MoldAIUI.Button" variant="outline" size="sm" hint-size="100%,32px">Usar base</x-import>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+    </main>
+  </div>
+
+  <sc-if value="{{ showRename }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; z-index: 50; background: rgba(28, 28, 25, 0.28)"></div>
+    <div role="dialog" aria-modal="true" style="position: absolute; top: 50%; left: 50%; z-index: 50; transform: translate(-50%, -50%); display: grid; gap: 16px; width: 100%; max-width: 512px; border: 1px solid var(--color-border); border-radius: var(--radius-item); background: var(--color-surface); padding: 24px; box-shadow: 0 10px 15px -3px rgba(28, 28, 25, 0.1), 0 4px 6px -4px rgba(28, 28, 25, 0.1)">
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 16px; font-weight: 600; line-height: 1">Renomear base</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px; padding: 16px 0">
+        <label for="rename-sloper" style="font-size: 12.5px; font-weight: 500; line-height: 1">Novo nome da base</label>
+        <x-import component-from-global-scope="MoldAIUI.Input" id="rename-sloper" value="Base blusa feminina" on-change="{{ noop }}" hint-size="100%,36px"></x-import>
+      </div>
+      <div style="display: flex; gap: 8px; justify-content: flex-end">
+        <x-import component-from-global-scope="MoldAIUI.Button" variant="outline" size="sm" hint-size="auto,32px">Cancelar</x-import>
+        <x-import component-from-global-scope="MoldAIUI.Button" size="sm" hint-size="auto,32px">Salvar</x-import>
+      </div>
+      <button type="button" aria-label="Fechar" style="position: absolute; top: 16px; right: 16px; border: 0; background: transparent; color: var(--color-ink); opacity: 0.7; cursor: pointer; padding: 0; display: flex">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+      </button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showDelete }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; z-index: 50; background: rgba(28, 28, 25, 0.28)"></div>
+    <div role="alertdialog" aria-modal="true" style="position: absolute; top: 50%; left: 50%; z-index: 50; transform: translate(-50%, -50%); display: grid; gap: 16px; width: 100%; max-width: 320px; border: 1px solid var(--color-border); border-radius: var(--radius-item); background: var(--color-surface); padding: 24px; box-shadow: 0 10px 15px -3px rgba(28, 28, 25, 0.1), 0 4px 6px -4px rgba(28, 28, 25, 0.1)">
+      <div style="display: grid; place-items: center; gap: 6px; text-align: center">
+        <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 16px; font-weight: 600">Excluir esta base?</span>
+        <span style="color: var(--color-muted); font-size: 12.5px; line-height: 1.45">Isso apaga a base do ateliê. Os moldes já criados a partir dela não são afetados.</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+        <x-import component-from-global-scope="MoldAIUI.Button" variant="outline" size="sm" hint-size="100%,32px">Cancelar</x-import>
+        <x-import component-from-global-scope="MoldAIUI.Button" variant="destructiveOutline" size="sm" hint-size="100%,32px">Excluir</x-import>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;state&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;default&quot;,&quot;empty&quot;,&quot;rename&quot;,&quot;delete&quot;,&quot;actionError&quot;,&quot;loading&quot;,&quot;loadError&quot;],&quot;default&quot;:&quot;default&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Estado da tela&quot;}}">
+const TYPE_LABELS = { blouse: "Blusa", skirt: "Saia", trousers: "Calça", dress: "Vestido" };
+
+const SLOPERS = [
+  { id: "sloper-blouse", name: "Base blusa feminina", chart: "Grade do ateliê · base M", kind: "blouse" },
+  { id: "sloper-skirt", name: "Base saia reta", chart: "Grade do ateliê · base M", kind: "skirt" },
+  { id: "sloper-trousers", name: "Base calça alfaiataria", chart: "Feminino adulto · base 40", kind: "trousers" },
+  { id: "sloper-dress", name: "Base vestido evasê", chart: "Grade do ateliê · base P", kind: "dress" },
+];
+
+class Component extends DCLogic {
+  renderVals() {
+    const state = this.props.state ?? "default";
+    const isEmpty = state === "empty";
+    return {
+      showActionError: state === "actionError",
+      showLoading: state === "loading",
+      showLoadError: state === "loadError",
+      showContent: !["loading", "loadError"].includes(state),
+      isEmpty,
+      showGrid: !isEmpty,
+      countLabel: isEmpty ? "Nenhuma base" : "4 bases",
+      searchValue: "",
+      skeletonCards: [0, 1, 2, 3],
+      slopers: SLOPERS.map((s) => ({
+        id: s.id,
+        name: s.name,
+        chart: s.chart,
+        typeLabel: TYPE_LABELS[s.kind],
+      })),
+      showRename: state === "rename",
+      showDelete: state === "delete",
+      noop: () => {},
+    };
+  }
+}
+
+</script>
+</body>
+</html>

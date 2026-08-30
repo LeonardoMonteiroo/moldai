@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/fonts/fonts.css">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/_ds_bundle.css">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/styles.css">
+  <script src="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/_ds_bundle.js"></script>
+  <style>
+    html, body { margin: 0; height: 100%; }
+    body { background: var(--color-paper); color: var(--color-ink); font-family: Archivo, system-ui, sans-serif; }
+    a { color: var(--color-olive); }
+    a:hover { color: var(--color-olive-dark); }
+    .pattern-grid { background-image: linear-gradient(rgba(28,28,25,.055) 1px, transparent 1px), linear-gradient(90deg, rgba(28,28,25,.055) 1px, transparent 1px); background-size: 26px 26px; }
+    .float-chrome { border: 1px solid var(--color-border); background: rgba(255,255,255,.86); box-shadow: var(--shadow-card); backdrop-filter: blur(6px); }
+    @keyframes skel { 0%, 100% { opacity: 1 } 50% { opacity: .48 } }
+    .skel { background: #e7e3d9; border-radius: 8px; animation: skel 1.5s ease-in-out infinite; }
+  </style>
+</helmet>
+<div data-screen-label="Editor de moldes" style="display: flex; flex-direction: column; height: 100vh; min-height: 0; background: var(--color-surface); color: var(--color-ink); font-family: Archivo, system-ui, sans-serif; position: relative; overflow: hidden">
+
+  <header style="display: flex; align-items: center; gap: 14px; flex: none; border-bottom: 1px solid var(--color-border); background: var(--color-surface); padding: 10px 16px; filter: {{ dimFilter }}">
+    <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 18px; font-weight: 700; letter-spacing: -0.4px">Mold<span style="color: var(--color-olive)">AI</span></span>
+    <button type="button" aria-label="Voltar para meus moldes" title="Voltar para meus moldes" style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 1px solid var(--color-border); border-radius: var(--radius-btn); background: var(--color-surface); color: var(--color-muted-2); cursor: pointer">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+    </button>
+    <div style="display: flex; align-items: baseline; gap: 9px; min-width: 0">
+      <h1 style="margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -0.1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Blusa manga longa</h1>
+      <span style="color: var(--color-muted); font-size: 11.5px; white-space: nowrap">{{ savedLabel }}</span>
+    </div>
+    <div style="flex: 1"></div>
+    <div style="display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 4px 0 11px; border: 1px solid var(--color-border); border-radius: 9999px; background: var(--color-surface-alt)">
+      <span style="color: var(--color-muted-2); font-size: 11.5px; font-variant-numeric: tabular-nums; white-space: nowrap">{{ creditsLabel }}<span style="color: var(--color-muted)"> de 30</span></span>
+      <div style="width: 44px; height: 4px; border-radius: 9999px; background: #ece8dd; overflow: hidden"><div style="width: {{ creditsPct }}; height: 100%; background: var(--color-olive)"></div></div>
+      <a href="./Planos.dc.html" title="Comprar créditos" style="display: flex; align-items: center; flex: none; height: 24px; padding: 0 9px; border-radius: 9999px; color: var(--color-olive); font-size: 11.5px; font-weight: 600; text-decoration: none; white-space: nowrap">comprar</a>
+    </div>
+    <div style="width: 1px; height: 22px; background: var(--color-border)"></div>
+    <div style="display: flex; align-items: center; gap: 7px">
+      <x-import component-from-global-scope="MoldAIUI.Button" variant="outline" size="chrome" hint-size="auto,30px">Histórico</x-import>
+      <x-import component-from-global-scope="MoldAIUI.Button" variant="outline" size="chrome" disabled="{{ exportDisabled }}" hint-size="auto,30px">Salvar como base</x-import>
+    </div>
+    <button type="button" aria-label="Conta" title="ana@atelie.com.br" style="display: flex; align-items: center; gap: 5px; height: 28px; padding: 0 2px; border: 0; background: transparent; border-radius: var(--radius-btn); color: var(--color-ink); cursor: pointer">
+      <span style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 1px solid #d7ddc9; border-radius: 9999px; background: var(--color-olive-tint); color: var(--color-olive); font-size: 11.5px; font-weight: 600">AN</span>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+    </button>
+  </header>
+
+  <sc-if value="{{ showLoading }}" hint-placeholder-val="{{ false }}">
+    <div role="status" aria-label="Carregando molde" style="display: flex; flex: 1; min-height: 0">
+      <div style="display: flex; flex-direction: column; width: 340px; flex: none; gap: 14px; border-right: 1px solid var(--color-border); background: var(--color-surface); padding: 18px">
+        <div class="skel" style="width: 78%; height: 40px; border-radius: 12px 12px 3px 12px; align-self: flex-end"></div>
+        <div class="skel" style="width: 88%; height: 64px; border-radius: 12px 12px 12px 3px; animation-delay: .15s"></div>
+        <div class="skel" style="width: 62%; height: 30px; border-radius: 12px 12px 3px 12px; align-self: flex-end; animation-delay: .3s"></div>
+        <div class="skel" style="width: 84%; height: 52px; border-radius: 12px 12px 12px 3px; animation-delay: .45s"></div>
+        <div style="flex: 1"></div>
+        <div class="skel" style="height: 84px; border-radius: var(--radius-card)"></div>
+      </div>
+      <div class="pattern-grid" style="position: relative; flex: 1; min-width: 0; background-color: var(--color-paper); overflow: hidden">
+        <div style="position: absolute; top: 14px; left: 16px; right: 16px; display: flex; align-items: center; gap: 8px">
+          <div class="skel" style="width: 290px; height: 32px; border-radius: 9px"></div>
+          <div style="flex: 1"></div>
+          <div class="skel" style="width: 132px; height: 32px; border-radius: 9px; animation-delay: .2s"></div>
+        </div>
+        <div style="position: absolute; top: 58px; bottom: 46px; left: 24px; right: 24px; display: flex; align-items: stretch; gap: 26px">
+          <div class="skel" style="width: 20%; border-radius: 10px"></div>
+          <div class="skel" style="width: 20%; border-radius: 10px; animation-delay: .15s"></div>
+          <div class="skel" style="width: 26%; margin-top: 8%; border-radius: 10px; animation-delay: .3s"></div>
+        </div>
+        <div style="position: absolute; left: 16px; bottom: 14px; display: flex; align-items: center; gap: 9px; color: var(--color-muted); font-size: 11.5px">
+          <span class="skel" style="width: 12px; height: 12px; border-radius: 9999px"></span>
+          <span>carregando molde…</span>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showLoadError }}" hint-placeholder-val="{{ false }}">
+    <div role="alert" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px">
+      <p style="margin: 0; color: var(--color-alert); font-size: 13.5px">Não foi possível carregar este molde. Tente novamente.</p>
+      <x-import component-from-global-scope="MoldAIUI.Button" variant="outline" size="chrome" hint-size="auto,30px">Tentar de novo</x-import>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showDesktopOnly }}" hint-placeholder-val="{{ false }}">
+    <div role="status" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 22px; text-align: center">
+      <p style="margin: 0; font-size: 13.5px; font-weight: 600">Tela pequena demais para o editor</p>
+      <p style="margin: 0; max-width: 320px; color: var(--color-muted); font-size: 12.5px; line-height: 1.5">O editor de moldes combina o chat e o canvas lado a lado e precisa de uma tela maior. Abra o MoldAI em um computador ou tablet para continuar editando este molde.</p>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showEditor }}" hint-placeholder-val="{{ true }}">
+  <div style="display: flex; flex-direction: column; flex: 1; min-height: 0; filter: {{ dimFilter }}">
+
+    <sc-if value="{{ showActionError }}" hint-placeholder-val="{{ false }}">
+      <div role="status" class="bg-amber-bg border-amber-border text-amber-text" style="display: flex; align-items: center; gap: 10px; border-bottom-width: 1px; border-bottom-style: solid; padding: 9px 18px; flex: none">
+        <span style="flex: 1; font-size: 12.5px">Algo deu errado e sua última ação não foi aplicada.</span>
+        <button type="button" aria-label="Fechar aviso" class="text-amber-text" style="display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border: 0; border-radius: var(--radius-btn); background: transparent; cursor: pointer">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+        </button>
+      </div>
+    </sc-if>
+
+    <div style="display: flex; flex: 1; min-height: 0">
+
+      <aside style="display: flex; flex-direction: column; width: 340px; flex: none; min-height: 0; border-right: 1px solid var(--color-border); background: var(--color-surface)">
+        <div style="flex: 1; min-height: 0; overflow-y: auto">
+          <x-import component-from-global-scope="MoldAIUI.BubbleGroup" role="log" aria-live="polite" class-name="gap-3 p-[18px]" hint-size="100%,320px">
+            <sc-for list="{{ messages }}" as="m" hint-placeholder-count="4">
+              <x-import component-from-global-scope="MoldAIUI.Bubble" variant="{{ m.variant }}" align="{{ m.align }}" hint-size="auto,44px">
+                <div data-slot="bubble-content" class="text-control w-fit max-w-full min-w-0 overflow-hidden rounded-xl rounded-bl-[3px] border border-transparent px-[13px] py-[10px] leading-[1.45] wrap-break-word group-data-[align=end]/bubble:self-end group-data-[align=end]/bubble:rounded-br-[3px] group-data-[align=end]/bubble:rounded-bl-xl">
+                  <span>{{ m.text }}</span>
+                  <sc-if value="{{ m.hasChips }}" hint-placeholder-val="{{ false }}">
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px">
+                      <sc-for list="{{ m.chips }}" as="chip" hint-placeholder-count="2">
+                        <x-import component-from-global-scope="MoldAIUI.Badge" variant="{{ chip.variant }}" hint-size="auto,18px">{{ chip.label }}</x-import>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ m.hasActions }}" hint-placeholder-val="{{ false }}">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-top: 10px; border-top: 1px solid var(--color-line); padding-top: 9px">
+                      <button type="button" style="border: 0; background: transparent; padding: 0; color: var(--color-olive); font-family: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer">ver o que mudou</button>
+                      <span style="color: var(--color-line)">·</span>
+                      <button type="button" style="border: 0; background: transparent; padding: 0; color: var(--color-muted); font-family: inherit; font-size: 12.5px; cursor: pointer">desfazer</button>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ m.hasRetry }}" hint-placeholder-val="{{ false }}">
+                    <div style="display: flex; align-items: center; gap: 9px; margin-top: 10px">
+                      <x-import component-from-global-scope="MoldAIUI.Button" size="sm" hint-size="auto,32px">Tentar novamente</x-import>
+                      <span style="font-size: 11.5px; opacity: 0.75">sem custo</span>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ m.hasDisclaimer }}" hint-placeholder-val="{{ false }}">
+                    <p style="margin: 9px 0 0; color: var(--color-muted); font-size: 11.5px">Ordem de montagem gerada por IA a partir da modelagem — não substitui a verificação de um(a) costureiro(a).</p>
+                  </sc-if>
+                </div>
+              </x-import>
+            </sc-for>
+
+            <sc-if value="{{ showConflictActions }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px">
+                  <x-import component-from-global-scope="MoldAIUI.Button" size="sm" hint-size="auto,32px">Corrigir manga</x-import>
+                  <x-import component-from-global-scope="MoldAIUI.Button" size="sm" variant="outline" hint-size="auto,32px">Ignorar</x-import>
+                </div>
+                <span style="color: var(--color-muted); font-size: 11.5px">Correções não consomem crédito.</span>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ showClarify }}" hint-placeholder-val="{{ false }}">
+              <x-import component-from-global-scope="MoldAIUI.Bubble" variant="surface" align="start" class-name="max-w-full" hint-size="100%,220px">
+                <div data-slot="bubble-content" class="text-control w-full max-w-full min-w-0 overflow-hidden rounded-xl rounded-bl-[3px] border border-transparent px-[13px] py-[10px] leading-[1.45]">
+                  <div style="display: flex; flex-direction: column; gap: 14px">
+                    <div style="display: flex; flex-direction: column; gap: 7px">
+                      <span style="font-size: 12.5px; font-weight: 600">Tipo de gola</span>
+                      <x-import component-from-global-scope="MoldAIUI.ToggleGroup" type="single" value="v" variant="outline" size="sm" hint-size="auto,30px">
+                        <x-import component-from-global-scope="MoldAIUI.ToggleGroupItem" value="v" hint-size="auto,30px">Gola V</x-import>
+                        <x-import component-from-global-scope="MoldAIUI.ToggleGroupItem" value="redonda" hint-size="auto,30px">Redonda</x-import>
+                        <x-import component-from-global-scope="MoldAIUI.ToggleGroupItem" value="outro" hint-size="auto,30px">outro</x-import>
+                      </x-import>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 7px">
+                      <span style="font-size: 12.5px; font-weight: 600">Comprimento da manga</span>
+                      <x-import component-from-global-scope="MoldAIUI.ToggleGroup" type="single" value="longa" variant="outline" size="sm" hint-size="auto,30px">
+                        <x-import component-from-global-scope="MoldAIUI.ToggleGroupItem" value="34" hint-size="auto,30px">3/4</x-import>
+                        <x-import component-from-global-scope="MoldAIUI.ToggleGroupItem" value="longa" hint-size="auto,30px">Longa</x-import>
+                      </x-import>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px">
+                      <x-import component-from-global-scope="MoldAIUI.Button" size="sm" hint-size="auto,32px">Gerar molde</x-import>
+                      <x-import component-from-global-scope="MoldAIUI.Button" variant="link" size="sm" hint-size="auto,32px">gerar assim mesmo</x-import>
+                    </div>
+                  </div>
+                </div>
+              </x-import>
+            </sc-if>
+          </x-import>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 9px; flex: none; border-top: 1px solid var(--color-border); background: var(--color-surface-alt); padding: 12px 14px">
+          <sc-if value="{{ isGenerating }}" hint-placeholder-val="{{ false }}">
+            <div style="border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: 11px 12px">
+              <div style="display: flex; align-items: baseline; gap: 8px">
+                <span style="color: var(--color-muted-2); font-size: 12.5px">passo 3/4 · costuras</span>
+                <div style="flex: 1"></div>
+                <span style="color: var(--color-muted); font-size: 11.5px">−1 crédito</span>
+              </div>
+              <div style="height: 5px; margin-top: 9px; border-radius: 9999px; background: #ece8dd; overflow: hidden"><div style="width: 67%; height: 100%; background: var(--color-olive)"></div></div>
+              <div style="display: flex; align-items: center; gap: 8px; margin-top: 11px">
+                <div style="flex: 1"></div>
+                <x-import component-from-global-scope="MoldAIUI.Button" variant="outline" size="sm" hint-size="auto,32px">Cancelar</x-import>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showComposer }}" hint-placeholder-val="{{ true }}">
+            <div style="border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: 10px 12px">
+              <x-import component-from-global-scope="MoldAIUI.Textarea" rows="{{ 2 }}" placeholder="Descreva o ajuste…" class-name="min-h-0 resize-none border-0 bg-transparent p-0 shadow-none focus-visible:ring-0" hint-size="100%,44px"></x-import>
+              <div style="display: flex; align-items: center; gap: 6px; margin-top: 10px">
+                <button type="button" aria-label="Anexar foto" title="Anexar foto" style="display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border: 0; border-radius: 7px; background: var(--color-surface-alt); color: var(--color-muted-2); cursor: pointer">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-4.6-4.6a2 2 0 0 0-2.8 0L3 21"></path></svg>
+                </button>
+                <button type="button" aria-label="Anexar croqui" title="Anexar croqui" style="display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border: 0; border-radius: 7px; background: var(--color-surface-alt); color: var(--color-muted-2); cursor: pointer">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.586 7.586"></path><circle cx="11" cy="11" r="2"></circle></svg>
+                </button>
+                <button type="button" aria-label="Anexar molde .dxf" title="Anexar molde .dxf" style="display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border: 0; border-radius: 7px; background: var(--color-surface-alt); color: var(--color-muted-2); cursor: pointer">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"></path><path d="M14 2v5h6"></path><path d="M8 13h8"></path><path d="M8 17h5"></path></svg>
+                </button>
+                <div style="flex: 1"></div>
+                <span style="color: var(--color-muted); font-size: 11.5px">1 crédito</span>
+                <x-import component-from-global-scope="MoldAIUI.Button" size="sm" hint-size="auto,32px">Gerar</x-import>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </aside>
+
+      <div class="pattern-grid" style="position: relative; flex: 1; min-width: 0; min-height: 300px; background-color: var(--color-paper); overflow: hidden; opacity: {{ canvasOpacity }}">
+
+        <sc-if value="{{ showPattern2D }}" hint-placeholder-val="{{ true }}">
+          <div style="position: absolute; top: 58px; bottom: 46px; left: 24px; right: {{ canvasRight }}">
+            <svg viewBox="0 0 620 380" style="width: 100%; height: 100%" aria-label="Peças do molde">
+              <g fill="var(--color-surface)" stroke="var(--color-ink)" stroke-width="1.6" stroke-linejoin="round">
+                <polygon points="40,30 150,30 158,120 150,210 120,350 44,350 34,210 28,120"></polygon>
+                <polygon points="210,30 320,30 326,120 320,210 292,350 214,350 204,210 198,120"></polygon>
+                <path d="M400 120 q30 -80 88 -80 q58 0 88 80 l-22 210 q-66 22 -132 0z"></path>
+              </g>
+              <g fill="none" stroke="{{ frontStroke }}" stroke-width="1.1" stroke-dasharray="5 4">
+                <polygon points="48,38 142,38 150,120 142,208 113,342 51,342 42,208 36,120"></polygon>
+              </g>
+              <g stroke="var(--color-pattern-guide)" stroke-width="1.1" fill="none">
+                <path d="M90 60 v260"></path><path d="M84 66 l6 -8 l6 8"></path><path d="M84 314 l6 8 l6 -8"></path>
+                <path d="M262 60 v260"></path><path d="M256 66 l6 -8 l6 8"></path><path d="M256 314 l6 8 l6 -8"></path>
+                <path d="M488 80 v230"></path><path d="M482 86 l6 -8 l6 8"></path><path d="M482 304 l6 8 l6 -8"></path>
+              </g>
+              <g stroke="var(--color-ink)" stroke-width="1.4">
+                <path d="M150 118 h8"></path><path d="M320 118 h8"></path><path d="M400 122 h-8"></path><path d="M576 122 h8"></path>
+              </g>
+              <g fill="var(--color-ink)" font-family="Archivo, sans-serif" font-size="11">
+                <text x="62" y="196">Frente · 1×</text>
+                <text x="232" y="196">Costas · 1×</text>
+                <text x="440" y="230">Manga · 2×</text>
+              </g>
+              <g fill="var(--color-pattern-guide)" font-family="Archivo, sans-serif" font-size="9">
+                <text x="34" y="24">dobra</text>
+                <text x="204" y="24">dobra</text>
+              </g>
+              <sc-if value="{{ showConflictMarkers2D }}" hint-placeholder-val="{{ false }}">
+                <g>
+                  <circle cx="152" cy="118" r="7" fill="none" stroke="var(--color-alert)" stroke-width="2"></circle>
+                  <circle cx="404" cy="124" r="7" fill="none" stroke="var(--color-alert)" stroke-width="2"></circle>
+                  <text x="164" y="112" fill="var(--color-alert)" font-family="Archivo, sans-serif" font-size="10">22,7 cm</text>
+                  <text x="330" y="118" fill="var(--color-alert)" font-family="Archivo, sans-serif" font-size="10">19,7 cm</text>
+                </g>
+              </sc-if>
+            </svg>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ showPattern3D }}" hint-placeholder-val="{{ false }}">
+          <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 60px 24px 76px">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 18px">
+              <svg width="128" height="210" viewBox="0 0 128 210" aria-hidden="true">
+                <path d="M64 8 q20 0 20 20 q0 13 -9 18 l13 24 -8 122 q-16 9 -32 0 l-8 -122 13 -24 q-9 -5 -9 -18 q0 -20 20 -20 z" fill="var(--color-surface)" stroke="var(--color-ink)" stroke-width="1.6" stroke-linejoin="round"></path>
+                <path d="M46 46 l-20 34 M82 46 l20 34" fill="none" stroke="var(--color-ink)" stroke-width="1.6" stroke-linecap="round"></path>
+                <path d="M50 96 v96 M78 96 v96" fill="none" stroke="var(--color-pattern-guide)" stroke-width="1" stroke-dasharray="4 3"></path>
+              </svg>
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center">
+                <span style="font-size: 13.5px; font-weight: 600">Prova 3D em manequim virtual</span>
+                <span style="max-width: 280px; color: var(--color-muted); font-size: 12.5px; line-height: 1.55">Veja a peça montada e como o tecido cai, antes de cortar.</span>
+              </div>
+              <div class="float-chrome" style="display: inline-flex; align-items: center; gap: 4px; height: 32px; padding: 0 4px; border-radius: 9px">
+                <sc-for list="{{ viewAngles }}" as="v" hint-placeholder-count="3">
+                  <button type="button" onClick="{{ v.onClick }}" style="height: 24px; padding: 0 11px; border: 0; border-radius: 6px; background: {{ v.background }}; color: {{ v.color }}; font-family: inherit; font-size: 12.5px; font-weight: {{ v.weight }}; cursor: pointer">{{ v.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ showPatternFicha }}" hint-placeholder-val="{{ false }}">
+          <div style="position: absolute; inset: 0; overflow-y: auto; padding: 58px 24px 24px">
+            <div style="max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); box-shadow: var(--shadow-card); padding: 28px">
+              <div style="display: flex; flex-direction: column; gap: 2px">
+                <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 20px; font-weight: 600; letter-spacing: -0.2px">Blusa manga longa</span>
+                <span style="color: var(--color-muted); font-size: 11.5px">Ficha técnica · tamanho-base M</span>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <span style="color: var(--color-muted); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">Medidas</span>
+                <div style="border: 1px solid var(--color-border); border-radius: var(--radius-btn); overflow: hidden">
+                  <sc-for list="{{ techMeasurements }}" as="row" hint-placeholder-count="6">
+                    <div style="display: flex; justify-content: space-between; padding: 8px 12px; font-size: 12.5px; border-top: 1px solid var(--color-border)">
+                      <span style="color: var(--color-muted-2)">{{ row.label }}</span>
+                      <span style="font-weight: 500; font-variant-numeric: tabular-nums">{{ row.value }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <span style="color: var(--color-muted); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">Peças</span>
+                <div style="display: flex; flex-direction: column; gap: 6px">
+                  <sc-for list="{{ techPieces }}" as="p" hint-placeholder-count="3">
+                    <div style="display: flex; justify-content: space-between; font-size: 12.5px">
+                      <span>{{ p.name }}</span>
+                      <span style="color: var(--color-muted)">{{ p.qty }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <span style="color: var(--color-muted); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">Materiais</span>
+                <div style="display: flex; flex-direction: column; gap: 6px">
+                  <sc-for list="{{ techMaterials }}" as="m" hint-placeholder-count="3">
+                    <div style="font-size: 12.5px">{{ m.text }}</div>
+                  </sc-for>
+                </div>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 4px; border-top: 1px solid var(--color-border); padding-top: 14px">
+                <span style="font-size: 12.5px; font-weight: 500">Margem de costura</span>
+                <span style="color: var(--color-muted); font-size: 11.5px; line-height: 1.4">1,0 cm já somada à linha de corte em todas as peças.</span>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ showPatternCorte }}" hint-placeholder-val="{{ false }}">
+          <div style="position: absolute; top: 58px; bottom: 46px; left: 24px; right: 24px; display: flex; flex-direction: column; gap: 10px; min-height: 0">
+            <div style="display: flex; align-items: center; gap: 16px; flex: none">
+              <div style="display: flex; align-items: center; gap: 6px">
+                <span style="width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--color-border); background-color: var(--color-surface)"></span>
+                <span style="color: var(--color-muted); font-size: 11px">Fundo</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px">
+                <span style="width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--color-border); background: repeating-linear-gradient(45deg, var(--color-surface), var(--color-surface) 2px, var(--color-border) 2px, var(--color-border) 2.6px)"></span>
+                <span style="color: var(--color-muted); font-size: 11px">Tecido</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px">
+                <span style="width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--color-olive); background: var(--color-olive-tint)"></span>
+                <span style="color: var(--color-muted); font-size: 11px">Peça do molde</span>
+              </div>
+            </div>
+
+            <div style="flex: 1; min-width: 0; display: flex; gap: 14px; min-height: 0">
+            <div style="flex: 1; min-width: 0; overflow: auto; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: 18px">
+              <svg viewBox="0 0 {{ corteViewBoxWidth }} {{ corteViewBoxHeight }}" style="width: {{ corteSvgWidth }}px; height: {{ corteSvgHeight }}px; flex: none" aria-label="Plano de corte">
+                <defs>
+                  <pattern id="fabricWeave" width="3.2" height="3.2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                    <line x1="0" y1="0" x2="0" y2="3.2" stroke="var(--color-border)" stroke-width="0.35" opacity="0.55"></line>
+                  </pattern>
+                </defs>
+                <rect x="0" y="0" width="{{ corteViewBoxWidth }}" height="{{ corteViewBoxHeight }}" fill="var(--color-surface)" stroke="var(--color-border)" stroke-width="0.5" style="filter: drop-shadow(0 2px 6px rgba(28,28,25,.16))"></rect>
+                <rect x="0" y="0" width="{{ corteViewBoxWidth }}" height="{{ corteViewBoxHeight }}" fill="url(#fabricWeave)"></rect>
+                <sc-for list="{{ cuttingPieces }}" as="p" hint-placeholder-count="4">
+                  <g>
+                    <path d="{{ p.d }}" fill="var(--color-olive-tint)" stroke="var(--color-olive)" stroke-width="{{ corteStroke }}" stroke-linejoin="round"></path>
+                    <text x="{{ p.tx }}" y="{{ p.ty }}" fill="var(--color-olive-dark)" font-family="Archivo, sans-serif" font-size="{{ corteFontSize }}" font-weight="600" text-anchor="middle">{{ p.label }}</text>
+                    <text x="{{ p.tx }}" y="{{ p.ty2 }}" fill="var(--color-olive-dark)" opacity="0.7" font-family="Archivo, sans-serif" font-size="{{ corteFontSizeSmall }}" text-anchor="middle">{{ p.dims }}</text>
+                  </g>
+                </sc-for>
+              </svg>
+            </div>
+
+            <div style="width: 250px; flex: none; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: 14px">
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <span style="color: var(--color-muted); font-size: 10.5px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase">Tecido</span>
+                <div style="display: flex; gap: 4px">
+                  <sc-for list="{{ fabricWidths }}" as="w" hint-placeholder-count="3">
+                    <button type="button" onClick="{{ w.onClick }}" style="flex: 1; height: 28px; border: 1px solid var(--color-border); border-radius: 7px; background: {{ w.background }}; color: {{ w.color }}; font-size: 11.5px; font-weight: {{ w.weight }}; font-family: inherit; cursor: pointer">{{ w.label }}</button>
+                  </sc-for>
+                </div>
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+                  <button type="button" aria-label="Diminuir largura" onClick="{{ onDecFabricWidth }}" style="width: 26px; height: 26px; border: 1px solid var(--color-border); border-radius: 7px; background: var(--color-surface); color: var(--color-ink); cursor: pointer">−</button>
+                  <span style="font-size: 12.5px; font-variant-numeric: tabular-nums">{{ corteFabricWidth }} cm largura</span>
+                  <button type="button" aria-label="Aumentar largura" onClick="{{ onIncFabricWidth }}" style="width: 26px; height: 26px; border: 1px solid var(--color-border); border-radius: 7px; background: var(--color-surface); color: var(--color-ink); cursor: pointer">+</button>
+                </div>
+              </div>
+
+              <div style="height: 1px; background: var(--color-line)"></div>
+
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <span style="color: var(--color-muted); font-size: 10.5px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase">Quantidade por tamanho</span>
+                <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px">
+                  <sc-for list="{{ batchSizeRows }}" as="sq" hint-placeholder-count="4">
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; border: 1px solid var(--color-border); border-radius: 6px; padding: 5px 0">
+                      <span style="color: var(--color-muted); font-size: 10px; font-weight: 600">{{ sq.size }}</span>
+                      <div style="display: flex; align-items: center; gap: 2px">
+                        <button type="button" aria-label="Diminuir quantidade" onClick="{{ sq.onDec }}" style="width: 15px; height: 15px; flex: none; border: 0; border-radius: 4px; background: var(--color-surface-alt); cursor: pointer; font-size: 10px; line-height: 1; padding: 0">−</button>
+                        <span style="width: 12px; text-align: center; font-size: 11px; font-variant-numeric: tabular-nums">{{ sq.value }}</span>
+                        <button type="button" aria-label="Aumentar quantidade" onClick="{{ sq.onInc }}" style="width: 15px; height: 15px; flex: none; border: 0; border-radius: 4px; background: var(--color-surface-alt); cursor: pointer; font-size: 10px; line-height: 1; padding: 0">+</button>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+                <span style="color: var(--color-muted-2); font-size: 10.5px">{{ batchTotalLabel }}</span>
+              </div>
+
+              <div style="height: 1px; background: var(--color-line)"></div>
+
+              <div style="display: flex; flex-direction: column; gap: 10px">
+                <span style="color: var(--color-muted); font-size: 10.5px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase">Peças</span>
+                <sc-for list="{{ cortePieceRows }}" as="row" hint-placeholder-count="3">
+                  <div style="display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--color-border); border-radius: 8px; padding: 8px 9px">
+                    <div style="display: flex; align-items: center; gap: 6px">
+                      <span style="flex: 1; font-size: 12.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ row.name }}</span>
+                      <sc-if value="{{ row.canRemove }}" hint-placeholder-val="{{ true }}">
+                        <button type="button" aria-label="Remover peça" onClick="{{ row.onRemove }}" style="width: 20px; height: 20px; border: 0; border-radius: 6px; background: transparent; color: var(--color-muted); cursor: pointer">×</button>
+                      </sc-if>
+                    </div>
+                    <span style="color: var(--color-muted); font-size: 11.5px">{{ row.wLabel }} × {{ row.hLabel }} · {{ row.perGarmentLabel }}</span>
+                    <span style="color: var(--color-muted-2); font-size: 10.5px">{{ row.totalLabel }}</span>
+                  </div>
+                </sc-for>
+                
+              </div>
+
+              <div style="height: 1px; background: var(--color-line)"></div>
+
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <x-import component-from-global-scope="MoldAIUI.Button" size="sm" on-click="{{ optimizeCorte }}" class-name="w-full" hint-size="100%,32px">Otimizar corte</x-import>
+                <sc-if value="{{ showCorteSavings }}" hint-placeholder-val="{{ false }}">
+                  <span style="color: var(--color-olive-dark); font-size: 11.5px; font-weight: 500">{{ corteSavingsText }}</span>
+                </sc-if>
+                <div style="display: flex; flex-direction: column; gap: 3px; font-size: 11.5px; color: var(--color-muted)">
+                  <div style="display: flex; justify-content: space-between"><span>Peças no plano</span><span style="font-weight: 500; color: var(--color-ink)">{{ corteTotalPieces }}</span></div>
+                  <div style="display: flex; justify-content: space-between"><span>Comprimento usado</span><span style="font-weight: 500; color: var(--color-ink)">{{ corteLengthLabel }}</span></div>
+                  <div style="display: flex; justify-content: space-between"><span>Consumo estimado</span><span style="font-weight: 500; color: var(--color-ink)">{{ fabricConsumption }}</span></div>
+                </div>
+              </div>
+            </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isBlank }}" hint-placeholder-val="{{ false }}">
+          <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; pointer-events: none">
+            <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 16px; font-weight: 600; color: var(--color-muted-2)">Molde em branco</span>
+            <span style="max-width: 300px; color: var(--color-muted); font-size: 12.5px; line-height: 1.6">Descreva a peça que você quer no chat ao lado — a IA gera seu primeiro molde do zero.</span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ showTabBar }}" hint-placeholder-val="{{ true }}">
+          <div style="position: absolute; top: 14px; left: 16px; right: 16px; display: flex; flex-wrap: nowrap; align-items: center; gap: 4px">
+            <div class="float-chrome" style="display: flex; align-items: center; flex: none; height: 32px; padding: 3px; border-radius: 9px; overflow: hidden">
+              <sc-for list="{{ tabs }}" as="tab" hint-placeholder-count="4">
+                <button type="button" onClick="{{ tab.onClick }}" style="display: inline-flex; align-items: center; height: 100%; padding: 0 7px; border: 0; border-radius: 6px; background: {{ tab.background }}; box-shadow: {{ tab.shadow }}; color: {{ tab.color }}; font-family: inherit; font-size: 11.5px; font-weight: {{ tab.weight }}; white-space: nowrap; cursor: pointer">{{ tab.label }}</button>
+              </sc-for>
+            </div>
+            <div style="flex: 1"></div>
+            <sc-if value="{{ showSizeToolbar }}" hint-placeholder-val="{{ true }}">
+              <div class="float-chrome" style="display: inline-flex; align-items: center; flex: none; gap: 2px; height: 32px; padding: 0 3px; border-radius: 9px">
+                <button type="button" style="height: 24px; padding: 0 6px; border: 0; border-radius: 6px; background: var(--color-olive-tint); color: var(--color-olive-dark); font-family: inherit; font-size: 11.5px; font-weight: 600; cursor: pointer">M</button>
+                <button type="button" style="height: 24px; padding: 0 6px; border: 0; border-radius: 6px; background: transparent; color: var(--color-muted-2); font-family: inherit; font-size: 11.5px; cursor: pointer">P</button>
+                <button type="button" style="height: 24px; padding: 0 6px; border: 0; border-radius: 6px; background: transparent; color: var(--color-muted-2); font-family: inherit; font-size: 11.5px; cursor: pointer">G</button>
+                <div style="width: 1px; height: 16px; background: var(--color-border)"></div>
+                <button type="button" style="height: 24px; padding: 0 6px; border: 0; border-radius: 6px; background: transparent; color: var(--color-muted); font-family: inherit; font-size: 11.5px; cursor: pointer">graduar</button>
+              </div>
+            </sc-if>
+            <sc-if value="{{ showDetailsIconBtn }}" hint-placeholder-val="{{ true }}">
+              <button type="button" aria-label="Detalhes da peça" title="Detalhes da peça" class="float-chrome" style="display: flex; align-items: center; justify-content: center; flex: none; width: 30px; height: 32px; border-radius: 9px; color: {{ detailsIconColor }}; background: {{ detailsIconBg }}; cursor: pointer">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0H5a2 2 0 0 1-2-2v-4"></path></svg>
+              </button>
+            </sc-if>
+            <sc-if value="{{ showExportButton }}" hint-placeholder-val="{{ true }}">
+              <button type="button" onClick="{{ openExport }}" disabled="{{ exportDisabled }}" title="{{ exportTitle }}" class="float-chrome" style="display: flex; align-items: center; flex: none; height: 32px; padding: 0 12px; border-radius: 9px; background: var(--color-olive); color: var(--color-surface); font-family: inherit; font-size: 12px; font-weight: 600; white-space: nowrap; cursor: pointer; opacity: {{ exportBtnOpacity }}">Exportar</button>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isGenerating }}" hint-placeholder-val="{{ false }}">
+          <div role="status" class="float-chrome" style="position: absolute; top: 14px; left: 16px; display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 6px 0 12px; border-radius: 9999px">
+            <span style="color: var(--color-muted-2); font-size: 12.5px">conferindo costuras · passo 3/4</span>
+            <x-import component-from-global-scope="MoldAIUI.Button" variant="ghost" size="chrome" class-name="rounded-pill h-[24px] px-2 text-meta" hint-size="auto,24px">cancelar</x-import>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ showCanvasChrome }}" hint-placeholder-val="{{ true }}">
+          <div class="float-chrome" style="position: absolute; left: 16px; bottom: 14px; display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 12px; border-radius: 9999px; color: var(--color-muted); font-size: 11.5px">
+            <span>{{ statusText }}</span>
+          </div>
+
+          <sc-if value="{{ showZoomControls }}" hint-placeholder-val="{{ true }}">
+          <div class="float-chrome" style="position: absolute; right: 16px; bottom: 14px; display: flex; align-items: center; gap: 2px; height: 32px; padding: 0 4px; border-radius: 9px">
+            <button type="button" aria-label="Diminuir zoom" style="display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border: 0; border-radius: 6px; background: transparent; color: var(--color-muted-2); cursor: pointer">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"></path></svg>
+            </button>
+            <button type="button" aria-label="Ajustar à tela" style="min-width: 46px; height: 26px; border: 0; border-radius: 6px; background: transparent; color: var(--color-muted-2); font-family: inherit; font-size: 12.5px; font-variant-numeric: tabular-nums; cursor: pointer">86%</button>
+            <button type="button" aria-label="Aumentar zoom" style="display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border: 0; border-radius: 6px; background: transparent; color: var(--color-muted-2); cursor: pointer">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
+            </button>
+            <div style="width: 1px; height: 16px; margin: 0 2px; background: var(--color-border)"></div>
+            <button type="button" aria-label="Medir" style="display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border: 0; border-radius: 6px; background: transparent; color: var(--color-muted-2); cursor: pointer">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.3 8.7 8.7 21.3a1 1 0 0 1-1.4 0l-4.6-4.6a1 1 0 0 1 0-1.4L15.3 2.7a1 1 0 0 1 1.4 0l4.6 4.6a1 1 0 0 1 0 1.4Z"></path><path d="m7.5 10.5 2 2"></path><path d="m10.5 7.5 2 2"></path><path d="m13.5 4.5 2 2"></path><path d="m4.5 13.5 2 2"></path></svg>
+            </button>
+          </div>
+          </sc-if>
+        </sc-if>
+
+        <sc-if value="{{ showConflictCard2D }}" hint-placeholder-val="{{ false }}">
+          <div style="position: absolute; top: 58px; right: 16px; width: 212px; display: flex; flex-direction: column; gap: 7px; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); box-shadow: var(--shadow-card); padding: 12px">
+            <span style="color: var(--color-muted); font-size: 10.5px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase">Conflito</span>
+            <span style="font-size: 12.5px; font-weight: 600">Copa da manga menor que a cava</span>
+            <div style="display: flex; flex-direction: column; gap: 7px">
+              <div style="display: flex; flex-direction: column; gap: 3px">
+                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px">
+                  <span style="color: var(--color-muted-2); font-size: 11.5px">Cava · frente</span>
+                  <span style="font-size: 12.5px; font-variant-numeric: tabular-nums">22,7 cm</span>
+                </div>
+                <div style="display: flex; height: 5px; border-radius: 9999px; background: #ece8dd; overflow: hidden"><div style="width: 100%; background: var(--color-olive)"></div></div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 3px">
+                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px">
+                  <span style="color: var(--color-muted-2); font-size: 11.5px">Cava · copa</span>
+                  <span style="font-size: 12.5px; font-variant-numeric: tabular-nums">19,7 cm</span>
+                </div>
+                <div style="display: flex; height: 5px; border-radius: 9999px; background: #ece8dd; overflow: hidden"><div style="width: 87%; background: var(--color-olive)"></div><div style="flex: 1; background: var(--color-alert)"></div></div>
+              </div>
+              <span style="color: var(--color-alert); font-size: 12.5px">falta 3,1 cm na copa</span>
+            </div>
+            <div style="height: 1px; background: var(--color-line)"></div>
+            <span style="color: var(--color-muted-2); font-size: 11.5px; line-height: 1.45">Aumente a copa da manga em 3 cm ou reduza a cava da frente antes de exportar.</span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ showDetailsPanel2D }}" hint-placeholder-val="{{ false }}">
+          <div style="position: absolute; top: 58px; right: 16px; bottom: 56px; width: 230px; display: flex; flex-direction: column; gap: 12px; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); box-shadow: var(--shadow-card); padding: 14px">
+            <div style="display: flex; align-items: center">
+              <span style="color: var(--color-muted); font-size: 10.5px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase">Peça selecionada</span>
+              <div style="flex: 1"></div>
+              <button type="button" aria-label="Fechar detalhes da peça" style="display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border: 0; border-radius: 6px; background: transparent; color: #a29e91; cursor: pointer">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+              </button>
+            </div>
+            <div style="display: flex; align-items: baseline; gap: 8px">
+              <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 21px; font-weight: 600">Frente</span>
+              <span style="color: var(--color-muted); font-size: 11.5px">1×</span>
+            </div>
+            <div style="display: flex; flex-direction: column; font-size: 12.5px">
+              <div style="display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--color-line)"><span style="color: var(--color-muted)">Largura</span><span style="font-weight: 500; font-variant-numeric: tabular-nums">48,0 cm</span></div>
+              <div style="display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--color-line)"><span style="color: var(--color-muted)">Altura</span><span style="font-weight: 500; font-variant-numeric: tabular-nums">62,5 cm</span></div>
+              <div style="display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--color-line)"><span style="color: var(--color-muted)">Cava</span><span style="font-weight: 500; font-variant-numeric: tabular-nums">22,7 cm</span></div>
+              <div style="display: flex; justify-content: space-between; padding: 7px 0"><span style="color: var(--color-muted)">Costura</span><span style="font-weight: 500; font-variant-numeric: tabular-nums">1,0 cm</span></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <span style="color: var(--color-muted); font-size: 10.5px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase">Graduação</span>
+              <div style="display: flex; gap: 4px">
+                <x-import component-from-global-scope="MoldAIUI.Badge" variant="outline" size="chip" class-name="text-muted-foreground" hint-size="auto,20px">PP</x-import>
+                <x-import component-from-global-scope="MoldAIUI.Badge" variant="accent" size="chip" hint-size="auto,20px">P</x-import>
+                <x-import component-from-global-scope="MoldAIUI.Badge" variant="accent" size="chip" class-name="ring-1 ring-primary" title="tamanho base" hint-size="auto,20px">M</x-import>
+                <x-import component-from-global-scope="MoldAIUI.Badge" variant="outline" size="chip" class-name="text-muted-foreground" hint-size="auto,20px">G</x-import>
+                <x-import component-from-global-scope="MoldAIUI.Badge" variant="outline" size="chip" class-name="text-muted-foreground" hint-size="auto,20px">GG</x-import>
+              </div>
+              <x-import component-from-global-scope="MoldAIUI.Button" variant="outline" size="sm" class-name="w-full" hint-size="100%,32px">Graduar PP, G e GG · 6 créditos</x-import>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ showSaveBase }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; z-index: 50; background: rgba(28, 28, 25, 0.28)"></div>
+    <div role="dialog" aria-modal="true" style="position: absolute; top: 50%; left: 50%; z-index: 50; transform: translate(-50%, -50%); display: grid; gap: 16px; width: 100%; max-width: 512px; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: 24px; box-shadow: 0 10px 15px -3px rgba(28, 28, 25, 0.1)">
+      <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 16px; font-weight: 600; line-height: 1">Salvar como base do ateliê</span>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <label for="base-name" style="font-size: 12.5px; font-weight: 500">Nome da base</label>
+        <x-import component-from-global-scope="MoldAIUI.Input" id="base-name" value="Blusa manga longa" on-change="{{ noop }}" hint-size="100%,36px"></x-import>
+      </div>
+      <div style="display: flex; gap: 8px; justify-content: flex-end">
+        <x-import component-from-global-scope="MoldAIUI.Button" variant="outline" size="sm" hint-size="auto,32px">Cancelar</x-import>
+        <x-import component-from-global-scope="MoldAIUI.Button" size="sm" hint-size="auto,32px">Salvar</x-import>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showPaywall }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; z-index: 50; background: rgba(28, 28, 25, 0.28)"></div>
+    <div role="dialog" aria-modal="true" style="position: absolute; top: 50%; left: 50%; z-index: 50; transform: translate(-50%, -50%); display: grid; width: 100%; max-width: 520px; overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); box-shadow: 0 24px 48px -16px rgba(28, 28, 25, 0.28)">
+      <div style="display: grid; gap: 14px; padding: 26px 26px 20px">
+        <span style="color: var(--color-muted-2); font-size: 10.5px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase">Créditos</span>
+        <div style="display: grid; gap: 7px">
+          <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 25px; font-weight: 600; line-height: 1.12; letter-spacing: -0.01em">Você usou todos os seus créditos</span>
+          <span style="max-width: 42ch; color: var(--color-muted); font-size: 13px; line-height: 1.55; text-wrap: pretty">Esse ajuste custa 1 crédito. Nada foi perdido: o molde continua salvo do jeito que estava.</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; border-top: 1px solid var(--color-border); padding-top: 14px">
+          <div style="flex: 1; display: grid; gap: 7px">
+            <div style="display: flex; align-items: baseline; justify-content: space-between">
+              <span style="font-size: 12px; font-weight: 500">0 de 20 créditos do mês</span>
+              <span style="color: var(--color-muted-2); font-size: 11.5px">renovam em 12 dias</span>
+            </div>
+            <div style="height: 5px; border-radius: 9999px; background: var(--color-surface-alt); overflow: hidden">
+              <div style="width: 3px; height: 100%; border-radius: 9999px; background: var(--color-muted-2)"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: grid; gap: 8px; border-top: 1px solid var(--color-border); background: var(--color-surface-alt); padding: 16px 26px 18px">
+        <button type="button" style="display: flex; align-items: center; gap: 14px; border: 2px solid var(--color-olive); border-radius: var(--radius-card); background: var(--color-olive-tint); padding: 14px 16px; text-align: left; cursor: pointer; font-family: inherit; color: var(--color-ink)">
+          <div style="flex: 1; display: grid; gap: 4px">
+            <div style="display: flex; align-items: center; gap: 8px">
+              <span style="font-size: 13.5px; font-weight: 600">Plano Ateliê</span>
+              <x-import component-from-global-scope="MoldAIUI.Badge" variant="notice" hint-size="auto,18px">custo-benefício</x-import>
+            </div>
+            <span style="color: var(--color-olive); font-size: 11.5px; line-height: 1.45">500 créditos por mês · cancela quando quiser</span>
+          </div>
+          <div style="display: grid; justify-items: end; gap: 2px">
+            <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 20px; font-weight: 600; line-height: 1">R$ 59</span>
+            <span style="color: var(--color-muted-2); font-size: 11px">por mês</span>
+          </div>
+          <span aria-hidden="true" style="color: var(--color-olive-dark); font-size: 15px">›</span>
+        </button>
+        <button type="button" style="display: flex; align-items: center; gap: 14px; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: 14px 16px; text-align: left; cursor: pointer; font-family: inherit; color: var(--color-ink)" style-hover="border-color: var(--color-muted-2)">
+          <div style="flex: 1; display: grid; gap: 4px">
+            <span style="font-size: 13.5px; font-weight: 600">Créditos avulsos</span>
+            <span style="color: var(--color-muted); font-size: 11.5px; line-height: 1.45">100 créditos · sem assinatura, não expiram</span>
+          </div>
+          <div style="display: grid; justify-items: end; gap: 2px">
+            <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 20px; font-weight: 600; line-height: 1">R$ 19</span>
+            <span style="color: var(--color-muted-2); font-size: 11px">pagamento único</span>
+          </div>
+          <span aria-hidden="true" style="color: var(--color-muted-2); font-size: 15px">›</span>
+        </button>
+        <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 4px">
+          <span style="color: var(--color-muted-2); font-size: 11.5px">Pagamento por Pix ou cartão</span>
+          <x-import component-from-global-scope="MoldAIUI.Button" variant="link" size="sm" hint-size="auto,32px">Voltar ao molde</x-import>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showExportModal }}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; z-index: 50; background: rgba(28, 28, 25, 0.28)" onClick="{{ closeExport }}"></div>
+    <div role="dialog" aria-modal="true" style="position: absolute; top: 50%; left: 50%; z-index: 50; transform: translate(-50%, -50%); display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 560px; max-height: 82vh; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-surface); padding: 22px; box-shadow: 0 24px 48px -16px rgba(28, 28, 25, 0.28); overflow-y: auto">
+      <div style="display: flex; align-items: flex-start; gap: 12px">
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 3px">
+          <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 17px; font-weight: 600; letter-spacing: -0.2px">{{ exportModalTitle }}</span>
+          <span style="color: var(--color-muted); font-size: 11.5px">{{ exportModalSubtitle }}</span>
+        </div>
+        <button type="button" aria-label="Fechar" onClick="{{ closeExport }}" style="display: flex; align-items: center; justify-content: center; flex: none; width: 26px; height: 26px; border: 0; border-radius: 6px; background: transparent; color: #a29e91; cursor: pointer">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+        </button>
+      </div>
+
+      <sc-if value="{{ isExportConflict }}" hint-placeholder-val="{{ false }}">
+        <span role="alert" style="display: block; border: 1px solid #f0dfa8; border-radius: var(--radius-item); background: #fdf3d8; color: var(--color-alert); font-size: 12.5px; padding: 8px 12px">Conflito de costura ativo. Resolva no editor antes de exportar.</span>
+      </sc-if>
+
+      <sc-if value="{{ isExport2D }}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <span style="color: var(--color-muted); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">Formato vetorial</span>
+          <div role="radiogroup" aria-label="Formato" style="display: flex; flex-direction: column; gap: 6px">
+            <sc-for list="{{ formats2d }}" as="f" hint-placeholder-count="4">
+              <button type="button" role="radio" aria-checked="{{ f.checked }}" onClick="{{ f.onClick }}" style="display: flex; align-items: flex-start; gap: 10px; width: 100%; border: 1px solid {{ f.borderColor }}; border-radius: var(--radius-btn); background: {{ f.background }}; padding: 10px 12px; text-align: left; font-family: inherit; cursor: pointer">
+                <span aria-hidden="true" style="flex: none; margin-top: 2px; width: 16px; height: 16px; border-radius: 9999px; border: 1.5px solid {{ f.dotBorder }}; background: {{ f.dotBg }}; display: flex; align-items: center; justify-content: center">
+                  <sc-if value="{{ f.checked }}" hint-placeholder-val="{{ false }}"><span style="width: 6px; height: 6px; border-radius: 9999px; background: var(--color-surface)"></span></sc-if>
+                </span>
+                <span style="display: flex; align-items: center; gap: 6px">
+                  <span style="font-size: 13px; font-weight: 600; color: {{ f.color }}">{{ f.label }}</span>
+                  <sc-if value="{{ f.beta }}" hint-placeholder-val="{{ false }}"></sc-if>
+                </span>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+
+        <span style="color: var(--color-muted); font-size: 11px; line-height: 1.4">Margem de costura, piques e fio de urdidura são sempre incluídos no arquivo.</span>
+      </sc-if>
+
+      <sc-if value="{{ isExportCorte }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <span style="color: var(--color-muted); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">Formato PDF</span>
+          <div role="radiogroup" aria-label="Formato" style="display: flex; flex-direction: column; gap: 6px">
+            <sc-for list="{{ formatsCorte }}" as="f" hint-placeholder-count="3">
+              <button type="button" role="radio" aria-checked="{{ f.checked }}" onClick="{{ f.onClick }}" style="display: flex; align-items: flex-start; gap: 10px; width: 100%; border: 1px solid {{ f.borderColor }}; border-radius: var(--radius-btn); background: {{ f.background }}; padding: 10px 12px; text-align: left; font-family: inherit; cursor: pointer">
+                <span aria-hidden="true" style="flex: none; margin-top: 2px; width: 16px; height: 16px; border-radius: 9999px; border: 1.5px solid {{ f.dotBorder }}; background: {{ f.dotBg }}; display: flex; align-items: center; justify-content: center">
+                  <sc-if value="{{ f.checked }}" hint-placeholder-val="{{ false }}"><span style="width: 6px; height: 6px; border-radius: 9999px; background: var(--color-surface)"></span></sc-if>
+                </span>
+                <span style="font-size: 13px; font-weight: 600; color: {{ f.color }}">{{ f.label }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+
+        <sc-if value="{{ showRollWidth }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <label for="corte-roll-width" style="font-size: 12.5px; font-weight: 500">Largura do rolo</label>
+            <button type="button" id="corte-roll-width" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; height: 32px; padding: 0 10px; border: 1px solid var(--color-border); border-radius: var(--radius-btn); background: var(--color-surface); color: var(--color-ink); font-size: 12.5px; font-family: inherit; cursor: pointer">
+              <span>Sem divisão (folha única)</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+            </button>
+          </div>
+        </sc-if>
+
+        
+
+        <div style="display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--color-border); padding-top: 12px">
+          <div style="display: flex; align-items: center; gap: 8px">
+            <span aria-hidden="true" style="width: 16px; height: 16px; flex: none; display: flex; align-items: center; justify-content: center; color: {{ conflictRowColor }}; font-size: 12.5px">{{ conflictRowIcon }}</span>
+            <span style="color: {{ conflictRowColor }}; font-size: 12.5px">{{ conflictRowText }}</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px">
+            <span aria-hidden="true" style="width: 16px; height: 16px; flex: none; display: flex; align-items: center; justify-content: center; color: var(--color-olive); font-size: 12.5px">✓</span>
+            <span style="font-size: 12.5px">Consumo estimado {{ fabricConsumption }} em tecido de {{ fabricWidthLabel }}</span>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isExportFicha }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <span style="color: var(--color-muted); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">Formato</span>
+          <div style="display: flex; gap: 6px">
+            <sc-for list="{{ formatsFicha }}" as="f" hint-placeholder-count="2">
+              <button type="button" role="radio" aria-checked="{{ f.checked }}" onClick="{{ f.onClick }}" style="flex: 1; display: flex; align-items: center; justify-content: center; height: 34px; border: 1px solid {{ f.borderColor }}; border-radius: var(--radius-btn); background: {{ f.background }}; color: {{ f.color }}; font-size: 12.5px; font-weight: 600; font-family: inherit; cursor: pointer">{{ f.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <span style="color: var(--color-muted); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">O que incluir</span>
+          <div style="display: flex; flex-direction: column; gap: 4px">
+            <sc-for list="{{ fichaIncludes }}" as="item" hint-placeholder-count="4">
+              <label style="display: flex; align-items: center; gap: 9px; padding: 6px 2px; cursor: pointer">
+                <input type="checkbox" checked="{{ item.checked }}" onChange="{{ item.onToggle }}" style="width: 15px; height: 15px; accent-color: var(--color-olive); cursor: pointer">
+                <span style="font-size: 12.5px">{{ item.label }}</span>
+              </label>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--color-border); padding-top: 14px">
+        <x-import component-from-global-scope="MoldAIUI.Button" variant="outline" size="sm" on-click="{{ closeExport }}" hint-size="auto,32px">Cancelar</x-import>
+        <x-import component-from-global-scope="MoldAIUI.Button" size="sm" disabled="{{ isExportConflict }}" hint-size="auto,32px">{{ exportDownloadLabel }}</x-import>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;state&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;default&quot;,&quot;conflict&quot;,&quot;generating&quot;,&quot;blank&quot;,&quot;clarify&quot;,&quot;details&quot;,&quot;actionError&quot;,&quot;error&quot;,&quot;loading&quot;,&quot;loadError&quot;,&quot;desktopOnly&quot;,&quot;saveBase&quot;,&quot;paywall&quot;],&quot;default&quot;:&quot;default&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Estado da tela&quot;}}">
+const U = { variant: "default", align: "end" };
+const A = { variant: "paper", align: "start" };
+const N = { variant: "notice", align: "start" };
+
+function msg(tone, text, chips, opts) {
+  return Object.assign({}, tone, {
+    text,
+    chips: chips ?? [],
+    hasChips: !!(chips && chips.length),
+    hasActions: !!(opts && opts.actions),
+    hasRetry: !!(opts && opts.retry),
+    hasDisclaimer: !!(opts && opts.disclaimer),
+  });
+}
+
+const CREDIT = { label: "−1 crédito", variant: "notice" };
+const v = (n) => ({ label: n, variant: "outline" });
+
+const BASE_THREAD = [
+  msg(U, "blusa feminina, manga longa, gola V, pence no busto, comprimento 60 cm"),
+  msg(A, "Gerei a blusa no tamanho M: frente, costas e manga, com 1 cm de costura e pence no busto.", [CREDIT, v("v2")]),
+  msg(U, "aumenta a manga em 2 cm na altura da copa"),
+];
+
+const THREADS = {
+  default: BASE_THREAD.concat([
+    msg(A, "Copa da manga aumentada em 2 cm. A cava da frente segue compatível com a copa.", [CREDIT, v("v3")], { actions: true }),
+  ]),
+  conflict: BASE_THREAD.concat([
+    msg(N, "A copa da manga ficou 3,1 cm menor que a cava da frente. Corrijo a manga ou você prefere seguir assim?"),
+  ]),
+  generating: BASE_THREAD,
+  blank: [],
+  clarify: [
+    msg(U, "quero uma blusa de manga longa"),
+    msg(A, "Antes de gerar, preciso de dois detalhes:"),
+  ],
+  error: BASE_THREAD.concat([
+    msg(N, "A geração falhou, mas seus créditos foram devolvidos.", null, { retry: true }),
+  ]),
+};
+
+const PIECES = ["Frente", "Costas", "Manga"];
+const SIZES = ["P", "M", "G", "GG"];
+const CUTTING_PLAN_SIZES = ["P", "M", "G"];
+
+const FORMATS_2D = [
+  { id: "svg", label: "SVG · 1:1 (plotter)" },
+  { id: "dxf", label: "DXF · genérico 1:1 (CAD)" },
+  { id: "dxf-aama", beta: true, label: "DXF · AAMA/ASTM" },
+  { id: "plt", beta: true, label: "PLT · HPGL/2 (plotter)" },
+];
+
+const FORMATS_CORTE = [
+  { id: "pdf-a4", label: "PDF · A4 (colar em casa)" },
+  { id: "pdf-single", label: "PDF · folha única (plotter)" },
+  { id: "pdf-layered", label: "PDF · tamanhos em camadas" },
+];
+
+const FORMATS_FICHA = [
+  { id: "pdf", label: "PDF" },
+  { id: "xlsx", label: "XLSX (planilha)" },
+];
+
+const FICHA_ITEMS = [
+  { id: "medidas", label: "Tabela de medidas" },
+  { id: "materiais", label: "Lista de materiais" },
+  { id: "porTamanho", label: "Ficha por tamanho" },
+  { id: "instrucoes", label: "Instruções de montagem" },
+];
+
+const FABRIC_WIDTHS = [
+  { cm: 140, label: "1,40 m" },
+  { cm: 150, label: "1,50 m" },
+  { cm: 160, label: "1,60 m" },
+];
+const VIEW_ANGLES = ["Frente", "Costas", "Lateral"];
+
+const TECH_MEASUREMENTS = [
+  { label: "Busto", value: "92,0 cm" },
+  { label: "Cintura", value: "76,0 cm" },
+  { label: "Comprimento total", value: "60,0 cm" },
+  { label: "Largura da manga", value: "48,0 cm" },
+  { label: "Cava", value: "22,7 cm" },
+  { label: "Margem de costura", value: "1,0 cm" },
+];
+
+const TECH_MATERIALS = [
+  { text: "Tecido plano leve a médio, 1,42 m em largura de 1,50 m" },
+  { text: "Linha compatível com a cor do tecido" },
+  { text: "1 botão ou fecho para a gola, 1,5 cm" },
+];
+
+const CORTE_DEFAULT_PIECES = [
+  { id: "frente", name: "Frente", w: 50, h: 64, perGarment: 1, shape: "body" },
+  { id: "costas", name: "Costas", w: 50, h: 62, perGarment: 1, shape: "body" },
+  { id: "manga", name: "Manga", w: 42, h: 40, perGarment: 2, shape: "sleeve" },
+  { id: "gola", name: "Gola", w: 38, h: 8, perGarment: 1, shape: "strip" },
+  { id: "punho", name: "Punho", w: 12, h: 6, perGarment: 2, shape: "strip" },
+];
+
+function pieceShapePath(type, x, y, w, h) {
+  if (type === "sleeve") {
+    return (
+      "M " + (x + w * 0.15) + "," + y +
+      " Q " + (x + w * 0.5) + "," + y + " " + (x + w * 0.85) + "," + y +
+      " Q " + (x + w) + "," + (y + h * 0.15) + " " + (x + w * 0.82) + "," + (y + h * 0.32) +
+      " L " + (x + w * 0.7) + "," + (y + h) +
+      " L " + (x + w * 0.3) + "," + (y + h) +
+      " L " + (x + w * 0.18) + "," + (y + h * 0.32) +
+      " Q " + x + "," + (y + h * 0.15) + " " + (x + w * 0.15) + "," + y + " Z"
+    );
+  }
+  if (type === "strip") {
+    return (
+      "M " + (x + w * 0.06) + "," + y +
+      " L " + (x + w * 0.94) + "," + y +
+      " Q " + (x + w) + "," + y + " " + (x + w) + "," + (y + h * 0.3) +
+      " L " + (x + w) + "," + (y + h * 0.7) +
+      " Q " + (x + w) + "," + (y + h) + " " + (x + w * 0.94) + "," + (y + h) +
+      " L " + (x + w * 0.06) + "," + (y + h) +
+      " Q " + x + "," + (y + h) + " " + x + "," + (y + h * 0.7) +
+      " L " + x + "," + (y + h * 0.3) +
+      " Q " + x + "," + y + " " + (x + w * 0.06) + "," + y + " Z"
+    );
+  }
+  return (
+    "M " + (x + w * 0.08) + "," + y +
+    " Q " + (x + w * 0.5) + "," + y + " " + (x + w * 0.92) + "," + y +
+    " L " + (x + w) + "," + (y + h * 0.3) +
+    " Q " + (x + w * 0.88) + "," + (y + h * 0.55) + " " + (x + w) + "," + (y + h * 0.85) +
+    " L " + (x + w * 0.92) + "," + (y + h) +
+    " L " + (x + w * 0.08) + "," + (y + h) +
+    " L " + x + "," + (y + h * 0.85) +
+    " Q " + (x + w * 0.12) + "," + (y + h * 0.55) + " " + x + "," + (y + h * 0.3) + " Z"
+  );
+}
+
+function packPieces(items, fabricWidth, garmentTotal, optimize) {
+  const gap = 3.5;
+  let list = [];
+  items.forEach((p) => {
+    const total = p.perGarment * garmentTotal;
+    for (let i = 0; i < total; i++) list.push({ name: p.name, w: p.w, h: p.h, shape: p.shape || "body" });
+  });
+  if (optimize) list = list.slice().sort((a, b) => b.h - a.h);
+  const shelves = [];
+  const placed = [];
+  list.forEach((item) => {
+    let shelf = null;
+    for (const s of shelves) {
+      if (s.usedWidth + gap + item.w <= fabricWidth && item.h <= s.height) {
+        shelf = s;
+        break;
+      }
+    }
+    if (!shelf) {
+      const y = shelves.length ? shelves[shelves.length - 1].y + shelves[shelves.length - 1].height + gap : 0;
+      shelf = { y, height: item.h, usedWidth: 0 };
+      shelves.push(shelf);
+    }
+    const x = shelf.usedWidth === 0 ? 0 : shelf.usedWidth + gap;
+    placed.push({ name: item.name, x, y: shelf.y, w: item.w, h: item.h, shape: item.shape });
+    shelf.usedWidth = x + item.w;
+    shelf.height = Math.max(shelf.height, item.h);
+  });
+  const totalLength = shelves.length ? shelves[shelves.length - 1].y + shelves[shelves.length - 1].height : 0;
+  return { placed, totalLength };
+}
+
+class Component extends DCLogic {
+  state = {
+    activeTab: "2d",
+    viewAngle: "Frente",
+    showExportModal: false,
+    format2d: "svg",
+    formatCorte: "pdf-a4",
+    formatFicha: "pdf",
+    fabricWidth: 150,
+    cortePieces: CORTE_DEFAULT_PIECES,
+    corteOptimized: false,
+    batchBySize: { P: 0, M: 1, G: 0, GG: 0 },
+    fichaIncludes: { medidas: true, materiais: true, porTamanho: true, instrucoes: false },
+    selection: Object.fromEntries(
+      PIECES.flatMap((piece) => SIZES.map((size) => [piece + "|" + size, CUTTING_PLAN_SIZES.includes(size)]))
+    ),
+  };
+
+  setTab(id) {
+    this.setState({ activeTab: id });
+  }
+  openExport() {
+    this.setState({ showExportModal: true });
+  }
+  closeExport() {
+    this.setState({ showExportModal: false });
+  }
+  toggleCell(key) {
+    this.setState((s) => ({ selection: { ...s.selection, [key]: !s.selection[key] } }));
+  }
+  toggleFichaItem(key) {
+    this.setState((s) => ({ fichaIncludes: { ...s.fichaIncludes, [key]: !s.fichaIncludes[key] } }));
+  }
+  setFabricWidth(cm) {
+    this.setState({ fabricWidth: cm, corteOptimized: false });
+  }
+  adjustFabricWidth(delta) {
+    this.setState((s) => ({ fabricWidth: Math.max(90, Math.min(200, s.fabricWidth + delta)), corteOptimized: false }));
+  }
+  updateBatchQty(size, delta) {
+    this.setState((s) => ({
+      batchBySize: { ...s.batchBySize, [size]: Math.max(0, (s.batchBySize[size] || 0) + delta) },
+      corteOptimized: false,
+    }));
+  }
+  removePiece(id) {
+    this.setState((s) => ({ cortePieces: s.cortePieces.filter((p) => p.id !== id), corteOptimized: false }));
+  }
+  addPiece() {
+    this.setState((s) => ({
+      cortePieces: s.cortePieces.concat([{ id: "peca-" + Date.now(), name: "Nova peça", w: 30, h: 30, perGarment: 1, shape: "strip" }]),
+      corteOptimized: false,
+    }));
+  }
+  optimizeCorte() {
+    this.setState({ corteOptimized: true });
+  }
+
+  formatRow(f, selected, onPick) {
+    const on = f.id === selected;
+    return {
+      label: f.label,
+      beta: !!f.beta,
+      checked: on ? "true" : "false",
+      background: on ? "var(--color-olive-tint)" : "var(--color-surface)",
+      borderColor: on ? "#d7ddc9" : "var(--color-border)",
+      color: on ? "var(--color-olive-dark)" : "var(--color-ink)",
+      dotBorder: on ? "var(--color-olive)" : "var(--color-border)",
+      dotBg: on ? "var(--color-olive)" : "transparent",
+      onClick: () => onPick(f.id),
+    };
+  }
+
+  renderVals() {
+    const state = this.props.state ?? "default";
+    const isConflict = state === "conflict";
+    const isGenerating = state === "generating";
+    const isBlank = state === "blank";
+    const isDetails = state === "details";
+    const isPaywall = state === "paywall";
+    const hasPieces = !isBlank;
+    const isChromeless = ["loading", "loadError", "desktopOnly"].includes(state);
+    const exportDisabled = isConflict || isGenerating || isBlank;
+
+    const garmentTotal = Object.values(this.state.batchBySize).reduce((a, b) => a + b, 0);
+    const corteNaive = packPieces(this.state.cortePieces, this.state.fabricWidth, garmentTotal, false);
+    const corteOptimizedPack = packPieces(this.state.cortePieces, this.state.fabricWidth, garmentTotal, true);
+    const corteActive = this.state.corteOptimized ? corteOptimizedPack : corteNaive;
+    const corteTotalPiecesN = this.state.cortePieces.reduce((sum, p) => sum + p.perGarment * garmentTotal, 0);
+    const corteLengthCm = Math.max(20, corteActive.totalLength + 6);
+    const consumptionM = (corteLengthCm / 100).toFixed(2).replace(".", ",") + " m";
+    const corteSavingsPct = corteNaive.totalLength > 0 ? Math.round((1 - corteOptimizedPack.totalLength / corteNaive.totalLength) * 100) : 0;
+    const corteScale = 3.2;
+    const corteMargin = 5;
+    const corteViewWidth = this.state.fabricWidth + corteMargin * 2;
+    const corteViewLength = corteLengthCm + corteMargin * 2;
+    const corteSvgWidthPx = corteViewWidth * corteScale;
+    const corteFontSizeN = 11 / corteScale;
+    const corteFontSizeSmallN = 9 / corteScale;
+    const corteStrokeN = 1.4 / corteScale;
+    const corteRadiusN = 5 / corteScale;
+
+    return {
+      showEditor: !isChromeless,
+      showLoading: state === "loading",
+      showLoadError: state === "loadError",
+      showDesktopOnly: state === "desktopOnly",
+      showActionError: state === "actionError",
+      messages: THREADS[state] ?? THREADS.default,
+      isGenerating,
+      showComposer: !isGenerating,
+      showTabBar: !isGenerating,
+      showClarify: state === "clarify",
+      showConflictActions: isConflict,
+      showConflictCard: isConflict,
+      showConflictMarkers: isConflict,
+      showDetailsPanel: isDetails,
+      showCanvasChrome: !isGenerating && !isBlank && this.state.activeTab !== "ficha",
+      showSaveBase: state === "saveBase",
+      showPaywall: isPaywall,
+      hasPieces: !isBlank,
+      isBlank,
+      canvasRight: isConflict || isDetails ? "244px" : "24px",
+      canvasOpacity: isGenerating ? "0.45" : "1",
+      dimFilter: isPaywall || state === "saveBase" || this.state.showExportModal ? "blur(1.2px) opacity(0.45)" : "none",
+      frontStroke: isConflict ? "var(--color-alert)" : "var(--color-pattern-guide)",
+      detailsIconColor: isDetails ? "var(--color-olive-dark)" : "var(--color-muted-2)",
+      detailsIconBg: isDetails ? "var(--color-olive-tint)" : "rgba(255,255,255,.86)",
+      savedLabel: isGenerating ? "v2 · salvo há 1 min" : "v3 · salvo há 2 min",
+      creditsLabel: isPaywall ? "0" : "18",
+      creditsPct: isPaywall ? "0%" : "60%",
+      exportDisabled,
+      exportTitle: isConflict
+        ? "Resolva o conflito de costura antes de exportar."
+        : isGenerating
+          ? "Aguarde a geração terminar antes de exportar."
+          : isBlank
+            ? "Gere o molde antes de exportar."
+            : "",
+      statusText: isConflict
+        ? "v3 · não exportável com conflito"
+        : isBlank
+          ? "0 peças · base M · cm"
+          : this.state.activeTab === "corte"
+            ? corteTotalPiecesN + " peças · consumo estimado " + consumptionM
+            : "4 peças · base M · cm",
+      noop: () => {},
+
+      tabs: [
+        { id: "2d", label: "Molde 2D" },
+        { id: "3d", label: "Prova 3D" },
+        { id: "ficha", label: "Ficha técnica" },
+        { id: "corte", label: "Plano de corte" },
+      ].map((t) => {
+        const on = t.id === this.state.activeTab;
+        return {
+          label: t.label,
+          background: on ? "var(--color-surface)" : "transparent",
+          shadow: on ? "var(--shadow-card)" : "none",
+          color: on ? "var(--color-ink)" : "var(--color-muted-2)",
+          weight: on ? "600" : "400",
+          onClick: () => this.setTab(t.id),
+        };
+      }),
+
+      exportBtnOpacity: exportDisabled ? "0.5" : "1",
+      showExportButton: this.state.activeTab !== "3d",
+      showPattern2D: hasPieces && this.state.activeTab === "2d",
+      showPattern3D: hasPieces && this.state.activeTab === "3d",
+      showPatternFicha: hasPieces && this.state.activeTab === "ficha",
+      showPatternCorte: hasPieces && this.state.activeTab === "corte",
+      showSizeToolbar: this.state.activeTab === "2d",
+      showZoomControls: this.state.activeTab === "2d",
+      showDetailsIconBtn: this.state.activeTab === "2d",
+      showConflictCard2D: isConflict && this.state.activeTab === "2d",
+      showConflictMarkers2D: isConflict && this.state.activeTab === "2d",
+      showDetailsPanel2D: isDetails && this.state.activeTab === "2d",
+
+      viewAngles: VIEW_ANGLES.map((label) => {
+        const on = label === this.state.viewAngle;
+        return {
+          label,
+          background: on ? "var(--color-olive-tint)" : "transparent",
+          color: on ? "var(--color-olive-dark)" : "var(--color-muted-2)",
+          weight: on ? "600" : "400",
+          onClick: () => this.setState({ viewAngle: label }),
+        };
+      }),
+
+      techMeasurements: TECH_MEASUREMENTS,
+      techPieces: PIECES.map((piece) => ({ name: piece, qty: piece === "Manga" ? "2×" : "1×" })),
+      techMaterials: TECH_MATERIALS,
+
+      corteFabricWidth: this.state.fabricWidth,
+      corteViewBoxWidth: corteViewWidth,
+      corteViewBoxHeight: corteViewLength,
+      corteSvgWidth: corteSvgWidthPx,
+      corteSvgHeight: Math.max(160, corteViewLength * corteScale),
+      corteFontSize: corteFontSizeN,
+      corteFontSizeSmall: corteFontSizeSmallN,
+      corteStroke: corteStrokeN,
+      corteRadius: corteRadiusN,
+      cuttingPieces: corteActive.placed.map((p) => ({
+        x: p.x + corteMargin,
+        y: p.y + corteMargin,
+        w: p.w,
+        h: p.h,
+        tx: p.x + corteMargin + p.w / 2,
+        ty: p.y + corteMargin + p.h / 2 - corteFontSizeSmallN * 0.4,
+        ty2: p.y + corteMargin + p.h / 2 + corteFontSizeSmallN * 1.3,
+        label: p.name,
+        dims: Math.round(p.w) + "×" + Math.round(p.h) + " cm",
+        d: pieceShapePath(p.shape, p.x + corteMargin, p.y + corteMargin, p.w, p.h),
+      })),
+      onDecFabricWidth: () => this.adjustFabricWidth(-5),
+      onIncFabricWidth: () => this.adjustFabricWidth(5),
+      batchSizeRows: SIZES.map((size) => ({
+        size,
+        value: String(this.state.batchBySize[size] || 0),
+        onDec: () => this.updateBatchQty(size, -1),
+        onInc: () => this.updateBatchQty(size, 1),
+      })),
+      batchTotalLabel: garmentTotal + (garmentTotal === 1 ? " peça produzida" : " peças produzidas"),
+      cortePieceRows: this.state.cortePieces.map((p) => ({
+        name: p.name,
+        wLabel: p.w + " cm",
+        hLabel: p.h + " cm",
+        perGarmentLabel: p.perGarment + "× por peça",
+        totalLabel: p.perGarment * garmentTotal + " un. no plano",
+        canRemove: this.state.cortePieces.length > 1,
+        onRemove: () => this.removePiece(p.id),
+      })),
+      addPiece: () => this.addPiece(),
+      optimizeCorte: () => this.optimizeCorte(),
+      showCorteSavings: this.state.corteOptimized && corteSavingsPct > 0,
+      corteSavingsText: "Economia de " + corteSavingsPct + "% de tecido com o corte otimizado",
+      corteTotalPieces: corteTotalPiecesN + " un.",
+      corteLengthLabel: Math.round(corteLengthCm) + " cm",
+
+      showExportModal: this.state.showExportModal && !isChromeless,
+      openExport: () => !exportDisabled && this.openExport(),
+      closeExport: () => this.closeExport(),
+      isExportConflict: isConflict,
+      isExport2D: this.state.activeTab !== "corte" && this.state.activeTab !== "ficha",
+      isExportCorte: this.state.activeTab === "corte",
+      isExportFicha: this.state.activeTab === "ficha",
+      exportModalTitle:
+        this.state.activeTab === "corte" ? "Exportar plano de corte" : this.state.activeTab === "ficha" ? "Exportar ficha técnica" : "Exportar molde 2D",
+      exportModalSubtitle:
+        this.state.activeTab === "corte"
+          ? "Arquivo pronto para imprimir e cortar."
+          : this.state.activeTab === "ficha"
+            ? "Documentação da peça, sem os traçados do molde."
+            : "Dados vetoriais da peça, para CAD e plotter.",
+
+      formats2d: FORMATS_2D.map((f) => this.formatRow(f, this.state.format2d, (id) => this.setState({ format2d: id }))),
+      formatsCorte: FORMATS_CORTE.map((f) => this.formatRow(f, this.state.formatCorte, (id) => this.setState({ formatCorte: id }))),
+      formatsFicha: FORMATS_FICHA.map((f) => this.formatRow(f, this.state.formatFicha, (id) => this.setState({ formatFicha: id }))),
+      showRollWidth: this.state.formatCorte === "pdf-single",
+
+      sizeHeaders: SIZES.map((size) => ({ label: size })),
+      pieceRows: PIECES.map((piece) => ({
+        piece,
+        cells: SIZES.map((size) => {
+          const key = piece + "|" + size;
+          return { checked: this.state.selection[key] ? "true" : "", onToggle: () => this.toggleCell(key) };
+        }),
+      })),
+      selectionSummary: (() => {
+        const total = Object.values(this.state.selection).filter(Boolean).length;
+        const max = PIECES.length * SIZES.length;
+        return total === 0
+          ? "Nenhuma peça selecionada — escolha ao menos um tamanho."
+          : `${total} de ${max} combinações selecionadas · gera um arquivo por peça e tamanho.`;
+      })(),
+
+      fabricWidths: FABRIC_WIDTHS.map((w, i) => {
+        const on = w.cm === this.state.fabricWidth;
+        return {
+          label: w.label,
+          background: on ? "var(--color-olive-tint)" : "var(--color-surface)",
+          color: on ? "var(--color-olive-dark)" : "var(--color-muted-2)",
+          weight: on ? "500" : "400",
+          radius: i === 0 ? "var(--radius-btn) 0 0 9.5px" : i === FABRIC_WIDTHS.length - 1 ? "0 9.5px 9.5px 0" : "0",
+          onClick: () => this.setFabricWidth(w.cm),
+        };
+      }),
+      fabricWidthLabel: (this.state.fabricWidth / 100).toFixed(2).replace(".", ",") + " m",
+      fabricConsumption: consumptionM,
+
+      fichaIncludes: FICHA_ITEMS.map((item) => ({
+        label: item.label,
+        checked: this.state.fichaIncludes[item.id] ? "true" : "",
+        onToggle: () => this.toggleFichaItem(item.id),
+      })),
+
+      exportDownloadLabel:
+        this.state.activeTab === "ficha"
+          ? "Baixar ficha técnica"
+          : Object.values(this.state.selection).filter(Boolean).length > 1
+            ? "Baixar arquivos"
+            : "Baixar arquivo",
+    };
+  }
+}
+
+</script>
+</body>
+</html>

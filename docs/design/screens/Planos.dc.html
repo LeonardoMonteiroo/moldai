@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/fonts/fonts.css">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/_ds_bundle.css">
+  <link rel="stylesheet" href="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/styles.css">
+  <script src="_ds/moldai-design-system-58926e7a-026f-43b5-80db-ee4025f87a65/_ds_bundle.js"></script>
+  <style>
+    html, body { margin: 0; }
+    body { background: var(--color-surface); color: var(--color-ink); font-family: Archivo, system-ui, sans-serif; }
+    a { color: var(--color-olive); }
+    a:hover { color: var(--color-olive-dark); }
+  </style>
+</helmet>
+<div data-screen-label="Planos" style="background: var(--color-surface); color: var(--color-ink); font-family: Archivo, system-ui, sans-serif">
+
+  <div style="display: flex; align-items: center; gap: 26px; border-bottom: 1px solid var(--color-border); background: var(--color-surface); padding: 16px 30px; position: sticky; top: 0; z-index: 20">
+    <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 21px; font-weight: 700; letter-spacing: -0.4px">Mold<span style="color: var(--color-olive)">AI</span></span>
+    <div style="flex: 1"></div>
+    <x-import component-from-global-scope="MoldAIUI.Button" variant="ghost" size="chrome" class-name="text-muted-2" hint-size="auto,30px">Como funciona</x-import>
+    <x-import component-from-global-scope="MoldAIUI.Button" variant="ghost" size="chrome" class-name="text-muted-2" hint-size="auto,30px">Formatos</x-import>
+    <x-import component-from-global-scope="MoldAIUI.Button" variant="ghost" size="chrome" class-name="text-accent-foreground" hint-size="auto,30px">Planos</x-import>
+    <x-import component-from-global-scope="MoldAIUI.Button" variant="outline" size="chrome" hint-size="auto,30px">Entrar</x-import>
+    <x-import component-from-global-scope="MoldAIUI.Button" size="chrome" hint-size="auto,30px">Testar grátis</x-import>
+  </div>
+
+  <section style="border-bottom: 1px solid var(--color-border); background: var(--color-paper)">
+    <div style="margin: 0 auto; max-width: 1160px; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 32px; padding: 56px 34px 44px">
+      <div style="display: flex; flex: 1 1 460px; min-width: 0; flex-direction: column; gap: 10px">
+        <span style="color: var(--color-olive); font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">Planos</span>
+        <h1 style="margin: 0; max-width: 640px; font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 44px; font-weight: 600; line-height: 1.04; letter-spacing: -1.2px; text-wrap: pretty">Todos os recursos em todos os planos.</h1>
+        <p style="margin: 0; max-width: 520px; color: var(--color-muted-2); font-size: 15px; line-height: 1.55; text-wrap: pretty">A diferença é quanto você gera por mês.</p>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px">
+        <span style="color: var(--color-muted); font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">Ciclo de cobrança</span>
+        <div style="display: flex; border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-surface); padding: 3px" aria-label="Ciclo de cobrança">
+          <button type="button" style="height: 32px; padding: 0 16px; border: 0; border-radius: 8px; background: {{ monthlyBackground }}; color: {{ monthlyColor }}; font-size: 13px; font-weight: 500; font-family: inherit; cursor: pointer">Mensal</button>
+          <button type="button" style="height: 32px; padding: 0 16px; border: 0; border-radius: 8px; background: {{ annualBackground }}; color: {{ annualColor }}; font-size: 13px; font-weight: 500; font-family: inherit; cursor: pointer">Anual · −20%</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="margin: 0 auto; max-width: 1160px; display: flex; flex-wrap: wrap; align-items: stretch; gap: 18px; padding: 34px 34px 8px">
+
+    <div style="display: flex; flex: 1 1 250px; min-width: 0; max-width: 300px; flex-direction: column; gap: 14px; border: 1px solid var(--color-olive); border-radius: 14px; background: var(--color-olive-tint); padding: 24px">
+      <span style="color: var(--color-olive); font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">{{ free.name }}</span>
+      <div style="display: flex; align-items: baseline; gap: 6px">
+        <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 42px; font-weight: 600; letter-spacing: -1px">{{ free.creditsNumber }}</span>
+        <span style="color: var(--color-olive-dark); font-size: 14px">créditos por mês</span>
+      </div>
+      <div style="height: 1px; background: rgba(74, 90, 58, 0.18)"></div>
+      <ul style="display: flex; flex-direction: column; gap: 9px; margin: 0; padding: 0; list-style: none">
+        <sc-for list="{{ free.features }}" as="f" hint-placeholder-count="3">
+          <li style="display: flex; align-items: flex-start; gap: 8px; color: var(--color-olive-dark); font-size: 13px; line-height: 1.45">
+            <span style="margin-top: 5px; width: 5px; height: 5px; flex: none; border-radius: 9999px; background: var(--color-olive)"></span>
+            <span>{{ f.label }}</span>
+          </li>
+        </sc-for>
+      </ul>
+      <div style="flex: 1; min-height: 6px"></div>
+      <sc-if value="{{ free.isCurrent }}" hint-placeholder-val="{{ false }}">
+        <div style="border: 1px solid var(--color-olive); border-radius: 10px; color: var(--color-olive-dark); padding: 9px; text-align: center; font-size: 12.5px; font-weight: 600">Plano atual</div>
+      </sc-if>
+      <sc-if value="{{ free.showCta }}" hint-placeholder-val="{{ true }}">
+        <x-import component-from-global-scope="MoldAIUI.Button" class-name="w-full" hint-size="100%,36px">{{ free.cta }}</x-import>
+      </sc-if>
+      <span style="color: var(--color-olive-dark); font-size: 11.5px">Sem cartão de crédito.</span>
+    </div>
+
+    <div style="display: grid; flex: 1 1 620px; min-width: 0; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px">
+      <sc-for list="{{ paidPlans }}" as="p" hint-placeholder-count="3">
+        <div style="display: flex; flex-direction: column; gap: 0; border: {{ p.border }}; border-radius: 14px; background: var(--color-surface); overflow: hidden; box-shadow: {{ p.shadow }}">
+          <div style="height: 4px; background: {{ p.topBar }}"></div>
+          <div style="display: flex; flex: 1; flex-direction: column; gap: 12px; padding: 20px">
+            <div style="display: flex; align-items: center; gap: 8px; min-height: 20px">
+              <span style="color: var(--color-muted-2); font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">{{ p.name }}</span>
+              <sc-if value="{{ p.featured }}" hint-placeholder-val="{{ false }}">
+                <span style="border-radius: 9999px; background: var(--color-olive); color: #fff; padding: 3px 9px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase">mais escolhido</span>
+              </sc-if>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 3px">
+              <div style="display: flex; align-items: baseline; gap: 4px">
+                <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 30px; font-weight: 600; letter-spacing: -0.7px">{{ p.price }}</span>
+                <span style="color: var(--color-muted); font-size: 13px">/mês</span>
+              </div>
+              <sc-if value="{{ p.showAnnualNote }}" hint-placeholder-val="{{ false }}">
+                <span style="color: var(--color-muted); font-size: 11.5px">cobrado anualmente</span>
+              </sc-if>
+            </div>
+            <div style="display: flex; align-items: baseline; gap: 6px; border: 1px solid var(--color-line); border-radius: 10px; background: var(--color-paper); padding: 9px 12px">
+              <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 17px; font-weight: 600">{{ p.creditsNumber }}</span>
+              <span style="color: var(--color-muted-2); font-size: 12.5px">créditos/mês</span>
+            </div>
+            <ul style="display: flex; flex-direction: column; gap: 9px; margin: 0; padding: 0; list-style: none">
+              <sc-for list="{{ p.features }}" as="f" hint-placeholder-count="2">
+                <li style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; line-height: 1.45">
+                  <span style="margin-top: 5px; width: 5px; height: 5px; flex: none; border-radius: 9999px; background: var(--color-olive)"></span>
+                  <span>{{ f.label }}</span>
+                </li>
+              </sc-for>
+            </ul>
+            <div style="flex: 1; min-height: 10px"></div>
+            <x-import component-from-global-scope="MoldAIUI.Button" variant="{{ p.ctaVariant }}" class-name="w-full" hint-size="100%,36px">{{ p.cta }}</x-import>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="margin: 0 auto; max-width: 1160px; display: flex; flex-direction: column; gap: 16px; padding: 34px 34px 20px">
+    <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px; border-top: 1px solid var(--color-line); padding-top: 22px">
+      <span style="color: var(--color-muted); font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase">Custo em créditos</span>
+      <div style="flex: 1"></div>
+      <span style="color: var(--color-muted-2); font-size: 12.5px">Créditos avulsos: 100 por R$ 19,00</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px">
+      <sc-for list="{{ costs }}" as="c" hint-placeholder-count="4">
+        <div style="display: flex; flex-direction: column; gap: 2px; border: 1px solid var(--color-border); border-radius: 14px; background: var(--color-surface); padding: 16px 18px">
+          <span style="font-family: var(--font-bricolage), Archivo, sans-serif; font-size: 26px; font-weight: 600; letter-spacing: -0.5px">{{ c.value }}</span>
+          <span style="color: var(--color-muted-2); font-size: 12.5px">{{ c.label }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="border-top: 1px solid var(--color-border); background: var(--color-paper); margin-top: 22px">
+    <div style="margin: 0 auto; max-width: 1160px; padding: 26px 34px 34px">
+      <p style="margin: 0; max-width: 760px; color: var(--color-muted-2); font-size: 12.5px; line-height: 1.6; text-wrap: pretty">Pagamentos processados pela Stripe.</p>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;state&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;monthly&quot;,&quot;annual&quot;,&quot;signedInFree&quot;],&quot;default&quot;:&quot;monthly&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Estado da tela&quot;},&quot;destaque&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;atelier&quot;,&quot;studio&quot;,&quot;factory&quot;],&quot;default&quot;:&quot;studio&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Estado da tela&quot;}}">
+const PLANS = [
+  {
+    id: "free", name: "Grátis", cents: 0, credits: 30, cta: "Começar grátis",
+    features: [
+      { label: "Graduação e .dxf liberados" },
+      { label: "Exportação AAMA/ASTM" },
+      { label: "Formatos nativos de CAD" },
+    ],
+  },
+  {
+    id: "atelier", name: "Ateliê", cents: 5900, credits: 500, cta: "Assinar",
+    features: [
+      { label: "Grade própria da marca" },
+      { label: "1 usuário" },
+    ],
+  },
+  {
+    id: "studio", name: "Estúdio", cents: 14900, credits: 2000, cta: "Assinar Estúdio",
+    features: [
+      { label: "Modelo v2 Pro: moldes mais precisos" },
+      { label: "3 usuários" },
+    ],
+  },
+  {
+    id: "factory", name: "Confecção", cents: 39900, credits: 10000, cta: "Falar com vendas",
+    features: [
+      { label: "Fila prioritária e API" },
+      { label: "5 usuários" },
+      { label: "Suporte dedicado" },
+    ],
+  },
+];
+
+const COSTS = [
+  { value: "1", label: "geração" },
+  { value: "1", label: "ajuste" },
+  { value: "6", label: "graduação" },
+  { value: "0", label: "correção" },
+];
+
+const brl = (cents) =>
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
+
+const number = (n) => new Intl.NumberFormat("pt-BR").format(n);
+
+class Component extends DCLogic {
+  renderVals() {
+    const state = this.props.state ?? "monthly";
+    const featuredId = this.props.destaque ?? "studio";
+    const annual = state === "annual";
+    const currentPlan = state === "signedInFree" ? "free" : null;
+
+    const free = PLANS[0];
+
+    return {
+      monthlyBackground: annual ? "transparent" : "var(--color-olive-tint)",
+      monthlyColor: annual ? "var(--color-muted-2)" : "var(--color-olive-dark)",
+      annualBackground: annual ? "var(--color-olive-tint)" : "transparent",
+      annualColor: annual ? "var(--color-olive-dark)" : "var(--color-muted-2)",
+      costs: COSTS,
+      free: {
+        name: free.name,
+        creditsNumber: number(free.credits),
+        features: free.features.map((f) => ({ label: f.label })),
+        cta: free.cta,
+        isCurrent: currentPlan === "free",
+        showCta: currentPlan !== "free",
+      },
+      paidPlans: PLANS.slice(1).map((p) => {
+        const cents = annual ? Math.round(p.cents * 0.8) : p.cents;
+        const featured = p.id === featuredId;
+        return {
+          name: p.name,
+          price: brl(cents),
+          creditsNumber: number(p.credits),
+          showAnnualNote: annual,
+          featured,
+          features: p.features.map((f) => ({ label: f.label })),
+          border: featured ? "1px solid var(--color-olive)" : "1px solid var(--color-border)",
+          topBar: featured ? "var(--color-olive)" : "transparent",
+          shadow: featured ? "0 8px 28px rgba(74, 90, 58, 0.14)" : "none",
+          ctaVariant: featured ? "default" : "outline",
+          cta: p.cta,
+        };
+      }),
+    };
+  }
+}
+</script>
+</body>
+</html>
