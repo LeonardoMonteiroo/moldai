@@ -8,10 +8,9 @@ import { PLAN_CREDITS } from "@/lib/billing/plans";
 // The design's own hero drops the earlier disabled "Ver um molde real"
 // secondary CTA entirely rather than keeping a permanently-disabled control
 // -- a single real CTA plus the no-card note underneath it. The hero image
-// is a real screenshot of the editor (public/landing/hero-editor.jpg),
-// captured mid-conversation with a generated and adjusted pattern already
-// on canvas -- replacing the earlier hand-drawn MockupCard illustration,
-// which read as a fabrication of the UI rather than the UI itself.
+// (public/landing/hero-editor.svg) is a neutral placeholder -- a plain
+// image glyph on the surface-alt token -- deliberately standing in for real
+// artwork rather than claiming to be one, until the real hero image ships.
 export function LandingHero() {
   const t = useTranslations("Landing");
 
@@ -39,10 +38,10 @@ export function LandingHero() {
         </div>
         <div className="border-border rounded-modal shadow-modal min-w-0 flex-1 basis-[560px] overflow-hidden border">
           {/* eslint-disable-next-line @next/next/no-img-element -- a fixed
-              local screenshot; no repo precedent for next/image and none of
-              its optimization pipeline applies to a single static asset. */}
+              local asset; no repo precedent for next/image and none of its
+              optimization pipeline applies to a single static asset. */}
           <img
-            src="/landing/hero-editor.jpg"
+            src="/landing/hero-editor.svg"
             alt={t("hero.imageAlt")}
             className="h-full w-full object-cover object-top"
           />

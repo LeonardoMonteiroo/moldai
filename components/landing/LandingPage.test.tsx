@@ -65,17 +65,17 @@ describe("LandingPage", () => {
     );
   });
 
-  // The hero's image is a real screenshot of the editor
-  // (public/landing/hero-editor.jpg), not a hand-drawn illustration --
-  // assert it renders by its catalog alt text.
-  it("renders the hero's real editor screenshot", () => {
+  // The hero's image is a neutral placeholder for now
+  // (public/landing/hero-editor.svg) -- assert it renders by its catalog
+  // alt text.
+  it("renders the hero's placeholder image", () => {
     renderWithIntl(<LandingPage />);
 
     const heroImage = screen.getByRole("img", {
       name: ptBR.Landing.hero.imageAlt,
     });
     expect(heroImage).toBeInTheDocument();
-    expect(heroImage).toHaveAttribute("src", "/landing/hero-editor.jpg");
+    expect(heroImage).toHaveAttribute("src", "/landing/hero-editor.svg");
   });
 
   it("renders the how-it-works section header and all three step cards with their exact copy", () => {
@@ -95,8 +95,9 @@ describe("LandingPage", () => {
       expect(
         screen.getByText(ptBR.Landing.steps[key].body),
       ).toBeInTheDocument();
-      // Each thumbnail is a real app screenshot (public/landing/*.png), not
-      // a stock icon -- assert the image itself, named by its catalog alt.
+      // Each thumbnail is a neutral placeholder for now
+      // (public/landing/*.svg) -- assert the image itself, named by its
+      // catalog alt.
       expect(
         screen.getByRole("img", { name: ptBR.Landing.steps[key].imageAlt }),
       ).toBeInTheDocument();

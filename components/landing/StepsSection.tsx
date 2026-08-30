@@ -3,16 +3,16 @@
 import { useTranslations } from "next-intl";
 
 const STEPS = [
-  { key: "describe", src: "/landing/step-describe.png" },
-  { key: "adjust", src: "/landing/step-adjust.png" },
-  { key: "export", src: "/landing/step-export.png" },
+  { key: "describe", src: "/landing/step-describe.svg" },
+  { key: "adjust", src: "/landing/step-adjust.svg" },
+  { key: "export", src: "/landing/step-export.svg" },
 ] as const;
 
 // English id -- the "Como funciona" nav anchor's target, per the
-// English-identifiers/pt-BR-display-text boundary. Each card's thumbnail is
-// a real screenshot of the editor (public/landing/*.png), not a stock icon
-// or a fabricated mockup -- captured from an actual generation/adjustment/
-// cut-plan run so what's shown is what the app really produces.
+// English-identifiers/pt-BR-display-text boundary. Each card's thumbnail
+// (public/landing/*.svg) is a neutral placeholder -- a plain image glyph on
+// the surface-alt token -- deliberately standing in for real artwork rather
+// than claiming to be one, until the real step images ship.
 export function StepsSection() {
   const t = useTranslations("Landing");
 
