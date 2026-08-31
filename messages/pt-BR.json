@@ -1161,7 +1161,7 @@
         "creditsLabel": "{credits, number} créditos/mês"
       }
     },
-    "paymentNote": "A cobrança é feita em reais (BRL). Se você estiver fora do Brasil, o valor aparece convertido para a sua moeda na hora do pagamento, mas a cobrança final é em reais. Aceitamos apenas Visa e Mastercard.",
+    "paymentNote": "Pagamentos processados pela Stripe.",
     "errors": {
       "invalid_plan": "Plano inválido.",
       "plan_not_upgradable": "Esse plano não é um upgrade do seu plano atual.",
@@ -1176,7 +1176,9 @@
     "metaTitle": "Planos",
     "metaDescription": "Compare os planos do MoldAI: créditos mensais, preço e o que já está disponível em cada um.",
     "title": "Planos",
-    "subtitle": "Todos os recursos em todos os planos. A diferença é quanto você gera por mês.",
+    "headline": "Todos os recursos em todos os planos.",
+    "subtitle": "A diferença é quanto você gera por mês.",
+    "freeNote": "Sem cartão de crédito.",
     "toggleLabel": "Ciclo de cobrança",
     "toggle": {
       "monthly": "Mensal",
@@ -1184,7 +1186,7 @@
     },
     "annualBilledNote": "cobrado anualmente",
     "mostChosenBadge": "mais escolhido",
-    "paymentNote": "A cobrança é feita em reais (BRL). Se você estiver fora do Brasil, o valor aparece convertido para a sua moeda na hora do pagamento, mas a cobrança final é em reais. Aceitamos apenas Visa e Mastercard.",
+    "paymentNote": "Pagamentos processados pela Stripe.",
     "priceSuffix": "/mês",
     "plans": {
       "free": {
@@ -1213,11 +1215,13 @@
       "dedicatedSupport": "Suporte dedicado"
     },
     "footer": {
-      "costLabel": "Custo em créditos:",
-      "costGenerate": "geração {cost}",
-      "costAdjust": "ajuste {cost}",
-      "costGraduate": "graduação {cost}",
-      "costCorrection": "correção {cost}",
+      "costLabel": "Custo em créditos",
+      "costs": {
+        "generate": "geração",
+        "adjust": "ajuste",
+        "graduate": "graduação",
+        "correction": "correção"
+      },
       "topup": "Créditos avulsos: {credits} por {price}"
     }
   },

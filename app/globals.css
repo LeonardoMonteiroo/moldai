@@ -147,8 +147,10 @@ body {
   /* #13: the landing hero's h1 (docs/design/screens/Landing.dc.html's
      redesign handoff: 54px/1.02, -1.6px) sits above --text-display (26px),
      the scale's previous ceiling, and needs its own negative tracking --
-     --tracking-wordmark is reserved for the wordmark alone. Named for its
-     one user, same as --tracking-wordmark. */
+     --tracking-wordmark is reserved for the wordmark alone. A second
+     marketing-page headline (Planos, docs/design/screens/Planos.dc.html)
+     reuses it rather than adding a 44px in-between step for one screen --
+     it is no longer named for a single user, only for its size. */
   --text-hero: 54px;
   --text-hero--line-height: 1.02;
   --tracking-hero: -1.6px;

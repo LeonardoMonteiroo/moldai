@@ -19,11 +19,12 @@ vi.mock("@/lib/types", async (importOriginal) => {
 });
 
 describe("PricingPage", () => {
-  it("renders the title, subtitle and a Mensal/Anual toggle for an anonymous visitor", () => {
+  it("renders the eyebrow, headline, subtitle and a Mensal/Anual toggle for an anonymous visitor", () => {
     renderWithIntl(<PricingPage signedIn={false} currentPlan={null} />);
     expect(
-      screen.getByRole("heading", { name: ptBR.Pricing.title }),
+      screen.getByRole("heading", { name: ptBR.Pricing.headline }),
     ).toBeInTheDocument();
+    expect(screen.getAllByText(ptBR.Pricing.title).length).toBeGreaterThan(0);
     expect(screen.getByText(ptBR.Pricing.subtitle)).toBeInTheDocument();
     expect(screen.getByText(ptBR.Pricing.toggle.monthly)).toBeInTheDocument();
     expect(screen.getByText(ptBR.Pricing.toggle.annual)).toBeInTheDocument();
@@ -36,13 +37,14 @@ describe("PricingPage", () => {
         screen.getByText(ptBR.PlanSection.plans[id].name),
       ).toBeInTheDocument();
     }
-    // #206: every tier -- free included -- renders through the same
+    // #206: every paid tier renders through the same
     // formatBRL(PLAN_PRICE_CENTS[id]), so changing a price in plans.ts
     // changes the rendered text and nothing here pastes a currency literal.
     // Asserted via formatBRL rather than a hand-written "R$ 59,00" for the
     // same reason the catalog no longer carries one: a second copy of the
-    // format is a second thing that can disagree.
-    for (const id of PLAN_IDS) {
+    // format is a second thing that can disagree. The Grátis card shows no
+    // price line at all -- there's nothing to charge -- so it's excluded.
+    for (const id of PLAN_IDS.filter((id) => id !== "free")) {
       expect(
         screen.getByText(priceText(formatBRL(PLAN_PRICE_CENTS[id]))),
       ).toBeInTheDocument();
@@ -80,12 +82,15 @@ describe("PricingPage", () => {
     expect(screen.queryByText(/histórico ilimitado/i)).not.toBeInTheDocument();
   });
 
-  it("renders the cost footer from COSTS, never a hardcoded 4, and the top-up line from TOPUP", () => {
+  it("renders the cost footer from COSTS, never a hardcoded value, and the top-up line from TOPUP", () => {
     const ORIGINAL_ADJUST = COSTS.adjust;
     Object.assign(COSTS, { adjust: 7 });
     renderWithIntl(<PricingPage signedIn={false} currentPlan={null} />);
-    expect(screen.getByText(/geração 7/)).toBeInTheDocument();
-    expect(screen.queryByText(/geração 4/)).not.toBeInTheDocument();
+    const generateTile = screen
+      .getByText(ptBR.Pricing.footer.costs.generate)
+      .closest("div");
+    expect(generateTile).toHaveTextContent("7");
+    expect(generateTile).not.toHaveTextContent("4");
     expect(screen.getByText(/100 por R\$ 19/)).toBeInTheDocument();
     Object.assign(COSTS, { adjust: ORIGINAL_ADJUST });
   });
