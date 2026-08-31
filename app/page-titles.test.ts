@@ -18,7 +18,7 @@ function source(file: string): string {
 describe("root layout title template (#109)", () => {
   it("suffixes every route's title with the brand instead of repeating a static one", () => {
     const layout = source("layout.tsx");
-    expect(layout).toMatch(/template:\s*"%s — MoldAI"/);
+    expect(layout).toMatch(/template:\s*"%s - MoldAI"/);
   });
 });
 
@@ -65,7 +65,7 @@ describe("every full-page route sets its own title (#109)", () => {
     expect(src).toMatch(/export async function generateMetadata/);
     expect(src).toContain(`getTranslations("Sidebar")`);
     expect(src).toContain(`t("myPatternsLabel")`);
-    expect(src).toMatch(/—\s*MoldAI/);
+    expect(src).toMatch(/-\s*MoldAI/);
   });
 
   // The one dynamic route: the tab carries the pattern's own name, not a

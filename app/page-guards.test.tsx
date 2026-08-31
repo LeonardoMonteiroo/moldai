@@ -567,7 +567,7 @@ describe("gated-page metadata titles", () => {
     // The suffix is spelled out in the page rather than left to
     // layout.tsx's title.template, which Next does not apply to a page in
     // the same route segment as the layout that defines it.
-    expect(metadata.title).toBe(`${messages.Sidebar.myPatternsLabel} — MoldAI`);
+    expect(metadata.title).toBe(`${messages.Sidebar.myPatternsLabel} - MoldAI`);
     // A signed-out title would be the landing's -- these must not collide.
     expect(metadata.title).not.toBe(messages.Landing.metaTitle);
   });
