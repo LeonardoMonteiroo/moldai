@@ -22,8 +22,8 @@ export const metadata: Metadata = {
   // segment that doesn't (there is none left) -- `template` is what turns
   // each route's plain string into a distinguishable tab, brand suffixed.
   title: {
-    template: "%s — MoldAI",
-    default: "MoldAI — Editor de molde",
+    template: "%s - MoldAI",
+    default: "MoldAI - Editor de molde",
   },
   description:
     "MoldAI gera moldes de vestuário a partir de linguagem natural, foto, croqui ou tabela de medidas.",

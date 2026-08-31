@@ -20,12 +20,12 @@ describe("LandingPage", () => {
     const howItWorks = screen.getByRole("link", {
       name: ptBR.Landing.nav.howItWorks,
     });
-    expect(howItWorks).toHaveAttribute("href", "#how-it-works");
+    expect(howItWorks).toHaveAttribute("href", "/#how-it-works");
 
     const faq = screen.getByRole("link", {
       name: ptBR.Landing.nav.faq,
     });
-    expect(faq).toHaveAttribute("href", "#faq");
+    expect(faq).toHaveAttribute("href", "/#faq");
 
     expect(
       screen.getByRole("link", { name: ptBR.Landing.nav.login }),

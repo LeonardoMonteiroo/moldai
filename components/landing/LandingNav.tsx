@@ -5,11 +5,13 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Wordmark } from "@/components/shared/Wordmark";
 
-// #13: "Como funciona"/"Dúvidas" are real same-page anchors (Decision 2 =
-// B) -- both sections already exist below (StepsSection's #how-it-works,
-// FaqSection's #faq), inventing no new copy. "Planos" was disabled + badged
-// until the public plans screen shipped (#15) -- now a real link to the
-// dedicated pricing page, not a same-page anchor.
+// #13: "Como funciona"/"Dúvidas" are real anchors (Decision 2 = B) into
+// sections that only exist on the landing page (StepsSection's
+// #how-it-works, FaqSection's #faq) -- pointed at "/#..." rather than a bare
+// "#..." because this same nav is also reused on /planos (#218), where a
+// bare hash just tacks onto the current /planos URL and goes nowhere.
+// "Planos" was disabled + badged until the public plans screen shipped
+// (#15) -- now a real link to the dedicated pricing page.
 //
 // #218: also reused by /planos (PricingPage), which is reachable while
 // signed in -- it used to always render the signed-out "Entrar"/"Testar
@@ -27,10 +29,10 @@ export function LandingNav({ signedIn = false }: { signedIn?: boolean }) {
       <Wordmark />
       <div className="flex-1" />
       <Button asChild variant="ghost" size="chrome" className="text-muted-2">
-        <a href="#how-it-works">{t("nav.howItWorks")}</a>
+        <Link href="/#how-it-works">{t("nav.howItWorks")}</Link>
       </Button>
       <Button asChild variant="ghost" size="chrome" className="text-muted-2">
-        <a href="#faq">{t("nav.faq")}</a>
+        <Link href="/#faq">{t("nav.faq")}</Link>
       </Button>
       <Button asChild variant="ghost" size="chrome" className="text-muted-2">
         <Link href="/planos">{t("nav.plans")}</Link>
