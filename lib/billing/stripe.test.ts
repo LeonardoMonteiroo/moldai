@@ -4,6 +4,7 @@ import {
   loadStripeConfig,
   createCustomer,
   createCheckoutSession,
+  cancelSubscription,
   verifyWebhookEvent,
   parseGatewayEvent,
   resolveInvoicePaymentIntent,
@@ -14,9 +15,10 @@ import {
   METADATA_USER_ID,
   METADATA_PURCHASE_TYPE,
   METADATA_PLAN,
+  METADATA_INTERVAL,
   type StripeLike,
 } from "./stripe";
-import { PLAN_PRICE_CENTS, TOPUP_PRICE_CENTS } from "./plans";
+import { PLAN_PRICE_CENTS, TOPUP_PRICE_CENTS, annualPriceCents } from "./plans";
 
 const CONFIG = { secretKey: "sk_test_x", webhookSecret: "whsec_test_x" };
 
@@ -31,6 +33,7 @@ function fakeClient(overrides: Partial<StripeLike> = {}): StripeLike {
       },
     },
     customers: { create: vi.fn(async () => ({ id: "cus_1" })) },
+    subscriptions: { cancel: vi.fn(async () => ({})) },
     invoices: {
       retrieve: vi.fn(async () => ({}) as Stripe.Invoice),
     },
@@ -70,22 +73,30 @@ describe("loadStripeConfig", () => {
 });
 
 describe("purchase metadata round trip", () => {
-  it("round-trips a topup and every paid plan", () => {
+  it("round-trips a topup and every paid plan, monthly and annual", () => {
     expect(
       parsePurchaseMetadata(buildPurchaseMetadata("u1", { type: "topup" })),
     ).toEqual({ userId: "u1", purchase: { type: "topup" } });
     for (const plan of ["atelier", "studio", "factory"] as const) {
-      expect(
-        parsePurchaseMetadata(
-          buildPurchaseMetadata("u1", { type: "subscribe", plan }),
-        ),
-      ).toEqual({ userId: "u1", purchase: { type: "subscribe", plan } });
+      for (const interval of ["month", "year"] as const) {
+        expect(
+          parsePurchaseMetadata(
+            buildPurchaseMetadata("u1", { type: "subscribe", plan, interval }),
+          ),
+        ).toEqual({
+          userId: "u1",
+          purchase: { type: "subscribe", plan, interval },
+        });
+      }
     }
   });
 
-  it("writes no plan key for a topup", () => {
+  it("writes no plan or interval key for a topup", () => {
     expect(buildPurchaseMetadata("u1", { type: "topup" })).not.toHaveProperty(
       METADATA_PLAN,
+    );
+    expect(buildPurchaseMetadata("u1", { type: "topup" })).not.toHaveProperty(
+      METADATA_INTERVAL,
     );
   });
 
@@ -117,6 +128,15 @@ describe("purchase metadata round trip", () => {
         [METADATA_USER_ID]: "u1",
         [METADATA_PURCHASE_TYPE]: "subscribe",
         [METADATA_PLAN]: "enterprise",
+      },
+    ],
+    [
+      "subscribe naming an unrecognised interval",
+      {
+        [METADATA_USER_ID]: "u1",
+        [METADATA_PURCHASE_TYPE]: "subscribe",
+        [METADATA_PLAN]: "atelier",
+        [METADATA_INTERVAL]: "weekly",
       },
     ],
   ])("rejects %s rather than throwing", (_label, metadata) => {
@@ -162,7 +182,7 @@ describe("createCheckoutSession", () => {
     expect(params.subscription_data).toBeUndefined();
   });
 
-  it("prices a subscribe from PLAN_PRICE_CENTS, monthly, and stamps metadata on BOTH the session and the subscription", async () => {
+  it("prices a subscribe from PLAN_PRICE_CENTS, monthly by default, and stamps metadata on BOTH the session and the subscription", async () => {
     const create = vi.fn(async (_p: Stripe.Checkout.SessionCreateParams) => ({
       id: "cs_2",
       url: "https://pay/y" as string | null,
@@ -174,7 +194,7 @@ describe("createCheckoutSession", () => {
       CONFIG,
       {
         customerId: "cus_1",
-        purchase: { type: "subscribe", plan: "studio" },
+        purchase: { type: "subscribe", plan: "studio", interval: "month" },
         userId: "u1",
         itemName: "Estúdio",
         amountCents: PLAN_PRICE_CENTS.studio,
@@ -206,6 +226,40 @@ describe("createCheckoutSession", () => {
         METADATA_USER_ID
       ],
     ).toBe("u1");
+    expect(
+      (params.subscription_data?.metadata as Record<string, string>)[
+        METADATA_INTERVAL
+      ],
+    ).toBe("month");
+  });
+
+  it("prices an annual subscribe with recurring.interval 'year' and the full annual amount", async () => {
+    const create = vi.fn(async (_p: Stripe.Checkout.SessionCreateParams) => ({
+      id: "cs_5",
+      url: "https://pay/annual" as string | null,
+    }));
+    const client = fakeClient({
+      checkout: { sessions: { create } },
+    } as Partial<StripeLike>);
+    await createCheckoutSession(
+      CONFIG,
+      {
+        customerId: "cus_1",
+        purchase: { type: "subscribe", plan: "atelier", interval: "year" },
+        userId: "u1",
+        itemName: "Ateliê",
+        amountCents: annualPriceCents("atelier"),
+        successUrl: "https://app/ok",
+        cancelUrl: "https://app/no",
+      },
+      { client },
+    );
+    const params = create.mock
+      .calls[0][0] as Stripe.Checkout.SessionCreateParams;
+    const priceData = params.line_items?.[0]
+      ?.price_data as Stripe.Checkout.SessionCreateParams.LineItem.PriceData;
+    expect(priceData.recurring).toEqual({ interval: "year" });
+    expect(priceData.unit_amount).toBe(annualPriceCents("atelier"));
   });
 
   it("requests Adaptive Pricing explicitly rather than relying on a Dashboard default", async () => {
@@ -396,6 +450,7 @@ describe("parseGatewayEvent", () => {
   const subMeta = buildPurchaseMetadata("u1", {
     type: "subscribe",
     plan: "studio",
+    interval: "month",
   });
 
   it("maps a completed one-off session to topupPaid with its payment intent", () => {
@@ -423,7 +478,7 @@ describe("parseGatewayEvent", () => {
     expect(result.kind).toBe("ignored");
   });
 
-  it("maps subscription_create to subscriptionStarted with the plan from metadata", () => {
+  it("maps subscription_create to subscriptionStarted with the plan AND interval from metadata", () => {
     expect(
       parseGatewayEvent(
         event("invoice.paid", {
@@ -441,9 +496,31 @@ describe("parseGatewayEvent", () => {
       kind: "subscriptionStarted",
       userId: "u1",
       plan: "studio",
+      interval: "month",
       invoiceId: "in_1",
       subscriptionId: "sub_1",
     });
+  });
+
+  it("recovers an annual interval from metadata the same way", () => {
+    expect(
+      parseGatewayEvent(
+        event("invoice.paid", {
+          id: "in_2",
+          billing_reason: "subscription_create",
+          parent: {
+            subscription_details: {
+              subscription: "sub_2",
+              metadata: buildPurchaseMetadata("u1", {
+                type: "subscribe",
+                plan: "atelier",
+                interval: "year",
+              }),
+            },
+          },
+        }),
+      ),
+    ).toMatchObject({ interval: "year" });
   });
 
   it("maps subscription_cycle to subscriptionRenewed, and tolerates absent metadata", () => {
@@ -579,6 +656,30 @@ describe("resolveInvoicePaymentIntent", () => {
     } as Partial<StripeLike>);
     await expect(
       resolveInvoicePaymentIntent(CONFIG, "in_1", { client }),
+    ).rejects.toBeInstanceOf(StripeGatewayError);
+  });
+});
+
+describe("cancelSubscription", () => {
+  it("calls subscriptions.cancel with the given id", async () => {
+    const cancel = vi.fn(async () => ({}));
+    const client = fakeClient({
+      subscriptions: { cancel },
+    } as Partial<StripeLike>);
+    await cancelSubscription(CONFIG, "sub_old", { client });
+    expect(cancel).toHaveBeenCalledWith("sub_old");
+  });
+
+  it("wraps a provider failure in StripeGatewayError", async () => {
+    const client = fakeClient({
+      subscriptions: {
+        cancel: vi.fn(async () => {
+          throw new Error("no such subscription");
+        }),
+      },
+    } as Partial<StripeLike>);
+    await expect(
+      cancelSubscription(CONFIG, "sub_old", { client }),
     ).rejects.toBeInstanceOf(StripeGatewayError);
   });
 });

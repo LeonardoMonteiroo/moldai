@@ -222,6 +222,10 @@ model Wallet {
   total               Int
   purchased           Int           @default(0)
   renewsAt            DateTime?
+  // Annual billing (docs/superpowers/specs/2026-08-30-annual-billing-design.md):
+  // which cycle backs the wallet's CURRENT plan/total. Additive, no backfill
+  // needed -- every existing row (free or monthly-paid) is correctly "month".
+  planInterval        String        @default("month")
   updatedAt           DateTime      @updatedAt
   // #206: real-gateway identity, additive and both nullable -- every
   // existing wallet (and every wallet created while PAYMENT_PROVIDER=mock,

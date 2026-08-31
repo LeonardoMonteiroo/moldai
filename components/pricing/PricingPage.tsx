@@ -12,6 +12,8 @@ import {
   PLAN_FEATURES,
   TOPUP_CREDITS,
   TOPUP_PRICE_CENTS,
+  annualMonthlyEquivalentCents,
+  effectiveCredits,
 } from "@/lib/billing/plans";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,13 +22,6 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { LandingNav } from "@/components/landing/LandingNav";
 
 type Billing = "monthly" | "annual";
-
-// The −20% annual discount is display-only (issue #15's own decision):
-// applyPurchase/renewWallet only ever renew on a 30-day cycle, so an
-// "annual" CTA would charge the monthly price under an annual label --
-// every card's CTA is disabled + badged while this toggle is on Anual,
-// exactly like a tier design 5c advertises but this codebase can't sell yet.
-const ANNUAL_FACTOR = 0.8;
 
 const PAID_PLAN_IDS = PLAN_IDS.filter((id) => id !== "free");
 
@@ -102,18 +97,14 @@ export function PricingPage({
 
           <div className="mx-auto flex w-full max-w-[1160px] flex-col gap-6 px-[34px] py-[28px]">
             <div className="flex flex-wrap items-stretch gap-[14px]">
-              <FreeCard
-                billing={billing}
-                signedIn={signedIn}
-                currentPlan={currentPlan}
-              />
+              <FreeCard signedIn={signedIn} currentPlan={currentPlan} />
 
               <div className="grid min-w-0 flex-1 grid-cols-1 gap-[14px] sm:grid-cols-3">
                 {PAID_PLAN_IDS.map((id) => {
                   const monthly = PLAN_PRICE_CENTS[id];
                   const price =
                     billing === "annual"
-                      ? Math.round(monthly * ANNUAL_FACTOR)
+                      ? annualMonthlyEquivalentCents(id)
                       : monthly;
                   const isCurrent = currentPlan === id;
                   const isFeatured = id === "studio";
@@ -159,9 +150,13 @@ export function PricingPage({
 
                       <div className="border-line bg-paper rounded-item border px-[12px] py-[9px]">
                         <span className="text-body font-semibold">
-                          {tPlan(`plans.${id}.creditsLabel`, {
-                            credits: PLAN_CREDITS[id],
-                          })}
+                          {billing === "annual"
+                            ? tPlan(`plans.${id}.creditsLabelAnnual`, {
+                                credits: effectiveCredits(id, "year"),
+                              })
+                            : tPlan(`plans.${id}.creditsLabel`, {
+                                credits: PLAN_CREDITS[id],
+                              })}
                         </span>
                       </div>
 
@@ -188,7 +183,6 @@ export function PricingPage({
                         id={id}
                         signedIn={signedIn}
                         isCurrent={isCurrent}
-                        billing={billing}
                       />
                     </div>
                   );
@@ -247,11 +241,9 @@ export function PricingPage({
 }
 
 function FreeCard({
-  billing,
   signedIn,
   currentPlan,
 }: {
-  billing: Billing;
   signedIn: boolean;
   currentPlan: PlanId | null;
 }) {
@@ -284,12 +276,7 @@ function FreeCard({
 
       <div className="min-h-2 flex-1" />
 
-      <PlanCta
-        id="free"
-        signedIn={signedIn}
-        isCurrent={isCurrent}
-        billing={billing}
-      />
+      <PlanCta id="free" signedIn={signedIn} isCurrent={isCurrent} />
       <span className="text-olive-dark text-meta">{t("freeNote")}</span>
     </div>
   );
@@ -311,18 +298,16 @@ function CostTile({ value, label }: { value: number; label: string }) {
 // visitor's goes to /settings?section=plan, which is where the real
 // upgrade-only enforcement and error handling already live (PlanSection) --
 // this page is marketing, not a second place implementing that logic. The
-// annual toggle disables every non-free, non-current CTA with an "em breve"
-// badge rather than starting a checkout billing's not built to honour.
+// annual toggle is real now (annual billing design, 2026-08-30): every CTA
+// stays a live link regardless of billing interval.
 function PlanCta({
   id,
   signedIn,
   isCurrent,
-  billing,
 }: {
   id: PlanId;
   signedIn: boolean;
   isCurrent: boolean;
-  billing: Billing;
 }) {
   const t = useTranslations("Pricing");
   const tPlan = useTranslations("PlanSection");
@@ -340,18 +325,6 @@ function PlanCta({
       <div className="flex flex-col items-center gap-[6px]">
         <Button variant="outline" size="sm" disabled className="w-full">
           {t("plans.factory.cta")}
-        </Button>
-        <Badge variant="soon">{tPlan("comingSoonBadge")}</Badge>
-      </div>
-    );
-  }
-
-  const annualDisabled = billing === "annual" && id !== "free";
-  if (annualDisabled) {
-    return (
-      <div className="flex flex-col items-center gap-[6px]">
-        <Button size="sm" disabled className="w-full">
-          {t(`plans.${id}.cta`)}
         </Button>
         <Badge variant="soon">{tPlan("comingSoonBadge")}</Badge>
       </div>

@@ -19,6 +19,7 @@ interface WalletRow {
   total: number;
   purchased: number;
   renewsAt: Date | null;
+  planInterval: string;
   planSourceExternalId: string | null;
 }
 
@@ -29,6 +30,7 @@ function toWallet(row: WalletRow): Wallet {
     total: row.total,
     purchased: row.purchased,
     renewsAt: row.renewsAt,
+    planInterval: row.planInterval as Wallet["planInterval"],
     planSourceExternalId: row.planSourceExternalId,
   };
 }
@@ -39,11 +41,11 @@ function toWallet(row: WalletRow): Wallet {
 export async function lockWallet(tx: Tx, userId: string): Promise<Wallet> {
   const seed = seedWallet(new Date());
   await tx.$executeRaw`
-    INSERT INTO "Wallet" ("userId", "plan", "balance", "total", "purchased", "renewsAt", "planSourceExternalId", "updatedAt")
-    VALUES (${userId}, ${seed.plan}, ${seed.balance}, ${seed.total}, ${seed.purchased}, ${seed.renewsAt}, ${seed.planSourceExternalId}, now())
+    INSERT INTO "Wallet" ("userId", "plan", "balance", "total", "purchased", "renewsAt", "planInterval", "planSourceExternalId", "updatedAt")
+    VALUES (${userId}, ${seed.plan}, ${seed.balance}, ${seed.total}, ${seed.purchased}, ${seed.renewsAt}, ${seed.planInterval}, ${seed.planSourceExternalId}, now())
     ON CONFLICT ("userId") DO NOTHING`;
   const rows = await tx.$queryRaw<WalletRow[]>`
-    SELECT "plan", "balance", "total", "purchased", "renewsAt", "planSourceExternalId"
+    SELECT "plan", "balance", "total", "purchased", "renewsAt", "planInterval", "planSourceExternalId"
     FROM "Wallet" WHERE "userId" = ${userId} FOR UPDATE`;
   return toWallet(rows[0]);
 }
@@ -59,6 +61,7 @@ export async function saveWallet(
         "balance" = ${wallet.balance}, "total" = ${wallet.total},
         "purchased" = ${wallet.purchased},
         "renewsAt" = ${wallet.renewsAt},
+        "planInterval" = ${wallet.planInterval},
         "planSourceExternalId" = ${wallet.planSourceExternalId},
         "updatedAt" = now()
     WHERE "userId" = ${userId}`;
@@ -124,6 +127,15 @@ export interface IdempotentMutationResult {
   /** false means this externalId was already credited/debited -- a
    * duplicate webhook delivery, handled as a no-op rather than an error. */
   credited: boolean;
+  /** The wallet's stripeSubscriptionId immediately before this call's own
+   * (unconditional) overwrite -- read inside the same transaction, off the
+   * already-locked row, right before the UPDATE. Null when the wallet had
+   * none yet, or when this call passed no stripeSubscriptionId at all (a
+   * topup/refund credit, or a duplicate delivery that never reached the
+   * UPDATE). Lets a caller detect "this account's plan just moved to a
+   * DIFFERENT live subscription" without a second, separately-locked read.
+   */
+  previousStripeSubscriptionId: string | null;
 }
 
 /**
@@ -195,12 +207,21 @@ export async function withWalletIdempotent(
       });
     } catch (err) {
       if (isUniqueConstraintViolation(err)) {
-        return { credited: false };
+        return { credited: false, previousStripeSubscriptionId: null };
       }
       throw err;
     }
     await saveWallet(tx, userId, wallet);
+    let previousStripeSubscriptionId: string | null = null;
     if (stripeSubscriptionId) {
+      // Read before the overwrite, off the same locked row -- this is what
+      // lets the webhook route detect "this account's plan just moved to a
+      // DIFFERENT live subscription" and cancel the superseded one (see
+      // app/api/billing/webhook/route.ts's handleSubscriptionStarted).
+      const rows = await tx.$queryRaw<
+        { stripeSubscriptionId: string | null }[]
+      >`SELECT "stripeSubscriptionId" FROM "Wallet" WHERE "userId" = ${userId}`;
+      previousStripeSubscriptionId = rows[0]?.stripeSubscriptionId ?? null;
       // A plain UPDATE, not an upsert: lockWallet's own lazy-seed above
       // guarantees the row exists, so there is no "create" case. Written
       // unconditionally rather than only-when-null so a resubscribe after a
@@ -209,7 +230,7 @@ export async function withWalletIdempotent(
         UPDATE "Wallet" SET "stripeSubscriptionId" = ${stripeSubscriptionId}
         WHERE "userId" = ${userId}`;
     }
-    return { credited: true };
+    return { credited: true, previousStripeSubscriptionId };
   }, TX_OPTS);
 }
 

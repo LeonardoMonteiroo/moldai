@@ -12,9 +12,11 @@ import {
 } from "@/lib/billing/wallet";
 import {
   isPaidPlanId,
-  isPlanUpgrade,
+  isPlanOrIntervalUpgrade,
+  isBillingInterval,
   PLAN_PRICE_CENTS,
   TOPUP_PRICE_CENTS,
+  annualPriceCents,
 } from "@/lib/billing/plans";
 import { buildCredits, composeEditorState } from "@/lib/api/compose";
 import { apiError } from "@/lib/api/errors";
@@ -41,17 +43,29 @@ import { reportError } from "@/lib/observability/report";
 // payment ultimately grants still always comes from applyPurchase -- never
 // from anything a checkout or webhook payload carries.
 
+type ResolvedPurchase =
+  | { ok: true; purchase: Purchase }
+  | { ok: false; error: "invalid_plan" | "invalid_interval" };
+
 /**
- * #9/#179: an unusable "subscribe" plan -- absent, unknown, or the literal
- * "free" -- must never reach applyPurchase (mock path) or become a real,
- * plan-priced checkout charge (stripe path). Shared by both provider
- * branches so the same isPaidPlanId trust-boundary check guards both --
+ * #9/#179: an unusable "subscribe" plan or interval -- absent, unknown, or
+ * (for plan) the literal "free" -- must never reach applyPurchase (mock
+ * path) or become a real, plan-priced checkout charge (stripe path). Shared
+ * by both provider branches so the same trust-boundary check guards both --
  * previously only the mock branch built a validated Purchase at all, and
  * the gateway branch never even read body.plan.
  */
-function resolvePurchase(type: PurchaseType, plan: unknown): Purchase | null {
-  if (type !== "subscribe") return { type: "topup" };
-  return isPaidPlanId(plan) ? { type: "subscribe", plan } : null;
+function resolvePurchase(
+  type: PurchaseType,
+  plan: unknown,
+  interval: unknown,
+): ResolvedPurchase {
+  if (type !== "subscribe") return { ok: true, purchase: { type: "topup" } };
+  if (!isPaidPlanId(plan)) return { ok: false, error: "invalid_plan" };
+  if (!isBillingInterval(interval)) {
+    return { ok: false, error: "invalid_interval" };
+  }
+  return { ok: true, purchase: { type: "subscribe", plan, interval } };
 }
 
 export async function POST(request: Request) {
@@ -102,10 +116,11 @@ export async function POST(request: Request) {
     // "free" -- must never reach applyPurchase, the same isPurchaseType
     // trust-boundary shape one level up. Built before the wallet is locked,
     // matching that same "validate before any wallet work" discipline.
-    const purchase = resolvePurchase(type, body.plan);
-    if (!purchase) {
-      return apiError("invalid_plan", 400);
+    const resolved = resolvePurchase(type, body.plan, body.interval);
+    if (!resolved.ok) {
+      return apiError(resolved.error, 400);
     }
+    const purchase = resolved.purchase;
 
     // #6: byte-for-byte the pre-existing mock behaviour -- instant credit,
     // no gateway, no checkout. This stays the default (PAYMENT_PROVIDER
@@ -123,7 +138,10 @@ export async function POST(request: Request) {
     return await withWallet(gate.id, (wallet) => {
       if (
         purchase.type === "subscribe" &&
-        !isPlanUpgrade(wallet.plan, purchase.plan)
+        !isPlanOrIntervalUpgrade(
+          { plan: wallet.plan, interval: wallet.planInterval },
+          { plan: purchase.plan, interval: purchase.interval },
+        )
       ) {
         return { result: apiError("plan_not_upgradable", 400), entries: [] };
       }
@@ -153,10 +171,11 @@ export async function POST(request: Request) {
   // #179: an unusable plan must never become a real checkout charge either
   // -- checked before any provider call, matching the mock branch's own
   // "validate before any work" discipline.
-  const purchase = resolvePurchase(type, body.plan);
-  if (!purchase) {
-    return apiError("invalid_plan", 400);
+  const resolved = resolvePurchase(type, body.plan, body.interval);
+  if (!resolved.ok) {
+    return apiError(resolved.error, 400);
   }
+  const purchase = resolved.purchase;
 
   const config = loadStripeConfig();
   if (!config) {
@@ -192,7 +211,10 @@ export async function POST(request: Request) {
         }),
       (wallet) =>
         purchase.type === "subscribe" &&
-        !isPlanUpgrade(wallet.plan, purchase.plan)
+        !isPlanOrIntervalUpgrade(
+          { plan: wallet.plan, interval: wallet.planInterval },
+          { plan: purchase.plan, interval: purchase.interval },
+        )
           ? "plan_not_upgradable"
           : null,
     );
@@ -216,7 +238,10 @@ export async function POST(request: Request) {
     if (purchase.type === "subscribe") {
       const tPlan = await getTranslations("PlanSection");
       itemName = tPlan(`plans.${purchase.plan}.name`);
-      amountCents = PLAN_PRICE_CENTS[purchase.plan];
+      amountCents =
+        purchase.interval === "year"
+          ? annualPriceCents(purchase.plan)
+          : PLAN_PRICE_CENTS[purchase.plan];
     } else {
       const tPaywall = await getTranslations("PaywallModal");
       itemName = tPaywall("topupTitle");

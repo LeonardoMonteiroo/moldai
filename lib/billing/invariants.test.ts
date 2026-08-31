@@ -10,7 +10,12 @@ import {
   type LedgerEntry,
   type Wallet,
 } from "./wallet";
-import { PLAN_CREDITS, TOPUP_CREDITS, type PaidPlanId } from "./plans";
+import {
+  PLAN_CREDITS,
+  TOPUP_CREDITS,
+  effectiveCredits,
+  type PaidPlanId,
+} from "./plans";
 
 /**
  * The wallet/ledger invariant suite.
@@ -123,7 +128,9 @@ function check(h: Harness, step: string): void {
   expect(w.balance, `A (balance vs ledger) after ${step}`).toBe(
     h.expectedBalance,
   );
-  expect(w.total, `B (total vs plan) after ${step}`).toBe(PLAN_CREDITS[w.plan]);
+  expect(w.total, `B (total vs plan/interval) after ${step}`).toBe(
+    effectiveCredits(w.plan, w.planInterval),
+  );
   expect(w.purchased, `C (purchased accounting) after ${step}`).toBe(
     h.expectedPurchased,
   );
@@ -170,27 +177,37 @@ function runSequence(seed: number, steps: number): void {
       // A confirmed subscribe to any paid tier -- including downgrades and
       // same-tier reapplies, which is exactly the out-of-order webhook
       // delivery #193's guard exists for. Those fold into purchased instead
-      // of moving the plan.
+      // of moving the plan. Interval is also randomized: monthly-to-annual
+      // on the same tier is an upgrade too now, and annual-to-monthly is a
+      // downgrade -- both must fold/upgrade correctly under the same guard.
       const id = `pay_sub_${i}`;
       const plan = pick(PAID_PLANS);
-      const creditsBefore = PLAN_CREDITS[h.wallet.plan];
-      const entry = applyPurchase(h.wallet, { type: "subscribe", plan }, now);
+      const interval = pick(["month", "year"] as const);
+      const creditsBefore = effectiveCredits(
+        h.wallet.plan,
+        h.wallet.planInterval,
+      );
+      const entry = applyPurchase(
+        h.wallet,
+        { type: "subscribe", plan, interval },
+        now,
+      );
       h.expectedPurchased += purchasedContribution(entry);
       record(h, id, entry);
       // F: an out-of-order webhook may never walk the account backwards --
       // #193. A same-tier reapply must not move it either, so this is >= on
       // an unchanged plan and > only when the plan genuinely changed.
       expect(
-        PLAN_CREDITS[h.wallet.plan],
-        `F (subscribe ${plan} never downgrades)`,
+        effectiveCredits(h.wallet.plan, h.wallet.planInterval),
+        `F (subscribe ${plan}/${interval} never downgrades)`,
       ).toBeGreaterThanOrEqual(creditsBefore);
       if (entry.planChanged === false) {
         expect(
-          PLAN_CREDITS[h.wallet.plan],
-          `F (a folded subscribe leaves the plan alone)`,
+          effectiveCredits(h.wallet.plan, h.wallet.planInterval),
+          `F (a folded subscribe leaves the plan/interval alone)`,
         ).toBe(creditsBefore);
       }
-      check(h, `subscribe ${plan} ${id}`);
+      check(h, `subscribe ${plan}/${interval} ${id}`);
     } else if (roll < 0.58) {
       // A PAYMENT_REFUNDED for some earlier confirmed payment, in any order
       // -- not necessarily the most recent one.

@@ -170,8 +170,9 @@ function wireTx() {
       const sql = Array.isArray(strings) ? strings.join("") : String(strings);
       if (sql.includes("INSERT")) {
         // vals order matches lockWallet: userId, plan, balance, total,
-        // purchased, renewsAt, planSourceExternalId. Mirrors ON CONFLICT DO
-        // NOTHING -- only seeds when the row doesn't already exist.
+        // purchased, renewsAt, planInterval, planSourceExternalId. Mirrors
+        // ON CONFLICT DO NOTHING -- only seeds when the row doesn't already
+        // exist.
         const [
           userId,
           plan,
@@ -179,6 +180,7 @@ function wireTx() {
           total,
           purchased,
           renewsAt,
+          planInterval,
           planSourceExternalId,
         ] = vals as [string, ...unknown[]];
         if (!store.has(userId)) {
@@ -188,6 +190,7 @@ function wireTx() {
             total,
             purchased,
             renewsAt,
+            planInterval,
             planSourceExternalId,
           });
         }
@@ -208,16 +211,19 @@ function wireTx() {
         store.set(userId, { ...current, stripeSubscriptionId: subscriptionId });
       } else if (sql.includes("UPDATE")) {
         // vals order matches saveWallet: plan, balance, total, purchased,
-        // renewsAt, planSourceExternalId, userId -- userId is last.
+        // renewsAt, planInterval, planSourceExternalId, userId -- userId
+        // last.
         const [
           plan,
           balance,
           total,
           purchased,
           renewsAt,
+          planInterval,
           planSourceExternalId,
           userId,
         ] = vals as [
+          unknown,
           unknown,
           unknown,
           unknown,
@@ -234,6 +240,7 @@ function wireTx() {
           total,
           purchased,
           renewsAt,
+          planInterval,
           planSourceExternalId,
         });
       }
@@ -294,7 +301,7 @@ describe("withWallet", () => {
     await withWallet("u1", (wallet) => {
       const entry = applyPurchase(
         wallet,
-        { type: "subscribe", plan: "atelier" },
+        { type: "subscribe", plan: "atelier", interval: "month" },
         NOW,
       );
       return { result: undefined, entries: [entry] };
@@ -411,7 +418,11 @@ describe("withWalletIdempotent", () => {
   // rather than each webhook handler having to remember to set it.
   it("records planSourceExternalId when fn's entry actually changed the plan", async () => {
     await withWalletIdempotent("u1", "pay_atelier", (wallet) =>
-      applyPurchase(wallet, { type: "subscribe", plan: "atelier" }, NOW),
+      applyPurchase(
+        wallet,
+        { type: "subscribe", plan: "atelier", interval: "month" },
+        NOW,
+      ),
     );
     expect(
       (store.get("u1") as { planSourceExternalId: string | null })
@@ -421,13 +432,21 @@ describe("withWalletIdempotent", () => {
 
   it("does not set planSourceExternalId for a folded subscribe (plan unchanged)", async () => {
     await withWalletIdempotent("u1", "pay_factory", (wallet) =>
-      applyPurchase(wallet, { type: "subscribe", plan: "factory" }, NOW),
+      applyPurchase(
+        wallet,
+        { type: "subscribe", plan: "factory", interval: "month" },
+        NOW,
+      ),
     );
     await withWalletIdempotent(
       "u1",
       "pay_studio_later",
       (wallet) =>
-        applyPurchase(wallet, { type: "subscribe", plan: "studio" }, NOW), // folded
+        applyPurchase(
+          wallet,
+          { type: "subscribe", plan: "studio", interval: "month" },
+          NOW,
+        ), // folded
     );
     expect(
       (store.get("u1") as { planSourceExternalId: string | null })
@@ -523,7 +542,11 @@ describe("findLedgerEntryByExternalId", () => {
   // apart from one that only folded into `purchased`.
   it("reports planChanged: true for a subscribe entry that actually moved plan/total", async () => {
     await withWalletIdempotent("u1", "pay_atelier", (wallet) =>
-      applyPurchase(wallet, { type: "subscribe", plan: "atelier" }, NOW),
+      applyPurchase(
+        wallet,
+        { type: "subscribe", plan: "atelier", interval: "month" },
+        NOW,
+      ),
     );
     expect(await findLedgerEntryByExternalId("pay_atelier")).toMatchObject({
       type: "subscribe",
@@ -584,7 +607,7 @@ describe("withStripeCustomerId", () => {
     await withWallet("u1", (wallet) => {
       const entry = applyPurchase(
         wallet,
-        { type: "subscribe", plan: "studio" },
+        { type: "subscribe", plan: "studio", interval: "month" },
         NOW,
       );
       return { result: undefined, entries: [entry] };
@@ -647,7 +670,11 @@ describe("withWalletIdempotent (stripeSubscriptionId)", () => {
       "u1",
       "pi_first",
       (wallet) =>
-        applyPurchase(wallet, { type: "subscribe", plan: "atelier" }, NOW),
+        applyPurchase(
+          wallet,
+          { type: "subscribe", plan: "atelier", interval: "month" },
+          NOW,
+        ),
       "sub_abc",
     );
     const row = store.get("u1") as {
@@ -673,14 +700,22 @@ describe("withWalletIdempotent (stripeSubscriptionId)", () => {
       "u1",
       "pi_first",
       (wallet) =>
-        applyPurchase(wallet, { type: "subscribe", plan: "atelier" }, NOW),
+        applyPurchase(
+          wallet,
+          { type: "subscribe", plan: "atelier", interval: "month" },
+          NOW,
+        ),
       "sub_abc",
     );
     const second = await withWalletIdempotent(
       "u1",
       "pi_first",
       (wallet) =>
-        applyPurchase(wallet, { type: "subscribe", plan: "factory" }, NOW),
+        applyPurchase(
+          wallet,
+          { type: "subscribe", plan: "factory", interval: "month" },
+          NOW,
+        ),
       "sub_other",
     );
     expect(second.credited).toBe(false);
@@ -692,6 +727,74 @@ describe("withWalletIdempotent (stripeSubscriptionId)", () => {
     };
     expect(row.balance).toBe(500);
     expect(row.stripeSubscriptionId).toBe("sub_abc");
+  });
+
+  it("is null on a wallet's first-ever subscription (nothing to have superseded)", async () => {
+    const result = await withWalletIdempotent(
+      "u1",
+      "pi_first",
+      (wallet) =>
+        applyPurchase(
+          wallet,
+          { type: "subscribe", plan: "atelier", interval: "month" },
+          NOW,
+        ),
+      "sub_new",
+    );
+    expect(result.credited).toBe(true);
+    expect(result.previousStripeSubscriptionId).toBeNull();
+  });
+
+  it("captures the OLD subscription id before overwriting it with the new one", async () => {
+    await withWalletIdempotent(
+      "u1",
+      "pi_first",
+      (wallet) =>
+        applyPurchase(
+          wallet,
+          { type: "subscribe", plan: "atelier", interval: "month" },
+          NOW,
+        ),
+      "sub_old",
+    );
+    const result = await withWalletIdempotent(
+      "u1",
+      "pi_second",
+      (wallet) =>
+        applyPurchase(
+          wallet,
+          { type: "subscribe", plan: "studio", interval: "month" },
+          NOW,
+        ),
+      "sub_new",
+    );
+    expect(result.previousStripeSubscriptionId).toBe("sub_old");
+    expect(
+      (store.get("u1") as { stripeSubscriptionId?: string })
+        .stripeSubscriptionId,
+    ).toBe("sub_new");
+  });
+
+  it("is null when the call passes no stripeSubscriptionId at all, e.g. a topup", async () => {
+    await withWalletIdempotent(
+      "u1",
+      "pi_first",
+      (wallet) =>
+        applyPurchase(
+          wallet,
+          { type: "subscribe", plan: "atelier", interval: "month" },
+          NOW,
+        ),
+      "sub_old",
+    );
+    const result = await withWalletIdempotent("u1", "pi_topup", (wallet) =>
+      applyPurchase(wallet, { type: "topup" }, NOW),
+    );
+    expect(result.previousStripeSubscriptionId).toBeNull();
+    expect(
+      (store.get("u1") as { stripeSubscriptionId?: string })
+        .stripeSubscriptionId,
+    ).toBe("sub_old"); // untouched
   });
 });
 

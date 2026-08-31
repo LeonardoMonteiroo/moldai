@@ -164,7 +164,12 @@ describe("PlanSection", () => {
         screen.getByRole("button", { name: subscribeLabel("studio") }),
       );
 
-      expect(purchase).toHaveBeenCalledWith("subscribe", "studio");
+      expect(purchase).toHaveBeenCalledWith(
+        "subscribe",
+        "studio",
+        undefined,
+        "month",
+      );
       await waitFor(() => {
         expect(
           screen.queryByRole("button", { name: subscribeLabel("studio") }),
@@ -255,5 +260,73 @@ describe("PlanSection", () => {
     expect(
       screen.getByRole("link", { name: ptBR.PlanSection.viewAllPlansLink }),
     ).toHaveAttribute("href", "/planos");
+  });
+
+  describe("annual toggle", () => {
+    afterEach(() => {
+      vi.mocked(purchase).mockReset();
+    });
+
+    it("shows a Mensal/Anual toggle", () => {
+      renderWithIntl(<PlanSection credits={CREDITS} />);
+      expect(
+        screen.getByText(ptBR.PlanSection.toggle.monthly),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(ptBR.PlanSection.toggle.annual),
+      ).toBeInTheDocument();
+    });
+
+    it("switches to the annual price and passes interval:year on subscribe", async () => {
+      vi.mocked(purchase).mockResolvedValue({
+        status: "ok",
+        credits: {
+          plan: "atelier",
+          balance: 6000,
+          total: 6000,
+          renewsInDays: 365,
+        },
+      });
+      const user = userEvent.setup();
+      renderWithIntl(<PlanSection credits={CREDITS} />);
+
+      await user.click(screen.getByText(ptBR.PlanSection.toggle.annual));
+      await user.click(
+        screen.getByRole("button", { name: subscribeLabel("atelier") }),
+      );
+
+      expect(purchase).toHaveBeenCalledWith(
+        "subscribe",
+        "atelier",
+        undefined,
+        "year",
+      );
+    });
+
+    it("never shows Grátis as an upgradeable target, even on Anual (there is no such product)", async () => {
+      const user = userEvent.setup();
+      renderWithIntl(<PlanSection credits={{ ...CREDITS, plan: "free" }} />);
+      await user.click(screen.getByText(ptBR.PlanSection.toggle.annual));
+      expect(
+        screen.queryByRole("button", { name: subscribeLabel("free") }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("treats an existing annual subscriber's same-tier monthly row as a downgrade (disabled)", () => {
+      renderWithIntl(
+        <PlanSection
+          credits={{ ...CREDITS, plan: "atelier", planInterval: "year" }}
+        />,
+      );
+      // Monthly is still selected by default -- atelier/monthly is a
+      // downgrade from atelier/year, so it must show the disabled downgrade
+      // button, not "Plano atual" (the wallet is on the ANNUAL variant, not
+      // this row).
+      expect(
+        screen.getAllByRole("button", {
+          name: ptBR.PlanSection.downgradeButton,
+        }),
+      ).not.toHaveLength(0);
+    });
   });
 });

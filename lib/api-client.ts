@@ -313,6 +313,7 @@ export function purchase(
   type: "topup" | "subscribe",
   plan?: PaidPlanId,
   patternId?: string,
+  interval?: "month" | "year",
 ): Promise<PurchaseResult> {
   // #9: no `handled` array -- a 400 (invalid_plan, plan_not_upgradable)
   // must keep throwing ApiError so PlanSection can read err.code and
@@ -324,6 +325,10 @@ export function purchase(
     type,
     plan,
     patternId,
+    // Defaults to monthly when omitted -- every pre-existing call site
+    // (PaywallModal, the editor store's retry thunk) subscribes monthly
+    // only and never passes this.
+    interval: type === "subscribe" ? (interval ?? "month") : undefined,
   });
 }
 

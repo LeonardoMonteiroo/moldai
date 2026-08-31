@@ -20,6 +20,7 @@ export const PurchaseBodySchema = z.object({
   type: z.unknown().optional(),
   patternId: z.unknown().optional(),
   plan: z.unknown().optional(),
+  interval: z.unknown().optional(),
 });
 
 // #206: there is deliberately NO webhook body schema any more. The Stripe

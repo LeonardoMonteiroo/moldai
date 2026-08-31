@@ -44,7 +44,7 @@ vi.mock("@/lib/db/wallet", () => ({
       const entry = fn(w);
       if (seenExternalIds.has(externalId)) {
         Object.assign(w, before);
-        return { credited: false };
+        return { credited: false, previousStripeSubscriptionId: null };
       }
       // #196: mirrors lib/db/wallet.ts's own withWalletIdempotent -- records
       // which externalId now backs the wallet's plan whenever fn's entry
@@ -54,12 +54,14 @@ vi.mock("@/lib/db/wallet", () => ({
         w.planSourceExternalId = externalId;
       }
       // #206: written in the SAME call as the credit, not afterwards.
+      let previousStripeSubscriptionId: string | null = null;
       if (stripeSubscriptionId) {
+        previousStripeSubscriptionId = subscriptionIds.get(userId) ?? null;
         subscriptionIds.set(userId, stripeSubscriptionId);
       }
       seenExternalIds.add(externalId);
       ledger.push({ userId, externalId, entry });
-      return { credited: true };
+      return { credited: true, previousStripeSubscriptionId };
     },
   ),
   findLedgerEntryByExternalId: vi.fn(async (externalId: string) => {
@@ -96,6 +98,7 @@ vi.mock("@/lib/billing/stripe", async (importOriginal) => {
     })),
     verifyWebhookEvent: vi.fn(),
     resolveInvoicePaymentIntent: vi.fn(async () => "pi_default"),
+    cancelSubscription: vi.fn(async () => {}),
   };
 });
 
@@ -104,6 +107,7 @@ import {
   loadStripeConfig,
   verifyWebhookEvent,
   resolveInvoicePaymentIntent,
+  cancelSubscription,
   StripeGatewayError,
   buildPurchaseMetadata,
 } from "@/lib/billing/stripe";
@@ -131,7 +135,17 @@ function topupSession(paymentIntentId = "pi_topup") {
 
 function subscriptionInvoice(
   billingReason: string,
-  { invoiceId = "in_1", subscriptionId = "sub_1", plan = "atelier" } = {},
+  {
+    invoiceId = "in_1",
+    subscriptionId = "sub_1",
+    plan = "atelier",
+    interval = "month",
+  }: {
+    invoiceId?: string;
+    subscriptionId?: string;
+    plan?: "atelier" | "studio" | "factory";
+    interval?: "month" | "year";
+  } = {},
 ) {
   return stripeEvent("invoice.paid", {
     id: invoiceId,
@@ -141,7 +155,8 @@ function subscriptionInvoice(
         subscription: subscriptionId,
         metadata: buildPurchaseMetadata("u1", {
           type: "subscribe",
-          plan: plan as "atelier" | "studio" | "factory",
+          plan,
+          interval,
         }),
       },
     },
@@ -169,6 +184,8 @@ describe("POST /api/billing/webhook", () => {
     vi.mocked(verifyWebhookEvent).mockReset();
     vi.mocked(resolveInvoicePaymentIntent).mockReset();
     vi.mocked(resolveInvoicePaymentIntent).mockResolvedValue("pi_default");
+    vi.mocked(cancelSubscription).mockClear();
+    vi.mocked(cancelSubscription).mockResolvedValue(undefined);
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
@@ -267,6 +284,7 @@ describe("POST /api/billing/webhook", () => {
           metadata: buildPurchaseMetadata("u1", {
             type: "subscribe",
             plan: "atelier",
+            interval: "month",
           }),
           payment_intent: null,
         }),
@@ -327,6 +345,112 @@ describe("POST /api/billing/webhook", () => {
       const res = await POST(req());
       expect(res.status).toBe(500);
       expect(ledger).toHaveLength(0);
+    });
+  });
+
+  describe("subscription first payment -- cancels the superseded subscription", () => {
+    it("cancels the OLD subscription when a genuine upgrade confirms on a NEW one", async () => {
+      vi.mocked(resolveInvoicePaymentIntent).mockResolvedValue("pi_first");
+      vi.mocked(verifyWebhookEvent).mockReturnValue(
+        subscriptionInvoice("subscription_create", {
+          invoiceId: "in_first",
+          subscriptionId: "sub_atelier",
+          plan: "atelier",
+        }),
+      );
+      await POST(req());
+
+      vi.mocked(resolveInvoicePaymentIntent).mockResolvedValue("pi_second");
+      vi.mocked(verifyWebhookEvent).mockReturnValue(
+        subscriptionInvoice("subscription_create", {
+          invoiceId: "in_second",
+          subscriptionId: "sub_studio",
+          plan: "studio",
+        }),
+      );
+      await POST(req());
+
+      expect(cancelSubscription).toHaveBeenCalledWith(
+        expect.anything(),
+        "sub_atelier",
+        expect.anything(),
+      );
+    });
+
+    it("does not cancel anything on a wallet's first-ever subscription", async () => {
+      vi.mocked(resolveInvoicePaymentIntent).mockResolvedValue("pi_first");
+      vi.mocked(verifyWebhookEvent).mockReturnValue(
+        subscriptionInvoice("subscription_create"),
+      );
+      await POST(req());
+      expect(cancelSubscription).not.toHaveBeenCalled();
+    });
+
+    it("does not cancel when the confirmation is FOLDED (not a real plan change) -- the wallet's real subscription must stay untouched", async () => {
+      vi.mocked(resolveInvoicePaymentIntent).mockResolvedValue("pi_factory");
+      vi.mocked(verifyWebhookEvent).mockReturnValue(
+        subscriptionInvoice("subscription_create", {
+          invoiceId: "in_factory",
+          subscriptionId: "sub_factory",
+          plan: "factory",
+        }),
+      );
+      await POST(req());
+
+      // A late/lower confirmation on a DIFFERENT new subscription -- folds,
+      // never changes plan/total.
+      vi.mocked(resolveInvoicePaymentIntent).mockResolvedValue(
+        "pi_atelier_late",
+      );
+      vi.mocked(verifyWebhookEvent).mockReturnValue(
+        subscriptionInvoice("subscription_create", {
+          invoiceId: "in_atelier_late",
+          subscriptionId: "sub_atelier_late",
+          plan: "atelier",
+        }),
+      );
+      await POST(req());
+
+      expect(cancelSubscription).not.toHaveBeenCalled();
+    });
+
+    it("a cancel failure is logged but never fails the webhook or the credit", async () => {
+      vi.mocked(cancelSubscription).mockRejectedValue(
+        new StripeGatewayError("stripe subscription cancel failed"),
+      );
+      vi.mocked(resolveInvoicePaymentIntent).mockResolvedValue("pi_first");
+      vi.mocked(verifyWebhookEvent).mockReturnValue(
+        subscriptionInvoice("subscription_create", {
+          invoiceId: "in_first",
+          subscriptionId: "sub_atelier",
+          plan: "atelier",
+        }),
+      );
+      await POST(req());
+
+      vi.mocked(resolveInvoicePaymentIntent).mockResolvedValue("pi_second");
+      vi.mocked(verifyWebhookEvent).mockReturnValue(
+        subscriptionInvoice("subscription_create", {
+          invoiceId: "in_second",
+          subscriptionId: "sub_studio",
+          plan: "studio",
+        }),
+      );
+      const res = await POST(req());
+      expect(res.status).toBe(200);
+      expect(wallet("u1").plan).toBe("studio");
+    });
+  });
+
+  describe("subscription first payment -- annual", () => {
+    it("applies the 12x lump sum for an annual first payment", async () => {
+      vi.mocked(resolveInvoicePaymentIntent).mockResolvedValue("pi_annual");
+      vi.mocked(verifyWebhookEvent).mockReturnValue(
+        subscriptionInvoice("subscription_create", { interval: "year" }),
+      );
+      const res = await POST(req());
+      expect(res.status).toBe(200);
+      expect(wallet("u1").total).toBe(PLAN_CREDITS.atelier * 12);
     });
   });
 

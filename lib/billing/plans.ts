@@ -78,11 +78,67 @@ export function isPaidPlanId(value: unknown): value is PaidPlanId {
   return value === "atelier" || value === "studio" || value === "factory";
 }
 
-// A plan switch is only ever offered as an upgrade (issue #9's decision 2:
-// downgrades are refused server-side, not merely hidden). Derived from
-// PLAN_CREDITS rather than a second rank table, so the two can't disagree.
-export function isPlanUpgrade(from: PlanId, to: PlanId): boolean {
-  return PLAN_CREDITS[to] > PLAN_CREDITS[from];
+export type BillingInterval = "month" | "year";
+
+/**
+ * Narrows an untrusted wire value to a BillingInterval -- the isPaidPlanId
+ * trust-boundary shape, for the same reason: an unrecognised interval must
+ * never reach applyPurchase or become a real Stripe recurring.interval.
+ */
+export function isBillingInterval(value: unknown): value is BillingInterval {
+  return value === "month" || value === "year";
+}
+
+// A year-interval plan grants its whole year's allowance as one lump sum
+// (decided 2026-08-30, docs/superpowers/specs/2026-08-30-annual-billing-design.md)
+// -- this is the one place "how many credits does this purchase grant" is
+// computed, so applyPurchase and the ranking below agree.
+export function effectiveCredits(
+  plan: PlanId,
+  interval: BillingInterval,
+): number {
+  return PLAN_CREDITS[plan] * (interval === "year" ? 12 : 1);
+}
+
+// Replaces the old isPlanUpgrade(from: PlanId, to: PlanId) -- every real
+// caller compared PLAN_CREDITS[to] > PLAN_CREDITS[from], which is exactly
+// effectiveCredits(to.plan, "month") > effectiveCredits(from.plan, "month"),
+// so every all-monthly comparison keeps its old answer. This is also what
+// makes "switch interval anytime" and "downgrades refused" the same rule:
+// monthly-to-annual same tier is always an increase (allowed self-serve);
+// annual-to-monthly same tier is always a decrease (refused), with no
+// special-casing beyond this one comparison.
+export function isPlanOrIntervalUpgrade(
+  from: { plan: PlanId; interval: BillingInterval },
+  to: { plan: PlanId; interval: BillingInterval },
+): boolean {
+  return (
+    effectiveCredits(to.plan, to.interval) >
+    effectiveCredits(from.plan, from.interval)
+  );
+}
+
+// The -20% annual discount (design 5c's own figure), and the two related but
+// distinct numbers it produces -- see the design doc's "Two related but
+// distinct figures" note for why there are two functions, not one.
+export const ANNUAL_DISCOUNT_FACTOR = 0.8;
+
+// What both cards' price ("R$X/mês", per the existing priceSuffix +
+// annualBilledNote catalog pair) DISPLAY for an annual plan -- the
+// discounted monthly-equivalent rate, not what a single charge actually is.
+export function annualMonthlyEquivalentCents(plan: PaidPlanId): number {
+  return Math.round(PLAN_PRICE_CENTS[plan] * ANNUAL_DISCOUNT_FACTOR);
+}
+
+// The real, one-time annual charge -- what a "year" checkout's
+// price_data.unit_amount actually is, and what applyPurchase's
+// effectiveCredits lump sum is paid for. Deliberately 12x the ROUNDED
+// monthly-equivalent above, never a separately-rounded
+// `PLAN_PRICE_CENTS[plan] * 12 * ANNUAL_DISCOUNT_FACTOR` -- the two must
+// agree exactly (12x what's displayed per month), or a buyer could be
+// charged a few centavos more/less than "12x the price shown."
+export function annualPriceCents(plan: PaidPlanId): number {
+  return annualMonthlyEquivalentCents(plan) * 12;
 }
 
 // Each plan's marketing bullets for the public /planos screen (issue #15),

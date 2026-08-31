@@ -7,7 +7,11 @@ import {
   priceText,
 } from "@/components/test-utils";
 import { PricingPage } from "./PricingPage";
-import { PLAN_PRICE_CENTS, formatBRL } from "@/lib/billing/plans";
+import {
+  PLAN_PRICE_CENTS,
+  formatBRL,
+  annualMonthlyEquivalentCents,
+} from "@/lib/billing/plans";
 import { COSTS, PLAN_IDS } from "@/lib/types";
 
 // #106/#9's own precedent: COSTS is a plain object, not frozen -- mocking
@@ -103,7 +107,7 @@ describe("PricingPage", () => {
   });
 
   describe("annual toggle", () => {
-    it("shows 80% of the monthly price and disables the paid CTAs with a badge", async () => {
+    it("shows the discounted monthly-equivalent price and keeps every paid CTA enabled", async () => {
       const user = userEvent.setup();
       renderWithIntl(<PricingPage signedIn={false} currentPlan={null} />);
 
@@ -111,12 +115,12 @@ describe("PricingPage", () => {
 
       expect(
         screen.getByText(
-          priceText(formatBRL(Math.round(PLAN_PRICE_CENTS.atelier * 0.8))),
+          priceText(formatBRL(annualMonthlyEquivalentCents("atelier"))),
         ),
       ).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: ptBR.Pricing.plans.atelier.cta }),
-      ).toBeDisabled();
+        screen.getByRole("link", { name: ptBR.Pricing.plans.atelier.cta }),
+      ).toHaveAttribute("href", "/signup");
       expect(
         screen.getAllByText(ptBR.Pricing.annualBilledNote).length,
       ).toBeGreaterThan(0);

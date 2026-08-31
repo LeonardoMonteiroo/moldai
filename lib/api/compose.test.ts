@@ -24,6 +24,7 @@ describe("composeEditorState", () => {
       balance: 30,
       total: 30,
       renewsInDays: 30,
+      planInterval: "month",
     });
   });
 
@@ -57,6 +58,7 @@ describe("buildCredits", () => {
       total: 500,
       purchased: 0,
       renewsAt: new Date("2026-09-01T00:00:00.000Z"),
+      planInterval: "month" as const,
       planSourceExternalId: null,
     };
     const now = new Date("2026-08-18T00:00:00.000Z");
@@ -65,7 +67,22 @@ describe("buildCredits", () => {
       balance: 320,
       total: 500,
       renewsInDays: 14,
+      planInterval: "month",
     });
+  });
+
+  it("carries the wallet's planInterval onto the wire", () => {
+    const wallet = {
+      plan: "atelier" as const,
+      balance: 6000,
+      total: 6000,
+      purchased: 0,
+      renewsAt: new Date("2027-08-17T00:00:00.000Z"),
+      planInterval: "year" as const,
+      planSourceExternalId: null,
+    };
+    const now = new Date("2026-08-18T00:00:00.000Z");
+    expect(buildCredits(wallet, now).planInterval).toBe("year");
   });
 
   it("does not put a display label on the wire", () => {
@@ -75,6 +92,7 @@ describe("buildCredits", () => {
       total: 30,
       purchased: 0,
       renewsAt: new Date("2026-09-16T12:00:00.000Z"),
+      planInterval: "month" as const,
       planSourceExternalId: null,
     };
     const now = new Date("2026-08-17T12:00:00.000Z");

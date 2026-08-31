@@ -1,6 +1,12 @@
 import Stripe from "stripe";
 import { isPurchaseType, type Purchase } from "./wallet";
-import { CURRENCY, isPaidPlanId, type PaidPlanId } from "./plans";
+import {
+  CURRENCY,
+  isPaidPlanId,
+  isBillingInterval,
+  type PaidPlanId,
+  type BillingInterval,
+} from "./plans";
 
 /**
  * #206: the one file that talks to Stripe -- mirrors lib/ai/index.ts being
@@ -85,6 +91,9 @@ export interface StripeLike {
   customers: {
     create(params: Stripe.CustomerCreateParams): Promise<{ id: string }>;
   };
+  subscriptions: {
+    cancel(id: string): Promise<unknown>;
+  };
   invoices: {
     retrieve(
       id: string,
@@ -130,6 +139,7 @@ function clientFor(config: StripeConfig, deps: StripeDeps): StripeLike {
 export const METADATA_USER_ID = "moldaiUserId";
 export const METADATA_PURCHASE_TYPE = "moldaiPurchaseType";
 export const METADATA_PLAN = "moldaiPlan";
+export const METADATA_INTERVAL = "moldaiInterval";
 
 export function buildPurchaseMetadata(
   userId: string,
@@ -140,7 +150,11 @@ export function buildPurchaseMetadata(
     [METADATA_PURCHASE_TYPE]: purchase.type,
   };
   return purchase.type === "subscribe"
-    ? { ...base, [METADATA_PLAN]: purchase.plan }
+    ? {
+        ...base,
+        [METADATA_PLAN]: purchase.plan,
+        [METADATA_INTERVAL]: purchase.interval,
+      }
     : base;
 }
 
@@ -168,7 +182,9 @@ export function parsePurchaseMetadata(
   if (type === "topup") return { userId, purchase: { type: "topup" } };
   const plan = metadata[METADATA_PLAN];
   if (!isPaidPlanId(plan)) return null;
-  return { userId, purchase: { type: "subscribe", plan } };
+  const interval = metadata[METADATA_INTERVAL];
+  if (!isBillingInterval(interval)) return null;
+  return { userId, purchase: { type: "subscribe", plan, interval } };
 }
 
 // --- customer + checkout ---------------------------------------------------
@@ -253,7 +269,9 @@ export async function createCheckoutSession(
           currency: CURRENCY,
           unit_amount: input.amountCents,
           product_data: { name: input.itemName },
-          ...(subscribing ? { recurring: { interval: "month" as const } } : {}),
+          ...(input.purchase.type === "subscribe"
+            ? { recurring: { interval: input.purchase.interval } }
+            : {}),
         },
       },
     ],
@@ -277,6 +295,27 @@ export async function createCheckoutSession(
     return { id: session.id, url: session.url };
   } catch (err) {
     throw new StripeGatewayError("stripe checkout creation failed", err);
+  }
+}
+
+/**
+ * Cancels a Stripe subscription immediately. Used by the webhook route as a
+ * best-effort cleanup when a NEW subscription supersedes an OLD one (a real
+ * plan/interval upgrade) -- every plan change in this app creates a
+ * brand-new Checkout subscription rather than updating an existing one, so
+ * without this the old subscription is left live, billing forever. Errors
+ * propagate as StripeGatewayError; the caller decides whether to treat that
+ * as fatal (it does not -- see the webhook route's own comment).
+ */
+export async function cancelSubscription(
+  config: StripeConfig,
+  subscriptionId: string,
+  deps: StripeDeps = {},
+): Promise<void> {
+  try {
+    await clientFor(config, deps).subscriptions.cancel(subscriptionId);
+  } catch (err) {
+    throw new StripeGatewayError("stripe subscription cancel failed", err);
   }
 }
 
@@ -332,6 +371,7 @@ export type GatewayEvent =
       kind: "subscriptionStarted";
       userId: string;
       plan: PaidPlanId;
+      interval: BillingInterval;
       invoiceId: string;
       subscriptionId: string;
     }
@@ -436,6 +476,7 @@ export function parseGatewayEvent(event: Stripe.Event): GatewayEvent {
           kind: "subscriptionStarted",
           userId: parsed.userId,
           plan: parsed.purchase.plan,
+          interval: parsed.purchase.interval,
           invoiceId,
           subscriptionId,
         };

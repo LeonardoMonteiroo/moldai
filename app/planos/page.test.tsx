@@ -43,6 +43,7 @@ describe("app/planos/page", () => {
       total: 2000,
       purchased: 0,
       renewsAt: null,
+      planInterval: "month",
       planSourceExternalId: null,
     });
     const element = await PlanosPage();

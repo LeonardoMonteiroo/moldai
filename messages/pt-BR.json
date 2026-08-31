@@ -1143,6 +1143,12 @@
     "costAdjust": "Ajuste · {cost, plural, one {# crédito} other {# créditos}}",
     "costGraduate": "Graduação · {cost, plural, one {# crédito} other {# créditos}}",
     "costCorrection": "Correção · {cost, plural, one {# crédito} other {# créditos}}",
+    "toggleLabel": "Ciclo de cobrança",
+    "toggle": {
+      "monthly": "Mensal",
+      "annual": "Anual · −20%"
+    },
+    "annualBilledNote": "cobrado anualmente",
     "plans": {
       "free": {
         "name": "Grátis",
@@ -1150,20 +1156,24 @@
       },
       "atelier": {
         "name": "Ateliê",
-        "creditsLabel": "{credits, number} créditos/mês"
+        "creditsLabel": "{credits, number} créditos/mês",
+        "creditsLabelAnnual": "{credits, number} créditos/ano"
       },
       "studio": {
         "name": "Estúdio",
-        "creditsLabel": "{credits, number} créditos/mês"
+        "creditsLabel": "{credits, number} créditos/mês",
+        "creditsLabelAnnual": "{credits, number} créditos/ano"
       },
       "factory": {
         "name": "Confecção",
-        "creditsLabel": "{credits, number} créditos/mês"
+        "creditsLabel": "{credits, number} créditos/mês",
+        "creditsLabelAnnual": "{credits, number} créditos/ano"
       }
     },
     "paymentNote": "Pagamentos processados pela Stripe.",
     "errors": {
       "invalid_plan": "Plano inválido.",
+      "invalid_interval": "Ciclo de cobrança inválido.",
       "plan_not_upgradable": "Esse plano não é um upgrade do seu plano atual.",
       "invalid_purchase_type": "Não foi possível processar a compra.",
       "bad_body": "Não foi possível processar a solicitação.",

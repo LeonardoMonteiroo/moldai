@@ -282,6 +282,14 @@ export interface Credits {
   balance: number;
   total: number;
   renewsInDays: number;
+  // Optional, not mirroring Wallet.planInterval's non-optional shape: 26
+  // files construct a Credits-shaped literal (mostly test fixtures), and
+  // only PlanSection reads this field. buildCredits always sets it from the
+  // real wallet -- absent only in a hand-built fixture that predates this
+  // field. The literal union is re-declared here rather than imported from
+  // lib/billing/plans.ts's BillingInterval, which would create a cycle
+  // (plans.ts already imports PlanId from this file).
+  planInterval?: "month" | "year";
 }
 
 // Every ledger entry type lib/billing/wallet.ts's applyPurchase/debitWallet/

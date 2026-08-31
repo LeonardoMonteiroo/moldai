@@ -192,7 +192,19 @@ const SHAPE_CASES: ShapeCase[] = [
     call: () => purchase("subscribe", "studio", "p1"),
     url: "/api/billing/purchase",
     method: "POST",
-    body: { type: "subscribe", plan: "studio", patternId: "p1" },
+    body: {
+      type: "subscribe",
+      plan: "studio",
+      patternId: "p1",
+      interval: "month",
+    },
+  },
+  {
+    name: "purchase (subscribe, annual)",
+    call: () => purchase("subscribe", "atelier", undefined, "year"),
+    url: "/api/billing/purchase",
+    method: "POST",
+    body: { type: "subscribe", plan: "atelier", interval: "year" },
   },
   {
     name: "getAccountSummary",

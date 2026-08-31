@@ -6,6 +6,7 @@ import {
   verifyWebhookEvent,
   parseGatewayEvent,
   resolveInvoicePaymentIntent,
+  cancelSubscription,
   type GatewayEvent,
   type StripeConfig,
   type StripeDeps,
@@ -192,14 +193,14 @@ async function handleSubscriptionStarted(
   const superseded: {
     value: { plan: PaidPlanId; previousPlan: PlanId } | null;
   } = { value: null };
-  await withWalletIdempotent(
+  const result = await withWalletIdempotent(
     event.userId,
     paymentIntentId,
     (wallet) => {
       const previousPlan = wallet.plan;
       const entry = applyPurchase(
         wallet,
-        { type: "subscribe", plan: event.plan },
+        { type: "subscribe", plan: event.plan, interval: event.interval },
         now,
       );
       if (entry.planChanged === false) {
@@ -229,6 +230,39 @@ async function handleSubscriptionStarted(
       ),
       { userId: event.userId, eventId, plan, previousPlan },
     );
+  }
+  // Incidental fix (docs/superpowers/specs/2026-08-30-annual-billing-design.md):
+  // every plan/interval change in this app creates a brand-new Stripe
+  // Checkout subscription rather than updating an existing one -- so a
+  // genuine upgrade leaves the OLD subscription live, billing forever,
+  // unless something cancels it. Scoped narrowly to that one case: credited
+  // must be true (a real, first-time credit, not a duplicate delivery), the
+  // entry must have actually moved the plan (superseded.value is null
+  // exactly then), and there must BE a different previous subscription to
+  // cancel. A FOLDED confirmation (superseded.value set) is deliberately
+  // excluded: the wallet's previous subscription is still the one actually
+  // backing its plan, so canceling it there would cut off the real
+  // subscription.
+  if (
+    result.credited &&
+    !superseded.value &&
+    result.previousStripeSubscriptionId &&
+    result.previousStripeSubscriptionId !== event.subscriptionId
+  ) {
+    try {
+      await cancelSubscription(
+        config,
+        result.previousStripeSubscriptionId,
+        deps,
+      );
+    } catch (err) {
+      reportError("billing-webhook-cancel-previous-subscription", err, {
+        userId: event.userId,
+        eventId,
+        previousSubscriptionId: result.previousStripeSubscriptionId,
+        newSubscriptionId: event.subscriptionId,
+      });
+    }
   }
 }
 

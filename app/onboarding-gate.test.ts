@@ -134,6 +134,7 @@ describe("app/onboarding/page.tsx (#14)", () => {
       total: 30,
       purchased: 0,
       renewsAt: null,
+      planInterval: "month",
       planSourceExternalId: null,
     });
 
@@ -149,6 +150,7 @@ describe("app/onboarding/page.tsx (#14)", () => {
       total: 30,
       purchased: 0,
       renewsAt: null,
+      planInterval: "month",
       planSourceExternalId: null,
     });
 

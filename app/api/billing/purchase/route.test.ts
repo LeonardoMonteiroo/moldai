@@ -200,7 +200,9 @@ describe("POST /api/billing/purchase", () => {
     it("still accepts the two real types", async () => {
       expect((await POST(req({ type: "topup" }))).status).toBe(200);
       wallet = seedWallet(NOW);
-      const res = await POST(req({ type: "subscribe", plan: "atelier" }));
+      const res = await POST(
+        req({ type: "subscribe", plan: "atelier", interval: "month" }),
+      );
       expect(res.status).toBe(200);
       expect(wallet.plan).toBe("atelier");
     });
@@ -233,14 +235,18 @@ describe("POST /api/billing/purchase", () => {
       });
 
       it("subscribes a free wallet straight to studio, skipping atelier", async () => {
-        const res = await POST(req({ type: "subscribe", plan: "studio" }));
+        const res = await POST(
+          req({ type: "subscribe", plan: "studio", interval: "month" }),
+        );
         expect(res.status).toBe(200);
         expect(wallet.plan).toBe("studio");
         expect(wallet.total).toBe(2000);
       });
 
       it("subscribes to factory", async () => {
-        const res = await POST(req({ type: "subscribe", plan: "factory" }));
+        const res = await POST(
+          req({ type: "subscribe", plan: "factory", interval: "month" }),
+        );
         expect(res.status).toBe(200);
         expect(wallet.plan).toBe("factory");
         expect(wallet.total).toBe(10000);
@@ -250,7 +256,9 @@ describe("POST /api/billing/purchase", () => {
         wallet.plan = "studio";
         wallet.total = 2000;
         wallet.balance = 2000;
-        const res = await POST(req({ type: "subscribe", plan: "atelier" }));
+        const res = await POST(
+          req({ type: "subscribe", plan: "atelier", interval: "month" }),
+        );
         expect(res.status).toBe(400);
         expect((await res.json()).error).toBe("plan_not_upgradable");
         expect(wallet.plan).toBe("studio");
@@ -261,7 +269,9 @@ describe("POST /api/billing/purchase", () => {
         wallet.plan = "atelier";
         wallet.total = 500;
         wallet.balance = 500;
-        const res = await POST(req({ type: "subscribe", plan: "atelier" }));
+        const res = await POST(
+          req({ type: "subscribe", plan: "atelier", interval: "month" }),
+        );
         expect(res.status).toBe(400);
         expect((await res.json()).error).toBe("plan_not_upgradable");
         expect(wallet.balance).toBe(500);
@@ -277,6 +287,42 @@ describe("POST /api/billing/purchase", () => {
     it("never calls the stripe client", async () => {
       await POST(req({ type: "topup" }));
       expect(createCheckoutSession).not.toHaveBeenCalled();
+    });
+
+    describe("interval validation", () => {
+      it("answers invalid_interval for a subscribe body with no interval", async () => {
+        const res = await POST(req({ type: "subscribe", plan: "atelier" }));
+        expect(res.status).toBe(400);
+        expect((await res.json()).error).toBe("invalid_interval");
+      });
+
+      it("answers invalid_interval for an unrecognised interval value", async () => {
+        const res = await POST(
+          req({ type: "subscribe", plan: "atelier", interval: "weekly" }),
+        );
+        expect(res.status).toBe(400);
+        expect((await res.json()).error).toBe("invalid_interval");
+      });
+
+      it("mock provider: subscribing annually grants the 12x lump sum", async () => {
+        const res = await POST(
+          req({ type: "subscribe", plan: "atelier", interval: "year" }),
+        );
+        expect(res.status).toBe(200);
+        const body = await res.json();
+        expect(body.credits.total).toBe(500 * 12);
+      });
+
+      it("mock provider: refuses annual-to-monthly on the same tier as a downgrade", async () => {
+        await POST(
+          req({ type: "subscribe", plan: "atelier", interval: "year" }),
+        );
+        const res = await POST(
+          req({ type: "subscribe", plan: "atelier", interval: "month" }),
+        );
+        expect(res.status).toBe(400);
+        expect((await res.json()).error).toBe("plan_not_upgradable");
+      });
     });
   });
 
@@ -349,11 +395,13 @@ describe("POST /api/billing/purchase", () => {
     });
 
     it("hands the whole validated Purchase to the checkout, so mode/recurrence is decided in one place", async () => {
-      await POST(req({ type: "subscribe", plan: "atelier" }));
+      await POST(
+        req({ type: "subscribe", plan: "atelier", interval: "month" }),
+      );
       expect(createCheckoutSession).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
-          purchase: { type: "subscribe", plan: "atelier" },
+          purchase: { type: "subscribe", plan: "atelier", interval: "month" },
           userId: "u1",
         }),
       );
@@ -372,7 +420,9 @@ describe("POST /api/billing/purchase", () => {
     // decided against the locked wallet, before any provider call.
     it("refuses a downgrade before creating any checkout", async () => {
       wallet.plan = "factory";
-      const res = await POST(req({ type: "subscribe", plan: "atelier" }));
+      const res = await POST(
+        req({ type: "subscribe", plan: "atelier", interval: "month" }),
+      );
       expect(res.status).toBe(400);
       expect((await res.json()).error).toBe("plan_not_upgradable");
       expect(createCheckoutSession).not.toHaveBeenCalled();
@@ -380,7 +430,9 @@ describe("POST /api/billing/purchase", () => {
 
     it("refuses a same-tier resubscribe the same way", async () => {
       wallet.plan = "studio";
-      const res = await POST(req({ type: "subscribe", plan: "studio" }));
+      const res = await POST(
+        req({ type: "subscribe", plan: "studio", interval: "month" }),
+      );
       expect(res.status).toBe(400);
       expect((await res.json()).error).toBe("plan_not_upgradable");
       expect(createCheckoutSession).not.toHaveBeenCalled();
@@ -388,7 +440,9 @@ describe("POST /api/billing/purchase", () => {
 
     it("still allows a real upgrade", async () => {
       wallet.plan = "atelier";
-      const res = await POST(req({ type: "subscribe", plan: "factory" }));
+      const res = await POST(
+        req({ type: "subscribe", plan: "factory", interval: "month" }),
+      );
       expect(res.status).toBe(200);
       expect(createCheckoutSession).toHaveBeenCalled();
     });
@@ -440,7 +494,7 @@ describe("POST /api/billing/purchase", () => {
         // tier rather than refusing the second one as a downgrade.
         wallet = seedWallet(NOW);
         stripeCustomerIds.clear();
-        await POST(req({ type: "subscribe", plan }));
+        await POST(req({ type: "subscribe", plan, interval: "month" }));
         expect(createCheckoutSession).toHaveBeenCalledWith(
           expect.anything(),
           expect.objectContaining({

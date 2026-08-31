@@ -24,17 +24,19 @@ const tx = {
       if (sql.includes('"Wallet"') && sql.includes("UPDATE")) {
         callOrder.push("save-wallet");
         // Interpolation order matches saveWallet: plan, balance, total,
-        // purchased, renewsAt, planSourceExternalId, userId -- userId is
-        // last.
+        // purchased, renewsAt, planInterval, planSourceExternalId, userId --
+        // userId is last.
         const [
           plan,
           balance,
           total,
           purchased,
           renewsAt,
+          planInterval,
           planSourceExternalId,
           userId,
         ] = vals as [
+          unknown,
           unknown,
           unknown,
           unknown,
@@ -49,6 +51,7 @@ const tx = {
           total,
           purchased,
           renewsAt,
+          planInterval,
           planSourceExternalId,
         });
       }

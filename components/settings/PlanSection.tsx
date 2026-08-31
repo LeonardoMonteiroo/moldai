@@ -10,11 +10,15 @@ import {
   PLAN_CREDITS,
   PLAN_PRICE_CENTS,
   formatBRL,
-  isPlanUpgrade,
+  isPlanOrIntervalUpgrade,
+  effectiveCredits,
+  annualMonthlyEquivalentCents,
   type PaidPlanId,
+  type BillingInterval,
 } from "@/lib/billing/plans";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { purchase, errorCode } from "@/lib/api-client";
 
 // #9: applyPurchase (lib/billing/wallet.ts) can now move a wallet to any
@@ -28,6 +32,7 @@ export function PlanSection({ credits: initial }: { credits: Credits }) {
   const [credits, setCredits] = useState(initial);
   const [pending, setPending] = useState<PlanId | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [interval, setBillingInterval] = useState<BillingInterval>("month");
 
   // Both PaywallModal (Ateliê only) and every upgrade card here drive the
   // same purchase("subscribe", plan) call; the try/catch/finally shape
@@ -37,11 +42,11 @@ export function PlanSection({ credits: initial }: { credits: Credits }) {
   // credits bar and the usage section pick up the new plan too, without a
   // manual reload -- the local setCredits below is what makes this card
   // grid update immediately, before that round trip lands.
-  async function subscribe(plan: PaidPlanId) {
+  async function subscribe(plan: PaidPlanId, planInterval: BillingInterval) {
     setPending(plan);
     setError(null);
     try {
-      const result = await purchase("subscribe", plan);
+      const result = await purchase("subscribe", plan, undefined, planInterval);
       // #161: under the real gateway this is {status:"redirect", url} --
       // the wallet isn't touched until the async webhook lands, so there is
       // no new plan to show yet and no router.refresh() to run (the plan
@@ -66,13 +71,43 @@ export function PlanSection({ credits: initial }: { credits: Credits }) {
   }
 
   const hasLowerTier = credits.plan !== "free";
+  const currentInterval = credits.planInterval ?? "month";
 
   return (
     <div className="flex flex-col gap-4">
+      <div className="flex flex-col items-start gap-2">
+        <span className="text-muted text-meta tracking-eyebrow font-semibold uppercase">
+          {t("toggleLabel")}
+        </span>
+        <ToggleGroup
+          type="single"
+          variant="outline"
+          value={interval}
+          aria-label={t("toggleLabel")}
+          onValueChange={(value) => {
+            if (value) setBillingInterval(value as BillingInterval);
+          }}
+        >
+          <ToggleGroupItem value="month">{t("toggle.monthly")}</ToggleGroupItem>
+          <ToggleGroupItem value="year">{t("toggle.annual")}</ToggleGroupItem>
+        </ToggleGroup>
+      </div>
       <section className="grid grid-cols-2 gap-3">
         {PLAN_IDS.map((id) => {
-          const isCurrent = credits.plan === id;
-          const canUpgrade = !isCurrent && isPlanUpgrade(credits.plan, id);
+          const isCurrent = credits.plan === id && currentInterval === interval;
+          // Grátis never participates in the annual toggle -- there is no
+          // such product, regardless of how the ranking compares.
+          const canUpgrade =
+            id !== "free" &&
+            !isCurrent &&
+            isPlanOrIntervalUpgrade(
+              { plan: credits.plan, interval: currentInterval },
+              { plan: id, interval },
+            );
+          const priceCents =
+            id === "free" || interval === "month"
+              ? PLAN_PRICE_CENTS[id]
+              : annualMonthlyEquivalentCents(id);
           return (
             <div
               key={id}
@@ -101,16 +136,27 @@ export function PlanSection({ credits: initial }: { credits: Credits }) {
                     catalog price literal -- this card's price is the one the
                     subscribe button below actually charges, so a copy of the
                     number in the catalog could disagree with Stripe. */}
-                {formatBRL(PLAN_PRICE_CENTS[id])}
+                {formatBRL(priceCents)}
               </span>
+              {id !== "free" && interval === "year" && (
+                <span className="text-muted text-tick">
+                  {t("annualBilledNote")}
+                </span>
+              )}
               <span className="text-muted text-meta">
-                {t(`plans.${id}.creditsLabel`, { credits: PLAN_CREDITS[id] })}
+                {id !== "free" && interval === "year"
+                  ? t(`plans.${id}.creditsLabelAnnual`, {
+                      credits: effectiveCredits(id, "year"),
+                    })
+                  : t(`plans.${id}.creditsLabel`, {
+                      credits: PLAN_CREDITS[id],
+                    })}
               </span>
               {!isCurrent &&
                 (canUpgrade ? (
                   <Button
                     size="sm"
-                    onClick={() => subscribe(id as PaidPlanId)}
+                    onClick={() => subscribe(id as PaidPlanId, interval)}
                     disabled={pending !== null}
                     className="mt-1"
                   >
@@ -133,14 +179,9 @@ export function PlanSection({ credits: initial }: { credits: Credits }) {
       {hasLowerTier && (
         <p className="text-muted text-ui">{t("downgradeNote")}</p>
       )}
-      {/* #206: the gateway's real limitations, stated where the user is
-          about to pay rather than discovered at the checkout screen -- the
-          "surface feature limitations on-screen, never silently" rule. All
-          three are properties of a Brazil-based Stripe account, not
-          temporary gaps, so none of them is an "em breve": settlement is
-          BRL-only (Brazil is a foreign-exchange-control country), Adaptive
-          Pricing shows a converted local amount at checkout, and only Visa
-          and Mastercard are accepted (Elo/Amex/Hipercard/Diners are not). */}
+      {/* #docs/design: reverted to the design handoff's generic copy (see
+          docs/decisions.md) -- the gateway's real BRL-only/Visa-Mastercard-only
+          limitations no longer render here. */}
       <p className="text-muted text-ui">{t("paymentNote")}</p>
       <section className="bg-surface border-border rounded-card flex flex-col gap-2 border p-[18px]">
         <h2 className="font-display text-body font-semibold">

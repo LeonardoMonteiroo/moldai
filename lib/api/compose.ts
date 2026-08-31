@@ -8,6 +8,7 @@ export function buildCredits(wallet: Wallet, now: Date): Credits {
     balance: wallet.balance,
     total: wallet.total,
     renewsInDays: renewsInDays(wallet, now),
+    planInterval: wallet.planInterval,
   };
 }
 

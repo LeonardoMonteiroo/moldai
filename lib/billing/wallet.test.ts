@@ -13,7 +13,7 @@ import {
   isRenewalDue,
   type LedgerEntry,
 } from "./wallet";
-import { PLAN_CREDITS, TOPUP_CREDITS } from "./plans";
+import { PLAN_CREDITS, TOPUP_CREDITS, effectiveCredits } from "./plans";
 
 const NOW = new Date("2026-08-17T12:00:00.000Z");
 
@@ -26,6 +26,11 @@ describe("seedWallet", () => {
     expect(w.purchased).toBe(0);
     expect(w.renewsAt).toEqual(new Date("2026-09-16T12:00:00.000Z"));
     expect(w.planSourceExternalId).toBeNull();
+  });
+
+  it("defaults planInterval to month -- inert for the free tier, the consistent default for a paid one later", () => {
+    const w = seedWallet(NOW);
+    expect(w.planInterval).toBe("month");
   });
 });
 
@@ -64,7 +69,11 @@ describe("applyPurchase", () => {
   it("subscribe resets to the Ateliê plan, 500/500, renews in 30 days", () => {
     const w = seedWallet(NOW);
     w.balance = 10;
-    const entry = applyPurchase(w, { type: "subscribe", plan: "atelier" }, NOW);
+    const entry = applyPurchase(
+      w,
+      { type: "subscribe", plan: "atelier", interval: "month" },
+      NOW,
+    );
     expect(w.plan).toBe("atelier");
     expect(w.balance).toBe(500);
     expect(w.total).toBe(500);
@@ -82,7 +91,11 @@ describe("applyPurchase", () => {
   it("subscribe keeps any already-purchased top-up credits on top of the new plan allowance (#37)", () => {
     const w = seedWallet(NOW);
     applyPurchase(w, { type: "topup" }, NOW); // balance 130, purchased 100
-    const entry = applyPurchase(w, { type: "subscribe", plan: "atelier" }, NOW);
+    const entry = applyPurchase(
+      w,
+      { type: "subscribe", plan: "atelier", interval: "month" },
+      NOW,
+    );
     expect(w.balance).toBe(600); // 500 plan + 100 purchased, not just 500
     expect(w.purchased).toBe(100);
     // #38: amount is the delta (600 - 130), not the flat plan size.
@@ -94,7 +107,11 @@ describe("applyPurchase", () => {
   // atelier -- each takes its own PLAN_CREDITS total.
   it("subscribe to studio sets plan/total to 2000 and tags the ledger reason", () => {
     const w = seedWallet(NOW);
-    const entry = applyPurchase(w, { type: "subscribe", plan: "studio" }, NOW);
+    const entry = applyPurchase(
+      w,
+      { type: "subscribe", plan: "studio", interval: "month" },
+      NOW,
+    );
     expect(w.plan).toBe("studio");
     expect(w.balance).toBe(2000);
     expect(w.total).toBe(2000);
@@ -110,7 +127,11 @@ describe("applyPurchase", () => {
 
   it("subscribe to factory sets plan/total to 10000 and tags the ledger reason", () => {
     const w = seedWallet(NOW);
-    const entry = applyPurchase(w, { type: "subscribe", plan: "factory" }, NOW);
+    const entry = applyPurchase(
+      w,
+      { type: "subscribe", plan: "factory", interval: "month" },
+      NOW,
+    );
     expect(w.plan).toBe("factory");
     expect(w.balance).toBe(10000);
     expect(w.total).toBe(10000);
@@ -123,11 +144,19 @@ describe("applyPurchase", () => {
   // whenever purchased alone (without the plan allowance) doesn't exceed it.
   it("an upgrade never drops a balance that a prior top-up had pushed above the new plan's total", () => {
     const w = seedWallet(NOW);
-    applyPurchase(w, { type: "subscribe", plan: "atelier" }, NOW); // balance 500
+    applyPurchase(
+      w,
+      { type: "subscribe", plan: "atelier", interval: "month" },
+      NOW,
+    ); // balance 500
     applyPurchase(w, { type: "topup" }, NOW); // balance 600, purchased 100
     w.balance = 700; // simulate several top-ups pushing balance to 700
     w.purchased = 200;
-    applyPurchase(w, { type: "subscribe", plan: "studio" }, NOW); // 2000 total
+    applyPurchase(
+      w,
+      { type: "subscribe", plan: "studio", interval: "month" },
+      NOW,
+    ); // 2000 total
     // 2000 (studio total) + 200 (purchased) = 2200, comfortably above the
     // pre-upgrade 700 -- the balance moved up, never down.
     expect(w.balance).toBe(2200);
@@ -142,7 +171,11 @@ describe("applyPurchase", () => {
   describe("subscribe monotonicity guard (#193)", () => {
     it("a lower-plan subscribe confirmed after a higher one never downgrades plan/total/renewsAt", () => {
       const w = seedWallet(NOW);
-      applyPurchase(w, { type: "subscribe", plan: "factory" }, NOW);
+      applyPurchase(
+        w,
+        { type: "subscribe", plan: "factory", interval: "month" },
+        NOW,
+      );
       const renewsAtAfterFactory = w.renewsAt;
       // A later timestamp, simulating the delayed/reordered webhook -- if
       // renewsAt moved at all it would prove the guard let the lower plan
@@ -150,7 +183,7 @@ describe("applyPurchase", () => {
       const LATER = new Date("2026-08-20T12:00:00.000Z");
       const entry = applyPurchase(
         w,
-        { type: "subscribe", plan: "studio" },
+        { type: "subscribe", plan: "studio", interval: "month" },
         LATER,
       );
       expect(w.plan).toBe("factory");
@@ -174,11 +207,15 @@ describe("applyPurchase", () => {
 
     it("a same-tier subscribe confirmation is also refused as a plan change, but still credits the payment", () => {
       const w = seedWallet(NOW);
-      applyPurchase(w, { type: "subscribe", plan: "atelier" }, NOW); // balance 500
+      applyPurchase(
+        w,
+        { type: "subscribe", plan: "atelier", interval: "month" },
+        NOW,
+      ); // balance 500
       const renewsAtAfterFirst = w.renewsAt;
       const entry = applyPurchase(
         w,
-        { type: "subscribe", plan: "atelier" },
+        { type: "subscribe", plan: "atelier", interval: "month" },
         new Date("2026-08-20T12:00:00.000Z"),
       );
       expect(w.plan).toBe("atelier");
@@ -191,17 +228,120 @@ describe("applyPurchase", () => {
 
     it("purchased credits folded in by a superseded subscribe survive a later real upgrade, same as any other top-up (#37)", () => {
       const w = seedWallet(NOW);
-      applyPurchase(w, { type: "subscribe", plan: "factory" }, NOW); // 10000
-      applyPurchase(w, { type: "subscribe", plan: "studio" }, NOW); // superseded: +2000 purchased
+      applyPurchase(
+        w,
+        { type: "subscribe", plan: "factory", interval: "month" },
+        NOW,
+      ); // 10000
+      applyPurchase(
+        w,
+        { type: "subscribe", plan: "studio", interval: "month" },
+        NOW,
+      ); // superseded: +2000 purchased
       expect(w.purchased).toBe(2000);
       // A same-tier factory re-confirmation isn't an upgrade either (equal
       // credits, not strictly greater) -- it also stays folded, for its
       // own full plan value, rather than being treated as a plan reset.
-      applyPurchase(w, { type: "subscribe", plan: "factory" }, NOW);
+      applyPurchase(
+        w,
+        { type: "subscribe", plan: "factory", interval: "month" },
+        NOW,
+      );
       expect(w.plan).toBe("factory");
       expect(w.purchased).toBe(12000); // 2000 + 10000
       expect(w.balance).toBe(22000); // 10000 + 2000 + 10000
     });
+  });
+});
+
+describe("applyPurchase (annual)", () => {
+  it("subscribing annually grants the 12x lump sum and renews in 365 days", () => {
+    const w = seedWallet(NOW);
+    const entry = applyPurchase(
+      w,
+      { type: "subscribe", plan: "atelier", interval: "year" },
+      NOW,
+    );
+    expect(w.plan).toBe("atelier");
+    expect(w.planInterval).toBe("year");
+    expect(w.total).toBe(effectiveCredits("atelier", "year"));
+    expect(w.balance).toBe(effectiveCredits("atelier", "year"));
+    expect(w.renewsAt).toEqual(new Date("2027-08-17T12:00:00.000Z"));
+    expect(entry.planChanged).toBe(true);
+  });
+
+  it("monthly to annual, same tier, is a real upgrade (allowed self-serve)", () => {
+    const w = seedWallet(NOW);
+    applyPurchase(
+      w,
+      { type: "subscribe", plan: "atelier", interval: "month" },
+      NOW,
+    );
+    const entry = applyPurchase(
+      w,
+      { type: "subscribe", plan: "atelier", interval: "year" },
+      NOW,
+    );
+    expect(entry.planChanged).toBe(true);
+    expect(w.planInterval).toBe("year");
+    expect(w.total).toBe(effectiveCredits("atelier", "year"));
+  });
+
+  it("annual to monthly, same tier, is refused (folded into purchased, plan/interval/renewsAt untouched)", () => {
+    const w = seedWallet(NOW);
+    applyPurchase(
+      w,
+      { type: "subscribe", plan: "atelier", interval: "year" },
+      NOW,
+    );
+    const renewsAtAfterAnnual = w.renewsAt;
+    const entry = applyPurchase(
+      w,
+      { type: "subscribe", plan: "atelier", interval: "month" },
+      NOW,
+    );
+    expect(entry.planChanged).toBe(false);
+    expect(w.planInterval).toBe("year");
+    expect(w.renewsAt).toEqual(renewsAtAfterAnnual);
+    expect(w.total).toBe(effectiveCredits("atelier", "year"));
+    // The monthly payment is still honoured -- folded into purchased.
+    expect(w.purchased).toBe(PLAN_CREDITS.atelier);
+  });
+
+  it("a lower-tier annual can still outrank a higher-tier monthly (ranked by effectiveCredits, not tier alone)", () => {
+    const w = seedWallet(NOW);
+    applyPurchase(
+      w,
+      { type: "subscribe", plan: "studio", interval: "month" },
+      NOW,
+    );
+    const entry = applyPurchase(
+      w,
+      { type: "subscribe", plan: "atelier", interval: "year" },
+      NOW,
+    );
+    expect(entry.planChanged).toBe(true);
+    expect(w.plan).toBe("atelier");
+    expect(w.planInterval).toBe("year");
+  });
+});
+
+describe("renewWallet (annual)", () => {
+  it("rolls renewsAt forward 365 days, not 30, for an annual wallet", () => {
+    const w = seedWallet(NOW);
+    applyPurchase(
+      w,
+      { type: "subscribe", plan: "atelier", interval: "year" },
+      NOW,
+    );
+    const renewsAtAfterSubscribe = w.renewsAt!;
+    w.balance -= 1000; // spend some of the year's allowance
+    const entry = renewWallet(w, renewsAtAfterSubscribe);
+    expect(w.balance).toBe(effectiveCredits("atelier", "year"));
+    expect(w.renewsAt).toEqual(
+      new Date(renewsAtAfterSubscribe.getTime() + 365 * 86_400_000),
+    );
+    expect(entry.type).toBe("renew");
   });
 });
 
@@ -213,7 +353,11 @@ describe("applyPurchase", () => {
 describe("reverseSubscription", () => {
   it("debits the balance and downgrades plan/total back to the free tier", () => {
     const w = seedWallet(NOW);
-    applyPurchase(w, { type: "subscribe", plan: "atelier" }, NOW); // plan atelier, balance 500, total 500
+    applyPurchase(
+      w,
+      { type: "subscribe", plan: "atelier", interval: "month" },
+      NOW,
+    ); // plan atelier, balance 500, total 500
     const entry = reverseSubscription(w, 500);
     expect(w.plan).toBe("free");
     expect(w.total).toBe(30);
@@ -229,7 +373,11 @@ describe("reverseSubscription", () => {
   it("leaves purchased top-up credits untouched -- a refunded subscription didn't erase a prior top-up", () => {
     const w = seedWallet(NOW);
     applyPurchase(w, { type: "topup" }, NOW); // balance 130, purchased 100
-    applyPurchase(w, { type: "subscribe", plan: "atelier" }, NOW); // balance 600 (500 + 100 purchased)
+    applyPurchase(
+      w,
+      { type: "subscribe", plan: "atelier", interval: "month" },
+      NOW,
+    ); // balance 600 (500 + 100 purchased)
     reverseSubscription(w, 500);
     expect(w.balance).toBe(100); // 600 - 500, the purchased credits remain
     expect(w.purchased).toBe(100);
@@ -238,7 +386,11 @@ describe("reverseSubscription", () => {
 
   it("clears planSourceExternalId -- the plan it pointed at no longer exists (#196)", () => {
     const w = seedWallet(NOW);
-    applyPurchase(w, { type: "subscribe", plan: "atelier" }, NOW);
+    applyPurchase(
+      w,
+      { type: "subscribe", plan: "atelier", interval: "month" },
+      NOW,
+    );
     w.planSourceExternalId = "pay_1";
     reverseSubscription(w, 500);
     expect(w.planSourceExternalId).toBeNull();
@@ -252,8 +404,16 @@ describe("reverseSubscription", () => {
 describe("reversePurchasedCredits", () => {
   it("subtracts the amount from both balance and purchased, leaves plan/total untouched", () => {
     const w = seedWallet(NOW);
-    applyPurchase(w, { type: "subscribe", plan: "factory" }, NOW); // plan factory, balance 10000
-    applyPurchase(w, { type: "subscribe", plan: "studio" }, NOW); // folded: +2000 purchased/balance
+    applyPurchase(
+      w,
+      { type: "subscribe", plan: "factory", interval: "month" },
+      NOW,
+    ); // plan factory, balance 10000
+    applyPurchase(
+      w,
+      { type: "subscribe", plan: "studio", interval: "month" },
+      NOW,
+    ); // folded: +2000 purchased/balance
     expect(w.balance).toBe(12000);
     expect(w.purchased).toBe(2000);
     const entry = reversePurchasedCredits(w, 2000);
@@ -323,7 +483,11 @@ describe("reverseRefundedEntry", () => {
 
   it("routes a subscribe entry to the plan-source decision", () => {
     const w = seedWallet(NOW);
-    const sub = applyPurchase(w, { type: "subscribe", plan: "atelier" }, NOW);
+    const sub = applyPurchase(
+      w,
+      { type: "subscribe", plan: "atelier", interval: "month" },
+      NOW,
+    );
     w.planSourceExternalId = "pay_1";
 
     const result = reverseRefundedEntry(
@@ -357,7 +521,11 @@ describe("reverseRefundedEntry", () => {
 describe("reverseRefundedSubscription", () => {
   it("resets to free when the refunded entry IS the wallet's current plan source", () => {
     const w = seedWallet(NOW);
-    applyPurchase(w, { type: "subscribe", plan: "atelier" }, NOW); // balance/total 500
+    applyPurchase(
+      w,
+      { type: "subscribe", plan: "atelier", interval: "month" },
+      NOW,
+    ); // balance/total 500
     w.planSourceExternalId = "pay_atelier";
     const { outcome, ledgerEntry } = reverseRefundedSubscription(
       w,
@@ -382,9 +550,17 @@ describe("reverseRefundedSubscription", () => {
   // stay on factory, not drop to free.
   it("undoes exactly the folded amount and leaves the plan on factory when the refunded entry never set it", () => {
     const w = seedWallet(NOW);
-    applyPurchase(w, { type: "subscribe", plan: "factory" }, NOW); // plan factory
+    applyPurchase(
+      w,
+      { type: "subscribe", plan: "factory", interval: "month" },
+      NOW,
+    ); // plan factory
     w.planSourceExternalId = "pay_factory";
-    applyPurchase(w, { type: "subscribe", plan: "studio" }, NOW); // folded: +2000
+    applyPurchase(
+      w,
+      { type: "subscribe", plan: "studio", interval: "month" },
+      NOW,
+    ); // folded: +2000
     expect(w.balance).toBe(12000);
     const { outcome, ledgerEntry } = reverseRefundedSubscription(
       w,
@@ -408,8 +584,16 @@ describe("reverseRefundedSubscription", () => {
   // Nothing about atelier's contribution survives to claw back.
   it("leaves the wallet untouched when a plan-changing entry has since been superseded by a later real upgrade", () => {
     const w = seedWallet(NOW);
-    applyPurchase(w, { type: "subscribe", plan: "atelier" }, NOW); // pay_atelier would set planSourceExternalId here
-    applyPurchase(w, { type: "subscribe", plan: "factory" }, NOW); // real upgrade -- overwrites plan/total
+    applyPurchase(
+      w,
+      { type: "subscribe", plan: "atelier", interval: "month" },
+      NOW,
+    ); // pay_atelier would set planSourceExternalId here
+    applyPurchase(
+      w,
+      { type: "subscribe", plan: "factory", interval: "month" },
+      NOW,
+    ); // real upgrade -- overwrites plan/total
     w.planSourceExternalId = "pay_factory";
     const balanceBefore = w.balance;
     const { outcome, ledgerEntry } = reverseRefundedSubscription(
@@ -479,7 +663,13 @@ describe("ledger amount invariant", () => {
     entries.push(applyPurchase(w, { type: "topup" }, NOW)); // balance 130, purchased 100
     w.renewsAt = new Date("2026-08-01T00:00:00.000Z"); // force a renewal to be due
     entries.push(renewWallet(w, NOW)); // total 30 + purchased 100 = still 130
-    entries.push(applyPurchase(w, { type: "subscribe", plan: "atelier" }, NOW)); // 500 + purchased 100
+    entries.push(
+      applyPurchase(
+        w,
+        { type: "subscribe", plan: "atelier", interval: "month" },
+        NOW,
+      ),
+    ); // 500 + purchased 100
 
     for (const entry of entries) {
       runningBalance += entry.type === "debit" ? -entry.amount : entry.amount;

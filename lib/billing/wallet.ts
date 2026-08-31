@@ -2,8 +2,10 @@ import type { PlanId } from "@/lib/types";
 import {
   PLAN_CREDITS,
   TOPUP_CREDITS,
-  isPlanUpgrade,
+  isPlanOrIntervalUpgrade,
+  effectiveCredits,
   type PaidPlanId,
+  type BillingInterval,
 } from "./plans";
 
 export interface Wallet {
@@ -16,6 +18,12 @@ export interface Wallet {
   // allowance only ("use it or lose it"); `purchased` never resets on renew.
   purchased: number;
   renewsAt: Date | null;
+  // Which billing cycle the CURRENT plan/total were granted under -- "month"
+  // is inert (and the only value) for the free tier. Read by renewWallet to
+  // decide whether a renewal rolls renewsAt forward 30 or 365 days; written
+  // only by applyPurchase's subscribe upgrade branch and reset to "month" by
+  // reverseSubscription, the same lifecycle as plan/total themselves.
+  planInterval: BillingInterval;
   // #196: the externalId (Stripe payment id) of the ledger entry that
   // actually set the wallet's CURRENT plan/total -- i.e. the entry that ran
   // applyPurchase's real upgrade branch (LedgerEntry.planChanged: true) most
@@ -65,6 +73,7 @@ export function seedWallet(now: Date): Wallet {
     total: PLAN_CREDITS.free,
     purchased: 0,
     renewsAt: new Date(now.getTime() + 30 * DAY_MS),
+    planInterval: "month",
     planSourceExternalId: null,
   };
 }
@@ -104,7 +113,8 @@ export function isPurchaseType(value: unknown): value is PurchaseType {
 // value that becomes this) so the type itself makes "subscribe to free"
 // unrepresentable.
 export type Purchase =
-  { type: "topup" } | { type: "subscribe"; plan: PaidPlanId };
+  | { type: "topup" }
+  | { type: "subscribe"; plan: PaidPlanId; interval: BillingInterval };
 
 // Exhaustive on purpose -- the `never` binding makes a new Purchase variant
 // a compile error here instead of silently taking the subscribe branch.
@@ -123,7 +133,7 @@ export function applyPurchase(
         balanceAfter: wallet.balance,
       };
     case "subscribe": {
-      const planCredits = PLAN_CREDITS[purchase.plan];
+      const planCredits = effectiveCredits(purchase.plan, purchase.interval);
       // #193: monotonicity guard. The mock path's plan_not_upgradable check
       // (app/api/billing/purchase/route.ts) only runs synchronously, at
       // checkout-creation time -- under PAYMENT_PROVIDER=stripe the wallet
@@ -164,7 +174,12 @@ export function applyPurchase(
       // which tier was actually paid for, just one that didn't change the
       // wallet's plan. The caller (the webhook route) is responsible for
       // reporting this case for operator visibility -- see handleSubscriptionStarted.
-      if (!isPlanUpgrade(wallet.plan, purchase.plan)) {
+      if (
+        !isPlanOrIntervalUpgrade(
+          { plan: wallet.plan, interval: wallet.planInterval },
+          { plan: purchase.plan, interval: purchase.interval },
+        )
+      ) {
         wallet.purchased += planCredits;
         wallet.balance += planCredits;
         return {
@@ -193,7 +208,10 @@ export function applyPurchase(
       wallet.plan = purchase.plan;
       wallet.total = planCredits;
       wallet.balance = newBalance;
-      wallet.renewsAt = new Date(now.getTime() + 30 * DAY_MS);
+      wallet.planInterval = purchase.interval;
+      wallet.renewsAt = new Date(
+        now.getTime() + (purchase.interval === "year" ? 365 : 30) * DAY_MS,
+      );
       return {
         type: "subscribe",
         amount: delta,
@@ -239,6 +257,7 @@ export function reverseSubscription(
   wallet.balance -= amount;
   wallet.plan = "free";
   wallet.total = PLAN_CREDITS.free;
+  wallet.planInterval = "month";
   wallet.planSourceExternalId = null;
   return {
     type: "debit",
@@ -407,7 +426,8 @@ export function renewWallet(wallet: Wallet, now: Date): LedgerEntry {
   const delta = newBalance - wallet.balance;
   wallet.balance = newBalance;
   const base = wallet.renewsAt ?? now;
-  wallet.renewsAt = new Date(base.getTime() + 30 * DAY_MS);
+  const days = wallet.planInterval === "year" ? 365 : 30;
+  wallet.renewsAt = new Date(base.getTime() + days * DAY_MS);
   return { type: "renew", amount: delta, balanceAfter: wallet.balance };
 }
 

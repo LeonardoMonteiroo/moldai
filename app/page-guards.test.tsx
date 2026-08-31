@@ -141,6 +141,7 @@ const WALLET: Wallet = {
   total: 30,
   purchased: 0,
   renewsAt: null,
+  planInterval: "month",
   planSourceExternalId: null,
 };
 const PATTERN_NAME = "Blusa da Ana";
