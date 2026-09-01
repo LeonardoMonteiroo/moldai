@@ -12,6 +12,12 @@
       "sourceType": "github",
       "skillPath": "SKILL.md",
       "computedHash": "14fc8a965b6e0a8dc100ba4dffeab55cb94bbac112abbde7e014d5c15a35c202"
+    },
+    "skill-architect": {
+      "source": "tech-leads-club/agent-skills",
+      "sourceType": "github",
+      "skillPath": "packages/skills-catalog/skills/(creation)/skill-architect/SKILL.md",
+      "computedHash": "ac989f104d5f89068217d35d6c15497ba1be0c24de4b5d32e1690f87aaaaa9fb"
     }
   }
 }
