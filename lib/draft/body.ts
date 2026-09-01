@@ -318,10 +318,53 @@ function bodice(
   let internalsCm: InternalCm[] | undefined;
   if (fitted) {
     const dartOffset = waistHalf * 0.5;
-    const dartHalfWidth = Math.max(0.9, dartsSuppression / 8);
     const dartRiseCm = 12;
+    // bust-dart-shaping feature: a real cup delta (bust wider than highBust)
+    // re-angles the dart's bust-facing apex toward the wearer's actual bust
+    // apex instead of straight up, and widens the dart -- but ONLY on the
+    // front panel (no anatomical apex exists on the back) and ONLY when
+    // there's a real, non-zero delta. Both system charts seed
+    // `highBust = bust` (delta 0) precisely so this stays a no-op for them
+    // and for every chart/pattern that predates these fields (highBust
+    // absent, `?? bust` collapses the delta to 0 the same way). Clamped to
+    // >= 0 so an inverted highBust>bust entry never inverts the dart --
+    // the same "no class below the tightest, negative is real but
+    // bottomed-out" pattern lib/draft/ease.ts's classifyGirthFit already
+    // uses.
+    const bustCupDeltaCm = frontish
+      ? Math.max(0, m.bust - (m.highBust ?? m.bust))
+      : 0;
+    const hasBustApex = bustCupDeltaCm > 0;
+    // Cited FBA (full-bust-adjustment) convention: half the raw high-bust/
+    // full-bust delta is the amount added to a HALF-front pattern -- one
+    // side of this panel, i.e. one of the two darts oneDart() below drafts.
+    // That whole half-front amount is routed into THIS dart's total width
+    // (the scope this feature chose over a full slash-and-spread FBA -- see
+    // design.md's Risks table), so half of it is the half-width this file
+    // already tracks.
+    const extraDartHalfWidthCm = bustCupDeltaCm / 4;
+    const dartHalfWidth =
+      Math.max(0.9, dartsSuppression / 8) + extraDartHalfWidthCm;
+    // Bust-apex point, in this panel's own coordinate frame. bustSpan/
+    // bustPointHeight resolve to a real per-chart value when set, else the
+    // cited flat fallback (AD-001, .specs/STATE.md) -- see design.md's
+    // Research table for both citations. Clamped into the panel's own valid
+    // interior band so an extreme combination (a small chart paired with
+    // range-boundary bustSpan/bustPointHeight) can never place the apex
+    // outside the outline.
+    const bustSpanCm = m.bustSpan ?? 18.5;
+    const bustPointHeightCm = m.bustPointHeight ?? 26.5;
+    const apexXOffsetCm = Math.min(
+      Math.max(bustSpanCm / 2 + 0.5, 2),
+      halfChest - 2,
+    );
+    const apexYCm = Math.min(
+      Math.max(shoulderSlope + bustPointHeightCm, shoulderSlope + 4),
+      waistY - 4,
+    );
     const oneDart = (side: -1 | 1): DraftedDart => {
       const dx = cx + side * dartOffset;
+      const bustApex: Pt = [cx + side * apexXOffsetCm, apexYCm];
       if (isDressHem) {
         // The hem IS the waist seam here (#79) -- the dart opens directly
         // onto it: its wide end sits on the seam, tapering to a single
@@ -329,7 +372,7 @@ function bodice(
         // hem), so it can't be double-ended -- one free apex, one seam end
         // (#127: the fold line runs apex -> seam midpoint; only the apex
         // gets a drill hole).
-        const apex: Pt = [dx, waistY - dartRiseCm];
+        const apex: Pt = hasBustApex ? bustApex : [dx, waistY - dartRiseCm];
         const seamMid: Pt = [dx, waistY];
         return {
           ptsCm: [
@@ -347,8 +390,10 @@ function bodice(
       // piece. The first point repeats at the end so it renders as closed
       // without a synthetic straight-line base (see core.ts's place()).
       // #127: both ends are free apexes -- the fold line runs apex to
-      // apex, and each end gets its own drill hole.
-      const apexTop: Pt = [dx, waistY - dartRiseCm];
+      // apex, and each end gets its own drill hole. Only the upper
+      // (bust-facing) apex ever targets the bust apex -- the lower one
+      // (toward the hip/hem) has no anatomical target and stays as today.
+      const apexTop: Pt = hasBustApex ? bustApex : [dx, waistY - dartRiseCm];
       const apexBottom: Pt = [dx, waistY + dartRiseCm];
       return {
         ptsCm: [

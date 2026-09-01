@@ -1,7 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { SIZE_TABLE, Measurements } from "@/lib/measurements";
+import {
+  SIZE_TABLE,
+  Measurements,
+  MEASUREMENT_RANGES,
+} from "@/lib/measurements";
 import { draftBody, BlockOpts } from "./body";
-import { bbox, dartsOf, Pt } from "./core";
+import { bbox, dartsOf, Pt, DRILL_HOLE_SETBACK_CM } from "./core";
 import { FIT_CLASSES, FIT_EASE_CM, wearingEaseCm } from "./ease";
 import type { FitClass } from "@/lib/types";
 import { t } from "@/lib/i18n/test-translate";
@@ -535,5 +539,203 @@ describe("#132: extended measurement overrides", () => {
       bbox(withoutKey.front.outlineCm).w,
       5,
     );
+  });
+});
+
+// bust-dart-shaping feature: a real cup delta (bust - highBust > 0) angles
+// the front dart's bust-facing apex toward the wearer's real bust apex and
+// widens the dart, per design.md's cited formulas. All expected numbers
+// below are derived independently from those formulas (M's own measurements
+// + the design's cited constants), not by reading body.ts's implementation.
+describe("bust-apex dart shaping (bust-dart-shaping feature)", () => {
+  // Hand-derived from M (bust 92, waist 74, hip 100, backLength 41,
+  // shoulder 18.5), optsM (wearingEaseCm 8, female), with no bustSpan/
+  // bustPointHeight override (cited flat fallbacks: 18.5 / 26.5):
+  //   halfChest = 92/4 + 2 = 25; hemHalf = 100/4 + 2 = 27; cx = max(18.5,25,27) = 27
+  //   waistSuppression = 100/4 - 74/4 = 6.5; sideSeamSuppression = 3.25
+  //   waistHalf = max(25 - 3.25, 25 - 3) = 22; dartOffset = 11
+  //   dx (side -1) = 27 - 11 = 16; waistY = backLength = 41
+  //   apexXOffsetCm = clamp(18.5/2 + 0.5, 2, 25-2) = 9.75
+  //   apexYCm = clamp(4.0 + 26.5, 4.0+4, 41-4) = 30.5
+  //   bust apex (side -1) = [27 - 9.75, 30.5] = [17.25, 30.5]
+  const HIGH_BUST_DELTA = { ...M, highBust: 84 }; // bustCupDeltaCm = 8
+  const EXPECTED_APEX: Pt = [17.25, 30.5];
+  const UNCHANGED_APEX_TOP: Pt = [16, 41 - 12]; // [dx, waistY - dartRiseCm]
+  const UNCHANGED_APEX_BOTTOM: Pt = [16, 41 + 12];
+
+  it("BDART-04: highBust equal to bust (both system charts today) drafts an identical dart to highBust absent", () => {
+    const withEqualHighBust = draftBody(
+      { ...M, highBust: M.bust },
+      { darts: true },
+      t,
+      optsM,
+    );
+    const withoutHighBust = draftBody(M, { darts: true }, t, optsM);
+    const a = dartsOf(withEqualHighBust.front.internalsCm);
+    const b = dartsOf(withoutHighBust.front.internalsCm);
+    expect(a).toEqual(b);
+  });
+
+  it("BDART-04: a highBust larger than bust (inverted entry) clamps to no effect, same as no delta", () => {
+    const inverted = draftBody(
+      { ...M, highBust: M.bust + 20 },
+      { darts: true },
+      t,
+      optsM,
+    );
+    const noDelta = draftBody(M, { darts: true }, t, optsM);
+    expect(dartsOf(inverted.front.internalsCm)).toEqual(
+      dartsOf(noDelta.front.internalsCm),
+    );
+  });
+
+  it("BDART-01/02: a real cup delta angles the fisheye dart's upper apex toward the bust apex and widens it", () => {
+    const withDelta = draftBody(HIGH_BUST_DELTA, { darts: true }, t, optsM);
+    const noDelta = draftBody(M, { darts: true }, t, optsM);
+    const [dartWithDelta] = dartsOf(withDelta.front.internalsCm);
+    const [dartNoDelta] = dartsOf(noDelta.front.internalsCm);
+    // ptsCm = [apexTop, rightLeg, apexBottom, leftLeg, apexTop]
+    const [apexTopWith, rightLegWith, apexBottomWith] = dartWithDelta;
+    const [apexTopNo, rightLegNo, apexBottomNo] = dartNoDelta;
+
+    expect(apexTopWith[0]).toBeCloseTo(EXPECTED_APEX[0], 9);
+    expect(apexTopWith[1]).toBeCloseTo(EXPECTED_APEX[1], 9);
+    // The lower apex (toward the hip) has no anatomical target -- untouched.
+    expect(apexBottomWith).toEqual(apexBottomNo);
+    // The dart widened: the leg moved further from center than before.
+    expect(Math.abs(rightLegWith[0] - 16)).toBeGreaterThan(
+      Math.abs(rightLegNo[0] - 16),
+    );
+    // Sanity: without the delta this dart is the untouched vertical shape.
+    expect(apexTopNo).toEqual(UNCHANGED_APEX_TOP);
+  });
+
+  // BDART-08: dartInternals (core.ts) derives the fold line and drill holes
+  // generically from whatever points it's handed -- no per-shape
+  // special-casing was added for the re-angled apex, so a drill hole must
+  // still land the standard DRILL_HOLE_SETBACK_CM short of the NEW apex
+  // position, walking toward the (unchanged) lower apex.
+  it("BDART-08: the fold line and drill hole still derive correctly from the re-angled apex, generically", () => {
+    const withDelta = draftBody(HIGH_BUST_DELTA, { darts: true }, t, optsM);
+    const internals = withDelta.front.internalsCm!;
+    const fold = internals.find((e) => e.kind === "foldLine");
+    expect(fold).toBeDefined();
+    if (fold?.kind !== "foldLine") throw new Error("expected a foldLine");
+    // The fold line's upper endpoint is now the re-angled apex.
+    expect(fold.aCm[0]).toBeCloseTo(EXPECTED_APEX[0], 9);
+    expect(fold.aCm[1]).toBeCloseTo(EXPECTED_APEX[1], 9);
+
+    const holes = internals.filter((e) => e.kind === "drillHole");
+    const nearApex = holes.find(
+      (h) =>
+        h.kind === "drillHole" &&
+        Math.hypot(h.atCm[0] - EXPECTED_APEX[0], h.atCm[1] - EXPECTED_APEX[1]) <
+          DRILL_HOLE_SETBACK_CM + 1e-6,
+    );
+    expect(nearApex).toBeDefined();
+  });
+
+  it("BDART-03: the back panel's dart is unaffected by a real cup delta", () => {
+    const withDelta = draftBody(HIGH_BUST_DELTA, { darts: true }, t, optsM);
+    const noDelta = draftBody(M, { darts: true }, t, optsM);
+    expect(dartsOf(withDelta.back.internalsCm)).toEqual(
+      dartsOf(noDelta.back.internalsCm),
+    );
+    const [backDart] = dartsOf(withDelta.back.internalsCm);
+    expect(backDart[0]).toEqual(UNCHANGED_APEX_TOP);
+    expect(backDart[2]).toEqual(UNCHANGED_APEX_BOTTOM);
+  });
+
+  it("BDART-01/10: a real cup delta angles the dress waist-join dart's single apex the same way", () => {
+    const dressOpts: BlockOpts = {
+      ...optsM,
+      lengthCm: M.backLength,
+      dressHemHalfCm: 27,
+    };
+    const withDelta = draftBody(HIGH_BUST_DELTA, { darts: true }, t, dressOpts);
+    const [dart] = dartsOf(withDelta.front.internalsCm);
+    // ptsCm = [leftLeg, apex, rightLeg] for the single-ended dress dart.
+    const [, apex] = dart;
+    expect(apex[0]).toBeCloseTo(EXPECTED_APEX[0], 9);
+    expect(apex[1]).toBeCloseTo(EXPECTED_APEX[1], 9);
+  });
+
+  it("BDART-01/10: a real cup delta angles the front-closure half-panel's single dart the same way", () => {
+    const withDelta = draftBody(
+      HIGH_BUST_DELTA,
+      { darts: true, frontClosure: "buttonStand" },
+      t,
+      optsM,
+    );
+    const [dart] = dartsOf(withDelta.front.internalsCm);
+    const [apexTop] = dart;
+    expect(apexTop[0]).toBeCloseTo(EXPECTED_APEX[0], 9);
+    expect(apexTop[1]).toBeCloseTo(EXPECTED_APEX[1], 9);
+  });
+
+  it("BDART-02: dart width grows monotonically with a larger cup delta", () => {
+    const small = draftBody(
+      { ...M, highBust: 88 }, // delta 4
+      { darts: true },
+      t,
+      optsM,
+    );
+    const big = draftBody(
+      { ...M, highBust: 76 }, // delta 16
+      { darts: true },
+      t,
+      optsM,
+    );
+    const [dartSmall] = dartsOf(small.front.internalsCm);
+    const [dartBig] = dartsOf(big.front.internalsCm);
+    const widthAt = (dart: Pt[]) => Math.abs(dart[1][0] - dart[3][0]); // rightLeg.x - leftLeg.x
+    expect(widthAt(dartBig)).toBeGreaterThan(widthAt(dartSmall));
+  });
+
+  it("BDART-06: a real bustSpan/bustPointHeight value (not the fallback) is used verbatim in the apex calculation", () => {
+    // apexXOffsetCm = clamp(22/2 + 0.5, 2, 23) = 11.5 (unclamped, real value)
+    // apexYCm = clamp(4.0 + 24, 8, 37) = 28 (unclamped, real value)
+    // apex (side -1) = [27 - 11.5, 28] = [15.5, 28] -- distinct from the
+    // fallback-derived EXPECTED_APEX ([17.25, 30.5]) above.
+    const withRealValues = draftBody(
+      { ...HIGH_BUST_DELTA, bustSpan: 22, bustPointHeight: 24 },
+      { darts: true },
+      t,
+      optsM,
+    );
+    const [dart] = dartsOf(withRealValues.front.internalsCm);
+    const [apexTop] = dart;
+    expect(apexTop[0]).toBeCloseTo(15.5, 9);
+    expect(apexTop[1]).toBeCloseTo(28, 9);
+    expect(apexTop).not.toEqual(EXPECTED_APEX);
+  });
+
+  it("BDART-07: boundary bustSpan/bustPointHeight values (at MEASUREMENT_RANGES extremes) on the smallest chart still clamp the apex into the panel's own interior band", () => {
+    const pp = SIZE_TABLE.PP;
+    const boundaryOpts: BlockOpts = {
+      gender: "female",
+      knit: false,
+      lengthCm: pp.backLength + pp.hipHeight + 5,
+      wearingEaseCm: 8,
+    };
+    const withBoundary = draftBody(
+      {
+        ...pp,
+        highBust: pp.bust - 20,
+        bustSpan: MEASUREMENT_RANGES.bustSpan.max,
+        bustPointHeight: MEASUREMENT_RANGES.bustPointHeight.max,
+      },
+      { darts: true },
+      t,
+      boundaryOpts,
+    );
+    const [dart] = dartsOf(withBoundary.front.internalsCm);
+    const [apexTop] = dart;
+    const shoulderSlope = 4.0;
+    const waistY = pp.backLength;
+    // apexYCm is clamped to [shoulderSlope + 4, waistY - 4] -- never at or
+    // past the waist, never at or above the shoulder line.
+    expect(apexTop[1]).toBeGreaterThanOrEqual(shoulderSlope + 4);
+    expect(apexTop[1]).toBeLessThanOrEqual(waistY - 4);
   });
 });

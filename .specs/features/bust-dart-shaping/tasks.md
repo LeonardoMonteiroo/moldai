@@ -150,7 +150,7 @@ T4 → T5
 
 ---
 
-### T4: Implement bust-apex dart re-angling and cup-delta dart widening in `bodice()`
+### T4: Implement bust-apex dart re-angling and cup-delta dart widening in `bodice()` — ✅ DONE
 
 **What**: In `lib/draft/body.ts`'s `bodice()`, compute `bustCupDeltaCm = max(0, bust - (highBust ?? bust))` and, when it's `> 0`, (a) derive the bust-apex point from `bustSpan`/`bustPointHeight` (real value or the cited flat fallback) relative to `shoulderSlope`/`cx`, clamped into the panel's valid interior band, (b) move the dart's bust-facing apex to that point instead of straight up/down, and (c) widen the dart by `bustCupDeltaCm / 4` (per-leg half-width) on top of the existing `dartsSuppression`-derived width — identically across the fisheye (blouse/t-shirt), dress-waist-join, and front-closure branches. When `bustCupDeltaCm <= 0`, every dart must draft byte-identically to today.
 **Where**: `lib/draft/body.ts`
@@ -165,17 +165,17 @@ T4 → T5
 
 **Done when**:
 
-- [ ] `bustCupDeltaCm` is computed once per `bodice()` call, clamped to a minimum of 0
-- [ ] The bust-apex point (`[cx ± apexXOffsetCm, apexYCm]`) is computed from `m.bustSpan ?? 18.5` and `m.bustPointHeight ?? 26.5`, with `apexXOffsetCm` clamped to `[2, halfChest - 2]` and `apexYCm` clamped to `[shoulderSlope + 4, waistY - 4]`
-- [ ] The fisheye dart's upper (bust-facing) apex moves to that point when `bustCupDeltaCm > 0`; its lower apex is untouched in every case
-- [ ] The dress-waist-join dart's single apex moves to that point when `bustCupDeltaCm > 0`
-- [ ] The front-closure half-panel's single dart gets the same treatment (it always uses the fisheye branch)
-- [ ] The back panel is provably unaffected by `highBust`/`bustSpan`/`bustPointHeight` in every case (no apex-targeting code path reads them when `frontish` is false)
-- [ ] When `bustCupDeltaCm <= 0` (field absent, or `highBust >= bust` — both system charts today), every dart's points are identical, field-for-field, to the pre-change output
-- [ ] No `seamEdges`, notch, or piece-count change results from this task — only `internalsCm` dart-point values move
-- [ ] `lib/draft/body.test.ts` adds: a regression case (`highBust === bust` and `highBust` absent) asserting identical dart geometry to a pre-change snapshot/fixture; a re-angle+widen case for each of the three branches (fisheye/dress-hem/front-closure) asserting the apex moved toward the expected point and the dart widened monotonically with a larger delta; a boundary case at `MEASUREMENT_RANGES` extremes asserting the apex clamps rather than escaping the panel
-- [ ] Gate check passes: `npx vitest run lib/draft/body.test.ts`
-- [ ] Test count: existing count + at least 6 new test cases, no silent deletions
+- [x] `bustCupDeltaCm` is computed once per `bodice()` call, clamped to a minimum of 0 (`Math.max(0, ...)`)
+- [x] The bust-apex point (`[cx ± apexXOffsetCm, apexYCm]`) is computed from `m.bustSpan ?? 18.5` and `m.bustPointHeight ?? 26.5`, with `apexXOffsetCm` clamped to `[2, halfChest - 2]` and `apexYCm` clamped to `[shoulderSlope + 4, waistY - 4]`
+- [x] The fisheye dart's upper (bust-facing) apex moves to that point when `bustCupDeltaCm > 0`; its lower apex is untouched in every case
+- [x] The dress-waist-join dart's single apex moves to that point when `bustCupDeltaCm > 0`
+- [x] The front-closure half-panel's single dart gets the same treatment (it always uses the fisheye branch)
+- [x] The back panel is provably unaffected by `highBust`/`bustSpan`/`bustPointHeight` in every case (`bustCupDeltaCm` is forced 0 when `!frontish`)
+- [x] When `bustCupDeltaCm <= 0` (field absent, or `highBust >= bust` — both system charts today), every dart's points are identical, field-for-field, to the pre-change output
+- [x] No `seamEdges`, notch, or piece-count change results from this task — only `internalsCm` dart-point values move (verified: `garment.test.ts`'s 219 pre-existing tests, which include the seam-graph/notch/seamEdges assertions, all pass unmodified)
+- [x] `lib/draft/body.test.ts` adds: 2 regression cases (`highBust === bust`, and `highBust > bust` inverted), a re-angle+widen case per branch (fisheye/dress-hem/front-closure), a real-value-vs-fallback case, a monotonic-width case, a boundary-clamp case, and a fold-line/drill-hole generic-derivation case — 10 new tests total
+- [x] Gate check passes: `npx vitest run lib/draft/body.test.ts` — 51 passed; `npx vitest run lib/draft` (full engine) — 373 passed
+- [x] Test count: existing count (41) + 10 new test cases = 51, no silent deletions
 
 **Tests**: unit
 **Gate**: quick
