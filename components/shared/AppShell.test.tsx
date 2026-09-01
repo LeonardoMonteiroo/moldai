@@ -29,6 +29,24 @@ describe("AppShell", () => {
     expect(screen.getByText("CONTENT")).toBeInTheDocument();
   });
 
+  // EDCH-05: threads straight to PageHeader's `actions` prop (T1) -- only
+  // the editor passes this, every other screen's header is unaffected.
+  it("threads headerActions to the page header", () => {
+    renderWithIntl(
+      <AppShell
+        title="Blusa"
+        credits={CREDITS}
+        userEmail="a@b.com"
+        headerActions={<button type="button">Histórico</button>}
+      >
+        <span>CONTENT</span>
+      </AppShell>,
+    );
+    expect(
+      screen.getByRole("button", { name: "Histórico" }),
+    ).toBeInTheDocument();
+  });
+
   it("renders the sidebar and footer slots only when passed", () => {
     const { unmount } = renderWithIntl(
       <AppShell title="Blusa" credits={CREDITS} userEmail="a@b.com">

@@ -86,12 +86,13 @@ T5 → T6 → T7
 
 **Done when**:
 
-- [ ] `AppShell`'s `headerActions` prop reaches `PageHeader`'s `actions` prop unchanged.
-- [ ] Every existing `AppShell.test.tsx` assertion still passes unmodified (no screen currently passes this prop).
-- [ ] New test: passing `headerActions` renders it inside the header.
+- [x] `AppShell`'s `headerActions` prop reaches `PageHeader`'s `actions` prop unchanged.
+- [x] Every existing `AppShell.test.tsx` assertion still passes unmodified (no screen currently passes this prop).
+- [x] New test: passing `headerActions` renders it inside the header.
 
 **Tests**: unit (dom)
 **Gate**: quick — `npx vitest run --project dom components/shared/AppShell.test.tsx`
+**Status**: ✅ Done — 15 tests passing (14 existing + 1 new), lint/typecheck clean.
 
 ---
 

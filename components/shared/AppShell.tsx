@@ -67,6 +67,7 @@ export function AppShell({
   userEmail,
   sidebar,
   footer,
+  headerActions,
   children,
 }: {
   title?: string;
@@ -76,6 +77,8 @@ export function AppShell({
   userEmail: string;
   sidebar?: ReactNode;
   footer?: ReactNode;
+  /** Screen-specific header chrome, threaded straight to PageHeader's `actions`. */
+  headerActions?: ReactNode;
   children: ReactNode;
 }) {
   const t = useTranslations("AppShell");
@@ -111,6 +114,7 @@ export function AppShell({
           backHref={backHref}
           credits={credits}
           userEmail={userEmail}
+          actions={headerActions}
         />
       </div>
       {sidebar && (
