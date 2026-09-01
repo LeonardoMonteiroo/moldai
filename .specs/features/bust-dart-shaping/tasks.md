@@ -121,7 +121,7 @@ T4 → T5
 
 ---
 
-### T3: Add catalog entries and extend `SizeChartTable`'s generic-row tests
+### T3: Add catalog entries and extend `SizeChartTable`'s generic-row tests — ✅ DONE
 
 **What**: Add `SizeChartTable.measurement.bustPointHeight`/`.bustSpan` (short labels) and `SizeChartTable.measurementGuide.bustPointHeight`/`.bustSpan` (how-to-measure instructions) to `messages/pt-BR.json`, written per the vendored `humanizer` skill's tone rules, then extend the two existing generic tests in `SizeChartTable.test.tsx` to cover them.
 **Where**: `messages/pt-BR.json`, `components/size-charts/SizeChartTable.test.tsx`
@@ -136,12 +136,12 @@ T4 → T5
 
 **Done when**:
 
-- [ ] `messages/pt-BR.json`'s `SizeChartTable.measurement` gains `"bustPointHeight"` and `"bustSpan"` short labels
-- [ ] `messages/pt-BR.json`'s `SizeChartTable.measurementGuide` gains matching how-to-measure sentences (shoulder-to-apex; apex-to-apex), same tone/length as the existing five extended-field entries
-- [ ] `SizeChartTable.test.tsx`'s `"renders a row, with its catalog label, for every extended measurement"` test adds assertions for both new keys
-- [ ] `SizeChartTable.test.tsx`'s `"exposes a guided definition for a measurement, reachable from its row"` test is extended (or a parallel case added) covering at least one of the two new keys
-- [ ] Gate check passes: `npx vitest run --project dom components/size-charts/SizeChartTable.test.tsx`
-- [ ] Test count: existing count + assertions added to 2 existing tests, no new `it(...)` strictly required (extending existing ones is sufficient) — no silent deletions
+- [x] `messages/pt-BR.json`'s `SizeChartTable.measurement` gains `"bustPointHeight"` ("Altura do ápice do busto") and `"bustSpan"` ("Afastamento do busto") short labels
+- [x] `messages/pt-BR.json`'s `SizeChartTable.measurementGuide` gains matching how-to-measure sentences (shoulder-to-apex; apex-to-apex), same tone/length as the existing five extended-field entries — reviewed against the `humanizer` skill's rules (formal register, no first person, no em dash), no changes needed
+- [x] `SizeChartTable.test.tsx`'s `"renders a row, with its catalog label, for every extended measurement"` test adds assertions for both new keys
+- [x] `SizeChartTable.test.tsx` gets a new parallel case, `"exposes a guided definition for the new bustSpan measurement, reachable from its row"`, covering one of the two new keys end-to-end
+- [x] Gate check passes: `npx vitest run --project dom components/size-charts/SizeChartTable.test.tsx` — 42 passed
+- [x] Test count: existing count + 1 new test + assertions added to 1 existing test, no silent deletions
 
 **Tests**: unit (component, `dom` project)
 **Gate**: full

@@ -117,7 +117,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | BDART-08       | P2    | Design | Pending      |
 | BDART-09       | P2    | Design | Pending      |
 | BDART-10       | P3    | Design | Pending      |
-| BDART-11       | P3    | Design | Pending      |
+| BDART-11       | P3    | Tasks  | Implementing |
 | BDART-12       | P3    | Design | Pending      |
 
 **ID format:** `BDART-NN`

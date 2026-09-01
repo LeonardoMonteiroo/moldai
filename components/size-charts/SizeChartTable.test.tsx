@@ -410,6 +410,12 @@ describe("SizeChartTable extended measurement rows (#132)", () => {
     expect(
       screen.getByText(ptBR.SizeChartTable.measurement.rise),
     ).toBeInTheDocument();
+    expect(
+      screen.getByText(ptBR.SizeChartTable.measurement.bustPointHeight),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(ptBR.SizeChartTable.measurement.bustSpan),
+    ).toBeInTheDocument();
   });
 
   // The fixture's baseMeasurements never set bicep -- resolveSizeChartSize
@@ -439,6 +445,23 @@ describe("SizeChartTable extended measurement rows (#132)", () => {
 
     expect(
       screen.getByText(ptBR.SizeChartTable.measurementGuide.neckGirth),
+    ).toBeInTheDocument();
+  });
+
+  it("exposes a guided definition for the new bustSpan measurement, reachable from its row", async () => {
+    seed();
+    renderWithIntl(<SizeChartTable />);
+
+    const trigger = screen.getByRole("button", {
+      name: ptBR.SizeChartTable.measurementGuideLabel.replace(
+        "{name}",
+        ptBR.SizeChartTable.measurement.bustSpan,
+      ),
+    });
+    await userEvent.click(trigger);
+
+    expect(
+      screen.getByText(ptBR.SizeChartTable.measurementGuide.bustSpan),
     ).toBeInTheDocument();
   });
 });

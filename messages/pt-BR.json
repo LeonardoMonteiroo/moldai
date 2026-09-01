@@ -913,7 +913,9 @@
       "shoulderSlope": "Declive do ombro",
       "backWidth": "Largura das costas",
       "bicep": "Circunferência do braço",
-      "rise": "Gancho"
+      "rise": "Gancho",
+      "bustPointHeight": "Altura do ápice do busto",
+      "bustSpan": "Afastamento do busto"
     },
     "bodyType": {
       "straight": "reto",
@@ -941,7 +943,9 @@
       "shoulderSlope": "Meça a queda do ombro: a distância vertical entre a base do pescoço e a ponta do ombro.",
       "backWidth": "Meça de axila a axila pelas costas, na altura das omoplatas.",
       "bicep": "Meça ao redor do braço, no ponto mais largo do bíceps.",
-      "rise": "Meça sentada(o), da cintura até o assento, passando entre as pernas."
+      "rise": "Meça sentada(o), da cintura até o assento, passando entre as pernas.",
+      "bustPointHeight": "Meça do ombro até a ponta do busto (ápice), acompanhando a curva do peito.",
+      "bustSpan": "Meça a distância entre as pontas (ápices) do busto, de um lado a outro."
     }
   },
   "SizeChartImport": {
