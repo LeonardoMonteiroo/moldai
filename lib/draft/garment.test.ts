@@ -579,18 +579,30 @@ describe("measureSeams", () => {
   // and a trouser's own waist-to-hem length -- each the same formula the
   // relevant drafter resolves internally, asserted here rather than a
   // duplicated hardcoded cm figure.
-  it("reports the blouse/tshirt body length", () => {
-    for (const type of ["blouse", "tshirt"] as const) {
-      const { garmentLengthCm } = measureSeams(
-        { type, gender: "female", measurementOverrides: {}, style: {} },
-        SIZE_TABLE.M,
-        t,
-      );
-      expect(garmentLengthCm).toBeCloseTo(
-        SIZE_TABLE.M.backLength + SIZE_TABLE.M.hipHeight + 5,
-        5,
-      );
-    }
+  it("reports the blouse body length", () => {
+    const { garmentLengthCm } = measureSeams(
+      { type: "blouse", gender: "female", measurementOverrides: {}, style: {} },
+      SIZE_TABLE.M,
+      t,
+    );
+    expect(garmentLengthCm).toBeCloseTo(
+      SIZE_TABLE.M.backLength + SIZE_TABLE.M.hipHeight + 5,
+      5,
+    );
+  });
+  // tshirt-fit-calibration: the tshirt archetype no longer reuses the blouse
+  // hip-length formula -- see garment.ts's TSHIRT_HEM_DROP_CM.
+  it("reports the tshirt body length using its own hem-drop constant, not the blouse hip-length formula", () => {
+    const { garmentLengthCm } = measureSeams(
+      { type: "tshirt", gender: "female", measurementOverrides: {}, style: {} },
+      SIZE_TABLE.M,
+      t,
+    );
+    expect(garmentLengthCm).toBeCloseTo(SIZE_TABLE.M.backLength + 18.5, 5);
+    expect(garmentLengthCm).not.toBeCloseTo(
+      SIZE_TABLE.M.backLength + SIZE_TABLE.M.hipHeight + 5,
+      5,
+    );
   });
   it("reports a dress's bodice-to-waist length plus its skirt panel", () => {
     const { garmentLengthCm } = measureSeams(

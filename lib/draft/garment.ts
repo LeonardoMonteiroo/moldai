@@ -110,6 +110,20 @@ export const STYLE_LIMITS = {
   trouserLengthCm: { min: 60, max: 115 },
 } as const;
 
+// tshirt-fit-calibration: a men's crew-neck tee's own hem drop below the
+// nape-to-waist point (backLength), replacing the blouse hip-length reuse
+// (backLength + hipHeight + 5) that this archetype had no dedicated formula
+// of its own before. Solved against a real graded crew-neck tee reference
+// (docs/reference/tshirt-benchmark/measurements.json): that reference's
+// size-M back/front panel height is 58.007cm, and with SIZE_TABLE_MALE.M's
+// backLength (44) and the male shoulderSlope default (4.5) —
+// heightCm = (backLength + drop) - shoulderSlope, so
+// drop = 58.007 - 44 + 4.5 = 18.507, rounded to 18.5. This is a single flat
+// constant (not graded per size), the same shape CAP_EASE_CM/WRIST_EASE_CM
+// already use — per-size variation comes from backLength's own grading, not
+// a second table here.
+const TSHIRT_HEM_DROP_CM = 18.5;
+
 const clamp = (v: number, min: number, max: number) =>
   Math.min(max, Math.max(min, v));
 const pick = <T>(v: unknown, allowed: T[], def: T): T =>
@@ -306,7 +320,9 @@ function draftAll(
     const lengthCm =
       spec.type === "dress"
         ? measurements.backLength
-        : measurements.backLength + measurements.hipHeight + 5;
+        : spec.type === "tshirt"
+          ? measurements.backLength + TSHIRT_HEM_DROP_CM
+          : measurements.backLength + measurements.hipHeight + 5;
     // A dress's own bodice ends at the waist (lengthCm above) -- the skirt
     // block below adds its own panel length on top once it's drafted.
     garmentLengthCm = lengthCm;
