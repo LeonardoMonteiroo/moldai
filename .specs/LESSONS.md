@@ -35,6 +35,13 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: spec.md P3 AC2 (catalog namespace text) (i18n)
 - last seen: 2026-09-01T19:54:45Z
 
+### L-004 - When an acceptance criterion covers an absent/dismissed/null branch of conditionally-rendered UI, add a test that renders that branch directly instead of only testing the positive/shown branch, even if the unconditional class placement makes the negative branch look self-evidently correct.
+
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `components/dashboard` · harmful: 0
+- features: redesign-dashboard
+- evidence: DASH-06 (P2 AC2) / components/dashboard/DashboardShell.test.tsx (components/dashboard)
+- last seen: 2026-09-01T22:16:59Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

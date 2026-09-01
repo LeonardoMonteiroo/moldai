@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 4,
+  "next_id": 5,
   "lessons": [
     {
       "id": "L-001",
@@ -48,6 +48,22 @@
       "evidence": ["spec.md P3 AC2 (catalog namespace text) (i18n)"],
       "created": "2026-09-01T19:54:45Z",
       "last_seen": "2026-09-01T19:54:45Z"
+    },
+    {
+      "id": "L-004",
+      "key": "spec_precision_gap::when an acceptance criterion covers an absent dismissed null branch of conditionally rendered ui add a test that renders that branch directly instead of only testing the positive shown branch even if the unconditional class placement makes the negative branch look self evidently correct",
+      "text": "When an acceptance criterion covers an absent/dismissed/null branch of conditionally-rendered UI, add a test that renders that branch directly instead of only testing the positive/shown branch, even if the unconditional class placement makes the negative branch look self-evidently correct.",
+      "signal": "spec_precision_gap",
+      "scope": "components/dashboard",
+      "status": "candidate",
+      "features": ["redesign-dashboard"],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "DASH-06 (P2 AC2) / components/dashboard/DashboardShell.test.tsx (components/dashboard)"
+      ],
+      "created": "2026-09-01T22:16:59Z",
+      "last_seen": "2026-09-01T22:16:59Z"
     }
   ]
 }
