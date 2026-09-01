@@ -264,4 +264,32 @@ describe("DashboardShell content spacing (redesign)", () => {
     expect(gridRoot).not.toHaveClass("pt-[22px]");
     expect(gridRoot).not.toHaveClass("p-[22px]");
   });
+
+  // P2 AC2: with the checklist dismissed, the wrapper's pt-[22px] is the
+  // ONLY source of the pattern grid's top inset -- PatternGrid itself must
+  // not compensate by re-adding its own top padding.
+  it("still gives the pattern grid a 22px top inset when the checklist is dismissed", async () => {
+    window.localStorage.setItem("moldai.onboardingChecklistDismissed", "1");
+    const { container } = renderWithIntl(
+      <DashboardShell userEmail="user@example.com" />,
+    );
+
+    const empty = await screen.findByText(ptBR.PatternGrid.emptyTitle);
+    expect(
+      screen.queryByText(ptBR.OnboardingChecklistCard.title, {
+        exact: false,
+      }),
+    ).not.toBeInTheDocument();
+
+    const column = container.querySelector('[class*="pt-[22px]"]');
+    expect(column).not.toBeNull();
+    expect(column!.contains(empty)).toBe(true);
+
+    const gridRoot = column!.querySelector(
+      '[class*="px-[22px]"][class*="pb-[22px]"]:not([class*="sm:flex-row"])',
+    );
+    expect(gridRoot).not.toBeNull();
+    expect(gridRoot).not.toHaveClass("pt-[22px]");
+    expect(gridRoot).not.toHaveClass("p-[22px]");
+  });
 });
