@@ -45,7 +45,14 @@ function extendedMeasurementsFor(
 ): Required<
   Pick<
     Measurements,
-    "neckGirth" | "highBust" | "shoulderSlope" | "backWidth" | "bicep" | "rise"
+    | "neckGirth"
+    | "highBust"
+    | "shoulderSlope"
+    | "backWidth"
+    | "bicep"
+    | "rise"
+    | "bustPointHeight"
+    | "bustSpan"
   >
 > {
   const male = gender === "male";
@@ -82,6 +89,15 @@ function extendedMeasurementsFor(
     // own hip-derived fallback (hip/4 + 4), which exists only for a chart
     // that has no rise of its own at all (see the top-of-file note).
     rise: (male ? 27 : 26) + 0.5 * sizeIndex,
+    // bust-dart-shaping feature: body.ts reads these to locate the bust apex.
+    // Both are frame/torso traits with no cited source tying them
+    // proportionally to bust circumference (unlike backWidth/rise above) --
+    // AD-001 (.specs/STATE.md) governs this: fall back to the cited
+    // "standard/typical" band's midpoint, flat across every size and
+    // gender, the same shape as shoulderSlope's own flat constant just
+    // above.
+    bustPointHeight: 26.5, // cited "typical range 23-30cm", shoulder-to-apex (Wave PLM)
+    bustSpan: 18.5, // cited "standard range 18-20cm", apex-to-apex (Wave PLM)
   };
 }
 

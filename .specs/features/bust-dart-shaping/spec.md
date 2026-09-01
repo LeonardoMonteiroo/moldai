@@ -105,20 +105,20 @@ Explicitly excluded. Documented to prevent scope creep.
 
 ## Requirement Traceability
 
-| Requirement ID | Story | Phase  | Status  |
-| -------------- | ----- | ------ | ------- |
-| BDART-01       | P1    | Design | Pending |
-| BDART-02       | P1    | Design | Pending |
-| BDART-03       | P1    | Design | Pending |
-| BDART-04       | P1    | Design | Pending |
-| BDART-05       | P1    | Design | Pending |
-| BDART-06       | P1    | Design | Pending |
-| BDART-07       | P1    | Design | Pending |
-| BDART-08       | P2    | Design | Pending |
-| BDART-09       | P2    | Design | Pending |
-| BDART-10       | P3    | Design | Pending |
-| BDART-11       | P3    | Design | Pending |
-| BDART-12       | P3    | Design | Pending |
+| Requirement ID | Story | Phase  | Status       |
+| -------------- | ----- | ------ | ------------ |
+| BDART-01       | P1    | Design | Pending      |
+| BDART-02       | P1    | Design | Pending      |
+| BDART-03       | P1    | Design | Pending      |
+| BDART-04       | P1    | Design | Pending      |
+| BDART-05       | P1    | Tasks  | Implementing |
+| BDART-06       | P1    | Design | Pending      |
+| BDART-07       | P1    | Design | Pending      |
+| BDART-08       | P2    | Design | Pending      |
+| BDART-09       | P2    | Design | Pending      |
+| BDART-10       | P3    | Design | Pending      |
+| BDART-11       | P3    | Design | Pending      |
+| BDART-12       | P3    | Design | Pending      |
 
 **ID format:** `BDART-NN`
 

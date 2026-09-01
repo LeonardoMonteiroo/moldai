@@ -21,6 +21,8 @@ const FULL = {
   backWidth: 46,
   bicep: 27.6,
   rise: 27,
+  bustPointHeight: 26.5,
+  bustSpan: 18.5,
 };
 
 describe("MeasurementsSchema (#132)", () => {

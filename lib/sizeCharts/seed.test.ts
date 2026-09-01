@@ -83,20 +83,28 @@ describe("buildSystemSizeChart", () => {
     },
   );
 
-  // #132: five of the six EXTENDED keys are bust-derived proportions, so
-  // they grade along with bust exactly like the CORE keys above.
-  // shoulderSlope is the one deliberate exception -- body.ts's own fallback
-  // is a flat per-gender constant, not a bust-scaled proportion, so grading
-  // it here would fabricate a precision the underlying model doesn't have.
-  // 0 is what a legitimately non-graded field's progression looks like (the
-  // same "0 is a meaningful rule value" principle CLAUDE.md already applies
-  // to a user's own progression-rule edits).
+  // #132: five of the six original EXTENDED keys are bust-derived
+  // proportions, so they grade along with bust exactly like the CORE keys
+  // above. shoulderSlope is the one deliberate exception -- body.ts's own
+  // fallback is a flat per-gender constant, not a bust-scaled proportion, so
+  // grading it here would fabricate a precision the underlying model doesn't
+  // have. 0 is what a legitimately non-graded field's progression looks like
+  // (the same "0 is a meaningful rule value" principle CLAUDE.md already
+  // applies to a user's own progression-rule edits). bust-dart-shaping's
+  // bustPointHeight/bustSpan join shoulderSlope in this exception per AD-001
+  // (.specs/STATE.md) -- frame/torso traits with no cited bust-proportional
+  // formula, so they seed a flat constant too.
+  const SIZE_INVARIANT_EXTENDED_KEYS = [
+    "shoulderSlope",
+    "bustPointHeight",
+    "bustSpan",
+  ];
   it.each(["female", "male"] as const)(
-    "#132: %s chart grades every EXTENDED key except the size-invariant shoulderSlope",
+    "#132: %s chart grades every EXTENDED key except the size-invariant ones",
     (gender) => {
       const chart = buildSystemSizeChart(gender);
       for (const key of EXTENDED_MEASUREMENT_KEYS) {
-        if (key === "shoulderSlope") {
+        if (SIZE_INVARIANT_EXTENDED_KEYS.includes(key)) {
           expect(chart.progressionRule[key]).toBe(0);
         } else {
           expect(chart.progressionRule[key]).not.toBe(0);
@@ -146,6 +154,23 @@ describe("buildSystemSizeChart", () => {
       );
       expect(base.backWidth).toBeCloseTo(base.bust * 0.4, 9);
       expect(base.backWidth).not.toBeCloseTo(base.bust / 2, 1);
+    },
+  );
+
+  // bust-dart-shaping (AD-001): bustPointHeight/bustSpan are frame/torso
+  // traits with no cited bust-proportional formula, so -- like
+  // shoulderSlope, and unlike backWidth/rise above -- they seed the cited
+  // "standard/typical" band's own midpoint, flat, identical for every size
+  // and both genders.
+  it.each(["female", "male"] as const)(
+    "%s chart's bustPointHeight/bustSpan are the cited flat constants, identical at every size",
+    (gender) => {
+      const chart = buildSystemSizeChart(gender);
+      for (const size of chart.sizes) {
+        const row = resolveSizeChartSize(chart, size);
+        expect(row.bustPointHeight).toBe(26.5);
+        expect(row.bustSpan).toBe(18.5);
+      }
     },
   );
 });

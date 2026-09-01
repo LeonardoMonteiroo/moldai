@@ -43,4 +43,6 @@ export const MeasurementsSchema = z
     backWidth: true,
     bicep: true,
     rise: true,
+    bustPointHeight: true,
+    bustSpan: true,
   });

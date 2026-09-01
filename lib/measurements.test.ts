@@ -145,7 +145,7 @@ describe("CORE_MEASUREMENT_KEYS / EXTENDED_MEASUREMENT_KEYS / MEASUREMENT_KEYS (
     ]);
   });
 
-  it("EXTENDED_MEASUREMENT_KEYS carries the six #132 additions", () => {
+  it("EXTENDED_MEASUREMENT_KEYS carries the six #132 additions plus bust-dart-shaping's two", () => {
     expect(EXTENDED_MEASUREMENT_KEYS).toEqual([
       "neckGirth",
       "highBust",
@@ -153,6 +153,8 @@ describe("CORE_MEASUREMENT_KEYS / EXTENDED_MEASUREMENT_KEYS / MEASUREMENT_KEYS (
       "backWidth",
       "bicep",
       "rise",
+      "bustPointHeight",
+      "bustSpan",
     ]);
   });
 

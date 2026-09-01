@@ -26,6 +26,13 @@ export interface Measurements {
   backWidth?: number; // across-back width, armhole to armhole (cm)
   bicep?: number; // upper-arm circumference, at its widest point (cm)
   rise?: number; // trouser rise: waist to crotch seam (cm) — no drafter reads this yet (see #128), added here so a chart can already carry it
+  // bust-dart-shaping feature: locate the bust apex for a dart that points at
+  // it instead of running straight vertical. Both are frame/torso traits with
+  // no cited source tying them proportionally to bust circumference (unlike
+  // backWidth) — see lib/draft/body.ts's own use for the sourcing and the
+  // "flat, not bust-scaled" fallback this shares with shoulderSlope.
+  bustPointHeight?: number; // shoulder seam → bust apex, vertical (cm)
+  bustSpan?: number; // apex-to-apex, horizontal (cm)
 }
 
 // Every Measurements field, in the order the size-chart table renders its
@@ -59,6 +66,8 @@ export const EXTENDED_MEASUREMENT_KEYS: (keyof Measurements)[] = [
   "backWidth",
   "bicep",
   "rise",
+  "bustPointHeight",
+  "bustSpan",
 ];
 
 export const MEASUREMENT_KEYS: (keyof Measurements)[] = [
@@ -230,6 +239,8 @@ export const MEASUREMENT_RANGES: Record<
   backWidth: { min: 26, max: 46 },
   bicep: { min: 18, max: 45 },
   rise: { min: 20, max: 36 },
+  bustPointHeight: { min: 18, max: 34 },
+  bustSpan: { min: 12, max: 26 },
 };
 
 function clamp(v: number, min: number, max: number) {
