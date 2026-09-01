@@ -256,6 +256,23 @@ describe("CanvasArea measurements", () => {
     ).toBeVisible();
   });
 
+  // EDCH-09: shares FloatingToolbar's top-left stack (top-[54px] left-4) --
+  // the old bottom-5 left-5 corner now belongs to the status pill.
+  it("stacks with FloatingToolbar at top-[54px], not the status pill's corner", () => {
+    seedCanvas({
+      pattern: draftedPattern(),
+      measurements: [{ id: "m1", a: { x: 0, y: 0 }, b: { x: 4, y: 0 } }],
+    });
+    renderWithIntl(<CanvasArea />);
+    const button = screen.getByRole("button", {
+      name: ptBR.CanvasArea.clearMeasurementsButton,
+    });
+    const stack = button.closest('[class*="top-[54px]"]');
+    expect(stack).not.toBeNull();
+    expect(stack).toHaveClass("left-4");
+    expect(stack).not.toHaveClass("bottom-5");
+  });
+
   it("clears every measurement through the store", async () => {
     seedCanvas({
       pattern: draftedPattern(),
@@ -289,6 +306,30 @@ describe("CanvasArea tabs", () => {
 
     await user.click(screen.getByRole("tab", { name: ptBR.TabBar.tabCutplan }));
     expect(useEditorStore.getState().activeTab).toBe("cutplan");
+  });
+});
+
+// EDCH-03: every tab panel needs the same 58px clearance the floating tab
+// bar requires (Editor.dc.html:227/288/337) -- confirmed by a killed sensor
+// mutation reverting CanvasArea.tsx's pattern2d inset to the pre-restructure
+// top-[22px] (moldai-verify-scratch, redesign-editor validation.md).
+describe("CanvasArea floating-tab-bar clearance (EDCH-03)", () => {
+  it("gives the pattern2d canvas a top-[58px] inset", () => {
+    seedCanvas({ pattern: draftedPattern() });
+    const { container } = renderWithIntl(<CanvasArea />);
+    const inset = container.querySelector('[class*="top-[58px]"]');
+    expect(inset).not.toBeNull();
+    expect(inset).not.toHaveClass("top-[22px]");
+  });
+
+  it.each([
+    ["proof3d", ptBR.TabBar.tabProof3d],
+    ["techsheet", ptBR.TabBar.tabTechsheet],
+    ["cutplan", ptBR.TabBar.tabCutplan],
+  ] as const)("gives the %s panel a pt-[58px] inset", (activeTab, _label) => {
+    seedCanvas({ pattern: draftedPattern(), activeTab });
+    renderWithIntl(<CanvasArea />);
+    expect(screen.getByRole("tabpanel")).toHaveClass("pt-[58px]");
   });
 });
 

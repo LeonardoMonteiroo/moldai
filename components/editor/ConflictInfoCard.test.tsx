@@ -30,6 +30,16 @@ function conflict(overrides: Partial<ConflictInfo> = {}): ConflictInfo {
 }
 
 describe("ConflictInfoCard", () => {
+  // EDCH-03: top-[58px] clears the floating tab bar (Editor.dc.html:227's
+  // clearance value), which now overlaps this corner's old top-5.
+  it("clears the floating tab bar with a top-[58px] inset", () => {
+    const { container } = renderWithIntl(
+      <ConflictInfoCard conflict={conflict()} />,
+    );
+    expect(container.firstElementChild).toHaveClass("top-[58px]");
+    expect(container.firstElementChild).not.toHaveClass("top-5");
+  });
+
   it("compares both seam lengths and names the gap on the shorter one", () => {
     renderWithIntl(
       <ConflictInfoCard

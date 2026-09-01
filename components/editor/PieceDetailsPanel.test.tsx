@@ -78,6 +78,22 @@ describe("PieceDetailsPanel", () => {
     ).toBeEnabled();
   });
 
+  // EDCH-03: top-[58px] clears the floating tab bar (Editor.dc.html:227's
+  // clearance value), which now overlaps this corner's old top-5.
+  it("clears the floating tab bar with a top-[58px] inset", () => {
+    const { container } = renderWithIntl(
+      <PieceDetailsPanel
+        piece={PIECE}
+        pattern={PATTERN}
+        onClose={vi.fn()}
+        onGraduate={vi.fn()}
+        graduating={false}
+      />,
+    );
+    expect(container.firstElementChild).toHaveClass("top-[58px]");
+    expect(container.firstElementChild).not.toHaveClass("top-5");
+  });
+
   it("stays disabled with nothing to grade even when not in flight", () => {
     const allGraduated: Pattern = {
       ...PATTERN,

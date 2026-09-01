@@ -91,6 +91,36 @@ describe("HeaderActions — salvar como base", () => {
       screen.getByRole("button", { name: ptBR.Footer.saveAsBaseButton }),
     ).toBeDisabled();
   });
+
+  // EDCH-06: two causes the blank/conflict cases above never isolate --
+  // generating alone (pieces and spec both present), and a drafted pattern
+  // whose spec is missing despite having pieces (the `!pattern.spec` clause
+  // on its own, not masked by pieces.length === 0).
+  it("is disabled while generating, even with a drafted, conflict-free pattern", () => {
+    renderWithIntl(
+      <HeaderActions
+        pattern={draftedPattern()}
+        conflictActive={false}
+        generating={true}
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: ptBR.Footer.saveAsBaseButton }),
+    ).toBeDisabled();
+  });
+
+  it("is disabled for a pattern with pieces but no spec", () => {
+    renderWithIntl(
+      <HeaderActions
+        pattern={{ ...draftedPattern(), spec: undefined }}
+        conflictActive={false}
+        generating={false}
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: ptBR.Footer.saveAsBaseButton }),
+    ).toBeDisabled();
+  });
 });
 
 describe("HeaderActions — link para o histórico de versões", () => {

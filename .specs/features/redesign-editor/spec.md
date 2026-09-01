@@ -82,17 +82,17 @@
 
 ## Requirement Traceability
 
-| Requirement ID | Story                            | Phase   | Status   |
-| -------------- | -------------------------------- | ------- | -------- |
-| EDCH-01        | P1: Floating tab bar             | Execute | Verified |
-| EDCH-02        | P1: Floating tab bar             | Execute | Verified |
-| EDCH-03        | P1: Floating tab bar             | Execute | Verified |
-| EDCH-04        | P1: Floating tab bar             | Execute | Verified |
-| EDCH-05        | P2: Header actions + status pill | Execute | Verified |
-| EDCH-06        | P2: Header actions + status pill | Execute | Verified |
-| EDCH-07        | P2: Header actions + status pill | Execute | Verified |
-| EDCH-08        | P2: Header actions + status pill | Execute | Verified |
-| EDCH-09        | P2: Header actions + status pill | Execute | Verified |
+| Requirement ID | Story                            | Phase   | Status                                                                                                                     |
+| -------------- | -------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------- |
+| EDCH-01        | P1: Floating tab bar             | Execute | Verified                                                                                                                   |
+| EDCH-02        | P1: Floating tab bar             | Execute | Verified                                                                                                                   |
+| EDCH-03        | P1: Floating tab bar             | Execute | Verified — fixed post-Verifier, sensor mutation now killed; see `validation.md`                                            |
+| EDCH-04        | P1: Floating tab bar             | Execute | Verified                                                                                                                   |
+| EDCH-05        | P2: Header actions + status pill | Execute | Verified                                                                                                                   |
+| EDCH-06        | P2: Header actions + status pill | Execute | Verified — fixed post-Verifier, sensor mutation now killed; see `validation.md`                                            |
+| EDCH-07        | P2: Header actions + status pill | Execute | ⚠️ Spec-precision gap — text/tone verified, 6s auto-dismiss timing untested (pre-existing, not fixed); see `validation.md` |
+| EDCH-08        | P2: Header actions + status pill | Execute | Verified                                                                                                                   |
+| EDCH-09        | P2: Header actions + status pill | Execute | Verified — fixed post-Verifier, position now independently asserted; see `validation.md`                                   |
 
 **Coverage:** 9 total, 9 mapped to tasks (see `tasks.md`), 0 unmapped.
 
@@ -100,7 +100,7 @@
 
 ## Success Criteria
 
-- [x] `npx vitest run --project dom components/editor components/shared` passes with new/updated assertions covering EDCH-01..09 (188/188).
+- [x] `npx vitest run --project dom components/editor components/shared` passes (197/197, after the post-Verifier fix round added 9 tests) — see `validation.md` for the full history: a first pass found EDCH-03/EDCH-06 uncovered (confirmed by surviving discrimination-sensor mutations), both closed same-session with self-verified fixes.
 - [x] `npm run lint`/`npx eslint components/editor components/shared` and `npx tsc --noEmit -p .` pass.
 - [x] `Footer.tsx` and `Footer.test.tsx` are deleted (their coverage is redistributed, not dropped).
 - [x] No new hex values, `text-[Npx]` sizes, or hardcoded pt-BR strings introduced (verified by grep across every touched file; every relocated string keeps its existing `Footer.*`/`TabBar.*`/`CanvasArea.*` key).
