@@ -106,13 +106,14 @@ T5 → T6 → T7
 
 **Done when**:
 
-- [ ] "Histórico" links to `/pattern/${pattern.id}/versions`.
-- [ ] "Salvar como base" opens the same dialog, same disabled/title logic as `Footer.tsx` today (conflict/generating/blank).
-- [ ] Save success/error notice shows the same `saveAsBaseSaved`/`saveAsBaseError` text, auto-dismisses after 6s.
-- [ ] Tests migrated from `Footer.test.tsx`'s save-as-base cases (open dialog, submit, success notice, error notice, disabled state per cause) — same assertions, new render target.
+- [x] "Histórico" links to `/pattern/${pattern.id}/versions`.
+- [x] "Salvar como base" opens the same dialog, same disabled/title logic as `Footer.tsx` today (conflict/generating/blank).
+- [x] Save success/error notice shows the same `saveAsBaseSaved`/`saveAsBaseError` text, auto-dismisses after 6s.
+- [x] Tests migrated from `Footer.test.tsx`'s save-as-base cases (open dialog, submit, success notice, error notice, disabled state per cause) — same assertions, new render target.
 
 **Tests**: unit (dom)
 **Gate**: quick — `npx vitest run --project dom components/editor/HeaderActions.test.tsx`
+**Status**: ✅ Done — 5/5 tests passing, lint/typecheck clean.
 
 ---
 
