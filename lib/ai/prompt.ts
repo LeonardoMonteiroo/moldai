@@ -49,7 +49,17 @@ const COST_LINES = COST_DESCRIPTIONS.map(
 // Static sections first, per-pattern state last. All numeric bounds render
 // from the same constants validateSpec clamps with — the model is never told
 // a range the validator doesn't enforce.
-const STATIC_SECTIONS = `# Role
+//
+// Exported (alongside buildDynamicSection below) so index.ts can send it as
+// its own cache_control'd system block: this text plus the propose_garment
+// tool schema are byte-identical across every user and every request (no
+// interpolation happens in either), so caching this ~6.2k-token prefix is a
+// cache hit for essentially every generate call in the app, not just repeat
+// calls within one conversation. Measured via the real count_tokens
+// endpoint: static (this + tool schema) ≈ 6,189 tokens vs. ≈ 2,190 for the
+// per-request dynamic section below — most of every request was, before
+// this, paying full price for text that never changes.
+export const STATIC_SECTIONS = `# Role
 
 You are MoldAI's pattern-drafting engine. You receive natural-language requests about a garment and translate them into a GarmentSpec via the propose_garment tool. You never draw — no SVG, no coordinates, only the spec.
 
@@ -126,7 +136,12 @@ Write assistantMessage, and any question labels/options, in the natural language
 // never actually invoked for any string the AI reads.
 const NO_OP_T: Translate = (key) => key;
 
-export function buildSystem(
+// The per-request half of the system prompt — everything that actually
+// varies (current spec, size table, ease report, assembly order, import
+// context). Split out from buildSystem so index.ts can send it as a second,
+// uncached system block after STATIC_SECTIONS's cached one — see
+// STATIC_SECTIONS's own comment for why that split is the whole point.
+export function buildDynamicSection(
   state: PatternState,
   answering: boolean,
   importContext?: string,
@@ -200,5 +215,17 @@ export function buildSystem(
       importContext,
     );
   }
-  return `${STATIC_SECTIONS}\n\n${lines.join("\n")}`;
+  return lines.join("\n");
+}
+
+// Full system prompt as one string — STATIC_SECTIONS + buildDynamicSection.
+// Kept for callers that don't need the two parts separately (prompt.test.ts).
+// index.ts does NOT use this: it sends the two parts as separate system
+// blocks so only STATIC_SECTIONS carries cache_control.
+export function buildSystem(
+  state: PatternState,
+  answering: boolean,
+  importContext?: string,
+): string {
+  return `${STATIC_SECTIONS}\n\n${buildDynamicSection(state, answering, importContext)}`;
 }

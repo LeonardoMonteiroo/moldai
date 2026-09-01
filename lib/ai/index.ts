@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { PatternState } from "@/lib/types";
 import type { ImageMediaType } from "@/lib/editor/attachment";
-import { buildSystem } from "./prompt";
+import { STATIC_SECTIONS, buildDynamicSection } from "./prompt";
 import { buildHistory, type HistoryTurn } from "./history";
 import { TOOL, parseRawToolInput } from "./schema";
 import { resolveDecision, type AiDecision } from "./decision";
@@ -68,7 +68,25 @@ export async function proposeGarment(
   const resp = await client.messages.create({
     model: "claude-sonnet-5",
     max_tokens: 1024,
-    system: buildSystem(state, answering, importContext),
+    // Split system prompt: STATIC_SECTIONS (~6.2k tokens, byte-identical
+    // across every user/request) carries the cache breakpoint, so it's a
+    // cache hit for essentially every generate call in the app rather than
+    // only within one conversation — see STATIC_SECTIONS's own comment.
+    // buildDynamicSection (current spec/size table/ease report/assembly
+    // order) genuinely changes per call and stays uncached. A 1h TTL trades
+    // a slightly pricier cache write for staying warm across the app's full
+    // request volume rather than expiring every 5 minutes.
+    system: [
+      {
+        type: "text",
+        text: STATIC_SECTIONS,
+        cache_control: { type: "ephemeral", ttl: "1h" },
+      },
+      {
+        type: "text",
+        text: buildDynamicSection(state, answering, importContext),
+      },
+    ],
     tools: [TOOL],
     tool_choice: { type: "tool", name: "propose_garment" },
     messages: withImage(buildHistory(state.chat), image),

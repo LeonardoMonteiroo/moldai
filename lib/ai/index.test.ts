@@ -224,13 +224,21 @@ describe("proposeGarment", () => {
     expect(d.spec.measurementOverrides.bust).toBe(500);
   });
 
+  // The system prompt is sent as two blocks (STATIC_SECTIONS, cached, then
+  // the per-request dynamic section) rather than one string — see index.ts's
+  // own comment. systemText joins them back for substring assertions below,
+  // the same shape these tests checked before the cache split.
+  function systemText(call: { system: Array<{ text: string }> }): string {
+    return call.system.map((b) => b.text).join("\n\n");
+  }
+
   it("threads importContext through into the system prompt sent to Anthropic", async () => {
     create.mockResolvedValue(
       toolResp({ decision: "decline", assistantMessage: "x" }),
     );
     await proposeGarment(baseState, false, undefined, "IMPORT CONTEXT MARKER");
     const call = create.mock.calls[create.mock.calls.length - 1][0];
-    expect(call.system).toContain("IMPORT CONTEXT MARKER");
+    expect(systemText(call)).toContain("IMPORT CONTEXT MARKER");
   });
 
   it("omits the import-reconstruction section from the system prompt when importContext is not given", async () => {
@@ -239,7 +247,27 @@ describe("proposeGarment", () => {
     );
     await proposeGarment(baseState, false);
     const call = create.mock.calls[create.mock.calls.length - 1][0];
-    expect(call.system).not.toContain("Imported pattern reconstruction");
+    expect(systemText(call)).not.toContain("Imported pattern reconstruction");
+  });
+
+  // The whole point of the split: STATIC_SECTIONS (identical across every
+  // user/request) carries the cache breakpoint, and the per-request dynamic
+  // section does not — caching it would mean a stale spec/size table gets
+  // served from cache on the next call.
+  it("caches only the static system block, not the per-request dynamic one", async () => {
+    create.mockResolvedValue(
+      toolResp({ decision: "decline", assistantMessage: "x" }),
+    );
+    await proposeGarment(baseState, false);
+    const call = create.mock.calls[create.mock.calls.length - 1][0];
+    expect(call.system).toHaveLength(2);
+    expect(call.system[0].cache_control).toEqual({
+      type: "ephemeral",
+      ttl: "1h",
+    });
+    expect(call.system[0].text).toContain("# Role");
+    expect(call.system[1].cache_control).toBeUndefined();
+    expect(call.system[1].text).toContain("# Current state");
   });
 
   // #61: the SDK's own defaults (10 min timeout, 2 retries) can outlive
