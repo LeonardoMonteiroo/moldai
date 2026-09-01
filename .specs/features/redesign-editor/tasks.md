@@ -127,13 +127,14 @@ T5 → T6 → T7
 
 **Done when**:
 
-- [ ] Root wrapper carries the floating/translucent/blur/shadow classes instead of the static-row classes.
-- [ ] Exportar renders as a `Link` to `/pattern/[id]/export` when `exportHref` is set, a disabled `Button` with `exportTitle` otherwise.
-- [ ] Every existing tab/size-selector/details-toggle behavior is unchanged (verified by new direct tests, since `TabBar` had no dedicated test file before).
-- [ ] New `TabBar.test.tsx` covers: floating classes present, tab click switches `activeTab`, size popover opens, details toggle only shows on `pattern2d`, Exportar reflects each of the 3 disabled causes plus the enabled case.
+- [x] Root wrapper carries the floating/translucent/blur/shadow classes instead of the static-row classes.
+- [x] Exportar renders as a `Link` to `/pattern/[id]/export` when `exportHref` is set, a disabled `Button` with `exportTitle` otherwise.
+- [x] Every existing tab/size-selector/details-toggle behavior is unchanged (verified by new direct tests, since `TabBar` had no dedicated test file before).
+- [x] New `TabBar.test.tsx` covers: floating classes present, tab click switches `activeTab`, size popover opens, details toggle only shows on `pattern2d`, Exportar reflects each of the 3 disabled causes plus the enabled case.
 
 **Tests**: unit (dom)
 **Gate**: quick — `npx vitest run --project dom components/editor/TabBar.test.tsx`
+**Status**: ✅ Done — 10/10 tests passing, lint clean. **Known, expected transient typecheck break**: `CanvasArea.tsx` doesn't yet pass the new required `exportHref` prop — T5 (next task) wires it; full-repo `tsc` is T5's own gate, not T4's.
 
 ---
 

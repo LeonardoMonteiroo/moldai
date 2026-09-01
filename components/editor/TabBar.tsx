@@ -2,6 +2,7 @@
 
 import { ChevronDownIcon, XIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { EditorTab } from "@/lib/store";
 import { SizeLabel } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
@@ -70,6 +71,8 @@ export function TabBar({
   detailsOpen,
   onToggleDetails,
   hasSelectedPiece,
+  exportHref,
+  exportTitle,
 }: {
   activeTab: EditorTab;
   baseSize: SizeLabel;
@@ -77,10 +80,18 @@ export function TabBar({
   detailsOpen: boolean;
   onToggleDetails: () => void;
   hasSelectedPiece: boolean;
+  /** `null` while Exportar is disabled -- EDCH-02, moved from Footer.tsx. */
+  exportHref: string | null;
+  exportTitle?: string;
 }) {
   const t = useTranslations("TabBar");
+  const tFooter = useTranslations("Footer");
   return (
-    <div className="bg-surface border-border flex items-center gap-2 border-b px-4 py-[11px]">
+    // EDCH-01: floating translucent chip over the canvas (Editor.dc.html:453),
+    // replacing the old static full-width row -- bg-surface/86 + backdrop-blur
+    // reproduce the design's rgba(255,255,255,.86) + blur(6px) on the existing
+    // token, the same border/shadow FloatingToolbar/ZoomControls already use.
+    <div className="bg-surface/86 border-border rounded-item shadow-card absolute inset-x-4 top-4 z-10 flex items-center gap-2 border p-1 backdrop-blur-sm">
       <TabsList>
         {TAB_IDS.map((id) => (
           <TabsTrigger key={id} value={id}>
@@ -99,6 +110,15 @@ export function TabBar({
         >
           {t("pieceDetailsButton")}
           {detailsOpen && <XIcon data-icon="inline-end" />}
+        </Button>
+      )}
+      {exportHref ? (
+        <Button variant="outline" size="chrome" asChild>
+          <Link href={exportHref}>{tFooter("exportButton")}</Link>
+        </Button>
+      ) : (
+        <Button variant="outline" size="chrome" disabled title={exportTitle}>
+          {tFooter("exportButton")}
         </Button>
       )}
     </div>
