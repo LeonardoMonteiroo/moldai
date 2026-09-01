@@ -1,0 +1,163 @@
+{
+  "garment": "men's crew-neck short-sleeve knit tee",
+  "grade": ["P", "M", "G", "GG"],
+  "baseSize": "M",
+  "averageGradeStepCm": 1,
+  "units": "cm",
+  "pieces": {
+    "back": {
+      "qty": 1,
+      "sizes": {
+        "P": {
+          "perimeterCm": 258.94,
+          "areaCm2": 3902.401,
+          "rectilinearPerimeterCm": 176.566,
+          "curvePerimeterCm": 82.374,
+          "widthCm": 77.594,
+          "heightCm": 55.607
+        },
+        "M": {
+          "perimeterCm": 267.887,
+          "areaCm2": 4196.816,
+          "rectilinearPerimeterCm": 183.533,
+          "curvePerimeterCm": 84.354,
+          "widthCm": 79.994,
+          "heightCm": 58.007
+        },
+        "G": {
+          "perimeterCm": 276.848,
+          "areaCm2": 4501.653,
+          "rectilinearPerimeterCm": 190.504,
+          "curvePerimeterCm": 86.344,
+          "widthCm": 82.394,
+          "heightCm": 60.407
+        },
+        "GG": {
+          "perimeterCm": 285.815,
+          "areaCm2": 4817.168,
+          "rectilinearPerimeterCm": 197.477,
+          "curvePerimeterCm": 88.338,
+          "widthCm": 84.794,
+          "heightCm": 62.807
+        }
+      }
+    },
+    "front": {
+      "qty": 1,
+      "sizes": {
+        "P": {
+          "perimeterCm": 257.652,
+          "areaCm2": 3594.241,
+          "rectilinearPerimeterCm": 176.573,
+          "curvePerimeterCm": 81.079,
+          "widthCm": 73.52,
+          "heightCm": 55.607
+        },
+        "M": {
+          "perimeterCm": 266.669,
+          "areaCm2": 3877.519,
+          "rectilinearPerimeterCm": 183.54,
+          "curvePerimeterCm": 83.129,
+          "widthCm": 75.92,
+          "heightCm": 58.007
+        },
+        "G": {
+          "perimeterCm": 275.695,
+          "areaCm2": 4171.302,
+          "rectilinearPerimeterCm": 190.511,
+          "curvePerimeterCm": 85.185,
+          "widthCm": 78.32,
+          "heightCm": 60.407
+        },
+        "GG": {
+          "perimeterCm": 284.73,
+          "areaCm2": 4475.574,
+          "rectilinearPerimeterCm": 197.484,
+          "curvePerimeterCm": 87.246,
+          "widthCm": 80.72,
+          "heightCm": 62.807
+        }
+      }
+    },
+    "sleeve": {
+      "qty": 2,
+      "sizes": {
+        "P": {
+          "perimeterCm": 124.446,
+          "areaCm2": 906.223,
+          "rectilinearPerimeterCm": 70.169,
+          "curvePerimeterCm": 54.277,
+          "widthCm": 26.176,
+          "heightCm": 45.93
+        },
+        "M": {
+          "perimeterCm": 128.302,
+          "areaCm2": 965.851,
+          "rectilinearPerimeterCm": 72.369,
+          "curvePerimeterCm": 55.932,
+          "widthCm": 27.062,
+          "heightCm": 47.33
+        },
+        "G": {
+          "perimeterCm": 132.158,
+          "areaCm2": 1027.42,
+          "rectilinearPerimeterCm": 74.571,
+          "curvePerimeterCm": 57.587,
+          "widthCm": 27.948,
+          "heightCm": 48.73
+        },
+        "GG": {
+          "perimeterCm": 136.016,
+          "areaCm2": 1090.89,
+          "rectilinearPerimeterCm": 76.774,
+          "curvePerimeterCm": 59.241,
+          "widthCm": 28.833,
+          "heightCm": 50.13
+        }
+      }
+    },
+    "collarBand": {
+      "qty": 1,
+      "sizes": {
+        "P": {
+          "perimeterCm": 104.305,
+          "areaCm2": 235.762,
+          "rectilinearPerimeterCm": 104.305,
+          "curvePerimeterCm": 0,
+          "widthCm": 5.0,
+          "heightCm": 47.152
+        },
+        "M": {
+          "perimeterCm": 105.84,
+          "areaCm2": 239.6,
+          "rectilinearPerimeterCm": 105.84,
+          "curvePerimeterCm": 0,
+          "widthCm": 5.0,
+          "heightCm": 47.92
+        },
+        "G": {
+          "perimeterCm": 107.375,
+          "areaCm2": 243.438,
+          "rectilinearPerimeterCm": 107.375,
+          "curvePerimeterCm": 0,
+          "widthCm": 5.0,
+          "heightCm": 48.688
+        },
+        "GG": {
+          "perimeterCm": 108.91,
+          "areaCm2": 247.276,
+          "rectilinearPerimeterCm": 108.91,
+          "curvePerimeterCm": 0,
+          "widthCm": 5.0,
+          "heightCm": 49.455
+        }
+      }
+    }
+  },
+  "wholeGarmentTotals": {
+    "P": { "perimeterCm": 745.342, "areaCm2": 8638.629 },
+    "M": { "perimeterCm": 768.698, "areaCm2": 9279.786 },
+    "G": { "perimeterCm": 792.077, "areaCm2": 9943.812 },
+    "GG": { "perimeterCm": 815.471, "areaCm2": 10630.907 }
+  }
+}
