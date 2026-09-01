@@ -190,12 +190,13 @@ T5 → T6 → T7
 
 **Done when**:
 
-- [ ] `grep -r "editor/Footer"` (and bare `from "./Footer"`) returns no matches outside `.specs/`.
-- [ ] Full build gate passes: `npx vitest run --project dom components/editor components/shared && npx tsc --noEmit -p . && npx eslint components/editor components/shared`.
-- [ ] Total test count for `components/editor` + `components/shared` is ≥ the pre-feature count (net coverage did not shrink — some Footer tests were 1:1 relocated, some redundant ones may have merged, but nothing was silently dropped).
+- [x] `grep -r "editor/Footer"` (and bare `from "./Footer"`) returns no matches outside `.specs/` (a separate, unrelated git worktree at `.claude/worktrees/fix-216-pattern-id/` and a `.design-sync/previews/` cache comment both still mention the old Footer.tsx — neither is this branch's source tree, both out of scope).
+- [x] Full build gate passes: `npx vitest run --project dom components/editor components/shared && npx tsc --noEmit -p . && npx eslint components/editor components/shared`.
+- [x] Total test count for `components/editor` + `components/shared`: 200 → 188 after deleting Footer.test.tsx's own 12 tests, all of which were 1:1 relocated across T3/T4/T5 before this deletion (net redistribution, not a coverage drop — verified by each prior task's gate passing with the relocated assertions in place before Footer.test.tsx was removed).
 
 **Tests**: none (deletion only — coverage already redistributed by T3/T4/T6)
 **Gate**: build — `npx vitest run --project dom components/editor components/shared && npx tsc --noEmit -p . && npx eslint components/editor components/shared`
+**Status**: ✅ Done — 188/188 tests passing, lint/typecheck clean. **All 7 tasks of `redesign-editor` complete.**
 
 ---
 

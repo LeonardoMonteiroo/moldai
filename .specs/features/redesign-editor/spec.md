@@ -82,17 +82,17 @@
 
 ## Requirement Traceability
 
-| Requirement ID | Story                            | Phase  | Status  |
-| -------------- | -------------------------------- | ------ | ------- |
-| EDCH-01        | P1: Floating tab bar             | Design | Pending |
-| EDCH-02        | P1: Floating tab bar             | Design | Pending |
-| EDCH-03        | P1: Floating tab bar             | Design | Pending |
-| EDCH-04        | P1: Floating tab bar             | Design | Pending |
-| EDCH-05        | P2: Header actions + status pill | Design | Pending |
-| EDCH-06        | P2: Header actions + status pill | Design | Pending |
-| EDCH-07        | P2: Header actions + status pill | Design | Pending |
-| EDCH-08        | P2: Header actions + status pill | Design | Pending |
-| EDCH-09        | P2: Header actions + status pill | Design | Pending |
+| Requirement ID | Story                            | Phase   | Status   |
+| -------------- | -------------------------------- | ------- | -------- |
+| EDCH-01        | P1: Floating tab bar             | Execute | Verified |
+| EDCH-02        | P1: Floating tab bar             | Execute | Verified |
+| EDCH-03        | P1: Floating tab bar             | Execute | Verified |
+| EDCH-04        | P1: Floating tab bar             | Execute | Verified |
+| EDCH-05        | P2: Header actions + status pill | Execute | Verified |
+| EDCH-06        | P2: Header actions + status pill | Execute | Verified |
+| EDCH-07        | P2: Header actions + status pill | Execute | Verified |
+| EDCH-08        | P2: Header actions + status pill | Execute | Verified |
+| EDCH-09        | P2: Header actions + status pill | Execute | Verified |
 
 **Coverage:** 9 total, 9 mapped to tasks (see `tasks.md`), 0 unmapped.
 
@@ -100,7 +100,7 @@
 
 ## Success Criteria
 
-- [ ] `npx vitest run --project dom components/editor components/shared` passes with new/updated assertions covering EDCH-01..09.
-- [ ] `npm run lint` and `npx tsc --noEmit -p .` pass.
-- [ ] `Footer.tsx` and `Footer.test.tsx` are deleted (their coverage is redistributed, not dropped).
-- [ ] No new hex values, `text-[Npx]` sizes, or hardcoded pt-BR strings introduced.
+- [x] `npx vitest run --project dom components/editor components/shared` passes with new/updated assertions covering EDCH-01..09 (188/188).
+- [x] `npm run lint`/`npx eslint components/editor components/shared` and `npx tsc --noEmit -p .` pass.
+- [x] `Footer.tsx` and `Footer.test.tsx` are deleted (their coverage is redistributed, not dropped).
+- [x] No new hex values, `text-[Npx]` sizes, or hardcoded pt-BR strings introduced (verified by grep across every touched file; every relocated string keeps its existing `Footer.*`/`TabBar.*`/`CanvasArea.*` key).
