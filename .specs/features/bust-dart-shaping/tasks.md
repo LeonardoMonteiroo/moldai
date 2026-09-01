@@ -177,6 +177,8 @@ T4 → T5
 - [x] Gate check passes: `npx vitest run lib/draft/body.test.ts` — 51 passed; `npx vitest run lib/draft` (full engine) — 373 passed
 - [x] Test count: existing count (41) + 10 new test cases = 51, no silent deletions
 
+> **Verifier fix-round (validation.md, iteration 1)**: the independent Verifier found a surviving mutant (the cited `/4` width divisor had only a directional `toBeGreaterThan` test, not an exact-value one) and two uncovered edge cases (bustSpan/bustPointHeight resolving independently; a real delta on a non-fitted/knit panel). Added 4 more tests to `body.test.ts` closing all three: an exact-value width-difference assertion (`widthDiff === bustCupDeltaCm/2`, confirmed to kill the surviving mutation by hand re-injecting it), two independent-field-resolution cases, and a knit-panel-has-no-effect case. Test count now 55.
+
 **Tests**: unit
 **Gate**: quick
 

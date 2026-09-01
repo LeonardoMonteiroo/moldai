@@ -87,7 +87,7 @@ Explicitly excluded. Documented to prevent scope creep.
 **Acceptance Criteria**:
 
 1. WHEN `bustPointHeight` and `bustSpan` are added to `EXTENDED_MEASUREMENT_KEYS` and `MEASUREMENT_RANGES` THEN `SizeChartTable` SHALL render both as editable columns/rows with no component change, purely from the existing generic `MEASUREMENT_KEYS` iteration.
-2. The system SHALL add `SizeCharts.measurement.bustPointHeight`/`.bustSpan` (short labels) and `SizeCharts.measurementGuide.bustPointHeight`/`.bustSpan` (how-to-measure instructions) to `messages/pt-BR.json`, written per the vendored `humanizer` skill's tone rules.
+2. The system SHALL add `SizeChartTable.measurement.bustPointHeight`/`.bustSpan` (short labels) and `SizeChartTable.measurementGuide.bustPointHeight`/`.bustSpan` (how-to-measure instructions) to `messages/pt-BR.json`, written per the vendored `humanizer` skill's tone rules.
 3. WHEN the AI sets `bustPointHeight`/`bustSpan` via a chat `measurementOverrides` payload THEN the system SHALL clamp them to `MEASUREMENT_RANGES` through the existing `resolveMeasurements` path, requiring no change to `lib/ai/schema.ts` beyond the constant addition it already derives its shape from.
 
 **Independent Test**: Add the two keys to the underlying constants only; without touching `SizeChartTable.tsx` or `schema.ts`, confirm (a) the size-chart screen renders two new rows once the catalog keys exist, and (b) a hand-built `measurementOverrides` payload carrying `bustSpan` clamps correctly through `resolveMeasurements`.
@@ -105,26 +105,26 @@ Explicitly excluded. Documented to prevent scope creep.
 
 ## Requirement Traceability
 
-| Requirement ID | Story | Phase | Status       |
-| -------------- | ----- | ----- | ------------ |
-| BDART-01       | P1    | Tasks | Implementing |
-| BDART-02       | P1    | Tasks | Implementing |
-| BDART-03       | P1    | Tasks | Implementing |
-| BDART-04       | P1    | Tasks | Implementing |
-| BDART-05       | P1    | Tasks | Implementing |
-| BDART-06       | P1    | Tasks | Implementing |
-| BDART-07       | P1    | Tasks | Implementing |
-| BDART-08       | P2    | Tasks | Implementing |
-| BDART-09       | P2    | Tasks | Implementing |
-| BDART-10       | P3    | Tasks | Implementing |
-| BDART-11       | P3    | Tasks | Implementing |
-| BDART-12       | P3    | Tasks | Implementing |
+| Requirement ID | Story | Phase  | Status                                                                                                                                                                                                            |
+| -------------- | ----- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| BDART-01       | P1    | Verify | ✅ Verified                                                                                                                                                                                                       |
+| BDART-02       | P1    | Verify | ✅ Verified                                                                                                                                                                                                       |
+| BDART-03       | P1    | Verify | ✅ Verified                                                                                                                                                                                                       |
+| BDART-04       | P1    | Verify | ✅ Verified                                                                                                                                                                                                       |
+| BDART-05       | P1    | Verify | ✅ Verified                                                                                                                                                                                                       |
+| BDART-06       | P1    | Verify | ✅ Verified                                                                                                                                                                                                       |
+| BDART-07       | P1    | Verify | ✅ Verified                                                                                                                                                                                                       |
+| BDART-08       | P2    | Verify | ✅ Verified                                                                                                                                                                                                       |
+| BDART-09       | P2    | Verify | ✅ Verified                                                                                                                                                                                                       |
+| BDART-10       | P3    | Verify | ✅ Verified                                                                                                                                                                                                       |
+| BDART-11       | P3    | Verify | ✅ Verified (a spec-precision typo — `SizeCharts.measurement.*` instead of `SizeChartTable.measurement.*` — was found and fixed in this AC's own text; the implementation always used the correct real namespace) |
+| BDART-12       | P3    | Verify | ✅ Verified                                                                                                                                                                                                       |
 
 **ID format:** `BDART-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 12 total, 0 mapped to tasks, 12 unmapped ⚠️ (expected at end of Specify — Tasks phase maps these)
+**Coverage:** 12 total, 12 verified — see `.specs/features/bust-dart-shaping/validation.md` for full evidence (file:line citations, discrimination sensor results, and 3 minor non-blocking test-hardening fix tasks: an exact-value regression test for the cited width formula, and dedicated tests for two documented edge cases).
 
 ---
 

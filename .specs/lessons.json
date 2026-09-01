@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "promote_threshold": 2,
+  "window_days": 45,
+  "quarantine_threshold": 2,
+  "next_id": 4,
+  "lessons": [
+    {
+      "id": "L-001",
+      "key": "surviving_mutant::when a design cites an exact numeric formula coefficient add at least one hand derived exact value assertion for it not only directional greater than monotonic assertions a directional only test suite lets the coefficient itself drift undetected",
+      "text": "When a design cites an exact numeric formula/coefficient, add at least one hand-derived exact-value assertion for it, not only directional (greater-than/monotonic) assertions -- a directional-only test suite lets the coefficient itself drift undetected.",
+      "signal": "surviving_mutant",
+      "scope": "lib/draft",
+      "status": "candidate",
+      "features": ["bust-dart-shaping"],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": ["lib/draft/body.ts:345 (bustCupDeltaCm / 4) (lib/draft)"],
+      "created": "2026-09-01T19:54:45Z",
+      "last_seen": "2026-09-01T19:54:45Z"
+    },
+    {
+      "id": "L-002",
+      "key": "ac_gap::when a spec lists two related optional fields with independent fallback resolution as an edge case add a dedicated test that sets only one of the two tests that always set both together never exercise the independent resolution path",
+      "text": "When a spec lists two related optional fields with independent fallback resolution as an edge case, add a dedicated test that sets only one of the two -- tests that always set both together never exercise the independent-resolution path.",
+      "signal": "ac_gap",
+      "scope": "lib/measurements",
+      "status": "candidate",
+      "features": ["bust-dart-shaping"],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "spec.md Edge Cases: only one of two paired optional fields set (lib/measurements)"
+      ],
+      "created": "2026-09-01T19:54:45Z",
+      "last_seen": "2026-09-01T19:54:45Z"
+    },
+    {
+      "id": "L-003",
+      "key": "spec_precision_gap::verify a spec s cited i18n catalog namespace against the real messages file before writing the ac text a typed namespace name that doesn t match the existing catalog structure silently misleads whoever reads the spec later even when the implementation correctly follows the real pattern",
+      "text": "Verify a spec's cited i18n catalog namespace against the real messages file before writing the AC text -- a typed namespace name that doesn't match the existing catalog structure silently misleads whoever reads the spec later, even when the implementation correctly follows the real pattern.",
+      "signal": "spec_precision_gap",
+      "scope": "i18n",
+      "status": "candidate",
+      "features": ["bust-dart-shaping"],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": ["spec.md P3 AC2 (catalog namespace text) (i18n)"],
+      "created": "2026-09-01T19:54:45Z",
+      "last_seen": "2026-09-01T19:54:45Z"
+    }
+  ]
+}

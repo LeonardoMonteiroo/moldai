@@ -692,6 +692,70 @@ describe("bust-apex dart shaping (bust-dart-shaping feature)", () => {
     expect(widthAt(dartBig)).toBeGreaterThan(widthAt(dartSmall));
   });
 
+  // Verifier fix (validation.md, Fix 1): the monotonic test above proves
+  // direction but not the cited formula's exact coefficient -- a mutated
+  // divisor (e.g. /4 -> /2) would still pass it. Asserting the WIDTH
+  // DIFFERENCE (not the absolute width, which also depends on the
+  // pre-existing dartsSuppression term) isolates exactly the cited
+  // FBA formula this feature adds: widthWith - widthNo = 2 * (delta/4) =
+  // delta/2, independent of any other term in dartHalfWidth's formula.
+  it("BDART-02: the dart widens by EXACTLY bustCupDeltaCm/2 (the cited FBA formula), not just monotonically", () => {
+    const withDelta = draftBody(HIGH_BUST_DELTA, { darts: true }, t, optsM); // delta 8
+    const noDelta = draftBody(M, { darts: true }, t, optsM);
+    const [dartWithDelta] = dartsOf(withDelta.front.internalsCm);
+    const [dartNoDelta] = dartsOf(noDelta.front.internalsCm);
+    const widthAt = (dart: Pt[]) => Math.abs(dart[1][0] - dart[3][0]);
+    const widthDiff = widthAt(dartWithDelta) - widthAt(dartNoDelta);
+    const bustCupDeltaCm = 8;
+    expect(widthDiff).toBeCloseTo(bustCupDeltaCm / 2, 9);
+  });
+
+  // Verifier fix (validation.md, Fix 2): bustSpan and bustPointHeight must
+  // resolve INDEPENDENTLY -- setting only one must use the real value for
+  // that one and the cited fallback for the other.
+  it("BDART-06: bustSpan set alone uses the real value for X, the fallback for Y", () => {
+    // apexXOffsetCm = clamp(22/2 + 0.5, 2, 23) = 11.5 (real bustSpan)
+    // apexYCm = clamp(4.0 + 26.5, 8, 37) = 30.5 (fallback bustPointHeight)
+    const withBustSpanOnly = draftBody(
+      { ...HIGH_BUST_DELTA, bustSpan: 22 },
+      { darts: true },
+      t,
+      optsM,
+    );
+    const [dart] = dartsOf(withBustSpanOnly.front.internalsCm);
+    const [apexTop] = dart;
+    expect(apexTop[0]).toBeCloseTo(15.5, 9); // 27 - 11.5, the real bustSpan
+    expect(apexTop[1]).toBeCloseTo(EXPECTED_APEX[1], 9); // fallback bustPointHeight
+  });
+
+  it("BDART-06: bustPointHeight set alone uses the real value for Y, the fallback for X", () => {
+    // apexXOffsetCm = clamp(18.5/2 + 0.5, 2, 23) = 9.75 (fallback bustSpan)
+    // apexYCm = clamp(4.0 + 24, 8, 37) = 28 (real bustPointHeight)
+    const withBustPointHeightOnly = draftBody(
+      { ...HIGH_BUST_DELTA, bustPointHeight: 24 },
+      { darts: true },
+      t,
+      optsM,
+    );
+    const [dart] = dartsOf(withBustPointHeightOnly.front.internalsCm);
+    const [apexTop] = dart;
+    expect(apexTop[0]).toBeCloseTo(EXPECTED_APEX[0], 9); // fallback bustSpan
+    expect(apexTop[1]).toBeCloseTo(28, 9); // 4.0 + 24, the real bustPointHeight
+  });
+
+  // Verifier fix (validation.md, Fix 3): the `if (fitted)` gate (pre-existing,
+  // unmodified by this feature) must keep the whole bust-apex code path
+  // inert on a panel with no dart to shape -- a knit panel never fits, so a
+  // real cup delta there has no effect at all.
+  it("BDART-10: a real cup delta on a knit (non-fitted) panel has no effect -- no dart exists to re-angle", () => {
+    const knitOpts: BlockOpts = { ...optsM, knit: true };
+    const withDelta = draftBody(HIGH_BUST_DELTA, {}, t, knitOpts);
+    expect(dartsOf(withDelta.front.internalsCm)).toHaveLength(0);
+    expect(
+      (withDelta.front.internalsCm ?? []).some((e) => e.kind === "dart"),
+    ).toBe(false);
+  });
+
   it("BDART-06: a real bustSpan/bustPointHeight value (not the fallback) is used verbatim in the apex calculation", () => {
     // apexXOffsetCm = clamp(22/2 + 0.5, 2, 23) = 11.5 (unclamped, real value)
     // apexYCm = clamp(4.0 + 24, 8, 37) = 28 (unclamped, real value)
