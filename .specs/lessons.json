@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 5,
+  "next_id": 9,
   "lessons": [
     {
       "id": "L-001",
@@ -64,6 +64,66 @@
       ],
       "created": "2026-09-01T22:16:59Z",
       "last_seen": "2026-09-01T22:16:59Z"
+    },
+    {
+      "id": "L-005",
+      "key": "surviving_mutant::when a spec requires an exact clearance inset value e g npx to avoid overlapping floating chrome add a test that asserts the specific class value directly a value can be correctly wired in source yet remain completely unguarded by any test",
+      "text": "When a spec requires an exact clearance/inset value (e.g. Npx to avoid overlapping floating chrome), add a test that asserts the specific class/value directly — a value can be correctly wired in source yet remain completely unguarded by any test.",
+      "signal": "surviving_mutant",
+      "scope": "components-layout",
+      "status": "candidate",
+      "features": ["redesign-editor"],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "CanvasArea.tsx:186 (mutation b, EDCH-03) (components-layout)"
+      ],
+      "created": "2026-09-01T23:05:08Z",
+      "last_seen": "2026-09-01T23:05:08Z"
+    },
+    {
+      "id": "L-006",
+      "key": "surviving_mutant::when a disabled gating condition is an or of several causes test each cause with a fixture where the other causes are false not just a fixture where multiple causes happen to overlap e g a blank pattern is both no pieces and no spec at once",
+      "text": "When a disabled/gating condition is an OR of several causes, test each cause with a fixture where the OTHER causes are false, not just a fixture where multiple causes happen to overlap (e.g. a blank pattern is both 'no pieces' and 'no spec' at once).",
+      "signal": "surviving_mutant",
+      "scope": "components-editor",
+      "status": "candidate",
+      "features": ["redesign-editor"],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "HeaderActions.tsx:68-72 (mutation c, EDCH-06) (components-editor)"
+      ],
+      "created": "2026-09-01T23:05:08Z",
+      "last_seen": "2026-09-01T23:05:08Z"
+    },
+    {
+      "id": "L-007",
+      "key": "spec_precision_gap::a ui notice s auto dismiss timer needs a fake timers test that advances past the duration and asserts the notice is gone asserting only its text tone does not prove the timeout actually fires",
+      "text": "A UI notice's auto-dismiss timer needs a fake-timers test that advances past the duration and asserts the notice is gone — asserting only its text/tone does not prove the timeout actually fires.",
+      "signal": "spec_precision_gap",
+      "scope": "components-editor",
+      "status": "candidate",
+      "features": ["redesign-editor"],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": ["EDCH-07 (validation.md) (components-editor)"],
+      "created": "2026-09-01T23:05:15Z",
+      "last_seen": "2026-09-01T23:05:15Z"
+    },
+    {
+      "id": "L-008",
+      "key": "spec_precision_gap::when a spec requires an element to move to a specific new position not just remain present assert that position class or dom order directly rather than only presence absence",
+      "text": "When a spec requires an element to move to a specific new position, not just remain present, assert that position (class or DOM order) directly rather than only presence/absence.",
+      "signal": "spec_precision_gap",
+      "scope": "components-editor",
+      "status": "candidate",
+      "features": ["redesign-editor"],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": ["EDCH-09 (validation.md) (components-editor)"],
+      "created": "2026-09-01T23:05:15Z",
+      "last_seen": "2026-09-01T23:05:15Z"
     }
   ]
 }

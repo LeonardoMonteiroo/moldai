@@ -42,6 +42,34 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: DASH-06 (P2 AC2) / components/dashboard/DashboardShell.test.tsx (components/dashboard)
 - last seen: 2026-09-01T22:16:59Z
 
+### L-005 - When a spec requires an exact clearance/inset value (e.g. Npx to avoid overlapping floating chrome), add a test that asserts the specific class/value directly — a value can be correctly wired in source yet remain completely unguarded by any test.
+
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `components-layout` · harmful: 0
+- features: redesign-editor
+- evidence: CanvasArea.tsx:186 (mutation b, EDCH-03) (components-layout)
+- last seen: 2026-09-01T23:05:08Z
+
+### L-006 - When a disabled/gating condition is an OR of several causes, test each cause with a fixture where the OTHER causes are false, not just a fixture where multiple causes happen to overlap (e.g. a blank pattern is both 'no pieces' and 'no spec' at once).
+
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `components-editor` · harmful: 0
+- features: redesign-editor
+- evidence: HeaderActions.tsx:68-72 (mutation c, EDCH-06) (components-editor)
+- last seen: 2026-09-01T23:05:08Z
+
+### L-007 - A UI notice's auto-dismiss timer needs a fake-timers test that advances past the duration and asserts the notice is gone — asserting only its text/tone does not prove the timeout actually fires.
+
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `components-editor` · harmful: 0
+- features: redesign-editor
+- evidence: EDCH-07 (validation.md) (components-editor)
+- last seen: 2026-09-01T23:05:15Z
+
+### L-008 - When a spec requires an element to move to a specific new position, not just remain present, assert that position (class or DOM order) directly rather than only presence/absence.
+
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `components-editor` · harmful: 0
+- features: redesign-editor
+- evidence: EDCH-09 (validation.md) (components-editor)
+- last seen: 2026-09-01T23:05:15Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
