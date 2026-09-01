@@ -105,20 +105,20 @@ Explicitly excluded. Documented to prevent scope creep.
 
 ## Requirement Traceability
 
-| Requirement ID | Story | Phase  | Status       |
-| -------------- | ----- | ------ | ------------ |
-| BDART-01       | P1    | Tasks  | Implementing |
-| BDART-02       | P1    | Tasks  | Implementing |
-| BDART-03       | P1    | Tasks  | Implementing |
-| BDART-04       | P1    | Tasks  | Implementing |
-| BDART-05       | P1    | Tasks  | Implementing |
-| BDART-06       | P1    | Tasks  | Implementing |
-| BDART-07       | P1    | Design | Pending      |
-| BDART-08       | P2    | Tasks  | Implementing |
-| BDART-09       | P2    | Design | Pending      |
-| BDART-10       | P3    | Tasks  | Implementing |
-| BDART-11       | P3    | Tasks  | Implementing |
-| BDART-12       | P3    | Design | Pending      |
+| Requirement ID | Story | Phase | Status       |
+| -------------- | ----- | ----- | ------------ |
+| BDART-01       | P1    | Tasks | Implementing |
+| BDART-02       | P1    | Tasks | Implementing |
+| BDART-03       | P1    | Tasks | Implementing |
+| BDART-04       | P1    | Tasks | Implementing |
+| BDART-05       | P1    | Tasks | Implementing |
+| BDART-06       | P1    | Tasks | Implementing |
+| BDART-07       | P1    | Tasks | Implementing |
+| BDART-08       | P2    | Tasks | Implementing |
+| BDART-09       | P2    | Tasks | Implementing |
+| BDART-10       | P3    | Tasks | Implementing |
+| BDART-11       | P3    | Tasks | Implementing |
+| BDART-12       | P3    | Tasks | Implementing |
 
 **ID format:** `BDART-NN`
 

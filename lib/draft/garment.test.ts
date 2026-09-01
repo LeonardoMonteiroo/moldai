@@ -29,6 +29,8 @@ import {
   PLACKET_FOLD_UNDERLAP_CM,
   BUTTON_STAND_WIDTH_CM,
 } from "./subpieces";
+import { buildAssemblyOrder } from "./assembly";
+import type { GarmentSpec, Pattern } from "@/lib/types";
 
 function isFoldLine(
   e: InternalCm,
@@ -1953,5 +1955,146 @@ describe("seam graph (#134)", () => {
         assertDecorationsContained(pieces);
       });
     }
+  });
+});
+
+// bust-dart-shaping feature: a real cup delta re-angles/widens the front
+// dart (lib/draft/body.ts's bodice()). These matrices reuse the SAME
+// MEASUREMENT_CORNERS-style pattern already established above, but as a
+// LOCAL corner list (not added to the shared DECORATION_CASES/fixtures.ts,
+// which export/model.test.ts and other files also consume) -- surgical to
+// this feature, exercised across every existing DECORATION_CASES spec.
+const BUST_APEX_CORNERS: [string, Partial<Measurements>][] = [
+  // A real, non-zero delta on every gender's own M base (female 92-80=12cm,
+  // male 100-80=20cm -- both comfortably positive).
+  ["real cup delta", { highBust: 80 }],
+  [
+    "real cup delta + boundary bustSpan/bustPointHeight max",
+    {
+      highBust: 80,
+      bustSpan: MEASUREMENT_RANGES.bustSpan.max,
+      bustPointHeight: MEASUREMENT_RANGES.bustPointHeight.max,
+    },
+  ],
+  [
+    "real cup delta + boundary bustSpan/bustPointHeight min",
+    {
+      highBust: 80,
+      bustSpan: MEASUREMENT_RANGES.bustSpan.min,
+      bustPointHeight: MEASUREMENT_RANGES.bustPointHeight.min,
+    },
+  ],
+];
+
+describe("drafted decorations stay inside their own piece, with a real bust-apex delta (bust-dart-shaping)", () => {
+  for (const [name, spec] of DECORATION_CASES) {
+    for (const [cornerName, corner] of BUST_APEX_CORNERS) {
+      it(`${name} @ ${cornerName}: grainline, dart and notches never leave the outline`, () => {
+        const base = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
+        const m = { ...base, ...corner };
+        assertDecorationsContained(draftPiecesCm(spec, m, t));
+      });
+    }
+  }
+});
+
+describe("seam graph (#134), with a real bust-apex delta (bust-dart-shaping)", () => {
+  it("BDART-07: reports zero divergences at the bust-apex corners too", () => {
+    for (const [name, spec] of DECORATION_CASES) {
+      for (const [cornerName, corner] of BUST_APEX_CORNERS) {
+        const base = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
+        const m = { ...base, ...corner };
+        const conflicts = seamCheck(measureSeamGraph(spec, m, t));
+        expect(
+          conflicts,
+          `${name} @ ${cornerName}: ${JSON.stringify(conflicts)}`,
+        ).toEqual([]);
+      }
+    }
+  });
+
+  // Minimal Pattern for buildAssemblyOrder -- the same fakePattern shape
+  // lib/draft/assembly.test.ts/easeReport.test.ts each already duplicate
+  // locally: only spec/sizeTable/baseSize/pieces.length are ever read.
+  function fakePattern(spec: GarmentSpec, baseSize = "M"): Pattern {
+    const table = spec.gender === "male" ? SIZE_TABLE_MALE : SIZE_TABLE;
+    return {
+      id: "p1",
+      name: "Teste",
+      version: 1,
+      baseSize,
+      unit: "cm",
+      sizes: ["PP", "P", "M", "G", "GG"],
+      sizesApplied: [],
+      sizesPending: [],
+      sizeTable: { [baseSize]: table[baseSize] },
+      pieces: [
+        {
+          id: "x",
+          name: "x",
+          qty: 1,
+          outline: { kind: "polygon", points: "0,0" },
+          label: { x: 0, y: 0 },
+          detailRows: [],
+        },
+      ],
+      spec,
+    };
+  }
+
+  it("BDART-09: the seam graph's pair count/keys and buildAssemblyOrder's step counts are unchanged by a real bust-apex delta", () => {
+    const spec: GarmentSpec = {
+      type: "blouse",
+      gender: "female",
+      measurementOverrides: {},
+      style: { neckline: "round", sleeve: "short", darts: true },
+    };
+    const specWithDelta: GarmentSpec = {
+      ...spec,
+      measurementOverrides: {
+        highBust: 80,
+        bustSpan: 22,
+        bustPointHeight: 24,
+      },
+    };
+    const base = SIZE_TABLE.M;
+
+    const graphNoDelta = measureSeamGraph(spec, base, t);
+    const graphWithDelta = measureSeamGraph(specWithDelta, base, t);
+    expect(graphWithDelta.length).toBe(graphNoDelta.length);
+    expect(graphWithDelta.map((m) => m.key).sort()).toEqual(
+      graphNoDelta.map((m) => m.key).sort(),
+    );
+
+    const orderNoDelta = buildAssemblyOrder(fakePattern(spec), t)!;
+    const orderWithDelta = buildAssemblyOrder(fakePattern(specWithDelta), t)!;
+    expect(orderWithDelta.steps.length).toBe(orderNoDelta.steps.length);
+
+    const dartSteps = (steps: typeof orderNoDelta.steps) =>
+      steps
+        .filter((s) => s.kind === "dart")
+        .map((s) => `${s.pieceId}:${s.count}`)
+        .sort();
+    const seamStepKeys = (steps: typeof orderNoDelta.steps) =>
+      steps
+        .filter((s) => s.kind === "seam")
+        .map((s) => s.key)
+        .sort();
+    const hemSteps = (steps: typeof orderNoDelta.steps) =>
+      steps
+        .filter((s) => s.kind === "hem")
+        .map((s) => s.pieceId)
+        .sort();
+
+    expect(dartSteps(orderWithDelta.steps)).toEqual(
+      dartSteps(orderNoDelta.steps),
+    );
+    expect(seamStepKeys(orderWithDelta.steps)).toEqual(
+      seamStepKeys(orderNoDelta.steps),
+    );
+    expect(hemSteps(orderWithDelta.steps)).toEqual(
+      hemSteps(orderNoDelta.steps),
+    );
+    expect(orderWithDelta.hasConflict).toBe(orderNoDelta.hasConflict);
   });
 });

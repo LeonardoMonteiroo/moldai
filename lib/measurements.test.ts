@@ -104,6 +104,24 @@ describe("resolveMeasurements", () => {
     expect(r.bicep).toBe(MEASUREMENT_RANGES.bicep.max);
   });
 
+  // bust-dart-shaping (BDART-12): a chat-driven measurementOverrides payload
+  // (the AI's or a hand-built one) is clamped to MEASUREMENT_RANGES for
+  // EVERY extended key, not just bicep above -- generalizes the single
+  // hardcoded example into the same it.each sweep the rest of this describe
+  // block already uses for structural checks.
+  it.each(EXTENDED_MEASUREMENT_KEYS)(
+    "clamps an out-of-range EXTENDED override for %s to its own range",
+    (key) => {
+      const r = MEASUREMENT_RANGES[key];
+      expect(
+        resolveMeasurements(SIZE_TABLE.M, { [key]: r.max + 100 })[key],
+      ).toBe(r.max);
+      expect(
+        resolveMeasurements(SIZE_TABLE.M, { [key]: r.min - 100 })[key],
+      ).toBe(r.min);
+    },
+  );
+
   it("leaves an EXTENDED field undefined when neither the base row nor the override sets it", () => {
     const r = resolveMeasurements(SIZE_TABLE.M, {});
     expect(r.neckGirth).toBeUndefined();
