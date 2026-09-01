@@ -48,7 +48,13 @@ export function PatternGrid({
     // with the summary cards in one scroll region, so an empty/small grid
     // takes its natural height instead of stretching to fill the viewport
     // and shoving the cards to the bottom edge.
-    <div className="flex flex-col gap-4 p-[22px]">
+    //
+    // No top padding: DashboardShell's wrapper owns the 22px top inset so it
+    // applies once whether or not the onboarding checklist card precedes
+    // this -- a local pt-[22px] here would double up with that inset plus
+    // the wrapper's own gap-4, per docs/design/screens/Dashboard.dc.html's
+    // single `padding: 22px` + `gap: 16px` content column.
+    <div className="flex flex-col gap-4 px-[22px] pb-[22px]">
       <div className="flex flex-wrap items-center gap-3">
         <span className="font-display text-display font-semibold">
           {t("countLabel", { count: patterns.length })}

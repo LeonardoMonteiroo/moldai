@@ -81,8 +81,8 @@ The MoldAI redesign handoff (`docs/design/README.md`, `docs/design/screens/Dashb
 | DASH-02        | P1: Checklist card spacing/type | Execute | Verified |
 | DASH-03        | P1: Checklist card spacing/type | Execute | Verified |
 | DASH-04        | P1: Checklist card spacing/type | Execute | Verified |
-| DASH-05        | P2: No compounded gap           | Execute | Pending  |
-| DASH-06        | P2: No compounded gap           | Execute | Pending  |
+| DASH-05        | P2: No compounded gap           | Execute | Verified |
+| DASH-06        | P2: No compounded gap           | Execute | Verified |
 
 **Coverage:** 6 total, 6 mapped to tasks (implicit — Tasks phase skipped, Medium scope, <10 tasks), 0 unmapped.
 

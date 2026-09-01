@@ -110,7 +110,7 @@ export function DashboardShell({
         // stretched to fill the viewport and shoving the cards to the floor.
         // Deliberately no `fill` -- that's what forces the stretch.
         <ScrollArea className="min-h-0 flex-1">
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 pt-[22px]">
             {checklist && (
               <OnboardingChecklistCard
                 patterns={patterns}

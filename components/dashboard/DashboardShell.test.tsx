@@ -224,3 +224,44 @@ describe("DashboardShell onboarding checklist (#232)", () => {
     ).not.toBeInTheDocument();
   });
 });
+
+// DASH-05/06: docs/design/screens/Dashboard.dc.html:104 wraps the whole
+// content column in one `padding: 22px` box with a flat `gap: 16px` between
+// its children -- the 22px top inset must apply exactly once, not stack with
+// PatternGrid's own top padding into a 38px gap under the checklist card.
+describe("DashboardShell content spacing (redesign)", () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    listPatterns.mockResolvedValue([]);
+    getAccountSummary.mockResolvedValue({
+      credits: { plan: "free", balance: 30, total: 30, renewsInDays: 30 },
+      recentUsage: [],
+      checklist: {
+        hasCustomSizeChart: false,
+        hasExported: false,
+        hasImported: false,
+      },
+    });
+  });
+
+  it("gives the content column a single 22px top inset, not a doubled one under the checklist", async () => {
+    renderWithIntl(<DashboardShell userEmail="user@example.com" />);
+    const title = await screen.findByText(ptBR.OnboardingChecklistCard.title, {
+      exact: false,
+    });
+
+    // The scrollable content column owns the 22px top inset exactly once...
+    const column = title.closest('[class*="pt-[22px]"]');
+    expect(column).not.toBeNull();
+
+    // ...so the pattern grid below the checklist must not add a second one
+    // (distinguished from the credits/usage row, which shares the same
+    // px-[22px]/pb-[22px] pair but also carries sm:flex-row).
+    const gridRoot = column!.querySelector(
+      '[class*="px-[22px]"][class*="pb-[22px]"]:not([class*="sm:flex-row"])',
+    );
+    expect(gridRoot).not.toBeNull();
+    expect(gridRoot).not.toHaveClass("pt-[22px]");
+    expect(gridRoot).not.toHaveClass("p-[22px]");
+  });
+});
