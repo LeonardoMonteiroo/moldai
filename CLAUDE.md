@@ -111,14 +111,14 @@ Requires `ANTHROPIC_API_KEY`, `DATABASE_URL`, and `AUTH_SECRET` in `.env.local`.
 
 **This is a different document from the original numbered-screen (`4a`/`4b`/`5d`/`5e`/`5i`, etc.) wireframe spec that was removed pending a redo** — it's a new redesign-vs-current-app comparison, not a restoration of that one, so the `design-Nx` ids still cited elsewhere in this file remain historical, unresolvable pointers into that still-retired document.
 
-Four real content/behavior changes came out of the README's diff against the current app, each flagged there with an open question to resolve before building it:
+Four real content/behavior changes came out of the README's diff against the current app, each flagged there with an open question — **all four have since shipped, closed as #232–#235:**
 
-1. **Dashboard gains an onboarding checklist** ("Comece com o pé direito · N de 5", 5 steps) — `DashboardShell.tsx` renders none today. Its "convidar alguém da equipe" step implies multi-user-per-account, which the schema/auth don't support — confirm scope (build it / external link / placeholder) before implementing.
-2. **Settings menu reorder** — move "Excluir conta" from 3rd to last in `SETTINGS_SECTIONS` (today: profile, password, danger, usage, plan).
-3. **Version comparison gains a Comprimento (length) delta** alongside the existing Cava/Consumo deltas — `VersionCompare.tsx` computes only `armholeDeltaLabel`/`consumptionDeltaLabel` today.
-4. **Login gains a "Continuar com Google" button** — decorative unless `auth.ts` first gets a real Google OAuth provider (today: Credentials only); confirm before implementing.
+1. **Dashboard's onboarding checklist** ("Comece com o pé direito · N de 5", 5 steps) shipped as `OnboardingChecklistCard.tsx` (#232). Its "convidar alguém da equipe" step resolved the multi-user-per-account question by staying permanently unreachable — disabled + "em breve" badged, never a checkmark — rather than built or linked externally, since multi-user accounts still don't exist. Dismissal is `localStorage`-only (browser-local, not synced per account), per the #232 spec.
+2. **Settings menu reorder** shipped (#233) — `SETTINGS_SECTIONS` is now profile, password, usage, plan, **danger** (last).
+3. **Version comparison's Comprimento (length) delta** shipped (#234) — `VersionCompare.tsx` renders it alongside the existing Cava/Consumo deltas via `lengthDeltaLabel`.
+4. **Login's "Continuar com Google" button** shipped (#235) — not decorative: `auth.ts` gained a real Google OAuth provider first (see Google OAuth under Auth, above), so the button signs in for real.
 
-Everything else in the package (Landing, Onboarding, Bases do ateliê, Medidas e grades, Importação, Editor, Planos, Versões layout) is visual/layout refinement of content that already matches `messages/pt-BR.json` and the current components — verify screen-by-screen against the screenshot, but treat it as a styling pass, not new scope.
+Everything else in the package (Landing, Onboarding, Bases do ateliê, Medidas e grades, Importação, Editor, Planos, Versões layout) is visual/layout refinement of content that already matches `messages/pt-BR.json` and the current components — verify screen-by-screen against the screenshot, but treat it as a styling pass, not new scope. **None of the 11 screens has that pass tracked as an issue yet** — it's the one piece of this redesign still open.
 
 ## Architecture
 
