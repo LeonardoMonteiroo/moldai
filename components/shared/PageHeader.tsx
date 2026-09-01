@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDownIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -34,6 +35,12 @@ import {
  * `title` is opt-in for the same reason. A screen whose nav column already
  * names the current section would otherwise say it twice — the dashboard's
  * sidebar marks "Meus moldes" active, so the header repeating it was noise.
+ *
+ * `actions` is opt-in screen-specific header chrome (today: the editor's
+ * "Histórico"/"Salvar como base" buttons, per the redesign reference) —
+ * rendered after the credits block, behind its own divider, the same
+ * dangling-separator-avoidance the back-button divider already follows. No
+ * other screen passes it.
  */
 export function PageHeader({
   title,
@@ -41,12 +48,14 @@ export function PageHeader({
   backHref,
   credits,
   userEmail,
+  actions,
 }: {
   title?: string;
   subtitle?: string;
   backHref?: string;
   credits: Credits | null;
   userEmail: string;
+  actions?: ReactNode;
 }) {
   const t = useTranslations("PageHeader");
   const tPlan = useTranslations("PlanSection");
@@ -127,6 +136,12 @@ export function PageHeader({
           >
             {t("buyCreditsButton")}
           </Button>
+        </>
+      )}
+      {actions && (
+        <>
+          <Separator orientation="vertical" className="h-5" />
+          <div className="flex items-center gap-[7px]">{actions}</div>
         </>
       )}
       <DropdownMenu>

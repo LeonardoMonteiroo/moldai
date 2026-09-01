@@ -229,6 +229,37 @@ describe("PageHeader", () => {
     );
     expect(signOut).toHaveBeenCalledWith({ callbackUrl: "/login" });
   });
+
+  // EDCH-05: the editor's "Histórico"/"Salvar como base" buttons reach the
+  // header through this slot -- no other screen passes it, so its absence
+  // must render nothing extra (the pre-existing behavior, still asserted).
+  it("renders actions with a divider when passed", () => {
+    const { container } = renderWithIntl(
+      <PageHeader
+        title="Blusa"
+        credits={CREDITS}
+        userEmail="a@b.com"
+        actions={<button type="button">Histórico</button>}
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: "Histórico" }),
+    ).toBeInTheDocument();
+    // Two separators now: the title's own, plus the actions divider.
+    expect(container.querySelectorAll("[data-slot='separator']")).toHaveLength(
+      2,
+    );
+  });
+
+  it("renders no actions divider when actions is omitted", () => {
+    const { container } = renderWithIntl(
+      <PageHeader title="Blusa" credits={CREDITS} userEmail="a@b.com" />,
+    );
+    // Only the title's own separator -- unchanged from before this prop existed.
+    expect(container.querySelectorAll("[data-slot='separator']")).toHaveLength(
+      1,
+    );
+  });
 });
 
 describe("PageHeader catalog", () => {
