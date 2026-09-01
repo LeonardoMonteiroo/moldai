@@ -6,7 +6,12 @@ import {
 } from "@/lib/measurements";
 import { draftBody, BlockOpts } from "./body";
 import { bbox, dartsOf, Pt, DRILL_HOLE_SETBACK_CM } from "./core";
-import { FIT_CLASSES, FIT_EASE_CM, wearingEaseCm } from "./ease";
+import {
+  FIT_CLASSES,
+  FIT_EASE_CM,
+  TSHIRT_BASE_EASE_CM,
+  wearingEaseCm,
+} from "./ease";
 import type { FitClass } from "@/lib/types";
 import { t } from "@/lib/i18n/test-translate";
 
@@ -263,14 +268,23 @@ describe("fit class / fabric stretch ease (#125)", () => {
     },
   );
 
-  it("a knit at the highest stretch band drafts below the body measurement", () => {
+  // tshirt-fit-calibration: a knit garment now starts from a positive base
+  // ease (TSHIRT_BASE_EASE_CM), not 0 -- the highest stretch band still
+  // reduces relative to that base, it no longer drops the drafted girth
+  // below the body measurement outright.
+  it("a knit at the highest stretch band drafts base ease minus the stretch reduction, not below the body measurement", () => {
     const opts: BlockOpts = {
       ...optsM,
       knit: true,
       wearingEaseCm: wearingEaseCm({ stretch: "high" }, true, M.bust),
     };
     const { halfChestCm } = draftBody(M, { stretch: "high" }, t, opts);
-    expect(halfChestCm * 4).toBeLessThan(M.bust);
+    const bustGirth = halfChestCm * 4;
+    expect(bustGirth).toBeCloseTo(
+      M.bust + TSHIRT_BASE_EASE_CM - M.bust * 0.12,
+      1,
+    );
+    expect(bustGirth).toBeGreaterThan(M.bust);
   });
 
   it("ease is invariant across a graded run -- same fit class, same absolute ease in cm at PP and GG", () => {

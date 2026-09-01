@@ -44,11 +44,11 @@ export const FIT_EASE_CM: Record<
   loose: { bust: 16, waist: 10, hip: 16 },
 };
 
-// Knit ease is conventionally negative (the garment is smaller than the body
-// and stretches to fit), expressed as a percentage of the body bust rather
-// than a flat cm figure since how much negative ease a fabric tolerates
-// scales with the body it's stretched around. `none` is 0% -- today's
-// t-shirt default (wearingEase = 0) reproduced exactly.
+// A stretchier fabric tolerates MORE negative ease (it clings and stretches
+// to fit), expressed as a percentage of the body bust rather than a flat cm
+// figure since how much negative ease a fabric tolerates scales with the
+// body it's stretched around. `none` is 0% -- no reduction off the knit base
+// below.
 export const STRETCH_EASE_PCT: Record<StretchClass, number> = {
   none: 0,
   low: 4,
@@ -56,23 +56,45 @@ export const STRETCH_EASE_PCT: Record<StretchClass, number> = {
   high: 12,
 };
 
+// tshirt-fit-calibration: today (spec.type === "tshirt" is the only caller
+// that ever passes knit: true -- see garment.ts's `const knit = spec.type
+// === "tshirt"`) a knit garment is drafted as a relaxed/regular-fit tee, not
+// a close-fitting rib -- so the knit branch's BASE ease is a genuinely
+// positive cm figure (a boxy tee has real ease over the body, despite being
+// knit), with `stretch` still narrowing it for a clingier fabric on top.
+// Solved against a real graded crew-neck tee reference
+// (docs/reference/tshirt-benchmark/measurements.json): that reference's
+// size-M front/back panel bounding widths average ~77.96cm, and
+// halfChest = bust/4 + ease/4 with SIZE_TABLE_MALE.M's bust held at its
+// existing value (100, not a newly-invented body measurement) gives
+// ease = (77.96/2 - 100/4) * 4 = 55.9.
+//
+// FLAG (estimate, not a verified industry figure -- see design.md's Risks
+// table): this is far outside the ~15-20cm "loose tee" range found in
+// hand-sewing pattern-drafting references during research. Two readings are
+// both plausible and neither is verifiable from the data available: (1) the
+// reference tee is a deliberately oversized/streetwear-fit garment, whose
+// ease genuinely exceeds classic drafting conventions, or (2)
+// SIZE_TABLE_MALE.M's bust=100 doesn't match whatever chest size the
+// reference's "M" actually targets. Treat this constant as a calibration
+// figure this app's own comparison tool solved for, not a citation.
+export const TSHIRT_BASE_EASE_CM = 55.9;
+
 // The one ease knob bodice() has ever had (today: `opts.knit ? 0 : 2` per
 // quarter), now sourced from the tables above instead of an inline constant.
-// Returns the TOTAL cm added to (or, for a stretchy knit, subtracted from)
-// the body bust circumference -- callers dividing by 4 get the per-quarter
-// figure bodice() actually adds to each of its four panels. Exported so
-// TechSheetTab can display the same number the drafter used, instead of a
-// second, driftable copy of this formula.
+// Returns the TOTAL cm added to (or, for a stretchy knit past its base ease,
+// subtracted from) the body bust circumference -- callers dividing by 4 get
+// the per-quarter figure bodice() actually adds to each of its four panels.
+// Exported so TechSheetTab can display the same number the drafter used,
+// instead of a second, driftable copy of this formula.
 export function wearingEaseCm(
   style: GarmentStyle,
   knit: boolean,
   bustCm: number,
 ): number {
-  // `0 - x` rather than unary `-x`: at stretch "none" (pct 0) the latter
-  // produces -0, a surprising value to hand back for what is meant to be
-  // "no ease at all."
   return knit
-    ? 0 - (bustCm * STRETCH_EASE_PCT[style.stretch ?? "none"]) / 100
+    ? TSHIRT_BASE_EASE_CM -
+        (bustCm * STRETCH_EASE_PCT[style.stretch ?? "none"]) / 100
     : FIT_EASE_CM[style.fit ?? "fitted"].bust;
 }
 

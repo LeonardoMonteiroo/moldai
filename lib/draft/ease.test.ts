@@ -4,6 +4,7 @@ import {
   STRETCH_CLASSES,
   FIT_EASE_CM,
   STRETCH_EASE_PCT,
+  TSHIRT_BASE_EASE_CM,
   wearingEaseCm,
   classifyGirthFit,
 } from "./ease";
@@ -16,7 +17,7 @@ describe("FIT_EASE_CM / STRETCH_EASE_PCT defaults", () => {
   it("fitted.bust is exactly 8 -- today's hardcoded +2 cm/quarter (×4) reproduced bit-for-bit", () => {
     expect(FIT_EASE_CM.fitted.bust).toBe(8);
   });
-  it("none is exactly 0% -- today's knit default (wearingEase = 0) reproduced bit-for-bit", () => {
+  it("none is exactly 0% -- no reduction off the knit base ease", () => {
     expect(STRETCH_EASE_PCT.none).toBe(0);
   });
   it("bust ease increases monotonically close < fitted < semiFitted < loose", () => {
@@ -37,19 +38,24 @@ describe("wearingEaseCm", () => {
   it("defaults to the fitted band for a woven garment with no fit set", () => {
     expect(wearingEaseCm({}, false, 92)).toBe(8);
   });
-  it("defaults to no negative ease for a knit garment with no stretch set", () => {
-    expect(wearingEaseCm({}, true, 92)).toBe(0);
+  it("defaults to the positive tshirt base ease for a knit garment with no stretch set", () => {
+    expect(wearingEaseCm({}, true, 92)).toBe(TSHIRT_BASE_EASE_CM);
   });
   it("resolves each fit class to its table's bust value for a woven garment", () => {
     for (const fit of FIT_CLASSES) {
       expect(wearingEaseCm({ fit }, false, 92)).toBe(FIT_EASE_CM[fit].bust);
     }
   });
-  it("is negative for a stretchy knit, scaled by the body bust", () => {
-    expect(wearingEaseCm({ stretch: "high" }, true, 100)).toBeCloseTo(-12, 5);
+  it("a stretchy knit reduces relative to the base ease, scaled by the body bust", () => {
+    expect(wearingEaseCm({ stretch: "high" }, true, 100)).toBeCloseTo(
+      TSHIRT_BASE_EASE_CM - 12,
+      5,
+    );
   });
   it("a woven garment never reads style.stretch, and a knit never reads style.fit", () => {
-    expect(wearingEaseCm({ fit: "loose", stretch: "none" }, true, 100)).toBe(0);
+    expect(wearingEaseCm({ fit: "loose", stretch: "none" }, true, 100)).toBe(
+      TSHIRT_BASE_EASE_CM,
+    );
     expect(wearingEaseCm({ fit: "fitted", stretch: "high" }, false, 100)).toBe(
       8,
     );

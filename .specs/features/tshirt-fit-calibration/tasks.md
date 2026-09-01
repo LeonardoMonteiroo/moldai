@@ -87,7 +87,7 @@ no consumer changes.
       equation above, plus a note that it's solved against the benchmark's size-M figure, not
       a scaled-per-size table)
 - [ ] `spec.type === "tshirt"` computes `lengthCm = measurements.backLength +
-    TSHIRT_HEM_DROP_CM`; `blouse` keeps `backLength + hipHeight + 5`; `dress` keeps
+  TSHIRT_HEM_DROP_CM`; `blouse` keeps `backLength + hipHeight + 5`; `dress` keeps
       `backLength` — unchanged
 - [ ] The old combined test is split: "reports the blouse body length" (unchanged assertion)
       and "reports the tshirt body length" (asserts `backLength + TSHIRT_HEM_DROP_CM`)
@@ -101,7 +101,7 @@ no consumer changes.
 
 ---
 
-### T2: Positive knit ease for t-shirts
+### T2: Positive knit ease for t-shirts ✅ Complete (updated 3 existing `ease.test.ts` assertions to the new constant instead of adding duplicate new cases — same coverage, no redundant tests; `garment.test.ts`'s width bound verified still correct at 77.95cm vs. its existing 80cm ceiling, left unchanged; the full `node` project run additionally caught and fixed two more pre-existing tests this task's own grep sweep missed — `lib/draft/body.test.ts`'s "knit at the highest stretch band" test and `lib/draft/easeReport.test.ts`'s "negative ease for a stretchy knit" test, both rewritten to the new positive-base-ease reality)
 
 **What**: Add `TSHIRT_BASE_EASE_CM` (55.9, derived per design.md's Data Models — solved from
 `bust/4 + ease/4 = avg(front, back) halfChest` against the benchmark's size-M panel widths,
@@ -241,7 +241,7 @@ static import.
 **Done when**:
 
 - [ ] `measurePiece(piece: DraftedPiece)` returns `{perimeterCm, areaCm2,
-    rectilinearPerimeterCm, curvePerimeterCm, widthCm, heightCm}` matching
+  rectilinearPerimeterCm, curvePerimeterCm, widthCm, heightCm}` matching
       `measurements.json`'s field shape exactly
 - [ ] The test drafts P/M/G/GG and measures back/front/sleeve/collar-band for each
 - [ ] `docs/reference/tshirt-benchmark/comparison-report.md` is written (overwrite, not

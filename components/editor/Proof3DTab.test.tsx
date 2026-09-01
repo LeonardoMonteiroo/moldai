@@ -87,7 +87,9 @@ describe("Proof3DTab", () => {
     expect(metricValue(ptBR.Proof3DTab.ease.bust)).toBe("8,0 cm");
   });
 
-  it("shows a 0,0cm bust ease for a knit t-shirt", () => {
+  // tshirt-fit-calibration: a knit tee's default ease is now
+  // TSHIRT_BASE_EASE_CM (55.9), not 0 -- see lib/draft/ease.ts.
+  it("shows a 55,9cm bust ease for a knit t-shirt", () => {
     useEditorStore.setState({
       pattern: draftedPattern(
         {
@@ -102,7 +104,7 @@ describe("Proof3DTab", () => {
       ),
     });
     renderWithIntl(<Proof3DTab />);
-    expect(metricValue(ptBR.Proof3DTab.ease.bust)).toBe("0,0 cm");
+    expect(metricValue(ptBR.Proof3DTab.ease.bust)).toBe("55,9 cm");
   });
 
   it("does not show a waist-ease metric for an unfitted (no-darts) blouse", () => {

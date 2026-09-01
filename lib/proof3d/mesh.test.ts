@@ -3,6 +3,7 @@ import type { GarmentSpec, Pattern } from "@/lib/types";
 import { SIZE_TABLE, SIZE_TABLE_MALE } from "@/lib/measurements";
 import { t } from "@/lib/i18n/test-translate";
 import { buildProofMesh, flattenOutline, RING_SAMPLES } from "./mesh";
+import { TSHIRT_BASE_EASE_CM } from "@/lib/draft/ease";
 
 function pattern(spec: GarmentSpec, baseMeasurements = SIZE_TABLE.M): Pattern {
   return {
@@ -141,14 +142,16 @@ describe("buildProofMesh", () => {
     }
   });
 
-  it("woven blouse bust ease is 8cm (FIT_EASE_CM.fitted.bust) and tshirt bust ease is 0cm (STRETCH_EASE_PCT.none)", () => {
+  // tshirt-fit-calibration: a knit garment's default (no explicit stretch)
+  // ease is now TSHIRT_BASE_EASE_CM, not 0 -- see lib/draft/ease.ts.
+  it("woven blouse bust ease is 8cm (FIT_EASE_CM.fitted.bust) and tshirt bust ease is TSHIRT_BASE_EASE_CM", () => {
     const blouseMesh = buildProofMesh(pattern(CASES[0][1], CASES[0][2]), t);
     const bustBlouse = blouseMesh.fit.find((r) => r.key === "bust");
     expect(bustBlouse?.easeCm).toBeCloseTo(8, 5);
 
     const tshirtMesh = buildProofMesh(pattern(CASES[1][1], CASES[1][2]), t);
     const bustTshirt = tshirtMesh.fit.find((r) => r.key === "bust");
-    expect(bustTshirt?.easeCm).toBeCloseTo(0, 5);
+    expect(bustTshirt?.easeCm).toBeCloseTo(TSHIRT_BASE_EASE_CM, 5);
   });
 
   it("a fitted (darted) blouse emits a waist row; an unfitted one does not", () => {

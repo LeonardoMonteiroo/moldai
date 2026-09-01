@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import type { GarmentSpec, Pattern } from "@/lib/types";
 import { SIZE_TABLE, SIZE_TABLE_MALE } from "@/lib/measurements";
 import { t } from "@/lib/i18n/test-translate";
-import { wearingEaseCm } from "./ease";
+import { TSHIRT_BASE_EASE_CM, wearingEaseCm } from "./ease";
 import { DECORATION_CASES } from "./fixtures";
 import { buildEaseReport, GIRTHS } from "./easeReport";
 
@@ -83,7 +83,10 @@ describe("buildEaseReport", () => {
     expect(bustEntry.fitClass).toBe("fitted");
   });
 
-  it("reports negative ease for a stretchy knit, not an error", () => {
+  // tshirt-fit-calibration: a knit's base ease is now TSHIRT_BASE_EASE_CM,
+  // not 0 -- even the highest stretch band only narrows relative to that
+  // base, it no longer drives a tshirt's ease negative.
+  it("reports the reduced (but still positive) ease for a stretchy knit, classified loose", () => {
     const spec: GarmentSpec = {
       type: "tshirt",
       gender: "female",
@@ -92,8 +95,11 @@ describe("buildEaseReport", () => {
     };
     const report = buildEaseReport(fakePattern(spec), t);
     const bustEntry = report!.girths.find((g) => g.girth === "bust")!;
-    expect(bustEntry.diffCm).toBeLessThan(0);
-    expect(bustEntry.fitClass).toBe("close");
+    expect(bustEntry.diffCm).toBeCloseTo(
+      TSHIRT_BASE_EASE_CM - SIZE_TABLE.M.bust * 0.12,
+      1,
+    );
+    expect(bustEntry.fitClass).toBe("loose");
   });
 
   it("reports cap ease from the same seam graph seamCheck reads, absent for a sleeveless spec", () => {
