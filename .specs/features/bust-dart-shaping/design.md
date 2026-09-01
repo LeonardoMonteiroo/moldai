@@ -1,7 +1,7 @@
 # Bust-Apex Dart Shaping Design
 
 **Spec**: `.specs/features/bust-dart-shaping/spec.md`
-**Status**: Draft
+**Status**: Approved
 
 ---
 

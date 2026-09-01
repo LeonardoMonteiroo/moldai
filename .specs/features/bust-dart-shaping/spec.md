@@ -124,7 +124,7 @@ Explicitly excluded. Documented to prevent scope creep.
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 12 total, 12 verified — see `.specs/features/bust-dart-shaping/validation.md` for full evidence (file:line citations, discrimination sensor results, and 3 minor non-blocking test-hardening fix tasks: an exact-value regression test for the cited width formula, and dedicated tests for two documented edge cases).
+**Coverage:** 12 total, 12 verified — see `.specs/features/bust-dart-shaping/validation.md` for full evidence (file:line citations, discrimination sensor results). Iteration 1 found 3 minor non-blocking test-hardening gaps (an exact-value regression test for the cited width formula, and dedicated tests for two documented edge cases); all 3 were fixed and iteration 2 confirmed PASS with zero remaining gaps.
 
 ---
 
