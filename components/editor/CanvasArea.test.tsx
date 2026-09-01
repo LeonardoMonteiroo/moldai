@@ -4,6 +4,7 @@ import {
   screen,
   ptBR,
   userEvent,
+  translatorFor,
 } from "@/components/test-utils";
 import { seedPatternState, applyGarmentSpec } from "@/lib/editor/state";
 import { t } from "@/lib/i18n/test-translate";
@@ -288,5 +289,94 @@ describe("CanvasArea tabs", () => {
 
     await user.click(screen.getByRole("tab", { name: ptBR.TabBar.tabCutplan }));
     expect(useEditorStore.getState().activeTab).toBe("cutplan");
+  });
+});
+
+// EDCH-04: the status pill moved here from Footer.tsx (#106's pluralization
+// guard included) -- same Footer.* keys, new floating render location.
+describe("CanvasArea status pill (moved from Footer)", () => {
+  const tFooter = translatorFor("Footer");
+
+  it("reads ready with the copy count, base size and unit", () => {
+    const pattern = draftedPattern();
+    seedCanvas({ pattern });
+    renderWithIntl(<CanvasArea />);
+    const copyCount = pattern.pieces.reduce((sum, p) => sum + p.qty, 0);
+    expect(
+      screen.getByText(
+        tFooter("statusReady", {
+          copyCount,
+          baseSize: pattern.baseSize,
+          unit: pattern.unit,
+        }),
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("reads the conflict variant, citing the pattern version", () => {
+    const { pattern, conflict } = conflictedPattern();
+    seedCanvas({ pattern, conflict });
+    renderWithIntl(<CanvasArea />);
+    expect(
+      screen.getByText(tFooter("statusConflict", { version: pattern.version })),
+    ).toBeInTheDocument();
+  });
+
+  it("pluralizes the copy count at 0, 1 and 2", () => {
+    for (const qty of [0, 1, 2]) {
+      const pattern = draftedPattern();
+      pattern.pieces = [
+        {
+          id: "x",
+          name: "x",
+          qty,
+          outline: { kind: "polygon", points: "0,0" },
+          label: { x: 0, y: 0 },
+          detailRows: [],
+        },
+      ];
+      seedCanvas({ pattern });
+      const { unmount } = renderWithIntl(<CanvasArea />);
+      expect(
+        screen.getByText(
+          tFooter("statusReady", {
+            copyCount: qty,
+            baseSize: pattern.baseSize,
+            unit: pattern.unit,
+          }),
+        ),
+      ).toBeInTheDocument();
+      unmount();
+    }
+  });
+});
+
+// EDCH-02: Exportar's gating now flows from CanvasArea into TabBar (#17/#116
+// moved from Footer.tsx) -- same enabled-link/disabled-reason contract.
+describe("CanvasArea Exportar wiring (moved from Footer)", () => {
+  it("links the pattern's export screen when drafted and conflict-free", () => {
+    const pattern = draftedPattern();
+    seedCanvas({ pattern });
+    renderWithIntl(<CanvasArea />);
+    expect(
+      screen.getByRole("link", { name: ptBR.Footer.exportButton }),
+    ).toHaveAttribute("href", `/pattern/${pattern.id}/export`);
+  });
+
+  it("disables with the blank-pattern reason before anything is drafted", () => {
+    seedCanvas({ pattern: blankPattern() });
+    renderWithIntl(<CanvasArea />);
+    expect(
+      screen.getByRole("button", { name: ptBR.Footer.exportButton }),
+    ).toHaveAttribute("title", ptBR.Footer.exportDisabledBlankTitle);
+  });
+
+  it("disables with the conflict reason while a seam conflict is open", () => {
+    const { pattern, conflict } = conflictedPattern();
+    seedCanvas({ pattern, conflict });
+    renderWithIntl(<CanvasArea />);
+    expect(
+      screen.getByRole("button", { name: ptBR.Footer.exportButton }),
+    ).toHaveAttribute("title", ptBR.Footer.exportDisabledConflictTitle);
   });
 });

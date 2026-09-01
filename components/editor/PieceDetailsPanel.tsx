@@ -24,7 +24,9 @@ export function PieceDetailsPanel({
   const gradable = pattern.sizesPending.filter((s) => s !== pattern.baseSize);
 
   return (
-    <div className="bg-surface border-border rounded-card shadow-card absolute top-5 right-5 bottom-5 flex w-[230px] flex-col gap-[11px] border p-[14px]">
+    // EDCH-03: top-[58px] clears the floating tab bar, the same reasoning
+    // as ConflictInfoCard (they share this corner, mutually exclusive).
+    <div className="bg-surface border-border rounded-card shadow-card absolute top-[58px] right-5 bottom-5 flex w-[230px] flex-col gap-[11px] border p-[14px]">
       <div className="flex items-center">
         <span className="text-muted text-meta tracking-eyebrow font-semibold uppercase">
           {t("sectionLabel")}

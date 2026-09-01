@@ -148,14 +148,15 @@ T5 → T6 → T7
 
 **Done when**:
 
-- [ ] Status pill renders the correct text for ready/generating/conflict, in the canvas's bottom-left corner.
-- [ ] `TabBar` receives working `exportHref`/`exportTitle` matching each of the 3 disabled causes plus the enabled case.
-- [ ] `PatternCanvas`'s drawable region starts at `top-[58px]`.
-- [ ] `FloatingToolbar`/measure note/"Limpar medições" render at the new top-left stack position, no longer overlapping the floating tab bar or the new status pill.
-- [ ] Existing `CanvasArea.test.tsx` assertions about pieces/conflict/measurements/tool-selection still pass, updated only where the moved elements' positions are asserted.
+- [x] Status pill renders the correct text for ready/generating/conflict, in the canvas's bottom-left corner.
+- [x] `TabBar` receives working `exportHref`/`exportTitle` matching each of the 3 disabled causes plus the enabled case.
+- [x] `PatternCanvas`'s drawable region starts at `top-[58px]`.
+- [x] `FloatingToolbar`/measure note/"Limpar medições" render at the new top-left stack position, no longer overlapping the floating tab bar or the new status pill.
+- [x] Existing `CanvasArea.test.tsx` assertions about pieces/conflict/measurements/tool-selection still pass, updated only where the moved elements' positions are asserted (none needed changing — all 14 passed unmodified).
 
 **Tests**: unit (dom)
 **Gate**: full — `npx vitest run --project dom components/editor components/shared`
+**Status**: ✅ Done — 198/198 tests passing, lint/typecheck clean. Also touched, discovered necessary during implementation (documented as in-scope consequences of the same restructuring, not scope creep): `GeneratingOverlay.tsx` converted to the same floating-pill treatment (Editor.dc.html:480) — leaving it a static flow row would make the canvas visibly resize every time generation starts/stops; `ConflictInfoCard.tsx`/`PieceDetailsPanel.tsx` top inset bumped `top-5` → `top-[58px]` (same collision-with-the-new-floating-tab-bar reasoning as PatternCanvas); `proof3d`/`techsheet`/`cutplan` `TabsContent` panels gained `pt-[58px]` (wrapper-level clearance only, their own tab content untouched, still out of scope).
 
 ---
 

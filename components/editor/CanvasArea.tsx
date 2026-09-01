@@ -31,6 +31,11 @@ import {
 export function CanvasArea() {
   const t = useTranslations("CanvasArea");
   const tData = useTranslations("PatternData");
+  // EDCH-02/EDCH-04: exportDisabled/exportDisabledTitle/statusText moved
+  // here from the now-deleted Footer.tsx -- same Footer.* keys (see
+  // spec.md's Out of Scope: that namespace already backs ExportFormatList
+  // on the /export screen too, not 1:1 with a component).
+  const tFooter = useTranslations("Footer");
   const pattern = useEditorStore((s) => s.pattern);
   const conflict = useEditorStore((s) => s.conflict);
   const activeTab = useEditorStore((s) => s.activeTab);
@@ -121,11 +126,35 @@ export function CanvasArea() {
   const rightOverlayOpen =
     !isGenerating && (!!conflict || (detailsPanelOpen && !!selectedPiece));
 
+  // Moved from Footer.tsx verbatim (#115/#116/#17 -- see that history):
+  // copies-to-cut summed across pieces, not the piece count; one disabled
+  // reason per cause; an enabled Exportar is just a link, no title needed.
+  const conflictActive = conflict !== null;
+  const exportDisabled =
+    conflictActive || isGenerating || pattern.pieces.length === 0 || !spec;
+  const exportTitle = conflictActive
+    ? tFooter("exportDisabledConflictTitle")
+    : isGenerating
+      ? tFooter("exportDisabledGeneratingTitle")
+      : pattern.pieces.length === 0 || !spec
+        ? tFooter("exportDisabledBlankTitle")
+        : undefined;
+  const copyCount = pattern.pieces.reduce((sum, p) => sum + p.qty, 0);
+  const statusText = conflictActive
+    ? tFooter("statusConflict", { version: pattern.version })
+    : isGenerating
+      ? tFooter("statusGenerating")
+      : tFooter("statusReady", {
+          copyCount,
+          baseSize: pattern.baseSize,
+          unit: pattern.unit,
+        });
+
   return (
     <Tabs
       value={activeTab}
       onValueChange={(v) => setActiveTab(v as EditorTab)}
-      className="flex min-h-0 min-w-0 flex-1 flex-col gap-0"
+      className="relative flex min-h-0 min-w-0 flex-1 flex-col gap-0"
     >
       {isGenerating ? (
         <GeneratingOverlay
@@ -140,6 +169,8 @@ export function CanvasArea() {
           detailsOpen={detailsPanelOpen}
           onToggleDetails={toggleDetailsPanel}
           hasSelectedPiece={selectedPiece !== null && !conflict}
+          exportHref={exportDisabled ? null : `/pattern/${pattern.id}/export`}
+          exportTitle={exportTitle}
         />
       )}
 
@@ -149,7 +180,10 @@ export function CanvasArea() {
       >
         <div
           className={[
-            "absolute top-[22px] bottom-[22px] left-[22px] transition-[right] duration-200",
+            // EDCH-03: top-[58px] (Editor.dc.html:227) clears the floating
+            // tab bar's ~46px height + margin, replacing the old top-[22px]
+            // that assumed a flow-reserved static row above the canvas.
+            "absolute top-[58px] bottom-[22px] left-[22px] transition-[right] duration-200",
             rightOverlayOpen ? "right-[268px]" : "right-[22px]",
           ].join(" ")}
         >
@@ -191,12 +225,28 @@ export function CanvasArea() {
           </Empty>
         )}
         {!isGenerating && hasPieces && (
-          <div className="absolute top-5 left-5 flex flex-col items-start gap-2">
+          // EDCH-01 assumption (spec.md): FloatingToolbar/measure-note/
+          // "Limpar medições" moved from top-5/bottom-5 into one top-left
+          // stack at top-[54px] -- clears the floating tab bar (no design
+          // reference depicts this control at all; co-locating it with the
+          // measure tool it belongs to, rather than the bottom-left corner
+          // the design's status pill now claims, is the deliberate call).
+          <div className="absolute top-[54px] left-4 z-10 flex flex-col items-start gap-2">
             <FloatingToolbar activeTool={activeTool} onSelect={setActiveTool} />
             {activeTool === "measure" && (
               <p className="bg-surface border-border rounded-item shadow-card text-meta text-muted-2 max-w-[220px] border px-[10px] py-[7px]">
                 {t("measurePointerOnlyNote")}
               </p>
+            )}
+            {measurements.length > 0 && (
+              <Button
+                variant="outline"
+                size="chrome"
+                onClick={clearMeasurements}
+                className="text-muted-2 shadow-card"
+              >
+                {t("clearMeasurementsButton")}
+              </Button>
             )}
           </div>
         )}
@@ -208,15 +258,16 @@ export function CanvasArea() {
             onFit={vp.fitToScreen}
           />
         )}
-        {!isGenerating && hasPieces && measurements.length > 0 && (
-          <Button
-            variant="outline"
-            size="chrome"
-            onClick={clearMeasurements}
-            className="text-muted-2 shadow-card absolute bottom-5 left-5"
+        {!isGenerating && (
+          // EDCH-04: the status line moved here from Footer.tsx, as a
+          // floating pill at the canvas's bottom-left corner
+          // (Editor.dc.html:487-489).
+          <div
+            role="status"
+            className="bg-surface/86 border-border text-muted shadow-card text-meta absolute bottom-4 left-4 z-10 flex h-[30px] items-center gap-2 rounded-full border px-3 backdrop-blur-sm"
           >
-            {t("clearMeasurementsButton")}
-          </Button>
+            {statusText}
+          </div>
         )}
         {!isGenerating && conflict && (
           <ConflictInfoCard
@@ -236,13 +287,27 @@ export function CanvasArea() {
           />
         )}
       </TabsContent>
-      <TabsContent value="proof3d" className="flex min-h-0 flex-1 flex-col">
+      {/* EDCH-03: pt-[58px] on each panel clears the floating tab bar that
+          now overlays the top of every tab, not just pattern2d -- the same
+          58px PatternCanvas's own inset uses. The tab's own content
+          (Proof3DTab/TechSheetTab/CutPlanTab) is out of scope; this is only
+          the shared wrapper's clearance. */}
+      <TabsContent
+        value="proof3d"
+        className="flex min-h-0 flex-1 flex-col pt-[58px]"
+      >
         <Proof3DTab />
       </TabsContent>
-      <TabsContent value="techsheet" className="flex min-h-0 flex-1 flex-col">
+      <TabsContent
+        value="techsheet"
+        className="flex min-h-0 flex-1 flex-col pt-[58px]"
+      >
         <TechSheetTab pattern={pattern} />
       </TabsContent>
-      <TabsContent value="cutplan" className="flex min-h-0 flex-1 flex-col">
+      <TabsContent
+        value="cutplan"
+        className="flex min-h-0 flex-1 flex-col pt-[58px]"
+      >
         <CutPlanTab pattern={pattern} />
       </TabsContent>
     </Tabs>

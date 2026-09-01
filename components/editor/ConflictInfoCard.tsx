@@ -140,7 +140,10 @@ export function ConflictInfoCard({
   const pct = (v: number) => (longest > 0 ? (v / longest) * 100 : 0);
 
   return (
-    <div className="bg-surface border-border rounded-card shadow-card absolute top-5 right-5 flex w-[212px] flex-col gap-[7px] border p-3">
+    // EDCH-03: top-[58px] clears the floating tab bar (top-4 + its own
+    // height), which now overlaps this corner's old top-5 -- the same
+    // clearance PatternCanvas's own inset uses.
+    <div className="bg-surface border-border rounded-card shadow-card absolute top-[58px] right-5 flex w-[212px] flex-col gap-[7px] border p-3">
       <span className="text-muted text-meta tracking-eyebrow font-semibold uppercase">
         {t("sectionLabel")}
       </span>
