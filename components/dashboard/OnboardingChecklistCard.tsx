@@ -141,9 +141,9 @@ export function OnboardingChecklistCard({
   const pct = Math.round((doneCount / TOTAL_STEPS) * 100);
 
   return (
-    <div className="border-border rounded-card mx-[22px] mt-[22px] flex flex-col gap-[14px] border bg-white p-[18px]">
+    <div className="border-border rounded-card mx-[22px] flex flex-col gap-[10px] border bg-white px-[16px] py-[14px]">
       <div className="flex items-center justify-between gap-[10px]">
-        <span className="text-ui font-semibold">
+        <span className="text-control font-semibold">
           {t("title")} ·{" "}
           {t("progressLabel", { done: doneCount, total: TOTAL_STEPS })}
         </span>
@@ -156,10 +156,13 @@ export function OnboardingChecklistCard({
           <XIcon />
         </Button>
       </div>
-      <Progress value={pct} />
-      <ul className="flex flex-col gap-[10px]">
+      <Progress value={pct} size="thin" />
+      <ul className="flex flex-col">
         {steps.map((step, i) => (
-          <li key={step.titleKey} className="flex items-center gap-[12px]">
+          <li
+            key={step.titleKey}
+            className="border-border flex items-center gap-[12px] border-t py-[9px]"
+          >
             <span
               className={
                 "text-meta flex size-[22px] shrink-0 items-center justify-center rounded-full font-semibold " +

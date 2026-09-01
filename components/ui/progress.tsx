@@ -5,16 +5,28 @@ import { Progress as ProgressPrimitive } from "radix-ui";
 
 import { cn } from "@/lib/utils";
 
+const PROGRESS_SIZES = {
+  default: "h-2",
+  // A thinner track for compact contexts (the dashboard onboarding
+  // checklist, per the redesign reference) -- a variant here rather than a
+  // per-call-site className override, matching Button's size scale.
+  thin: "h-[5px]",
+} as const;
+
 function Progress({
   className,
   value,
+  size = "default",
   ...props
-}: React.ComponentProps<typeof ProgressPrimitive.Root>) {
+}: React.ComponentProps<typeof ProgressPrimitive.Root> & {
+  size?: keyof typeof PROGRESS_SIZES;
+}) {
   return (
     <ProgressPrimitive.Root
       data-slot="progress"
       className={cn(
-        "bg-primary/20 relative h-2 w-full overflow-hidden rounded-full",
+        "bg-primary/20 relative w-full overflow-hidden rounded-full",
+        PROGRESS_SIZES[size],
         className,
       )}
       {...props}

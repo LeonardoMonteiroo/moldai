@@ -155,4 +155,44 @@ describe("OnboardingChecklistCard", () => {
       screen.queryByText(ptBR.OnboardingChecklistCard.title),
     ).not.toBeInTheDocument();
   });
+
+  // DASH-01/02/03/04: docs/design/screens/Dashboard.dc.html:128-140 specifies
+  // 14px/16px card padding, a 10px inter-block gap, the title at the
+  // text-control (13.5px) scale, a 5px-tall progress track, and a 1px
+  // top-border divider between every item row.
+  it("matches the redesign reference's card padding, gap and title scale", () => {
+    const { container } = renderWithIntl(
+      <OnboardingChecklistCard patterns={[]} checklist={noProgress} />,
+    );
+    const card = container.firstElementChild as HTMLElement;
+    expect(card).toHaveClass("px-[16px]", "py-[14px]", "gap-[10px]");
+    expect(card).not.toHaveClass("p-[18px]");
+    expect(
+      screen.getByText(ptBR.OnboardingChecklistCard.title, { exact: false }),
+    ).toHaveClass("text-control");
+  });
+
+  it("renders the progress track at the thin (5px) size", () => {
+    const { container } = renderWithIntl(
+      <OnboardingChecklistCard patterns={[]} checklist={noProgress} />,
+    );
+    const track = container.querySelector('[data-slot="progress"]');
+    expect(track).toHaveClass("h-[5px]");
+    expect(track).not.toHaveClass("h-2");
+  });
+
+  it("separates every checklist row with a top-border divider", () => {
+    renderWithIntl(
+      <OnboardingChecklistCard patterns={[]} checklist={noProgress} />,
+    );
+    const rows = screen
+      .getAllByText(ptBR.OnboardingChecklistCard.step1Title, {
+        exact: false,
+      })[0]
+      .closest("ul")!.children;
+    expect(rows.length).toBe(5);
+    for (const row of Array.from(rows)) {
+      expect(row).toHaveClass("border-t");
+    }
+  });
 });
