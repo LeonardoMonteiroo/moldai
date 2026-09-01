@@ -202,6 +202,84 @@ describe("EditorShell", () => {
   });
 });
 
+// EDCH-05: Histórico/Salvar como base moved into the header (HeaderActions),
+// and the editor no longer renders a <footer> at all -- Footer.tsx is gone
+// (T7). The status pill/Exportar that used to live in that footer now live
+// inside CanvasArea (covered by CanvasArea.test.tsx).
+describe("EditorShell header actions (moved from Footer)", () => {
+  beforeEach(() => {
+    useEditorStore.setState({
+      patternId: "p1",
+      generationStatus: "idle",
+      conflict: null,
+      paywall: {
+        open: false,
+        required: 0,
+        balance: 0,
+        action: null,
+        retry: null,
+      },
+      credits: { plan: "free", balance: 30, total: 30, renewsInDays: 30 },
+      ready: true,
+      pattern: pattern(new Date().toISOString()),
+      error: null,
+    });
+  });
+
+  it("renders Histórico and Salvar como base in the header, not a footer landmark", () => {
+    renderWithIntl(<EditorShell userEmail="user@example.com" patternId="p1" />);
+
+    expect(
+      screen.getByRole("link", { name: ptBR.Footer.versionsHistoryButton }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: ptBR.Footer.saveAsBaseButton }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("contentinfo")).not.toBeInTheDocument();
+  });
+
+  it("completes the save-as-base round trip through the header", async () => {
+    const saveAsSloper = vi.fn().mockResolvedValue(true);
+    // Salvar como base is disabled on a blank (piece-less/spec-less) pattern
+    // -- the default `pattern()` fixture -- so this test needs a drafted one.
+    useEditorStore.setState({
+      saveAsSloper,
+      pattern: {
+        ...pattern(new Date().toISOString()),
+        pieces: [
+          {
+            id: "x",
+            name: "x",
+            qty: 1,
+            outline: { kind: "polygon", points: "0,0" },
+            label: { x: 0, y: 0 },
+            detailRows: [],
+          },
+        ],
+        spec: {
+          type: "blouse",
+          gender: "female",
+          measurementOverrides: {},
+          style: {},
+        },
+      },
+    });
+    const user = userEvent.setup();
+
+    renderWithIntl(<EditorShell userEmail="user@example.com" patternId="p1" />);
+
+    await user.click(
+      screen.getByRole("button", { name: ptBR.Footer.saveAsBaseButton }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: ptBR.Footer.saveAsBaseSaveButton }),
+    );
+
+    expect(saveAsSloper).toHaveBeenCalledWith("Vestido");
+    expect(await screen.findByText(ptBR.Footer.saveAsBaseSaved)).toBeVisible();
+  });
+});
+
 // #119: the editor stays desktop-only rather than becoming genuinely
 // responsive -- below the breakpoint it has to say so on screen instead of
 // rendering the chat+canvas layout broken or blank.

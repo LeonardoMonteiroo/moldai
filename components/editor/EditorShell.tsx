@@ -9,7 +9,7 @@ import { ActionErrorNotice } from "@/components/shared/ActionErrorNotice";
 import { Button } from "@/components/ui/button";
 import { ChatPanel } from "./ChatPanel";
 import { CanvasArea } from "./CanvasArea";
-import { Footer } from "./Footer";
+import { HeaderActions } from "./HeaderActions";
 import { PaywallModal } from "./PaywallModal";
 
 /**
@@ -150,8 +150,8 @@ export function EditorShell({
           backHref="/"
           credits={credits}
           userEmail={userEmail}
-          footer={
-            <Footer
+          headerActions={
+            <HeaderActions
               pattern={pattern}
               conflictActive={conflict !== null}
               generating={generationStatus === "generating"}

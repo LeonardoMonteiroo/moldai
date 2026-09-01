@@ -170,13 +170,14 @@ T5 → T6 → T7
 
 **Done when**:
 
-- [ ] `EditorShell` no longer imports or renders `Footer`.
-- [ ] `AppShell` receives `headerActions` with the three required props.
-- [ ] Existing `EditorShell.test.tsx` assertions about the footer landmark/Footer content are replaced with equivalent assertions against the new header-action location (never just deleted).
-- [ ] Full save-as-base round trip (open → submit → notice) still passes end to end through `EditorShell`.
+- [x] `EditorShell` no longer imports or renders `Footer`.
+- [x] `AppShell` receives `headerActions` with the three required props.
+- [x] Existing `EditorShell.test.tsx` assertions about the footer landmark/Footer content are replaced with equivalent assertions against the new header-action location (never just deleted) — no prior assertions actually targeted the footer, so this task adds the coverage new rather than migrating it.
+- [x] Full save-as-base round trip (open → submit → notice) still passes end to end through `EditorShell`.
 
 **Tests**: unit (dom)
 **Gate**: full — `npx vitest run --project dom components/editor components/shared`
+**Status**: ✅ Done — 200/200 tests passing, lint/typecheck clean.
 
 ---
 
