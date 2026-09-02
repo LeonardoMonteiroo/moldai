@@ -28,6 +28,13 @@ const badgeVariants = cva(
         quiet: "text-muted",
         soon: "border-dashed border-olive-border bg-accent text-accent-foreground text-tick font-semibold tracking-eyebrow uppercase",
         link: "text-primary underline-offset-4 [a&]:hover:underline",
+        // Small state pills (e.g. SizeChartTable's read-only/active-chart
+        // badge) -- same text-tick/tracking-eyebrow/uppercase treatment as
+        // `soon`, just without its dashed border.
+        muted:
+          "border-border bg-surface-alt text-muted text-tick font-semibold tracking-eyebrow uppercase",
+        olive:
+          "border-olive-border bg-olive-tint text-olive text-tick font-semibold tracking-eyebrow uppercase",
       },
       // A size label on a graded pattern is a square mark, not a rounded tag —
       // and five pill-shaped chips overflowed the size popover.

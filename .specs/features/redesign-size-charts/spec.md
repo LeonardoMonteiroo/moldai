@@ -8,10 +8,10 @@
 
 ## Goals
 
-- [ ] `/size-charts` renders the shared `Sidebar` (active section "Medidas e grades"), matching Dashboard/Bases do ateliê.
-- [ ] `SizeChartLibrary`'s width, header block (title+subtitle, currently only shown in the top `PageHeader`), section grouping ("Do sistema" / "Minhas grades" with eyebrow labels), card structure (left accent bar), and footer order match `Medidas e grades.dc.html:144-191`.
-- [ ] `SizeChartTable`'s header row gains the state badge and the "Usar esta grade" control for read-only (system) charts, and the override-legend caption, matching `Medidas e grades.dc.html:195-236`.
-- [ ] No new content, no new `User`/`SizeChart` fields, no migration — every fix repositions or regroups data the screen already has.
+- [x] `/size-charts` renders the shared `Sidebar` (active section "Medidas e grades"), matching Dashboard/Bases do ateliê.
+- [x] `SizeChartLibrary`'s width, header block (title+subtitle, currently only shown in the top `PageHeader`), section grouping ("Do sistema" / "Minhas grades" with eyebrow labels), card structure (left accent bar), and footer order match `Medidas e grades.dc.html:144-191`.
+- [x] `SizeChartTable`'s header row gains the state badge and the "Usar esta grade" control for read-only (system) charts, and the override-legend caption, matching `Medidas e grades.dc.html:195-236`.
+- [x] No new content, no new `User`/`SizeChart` fields, no migration — every fix repositions or regroups data the screen already has.
 
 ## Out of Scope
 
@@ -79,21 +79,21 @@
 
 ## Requirement Traceability
 
-| Requirement ID | Story                 | Phase   | Status  |
-| -------------- | --------------------- | ------- | ------- |
-| SZCH-01        | P1: Sidebar           | Execute | Pending |
-| SZCH-02        | P1: Sidebar           | Execute | Pending |
-| SZCH-03        | P1: Sidebar           | Execute | Pending |
-| SZCH-04        | P2: Library structure | Execute | Pending |
-| SZCH-05        | P2: Library structure | Execute | Pending |
-| SZCH-06        | P2: Library structure | Execute | Pending |
-| SZCH-07        | P2: Library structure | Execute | Pending |
-| SZCH-08        | P2: Library structure | Execute | Pending |
-| SZCH-09        | P2: Library structure | Execute | Pending |
-| SZCH-10        | P3: Table header      | Execute | Pending |
-| SZCH-11        | P3: Table header      | Execute | Pending |
-| SZCH-12        | P3: Table header      | Execute | Pending |
-| SZCH-13        | P3: Table header      | Execute | Pending |
+| Requirement ID | Story                 | Phase   | Status   |
+| -------------- | --------------------- | ------- | -------- |
+| SZCH-01        | P1: Sidebar           | Execute | Verified |
+| SZCH-02        | P1: Sidebar           | Execute | Verified |
+| SZCH-03        | P1: Sidebar           | Execute | Verified |
+| SZCH-04        | P2: Library structure | Execute | Verified |
+| SZCH-05        | P2: Library structure | Execute | Verified |
+| SZCH-06        | P2: Library structure | Execute | Verified |
+| SZCH-07        | P2: Library structure | Execute | Verified |
+| SZCH-08        | P2: Library structure | Execute | Verified |
+| SZCH-09        | P2: Library structure | Execute | Verified |
+| SZCH-10        | P3: Table header      | Execute | Verified |
+| SZCH-11        | P3: Table header      | Execute | Verified |
+| SZCH-12        | P3: Table header      | Execute | Verified |
+| SZCH-13        | P3: Table header      | Execute | Verified |
 
 **Coverage:** 13 total, 13 mapped, 0 unmapped.
 
@@ -101,8 +101,8 @@
 
 ## Success Criteria
 
-- [ ] `npx vitest run --project dom components/dashboard/Sidebar.test.tsx components/size-charts` passes.
-- [ ] `npx vitest run --project node` and the full `dom` project pass (no regressions).
-- [ ] `npx eslint` and `npm run build` (typecheck) pass, full repo.
-- [ ] No new hex values, `text-[Npx]` sizes, or hardcoded pt-BR strings — new copy goes through existing/new catalog keys only.
-- [ ] No database migration, no new `SizeChart`/`User` fields.
+- [x] `npx vitest run --project dom components/dashboard/Sidebar.test.tsx components/size-charts` passes (8 + 6 + 7 + 48 = 69 tests).
+- [x] `npx vitest run` — full suite passes: 3089 passed, 3 skipped (no regressions).
+- [x] `npx eslint app lib components` and `npm run build` (typecheck) pass, full repo.
+- [x] No new hex values, `text-[Npx]` sizes, or hardcoded pt-BR strings — new copy goes through `SizeChartLibrary.systemSectionLabel`/`myChartsSectionLabel` and `SizeChartTable.systemChartBadge`/`overrideLegend`, the only new catalog keys.
+- [x] No database migration, no new `SizeChart`/`User` fields — every fix reuses `isSystem`/`isActive`/existing store actions.

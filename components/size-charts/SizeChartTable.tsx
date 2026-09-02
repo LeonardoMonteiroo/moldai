@@ -13,6 +13,7 @@ import {
 } from "@/lib/measurements";
 import { BODY_TYPES, type BodyType } from "@/lib/types";
 import { formatCm } from "@/lib/format";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -138,15 +139,9 @@ export function SizeChartTable() {
             never claims "grade ativa" for every editable chart the way the
             design's own single-editable-chart demo data does. */}
         {readOnly ? (
-          <span className="border-border bg-surface-alt text-muted rounded-full border px-2 py-0.5 text-[10px] font-bold tracking-[0.08em] uppercase">
-            {t("systemChartBadge")}
-          </span>
+          <Badge variant="muted">{t("systemChartBadge")}</Badge>
         ) : (
-          isActive && (
-            <span className="border-olive-border bg-olive-tint text-olive rounded-full border px-2 py-0.5 text-[10px] font-bold tracking-[0.08em] uppercase">
-              {t("activeSizeChartNote")}
-            </span>
-          )
+          isActive && <Badge variant="olive">{t("activeSizeChartNote")}</Badge>
         )}
         <div className="flex-1" />
         {!readOnly && (

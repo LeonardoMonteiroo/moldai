@@ -173,10 +173,10 @@ T5
 
 **Done when**:
 
-- [ ] `npx vitest run` passes (no regressions)
-- [ ] `npx eslint app lib components` and `npm run build` pass
-- [ ] `moldai-conventions` review run on the diff, findings addressed
-- [ ] Spec traceability table updated to Verified
+- [x] `npx vitest run` passes (no regressions) — 3089 passed, 3 skipped
+- [x] `npx eslint app lib components` and `npm run build` pass
+- [x] `moldai-conventions` review run on the diff, findings addressed — 1 HIGH finding (bracketed `text-[10px]`/`tracking-[0.08em]` on the two new state badges), fixed by adding `Badge` variants `muted`/`olive` (`components/ui/badge.tsx`) and routing `SizeChartTable`'s badges through them
+- [x] Spec traceability table updated to Verified
 
 **Tests**: none
 **Gate**: build
