@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 10,
+  "next_id": 12,
   "lessons": [
     {
       "id": "L-001",
@@ -140,6 +140,38 @@
       ],
       "created": "2026-09-02T00:45:52Z",
       "last_seen": "2026-09-02T00:45:52Z"
+    },
+    {
+      "id": "L-010",
+      "key": "surviving_mutant::a new thin lib db repository function needs its own direct unit test asserting the exact prisma call shape not just an indirect exercise through a mocked consumer",
+      "text": "A new thin lib/db/* repository function needs its own direct unit test asserting the exact Prisma call/shape, not just an indirect exercise through a mocked consumer.",
+      "signal": "surviving_mutant",
+      "scope": "repo-layer",
+      "status": "candidate",
+      "features": ["redesign-settings"],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "lib/db/pattern.ts:143-144 (countPatternsForUser hardcoded to 42) (repo-layer)"
+      ],
+      "created": "2026-09-02T02:07:08Z",
+      "last_seen": "2026-09-02T02:07:08Z"
+    },
+    {
+      "id": "L-011",
+      "key": "surviving_mutant::when a new panel is added to a section gated shell extend the shell s existing panel exclusivity test suite to cover it not just pass its new required props through unchecked",
+      "text": "When a new panel is added to a section-gated shell, extend the shell's existing panel-exclusivity test suite to cover it, not just pass its new required props through unchecked.",
+      "signal": "surviving_mutant",
+      "scope": "components",
+      "status": "candidate",
+      "features": ["redesign-settings"],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "components/settings/SettingsShell.tsx:47-58 (AccountSummaryCard rendered unconditionally) (components)"
+      ],
+      "created": "2026-09-02T02:07:08Z",
+      "last_seen": "2026-09-02T02:07:08Z"
     }
   ]
 }

@@ -77,6 +77,20 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: LAND-06 / components/landing/LandingPage.test.tsx (no rounded assertion found) (components/landing)
 - last seen: 2026-09-02T00:45:52Z
 
+### L-010 - A new thin lib/db/* repository function needs its own direct unit test asserting the exact Prisma call/shape, not just an indirect exercise through a mocked consumer.
+
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `repo-layer` · harmful: 0
+- features: redesign-settings
+- evidence: lib/db/pattern.ts:143-144 (countPatternsForUser hardcoded to 42) (repo-layer)
+- last seen: 2026-09-02T02:07:08Z
+
+### L-011 - When a new panel is added to a section-gated shell, extend the shell's existing panel-exclusivity test suite to cover it, not just pass its new required props through unchecked.
+
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `components` · harmful: 0
+- features: redesign-settings
+- evidence: components/settings/SettingsShell.tsx:47-58 (AccountSummaryCard rendered unconditionally) (components)
+- last seen: 2026-09-02T02:07:08Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
