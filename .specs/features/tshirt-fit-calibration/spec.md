@@ -180,8 +180,8 @@ and the collar piece's presence/height all change as ACs 1-4 specify, and that
 | TSHIRT-03      | P1: Tuned t-shirt drafter | Tasks  | Implementing |
 | TSHIRT-04      | P1: Tuned t-shirt drafter | Tasks  | Implementing |
 | TSHIRT-05      | P1: Tuned t-shirt drafter | Tasks  | Implementing |
-| TSHIRT-06      | P1: Tuned t-shirt drafter | Design | Pending      |
-| TSHIRT-07      | P1: Tuned t-shirt drafter | Design | Pending      |
+| TSHIRT-06      | P1: Tuned t-shirt drafter | Tasks  | Implementing |
+| TSHIRT-07      | P1: Tuned t-shirt drafter | Tasks  | Implementing |
 | TSHIRT-08      | P1: Tuned t-shirt drafter | Design | Pending      |
 | TSHIRT-09      | P1: Tuned t-shirt drafter | Design | Pending      |
 

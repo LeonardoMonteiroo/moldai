@@ -215,7 +215,7 @@ alongside the existing `#221` band-collar geometry tests, ~line 1583-1596)
 
 ---
 
-### T5: Benchmark comparison tool
+### T5: Benchmark comparison tool ✅ Complete (report shows the M-size front/back width gap shrank from ~25-30cm pre-feature to ~2cm; also found and documented in the report's own header that `collarBand` width/height read as swapped vs. the benchmark purely due to strip orientation (90° rotated), not a geometry error — perimeter/area for that piece match near-exactly)
 
 **What**: Create `lib/draft/tshirtBenchmark.test.ts` — drafts a `tshirt`/male garment at
 P/M/G/GG from `SIZE_TABLE_MALE` (post T1-T4 changes), measures each piece
