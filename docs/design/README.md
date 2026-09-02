@@ -8,6 +8,34 @@ Este pacote documenta o redesign visual de 10 telas do MoldAI, feito como refer�
 
 Os arquivos em `screens/*.dc.html` são **referências de design**, não código para copiar. Foram construídos num editor de design próprio e não rodam fora dele (dependem de um runtime interno). Use os **screenshots em `screenshots/`** para ver o resultado visual, e o HTML apenas para ler estrutura, texto exato e valores de estilo (a maior parte do estilo já usa os tokens do design system `moldai-ui`, que é o mesmo que o app já usa).
 
+## Como ler os screenshots
+
+São três níveis, do mais geral ao mais específico:
+
+- `screenshots/*.png` — **uma imagem por tela**, no estado padrão. Serve de visão geral. Todos os prints são PNG de **1280×900** (o quadro de referência do design é desktop 1280×900).
+- `screenshots/states/<tela>/NN-nome.png` — **um print por estado** de cada tela: vazio, carregando, erro de carregamento, erro de ação, diálogos abertos, abas, passos de wizard, variações de conteúdo. Numeração indica ordem de leitura sugerida, não ordem de navegação. Índice completo abaixo.
+- `screenshots/estados-de-interacao.png` — **hover, foco, pressionado e desabilitado**, na folha de estados (`screens/Estados de interacao.dc.html`). Cada elemento interativo aparece lado a lado no estado padrão e no hover, com o valor do token que muda. Estados de foco/pressionado/desabilitado não são especificados pelo design — a folha explica o que fazer no lugar.
+
+Nenhum print cobre responsivo/mobile: o pacote é desktop. A única tela com regra mobile explícita é o Editor (`editor/11-somente-desktop.png`).
+
+## Índice de estados
+
+| Tela                | Estados capturados                                                                                                                                                                                                                                                                                                      |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `landing/`          | hero, como funciona, dúvidas, créditos e footer (4 recortes de scroll da mesma página, 900px cada)                                                                                                                                                                                                                      |
+| `autenticacao/`     | login; login com erro de credenciais, e-mail não verificado, rate limited, e-mail reenviado, carregando; signup; signup com senhas diferentes, e-mail em uso, carregando, e-mail enviado; esqueci a senha e enviado; verificar e-mail, link expirado, verificado (16)                                                   |
+| `onboarding/`       | passo 1, passo 1 com opção selecionada, passo 2, passo 2 com erro de import, passo 3, gerando, erro de geração (7)                                                                                                                                                                                                      |
+| `dashboard/`        | padrão, vazio, busca sem resultados, carregando, erro de carregamento, erro de ação, diálogo de renomear, diálogo de excluir, diálogo de novo molde (9)                                                                                                                                                                 |
+| `editor/`           | padrão, conflito, gerando, vazio sem peças, clarificação, painel de detalhes, erro de ação, erro, carregando, erro de carregamento, somente desktop, salvar como base, paywall, abas Prova 3D / Ficha técnica / Plano de corte, **modal de exportar nas três variações** (Molde 2D, Plano de corte, Ficha técnica) (19) |
+| `versoes/`          | padrão, overlay desligado, versão única, restaurando, diálogo de restaurar, erro de ação, carregando, erro de carregamento (8)                                                                                                                                                                                          |
+| `bases-do-atelie/`  | padrão, vazio, diálogo de renomear, diálogo de excluir, erro de ação, carregando, erro de carregamento (7)                                                                                                                                                                                                              |
+| `medidas-e-grades/` | padrão, grade do sistema, editando regra, alterações não salvas, aviso de faixa, adicionar tamanho, diálogo de excluir, erro de ação, carregando, erro de carregamento (10)                                                                                                                                             |
+| `configuracoes/`    | perfil, perfil salvo, alterar senha, senha não confere, créditos e uso, plano e cobrança, excluir conta, excluir conta com erro (8)                                                                                                                                                                                     |
+| `planos/`           | mensal, anual, logado no plano grátis, destaque Studio, destaque Factory, scroll final (6)                                                                                                                                                                                                                              |
+| `importacao/`       | passo 1 escolher arquivo, carregando, erro de arquivo grande, erro de leitura, erro sem peças, passo 2 mapear camadas, .rul carregado, criando molde, erro de créditos insuficientes, erro de preview, erro de criação (11)                                                                                             |
+
+Os estados de erro e de carregamento reusam os mesmos padrões visuais em todas as telas (cartão de aviso, skeleton com `skeleton-pulse`) — implemente uma vez e reaproveite; os prints por tela existem para conferir onde cada um aparece no layout, não porque cada um é diferente.
+
 ## Fidelidade
 
 **Alta fidelidade.** Cores, tipografia, espaçamento e componentes vêm do design system `moldai-ui` já publicado em `moldai/` (mesmos tokens: `--color-olive`, `--radius-card`, escalas de texto etc.). Recrie pixel a pixel usando os componentes de `components/ui/*` e os padrões que o próprio repositório já segue (App Router, Zustand stores, next-intl para textos).
@@ -49,6 +77,8 @@ Header com wordmark, título "Meus moldes", medidor de créditos, avatar. Sideba
 
 Layout de duas colunas: chat à esquerda (histórico de mensagens/créditos gastos por versão, "ver o que mudou · desfazer", campo de input), canvas 2D à direita com peças (Frente/Costas/Manga), tabs (Molde 2D / Prova 3D / Ficha técnica / Plano de corte), seletor de tamanho M/P/G, "graduar", zoom. Estrutura confere com `ChatPanel` + `CanvasArea` + `TabBar`. Sem mudanças de conteúdo identificadas — revisar densidade/espaçamento contra o screenshot.
 
+O **modal de exportar muda de conteúdo por aba** e tem três variações, uma por aba exportável (a aba Prova 3D não exporta e esconde o botão): _Exportar molde 2D_ (formato vetorial: SVG 1:1, DXF genérico, DXF AAMA/ASTM, PLT HPGL/2), _Exportar plano de corte_ (formato PDF, largura do tecido, lote por tamanho) e _Exportar ficha técnica_ (formato e itens incluídos). Título, subtítulo, corpo e o rótulo do botão de download são derivados da aba ativa — ver `editor/17-…`, `editor/18-…` e `editor/19-…`. Com conflito de costura o modal mostra o aviso âmbar e o botão de download fica desabilitado.
+
 ### 6. Histórico de versões (`Versoes.dc.html` → `app/pattern/[id]/versions/page.tsx` → `VersionsShell.tsx`)
 
 Linha do tempo v5→v1 (data relativa, motivo, custo em créditos, "Restaurar"), comparador "De/Para" com overlay e **delta de Comprimento** (ver item 3, novo) ao lado do delta de Cava já existente.
@@ -75,7 +105,7 @@ Passo 2 de 2 (mapear camadas): badges Beta + Grátis, nota de formato, cartão d
 
 ## Design tokens (já existentes em `moldai-ui`, não inventar novos)
 
-Cor: `--color-olive` (marca), `bg-surface`/`bg-surface-alt`/`bg-paper`, `text-muted-foreground`/`text-muted-2`, `border-border`, `bg-amber-bg`/`border-amber-border`/`text-amber-text` (avisos), `bg-destructive`/`text-destructive` (erros). Tipografia: escala `text-tick/meta/ui/control/body/title/display`, fontes `font-display` (Bricolage Grotesque) e Archivo (corpo). Raio: `rounded-card` (13.5px), `rounded-btn` (9.5px).
+Cor: `--color-olive` (marca), `bg-surface`/`bg-surface-alt`/`bg-paper`, `text-muted-foreground`/`text-muted-2`, `border-border`, `bg-amber-bg`/`border-amber-border`/`text-amber-text` (avisos — utilitários Tailwind do `moldai-ui`, não CSS vars `--color-amber-*`; nos arquivos de design os avisos usam `--color-alert` sobre `--color-surface-alt`), `bg-destructive`/`text-destructive` (erros). Tipografia: escala `text-tick/meta/ui/control/body/title/display`, fontes `font-display` (Bricolage Grotesque) e Archivo (corpo). Raio: `rounded-card` (13.5px), `rounded-btn` (9.5px).
 
 ## Assets
 
@@ -83,5 +113,7 @@ Nenhum asset de imagem novo — os cartões de "base"/"molde" no design usam pla
 
 ## Arquivos
 
-- `screens/*.dc.html` — os 11 arquivos de referência de design (10 telas; Autenticação cobre Login/Signup/Reset/Verify com o mesmo cartão).
+- `screens/*.dc.html` — os 11 arquivos de referência de design (10 telas; Autenticação cobre Login/Signup/Reset/Verify com o mesmo cartão) + `Estados de interacao.dc.html`, a folha de hover/foco.
 - `screenshots/*.png` — captura visual de cada tela, para quem não pode abrir os `.dc.html`.
+- `screenshots/states/<tela>/` — um print por estado, 105 no total, todos 1280×900. Ver o índice acima.
+- `screenshots/estados-de-interacao.png` — a folha de estados de interação.

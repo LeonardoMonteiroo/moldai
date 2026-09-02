@@ -938,6 +938,17 @@ class Component extends DCLogic {
     ),
   };
 
+  componentDidMount() {
+    const preset = {
+      tab3d: { activeTab: "3d" },
+      tabFicha: { activeTab: "ficha" },
+      tabCorte: { activeTab: "corte" },
+      exportModal2d: { activeTab: "2d", showExportModal: true },
+      exportModalCorte: { activeTab: "corte", showExportModal: true },
+      exportModalFicha: { activeTab: "ficha", showExportModal: true },
+    }[this.props.state];
+    if (preset) this.setState(preset);
+  }
   setTab(id) {
     this.setState({ activeTab: id });
   }
