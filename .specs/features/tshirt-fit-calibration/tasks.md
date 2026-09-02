@@ -181,7 +181,7 @@ already includes `"band"` (no enum/schema/prompt change).
 
 ---
 
-### T4: Band collar height 4cm → 5cm
+### T4: Band collar height 4cm → 5cm ✅ Complete
 
 **What**: Change `subpieces.ts`'s `BAND_COLLAR_HEIGHT_CM` from 4 to 5, citing the benchmark's
 directly-comparable, grade-invariant collar-band width. Add one new assertion (none existed

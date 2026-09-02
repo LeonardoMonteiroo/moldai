@@ -1626,6 +1626,21 @@ describe("seam graph (#134)", () => {
     expect(collar.outlineCm).toHaveLength(6); // straightBand()'s own rectangle
   });
 
+  // tshirt-fit-calibration: BAND_COLLAR_HEIGHT_CM corrected from 4 to 5cm --
+  // no test guarded this constant before now.
+  it("the band collar's stand height is exactly 5cm", () => {
+    const spec = {
+      type: "blouse" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { neckline: "round" as const, collar: "band" as const },
+    };
+    const pieces = draftPiecesCm(spec, SIZE_TABLE.M, t);
+    const collar = pieces.find((p) => p.id === "collar")!;
+    const ys = collar.outlineCm.map(([, y]) => y);
+    expect(Math.max(...ys) - Math.min(...ys)).toBeCloseTo(5, 5);
+  });
+
   // #222 AC: the classic two-piece shirt collar -- a stand mated to the
   // body's neckline (same construction as "band") PLUS a separate fall
   // mated to the stand's own upper seam, instead of the single-piece

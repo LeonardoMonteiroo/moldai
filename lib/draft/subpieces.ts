@@ -318,7 +318,12 @@ export function draftWaistband(waistLenCm: number, t: Translate): DraftedPiece {
 // band" per their own issue's decision) rather than a second bespoke shape
 // -- a flat stand has no outer curve to draft at all, so there is nothing
 // convertible's Catmull-Rom fold construction would add here.
-const BAND_COLLAR_HEIGHT_CM = 4; // stand height only -- shorter than COLLAR_HEIGHT_CM (6.5), which also carries the fall
+// tshirt-fit-calibration: was 4 -- a real graded crew-neck tee's own rib
+// collar band measures a flat 5cm wide, constant across every graded size
+// (docs/reference/tshirt-benchmark/measurements.json's collarBand.widthCm),
+// the one figure in that reference comparable independent of any
+// body-measurement assumption (a flat authored constant on both sides).
+const BAND_COLLAR_HEIGHT_CM = 5; // stand height only -- shorter than COLLAR_HEIGHT_CM (6.5), which also carries the fall
 
 // #221: the neckline lowering deltas a stand collar needs BEFORE its own
 // seam edge is measured (muellerundsohn.com's own figures, 3-0 verified) --
