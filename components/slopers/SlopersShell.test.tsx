@@ -3,6 +3,7 @@ import {
   renderWithIntl,
   ptBR,
   screen,
+  within,
   userEvent,
   waitFor,
   translatorFor,
@@ -206,7 +207,17 @@ describe("SlopersShell", () => {
     expect(
       screen.getByRole("heading", { name: ptBR.Slopers.title }),
     ).toBeVisible();
-    expect(screen.getByText(ptBR.Slopers.subtitle)).toBeVisible();
+
+    // The design moves the subtitle out of the top PageHeader into the
+    // content column -- scoped to each landmark so a regression that puts it
+    // back in the header (or drops it from the content column) is caught,
+    // not just "the text is somewhere on screen."
+    expect(
+      within(screen.getByRole("banner")).queryByText(ptBR.Slopers.subtitle),
+    ).not.toBeInTheDocument();
+    expect(
+      within(screen.getByRole("main")).getByText(ptBR.Slopers.subtitle),
+    ).toBeVisible();
 
     // The screen cannot hand-roll a header, so this is really an assertion
     // that it goes through AppShell/PageHeader at all.

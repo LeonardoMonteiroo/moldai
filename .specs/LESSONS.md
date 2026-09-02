@@ -98,6 +98,13 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: SZCH-04,SZCH-08 (components/size-charts)
 - last seen: 2026-09-02T12:01:18Z
 
+### L-013 - When an AC moves display text from AppShell's header (PageHeader subtitle) into a screen's own content column, assert it via a header-scoped query (e.g. within a banner/header landmark, or assert the AppShell/PageHeader prop directly) -- a bare document-wide getByText(subtitle) passes whether the text is in the header or the content region, so it does not catch a full revert of the relocation.
+
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `components/slopers,components/shared/PageHeader.tsx` · harmful: 0
+- features: redesign-slopers
+- evidence: components/slopers/SlopersShell.test.tsx:209 (components/slopers,components/shared/PageHeader.tsx)
+- last seen: 2026-09-02T12:33:31Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
