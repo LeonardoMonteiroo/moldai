@@ -60,6 +60,18 @@ describe("SignupCard", () => {
     vi.mocked(resendVerification).mockReset();
   });
 
+  // Redesign reference (Autenticacao.dc.html:75) shows a password
+  // requirement hint under the field -- its exact wording claims a
+  // letters+numbers rule this app never enforces (lib/account/settings.ts
+  // has no complexity check, only MIN_PASSWORD_LENGTH), so the catalog copy
+  // states only the real, enforced rule rather than the design's literal text.
+  it("shows the real password requirement, not an unenforced complexity claim", () => {
+    renderWithIntl(<SignupCard />);
+    expect(screen.getByText(ptBR.Signup.passwordHint)).toBeInTheDocument();
+    expect(ptBR.Signup.passwordHint).toContain(String(MIN_PASSWORD_LENGTH));
+    expect(ptBR.Signup.passwordHint).not.toMatch(/letras e números/);
+  });
+
   it("creates the account with the typed fields and never sends the confirm field", async () => {
     vi.mocked(signUp).mockResolvedValue({ status: "ok" });
     renderWithIntl(<SignupCard />);

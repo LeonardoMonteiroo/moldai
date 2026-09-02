@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   Field,
+  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
@@ -160,6 +161,7 @@ export default function SignupCard() {
                 autoComplete="new-password"
                 className="bg-surface-alt"
               />
+              <FieldDescription>{t("passwordHint")}</FieldDescription>
             </Field>
             <Field data-invalid={mismatch || undefined}>
               <FieldLabel htmlFor="signup-confirm">
