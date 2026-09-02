@@ -632,7 +632,7 @@
     "invalidCredentials": "Email ou senha inválidos.",
     "submitButton": "Entrar",
     "submitButtonLoading": "Entrando…",
-    "signupNote": "Ainda não tem conta? <a>Criar conta</a>. Cada conta tem os seus próprios moldes, salvos automaticamente.",
+    "signupNote": "Ainda não tem conta? <a>Criar conta</a>.",
     "unverifiedEmail": "Confirme seu email antes de entrar. Enviamos um link quando você criou a conta.",
     "rateLimited": "Muitas tentativas. Aguarde alguns minutos e tente de novo.",
     "resendButton": "Reenviar link de confirmação",
@@ -1131,6 +1131,7 @@
     "title": "Configurações"
   },
   "SettingsSidebar": {
+    "sectionEyebrow": "Conta",
     "profileLabel": "Perfil",
     "passwordLabel": "Alterar senha",
     "dangerZoneLabel": "Excluir conta",

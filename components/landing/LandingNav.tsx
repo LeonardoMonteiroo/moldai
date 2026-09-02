@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Wordmark } from "@/components/shared/Wordmark";
@@ -23,6 +24,11 @@ import { Wordmark } from "@/components/shared/Wordmark";
 // second place to maintain it.
 export function LandingNav({ signedIn = false }: { signedIn?: boolean }) {
   const t = useTranslations("Landing");
+  // Planos.dc.html shows this same nav's "Planos" link in the accent color
+  // while every other link (and Planos itself on every other page) stays
+  // text-muted-2 -- the design's plain "current page" indicator, not a new
+  // link or section.
+  const isPlanos = usePathname() === "/planos";
 
   return (
     <div className="bg-surface border-border flex items-center gap-[26px] border-b px-[30px] py-4">
@@ -34,7 +40,12 @@ export function LandingNav({ signedIn = false }: { signedIn?: boolean }) {
       <Button asChild variant="ghost" size="chrome" className="text-muted-2">
         <Link href="/#faq">{t("nav.faq")}</Link>
       </Button>
-      <Button asChild variant="ghost" size="chrome" className="text-muted-2">
+      <Button
+        asChild
+        variant="ghost"
+        size="chrome"
+        className={isPlanos ? "text-accent-foreground" : "text-muted-2"}
+      >
         <Link href="/planos">{t("nav.plans")}</Link>
       </Button>
       {signedIn ? (

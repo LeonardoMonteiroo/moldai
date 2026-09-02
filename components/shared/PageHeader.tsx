@@ -114,29 +114,33 @@ export function PageHeader({
       )}
       <div className="flex-1" />
       {credits && (
-        <>
-          <div className="flex w-[168px] flex-col gap-[5px]">
-            <div className="text-muted text-meta flex justify-between">
-              <span>
-                {t("creditsLabel", {
-                  planLabel: tPlan(`plans.${credits.plan}.name`),
-                  balance: credits.balance,
-                })}
-              </span>
-              <span>{t("outOfTotal", { total: credits.total })}</span>
-            </div>
-            <div className="bg-track h-[5px] overflow-hidden rounded-full">
-              <div className="bg-olive h-full" style={{ width: `${pct}%` }} />
-            </div>
+        // Planos.dc.html's compact pill: a single-line label + a small inline
+        // bar + an inline "comprar"-style link, all inside one rounded-full
+        // chip -- not the two-line block-plus-full-width-bar-plus-separate-
+        // button this used to render (visibly heavier than the design, and
+        // the sole reason PageHeader diverged from it).
+        <div className="border-border bg-surface-alt rounded-pill flex h-[30px] items-center gap-2 border py-0 pr-1 pl-[11px]">
+          <span className="text-muted-2 text-meta whitespace-nowrap tabular-nums">
+            {t("creditsLabel", {
+              planLabel: tPlan(`plans.${credits.plan}.name`),
+              balance: credits.balance,
+            })}
+          </span>
+          <span className="text-muted text-meta whitespace-nowrap">
+            {t("outOfTotal", { total: credits.total })}
+          </span>
+          <div className="bg-track h-1 w-11 flex-none overflow-hidden rounded-full">
+            <div className="bg-olive h-full" style={{ width: `${pct}%` }} />
           </div>
           <Button
-            variant="outline"
+            variant="ghost"
             size="chrome"
+            className="text-olive hover:text-olive-dark h-6 flex-none rounded-full px-[9px] font-semibold"
             onClick={() => router.push("/settings?section=usage")}
           >
             {t("buyCreditsButton")}
           </Button>
-        </>
+        </div>
       )}
       {actions && (
         <>
