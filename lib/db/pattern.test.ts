@@ -37,6 +37,10 @@ vi.mock("./prisma", () => ({
           .filter((r) => r.userId === where.userId)
           .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()),
       ),
+      count: vi.fn(
+        async ({ where }: { where: { userId: string } }) =>
+          rows.filter((r) => r.userId === where.userId).length,
+      ),
       create: vi.fn(
         async ({
           data,
@@ -75,6 +79,7 @@ import {
   loadPattern,
   createPattern,
   listPatternsForUser,
+  countPatternsForUser,
   renamePattern,
   deletePattern,
   patternNotFound,
@@ -286,6 +291,16 @@ describe("listPatternsForUser", () => {
   it("returns only the user's patterns, most recently updated first", async () => {
     const list = await listPatternsForUser("u1");
     expect(list.map((m) => m.id)).toEqual(["m2", "m1"]);
+  });
+
+  // STGS-04: the settings account-summary card's pattern count reads this,
+  // not listPatternsForUser's MAX_PATTERNS_LISTED-capped, blob-parsing list.
+  // Asserted against real per-user counting behavior (not a spied call), so
+  // a mutation hardcoding the count is caught.
+  it("countPatternsForUser counts only that user's rows, uncapped", async () => {
+    await expect(countPatternsForUser("u1")).resolves.toBe(2);
+    await expect(countPatternsForUser("u2")).resolves.toBe(1);
+    await expect(countPatternsForUser("nobody")).resolves.toBe(0);
   });
 
   // #101: the query had no `take` at all -- an account with many patterns

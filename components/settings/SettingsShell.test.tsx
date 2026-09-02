@@ -89,6 +89,22 @@ describe("SettingsShell", () => {
     },
   );
 
+  // STGS-01: the account-summary card (its progress bar is the one
+  // unambiguous marker -- no other section renders a role="progressbar")
+  // must render only alongside Perfil, never the other four sections.
+  it.each(SETTINGS_SECTIONS.map((s) => [s] as const))(
+    "renders the account-summary card only for %s if it is profile",
+    (section) => {
+      renderShell(section);
+      const bar = screen.queryByRole("progressbar");
+      if (section === "profile") {
+        expect(bar).not.toBeNull();
+      } else {
+        expect(bar).toBeNull();
+      }
+    },
+  );
+
   it("keeps the marker map complete against SETTINGS_SECTIONS", () => {
     // The map above is the part that can go stale, so it is checked against
     // the section list rather than assumed complete.

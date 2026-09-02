@@ -59,8 +59,8 @@
 
 ## Success Criteria
 
-- [x] `npx vitest run --project dom components/settings` passes (61/61: 56 pre-existing + 5 new `AccountSummaryCard` tests).
-- [x] `npx vitest run --project node` passes (305/305) — the `UserRecord.createdAt` addition rippled into ~15 test fixtures across `app/api/*`, `lib/auth/*`, `lib/account/*`, `lib/db/users.test.ts`, all updated.
+- [x] `npx vitest run --project dom components/settings` passes (81/81 after the post-Verifier fix round: 56 pre-existing + 5 new `AccountSummaryCard` tests + 5 new `SettingsShell` exclusivity tests + net gain from the earlier 61).
+- [x] `npx vitest run --project node` passes (full `node` project: 2497 tests — the earlier "305/305" figure in this file was a scoped subset of the affected suites, not the real full-project count; corrected here per the Verifier's note) — the `UserRecord.createdAt` addition rippled into ~15 test fixtures across `app/api/*`, `lib/auth/*`, `lib/account/*`, `lib/db/users.test.ts`, all updated.
 - [x] `npx eslint` and `npx tsc --noEmit -p .` pass, full repo.
 - [x] No new hex values, `text-[Npx]` sizes, or hardcoded pt-BR strings (new copy goes through `AccountSummaryCard`'s own catalog namespace).
 - [x] No database migration — `createdAt` was already a column; `countPatternsForUser` is a plain `prisma.pattern.count`.
