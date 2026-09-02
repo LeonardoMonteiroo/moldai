@@ -1,0 +1,121 @@
+{
+  "sourceId": "237",
+  "category": "pantacourt coverall/jumpsuit with back neckline",
+  "moldaiArchetype": null,
+  "descriptionEn": "A pantacourt-length (capri) coverall/jumpsuit with a back neckline cutout, patch pockets, a waistband, and straps.",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "Approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces.",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top corner", "valueCm": 1.5 },
+        { "position": "upper-right segment", "valueCm": 13.25 },
+        { "position": "right edge, upper segment", "valueCm": 24.59 },
+        { "position": "right edge (vertical middle)", "valueCm": 18.35 },
+        { "position": "right edge, lower segment", "valueCm": 24.59 },
+        { "position": "bottom-right corner", "valueCm": 1.5 },
+        { "position": "bottom edge", "valueCm": 13.25 },
+        { "position": "left edge, upper segment 1", "valueCm": 4.03 },
+        { "position": "left edge, upper segment 2", "valueCm": 14.65 },
+        { "position": "left edge, upper segment 3", "valueCm": 5.64 },
+        { "position": "left edge (main)", "valueCm": 22.65 },
+        { "position": "left edge, lower segment 1", "valueCm": 4.03 },
+        { "position": "left edge, lower segment 2", "valueCm": 14.65 },
+        { "position": "left edge, lower segment 3", "valueCm": 5.65 }
+      ]
+    },
+    {
+      "nameEn": "RECORTE",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 5.4 },
+        { "position": "top edge, right segment", "valueCm": 5.4 },
+        { "position": "left edge", "valueCm": 26.09 },
+        { "position": "right edge", "valueCm": 26.09 },
+        { "position": "bottom edge, left segment", "valueCm": 7.37 },
+        { "position": "bottom edge, right segment", "valueCm": 7.37 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 4,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 3.55 },
+        { "position": "top edge, segment", "valueCm": 14.36 },
+        { "position": "top edge, right segment", "valueCm": 13.53 },
+        { "position": "left edge", "valueCm": 15.77 },
+        { "position": "bottom edge (curve)", "valueCm": 47.59 }
+      ]
+    },
+    {
+      "nameEn": "waistband (back section)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 9 },
+        { "position": "left edge", "valueCm": 49.85 },
+        { "position": "right edge", "valueCm": 49.85 },
+        { "position": "bottom edge", "valueCm": 9 }
+      ]
+    },
+    {
+      "nameEn": "waistband (front section)",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 5 },
+        { "position": "left edge", "valueCm": 40 },
+        { "position": "right edge", "valueCm": 40 },
+        { "position": "bottom edge", "valueCm": 5 }
+      ]
+    },
+    {
+      "nameEn": "front leg panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 3.55 },
+        { "position": "top edge, segment", "valueCm": 14.36 },
+        { "position": "top edge, right segment", "valueCm": 69.14 },
+        { "position": "left edge, segment 1", "valueCm": 6.68 },
+        { "position": "left edge, segment 2", "valueCm": 5.01 },
+        { "position": "left edge, segment 3", "valueCm": 13.26 },
+        { "position": "left edge, segment 4", "valueCm": 18.17 },
+        { "position": "left edge, segment 5", "valueCm": 15.5 },
+        { "position": "bottom edge", "valueCm": 50.09 },
+        { "position": "bottom-right corner", "valueCm": 4 },
+        { "position": "right edge", "valueCm": 35.85 }
+      ]
+    },
+    {
+      "nameEn": "back leg panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 87.07 },
+        { "position": "left edge, upper segment", "valueCm": 25.91 },
+        { "position": "left edge, lower segment", "valueCm": 43.3 },
+        { "position": "bottom edge", "valueCm": 50.09 },
+        { "position": "bottom-right corner", "valueCm": 4.01 },
+        { "position": "right edge", "valueCm": 36.24 }
+      ]
+    },
+    {
+      "nameEn": "strap",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 9 },
+        { "position": "left edge", "valueCm": 70 },
+        { "position": "right edge", "valueCm": 70 },
+        { "position": "bottom edge", "valueCm": 9 }
+      ]
+    }
+  ],
+  "notes": "One small piece's label was too cramped/rotated to confidently translate beyond the literal token 'RECORTE' (cutout/insert); its quantity was not clearly legible so the qty field was omitted for it."
+}

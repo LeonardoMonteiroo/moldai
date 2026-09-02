@@ -1,0 +1,91 @@
+{
+  "sourceId": "209",
+  "category": "short-sleeve-polo-shirt-with-zipper",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "short-sleeve polo shirt with a zip placket, structured collar, and a facing piece",
+  "gender": "unisex",
+  "baseSizeLabel": "M",
+  "gradeNote": "average 1cm variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 2.07 },
+        { "position": "top edge, mid-left segment", "valueCm": 24.84 },
+        { "position": "top edge", "valueCm": 33.48 },
+        { "position": "left edge, upper segment", "valueCm": 14.81 },
+        { "position": "left edge, mid segment", "valueCm": 16.49 },
+        { "position": "left edge, lower segment", "valueCm": 14.81 },
+        { "position": "bottom edge, left segment", "valueCm": 2.07 },
+        { "position": "bottom edge, mid-left segment", "valueCm": 24.84 },
+        { "position": "bottom edge", "valueCm": 33.48 },
+        { "position": "right edge", "valueCm": 50.77 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left curved segment", "valueCm": 23.35 },
+        { "position": "top edge", "valueCm": 33.48 },
+        { "position": "left edge, upper segment", "valueCm": 14.81 },
+        { "position": "left edge, mid segment", "valueCm": 25.4 },
+        { "position": "left edge, lower segment", "valueCm": 14.81 },
+        { "position": "bottom edge, left curved segment", "valueCm": 23.35 },
+        { "position": "bottom edge", "valueCm": 33.48 },
+        { "position": "right edge", "valueCm": 50.77 }
+      ]
+    },
+    {
+      "nameEn": "facing",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 4.5 },
+        { "position": "top edge", "valueCm": 18 },
+        { "position": "right edge", "valueCm": 9 },
+        { "position": "bottom-left corner", "valueCm": 4.5 },
+        { "position": "bottom edge", "valueCm": 18 }
+      ]
+    },
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 10.51 },
+        { "position": "left edge, full length", "valueCm": 42.09 },
+        { "position": "mid tick", "valueCm": 20.85 },
+        { "position": "bottom edge", "valueCm": 10.51 }
+      ]
+    },
+    {
+      "nameEn": "collar interfacing",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 8.09 },
+        { "position": "left edge, full length", "valueCm": 40.18 },
+        { "position": "mid tick", "valueCm": 19.91 },
+        { "position": "bottom edge", "valueCm": 8.09 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left segment", "valueCm": 12.94 },
+        { "position": "top-right corner", "valueCm": 2.09 },
+        { "position": "left edge", "valueCm": 48.86 },
+        { "position": "right edge", "valueCm": 32.64 },
+        { "position": "bottom-left segment", "valueCm": 12.94 },
+        { "position": "bottom-right corner", "valueCm": 2.09 }
+      ]
+    }
+  ],
+  "notes": null
+}

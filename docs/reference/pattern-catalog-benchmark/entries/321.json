@@ -1,0 +1,50 @@
+{
+  "sourceId": "321",
+  "category": "baby-hooded-towel",
+  "moldaiArchetype": null,
+  "descriptionEn": "baby hooded towel: a large square/diamond body panel plus a small pointed hood piece, drawn twice (likely a duplicate layout for cutting reference)",
+  "gender": "baby",
+  "baseSizeLabel": "one size",
+  "pieces": [
+    {
+      "nameEn": "body panel (diamond/square towel body)",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top-left edge", "valueCm": 54.72 },
+        { "position": "top-right edge", "valueCm": 54.72 },
+        { "position": "bottom-left edge", "valueCm": 54.72 },
+        { "position": "bottom-right edge", "valueCm": 54.72 },
+        { "position": "top corner, left tick", "valueCm": 6.8 },
+        { "position": "top corner, right tick", "valueCm": 6.8 },
+        { "position": "bottom corner, left tick", "valueCm": 6.8 },
+        { "position": "bottom corner, right tick", "valueCm": 6.8 },
+        { "position": "left corner, upper tick", "valueCm": 6.86 },
+        { "position": "left corner, lower tick", "valueCm": 6.86 },
+        { "position": "right corner, upper tick", "valueCm": 6.86 },
+        { "position": "right corner, lower tick", "valueCm": 6.86 }
+      ]
+    },
+    {
+      "nameEn": "hood piece (pointed/kite-shaped)",
+      "originalLabelUnclear": true,
+      "edges": [
+        {
+          "position": "upper edge (from top point toward tip)",
+          "valueCm": 25.86
+        },
+        {
+          "position": "upper-right edge (toward tip, upper segment)",
+          "valueCm": 24.45
+        },
+        { "position": "tip, upper segment", "valueCm": 6.84 },
+        { "position": "tip, lower segment", "valueCm": 6.84 },
+        {
+          "position": "lower-right edge (from tip toward bottom point, lower segment)",
+          "valueCm": 24.45
+        },
+        { "position": "lower edge (toward bottom point)", "valueCm": 25.86 }
+      ]
+    }
+  ],
+  "notes": "Piece name labels on the scanned drawing render as small illegible text blocks; nameEn values above are inferred from garment type (hooded towel) and piece shape, not read directly from the drawing, so originalLabelUnclear is set for both. The whole two-piece layout appears twice on the page (identical numbers); only one instance is recorded here as duplicate data."
+}

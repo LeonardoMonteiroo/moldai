@@ -1,0 +1,36 @@
+{
+  "sourceId": "146",
+  "category": "spaghetti-strap pajama tank top",
+  "moldaiArchetype": null,
+  "descriptionEn": "sleeveless pajama camisole/tank top with thin adjustable straps",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 38.89 },
+        { "position": "upper-right diagonal edge", "valueCm": 17.16 },
+        { "position": "right edge, mid segment", "valueCm": 25.28 },
+        { "position": "lower-right diagonal edge", "valueCm": 17.16 },
+        { "position": "bottom edge", "valueCm": 38.89 },
+        { "position": "left edge (full height)", "valueCm": 52.71 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 38.89 },
+        { "position": "left edge (full height)", "valueCm": 52.71 },
+        { "position": "right edge (full height)", "valueCm": 47.89 },
+        { "position": "bottom edge", "valueCm": 38.89 }
+      ]
+    }
+  ],
+  "notes": "the source sheet also lists a per-size strap-length table (a fixed cm value per graded size, not a pattern-piece edge), omitted here since it is not a piece measurement."
+}

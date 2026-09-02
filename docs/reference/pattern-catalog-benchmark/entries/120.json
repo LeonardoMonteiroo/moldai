@@ -1,0 +1,34 @@
+{
+  "sourceId": "120",
+  "category": "long-wrap-sarong-skirt",
+  "moldaiArchetype": "skirt",
+  "descriptionEn": "long wrap/sarong-style skirt, one size, with a fan-shaped main panel and a curved waistband",
+  "gender": "female",
+  "baseSizeLabel": "Único",
+  "gradeNote": "one size only; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "skirt panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "left edge (straight)", "valueCm": 140.95 },
+        { "position": "outer edge (curved)", "valueCm": 306.29 }
+      ]
+    },
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "end edge, top", "valueCm": 12.48 },
+        { "position": "end edge, bottom", "valueCm": 12.48 },
+        { "position": "straight edge, left half", "valueCm": 54.5 },
+        { "position": "straight edge, right half", "valueCm": 54.5 },
+        { "position": "inner curve", "valueCm": 95.31 },
+        { "position": "outer curve", "valueCm": 101.68 }
+      ]
+    }
+  ],
+  "notes": "The main skirt panel has only two numeric dimensions on the source drawing (its other edges are drawn but not dimensioned); a separate construction note on that piece instructs gathering the edge to a finished length of 1.10 m, which is a sewing instruction rather than a drawn outline edge and was not recorded as an edge value. For the waistband piece, the source drawing groups two sets of numbers close together (a rectangle-style pair of dimensions and a curved-outline pair of dimensions); which physical edges the 54.5/54.5 values correspond to versus the 95.31/101.68 curve values is not fully certain from the rendering."
+}

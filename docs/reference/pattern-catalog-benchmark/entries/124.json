@@ -1,0 +1,118 @@
+{
+  "sourceId": "124",
+  "category": "long-slip-dress",
+  "moldaiArchetype": "dress",
+  "descriptionEn": "long slip dress with front and back panels running from bodice to hem, separate linings, and narrow straps",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern print output",
+  "pieces": [
+    {
+      "nameEn": "front lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 18.22 },
+        {
+          "position": "upper-left, first segment from top corner",
+          "valueCm": 6.05
+        },
+        { "position": "upper-left, second segment", "valueCm": 7.99 },
+        {
+          "position": "upper-left, third (diagonal) segment",
+          "valueCm": 13.63
+        },
+        {
+          "position": "mid-piece horizontal measurement (near piece label)",
+          "valueCm": 35.89
+        },
+        { "position": "right edge, full height", "valueCm": 47.23 },
+        {
+          "position": "lower-left, first mirrored segment (diagonal)",
+          "valueCm": 13.63
+        },
+        { "position": "lower-left, second mirrored segment", "valueCm": 8.15 },
+        { "position": "lower-left, third mirrored segment", "valueCm": 6.05 },
+        { "position": "bottom edge", "valueCm": 18.22 }
+      ]
+    },
+    {
+      "nameEn": "back lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge (corner 1-2)", "valueCm": 18.22 },
+        { "position": "right edge (corner 2-3)", "valueCm": 47.26 },
+        { "position": "left edge (corner 1-4)", "valueCm": 45.43 },
+        { "position": "bottom edge (corner 4-3)", "valueCm": 18.22 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        {
+          "position": "top-left, first segment from top corner",
+          "valueCm": 6.04
+        },
+        { "position": "top-left, second segment", "valueCm": 8.01 },
+        { "position": "top-left, third (diagonal) segment", "valueCm": 13.63 },
+        {
+          "position": "mid-piece horizontal measurement (near piece label)",
+          "valueCm": 36.29
+        },
+        { "position": "top edge, right portion", "valueCm": 69.12 },
+        { "position": "top-right corner, outer segment", "valueCm": 40.17 },
+        { "position": "top-right corner, inner segment", "valueCm": 1.55 },
+        { "position": "right edge, full height", "valueCm": 58.78 },
+        {
+          "position": "bottom edge, right portion (mirrored)",
+          "valueCm": 69.12
+        },
+        {
+          "position": "bottom-right corner, outer segment (mirrored)",
+          "valueCm": 40.17
+        },
+        {
+          "position": "bottom-right corner, inner segment (mirrored)",
+          "valueCm": 1.55
+        },
+        {
+          "position": "bottom-left, first mirrored segment (diagonal)",
+          "valueCm": 13.63
+        },
+        { "position": "bottom-left, second mirrored segment", "valueCm": 8.13 },
+        { "position": "bottom-left, third mirrored segment", "valueCm": 6.04 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, right portion", "valueCm": 69.12 },
+        { "position": "top-right corner, outer segment", "valueCm": 40.17 },
+        { "position": "top-right corner, inner segment", "valueCm": 1.55 },
+        { "position": "right edge, full height", "valueCm": 58.78 },
+        {
+          "position": "left edge, full height (slightly curved)",
+          "valueCm": 45.39
+        },
+        {
+          "position": "bottom edge, right portion (mirrored)",
+          "valueCm": 69.12
+        },
+        {
+          "position": "bottom-right corner, outer segment (mirrored)",
+          "valueCm": 40.17
+        },
+        {
+          "position": "bottom-right corner, inner segment (mirrored)",
+          "valueCm": 1.55
+        }
+      ]
+    }
+  ],
+  "notes": "front and back panels each also show a horizontal measurement line near the piece name label (35.89 / 36.29) whose exact reference point on the outline is not fully clear from the drawing; recorded as-is under 'mid-piece horizontal measurement'."
+}

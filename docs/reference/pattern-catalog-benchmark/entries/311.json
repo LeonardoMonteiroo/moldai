@@ -1,0 +1,127 @@
+{
+  "sourceId": "311",
+  "category": "baby short-sleeve raglan button-front shirt",
+  "moldaiArchetype": null,
+  "descriptionEn": "baby short-sleeve button-front shirt with raglan sleeves and a two-piece front placket",
+  "gender": "baby",
+  "baseSizeLabel": "M",
+  "gradeNote": "average approx. 1 cm variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 18.85 },
+        { "position": "top right corner", "valueCm": 1.5 },
+        {
+          "position": "top left diagonal segment (raglan seam)",
+          "valueCm": 20.74
+        },
+        { "position": "vertical center span (height)", "valueCm": 32.09 },
+        { "position": "horizontal center span", "valueCm": 37.74 },
+        { "position": "left point, upper tiny segment", "valueCm": 5.16 },
+        { "position": "left point, tip", "valueCm": 0 },
+        { "position": "left point, lower tiny segment", "valueCm": 5.16 },
+        { "position": "right edge, upper segment", "valueCm": 17.51 },
+        {
+          "position": "bottom left diagonal segment (mirrored)",
+          "valueCm": 20.74
+        },
+        { "position": "bottom edge", "valueCm": 18.85 },
+        { "position": "bottom right corner", "valueCm": 1.5 },
+        { "position": "right edge, lower segment", "valueCm": 17.51 }
+      ]
+    },
+    {
+      "nameEn": "front, left side",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        {
+          "position": "top left diagonal segment (raglan seam)",
+          "valueCm": 17.73
+        },
+        { "position": "top edge", "valueCm": 19.35 },
+        { "position": "top right corner", "valueCm": 1.5 },
+        { "position": "right edge", "valueCm": 20.23 },
+        { "position": "left edge, segment below diagonal", "valueCm": 6.61 },
+        { "position": "left edge, next segment", "valueCm": 2.92 },
+        { "position": "bottom edge, left segment", "valueCm": 8.92 },
+        { "position": "bottom edge, right segment", "valueCm": 22.11 },
+        { "position": "bottom right corner", "valueCm": 1.5 }
+      ]
+    },
+    {
+      "nameEn": "front, right side",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 8.92 },
+        { "position": "top edge, right segment", "valueCm": 22.11 },
+        { "position": "top right corner", "valueCm": 1.5 },
+        { "position": "left edge, segment near top", "valueCm": 2.92 },
+        { "position": "left edge, next segment", "valueCm": 6.61 },
+        { "position": "horizontal line, shorter span", "valueCm": 18.51 },
+        { "position": "horizontal line, full span", "valueCm": 35.3 },
+        { "position": "right edge", "valueCm": 20.23 },
+        {
+          "position": "bottom left diagonal segment (raglan seam)",
+          "valueCm": 17.73
+        },
+        { "position": "bottom edge", "valueCm": 19.35 },
+        { "position": "bottom right corner", "valueCm": 1.5 }
+      ]
+    },
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 7.6 },
+        { "position": "top edge, right segment", "valueCm": 7.6 },
+        { "position": "left edge, segment 1", "valueCm": 12.36 },
+        { "position": "right edge, segment 1", "valueCm": 12.36 },
+        { "position": "vertical center length", "valueCm": 36.99 },
+        { "position": "horizontal small segment near center", "valueCm": 8.01 },
+        { "position": "left edge, segment 2 (mirrored)", "valueCm": 12.36 },
+        { "position": "right edge, segment 2 (mirrored)", "valueCm": 12.36 },
+        { "position": "bottom edge, left segment", "valueCm": 7.6 },
+        { "position": "bottom edge, right segment", "valueCm": 7.6 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        {
+          "position": "top area, left value (partially cut off in scan)",
+          "valueCm": null
+        },
+        {
+          "position": "top area, right value (partially cut off in scan)",
+          "valueCm": null
+        },
+        { "position": "right edge, upper segment", "valueCm": 28.98 },
+        { "position": "left edge, upper segment", "valueCm": 20.43 },
+        { "position": "horizontal center span", "valueCm": 26.92 },
+        { "position": "left edge tip", "valueCm": 8.95 },
+        {
+          "position": "right edge, mid segment (partially cut off in scan)",
+          "valueCm": null
+        },
+        { "position": "left edge, lower segment", "valueCm": 17.91 },
+        {
+          "position": "bottom area, left value (partially cut off in scan)",
+          "valueCm": null
+        },
+        {
+          "position": "bottom area, right value (partially cut off in scan)",
+          "valueCm": null
+        }
+      ]
+    }
+  ],
+  "notes": "sleeve piece: the drawing's right-hand edge was cropped at the source PDF's page boundary, so four values on that piece's right side were only partially visible (fragments like a lone '8', '-2.0', '25', truncated digits) and could not be read reliably — recorded as null rather than guessed. All other pieces were fully legible."
+}

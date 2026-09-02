@@ -1,0 +1,109 @@
+{
+  "sourceId": "322",
+  "category": "baby-cardigan-princess-sleeve",
+  "moldaiArchetype": null,
+  "descriptionEn": "baby cardigan/jacket with a princess-style sleeve, multiple body and trim pieces",
+  "gender": "baby",
+  "baseSizeLabel": "2",
+  "gradeNote": "approx. 1 cm average variation between graded sizes",
+  "pieces": [
+    {
+      "nameEn": "tapered band piece",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top edge", "valueCm": 35.13 },
+        { "position": "bottom edge", "valueCm": 39.13 },
+        { "position": "left edge", "valueCm": 8.59 },
+        { "position": "right edge", "valueCm": 6.02 },
+        { "position": "bottom-left diagonal", "valueCm": 4.8 }
+      ]
+    },
+    {
+      "nameEn": "narrow rectangular panel piece",
+      "originalLabelUnclear": true,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 21.5 },
+        { "position": "bottom edge", "valueCm": 21.5 },
+        { "position": "left edge", "valueCm": 32.87 },
+        { "position": "right edge", "valueCm": 33.44 }
+      ]
+    },
+    {
+      "nameEn": "curved panel piece",
+      "originalLabelUnclear": true,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 21.84 },
+        { "position": "left edge, upper curve segment", "valueCm": 20.09 },
+        { "position": "left edge, lower curve segment", "valueCm": 20.1 },
+        { "position": "bottom edge", "valueCm": 21.84 },
+        { "position": "right edge", "valueCm": 18.28 }
+      ]
+    },
+    {
+      "nameEn": "petal-shaped piece A",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top edge", "valueCm": 9.74 },
+        { "position": "left edge, upper segment", "valueCm": 17.23 },
+        { "position": "right edge, upper segment", "valueCm": 13.42 },
+        { "position": "left edge, lower segment", "valueCm": 17.23 },
+        { "position": "right edge, lower segment", "valueCm": 13.42 },
+        { "position": "bottom edge", "valueCm": 9.74 }
+      ]
+    },
+    {
+      "nameEn": "small quadrilateral piece",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top edge", "valueCm": 11.63 },
+        { "position": "left edge, upper segment", "valueCm": 8.59 },
+        { "position": "left edge, lower segment", "valueCm": 8.39 },
+        { "position": "right edge", "valueCm": 15.83 },
+        { "position": "bottom-right small segment", "valueCm": 3.26 },
+        { "position": "bottom edge", "valueCm": 11.24 }
+      ]
+    },
+    {
+      "nameEn": "long strip piece (width not dimensioned, only length segments shown)",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top segment (vertical)", "valueCm": 28.62 },
+        { "position": "middle segment (vertical)", "valueCm": 57.25 },
+        { "position": "bottom segment (vertical)", "valueCm": 28.62 }
+      ]
+    },
+    {
+      "nameEn": "petal-shaped piece B",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top-left segment", "valueCm": 14.35 },
+        { "position": "top-right small segment", "valueCm": 3.26 },
+        { "position": "left edge, upper segment", "valueCm": 8.39 },
+        { "position": "right edge, upper segment", "valueCm": 13.31 },
+        { "position": "left edge, mid-upper segment", "valueCm": 6.34 },
+        { "position": "left edge, mid-lower segment", "valueCm": 6.34 },
+        { "position": "left edge, lower segment", "valueCm": 8.39 },
+        { "position": "right edge, lower segment", "valueCm": 13.31 },
+        { "position": "bottom-left segment", "valueCm": 14.35 },
+        {
+          "position": "bottom-right small segment (cropped at scan edge)",
+          "valueCm": null
+        }
+      ]
+    },
+    {
+      "nameEn": "tall body panel",
+      "originalLabelUnclear": true,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 21.46 },
+        { "position": "bottom edge", "valueCm": 21.47 },
+        { "position": "left edge", "valueCm": 61.69 },
+        { "position": "right edge", "valueCm": 64.37 }
+      ]
+    }
+  ],
+  "notes": "Piece name labels render as small illegible pixelated text blocks throughout this scan, so all nameEn values are generic shape-based descriptions rather than transcriptions of the printed labels; originalLabelUnclear is set for every piece. Small isolated '2' marks next to some dimension lines were read as a cut-quantity indicator (qty 2) by convention; this is an inference, not a literal 'Quantidade:' label. One piece (petal-shaped piece B) has a value cropped at the bottom edge of the scanned page and is recorded as null. A tick-marked 'X ... 5' notation on the long strip piece was not numeric/legible and is omitted rather than guessed."
+}

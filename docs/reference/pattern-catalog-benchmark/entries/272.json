@@ -1,0 +1,63 @@
+{
+  "sourceId": "272",
+  "category": "women's raglan-sleeve UV protection t-shirt",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "women's long-sleeve UV-protection t-shirt with raglan sleeves and a separate neckband",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge (apex to top-right corner)", "valueCm": 46.38 },
+        { "position": "upper-left edge", "valueCm": 24.36 },
+        { "position": "left edge (curve)", "valueCm": 23.22 },
+        { "position": "lower-left edge", "valueCm": 24.36 },
+        { "position": "bottom edge", "valueCm": 46.38 },
+        { "position": "right edge", "valueCm": 50.52 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge (apex to top-right corner)", "valueCm": 46.39 },
+        { "position": "upper-left edge", "valueCm": 26.85 },
+        { "position": "left edge, upper segment", "valueCm": 8.65 },
+        { "position": "left edge, lower segment", "valueCm": 8.65 },
+        { "position": "lower-left edge", "valueCm": 26.85 },
+        { "position": "bottom edge", "valueCm": 46.39 },
+        { "position": "right edge", "valueCm": 50.52 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (apex to top-right corner)", "valueCm": 52.06 },
+        { "position": "upper-left edge", "valueCm": 26.88 },
+        { "position": "left edge", "valueCm": 8.66 },
+        { "position": "lower-left edge", "valueCm": 24.47 },
+        { "position": "bottom edge", "valueCm": 52.06 },
+        { "position": "right edge", "valueCm": 22.84 }
+      ]
+    },
+    {
+      "nameEn": "neckband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "left edge (length)", "valueCm": 46 },
+        { "position": "right edge (length)", "valueCm": 46 },
+        { "position": "top edge (width)", "valueCm": null },
+        { "position": "bottom edge (width)", "valueCm": null }
+      ]
+    }
+  ],
+  "notes": "Neckband piece: two width values near the top and bottom of the strip had overlapping/ambiguous digits in the source scan (rendered roughly as '22.69' and '26.39'); given typical neckband proportions the true values are plausibly close to 2.6-2.7 cm but this could not be confirmed, so both are recorded as null rather than guessed. The two clearly legible 46 cm values (piece length) are unaffected."
+}

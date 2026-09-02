@@ -1,0 +1,111 @@
+{
+  "sourceId": "215",
+  "category": "collarless-slim-blazer-with-inset-pockets",
+  "moldaiArchetype": null,
+  "descriptionEn": "collarless slim-fit blazer with inset pockets, a back cutout panel, and lining/facing pieces",
+  "gender": "unisex",
+  "baseSizeLabel": "M",
+  "gradeNote": "average 1cm variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "back cutout panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left segment", "valueCm": 9.84 },
+        { "position": "top edge", "valueCm": 38.98 },
+        { "position": "top-right segment", "valueCm": 17.64 },
+        { "position": "bottom-left segment", "valueCm": 0.52 },
+        { "position": "bottom edge", "valueCm": 48.23 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left tick", "valueCm": 23.61 },
+        { "position": "top edge", "valueCm": 46.54 },
+        { "position": "right edge", "valueCm": 22.04 },
+        { "position": "bottom edge", "valueCm": 46.54 },
+        { "position": "bottom-left segment", "valueCm": 22.43 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left segment", "valueCm": 14.51 },
+        { "position": "left edge, upper segment", "valueCm": 15.05 },
+        { "position": "top edge", "valueCm": 47.23 },
+        { "position": "right edge", "valueCm": 17 },
+        { "position": "left edge, mid segment", "valueCm": 19.29 },
+        { "position": "left edge, lower segment", "valueCm": 15.05 },
+        { "position": "bottom edge", "valueCm": 47.23 },
+        { "position": "bottom-left segment", "valueCm": 14.51 }
+      ]
+    },
+    {
+      "nameEn": "front lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left curved segment", "valueCm": 21.76 },
+        { "position": "top edge", "valueCm": 38.99 },
+        { "position": "right edge", "valueCm": 17.71 },
+        { "position": "left edge", "valueCm": 8.95 },
+        { "position": "bottom edge, left segment", "valueCm": 37.65 },
+        { "position": "bottom edge", "valueCm": 24.45 }
+      ]
+    },
+    {
+      "nameEn": "facing",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left segment", "valueCm": 7.06 },
+        { "position": "top edge", "valueCm": 37.4 },
+        { "position": "top-right segment", "valueCm": 24.38 },
+        { "position": "left edge", "valueCm": 42.3 },
+        { "position": "bottom-right segment", "valueCm": 33.52 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left segment", "valueCm": 22.18 },
+        { "position": "top edge", "valueCm": 38.98 },
+        { "position": "right edge", "valueCm": 17.21 },
+        { "position": "left edge", "valueCm": 15.02 },
+        { "position": "bottom-left segment", "valueCm": 42.3 },
+        { "position": "bottom edge", "valueCm": 33.04 }
+      ]
+    },
+    {
+      "nameEn": "back facing",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 9.46 },
+        { "position": "left edge", "valueCm": 19.33 },
+        { "position": "right edge", "valueCm": 39.01 },
+        { "position": "bottom edge", "valueCm": 9.46 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 40 },
+        { "position": "left edge", "valueCm": 18.98 },
+        { "position": "right edge", "valueCm": 18.98 },
+        { "position": "bottom edge", "valueCm": 40 }
+      ]
+    }
+  ],
+  "notes": "The small piece labeled 'CONTRA COSTASIX' (rendered vertically, partly overlapping its own dimension lines) was read with lower confidence than the rest of the sheet; identified generically as a back facing."
+}

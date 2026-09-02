@@ -1,0 +1,84 @@
+{
+  "sourceId": "307",
+  "category": "baby-sleeveless-bodysuit",
+  "moldaiArchetype": null,
+  "descriptionEn": "baby sleeveless/tank-style bodysuit (body regatinha) with curved armhole shaping front and back",
+  "gender": "baby",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left corner segment 1", "valueCm": 2.73 },
+        { "position": "top edge, left corner segment 2", "valueCm": 4.9 },
+        { "position": "top edge, main segment", "valueCm": 18.42 },
+        { "position": "top-right diagonal", "valueCm": 16.54 },
+        { "position": "right edge, small notch", "valueCm": 0.59 },
+        {
+          "position": "bottom-right diagonal (mirrors top-right)",
+          "valueCm": 16.54
+        },
+        {
+          "position": "bottom edge, main segment (mirrors top)",
+          "valueCm": 18.42
+        },
+        {
+          "position": "bottom edge, right corner segment (mirrors)",
+          "valueCm": 4.9
+        },
+        {
+          "position": "bottom edge, left corner segment (mirrors)",
+          "valueCm": 2.73
+        },
+        { "position": "left edge, upper segment", "valueCm": 7.61 },
+        { "position": "left edge, lower segment (mirrors)", "valueCm": 7.61 },
+        { "position": "center vertical reference line", "valueCm": 24.27 },
+        { "position": "center horizontal reference line", "valueCm": 36.27 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left corner segment 1", "valueCm": 2.5 },
+        { "position": "top edge, left corner segment 2", "valueCm": 5.12 },
+        { "position": "top edge, main segment", "valueCm": 10 },
+        { "position": "top-right diagonal segment 1", "valueCm": 8.41 },
+        {
+          "position": "right edge, diagonal segment 2 (upper)",
+          "valueCm": 13.03
+        },
+        { "position": "right edge, small notch", "valueCm": 0.6 },
+        {
+          "position": "right edge, diagonal segment 2 (lower, mirrors)",
+          "valueCm": 13.03
+        },
+        {
+          "position": "bottom-right diagonal segment 1 (mirrors)",
+          "valueCm": 8.41
+        },
+        {
+          "position": "bottom edge, main segment (mirrors top)",
+          "valueCm": 10
+        },
+        {
+          "position": "bottom edge, left corner segment 2 (mirrors)",
+          "valueCm": 5.12
+        },
+        {
+          "position": "bottom edge, left corner segment 1 (mirrors)",
+          "valueCm": 2.5
+        },
+        { "position": "left edge, upper segment", "valueCm": 7.61 },
+        { "position": "left edge, lower segment (mirrors)", "valueCm": 7.61 },
+        { "position": "center vertical reference line", "valueCm": 24.27 },
+        { "position": "center horizontal reference line", "valueCm": 31.18 }
+      ]
+    }
+  ],
+  "notes": "Both pieces' small armhole-notch values (0.59 and 0.6 cm) were printed with a stylized leading-zero glyph that rendered unusually in the scan but were legible with reasonable confidence."
+}

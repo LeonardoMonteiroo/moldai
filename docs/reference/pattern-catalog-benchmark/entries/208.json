@@ -1,0 +1,112 @@
+{
+  "sourceId": "208",
+  "category": "long-sleeve-polo-shirt-with-zipper",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "long-sleeve polo shirt with a zip placket, structured collar, and interfacing/facing pieces",
+  "gender": "unisex",
+  "baseSizeLabel": "M",
+  "gradeNote": "average 1cm variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "front interfacing",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top edge, left tick", "valueCm": 2.25 },
+        { "position": "top edge", "valueCm": 17 },
+        { "position": "top-right corner", "valueCm": 4.5 },
+        { "position": "bottom edge, left tick", "valueCm": 2.25 },
+        { "position": "bottom edge", "valueCm": 17 }
+      ]
+    },
+    {
+      "nameEn": "facing interfacing",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 4.5 },
+        { "position": "top edge", "valueCm": 18 },
+        { "position": "bottom-left corner", "valueCm": 4.5 },
+        { "position": "bottom edge", "valueCm": 18 }
+      ]
+    },
+    {
+      "nameEn": "facing",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 4.5 },
+        { "position": "top edge", "valueCm": 18 },
+        { "position": "bottom-left corner", "valueCm": 4.5 },
+        { "position": "bottom edge", "valueCm": 18 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 40.14 },
+        { "position": "top edge, left segment", "valueCm": 22.5 },
+        { "position": "left edge, upper segment", "valueCm": 13.12 },
+        { "position": "left edge, upper curve segment", "valueCm": 12.81 },
+        { "position": "left edge, lower curve segment", "valueCm": 12.81 },
+        { "position": "left edge, lower segment", "valueCm": 13.12 },
+        { "position": "bottom edge, left segment", "valueCm": 22.5 },
+        { "position": "bottom edge", "valueCm": 40.14 },
+        { "position": "right edge", "valueCm": 47.91 }
+      ]
+    },
+    {
+      "nameEn": "collar interfacing",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 8.09 },
+        { "position": "left edge", "valueCm": 40.2 },
+        { "position": "right edge", "valueCm": 39.76 },
+        { "position": "bottom edge", "valueCm": 8.09 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 40.14 },
+        { "position": "top edge, left segment", "valueCm": 22.18 },
+        { "position": "left edge, upper segment", "valueCm": 13.12 },
+        { "position": "left edge, curve segment", "valueCm": 16.17 },
+        { "position": "left edge, lower segment", "valueCm": 13.12 },
+        { "position": "bottom edge, left segment", "valueCm": 22.18 },
+        { "position": "bottom edge", "valueCm": 40.14 },
+        { "position": "right edge", "valueCm": 47.92 }
+      ]
+    },
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 10.53 },
+        { "position": "left edge", "valueCm": 41.97 },
+        { "position": "right edge", "valueCm": 41.4 },
+        { "position": "bottom edge", "valueCm": 10.53 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 50.08 },
+        { "position": "top-right corner", "valueCm": 2 },
+        { "position": "right edge", "valueCm": 22.85 },
+        { "position": "left edge", "valueCm": 43.97 },
+        { "position": "bottom-right corner", "valueCm": 2 },
+        { "position": "bottom edge", "valueCm": 50.08 }
+      ]
+    }
+  ],
+  "notes": null
+}

@@ -1,0 +1,75 @@
+{
+  "sourceId": "153",
+  "category": "mens-pajama-shorts",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "men's pajama bermuda shorts with elastic waistband and two patch pockets (with lining)",
+  "gender": "male",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 10 },
+        { "position": "bottom edge", "valueCm": 10 },
+        { "position": "left edge", "valueCm": 107.04 },
+        { "position": "right edge", "valueCm": 107.04 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 50.94 },
+        { "position": "right edge", "valueCm": 28.18 },
+        { "position": "crotch corner, small value", "valueCm": 2 },
+        { "position": "crotch curve segment", "valueCm": 20.22 },
+        { "position": "lower edge segment", "valueCm": 14.51 },
+        { "position": "lower-left segment", "valueCm": 24.89 },
+        { "position": "left edge", "valueCm": 28.63 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 34.55 },
+        { "position": "right edge", "valueCm": 27.76 },
+        { "position": "crotch corner, small value", "valueCm": 2 },
+        { "position": "crotch curve segment 1", "valueCm": 20.18 },
+        { "position": "crotch curve segment 2", "valueCm": 12.98 },
+        { "position": "crotch curve segment 3", "valueCm": 7.98 },
+        { "position": "lower-left segment", "valueCm": 14.98 },
+        { "position": "small segment", "valueCm": 5 },
+        { "position": "left edge, lower segment", "valueCm": 19.92 },
+        { "position": "left edge, upper segment", "valueCm": 17.92 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 30.75 },
+        { "position": "left edge", "valueCm": 15.09 },
+        { "position": "bottom edge (curve)", "valueCm": 43.46 }
+      ]
+    },
+    {
+      "nameEn": "pocket lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 17.92 },
+        { "position": "upper-right segment", "valueCm": 14.31 },
+        { "position": "left edge", "valueCm": 9.36 },
+        { "position": "bottom edge (curve)", "valueCm": 43.46 }
+      ]
+    }
+  ],
+  "notes": "Pattern also lists elastic waistband length by size (not a piece edge measurement): P 76cm, M 80cm, G 84cm, GG 88cm."
+}

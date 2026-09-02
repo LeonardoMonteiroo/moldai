@@ -1,0 +1,101 @@
+{
+  "sourceId": "232",
+  "category": "wrap dress with side tie",
+  "moldaiArchetype": "dress",
+  "descriptionEn": "A wrap-style dress with a side tie closure and a front bodice split into upper and lower panels.",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "Approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces.",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 61.27 },
+        { "position": "upper-left edge, segment 1", "valueCm": 1.56 },
+        { "position": "upper-left edge, segment 2", "valueCm": 6.55 },
+        { "position": "upper-left edge, segment 3", "valueCm": 1.98 },
+        { "position": "upper-left edge, segment 4", "valueCm": 17.34 },
+        { "position": "upper-left edge, segment 5", "valueCm": 7.79 },
+        { "position": "upper-left edge, segment 6", "valueCm": 1.55 },
+        { "position": "left edge (main curve)", "valueCm": 21.83 },
+        { "position": "lower-left edge, segment 1", "valueCm": 1.55 },
+        { "position": "lower-left edge, segment 2", "valueCm": 7.79 },
+        { "position": "lower-left edge, segment 3", "valueCm": 17.34 },
+        { "position": "lower-left edge, segment 4", "valueCm": 1.98 },
+        { "position": "lower-left edge, segment 5", "valueCm": 6.55 },
+        { "position": "lower-left edge, segment 6", "valueCm": 1.56 },
+        { "position": "bottom edge", "valueCm": 61.27 },
+        { "position": "right edge", "valueCm": 47.93 }
+      ]
+    },
+    {
+      "nameEn": "side cutout insert",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 20.48 },
+        { "position": "top-right corner", "valueCm": 1.5 },
+        { "position": "left edge", "valueCm": 9.02 },
+        { "position": "right edge", "valueCm": 11.89 },
+        { "position": "bottom-left corner", "valueCm": 1.17 },
+        { "position": "bottom edge", "valueCm": 11.57 },
+        { "position": "bottom-right corner", "valueCm": 1.2 }
+      ]
+    },
+    {
+      "nameEn": "lower front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, segment 1", "valueCm": 1.56 },
+        { "position": "top edge, segment 2", "valueCm": 6.54 },
+        { "position": "top edge, segment 3", "valueCm": 5.24 },
+        { "position": "top edge, small vertical marker", "valueCm": 6.56 },
+        { "position": "top edge, segment 4", "valueCm": 18.5 },
+        { "position": "top edge, right segment", "valueCm": 37.52 },
+        { "position": "upper-left edge, segment 1", "valueCm": 17.49 },
+        { "position": "upper-left edge, segment 2", "valueCm": 7.79 },
+        { "position": "upper-left edge, segment 3", "valueCm": 1.98 },
+        { "position": "left edge, small segment", "valueCm": 1.54 },
+        { "position": "left edge (long diagonal)", "valueCm": 54.7 },
+        { "position": "bottom-left corner", "valueCm": 2.83 },
+        { "position": "bottom edge", "valueCm": 46 },
+        { "position": "right edge", "valueCm": 47.94 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 1.05 },
+        { "position": "left edge", "valueCm": 33.91 },
+        { "position": "right edge", "valueCm": 21.62 },
+        { "position": "bottom edge", "valueCm": 1.05 }
+      ]
+    },
+    {
+      "nameEn": "upper front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 1.59 },
+        { "position": "top edge, segment", "valueCm": 15.5 },
+        { "position": "top edge, right segment", "valueCm": 48.71 },
+        { "position": "left edge (diagonal)", "valueCm": 38.67 },
+        { "position": "lower-left edge, segment 1", "valueCm": 1.54 },
+        { "position": "lower-left edge, segment 2", "valueCm": 7.79 },
+        { "position": "lower-left edge, segment 3", "valueCm": 17.45 },
+        { "position": "lower-left edge, segment 4", "valueCm": 1.98 },
+        { "position": "lower-left edge, segment 5", "valueCm": 6.57 },
+        { "position": "bottom edge, left segment", "valueCm": 15.24 },
+        { "position": "bottom edge, small segment", "valueCm": 1.54 },
+        { "position": "bottom edge", "valueCm": 46 },
+        { "position": "right edge", "valueCm": 37.67 }
+      ]
+    }
+  ],
+  "notes": null
+}

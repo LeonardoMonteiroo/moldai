@@ -1,0 +1,97 @@
+{
+  "sourceId": "341",
+  "category": "vneck-polo",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "men's V-neck polo shirt with flatlock/rib trim, a hem band, and a small button/placket tab",
+  "gender": "male",
+  "baseSizeLabel": "P",
+  "pieces": [
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, diagonal", "valueCm": 10.29 },
+        { "position": "left edge, upper segment", "valueCm": 26.36 },
+        { "position": "right edge", "valueCm": 18.3 },
+        { "position": "left edge, lower segment", "valueCm": 26.36 },
+        { "position": "bottom edge, diagonal", "valueCm": 10.29 }
+      ]
+    },
+    {
+      "nameEn": "trim strip",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 3.27 },
+        { "position": "left edge, upper segment", "valueCm": 18.3 },
+        { "position": "left edge, middle segment", "valueCm": 17 },
+        { "position": "left edge, lower segment", "valueCm": 18.3 },
+        { "position": "bottom edge", "valueCm": 3.27 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 45.53 },
+        { "position": "top edge, diagonal segment", "valueCm": 24.98 },
+        { "position": "left edge, upper diagonal segment", "valueCm": 17.53 },
+        { "position": "left edge, upper curve segment", "valueCm": 8.89 },
+        { "position": "left edge, lower curve segment", "valueCm": 8.89 },
+        { "position": "left edge, lower diagonal segment", "valueCm": 17.53 },
+        { "position": "bottom edge, diagonal segment", "valueCm": 24.98 },
+        { "position": "right edge, upper segment", "valueCm": 26.8 },
+        { "position": "right edge, lower segment", "valueCm": 26.8 },
+        { "position": "bottom edge", "valueCm": 45.53 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 45.51 },
+        { "position": "top edge, diagonal segment", "valueCm": 24.88 },
+        { "position": "left edge, segment 1", "valueCm": 17.66 },
+        { "position": "left edge, segment 2", "valueCm": 11.42 },
+        { "position": "left edge, segment 3 (above V-point)", "valueCm": 8.22 },
+        { "position": "V-neck point, upper segment", "valueCm": 1.16 },
+        { "position": "V-neck point, lower segment", "valueCm": 1.16 },
+        { "position": "left edge, segment 4 (below V-point)", "valueCm": 8.22 },
+        { "position": "left edge, segment 5", "valueCm": 11.42 },
+        { "position": "left edge, segment 6", "valueCm": 17.66 },
+        { "position": "bottom edge, diagonal segment", "valueCm": 24.88 },
+        { "position": "bottom edge", "valueCm": 45.51 },
+        { "position": "right edge, upper segment", "valueCm": 26.8 },
+        { "position": "right edge, lower segment", "valueCm": 26.8 }
+      ]
+    },
+    {
+      "nameEn": "BET. RET",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 11.18 },
+        { "position": "left edge", "valueCm": 4.64 },
+        { "position": "bottom edge", "valueCm": 9.3 },
+        { "position": "right edge", "valueCm": 4 }
+      ]
+    },
+    {
+      "nameEn": "hem band",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 12.3 },
+        { "position": "right edge, upper segment", "valueCm": 26.8 },
+        { "position": "right edge, lower segment", "valueCm": 52.8 },
+        { "position": "left edge, upper segment", "valueCm": 52.8 },
+        { "position": "left edge, lower segment", "valueCm": 26.8 },
+        { "position": "bottom edge", "valueCm": 12.3 }
+      ]
+    }
+  ],
+  "notes": "The narrow strip piece next to the sleeve has a printed name that is garbled/overlapping in the source scan; it is named generically as 'trim strip' from its shape and context (V-neck rib/flatlock trim) rather than a confidently read label. Its edge-to-value attribution near the shared boundary with the sleeve piece is best-effort. The small trapezoid piece's printed label ('BET. RET') is a construction abbreviation kept verbatim because it could not be confidently translated."
+}

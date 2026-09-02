@@ -1,0 +1,108 @@
+{
+  "sourceId": "145",
+  "category": "spaghetti-strap romper/jumpsuit with pockets",
+  "moldaiArchetype": null,
+  "descriptionEn": "sleeveless spaghetti-strap romper/jumpsuit with front and back yoke seams, patch pockets, and an inset pocket",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "back pocket template",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 15.5 },
+        { "position": "left edge", "valueCm": 13.07 },
+        { "position": "right edge", "valueCm": 13.07 },
+        { "position": "bottom edge", "valueCm": 15.5 }
+      ]
+    },
+    {
+      "nameEn": "back pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left tab segment", "valueCm": 2 },
+        { "position": "top edge, main span", "valueCm": 17 },
+        { "position": "left edge", "valueCm": 16 },
+        { "position": "bottom edge, left tab segment", "valueCm": 2 },
+        { "position": "bottom edge, main span", "valueCm": 17 }
+      ]
+    },
+    {
+      "nameEn": "front yoke cutout",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 14 },
+        { "position": "left edge", "valueCm": 25 },
+        { "position": "right edge", "valueCm": 25 },
+        { "position": "bottom edge", "valueCm": 14 }
+      ]
+    },
+    {
+      "nameEn": "back yoke cutout",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 14 },
+        { "position": "left edge", "valueCm": 28.32 },
+        { "position": "right edge", "valueCm": 28.32 },
+        { "position": "bottom edge", "valueCm": 14 }
+      ]
+    },
+    {
+      "nameEn": "inset pocket",
+      "originalLabelUnclear": false,
+      "qty": 4,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 3.51 },
+        { "position": "top edge, mid segment", "valueCm": 14.45 },
+        { "position": "top edge, right segment", "valueCm": 11.3 },
+        { "position": "left edge", "valueCm": 28.48 },
+        { "position": "bottom edge", "valueCm": 5.99 },
+        { "position": "right edge (diagonal)", "valueCm": 46.01 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 35.04 },
+        { "position": "top edge, left corner tick", "valueCm": 3 },
+        { "position": "top edge, right corner tick", "valueCm": 3 },
+        {
+          "position": "upper diagonal edge (shoulder/armhole area)",
+          "valueCm": 60.89
+        },
+        { "position": "left edge, upper segment", "valueCm": 29.04 },
+        { "position": "left edge, lower segment", "valueCm": 14.66 },
+        { "position": "bottom edge", "valueCm": 62.94 },
+        { "position": "lower diagonal edge (hem curve)", "valueCm": 60.24 },
+        { "position": "right edge (full height)", "valueCm": 32.92 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 35.04 },
+        { "position": "top edge, left corner tick", "valueCm": 3 },
+        { "position": "top edge, right corner tick", "valueCm": 3 },
+        {
+          "position": "upper diagonal edge (shoulder/armhole area)",
+          "valueCm": 60.89
+        },
+        { "position": "left edge, upper segment", "valueCm": 26.89 },
+        { "position": "left edge, lower segment", "valueCm": 12.66 },
+        { "position": "bottom edge", "valueCm": 57.79 },
+        { "position": "lower diagonal edge (hem curve)", "valueCm": 60.33 },
+        { "position": "right edge (full height)", "valueCm": 33.04 }
+      ]
+    }
+  ],
+  "notes": "back pocket template's own quantity label was not legibly readable and is recorded as null rather than guessed; the back pocket piece's right edge was not confidently distinguishable from its left edge value in the source drawing and is omitted rather than duplicated without confirmation."
+}

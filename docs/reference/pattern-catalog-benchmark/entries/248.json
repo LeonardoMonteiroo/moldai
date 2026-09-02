@@ -1,0 +1,156 @@
+{
+  "sourceId": "248",
+  "category": "oversized bermuda shorts with flap pocket and lapel trim",
+  "moldaiArchetype": null,
+  "descriptionEn": "Oversized bermuda-length shorts with a front flap pocket, a separate lapel/flap trim piece, a side pocket, and a separate waistband piece.",
+  "gender": "unisex",
+  "baseSizeLabel": "M",
+  "gradeNote": "Approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces.",
+  "pieces": [
+    {
+      "nameEn": "back pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, corner segment", "valueCm": 2 },
+        { "position": "top edge, main segment", "valueCm": 19 },
+        { "position": "bottom edge, corner segment", "valueCm": 2 },
+        { "position": "bottom edge, main segment", "valueCm": 19 },
+        { "position": "left edge", "valueCm": 17.5 },
+        { "position": "right edge", "valueCm": 17.5 }
+      ]
+    },
+    {
+      "nameEn": "front pocket bag",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top curved edge", "valueCm": 44.21 },
+        { "position": "left edge", "valueCm": 15.39 },
+        { "position": "bottom-left corner segment", "valueCm": 3.34 },
+        { "position": "bottom edge, segment 1", "valueCm": 15.99 },
+        { "position": "bottom edge, segment 2", "valueCm": 10.81 }
+      ]
+    },
+    {
+      "nameEn": "back template (guide/gauge, not a cut piece)",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 16.5 },
+        { "position": "bottom edge", "valueCm": 16.5 },
+        { "position": "left edge", "valueCm": 14.57 },
+        { "position": "right edge", "valueCm": 14.57 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        {
+          "position": "top edge, segment 1 (left, diagonal)",
+          "valueCm": 20.66
+        },
+        { "position": "top edge, segment 2", "valueCm": 16.94 },
+        { "position": "top edge, segment 3 (toward right)", "valueCm": 34.6 },
+        { "position": "top-right corner segment", "valueCm": 2 },
+        { "position": "right (side) edge", "valueCm": 39.78 },
+        { "position": "bottom (hem) edge", "valueCm": 60.29 },
+        { "position": "bottom-right corner segment", "valueCm": 2 },
+        { "position": "left (side) edge", "valueCm": 27.2 }
+      ]
+    },
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 11 },
+        { "position": "bottom edge", "valueCm": 11 },
+        { "position": "left edge", "valueCm": 81 },
+        { "position": "right edge", "valueCm": 81 }
+      ]
+    },
+    {
+      "nameEn": "lapel/flap template (guide/gauge, not a cut piece)",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 5 },
+        { "position": "left edge", "valueCm": 18.01 },
+        { "position": "mid segment", "valueCm": 9 },
+        { "position": "bottom edge", "valueCm": 5 }
+      ]
+    },
+    {
+      "nameEn": "side pocket template (guide/gauge, not a cut piece)",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 20 },
+        { "position": "bottom edge", "valueCm": 20 },
+        { "position": "left edge", "valueCm": 18.01 },
+        { "position": "right edge", "valueCm": 18.01 }
+      ]
+    },
+    {
+      "nameEn": "lapel/flap",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 12 },
+        { "position": "bottom edge", "valueCm": 12 },
+        { "position": "left edge", "valueCm": 20.01 },
+        { "position": "right edge", "valueCm": 20.01 }
+      ]
+    },
+    {
+      "nameEn": "pocket with pleat/flap",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 20.28 },
+        { "position": "top-left corner segment", "valueCm": 2 },
+        { "position": "top-right corner detail, segment 1", "valueCm": 4.22 },
+        { "position": "top-right corner detail, segment 2", "valueCm": 3.72 },
+        { "position": "top-right corner detail, segment 3", "valueCm": 4.85 },
+        { "position": "left edge", "valueCm": 29 },
+        { "position": "right edge", "valueCm": 26.49 },
+        { "position": "bottom edge", "valueCm": 20.28 },
+        { "position": "bottom-left corner segment", "valueCm": 2 },
+        {
+          "position": "bottom-right corner detail, segment 1",
+          "valueCm": 3.72
+        },
+        {
+          "position": "bottom-right corner detail, segment 2",
+          "valueCm": 4.85
+        },
+        { "position": "bottom-right corner detail, segment 3", "valueCm": 4.22 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, segment 1 (left)", "valueCm": 17.65 },
+        { "position": "top edge, small notch detail 1", "valueCm": 6.68 },
+        { "position": "top edge, small notch detail 2", "valueCm": 9.32 },
+        { "position": "top edge, segment 2 (toward right)", "valueCm": 34.59 },
+        { "position": "top-right corner segment", "valueCm": 2 },
+        { "position": "right (side) edge, upper", "valueCm": 33.35 },
+        { "position": "left (side) edge, upper", "valueCm": 4.21 },
+        { "position": "left (side) edge, mid", "valueCm": 11.35 },
+        { "position": "left (side) edge, lower", "valueCm": 15.39 },
+        { "position": "bottom-left corner segment", "valueCm": 3.34 },
+        { "position": "bottom (hem) edge, segment 1", "valueCm": 15.99 },
+        { "position": "bottom (hem) edge, segment 2", "valueCm": 10.81 },
+        { "position": "bottom (hem) edge, segment 3", "valueCm": 30.16 },
+        { "position": "bottom-right corner segment", "valueCm": 2 }
+      ]
+    }
+  ],
+  "notes": "No gender is stated in the source title, unlike other entries in this catalog that mark gender explicitly; the piece proportions and oversized styling are consistent with a unisex garment, so gender was inferred rather than read directly. Small 'x' marks on the back and front pieces appeared to be dart/grainline symbols rather than dimensions and were not recorded as edges."
+}

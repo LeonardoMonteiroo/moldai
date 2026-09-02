@@ -1,0 +1,48 @@
+{
+  "sourceId": "063",
+  "category": "mens-gym-tank-top",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "men's sleeveless gym tank top with deep armholes",
+  "gender": "male",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 49.09 },
+        { "position": "upper-left diagonal (shoulder)", "valueCm": 30.42 },
+        { "position": "left curve, upper small segment", "valueCm": 5.42 },
+        { "position": "left curve, mid (armhole, deepest)", "valueCm": 33.93 },
+        {
+          "position": "left curve, lower small segment (mirrored)",
+          "valueCm": 5.42
+        },
+        { "position": "lower-left diagonal (mirrored)", "valueCm": 30.42 },
+        { "position": "bottom edge", "valueCm": 49.09 },
+        { "position": "right edge (full height)", "valueCm": 58.01 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 49.09 },
+        { "position": "upper-left diagonal (shoulder)", "valueCm": 33.54 },
+        { "position": "left curve, upper small segment", "valueCm": 5.42 },
+        { "position": "left curve, mid (armhole, deepest)", "valueCm": 28.07 },
+        {
+          "position": "left curve, lower small segment (mirrored)",
+          "valueCm": 5.42
+        },
+        { "position": "lower-left diagonal (mirrored)", "valueCm": 33.54 },
+        { "position": "bottom edge", "valueCm": 49.09 },
+        { "position": "right edge (full height)", "valueCm": 58.01 }
+      ]
+    }
+  ],
+  "notes": null
+}

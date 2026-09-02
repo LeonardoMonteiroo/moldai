@@ -1,0 +1,49 @@
+{
+  "sourceId": "151",
+  "category": "kids-pajama-pants",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "kids pajama pants with elastic waistband and ribbed ankle cuffs",
+  "gender": "kids",
+  "baseSizeLabel": "8",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment (from apex)", "valueCm": 30.22 },
+        { "position": "top edge, right segment (from apex)", "valueCm": 44.59 },
+        { "position": "left edge", "valueCm": 18.7 },
+        { "position": "bottom edge", "valueCm": 72.6 },
+        { "position": "right edge", "valueCm": 12.83 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment (from apex)", "valueCm": 35.59 },
+        { "position": "top edge, right segment (from apex)", "valueCm": 44.4 },
+        { "position": "left edge", "valueCm": 18.92 },
+        { "position": "bottom edge", "valueCm": 72.6 },
+        { "position": "right edge", "valueCm": 14.29 }
+      ]
+    },
+    {
+      "nameEn": "ankle cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left half", "valueCm": 4.65 },
+        { "position": "top edge, right half", "valueCm": 4.65 },
+        { "position": "left edge", "valueCm": 19.91 },
+        { "position": "right edge", "valueCm": 19.91 },
+        { "position": "bottom edge, left half", "valueCm": 4.65 },
+        { "position": "bottom edge, right half", "valueCm": 4.65 }
+      ]
+    }
+  ],
+  "notes": "Header text reads a generic 'TAM. M' but every piece's own label shows grade 4-10 with base size 8 (kids numeric sizing); baseSizeLabel above uses the piece labels' base size. Pattern also shows an elastic-waistband length table by size (P/M/G/GG) next to the front piece, but the exact value-to-size pairing was not clearly legible in the source render (approximate values seen: 50, 56, 58 cm) — omitted from the structured data rather than guessed."
+}

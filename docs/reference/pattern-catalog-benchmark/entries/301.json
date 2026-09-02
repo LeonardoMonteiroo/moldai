@@ -1,0 +1,64 @@
+{
+  "sourceId": "301",
+  "category": "womens-fitted-tshirt-baby-look",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "women's fitted crop-style t-shirt (baby-look)",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 35.87 },
+        { "position": "top-right corner", "valueCm": 2 },
+        { "position": "top-left diagonal", "valueCm": 22.33 },
+        { "position": "left edge, segment 1", "valueCm": 5.41 },
+        { "position": "left edge, segment 2", "valueCm": 14.72 },
+        { "position": "left edge, segment 3 (mirrored)", "valueCm": 14.72 },
+        { "position": "left edge, segment 4 (mirrored)", "valueCm": 5.41 },
+        { "position": "bottom-left diagonal (mirrored)", "valueCm": 22.33 },
+        { "position": "bottom edge (mirrored)", "valueCm": 35.87 },
+        { "position": "bottom-right corner (mirrored)", "valueCm": 2 },
+        { "position": "right edge, upper segment", "valueCm": 20.63 },
+        { "position": "right edge, lower segment", "valueCm": 20.63 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 35.86 },
+        { "position": "top-right corner", "valueCm": 2 },
+        { "position": "top-left diagonal", "valueCm": 22.01 },
+        { "position": "left edge, segment 1", "valueCm": 5.4 },
+        { "position": "left edge, segment 2", "valueCm": 13.36 },
+        { "position": "left edge, segment 3 (mirrored)", "valueCm": 13.36 },
+        { "position": "left edge, segment 4 (mirrored)", "valueCm": 5.4 },
+        { "position": "bottom-left diagonal (mirrored)", "valueCm": 22.01 },
+        { "position": "bottom edge (mirrored)", "valueCm": 35.86 },
+        { "position": "bottom-right corner (mirrored)", "valueCm": 2 },
+        { "position": "right edge, upper segment", "valueCm": 20.68 },
+        { "position": "right edge, lower segment", "valueCm": 20.66 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-right corner", "valueCm": 1.9 },
+        { "position": "top edge", "valueCm": 15.04 },
+        { "position": "top-left diagonal", "valueCm": 22.92 },
+        { "position": "left edge, full height", "valueCm": 29.06 },
+        { "position": "bottom-left diagonal (mirrored)", "valueCm": 22.92 },
+        { "position": "bottom edge (mirrored)", "valueCm": 15.04 },
+        { "position": "bottom-right corner (mirrored)", "valueCm": 1.9 }
+      ]
+    }
+  ],
+  "notes": null
+}

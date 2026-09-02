@@ -1,0 +1,100 @@
+{
+  "sourceId": "190",
+  "category": "sport trousers with panel cutouts and zippers",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "sport trousers with contrast side/back cutout panels, a waist yoke and zip closures",
+  "gender": null,
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 9.5 },
+        { "position": "overall length", "valueCm": 104 },
+        { "position": "bottom edge", "valueCm": 9.5 }
+      ]
+    },
+    {
+      "nameEn": "yoke",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 10.54 },
+        { "position": "left edge, upper segment", "valueCm": 25.2 },
+        { "position": "left edge, middle segment", "valueCm": 54.66 },
+        { "position": "left edge, lower segment", "valueCm": 25.2 },
+        { "position": "bottom edge", "valueCm": 10.54 }
+      ]
+    },
+    {
+      "nameEn": "inset pocket",
+      "originalLabelUnclear": false,
+      "qty": 4,
+      "edges": [
+        { "position": "top edge", "valueCm": 31.14 },
+        { "position": "left edge", "valueCm": 18.56 },
+        { "position": "bottom edge", "valueCm": 45.92 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 25.75 },
+        { "position": "top edge, right segment", "valueCm": 28.48 },
+        { "position": "right edge, upper segment", "valueCm": 28.42 },
+        { "position": "bottom edge", "valueCm": 29.9 },
+        { "position": "left edge", "valueCm": 28.84 }
+      ]
+    },
+    {
+      "nameEn": "back cutout panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 23.45 },
+        { "position": "upper-right diagonal", "valueCm": 40.8 },
+        { "position": "right edge, upper corner", "valueCm": 2.05 },
+        { "position": "right edge (vertical)", "valueCm": 11.31 },
+        { "position": "bottom edge, right segment", "valueCm": 16.73 },
+        { "position": "bottom edge, right corner", "valueCm": 0.5 },
+        { "position": "bottom-left diagonal", "valueCm": 34.72 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 3.22 },
+        { "position": "top edge, middle segment", "valueCm": 16.03 },
+        { "position": "top edge, right segment", "valueCm": 20.44 },
+        { "position": "left edge", "valueCm": 26.08 },
+        { "position": "bottom-left corner", "valueCm": 4.7 },
+        { "position": "bottom edge", "valueCm": 20.94 },
+        { "position": "bottom edge, curve", "valueCm": 9.54 },
+        { "position": "bottom-right diagonal", "valueCm": 28.48 },
+        { "position": "right edge", "valueCm": 26.94 }
+      ]
+    },
+    {
+      "nameEn": "front cutout panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 34.72 },
+        { "position": "top edge, middle segment", "valueCm": 0.5 },
+        { "position": "top edge, right segment", "valueCm": 16.73 },
+        { "position": "right edge (vertical)", "valueCm": 23.73 },
+        { "position": "right edge, lower corner", "valueCm": 2.05 },
+        { "position": "bottom diagonal", "valueCm": 40.8 },
+        { "position": "left edge (vertical)", "valueCm": 31.93 }
+      ]
+    }
+  ],
+  "notes": null
+}

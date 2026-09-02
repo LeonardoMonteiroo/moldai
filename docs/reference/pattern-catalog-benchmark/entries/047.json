@@ -1,0 +1,76 @@
+{
+  "sourceId": "047",
+  "category": "kids-bermuda-shorts-kangaroo-pocket",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "kids bermuda shorts with kangaroo-style front pocket and elastic waistband",
+  "gender": "kids",
+  "baseSizeLabel": "02",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output. Elastic length also varies by size (listed on the sheet as size 01=50cm, 02=52cm, 03=54cm).",
+  "pieces": [
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top peak, small segment", "valueCm": 1.5 },
+        { "position": "upper-right diagonal", "valueCm": 3.73 },
+        { "position": "upper-right corner, small notch", "valueCm": 1.08 },
+        { "position": "upper-left diagonal", "valueCm": 10.32 },
+        { "position": "left edge, small upper segment", "valueCm": 1.51 },
+        { "position": "left edge", "valueCm": 13.41 },
+        { "position": "right edge", "valueCm": 19.9 },
+        { "position": "left edge, small lower segment", "valueCm": 1.51 },
+        { "position": "lower-left diagonal", "valueCm": 10.32 },
+        { "position": "bottom peak, small segment", "valueCm": 1.5 },
+        { "position": "lower-right diagonal", "valueCm": 3.73 },
+        { "position": "lower-right corner, small notch", "valueCm": 1.08 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 27.5 },
+        { "position": "top-right corner", "valueCm": 2 },
+        { "position": "upper-left diagonal", "valueCm": 17.22 },
+        { "position": "right edge", "valueCm": 18.02 },
+        { "position": "bottom edge (curved, left portion)", "valueCm": 22.12 },
+        { "position": "bottom-right corner", "valueCm": 2 },
+        {
+          "position": "bottom edge (curved, right portion near corner)",
+          "valueCm": 9.06
+        }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 27.5 },
+        { "position": "top-right corner", "valueCm": 2 },
+        { "position": "left edge", "valueCm": 15.04 },
+        { "position": "right edge", "valueCm": 16.19 },
+        { "position": "bottom edge (left portion)", "valueCm": 18 },
+        { "position": "bottom-right corner", "valueCm": 2 },
+        {
+          "position": "bottom edge (curved, right portion near corner)",
+          "valueCm": 9.06
+        }
+      ]
+    },
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 10 },
+        { "position": "left edge", "valueCm": 61.5 },
+        { "position": "right edge", "valueCm": 61.5 },
+        { "position": "bottom edge", "valueCm": 10 }
+      ]
+    }
+  ],
+  "notes": null
+}

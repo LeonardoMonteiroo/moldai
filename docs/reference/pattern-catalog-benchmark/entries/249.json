@@ -1,0 +1,203 @@
+{
+  "sourceId": "249",
+  "category": "cargo trousers with panel seams and inset pockets",
+  "moldaiArchetype": null,
+  "descriptionEn": "Full-length cargo-style trousers with multi-panel front and back construction (a yoke plus separate mid-front and lower cutline panels on both front and back), an inset front pocket, a back pocket, a flap cargo pocket, and a separate long waistband.",
+  "gender": null,
+  "baseSizeLabel": "M",
+  "gradeNote": "Approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces.",
+  "pieces": [
+    {
+      "nameEn": "lapel/flap template (guide/gauge, not a cut piece)",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 5 },
+        { "position": "upper segment", "valueCm": 10 },
+        { "position": "middle segment", "valueCm": 20.01 },
+        { "position": "lower segment", "valueCm": 10 },
+        { "position": "bottom edge", "valueCm": 5 }
+      ]
+    },
+    {
+      "nameEn": "cargo pocket template (guide/gauge, not a cut piece)",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 20 },
+        { "position": "bottom edge", "valueCm": 20 },
+        { "position": "left edge", "valueCm": 20.01 },
+        { "position": "right edge", "valueCm": 20.01 }
+      ]
+    },
+    {
+      "nameEn": "inset pocket bag",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, segment 1", "valueCm": 4.29 },
+        { "position": "top edge, segment 2", "valueCm": 16.08 },
+        { "position": "top edge, segment 3 (toward corner)", "valueCm": 12.1 },
+        { "position": "right edge", "valueCm": 19.46 },
+        { "position": "bottom curved edge", "valueCm": 47.43 }
+      ]
+    },
+    {
+      "nameEn": "lapel/flap",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 12 },
+        { "position": "bottom edge", "valueCm": 12 },
+        { "position": "left edge", "valueCm": 22.01 },
+        { "position": "right edge", "valueCm": 22.01 }
+      ]
+    },
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 9 },
+        { "position": "bottom edge", "valueCm": 9 },
+        { "position": "left edge", "valueCm": 105 },
+        { "position": "right edge", "valueCm": 105 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, segment 1", "valueCm": 4.29 },
+        { "position": "top edge, segment 2", "valueCm": 16.08 },
+        { "position": "top edge, segment 3", "valueCm": 12.1 },
+        { "position": "top edge, segment 4 (toward corner)", "valueCm": 19.11 },
+        { "position": "left (side) edge, upper", "valueCm": 19.47 },
+        { "position": "left (side) edge, lower", "valueCm": 7.09 },
+        { "position": "bottom-left corner segment", "valueCm": 4.72 },
+        { "position": "bottom edge, segment 1", "valueCm": 16.93 },
+        { "position": "bottom edge, segment 2", "valueCm": 7.21 },
+        { "position": "bottom edge, segment 3", "valueCm": 11.21 },
+        { "position": "bottom edge, segment 4", "valueCm": 23.89 },
+        { "position": "right (side) edge", "valueCm": 27.11 }
+      ]
+    },
+    {
+      "nameEn": "front middle panel (cutline seam)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 28.83 },
+        { "position": "left edge", "valueCm": 27.11 },
+        { "position": "right edge", "valueCm": 21.67 },
+        { "position": "bottom edge", "valueCm": 28.99 }
+      ]
+    },
+    {
+      "nameEn": "front lower panel (cutline seam)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 16.67 },
+        { "position": "top-right corner segment", "valueCm": 4.51 },
+        { "position": "left edge", "valueCm": 21.66 },
+        { "position": "right edge", "valueCm": 19.54 },
+        { "position": "bottom edge", "valueCm": 16.77 },
+        { "position": "bottom-right corner segment", "valueCm": 4.53 }
+      ]
+    },
+    {
+      "nameEn": "yoke",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 5.98 },
+        { "position": "left edge", "valueCm": 27.54 },
+        { "position": "right edge", "valueCm": 29.34 },
+        { "position": "bottom edge", "valueCm": 9.55 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, segment 1", "valueCm": 9.59 },
+        { "position": "top edge, segment 2", "valueCm": 13 },
+        {
+          "position": "top edge, segment 3 (long, toward right)",
+          "valueCm": 74.23
+        },
+        { "position": "right (side) edge", "valueCm": 23.31 },
+        { "position": "bottom edge", "valueCm": 51.36 },
+        { "position": "bottom-left diagonal edge", "valueCm": 30.45 },
+        { "position": "left (side) edge", "valueCm": 6.76 }
+      ]
+    },
+    {
+      "nameEn": "back lower panel (cutline seam)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 16.69 },
+        { "position": "top-right corner segment", "valueCm": 4.51 },
+        { "position": "left edge", "valueCm": 23.31 },
+        { "position": "right edge", "valueCm": 21.1 },
+        { "position": "bottom edge", "valueCm": 16.74 },
+        { "position": "bottom-right corner segment", "valueCm": 4.52 }
+      ]
+    },
+    {
+      "nameEn": "half-leg template (guide/gauge, not a cut piece)",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top-left corner segment", "valueCm": 6.55 },
+        { "position": "top edge", "valueCm": 51.35 },
+        { "position": "right (side) edge, upper", "valueCm": 22.82 },
+        { "position": "right (side) edge, lower", "valueCm": 21.17 },
+        { "position": "bottom edge", "valueCm": 52.88 },
+        { "position": "bottom-left corner segment", "valueCm": 2.17 },
+        { "position": "left (side) edge", "valueCm": 69.26 }
+      ]
+    },
+    {
+      "nameEn": "back pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 19 },
+        { "position": "bottom edge", "valueCm": 19 },
+        { "position": "left edge", "valueCm": 16.99 },
+        { "position": "right edge", "valueCm": 16.99 }
+      ]
+    },
+    {
+      "nameEn": "cargo pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 20.28 },
+        { "position": "top-left corner segment", "valueCm": 2 },
+        { "position": "top-right corner detail, segment 1", "valueCm": 4.23 },
+        { "position": "top-right corner detail, segment 2", "valueCm": 3.72 },
+        { "position": "top-right corner detail, segment 3", "valueCm": 4.86 },
+        { "position": "left edge", "valueCm": 29 },
+        { "position": "right edge", "valueCm": 25.49 },
+        { "position": "bottom edge", "valueCm": 20.28 },
+        { "position": "bottom-left corner segment", "valueCm": 2 },
+        {
+          "position": "bottom-right corner detail, segment 1",
+          "valueCm": 3.72
+        },
+        {
+          "position": "bottom-right corner detail, segment 2",
+          "valueCm": 4.86
+        },
+        { "position": "bottom-right corner detail, segment 3", "valueCm": 4.23 }
+      ]
+    }
+  ],
+  "notes": "No gender is stated anywhere in the source drawing or title, so gender was left null rather than inferred. Two construction annotations ('elastic 80cm' near the front and back waist edges, 'elastic 20cm' near the front lower panel) were text notes about trim length, not outline dimensions, so they were omitted from edges. The first piece's label was rendered small/rotated and its exact original text could not be confirmed with full confidence, though the piece type (a lapel/flap gauge, matching the pattern seen in a sibling garment in this catalog) is a reasonably confident read; flagged as originalLabelUnclear. Small 'x' marks on the back piece appeared to be dart/grainline symbols rather than dimensions."
+}

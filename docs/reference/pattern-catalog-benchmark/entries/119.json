@@ -1,0 +1,92 @@
+{
+  "sourceId": "119",
+  "category": "bikini-set-with-top",
+  "moldaiArchetype": null,
+  "descriptionEn": "two-piece bikini set with a shoulder-strap top and a wrap-style front/back band, plus front and back bottom panels and their linings",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "shoulder strap",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 30 },
+        { "position": "bottom edge", "valueCm": 30 },
+        { "position": "left edge", "valueCm": 7 },
+        { "position": "right edge", "valueCm": 7 }
+      ]
+    },
+    {
+      "nameEn": "front/back wrap band (top)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "end edge, top", "valueCm": 7 },
+        { "position": "upper edge, outer segment", "valueCm": 20.49 },
+        { "position": "left edge, upper segment", "valueCm": 5.17 },
+        { "position": "left edge, middle segment", "valueCm": 28.7 },
+        { "position": "right edge (long)", "valueCm": 49.04 },
+        { "position": "left edge, lower segment", "valueCm": 5.17 },
+        { "position": "lower edge, outer segment", "valueCm": 20.49 },
+        { "position": "end edge, bottom", "valueCm": 7 },
+        { "position": "overall length, left half", "valueCm": 68.5 },
+        { "position": "overall length, right half", "valueCm": 68.5 }
+      ]
+    },
+    {
+      "nameEn": "back panel lining (bottom)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 7.65 },
+        { "position": "upper left edge", "valueCm": 30.22 },
+        { "position": "left edge", "valueCm": 36.14 },
+        { "position": "right edge (curved)", "valueCm": 7.6 },
+        { "position": "lower left edge", "valueCm": 30.22 },
+        { "position": "bottom edge", "valueCm": 7.65 }
+      ]
+    },
+    {
+      "nameEn": "front panel lining (bottom)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 7.73 },
+        { "position": "upper left edge", "valueCm": 26.49 },
+        { "position": "left edge", "valueCm": 36.15 },
+        { "position": "right edge (curved)", "valueCm": 7.51 },
+        { "position": "lower left edge", "valueCm": 26.49 },
+        { "position": "bottom edge", "valueCm": 7.73 }
+      ]
+    },
+    {
+      "nameEn": "back panel (bottom)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 8.24 },
+        { "position": "upper left edge", "valueCm": 29.16 },
+        { "position": "left edge", "valueCm": 36.17 },
+        { "position": "right edge (curved)", "valueCm": 8.39 },
+        { "position": "lower left edge", "valueCm": 29.16 },
+        { "position": "bottom edge", "valueCm": 8.24 }
+      ]
+    },
+    {
+      "nameEn": "front panel (bottom)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 8.32 },
+        { "position": "upper left edge", "valueCm": 26 },
+        { "position": "left edge", "valueCm": 36.19 },
+        { "position": "right edge (curved)", "valueCm": 8.4 },
+        { "position": "lower left edge", "valueCm": 26 },
+        { "position": "bottom edge", "valueCm": 8.32 }
+      ]
+    }
+  ],
+  "notes": "The shoulder strap and the front/back wrap band were both labeled with 'Quantidade: 1 (Par)'/pair-style annotations in the source; the strap was recorded as qty 2 (matches its own name suffix), the wrap band as qty 1 (matches its own name suffix, used across both front and back). The wrap band piece's label was partly overlapped by another text block in the source drawing, so the correspondence between its listed numbers and specific outline segments is less certain than for the other pieces on this sheet."
+}

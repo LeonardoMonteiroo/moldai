@@ -1,0 +1,110 @@
+{
+  "sourceId": "325",
+  "category": "blouse-ruffled-sleeve",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "blouse with a ruffled sleeve detail, front and back body panels, plus a small trim/tie piece",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes",
+  "pieces": [
+    {
+      "nameEn": "body panel A",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top-left corner curve", "valueCm": 12.55 },
+        { "position": "top edge, left segment", "valueCm": 8.85 },
+        { "position": "top edge, right segment", "valueCm": 33.27 },
+        { "position": "top-right corner segment", "valueCm": 2.02 },
+        { "position": "left edge, upper corner segment", "valueCm": 9.74 },
+        { "position": "left edge, curve segment (upper)", "valueCm": 17.33 },
+        { "position": "left edge, curve segment (lower)", "valueCm": 9.74 },
+        { "position": "right edge", "valueCm": 43.74 },
+        { "position": "bottom edge, left segment", "valueCm": 8.86 },
+        { "position": "bottom edge, right segment", "valueCm": 33.27 },
+        { "position": "bottom-right corner segment", "valueCm": 2.03 },
+        { "position": "bottom-left corner curve", "valueCm": 12.55 },
+        {
+          "position": "internal vertical reference (center)",
+          "valueCm": 41.99
+        },
+        {
+          "position": "internal horizontal reference (center)",
+          "valueCm": 59.06
+        }
+      ]
+    },
+    {
+      "nameEn": "body panel B",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top-left corner curve", "valueCm": 12.55 },
+        { "position": "top edge, left segment", "valueCm": 8.85 },
+        { "position": "top edge, right segment", "valueCm": 33.27 },
+        { "position": "top-right corner segment", "valueCm": 2.02 },
+        { "position": "left edge, upper corner segment", "valueCm": 9.74 },
+        { "position": "left edge, curve segment", "valueCm": 11.83 },
+        { "position": "left edge, curve segment (lower)", "valueCm": 9.74 },
+        { "position": "right edge, upper segment", "valueCm": 21.88 },
+        { "position": "right edge, lower segment", "valueCm": 21.88 },
+        { "position": "bottom edge, left segment", "valueCm": 8.85 },
+        { "position": "bottom edge, right segment", "valueCm": 33.27 },
+        { "position": "bottom-right corner segment", "valueCm": 2.02 },
+        { "position": "bottom-left corner curve", "valueCm": 12.55 },
+        {
+          "position": "internal vertical reference (center)",
+          "valueCm": 41.99
+        },
+        {
+          "position": "internal horizontal reference (center)",
+          "valueCm": 59.06
+        }
+      ]
+    },
+    {
+      "nameEn": "ruffle piece (sleeve ruffle/frill)",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top corner", "valueCm": 8.85 },
+        { "position": "upper-left zigzag segment", "valueCm": 28.7 },
+        { "position": "left edge, upper zigzag point", "valueCm": 13.47 },
+        { "position": "left edge, lower zigzag point", "valueCm": 13.47 },
+        { "position": "lower-left zigzag segment", "valueCm": 28.7 },
+        { "position": "bottom corner", "valueCm": 8.85 },
+        {
+          "position": "upper-right segment (toward top-right corner)",
+          "valueCm": 42.93
+        },
+        { "position": "top-right corner segment", "valueCm": 1.5 },
+        { "position": "right edge", "valueCm": 19.15 },
+        { "position": "bottom-right corner segment", "valueCm": 1.5 },
+        {
+          "position": "lower-right segment (toward bottom-right corner)",
+          "valueCm": 42.93
+        },
+        {
+          "position": "internal vertical reference (center)",
+          "valueCm": 41.32
+        },
+        {
+          "position": "internal horizontal reference (center)",
+          "valueCm": 76.61
+        }
+      ]
+    },
+    {
+      "nameEn": "small trim/tie piece",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top segment, left", "valueCm": 4.75 },
+        { "position": "top segment, right", "valueCm": 4.75 },
+        { "position": "upper vertical segment", "valueCm": 19.73 },
+        { "position": "middle segment (boxed)", "valueCm": 8.87 },
+        { "position": "internal reference (near center)", "valueCm": 39.45 },
+        { "position": "lower vertical segment", "valueCm": 19.73 },
+        { "position": "bottom segment, left", "valueCm": 4.75 },
+        { "position": "bottom segment, right", "valueCm": 4.75 }
+      ]
+    }
+  ],
+  "notes": "Piece name labels render as small illegible pixelated text blocks throughout this scan; nameEn values are generic shape-based descriptions. Body panels A and B are very likely front and back (near-identical shapes with slightly different right-edge/left-curve values); which is which could not be confirmed, so originalLabelUnclear is set for all four pieces."
+}

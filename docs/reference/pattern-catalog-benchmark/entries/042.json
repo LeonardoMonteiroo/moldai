@@ -1,0 +1,87 @@
+{
+  "sourceId": "042",
+  "category": "baby-shorts-with-overlay",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "baby shorts with a decorative front overlay panel, elastic waistband, and bow trim",
+  "gender": "baby",
+  "baseSizeLabel": "2",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "bow",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 8 },
+        { "position": "left edge", "valueCm": 8 },
+        { "position": "right edge", "valueCm": 8 },
+        { "position": "bottom edge", "valueCm": 8 }
+      ]
+    },
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 7.5 },
+        { "position": "left edge", "valueCm": 58 },
+        { "position": "right edge", "valueCm": 58 },
+        { "position": "bottom edge", "valueCm": 7.5 }
+      ]
+    },
+    {
+      "nameEn": "GB elastic (elastic guide strip)",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "left edge", "valueCm": 47 },
+        { "position": "right edge", "valueCm": 47 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-right corner", "valueCm": 5.08 },
+        { "position": "upper-left edge", "valueCm": 16.94 },
+        { "position": "left edge", "valueCm": 14.9 },
+        { "position": "right edge", "valueCm": 17.77 },
+        { "position": "bottom edge", "valueCm": 20.88 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-right corner", "valueCm": 5.08 },
+        { "position": "upper edge", "valueCm": 21.58 },
+        { "position": "left edge", "valueCm": 16.39 },
+        { "position": "right edge", "valueCm": 20.11 },
+        { "position": "bottom edge", "valueCm": 20.89 }
+      ]
+    },
+    {
+      "nameEn": "front overlay",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-right edge (curved)", "valueCm": 24.05 },
+        { "position": "left edge", "valueCm": 10.61 },
+        { "position": "bottom edge", "valueCm": 18.78 }
+      ]
+    },
+    {
+      "nameEn": "bow loop tab",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 5 },
+        { "position": "left edge", "valueCm": 7 },
+        { "position": "right edge", "valueCm": 7 },
+        { "position": "bottom edge", "valueCm": 5 }
+      ]
+    }
+  ],
+  "notes": null
+}

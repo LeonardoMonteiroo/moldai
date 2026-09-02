@@ -1,0 +1,75 @@
+{
+  "sourceId": "181",
+  "category": "double-layer top with wide strap",
+  "moldaiArchetype": null,
+  "descriptionEn": "double-layer top (separate inner and outer layers) with a single wide shoulder strap and an elasticated back band, not a fitted blouse silhouette",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "strap",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 30 },
+        { "position": "bottom edge", "valueCm": 30 },
+        { "position": "left edge", "valueCm": 7 },
+        { "position": "right edge", "valueCm": 7 }
+      ]
+    },
+    {
+      "nameEn": "outer top layer",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "cutOnFold": true,
+      "edges": [
+        { "position": "upper curve segment", "valueCm": 29.55 },
+        { "position": "straight fold edge", "valueCm": 57.22 },
+        {
+          "position": "width from fold edge to widest point",
+          "valueCm": 17.31
+        },
+        { "position": "lower curve segment (mirrored)", "valueCm": 29.55 }
+      ],
+      "notes": "Drawn as a single symmetric bowtie/hourglass outline with one straight vertical edge; interpreted as cut on fold along that straight edge given the qty of 1 and top/bottom mirror symmetry. A grading note beside this piece gives finished strap length by size: 34cm, 37cm, 40cm, 43cm (smallest to largest of four sizes) — recorded as supplementary context, not an outline edge of this piece."
+    },
+    {
+      "nameEn": "inner top layer",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top point", "valueCm": 6.91 },
+        { "position": "upper diagonal segment", "valueCm": 14.05 },
+        { "position": "short segment near top", "valueCm": 4 },
+        { "position": "curve segment", "valueCm": 29.1 },
+        { "position": "short segment near bottom (mirrored)", "valueCm": 4 },
+        { "position": "lower diagonal segment (mirrored)", "valueCm": 14.05 },
+        { "position": "bottom point (mirrored)", "valueCm": 6.91 },
+        { "position": "right edge", "valueCm": 35.28 }
+      ],
+      "notes": "A construction note beside this piece states that finished elastic length in the band varies by size, but the individual per-size cm values were too small/close together in the source to read with confidence, so they are not recorded here rather than guessed."
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, first segment", "valueCm": 0.72 },
+        { "position": "top edge, second segment", "valueCm": 7.42 },
+        { "position": "left edge", "valueCm": 37.81 },
+        { "position": "right edge", "valueCm": 35.15 },
+        {
+          "position": "bottom edge, first segment (mirrored)",
+          "valueCm": 0.72
+        },
+        {
+          "position": "bottom edge, second segment (mirrored)",
+          "valueCm": 7.42
+        }
+      ],
+      "notes": "Small text labels along this piece (referring to a narrow-strap side vs. a wide-strap side, and a union/attachment point with the outer top layer) are construction annotations, not additional dimensions, and were not recorded as edges."
+    }
+  ],
+  "notes": null
+}

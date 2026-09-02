@@ -1,0 +1,86 @@
+{
+  "sourceId": "100",
+  "category": "girls' kids polo shirt with placket and rib cuffs",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "girls' knit polo shirt with front placket opening and straight rib cuffs",
+  "gender": "kids",
+  "baseSizeLabel": "08",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, curved", "valueCm": 5.58 },
+        { "position": "left edge, vertical", "valueCm": 37.63 },
+        { "position": "right edge, vertical", "valueCm": 26.03 },
+        { "position": "bottom edge, curved", "valueCm": 5.58 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 30.88 },
+        { "position": "upper diagonal segment", "valueCm": 18.25 },
+        { "position": "next segment down", "valueCm": 8.83 },
+        { "position": "next segment down", "valueCm": 10.1 },
+        { "position": "mid segment near placket opening", "valueCm": 2.98 },
+        { "position": "mirrored segment", "valueCm": 10.11 },
+        { "position": "mirrored segment", "valueCm": 8.8 },
+        {
+          "position": "mirrored diagonal segment near bottom corner",
+          "valueCm": 18.34
+        },
+        { "position": "bottom edge", "valueCm": 30.88 },
+        { "position": "right edge, full height", "valueCm": 38.43 }
+      ]
+    },
+    {
+      "nameEn": "placket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 13.99 },
+        { "position": "left edge", "valueCm": 13 },
+        { "position": "right edge", "valueCm": 13 },
+        { "position": "bottom edge", "valueCm": 13.99 }
+      ]
+    },
+    {
+      "nameEn": "cuff template (straight)",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 4.82 },
+        { "position": "left vertical line", "valueCm": 24.05 },
+        { "position": "right vertical line", "valueCm": null },
+        { "position": "bottom edge", "valueCm": 4.82 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 30.88 },
+        { "position": "upper diagonal segment", "valueCm": 19.3 },
+        { "position": "next segment down", "valueCm": 8.76 },
+        {
+          "position": "mid segment (deepest labeled sub-segment)",
+          "valueCm": 18.64
+        },
+        { "position": "mirrored segment", "valueCm": 8.72 },
+        {
+          "position": "mirrored diagonal segment near bottom corner",
+          "valueCm": 19.3
+        },
+        { "position": "bottom edge", "valueCm": 30.88 },
+        { "position": "right edge, full height", "valueCm": 38.44 }
+      ]
+    }
+  ],
+  "notes": "The cuff template's right vertical line value was printed overlapping adjacent text (read ambiguously as something like '51.36' or '1.36', inconsistent with the scale of comparable cuff templates in this set) and is recorded as null rather than guessed."
+}

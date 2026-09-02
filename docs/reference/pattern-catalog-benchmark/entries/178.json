@@ -1,0 +1,82 @@
+{
+  "sourceId": "178",
+  "category": "cropped t-shirt with wide collar",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "cropped t-shirt with a wide flared collar layered over an inner neckline band",
+  "gender": null,
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "neckline band",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 7 },
+        { "position": "bottom edge", "valueCm": 7 },
+        { "position": "left edge", "valueCm": 47 },
+        { "position": "right edge", "valueCm": 47 }
+      ],
+      "notes": "No 'Quantidade' label was printed near this piece in the source drawing, so qty is recorded as null rather than assumed. Piece identity (neckline band vs. some other band) inferred from its narrow-strip shape and adjacency to the wide-collar piece, not from an explicit label."
+    },
+    {
+      "nameEn": "wide collar",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top edge, first segment", "valueCm": 7.72 },
+        { "position": "top edge, second segment", "valueCm": 3.04 },
+        { "position": "left edge (curved)", "valueCm": 52.96 },
+        { "position": "right edge", "valueCm": 43.15 },
+        {
+          "position": "bottom edge, first segment (mirrored)",
+          "valueCm": 7.72
+        },
+        {
+          "position": "bottom edge, second segment (mirrored)",
+          "valueCm": 3.04
+        }
+      ],
+      "notes": "No 'Quantidade' label was printed near this piece in the source drawing, so qty is recorded as null rather than assumed."
+    },
+    {
+      "nameEn": "body panel",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top edge, right segment", "valueCm": 24 },
+        { "position": "top edge, left segment", "valueCm": 23.18 },
+        { "position": "left edge, upper segment", "valueCm": 18.5 },
+        { "position": "left edge, curve segment", "valueCm": 28.33 },
+        { "position": "left edge, lower segment", "valueCm": 18.5 },
+        {
+          "position": "bottom edge, left segment (mirrored)",
+          "valueCm": 23.18
+        },
+        { "position": "bottom edge, right segment (mirrored)", "valueCm": 24 },
+        { "position": "right edge", "valueCm": 57.63 }
+      ],
+      "notes": "No piece name label was printed in the source drawing (unlike other files in this set); labeled generically as 'body panel' rather than guessing front vs. back. No 'Quantidade' label either, so qty is null."
+    },
+    {
+      "nameEn": "body panel",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top edge, right segment", "valueCm": 24 },
+        { "position": "top edge, left segment", "valueCm": 27.53 },
+        { "position": "left edge, upper segment", "valueCm": 18.5 },
+        { "position": "left edge, curve segment", "valueCm": 23.64 },
+        { "position": "left edge, lower segment", "valueCm": 18.5 },
+        {
+          "position": "bottom edge, left segment (mirrored)",
+          "valueCm": 27.53
+        },
+        { "position": "bottom edge, right segment (mirrored)", "valueCm": 24 },
+        { "position": "right edge", "valueCm": 57.63 }
+      ],
+      "notes": "The second of two similarly-sized main panels (the other being the first 'body panel' entry above); together they are almost certainly the front and back, but the source drawing prints no name label for either, and the shallower curve here (23.64 vs. 28.33 on the other panel) was not confident enough to assign as specifically front or back. No 'Quantidade' label either, so qty is null."
+    }
+  ],
+  "notes": "This file's piece drawings carry no piece-name or quantity labels (unlike other files processed for this same benchmark batch, which show labels like 'COSTA1X Quantidade: 1'), so piece identity for the two large body panels is inferred generically rather than assigned confidently to front/back."
+}

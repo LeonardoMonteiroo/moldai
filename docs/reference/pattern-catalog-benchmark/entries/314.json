@@ -1,0 +1,125 @@
+{
+  "sourceId": "314",
+  "category": "mens-long-sleeve-zip-polo",
+  "moldaiArchetype": null,
+  "descriptionEn": "men's long-sleeve zip-placket polo shirt with collar and cuffs",
+  "gender": "male",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 45.03 },
+        { "position": "top-right corner", "valueCm": 2 },
+        { "position": "left diagonal, upper", "valueCm": 25.15 },
+        { "position": "left edge, segment 1", "valueCm": 15.7 },
+        { "position": "left edge, segment 2 (upper-mid)", "valueCm": 13.18 },
+        {
+          "position": "left edge, segment 3 (lower-mid, mirrors segment 2)",
+          "valueCm": 13.18
+        },
+        {
+          "position": "left edge, segment 4 (mirrors segment 1)",
+          "valueCm": 15.7
+        },
+        {
+          "position": "left diagonal, lower (mirrors upper)",
+          "valueCm": 25.15
+        },
+        { "position": "bottom edge", "valueCm": 45.03 },
+        { "position": "bottom-right corner (mirrors top-right)", "valueCm": 2 },
+        { "position": "right edge, full height", "valueCm": 53.14 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 45.03 },
+        { "position": "top-right corner", "valueCm": 2 },
+        { "position": "left corner, small segment", "valueCm": 3.13 },
+        { "position": "left diagonal, upper", "valueCm": 26.64 },
+        { "position": "left edge, segment 1", "valueCm": 5.7 },
+        { "position": "left edge, segment 2 (upper-mid)", "valueCm": 0.69 },
+        {
+          "position": "left edge, segment 3 (lower-mid, mirrors segment 2)",
+          "valueCm": 0.69
+        },
+        {
+          "position": "left edge, segment 4 (mirrors segment 1)",
+          "valueCm": 5.7
+        },
+        {
+          "position": "left diagonal, lower (mirrors upper)",
+          "valueCm": 26.64
+        },
+        {
+          "position": "left corner, small segment (mirrors upper)",
+          "valueCm": 3.13
+        },
+        { "position": "bottom edge", "valueCm": 45.03 },
+        { "position": "bottom-right corner (mirrors top-right)", "valueCm": 2 },
+        { "position": "right edge, full height", "valueCm": 53.14 }
+      ]
+    },
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        {
+          "position": "top edge (between numbered points 1-2)",
+          "valueCm": 9.54
+        },
+        { "position": "segment between numbered points 2-3", "valueCm": 9.5 },
+        { "position": "segment between numbered points 3-4", "valueCm": 12.35 },
+        {
+          "position": "segment between numbered points 4-5 (mirrors 3-4)",
+          "valueCm": 12.35
+        },
+        { "position": "segment between numbered points 5-6", "valueCm": 9.5 },
+        {
+          "position": "bottom edge (between numbered points 6-7)",
+          "valueCm": 9.54
+        },
+        {
+          "position": "overall edge length, point 1 to point 7",
+          "valueCm": 44.34
+        }
+      ]
+    },
+    {
+      "nameEn": "small rectangular piece (label illegible)",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top edge", "valueCm": 15 },
+        { "position": "left edge", "valueCm": 4.5 },
+        { "position": "right edge", "valueCm": 4.5 },
+        { "position": "bottom edge", "valueCm": 15 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner (cap start)", "valueCm": 27.5 },
+        { "position": "upper diagonal (cap curve)", "valueCm": 49.8 },
+        { "position": "top-right corner (cap end)", "valueCm": 2 },
+        { "position": "right edge, upper segment", "valueCm": null },
+        {
+          "position": "right edge, lower segment (mirrors upper)",
+          "valueCm": null
+        },
+        { "position": "bottom-right corner (mirrors top-right)", "valueCm": 2 },
+        { "position": "lower diagonal (mirrors upper)", "valueCm": 49.8 },
+        { "position": "bottom-left corner (mirrors top-left)", "valueCm": 27.5 }
+      ]
+    }
+  ],
+  "notes": "Sleeve piece: the right edge of the drawing was cut off at the page boundary — two values were only partially visible as an incomplete number ('13.' with no digits after the decimal point), so they were recorded as null rather than guessed. Back panel: some values on its left side sit very close to the page's left margin and are lower confidence than the rest of the sheet, though each appeared as a complete number (not visibly truncated), so they were kept as read rather than nulled. The collar piece's outline was numbered at 7-8 reference points on the source drawing; segment lengths were recorded between consecutive numbered points rather than guessing anatomical meaning. One small rectangular piece had no legible name on the sheet."
+}

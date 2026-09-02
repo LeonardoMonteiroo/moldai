@@ -1,0 +1,103 @@
+{
+  "sourceId": "177",
+  "category": "sport t-shirt with micro-perforated fabric",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "sport t-shirt with micro-perforated fabric, back yoke panel and neckline band",
+  "gender": null,
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "neckline band",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 2.69 },
+        { "position": "bottom edge", "valueCm": 2.69 },
+        { "position": "left edge", "valueCm": 51 },
+        { "position": "right edge", "valueCm": 51 }
+      ],
+      "notes": "The two short-edge dimension labels rendered adjacent to each other in the source drawing (read as concatenated digits); interpreted as two instances of the same 2.69 cm value at the top and bottom short edges, based on the matching band-piece pattern seen elsewhere in this catalog (equal top/bottom, equal left/right)."
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, right segment", "valueCm": 23.46 },
+        { "position": "top edge, left segment", "valueCm": 22.91 },
+        { "position": "left edge, upper segment", "valueCm": 11.4 },
+        { "position": "horizontal mid-line", "valueCm": 25.79 },
+        {
+          "position": "right edge (curved, shared with back yoke panel)",
+          "valueCm": 65.26
+        },
+        { "position": "left edge, lower segment (mirrored)", "valueCm": 11.4 },
+        {
+          "position": "bottom edge, left segment (mirrored)",
+          "valueCm": 22.91
+        },
+        {
+          "position": "bottom edge, right segment (mirrored)",
+          "valueCm": 23.46
+        }
+      ]
+    },
+    {
+      "nameEn": "back yoke panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 20.61 },
+        {
+          "position": "left edge (curved, shared with back)",
+          "valueCm": 65.26
+        },
+        { "position": "right edge", "valueCm": 80.48 },
+        { "position": "bottom edge (mirrored)", "valueCm": 20.61 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, right segment", "valueCm": 23.46 },
+        { "position": "top edge, left segment", "valueCm": 21.12 },
+        { "position": "left edge, upper segment", "valueCm": 11.4 },
+        { "position": "horizontal mid-line", "valueCm": 30.54 },
+        { "position": "right edge", "valueCm": 32 },
+        { "position": "left edge, lower segment (mirrored)", "valueCm": 11.4 },
+        {
+          "position": "bottom edge, left segment (mirrored)",
+          "valueCm": 21.12
+        },
+        {
+          "position": "bottom edge, right segment (mirrored)",
+          "valueCm": 23.46
+        }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top point, first segment", "valueCm": 5.64 },
+        { "position": "top point, second (short) segment", "valueCm": 2.02 },
+        {
+          "position": "bottom point, first segment (mirrored)",
+          "valueCm": 5.64
+        },
+        {
+          "position": "bottom point, second (short) segment (mirrored)",
+          "valueCm": 2.02
+        },
+        { "position": "horizontal centerline, left value", "valueCm": 45.69 },
+        { "position": "right edge", "valueCm": 33.16 }
+      ],
+      "notes": "Source label read 'Quantidade: 1 (Par)' (one pair); recorded as qty 2, the actual cut count."
+    }
+  ],
+  "notes": null
+}

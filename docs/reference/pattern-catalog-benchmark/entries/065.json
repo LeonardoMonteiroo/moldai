@@ -1,0 +1,143 @@
+{
+  "sourceId": "065",
+  "category": "pantacourt-jumpsuit",
+  "moldaiArchetype": null,
+  "descriptionEn": "one-piece jumpsuit with a wrap/halter-style top and cropped pantacourt-length legs, with lining pieces",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "top panel lining, left",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top peak, small segment", "valueCm": 1.31 },
+        { "position": "upper-left diagonal", "valueCm": 21.94 },
+        { "position": "upper-right diagonal", "valueCm": 31.17 },
+        { "position": "left edge", "valueCm": 10.25 },
+        { "position": "bottom edge", "valueCm": 22.81 }
+      ]
+    },
+    {
+      "nameEn": "top panel lining, right",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top peak, small segment", "valueCm": 1.31 },
+        { "position": "upper-left diagonal", "valueCm": 31.17 },
+        { "position": "upper-right diagonal", "valueCm": 21.94 },
+        { "position": "right edge", "valueCm": 10.25 },
+        { "position": "bottom edge", "valueCm": 22.81 }
+      ]
+    },
+    {
+      "nameEn": "top panel, right",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top peak, small segment", "valueCm": 1.31 },
+        { "position": "upper-left diagonal", "valueCm": 21.94 },
+        { "position": "upper-right diagonal", "valueCm": 31.17 },
+        { "position": "left edge, small segment", "valueCm": 10.18 },
+        { "position": "bottom edge", "valueCm": 25.81 }
+      ]
+    },
+    {
+      "nameEn": "top panel, left",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top peak, small segment", "valueCm": 1.31 },
+        { "position": "upper-left diagonal", "valueCm": 31.17 },
+        { "position": "upper-right diagonal", "valueCm": 21.94 },
+        { "position": "right edge, small segment", "valueCm": 10.18 },
+        { "position": "bottom edge", "valueCm": 25.81 }
+      ]
+    },
+    {
+      "nameEn": "back top lining strip",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 15.03 },
+        { "position": "left edge", "valueCm": 41.97 },
+        { "position": "right edge", "valueCm": 44.97 },
+        { "position": "bottom edge", "valueCm": 15.03 }
+      ]
+    },
+    {
+      "nameEn": "back top strip",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 15.03 },
+        { "position": "left edge", "valueCm": 44.97 },
+        { "position": "right edge", "valueCm": 41.97 },
+        { "position": "bottom edge", "valueCm": 15.03 }
+      ]
+    },
+    {
+      "nameEn": "front body panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 21.04 },
+        { "position": "upper-left diagonal", "valueCm": 29.16 },
+        { "position": "left edge, small segment", "valueCm": 5.97 },
+        { "position": "left edge, main segment", "valueCm": 53.04 },
+        { "position": "bottom edge", "valueCm": 32.07 },
+        { "position": "right edge (full length)", "valueCm": 86.1 }
+      ]
+    },
+    {
+      "nameEn": "back body panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 21.58 },
+        { "position": "upper-left diagonal", "valueCm": 31.29 },
+        { "position": "left edge, small segment", "valueCm": 9.78 },
+        { "position": "left edge, main segment", "valueCm": 53.05 },
+        { "position": "bottom edge", "valueCm": 32.07 },
+        { "position": "right edge (full length)", "valueCm": 86.62 }
+      ]
+    },
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, small segment", "valueCm": 6.05 },
+        { "position": "left edge", "valueCm": 42.14 },
+        { "position": "right edge", "valueCm": 41.96 },
+        { "position": "bottom edge, small segment", "valueCm": 6.05 }
+      ]
+    },
+    {
+      "nameEn": "back lining, lower",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 18.02 },
+        { "position": "top edge, small segment", "valueCm": 9.78 },
+        { "position": "upper-right diagonal", "valueCm": 31.29 },
+        { "position": "left edge", "valueCm": 33.89 },
+        { "position": "bottom edge", "valueCm": 51.62 },
+        { "position": "right edge", "valueCm": 21.6 }
+      ]
+    },
+    {
+      "nameEn": "front lining, lower",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 18.01 },
+        { "position": "top edge, small segment", "valueCm": 5.97 },
+        { "position": "upper-right diagonal", "valueCm": 29.16 },
+        { "position": "left edge", "valueCm": 30.75 },
+        { "position": "bottom edge", "valueCm": 51.1 },
+        { "position": "right edge", "valueCm": 21.04 }
+      ]
+    }
+  ],
+  "notes": null
+}

@@ -1,0 +1,75 @@
+{
+  "sourceId": "188",
+  "category": "long-sleeve t-shirt with strategic cutout panel",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "long-sleeve knit t-shirt with a strategic cutout/insert panel",
+  "gender": null,
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "body panel A",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 19.79 },
+        { "position": "top edge, main segment", "valueCm": 43.03 },
+        { "position": "top edge, right corner, upper mark", "valueCm": 1.5 },
+        { "position": "top edge, right corner, lower mark", "valueCm": 10.5 },
+        { "position": "left edge, upper segment", "valueCm": 13.88 },
+        { "position": "left edge, curve", "valueCm": 31.02 },
+        { "position": "left edge, lower segment", "valueCm": 13.88 },
+        { "position": "bottom edge, left segment", "valueCm": 19.79 },
+        { "position": "bottom edge, main segment", "valueCm": 43.03 },
+        { "position": "bottom edge, right corner, upper mark", "valueCm": 1.5 },
+        {
+          "position": "bottom edge, right corner, lower mark",
+          "valueCm": 10.5
+        },
+        { "position": "right edge (vertical)", "valueCm": 50.85 }
+      ]
+    },
+    {
+      "nameEn": "trim/binding strip",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top edge, main segment", "valueCm": 43.04 },
+        { "position": "top edge, right corner, upper mark", "valueCm": 1.5 },
+        { "position": "top edge, right corner, lower mark", "valueCm": 10.5 },
+        { "position": "left edge, upper mark", "valueCm": 5.93 },
+        { "position": "left edge, lower mark", "valueCm": 6.14 },
+        { "position": "right edge (vertical)", "valueCm": 11.1 },
+        { "position": "bottom edge", "valueCm": 54.31 }
+      ]
+    },
+    {
+      "nameEn": "body panel B",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top-left corner mark", "valueCm": 4.3 },
+        { "position": "left edge, upper segment", "valueCm": 23.8 },
+        { "position": "top edge, left segment", "valueCm": 22.28 },
+        { "position": "top edge, main segment", "valueCm": 54.3 },
+        { "position": "left edge, curve", "valueCm": 23.76 },
+        { "position": "left edge, overall vertical span", "valueCm": 47.6 },
+        { "position": "left edge, lower segment", "valueCm": 23.8 },
+        { "position": "bottom-left corner mark", "valueCm": 4.3 },
+        { "position": "bottom edge, left segment", "valueCm": 22.28 },
+        { "position": "bottom edge, main segment", "valueCm": 54.3 },
+        { "position": "right edge (vertical)", "valueCm": 48.62 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top edge, main segment", "valueCm": 53.46 },
+        { "position": "top-right corner", "valueCm": 3.04 },
+        { "position": "right edge (vertical)", "valueCm": 24.89 },
+        { "position": "bottom-right corner", "valueCm": 3.04 },
+        { "position": "bottom edge, main segment", "valueCm": 53.46 },
+        { "position": "left edge (curve)", "valueCm": 52.78 }
+      ]
+    }
+  ],
+  "notes": "The printed piece-name labels on this scan render too small/blurry to read reliably (only a faint grainline marker is legible near each piece's center, not a piece name). Names above (\"body panel A/B\", \"trim/binding strip\", \"sleeve\") are positional placeholders inferred from shape, size and layout order, not confirmed printed labels; all four are flagged originalLabelUnclear. Piece 4's elongated, tapered, curved-end profile is a reasonably strong shape match for a long sleeve, consistent with the garment's long-sleeve design, but its own label could not be confirmed either."
+}

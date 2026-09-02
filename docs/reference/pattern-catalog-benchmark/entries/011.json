@@ -1,0 +1,83 @@
+{
+  "sourceId": "011",
+  "category": "kids basic t-shirt",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "kids basic short-sleeve knit t-shirt with rib collar",
+  "gender": "kids",
+  "baseSizeLabel": "8",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 5 },
+        { "position": "left edge", "valueCm": 39.4 },
+        { "position": "right edge", "valueCm": 39.4 },
+        { "position": "bottom edge", "valueCm": 5 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 35.3 },
+        { "position": "shoulder/upper curve segment", "valueCm": 18.4 },
+        { "position": "next segment down", "valueCm": 10.35 },
+        { "position": "horizontal center line", "valueCm": 55.39 },
+        {
+          "position": "vertical dimension below center line, left",
+          "valueCm": 41.43
+        },
+        {
+          "position": "vertical dimension below center line, right",
+          "valueCm": 41.43
+        },
+        { "position": "next segment down (mid, deepest)", "valueCm": 23.63 },
+        { "position": "mirrored lower segment", "valueCm": 10.35 },
+        { "position": "mirrored segment near bottom corner", "valueCm": 18.4 },
+        { "position": "bottom edge", "valueCm": 35.3 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 35.3 },
+        { "position": "shoulder/upper curve segment", "valueCm": 21.33 },
+        { "position": "next segment down", "valueCm": 10.73 },
+        { "position": "horizontal center line", "valueCm": 58.7 },
+        {
+          "position": "vertical dimension below center line, left",
+          "valueCm": 41.43
+        },
+        {
+          "position": "vertical dimension below center line, right",
+          "valueCm": 41.43
+        },
+        { "position": "next segment down (mid, deepest)", "valueCm": 18.37 },
+        { "position": "mirrored lower segment", "valueCm": 10.73 },
+        { "position": "mirrored segment near bottom corner", "valueCm": 21.33 },
+        { "position": "bottom edge", "valueCm": 35.3 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-right corner, outer segment", "valueCm": 4.96 },
+        { "position": "top-right corner, inner segment", "valueCm": 2.18 },
+        { "position": "bottom edge, left segment", "valueCm": 40.84 },
+        { "position": "bottom edge, middle segment", "valueCm": 18.29 },
+        { "position": "bottom edge, right segment", "valueCm": 28.26 },
+        { "position": "bottom-right corner, outer segment", "valueCm": 4.96 },
+        { "position": "bottom-right corner, inner segment", "valueCm": 2.18 }
+      ]
+    }
+  ],
+  "notes": "Front and back panels each show a pair of vertical values (both 41.43) positioned centrally below the horizontal center line; their exact relationship to the curved side edge is not fully certain from the rendered drawing, transcribed by position only. Sleeve's three bottom-edge values (40.84/18.29/28.26) may be a single cumulative dimension line rather than three independent segments; exact breakdown unclear from the rendered drawing."
+}

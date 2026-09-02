@@ -1,0 +1,90 @@
+{
+  "sourceId": "210",
+  "category": "turtleneck-tshirt-with-front-color-block-panel",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "turtleneck t-shirt with a horizontal color-block cutout panel across the front",
+  "gender": "unisex",
+  "baseSizeLabel": "M",
+  "gradeNote": "average 1cm variation between graded sizes; measurements correspond to the printed pattern output",
+  "notes": "The sleeve piece's corner-tick values were partly illegible due to small, overlapping digits (rendered oddly, e.g. what may be '4.02' and '8.21' merged with adjacent text); recorded with lower confidence than the rest of this entry, and the least legible one is flagged null.",
+  "pieces": [
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 11 },
+        { "position": "left edge, upper segment", "valueCm": 17.04 },
+        { "position": "right edge, upper segment", "valueCm": 17.04 },
+        { "position": "left edge, lower segment", "valueCm": 17.04 },
+        { "position": "right edge, lower segment", "valueCm": 17.04 },
+        { "position": "bottom edge", "valueCm": 11 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 1.5 },
+        { "position": "top edge, left segment", "valueCm": 24.42 },
+        { "position": "top edge", "valueCm": 36.45 },
+        { "position": "top-right corner", "valueCm": 4 },
+        { "position": "left edge, upper segment", "valueCm": 15.31 },
+        { "position": "left edge, upper-mid segment", "valueCm": 9.4 },
+        { "position": "left edge, lower-mid segment", "valueCm": 9.4 },
+        { "position": "left edge, lower segment", "valueCm": 15.31 },
+        { "position": "bottom-left corner", "valueCm": 1.5 },
+        { "position": "bottom edge, left segment", "valueCm": 24.42 },
+        { "position": "bottom edge", "valueCm": 36.45 },
+        { "position": "bottom-right corner", "valueCm": 4 },
+        { "position": "right edge", "valueCm": 52.88 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, segment a", "valueCm": 5.64 },
+        { "position": "top edge, segment b", "valueCm": null },
+        { "position": "left edge, upper segment", "valueCm": 24.56 },
+        { "position": "right edge", "valueCm": 36.23 },
+        { "position": "mid segment", "valueCm": 15.32 },
+        { "position": "left edge, lower segment", "valueCm": 24.56 },
+        { "position": "bottom edge, segment a", "valueCm": 5.86 },
+        { "position": "bottom edge, segment b", "valueCm": null }
+      ]
+    },
+    {
+      "nameEn": "front cutout panel (upper)",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-right corner", "valueCm": 4 },
+        { "position": "top edge, left curved segment", "valueCm": 23.86 },
+        { "position": "top edge", "valueCm": 36.45 },
+        { "position": "right edge", "valueCm": 26.36 },
+        { "position": "left edge, upper segment", "valueCm": 15.32 },
+        { "position": "left edge, lower segment", "valueCm": 10.84 },
+        { "position": "bottom-left corner", "valueCm": 0.89 },
+        { "position": "bottom edge", "valueCm": 61.2 }
+      ]
+    },
+    {
+      "nameEn": "front cutout panel (lower)",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 0.89 },
+        { "position": "top edge", "valueCm": 61.2 },
+        { "position": "left edge, upper segment", "valueCm": 10.84 },
+        { "position": "left edge, lower segment", "valueCm": 15.32 },
+        { "position": "bottom edge, left curved segment", "valueCm": 23.88 },
+        { "position": "bottom edge", "valueCm": 36.45 },
+        { "position": "bottom-right corner", "valueCm": 4 },
+        { "position": "right edge", "valueCm": 26.36 }
+      ]
+    }
+  ]
+}

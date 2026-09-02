@@ -1,0 +1,67 @@
+{
+  "sourceId": "192",
+  "category": "blouse with round collar and back opening",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "kids blouse with a round collar and a back keyhole/button opening",
+  "gender": "kids",
+  "baseSizeLabel": "08",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 28.47 },
+        { "position": "upper-left edge", "valueCm": 18.93 },
+        { "position": "left edge, upper segment", "valueCm": 8.38 },
+        { "position": "left edge, curve", "valueCm": 18.67 },
+        { "position": "left edge, lower segment", "valueCm": 8.38 },
+        { "position": "lower-left edge", "valueCm": 18.93 },
+        { "position": "bottom edge", "valueCm": 28.47 },
+        { "position": "right edge (vertical)", "valueCm": 43.41 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left corner", "valueCm": 3 },
+        { "position": "top edge, right corner", "valueCm": 3 },
+        { "position": "top edge", "valueCm": 47.6 },
+        { "position": "left edge, upper segment", "valueCm": 9.58 },
+        { "position": "left edge, middle segment", "valueCm": 8.38 },
+        { "position": "left edge, curve", "valueCm": 21.31 },
+        { "position": "bottom edge", "valueCm": 28.47 },
+        { "position": "right edge (vertical)", "valueCm": 22.72 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (curve)", "valueCm": 6.38 },
+        { "position": "top corner", "valueCm": 3.01 },
+        { "position": "left edge, upper segment", "valueCm": 14.94 },
+        { "position": "left edge, upper-mid segment", "valueCm": 7.98 },
+        { "position": "left edge, lower-mid segment", "valueCm": 7.98 },
+        { "position": "left edge, lower segment", "valueCm": 14.94 },
+        { "position": "bottom edge (curve)", "valueCm": 6.38 },
+        { "position": "bottom corner", "valueCm": 3.01 },
+        { "position": "right edge (vertical)", "valueCm": 31.02 }
+      ]
+    },
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 4,
+      "edges": [
+        { "position": "left edge", "valueCm": 21.21 },
+        { "position": "right edge", "valueCm": 31.21 }
+      ]
+    }
+  ],
+  "notes": "Base size label \"08\" is the base size within a printed 06-12 kids grading range. Small dot markers along the back piece's top edge are gathering/ease reference marks, not dimensions, and were omitted. The collar piece is a quarter/fan-shaped segment where only its two straight edges carry printed lengths; its curved edges are unlabeled."
+}

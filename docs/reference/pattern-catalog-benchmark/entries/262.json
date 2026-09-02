@@ -1,0 +1,82 @@
+{
+  "sourceId": "262",
+  "category": "kids resort/camp-collar button-up shirt",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "kids short-sleeve button-up shirt with a resort/camp collar and front button placket",
+  "gender": "kids",
+  "baseSizeLabel": "08",
+  "gradeNote": "approx. 1.5 cm average increase between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "front placket/facing",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 4.42 },
+        { "position": "upper-left curve", "valueCm": 16.02 },
+        { "position": "left edge, lower segment", "valueCm": 11.59 },
+        { "position": "top edge", "valueCm": 42.49 },
+        { "position": "right edge", "valueCm": 4.24 },
+        { "position": "bottom edge", "valueCm": 51.06 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-right corner", "valueCm": 2 },
+        { "position": "top edge", "valueCm": 34.9 },
+        { "position": "upper-left curve", "valueCm": 19.51 },
+        { "position": "left edge, upper segment", "valueCm": 13.31 },
+        { "position": "lower-left curve", "valueCm": 9.54 },
+        { "position": "bottom-left corner", "valueCm": 2.04 },
+        { "position": "bottom edge", "valueCm": 51.06 },
+        { "position": "right edge", "valueCm": 23.21 }
+      ]
+    },
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 6.86 },
+        { "position": "upper segment", "valueCm": 20.5 },
+        { "position": "total length (centerline)", "valueCm": 42.78 },
+        { "position": "lower segment", "valueCm": 20.5 },
+        { "position": "bottom edge", "valueCm": 6.86 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-right corner", "valueCm": 2 },
+        { "position": "top edge", "valueCm": 34.91 },
+        { "position": "upper-left curve", "valueCm": 23.19 },
+        { "position": "left edge, upper segment", "valueCm": 13.31 },
+        { "position": "left edge, middle segment", "valueCm": 16.66 },
+        { "position": "left edge, lower segment", "valueCm": 13.31 },
+        { "position": "lower-left curve", "valueCm": 23.19 },
+        { "position": "bottom edge", "valueCm": 34.91 },
+        { "position": "bottom-right corner", "valueCm": 2 },
+        { "position": "right edge (full height)", "valueCm": 43.98 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top corner", "valueCm": 6.38 },
+        { "position": "top corner, secondary call-out", "valueCm": 2 },
+        { "position": "left edge", "valueCm": 42.94 },
+        { "position": "right edge", "valueCm": 32.07 },
+        { "position": "bottom corner", "valueCm": 6.38 },
+        { "position": "bottom corner, secondary call-out", "valueCm": 2 }
+      ]
+    }
+  ],
+  "notes": "Front piece's bottom edge shows a row of small 'x' marks between the corner call-outs, read as button-placement marks rather than measurements and not recorded as edges. Sleeve's small '2' call-outs next to the 6.38 corner values are a low-confidence read (tiny glyphs beside the corner) — could be a separate short segment or a notch/clip depth rather than an independent edge length; flagged here rather than omitted since a number was legible."
+}

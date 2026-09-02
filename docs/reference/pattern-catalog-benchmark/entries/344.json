@@ -1,0 +1,93 @@
+{
+  "sourceId": "344",
+  "category": "womens-knit-polo-v-neck",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "women's V-neck polo with rib-knit trim, simple knit body panels and set-in sleeve",
+  "gender": "female",
+  "baseSizeLabel": "P",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-right corner", "valueCm": 2.01 },
+        { "position": "top edge", "valueCm": 38.31 },
+        { "position": "upper-left corner", "valueCm": 2.43 },
+        { "position": "left edge, segment 1 (uppermost)", "valueCm": 21.25 },
+        { "position": "left edge, segment 2", "valueCm": 12.64 },
+        { "position": "left edge, segment 3", "valueCm": 10.43 },
+        { "position": "left edge, segment 4", "valueCm": 10.43 },
+        { "position": "left edge, segment 5", "valueCm": 12.64 },
+        { "position": "lower-left corner", "valueCm": 2.43 },
+        { "position": "bottom edge, left segment", "valueCm": 21.25 },
+        { "position": "bottom edge", "valueCm": 38.31 },
+        { "position": "bottom-right corner", "valueCm": 2.01 },
+        { "position": "right edge (side seam)", "valueCm": 24.54 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-right corner", "valueCm": 2.01 },
+        { "position": "top edge", "valueCm": 38.29 },
+        { "position": "upper-left corner", "valueCm": 20.23 },
+        { "position": "left edge, segment 1 (uppermost)", "valueCm": 12.64 },
+        { "position": "left edge, segment 2", "valueCm": 11.14 },
+        {
+          "position": "left edge, segment 3, approaching neckline point",
+          "valueCm": 8.46
+        },
+        { "position": "neckline V-point, upper tick", "valueCm": 1 },
+        { "position": "neckline V-point, lower tick", "valueCm": 1 },
+        {
+          "position": "left edge, segment 4, past neckline point",
+          "valueCm": 8.46
+        },
+        { "position": "left edge, segment 5", "valueCm": 11.14 },
+        { "position": "left edge, segment 6", "valueCm": 12.64 },
+        { "position": "lower-left corner", "valueCm": 20.23 },
+        { "position": "bottom edge", "valueCm": 38.29 },
+        { "position": "bottom-right corner", "valueCm": 2.01 },
+        { "position": "right edge (side seam)", "valueCm": 24.57 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top corner", "valueCm": 5.77 },
+        { "position": "outer curved edge, upper segment", "valueCm": 22.45 },
+        { "position": "outer curved edge, lower segment", "valueCm": 22.44 },
+        { "position": "bottom edge", "valueCm": 33 },
+        { "position": "bottom corner", "valueCm": 5.77 }
+      ]
+    },
+    {
+      "nameEn": "rib trim insert",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 11 },
+        { "position": "left edge", "valueCm": 4.31 },
+        { "position": "right edge", "valueCm": 4.05 },
+        { "position": "bottom edge", "valueCm": 10.5 }
+      ]
+    },
+    {
+      "nameEn": "attachment guide strip",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "left edge (width)", "valueCm": 3.35 },
+        { "position": "top edge (length)", "valueCm": 29 },
+        { "position": "bottom edge (length)", "valueCm": 31.2 },
+        { "position": "right edge (width)", "valueCm": 3.35 }
+      ]
+    }
+  ],
+  "notes": "The narrow strip piece's own label overlapped another label in the source drawing and its exact function (guide strip vs. binding piece) could not be confirmed with full confidence, so originalLabelUnclear is set for it; all numeric values themselves were legible."
+}

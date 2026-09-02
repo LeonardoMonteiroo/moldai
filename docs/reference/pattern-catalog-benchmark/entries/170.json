@@ -1,0 +1,62 @@
+{
+  "sourceId": "170",
+  "category": "unisex-kimono-robe",
+  "moldaiArchetype": null,
+  "descriptionEn": "unisex kimono-style robe/jacket with a wide dolman-cut sleeve, front, back and a separate sash/belt piece",
+  "gender": "unisex",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 39.36 },
+        { "position": "top edge, right segment", "valueCm": 4.02 },
+        { "position": "left edge", "valueCm": 63.97 },
+        { "position": "right edge", "valueCm": 57.49 },
+        { "position": "bottom edge, left segment", "valueCm": 39.36 },
+        { "position": "bottom edge, right segment", "valueCm": 4.02 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 32.34 },
+        { "position": "top edge, right segment", "valueCm": 50.19 },
+        { "position": "left edge, upper segment", "valueCm": 23.73 },
+        { "position": "left edge, lower segment", "valueCm": 10.31 },
+        { "position": "right edge", "valueCm": 32.39 },
+        { "position": "bottom edge", "valueCm": 84.63 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 32.35 },
+        { "position": "top edge, right segment", "valueCm": 50.19 },
+        { "position": "left edge", "valueCm": 23.65 },
+        { "position": "right edge", "valueCm": 31.77 },
+        { "position": "bottom edge", "valueCm": 82.26 },
+        { "position": "bottom-right corner, diagonal segment", "valueCm": 4.03 }
+      ]
+    },
+    {
+      "nameEn": "sash/belt",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 95.22 },
+        { "position": "bottom edge", "valueCm": 95.22 },
+        { "position": "left edge", "valueCm": 9 },
+        { "position": "right edge", "valueCm": 9 }
+      ]
+    }
+  ],
+  "notes": null
+}

@@ -1,0 +1,42 @@
+{
+  "sourceId": "037",
+  "category": "baby-sleeveless-bodysuit",
+  "moldaiArchetype": null,
+  "descriptionEn": "baby sleeveless bodysuit, front and back panel",
+  "gender": "baby",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 19.6 },
+        { "position": "top-right segment, upper", "valueCm": 13.05 },
+        { "position": "top-right segment, small notch", "valueCm": 4.46 },
+        { "position": "left edge", "valueCm": 28.85 },
+        { "position": "right edge (armhole/side)", "valueCm": 34.23 },
+        { "position": "bottom-right segment, small notch", "valueCm": 4.46 },
+        { "position": "bottom-right segment, upper", "valueCm": 13.05 },
+        { "position": "bottom edge", "valueCm": 19.6 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 19.6 },
+        { "position": "top-right segment, upper", "valueCm": 12.71 },
+        { "position": "top-right segment, small notch", "valueCm": 4.46 },
+        { "position": "left edge", "valueCm": 35.5 },
+        { "position": "right edge (armhole/side)", "valueCm": 28.71 },
+        { "position": "bottom-right segment, small notch", "valueCm": 4.46 },
+        { "position": "bottom-right segment, upper", "valueCm": 12.71 },
+        { "position": "bottom edge", "valueCm": 19.6 }
+      ]
+    }
+  ],
+  "notes": null
+}

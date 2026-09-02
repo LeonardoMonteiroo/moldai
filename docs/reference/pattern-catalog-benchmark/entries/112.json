@@ -1,0 +1,145 @@
+{
+  "sourceId": "112",
+  "category": "women's kangaroo-pocket hoodie",
+  "moldaiArchetype": null,
+  "descriptionEn": "women's pullover hoodie with a kangaroo pocket, lined hood, rib cuffs and hem band",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "kangaroo pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner, short segment", "valueCm": 2.8 },
+        {
+          "position": "top-left corner, adjacent short segment",
+          "valueCm": 7.4
+        },
+        { "position": "top edge, diagonal", "valueCm": 20.92 },
+        { "position": "top-right corner, short segment", "valueCm": 2.6 },
+        { "position": "right edge, vertical", "valueCm": 18.02 },
+        { "position": "left edge, vertical", "valueCm": 34.91 },
+        { "position": "bottom-right corner, short segment", "valueCm": 2.6 },
+        { "position": "bottom edge, diagonal", "valueCm": 20.92 },
+        { "position": "bottom-left corner, short segment", "valueCm": 7.4 },
+        {
+          "position": "bottom-left corner, adjacent short segment",
+          "valueCm": 2.8
+        }
+      ]
+    },
+    {
+      "nameEn": "pocket gauge/template",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top-left corner, short segment", "valueCm": 7.98 },
+        { "position": "top edge, diagonal", "valueCm": 16.4 },
+        { "position": "left edge, vertical", "valueCm": 31.78 },
+        { "position": "right edge, vertical", "valueCm": 18.44 },
+        { "position": "bottom edge, diagonal", "valueCm": 16.4 },
+        { "position": "bottom-left corner, short segment", "valueCm": 7.98 }
+      ]
+    },
+    {
+      "nameEn": "hem band",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 13.01 },
+        { "position": "left edge", "valueCm": 91.08 },
+        { "position": "right edge", "valueCm": 91.08 },
+        { "position": "bottom edge", "valueCm": 13.01 }
+      ]
+    },
+    {
+      "nameEn": "hood lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, curved", "valueCm": 51.95 },
+        { "position": "left edge", "valueCm": 28.54 },
+        { "position": "bottom edge", "valueCm": 38.81 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 32.76 },
+        { "position": "upper diagonal segment", "valueCm": 27.99 },
+        { "position": "next segment down", "valueCm": 16.34 },
+        {
+          "position": "mid segment (deepest labeled sub-segment)",
+          "valueCm": 24.25
+        },
+        { "position": "mirrored segment", "valueCm": 16.34 },
+        {
+          "position": "mirrored diagonal segment near bottom corner",
+          "valueCm": 27.99
+        },
+        { "position": "bottom edge", "valueCm": 32.76 },
+        { "position": "left edge, full height", "valueCm": 55 }
+      ]
+    },
+    {
+      "nameEn": "hood",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, curved", "valueCm": 54.92 },
+        { "position": "left edge", "valueCm": 28.54 },
+        { "position": "bottom edge", "valueCm": 38.61 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 6.63 },
+        { "position": "top edge, right segment", "valueCm": 6.63 },
+        { "position": "left edge, vertical", "valueCm": 19.78 },
+        { "position": "right edge, vertical", "valueCm": 19.78 },
+        { "position": "bottom edge, left segment", "valueCm": 6.63 },
+        { "position": "bottom edge, right segment", "valueCm": 6.63 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 32.76 },
+        { "position": "upper diagonal segment", "valueCm": 22.84 },
+        { "position": "next segment down", "valueCm": 16.34 },
+        {
+          "position": "mid segment (deepest labeled sub-segment)",
+          "valueCm": 29.02
+        },
+        { "position": "mirrored segment", "valueCm": 16.34 },
+        {
+          "position": "mirrored diagonal segment near bottom corner",
+          "valueCm": 22.84
+        },
+        { "position": "bottom edge", "valueCm": 32.76 },
+        { "position": "left edge, full height", "valueCm": 55 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 46.6 },
+        { "position": "left edge", "valueCm": 23.53 },
+        { "position": "right edge", "valueCm": 51.95 },
+        { "position": "bottom edge", "valueCm": 46.6 }
+      ]
+    }
+  ],
+  "notes": null
+}

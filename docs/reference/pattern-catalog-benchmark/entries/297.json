@@ -1,0 +1,91 @@
+{
+  "sourceId": "297",
+  "category": "kids-boys-tshirt-with-folded-sleeve-cuff",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "kids boys' t-shirt with a folded/cuffed short sleeve",
+  "gender": "male",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 35.3 },
+        { "position": "top-right corner", "valueCm": 1.5 },
+        { "position": "top-left corner", "valueCm": 2.3 },
+        { "position": "top-left diagonal", "valueCm": 19.1 },
+        { "position": "right edge, upper segment", "valueCm": 18.36 },
+        { "position": "right edge, lower segment", "valueCm": 18.36 },
+        { "position": "left edge, upper segment", "valueCm": null },
+        { "position": "left edge, curve segment 1", "valueCm": 9.2 },
+        { "position": "left edge, curve segment 2 (mirrored)", "valueCm": 9.2 },
+        { "position": "left edge, lower segment", "valueCm": null },
+        { "position": "bottom-left corner (mirrors top-left)", "valueCm": 2.3 },
+        {
+          "position": "bottom-left diagonal (mirrors top-left)",
+          "valueCm": 19.1
+        },
+        { "position": "bottom edge (mirrors top)", "valueCm": 35.3 },
+        {
+          "position": "bottom-right corner (mirrors top-right)",
+          "valueCm": 1.5
+        }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 33.3 },
+        { "position": "top-right corner", "valueCm": 1.5 },
+        { "position": "top-left diagonal", "valueCm": 4.83 },
+        { "position": "left edge, upper segment", "valueCm": 18.37 },
+        { "position": "left edge, small corner", "valueCm": 2.16 },
+        { "position": "left edge, curve segment 1", "valueCm": 9.16 },
+        { "position": "left edge, curve segment 2 (deepest)", "valueCm": 8.49 },
+        {
+          "position": "left edge, curve segment 3 (mirrored)",
+          "valueCm": 9.16
+        },
+        { "position": "left edge, small corner (mirrored)", "valueCm": 2.16 },
+        { "position": "left edge, lower segment (mirrored)", "valueCm": 18.37 },
+        { "position": "bottom-left diagonal (mirrored)", "valueCm": 4.83 },
+        { "position": "bottom edge", "valueCm": 33.3 },
+        { "position": "bottom-right corner", "valueCm": 1.5 },
+        { "position": "right edge, upper segment", "valueCm": 28.71 },
+        { "position": "right edge, small middle notch", "valueCm": 1.5 },
+        { "position": "right edge, lower segment", "valueCm": 28.71 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 4.96 },
+        { "position": "top-right corner, small segment", "valueCm": 2.18 },
+        { "position": "left edge, upper segment", "valueCm": 28.44 },
+        { "position": "center vertical (cap height)", "valueCm": 28.26 },
+        { "position": "left edge, lower segment (mirrored)", "valueCm": 28.44 },
+        { "position": "bottom-left corner (mirrored)", "valueCm": 4.96 },
+        {
+          "position": "bottom-right corner, small segment (mirrored)",
+          "valueCm": 2.18
+        }
+      ]
+    },
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge (band length)", "valueCm": 17.5 },
+        { "position": "bottom edge (band length, mirrored)", "valueCm": 17.5 }
+      ]
+    }
+  ],
+  "notes": "The back piece's label and dimension text were printed rotated/upside down on the sheet, and two facing edge segments (left edge, upper and lower) were not legible with confidence — flagged null rather than guessed; their approximate range based on nearby legible values on the same piece is roughly 18-19 cm. The collar strip's band width (perpendicular to the two 17.5 cm length readings) was not clearly legible on this sheet and is omitted rather than guessed."
+}

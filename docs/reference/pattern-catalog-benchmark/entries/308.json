@@ -1,0 +1,121 @@
+{
+  "sourceId": "308",
+  "category": "t-shirt with chest pocket",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "basic crew neck t-shirt with a small chest pocket",
+  "gender": "unisex",
+  "baseSizeLabel": "02",
+  "gradeNote": "approx. 1 cm variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, right corner, upper segment", "valueCm": 4.3 },
+        {
+          "position": "top edge, right corner, lower segment",
+          "valueCm": 2.12
+        },
+        { "position": "right edge, upper segment", "valueCm": 10.58 },
+        { "position": "left edge, upper segment", "valueCm": 15.15 },
+        { "position": "left edge, vertical span (center)", "valueCm": 24.65 },
+        { "position": "horizontal center line", "valueCm": 12.66 },
+        {
+          "position": "right edge, lower segment (mirrored)",
+          "valueCm": 10.58
+        },
+        { "position": "left edge, lower segment", "valueCm": 15.15 },
+        {
+          "position": "bottom edge, right corner, upper segment",
+          "valueCm": 4.3
+        },
+        {
+          "position": "bottom edge, right corner, lower segment",
+          "valueCm": 2.12
+        }
+      ]
+    },
+    {
+      "nameEn": "GB BOLSO",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 6 },
+        { "position": "right edge, upper segment", "valueCm": 3.7 },
+        { "position": "left edge", "valueCm": 7.1 },
+        { "position": "right edge, lower segment", "valueCm": 3.7 },
+        { "position": "bottom edge", "valueCm": 6 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 2 },
+        { "position": "top edge, right segment", "valueCm": 7.01 },
+        { "position": "right edge, upper segment", "valueCm": 5.3 },
+        { "position": "left edge (full height)", "valueCm": 10 },
+        { "position": "right edge, lower segment", "valueCm": 5.3 },
+        { "position": "bottom edge, left segment", "valueCm": 2 },
+        { "position": "bottom edge, right segment", "valueCm": 7.01 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 25.35 },
+        { "position": "top right corner", "valueCm": 2.03 },
+        { "position": "top left diagonal segment", "valueCm": 14.81 },
+        { "position": "left edge, upper curve segment 1", "valueCm": 6.73 },
+        { "position": "left edge, upper curve segment 2", "valueCm": 6.74 },
+        { "position": "horizontal center span", "valueCm": 45.35 },
+        { "position": "vertical center span (height)", "valueCm": 30.4 },
+        { "position": "right edge, upper segment", "valueCm": 16.09 },
+        {
+          "position": "left edge, lower curve segment 1 (mirrored)",
+          "valueCm": 6.74
+        },
+        {
+          "position": "left edge, lower curve segment 2 (mirrored)",
+          "valueCm": 6.73
+        },
+        { "position": "bottom left diagonal segment", "valueCm": 14.81 },
+        { "position": "bottom edge", "valueCm": 25.35 },
+        { "position": "bottom right corner", "valueCm": 2.03 },
+        { "position": "right edge, lower segment", "valueCm": 16.09 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 25.35 },
+        { "position": "top right corner", "valueCm": 2.03 },
+        { "position": "top left diagonal segment", "valueCm": 13.9 },
+        { "position": "left edge, upper curve segment 1", "valueCm": 6.72 },
+        { "position": "left edge, upper curve segment 2", "valueCm": 9.29 },
+        { "position": "horizontal center span", "valueCm": 43.75 },
+        { "position": "vertical center span (height)", "valueCm": 30.43 },
+        { "position": "right edge, upper segment", "valueCm": 16.12 },
+        {
+          "position": "left edge, lower curve segment 1 (mirrored)",
+          "valueCm": 9.29
+        },
+        {
+          "position": "left edge, lower curve segment 2 (mirrored)",
+          "valueCm": 6.72
+        },
+        { "position": "bottom left diagonal segment", "valueCm": 13.9 },
+        { "position": "bottom edge", "valueCm": 25.35 },
+        { "position": "bottom right corner", "valueCm": 2.03 },
+        { "position": "right edge, lower segment", "valueCm": 16.12 }
+      ]
+    }
+  ],
+  "notes": null
+}

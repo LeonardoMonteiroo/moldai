@@ -1,0 +1,57 @@
+{
+  "sourceId": "255",
+  "category": "cropped wrap top with ties",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "cropped wrap-style top with ties and gathered sleeves, stretch knit fabric with elastic shirring at bust and sleeve casings",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "bust piece",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top tip", "valueCm": 0.96 },
+        { "position": "left edge (bias tape channel)", "valueCm": 33.43 },
+        { "position": "right edge (elastic channel)", "valueCm": 29.68 },
+        { "position": "lower-left edge", "valueCm": 15.61 },
+        { "position": "bottom edge", "valueCm": 11.76 },
+        { "position": "bottom-right corner segment", "valueCm": 1.03 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left diagonal segment", "valueCm": 18.42 },
+        { "position": "top edge, right corner segment", "valueCm": 11.75 },
+        { "position": "top edge, right corner small tab", "valueCm": 1 },
+        { "position": "left edge", "valueCm": 31.35 },
+        { "position": "right edge", "valueCm": 49.04 },
+        { "position": "bottom edge, right corner segment", "valueCm": 11.75 },
+        { "position": "bottom edge, right corner small tab", "valueCm": 1 },
+        { "position": "bottom edge, left diagonal segment", "valueCm": 18.42 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left small tab", "valueCm": 1 },
+        { "position": "top edge, diagonal segment", "valueCm": 18.74 },
+        { "position": "top edge, right corner segment", "valueCm": 8.3 },
+        { "position": "top edge, right corner small tab", "valueCm": 1 },
+        { "position": "left edge", "valueCm": 38.49 },
+        { "position": "right edge", "valueCm": 47.94 },
+        { "position": "bottom edge, left small tab", "valueCm": 1 },
+        { "position": "bottom edge", "valueCm": 15.83 },
+        { "position": "bottom edge, right corner segment", "valueCm": 8.3 },
+        { "position": "bottom edge, right corner small tab", "valueCm": 1 }
+      ]
+    }
+  ],
+  "notes": "Sleeve piece is labeled 'Quantidade: 1 (Par)' in the source (cut as a mirrored pair); recorded qty as the literal count of 1 per this repo's convention. Per-size elastic length tables printed alongside the bust/back/sleeve pieces were not transcribed, as they are supplementary grading data rather than piece-edge dimensions."
+}

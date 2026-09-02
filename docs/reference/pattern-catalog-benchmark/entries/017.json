@@ -1,0 +1,91 @@
+{
+  "sourceId": "017",
+  "category": "cropped-top-high-collar-elastic-hem",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "sleeveless knit crop top with a high/stand collar and an elastic hem band",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, vertical segment", "valueCm": 10.67 },
+        { "position": "top edge, diagonal segment", "valueCm": 19.1 },
+        { "position": "top-right corner, short segment", "valueCm": 7.06 },
+        { "position": "upper-middle row, left value", "valueCm": 35.34 },
+        { "position": "upper-middle row, center value", "valueCm": 38.98 },
+        { "position": "upper-middle row, right value", "valueCm": 20.81 },
+        {
+          "position": "horizontal center dimension line, span",
+          "valueCm": 30.35
+        },
+        {
+          "position": "bottom-right corner, short segment (mirrored)",
+          "valueCm": 7.06
+        },
+        {
+          "position": "bottom edge, diagonal segment (mirrored)",
+          "valueCm": 19.1
+        },
+        {
+          "position": "bottom edge, vertical segment (mirrored)",
+          "valueCm": 10.67
+        }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, vertical segment", "valueCm": 10.67 },
+        { "position": "top edge, diagonal segment", "valueCm": 21.78 },
+        { "position": "top-right corner, short segment", "valueCm": 7.06 },
+        { "position": "upper-middle row, left value", "valueCm": 35.35 },
+        { "position": "upper-middle row, center value", "valueCm": 38.98 },
+        { "position": "upper-middle row, right value", "valueCm": 19.15 },
+        {
+          "position": "horizontal center dimension line, span",
+          "valueCm": 33.41
+        },
+        {
+          "position": "bottom-right corner, short segment (mirrored)",
+          "valueCm": 7.06
+        },
+        {
+          "position": "bottom edge, diagonal segment (mirrored)",
+          "valueCm": 21.78
+        },
+        {
+          "position": "bottom edge, vertical segment (mirrored)",
+          "valueCm": 10.67
+        }
+      ]
+    },
+    {
+      "nameEn": "neckline band (high collar)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge (width)", "valueCm": 4.71 },
+        { "position": "left edge (length)", "valueCm": 35.81 },
+        { "position": "right edge (length)", "valueCm": 35.81 },
+        { "position": "bottom edge (width)", "valueCm": 4.71 }
+      ]
+    },
+    {
+      "nameEn": "elastic band (hem)",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge (width)", "valueCm": 5 },
+        { "position": "left edge (length)", "valueCm": 70.43 },
+        { "position": "right edge (length)", "valueCm": 70.43 },
+        { "position": "bottom edge (width)", "valueCm": 5 }
+      ]
+    }
+  ],
+  "notes": "Front and back panels show mirrored top/bottom dimensions around a horizontal center dimension line; positions below are described purely by location on the page (top/upper-middle/bottom), not by inferred anatomical meaning. The upper-middle row for each panel prints three values side by side with no further sub-labels distinguishing them, so left/center/right are page-position readings only. The elastic hem band piece had no visible 'Quantidade' label near it, so qty is omitted rather than guessed."
+}

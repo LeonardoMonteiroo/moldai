@@ -1,0 +1,108 @@
+{
+  "sourceId": "324",
+  "category": "blouse-cutout-sleeve",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "blouse with an openwork/cutout sleeve detail, plus front and back body panels",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes",
+  "pieces": [
+    {
+      "nameEn": "sleeve (with cutout detail)",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "left edge, top corner tick", "valueCm": 9.46 },
+        { "position": "left edge, upper small segment", "valueCm": 1.6 },
+        { "position": "left edge, curve segment", "valueCm": 19.49 },
+        { "position": "left edge, lower small segment", "valueCm": 1.6 },
+        { "position": "left edge, bottom corner tick", "valueCm": 9.46 },
+        { "position": "top edge", "valueCm": 51.91 },
+        { "position": "top-right corner segment", "valueCm": 2.02 },
+        { "position": "right edge", "valueCm": 22.08 },
+        { "position": "bottom-right corner segment", "valueCm": 2.02 },
+        { "position": "bottom edge", "valueCm": 51.91 },
+        {
+          "position": "internal vertical reference (left, near center)",
+          "valueCm": 33.76
+        },
+        {
+          "position": "internal horizontal reference (center)",
+          "valueCm": 61.22
+        }
+      ]
+    },
+    {
+      "nameEn": "body panel A",
+      "originalLabelUnclear": true,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner detail, segment 1", "valueCm": 1.98 },
+        { "position": "top-left corner detail, segment 2", "valueCm": 12.24 },
+        { "position": "top-left corner detail, segment 3", "valueCm": 0.98 },
+        { "position": "top-left corner detail, segment 4", "valueCm": 8.9 },
+        {
+          "position": "left edge, small segment below corner detail",
+          "valueCm": 0.73
+        },
+        { "position": "left edge, curve segment", "valueCm": 22.82 },
+        { "position": "top edge", "valueCm": 40.28 },
+        { "position": "right edge", "valueCm": 38 },
+        {
+          "position": "internal vertical reference (center)",
+          "valueCm": 41.05
+        },
+        {
+          "position": "internal horizontal reference (bottom)",
+          "valueCm": 64.72
+        },
+        { "position": "bottom edge", "valueCm": 40.28 },
+        { "position": "bottom-left corner detail, segment 1", "valueCm": 1.98 },
+        {
+          "position": "bottom-left corner detail, segment 2",
+          "valueCm": 12.24
+        },
+        { "position": "bottom-left corner detail, segment 3", "valueCm": 0.98 },
+        { "position": "bottom-left corner detail, segment 4", "valueCm": 8.9 },
+        {
+          "position": "left edge, small segment above bottom corner detail",
+          "valueCm": 0.73
+        }
+      ]
+    },
+    {
+      "nameEn": "body panel B",
+      "originalLabelUnclear": true,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner detail, segment 1", "valueCm": 1.51 },
+        { "position": "top-left corner detail, segment 2", "valueCm": 9.4 },
+        { "position": "top-left corner detail, segment 3", "valueCm": 0.98 },
+        { "position": "top-left corner detail, segment 4", "valueCm": 8.9 },
+        {
+          "position": "left edge, small segment below corner detail",
+          "valueCm": 7.41
+        },
+        { "position": "left edge, curve segment", "valueCm": 25.37 },
+        { "position": "top edge", "valueCm": 40.28 },
+        {
+          "position": "right edge (partially cropped at scan edge)",
+          "valueCm": null
+        },
+        {
+          "position": "internal horizontal reference (bottom)",
+          "valueCm": 62.04
+        },
+        { "position": "bottom edge", "valueCm": 40.28 },
+        { "position": "bottom-left corner detail, segment 1", "valueCm": 1.51 },
+        { "position": "bottom-left corner detail, segment 2", "valueCm": 9.4 },
+        { "position": "bottom-left corner detail, segment 3", "valueCm": 0.98 },
+        { "position": "bottom-left corner detail, segment 4", "valueCm": 8.9 },
+        {
+          "position": "left edge, small segment above bottom corner detail",
+          "valueCm": 7.41
+        }
+      ]
+    }
+  ],
+  "notes": "Piece name labels render as small illegible pixelated text blocks throughout this scan; nameEn values are generic shape-based descriptions, and body panel A/B are very likely front and back (mirrored, near-identical shapes with slightly different curve/edge values) but which is which could not be confirmed from the illegible labels, so originalLabelUnclear is set for all three pieces. Body panel B's right edge value is cropped at the edge of the scanned page and unreadable; recorded as null."
+}

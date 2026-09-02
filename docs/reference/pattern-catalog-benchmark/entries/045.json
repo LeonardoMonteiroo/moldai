@@ -1,0 +1,90 @@
+{
+  "sourceId": "045",
+  "category": "baby-casual-shorts",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "baby casual shorts with elastic waistband and patch pocket",
+  "gender": "baby",
+  "baseSizeLabel": "2",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "pocket bag",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 15 },
+        { "position": "left edge", "valueCm": 13 },
+        { "position": "right edge", "valueCm": 13 },
+        { "position": "bottom edge", "valueCm": 15 }
+      ]
+    },
+    {
+      "nameEn": "pocket facing",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge (curved)", "valueCm": 22.62 },
+        { "position": "left edge", "valueCm": 9.21 },
+        { "position": "bottom edge", "valueCm": 16.86 }
+      ]
+    },
+    {
+      "nameEn": "elastic guide",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 3 },
+        { "position": "left edge", "valueCm": 44 },
+        { "position": "right edge", "valueCm": 44 },
+        { "position": "bottom edge", "valueCm": 3 }
+      ]
+    },
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 8 },
+        { "position": "left edge", "valueCm": 44 },
+        { "position": "right edge", "valueCm": 44 },
+        { "position": "bottom edge", "valueCm": 8 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "upper-left curve", "valueCm": 16.33 },
+        { "position": "top segment, right of peak", "valueCm": 9.65 },
+        { "position": "top-right corner, small notch 1", "valueCm": 2.37 },
+        { "position": "top-right corner, small notch 2", "valueCm": 2.37 },
+        { "position": "left edge, upper segment", "valueCm": 8.47 },
+        { "position": "left edge, small notch", "valueCm": 4.8 },
+        { "position": "left edge, lower segment", "valueCm": 6.84 },
+        { "position": "right edge", "valueCm": 14.83 },
+        { "position": "bottom-right corner, small notch 1", "valueCm": 2.32 },
+        { "position": "bottom-right corner, small notch 2", "valueCm": 2.32 },
+        { "position": "bottom edge", "valueCm": 17.48 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top peak, small segment", "valueCm": 0.6 },
+        { "position": "top segment, right of peak", "valueCm": 9.33 },
+        { "position": "top-right corner, small notch 1", "valueCm": 2.5 },
+        { "position": "top-right corner, small notch 2", "valueCm": 2.5 },
+        { "position": "left edge, upper segment", "valueCm": 20.86 },
+        { "position": "left edge, lower segment", "valueCm": 14.54 },
+        { "position": "right edge", "valueCm": 17.92 },
+        { "position": "bottom-right corner, small notch 1", "valueCm": 2.31 },
+        { "position": "bottom-right corner, small notch 2", "valueCm": 2.31 },
+        { "position": "bottom edge", "valueCm": 24.23 }
+      ]
+    }
+  ],
+  "notes": "sourceId 045: one very small reinforcement/facing piece (top-right of the sheet, cryptic label) had no legibly readable dimensions at the available scan resolution and was omitted rather than guessed."
+}

@@ -1,0 +1,69 @@
+{
+  "sourceId": "023",
+  "category": "boys-school-trousers",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "boys'/men's school uniform trousers with back and front leg panels, a welt pocket with lining, and ankle cuffs",
+  "gender": "male",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "back leg panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 43.3 },
+        { "position": "top edge, right segment", "valueCm": 64.97 },
+        { "position": "right edge", "valueCm": 18.17 },
+        { "position": "bottom edge", "valueCm": 98.05 },
+        { "position": "left edge", "valueCm": 28.61 }
+      ]
+    },
+    {
+      "nameEn": "front leg panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 35.17 },
+        { "position": "top edge, right segment", "valueCm": 64.98 },
+        { "position": "right edge", "valueCm": 15.18 },
+        { "position": "bottom edge", "valueCm": 98.24 },
+        { "position": "left edge", "valueCm": 25.85 }
+      ]
+    },
+    {
+      "nameEn": "pocket lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge (curved)", "valueCm": 52.01 },
+        { "position": "left edge", "valueCm": 20.32 },
+        { "position": "bottom edge", "valueCm": 39 }
+      ]
+    },
+    {
+      "nameEn": "pocket welt/piping",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge (curved)", "valueCm": 55.02 },
+        { "position": "left edge", "valueCm": 23.31 },
+        { "position": "bottom edge", "valueCm": 39 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 6.58 },
+        { "position": "top edge, right segment", "valueCm": 6.58 },
+        { "position": "left edge", "valueCm": 25.47 },
+        { "position": "right edge", "valueCm": 25.47 },
+        { "position": "bottom edge, left segment", "valueCm": 6.58 },
+        { "position": "bottom edge, right segment", "valueCm": 6.58 }
+      ]
+    }
+  ],
+  "notes": "The back-leg panel's drawing also carries a finished-waist-by-size reference table (not an edge dimension): P=80, M=84, G=88, GG=92 (cm)."
+}

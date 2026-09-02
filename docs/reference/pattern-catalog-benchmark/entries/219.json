@@ -1,0 +1,104 @@
+{
+  "sourceId": "219",
+  "category": "mens-zip-polo-shirt",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "men's polo shirt with a zip placket and facing pieces",
+  "gender": "male",
+  "baseSizeLabel": "M",
+  "gradeNote": "average 1cm variation between graded sizes; measurements correspond to the printed pattern output",
+  "notes": "Two narrow strip pieces near the back panel had illegible piece-name labels (small overlapping text, possibly a button/zip placket strip); flagged originalLabelUnclear and named generically.",
+  "pieces": [
+    {
+      "nameEn": "facing",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 4.5 },
+        { "position": "top edge", "valueCm": 15 },
+        { "position": "top-right corner", "valueCm": 4.5 },
+        { "position": "bottom-left corner", "valueCm": 4.5 },
+        { "position": "bottom edge", "valueCm": 15 },
+        { "position": "bottom-right corner", "valueCm": 4.5 }
+      ]
+    },
+    {
+      "nameEn": "placket facing (vista)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 5 },
+        { "position": "top edge", "valueCm": 13 },
+        { "position": "top-right corner", "valueCm": 5 },
+        { "position": "bottom edge", "valueCm": 13 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left segment", "valueCm": 10.2 },
+        { "position": "top-right corner", "valueCm": 2.15 },
+        { "position": "left edge", "valueCm": 55.56 },
+        { "position": "right edge", "valueCm": 37.89 },
+        { "position": "bottom-left segment", "valueCm": 10.2 },
+        { "position": "bottom-right corner", "valueCm": 2.15 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left curved segment", "valueCm": 25.15 },
+        { "position": "top edge", "valueCm": 47.03 },
+        { "position": "left edge, upper segment", "valueCm": 15.7 },
+        { "position": "left edge, upper-mid segment", "valueCm": 13.18 },
+        { "position": "left edge, lower-mid segment", "valueCm": 13.18 },
+        { "position": "left edge, lower segment", "valueCm": 15.7 },
+        { "position": "bottom edge, left curved segment", "valueCm": 25.15 },
+        { "position": "bottom edge", "valueCm": 47.03 },
+        { "position": "right edge", "valueCm": 53 }
+      ]
+    },
+    {
+      "nameEn": "placket strip A",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 8.51 },
+        { "position": "left/right edge, upper reading", "valueCm": 42.79 },
+        { "position": "left/right edge, lower reading", "valueCm": 42.21 },
+        { "position": "bottom edge", "valueCm": 8.51 }
+      ]
+    },
+    {
+      "nameEn": "placket strip B",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 9.54 },
+        { "position": "left/right edge, upper reading", "valueCm": 44.34 },
+        { "position": "left/right edge, lower reading", "valueCm": 43.71 },
+        { "position": "bottom edge", "valueCm": 9.54 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left segment", "valueCm": 3.13 },
+        { "position": "top edge, curved segment", "valueCm": 26.64 },
+        { "position": "top edge", "valueCm": 47.03 },
+        { "position": "left edge, upper segment", "valueCm": 15.7 },
+        { "position": "left edge, mid segment", "valueCm": 19.38 },
+        { "position": "left edge, lower segment", "valueCm": 15.7 },
+        { "position": "bottom-left segment", "valueCm": 3.13 },
+        { "position": "bottom edge, curved segment", "valueCm": 26.64 },
+        { "position": "bottom edge", "valueCm": 47.03 },
+        { "position": "right edge", "valueCm": 53 }
+      ]
+    }
+  ]
+}

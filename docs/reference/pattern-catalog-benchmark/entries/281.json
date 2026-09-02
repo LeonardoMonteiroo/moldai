@@ -1,0 +1,142 @@
+{
+  "sourceId": "281",
+  "category": "mens-hooded-zip-sweatshirt-jacket",
+  "moldaiArchetype": null,
+  "descriptionEn": "men's zip-front hooded sweatshirt jacket with patch pockets, cuffs, waistband, and hood lining",
+  "gender": "male",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        {
+          "position": "top-right corner, first notch segment",
+          "valueCm": 2.96
+        },
+        {
+          "position": "top-right corner, second notch segment",
+          "valueCm": 6.9
+        },
+        { "position": "top edge", "valueCm": 24.43 },
+        { "position": "top-left corner", "valueCm": 2.44 },
+        { "position": "left edge", "valueCm": 10.25 },
+        { "position": "bottom-left corner", "valueCm": 1.5 },
+        { "position": "bottom edge", "valueCm": 25.6 },
+        { "position": "bottom-right corner", "valueCm": 1.5 },
+        { "position": "right edge", "valueCm": 18.67 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 38.98 },
+        { "position": "upper-left diagonal (shoulder area)", "valueCm": 28.41 },
+        { "position": "left edge, upper segment", "valueCm": 16.87 },
+        {
+          "position": "left edge, lower segment near bottom-left corner",
+          "valueCm": 12.82
+        },
+        { "position": "bottom-left corner", "valueCm": 1.5 },
+        { "position": "bottom edge", "valueCm": 59.92 },
+        { "position": "bottom-right corner", "valueCm": 1.5 },
+        { "position": "right edge, full height", "valueCm": 29.92 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 7.21 },
+        { "position": "top edge, right segment", "valueCm": 7.21 },
+        { "position": "left edge", "valueCm": 26.8 },
+        { "position": "bottom edge, left segment", "valueCm": 7.21 },
+        { "position": "bottom edge, right segment", "valueCm": 7.21 },
+        { "position": "right edge", "valueCm": 26.8 }
+      ]
+    },
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 14 },
+        { "position": "left edge", "valueCm": 55.57 },
+        { "position": "bottom edge", "valueCm": 14 },
+        { "position": "right edge", "valueCm": 55.57 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 38.98 },
+        { "position": "upper diagonal (shoulder area)", "valueCm": 30.11 },
+        { "position": "top-left corner", "valueCm": 2.41 },
+        { "position": "left edge, segment 1 (upper)", "valueCm": 16.86 },
+        { "position": "left edge, segment 2 (mid-upper)", "valueCm": 11.43 },
+        {
+          "position": "left edge, segment 3 (mid-lower, mirrors segment 2)",
+          "valueCm": 11.43
+        },
+        {
+          "position": "left edge, segment 4 (lower, mirrors segment 1)",
+          "valueCm": 16.86
+        },
+        {
+          "position": "bottom-left corner (mirrors top-left)",
+          "valueCm": 2.41
+        },
+        {
+          "position": "lower diagonal (mirrors upper diagonal)",
+          "valueCm": 30.11
+        },
+        { "position": "bottom edge (mirrors top edge)", "valueCm": 38.98 },
+        { "position": "right edge, full height", "valueCm": 59.84 }
+      ]
+    },
+    {
+      "nameEn": "hood",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "left edge, long curve", "valueCm": 59.35 },
+        { "position": "right edge", "valueCm": 26.67 },
+        { "position": "bottom edge", "valueCm": 40.35 },
+        { "position": "bottom-right corner, small segment", "valueCm": 2.35 }
+      ]
+    },
+    {
+      "nameEn": "hood lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "left edge, long curve", "valueCm": 56.96 },
+        { "position": "right edge", "valueCm": 26.67 },
+        { "position": "bottom edge", "valueCm": 40.61 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 47.58 },
+        { "position": "left edge, upper diagonal", "valueCm": 30.54 },
+        { "position": "right edge, full height", "valueCm": 29.99 },
+        {
+          "position": "left edge, lower diagonal (mirrors upper)",
+          "valueCm": 30.54
+        },
+        { "position": "bottom edge (mirrors top edge)", "valueCm": 47.58 }
+      ]
+    }
+  ],
+  "notes": "Every piece label on this sheet carried a recurring boilerplate annotation reading roughly 'quantity: 1 (pair)', which appeared even under pieces explicitly labeled '2X'/'1X' in their own name — treated as generic template text rather than a real per-piece multiplier, so qty was taken from each piece's own '<N>X' label suffix instead. A separate zipper-length reference by size was also present (not a piece edge): roughly 65 cm for smaller sizes and 78 cm for larger sizes."
+}

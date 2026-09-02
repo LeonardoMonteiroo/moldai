@@ -1,0 +1,80 @@
+{
+  "sourceId": "005",
+  "category": "cropped top with long sleeves",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "cropped top with long sleeves, back yoke seam",
+  "gender": "female",
+  "baseSizeLabel": "P",
+  "gradeNote": "approx. 1cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "back, upper (yoke)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 13.18 },
+        { "position": "bottom edge", "valueCm": 13.18 },
+        { "position": "upper-right diagonal", "valueCm": 6.2 },
+        { "position": "lower-right diagonal", "valueCm": 6.2 },
+        { "position": "upper-left diagonal", "valueCm": 7.34 },
+        { "position": "lower-left diagonal", "valueCm": 7.34 },
+        { "position": "right edge, upper segment", "valueCm": 4.74 },
+        { "position": "right edge, lower segment", "valueCm": 4.74 },
+        { "position": "left edge, upper segment", "valueCm": 0.5 },
+        { "position": "left edge, lower segment", "valueCm": 0.5 },
+        { "position": "left edge, segment to centerline", "valueCm": 17.2 },
+        { "position": "right edge, segment to centerline", "valueCm": 16.61 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 49.93 },
+        { "position": "bottom edge", "valueCm": 49.93 },
+        { "position": "left edge", "valueCm": 17.75 },
+        { "position": "right edge", "valueCm": 37.45 },
+        { "position": "horizontal centerline (full width)", "valueCm": 60.27 }
+      ]
+    },
+    {
+      "nameEn": "back, lower",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 21.72 },
+        { "position": "bottom edge", "valueCm": 21.72 },
+        { "position": "upper-right diagonal", "valueCm": 6.36 },
+        { "position": "lower-right diagonal", "valueCm": 6.36 },
+        { "position": "right edge, upper segment", "valueCm": 6.95 },
+        { "position": "right edge, lower segment", "valueCm": 6.95 },
+        { "position": "left edge (straight, full height)", "valueCm": 35.01 },
+        { "position": "right edge, curved segment", "valueCm": 35.89 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 21.72 },
+        { "position": "bottom edge, left segment", "valueCm": 21.72 },
+        { "position": "top edge, right diagonal", "valueCm": 18.76 },
+        { "position": "bottom edge, right diagonal", "valueCm": 18.76 },
+        { "position": "right edge, upper segment", "valueCm": 6.2 },
+        { "position": "right edge, lower segment", "valueCm": 6.2 },
+        { "position": "right edge, small upper segment", "valueCm": 4.76 },
+        { "position": "right edge, small lower segment", "valueCm": 4.76 },
+        { "position": "right edge, mid segment", "valueCm": 16.98 },
+        {
+          "position": "left edge, upper half (to centerline)",
+          "valueCm": 31.56
+        },
+        { "position": "vertical centerline, upper half", "valueCm": 36.71 },
+        { "position": "horizontal mid-line (full width)", "valueCm": 45.16 }
+      ]
+    }
+  ],
+  "notes": null
+}

@@ -1,0 +1,94 @@
+{
+  "sourceId": "054",
+  "category": "deep-armhole-crewneck-sweatshirt",
+  "moldaiArchetype": null,
+  "descriptionEn": "deep-armhole pullover sweatshirt with crew neck, ribbed waistband and cuffs",
+  "gender": "unisex",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 51.38 },
+        { "position": "left edge", "valueCm": 25.23 },
+        { "position": "right edge", "valueCm": 55.99 },
+        { "position": "bottom edge", "valueCm": 51.38 }
+      ]
+    },
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 16 },
+        { "position": "left edge", "valueCm": 50.93 },
+        { "position": "right edge", "valueCm": 50.93 },
+        { "position": "bottom edge", "valueCm": 16 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 36.89 },
+        { "position": "upper-right diagonal (shoulder)", "valueCm": 29.17 },
+        { "position": "right curve, upper (armhole)", "valueCm": 15.22 },
+        { "position": "right curve, mid (armhole, deepest)", "valueCm": 23.55 },
+        {
+          "position": "right curve, lower (armhole, mirrored)",
+          "valueCm": 15.22
+        },
+        { "position": "lower-right diagonal (mirrored)", "valueCm": 29.17 },
+        { "position": "bottom edge", "valueCm": 36.89 },
+        { "position": "left edge (full height)", "valueCm": 56.37 }
+      ]
+    },
+    {
+      "nameEn": "neckline trim",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 6 },
+        { "position": "left edge", "valueCm": 42 },
+        { "position": "right edge", "valueCm": 42 },
+        { "position": "bottom edge", "valueCm": 6 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 8.11 },
+        { "position": "top-right corner", "valueCm": 8.11 },
+        { "position": "left edge", "valueCm": 20.92 },
+        { "position": "right edge", "valueCm": 20.92 },
+        { "position": "bottom-left corner", "valueCm": 8.11 },
+        { "position": "bottom-right corner", "valueCm": 8.11 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 36.89 },
+        { "position": "upper-right diagonal (shoulder)", "valueCm": 25.98 },
+        { "position": "right curve, upper (armhole)", "valueCm": 15.22 },
+        { "position": "right curve, mid (armhole, deepest)", "valueCm": 25.56 },
+        {
+          "position": "right curve, lower (armhole, mirrored)",
+          "valueCm": 15.22
+        },
+        { "position": "lower-right diagonal (mirrored)", "valueCm": 25.98 },
+        { "position": "bottom edge", "valueCm": 36.89 },
+        { "position": "left edge (full height)", "valueCm": 56.37 }
+      ]
+    }
+  ],
+  "notes": null
+}

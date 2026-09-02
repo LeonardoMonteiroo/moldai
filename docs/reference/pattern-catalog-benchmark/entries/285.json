@@ -1,0 +1,131 @@
+{
+  "sourceId": "285",
+  "category": "mens-hooded-raglan-sweatshirt-with-kangaroo-pocket",
+  "moldaiArchetype": null,
+  "descriptionEn": "men's raglan-sleeve pullover sweatshirt with a kangaroo pocket, a hood, hood lining, cuffs and a hem band",
+  "gender": "male",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner segment", "valueCm": 7.25 },
+        { "position": "top-center small segment", "valueCm": 2.1 },
+        { "position": "top-right corner segment", "valueCm": 7.25 },
+        { "position": "left diagonal (raglan seam line)", "valueCm": 33.15 },
+        {
+          "position": "right diagonal (raglan seam line, mirrored)",
+          "valueCm": 33.15
+        },
+        { "position": "left edge, vertical", "valueCm": 37.63 },
+        { "position": "right edge, vertical (mirrored)", "valueCm": 37.63 },
+        { "position": "bottom edge", "valueCm": 55.48 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, center curve", "valueCm": 11.17 },
+        { "position": "left diagonal (raglan seam line)", "valueCm": 38.19 },
+        {
+          "position": "right diagonal (raglan seam line, mirrored)",
+          "valueCm": 38.19
+        },
+        { "position": "left edge, vertical", "valueCm": 37.63 },
+        { "position": "right edge, vertical (mirrored)", "valueCm": 37.63 },
+        { "position": "bottom edge", "valueCm": 55.48 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 2.35 },
+        { "position": "top edge", "valueCm": 24.05 },
+        { "position": "top-right corner (mirrored)", "valueCm": 2.35 },
+        { "position": "left diagonal", "valueCm": 24.88 },
+        { "position": "right diagonal (mirrored)", "valueCm": 24.88 },
+        { "position": "lower-left corner", "valueCm": 3.32 },
+        { "position": "lower-right corner (mirrored)", "valueCm": 3.32 },
+        { "position": "left edge, bottom segment", "valueCm": 8.28 },
+        {
+          "position": "right edge, bottom segment (mirrored)",
+          "valueCm": 8.28
+        },
+        { "position": "bottom edge", "valueCm": 41.42 }
+      ]
+    },
+    {
+      "nameEn": "hood",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top/right edge, long curve", "valueCm": 58.93 },
+        { "position": "left edge, vertical", "valueCm": 40.81 },
+        { "position": "bottom edge", "valueCm": 27.72 },
+        { "position": "bottom-left corner, small segment", "valueCm": 2.5 }
+      ]
+    },
+    {
+      "nameEn": "hood lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top/right edge, long curve", "valueCm": 56.47 },
+        { "position": "left edge, vertical", "valueCm": 41.11 },
+        { "position": "bottom edge", "valueCm": 25.04 },
+        { "position": "bottom-left corner, small segment", "valueCm": 2.67 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top corner (raglan tip)", "valueCm": 13.96 },
+        {
+          "position": "upper-right diagonal (raglan cap edge)",
+          "valueCm": 38.24
+        },
+        {
+          "position": "upper-left diagonal (raglan cap edge)",
+          "valueCm": 33.16
+        },
+        { "position": "left edge, vertical", "valueCm": 49.21 },
+        { "position": "right edge, vertical", "valueCm": 49.21 },
+        { "position": "bottom edge (hem)", "valueCm": 28.73 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 23 },
+        { "position": "left edge, upper segment", "valueCm": 7.12 },
+        { "position": "left edge, lower segment", "valueCm": 7.12 },
+        { "position": "right edge, upper segment", "valueCm": 7.12 },
+        { "position": "right edge, lower segment", "valueCm": 7.12 },
+        { "position": "bottom edge", "valueCm": 23 }
+      ]
+    },
+    {
+      "nameEn": "hem band",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 51.07 },
+        { "position": "left edge", "valueCm": 14 },
+        { "position": "bottom edge", "valueCm": 51.07 },
+        { "position": "right edge", "valueCm": 14 }
+      ]
+    }
+  ],
+  "notes": "The folder's own title did not mention a hood, but this measurement sheet includes both a hood piece and a hood lining piece, so the garment is evidently a hooded pullover rather than a plain crew-neck one; description/category were adjusted accordingly. Every piece label also carried a recurring boilerplate annotation reading roughly 'quantity: 1 (pair)' even under pieces explicitly labeled '2X' in their own name — treated as generic template text, so qty was taken from each piece's own '<N>X' label suffix instead."
+}

@@ -1,0 +1,80 @@
+{
+  "sourceId": "316",
+  "category": "cropped-racerback-tank-with-bias-finish",
+  "moldaiArchetype": null,
+  "descriptionEn": "sleeveless cropped tank/racerback top with bias-tape finished edges, front and back panels only",
+  "gender": null,
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, curve", "valueCm": 18.87 },
+        { "position": "top-right corner", "valueCm": 2.07 },
+        { "position": "right edge, upper segment", "valueCm": 17.33 },
+        { "position": "right edge, lower segment", "valueCm": 17.34 },
+        {
+          "position": "bottom-right corner (mirrors top-right)",
+          "valueCm": 2.07
+        },
+        { "position": "bottom edge, curve (mirrors top)", "valueCm": 18.87 },
+        { "position": "top-left corner", "valueCm": 2.53 },
+        { "position": "upper-left diagonal", "valueCm": 26 },
+        { "position": "left edge, upper curve segment", "valueCm": 15.12 },
+        {
+          "position": "left edge, lower curve segment (mirrors upper)",
+          "valueCm": 15.12
+        },
+        { "position": "lower-left diagonal (mirrors upper)", "valueCm": 26 },
+        {
+          "position": "bottom-left corner (mirrors top-left)",
+          "valueCm": 2.53
+        },
+        {
+          "position": "horizontal reference line through piece center",
+          "valueCm": 42.69
+        }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-right corner", "valueCm": 2.07 },
+        { "position": "top edge/diagonal", "valueCm": 18.87 },
+        { "position": "right edge, upper segment", "valueCm": 17.34 },
+        {
+          "position": "right edge, lower segment (mirrors upper)",
+          "valueCm": 17.34
+        },
+        {
+          "position": "bottom-right corner (mirrors top-right)",
+          "valueCm": 2.07
+        },
+        { "position": "bottom edge/diagonal (mirrors top)", "valueCm": 18.87 },
+        { "position": "top-left corner", "valueCm": 2.53 },
+        { "position": "upper-left diagonal", "valueCm": 29.54 },
+        { "position": "left edge, upper segment", "valueCm": 10.95 },
+        {
+          "position": "left edge, lower segment (mirrors upper)",
+          "valueCm": 10.95
+        },
+        { "position": "lower-left diagonal (mirrors upper)", "valueCm": 29.54 },
+        {
+          "position": "bottom-left corner (mirrors top-left)",
+          "valueCm": 2.53
+        },
+        { "position": "left edge, overall vertical length", "valueCm": 20 },
+        {
+          "position": "vertical reference line through piece center",
+          "valueCm": 38
+        }
+      ]
+    }
+  ],
+  "notes": null
+}

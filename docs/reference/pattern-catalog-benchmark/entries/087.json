@@ -1,0 +1,90 @@
+{
+  "sourceId": "087",
+  "category": "mens-tshirt-double-placket",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "men's t-shirt with a double front placket and rib cuffs",
+  "gender": "male",
+  "baseSizeLabel": "GG",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 39.96 },
+        { "position": "upper-left diagonal segment", "valueCm": 28.38 },
+        { "position": "top-left corner segment", "valueCm": 13 },
+        { "position": "left edge, upper segment", "valueCm": 13.24 },
+        { "position": "left edge, middle curved segment", "valueCm": 25.29 },
+        { "position": "left edge, lower segment", "valueCm": 13.24 },
+        { "position": "lower-left diagonal segment", "valueCm": 28.38 },
+        { "position": "bottom edge", "valueCm": 39.96 },
+        { "position": "right edge", "valueCm": 58.93 },
+        { "position": "top neckline, small segment (left)", "valueCm": 1.45 },
+        { "position": "top neckline, small segment (right)", "valueCm": 7.9 },
+        {
+          "position": "bottom neckline, small segment (left)",
+          "valueCm": 1.45
+        },
+        { "position": "bottom neckline, small segment (right)", "valueCm": 7.9 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 39.74 },
+        { "position": "upper-left diagonal segment", "valueCm": 25.73 },
+        { "position": "left edge, upper segment", "valueCm": 13.24 },
+        { "position": "left edge, middle curved segment", "valueCm": 29.23 },
+        { "position": "left edge, lower segment", "valueCm": 13.24 },
+        { "position": "lower-left diagonal segment", "valueCm": 25.73 },
+        { "position": "bottom edge", "valueCm": 39.74 },
+        { "position": "right edge", "valueCm": 58.92 },
+        { "position": "top neckline, small segment (left)", "valueCm": 1.45 },
+        { "position": "top neckline, small segment (right)", "valueCm": 7.9 },
+        {
+          "position": "bottom neckline, small segment (left)",
+          "valueCm": 1.45
+        },
+        { "position": "bottom neckline, small segment (right)", "valueCm": 7.9 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 50 },
+        { "position": "left edge, curved segment", "valueCm": 55.5 },
+        { "position": "bottom edge", "valueCm": 50 },
+        { "position": "right edge", "valueCm": 25.62 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner segment", "valueCm": 8.09 },
+        { "position": "top-right corner segment", "valueCm": 8.09 },
+        { "position": "left edge", "valueCm": 22.92 },
+        { "position": "right edge", "valueCm": 22.92 },
+        { "position": "bottom-left corner segment", "valueCm": 8.09 },
+        { "position": "bottom-right corner segment", "valueCm": 8.09 }
+      ]
+    },
+    {
+      "nameEn": "placket",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": null },
+        { "position": "bottom edge", "valueCm": null }
+      ]
+    }
+  ],
+  "notes": "The placket piece (labelled 'PEITI.HO' in the source drawing, consistent with the folder's description of a double placket) is printed as a very small box with tiny accompanying instructional text; its numeric edge values could not be read with confidence and are recorded as null rather than guessed."
+}

@@ -1,0 +1,99 @@
+{
+  "sourceId": "007",
+  "category": "oversized cropped top with long sleeves and cuffs",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "oversized cropped top with long sleeves, cuffs, neckline binding strip and side panels",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 23.5 },
+        { "position": "bottom edge", "valueCm": 23.5 },
+        { "position": "upper-right diagonal", "valueCm": 19.97 },
+        { "position": "lower-right diagonal", "valueCm": 19.97 },
+        { "position": "right edge, upper segment", "valueCm": 17.34 },
+        { "position": "right edge, lower segment", "valueCm": 17.34 },
+        { "position": "right edge, curved mid segment", "valueCm": 26.49 },
+        { "position": "left edge (centerline), upper half", "valueCm": 52.65 },
+        { "position": "left edge (centerline), lower half", "valueCm": 52.65 },
+        { "position": "horizontal mid-line (full width)", "valueCm": 47.94 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 23.5 },
+        { "position": "bottom edge", "valueCm": 23.5 },
+        { "position": "upper-right diagonal", "valueCm": 25.09 },
+        { "position": "lower-right diagonal", "valueCm": 25.09 },
+        { "position": "right edge, upper segment", "valueCm": 17.34 },
+        { "position": "right edge, lower segment", "valueCm": 17.34 },
+        { "position": "right edge, curved mid segment", "valueCm": 21.77 },
+        { "position": "left edge (centerline), upper half", "valueCm": 52.65 },
+        { "position": "left edge (centerline), lower half", "valueCm": 52.65 },
+        { "position": "horizontal mid-line (full width)", "valueCm": 53 }
+      ]
+    },
+    {
+      "nameEn": "neckline strip",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 6 },
+        { "position": "bottom edge", "valueCm": 6 },
+        { "position": "left edge", "valueCm": 40 },
+        { "position": "right edge", "valueCm": 40 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 6.96 },
+        { "position": "top edge, mid-left segment", "valueCm": 3.07 },
+        { "position": "top edge, mid-right segment", "valueCm": 3.07 },
+        { "position": "top edge, right segment", "valueCm": 6.96 },
+        { "position": "left edge", "valueCm": 19.81 },
+        { "position": "right edge", "valueCm": 19.81 },
+        { "position": "interior segment, left", "valueCm": 9.79 },
+        { "position": "interior segment, right", "valueCm": 9.79 },
+        { "position": "bottom edge, left segment", "valueCm": 9.09 },
+        { "position": "bottom edge, right segment", "valueCm": 9.09 }
+      ]
+    },
+    {
+      "nameEn": "side panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 23.6 },
+        { "position": "bottom edge", "valueCm": 23.6 },
+        { "position": "top edge, small right segment", "valueCm": 0.47 },
+        { "position": "bottom edge, small right segment", "valueCm": 0.47 },
+        { "position": "left edge", "valueCm": 7.44 },
+        { "position": "right edge", "valueCm": 7.72 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 45.09 },
+        { "position": "bottom edge", "valueCm": 45.09 },
+        { "position": "left edge", "valueCm": 23.88 },
+        { "position": "right edge", "valueCm": 51.95 },
+        { "position": "horizontal mid-line (full width)", "valueCm": 56.48 }
+      ]
+    }
+  ],
+  "notes": null
+}

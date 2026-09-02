@@ -1,0 +1,153 @@
+{
+  "sourceId": "204",
+  "category": "kids-casual-pants-with-back-elastic-waist",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "kids casual pants with an elasticated back waistband, back yoke, and back and side pockets",
+  "gender": "kids",
+  "baseSizeLabel": "08",
+  "gradeNote": "average +1cm variation between graded sizes; measurements correspond to the printed pattern output",
+  "notes": "This sheet is denser and lower-resolution than most others in the batch; several small corner-tick values were genuinely ambiguous and are recorded as null. The back panel carries an embedded per-size back-elastic-length note ('Elástico traseiro: 06=27cm 08=29cm 10=31cm 12=33cm') which is a construction note, not a piece-edge dimension, and was not transcribed as an edge. One small square piece and a piece labeled 'GABARITO BOLSO' (pocket template/guide, not a cut fabric piece) were included for completeness but their identity/edges are lower-confidence reads.",
+  "pieces": [
+    {
+      "nameEn": "right waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner tick", "valueCm": 8 },
+        { "position": "top-right corner tick", "valueCm": 3 },
+        { "position": "left edge", "valueCm": 18.65 },
+        { "position": "right edge", "valueCm": 15.65 },
+        { "position": "bottom edge, segment a", "valueCm": 4.12 },
+        { "position": "bottom edge, segment b", "valueCm": 4.12 }
+      ]
+    },
+    {
+      "nameEn": "left waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, segment a", "valueCm": 4.12 },
+        { "position": "top edge, segment b", "valueCm": 4.12 },
+        { "position": "left edge", "valueCm": 16.15 },
+        { "position": "right edge", "valueCm": 16.15 },
+        { "position": "bottom edge", "valueCm": 8 }
+      ]
+    },
+    {
+      "nameEn": "yoke",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 6.71 },
+        { "position": "left edge, upper segment", "valueCm": 18.63 },
+        { "position": "left edge, lower segment", "valueCm": 19.26 },
+        { "position": "bottom edge", "valueCm": 4.83 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left curved segment", "valueCm": 22.67 },
+        { "position": "top edge, right segment", "valueCm": 23.48 },
+        { "position": "right edge, upper segment", "valueCm": 27.37 },
+        { "position": "left edge", "valueCm": 19.21 },
+        { "position": "right edge, lower segment", "valueCm": 13.29 },
+        { "position": "bottom edge, left segment", "valueCm": 40.15 },
+        { "position": "bottom edge, right segment", "valueCm": 27.25 }
+      ]
+    },
+    {
+      "nameEn": "back waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, tick a", "valueCm": 3.63 },
+        { "position": "top edge, tick b", "valueCm": null },
+        { "position": "left edge, upper segment", "valueCm": 18.17 },
+        { "position": "right edge, upper segment", "valueCm": 18.17 },
+        { "position": "left edge, lower segment", "valueCm": 18.17 },
+        { "position": "right edge, lower segment", "valueCm": 18.17 },
+        { "position": "bottom edge, tick a", "valueCm": 3.64 },
+        { "position": "bottom edge, tick b", "valueCm": null }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner segment", "valueCm": 2.88 },
+        { "position": "top edge, left curved segment a", "valueCm": 15.86 },
+        { "position": "top edge, left curved segment b", "valueCm": 8.9 },
+        { "position": "left edge, segment a", "valueCm": 4.27 },
+        { "position": "left edge, segment b", "valueCm": 8.75 },
+        { "position": "left edge, lower segment", "valueCm": 14.8 },
+        { "position": "top edge, right segment", "valueCm": 23.48 },
+        { "position": "right edge, upper segment", "valueCm": 27.37 },
+        { "position": "right edge, lower segment", "valueCm": 11.37 },
+        { "position": "bottom edge, left segment", "valueCm": 29.91 },
+        { "position": "bottom edge, right segment", "valueCm": 27.25 }
+      ]
+    },
+    {
+      "nameEn": "small square piece",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top edge, left tick", "valueCm": 5 },
+        { "position": "top edge, right tick", "valueCm": 5 },
+        { "position": "bottom edge, left tick", "valueCm": 5 },
+        { "position": "bottom edge, right tick", "valueCm": 5 }
+      ]
+    },
+    {
+      "nameEn": "pocket template (gabarito)",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 11.22 },
+        { "position": "left edge", "valueCm": 9.9 },
+        { "position": "right edge", "valueCm": 9.95 },
+        { "position": "bottom edge", "valueCm": 11.22 }
+      ]
+    },
+    {
+      "nameEn": "back pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, tick", "valueCm": 1.5 },
+        { "position": "top edge", "valueCm": 12.86 },
+        { "position": "left edge", "valueCm": 13.44 },
+        { "position": "right edge", "valueCm": 13.44 },
+        { "position": "bottom edge, tick", "valueCm": 1.5 },
+        { "position": "bottom edge", "valueCm": 12.86 }
+      ]
+    },
+    {
+      "nameEn": "pocket lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-right curved edge", "valueCm": 32.89 },
+        { "position": "left edge", "valueCm": 8.75 },
+        { "position": "bottom-left segment", "valueCm": 14.79 },
+        { "position": "bottom edge", "valueCm": 8.95 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-right curved edge", "valueCm": 32.9 },
+        { "position": "left edge", "valueCm": 8.75 },
+        { "position": "bottom-left segment", "valueCm": 2.27 },
+        { "position": "bottom edge, left segment", "valueCm": 14.64 },
+        { "position": "bottom edge, right segment", "valueCm": 8.95 }
+      ]
+    }
+  ]
+}

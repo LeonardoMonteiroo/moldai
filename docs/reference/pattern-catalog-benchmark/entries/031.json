@@ -1,0 +1,58 @@
+{
+  "sourceId": "031",
+  "category": "fleece shorts (zig-zag print variant)",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "fleece sweat shorts with waistband and side panels, zig-zag print fabric variant",
+  "gender": null,
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1cm variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 10 },
+        { "position": "bottom edge", "valueCm": 10 },
+        { "position": "left edge", "valueCm": 70 },
+        { "position": "right edge", "valueCm": 70 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left diagonal segment", "valueCm": 27.04 },
+        { "position": "top edge, right curved segment", "valueCm": 6.19 },
+        { "position": "right edge", "valueCm": 27.64 },
+        { "position": "left edge", "valueCm": 21.01 },
+        { "position": "bottom edge", "valueCm": 29.94 }
+      ]
+    },
+    {
+      "nameEn": "side panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 29.85 },
+        { "position": "left edge", "valueCm": 7.14 },
+        { "position": "right edge", "valueCm": 7.1 },
+        { "position": "bottom edge", "valueCm": 30.57 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 29.94 },
+        { "position": "left edge, upper segment", "valueCm": 21.18 },
+        { "position": "lower-left diagonal", "valueCm": 36.28 },
+        { "position": "bottom-right curved segment", "valueCm": 6.22 },
+        { "position": "right edge", "valueCm": 36.23 }
+      ]
+    }
+  ],
+  "notes": null
+}

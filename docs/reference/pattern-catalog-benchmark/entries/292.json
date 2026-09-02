@@ -1,0 +1,97 @@
+{
+  "sourceId": "292",
+  "category": "mens-basic-shorts",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "men's basic elastic-waist shorts with separate left/right front panels, a back panel, a waistband, and an elastic-width gauge/template",
+  "gender": "male",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "left front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 2.03 },
+        { "position": "top edge, segment 1", "valueCm": 16.09 },
+        { "position": "top edge, segment 2", "valueCm": 15.42 },
+        { "position": "top edge, segment 3", "valueCm": 13.03 },
+        { "position": "top-right corner", "valueCm": 21 },
+        { "position": "right edge, full height", "valueCm": 28.92 },
+        { "position": "bottom-right corner", "valueCm": 2.01 },
+        {
+          "position": "bottom edge, segment (right portion)",
+          "valueCm": 20.43
+        },
+        { "position": "bottom edge, notch segment 1", "valueCm": 9.61 },
+        { "position": "bottom edge, notch segment 2", "valueCm": 6.01 },
+        { "position": "bottom edge, segment (left portion)", "valueCm": 12.73 },
+        { "position": "bottom-left corner, small segment", "valueCm": 3.53 },
+        { "position": "left edge, lower segment", "valueCm": 11.82 },
+        { "position": "left edge, small double segment 1", "valueCm": 2.01 },
+        { "position": "left edge, small double segment 2", "valueCm": 2.01 },
+        { "position": "left edge, upper segment", "valueCm": 11.82 }
+      ]
+    },
+    {
+      "nameEn": "right front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, segment 1 (left portion)", "valueCm": 16.03 },
+        { "position": "top edge, notch segment", "valueCm": 9.61 },
+        { "position": "top edge, segment continuing", "valueCm": 20.42 },
+        { "position": "top-right corner", "valueCm": 21.01 },
+        { "position": "right edge, full height", "valueCm": 28.92 },
+        { "position": "bottom-right corner", "valueCm": 21 },
+        { "position": "bottom edge, segment 3", "valueCm": 13.03 },
+        { "position": "bottom edge, segment 2", "valueCm": 15.42 },
+        { "position": "bottom edge, segment 1", "valueCm": 16.1 },
+        { "position": "bottom-left corner", "valueCm": 2.02 },
+        { "position": "left edge, lower segment", "valueCm": 11.82 },
+        { "position": "left edge, small double segment 1", "valueCm": 2.01 },
+        { "position": "left edge, small double segment 2", "valueCm": 2.01 },
+        { "position": "left edge, upper segment", "valueCm": 11.82 }
+      ]
+    },
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 5.2 },
+        { "position": "top edge, right segment", "valueCm": 5.2 },
+        { "position": "left edge, upper segment", "valueCm": 24.64 },
+        { "position": "right edge, upper segment", "valueCm": 24.64 },
+        { "position": "left edge, lower segment", "valueCm": 26.64 },
+        { "position": "right edge, lower segment", "valueCm": 26.64 },
+        { "position": "bottom edge, left segment", "valueCm": 5.2 },
+        { "position": "bottom edge, right segment", "valueCm": 5.2 }
+      ]
+    },
+    {
+      "nameEn": "elastic width gauge",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge", "valueCm": 4.7 },
+        { "position": "bottom edge", "valueCm": 4.7 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left diagonal", "valueCm": 21.99 },
+        { "position": "top edge, peak/apex segment", "valueCm": 12.09 },
+        { "position": "top-right diagonal", "valueCm": 20.42 },
+        { "position": "top-right corner", "valueCm": 21.01 },
+        { "position": "right edge, full height", "valueCm": 34.92 },
+        { "position": "bottom edge", "valueCm": 46.57 },
+        { "position": "bottom-right corner", "valueCm": 21 },
+        { "position": "left edge, full height", "valueCm": 28.69 }
+      ]
+    }
+  ],
+  "notes": "The left-front bottom-right corner value was printed with what looked like an extra trailing digit (appearing as something like '2.011' rather than a clean two-decimal value); recorded as 2.01, the same value seen at the equivalent corner on other small segments on this sheet, but treat it as slightly uncertain. The small 'elastic width gauge' piece only had a width dimension marked (repeated top and bottom); no length/height value was legible or labeled for it. The back piece's quantity suffix ('2X') and its own boilerplate quantity annotation (which read roughly '1 (pair)') disagreed as they did on other sheets in this batch — qty was taken from the '2X' suffix."
+}

@@ -1,0 +1,42 @@
+{
+  "sourceId": "268",
+  "category": "zippered pouch/case panels",
+  "moldaiArchetype": null,
+  "descriptionEn": "small zippered pouch/case assembled from an upper rectangular panel and a lower notched panel; non-apparel",
+  "gender": null,
+  "baseSizeLabel": "one size",
+  "gradeNote": null,
+  "pieces": [
+    {
+      "nameEn": "upper panel",
+      "originalLabelUnclear": false,
+      "qty": 4,
+      "edges": [
+        { "position": "top edge", "valueCm": 23 },
+        { "position": "bottom edge", "valueCm": 23 },
+        { "position": "left edge", "valueCm": 8.71 },
+        { "position": "right edge", "valueCm": 8.71 }
+      ]
+    },
+    {
+      "nameEn": "lower panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 23 },
+        { "position": "bottom edge", "valueCm": 23 },
+        { "position": "left edge, upper segment", "valueCm": 4.79 },
+        { "position": "left edge, upper notch segment", "valueCm": 3 },
+        { "position": "left edge, middle segment", "valueCm": 5 },
+        { "position": "left edge, lower notch segment", "valueCm": 3 },
+        { "position": "left edge, lower segment", "valueCm": 4.79 },
+        { "position": "right edge, upper segment", "valueCm": 4.79 },
+        { "position": "right edge, upper notch segment", "valueCm": 3 },
+        { "position": "right edge, middle segment", "valueCm": 5 },
+        { "position": "right edge, lower notch segment", "valueCm": 3 },
+        { "position": "right edge, lower segment", "valueCm": 4.79 }
+      ]
+    }
+  ],
+  "notes": "Non-apparel item (small zippered pouch/case), included per extraction guidance since the drawing has real dimensioned pattern pieces. Header OBS note stated only that measurements correspond to the printed pattern (one-size item, no size-grading variation note)."
+}

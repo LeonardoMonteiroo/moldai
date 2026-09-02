@@ -1,0 +1,101 @@
+{
+  "sourceId": "150",
+  "category": "kids-long-sleeve-pajama-top",
+  "moldaiArchetype": null,
+  "descriptionEn": "kids long-sleeve pajama top with a straight collar band and ribbed cuffs",
+  "gender": "kids",
+  "baseSizeLabel": "8",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 35.3 },
+        { "position": "bottom edge", "valueCm": 35.3 },
+        { "position": "right edge, inner dimension line", "valueCm": 39.53 },
+        {
+          "position": "right edge, outer dimension line (full height)",
+          "valueCm": 41.43
+        },
+        {
+          "position": "left edge, segment 1 (from top corner)",
+          "valueCm": 19.76
+        },
+        { "position": "left edge, segment 2", "valueCm": 10.69 },
+        { "position": "left edge, segment 3 (mid)", "valueCm": 14.6 },
+        { "position": "left edge, segment 4", "valueCm": 10.69 },
+        {
+          "position": "left edge, segment 5 (to bottom corner)",
+          "valueCm": 19.76
+        }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 35.3 },
+        { "position": "bottom edge", "valueCm": 35.3 },
+        { "position": "right edge (full height)", "valueCm": 41.43 },
+        {
+          "position": "left edge, segment 1 (from top corner)",
+          "valueCm": 19.76
+        },
+        { "position": "left edge, segment 2", "valueCm": 10.8 },
+        { "position": "left edge, segment 3", "valueCm": 12.16 },
+        {
+          "position": "left edge, small notch detail, upper value",
+          "valueCm": 10
+        },
+        {
+          "position": "left edge, small notch detail, lower value",
+          "valueCm": 1.4
+        },
+        { "position": "left edge, segment 4", "valueCm": 12.16 },
+        { "position": "left edge, segment 5", "valueCm": 10.8 },
+        {
+          "position": "left edge, segment 6 (to bottom corner)",
+          "valueCm": 19.76
+        }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (cap curve, upper)", "valueCm": 29.07 },
+        { "position": "right edge", "valueCm": 20 },
+        { "position": "bottom edge (cap curve, lower)", "valueCm": 29.07 }
+      ]
+    },
+    {
+      "nameEn": "collar band",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 5 },
+        { "position": "left edge", "valueCm": 39.4 },
+        { "position": "right edge", "valueCm": 39.4 },
+        { "position": "bottom edge", "valueCm": 5 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left half", "valueCm": 4.56 },
+        { "position": "top edge, right half", "valueCm": 4.56 },
+        { "position": "left edge", "valueCm": 18.34 },
+        { "position": "right edge", "valueCm": 18.34 },
+        { "position": "bottom edge, left half", "valueCm": 4.56 },
+        { "position": "bottom edge, right half", "valueCm": 4.56 }
+      ]
+    }
+  ],
+  "notes": "Header text reads a generic 'TAM. M' but every piece's own label shows grade 04-10 with base size 08 (kids numeric sizing); baseSizeLabel above uses the piece labels' base size. One small unlabeled dimension block (roughly 12.7 x 5 cm) near the collar/cuff pieces was omitted from this entry because its piece name was not legible enough to identify confidently."
+}

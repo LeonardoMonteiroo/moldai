@@ -1,0 +1,73 @@
+{
+  "sourceId": "254",
+  "category": "long-tshirt-with-side-slit",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "long-line t-shirt with a side hem opening/slit and a ribbed crew neckband",
+  "gender": "unisex",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 10.45 },
+        { "position": "top edge, corner detail", "valueCm": 2.13 },
+        { "position": "left edge", "valueCm": 53.41 },
+        { "position": "right edge", "valueCm": 39.69 },
+        { "position": "bottom edge", "valueCm": 10.45 },
+        { "position": "bottom edge, corner detail", "valueCm": 2.13 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 38.85 },
+        { "position": "left edge, upper segment", "valueCm": 24.35 },
+        { "position": "left edge, segment 2", "valueCm": 13.67 },
+        { "position": "left edge, middle segment", "valueCm": 31.68 },
+        { "position": "left edge, segment 4", "valueCm": 13.67 },
+        { "position": "left edge, lower segment", "valueCm": 24.35 },
+        { "position": "bottom edge", "valueCm": 38.85 },
+        { "position": "right edge", "valueCm": 57.01 },
+        { "position": "right edge, top corner detail", "valueCm": 5.96 },
+        { "position": "right edge, bottom corner detail", "valueCm": 5.96 }
+      ]
+    },
+    {
+      "nameEn": "neckband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top end", "valueCm": 5 },
+        { "position": "upper segment", "valueCm": 23.96 },
+        { "position": "center length", "valueCm": 47.92 },
+        { "position": "lower segment", "valueCm": 23.96 },
+        { "position": "bottom end", "valueCm": 5 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 38.85 },
+        { "position": "left edge, segment 1 (top, small)", "valueCm": 2.63 },
+        { "position": "left edge, segment 2", "valueCm": 25.21 },
+        { "position": "left edge, segment 3", "valueCm": 13.67 },
+        { "position": "left edge, middle segment", "valueCm": 26.15 },
+        { "position": "left edge, segment 5", "valueCm": 13.67 },
+        { "position": "left edge, segment 6 (lower, small)", "valueCm": 2.63 },
+        { "position": "left edge, segment 7", "valueCm": 25.21 },
+        { "position": "bottom edge", "valueCm": 38.85 },
+        { "position": "right edge", "valueCm": 61.01 },
+        { "position": "right edge, top corner detail", "valueCm": 9.97 },
+        { "position": "right edge, bottom corner detail", "valueCm": 9.97 }
+      ]
+    }
+  ],
+  "notes": "The small 'corner detail' values on the sleeve (2.13), front (5.96) and back (9.97) pieces were surrounded by visual noise/rendering artifacts near the arrow endpoints in the scan; the digits themselves were consistent across their repeated (top/bottom) occurrences, so they were transcribed as read rather than marked null, but confidence on these specific values is moderate rather than high."
+}

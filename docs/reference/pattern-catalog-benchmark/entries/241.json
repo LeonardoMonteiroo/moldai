@@ -1,0 +1,101 @@
+{
+  "sourceId": "241",
+  "category": "open button-up workshirt with contrast trim",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "Open, button-front woven shirt with a back panel, sleeves, front panels, and separate front/back facings each paired with a matching interfacing piece.",
+  "gender": "unisex",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 51.14 },
+        { "position": "top-left corner segment", "valueCm": 2.8 },
+        { "position": "top-left curve", "valueCm": 26.17 },
+        { "position": "left edge, upper segment", "valueCm": 18.06 },
+        { "position": "left edge, middle segment", "valueCm": 24.11 },
+        { "position": "left edge, lower segment", "valueCm": 18.06 },
+        { "position": "bottom-left curve", "valueCm": 26.17 },
+        { "position": "bottom-left corner segment", "valueCm": 2.8 },
+        { "position": "bottom edge", "valueCm": 51.14 },
+        { "position": "right edge", "valueCm": 59 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left curve", "valueCm": 12.38 },
+        { "position": "top-right corner segment", "valueCm": 2.04 },
+        { "position": "right edge", "valueCm": 41.84 },
+        { "position": "bottom-left curve", "valueCm": 12.38 },
+        { "position": "bottom-right corner segment", "valueCm": 2.04 },
+        { "position": "left edge", "valueCm": 54.52 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 51.14 },
+        { "position": "top-left curve", "valueCm": 24.81 },
+        { "position": "left edge", "valueCm": 18.06 },
+        { "position": "lower-left curve", "valueCm": 19.39 },
+        { "position": "bottom edge", "valueCm": 65.27 },
+        { "position": "right edge", "valueCm": 32.48 }
+      ]
+    },
+    {
+      "nameEn": "front facing",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner segment", "valueCm": 6.88 },
+        { "position": "top edge, next segment", "valueCm": 19.37 },
+        { "position": "top edge, main segment", "valueCm": 82.31 },
+        { "position": "bottom edge", "valueCm": 65.27 },
+        { "position": "right edge", "valueCm": 6.03 }
+      ]
+    },
+    {
+      "nameEn": "front facing interfacing",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner segment", "valueCm": 6.88 },
+        { "position": "top edge, next segment", "valueCm": 19.37 },
+        { "position": "top edge, main segment", "valueCm": 82.31 },
+        { "position": "bottom edge", "valueCm": 65.27 },
+        { "position": "right edge", "valueCm": 6.03 }
+      ]
+    },
+    {
+      "nameEn": "back facing",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge", "valueCm": 6.21 },
+        { "position": "bottom edge", "valueCm": 6.21 },
+        { "position": "left edge, upper segment", "valueCm": 12.05 },
+        { "position": "left edge, lower segment", "valueCm": 12.05 },
+        { "position": "right/curve edge", "valueCm": 40.01 }
+      ]
+    },
+    {
+      "nameEn": "back facing interfacing",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge", "valueCm": 6.21 },
+        { "position": "bottom edge", "valueCm": 6.21 },
+        { "position": "left edge, upper segment", "valueCm": 12.05 },
+        { "position": "left edge, lower segment", "valueCm": 12.05 },
+        { "position": "right/curve edge", "valueCm": 40.01 }
+      ]
+    }
+  ],
+  "notes": "The qty field follows the printed 'Quantidade' annotation, reading 2 wherever '(Par)' is noted and 1 otherwise. The back-facing and back-facing-interfacing pieces' 'Quantidade' text was partly obscured/rotated in the scan and not clearly legible, so qty is omitted for both."
+}

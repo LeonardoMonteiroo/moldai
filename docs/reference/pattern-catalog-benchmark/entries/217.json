@@ -1,0 +1,97 @@
+{
+  "sourceId": "217",
+  "category": "casual-pants-with-front-slit-and-cutout-panels",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "casual pants with a front opening/slit, front color-block cutout panels, an elastic waistband, and side pockets",
+  "gender": "unisex",
+  "baseSizeLabel": "M",
+  "gradeNote": "average 1cm variation between graded sizes; measurements correspond to the printed pattern output",
+  "notes": "A small embedded note near the back panel (partially legible, appears to reference an elastic length in cm) is a construction note, not a piece-edge dimension, and was not transcribed as an edge.",
+  "pieces": [
+    {
+      "nameEn": "front cutout panel 1",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left segment", "valueCm": 9.4 },
+        { "position": "top edge", "valueCm": 53.4 },
+        { "position": "top-right segment", "valueCm": 48.49 },
+        { "position": "right edge", "valueCm": 11.82 },
+        { "position": "bottom-right segment", "valueCm": 26.13 },
+        { "position": "bottom-right tick", "valueCm": 1 },
+        { "position": "bottom edge", "valueCm": 74.4 }
+      ]
+    },
+    {
+      "nameEn": "front cutout panel 2",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 74.4 },
+        { "position": "top-right segment", "valueCm": 26.13 },
+        { "position": "top-right tick", "valueCm": 1 },
+        { "position": "right edge", "valueCm": 11.82 },
+        { "position": "bottom edge, right segment", "valueCm": 48.5 },
+        { "position": "bottom edge, left curved segment", "valueCm": 31.93 },
+        { "position": "bottom-left segment a", "valueCm": 14.4 },
+        { "position": "bottom-left segment b", "valueCm": 4.57 },
+        { "position": "bottom-left segment c", "valueCm": 6.9 },
+        { "position": "left edge, upper segment", "valueCm": 9.71 },
+        { "position": "left edge, lower segment", "valueCm": 3.41 }
+      ]
+    },
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 7 },
+        { "position": "left edge", "valueCm": 71.2 },
+        { "position": "right edge", "valueCm": 71.2 },
+        { "position": "bottom edge", "valueCm": 7 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left segment", "valueCm": 5.84 },
+        { "position": "left edge, segment a", "valueCm": 19.03 },
+        { "position": "left edge, segment b", "valueCm": 21.1 },
+        { "position": "left edge, segment c", "valueCm": 21.86 },
+        { "position": "left edge, lower segment", "valueCm": 9.11 },
+        { "position": "top edge, left segment", "valueCm": 48.57 },
+        { "position": "top edge", "valueCm": 48.49 },
+        { "position": "right edge", "valueCm": 22.46 },
+        { "position": "bottom edge, right segment", "valueCm": 48.5 },
+        { "position": "bottom edge, left curved segment", "valueCm": 31.93 },
+        { "position": "bottom-left segment", "valueCm": 21.17 }
+      ]
+    },
+    {
+      "nameEn": "pocket template (gabarito)",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 13.74 },
+        { "position": "left edge", "valueCm": 11.69 },
+        { "position": "right edge", "valueCm": 11.69 },
+        { "position": "bottom edge", "valueCm": 13.74 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 2 },
+        { "position": "top edge", "valueCm": 15.24 },
+        { "position": "left edge", "valueCm": 14.69 },
+        { "position": "right edge", "valueCm": 14.69 },
+        { "position": "bottom-left corner", "valueCm": 2 },
+        { "position": "bottom edge", "valueCm": 15.24 }
+      ]
+    }
+  ]
+}

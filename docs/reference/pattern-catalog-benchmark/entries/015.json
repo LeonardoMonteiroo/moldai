@@ -1,0 +1,146 @@
+{
+  "sourceId": "015",
+  "category": "sport-jacket-with-hood",
+  "moldaiArchetype": null,
+  "descriptionEn": "sport jacket with hood, zip-style front closure, waistband, cuffs, and pockets",
+  "gender": "unisex",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left diagonal (cap)", "valueCm": 36.89 },
+        { "position": "top-right diagonal (cap)", "valueCm": 50.06 },
+        { "position": "right edge, upper (short)", "valueCm": 23.01 },
+        { "position": "bottom edge", "valueCm": 50.12 },
+        { "position": "left edge, lower diagonal", "valueCm": 31.97 },
+        { "position": "left edge, upper (short)", "valueCm": 10.72 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 4.54 },
+        { "position": "top edge, right segment", "valueCm": 4.54 },
+        { "position": "left edge", "valueCm": 23.02 },
+        { "position": "right edge", "valueCm": 23.02 },
+        { "position": "bottom edge, left segment", "valueCm": 4.51 },
+        { "position": "bottom edge, right segment", "valueCm": 4.51 }
+      ]
+    },
+    {
+      "nameEn": "hood band/strip",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 49.48 },
+        { "position": "bottom edge", "valueCm": 49.48 },
+        { "position": "left edge", "valueCm": 9.74 },
+        { "position": "right edge", "valueCm": 9.72 }
+      ]
+    },
+    {
+      "nameEn": "hood lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 54.37 },
+        { "position": "right edge", "valueCm": 29.15 },
+        { "position": "bottom-right short segment", "valueCm": 10.11 },
+        { "position": "bottom edge", "valueCm": 32.27 }
+      ]
+    },
+    {
+      "nameEn": "hood",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 48.75 },
+        { "position": "right edge", "valueCm": 25.13 },
+        { "position": "bottom-right short segment", "valueCm": 10.11 },
+        { "position": "bottom edge", "valueCm": 28.27 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-right diagonal", "valueCm": 35.19 },
+        { "position": "right edge", "valueCm": 55.55 },
+        { "position": "bottom-right diagonal (mirrored)", "valueCm": 35.19 },
+        { "position": "left edge, upper diagonal", "valueCm": 36.23 },
+        { "position": "left edge, lower diagonal", "valueCm": 36.23 },
+        { "position": "left edge, small mid segment", "valueCm": 12.71 }
+      ]
+    },
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 9 },
+        { "position": "left edge (length)", "valueCm": 108 },
+        { "position": "right edge (length)", "valueCm": 108 },
+        { "position": "bottom edge", "valueCm": 9 }
+      ]
+    },
+    {
+      "nameEn": "placket/facing piece (label 'CONTRA')",
+      "originalLabelUnclear": true,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left diagonal", "valueCm": 6.26 },
+        { "position": "top edge, left segment", "valueCm": 19.55 },
+        { "position": "top edge, right segment", "valueCm": 36.55 },
+        { "position": "left edge", "valueCm": 11.34 },
+        { "position": "right edge", "valueCm": 7.56 },
+        { "position": "bottom edge", "valueCm": 53.65 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, small segment", "valueCm": 3.32 },
+        { "position": "top-right diagonal", "valueCm": 8.28 },
+        { "position": "top edge", "valueCm": 25.88 },
+        { "position": "right edge", "valueCm": 20.71 },
+        { "position": "left edge, upper segment", "valueCm": 2.35 },
+        { "position": "left edge, lower segment", "valueCm": 10 },
+        { "position": "bottom edge", "valueCm": 27 }
+      ]
+    },
+    {
+      "nameEn": "pocket trim/facing (label 'GB')",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 18.25 },
+        { "position": "top-right diagonal", "valueCm": 9.64 },
+        { "position": "right edge", "valueCm": 19.02 },
+        { "position": "left edge", "valueCm": 11.1 },
+        { "position": "bottom edge", "valueCm": 25.5 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left diagonal", "valueCm": 31.95 },
+        { "position": "top-right diagonal", "valueCm": 35.2 },
+        { "position": "right edge", "valueCm": 28.49 },
+        { "position": "left edge", "valueCm": 11.34 },
+        { "position": "bottom edge", "valueCm": 53.65 }
+      ]
+    }
+  ],
+  "notes": "Two piece labels used abbreviations that could not be confidently translated ('CONTRA' and 'GB' prefix) and are kept verbatim with originalLabelUnclear flagged."
+}

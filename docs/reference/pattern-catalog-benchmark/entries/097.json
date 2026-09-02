@@ -1,0 +1,91 @@
+{
+  "sourceId": "097",
+  "category": "men's polo shirt with placket and rib cuffs",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "men's knit polo shirt with front placket and straight rib cuffs",
+  "gender": "male",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "left edge, horizontal", "valueCm": 54.97 },
+        { "position": "top edge, curved", "valueCm": 6.48 },
+        { "position": "right edge, vertical", "valueCm": 39.52 },
+        { "position": "bottom edge, curved", "valueCm": 6.48 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 49 },
+        { "position": "upper diagonal segment", "valueCm": 27.61 },
+        { "position": "next segment down", "valueCm": 2.07 },
+        { "position": "next segment down", "valueCm": 15.2 },
+        {
+          "position": "mid segment (deepest labeled sub-segment)",
+          "valueCm": 19.22
+        },
+        { "position": "mirrored segment", "valueCm": 15.2 },
+        { "position": "mirrored segment", "valueCm": 2.07 },
+        {
+          "position": "mirrored diagonal segment near bottom corner",
+          "valueCm": 27.61
+        },
+        { "position": "bottom edge", "valueCm": 49 },
+        { "position": "right edge, full height", "valueCm": 56.72 }
+      ]
+    },
+    {
+      "nameEn": "cuff template (straight)",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 4.65 },
+        { "position": "left vertical line", "valueCm": 37.8 },
+        { "position": "right vertical line", "valueCm": 35.53 },
+        { "position": "bottom edge", "valueCm": 4.65 }
+      ]
+    },
+    {
+      "nameEn": "placket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 18 },
+        { "position": "left edge", "valueCm": 13 },
+        { "position": "right edge", "valueCm": 13 },
+        { "position": "bottom edge", "valueCm": 18 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 49 },
+        { "position": "upper diagonal segment", "valueCm": 25.91 },
+        { "position": "next segment down", "valueCm": 15.2 },
+        { "position": "next segment down", "valueCm": 11.69 },
+        {
+          "position": "mid segment (deepest labeled sub-segment)",
+          "valueCm": 3.01
+        },
+        { "position": "mirrored segment", "valueCm": 11.69 },
+        { "position": "mirrored segment", "valueCm": 15.2 },
+        {
+          "position": "mirrored diagonal segment near bottom corner",
+          "valueCm": 25.91
+        },
+        { "position": "bottom edge", "valueCm": 49 },
+        { "position": "right edge, full height", "valueCm": 56.69 }
+      ]
+    }
+  ],
+  "notes": null
+}

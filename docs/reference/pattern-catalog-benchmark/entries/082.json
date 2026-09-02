@@ -1,0 +1,76 @@
+{
+  "sourceId": "082",
+  "category": "womens-blouse-double-ruffle",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "women's blouse with double ruffle trim",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 47.84 },
+        { "position": "upper-left diagonal segment", "valueCm": 23.73 },
+        { "position": "left edge, upper segment", "valueCm": 10.88 },
+        { "position": "left edge, middle curved segment", "valueCm": 25.35 },
+        { "position": "left edge, lower segment", "valueCm": 10.88 },
+        { "position": "lower-left diagonal segment", "valueCm": 23.73 },
+        { "position": "bottom edge", "valueCm": 47.84 },
+        { "position": "right edge", "valueCm": 50.95 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 47.84 },
+        { "position": "upper-left diagonal segment", "valueCm": 21.72 },
+        { "position": "left edge, upper segment", "valueCm": 10.87 },
+        { "position": "left edge, middle curved segment", "valueCm": 29.24 },
+        { "position": "left edge, lower segment", "valueCm": 10.87 },
+        { "position": "lower-left diagonal segment", "valueCm": 21.72 },
+        { "position": "bottom edge", "valueCm": 47.84 },
+        { "position": "right edge", "valueCm": 50.96 }
+      ]
+    },
+    {
+      "nameEn": "sleeve, lower part",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 12.77 },
+        { "position": "bottom edge", "valueCm": 12.77 },
+        {
+          "position": "internal vertical measurement line, left",
+          "valueCm": 96.38
+        },
+        {
+          "position": "internal vertical measurement line, right",
+          "valueCm": 88.71
+        }
+      ]
+    },
+    {
+      "nameEn": "sleeve, upper part",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 7.77 },
+        { "position": "bottom edge", "valueCm": 7.77 },
+        {
+          "position": "internal vertical measurement line, left",
+          "valueCm": 96.38
+        },
+        {
+          "position": "internal vertical measurement line, right",
+          "valueCm": 88.71
+        }
+      ]
+    }
+  ],
+  "notes": "For both sleeve pieces, an internal vertical measurement line shows the same pair of values (96.38 and 88.71) in the source drawing; the exact geometric meaning of which curve/edge each value measures is not fully clear from the layout, so they are recorded as internal measurement lines rather than assigned to a specific outline edge."
+}

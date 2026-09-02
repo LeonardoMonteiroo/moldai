@@ -1,0 +1,52 @@
+{
+  "sourceId": "224",
+  "category": "front-panel-dress-with-back-tie",
+  "moldaiArchetype": "dress",
+  "descriptionEn": "One-piece dress with a joined front panel and a tie/lacing detail at the back.",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "Approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces.",
+  "pieces": [
+    {
+      "nameEn": "front side panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "strap tip, left segment", "valueCm": 2.03 },
+        { "position": "strap tip, top segment", "valueCm": 5.62 },
+        { "position": "strap tip, right segment", "valueCm": 2.02 },
+        { "position": "left diagonal edge", "valueCm": 23.29 },
+        { "position": "right diagonal edge, upper", "valueCm": 22.03 },
+        { "position": "top edge", "valueCm": 44.15 },
+        { "position": "right edge, vertical", "valueCm": 15.8 },
+        { "position": "bottom edge, right segment", "valueCm": 34.55 },
+        { "position": "bottom edge, left segment", "valueCm": 35.77 }
+      ]
+    },
+    {
+      "nameEn": "front middle panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left diagonal", "valueCm": 11.45 },
+        { "position": "top edge, left segment", "valueCm": 35.77 },
+        { "position": "top edge, right segment", "valueCm": 34.55 },
+        { "position": "left edge, vertical", "valueCm": 10.48 },
+        { "position": "right edge, vertical", "valueCm": 10.66 },
+        { "position": "bottom edge", "valueCm": 78.82 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 44.15 },
+        { "position": "left edge, vertical curve", "valueCm": 39.06 },
+        { "position": "right edge, vertical", "valueCm": 50.18 },
+        { "position": "bottom edge", "valueCm": 44.15 }
+      ]
+    }
+  ],
+  "notes": null
+}

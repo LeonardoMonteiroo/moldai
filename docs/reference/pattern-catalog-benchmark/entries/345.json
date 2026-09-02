@@ -1,0 +1,119 @@
+{
+  "sourceId": "345",
+  "category": "womens-tailored-skort",
+  "moldaiArchetype": null,
+  "descriptionEn": "women's tailored skort combining a shorts structure (front/back panels with crotch curve) with a separate outer skirt-shaped front panel and lining",
+  "gender": "female",
+  "baseSizeLabel": "P",
+  "pieces": [
+    {
+      "nameEn": "shorts back panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 11.93 },
+        { "position": "top edge, right segment", "valueCm": 8.54 },
+        { "position": "top-right corner", "valueCm": 2.2 },
+        { "position": "upper-right curve", "valueCm": 20.68 },
+        { "position": "right edge (side seam, straight)", "valueCm": 35 },
+        { "position": "left edge, upper", "valueCm": 9.45 },
+        { "position": "interior dart, segment 1", "valueCm": 1.31 },
+        { "position": "interior dart, segment 2", "valueCm": 1.41 },
+        { "position": "left edge, lower", "valueCm": 8.94 },
+        { "position": "bottom edge", "valueCm": 30.9 },
+        { "position": "bottom-right corner", "valueCm": 2.2 }
+      ]
+    },
+    {
+      "nameEn": "back facing interfacing",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 6.98 },
+        { "position": "left edge, segment 1", "valueCm": 10.49 },
+        { "position": "left edge, segment 2", "valueCm": 17.36 },
+        { "position": "middle segment", "valueCm": 9.5 },
+        { "position": "left edge, segment 3", "valueCm": 17.36 },
+        { "position": "left edge, segment 4", "valueCm": 10.49 },
+        { "position": "bottom edge", "valueCm": 6.96 }
+      ]
+    },
+    {
+      "nameEn": "back facing",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 6.96 },
+        { "position": "left edge, segment 1", "valueCm": 10.49 },
+        { "position": "left edge, segment 2", "valueCm": 17.36 },
+        { "position": "middle segment", "valueCm": 9.5 },
+        { "position": "left edge, segment 3", "valueCm": 17.36 },
+        { "position": "left edge, segment 4", "valueCm": 10.49 },
+        { "position": "bottom edge", "valueCm": 6.96 }
+      ]
+    },
+    {
+      "nameEn": "shorts front panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 8.64 },
+        { "position": "top edge, right segment", "valueCm": 8.5 },
+        { "position": "top-right corner", "valueCm": 2.2 },
+        { "position": "upper-right curve", "valueCm": 15.43 },
+        { "position": "right edge (side seam, straight)", "valueCm": 27.43 },
+        { "position": "left edge", "valueCm": 18.36 },
+        { "position": "bottom edge", "valueCm": 30.9 },
+        { "position": "bottom-right corner", "valueCm": 2.2 }
+      ]
+    },
+    {
+      "nameEn": "front facing interfacing",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 6.98 },
+        { "position": "left edge, segment 1", "valueCm": 20.01 },
+        { "position": "left edge, segment 2", "valueCm": 17.36 },
+        { "position": "left edge, segment 3", "valueCm": 20.01 },
+        { "position": "bottom edge", "valueCm": 6.98 }
+      ]
+    },
+    {
+      "nameEn": "front facing",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 6.98 },
+        { "position": "left edge, segment 1", "valueCm": 17.36 },
+        { "position": "left edge, segment 2", "valueCm": 20.01 },
+        { "position": "left edge, segment 3", "valueCm": 20.01 },
+        { "position": "left edge, segment 4", "valueCm": 17.36 },
+        { "position": "bottom edge", "valueCm": 6.98 }
+      ]
+    },
+    {
+      "nameEn": "skirt front lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge (lateral)", "valueCm": 31.22 },
+        { "position": "left edge (waist)", "valueCm": 34.02 },
+        { "position": "right edge", "valueCm": 37.64 },
+        { "position": "bottom edge", "valueCm": 28.3 }
+      ]
+    },
+    {
+      "nameEn": "skirt front panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "left edge (waist)", "valueCm": 34.3 },
+        { "position": "top edge", "valueCm": 29.13 },
+        { "position": "right edge", "valueCm": 38.07 },
+        { "position": "bottom edge (lateral)", "valueCm": 32.02 }
+      ]
+    }
+  ],
+  "notes": null
+}

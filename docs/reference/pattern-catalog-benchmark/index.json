@@ -1,0 +1,2634 @@
+{
+  "groups": [
+    {
+      "key": "knitwear-tops",
+      "label": "Knit tops (t-shirts, polos, tanks) — maps to moldaiArchetype \"tshirt\"",
+      "count": 49,
+      "entries": [
+        {
+          "sourceId": "003",
+          "file": "entries/003.json",
+          "category": "oversized t-shirt with patch pocket",
+          "moldaiArchetype": "tshirt",
+          "gender": null,
+          "descriptionEn": "oversized t-shirt with patch pocket and neckline band",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "011",
+          "file": "entries/011.json",
+          "category": "kids basic t-shirt",
+          "moldaiArchetype": "tshirt",
+          "gender": "kids",
+          "descriptionEn": "kids basic short-sleeve knit t-shirt with rib collar",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "016",
+          "file": "entries/016.json",
+          "category": "sport-raglan-tshirt",
+          "moldaiArchetype": "tshirt",
+          "gender": "unisex",
+          "descriptionEn": "sport raglan-sleeve t-shirt, knit",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "035",
+          "file": "entries/035.json",
+          "category": "baby raglan t-shirt with UV protection fabric",
+          "moldaiArchetype": "tshirt",
+          "gender": "baby",
+          "descriptionEn": "baby raglan-sleeve t-shirt in UV-protective fabric",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "044",
+          "file": "entries/044.json",
+          "category": "baby-raglan-tshirt-bicolor",
+          "moldaiArchetype": "tshirt",
+          "gender": "baby",
+          "descriptionEn": "baby two-tone raglan-sleeve t-shirt, separate left/right sleeve pieces",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "049",
+          "file": "entries/049.json",
+          "category": "mens-basic-tshirt",
+          "moldaiArchetype": "tshirt",
+          "gender": "male",
+          "descriptionEn": "men's basic short-sleeve t-shirt, crew neck",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "050",
+          "file": "entries/050.json",
+          "category": "womens-basic-tshirt",
+          "moldaiArchetype": "tshirt",
+          "gender": "female",
+          "descriptionEn": "women's basic short-sleeve t-shirt, crew neck",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "067",
+          "file": "entries/067.json",
+          "category": "kids-raglan-tshirt",
+          "moldaiArchetype": "tshirt",
+          "gender": "kids",
+          "descriptionEn": "kids raglan-sleeve t-shirt",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "087",
+          "file": "entries/087.json",
+          "category": "mens-tshirt-double-placket",
+          "moldaiArchetype": "tshirt",
+          "gender": "male",
+          "descriptionEn": "men's t-shirt with a double front placket and rib cuffs",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "091",
+          "file": "entries/091.json",
+          "category": "kids fitted top with short sleeves",
+          "moldaiArchetype": "tshirt",
+          "gender": "kids",
+          "descriptionEn": "kids fitted knit top with set-in short sleeves",
+          "pieceCount": 3
+        },
+        {
+          "sourceId": "095",
+          "file": "entries/095.json",
+          "category": "women's sport t-shirt with set-in sleeves",
+          "moldaiArchetype": "tshirt",
+          "gender": "female",
+          "descriptionEn": "women's athletic knit t-shirt with separate left/right set-in sleeve pieces",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "096",
+          "file": "entries/096.json",
+          "category": "kids sleeveless tank top",
+          "moldaiArchetype": "tshirt",
+          "gender": "kids",
+          "descriptionEn": "kids sleeveless muscle-style tank top",
+          "pieceCount": 2
+        },
+        {
+          "sourceId": "097",
+          "file": "entries/097.json",
+          "category": "men's polo shirt with placket and rib cuffs",
+          "moldaiArchetype": "tshirt",
+          "gender": "male",
+          "descriptionEn": "men's knit polo shirt with front placket and straight rib cuffs",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "098",
+          "file": "entries/098.json",
+          "category": "women's polo shirt with placket and rib cuffs",
+          "moldaiArchetype": "tshirt",
+          "gender": "female",
+          "descriptionEn": "women's knit polo shirt with front placket opening and straight rib cuffs",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "099",
+          "file": "entries/099.json",
+          "category": "boys' kids polo shirt with placket and rib cuffs",
+          "moldaiArchetype": "tshirt",
+          "gender": "kids",
+          "descriptionEn": "boys' knit polo shirt with front placket opening and straight rib cuffs",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "100",
+          "file": "entries/100.json",
+          "category": "girls' kids polo shirt with placket and rib cuffs",
+          "moldaiArchetype": "tshirt",
+          "gender": "kids",
+          "descriptionEn": "girls' knit polo shirt with front placket opening and straight rib cuffs",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "101",
+          "file": "entries/101.json",
+          "category": "kids sleeveless tank top (girls)",
+          "moldaiArchetype": "tshirt",
+          "gender": "kids",
+          "descriptionEn": "girls' kids sleeveless tank top",
+          "pieceCount": 2
+        },
+        {
+          "sourceId": "105",
+          "file": "entries/105.json",
+          "category": "t-shirt with front and back yoke and small pocket",
+          "moldaiArchetype": "tshirt",
+          "gender": "unisex",
+          "descriptionEn": "knit t-shirt with a front yoke, back yoke, neckline binding strip and a small pocket",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "106",
+          "file": "entries/106.json",
+          "category": "t-shirt with resort-style collar, placket and rib cuffs",
+          "moldaiArchetype": "tshirt",
+          "gender": "unisex",
+          "descriptionEn": "knit t-shirt with an open resort-style collar, a short front placket opening and straight rib cuffs",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "116",
+          "file": "entries/116.json",
+          "category": "oversized cropped top with straight-grain cut detail and scalloped hem cutout",
+          "moldaiArchetype": "tshirt",
+          "gender": "female",
+          "descriptionEn": "women's oversized cropped top with a straight-grain-cut style note, small reverse-side cutout pieces, a pocket and a decorative scalloped hem cutout",
+          "pieceCount": 7
+        },
+        {
+          "sourceId": "152",
+          "file": "entries/152.json",
+          "category": "mens-pajama-top",
+          "moldaiArchetype": "tshirt",
+          "gender": "male",
+          "descriptionEn": "men's short-sleeve knit pajama top, basic tee-style block with round neckline",
+          "pieceCount": 3
+        },
+        {
+          "sourceId": "172",
+          "file": "entries/172.json",
+          "category": "oversized-tshirt-with-pocket-and-panels",
+          "moldaiArchetype": "tshirt",
+          "gender": null,
+          "descriptionEn": "oversized t-shirt with a patch pocket, front and back yoke/panel cutouts, and a ribbed collar band",
+          "pieceCount": 10
+        },
+        {
+          "sourceId": "176",
+          "file": "entries/176.json",
+          "category": "basic-raglan-back-tshirt",
+          "moldaiArchetype": "tshirt",
+          "gender": null,
+          "descriptionEn": "basic t-shirt with raglan-cut back sleeves, front, back, sleeve and neckband pieces",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "177",
+          "file": "entries/177.json",
+          "category": "sport t-shirt with micro-perforated fabric",
+          "moldaiArchetype": "tshirt",
+          "gender": null,
+          "descriptionEn": "sport t-shirt with micro-perforated fabric, back yoke panel and neckline band",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "178",
+          "file": "entries/178.json",
+          "category": "cropped t-shirt with wide collar",
+          "moldaiArchetype": "tshirt",
+          "gender": null,
+          "descriptionEn": "cropped t-shirt with a wide flared collar layered over an inner neckline band",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "186",
+          "file": "entries/186.json",
+          "category": "racerback-tank-top-bias-cut-armhole",
+          "moldaiArchetype": "tshirt",
+          "gender": null,
+          "descriptionEn": "sleeveless knit tank top with an armhole cut on the bias",
+          "pieceCount": 3
+        },
+        {
+          "sourceId": "187",
+          "file": "entries/187.json",
+          "category": "tshirt-with-ventilation-cutout-panels",
+          "moldaiArchetype": "tshirt",
+          "gender": null,
+          "descriptionEn": "short-sleeve knit t-shirt with side and sleeve cutout panels for ventilation",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "188",
+          "file": "entries/188.json",
+          "category": "long-sleeve t-shirt with strategic cutout panel",
+          "moldaiArchetype": "tshirt",
+          "gender": null,
+          "descriptionEn": "long-sleeve knit t-shirt with a strategic cutout/insert panel",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "202",
+          "file": "entries/202.json",
+          "category": "tricolor-color-block-tshirt-with-pocket",
+          "moldaiArchetype": "tshirt",
+          "gender": "unisex",
+          "descriptionEn": "tricolor color-block t-shirt with a chest patch pocket, ribbed collar, and set-in sleeves",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "203",
+          "file": "entries/203.json",
+          "category": "long-sleeve-tshirt-rounded-hem-with-pocket",
+          "moldaiArchetype": "tshirt",
+          "gender": "unisex",
+          "descriptionEn": "long-sleeve t-shirt with a rounded hem, ribbed collar, and a chest patch pocket",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "210",
+          "file": "entries/210.json",
+          "category": "turtleneck-tshirt-with-front-color-block-panel",
+          "moldaiArchetype": "tshirt",
+          "gender": "unisex",
+          "descriptionEn": "turtleneck t-shirt with a horizontal color-block cutout panel across the front",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "244",
+          "file": "entries/244.json",
+          "category": "oversized-knit-tshirt-high-collar",
+          "moldaiArchetype": "tshirt",
+          "gender": null,
+          "descriptionEn": "Oversized knit t-shirt with a high/mock collar band and set-in sleeves.",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "253",
+          "file": "entries/253.json",
+          "category": "long-straight-cut-tshirt-rounded-hem",
+          "moldaiArchetype": "tshirt",
+          "gender": "unisex",
+          "descriptionEn": "long-line t-shirt cut on the straight grain with a rounded hem and a ribbed crew neckband",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "254",
+          "file": "entries/254.json",
+          "category": "long-tshirt-with-side-slit",
+          "moldaiArchetype": "tshirt",
+          "gender": "unisex",
+          "descriptionEn": "long-line t-shirt with a side hem opening/slit and a ribbed crew neckband",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "271",
+          "file": "entries/271.json",
+          "category": "t-shirt with elongated back hem and side vents",
+          "moldaiArchetype": "tshirt",
+          "gender": null,
+          "descriptionEn": "t-shirt with an elongated back hem, side vents, sleeves and a collar band",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "272",
+          "file": "entries/272.json",
+          "category": "women's raglan-sleeve UV protection t-shirt",
+          "moldaiArchetype": "tshirt",
+          "gender": "female",
+          "descriptionEn": "women's long-sleeve UV-protection t-shirt with raglan sleeves and a separate neckband",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "273",
+          "file": "entries/273.json",
+          "category": "women's set-in-sleeve UV protection t-shirt",
+          "moldaiArchetype": "tshirt",
+          "gender": "female",
+          "descriptionEn": "women's long-sleeve UV-protection t-shirt with set-in sleeves and a separate neckband",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "297",
+          "file": "entries/297.json",
+          "category": "kids-boys-tshirt-with-folded-sleeve-cuff",
+          "moldaiArchetype": "tshirt",
+          "gender": "male",
+          "descriptionEn": "kids boys' t-shirt with a folded/cuffed short sleeve",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "301",
+          "file": "entries/301.json",
+          "category": "womens-fitted-tshirt-baby-look",
+          "moldaiArchetype": "tshirt",
+          "gender": "female",
+          "descriptionEn": "women's fitted crop-style t-shirt (baby-look)",
+          "pieceCount": 3
+        },
+        {
+          "sourceId": "308",
+          "file": "entries/308.json",
+          "category": "t-shirt with chest pocket",
+          "moldaiArchetype": "tshirt",
+          "gender": "unisex",
+          "descriptionEn": "basic crew neck t-shirt with a small chest pocket",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "309",
+          "file": "entries/309.json",
+          "category": "kids v-neck t-shirt",
+          "moldaiArchetype": "tshirt",
+          "gender": "kids",
+          "descriptionEn": "kids v-neck short-sleeve t-shirt with a narrow neckline binding strip",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "323",
+          "file": "entries/323.json",
+          "category": "baby-knit-top-round-collar",
+          "moldaiArchetype": "tshirt",
+          "gender": "baby",
+          "descriptionEn": "thermal knit baby top with a round neckband/collar and set-in sleeves",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "331",
+          "file": "entries/331.json",
+          "category": "mens-oversized-tshirt",
+          "moldaiArchetype": "tshirt",
+          "gender": "male",
+          "descriptionEn": "men's oversized knit t-shirt with front, back, sleeve and neckband pieces",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "333",
+          "file": "entries/333.json",
+          "category": "womens-tank-top",
+          "moldaiArchetype": "tshirt",
+          "gender": "female",
+          "descriptionEn": "women's knit tank top (regata) with front and back panels, deep armholes, no sleeves",
+          "pieceCount": 2
+        },
+        {
+          "sourceId": "334",
+          "file": "entries/334.json",
+          "category": "mens-raglan-polo-jersey",
+          "moldaiArchetype": null,
+          "gender": "male",
+          "descriptionEn": "men's raglan-sleeve polo shirt in jersey knit, with front, back, raglan sleeve pieces and small collar/placket components",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "337",
+          "file": "entries/337.json",
+          "category": "jersey-tshirt",
+          "moldaiArchetype": "tshirt",
+          "gender": "female",
+          "descriptionEn": "women's jersey knit t-shirt with front and back yoke panels and a rib neckband",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "339",
+          "file": "entries/339.json",
+          "category": "classic-crew-tshirt",
+          "moldaiArchetype": "tshirt",
+          "gender": "male",
+          "descriptionEn": "men's traditional crew-neck knit t-shirt with rib collar and set-in sleeves",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "341",
+          "file": "entries/341.json",
+          "category": "vneck-polo",
+          "moldaiArchetype": "tshirt",
+          "gender": "male",
+          "descriptionEn": "men's V-neck polo shirt with flatlock/rib trim, a hem band, and a small button/placket tab",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "344",
+          "file": "entries/344.json",
+          "category": "womens-knit-polo-v-neck",
+          "moldaiArchetype": "tshirt",
+          "gender": "female",
+          "descriptionEn": "women's V-neck polo with rib-knit trim, simple knit body panels and set-in sleeve",
+          "pieceCount": 5
+        }
+      ]
+    },
+    {
+      "key": "wovens-shirts",
+      "label": "Woven shirts and blouses — maps to moldaiArchetype \"blouse\"",
+      "count": 36,
+      "entries": [
+        {
+          "sourceId": "005",
+          "file": "entries/005.json",
+          "category": "cropped top with long sleeves",
+          "moldaiArchetype": "blouse",
+          "gender": "female",
+          "descriptionEn": "cropped top with long sleeves, back yoke seam",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "007",
+          "file": "entries/007.json",
+          "category": "oversized cropped top with long sleeves and cuffs",
+          "moldaiArchetype": "blouse",
+          "gender": "female",
+          "descriptionEn": "oversized cropped top with long sleeves, cuffs, neckline binding strip and side panels",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "017",
+          "file": "entries/017.json",
+          "category": "cropped-top-high-collar-elastic-hem",
+          "moldaiArchetype": "blouse",
+          "gender": "female",
+          "descriptionEn": "sleeveless knit crop top with a high/stand collar and an elastic hem band",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "043",
+          "file": "entries/043.json",
+          "category": "baby-blouse-with-sleeve-detail",
+          "moldaiArchetype": "blouse",
+          "gender": "baby",
+          "descriptionEn": "baby blouse with a decorative sleeve trim/binding detail",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "063",
+          "file": "entries/063.json",
+          "category": "mens-gym-tank-top",
+          "moldaiArchetype": "blouse",
+          "gender": "male",
+          "descriptionEn": "men's sleeveless gym tank top with deep armholes",
+          "pieceCount": 2
+        },
+        {
+          "sourceId": "071",
+          "file": "entries/071.json",
+          "category": "womens-tank-top",
+          "moldaiArchetype": "blouse",
+          "gender": "female",
+          "descriptionEn": "women's sleeveless tank top with a scooped neckline",
+          "pieceCount": 2
+        },
+        {
+          "sourceId": "082",
+          "file": "entries/082.json",
+          "category": "womens-blouse-double-ruffle",
+          "moldaiArchetype": "blouse",
+          "gender": "female",
+          "descriptionEn": "women's blouse with double ruffle trim",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "086",
+          "file": "entries/086.json",
+          "category": "womens-cropped-blouse",
+          "moldaiArchetype": "blouse",
+          "gender": "female",
+          "descriptionEn": "women's cropped blouse with front placket",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "103",
+          "file": "entries/103.json",
+          "category": "cropped high-collar top with center-back zipper",
+          "moldaiArchetype": "blouse",
+          "gender": "female",
+          "descriptionEn": "women's cropped top with a high stand collar and a center-back zip closure (back cut in two halves)",
+          "pieceCount": 7
+        },
+        {
+          "sourceId": "108",
+          "file": "entries/108.json",
+          "category": "V-neck blouse with set-in sleeves",
+          "moldaiArchetype": "blouse",
+          "gender": "female",
+          "descriptionEn": "women's V-neck blouse with set-in sleeves and a separate neckline binding strip",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "127",
+          "file": "entries/127.json",
+          "category": "blouse-with-poet-sleeve-and-high-collar",
+          "moldaiArchetype": "blouse",
+          "gender": "female",
+          "descriptionEn": "blouse with a high collar/neckband and gathered poet (bishop) sleeves",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "142",
+          "file": "entries/142.json",
+          "category": "twinset-blouse",
+          "moldaiArchetype": "blouse",
+          "gender": "female",
+          "descriptionEn": "blouse from a twinset (blouse plus matching cardigan) set, with front, back and set-in sleeve panels",
+          "pieceCount": 3
+        },
+        {
+          "sourceId": "148",
+          "file": "entries/148.json",
+          "category": "long-sleeve pajama top with cuffs and neckband",
+          "moldaiArchetype": "blouse",
+          "gender": "female",
+          "descriptionEn": "long-sleeve pajama top with set-in sleeves, fitted cuffs, and a narrow neckband",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "192",
+          "file": "entries/192.json",
+          "category": "blouse with round collar and back opening",
+          "moldaiArchetype": "blouse",
+          "gender": "kids",
+          "descriptionEn": "kids blouse with a round collar and a back keyhole/button opening",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "194",
+          "file": "entries/194.json",
+          "category": "raglan half-sleeve blouse with cuff",
+          "moldaiArchetype": "blouse",
+          "gender": "kids",
+          "descriptionEn": "kids raglan-sleeve blouse with half sleeves, a cuff, and a small collar",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "207",
+          "file": "entries/207.json",
+          "category": "dress-shirt-with-buttons-and-pocket",
+          "moldaiArchetype": "blouse",
+          "gender": "male",
+          "descriptionEn": "button-up dress shirt with a collar and collar stand, long sleeves with plackets and cuffs, a yoke, and a chest pocket",
+          "pieceCount": 13
+        },
+        {
+          "sourceId": "208",
+          "file": "entries/208.json",
+          "category": "long-sleeve-polo-shirt-with-zipper",
+          "moldaiArchetype": "blouse",
+          "gender": "unisex",
+          "descriptionEn": "long-sleeve polo shirt with a zip placket, structured collar, and interfacing/facing pieces",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "209",
+          "file": "entries/209.json",
+          "category": "short-sleeve-polo-shirt-with-zipper",
+          "moldaiArchetype": "blouse",
+          "gender": "unisex",
+          "descriptionEn": "short-sleeve polo shirt with a zip placket, structured collar, and a facing piece",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "212",
+          "file": "entries/212.json",
+          "category": "cropped-shirt-with-pockets-and-straight-grain-hem-band",
+          "moldaiArchetype": "blouse",
+          "gender": "female",
+          "descriptionEn": "cropped short shirt with chest pockets, a back yoke, cuffed sleeves, and a straight-grain-cut hem band",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "219",
+          "file": "entries/219.json",
+          "category": "mens-zip-polo-shirt",
+          "moldaiArchetype": "blouse",
+          "gender": "male",
+          "descriptionEn": "men's polo shirt with a zip placket and facing pieces",
+          "pieceCount": 7
+        },
+        {
+          "sourceId": "241",
+          "file": "entries/241.json",
+          "category": "open button-up workshirt with contrast trim",
+          "moldaiArchetype": "blouse",
+          "gender": "unisex",
+          "descriptionEn": "Open, button-front woven shirt with a back panel, sleeves, front panels, and separate front/back facings each paired with a matching interfacing piece.",
+          "pieceCount": 7
+        },
+        {
+          "sourceId": "243",
+          "file": "entries/243.json",
+          "category": "woven-button-front-shirt-camp-collar",
+          "moldaiArchetype": "blouse",
+          "gender": null,
+          "descriptionEn": "Woven button-front shirt with a camp/resort-style collar, set-in sleeves, and a front button placket facing.",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "251",
+          "file": "entries/251.json",
+          "category": "womens-short-sleeve-polo-shirt",
+          "moldaiArchetype": "blouse",
+          "gender": "female",
+          "descriptionEn": "women's short-sleeve polo shirt (knit) with collar, collar stand, back yoke and button placket",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "252",
+          "file": "entries/252.json",
+          "category": "mens-short-sleeve-polo-shirt",
+          "moldaiArchetype": "blouse",
+          "gender": "male",
+          "descriptionEn": "men's short-sleeve polo shirt (knit) with collar, collar stand, button placket and a curved chest pocket; this sheet shows no separate sleeve piece",
+          "pieceCount": 9
+        },
+        {
+          "sourceId": "255",
+          "file": "entries/255.json",
+          "category": "cropped wrap top with ties",
+          "moldaiArchetype": "blouse",
+          "gender": "female",
+          "descriptionEn": "cropped wrap-style top with ties and gathered sleeves, stretch knit fabric with elastic shirring at bust and sleeve casings",
+          "pieceCount": 3
+        },
+        {
+          "sourceId": "256",
+          "file": "entries/256.json",
+          "category": "strapless cropped top with rings and ties",
+          "moldaiArchetype": "blouse",
+          "gender": "female",
+          "descriptionEn": "cropped strapless (halter-less) top with O-ring hardware and ties, stretch knit with elastic shirring top and bottom",
+          "pieceCount": 3
+        },
+        {
+          "sourceId": "262",
+          "file": "entries/262.json",
+          "category": "kids resort/camp-collar button-up shirt",
+          "moldaiArchetype": "blouse",
+          "gender": "kids",
+          "descriptionEn": "kids short-sleeve button-up shirt with a resort/camp collar and front button placket",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "264",
+          "file": "entries/264.json",
+          "category": "women's wrap cropped blouse with back drawstring channel",
+          "moldaiArchetype": "blouse",
+          "gender": "female",
+          "descriptionEn": "women's cropped wrap-front blouse with set-in sleeves, a V-shaped facing strip, and a channel piece at the back for a drawstring",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "283",
+          "file": "entries/283.json",
+          "category": "long-sleeve-blouse-with-voluminous-collar",
+          "moldaiArchetype": "blouse",
+          "gender": "female",
+          "descriptionEn": "long-sleeve blouse with an oversized/voluminous collar",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "296",
+          "file": "entries/296.json",
+          "category": "kids-girls-cropped-shirt-with-yoke",
+          "moldaiArchetype": "blouse",
+          "gender": "kids",
+          "descriptionEn": "kids girls' cropped button-front shirt with a yoke, front, back, sleeves and a narrow trim strip",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "305",
+          "file": "entries/305.json",
+          "category": "kids-closed-pullover-coat-round-collar-cuffs",
+          "moldaiArchetype": "blouse",
+          "gender": "kids",
+          "descriptionEn": "kids closed pullover-style coat (knit) with a round collar and ribbed cuffs",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "314",
+          "file": "entries/314.json",
+          "category": "mens-long-sleeve-zip-polo",
+          "moldaiArchetype": null,
+          "gender": "male",
+          "descriptionEn": "men's long-sleeve zip-placket polo shirt with collar and cuffs",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "324",
+          "file": "entries/324.json",
+          "category": "blouse-cutout-sleeve",
+          "moldaiArchetype": "blouse",
+          "gender": "female",
+          "descriptionEn": "blouse with an openwork/cutout sleeve detail, plus front and back body panels",
+          "pieceCount": 3
+        },
+        {
+          "sourceId": "325",
+          "file": "entries/325.json",
+          "category": "blouse-ruffled-sleeve",
+          "moldaiArchetype": "blouse",
+          "gender": "female",
+          "descriptionEn": "blouse with a ruffled sleeve detail, front and back body panels, plus a small trim/tie piece",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "329",
+          "file": "entries/329.json",
+          "category": "layered-blouse-with-attached-camisole",
+          "moldaiArchetype": "blouse",
+          "gender": "female",
+          "descriptionEn": "women's blouse with an attached camisole/top layer, each in an outer and lining version",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "338",
+          "file": "entries/338.json",
+          "category": "twist-front-blouse",
+          "moldaiArchetype": "blouse",
+          "gender": "female",
+          "descriptionEn": "women's twist-front blouse with front and back lining panels, a gathered front, and a tie strap",
+          "pieceCount": 5
+        }
+      ]
+    },
+    {
+      "key": "bottoms",
+      "label": "Trousers, shorts, leggings, skorts — maps to moldaiArchetype \"trousers\" (plus some multi-panel/cargo/pleated bottoms too complex for the current straight-leg block)",
+      "count": 74,
+      "entries": [
+        {
+          "sourceId": "001",
+          "file": "entries/001.json",
+          "category": "unisex pants with cuffed hem",
+          "moldaiArchetype": "trousers",
+          "gender": "unisex",
+          "descriptionEn": "unisex pants with side panel, cuffed ankle hem and pockets",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "004",
+          "file": "entries/004.json",
+          "category": "riding-style pants with zip fly",
+          "moldaiArchetype": "trousers",
+          "gender": null,
+          "descriptionEn": "riding-style pants with zipper fly, side panel and welt trim",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "008",
+          "file": "entries/008.json",
+          "category": "fleece shorts",
+          "moldaiArchetype": "trousers",
+          "gender": null,
+          "descriptionEn": "fleece sweat shorts with waistband and side panels",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "009",
+          "file": "entries/009.json",
+          "category": "kids jogger pants with ribbed cuffs and waistband",
+          "moldaiArchetype": "trousers",
+          "gender": "kids",
+          "descriptionEn": "kids jogger pants with elastic ribbed waistband, ribbed ankle cuffs, a lined side pocket, and a back patch pocket",
+          "pieceCount": 9
+        },
+        {
+          "sourceId": "013",
+          "file": "entries/013.json",
+          "category": "kids-ribbed-leggings",
+          "moldaiArchetype": null,
+          "gender": "kids",
+          "descriptionEn": "kids ribbed leggings, single symmetric leg panel used for both front and back",
+          "pieceCount": 1
+        },
+        {
+          "sourceId": "014",
+          "file": "entries/014.json",
+          "category": "kids-shorts-with-leggings",
+          "moldaiArchetype": "trousers",
+          "gender": "kids",
+          "descriptionEn": "kids sport shorts with attached leggings, elastic waistband",
+          "pieceCount": 7
+        },
+        {
+          "sourceId": "018",
+          "file": "entries/018.json",
+          "category": "sport-shorts-elastic",
+          "moldaiArchetype": "trousers",
+          "gender": "unisex",
+          "descriptionEn": "basic sport shorts with elastic waistband and elastic leg hem, front and back cut from a shared panel",
+          "pieceCount": 3
+        },
+        {
+          "sourceId": "021",
+          "file": "entries/021.json",
+          "category": "leggings-with-elastic-waistband",
+          "moldaiArchetype": "trousers",
+          "gender": null,
+          "descriptionEn": "leggings with an elastic waistband guide strip, drafted as a single combined front-back leg panel",
+          "pieceCount": 2
+        },
+        {
+          "sourceId": "023",
+          "file": "entries/023.json",
+          "category": "boys-school-trousers",
+          "moldaiArchetype": "trousers",
+          "gender": "male",
+          "descriptionEn": "boys'/men's school uniform trousers with back and front leg panels, a welt pocket with lining, and ankle cuffs",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "025",
+          "file": "entries/025.json",
+          "category": "school-trousers-womens",
+          "moldaiArchetype": "trousers",
+          "gender": "female",
+          "descriptionEn": "women's/teen school uniform trousers, elastic waistband, front patch pocket and welt pocket, ribbed leg cuff",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "029",
+          "file": "entries/029.json",
+          "category": "kids-school-trousers-girls",
+          "moldaiArchetype": "trousers",
+          "gender": "kids",
+          "descriptionEn": "kids school uniform trousers for girls, elastic waistband, front patch pocket and welt pocket, ribbed leg cuff",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "031",
+          "file": "entries/031.json",
+          "category": "fleece shorts (zig-zag print variant)",
+          "moldaiArchetype": "trousers",
+          "gender": null,
+          "descriptionEn": "fleece sweat shorts with waistband and side panels, zig-zag print fabric variant",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "039",
+          "file": "entries/039.json",
+          "category": "baby-pants",
+          "moldaiArchetype": "trousers",
+          "gender": "baby",
+          "descriptionEn": "baby pants with waistband and cuffs",
+          "pieceCount": 7
+        },
+        {
+          "sourceId": "040",
+          "file": "entries/040.json",
+          "category": "baby-bloomer-shorts",
+          "moldaiArchetype": "trousers",
+          "gender": "baby",
+          "descriptionEn": "baby bloomer-style shorts with waistband and leg cuffs",
+          "pieceCount": 7
+        },
+        {
+          "sourceId": "042",
+          "file": "entries/042.json",
+          "category": "baby-shorts-with-overlay",
+          "moldaiArchetype": "trousers",
+          "gender": "baby",
+          "descriptionEn": "baby shorts with a decorative front overlay panel, elastic waistband, and bow trim",
+          "pieceCount": 7
+        },
+        {
+          "sourceId": "045",
+          "file": "entries/045.json",
+          "category": "baby-casual-shorts",
+          "moldaiArchetype": "trousers",
+          "gender": "baby",
+          "descriptionEn": "baby casual shorts with elastic waistband and patch pocket",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "047",
+          "file": "entries/047.json",
+          "category": "kids-bermuda-shorts-kangaroo-pocket",
+          "moldaiArchetype": "trousers",
+          "gender": "kids",
+          "descriptionEn": "kids bermuda shorts with kangaroo-style front pocket and elastic waistband",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "051",
+          "file": "entries/051.json",
+          "category": "womens-capri-corsair-pants",
+          "moldaiArchetype": "trousers",
+          "gender": "female",
+          "descriptionEn": "women's cropped capri/corsair-style pants with a shared front-back leg panel",
+          "pieceCount": 2
+        },
+        {
+          "sourceId": "055",
+          "file": "entries/055.json",
+          "category": "leggings",
+          "moldaiArchetype": "trousers",
+          "gender": "female",
+          "descriptionEn": "leggings with waistband and a shared front-back leg panel",
+          "pieceCount": 2
+        },
+        {
+          "sourceId": "056",
+          "file": "entries/056.json",
+          "category": "bermuda-shorts",
+          "moldaiArchetype": "trousers",
+          "gender": "unisex",
+          "descriptionEn": "bermuda shorts with waistband and a shared front-back leg panel",
+          "pieceCount": 2
+        },
+        {
+          "sourceId": "057",
+          "file": "entries/057.json",
+          "category": "shorts",
+          "moldaiArchetype": "trousers",
+          "gender": "unisex",
+          "descriptionEn": "basic shorts with waistband and a shared front-back leg panel",
+          "pieceCount": 2
+        },
+        {
+          "sourceId": "059",
+          "file": "entries/059.json",
+          "category": "mens-sweatpants",
+          "moldaiArchetype": "trousers",
+          "gender": "male",
+          "descriptionEn": "men's sweatpants/joggers with side pocket, pocket lining, and ribbed cuffs",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "060",
+          "file": "entries/060.json",
+          "category": "mens-sweatpants-ribbed-waistband",
+          "moldaiArchetype": "trousers",
+          "gender": "male",
+          "descriptionEn": "men's sweatpants with a separate ribbed waistband, side pocket with facing/lining, and cuffs",
+          "pieceCount": 9
+        },
+        {
+          "sourceId": "061",
+          "file": "entries/061.json",
+          "category": "mens-sweatpant-style-bermuda-shorts",
+          "moldaiArchetype": "trousers",
+          "gender": "male",
+          "descriptionEn": "men's sweatpant-style bermuda shorts with side pocket, pocket lining/facing, and elastic waistband",
+          "pieceCount": 7
+        },
+        {
+          "sourceId": "062",
+          "file": "entries/062.json",
+          "category": "mens-sweatpant-style-bermuda-shorts-patch-pocket",
+          "moldaiArchetype": "trousers",
+          "gender": "male",
+          "descriptionEn": "men's sweatpant-style bermuda shorts with a patch pocket, pocket lining, and elastic waistband",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "064",
+          "file": "entries/064.json",
+          "category": "clochard-style-shorts-with-back-pocket",
+          "moldaiArchetype": "trousers",
+          "gender": "unisex",
+          "descriptionEn": "loose clochard-style shorts with drawstring tie band, back pocket, and piping trim",
+          "pieceCount": 10
+        },
+        {
+          "sourceId": "088",
+          "file": "entries/088.json",
+          "category": "kids-school-legging",
+          "moldaiArchetype": null,
+          "gender": "kids",
+          "descriptionEn": "school-age kids' leggings, single combined front/back leg piece",
+          "pieceCount": 1
+        },
+        {
+          "sourceId": "089",
+          "file": "entries/089.json",
+          "category": "kids-school-capri-pants",
+          "moldaiArchetype": null,
+          "gender": "kids",
+          "descriptionEn": "school-age kids' capri/cropped pants, single combined front/back leg piece",
+          "pieceCount": 1
+        },
+        {
+          "sourceId": "090",
+          "file": "entries/090.json",
+          "category": "kids-school-skort",
+          "moldaiArchetype": null,
+          "gender": "kids",
+          "descriptionEn": "school-age kids' skort (shorts with skirt overlay), elastic waistband",
+          "pieceCount": 3
+        },
+        {
+          "sourceId": "092",
+          "file": "entries/092.json",
+          "category": "kids school bermuda shorts with pockets",
+          "moldaiArchetype": "trousers",
+          "gender": "kids",
+          "descriptionEn": "kids school uniform bermuda shorts with front pockets and elasticated waist",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "093",
+          "file": "entries/093.json",
+          "category": "kids school bermuda shorts (girls) with pockets",
+          "moldaiArchetype": "trousers",
+          "gender": "kids",
+          "descriptionEn": "girls' school uniform bermuda shorts with front pockets and elasticated waist",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "094",
+          "file": "entries/094.json",
+          "category": "men's sport bermuda shorts with back yoke and pockets",
+          "moldaiArchetype": "trousers",
+          "gender": "male",
+          "descriptionEn": "men's athletic bermuda shorts with back yoke, side pockets and elasticated waistband",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "102",
+          "file": "entries/102.json",
+          "category": "men's bermuda shorts with back yoke, side panel and pockets",
+          "moldaiArchetype": "trousers",
+          "gender": "male",
+          "descriptionEn": "men's casual bermuda shorts with contrast side panel cutout, back yoke and patch pockets front and back",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "109",
+          "file": "entries/109.json",
+          "category": "women's comfort-fit pants with elastic waistband and pockets",
+          "moldaiArchetype": "trousers",
+          "gender": "female",
+          "descriptionEn": "women's relaxed comfort-fit trousers with an elasticated waistband and side pockets",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "114",
+          "file": "entries/114.json",
+          "category": "high-waist sport pants with wide waistband and pockets",
+          "moldaiArchetype": "trousers",
+          "gender": "female",
+          "descriptionEn": "women's high-waisted athletic pants with a wide waistband and side pockets",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "115",
+          "file": "entries/115.json",
+          "category": "kids boxer-style swim trunks with lining",
+          "moldaiArchetype": "trousers",
+          "gender": "kids",
+          "descriptionEn": "kids boxer-style swim trunks with a fully lined front, back and gusset",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "130",
+          "file": "entries/130.json",
+          "category": "wide-leg-trousers",
+          "moldaiArchetype": "trousers",
+          "gender": null,
+          "descriptionEn": "wide-leg trousers with an elastic waistband and front/back patch pockets",
+          "pieceCount": 7
+        },
+        {
+          "sourceId": "131",
+          "file": "entries/131.json",
+          "category": "womens-jogger-sweatpants",
+          "moldaiArchetype": "trousers",
+          "gender": "female",
+          "descriptionEn": "women's jogger-style sweatpants with side pockets, an inset pocket, a back welt pocket, ribbed cuffs, and an elastic waistband",
+          "pieceCount": 9
+        },
+        {
+          "sourceId": "133",
+          "file": "entries/133.json",
+          "category": "casual-trousers-with-front-pintuck",
+          "moldaiArchetype": "trousers",
+          "gender": null,
+          "descriptionEn": "casual trousers with a decorative front pintuck seam, lined side pockets, welt back pockets, and a two-piece front waistband",
+          "pieceCount": 12
+        },
+        {
+          "sourceId": "147",
+          "file": "entries/147.json",
+          "category": "elastic-waist pajama shorts",
+          "moldaiArchetype": "trousers",
+          "gender": "female",
+          "descriptionEn": "elastic-waist pajama shorts, straight-leg block",
+          "pieceCount": 2
+        },
+        {
+          "sourceId": "149",
+          "file": "entries/149.json",
+          "category": "pajama-pants-with-cuff",
+          "moldaiArchetype": "trousers",
+          "gender": "unisex",
+          "descriptionEn": "pajama pants with elastic waistband and ribbed ankle cuffs",
+          "pieceCount": 3
+        },
+        {
+          "sourceId": "151",
+          "file": "entries/151.json",
+          "category": "kids-pajama-pants",
+          "moldaiArchetype": "trousers",
+          "gender": "kids",
+          "descriptionEn": "kids pajama pants with elastic waistband and ribbed ankle cuffs",
+          "pieceCount": 3
+        },
+        {
+          "sourceId": "153",
+          "file": "entries/153.json",
+          "category": "mens-pajama-shorts",
+          "moldaiArchetype": "trousers",
+          "gender": "male",
+          "descriptionEn": "men's pajama bermuda shorts with elastic waistband and two patch pockets (with lining)",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "157",
+          "file": "entries/157.json",
+          "category": "womens-jogger-pants-elastic-waist",
+          "moldaiArchetype": "trousers",
+          "gender": "female",
+          "descriptionEn": "women's jogger-style trousers with elastic waistband, inset pockets, and elastic ankle cuffs",
+          "pieceCount": 7
+        },
+        {
+          "sourceId": "161",
+          "file": "entries/161.json",
+          "category": "mens-carrot-fit-trousers",
+          "moldaiArchetype": "trousers",
+          "gender": "male",
+          "descriptionEn": "men's carrot-fit trousers with elasticated waistband, ankle cuffs, framed hip pocket, patch back pocket and inset side pockets",
+          "pieceCount": 7
+        },
+        {
+          "sourceId": "182",
+          "file": "entries/182.json",
+          "category": "shorts-with-elastic-waist-overlap",
+          "moldaiArchetype": null,
+          "gender": null,
+          "descriptionEn": "sport shorts with an elasticated waist and a front overlap detail",
+          "pieceCount": 3
+        },
+        {
+          "sourceId": "184",
+          "file": "entries/184.json",
+          "category": "high-waist-leggings-with-cutout-panels-and-pocket",
+          "moldaiArchetype": "trousers",
+          "gender": null,
+          "descriptionEn": "high-waisted leggings with side leg cutout panels and an inset pocket",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "185",
+          "file": "entries/185.json",
+          "category": "bum-lift-leggings-with-shaped-waistband",
+          "moldaiArchetype": "trousers",
+          "gender": null,
+          "descriptionEn": "leggings with separate, shaped front and back waistbands designed to lift the seat",
+          "pieceCount": 3
+        },
+        {
+          "sourceId": "190",
+          "file": "entries/190.json",
+          "category": "sport trousers with panel cutouts and zippers",
+          "moldaiArchetype": "trousers",
+          "gender": null,
+          "descriptionEn": "sport trousers with contrast side/back cutout panels, a waist yoke and zip closures",
+          "pieceCount": 7
+        },
+        {
+          "sourceId": "191",
+          "file": "entries/191.json",
+          "category": "shorts with side cutout panel and zip pocket",
+          "moldaiArchetype": null,
+          "gender": null,
+          "descriptionEn": "athletic shorts with a side cutout panel and a zippered pocket",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "199",
+          "file": "entries/199.json",
+          "category": "clochard-style-wide-pants-with-elastic-waistband",
+          "moldaiArchetype": "trousers",
+          "gender": "female",
+          "descriptionEn": "wide, flowing clochard-style pants with an elastic waistband and front pockets",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "200",
+          "file": "entries/200.json",
+          "category": "athletic-shorts-with-pockets-and-contrast-bias-trim",
+          "moldaiArchetype": "trousers",
+          "gender": "unisex",
+          "descriptionEn": "athletic shorts with an elastic waistband, front inset pockets, patch pockets, and contrasting bias-trim finishing",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "204",
+          "file": "entries/204.json",
+          "category": "kids-casual-pants-with-back-elastic-waist",
+          "moldaiArchetype": "trousers",
+          "gender": "kids",
+          "descriptionEn": "kids casual pants with an elasticated back waistband, back yoke, and back and side pockets",
+          "pieceCount": 11
+        },
+        {
+          "sourceId": "205",
+          "file": "entries/205.json",
+          "category": "casual-bermuda-shorts-with-back-elastic-waist",
+          "moldaiArchetype": "trousers",
+          "gender": "unisex",
+          "descriptionEn": "casual bermuda shorts with an elasticated back waistband, back yoke, and back and side pockets",
+          "pieceCount": 9
+        },
+        {
+          "sourceId": "216",
+          "file": "entries/216.json",
+          "category": "tailored-trousers-with-internal-waistband",
+          "moldaiArchetype": "trousers",
+          "gender": "unisex",
+          "descriptionEn": "tailored dress trousers with an internal waistband, belt loops, front pockets, a fly piece, and a belt",
+          "pieceCount": 12
+        },
+        {
+          "sourceId": "217",
+          "file": "entries/217.json",
+          "category": "casual-pants-with-front-slit-and-cutout-panels",
+          "moldaiArchetype": "trousers",
+          "gender": "unisex",
+          "descriptionEn": "casual pants with a front opening/slit, front color-block cutout panels, an elastic waistband, and side pockets",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "222",
+          "file": "entries/222.json",
+          "category": "dress-trousers-with-elastic-back-waistband",
+          "moldaiArchetype": "trousers",
+          "gender": "unisex",
+          "descriptionEn": "dress/tailored trousers with an elasticated back waistband section, a fly, front and back pockets, and waistband interfacing pieces",
+          "pieceCount": 13
+        },
+        {
+          "sourceId": "239",
+          "file": "entries/239.json",
+          "category": "uniform trousers with color-blocked panel",
+          "moldaiArchetype": "trousers",
+          "gender": "unisex",
+          "descriptionEn": "Uniform-style trousers with front and back leg panels, a long waistband strip sized for an inserted elastic, a back pocket with piping, a curved patch pocket with lining, ankle cuffs and a contrast side panel.",
+          "pieceCount": 9
+        },
+        {
+          "sourceId": "247",
+          "file": "entries/247.json",
+          "category": "pleated dress shorts, menswear",
+          "moldaiArchetype": null,
+          "gender": "male",
+          "descriptionEn": "Men's tailored dress shorts with front pleats, fly-front closure, an inset/welt-style back pocket, and a waistband with separate front waistband pieces.",
+          "pieceCount": 13
+        },
+        {
+          "sourceId": "248",
+          "file": "entries/248.json",
+          "category": "oversized bermuda shorts with flap pocket and lapel trim",
+          "moldaiArchetype": null,
+          "gender": "unisex",
+          "descriptionEn": "Oversized bermuda-length shorts with a front flap pocket, a separate lapel/flap trim piece, a side pocket, and a separate waistband piece.",
+          "pieceCount": 10
+        },
+        {
+          "sourceId": "249",
+          "file": "entries/249.json",
+          "category": "cargo trousers with panel seams and inset pockets",
+          "moldaiArchetype": null,
+          "gender": null,
+          "descriptionEn": "Full-length cargo-style trousers with multi-panel front and back construction (a yoke plus separate mid-front and lower cutline panels on both front and back), an inset front pocket, a back pocket, a flap cargo pocket, and a separate long waistband.",
+          "pieceCount": 14
+        },
+        {
+          "sourceId": "263",
+          "file": "entries/263.json",
+          "category": "women's jogger-style knit trousers with side stripe panel and ankle cuffs",
+          "moldaiArchetype": "trousers",
+          "gender": "female",
+          "descriptionEn": "women's knit jogger pants with an elastic waistband, a side stripe panel down each leg, and ribbed ankle cuffs",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "280",
+          "file": "entries/280.json",
+          "category": "kids-pants-with-elastic-waistband",
+          "moldaiArchetype": "trousers",
+          "gender": "kids",
+          "descriptionEn": "kids pants/bottoms with elastic waistband, back panel, front panel, and a third panel",
+          "pieceCount": 3
+        },
+        {
+          "sourceId": "292",
+          "file": "entries/292.json",
+          "category": "mens-basic-shorts",
+          "moldaiArchetype": "trousers",
+          "gender": "male",
+          "descriptionEn": "men's basic elastic-waist shorts with separate left/right front panels, a back panel, a waistband, and an elastic-width gauge/template",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "295",
+          "file": "entries/295.json",
+          "category": "kids-girls-pantacourt-with-pockets",
+          "moldaiArchetype": "trousers",
+          "gender": "kids",
+          "descriptionEn": "kids girls' cropped pants (pantacourt) with front pockets, pocket lining, and a waistband",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "302",
+          "file": "entries/302.json",
+          "category": "womens-viscose-pants-with-cuffed-hem",
+          "moldaiArchetype": "trousers",
+          "gender": "female",
+          "descriptionEn": "women's flowy viscose-fabric pants with elastic waistband and cuffed hem",
+          "pieceCount": 7
+        },
+        {
+          "sourceId": "330",
+          "file": "entries/330.json",
+          "category": "mens-basic-bermuda-shorts",
+          "moldaiArchetype": "trousers",
+          "gender": "male",
+          "descriptionEn": "men's basic woven bermuda shorts with front/back panels, waistband, welt pocket and side panel piece",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "332",
+          "file": "entries/332.json",
+          "category": "womens-shorts-with-side-cutout-panel",
+          "moldaiArchetype": "trousers",
+          "gender": "female",
+          "descriptionEn": "women's shorts with a decorative/functional side seam cutout panel, waistband, and facings",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "335",
+          "file": "entries/335.json",
+          "category": "mens-sport-bermuda-shorts",
+          "moldaiArchetype": "trousers",
+          "gender": "male",
+          "descriptionEn": "men's sport bermuda shorts with front/back panels, waistband, welt pocket, side panel piece and piping strip",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "336",
+          "file": "entries/336.json",
+          "category": "biker-shorts",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "women's biker/cycling shorts with front, back and side panels, a crotch gusset, patch pockets, and a shaped waistband",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "342",
+          "file": "entries/342.json",
+          "category": "tailored-dress-trousers",
+          "moldaiArchetype": "trousers",
+          "gender": "male",
+          "descriptionEn": "men's tailored dress trousers with a pleated front, welt back pockets, fly front, belt loops, and a waistband with an elastic back panel",
+          "pieceCount": 13
+        },
+        {
+          "sourceId": "343",
+          "file": "entries/343.json",
+          "category": "tailored-bermuda-shorts",
+          "moldaiArchetype": "trousers",
+          "gender": "female",
+          "descriptionEn": "women's tailored bermuda shorts in sweatshirt fleece, with waistband, back darts, welt-style back pocket and belt loops",
+          "pieceCount": 11
+        },
+        {
+          "sourceId": "345",
+          "file": "entries/345.json",
+          "category": "womens-tailored-skort",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "women's tailored skort combining a shorts structure (front/back panels with crotch curve) with a separate outer skirt-shaped front panel and lining",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "346",
+          "file": "entries/346.json",
+          "category": "mens-tailored-trousers",
+          "moldaiArchetype": "trousers",
+          "gender": "male",
+          "descriptionEn": "men's tailored dress trousers with front and back leg panels, fly, back welt pocket, front pocket, long waistband strip, and belt loops",
+          "pieceCount": 12
+        }
+      ]
+    },
+    {
+      "key": "dresses",
+      "label": "Dresses — maps to moldaiArchetype \"dress\"",
+      "count": 19,
+      "entries": [
+        {
+          "sourceId": "046",
+          "file": "entries/046.json",
+          "category": "loose-fit-dress-with-pocket",
+          "moldaiArchetype": "dress",
+          "gender": "female",
+          "descriptionEn": "loose-fit dress with patch pocket and sleeves",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "077",
+          "file": "entries/077.json",
+          "category": "basic-dress",
+          "moldaiArchetype": "dress",
+          "gender": "female",
+          "descriptionEn": "basic dress with sleeves and a separate collar",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "083",
+          "file": "entries/083.json",
+          "category": "womens-dress-with-ruffles",
+          "moldaiArchetype": "dress",
+          "gender": "female",
+          "descriptionEn": "women's dress with tiered ruffle skirt",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "124",
+          "file": "entries/124.json",
+          "category": "long-slip-dress",
+          "moldaiArchetype": "dress",
+          "gender": "female",
+          "descriptionEn": "long slip dress with front and back panels running from bodice to hem, separate linings, and narrow straps",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "125",
+          "file": "entries/125.json",
+          "category": "short-slip-dress",
+          "moldaiArchetype": "dress",
+          "gender": "female",
+          "descriptionEn": "short slip dress with front and back panels running from bodice to hem, separate linings, and narrow straps",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "134",
+          "file": "entries/134.json",
+          "category": "midi-dress-with-tube-sleeve",
+          "moldaiArchetype": "dress",
+          "gender": "female",
+          "descriptionEn": "midi dress with long fitted (tube-style) sleeves and curved side-seam shaping front and back",
+          "pieceCount": 3
+        },
+        {
+          "sourceId": "135",
+          "file": "entries/135.json",
+          "category": "oversized-dress",
+          "moldaiArchetype": "dress",
+          "gender": "female",
+          "descriptionEn": "oversized dress with a dropped-shoulder silhouette, set-in sleeves, and a separate neckline binding strip",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "156",
+          "file": "entries/156.json",
+          "category": "strappy-nightgown",
+          "moldaiArchetype": "dress",
+          "gender": "female",
+          "descriptionEn": "sleeveless strappy nightgown, simple A-line silhouette with gathered bust panel and lace trim guide",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "197",
+          "file": "entries/197.json",
+          "category": "dress-with-waist-tie-and-teardrop-neckline",
+          "moldaiArchetype": "dress",
+          "gender": "female",
+          "descriptionEn": "dress with short sleeves, a circular-cut skirt panel, a teardrop-shaped neckline cutout, and a tie fastening at the waist",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "214",
+          "file": "entries/214.json",
+          "category": "midi-dress-with-square-neckline",
+          "moldaiArchetype": "dress",
+          "gender": "female",
+          "descriptionEn": "midi-length dress with a square neckline and separate front/back facing pieces",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "223",
+          "file": "entries/223.json",
+          "category": "short-asymmetric-dress-with-panel-cutouts",
+          "moldaiArchetype": "dress",
+          "gender": "female",
+          "descriptionEn": "Short asymmetric dress with panel cutouts and set-in sleeves.",
+          "pieceCount": 3
+        },
+        {
+          "sourceId": "224",
+          "file": "entries/224.json",
+          "category": "front-panel-dress-with-back-tie",
+          "moldaiArchetype": "dress",
+          "gender": "female",
+          "descriptionEn": "One-piece dress with a joined front panel and a tie/lacing detail at the back.",
+          "pieceCount": 3
+        },
+        {
+          "sourceId": "225",
+          "file": "entries/225.json",
+          "category": "wrap-front-dress-with-drawstring-tunnel",
+          "moldaiArchetype": "dress",
+          "gender": "female",
+          "descriptionEn": "Dress with a wrap front and a drawstring tunnel/channel detail.",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "227",
+          "file": "entries/227.json",
+          "category": "short-dress-with-high-collar-and-teardrop-cutout",
+          "moldaiArchetype": "dress",
+          "gender": "female",
+          "descriptionEn": "Short dress with a high (turtleneck-style) collar and a teardrop-shaped front cutout.",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "228",
+          "file": "entries/228.json",
+          "category": "midi-dress-with-ring-detail-and-back-slit",
+          "moldaiArchetype": "dress",
+          "gender": "female",
+          "descriptionEn": "Midi dress with a decorative ring/O-ring detail and a back slit.",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "229",
+          "file": "entries/229.json",
+          "category": "layered midi dress",
+          "moldaiArchetype": "dress",
+          "gender": "female",
+          "descriptionEn": "A midi-length dress with a tiered, layered skirt and a single-layer front bodice.",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "230",
+          "file": "entries/230.json",
+          "category": "peasant-style midi dress with slit and drawstring channel",
+          "moldaiArchetype": "dress",
+          "gender": "female",
+          "descriptionEn": "A midi-length peasant-style dress with a front slit, a drawstring (tunnel) channel at the neckline, and set-in sleeves.",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "232",
+          "file": "entries/232.json",
+          "category": "wrap dress with side tie",
+          "moldaiArchetype": "dress",
+          "gender": "female",
+          "descriptionEn": "A wrap-style dress with a side tie closure and a front bodice split into upper and lower panels.",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "304",
+          "file": "entries/304.json",
+          "category": "dress-with-folded-high-collar-long-sleeves",
+          "moldaiArchetype": "dress",
+          "gender": "female",
+          "descriptionEn": "long-sleeve dress with a folded/turned-down high collar",
+          "pieceCount": 4
+        }
+      ]
+    },
+    {
+      "key": "skirts",
+      "label": "Skirts — maps to moldaiArchetype \"skirt\"",
+      "count": 7,
+      "entries": [
+        {
+          "sourceId": "069",
+          "file": "entries/069.json",
+          "category": "skirt-with-side-slit",
+          "moldaiArchetype": "skirt",
+          "gender": "female",
+          "descriptionEn": "skirt with a side slit/opening insert panel",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "120",
+          "file": "entries/120.json",
+          "category": "long-wrap-sarong-skirt",
+          "moldaiArchetype": "skirt",
+          "gender": "female",
+          "descriptionEn": "long wrap/sarong-style skirt, one size, with a fan-shaped main panel and a curved waistband",
+          "pieceCount": 2
+        },
+        {
+          "sourceId": "121",
+          "file": "entries/121.json",
+          "category": "wrap-sarong-skirt-with-ruffle",
+          "moldaiArchetype": "skirt",
+          "gender": "female",
+          "descriptionEn": "wrap/sarong-style skirt with a ruffle trim, one size, asymmetric front-left/front-right panels plus a separate back panel and waistband pieces",
+          "pieceCount": 9
+        },
+        {
+          "sourceId": "136",
+          "file": "entries/136.json",
+          "category": "midi-skirt-with-slits",
+          "moldaiArchetype": "skirt",
+          "gender": "female",
+          "descriptionEn": "midi skirt with side slits, front panel split into two sub-pieces plus a separate waistband",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "257",
+          "file": "entries/257.json",
+          "category": "pencil midi skirt with side slit",
+          "moldaiArchetype": "skirt",
+          "gender": "female",
+          "descriptionEn": "fitted pencil-cut midi skirt with a side slit, waistband and two side panels",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "258",
+          "file": "entries/258.json",
+          "category": "layered mini skirt with wrap overlay",
+          "moldaiArchetype": "skirt",
+          "gender": "female",
+          "descriptionEn": "mini skirt with a wrap-style overlay panel and a shaped side cutout insert",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "303",
+          "file": "entries/303.json",
+          "category": "midi-skirt-with-side-slits-waistband-and-pockets",
+          "moldaiArchetype": "skirt",
+          "gender": "female",
+          "descriptionEn": "midi skirt with side slits, a waistband, and patch pockets with a separate pocket template piece",
+          "pieceCount": 5
+        }
+      ]
+    },
+    {
+      "key": "outerwear",
+      "label": "Jackets, coats, hoodies, sweatshirts, blazers, cardigans, uniforms — no current MoldAI archetype",
+      "count": 39,
+      "entries": [
+        {
+          "sourceId": "002",
+          "file": "entries/002.json",
+          "category": "fleece jacket with lining",
+          "moldaiArchetype": null,
+          "gender": null,
+          "descriptionEn": "polar fleece jacket with full lining, collar, cuffs and waistband",
+          "pieceCount": 11
+        },
+        {
+          "sourceId": "006",
+          "file": "entries/006.json",
+          "category": "fleece jacket with lining",
+          "moldaiArchetype": null,
+          "gender": null,
+          "descriptionEn": "polar fleece jacket with full lining, patch pocket, front facing and collar",
+          "pieceCount": 10
+        },
+        {
+          "sourceId": "010",
+          "file": "entries/010.json",
+          "category": "kids raglan-sleeve jacket",
+          "moldaiArchetype": null,
+          "gender": "kids",
+          "descriptionEn": "kids raglan-sleeve knit jacket with collar, ribbed cuffs, hem band, and a patch pocket",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "012",
+          "file": "entries/012.json",
+          "category": "kids hooded jacket with cut yoke",
+          "moldaiArchetype": null,
+          "gender": "kids",
+          "descriptionEn": "kids hooded knit jacket with a front yoke seam, lined hood, ribbed cuffs and hem band, and a patch pocket",
+          "pieceCount": 13
+        },
+        {
+          "sourceId": "015",
+          "file": "entries/015.json",
+          "category": "sport-jacket-with-hood",
+          "moldaiArchetype": null,
+          "gender": "unisex",
+          "descriptionEn": "sport jacket with hood, zip-style front closure, waistband, cuffs, and pockets",
+          "pieceCount": 11
+        },
+        {
+          "sourceId": "019",
+          "file": "entries/019.json",
+          "category": "hooded-cropped-sweatshirt",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "cropped hooded sweatshirt/jacket with long sleeves, a lined hood, and ribbed cuffs",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "022",
+          "file": "entries/022.json",
+          "category": "boys-varsity-school-jacket",
+          "moldaiArchetype": null,
+          "gender": "male",
+          "descriptionEn": "boys'/men's varsity-style school jacket with ribbed collar, cuffs and hem band, a front facing, and piped lining",
+          "pieceCount": 9
+        },
+        {
+          "sourceId": "024",
+          "file": "entries/024.json",
+          "category": "girls-varsity-school-jacket",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "girls'/women's varsity-style school jacket with a bound neckline, ribbed cuffs, a zip front facing, two pocket styles, and a waistband/hem band",
+          "pieceCount": 9
+        },
+        {
+          "sourceId": "028",
+          "file": "entries/028.json",
+          "category": "kids-school-jacket-girls",
+          "moldaiArchetype": null,
+          "gender": "kids",
+          "descriptionEn": "kids bomber-style school jacket for girls, ribbed cuffs and hem band, front patch pocket and welt pocket, bound neckline",
+          "pieceCount": 9
+        },
+        {
+          "sourceId": "030",
+          "file": "entries/030.json",
+          "category": "cropped-jacket-with-hood",
+          "moldaiArchetype": null,
+          "gender": null,
+          "descriptionEn": "cropped jacket with hood, hood lining, ribbed cuffs",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "032",
+          "file": "entries/032.json",
+          "category": "jacket with crew neckline and pocket",
+          "moldaiArchetype": null,
+          "gender": null,
+          "descriptionEn": "casual jacket with round crew neckline, front patch pocket, ribbed cuffs and ribbed hem band",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "052",
+          "file": "entries/052.json",
+          "category": "mens-kangaroo-pocket-hoodie",
+          "moldaiArchetype": null,
+          "gender": "male",
+          "descriptionEn": "men's hooded pullover sweatshirt with kangaroo pocket, ribbed waistband and cuffs",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "054",
+          "file": "entries/054.json",
+          "category": "deep-armhole-crewneck-sweatshirt",
+          "moldaiArchetype": null,
+          "gender": "unisex",
+          "descriptionEn": "deep-armhole pullover sweatshirt with crew neck, ribbed waistband and cuffs",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "084",
+          "file": "entries/084.json",
+          "category": "womens-sport-jacket",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "women's sport jacket with front zip panels, pockets and stand collar",
+          "pieceCount": 14
+        },
+        {
+          "sourceId": "111",
+          "file": "entries/111.json",
+          "category": "men's sport jacket with multiple front/pocket panel cutouts",
+          "moldaiArchetype": null,
+          "gender": "male",
+          "descriptionEn": "men's athletic jacket built from many contrast-panel cutout pieces on the front, pockets and waist area",
+          "pieceCount": 16
+        },
+        {
+          "sourceId": "112",
+          "file": "entries/112.json",
+          "category": "women's kangaroo-pocket hoodie",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "women's pullover hoodie with a kangaroo pocket, lined hood, rib cuffs and hem band",
+          "pieceCount": 9
+        },
+        {
+          "sourceId": "113",
+          "file": "entries/113.json",
+          "category": "cropped hoodie with kangaroo pocket",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "women's cropped pullover hoodie with a hood, kangaroo pocket and rib cuffs",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "128",
+          "file": "entries/128.json",
+          "category": "cropped-waist-cinched-hoodie",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "cropped, waist-cinched hooded sweatshirt with cuffed sleeves and a separate hem/waistband",
+          "pieceCount": 9
+        },
+        {
+          "sourceId": "129",
+          "file": "entries/129.json",
+          "category": "cropped-jacket-with-front-yoke",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "cropped jacket with a separate front yoke/cutout panel, set-in sleeves, cuffs, and a narrow trim piece",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "132",
+          "file": "entries/132.json",
+          "category": "unisex-shirt-jacket",
+          "moldaiArchetype": null,
+          "gender": "unisex",
+          "descriptionEn": "unisex shirt-jacket with a lapel collar, back yoke, welt chest pocket, sleeve placket, and cuffs",
+          "pieceCount": 10
+        },
+        {
+          "sourceId": "170",
+          "file": "entries/170.json",
+          "category": "unisex-kimono-robe",
+          "moldaiArchetype": null,
+          "gender": "unisex",
+          "descriptionEn": "unisex kimono-style robe/jacket with a wide dolman-cut sleeve, front, back and a separate sash/belt piece",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "206",
+          "file": "entries/206.json",
+          "category": "kids-bomber-jacket-with-color-block-panels",
+          "moldaiArchetype": null,
+          "gender": "kids",
+          "descriptionEn": "kids bomber jacket with color-block cutout panels, a ribbed collar/cuffs/hem band, patch pockets, and a facing piece",
+          "pieceCount": 12
+        },
+        {
+          "sourceId": "215",
+          "file": "entries/215.json",
+          "category": "collarless-slim-blazer-with-inset-pockets",
+          "moldaiArchetype": null,
+          "gender": "unisex",
+          "descriptionEn": "collarless slim-fit blazer with inset pockets, a back cutout panel, and lining/facing pieces",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "221",
+          "file": "entries/221.json",
+          "category": "mens-blazer-with-pocket",
+          "moldaiArchetype": null,
+          "gender": "male",
+          "descriptionEn": "men's blazer with a chest pocket, a zip front closure, a collar, and lining/facing pieces",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "238",
+          "file": "entries/238.json",
+          "category": "uniform jacket with color-blocked panels",
+          "moldaiArchetype": null,
+          "gender": "unisex",
+          "descriptionEn": "Uniform-style jacket with contrast-color panels, a curved collar, two-piece contrast-paneled sleeves, cuffs and a long hem band.",
+          "pieceCount": 12
+        },
+        {
+          "sourceId": "245",
+          "file": "entries/245.json",
+          "category": "hooded-sweatshirt-contrast-sleeve",
+          "moldaiArchetype": null,
+          "gender": null,
+          "descriptionEn": "Hooded sweatshirt with a contrasting short-sleeve overlay layer, ribbed cuffs and waistband, and a patch pocket.",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "246",
+          "file": "entries/246.json",
+          "category": "varsity-style-jacket-contrast-trim",
+          "moldaiArchetype": null,
+          "gender": "male",
+          "descriptionEn": "Varsity/letterman-style jacket for men with contrasting welt/hem bands, ribbed cuffs, a collar, lining piping, and a front facing.",
+          "pieceCount": 10
+        },
+        {
+          "sourceId": "250",
+          "file": "entries/250.json",
+          "category": "womens-varsity-bomber-jacket",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "women's varsity-style bomber jacket with ribbed neckline binding, cuffs and hem band, front patch and welt pockets",
+          "pieceCount": 9
+        },
+        {
+          "sourceId": "269",
+          "file": "entries/269.json",
+          "category": "woven jacket, straight-grain cut",
+          "moldaiArchetype": null,
+          "gender": null,
+          "descriptionEn": "woven jacket cut on the straight grain, with back, front and sleeve panels",
+          "pieceCount": 3
+        },
+        {
+          "sourceId": "274",
+          "file": "entries/274.json",
+          "category": "kids kangaroo-pocket hooded sweatshirt",
+          "moldaiArchetype": null,
+          "gender": "kids",
+          "descriptionEn": "kids kangaroo-pocket fleece hoodie with hood, hood lining, ribbed cuffs and hem band",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "275",
+          "file": "entries/275.json",
+          "category": "women's button-front shirt dress in light fleece",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "women's long button-front shirt-dress in light sweatshirt fleece, with front/back yokes, collar with stand, set-in sleeves, patch pockets, and a separate waist sash with belt loops",
+          "pieceCount": 10
+        },
+        {
+          "sourceId": "281",
+          "file": "entries/281.json",
+          "category": "mens-hooded-zip-sweatshirt-jacket",
+          "moldaiArchetype": null,
+          "gender": "male",
+          "descriptionEn": "men's zip-front hooded sweatshirt jacket with patch pockets, cuffs, waistband, and hood lining",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "285",
+          "file": "entries/285.json",
+          "category": "mens-hooded-raglan-sweatshirt-with-kangaroo-pocket",
+          "moldaiArchetype": null,
+          "gender": "male",
+          "descriptionEn": "men's raglan-sleeve pullover sweatshirt with a kangaroo pocket, a hood, hood lining, cuffs and a hem band",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "288",
+          "file": "entries/288.json",
+          "category": "hooded-jacket-with-dolman-sleeves",
+          "moldaiArchetype": null,
+          "gender": null,
+          "descriptionEn": "hooded jacket with wide dolman/batwing sleeves, cuffs, hem band, hood, hood facing and hood trim band",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "299",
+          "file": "entries/299.json",
+          "category": "baby-coat-asymmetric-front",
+          "moldaiArchetype": null,
+          "gender": "baby",
+          "descriptionEn": "baby coat with two separate front panels (left/right, asymmetric), collar, cuffed sleeves",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "315",
+          "file": "entries/315.json",
+          "category": "crew-neck-sweatshirt-with-cutout-seam-panels",
+          "moldaiArchetype": null,
+          "gender": null,
+          "descriptionEn": "crew-neck sweatshirt/pullover with front and back cutout-seam (color-block style) panels, separate neckline facings, a neck rib trim, cuffs, and a hem band",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "322",
+          "file": "entries/322.json",
+          "category": "baby-cardigan-princess-sleeve",
+          "moldaiArchetype": null,
+          "gender": "baby",
+          "descriptionEn": "baby cardigan/jacket with a princess-style sleeve, multiple body and trim pieces",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "326",
+          "file": "entries/326.json",
+          "category": "baby-cardigan",
+          "moldaiArchetype": null,
+          "gender": "baby",
+          "descriptionEn": "baby cardigan/jacket with front, back, collar and sleeve pieces (front and back each appear to have two related pattern pieces)",
+          "pieceCount": 7
+        },
+        {
+          "sourceId": "327",
+          "file": "entries/327.json",
+          "category": "kids-hooded-jacket",
+          "moldaiArchetype": null,
+          "gender": "kids",
+          "descriptionEn": "children's hooded jacket with separate upper/lower front and back panels, sleeves, cuffs, hood and a trim/band piece",
+          "pieceCount": 9
+        }
+      ]
+    },
+    {
+      "key": "bodysuits-rompers-jumpsuits",
+      "label": "Bodysuits, rompers, jumpsuits, overalls, coveralls, onesies — no current MoldAI archetype",
+      "count": 17,
+      "entries": [
+        {
+          "sourceId": "036",
+          "file": "entries/036.json",
+          "category": "baby short-sleeve bodysuit",
+          "moldaiArchetype": null,
+          "gender": "baby",
+          "descriptionEn": "baby short-sleeve bodysuit (onesie)",
+          "pieceCount": 3
+        },
+        {
+          "sourceId": "037",
+          "file": "entries/037.json",
+          "category": "baby-sleeveless-bodysuit",
+          "moldaiArchetype": null,
+          "gender": "baby",
+          "descriptionEn": "baby sleeveless bodysuit, front and back panel",
+          "pieceCount": 2
+        },
+        {
+          "sourceId": "038",
+          "file": "entries/038.json",
+          "category": "baby-long-sleeve-bodysuit-with-buttons",
+          "moldaiArchetype": null,
+          "gender": "baby",
+          "descriptionEn": "baby long-sleeve bodysuit with front button placket",
+          "pieceCount": 3
+        },
+        {
+          "sourceId": "041",
+          "file": "entries/041.json",
+          "category": "baby-overalls-dungarees",
+          "moldaiArchetype": null,
+          "gender": "baby",
+          "descriptionEn": "baby overalls/dungarees with bib front and shoulder straps",
+          "pieceCount": 9
+        },
+        {
+          "sourceId": "048",
+          "file": "entries/048.json",
+          "category": "kids-short-romper-with-placket",
+          "moldaiArchetype": null,
+          "gender": "kids",
+          "descriptionEn": "short romper/jumpsuit with a front button placket and sleeves",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "065",
+          "file": "entries/065.json",
+          "category": "pantacourt-jumpsuit",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "one-piece jumpsuit with a wrap/halter-style top and cropped pantacourt-length legs, with lining pieces",
+          "pieceCount": 11
+        },
+        {
+          "sourceId": "145",
+          "file": "entries/145.json",
+          "category": "spaghetti-strap romper/jumpsuit with pockets",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "sleeveless spaghetti-strap romper/jumpsuit with front and back yoke seams, patch pockets, and an inset pocket",
+          "pieceCount": 7
+        },
+        {
+          "sourceId": "201",
+          "file": "entries/201.json",
+          "category": "unisex-long-jumpsuit-with-elastic-waist",
+          "moldaiArchetype": null,
+          "gender": "unisex",
+          "descriptionEn": "long unisex jumpsuit/overalls with an elastic waist, a collar, sleeves, front and back yoke pieces, and multiple pockets",
+          "pieceCount": 11
+        },
+        {
+          "sourceId": "218",
+          "file": "entries/218.json",
+          "category": "womens-short-sleeve-industrial-coverall",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "women's short-sleeve industrial coverall/jumpsuit with a yoke, front color-block cutout panels, a collar, back and inset pockets, and a lapel",
+          "pieceCount": 13
+        },
+        {
+          "sourceId": "218b",
+          "file": "entries/218b.json",
+          "category": "mens-short-sleeve-industrial-coverall",
+          "moldaiArchetype": null,
+          "gender": "male",
+          "descriptionEn": "men's short-sleeve industrial coverall/jumpsuit with a yoke, front color-block cutout panels, a collar, back and inset pockets, and a lapel (male companion pattern to a matching women's coverall in this catalog)",
+          "pieceCount": 13
+        },
+        {
+          "sourceId": "235",
+          "file": "entries/235.json",
+          "category": "romper with collar and tie closure",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "A short jumpsuit (romper) with a collar, a tie/belt closure, patch pockets, and set-in sleeves.",
+          "pieceCount": 9
+        },
+        {
+          "sourceId": "237",
+          "file": "entries/237.json",
+          "category": "pantacourt coverall/jumpsuit with back neckline",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "A pantacourt-length (capri) coverall/jumpsuit with a back neckline cutout, patch pockets, a waistband, and straps.",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "259",
+          "file": "entries/259.json",
+          "category": "kids bib overalls with pompom trim",
+          "moldaiArchetype": null,
+          "gender": "kids",
+          "descriptionEn": "children's bib overalls (jumper-style) with pompom trim detail and elasticized straps",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "306",
+          "file": "entries/306.json",
+          "category": "baby-long-sleeve-bodysuit",
+          "moldaiArchetype": null,
+          "gender": "baby",
+          "descriptionEn": "baby long-sleeve bodysuit (body) with envelope-style neckline shaping front and back",
+          "pieceCount": 3
+        },
+        {
+          "sourceId": "307",
+          "file": "entries/307.json",
+          "category": "baby-sleeveless-bodysuit",
+          "moldaiArchetype": null,
+          "gender": "baby",
+          "descriptionEn": "baby sleeveless/tank-style bodysuit (body regatinha) with curved armhole shaping front and back",
+          "pieceCount": 2
+        },
+        {
+          "sourceId": "313",
+          "file": "entries/313.json",
+          "category": "baby romper/jumpsuit with diagonal zipper",
+          "moldaiArchetype": null,
+          "gender": "baby",
+          "descriptionEn": "baby long-sleeve romper/jumpsuit with a diagonal front zipper, collar, cuffs and leg hem bands",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "340",
+          "file": "entries/340.json",
+          "category": "long-knit-jumpsuit",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "women's long knit jumpsuit with front and back panels and matching front/back facing linings",
+          "pieceCount": 4
+        }
+      ]
+    },
+    {
+      "key": "babywear",
+      "label": "Other baby garments not covered above",
+      "count": 2,
+      "entries": [
+        {
+          "sourceId": "310",
+          "file": "entries/310.json",
+          "category": "baby bloomer / diaper-cover shorts with elastic waistband",
+          "moldaiArchetype": null,
+          "gender": "baby",
+          "descriptionEn": "baby pull-on bloomer shorts with a separate elastic waistband strip",
+          "pieceCount": 3
+        },
+        {
+          "sourceId": "311",
+          "file": "entries/311.json",
+          "category": "baby short-sleeve raglan button-front shirt",
+          "moldaiArchetype": null,
+          "gender": "baby",
+          "descriptionEn": "baby short-sleeve button-front shirt with raglan sleeves and a two-piece front placket",
+          "pieceCount": 5
+        }
+      ]
+    },
+    {
+      "key": "sleepwear",
+      "label": "Pajamas, nightgowns, sleep camisoles — no current MoldAI archetype",
+      "count": 6,
+      "entries": [
+        {
+          "sourceId": "146",
+          "file": "entries/146.json",
+          "category": "spaghetti-strap pajama tank top",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "sleeveless pajama camisole/tank top with thin adjustable straps",
+          "pieceCount": 2
+        },
+        {
+          "sourceId": "150",
+          "file": "entries/150.json",
+          "category": "kids-long-sleeve-pajama-top",
+          "moldaiArchetype": null,
+          "gender": "kids",
+          "descriptionEn": "kids long-sleeve pajama top with a straight collar band and ribbed cuffs",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "154",
+          "file": "entries/154.json",
+          "category": "baby-onesie-pajama-with-buttons",
+          "moldaiArchetype": null,
+          "gender": "baby",
+          "descriptionEn": "baby onesie-style pajama with front button placket, footless, short sleeves, small collar, diamond-shaped crotch gusset",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "155",
+          "file": "entries/155.json",
+          "category": "kids-onesie-pajama-with-zipper-and-hood",
+          "moldaiArchetype": null,
+          "gender": "kids",
+          "descriptionEn": "kids onesie-style pajama with front zipper, hood, cuffed sleeves and hem",
+          "pieceCount": 7
+        },
+        {
+          "sourceId": "160",
+          "file": "entries/160.json",
+          "category": "adult-onesie-pajama-with-hood",
+          "moldaiArchetype": null,
+          "gender": "unisex",
+          "descriptionEn": "adult onesie-style pajama with hood, cuffed sleeves, elastic-trimmed hem, front placket, and an inset pocket",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "260",
+          "file": "entries/260.json",
+          "category": "kids color-block sleep gown",
+          "moldaiArchetype": null,
+          "gender": "kids",
+          "descriptionEn": "kids color-block nightgown with separate left/right cutout panels on both front and back, set-in sleeves, and a neckband",
+          "pieceCount": 8
+        }
+      ]
+    },
+    {
+      "key": "swimwear",
+      "label": "Bikinis, swimsuits, swim briefs/trunks — no current MoldAI archetype",
+      "count": 8,
+      "entries": [
+        {
+          "sourceId": "058",
+          "file": "entries/058.json",
+          "category": "swim-top",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "swimwear top with separate left/right front cups, linings, and a back panel",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "117",
+          "file": "entries/117.json",
+          "category": "bikini-set-flap-bottom",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "two-piece bikini set with a curtain/flap-style bottom, bow-tie trim, and lining pieces for both top and bottom",
+          "pieceCount": 8
+        },
+        {
+          "sourceId": "118",
+          "file": "entries/118.json",
+          "category": "bikini-set-tie-top-hot-pants-brief",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "two-piece bikini set with a tie-strap top and a hot-pants style brief, waistband and lining pieces",
+          "pieceCount": 7
+        },
+        {
+          "sourceId": "119",
+          "file": "entries/119.json",
+          "category": "bikini-set-with-top",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "two-piece bikini set with a shoulder-strap top and a wrap-style front/back band, plus front and back bottom panels and their linings",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "122",
+          "file": "entries/122.json",
+          "category": "one-piece-swimsuit-plain-front",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "one-piece swimsuit with a plain (single-panel) front, back panel, both with lining, and shoulder straps",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "123",
+          "file": "entries/123.json",
+          "category": "mens-wide-swim-brief",
+          "moldaiArchetype": null,
+          "gender": "male",
+          "descriptionEn": "men's wide-cut swim brief with front and back panels, full linings, and a separate crotch gusset",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "179",
+          "file": "entries/179.json",
+          "category": "swim-style top with cut-out panels",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "swim-style top with cut-out side panels and a narrow trim band, not a fitted blouse silhouette",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "180",
+          "file": "entries/180.json",
+          "category": "triangle-style top with elastic back band and adjustable strap",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "triangle bikini-style top with an elasticated back band and an adjustable strap regulator, not a fitted blouse silhouette",
+          "pieceCount": 2
+        }
+      ]
+    },
+    {
+      "key": "tops-other",
+      "label": "Tank tops, corselets/bustiers, bandeau tops not matching the blouse/tshirt block — no current MoldAI archetype",
+      "count": 11,
+      "entries": [
+        {
+          "sourceId": "020",
+          "file": "entries/020.json",
+          "category": "double-layer-crop-top",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "double-layer crop top (separate outer layer and inner lining layer) with an elastic hem band, no sleeves",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "078",
+          "file": "entries/078.json",
+          "category": "long-beach-cover-up-with-side-openings",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "long beach cover-up/robe with side openings, built from separate upper and lower front/back panels plus opening bands and sleeves",
+          "pieceCount": 7
+        },
+        {
+          "sourceId": "137",
+          "file": "entries/137.json",
+          "category": "cropped-corselet-bustier",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "cropped structured corselet/bustier top, back and front panel each with a concave princess-style side curve",
+          "pieceCount": 2
+        },
+        {
+          "sourceId": "138",
+          "file": "entries/138.json",
+          "category": "asymmetric-top-with-rolled-trim",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "asymmetric sleeveless top with a rolled-trim (bias tube) finish along one curved edge, single panel shape used for front, back and lining",
+          "pieceCount": 1
+        },
+        {
+          "sourceId": "143",
+          "file": "entries/143.json",
+          "category": "cropped-stretch-top-with-bust-seam",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "cropped stretch-knit top with a bust cutout/seam, front split into side and center sub-pieces, each with a matching lining piece",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "144",
+          "file": "entries/144.json",
+          "category": "strapless tube/bandeau top with lining",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "strapless tube-style top with a curved side seam, fully lined",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "181",
+          "file": "entries/181.json",
+          "category": "double-layer top with wide strap",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "double-layer top (separate inner and outer layers) with a single wide shoulder strap and an elasticated back band, not a fitted blouse silhouette",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "240",
+          "file": "entries/240.json",
+          "category": "hooded t-shirt with color-blocked panel",
+          "moldaiArchetype": null,
+          "gender": "unisex",
+          "descriptionEn": "Short-sleeve knit top with a round neckline, a two-piece hood, a two-piece (front/back) sleeve construction, and a narrow contrast panel.",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "242",
+          "file": "entries/242.json",
+          "category": "oversized t-shirt with yokes, panels and cargo pocket",
+          "moldaiArchetype": null,
+          "gender": "unisex",
+          "descriptionEn": "Oversized knit top with front and back yokes, multiple side/center body panels, sleeves, a neckband, a flap cargo pocket, and several placement-guide templates used for cutting the pocket and flap.",
+          "pieceCount": 14
+        },
+        {
+          "sourceId": "270",
+          "file": "entries/270.json",
+          "category": "sleeveless knit tank top with rounded hem, straight-grain cut",
+          "moldaiArchetype": null,
+          "gender": null,
+          "descriptionEn": "sleeveless knit tank top with a rounded hem, cut on the straight grain, back and front panels only",
+          "pieceCount": 2
+        },
+        {
+          "sourceId": "316",
+          "file": "entries/316.json",
+          "category": "cropped-racerback-tank-with-bias-finish",
+          "moldaiArchetype": null,
+          "gender": null,
+          "descriptionEn": "sleeveless cropped tank/racerback top with bias-tape finished edges, front and back panels only",
+          "pieceCount": 2
+        }
+      ]
+    },
+    {
+      "key": "pet-items",
+      "label": "Pet coats — not apparel for a human body",
+      "count": 4,
+      "entries": [
+        {
+          "sourceId": "276",
+          "file": "entries/276.json",
+          "category": "pet kangaroo-pocket hooded coat (fleece)",
+          "moldaiArchetype": null,
+          "gender": null,
+          "descriptionEn": "pet hooded coat in sweatshirt fleece with kangaroo-style hood, hood lining, body panel with leg cutouts, hem band, small pocket detail, and leg-opening bias binding",
+          "pieceCount": 6
+        },
+        {
+          "sourceId": "277",
+          "file": "entries/277.json",
+          "category": "pet-coat-with-collar",
+          "moldaiArchetype": null,
+          "gender": null,
+          "descriptionEn": "small-pet coat with a separate collar piece",
+          "pieceCount": 2
+        },
+        {
+          "sourceId": "278",
+          "file": "entries/278.json",
+          "category": "pet-coat-plain",
+          "moldaiArchetype": null,
+          "gender": null,
+          "descriptionEn": "small-pet coat, single body piece, no separate collar",
+          "pieceCount": 1
+        },
+        {
+          "sourceId": "279",
+          "file": "entries/279.json",
+          "category": "pet-pullover-with-bands",
+          "moldaiArchetype": null,
+          "gender": null,
+          "descriptionEn": "pet pullover-style coat with a back panel, a front/chest panel, a collar band, a hem band, and two leg-opening bands",
+          "pieceCount": 5
+        }
+      ]
+    },
+    {
+      "key": "non-apparel",
+      "label": "Bags, pouches, a cushion cover, a towel, aprons — not garments",
+      "count": 10,
+      "entries": [
+        {
+          "sourceId": "173",
+          "file": "entries/173.json",
+          "category": "casual-bermuda-shorts",
+          "moldaiArchetype": null,
+          "gender": null,
+          "descriptionEn": "casual bermuda shorts with a facing-lined waistband, framed hip pocket, patch back pocket and a side pocket bag",
+          "pieceCount": 7
+        },
+        {
+          "sourceId": "189",
+          "file": "entries/189.json",
+          "category": "sport shorts with compression liner and cup pouch",
+          "moldaiArchetype": null,
+          "gender": "male",
+          "descriptionEn": "sport shorts with an inner compression-brief liner including a cup support pouch",
+          "pieceCount": 11
+        },
+        {
+          "sourceId": "265",
+          "file": "entries/265.json",
+          "category": "patchwork-style throw pillow / cushion cover",
+          "moldaiArchetype": null,
+          "gender": null,
+          "descriptionEn": "patchwork throw pillow cover assembled from five distinct rectangular panel types (side, top, middle, bottom, and bottom-corner panels)",
+          "pieceCount": 5
+        },
+        {
+          "sourceId": "266",
+          "file": "entries/266.json",
+          "category": "drawstring backpack body bands",
+          "moldaiArchetype": null,
+          "gender": null,
+          "descriptionEn": "drawstring bag (backpack-style) body assembled from three horizontal bands plus a small loop tab; non-apparel",
+          "pieceCount": 4
+        },
+        {
+          "sourceId": "268",
+          "file": "entries/268.json",
+          "category": "zippered pouch/case panels",
+          "moldaiArchetype": null,
+          "gender": null,
+          "descriptionEn": "small zippered pouch/case assembled from an upper rectangular panel and a lower notched panel; non-apparel",
+          "pieceCount": 2
+        },
+        {
+          "sourceId": "300",
+          "file": "entries/300.json",
+          "category": "tote-bag-with-straps",
+          "moldaiArchetype": null,
+          "gender": null,
+          "descriptionEn": "simple tote bag with a rectangular body panel and two straps",
+          "pieceCount": 2
+        },
+        {
+          "sourceId": "312",
+          "file": "entries/312.json",
+          "category": "hooded towel",
+          "moldaiArchetype": null,
+          "gender": "kids",
+          "descriptionEn": "kids hooded bath towel, front and back body panels plus a separate hood piece",
+          "pieceCount": 3
+        },
+        {
+          "sourceId": "318",
+          "file": "entries/318.json",
+          "category": "womens-apron-single-panel",
+          "moldaiArchetype": null,
+          "gender": "female",
+          "descriptionEn": "women's apron, single front body panel, one size",
+          "pieceCount": 1
+        },
+        {
+          "sourceId": "319",
+          "file": "entries/319.json",
+          "category": "mens-apron-with-strap",
+          "moldaiArchetype": null,
+          "gender": "male",
+          "descriptionEn": "men's apron with a front body panel and a separate strap/tie piece, one size",
+          "pieceCount": 2
+        },
+        {
+          "sourceId": "321",
+          "file": "entries/321.json",
+          "category": "baby-hooded-towel",
+          "moldaiArchetype": null,
+          "gender": "baby",
+          "descriptionEn": "baby hooded towel: a large square/diamond body panel plus a small pointed hood piece, drawn twice (likely a duplicate layout for cutting reference)",
+          "pieceCount": 2
+        }
+      ]
+    }
+  ],
+  "totalEntries": 282
+}

@@ -1,0 +1,122 @@
+{
+  "sourceId": "041",
+  "category": "baby-overalls-dungarees",
+  "moldaiArchetype": null,
+  "descriptionEn": "baby overalls/dungarees with bib front and shoulder straps",
+  "gender": "baby",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "waist trim (top rectangle)",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top edge", "valueCm": 41.5 },
+        { "position": "left edge", "valueCm": 8 },
+        { "position": "right edge", "valueCm": 8 },
+        { "position": "bottom edge", "valueCm": 41.5 }
+      ]
+    },
+    {
+      "nameEn": "strap A (narrow strip, left)",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top edge", "valueCm": 5.52 },
+        { "position": "left edge, upper half", "valueCm": 11.46 },
+        { "position": "right edge, upper half", "valueCm": 12.26 },
+        { "position": "left edge, lower half", "valueCm": 11.46 },
+        { "position": "right edge, lower half", "valueCm": 12.26 },
+        { "position": "bottom edge", "valueCm": 5.52 }
+      ]
+    },
+    {
+      "nameEn": "strap B (narrow strip, second)",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top edge", "valueCm": 5.5 },
+        { "position": "left edge, upper half", "valueCm": 11.22 },
+        { "position": "right edge, upper half", "valueCm": 12.02 },
+        { "position": "left edge, lower half", "valueCm": 11.22 },
+        { "position": "right edge, lower half", "valueCm": 12.01 },
+        { "position": "bottom edge", "valueCm": 5.5 }
+      ]
+    },
+    {
+      "nameEn": "body panel 1 (pentagon, upper-left)",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top-right corner, small segment 1", "valueCm": 4.4 },
+        { "position": "top-right corner, small segment 2", "valueCm": 2.0 },
+        { "position": "top-right corner, small segment 3", "valueCm": 2.07 },
+        { "position": "upper edge", "valueCm": 8.61 },
+        { "position": "left edge, upper segment", "valueCm": 10.05 },
+        { "position": "left edge, lower segment", "valueCm": 12.59 },
+        { "position": "bottom edge", "valueCm": 17.91 },
+        { "position": "bottom-right corner, small segment 1", "valueCm": 2.01 },
+        { "position": "bottom-right corner, small segment 2", "valueCm": 2.01 },
+        { "position": "right edge", "valueCm": 17.94 }
+      ]
+    },
+    {
+      "nameEn": "body panel 2 (pentagon, lower-left)",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top-right corner, small segment 1", "valueCm": 4.39 },
+        { "position": "top-right corner, small segment 2", "valueCm": 2.01 },
+        { "position": "top-right corner, small segment 3", "valueCm": 2.08 },
+        { "position": "upper edge", "valueCm": 8.15 },
+        { "position": "left edge, upper segment", "valueCm": 7.41 },
+        { "position": "left edge, lower segment", "valueCm": 12.6 },
+        { "position": "bottom edge", "valueCm": 17.91 },
+        { "position": "bottom-right corner, small segment 1", "valueCm": 2.02 },
+        { "position": "bottom-right corner, small segment 2", "valueCm": 2.02 },
+        { "position": "right edge", "valueCm": 15.07 }
+      ]
+    },
+    {
+      "nameEn": "bib panel (rectangle, upper-right)",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top edge", "valueCm": 14.85 },
+        { "position": "left edge", "valueCm": 7.68 },
+        { "position": "right edge", "valueCm": 9.05 },
+        { "position": "bottom edge", "valueCm": 15.52 }
+      ]
+    },
+    {
+      "nameEn": "bib lining panel (rectangle, mirrored)",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top edge", "valueCm": 15.52 },
+        { "position": "left edge", "valueCm": 7.68 },
+        { "position": "right edge", "valueCm": 9.05 },
+        { "position": "bottom edge", "valueCm": 14.85 }
+      ]
+    },
+    {
+      "nameEn": "small tab piece (right, upper)",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 2 },
+        { "position": "top edge", "valueCm": 7.01 },
+        { "position": "left edge", "valueCm": 10 },
+        { "position": "right edge, upper segment", "valueCm": 5.3 },
+        { "position": "right edge, lower segment", "valueCm": 5.3 },
+        { "position": "bottom edge", "valueCm": 7.01 }
+      ]
+    },
+    {
+      "nameEn": "small tab piece (right, lower)",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top edge", "valueCm": 6 },
+        { "position": "left edge, upper segment", "valueCm": 3.55 },
+        { "position": "right edge, upper segment", "valueCm": 3.7 },
+        { "position": "left edge, lower segment", "valueCm": 3.55 },
+        { "position": "right edge, lower segment", "valueCm": 3.7 },
+        { "position": "bottom edge", "valueCm": 6 }
+      ]
+    }
+  ],
+  "notes": "sourceId 041: piece name labels and Quantidade values render as illegibly small text in this drawing (too small to resolve at the available scan resolution), so every piece here is flagged originalLabelUnclear and qty is omitted rather than guessed; only the numeric edge dimensions and overall garment shape (bib-front baby overalls) could be confidently read."
+}

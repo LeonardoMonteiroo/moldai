@@ -1,0 +1,92 @@
+{
+  "sourceId": "058",
+  "category": "swim-top",
+  "moldaiArchetype": null,
+  "descriptionEn": "swimwear top with separate left/right front cups, linings, and a back panel",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "band",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 8.02 },
+        { "position": "top-right corner", "valueCm": 8 },
+        { "position": "left edge", "valueCm": 34.54 },
+        { "position": "right edge", "valueCm": 34.54 },
+        { "position": "bottom-left corner", "valueCm": 8.02 },
+        { "position": "bottom-right corner", "valueCm": 8 }
+      ]
+    },
+    {
+      "nameEn": "right front cup",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, small segment", "valueCm": 9.3 },
+        { "position": "left edge", "valueCm": 17.93 },
+        { "position": "upper-right curve", "valueCm": 23.68 },
+        { "position": "right corner, small notch", "valueCm": 3.66 },
+        { "position": "lower-right edge", "valueCm": 28.37 },
+        { "position": "bottom-left, small segment", "valueCm": 3.62 }
+      ]
+    },
+    {
+      "nameEn": "left front cup",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, small segment", "valueCm": 9.3 },
+        { "position": "right edge", "valueCm": 17.93 },
+        { "position": "upper-left curve", "valueCm": 23.68 },
+        { "position": "left corner, small notch", "valueCm": 3.66 },
+        { "position": "lower-left edge", "valueCm": 28.37 },
+        { "position": "bottom-right, small segment", "valueCm": 3.62 }
+      ]
+    },
+    {
+      "nameEn": "right front cup lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, small segment", "valueCm": 9.2 },
+        { "position": "left edge", "valueCm": 16.72 },
+        { "position": "upper-right curve", "valueCm": 23.68 },
+        { "position": "right corner, small notch", "valueCm": 3.66 },
+        { "position": "lower-right edge", "valueCm": 28.37 },
+        { "position": "bottom-left, small segment", "valueCm": 3.62 }
+      ]
+    },
+    {
+      "nameEn": "left front cup lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left, small segment", "valueCm": 3.62 },
+        { "position": "left edge", "valueCm": 16.72 },
+        { "position": "lower-left edge", "valueCm": 28.37 },
+        { "position": "left corner, small notch", "valueCm": 3.66 },
+        { "position": "upper-left curve", "valueCm": 23.68 },
+        { "position": "bottom edge, small segment", "valueCm": 9.33 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left, small segment", "valueCm": 9.11 },
+        { "position": "upper curve", "valueCm": 36.57 },
+        { "position": "upper-right corner, small notch", "valueCm": 3.66 },
+        { "position": "right edge", "valueCm": 21.54 },
+        { "position": "left edge", "valueCm": 33.58 },
+        { "position": "lower curve", "valueCm": 36.57 },
+        { "position": "lower-right corner, small notch", "valueCm": 3.66 },
+        { "position": "bottom-left, small segment", "valueCm": 9.11 }
+      ]
+    }
+  ],
+  "notes": null
+}

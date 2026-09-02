@@ -1,0 +1,112 @@
+{
+  "sourceId": "332",
+  "category": "womens-shorts-with-side-cutout-panel",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "women's shorts with a decorative/functional side seam cutout panel, waistband, and facings",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "pieces": [
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 12.5 },
+        { "position": "bottom edge", "valueCm": 12.5 },
+        { "position": "left edge", "valueCm": 49 },
+        { "position": "right edge", "valueCm": 49 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left corner", "valueCm": 7.47 },
+        { "position": "top edge, curved segment", "valueCm": 18.26 },
+        { "position": "top edge, right corner", "valueCm": 4.07 },
+        { "position": "right edge, upper segment", "valueCm": 10.34 },
+        { "position": "right edge, lower segment", "valueCm": 19.24 },
+        { "position": "left edge", "valueCm": 20.83 },
+        { "position": "bottom edge, left corner", "valueCm": 2.5 },
+        { "position": "bottom edge, middle segment", "valueCm": 11.91 },
+        { "position": "bottom edge, right segment", "valueCm": 3.82 },
+        { "position": "bottom edge, right corner", "valueCm": 3.84 }
+      ]
+    },
+    {
+      "nameEn": "front side cutout panel",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top corner", "valueCm": 5.91 },
+        { "position": "upper edge segment", "valueCm": 10.52 },
+        { "position": "long outer edge", "valueCm": 35.03 },
+        { "position": "lower edge segment", "valueCm": 18.38 }
+      ]
+    },
+    {
+      "nameEn": "front facing",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 17.47 },
+        { "position": "left edge", "valueCm": 5.93 },
+        { "position": "right edge, upper corner", "valueCm": 3.31 },
+        { "position": "right edge, lower corner", "valueCm": 4.31 },
+        { "position": "bottom edge", "valueCm": 17.91 }
+      ]
+    },
+    {
+      "nameEn": "waistband facing and lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top curved edge", "valueCm": 38.53 },
+        { "position": "left edge", "valueCm": 12.82 },
+        { "position": "bottom edge, left corner", "valueCm": 2.5 },
+        { "position": "bottom edge", "valueCm": 11.91 },
+        { "position": "bottom edge, right corner", "valueCm": 3.2 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 16.75 },
+        { "position": "top edge, curved segment", "valueCm": 17.98 },
+        { "position": "top edge, right corner", "valueCm": 4.14 },
+        { "position": "right edge, upper segment", "valueCm": 10.72 },
+        { "position": "right edge, lower segment", "valueCm": 22.28 },
+        { "position": "left edge", "valueCm": 22.46 },
+        { "position": "bottom edge, left corner", "valueCm": 7.79 },
+        { "position": "bottom edge, middle segment", "valueCm": 11.98 },
+        { "position": "bottom edge, right segment", "valueCm": 6.68 },
+        { "position": "bottom edge, right corner", "valueCm": 5.14 }
+      ]
+    },
+    {
+      "nameEn": "back side cutout panel",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top corner", "valueCm": 6.02 },
+        { "position": "upper edge segment", "valueCm": 11.28 },
+        { "position": "long outer edge", "valueCm": 36.11 },
+        { "position": "lower edge segment", "valueCm": 21.79 }
+      ]
+    },
+    {
+      "nameEn": "back facing",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 8.18 },
+        { "position": "left edge", "valueCm": 6.11 },
+        { "position": "right edge, upper corner", "valueCm": 11.55 },
+        { "position": "right edge, lower corner", "valueCm": 9.63 },
+        { "position": "bottom edge", "valueCm": 17.7 }
+      ]
+    }
+  ],
+  "notes": "The 'front side cutout panel' and 'back side cutout panel' pieces are inferred from two additional closed outlines drawn next to the front/back pieces (consistent with the garment name 'shorts com recorte' = shorts with a cutout/seam panel); no legible piece label could be read for these two specific outlines in the source scan, so their names are generic descriptions rather than a transcribed label, and which exact edge each number belongs to is a best-effort assignment based on position in the drawing."
+}

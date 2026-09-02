@@ -1,0 +1,102 @@
+{
+  "sourceId": "040",
+  "category": "baby-bloomer-shorts",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "baby bloomer-style shorts with waistband and leg cuffs",
+  "gender": "baby",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 7 },
+        { "position": "left edge", "valueCm": 42.09 },
+        { "position": "right edge", "valueCm": 42.09 },
+        { "position": "bottom edge", "valueCm": 7 }
+      ]
+    },
+    {
+      "nameEn": "front leg",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "waist edge, left segment", "valueCm": 8.32 },
+        { "position": "waist edge, right segment", "valueCm": 4.54 },
+        { "position": "small notch pair near waist, first", "valueCm": 3.01 },
+        { "position": "small notch pair near waist, second", "valueCm": 4.75 },
+        { "position": "small notch, upper right", "valueCm": 3.91 },
+        { "position": "left edge, upper step", "valueCm": 6.38 },
+        {
+          "position": "left edge, lower step (toward crotch)",
+          "valueCm": 10.1
+        },
+        { "position": "right edge", "valueCm": 13.51 },
+        { "position": "bottom edge (hem)", "valueCm": 11.48 }
+      ]
+    },
+    {
+      "nameEn": "back leg",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, main slope", "valueCm": 18.26 },
+        { "position": "top edge, small segment", "valueCm": 3.57 },
+        { "position": "left edge", "valueCm": 12.3 },
+        { "position": "right edge", "valueCm": 14.95 },
+        { "position": "bottom edge (hem)", "valueCm": 18.4 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "left edge", "valueCm": 27.58 },
+        { "position": "right edge", "valueCm": 27.58 },
+        { "position": "top-left corner", "valueCm": 2.54 },
+        { "position": "top-right corner", "valueCm": 2.54 },
+        { "position": "bottom-left corner", "valueCm": 2.54 },
+        { "position": "bottom-right corner", "valueCm": 2.54 }
+      ]
+    },
+    {
+      "nameEn": "facing",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 2.48 },
+        { "position": "top-right corner", "valueCm": 7.81 },
+        { "position": "left edge", "valueCm": 6.76 },
+        { "position": "bottom edge", "valueCm": 7.91 },
+        { "position": "bottom-right small segment", "valueCm": 1.35 }
+      ]
+    },
+    {
+      "nameEn": "BS.REL",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 1.54 },
+        { "position": "top-right corner", "valueCm": 7.8 },
+        { "position": "left edge", "valueCm": 6.3 },
+        { "position": "bottom-left corner", "valueCm": 1.5 },
+        { "position": "bottom-mid segment", "valueCm": 5 },
+        { "position": "bottom-right corner", "valueCm": 1.57 }
+      ]
+    },
+    {
+      "nameEn": "GR.BS.REL",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top-right corner", "valueCm": 7.8 },
+        { "position": "left edge", "valueCm": 5.21 },
+        { "position": "bottom edge", "valueCm": 5.38 }
+      ]
+    }
+  ],
+  "notes": null
+}

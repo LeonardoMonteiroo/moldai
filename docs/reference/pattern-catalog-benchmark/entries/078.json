@@ -1,0 +1,106 @@
+{
+  "sourceId": "078",
+  "category": "long-beach-cover-up-with-side-openings",
+  "moldaiArchetype": null,
+  "descriptionEn": "long beach cover-up/robe with side openings, built from separate upper and lower front/back panels plus opening bands and sleeves",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 57.01 },
+        { "position": "left edge", "valueCm": 49.4 },
+        { "position": "right edge", "valueCm": 39.25 },
+        { "position": "bottom edge", "valueCm": 57.01 }
+      ]
+    },
+    {
+      "nameEn": "front, upper panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left diagonal", "valueCm": 21.63 },
+        { "position": "top edge", "valueCm": 25.5 },
+        { "position": "right edge", "valueCm": 23.84 },
+        { "position": "bottom-right, small segment", "valueCm": 2 },
+        { "position": "bottom edge", "valueCm": 44.04 },
+        { "position": "bottom-left, small segment", "valueCm": 2.06 },
+        { "position": "left edge", "valueCm": 12.18 }
+      ]
+    },
+    {
+      "nameEn": "front opening band",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left, small segment", "valueCm": 2 },
+        { "position": "top-mid, small segment", "valueCm": 6 },
+        { "position": "top-right, small segment", "valueCm": 2 },
+        { "position": "left edge", "valueCm": 20.52 },
+        { "position": "right edge", "valueCm": 20.52 },
+        { "position": "bottom, small segment", "valueCm": 2 }
+      ]
+    },
+    {
+      "nameEn": "front, lower panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-right, small segment", "valueCm": 1 },
+        { "position": "top edge, upper slope", "valueCm": 50.08 },
+        { "position": "top edge, small segment", "valueCm": 1.02 },
+        { "position": "upper-left diagonal", "valueCm": 67.88 },
+        { "position": "left edge", "valueCm": 22.11 },
+        { "position": "bottom edge", "valueCm": 120.18 },
+        { "position": "right edge", "valueCm": 44.46 }
+      ]
+    },
+    {
+      "nameEn": "back, upper panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 21.52 },
+        { "position": "upper-left diagonal", "valueCm": 22.29 },
+        { "position": "left, small segment 1", "valueCm": 12.18 },
+        { "position": "left, small segment 2", "valueCm": 2.32 },
+        { "position": "left edge (main)", "valueCm": 14.02 },
+        { "position": "left, small segment 2 (mirrored)", "valueCm": 2.32 },
+        { "position": "left, small segment 1 (mirrored)", "valueCm": 12.18 },
+        { "position": "lower-left diagonal (mirrored)", "valueCm": 22.29 },
+        { "position": "bottom edge", "valueCm": 21.52 }
+      ]
+    },
+    {
+      "nameEn": "back opening band",
+      "originalLabelUnclear": true,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, small segment", "valueCm": 6 },
+        { "position": "left edge", "valueCm": 41.05 },
+        { "position": "mid segment", "valueCm": 41.05 },
+        { "position": "right edge", "valueCm": 41.05 },
+        { "position": "bottom edge, small segment", "valueCm": 6 },
+        {
+          "position": "extra value near piece, unclear placement",
+          "valueCm": null
+        }
+      ]
+    },
+    {
+      "nameEn": "back, lower panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 118.07 },
+        { "position": "right edge", "valueCm": 82.09 },
+        { "position": "bottom edge", "valueCm": 118.02 }
+      ]
+    }
+  ],
+  "notes": "sourceId 078: the back opening band piece shows a value transcribed as '45' near its label that could not be confidently placed as a specific edge (possibly an overall length total, or an artifact of adjacent labels); recorded as null rather than guessed. The lower back panel's left edge has no separate printed dimension on the sheet (it abuts the opening band piece directly), so only its top, right and bottom edges are recorded."
+}

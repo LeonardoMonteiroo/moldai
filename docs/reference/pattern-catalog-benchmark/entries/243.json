@@ -1,0 +1,83 @@
+{
+  "sourceId": "243",
+  "category": "woven-button-front-shirt-camp-collar",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "Woven button-front shirt with a camp/resort-style collar, set-in sleeves, and a front button placket facing.",
+  "gender": null,
+  "baseSizeLabel": "M",
+  "gradeNote": "Approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces.",
+  "pieces": [
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 10.84 },
+        { "position": "bottom edge", "valueCm": 10.97 },
+        { "position": "right edge (straight)", "valueCm": 43.63 },
+        { "position": "left edge (cap curve, front-to-back)", "valueCm": 59.12 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 44.97 },
+        { "position": "right edge (side seam)", "valueCm": 32.69 },
+        { "position": "shoulder edge (diagonal)", "valueCm": 27.05 },
+        { "position": "left edge, upper segment (armhole)", "valueCm": 18.59 },
+        { "position": "left edge, lower segment (armhole)", "valueCm": 9.13 },
+        { "position": "bottom edge (hem)", "valueCm": 68.07 }
+      ]
+    },
+    {
+      "nameEn": "front facing (contra)",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, upper diagonal segment", "valueCm": 5.1 },
+        { "position": "top edge, lower segment", "valueCm": 21.05 },
+        { "position": "right edge", "valueCm": 54.01 },
+        {
+          "position": "width (facing depth, horizontal arrow)",
+          "valueCm": 11.11
+        },
+        { "position": "bottom edge", "valueCm": 68.07 }
+      ]
+    },
+    {
+      "nameEn": "LA2X",
+      "originalLabelUnclear": true,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 6.89 },
+        { "position": "upper side edge", "valueCm": 20.12 },
+        { "position": "main vertical edge", "valueCm": 42.52 },
+        { "position": "lower side edge", "valueCm": 20.12 },
+        { "position": "bottom edge", "valueCm": 6.89 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, right segment", "valueCm": 44.96 },
+        { "position": "top edge, diagonal segment", "valueCm": 28.6 },
+        { "position": "top-left edge, small upper segment", "valueCm": 3.11 },
+        { "position": "left edge, upper segment", "valueCm": 18.58 },
+        { "position": "left edge, middle curve segment", "valueCm": 20.85 },
+        { "position": "left edge, lower segment", "valueCm": 18.58 },
+        {
+          "position": "bottom-left edge, small lower segment",
+          "valueCm": 3.11
+        },
+        { "position": "bottom edge, diagonal segment", "valueCm": 28.6 },
+        { "position": "bottom edge, right segment", "valueCm": 44.96 },
+        { "position": "right edge (straight)", "valueCm": 61.98 }
+      ]
+    }
+  ],
+  "notes": "Piece labeled 'LA2X' in the source could not be confidently translated to an English structural term; recorded verbatim."
+}

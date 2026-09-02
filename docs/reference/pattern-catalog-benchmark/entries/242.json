@@ -1,0 +1,178 @@
+{
+  "sourceId": "242",
+  "category": "oversized t-shirt with yokes, panels and cargo pocket",
+  "moldaiArchetype": null,
+  "descriptionEn": "Oversized knit top with front and back yokes, multiple side/center body panels, sleeves, a neckband, a flap cargo pocket, and several placement-guide templates used for cutting the pocket and flap.",
+  "gender": "unisex",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left curve", "valueCm": 12.38 },
+        { "position": "top-right corner segment", "valueCm": 2.03 },
+        { "position": "right edge", "valueCm": 42.35 },
+        { "position": "bottom-left curve", "valueCm": 12.38 },
+        { "position": "bottom-right corner segment", "valueCm": 2.03 },
+        { "position": "left edge", "valueCm": 54.6 }
+      ]
+    },
+    {
+      "nameEn": "neckband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 5.7 },
+        { "position": "bottom edge", "valueCm": 5.7 },
+        { "position": "left edge, upper half", "valueCm": 25.4 },
+        { "position": "left edge, lower half", "valueCm": 25.4 },
+        { "position": "right edge, total length", "valueCm": 50.8 }
+      ]
+    },
+    {
+      "nameEn": "pocket side template",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge", "valueCm": 51.1 },
+        { "position": "right edge", "valueCm": 20.7 },
+        { "position": "bottom edge", "valueCm": 51.14 },
+        { "position": "left edge", "valueCm": 22.15 },
+        { "position": "bottom-left corner segment", "valueCm": 2.77 }
+      ]
+    },
+    {
+      "nameEn": "back yoke",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner segment", "valueCm": 2.8 },
+        { "position": "top edge", "valueCm": 24.26 },
+        { "position": "left edge, upper segment", "valueCm": 18.06 },
+        { "position": "left edge, curve segment", "valueCm": 23.99 },
+        { "position": "right edge", "valueCm": 57.29 },
+        { "position": "left edge, lower segment", "valueCm": 18.06 },
+        { "position": "bottom-left corner segment", "valueCm": 2.8 },
+        { "position": "bottom edge", "valueCm": 24.26 }
+      ]
+    },
+    {
+      "nameEn": "back side panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 51.14 },
+        { "position": "top-left corner segment", "valueCm": 2.77 },
+        { "position": "left edge", "valueCm": 22.15 },
+        { "position": "right edge", "valueCm": 20.7 },
+        { "position": "bottom edge", "valueCm": 51.1 }
+      ]
+    },
+    {
+      "nameEn": "back center panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 53.18 },
+        { "position": "left edge", "valueCm": 15 },
+        { "position": "right edge", "valueCm": 20 },
+        { "position": "bottom edge", "valueCm": 53.18 }
+      ]
+    },
+    {
+      "nameEn": "front yoke",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 22.64 },
+        { "position": "left edge, upper segment", "valueCm": 18.06 },
+        { "position": "left edge, lower segment", "valueCm": 18.06 },
+        { "position": "middle vertical segment", "valueCm": 32.12 },
+        { "position": "right edge", "valueCm": 56.6 },
+        { "position": "bottom edge", "valueCm": 22.64 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 22.5 },
+        { "position": "top-left corner segment", "valueCm": 2 },
+        { "position": "left edge", "valueCm": 23 },
+        { "position": "right edge", "valueCm": 23 },
+        { "position": "bottom-left corner segment", "valueCm": 2 },
+        { "position": "bottom edge", "valueCm": 22.5 }
+      ]
+    },
+    {
+      "nameEn": "flap template",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge", "valueCm": 7.21 },
+        { "position": "bottom edge", "valueCm": 7.21 },
+        { "position": "left edge", "valueCm": 20 },
+        { "position": "right edge", "valueCm": 20 }
+      ]
+    },
+    {
+      "nameEn": "flap",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge", "valueCm": 9.21 },
+        { "position": "bottom edge", "valueCm": 9.21 },
+        { "position": "right edge, upper segment", "valueCm": 10 },
+        { "position": "right edge, middle segment", "valueCm": 23 },
+        { "position": "right edge, lower segment", "valueCm": 10 }
+      ],
+      "notes": "Piece name suffix ('4X') suggests a cut quantity of 4, but the printed 'Quantidade' text near this piece was jumbled/overlapping in the scan and not confidently legible, so qty is omitted rather than guessed."
+    },
+    {
+      "nameEn": "front side panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 51.14 },
+        { "position": "top-left corner segment", "valueCm": 3.07 },
+        { "position": "left edge", "valueCm": 24.3 },
+        { "position": "right edge", "valueCm": 23 },
+        { "position": "bottom edge", "valueCm": 53.18 }
+      ]
+    },
+    {
+      "nameEn": "front center panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 53.18 },
+        { "position": "top-left corner segment", "valueCm": 9.93 },
+        { "position": "right edge", "valueCm": 15 },
+        { "position": "bottom edge", "valueCm": 53.18 }
+      ]
+    },
+    {
+      "nameEn": "front pocket template",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge", "valueCm": 51.14 },
+        { "position": "top-left corner segment", "valueCm": 3.07 },
+        { "position": "left edge", "valueCm": 24.3 },
+        { "position": "right edge", "valueCm": 23 },
+        { "position": "bottom edge", "valueCm": 53.18 }
+      ]
+    },
+    {
+      "nameEn": "pocket template",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge", "valueCm": 21 },
+        { "position": "bottom edge", "valueCm": 21 },
+        { "position": "left edge", "valueCm": 20 },
+        { "position": "right edge", "valueCm": 20 }
+      ]
+    }
+  ],
+  "notes": "This drawing includes several 'gabarito' (template/placement-guide) pieces alongside the actual fabric pieces; both kinds are recorded since both are drawn with dimensions. The qty field follows the printed 'Quantidade' annotation where legible (2 wherever '(Par)' is noted, 1 otherwise); it is omitted for the four template pieces and the flap, whose 'Quantidade' boxes were not clearly legible in the scan."
+}

@@ -1,0 +1,81 @@
+{
+  "sourceId": "108",
+  "category": "V-neck blouse with set-in sleeves",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "women's V-neck blouse with set-in sleeves and a separate neckline binding strip",
+  "gender": "female",
+  "baseSizeLabel": "P",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 38.75 },
+        { "position": "upper diagonal segment", "valueCm": 23.33 },
+        { "position": "next segment down", "valueCm": 6.96 },
+        {
+          "position": "mid segment (deepest labeled sub-segment)",
+          "valueCm": 23.52
+        },
+        { "position": "mirrored segment", "valueCm": 23.52 },
+        { "position": "mirrored segment", "valueCm": 6.96 },
+        {
+          "position": "mirrored diagonal segment near bottom corner",
+          "valueCm": 23.33
+        },
+        { "position": "bottom edge", "valueCm": 38.75 },
+        { "position": "right edge, full height", "valueCm": 53.87 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, curved", "valueCm": 6.06 },
+        { "position": "left edge, vertical", "valueCm": 47.75 },
+        { "position": "right edge, vertical", "valueCm": 37.69 },
+        { "position": "bottom edge, curved", "valueCm": 6.06 }
+      ]
+    },
+    {
+      "nameEn": "neckline binding strip",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 3.03 },
+        { "position": "top edge, right segment", "valueCm": 3.03 },
+        { "position": "width indicator near top", "valueCm": 4 },
+        { "position": "left edge, main length", "valueCm": 74 },
+        { "position": "right edge, main length", "valueCm": 74 },
+        { "position": "bottom edge, left segment", "valueCm": 3.03 },
+        { "position": "bottom edge, right segment", "valueCm": 3.03 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 38.75 },
+        { "position": "upper diagonal segment", "valueCm": 23.26 },
+        { "position": "next segment down", "valueCm": 6.96 },
+        {
+          "position": "mid segment (deepest labeled sub-segment)",
+          "valueCm": 14.51
+        },
+        { "position": "mirrored segment", "valueCm": 14.51 },
+        { "position": "mirrored segment", "valueCm": 6.96 },
+        {
+          "position": "mirrored diagonal segment near bottom corner",
+          "valueCm": 23.26
+        },
+        { "position": "bottom edge", "valueCm": 38.75 },
+        { "position": "right edge, full height", "valueCm": 52.52 }
+      ]
+    }
+  ],
+  "notes": null
+}

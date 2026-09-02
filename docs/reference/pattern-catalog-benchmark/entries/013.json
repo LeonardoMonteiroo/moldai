@@ -1,0 +1,36 @@
+{
+  "sourceId": "013",
+  "category": "kids-ribbed-leggings",
+  "moldaiArchetype": null,
+  "descriptionEn": "kids ribbed leggings, single symmetric leg panel used for both front and back",
+  "gender": "kids",
+  "baseSizeLabel": "8",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "leg panel (front and back, same pattern piece)",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, first segment", "valueCm": 13.25 },
+        { "position": "top edge, second segment near center", "valueCm": 4.87 },
+        { "position": "top edge, small notch tick", "valueCm": 5.36 },
+        { "position": "left edge, top short segment", "valueCm": 3.56 },
+        { "position": "left edge, main (long)", "valueCm": 25.01 },
+        {
+          "position": "left edge, lower diagonal toward bottom",
+          "valueCm": 27.42
+        },
+        { "position": "bottom edge (long)", "valueCm": 52.37 },
+        { "position": "right edge, lower short segment", "valueCm": 2.02 },
+        { "position": "right edge, main (long)", "valueCm": 20.58 },
+        { "position": "right edge, upper short segment", "valueCm": 2.01 },
+        {
+          "position": "upper-right diagonal edge, from top toward right edge",
+          "valueCm": 52.29
+        }
+      ]
+    }
+  ],
+  "notes": "Piece label reads roughly 'back-front 2x' in the source drawing, indicating one pattern piece is used symmetrically for both front and back leg panels; quantity was given as '1 (pair)', recorded here as qty 2."
+}

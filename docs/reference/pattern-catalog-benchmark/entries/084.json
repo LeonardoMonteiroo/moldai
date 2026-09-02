@@ -1,0 +1,182 @@
+{
+  "sourceId": "084",
+  "category": "womens-sport-jacket",
+  "moldaiArchetype": null,
+  "descriptionEn": "women's sport jacket with front zip panels, pockets and stand collar",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 58.14 },
+        { "position": "left edge", "valueCm": 49.71 },
+        { "position": "right edge", "valueCm": 25.02 },
+        { "position": "bottom edge", "valueCm": 58.14 }
+      ]
+    },
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 5.51 },
+        {
+          "position": "upper internal horizontal measurement",
+          "valueCm": 21.57
+        },
+        { "position": "overall length", "valueCm": 43.15 },
+        {
+          "position": "lower internal horizontal measurement",
+          "valueCm": 21.57
+        },
+        { "position": "bottom edge", "valueCm": 5.51 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner segment", "valueCm": 10.91 },
+        { "position": "top edge", "valueCm": 26.72 },
+        { "position": "right edge", "valueCm": 50.48 },
+        { "position": "bottom edge", "valueCm": 26.72 },
+        { "position": "bottom-left corner segment", "valueCm": 11.11 },
+        { "position": "lower-left diagonal segment", "valueCm": 20.64 },
+        { "position": "left edge, middle segment", "valueCm": 13.63 },
+        { "position": "upper-left diagonal segment", "valueCm": 20.8 }
+      ]
+    },
+    {
+      "nameEn": "front, center-left panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-right corner segment", "valueCm": 2.21 },
+        { "position": "top edge", "valueCm": 9.78 },
+        { "position": "right edge", "valueCm": 28.56 },
+        { "position": "left diagonal segment", "valueCm": 22.6 },
+        { "position": "bottom edge", "valueCm": 10.43 }
+      ]
+    },
+    {
+      "nameEn": "front, center-right panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-right corner segment", "valueCm": 2.21 },
+        { "position": "top edge", "valueCm": 9.78 },
+        { "position": "right edge", "valueCm": 28.56 },
+        { "position": "left diagonal segment", "valueCm": 22.6 },
+        { "position": "bottom edge", "valueCm": 10.43 }
+      ]
+    },
+    {
+      "nameEn": "front, left panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-right corner segment", "valueCm": 2.01 },
+        { "position": "right edge", "valueCm": 23.16 },
+        { "position": "bottom edge", "valueCm": 17.14 },
+        { "position": "bottom-left corner segment", "valueCm": 6.75 },
+        { "position": "left edge", "valueCm": 20.09 }
+      ]
+    },
+    {
+      "nameEn": "front, right panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 17.14 },
+        { "position": "left edge", "valueCm": 8.75 },
+        { "position": "right edge", "valueCm": 23.16 },
+        { "position": "bottom-left corner segment", "valueCm": 20.09 },
+        { "position": "bottom-right corner segment", "valueCm": 2.01 }
+      ]
+    },
+    {
+      "nameEn": "back, left cut panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 20.56 },
+        { "position": "left edge", "valueCm": 13.6 },
+        { "position": "bottom-left corner segment", "valueCm": 5.37 },
+        { "position": "bottom edge", "valueCm": 27.34 }
+      ]
+    },
+    {
+      "nameEn": "back, right cut panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 20.56 },
+        { "position": "left edge", "valueCm": 13.6 },
+        { "position": "bottom-left corner segment", "valueCm": 5.37 },
+        { "position": "bottom edge", "valueCm": 27.34 }
+      ]
+    },
+    {
+      "nameEn": "front, left cut panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 17.05 },
+        { "position": "top-right corner segment", "valueCm": 1.78 },
+        { "position": "left edge", "valueCm": 13.95 },
+        { "position": "bottom-left corner segment", "valueCm": 5.95 },
+        { "position": "bottom edge", "valueCm": 23.83 }
+      ]
+    },
+    {
+      "nameEn": "front, right cut panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 17.05 },
+        { "position": "top-right corner segment", "valueCm": 1.78 },
+        { "position": "left edge", "valueCm": 13.95 },
+        { "position": "bottom-left corner segment", "valueCm": 5.95 },
+        { "position": "bottom edge", "valueCm": 23.83 }
+      ]
+    },
+    {
+      "nameEn": "BOLSO panel, style A",
+      "originalLabelUnclear": true,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 26.72 },
+        { "position": "left edge", "valueCm": 28.95 },
+        { "position": "right edge", "valueCm": 26.94 },
+        { "position": "bottom edge", "valueCm": 20.48 }
+      ]
+    },
+    {
+      "nameEn": "BOLSO panel, style B",
+      "originalLabelUnclear": true,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 20.48 },
+        { "position": "left edge", "valueCm": 28.88 },
+        { "position": "right edge", "valueCm": 26.84 },
+        { "position": "bottom edge", "valueCm": 26.72 }
+      ]
+    },
+    {
+      "nameEn": "small unlabeled piece",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top-left segment", "valueCm": null },
+        { "position": "right segment", "valueCm": null },
+        { "position": "bottom segment", "valueCm": null }
+      ]
+    }
+  ],
+  "notes": "This is a garment with many small panels; several pieces have very small or mirrored/rotated printed text in the source drawing that was difficult to read with full confidence: (1) the two 'front panel' pieces (left/right) are expected to be mirror images with identical measurements, but the left edge reads 6.75 on one and 8.75 on the other -- this may be a genuine asymmetry or a misread digit, recorded as seen. (2) The four small quadrilateral panels on the right side of the drawing carry the word 'BOLSO' (pocket) plus modifier text too small/mirrored to transcribe reliably, so they are grouped here as two repeated shapes ('style A' and 'style B', each appearing twice) rather than four separately named pieces. (3) One small piece near the collar (a tiny diamond shape with a dashed outline) has numeric labels too small to transcribe reliably; its qty and edge values are recorded as null. (4) The collar piece's paired 21.57 values and internal-line labeling follow the same ambiguous-internal-measurement pattern seen on sleeve pieces in other garments in this batch."
+}

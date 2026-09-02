@@ -1,0 +1,154 @@
+{
+  "sourceId": "238",
+  "category": "uniform jacket with color-blocked panels",
+  "moldaiArchetype": null,
+  "descriptionEn": "Uniform-style jacket with contrast-color panels, a curved collar, two-piece contrast-paneled sleeves, cuffs and a long hem band.",
+  "gender": "unisex",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "contrast panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 54.21 },
+        { "position": "right edge", "valueCm": 10.94 },
+        { "position": "bottom edge", "valueCm": 38.01 },
+        { "position": "left edge", "valueCm": 9.77 },
+        { "position": "bottom-left corner, upper segment", "valueCm": 10.85 },
+        { "position": "bottom-left corner, lower segment", "valueCm": 13.23 }
+      ]
+    },
+    {
+      "nameEn": "piping",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 27.24 },
+        { "position": "left edge", "valueCm": 25.14 },
+        { "position": "right edge", "valueCm": 23.8 },
+        { "position": "bottom edge", "valueCm": 27.27 }
+      ]
+    },
+    {
+      "nameEn": "piping lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 27.24 },
+        { "position": "left edge", "valueCm": 22.33 },
+        { "position": "right edge", "valueCm": 20.8 },
+        { "position": "bottom edge", "valueCm": 27.28 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 54.2 },
+        { "position": "top-right corner segment", "valueCm": 0.8 },
+        { "position": "right edge", "valueCm": 28.44 },
+        { "position": "bottom edge", "valueCm": 35.63 },
+        { "position": "left edge, upper segment", "valueCm": 9.77 },
+        { "position": "left edge, lower segment", "valueCm": 33.13 }
+      ]
+    },
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 8.06 },
+        { "position": "bottom edge", "valueCm": 8.06 },
+        { "position": "inner curve edge", "valueCm": 50.56 },
+        { "position": "outer curve edge", "valueCm": 55.89 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 35.63 },
+        { "position": "right edge", "valueCm": 55.48 },
+        { "position": "bottom edge", "valueCm": 35.63 },
+        { "position": "bottom-left diagonal segment", "valueCm": 38.19 },
+        { "position": "left edge", "valueCm": 11.17 },
+        { "position": "top-left diagonal segment", "valueCm": 38.19 }
+      ]
+    },
+    {
+      "nameEn": "sleeve, back panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 38.18 },
+        { "position": "top-right corner segment", "valueCm": 7.76 },
+        { "position": "right edge", "valueCm": 18.92 },
+        { "position": "bottom edge", "valueCm": 38.3 },
+        { "position": "left edge/corner segment", "valueCm": 2.95 }
+      ]
+    },
+    {
+      "nameEn": "sleeve, center strip panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 38.32 },
+        { "position": "left edge", "valueCm": 7.51 },
+        { "position": "right edge", "valueCm": 7 },
+        { "position": "bottom edge", "valueCm": 35.63 }
+      ]
+    },
+    {
+      "nameEn": "sleeve, front panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 35.63 },
+        { "position": "top-left corner segment", "valueCm": 4.4 },
+        { "position": "right edge", "valueCm": 18.92 },
+        { "position": "bottom edge", "valueCm": 33.14 },
+        { "position": "bottom-right corner segment", "valueCm": 7.77 }
+      ]
+    },
+    {
+      "nameEn": "sleeve, main panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 42.26 },
+        { "position": "bottom edge", "valueCm": 42.26 },
+        { "position": "left edge", "valueCm": 43.9 },
+        { "position": "right edge", "valueCm": 26.89 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 6.63 },
+        { "position": "top edge, right segment", "valueCm": 6.63 },
+        { "position": "bottom edge, left segment", "valueCm": 6.63 },
+        { "position": "bottom edge, right segment", "valueCm": 6.63 },
+        { "position": "left edge", "valueCm": 21 },
+        { "position": "right edge", "valueCm": 21 }
+      ]
+    },
+    {
+      "nameEn": "hem band",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 13.11 },
+        { "position": "bottom edge", "valueCm": 13.11 },
+        { "position": "left edge", "valueCm": 90 },
+        { "position": "right edge", "valueCm": 90 }
+      ]
+    }
+  ],
+  "notes": "Piece names in the source drawing carry a '1X'/'2X' suffix (a cut-quantity notation in the source pattern software); the qty field here follows the printed 'Quantidade' annotation instead, reading 2 wherever '(Par)' is noted and 1 otherwise, which matches the suffix in every case observed."
+}

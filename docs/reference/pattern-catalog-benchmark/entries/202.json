@@ -1,0 +1,114 @@
+{
+  "sourceId": "202",
+  "category": "tricolor-color-block-tshirt-with-pocket",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "tricolor color-block t-shirt with a chest patch pocket, ribbed collar, and set-in sleeves",
+  "gender": "unisex",
+  "baseSizeLabel": "08",
+  "gradeNote": "average +1cm variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "GB RS.LT",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 11 },
+        { "position": "left edge", "valueCm": 9 },
+        { "position": "right edge", "valueCm": 9 },
+        { "position": "bottom edge", "valueCm": 11 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 2 },
+        { "position": "top edge", "valueCm": 12.5 },
+        { "position": "left edge", "valueCm": 12 },
+        { "position": "right edge", "valueCm": 12 },
+        { "position": "bottom-left corner", "valueCm": 2 },
+        { "position": "bottom edge", "valueCm": 12.5 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, segment a", "valueCm": 4.96 },
+        { "position": "top edge, segment b", "valueCm": 2.18 },
+        { "position": "left edge", "valueCm": 40.84 },
+        { "position": "right edge", "valueCm": 28.26 },
+        { "position": "bottom edge, segment a", "valueCm": 4.96 },
+        { "position": "bottom edge, segment b", "valueCm": 2.18 }
+      ]
+    },
+    {
+      "nameEn": "front cutout panel (side)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-right corner", "valueCm": 4.03 },
+        { "position": "top edge", "valueCm": 18.37 },
+        { "position": "left edge, upper segment", "valueCm": 10.35 },
+        { "position": "mid-height horizontal span", "valueCm": 23.62 },
+        { "position": "left edge, lower segment", "valueCm": 10.35 },
+        { "position": "bottom edge", "valueCm": 18.39 },
+        { "position": "bottom-right corner", "valueCm": 4.03 },
+        { "position": "right edge (shared vertical)", "valueCm": 41.43 }
+      ]
+    },
+    {
+      "nameEn": "front cutout panel (middle)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 14.11 },
+        { "position": "left edge", "valueCm": 41.43 },
+        { "position": "right edge", "valueCm": 41.43 },
+        { "position": "bottom edge", "valueCm": 14.11 }
+      ]
+    },
+    {
+      "nameEn": "front cutout panel (hem)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 19.19 },
+        { "position": "left edge", "valueCm": 41.43 },
+        { "position": "right edge", "valueCm": 41.43 },
+        { "position": "bottom edge", "valueCm": 19.19 }
+      ]
+    },
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 5 },
+        { "position": "left edge", "valueCm": 35 },
+        { "position": "right edge", "valueCm": 35 },
+        { "position": "bottom edge", "valueCm": 5 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner, segment a", "valueCm": 2.3 },
+        { "position": "top-left corner, segment b", "valueCm": 19.1 },
+        { "position": "top edge (upper-right slant)", "valueCm": 35.3 },
+        { "position": "left edge, upper segment", "valueCm": 10.35 },
+        { "position": "left edge, mid segment", "valueCm": 18.37 },
+        { "position": "left edge, lower segment", "valueCm": 10.35 },
+        { "position": "bottom-left corner, segment a", "valueCm": 2.3 },
+        { "position": "bottom-left corner, segment b", "valueCm": 19.1 },
+        { "position": "bottom edge", "valueCm": 35.3 },
+        { "position": "right edge", "valueCm": 41.43 }
+      ]
+    }
+  ],
+  "notes": "The first small piece's label ('GB RS.LT') is a cryptic abbreviation that could not be confidently translated, kept verbatim. The three color-block front panels are named generically by their approximate position (side/middle/hem) since the Portuguese labels ('RECORTE FRENTE...') were partially obscured by overlapping annotation text; the translation of 'recorte' (cutout/color-block panel) itself is confident."
+}

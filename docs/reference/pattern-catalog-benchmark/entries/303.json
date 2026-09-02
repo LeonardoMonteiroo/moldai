@@ -1,0 +1,97 @@
+{
+  "sourceId": "303",
+  "category": "midi-skirt-with-side-slits-waistband-and-pockets",
+  "moldaiArchetype": "skirt",
+  "descriptionEn": "midi skirt with side slits, a waistband, and patch pockets with a separate pocket template piece",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 9 },
+        { "position": "left edge", "valueCm": 73 },
+        { "position": "bottom edge", "valueCm": 9 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, curve segment", "valueCm": 38.05 },
+        { "position": "top edge, small segment", "valueCm": 1.55 },
+        { "position": "top edge, main horizontal segment", "valueCm": 40.55 },
+        { "position": "top-right corner, tip segment", "valueCm": 2 },
+        { "position": "left edge, upper segment", "valueCm": 36.5 },
+        { "position": "left edge, mid-upper segment", "valueCm": 20.38 },
+        {
+          "position": "left edge, mid-lower segment (mirrors mid-upper)",
+          "valueCm": 20.38
+        },
+        {
+          "position": "left edge, lower segment (mirrors upper)",
+          "valueCm": 36.5
+        },
+        { "position": "right edge, upper half", "valueCm": 25.73 },
+        { "position": "right edge, lower half", "valueCm": 25.73 },
+        { "position": "bottom edge, curve segment", "valueCm": 37.92 },
+        { "position": "bottom edge, small segment", "valueCm": 1.55 },
+        {
+          "position": "bottom edge, main horizontal segment",
+          "valueCm": 40.63
+        },
+        { "position": "bottom-right corner, tip segment", "valueCm": 2 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, curve segment", "valueCm": 21.87 },
+        { "position": "top edge, small segment", "valueCm": 1.55 },
+        { "position": "top edge, main horizontal segment", "valueCm": 40.53 },
+        { "position": "top-right corner, tip segment", "valueCm": 2.03 },
+        { "position": "left edge, upper segment", "valueCm": 16.18 },
+        { "position": "left edge, mid-upper segment", "valueCm": 19.38 },
+        { "position": "left edge, mid-lower segment", "valueCm": 19.38 },
+        { "position": "right edge, upper half", "valueCm": 24.74 },
+        { "position": "right edge, lower half", "valueCm": 24.71 },
+        { "position": "bottom edge, curve segment", "valueCm": 37.92 },
+        { "position": "bottom edge, small segment", "valueCm": 1.55 },
+        {
+          "position": "bottom edge, main horizontal segment",
+          "valueCm": 40.61
+        },
+        { "position": "bottom-right corner, tip segment", "valueCm": 2.03 }
+      ]
+    },
+    {
+      "nameEn": "pocket template",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 20 },
+        { "position": "left edge", "valueCm": 13.98 },
+        { "position": "right edge", "valueCm": 13.98 },
+        { "position": "bottom edge", "valueCm": 20.04 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 23 },
+        { "position": "left edge", "valueCm": 15.98 },
+        { "position": "right edge", "valueCm": 15.98 },
+        { "position": "bottom edge", "valueCm": 23 }
+      ]
+    }
+  ],
+  "notes": "The sheet's top-of-page header carried a different reference number than the one printed under each individual piece label further down the same sheet — an internal archival inconsistency on the source file, not something reflected in this entry. Small '+' marks near the front piece's darts/notches on the drawing carried no attached numeric value and were not treated as edges. The waistband piece's right edge was not separately labeled on the sheet (only top/left/bottom were), so it was left out rather than assumed equal to the left edge."
+}

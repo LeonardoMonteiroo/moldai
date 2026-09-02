@@ -1,0 +1,104 @@
+{
+  "sourceId": "338",
+  "category": "twist-front-blouse",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "women's twist-front blouse with front and back lining panels, a gathered front, and a tie strap",
+  "gender": "female",
+  "baseSizeLabel": "P",
+  "pieces": [
+    {
+      "nameEn": "front lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-right corner", "valueCm": 12.13 },
+        { "position": "top edge", "valueCm": 18.19 },
+        { "position": "left corner", "valueCm": 4 },
+        {
+          "position": "right diagonal edge (labeled neckline in drawing)",
+          "valueCm": 28.36
+        },
+        {
+          "position": "lower diagonal edge (labeled strap-insert in drawing)",
+          "valueCm": 7.79
+        },
+        { "position": "bottom edge", "valueCm": 12.13 }
+      ]
+    },
+    {
+      "nameEn": "strap",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 29 },
+        { "position": "left edge", "valueCm": 22 },
+        { "position": "right edge", "valueCm": 22 },
+        { "position": "bottom edge", "valueCm": 29 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 8.16 },
+        {
+          "position": "upper-left small segment (labeled armhole in drawing)",
+          "valueCm": 7.8
+        },
+        {
+          "position": "left diagonal edge (labeled neckline in drawing)",
+          "valueCm": 28.37
+        },
+        { "position": "bottom-left segment", "valueCm": 18.2 },
+        { "position": "bottom edge, left segment", "valueCm": 8.16 },
+        { "position": "bottom edge, middle segment", "valueCm": 32 },
+        { "position": "bottom-right corner, segment 1", "valueCm": 3.5 },
+        { "position": "bottom-right corner, segment 2", "valueCm": 1.5 },
+        { "position": "right edge, upper segment", "valueCm": 18.86 },
+        { "position": "right edge, lower segment", "valueCm": 18.86 },
+        { "position": "top edge, middle segment", "valueCm": 32 },
+        { "position": "top-right corner, segment 1", "valueCm": 3.5 },
+        { "position": "top-right corner, segment 2", "valueCm": 1.5 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 31.64 },
+        { "position": "top-right corner", "valueCm": 1.5 },
+        { "position": "top edge, left segment", "valueCm": 19.64 },
+        { "position": "left corner", "valueCm": 4 },
+        {
+          "position": "left diagonal edge (labeled strap in drawing)",
+          "valueCm": 26.64
+        },
+        { "position": "right edge, upper segment", "valueCm": 18.86 },
+        { "position": "right edge, lower segment", "valueCm": 18.86 },
+        { "position": "bottom-left corner", "valueCm": 11.59 },
+        { "position": "bottom edge", "valueCm": 31.64 },
+        { "position": "bottom-right corner", "valueCm": 1.5 }
+      ]
+    },
+    {
+      "nameEn": "back lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 12.12 },
+        { "position": "top edge, left segment", "valueCm": 11.58 },
+        { "position": "left corner", "valueCm": 4 },
+        {
+          "position": "left diagonal edge (labeled strap in drawing)",
+          "valueCm": 26.65
+        },
+        { "position": "right edge", "valueCm": 35.23 },
+        { "position": "bottom edge", "valueCm": 19.63 },
+        { "position": "bottom-right corner", "valueCm": 12.12 }
+      ]
+    }
+  ],
+  "notes": "The front and back main panels also carry a printed gather/elastic construction note with per-size figures (P/M/G/GG); those are construction instructions, not outline edge dimensions, so they were not transcribed as edges."
+}

@@ -1,0 +1,108 @@
+{
+  "sourceId": "336",
+  "category": "biker-shorts",
+  "moldaiArchetype": null,
+  "descriptionEn": "women's biker/cycling shorts with front, back and side panels, a crotch gusset, patch pockets, and a shaped waistband",
+  "gender": "female",
+  "baseSizeLabel": "P",
+  "pieces": [
+    {
+      "nameEn": "crotch gusset",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 0.78 },
+        { "position": "top edge, right segment", "valueCm": 0.66 },
+        { "position": "upper-left diagonal edge", "valueCm": 5.55 },
+        { "position": "upper-right diagonal edge", "valueCm": 4.44 },
+        { "position": "left edge, upper segment", "valueCm": 0.54 },
+        { "position": "left edge, lower segment", "valueCm": 0.54 },
+        { "position": "right edge, upper segment", "valueCm": 0.49 },
+        { "position": "right edge, lower segment", "valueCm": 0.49 },
+        { "position": "lower-left diagonal edge", "valueCm": 5.55 },
+        { "position": "lower-right diagonal edge", "valueCm": 4.44 },
+        { "position": "bottom edge, left segment", "valueCm": 0.78 },
+        { "position": "bottom edge, right segment", "valueCm": 0.66 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "left edge, upper segment", "valueCm": 7.65 },
+        { "position": "left edge, middle segment", "valueCm": 8.4 },
+        { "position": "left edge, lower segment", "valueCm": 12.87 },
+        { "position": "top edge, left segment", "valueCm": 5.05 },
+        { "position": "top edge, right diagonal segment", "valueCm": 13.83 },
+        { "position": "top-right corner", "valueCm": 1.99 },
+        { "position": "right edge", "valueCm": 14.65 },
+        { "position": "bottom edge, left segment", "valueCm": 7.93 },
+        { "position": "bottom edge, middle segment", "valueCm": 19.42 },
+        { "position": "bottom edge, right segment", "valueCm": 7.38 }
+      ]
+    },
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left diagonal", "valueCm": 9.63 },
+        { "position": "top edge, right diagonal", "valueCm": 9.63 },
+        { "position": "left edge, upper segment", "valueCm": 18.47 },
+        { "position": "right edge, upper segment", "valueCm": 18.47 },
+        { "position": "left edge, lower segment", "valueCm": 18.47 },
+        { "position": "right edge, lower segment", "valueCm": 18.47 },
+        { "position": "bottom edge, left diagonal", "valueCm": 9.63 },
+        { "position": "bottom edge, right diagonal", "valueCm": 9.63 }
+      ]
+    },
+    {
+      "nameEn": "side panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 7.93 },
+        { "position": "top edge, middle segment", "valueCm": 19.41 },
+        { "position": "top edge, right segment", "valueCm": 7.38 },
+        { "position": "left edge, upper segment", "valueCm": 6.56 },
+        { "position": "left edge, lower segment", "valueCm": 6.62 },
+        { "position": "right edge", "valueCm": 12.81 },
+        { "position": "bottom edge, left segment", "valueCm": 5.91 },
+        { "position": "bottom edge, middle segment", "valueCm": 23.04 },
+        { "position": "bottom edge, right segment", "valueCm": 7.36 }
+      ]
+    },
+    {
+      "nameEn": "patch pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 2.01 },
+        { "position": "top edge, right segment", "valueCm": 19.41 },
+        { "position": "left edge", "valueCm": 13.54 },
+        { "position": "right edge", "valueCm": 12.87 },
+        { "position": "bottom edge, left segment", "valueCm": 1.73 },
+        { "position": "bottom edge, right segment", "valueCm": 23.04 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 5.91 },
+        { "position": "top edge, middle segment", "valueCm": 23.04 },
+        { "position": "top edge, right segment", "valueCm": 7.37 },
+        { "position": "left edge, upper segment", "valueCm": 12.8 },
+        { "position": "left edge, lower segment", "valueCm": 12.04 },
+        { "position": "bottom edge, left segment", "valueCm": 8.57 },
+        { "position": "bottom edge, middle segment", "valueCm": 6.72 },
+        { "position": "bottom edge, right segment", "valueCm": 12.5 },
+        { "position": "bottom-right corner", "valueCm": 1.99 },
+        { "position": "right edge", "valueCm": 19.71 }
+      ]
+    }
+  ],
+  "notes": null
+}

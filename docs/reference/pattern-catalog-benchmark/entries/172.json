@@ -1,0 +1,134 @@
+{
+  "sourceId": "172",
+  "category": "oversized-tshirt-with-pocket-and-panels",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "oversized t-shirt with a patch pocket, front and back yoke/panel cutouts, and a ribbed collar band",
+  "gender": null,
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "smaller template",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 15.5 },
+        { "position": "left edge", "valueCm": 12.5 },
+        { "position": "right edge", "valueCm": 12.5 },
+        { "position": "bottom edge", "valueCm": 15.5 }
+      ]
+    },
+    {
+      "nameEn": "larger template",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 16 },
+        { "position": "left edge", "valueCm": 15.5 },
+        { "position": "right edge", "valueCm": 15.5 },
+        { "position": "bottom edge", "valueCm": 16 }
+      ]
+    },
+    {
+      "nameEn": "collar band",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 5.7 },
+        { "position": "left edge, upper segment", "valueCm": 26.4 },
+        { "position": "left edge, lower segment", "valueCm": 26.4 },
+        { "position": "right edge, upper segment", "valueCm": 26.4 },
+        { "position": "right edge, lower segment", "valueCm": 26.4 },
+        { "position": "bottom edge", "valueCm": 5.7 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 12.38 },
+        { "position": "top edge, right segment", "valueCm": 2.59 },
+        { "position": "left edge", "valueCm": 54.6 },
+        { "position": "right edge", "valueCm": 42.35 },
+        { "position": "bottom edge, left segment", "valueCm": 12.38 },
+        { "position": "bottom edge, right segment", "valueCm": 2.59 }
+      ]
+    },
+    {
+      "nameEn": "larger pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 19.5 },
+        { "position": "left edge", "valueCm": 18.5 },
+        { "position": "right edge", "valueCm": 18.5 },
+        { "position": "bottom edge", "valueCm": 19.5 }
+      ]
+    },
+    {
+      "nameEn": "smaller pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 19 },
+        { "position": "left edge", "valueCm": 15.5 },
+        { "position": "right edge", "valueCm": 15.5 },
+        { "position": "bottom edge", "valueCm": 19 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, right segment", "valueCm": 51.14 },
+        { "position": "top edge, left diagonal segment", "valueCm": 28.97 },
+        { "position": "top-left corner segment", "valueCm": 18.06 },
+        { "position": "left edge, curved", "valueCm": 24.25 },
+        { "position": "bottom-left corner segment", "valueCm": 3.14 },
+        { "position": "bottom edge", "valueCm": 82.49 },
+        { "position": "right edge", "valueCm": 42.83 }
+      ]
+    },
+    {
+      "nameEn": "back yoke panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 82.49 },
+        { "position": "left edge, upper segment", "valueCm": 15.91 },
+        { "position": "left edge, lower diagonal segment", "valueCm": 28.97 },
+        { "position": "bottom edge", "valueCm": 51.14 },
+        { "position": "right edge", "valueCm": 17.17 }
+      ]
+    },
+    {
+      "nameEn": "front yoke panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 51.14 },
+        { "position": "top-left diagonal segment", "valueCm": 24.84 },
+        { "position": "left edge", "valueCm": 15.33 },
+        { "position": "bottom edge", "valueCm": 78.01 },
+        { "position": "right edge", "valueCm": 17.17 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 78.01 },
+        { "position": "top-left corner segment", "valueCm": 3.7 },
+        { "position": "left edge, upper curved segment", "valueCm": 32.11 },
+        { "position": "left edge, lower segment", "valueCm": 18.06 },
+        { "position": "bottom-left diagonal segment", "valueCm": 24.83 },
+        { "position": "bottom edge", "valueCm": 51.14 },
+        { "position": "right edge", "valueCm": 42.83 }
+      ]
+    }
+  ],
+  "notes": "collar band edge segmentation (two 26.4 cm values per side) is ambiguous in the source drawing due to a quantity label breaking the strip visually; both instances are recorded as-is rather than assumed to sum to one continuous edge."
+}

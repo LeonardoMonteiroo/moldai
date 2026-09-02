@@ -1,0 +1,75 @@
+{
+  "sourceId": "194",
+  "category": "raglan half-sleeve blouse with cuff",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "kids raglan-sleeve blouse with half sleeves, a cuff, and a small collar",
+  "gender": "kids",
+  "baseSizeLabel": "08",
+  "gradeNote": "approx. 1 cm or more average variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 5 },
+        { "position": "left edge (length)", "valueCm": 35 },
+        { "position": "right edge (length)", "valueCm": 35 },
+        { "position": "bottom edge", "valueCm": 5 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 19.56 },
+        { "position": "top edge, right segment", "valueCm": 14.29 },
+        { "position": "right edge", "valueCm": 24.31 },
+        { "position": "bottom edge, right segment", "valueCm": 14.29 },
+        { "position": "bottom edge", "valueCm": 22.63 },
+        { "position": "left edge", "valueCm": 17.38 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left corner", "valueCm": 4.65 },
+        { "position": "top edge, right corner", "valueCm": 4.65 },
+        { "position": "left edge", "valueCm": 20.01 },
+        { "position": "right edge", "valueCm": 20.01 },
+        { "position": "bottom edge, left corner", "valueCm": 4.65 },
+        { "position": "bottom edge, right corner", "valueCm": 4.65 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 28.66 },
+        { "position": "upper-left edge", "valueCm": 22.05 },
+        { "position": "left edge (curve)", "valueCm": 13.94 },
+        { "position": "lower-left edge", "valueCm": 22.05 },
+        { "position": "bottom edge", "valueCm": 28.66 },
+        { "position": "right edge (vertical)", "valueCm": 38.05 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 28.66 },
+        { "position": "upper-left edge", "valueCm": 19.78 },
+        { "position": "left edge (curve)", "valueCm": 16.29 },
+        { "position": "lower-left edge", "valueCm": 19.78 },
+        { "position": "bottom edge", "valueCm": 28.66 },
+        { "position": "right edge (vertical)", "valueCm": 38.05 }
+      ]
+    }
+  ],
+  "notes": "Base size label \"08\" is the base size within a printed 6-12 kids grading range. A faint gathering/ease annotation near the sleeve's center was illegible and non-numeric, so it was omitted."
+}

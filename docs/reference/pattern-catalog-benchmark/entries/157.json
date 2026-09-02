@@ -1,0 +1,105 @@
+{
+  "sourceId": "157",
+  "category": "womens-jogger-pants-elastic-waist",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "women's jogger-style trousers with elastic waistband, inset pockets, and elastic ankle cuffs",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, segment 1", "valueCm": 2.39 },
+        { "position": "top edge, segment 2", "valueCm": 16.22 },
+        { "position": "top edge, segment 3", "valueCm": 11.08 },
+        { "position": "top-right diagonal", "valueCm": 67.14 },
+        { "position": "left edge, upper", "valueCm": 14.07 },
+        {
+          "position": "left edge, interior seam mark (labeled 'NERVURA')",
+          "valueCm": 4.08
+        },
+        { "position": "left edge, lower", "valueCm": 9.99 },
+        { "position": "bottom-left diagonal", "valueCm": 18.89 },
+        { "position": "bottom edge, small segment", "valueCm": 8.38 },
+        { "position": "bottom edge, main", "valueCm": 35.41 },
+        { "position": "bottom-right diagonal", "valueCm": 34.01 },
+        {
+          "position": "right edge, interior seam mark (labeled 'NERVURA')",
+          "valueCm": 9.91
+        }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 18.6 },
+        { "position": "top edge, right segment", "valueCm": 11.08 },
+        { "position": "top-right diagonal", "valueCm": 67.14 },
+        { "position": "left edge", "valueCm": 28.47 },
+        { "position": "bottom-left diagonal", "valueCm": 20.89 },
+        { "position": "bottom edge, small segment", "valueCm": 15.06 },
+        { "position": "bottom edge, main", "valueCm": 35.41 },
+        { "position": "bottom-right diagonal", "valueCm": 34.01 },
+        { "position": "right edge", "valueCm": 22.3 }
+      ]
+    },
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge (width)", "valueCm": 10 },
+        { "position": "left edge (length)", "valueCm": 110.22 },
+        { "position": "right edge (length)", "valueCm": 110.22 },
+        { "position": "bottom edge (width)", "valueCm": 10 }
+      ]
+    },
+    {
+      "nameEn": "inset pocket",
+      "originalLabelUnclear": false,
+      "qty": 4,
+      "edges": [
+        { "position": "top edge, segment 1", "valueCm": 2.39 },
+        { "position": "top edge, segment 2", "valueCm": 16.22 },
+        { "position": "top edge, segment 3", "valueCm": 11.08 },
+        { "position": "left edge", "valueCm": 18.15 },
+        { "position": "bottom edge (curved)", "valueCm": 43.57 }
+      ]
+    },
+    {
+      "nameEn": "ankle cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (width)", "valueCm": 10 },
+        { "position": "left edge (length)", "valueCm": 41.13 },
+        { "position": "right edge (length)", "valueCm": 41.13 },
+        { "position": "bottom edge (width)", "valueCm": 10 }
+      ]
+    },
+    {
+      "nameEn": "waist elastic length guide",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "length (both sides)", "valueCm": 70 },
+        { "position": "width", "valueCm": 4 }
+      ]
+    },
+    {
+      "nameEn": "cuff elastic length guide",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "length (both sides)", "valueCm": 23 },
+        { "position": "width", "valueCm": 4 }
+      ]
+    }
+  ],
+  "notes": "Two small labeled brackets in the source ('GAB MEDIDA ELASTICO CINTURA 4CM', appearing once near the front/waistband area at 70cm and once near the cuff area at 23cm) are elastic-length measurement guides rather than cut pattern pieces; included here as separate entries with qty null since no 'Quantidade' was given for them. Quantities for the named panels were inferred from the piece-name suffixes ('2X'/'4X') matching the 'Quantidade: N (Par)' convention used across this source."
+}

@@ -1,0 +1,95 @@
+{
+  "sourceId": "061",
+  "category": "mens-sweatpant-style-bermuda-shorts",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "men's sweatpant-style bermuda shorts with side pocket, pocket lining/facing, and elastic waistband",
+  "gender": "male",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output. Elastic length by size noted on the sheet: P=78cm, M=82cm, G=86cm, GG=90cm.",
+  "pieces": [
+    {
+      "nameEn": "front waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 12 },
+        { "position": "left edge", "valueCm": 82 },
+        { "position": "right edge", "valueCm": 82 },
+        { "position": "bottom edge", "valueCm": 12 }
+      ]
+    },
+    {
+      "nameEn": "pocket lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, small segment (curved)", "valueCm": 14.37 },
+        { "position": "upper-left edge", "valueCm": 18.24 },
+        { "position": "left edge", "valueCm": 9.36 },
+        { "position": "bottom edge (curved)", "valueCm": 43.45 }
+      ]
+    },
+    {
+      "nameEn": "pocket facing",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 16.49 },
+        { "position": "top edge, right segment", "valueCm": 14.37 },
+        { "position": "left edge", "valueCm": 15.09 },
+        { "position": "bottom edge (curved)", "valueCm": 43.46 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 20 },
+        { "position": "left edge", "valueCm": 17.5 },
+        { "position": "right edge", "valueCm": 17.5 },
+        { "position": "bottom edge", "valueCm": 20 }
+      ]
+    },
+    {
+      "nameEn": "pocket template/gauge",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge", "valueCm": 16.5 },
+        { "position": "left edge", "valueCm": 14.5 },
+        { "position": "right edge", "valueCm": 14.5 },
+        { "position": "bottom edge", "valueCm": 16.5 }
+      ]
+    },
+    {
+      "nameEn": "front leg",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left diagonal", "valueCm": 18.24 },
+        { "position": "top edge", "valueCm": 34.72 },
+        { "position": "right edge", "valueCm": 27.06 },
+        { "position": "top-right, small notch", "valueCm": 2.01 },
+        { "position": "bottom-right, small segment", "valueCm": 20.33 },
+        { "position": "bottom, small segment (near crotch)", "valueCm": 10.93 },
+        { "position": "bottom-left diagonal", "valueCm": 21.65 },
+        { "position": "left edge", "valueCm": 19.93 }
+      ]
+    },
+    {
+      "nameEn": "back leg",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 50.55 },
+        { "position": "left edge, upper diagonal", "valueCm": 28.66 },
+        { "position": "left edge, lower diagonal", "valueCm": 24.89 },
+        { "position": "bottom-left, small segment", "valueCm": 14.51 },
+        { "position": "bottom, small segment (near crotch)", "valueCm": 20.42 },
+        { "position": "right edge", "valueCm": 27.24 },
+        { "position": "bottom-right, small notch", "valueCm": 2.01 }
+      ]
+    }
+  ],
+  "notes": "sourceId 061: two small 'x' marks inside the back leg panel outline look like fold/placement marks rather than dimensioned points and were not transcribed as edge values."
+}

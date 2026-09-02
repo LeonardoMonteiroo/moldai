@@ -1,0 +1,123 @@
+{
+  "sourceId": "024",
+  "category": "girls-varsity-school-jacket",
+  "moldaiArchetype": null,
+  "descriptionEn": "girls'/women's varsity-style school jacket with a bound neckline, ribbed cuffs, a zip front facing, two pocket styles, and a waistband/hem band",
+  "gender": "female",
+  "baseSizeLabel": "P",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "neckline binding",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "vertical edge, total length", "valueCm": 38 },
+        { "position": "bottom, small width", "valueCm": 7 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge (upper curve)", "valueCm": 47.28 },
+        { "position": "left edge", "valueCm": 47.72 },
+        { "position": "horizontal midline", "valueCm": 58.27 },
+        { "position": "right edge", "valueCm": 23.81 },
+        { "position": "bottom edge (lower curve)", "valueCm": 47.28 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 6.57 },
+        { "position": "top edge, right segment", "valueCm": 6.57 },
+        { "position": "left edge", "valueCm": 21.86 },
+        { "position": "right edge", "valueCm": 21.86 },
+        { "position": "bottom edge, left segment", "valueCm": 6.57 },
+        { "position": "bottom edge, right segment", "valueCm": 6.57 }
+      ]
+    },
+    {
+      "nameEn": "front facing",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 55.13 },
+        { "position": "left edge, upper segment", "valueCm": 7.2 },
+        { "position": "left edge, lower segment", "valueCm": 10.91 },
+        { "position": "right edge", "valueCm": 8.49 },
+        { "position": "bottom edge", "valueCm": 49.91 }
+      ]
+    },
+    {
+      "nameEn": "inset pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 20.49 },
+        { "position": "left edge", "valueCm": 21.45 },
+        { "position": "right edge", "valueCm": 21.5 },
+        { "position": "bottom edge", "valueCm": 20.46 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 34.03 },
+        { "position": "upper-left diagonal segment", "valueCm": 21.88 },
+        { "position": "left edge, upper segment", "valueCm": 13 },
+        { "position": "left edge, lower segment", "valueCm": 25.87 },
+        { "position": "center vertical (full height)", "valueCm": 56.26 },
+        { "position": "bottom-left segment", "valueCm": 10.92 },
+        { "position": "bottom edge", "valueCm": 49.91 },
+        { "position": "right edge", "valueCm": 24.22 }
+      ]
+    },
+    {
+      "nameEn": "patch pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 20.49 },
+        { "position": "left edge", "valueCm": 18.45 },
+        { "position": "right edge", "valueCm": 18.5 },
+        { "position": "bottom edge", "valueCm": 20.46 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 34.03 },
+        { "position": "upper-right diagonal segment", "valueCm": 24.27 },
+        { "position": "right edge, upper segment", "valueCm": 13 },
+        { "position": "centerline area, left label", "valueCm": 50.78 },
+        { "position": "centerline area, right label", "valueCm": 47.56 },
+        { "position": "horizontal midline (full width)", "valueCm": 59.21 },
+        { "position": "left edge, segment near midline", "valueCm": 13 },
+        { "position": "left edge, additional segment", "valueCm": 18.8 },
+        { "position": "lower-left diagonal segment", "valueCm": 24.27 },
+        { "position": "bottom edge", "valueCm": 34.03 }
+      ]
+    },
+    {
+      "nameEn": "waistband/hem band",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 13 },
+        { "position": "left edge", "valueCm": 88 },
+        { "position": "right edge", "valueCm": 88 },
+        { "position": "bottom edge", "valueCm": 13 }
+      ]
+    }
+  ],
+  "notes": "The front facing piece's drawing also includes a zipper-length reference note (not an edge dimension): P-M size group = 55 cm, G-GG size group = 60 cm. The back piece's top-left and bottom-left corner values were read as '0.05'; these most likely represent the same plain-zero origin/reference marker used at other panel corners in this batch (a likely font-rendering artifact of the slashed-zero glyph used throughout these drawings) rather than a real 0.05 cm dimension, so they were treated as reference points and left out of the edges list. Two nearby values (50.78 and 47.56) flank the back piece's vertical centerline at about the same height; which one corresponds to the left side vs. the right side could not be confirmed from the drawing, so both are recorded generically as 'centerline area, left/right label' rather than assigned to a specific edge."
+}

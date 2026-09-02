@@ -1,0 +1,48 @@
+{
+  "sourceId": "280",
+  "category": "kids-pants-with-elastic-waistband",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "kids pants/bottoms with elastic waistband, back panel, front panel, and a third panel",
+  "gender": "kids",
+  "baseSizeLabel": "08",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 35.49 },
+        { "position": "left edge, upper segment", "valueCm": 18.02 },
+        { "position": "left edge, lower curve segment", "valueCm": 23.47 },
+        { "position": "bottom-left corner", "valueCm": 6.74 },
+        { "position": "bottom edge", "valueCm": 11.88 },
+        { "position": "right edge, full height", "valueCm": 30.5 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 35.49 },
+        { "position": "left edge, upper segment", "valueCm": 17.63 },
+        { "position": "left edge, lower curve segment", "valueCm": 18.54 },
+        { "position": "bottom-left corner", "valueCm": 5.85 },
+        { "position": "bottom edge", "valueCm": 11.93 },
+        { "position": "right edge, full height", "valueCm": 24.55 }
+      ]
+    },
+    {
+      "nameEn": "skirt",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 33.5 },
+        { "position": "left edge", "valueCm": 35.28 },
+        { "position": "right edge, curve", "valueCm": 63.29 }
+      ]
+    }
+  ],
+  "notes": "This sheet's header carried a different internal reference number than the one used elsewhere for this folder, suggesting a possible archival mismatch — treat this file's correspondence to the folder's stated garment (kids pants with a knife pocket) with some caution. No knife-pocket piece appears on this sheet, and the third piece is literally labeled with the Portuguese word for 'skirt,' which is an odd component name for a pants pattern; its exact structural role (waistband facing, pocket bag, or similar) could not be confirmed from this sheet alone, only its printed label and edge lengths. The sheet also included a per-size elastic-waistband length reference (not piece edges): sizes labeled 08a/08b/10/12 corresponded to roughly 56/59/62/65 cm of elastic respectively."
+}

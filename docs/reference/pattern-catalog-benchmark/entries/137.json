@@ -1,0 +1,58 @@
+{
+  "sourceId": "137",
+  "category": "cropped-corselet-bustier",
+  "moldaiArchetype": null,
+  "descriptionEn": "cropped structured corselet/bustier top, back and front panel each with a concave princess-style side curve",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "back panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 16.91 },
+        { "position": "right edge", "valueCm": 35.57 },
+        { "position": "upper-left curve segment (outer)", "valueCm": 23.96 },
+        {
+          "position": "upper-left transition segment (inner)",
+          "valueCm": 3.35
+        },
+        { "position": "left edge (main, concave curve)", "valueCm": 45.57 },
+        {
+          "position": "lower-left transition segment (inner)",
+          "valueCm": 3.35
+        },
+        { "position": "lower-left curve segment (outer)", "valueCm": 23.96 },
+        { "position": "bottom edge", "valueCm": 16.91 }
+      ]
+    },
+    {
+      "nameEn": "front panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 16.91 },
+        { "position": "right edge, upper segment", "valueCm": 14.17 },
+        { "position": "right edge, middle segment", "valueCm": 7.62 },
+        { "position": "right edge, lower segment", "valueCm": 14.17 },
+        { "position": "upper-left curve segment (outer)", "valueCm": 23.12 },
+        {
+          "position": "upper-left transition segment (inner)",
+          "valueCm": 3.35
+        },
+        { "position": "left edge, upper segment", "valueCm": 17.34 },
+        { "position": "left edge, middle segment", "valueCm": 16.21 },
+        { "position": "left edge, lower segment", "valueCm": 17.34 },
+        {
+          "position": "lower-left transition segment (inner)",
+          "valueCm": 3.35
+        },
+        { "position": "lower-left curve segment (outer)", "valueCm": 23.12 },
+        { "position": "bottom edge", "valueCm": 16.91 }
+      ]
+    }
+  ],
+  "notes": null
+}

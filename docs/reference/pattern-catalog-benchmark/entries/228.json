@@ -1,0 +1,87 @@
+{
+  "sourceId": "228",
+  "category": "midi-dress-with-ring-detail-and-back-slit",
+  "moldaiArchetype": "dress",
+  "descriptionEn": "Midi dress with a decorative ring/O-ring detail and a back slit.",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "Approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces.",
+  "pieces": [
+    {
+      "nameEn": "front lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, curved", "valueCm": 72.94 },
+        { "position": "upper-left diagonal edge", "valueCm": 24.49 },
+        { "position": "far-left point", "valueCm": 3.59 },
+        { "position": "lower-left diagonal edge", "valueCm": 24.49 },
+        { "position": "bottom edge, curved", "valueCm": 72.94 },
+        { "position": "right edge, vertical", "valueCm": 52.04 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, curved", "valueCm": 74.86 },
+        { "position": "left edge, vertical", "valueCm": 20.95 },
+        { "position": "right edge, vertical", "valueCm": 26.8 },
+        { "position": "bottom edge, left segment", "valueCm": 52.34 },
+        { "position": "bottom edge, middle small segment", "valueCm": 1 },
+        { "position": "bottom edge, right segment", "valueCm": 22 }
+      ]
+    },
+    {
+      "nameEn": "back yoke",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 17.43 },
+        { "position": "left edge, vertical", "valueCm": 41.95 },
+        { "position": "right edge, vertical", "valueCm": 41.88 },
+        { "position": "bottom edge", "valueCm": 17.43 }
+      ]
+    },
+    {
+      "nameEn": "back lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, curved", "valueCm": 72.9 },
+        { "position": "left edge, vertical", "valueCm": 20.95 },
+        { "position": "right edge, vertical", "valueCm": 26.03 },
+        { "position": "bottom edge, left segment", "valueCm": 52.34 },
+        { "position": "bottom edge, right segment", "valueCm": 20.06 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, curved", "valueCm": 74.88 },
+        { "position": "upper-left diagonal edge", "valueCm": 24.49 },
+        { "position": "far-left point", "valueCm": 3.59 },
+        { "position": "lower-left diagonal edge", "valueCm": 24.49 },
+        { "position": "bottom edge, curved", "valueCm": 74.88 },
+        { "position": "right edge, vertical", "valueCm": 51.59 }
+      ]
+    },
+    {
+      "nameEn": "front/lining bust panel",
+      "originalLabelUnclear": false,
+      "qty": 4,
+      "edges": [
+        { "position": "left edge, small segment", "valueCm": 4.97 },
+        { "position": "top edge, upper diagonal", "valueCm": 49.06 },
+        { "position": "middle edge, lower diagonal", "valueCm": 49.45 },
+        { "position": "right edge, upper segment", "valueCm": 17.43 },
+        { "position": "right edge, diagonal segment", "valueCm": 24.5 },
+        { "position": "bottom-right, small segment", "valueCm": 5.25 }
+      ]
+    }
+  ],
+  "notes": null
+}

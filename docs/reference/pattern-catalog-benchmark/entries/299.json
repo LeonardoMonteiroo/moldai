@@ -1,0 +1,102 @@
+{
+  "sourceId": "299",
+  "category": "baby-coat-asymmetric-front",
+  "moldaiArchetype": null,
+  "descriptionEn": "baby coat with two separate front panels (left/right, asymmetric), collar, cuffed sleeves",
+  "gender": "baby",
+  "baseSizeLabel": "02",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "left front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 20.34 },
+        { "position": "top-right corner", "valueCm": 1.5 },
+        { "position": "top-left diagonal", "valueCm": 19.13 },
+        { "position": "left edge, small segment", "valueCm": 6.97 },
+        { "position": "bottom-left corner", "valueCm": 2.53 },
+        { "position": "bottom edge", "valueCm": 33.02 },
+        { "position": "bottom-right corner", "valueCm": 1.5 },
+        { "position": "right edge, full height", "valueCm": 20.85 }
+      ]
+    },
+    {
+      "nameEn": "right front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 2.53 },
+        { "position": "top edge, left segment", "valueCm": 9.92 },
+        { "position": "top edge, right segment (main)", "valueCm": 23.11 },
+        { "position": "top-right corner", "valueCm": 1.5 },
+        { "position": "left edge, small segment", "valueCm": 6.98 },
+        { "position": "left edge, diagonal", "valueCm": 19.14 },
+        { "position": "bottom edge", "valueCm": 20.32 },
+        { "position": "bottom-right corner", "valueCm": 1.5 },
+        { "position": "right edge, full height", "valueCm": 21.23 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 20.16 },
+        { "position": "top-right corner", "valueCm": 1.69 },
+        { "position": "top-left diagonal", "valueCm": 21.63 },
+        { "position": "left edge, upper small segment", "valueCm": 5.29 },
+        {
+          "position": "left edge, lower small segment (mirrored)",
+          "valueCm": 5.29
+        },
+        { "position": "bottom-left diagonal (mirrored)", "valueCm": 21.63 },
+        { "position": "bottom edge", "valueCm": 20.38 },
+        { "position": "bottom-right corner", "valueCm": 1.45 },
+        { "position": "right edge, full height", "valueCm": 37.01 }
+      ]
+    },
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left half", "valueCm": 7.92 },
+        { "position": "top edge, right half", "valueCm": 7.92 },
+        { "position": "left edge, upper segment", "valueCm": 12.99 },
+        { "position": "right edge, upper segment", "valueCm": 12.99 },
+        { "position": "left edge, lower segment", "valueCm": 12.99 },
+        { "position": "right edge, lower segment", "valueCm": 12.99 },
+        { "position": "bottom edge, left half", "valueCm": 7.92 },
+        { "position": "bottom edge, right half", "valueCm": 7.92 }
+      ]
+    },
+    {
+      "nameEn": "sleeve cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left half", "valueCm": 4.61 },
+        { "position": "top edge, right half", "valueCm": 4.61 },
+        { "position": "side edge (length)", "valueCm": 17 },
+        { "position": "bottom edge, left half", "valueCm": 4.61 },
+        { "position": "bottom edge, right half", "valueCm": 4.61 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "upper-left diagonal", "valueCm": 21.6 },
+        { "position": "top edge", "valueCm": 22.86 },
+        { "position": "right edge, full height", "valueCm": 19.99 },
+        { "position": "bottom edge (mirrored)", "valueCm": 22.87 },
+        { "position": "lower-left diagonal (mirrored)", "valueCm": 19.14 },
+        { "position": "left edge, small segment", "valueCm": 9.52 }
+      ]
+    }
+  ],
+  "notes": "The sleeve cuff strip only had a single side-edge length ('17') printed once on the sheet rather than separately for its left and right edges; recorded as one shared 'side edge' entry rather than duplicating it under an assumption of exact symmetry."
+}

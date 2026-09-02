@@ -1,0 +1,92 @@
+{
+  "sourceId": "263",
+  "category": "women's jogger-style knit trousers with side stripe panel and ankle cuffs",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "women's knit jogger pants with an elastic waistband, a side stripe panel down each leg, and ribbed ankle cuffs",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "elastic gauge/reference strip (not a cut garment piece; a printed template for measuring the 5cm waistband elastic)",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 74 },
+        { "position": "bottom edge", "valueCm": 74 },
+        { "position": "left edge", "valueCm": 5 },
+        { "position": "right edge", "valueCm": 5 }
+      ]
+    },
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 98.58 },
+        { "position": "bottom edge", "valueCm": 98.58 },
+        { "position": "left edge", "valueCm": 12 },
+        { "position": "right edge", "valueCm": 12 }
+      ]
+    },
+    {
+      "nameEn": "front leg panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 95.17 },
+        { "position": "left edge, upper segment", "valueCm": 13.02 },
+        { "position": "left edge, lower segment", "valueCm": 8.17 },
+        { "position": "lower-left curve", "valueCm": 26.24 },
+        { "position": "bottom edge", "valueCm": 36.1 },
+        {
+          "position": "lower-right curve (inseam/crotch area)",
+          "valueCm": 33.93
+        },
+        { "position": "right edge", "valueCm": 12.39 }
+      ]
+    },
+    {
+      "nameEn": "side stripe panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 95.18 },
+        { "position": "bottom edge", "valueCm": 95.18 },
+        { "position": "left edge", "valueCm": 8 },
+        { "position": "right edge", "valueCm": 8 }
+      ]
+    },
+    {
+      "nameEn": "back leg panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 95.18 },
+        { "position": "left edge, upper segment", "valueCm": 22.59 },
+        { "position": "left edge, lower segment", "valueCm": 19.3 },
+        { "position": "lower-left curve", "valueCm": 12.55 },
+        { "position": "bottom edge", "valueCm": 36.1 },
+        {
+          "position": "lower-right curve (inseam/crotch area)",
+          "valueCm": 33.94
+        },
+        { "position": "right edge", "valueCm": 14.33 }
+      ]
+    },
+    {
+      "nameEn": "ankle cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 24.41 },
+        { "position": "bottom edge", "valueCm": 24.41 },
+        { "position": "left edge, upper segment", "valueCm": 6.07 },
+        { "position": "left edge, lower segment", "valueCm": 6.07 },
+        { "position": "right edge, upper segment", "valueCm": 6.07 },
+        { "position": "right edge, lower segment", "valueCm": 6.07 }
+      ]
+    }
+  ],
+  "notes": "Source PDF carries a repeated fabric-supplier watermark across every piece; not transcribed (out of scope, and excluded from this file per the no-brand-name rule). The 'elastic gauge' piece has no visible quantity label in the drawing (unlike every other piece) and is a measuring reference, not a cut pattern piece — included anyway since it carries real dimensioned edges."
+}

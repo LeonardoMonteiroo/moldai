@@ -1,0 +1,54 @@
+{
+  "sourceId": "186",
+  "category": "racerback-tank-top-bias-cut-armhole",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "sleeveless knit tank top with an armhole cut on the bias",
+  "gender": null,
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 24 },
+        { "position": "top edge, right segment", "valueCm": 52.4 },
+        { "position": "upper-left diagonal", "valueCm": 14.92 },
+        { "position": "armhole curve", "valueCm": 31.88 },
+        { "position": "lower-left diagonal", "valueCm": 14.92 },
+        { "position": "bottom edge, left segment", "valueCm": 24 },
+        { "position": "bottom edge, right segment", "valueCm": 52.4 },
+        { "position": "right edge", "valueCm": 57.02 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 26.87 },
+        { "position": "top edge, right segment", "valueCm": 52.4 },
+        { "position": "upper-left diagonal", "valueCm": 14.92 },
+        { "position": "armhole curve", "valueCm": 24.39 },
+        { "position": "lower-left diagonal", "valueCm": 14.92 },
+        { "position": "bottom edge, left segment", "valueCm": 26.87 },
+        { "position": "bottom edge, right segment", "valueCm": 52.4 },
+        { "position": "right edge", "valueCm": 57.02 }
+      ]
+    },
+    {
+      "nameEn": "neckline binding strip",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top end (width)", "valueCm": 4.3 },
+        { "position": "upper segment (length)", "valueCm": 23.8 },
+        { "position": "total length", "valueCm": 47.6 },
+        { "position": "lower segment (length)", "valueCm": 23.8 },
+        { "position": "bottom end (width)", "valueCm": 4.3 }
+      ]
+    }
+  ],
+  "notes": null
+}

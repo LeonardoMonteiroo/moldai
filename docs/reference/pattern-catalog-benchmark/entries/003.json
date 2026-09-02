@@ -1,0 +1,128 @@
+{
+  "sourceId": "003",
+  "category": "oversized t-shirt with patch pocket",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "oversized t-shirt with patch pocket and neckline band",
+  "gender": null,
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 51.14 },
+        { "position": "bottom edge", "valueCm": 51.14 },
+        { "position": "left edge, upper diagonal segment", "valueCm": 28.96 },
+        { "position": "left edge, upper middle segment", "valueCm": 18.06 },
+        { "position": "left edge, upper curve segment", "valueCm": 24.12 },
+        { "position": "left edge, total height", "valueCm": 61 },
+        { "position": "right edge, total height", "valueCm": 59 },
+        { "position": "horizontal mid-line (full width)", "valueCm": 83.3 },
+        {
+          "position": "left edge, lower curve segment (mirrored)",
+          "valueCm": 24.12
+        },
+        {
+          "position": "left edge, lower middle segment (mirrored)",
+          "valueCm": 18.06
+        },
+        {
+          "position": "left edge, lower diagonal segment (mirrored)",
+          "valueCm": 28.96
+        }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 51.14 },
+        { "position": "bottom edge", "valueCm": 51.14 },
+        { "position": "left edge, upper diagonal segment", "valueCm": 24.83 },
+        { "position": "left edge, upper middle segment", "valueCm": 18.06 },
+        { "position": "left edge, upper curve segment", "valueCm": 32.14 },
+        { "position": "left edge, total height", "valueCm": 61 },
+        { "position": "right edge, total height", "valueCm": 59 },
+        { "position": "horizontal mid-line (full width)", "valueCm": 78.94 },
+        {
+          "position": "left edge, lower middle segment (mirrored)",
+          "valueCm": 18.06
+        },
+        {
+          "position": "left edge, lower diagonal segment (mirrored)",
+          "valueCm": 24.84
+        }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top point, first segment", "valueCm": 12.38 },
+        { "position": "top point, second (short) segment", "valueCm": 2.59 },
+        {
+          "position": "bottom point, first segment (mirrored)",
+          "valueCm": 12.38
+        },
+        {
+          "position": "bottom point, second (short) segment (mirrored)",
+          "valueCm": 2.59
+        },
+        {
+          "position": "horizontal centerline, left end value",
+          "valueCm": 54.58
+        },
+        {
+          "position": "horizontal centerline, center notch span",
+          "valueCm": 27.33
+        },
+        {
+          "position": "horizontal centerline, right end value",
+          "valueCm": 42.35
+        }
+      ],
+      "notes": "Small '0' marks bracketing the 27.33 span on the centerline appear to be notch/reference points, not separate measurements, and were excluded."
+    },
+    {
+      "nameEn": "neckline band",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 5.7 },
+        { "position": "bottom edge", "valueCm": 5.7 },
+        { "position": "left edge", "valueCm": 52.8 },
+        { "position": "right edge", "valueCm": 52.8 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 2 },
+        { "position": "top edge, right segment", "valueCm": 15.5 },
+        { "position": "left edge", "valueCm": 15.5 },
+        { "position": "right edge", "valueCm": 15.5 },
+        { "position": "bottom edge, left segment", "valueCm": 2 },
+        { "position": "bottom edge, right segment", "valueCm": 15.5 }
+      ]
+    },
+    {
+      "nameEn": "GB BS.LT",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 14 },
+        { "position": "bottom edge", "valueCm": 14 },
+        { "position": "left edge", "valueCm": 12.5 },
+        { "position": "right edge", "valueCm": 12.5 }
+      ],
+      "notes": "Piece label 'GB BS.LT' is a cryptic abbreviation not confidently translatable; kept verbatim."
+    }
+  ],
+  "notes": null
+}

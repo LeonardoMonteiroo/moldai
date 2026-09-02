@@ -1,0 +1,44 @@
+{
+  "sourceId": "021",
+  "category": "leggings-with-elastic-waistband",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "leggings with an elastic waistband guide strip, drafted as a single combined front-back leg panel",
+  "gender": null,
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "front-back combined leg panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        {
+          "position": "left edge, upper segment (from top corner down)",
+          "valueCm": 20.44
+        },
+        { "position": "left edge, middle segment", "valueCm": 30.34 },
+        {
+          "position": "left edge, lower segment (down to bottom corner)",
+          "valueCm": 27.2
+        },
+        { "position": "bottom edge", "valueCm": 74.8 },
+        { "position": "right edge, lower segment", "valueCm": 2.1 },
+        { "position": "right edge, vertical span", "valueCm": 25.62 },
+        { "position": "top edge", "valueCm": 74.6 },
+        { "position": "right edge, upper segment", "valueCm": 2.04 }
+      ]
+    },
+    {
+      "nameEn": "elastic waistband guide strip",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 5 },
+        { "position": "left edge", "valueCm": 60 },
+        { "position": "right edge", "valueCm": 60 },
+        { "position": "bottom edge", "valueCm": 5 }
+      ]
+    }
+  ],
+  "notes": "The 'elastic waistband guide strip' (drawn as a narrow vertical bracketed strip labeled with an elastic callout) has no visible 'Quantidade:' figure near it in the drawing, so qty is left null for that piece rather than guessed. Its main leg panel's label suggests it is cut as a pair, but the literal 'Quantidade:' figure printed near it reads 1, so qty 1 is recorded as shown rather than inferred from the piece name."
+}

@@ -1,0 +1,45 @@
+{
+  "sourceId": "056",
+  "category": "bermuda-shorts",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "bermuda shorts with waistband and a shared front-back leg panel",
+  "gender": "unisex",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 11.23 },
+        { "position": "top-right corner", "valueCm": 11.23 },
+        { "position": "left edge, upper segment", "valueCm": 18.47 },
+        { "position": "right edge, upper segment", "valueCm": 18.47 },
+        { "position": "left edge, lower segment", "valueCm": 18.47 },
+        { "position": "right edge, lower segment", "valueCm": 18.47 },
+        { "position": "bottom-left corner", "valueCm": 11.23 },
+        { "position": "bottom-right corner", "valueCm": 11.23 }
+      ]
+    },
+    {
+      "nameEn": "leg panel (shared front/back)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left diagonal", "valueCm": 8.43 },
+        { "position": "top-left corner, small segment", "valueCm": 8.34 },
+        { "position": "top edge (main)", "valueCm": 24.56 },
+        { "position": "top-right corner, small segment", "valueCm": 2.02 },
+        { "position": "right edge", "valueCm": 41.59 },
+        { "position": "bottom-right corner, small segment", "valueCm": 2.1 },
+        { "position": "bottom edge (main)", "valueCm": 24.55 },
+        { "position": "bottom-left corner, small segment", "valueCm": 11.78 },
+        { "position": "bottom-left diagonal", "valueCm": 12.04 },
+        { "position": "left edge, upper segment", "valueCm": 17.54 },
+        { "position": "left edge, lower segment", "valueCm": 17.54 }
+      ]
+    }
+  ],
+  "notes": null
+}

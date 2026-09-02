@@ -1,0 +1,87 @@
+{
+  "sourceId": "179",
+  "category": "swim-style top with cut-out panels",
+  "moldaiArchetype": null,
+  "descriptionEn": "swim-style top with cut-out side panels and a narrow trim band, not a fitted blouse silhouette",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 10.67 },
+        { "position": "upper-left diagonal segment", "valueCm": 26.47 },
+        { "position": "left edge, small upper segment", "valueCm": 5.01 },
+        { "position": "left edge, main vertical segment", "valueCm": 19.14 },
+        {
+          "position": "left edge, small lower segment (mirrored)",
+          "valueCm": 5.01
+        },
+        {
+          "position": "lower-left diagonal segment (mirrored)",
+          "valueCm": 26.47
+        },
+        { "position": "bottom edge (mirrored)", "valueCm": 10.67 },
+        { "position": "right edge", "valueCm": 39.69 }
+      ]
+    },
+    {
+      "nameEn": "trim band",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 10.15 },
+        { "position": "upper-left diagonal segment", "valueCm": 26.88 },
+        { "position": "upper-right diagonal segment", "valueCm": 26.88 },
+        { "position": "left edge, mid segment", "valueCm": 17.99 },
+        { "position": "right edge, mid segment", "valueCm": 17.99 },
+        {
+          "position": "lower-left diagonal segment (mirrored)",
+          "valueCm": 26.88
+        },
+        {
+          "position": "lower-right diagonal segment (mirrored)",
+          "valueCm": 26.88
+        },
+        { "position": "bottom edge (mirrored)", "valueCm": 10.15 }
+      ],
+      "notes": "Source label read as 'BARRA1X' (BARRA = band/strip); the leading digit before the 'X' quantity marker was small and slightly less certain to read than on the other pieces in this drawing, but qty 1 is the most consistent reading."
+    },
+    {
+      "nameEn": "cutout panel",
+      "originalLabelUnclear": false,
+      "qty": 4,
+      "edges": [
+        { "position": "top edge", "valueCm": 10.67 },
+        { "position": "left edge", "valueCm": 7.75 },
+        { "position": "right edge", "valueCm": 11.09 },
+        { "position": "bottom edge", "valueCm": 17.74 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 17.74 },
+        { "position": "upper-left diagonal segment", "valueCm": 13.43 },
+        { "position": "left edge, small upper segment", "valueCm": 5.01 },
+        { "position": "left edge, main vertical segment", "valueCm": 20.81 },
+        {
+          "position": "left edge, small lower segment (mirrored)",
+          "valueCm": 5.01
+        },
+        {
+          "position": "lower-left diagonal segment (mirrored)",
+          "valueCm": 13.43
+        },
+        { "position": "bottom edge (mirrored)", "valueCm": 17.74 },
+        { "position": "right edge", "valueCm": 18.99 }
+      ]
+    }
+  ],
+  "notes": null
+}

@@ -1,0 +1,54 @@
+{
+  "sourceId": "096",
+  "category": "kids sleeveless tank top",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "kids sleeveless muscle-style tank top",
+  "gender": "kids",
+  "baseSizeLabel": "08",
+  "gradeNote": "approx. 1 cm average increase between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 35.3 },
+        { "position": "upper diagonal segment", "valueCm": 20.02 },
+        { "position": "next segment down", "valueCm": 8.76 },
+        {
+          "position": "mid segment (deepest labeled sub-segment)",
+          "valueCm": 23.63
+        },
+        { "position": "mirrored lower segment", "valueCm": 8.76 },
+        {
+          "position": "mirrored diagonal segment near bottom corner",
+          "valueCm": 20.02
+        },
+        { "position": "bottom edge", "valueCm": 35.3 },
+        { "position": "right edge, full height", "valueCm": 41.43 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 35.3 },
+        { "position": "upper diagonal segment", "valueCm": 23.39 },
+        { "position": "next segment down", "valueCm": 8.76 },
+        {
+          "position": "mid segment (deepest labeled sub-segment)",
+          "valueCm": 18.37
+        },
+        { "position": "mirrored lower segment", "valueCm": 8.76 },
+        {
+          "position": "mirrored diagonal segment near bottom corner",
+          "valueCm": 23.39
+        },
+        { "position": "bottom edge", "valueCm": 35.3 },
+        { "position": "right edge, full height", "valueCm": 41.43 }
+      ]
+    }
+  ],
+  "notes": null
+}

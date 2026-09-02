@@ -1,0 +1,74 @@
+{
+  "sourceId": "044",
+  "category": "baby-raglan-tshirt-bicolor",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "baby two-tone raglan-sleeve t-shirt, separate left/right sleeve pieces",
+  "gender": "baby",
+  "baseSizeLabel": "2",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 24.79 },
+        { "position": "upper-left diagonal (raglan seam)", "valueCm": 18.45 },
+        { "position": "center horizontal line", "valueCm": 39.21 },
+        { "position": "left vertical, below center", "valueCm": 7.75 },
+        { "position": "center vertical (total)", "valueCm": 30.43 },
+        { "position": "right edge (side, full height)", "valueCm": 30.43 },
+        {
+          "position": "lower-left diagonal (raglan seam, mirrored)",
+          "valueCm": 18.45
+        },
+        { "position": "bottom edge", "valueCm": 24.79 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 24.79 },
+        { "position": "upper-left diagonal (raglan seam)", "valueCm": 15.85 },
+        { "position": "center horizontal line", "valueCm": 36.85 },
+        { "position": "left vertical, below center", "valueCm": 12.97 },
+        { "position": "center vertical (total)", "valueCm": 30.44 },
+        { "position": "right edge (side, full height)", "valueCm": 30.43 },
+        {
+          "position": "lower-left diagonal (raglan seam, mirrored)",
+          "valueCm": 15.85
+        },
+        { "position": "bottom edge", "valueCm": 24.79 }
+      ]
+    },
+    {
+      "nameEn": "left sleeve",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-right corner", "valueCm": 5.49 },
+        { "position": "upper edge", "valueCm": 18.68 },
+        { "position": "left edge", "valueCm": 20.35 },
+        { "position": "small notch, mid-right", "valueCm": 6.88 },
+        { "position": "lower-right segment", "valueCm": 16.35 },
+        { "position": "bottom-left corner", "valueCm": 5.5 }
+      ]
+    },
+    {
+      "nameEn": "right sleeve",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 5.49 },
+        { "position": "upper edge", "valueCm": 18.68 },
+        { "position": "right edge", "valueCm": 20.35 },
+        { "position": "small notch, mid-left", "valueCm": 6.89 },
+        { "position": "lower-left segment", "valueCm": 16.35 },
+        { "position": "bottom-right corner", "valueCm": 5.5 }
+      ]
+    }
+  ],
+  "notes": "sourceId 044: several small circular marks on the pieces (rendered as 'Ø') look like balance/notch marks rather than length dimensions and were not transcribed as edge values."
+}

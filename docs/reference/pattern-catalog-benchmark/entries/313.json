@@ -1,0 +1,154 @@
+{
+  "sourceId": "313",
+  "category": "baby romper/jumpsuit with diagonal zipper",
+  "moldaiArchetype": null,
+  "descriptionEn": "baby long-sleeve romper/jumpsuit with a diagonal front zipper, collar, cuffs and leg hem bands",
+  "gender": "baby",
+  "baseSizeLabel": "M",
+  "gradeNote": "average approx. 1 cm variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "facing",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 44.8 },
+        { "position": "top left corner", "valueCm": 4.74 },
+        { "position": "left edge, upper segment", "valueCm": 7.66 },
+        { "position": "vertical center span", "valueCm": 7.41 },
+        { "position": "left edge, lower segment", "valueCm": 7.66 },
+        { "position": "bottom left corner", "valueCm": 4.74 },
+        { "position": "bottom edge", "valueCm": 44.8 },
+        { "position": "top right corner", "valueCm": 3.75 },
+        { "position": "bottom right corner", "valueCm": 3.75 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top left diagonal segment", "valueCm": 15.61 },
+        { "position": "top right diagonal segment", "valueCm": 6.97 },
+        { "position": "left edge, upper segment", "valueCm": 11.5 },
+        { "position": "horizontal center span", "valueCm": 20 },
+        { "position": "right edge, lower segment (mirrored)", "valueCm": 6.97 },
+        { "position": "left edge, lower segment", "valueCm": 11.5 },
+        {
+          "position": "bottom left diagonal segment (mirrored)",
+          "valueCm": 15.61
+        }
+      ]
+    },
+    {
+      "nameEn": "front, left side",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top left corner", "valueCm": 3.09 },
+        { "position": "left edge, upper curve segment", "valueCm": 11.63 },
+        { "position": "top edge", "valueCm": 35.59 },
+        { "position": "right edge, upper segment", "valueCm": 9.03 },
+        { "position": "left edge, next segment", "valueCm": 8.05 },
+        { "position": "horizontal center span", "valueCm": 46.78 },
+        { "position": "left edge, lower segment", "valueCm": 11.36 },
+        {
+          "position": "right edge, segment (upper of two stacked)",
+          "valueCm": 11.99
+        },
+        {
+          "position": "right edge, segment (lower of two stacked)",
+          "valueCm": 11.99
+        },
+        { "position": "bottom edge", "valueCm": 43.58 },
+        { "position": "bottom right corner", "valueCm": 2.35 }
+      ]
+    },
+    {
+      "nameEn": "front, right side",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top left corner", "valueCm": 7.52 },
+        { "position": "left edge, upper segment", "valueCm": 10.29 },
+        { "position": "top edge", "valueCm": 43.56 },
+        { "position": "right edge", "valueCm": 7.18 },
+        { "position": "bottom left corner", "valueCm": 3.09 },
+        { "position": "left edge, lower curve segment", "valueCm": 11.63 },
+        { "position": "bottom edge", "valueCm": 35.55 }
+      ]
+    },
+    {
+      "nameEn": "leg hem band",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 4.28 },
+        { "position": "top edge, right segment", "valueCm": 4.28 },
+        { "position": "left edge", "valueCm": 17 },
+        { "position": "right edge", "valueCm": 17 },
+        { "position": "horizontal center span", "valueCm": 8.5 },
+        { "position": "bottom edge, left segment", "valueCm": 4.28 },
+        { "position": "bottom edge, right segment", "valueCm": 4.28 }
+      ]
+    },
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 9.96 },
+        { "position": "top edge, right segment", "valueCm": 9.96 },
+        { "position": "left edge, segment 1", "valueCm": 6.01 },
+        { "position": "right edge, segment 1", "valueCm": 6.01 },
+        {
+          "position": "horizontal small segment near top-center",
+          "valueCm": 6
+        },
+        { "position": "vertical center length", "valueCm": 29.89 },
+        { "position": "left edge, segment 2 (mirrored)", "valueCm": 6.01 },
+        { "position": "right edge, segment 2 (mirrored)", "valueCm": 6.01 },
+        { "position": "bottom edge, left segment", "valueCm": 9.96 },
+        { "position": "bottom edge, right segment", "valueCm": 9.96 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 4.03 },
+        { "position": "top edge, right segment", "valueCm": 4.03 },
+        { "position": "left edge", "valueCm": 13 },
+        { "position": "right edge", "valueCm": 13 },
+        { "position": "horizontal center span", "valueCm": 8 },
+        { "position": "bottom edge, left segment", "valueCm": 4.03 },
+        { "position": "bottom edge, right segment", "valueCm": 4.03 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top left corner", "valueCm": 3.08 },
+        { "position": "left edge, upper curve segment", "valueCm": 11.64 },
+        { "position": "top edge", "valueCm": 35.58 },
+        { "position": "right edge, upper segment", "valueCm": 9.03 },
+        { "position": "left edge, next segment", "valueCm": 6.61 },
+        { "position": "vertical left span", "valueCm": 21.21 },
+        { "position": "right edge, mid curve segment", "valueCm": 23.99 },
+        { "position": "horizontal center span", "valueCm": 46.78 },
+        { "position": "left edge, next segment (mirrored)", "valueCm": 6.61 },
+        { "position": "bottom left corner (mirrored)", "valueCm": 3.08 },
+        {
+          "position": "left edge, lower curve segment (mirrored)",
+          "valueCm": 11.64
+        },
+        { "position": "bottom edge", "valueCm": 35.58 },
+        { "position": "right edge, lower segment", "valueCm": 9.03 }
+      ]
+    }
+  ],
+  "notes": null
+}

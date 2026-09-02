@@ -1,0 +1,87 @@
+{
+  "sourceId": "059",
+  "category": "mens-sweatpants",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "men's sweatpants/joggers with side pocket, pocket lining, and ribbed cuffs",
+  "gender": "male",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 98.65 },
+        { "position": "left edge, upper diagonal", "valueCm": 28.12 },
+        { "position": "left edge, lower diagonal", "valueCm": 43.64 },
+        {
+          "position": "lower-right diagonal (toward crotch point)",
+          "valueCm": 66.1
+        },
+        { "position": "right edge", "valueCm": 18.16 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left, small segment", "valueCm": 4.65 },
+        { "position": "top edge (main)", "valueCm": 77.73 },
+        { "position": "left edge, upper diagonal", "valueCm": 25.37 },
+        { "position": "left edge, main segment", "valueCm": 23.52 },
+        { "position": "left edge, lower diagonal", "valueCm": 25.72 },
+        {
+          "position": "bottom, small segment (near crotch point)",
+          "valueCm": 10.93
+        },
+        { "position": "bottom edge (main)", "valueCm": 66.12 },
+        { "position": "right edge", "valueCm": 16.16 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 20 },
+        { "position": "left edge", "valueCm": 17.5 },
+        { "position": "right edge", "valueCm": 17.5 },
+        { "position": "bottom edge", "valueCm": 20 }
+      ]
+    },
+    {
+      "nameEn": "GB BS.LT",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top edge", "valueCm": 16.5 },
+        { "position": "left edge", "valueCm": 14.5 },
+        { "position": "right edge", "valueCm": 14.5 },
+        { "position": "bottom edge", "valueCm": 16.5 }
+      ]
+    },
+    {
+      "nameEn": "pocket lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (curved)", "valueCm": 34.68 },
+        { "position": "left edge", "valueCm": 17.54 },
+        { "position": "bottom edge (curved)", "valueCm": 48.01 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 14 },
+        { "position": "left edge", "valueCm": 29.96 },
+        { "position": "right edge", "valueCm": 29.96 },
+        { "position": "bottom edge", "valueCm": 14 }
+      ]
+    }
+  ],
+  "notes": null
+}

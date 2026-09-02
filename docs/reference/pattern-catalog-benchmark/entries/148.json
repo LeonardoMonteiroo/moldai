@@ -1,0 +1,82 @@
+{
+  "sourceId": "148",
+  "category": "long-sleeve pajama top with cuffs and neckband",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "long-sleeve pajama top with set-in sleeves, fitted cuffs, and a narrow neckband",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 39.42 },
+        { "position": "top edge, upper-left diagonal", "valueCm": 26.03 },
+        { "position": "left edge, upper segment", "valueCm": 12.85 },
+        {
+          "position": "left edge, mid segment (armhole curve)",
+          "valueCm": 19.76
+        },
+        { "position": "left edge, lower segment", "valueCm": 12.85 },
+        { "position": "bottom edge, lower-left diagonal", "valueCm": 26.03 },
+        { "position": "bottom edge", "valueCm": 39.42 },
+        { "position": "right edge (full height)", "valueCm": 55.07 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 39.42 },
+        { "position": "top edge, upper-left diagonal", "valueCm": 26.16 },
+        { "position": "left edge, upper segment", "valueCm": 12.85 },
+        {
+          "position": "left edge, mid segment (armhole curve)",
+          "valueCm": 31.57
+        },
+        { "position": "left edge, lower segment", "valueCm": 12.85 },
+        { "position": "bottom edge, lower-left diagonal", "valueCm": 26.16 },
+        { "position": "bottom edge", "valueCm": 39.42 },
+        { "position": "right edge (full height)", "valueCm": 55.07 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (cap)", "valueCm": 45.09 },
+        { "position": "left edge", "valueCm": 51.95 },
+        { "position": "right edge", "valueCm": 23.88 },
+        { "position": "bottom edge (hem)", "valueCm": 45.09 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 4.53 },
+        { "position": "top edge, right segment", "valueCm": 4.53 },
+        { "position": "left edge", "valueCm": 21.7 },
+        { "position": "right edge", "valueCm": 21.7 },
+        { "position": "bottom edge, left segment", "valueCm": 4.53 },
+        { "position": "bottom edge, right segment", "valueCm": 4.53 }
+      ]
+    },
+    {
+      "nameEn": "neckband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, short segment", "valueCm": null },
+        { "position": "length, both ends", "valueCm": 43 },
+        { "position": "bottom edge, short segment", "valueCm": null }
+      ]
+    }
+  ],
+  "notes": "the neckband piece's top and bottom short end-segments were printed as overlapping/run-together digits, not a legible discrete number, and could not be read with confidence; recorded as null rather than guessed."
+}

@@ -1,0 +1,108 @@
+{
+  "sourceId": "326",
+  "category": "baby-cardigan",
+  "moldaiArchetype": null,
+  "descriptionEn": "baby cardigan/jacket with front, back, collar and sleeve pieces (front and back each appear to have two related pattern pieces)",
+  "gender": "baby",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes",
+  "pieces": [
+    {
+      "nameEn": "front, piece A",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top-left small segment", "valueCm": 4.28 },
+        { "position": "top edge", "valueCm": 2.5 },
+        { "position": "upper-left diagonal", "valueCm": 13.1 },
+        { "position": "left edge, upper segment", "valueCm": 5.88 },
+        { "position": "left edge, lower segment", "valueCm": 9.27 },
+        { "position": "bottom-left segment", "valueCm": 3.12 },
+        { "position": "bottom edge", "valueCm": 13.29 },
+        { "position": "bottom-right small segment", "valueCm": 3 },
+        { "position": "right edge", "valueCm": 2.5 },
+        { "position": "internal vertical reference 1", "valueCm": 15.77 },
+        { "position": "internal vertical reference 2", "valueCm": 19 },
+        { "position": "internal vertical reference 3", "valueCm": 19.06 }
+      ]
+    },
+    {
+      "nameEn": "front, piece B",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top edge", "valueCm": 22.07 },
+        { "position": "top-right corner segment", "valueCm": 2.05 },
+        { "position": "left edge, upper tick", "valueCm": 9.55 },
+        { "position": "left edge, lower tick", "valueCm": 11.5 },
+        { "position": "right edge", "valueCm": 25.59 },
+        { "position": "bottom-left segment", "valueCm": 2.5 },
+        { "position": "bottom edge", "valueCm": 21.5 },
+        { "position": "bottom-right corner segment", "valueCm": 2.47 }
+      ]
+    },
+    {
+      "nameEn": "back, piece A",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top-right diagonal", "valueCm": 4.34 },
+        { "position": "top-left diagonal", "valueCm": 14.77 },
+        { "position": "left edge, upper segment", "valueCm": 5.85 },
+        { "position": "left edge, mid-upper segment", "valueCm": 7.97 },
+        { "position": "left edge, mid-lower segment", "valueCm": 7.99 },
+        { "position": "left edge, lower segment", "valueCm": 5.85 },
+        { "position": "bottom-left diagonal", "valueCm": 14.77 },
+        { "position": "bottom-right diagonal", "valueCm": 4.34 },
+        { "position": "right edge, upper segment", "valueCm": 14.52 },
+        { "position": "right edge, lower segment", "valueCm": 14.52 }
+      ]
+    },
+    {
+      "nameEn": "back, detail strip piece",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top edge", "valueCm": 2.5 },
+        { "position": "left edge", "valueCm": 29.63 },
+        { "position": "right edge", "valueCm": 33 },
+        { "position": "bottom edge", "valueCm": 2.5 }
+      ]
+    },
+    {
+      "nameEn": "back, piece B",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top-left diagonal", "valueCm": 21.45 },
+        { "position": "right edge, upper segment", "valueCm": 21.66 },
+        { "position": "internal reference, upper", "valueCm": 17.11 },
+        { "position": "internal reference, lower", "valueCm": 17.11 },
+        { "position": "right edge, lower segment", "valueCm": 21.66 },
+        { "position": "bottom-left diagonal", "valueCm": 21.45 }
+      ]
+    },
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 7.67 },
+        { "position": "left edge", "valueCm": 35.24 },
+        { "position": "right edge", "valueCm": 31.38 },
+        { "position": "bottom edge", "valueCm": 7.67 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left diagonal", "valueCm": 19.19 },
+        { "position": "top-right corner segment", "valueCm": 2.03 },
+        { "position": "right edge, upper segment", "valueCm": 9.37 },
+        { "position": "right edge, lower segment", "valueCm": 9.37 },
+        { "position": "bottom-right corner segment", "valueCm": 2.03 },
+        { "position": "bottom edge", "valueCm": 19.19 },
+        { "position": "left edge, upper curve segment", "valueCm": 14.31 },
+        { "position": "left edge, lower curve segment", "valueCm": 14.31 }
+      ]
+    }
+  ],
+  "notes": "This scan is faint/low-contrast (watermark-quality rendering). 'GOLA 2X' (collar) and 'MANGA 2X' (sleeve) labels were clearly legible. The other four pieces' labels showed a legible 'FRENTE' (front) or 'COSTAS' (back) prefix but the remaining suffix text was too faint/small to read with confidence, so they are recorded as generic 'piece A'/'piece B'/'detail strip' with originalLabelUnclear set. Small isolated '2' corner ticks on back piece B were not treated as qty (ambiguous whether they denote grading or cut count) and are omitted rather than guessed."
+}

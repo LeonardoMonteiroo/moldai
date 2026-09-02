@@ -1,0 +1,62 @@
+{
+  "sourceId": "225",
+  "category": "wrap-front-dress-with-drawstring-tunnel",
+  "moldaiArchetype": "dress",
+  "descriptionEn": "Dress with a wrap front and a drawstring tunnel/channel detail.",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "Approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces.",
+  "pieces": [
+    {
+      "nameEn": "bust lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 13.16 },
+        { "position": "left diagonal edge", "valueCm": 24.15 },
+        { "position": "right edge, vertical", "valueCm": 19.32 },
+        { "position": "bottom-left corner, segment 1", "valueCm": 2.51 },
+        { "position": "bottom-left corner, segment 2", "valueCm": 12.68 },
+        { "position": "bottom edge", "valueCm": 18.5 }
+      ]
+    },
+    {
+      "nameEn": "bust panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 13.1 },
+        { "position": "left diagonal edge", "valueCm": 24.08 },
+        { "position": "right edge, vertical", "valueCm": 19.46 },
+        { "position": "bottom-left corner, segment 1", "valueCm": 2.51 },
+        { "position": "bottom-left corner, segment 2", "valueCm": 12.67 },
+        { "position": "bottom edge, left small segment", "valueCm": 2 },
+        { "position": "bottom edge, middle segment", "valueCm": 19.26 },
+        { "position": "bottom edge, right small segment", "valueCm": 2 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 13.1 },
+        { "position": "left edge, vertical", "valueCm": 42.89 },
+        { "position": "right edge, vertical", "valueCm": 38.63 },
+        { "position": "bottom edge", "valueCm": 13.1 }
+      ]
+    },
+    {
+      "nameEn": "front/back panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, curved", "valueCm": 49.85 },
+        { "position": "left edge, vertical", "valueCm": 38.61 },
+        { "position": "right edge, vertical", "valueCm": 47.93 },
+        { "position": "bottom edge, curved", "valueCm": 49.85 }
+      ]
+    }
+  ],
+  "notes": null
+}

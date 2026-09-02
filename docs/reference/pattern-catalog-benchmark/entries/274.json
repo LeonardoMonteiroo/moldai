@@ -1,0 +1,118 @@
+{
+  "sourceId": "274",
+  "category": "kids kangaroo-pocket hooded sweatshirt",
+  "moldaiArchetype": null,
+  "descriptionEn": "kids kangaroo-pocket fleece hoodie with hood, hood lining, ribbed cuffs and hem band",
+  "gender": "kids",
+  "baseSizeLabel": "08",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "kangaroo pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner, first segment", "valueCm": 2.92 },
+        { "position": "top-left corner, second segment", "valueCm": 6.05 },
+        { "position": "upper-left edge", "valueCm": 19.23 },
+        { "position": "left edge, upper segment", "valueCm": 2.48 },
+        {
+          "position": "interior horizontal mark, mid-height",
+          "valueCm": 12.64
+        },
+        { "position": "left edge, lower segment", "valueCm": 2.48 },
+        { "position": "lower-left edge", "valueCm": 19.23 },
+        { "position": "bottom-left corner, first segment", "valueCm": 6.05 },
+        { "position": "bottom-left corner, second segment", "valueCm": 2.92 },
+        { "position": "right edge", "valueCm": 29.73 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 27.75 },
+        { "position": "left edge", "valueCm": 40.88 },
+        { "position": "right edge", "valueCm": 19.89 },
+        { "position": "bottom edge", "valueCm": 27.75 }
+      ]
+    },
+    {
+      "nameEn": "hem band",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 9 },
+        { "position": "left edge", "valueCm": 66.8 },
+        { "position": "right edge", "valueCm": 66.8 },
+        { "position": "bottom edge", "valueCm": 9 }
+      ]
+    },
+    {
+      "nameEn": "hood",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "upper-left diagonal edge", "valueCm": 46.11 },
+        { "position": "right edge", "valueCm": 23.54 },
+        { "position": "bottom edge", "valueCm": 32.95 },
+        { "position": "small mark near bottom-right corner", "valueCm": 2.5 }
+      ]
+    },
+    {
+      "nameEn": "hood lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "upper-left diagonal edge", "valueCm": 43.65 },
+        { "position": "right edge", "valueCm": 23.54 },
+        { "position": "bottom edge", "valueCm": 32.95 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 28.94 },
+        { "position": "upper-left edge", "valueCm": 21.4 },
+        { "position": "left edge, upper segment", "valueCm": 8.85 },
+        { "position": "left edge, middle segment (curve)", "valueCm": 19.96 },
+        { "position": "left edge, lower segment", "valueCm": 8.85 },
+        { "position": "lower-left edge", "valueCm": 21.4 },
+        { "position": "bottom edge", "valueCm": 28.94 },
+        { "position": "right edge", "valueCm": 38.4 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 28.94 },
+        { "position": "upper-left edge", "valueCm": 18.89 },
+        { "position": "left edge, upper segment", "valueCm": 8.85 },
+        { "position": "left edge, middle segment (curve)", "valueCm": 25.97 },
+        { "position": "left edge, lower segment", "valueCm": 8.85 },
+        { "position": "lower-left edge", "valueCm": 18.89 },
+        { "position": "bottom edge", "valueCm": 28.94 },
+        { "position": "right edge", "valueCm": 38.39 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 4.59 },
+        { "position": "top edge, right segment", "valueCm": 4.59 },
+        { "position": "left edge", "valueCm": 18.85 },
+        { "position": "right edge", "valueCm": 18.85 },
+        { "position": "bottom edge, left segment", "valueCm": 4.59 },
+        { "position": "bottom edge, right segment", "valueCm": 4.59 }
+      ]
+    }
+  ],
+  "notes": "Per-piece cut quantities were not explicitly labeled on this drawing (unlike the two UV t-shirt patterns in the same batch); quantities were inferred from each piece's own name suffix (e.g. '1X'/'2X'), which matched explicit quantity labels in the other patterns from this source. Treated as a hoodie/jacket-style garment with hood and kangaroo pocket, which falls outside the five drafting archetypes, hence moldaiArchetype is null."
+}

@@ -1,0 +1,38 @@
+{
+  "sourceId": "147",
+  "category": "elastic-waist pajama shorts",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "elastic-waist pajama shorts, straight-leg block",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, right corner tick", "valueCm": 8.13 },
+        { "position": "upper diagonal segment", "valueCm": 13.23 },
+        { "position": "upper edge, left portion", "valueCm": 27.71 },
+        { "position": "left edge (full height)", "valueCm": 23.98 },
+        { "position": "bottom edge", "valueCm": 36.02 },
+        { "position": "right edge (full height)", "valueCm": 39.8 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, right corner tick", "valueCm": 8.13 },
+        { "position": "upper diagonal segment", "valueCm": 6.78 },
+        { "position": "upper edge, left portion", "valueCm": 25.22 },
+        { "position": "left edge (full height)", "valueCm": 22.78 },
+        { "position": "bottom edge", "valueCm": 36.02 },
+        { "position": "right edge (full height)", "valueCm": 31.17 }
+      ]
+    }
+  ],
+  "notes": "the source sheet also lists a per-size elastic-waist length table (a fixed cm value per graded size, not a pattern-piece edge), omitted here since it is not a piece measurement."
+}

@@ -1,0 +1,78 @@
+{
+  "sourceId": "127",
+  "category": "blouse-with-poet-sleeve-and-high-collar",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "blouse with a high collar/neckband and gathered poet (bishop) sleeves",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern print output",
+  "pieces": [
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 4.1 },
+        { "position": "top edge, right segment", "valueCm": 4.1 },
+        { "position": "left half length", "valueCm": 40.23 },
+        { "position": "right half length", "valueCm": 40.23 },
+        { "position": "bottom edge, left segment", "valueCm": 4.1 },
+        { "position": "bottom edge, right segment", "valueCm": 4.1 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 38.09 },
+        {
+          "position": "upper-right, first (diagonal) segment",
+          "valueCm": 29.23
+        },
+        { "position": "upper-right, second segment", "valueCm": 10.5 },
+        { "position": "right edge, deepest segment", "valueCm": 21.61 },
+        { "position": "lower-right, mirrored second segment", "valueCm": 10.5 },
+        {
+          "position": "lower-right, mirrored first (diagonal) segment",
+          "valueCm": 29.23
+        },
+        { "position": "bottom edge", "valueCm": 38.09 },
+        { "position": "right edge, full height", "valueCm": 61.43 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 56.27 },
+        { "position": "left edge", "valueCm": 56.3 },
+        { "position": "right edge", "valueCm": 46.51 },
+        { "position": "bottom edge", "valueCm": 56.27 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 38.15 },
+        {
+          "position": "upper-left, first (diagonal) segment",
+          "valueCm": 27.14
+        },
+        { "position": "upper-left, second segment", "valueCm": 18.61 },
+        { "position": "left edge, deepest segment", "valueCm": 21.84 },
+        { "position": "lower-left, mirrored second segment", "valueCm": 18.61 },
+        {
+          "position": "lower-left, mirrored first (diagonal) segment",
+          "valueCm": 27.14
+        },
+        { "position": "bottom edge", "valueCm": 38.15 },
+        { "position": "right edge, full height", "valueCm": 61.43 }
+      ]
+    }
+  ],
+  "notes": "collar piece's quantity label was partly obscured in the source drawing; qty inferred from its own name suffix rather than a clearly legible 'Quantidade' number. Front and back panels each show small unlabeled tick marks along one long edge (gathering/ease notches), not transcribed since they carry no cm value."
+}

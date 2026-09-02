@@ -1,0 +1,95 @@
+{
+  "sourceId": "094",
+  "category": "men's sport bermuda shorts with back yoke and pockets",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "men's athletic bermuda shorts with back yoke, side pockets and elasticated waistband",
+  "gender": "male",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 9 },
+        { "position": "bottom edge", "valueCm": 9 },
+        { "position": "left edge", "valueCm": 109.34 },
+        { "position": "right edge", "valueCm": 109.34 }
+      ]
+    },
+    {
+      "nameEn": "pocket lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, curved", "valueCm": 45.79 },
+        { "position": "upper-left edge, vertical", "valueCm": 9.35 },
+        { "position": "left edge, lower diagonal", "valueCm": 19.4 },
+        { "position": "bottom edge", "valueCm": 14.05 }
+      ]
+    },
+    {
+      "nameEn": "pocket (FT)",
+      "originalLabelUnclear": true,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, curved", "valueCm": 45.79 },
+        { "position": "left edge, vertical", "valueCm": 15.8 },
+        { "position": "bottom edge", "valueCm": 32.25 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 15.81 },
+        { "position": "top edge, next segment", "valueCm": 8.14 },
+        { "position": "small vertical near top center", "valueCm": 10.13 },
+        { "position": "upper-right diagonal segment", "valueCm": 22.82 },
+        {
+          "position": "top-right corner, short vertical segment",
+          "valueCm": 2.5
+        },
+        { "position": "left edge, upper vertical segment", "valueCm": 5.19 },
+        { "position": "left edge, lower vertical segment", "valueCm": 19.34 },
+        { "position": "right edge, vertical", "valueCm": 25.44 },
+        {
+          "position": "bottom-left corner, diagonal segment",
+          "valueCm": 19.41
+        },
+        { "position": "bottom edge", "valueCm": 33.99 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, apex segment", "valueCm": 10.63 },
+        { "position": "top edge, diagonal segment to right", "valueCm": 22.78 },
+        {
+          "position": "top-right corner, short vertical segment",
+          "valueCm": 2.47
+        },
+        { "position": "top-left diagonal segment", "valueCm": 10.9 },
+        { "position": "left edge, vertical", "valueCm": 31.86 },
+        { "position": "right edge, vertical", "valueCm": 27.63 },
+        { "position": "bottom edge", "valueCm": 30.9 }
+      ]
+    },
+    {
+      "nameEn": "back yoke",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 14.86 },
+        { "position": "left edge", "valueCm": 29.26 },
+        { "position": "right edge", "valueCm": 31.96 },
+        { "position": "bottom edge", "valueCm": 21.38 }
+      ]
+    }
+  ],
+  "notes": "Drawing also includes a finished waist-elastic length table by size letter (not a piece edge): P = 78cm, M = 82cm, G = 86cm, GG = 90cm. The 'BOLSO FT' piece label's abbreviation (FT) could not be confidently translated, so the original label is kept alongside a generic 'pocket' name."
+}

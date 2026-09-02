@@ -1,0 +1,88 @@
+{
+  "sourceId": "048",
+  "category": "kids-short-romper-with-placket",
+  "moldaiArchetype": null,
+  "descriptionEn": "short romper/jumpsuit with a front button placket and sleeves",
+  "gender": "kids",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "placket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 22 },
+        { "position": "left edge", "valueCm": 6.5 },
+        { "position": "right edge", "valueCm": 6.5 },
+        { "position": "bottom edge", "valueCm": 22 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge (curved)", "valueCm": 40.39 },
+        { "position": "top-right, segment 1", "valueCm": 12.43 },
+        { "position": "top-right, segment 2", "valueCm": 6.32 },
+        { "position": "top-right, segment 3", "valueCm": 6.91 },
+        { "position": "right-mid opening, upper", "valueCm": 16.62 },
+        { "position": "right-mid opening, small gap", "valueCm": 2.29 },
+        { "position": "right-mid opening, lower", "valueCm": 16.62 },
+        { "position": "lower-right, segment 1 (mirrored)", "valueCm": 6.91 },
+        { "position": "lower-right, segment 2", "valueCm": 6.32 },
+        { "position": "lower-right, segment 3", "valueCm": 12.43 },
+        { "position": "bottom edge (curved)", "valueCm": 40.39 },
+        { "position": "left edge, upper segment", "valueCm": 12.31 },
+        { "position": "left edge, small curve, upper", "valueCm": 10.78 },
+        { "position": "left edge, small curve, lower", "valueCm": 10.78 },
+        { "position": "left edge, lower segment", "valueCm": 12.31 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner, small segment", "valueCm": 1.59 },
+        { "position": "top peak", "valueCm": 4.89 },
+        { "position": "left edge", "valueCm": 20.53 },
+        { "position": "right edge (curve)", "valueCm": 25.99 },
+        { "position": "bottom-left corner, small segment", "valueCm": 1.59 },
+        { "position": "bottom peak", "valueCm": 4.89 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge (curved)", "valueCm": 40.4 },
+        { "position": "top-right, segment 1", "valueCm": 13.23 },
+        { "position": "top-right, segment 2", "valueCm": 6.32 },
+        { "position": "right edge, mid", "valueCm": 12.1 },
+        { "position": "lower-right, segment 1", "valueCm": 6.32 },
+        { "position": "lower-right, segment 2", "valueCm": 13.23 },
+        { "position": "bottom edge (curved)", "valueCm": 40.4 },
+        { "position": "left edge, upper segment", "valueCm": 12.28 },
+        { "position": "left edge, small curve, upper", "valueCm": 10.82 },
+        { "position": "left edge, small curve, lower", "valueCm": 10.82 },
+        { "position": "left edge, lower segment", "valueCm": 12.28 }
+      ]
+    },
+    {
+      "nameEn": "leg hem band",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 4.08 },
+        { "position": "top edge, right segment", "valueCm": 4.08 },
+        { "position": "left edge", "valueCm": 19.67 },
+        { "position": "right edge", "valueCm": 19.67 },
+        { "position": "bottom edge, left segment", "valueCm": 4.08 },
+        { "position": "bottom edge, right segment", "valueCm": 4.08 }
+      ]
+    }
+  ],
+  "notes": null
+}

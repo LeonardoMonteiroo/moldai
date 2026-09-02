@@ -1,0 +1,93 @@
+{
+  "sourceId": "197",
+  "category": "dress-with-waist-tie-and-teardrop-neckline",
+  "moldaiArchetype": "dress",
+  "descriptionEn": "dress with short sleeves, a circular-cut skirt panel, a teardrop-shaped neckline cutout, and a tie fastening at the waist",
+  "gender": "female",
+  "baseSizeLabel": "08",
+  "gradeNote": "average +1cm variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 6.62 },
+        { "position": "upper segment, left half", "valueCm": 33.49 },
+        { "position": "upper segment, right half", "valueCm": 33.46 },
+        { "position": "bottom edge", "valueCm": 6.62 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 16.59 },
+        { "position": "top edge, right segment", "valueCm": 11.83 },
+        { "position": "left edge, upper segment", "valueCm": 12.65 },
+        { "position": "right edge", "valueCm": 20.22 },
+        { "position": "left edge, lower segment", "valueCm": 7.68 },
+        { "position": "bottom edge, left segment", "valueCm": 10.62 },
+        { "position": "bottom edge, right segment", "valueCm": 19.28 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 16.61 },
+        { "position": "top edge, right segment", "valueCm": 11.83 },
+        { "position": "left edge, upper segment", "valueCm": 12.65 },
+        { "position": "left edge, mid segment (diagonal)", "valueCm": 22.87 },
+        { "position": "right edge", "valueCm": 39.43 },
+        { "position": "left edge, lower segment", "valueCm": 12.65 },
+        { "position": "bottom edge, left segment", "valueCm": 16.61 },
+        { "position": "bottom edge, right segment", "valueCm": 11.83 }
+      ]
+    },
+    {
+      "nameEn": "skirt panel (half-circle)",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "left edge, upper straight segment", "valueCm": 36.09 },
+        {
+          "position": "horizontal centerline, inner portion near apex",
+          "valueCm": 39.49
+        },
+        {
+          "position": "horizontal centerline, full span to outer curved hem",
+          "valueCm": 153.91
+        },
+        { "position": "left edge, lower straight segment", "valueCm": 36.09 }
+      ]
+    },
+    {
+      "nameEn": "tie strap A",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 4 },
+        { "position": "upper segment", "valueCm": 37.89 },
+        { "position": "main length segment", "valueCm": 75.79 },
+        { "position": "lower segment", "valueCm": 37.89 },
+        { "position": "bottom edge", "valueCm": 4 }
+      ]
+    },
+    {
+      "nameEn": "tie strap B",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 4 },
+        { "position": "upper segment", "valueCm": 36.45 },
+        { "position": "main length segment", "valueCm": 78.91 },
+        { "position": "lower segment", "valueCm": 36.45 },
+        { "position": "bottom edge", "valueCm": 4 }
+      ]
+    }
+  ],
+  "notes": "No explicit piece-name label was legible near the two narrow strips on the right of the drawing (only numeric dimensions and a small hatch/fold symbol); they are assumed to be the two waist-tie strap pieces referenced in the garment title (\"amarração na cintura\"), but this identification is inferred from context rather than read directly off a label, hence originalLabelUnclear on both. The skirt panel's 39.49/153.91 pair could not be confirmed as radius-vs-arc-length vs. chord-length with certainty; recorded literally by position along the drawn centerline. The baseSizeLabel '08' and the '06-12' grade range were inferred from a repeated per-piece annotation ('06-12 (08)') rather than a single explicit header size line."
+}

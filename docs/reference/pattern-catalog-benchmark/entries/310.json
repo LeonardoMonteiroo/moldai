@@ -1,0 +1,65 @@
+{
+  "sourceId": "310",
+  "category": "baby bloomer / diaper-cover shorts with elastic waistband",
+  "moldaiArchetype": null,
+  "descriptionEn": "baby pull-on bloomer shorts with a separate elastic waistband strip",
+  "gender": "baby",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 15.41 },
+        { "position": "top left corner", "valueCm": 8.82 },
+        { "position": "right curve, upper segment", "valueCm": 13.89 },
+        {
+          "position": "right edge, small segment (center height)",
+          "valueCm": null
+        },
+        { "position": "horizontal center span", "valueCm": 26.47 },
+        {
+          "position": "right curve, lower segment (mirrored)",
+          "valueCm": 13.89
+        },
+        { "position": "bottom left corner", "valueCm": 8.82 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top left corner", "valueCm": 8.79 },
+        { "position": "right curve, upper segment", "valueCm": 17.21 },
+        {
+          "position": "right edge, small segment (center height)",
+          "valueCm": null
+        },
+        { "position": "horizontal center span", "valueCm": 26.47 },
+        {
+          "position": "right curve, lower segment (mirrored)",
+          "valueCm": 17.21
+        },
+        { "position": "bottom left corner", "valueCm": 8.79 },
+        { "position": "bottom edge", "valueCm": 20.47 }
+      ]
+    },
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 3 },
+        { "position": "top edge, right segment", "valueCm": 3 },
+        { "position": "left edge (length)", "valueCm": 42 },
+        { "position": "right edge (length)", "valueCm": 42 },
+        { "position": "bottom edge, left segment (mirrored)", "valueCm": 3 },
+        { "position": "bottom edge, right segment (mirrored)", "valueCm": 3 }
+      ]
+    }
+  ],
+  "notes": "front and back pieces: 'right edge, small segment (center height)' is a tiny value rendered with overlapping/corrupted diacritics in the source scan (looked like 'Ø.58' but characters overlapped illegibly) on both pieces — recorded as null rather than guessed."
+}

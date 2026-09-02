@@ -1,0 +1,111 @@
+{
+  "sourceId": "306",
+  "category": "baby-long-sleeve-bodysuit",
+  "moldaiArchetype": null,
+  "descriptionEn": "baby long-sleeve bodysuit (body) with envelope-style neckline shaping front and back",
+  "gender": "baby",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left corner", "valueCm": 4.46 },
+        { "position": "top edge, left segment", "valueCm": 13.05 },
+        { "position": "top edge, center segment", "valueCm": 10.79 },
+        { "position": "top edge, right segment", "valueCm": 8.82 },
+        { "position": "right edge, upper segment", "valueCm": 13.89 },
+        { "position": "right edge, small notch", "valueCm": 0.58 },
+        {
+          "position": "right edge, lower segment (mirrors upper)",
+          "valueCm": 13.89
+        },
+        {
+          "position": "bottom edge, right segment (mirrors top)",
+          "valueCm": 8.82
+        },
+        {
+          "position": "bottom edge, center segment (mirrors top)",
+          "valueCm": 10.79
+        },
+        {
+          "position": "bottom edge, left segment (mirrors top)",
+          "valueCm": 13.05
+        },
+        {
+          "position": "bottom edge, left corner (mirrors top)",
+          "valueCm": 4.46
+        },
+        { "position": "left edge, upper corner segment", "valueCm": 8.7 },
+        { "position": "left edge, upper-mid segment", "valueCm": 8.45 },
+        {
+          "position": "left edge, lower-mid segment (mirrors)",
+          "valueCm": 8.45
+        },
+        {
+          "position": "left edge, lower corner segment (mirrors)",
+          "valueCm": 8.7
+        }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment (near cap)", "valueCm": 13.03 },
+        { "position": "top edge, main segment", "valueCm": 21.13 },
+        { "position": "top-right corner", "valueCm": 1.5 },
+        { "position": "right edge, full height", "valueCm": 14.85 },
+        { "position": "bottom-right corner", "valueCm": 1.5 },
+        {
+          "position": "bottom edge, main segment (mirrors top main)",
+          "valueCm": 21.13
+        },
+        { "position": "bottom edge, left segment", "valueCm": 3.15 },
+        { "position": "left edge, curve", "valueCm": 8.88 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left corner", "valueCm": 4.46 },
+        { "position": "top edge, left segment", "valueCm": 12.71 },
+        { "position": "top edge, center segment", "valueCm": 19.6 },
+        { "position": "right edge, upper segment", "valueCm": 17.22 },
+        { "position": "right edge, small notch", "valueCm": 0.58 },
+        {
+          "position": "right edge, lower segment (mirrors upper)",
+          "valueCm": 17.22
+        },
+        {
+          "position": "bottom edge, center segment (mirrors top)",
+          "valueCm": 19.6
+        },
+        {
+          "position": "bottom edge, left segment (mirrors top)",
+          "valueCm": 12.71
+        },
+        {
+          "position": "bottom edge, left corner (mirrors top)",
+          "valueCm": 4.46
+        },
+        { "position": "left edge, upper corner segment", "valueCm": 8.72 },
+        { "position": "left edge, upper-mid segment", "valueCm": 5.67 },
+        {
+          "position": "left edge, lower-mid segment (mirrors)",
+          "valueCm": 5.67
+        },
+        {
+          "position": "left edge, lower corner segment (mirrors)",
+          "valueCm": 8.72
+        }
+      ]
+    }
+  ],
+  "notes": "The back panel's bottom edge center-segment value sat right at the bottom margin of the rendered sheet; it was legible but lower-confidence than the rest of the sheet, and its value matched the top edge's center segment exactly, consistent with the mirrored-symmetry pattern seen throughout this sheet."
+}

@@ -1,0 +1,122 @@
+{
+  "sourceId": "009",
+  "category": "kids jogger pants with ribbed cuffs and waistband",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "kids jogger pants with elastic ribbed waistband, ribbed ankle cuffs, a lined side pocket, and a back patch pocket",
+  "gender": "kids",
+  "baseSizeLabel": "12",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "pocket lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 34.6 },
+        { "position": "left edge, upper segment", "valueCm": 7.25 },
+        { "position": "left edge, lower segment", "valueCm": 15.08 },
+        { "position": "bottom edge", "valueCm": 10.82 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 34.67 },
+        { "position": "left edge", "valueCm": 11.8 },
+        { "position": "bottom edge", "valueCm": 24.73 }
+      ]
+    },
+    {
+      "nameEn": "ribbed cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 4.6 },
+        { "position": "top edge, right segment", "valueCm": 4.6 },
+        { "position": "left edge", "valueCm": 21.42 },
+        { "position": "right edge", "valueCm": 21.42 },
+        { "position": "bottom edge, left segment", "valueCm": 4.6 },
+        { "position": "bottom edge, right segment", "valueCm": 4.6 }
+      ]
+    },
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 9 },
+        { "position": "bottom edge", "valueCm": 9 },
+        { "position": "length, left half (to center mark)", "valueCm": 65.2 },
+        { "position": "length, right half (to center mark)", "valueCm": 65.2 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, upper corner step (a)", "valueCm": 3.31 },
+        { "position": "top edge, upper corner step (b)", "valueCm": 4 },
+        { "position": "top edge, curve segment", "valueCm": 16.2 },
+        { "position": "top edge, curve segment, adjacent", "valueCm": 7.51 },
+        { "position": "left edge, upper segment", "valueCm": 14.3 },
+        { "position": "left edge, lower segment", "valueCm": 15.07 },
+        { "position": "right edge, upper segment", "valueCm": 12.71 },
+        { "position": "right edge, long diagonal", "valueCm": 55.85 },
+        { "position": "bottom edge", "valueCm": 63.69 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment from apex", "valueCm": 28.36 },
+        { "position": "top edge, right segment from apex", "valueCm": 56.24 },
+        { "position": "left edge", "valueCm": 19.97 },
+        { "position": "right edge", "valueCm": 15.38 },
+        { "position": "bottom edge", "valueCm": 77.64 }
+      ]
+    },
+    {
+      "nameEn": "back pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 1.5 },
+        { "position": "top edge, right segment", "valueCm": 13.66 },
+        { "position": "left edge", "valueCm": 14.44 },
+        { "position": "right edge", "valueCm": 14.44 },
+        { "position": "bottom edge, left segment", "valueCm": 1.5 },
+        { "position": "bottom edge, right segment", "valueCm": 13.66 }
+      ]
+    },
+    {
+      "nameEn": "template",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 12.02 },
+        { "position": "left edge", "valueCm": 10.95 },
+        { "position": "right edge", "valueCm": 10.95 },
+        { "position": "bottom edge", "valueCm": 12.02 }
+      ]
+    },
+    {
+      "nameEn": "GB APLICAR BS CTS",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 8.18 },
+        { "position": "top edge, right segment", "valueCm": 4.27 },
+        { "position": "corner segment", "valueCm": 2 },
+        { "position": "left edge", "valueCm": 16.3 },
+        { "position": "right edge", "valueCm": 15.25 },
+        { "position": "bottom edge", "valueCm": 5.93 }
+      ]
+    }
+  ],
+  "notes": "Waistband's two '65.2' values are separated by a small center tick mark whose exact meaning (fold point vs. notch) is not certain from the drawing. Front piece's top-area cluster of small values (3.31/4/16.2/7.51) is transcribed by position only; the exact curve grouping is not fully certain."
+}

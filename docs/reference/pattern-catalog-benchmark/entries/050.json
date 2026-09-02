@@ -1,0 +1,83 @@
+{
+  "sourceId": "050",
+  "category": "womens-basic-tshirt",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "women's basic short-sleeve t-shirt, crew neck",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 49.54 },
+        { "position": "upper-left diagonal (shoulder)", "valueCm": 24.54 },
+        { "position": "left curve, upper (armhole)", "valueCm": 11.47 },
+        { "position": "left curve, mid (armhole, deepest)", "valueCm": 25.85 },
+        {
+          "position": "left curve, lower (armhole, mirrored)",
+          "valueCm": 11.47
+        },
+        { "position": "lower-left diagonal (mirrored)", "valueCm": 24.54 },
+        { "position": "bottom edge", "valueCm": 49.54 },
+        { "position": "right edge (full height)", "valueCm": 53.35 }
+      ]
+    },
+    {
+      "nameEn": "collar/neckline trim strip",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top small segment", "valueCm": 5 },
+        {
+          "position": "middle segment 1 (low confidence reading)",
+          "valueCm": 47.01
+        },
+        {
+          "position": "middle segment 2, adjacent (low confidence reading)",
+          "valueCm": 7.01
+        },
+        { "position": "bottom small segment", "valueCm": 5 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 49.54 },
+        { "position": "upper-left diagonal (shoulder)", "valueCm": 22.54 },
+        { "position": "left curve, upper (armhole)", "valueCm": 11.46 },
+        { "position": "left curve, mid (armhole, deepest)", "valueCm": 30.89 },
+        {
+          "position": "left curve, lower (armhole, mirrored)",
+          "valueCm": 11.46
+        },
+        { "position": "lower-left diagonal (mirrored)", "valueCm": 22.54 },
+        { "position": "bottom edge", "valueCm": 49.54 },
+        { "position": "right edge (full height)", "valueCm": 53.36 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        {
+          "position": "cap curve, left side, corner-to-corner",
+          "valueCm": 47.51
+        },
+        {
+          "position": "vertical centerline (cap height + hem)",
+          "valueCm": 35.54
+        },
+        { "position": "top corner, outer", "valueCm": 11.53 },
+        { "position": "top corner, inner", "valueCm": 2.59 },
+        { "position": "bottom corner, outer (mirrored)", "valueCm": 11.53 },
+        { "position": "bottom corner, inner (mirrored)", "valueCm": 2.59 }
+      ]
+    }
+  ],
+  "notes": "sourceId 050: the collar/neckline trim strip's two middle values render very close together on the source drawing ('47.01' next to '7.01') and could not be read with full confidence — possibly a single misread value, similar to a known misread on a sibling pattern's equivalent strip. Recorded both as printed rather than guessing which is correct."
+}

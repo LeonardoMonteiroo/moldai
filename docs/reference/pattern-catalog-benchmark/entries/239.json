@@ -1,0 +1,121 @@
+{
+  "sourceId": "239",
+  "category": "uniform trousers with color-blocked panel",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "Uniform-style trousers with front and back leg panels, a long waistband strip sized for an inserted elastic, a back pocket with piping, a curved patch pocket with lining, ankle cuffs and a contrast side panel.",
+  "gender": "unisex",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "pocket lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top curved edge", "valueCm": 44.51 },
+        { "position": "left edge", "valueCm": 10.83 },
+        { "position": "bottom edge", "valueCm": 13.6 },
+        { "position": "right/diagonal curve edge", "valueCm": 17.82 }
+      ]
+    },
+    {
+      "nameEn": "back pocket piping",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge", "valueCm": 16.5 },
+        { "position": "bottom edge", "valueCm": 16.5 },
+        { "position": "left edge", "valueCm": 14.5 },
+        { "position": "right edge", "valueCm": 14.5 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top curved edge", "valueCm": 44.46 },
+        { "position": "left edge", "valueCm": 19.34 },
+        { "position": "bottom edge", "valueCm": 29.64 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 6.58 },
+        { "position": "top edge, right segment", "valueCm": 6.58 },
+        { "position": "bottom edge, left segment", "valueCm": 6.58 },
+        { "position": "bottom edge, right segment", "valueCm": 6.58 },
+        { "position": "left edge", "valueCm": 24.23 },
+        { "position": "right edge", "valueCm": 24.23 }
+      ]
+    },
+    {
+      "nameEn": "back pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 20 },
+        { "position": "bottom edge", "valueCm": 20 },
+        { "position": "left edge", "valueCm": 17.5 },
+        { "position": "right edge", "valueCm": 17.5 }
+      ]
+    },
+    {
+      "nameEn": "front leg panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner, segment 1", "valueCm": 17.22 },
+        { "position": "top-left corner, segment 2", "valueCm": 4.52 },
+        { "position": "top notch, segment 1", "valueCm": 6.87 },
+        { "position": "top notch, segment 2", "valueCm": 7.59 },
+        { "position": "top-right diagonal edge", "valueCm": 34.15 },
+        { "position": "right edge, upper segment", "valueCm": 31.9 },
+        { "position": "right edge, lower segment", "valueCm": 14.52 },
+        { "position": "left edge", "valueCm": 18.26 },
+        { "position": "bottom-left diagonal segment", "valueCm": 17.83 },
+        { "position": "bottom edge", "valueCm": 76.16 }
+      ]
+    },
+    {
+      "nameEn": "back leg panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top apex, right diagonal segment", "valueCm": 34.15 },
+        { "position": "top apex, left segment", "valueCm": 13.5 },
+        { "position": "upper-left edge segment", "valueCm": 22.63 },
+        { "position": "left edge", "valueCm": 28 },
+        { "position": "right edge, upper segment", "valueCm": 31.89 },
+        { "position": "right edge, lower segment", "valueCm": 16.07 },
+        { "position": "bottom edge", "valueCm": 92.47 }
+      ]
+    },
+    {
+      "nameEn": "contrast panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 92.47 },
+        { "position": "bottom edge", "valueCm": 92.47 },
+        { "position": "left edge", "valueCm": 7 },
+        { "position": "right edge", "valueCm": 7 }
+      ]
+    },
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 10 },
+        { "position": "bottom edge", "valueCm": 10 },
+        { "position": "left edge", "valueCm": 119 },
+        { "position": "right edge", "valueCm": 119 }
+      ],
+      "notes": "Piece's printed code label rendered unclearly in the scan (something like 'COS1X'), but the piece is confidently a waistband: it sits beside a size table for an inserted elastic (values by size, not a pattern edge and not recorded here) and its long narrow shape matches a waistband strip."
+    }
+  ],
+  "notes": "Piece names in the source drawing carry a '1X'/'2X' suffix (a cut-quantity notation in the source pattern software); the qty field here follows the printed 'Quantidade' annotation instead, reading 2 wherever '(Par)' is noted and 1 otherwise, which matches the suffix in every case where both were legible. The back pocket piping piece's 'Quantidade' box was not clearly legible in the scan, so qty is omitted for it."
+}

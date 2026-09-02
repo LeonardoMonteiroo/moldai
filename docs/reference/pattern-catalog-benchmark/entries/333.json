@@ -1,0 +1,52 @@
+{
+  "sourceId": "333",
+  "category": "womens-tank-top",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "women's knit tank top (regata) with front and back panels, deep armholes, no sleeves",
+  "gender": "female",
+  "baseSizeLabel": "P",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left corner", "valueCm": 5.01 },
+        { "position": "top edge, curved segment", "valueCm": 24.7 },
+        { "position": "top edge, wavy straight segment", "valueCm": 38.05 },
+        { "position": "top edge, right corner", "valueCm": 2 },
+        { "position": "right edge, upper segment", "valueCm": 20.23 },
+        { "position": "right edge, lower segment", "valueCm": 20.23 },
+        { "position": "bottom edge, right corner", "valueCm": 2 },
+        { "position": "bottom edge, wavy straight segment", "valueCm": 38.05 },
+        { "position": "bottom edge, curved segment", "valueCm": 24.7 },
+        { "position": "bottom edge, left corner", "valueCm": 5.01 },
+        {
+          "position": "left edge (armhole curve), upper segment",
+          "valueCm": 9
+        },
+        { "position": "left edge (armhole curve), lower segment", "valueCm": 9 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left corner", "valueCm": 5.01 },
+        { "position": "top edge, upper-left segment", "valueCm": 13.59 },
+        { "position": "top edge, curved segment", "valueCm": 21.54 },
+        { "position": "top edge, wavy straight segment", "valueCm": 38.06 },
+        { "position": "top edge, right corner", "valueCm": 2 },
+        { "position": "right edge, upper segment", "valueCm": 20.22 },
+        { "position": "right edge, lower segment", "valueCm": 20.22 },
+        { "position": "bottom edge, right corner", "valueCm": 2 },
+        { "position": "bottom edge, wavy straight segment", "valueCm": 38.06 },
+        { "position": "bottom edge, curved segment", "valueCm": 21.54 },
+        { "position": "bottom edge, lower-left segment", "valueCm": 13.59 },
+        { "position": "bottom edge, left corner", "valueCm": 5.01 }
+      ]
+    }
+  ],
+  "notes": null
+}

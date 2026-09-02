@@ -1,0 +1,51 @@
+{
+  "sourceId": "142",
+  "category": "twinset-blouse",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "blouse from a twinset (blouse plus matching cardigan) set, with front, back and set-in sleeve panels",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top corner segment", "valueCm": 11.87 },
+        { "position": "bottom corner segment (mirrored)", "valueCm": 11.87 },
+        { "position": "left edge (full length)", "valueCm": 46.94 },
+        { "position": "right edge", "valueCm": 33.41 }
+      ]
+    },
+    {
+      "nameEn": "front panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 30.24 },
+        { "position": "upper-left curve segment", "valueCm": 23.43 },
+        { "position": "left edge, upper segment", "valueCm": 11.06 },
+        { "position": "left edge, lower segment (curve)", "valueCm": 23.82 },
+        { "position": "right edge", "valueCm": 19.81 },
+        { "position": "bottom edge", "valueCm": 35.24 }
+      ]
+    },
+    {
+      "nameEn": "back panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 30.24 },
+        { "position": "upper-left curve segment", "valueCm": 23.42 },
+        { "position": "left edge, upper segment", "valueCm": 11.06 },
+        { "position": "left edge, middle segment", "valueCm": 21.98 },
+        { "position": "left edge, lower segment", "valueCm": 11.06 },
+        { "position": "lower-left curve segment", "valueCm": 23.42 },
+        { "position": "bottom edge", "valueCm": 30.24 },
+        { "position": "right edge (full length)", "valueCm": 42.63 }
+      ]
+    }
+  ],
+  "notes": "A 'fold 3cm, twice' facing construction note appears near the bottom of the front panel; it is a facing-allowance note, not an outline edge, and is not recorded as one."
+}

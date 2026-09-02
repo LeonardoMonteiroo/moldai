@@ -1,0 +1,111 @@
+{
+  "sourceId": "113",
+  "category": "cropped hoodie with kangaroo pocket",
+  "moldaiArchetype": null,
+  "descriptionEn": "women's cropped pullover hoodie with a hood, kangaroo pocket and rib cuffs",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "hood",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, curved", "valueCm": 55.75 },
+        { "position": "right edge", "valueCm": 32.39 },
+        { "position": "bottom edge", "valueCm": 36.5 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 37.89 },
+        { "position": "left edge", "valueCm": 55.2 },
+        { "position": "right edge", "valueCm": 32 },
+        { "position": "bottom edge", "valueCm": 37.89 }
+      ]
+    },
+    {
+      "nameEn": "kangaroo pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner, short segment", "valueCm": 2 },
+        { "position": "top edge, next segment", "valueCm": 19.72 },
+        { "position": "top-right corner, short segment", "valueCm": 3.58 },
+        {
+          "position": "top-right corner, adjacent short segment",
+          "valueCm": 8.06
+        },
+        { "position": "left edge, vertical", "valueCm": 30.33 },
+        { "position": "right edge, vertical", "valueCm": 40.33 },
+        { "position": "bottom-right corner, short segment", "valueCm": 8.06 },
+        {
+          "position": "bottom-right corner, adjacent short segment",
+          "valueCm": 3.58
+        },
+        { "position": "bottom edge, segment", "valueCm": 19.72 },
+        { "position": "bottom-left corner, short segment", "valueCm": 2 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 8.14 },
+        { "position": "top-right corner", "valueCm": 8.14 },
+        { "position": "left edge", "valueCm": 28 },
+        { "position": "right edge", "valueCm": 28 },
+        { "position": "bottom-left corner", "valueCm": 8.14 },
+        { "position": "bottom-right corner", "valueCm": 8.14 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 28 },
+        { "position": "upper diagonal segment", "valueCm": 26.99 },
+        { "position": "next segment down", "valueCm": 21.74 },
+        {
+          "position": "mid segment (deepest labeled sub-segment)",
+          "valueCm": 32.33
+        },
+        { "position": "mirrored segment", "valueCm": 21.74 },
+        {
+          "position": "mirrored diagonal segment near bottom corner",
+          "valueCm": 26.99
+        },
+        { "position": "bottom edge", "valueCm": 28 },
+        { "position": "right edge, full height", "valueCm": 64 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 28 },
+        { "position": "upper diagonal segment", "valueCm": 26.99 },
+        { "position": "next segment down", "valueCm": 21.74 },
+        {
+          "position": "mid segment (deepest labeled sub-segment)",
+          "valueCm": 21.73
+        },
+        { "position": "mirrored segment", "valueCm": 21.74 },
+        {
+          "position": "mirrored diagonal segment near bottom corner",
+          "valueCm": 26.99
+        },
+        { "position": "bottom edge", "valueCm": 28 },
+        { "position": "right edge, full height", "valueCm": 64 }
+      ]
+    }
+  ],
+  "notes": "The front piece shows two small 'x' marks (likely dart or notch placement marks) with no associated numeric value; these were not transcribed as edges."
+}

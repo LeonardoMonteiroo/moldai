@@ -1,0 +1,142 @@
+{
+  "sourceId": "006",
+  "category": "fleece jacket with lining",
+  "moldaiArchetype": null,
+  "descriptionEn": "polar fleece jacket with full lining, patch pocket, front facing and collar",
+  "gender": null,
+  "baseSizeLabel": "P",
+  "gradeNote": "approx. 1cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "outer edge (long)", "valueCm": 66.38 },
+        { "position": "inner edge", "valueCm": 49.85 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 12.98 },
+        { "position": "bottom edge", "valueCm": 12.68 },
+        { "position": "left edge", "valueCm": 21 },
+        { "position": "right edge", "valueCm": 32.3 }
+      ]
+    },
+    {
+      "nameEn": "GB BOLSO",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": null },
+        { "position": "left edge", "valueCm": null },
+        { "position": "bottom edge", "valueCm": null }
+      ],
+      "notes": "GB BOLSO is a small pocket-related piece (BOLSO = pocket; the 'GB' prefix is a cryptic abbreviation not confidently translatable). Its dimension numbers are rendered too small/low-resolution in this drawing to transcribe reliably, so all three are recorded as null rather than guessed."
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 49.88 },
+        { "position": "bottom edge", "valueCm": 49.88 },
+        { "position": "upper-right small segment", "valueCm": 2.02 },
+        { "position": "lower-right small segment", "valueCm": 2.02 },
+        { "position": "left edge", "valueCm": 51.97 },
+        { "position": "horizontal centerline (full width)", "valueCm": 64.44 },
+        { "position": "right edge", "valueCm": 22.67 }
+      ]
+    },
+    {
+      "nameEn": "sleeve lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 49.88 },
+        { "position": "bottom edge", "valueCm": 49.88 },
+        { "position": "left edge", "valueCm": 51.97 },
+        { "position": "horizontal centerline (full width)", "valueCm": 62.44 },
+        { "position": "right edge", "valueCm": 22.05 }
+      ]
+    },
+    {
+      "nameEn": "back lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 57.72 },
+        { "position": "bottom edge", "valueCm": 57.72 },
+        { "position": "upper-left diagonal", "valueCm": 26.73 },
+        { "position": "lower-left diagonal", "valueCm": 26.73 },
+        { "position": "left edge, upper segment", "valueCm": 14.62 },
+        { "position": "left edge, lower segment", "valueCm": 14.62 },
+        { "position": "vertical centerline, upper half", "valueCm": 54.97 },
+        { "position": "horizontal mid-line (full width)", "valueCm": 88.23 },
+        { "position": "right edge", "valueCm": 62.33 }
+      ]
+    },
+    {
+      "nameEn": "front facing",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 85.34 },
+        { "position": "upper-left segment", "valueCm": 5.47 },
+        { "position": "left edge", "valueCm": 26.67 },
+        { "position": "bottom edge", "valueCm": 70.55 },
+        { "position": "right edge", "valueCm": 17.14 }
+      ]
+    },
+    {
+      "nameEn": "front lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 57.74 },
+        { "position": "upper-left diagonal", "valueCm": 24.49 },
+        { "position": "left edge, upper segment", "valueCm": 10.16 },
+        { "position": "vertical segment near center", "valueCm": 20.9 },
+        { "position": "horizontal segment, lower-left", "valueCm": 31.77 },
+        { "position": "horizontal segment, mid", "valueCm": 84.42 },
+        { "position": "bottom edge", "valueCm": 53.84 },
+        { "position": "right edge", "valueCm": 25.02 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 62.26 },
+        { "position": "upper-left diagonal", "valueCm": 24.5 },
+        { "position": "left edge, upper segment", "valueCm": 14.62 },
+        { "position": "horizontal mid segment", "valueCm": 90.25 },
+        { "position": "horizontal segment, lower-left", "valueCm": 37.48 },
+        { "position": "right edge", "valueCm": 41.43 },
+        { "position": "lower-left diagonal", "valueCm": 26.63 },
+        { "position": "bottom edge", "valueCm": 75.05 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 62.26 },
+        { "position": "upper-left diagonal", "valueCm": 26.72 },
+        { "position": "left edge, upper segment", "valueCm": 14.62 },
+        { "position": "vertical segment near center", "valueCm": 27.61 },
+        { "position": "horizontal mid segment", "valueCm": 92.77 },
+        { "position": "horizontal segment, lower-left", "valueCm": 10.34 },
+        { "position": "right edge", "valueCm": 32.13 },
+        { "position": "bottom edge", "valueCm": 89.92 }
+      ]
+    }
+  ],
+  "notes": "Piece 'GB BOLSO' has an abbreviated original label whose prefix could not be confidently translated, and its dimension figures were too small in this drawing to read reliably; see per-piece note. A few small circular marks on the front and back pieces (likely topstitch/button placement marks, not dimension callouts) were not transcribed as edges."
+}

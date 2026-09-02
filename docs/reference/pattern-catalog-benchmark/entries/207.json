@@ -1,0 +1,205 @@
+{
+  "sourceId": "207",
+  "category": "dress-shirt-with-buttons-and-pocket",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "button-up dress shirt with a collar and collar stand, long sleeves with plackets and cuffs, a yoke, and a chest pocket",
+  "gender": "male",
+  "baseSizeLabel": "08",
+  "gradeNote": "average +1cm variation between graded sizes; measurements correspond to the printed pattern output",
+  "notes": "This is the densest sheet processed in this batch, with many small overlapping shirt-construction pieces (collar, collar stand, interfacing, plackets, sleeve strips) in small font. Several piece names are confident translations of partially-legible Portuguese shirt-making terms ('entretela'=interfacing, 'pé de gola'=collar stand, 'carcela'=placket) but the exact edge-to-position mapping on the densest pieces should be treated as lower confidence than the rest of this batch. Two narrow strips near the sleeve piece had no legible piece-name label at all.",
+  "pieces": [
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 7.15 },
+        { "position": "left edge", "valueCm": 33.26 },
+        { "position": "right edge, segment a", "valueCm": 8 },
+        { "position": "right edge, segment b", "valueCm": 7.37 },
+        { "position": "right edge, segment c", "valueCm": 7.37 },
+        { "position": "right edge, segment d", "valueCm": 8 },
+        { "position": "bottom edge", "valueCm": 7.15 }
+      ]
+    },
+    {
+      "nameEn": "interfacing",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 5 },
+        { "position": "left edge, upper segment", "valueCm": 14.52 },
+        {
+          "position": "left edge, full length (midpoint tick)",
+          "valueCm": 30.85
+        },
+        { "position": "left edge, lower segment", "valueCm": 14.52 },
+        { "position": "bottom edge", "valueCm": 5 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (back/COSTAS side)", "valueCm": 33.53 },
+        { "position": "top-right corner", "valueCm": 5 },
+        { "position": "right edge", "valueCm": 16 },
+        { "position": "bottom edge (front/FRENTE side)", "valueCm": 33.53 },
+        {
+          "position": "left edge, upper segment (back side)",
+          "valueCm": 20.69
+        },
+        {
+          "position": "left edge, lower segment (front side)",
+          "valueCm": 20.49
+        }
+      ]
+    },
+    {
+      "nameEn": "narrow strip A",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 6.09 },
+        { "position": "left edge, upper segment", "valueCm": 10.5 },
+        {
+          "position": "left edge, full length (midpoint tick)",
+          "valueCm": 20.99
+        },
+        { "position": "left edge, lower segment", "valueCm": 10.5 },
+        { "position": "bottom edge", "valueCm": 6.09 }
+      ]
+    },
+    {
+      "nameEn": "narrow strip B",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 3.04 },
+        { "position": "left edge, upper segment", "valueCm": 8.8 },
+        {
+          "position": "left edge, full length (midpoint tick)",
+          "valueCm": 17.59
+        },
+        { "position": "left edge, lower segment", "valueCm": 8.8 },
+        { "position": "bottom edge", "valueCm": 3.04 }
+      ]
+    },
+    {
+      "nameEn": "collar stand",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 12.01 },
+        { "position": "top edge", "valueCm": 14.35 },
+        { "position": "mid segment, tick a", "valueCm": 7.35 },
+        { "position": "mid segment, tick b", "valueCm": 7.36 },
+        { "position": "mid segment, tick c (mirrored)", "valueCm": 7.35 },
+        { "position": "mid segment, tick d (mirrored)", "valueCm": 7.36 },
+        { "position": "bottom-left corner", "valueCm": 12.01 },
+        { "position": "bottom edge", "valueCm": 14.35 }
+      ]
+    },
+    {
+      "nameEn": "yoke",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 8.6 },
+        { "position": "left edge, upper segment", "valueCm": 10.73 },
+        { "position": "left edge, mid segment", "valueCm": 15.73 },
+        {
+          "position": "left edge, full length (midpoint tick)",
+          "valueCm": 30.12
+        },
+        { "position": "left edge, lower segment", "valueCm": 10.73 },
+        { "position": "bottom edge", "valueCm": 8.6 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 30.38 },
+        { "position": "top-left segment", "valueCm": 15.31 },
+        { "position": "left edge, upper segment", "valueCm": 15.06 },
+        { "position": "left edge, lower segment", "valueCm": 15.06 },
+        { "position": "bottom-left segment", "valueCm": 15.31 },
+        { "position": "bottom edge", "valueCm": 30.38 },
+        { "position": "right edge, upper segment", "valueCm": 21.02 },
+        { "position": "right edge, lower segment", "valueCm": 21.02 }
+      ]
+    },
+    {
+      "nameEn": "collar stand (lining)",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 3.42 },
+        { "position": "top edge", "valueCm": 0.5 },
+        { "position": "mid segment, tick a", "valueCm": 17.92 },
+        { "position": "mid segment, tick b", "valueCm": 15.52 },
+        { "position": "mid segment, tick c (mirrored)", "valueCm": 17.92 },
+        { "position": "mid segment, tick d (mirrored)", "valueCm": 15.52 },
+        { "position": "bottom-left corner", "valueCm": 0.5 },
+        { "position": "bottom edge", "valueCm": 3.42 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 2 },
+        { "position": "top edge", "valueCm": 12.5 },
+        { "position": "left edge", "valueCm": 12 },
+        { "position": "right edge", "valueCm": 12 },
+        { "position": "bottom-left corner", "valueCm": 2 },
+        { "position": "bottom edge", "valueCm": 12.5 }
+      ]
+    },
+    {
+      "nameEn": "placket",
+      "originalLabelUnclear": true,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 17.7 },
+        { "position": "top-left corner", "valueCm": 2.98 },
+        { "position": "left edge", "valueCm": 6.83 },
+        { "position": "right edge", "valueCm": 7 },
+        { "position": "bottom edge", "valueCm": 15.7 }
+      ]
+    },
+    {
+      "nameEn": "GB RS.LT",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 11 },
+        { "position": "left edge", "valueCm": 9 },
+        { "position": "right edge", "valueCm": 9 },
+        { "position": "bottom edge", "valueCm": 11 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 30.38 },
+        { "position": "top-left segment", "valueCm": 19.09 },
+        { "position": "left edge, upper segment", "valueCm": 10.73 },
+        { "position": "left edge, lower segment", "valueCm": 9.62 },
+        { "position": "bottom-left corner, tick a", "valueCm": 2 },
+        { "position": "bottom-left corner, tick b", "valueCm": 2 },
+        { "position": "bottom-left corner, tick c", "valueCm": 1 },
+        { "position": "bottom edge", "valueCm": 48.62 },
+        { "position": "bottom-right corner, tick a", "valueCm": 2 },
+        { "position": "bottom-right corner, tick b", "valueCm": 2 },
+        { "position": "right edge", "valueCm": 20.03 }
+      ]
+    }
+  ]
+}

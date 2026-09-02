@@ -1,0 +1,108 @@
+{
+  "sourceId": "118",
+  "category": "bikini-set-tie-top-hot-pants-brief",
+  "moldaiArchetype": null,
+  "descriptionEn": "two-piece bikini set with a tie-strap top and a hot-pants style brief, waistband and lining pieces",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "front panel (brief)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 15.1 },
+        { "position": "upper left edge", "valueCm": 30.69 },
+        { "position": "left edge", "valueCm": 36.08 },
+        { "position": "right edge (curved)", "valueCm": 8.51 },
+        { "position": "lower left edge", "valueCm": 30.69 },
+        { "position": "bottom edge", "valueCm": 15.1 }
+      ]
+    },
+    {
+      "nameEn": "back panel (brief)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 15.79 },
+        { "position": "upper left edge", "valueCm": 30.59 },
+        { "position": "left edge", "valueCm": 36.2 },
+        { "position": "right edge (curved)", "valueCm": 8.63 },
+        { "position": "lower left edge", "valueCm": 30.59 },
+        { "position": "bottom edge", "valueCm": 15.79 }
+      ]
+    },
+    {
+      "nameEn": "front panel lining (brief)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 13.89 },
+        { "position": "upper left edge", "valueCm": 30.28 },
+        { "position": "left edge", "valueCm": 35.15 },
+        { "position": "right edge (curved)", "valueCm": 7.53 },
+        { "position": "lower left edge", "valueCm": 30.28 },
+        { "position": "bottom edge", "valueCm": 13.89 }
+      ]
+    },
+    {
+      "nameEn": "back panel lining (brief)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 13.59 },
+        { "position": "upper left edge", "valueCm": 30.24 },
+        { "position": "left edge", "valueCm": 35.15 },
+        { "position": "right edge (curved)", "valueCm": 7.61 },
+        { "position": "lower left edge", "valueCm": 30.24 },
+        { "position": "bottom edge", "valueCm": 13.59 }
+      ]
+    },
+    {
+      "nameEn": "waistband/side piece (brief)",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left half", "valueCm": 10.01 },
+        { "position": "top edge, right half", "valueCm": 10.01 },
+        { "position": "left edge, upper segment", "valueCm": 17.01 },
+        { "position": "right edge, upper segment", "valueCm": 17.01 },
+        { "position": "middle segment, left", "valueCm": 3 },
+        { "position": "middle segment, right", "valueCm": 3 },
+        { "position": "left edge, lower segment", "valueCm": 17.01 },
+        { "position": "right edge, lower segment", "valueCm": 17.01 },
+        { "position": "bottom edge, left half", "valueCm": 10.01 },
+        { "position": "bottom edge, right half", "valueCm": 10.01 }
+      ]
+    },
+    {
+      "nameEn": "tie strap (top)",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (length)", "valueCm": 159.23 },
+        { "position": "bottom edge (length)", "valueCm": 159.23 },
+        { "position": "left edge (width)", "valueCm": 10 },
+        { "position": "right edge, upper (width)", "valueCm": 3.14 },
+        { "position": "right edge, lower (width)", "valueCm": 3.14 },
+        {
+          "position": "right end, additional segment (label largely illegible in source)",
+          "valueCm": 20.71
+        }
+      ]
+    },
+    {
+      "nameEn": "tie strap lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (length)", "valueCm": 159.05 },
+        { "position": "bottom edge (length)", "valueCm": 159.05 },
+        { "position": "left edge (width)", "valueCm": 9 },
+        { "position": "right edge (width)", "valueCm": 17 }
+      ]
+    }
+  ],
+  "notes": "The tie strap piece carried one additional dimension (20.71) next to small text that was too faint/small to read confidently in the source drawing; the number itself is legible and recorded, but its exact label/position meaning is uncertain."
+}

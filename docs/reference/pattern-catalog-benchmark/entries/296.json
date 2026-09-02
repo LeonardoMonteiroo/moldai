@@ -1,0 +1,101 @@
+{
+  "sourceId": "296",
+  "category": "kids-girls-cropped-shirt-with-yoke",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "kids girls' cropped button-front shirt with a yoke, front, back, sleeves and a narrow trim strip",
+  "gender": "kids",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-right corner", "valueCm": 19.6 },
+        { "position": "top edge", "valueCm": 19.4 },
+        { "position": "top-left corner", "valueCm": 2.3 },
+        { "position": "left edge, upper diagonal", "valueCm": 18.75 },
+        { "position": "left edge, mid-upper segment", "valueCm": 9.85 },
+        {
+          "position": "left edge, mid-lower segment (mirrors upper)",
+          "valueCm": 9.85
+        },
+        {
+          "position": "left edge, lower diagonal (mirrors upper)",
+          "valueCm": 18.75
+        },
+        { "position": "bottom-left corner (mirrors top-left)", "valueCm": 2.3 },
+        { "position": "bottom edge (mirrors top)", "valueCm": 19.4 },
+        {
+          "position": "bottom-right corner (mirrors top-right)",
+          "valueCm": 19.6
+        },
+        { "position": "right edge, upper segment", "valueCm": 21.52 },
+        { "position": "right edge, lower segment", "valueCm": 21.52 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-right corner, segment 1", "valueCm": 4.98 },
+        { "position": "top-right corner, segment 2", "valueCm": 3.83 },
+        { "position": "upper-right diagonal", "valueCm": 28.44 },
+        { "position": "left edge, full-height curve", "valueCm": 24.89 },
+        {
+          "position": "lower-right diagonal (mirrors upper)",
+          "valueCm": 28.44
+        },
+        {
+          "position": "bottom-right corner, segment 1 (mirrors top)",
+          "valueCm": 4.98
+        },
+        {
+          "position": "bottom-right corner, segment 2 (mirrors top)",
+          "valueCm": 3.83
+        }
+      ]
+    },
+    {
+      "nameEn": "narrow trim strip",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top edge (width)", "valueCm": 7.43 },
+        { "position": "upper length segment", "valueCm": 28 },
+        { "position": "main length value", "valueCm": 45 },
+        { "position": "lower length segment", "valueCm": 28 },
+        { "position": "bottom edge (width)", "valueCm": 7.43 }
+      ]
+    },
+    {
+      "nameEn": "yoke",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 1.6 },
+        { "position": "top edge", "valueCm": 8.72 },
+        { "position": "left edge, upper segment", "valueCm": 2.61 },
+        { "position": "left edge, lower segment", "valueCm": 12.17 },
+        { "position": "right edge (seam to front)", "valueCm": 25.41 },
+        { "position": "bottom-left corner, upper part", "valueCm": 18.75 },
+        { "position": "bottom-left corner, tip", "valueCm": 6.23 },
+        { "position": "bottom edge", "valueCm": 19.86 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 28.48 },
+        { "position": "top-right corner, segment 1", "valueCm": 1.6 },
+        { "position": "top-right corner, segment 2", "valueCm": 2.6 },
+        { "position": "right edge, full height", "valueCm": 22.17 },
+        { "position": "bottom edge", "valueCm": 19.6 }
+      ]
+    }
+  ],
+  "notes": "The yoke and front pieces are drawn adjoining each other sharing a seam, and a few numbers sat right at that shared boundary in the source drawing — their exact assignment to one piece versus the other (particularly the yoke's right edge / front's left edge) carries some uncertainty, though the values themselves were legible. The 'narrow trim strip' piece's own label text was too small/rotated to read with confidence, so a generic descriptive name was used instead of a translated one; its three stacked length values (28, 45, 28) did not appear to sum consistently, so they are recorded as separate labeled positions rather than assumed sub-segments of one total. Small circular and 'x' marks scattered on the yoke and front pieces looked like buttonhole/notch placement marks, not dimensions, and were not recorded as edges."
+}

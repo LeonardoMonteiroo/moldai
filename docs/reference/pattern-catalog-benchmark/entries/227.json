@@ -1,0 +1,88 @@
+{
+  "sourceId": "227",
+  "category": "short-dress-with-high-collar-and-teardrop-cutout",
+  "moldaiArchetype": "dress",
+  "descriptionEn": "Short dress with a high (turtleneck-style) collar and a teardrop-shaped front cutout.",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "Approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces.",
+  "pieces": [
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 4.63 },
+        { "position": "top edge, right segment", "valueCm": 4.63 },
+        { "position": "left edge, vertical", "valueCm": 35.23 },
+        { "position": "right edge, vertical", "valueCm": 35.23 },
+        { "position": "bottom edge, left segment", "valueCm": 4.63 },
+        { "position": "bottom edge, right segment", "valueCm": 4.63 }
+      ]
+    },
+    {
+      "nameEn": "facing",
+      "originalLabelUnclear": true,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left diagonal edge", "valueCm": 15.07 },
+        { "position": "top segment, left (near peak)", "valueCm": 5.98 },
+        { "position": "top segment, right (near peak)", "valueCm": 9.13 },
+        {
+          "position": "internal vertical dimension, upper center",
+          "valueCm": null
+        },
+        { "position": "left edge, upper diagonal", "valueCm": 10.47 },
+        { "position": "left edge, lower diagonal", "valueCm": 10.53 },
+        { "position": "right edge, vertical", "valueCm": 20.78 },
+        { "position": "bottom edge, left small segment", "valueCm": 4.7 },
+        { "position": "bottom edge, middle segment", "valueCm": 12.68 },
+        { "position": "bottom edge, right segment", "valueCm": 13.61 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, outer segment", "valueCm": 6.16 },
+        { "position": "top edge, small segment", "valueCm": 2 },
+        { "position": "left edge", "valueCm": 47.36 },
+        { "position": "right edge, vertical", "valueCm": 36.7 },
+        { "position": "bottom edge, small segment", "valueCm": 2 },
+        { "position": "bottom edge, outer segment", "valueCm": 6.16 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left diagonal edge", "valueCm": 15.08 },
+        { "position": "top segment, left (near peak)", "valueCm": 5.97 },
+        { "position": "top segment, right (near peak)", "valueCm": null },
+        { "position": "left edge, upper diagonal", "valueCm": 10.47 },
+        { "position": "left edge, lower diagonal", "valueCm": 10.54 },
+        { "position": "bottom edge, far left small segment", "valueCm": 4.69 },
+        { "position": "bottom edge, left segment", "valueCm": 12.67 },
+        { "position": "top edge, main curve", "valueCm": 61.9 },
+        { "position": "right edge, vertical", "valueCm": 25.88 },
+        { "position": "bottom edge, main segment", "valueCm": 65.97 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left diagonal edge", "valueCm": 23.63 },
+        { "position": "left edge, diagonal", "valueCm": 10.47 },
+        { "position": "bottom-left small segment", "valueCm": 9.24 },
+        { "position": "top edge, main curve", "valueCm": 61.9 },
+        { "position": "right edge, vertical", "valueCm": 25.87 },
+        { "position": "bottom edge", "valueCm": 85.93 }
+      ]
+    }
+  ],
+  "notes": "facing piece: a numeric label near the top center, adjacent to '5.98'/'9.13', was ambiguous between approx. 7.07 and 77.07 (a leader-line arrowhead may have been misread as a leading '7') and was recorded as null rather than guessed. front piece: the corresponding label (ambiguous between approx. 7.09 and 77.09) was also recorded as null for the same reason."
+}

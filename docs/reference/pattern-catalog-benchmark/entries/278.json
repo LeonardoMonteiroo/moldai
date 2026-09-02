@@ -1,0 +1,23 @@
+{
+  "sourceId": "278",
+  "category": "pet-coat-plain",
+  "moldaiArchetype": null,
+  "descriptionEn": "small-pet coat, single body piece, no separate collar",
+  "gender": null,
+  "baseSizeLabel": "G",
+  "gradeNote": "approx. 3-4 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "body",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge (neck/leg opening area)", "valueCm": 41.65 },
+        { "position": "left side, full-height curve", "valueCm": 62.44 },
+        { "position": "right side, full-height curve", "valueCm": 71.23 },
+        { "position": "bottom edge (mirrors top opening)", "valueCm": 41.65 }
+      ]
+    }
+  ],
+  "notes": null
+}

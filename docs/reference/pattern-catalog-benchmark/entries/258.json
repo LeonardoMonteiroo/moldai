@@ -1,0 +1,80 @@
+{
+  "sourceId": "258",
+  "category": "layered mini skirt with wrap overlay",
+  "moldaiArchetype": "skirt",
+  "descriptionEn": "mini skirt with a wrap-style overlay panel and a shaped side cutout insert",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top tab", "valueCm": 9 },
+        { "position": "left edge", "valueCm": 71 },
+        { "position": "right edge", "valueCm": 71 },
+        { "position": "bottom tab", "valueCm": 9 }
+      ]
+    },
+    {
+      "nameEn": "side cutout panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 17.67 },
+        { "position": "top-right corner", "valueCm": 1.06 },
+        { "position": "left corner tab", "valueCm": 1 },
+        { "position": "right edge", "valueCm": 11.87 },
+        { "position": "left edge", "valueCm": 7.33 },
+        { "position": "bottom edge", "valueCm": 10.9 },
+        { "position": "bottom-left corner", "valueCm": 0.08 },
+        { "position": "bottom-right corner", "valueCm": 1.22 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge (curved)", "valueCm": 20.92 },
+        { "position": "top edge, left diagonal segment", "valueCm": 17.62 },
+        { "position": "left edge, upper small tab", "valueCm": 4.32 },
+        { "position": "left edge", "valueCm": 38.7 },
+        { "position": "bottom-left corner tab", "valueCm": 1.07 },
+        { "position": "bottom edge", "valueCm": 41.79 },
+        { "position": "right edge", "valueCm": 53.93 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge (curved)", "valueCm": 41.86 },
+        { "position": "top-right corner tab", "valueCm": 1.01 },
+        { "position": "left edge", "valueCm": 38.57 },
+        { "position": "right edge", "valueCm": 55 },
+        { "position": "bottom edge (curved)", "valueCm": 41.86 },
+        { "position": "bottom-right corner tab", "valueCm": 1.01 }
+      ]
+    },
+    {
+      "nameEn": "wrap overlay panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left tab", "valueCm": 1.54 },
+        { "position": "top edge, segment", "valueCm": 10.57 },
+        { "position": "top edge, right segment", "valueCm": 12.53 },
+        { "position": "top-right diagonal edge", "valueCm": 27.71 },
+        { "position": "left edge", "valueCm": 34.29 },
+        { "position": "right edge", "valueCm": 32.63 },
+        { "position": "bottom-left corner tab", "valueCm": 1.03 },
+        { "position": "bottom edge", "valueCm": 41.79 }
+      ]
+    }
+  ],
+  "notes": "The 'side cutout panel' piece is a small, densely-labeled shape in the source drawing; segment-to-position mapping was inferred from relative placement of the numbers and carries slightly more positional uncertainty than the other pieces, though every value itself is legible. A per-size elastic length table printed beside the waistband piece was not transcribed, as it is supplementary grading data rather than a piece-edge dimension."
+}

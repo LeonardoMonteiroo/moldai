@@ -1,0 +1,130 @@
+{
+  "sourceId": "064",
+  "category": "clochard-style-shorts-with-back-pocket",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "loose clochard-style shorts with drawstring tie band, back pocket, and piping trim",
+  "gender": "unisex",
+  "baseSizeLabel": "P",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 100 },
+        { "position": "left edge, upper segment", "valueCm": 14 },
+        { "position": "right edge, upper segment", "valueCm": 14 },
+        { "position": "bottom edge", "valueCm": 100 },
+        { "position": "left edge, lower segment", "valueCm": 1 },
+        { "position": "right edge, lower segment", "valueCm": 1 }
+      ]
+    },
+    {
+      "nameEn": "drawstring tie band",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 200 },
+        { "position": "left edge", "valueCm": 9 },
+        { "position": "right edge", "valueCm": 9 },
+        { "position": "bottom edge", "valueCm": 200 }
+      ]
+    },
+    {
+      "nameEn": "pocket lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left, small segment", "valueCm": 13.81 },
+        { "position": "top, small segment", "valueCm": 13.07 },
+        { "position": "left edge", "valueCm": 8.45 },
+        { "position": "bottom edge (curved)", "valueCm": 37.89 }
+      ]
+    },
+    {
+      "nameEn": "back leg lining",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge", "valueCm": 37.52 },
+        { "position": "left edge", "valueCm": 27.53 },
+        { "position": "bottom-left diagonal", "valueCm": 12.47 },
+        { "position": "bottom, small segment", "valueCm": 18.59 },
+        { "position": "bottom-right, small segment", "valueCm": 15.92 },
+        { "position": "right edge", "valueCm": 37.6 }
+      ]
+    },
+    {
+      "nameEn": "front leg lining",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top-left, small segment", "valueCm": 13.8 },
+        { "position": "top edge, left segment", "valueCm": 13.07 },
+        { "position": "top edge, right segment", "valueCm": 11.29 },
+        { "position": "left edge", "valueCm": 21.74 },
+        { "position": "bottom-left, segment", "valueCm": 17.3 },
+        { "position": "bottom, small segment", "valueCm": 6.5 },
+        { "position": "bottom edge", "valueCm": 15.75 },
+        { "position": "right edge", "valueCm": 28.06 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 11.83 },
+        { "position": "left edge", "valueCm": 37.99 },
+        { "position": "bottom edge (curved)", "valueCm": 26.42 }
+      ]
+    },
+    {
+      "nameEn": "front leg",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 21.74 },
+        { "position": "top-right diagonal", "valueCm": 13.71 },
+        { "position": "left edge", "valueCm": 17.3 },
+        { "position": "bottom-left, small segment", "valueCm": 6.51 },
+        { "position": "bottom edge", "valueCm": 15.75 },
+        { "position": "right edge, lower segment", "valueCm": 28.09 },
+        { "position": "right edge, upper segment", "valueCm": 24.44 }
+      ]
+    },
+    {
+      "nameEn": "back leg",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left, small segment", "valueCm": 12.74 },
+        { "position": "top edge", "valueCm": 29.55 },
+        { "position": "right edge", "valueCm": 37.52 },
+        { "position": "left edge", "valueCm": 18.63 },
+        { "position": "bottom-left, small segment", "valueCm": 15.75 },
+        { "position": "bottom edge", "valueCm": 37.53 }
+      ]
+    },
+    {
+      "nameEn": "piping/binding strip",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 16.9 },
+        { "position": "left edge", "valueCm": 14 },
+        { "position": "right edge", "valueCm": 14 },
+        { "position": "bottom edge", "valueCm": 16.9 }
+      ]
+    },
+    {
+      "nameEn": "PRESILHA (belt loop, small piece)",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top edge", "valueCm": 5 },
+        { "position": "left edge", "valueCm": 7 },
+        { "position": "bottom edge", "valueCm": 5 }
+      ]
+    }
+  ],
+  "notes": "sourceId 064: front/back leg lining pieces had no legible 'Nx' quantity marker (unlike the sibling front/back leg and pocket pieces), so qty is omitted for those two rather than guessed. The small belt-loop piece carries an extra code-like mark next to its numbers that did not look like a length dimension and was not transcribed."
+}

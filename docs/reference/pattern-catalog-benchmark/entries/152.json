@@ -1,0 +1,112 @@
+{
+  "sourceId": "152",
+  "category": "mens-pajama-top",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "men's short-sleeve knit pajama top, basic tee-style block with round neckline",
+  "gender": "male",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 45.9 },
+        { "position": "bottom edge", "valueCm": 45.9 },
+        { "position": "right edge (full height)", "valueCm": 55.61 },
+        {
+          "position": "left edge, shoulder/upper curve segment",
+          "valueCm": 28.11
+        },
+        {
+          "position": "left edge, shoulder/lower curve segment (mirrored)",
+          "valueCm": 28.11
+        },
+        {
+          "position": "left edge, small segment below upper shoulder curve",
+          "valueCm": 1.76
+        },
+        {
+          "position": "left edge, small segment above lower shoulder curve (mirrored)",
+          "valueCm": 1.76
+        },
+        {
+          "position": "left edge, next segment down (upper)",
+          "valueCm": 13.67
+        },
+        {
+          "position": "left edge, next segment up (lower, mirrored)",
+          "valueCm": 13.67
+        },
+        { "position": "left edge, deepest curve segment", "valueCm": 24.65 },
+        {
+          "position": "left edge, bracket segment (upper half, possibly a collar-band length noted alongside this edge, not a confirmed back-panel dimension)",
+          "valueCm": 23.96
+        },
+        {
+          "position": "left edge, bracket segment (lower half, same caveat)",
+          "valueCm": 23.96
+        },
+        {
+          "position": "left edge, topmost small value (illegible)",
+          "valueCm": null
+        },
+        {
+          "position": "left edge, bottommost small value (illegible, mirrored)",
+          "valueCm": null
+        }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 45.9 },
+        { "position": "bottom edge", "valueCm": 45.9 },
+        { "position": "right edge (full height)", "valueCm": 55.61 },
+        {
+          "position": "left edge, shoulder/upper curve segment",
+          "valueCm": 27.51
+        },
+        {
+          "position": "left edge, shoulder/lower curve segment (mirrored)",
+          "valueCm": 27.51
+        },
+        { "position": "left edge, next segment (upper)", "valueCm": 13.67 },
+        {
+          "position": "left edge, next segment (lower, mirrored)",
+          "valueCm": 13.67
+        },
+        { "position": "left edge, deepest curve segment", "valueCm": 32.25 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        {
+          "position": "cap curve, left side, corner-to-corner",
+          "valueCm": 56.23
+        },
+        {
+          "position": "vertical centerline (cap height + hem)",
+          "valueCm": 42.41
+        },
+        { "position": "top corner pair, first value", "valueCm": 8.72 },
+        { "position": "top corner pair, second value", "valueCm": 2.59 },
+        {
+          "position": "bottom corner pair (mirrored), first value",
+          "valueCm": 8.72
+        },
+        {
+          "position": "bottom corner pair (mirrored), second value",
+          "valueCm": 2.59
+        }
+      ]
+    }
+  ],
+  "notes": "Two small values at the very top and bottom of the back panel's left edge were illegible in the source render (likely merged/overlapping digits) and are recorded as null. This piece's shape and measurements closely parallel this repo's existing tshirt-benchmark reference (same 23.96/23.96/47.92-style bracket and near-identical sleeve proportions), so the same caveat applies: the paired 23.96 segments may document a collar-band piece's own length rather than a second, distinct back-panel dimension."
+}

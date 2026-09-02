@@ -1,0 +1,40 @@
+{
+  "sourceId": "055",
+  "category": "leggings",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "leggings with waistband and a shared front-back leg panel",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 13.07 },
+        { "position": "top-right corner", "valueCm": 13.07 },
+        { "position": "left edge", "valueCm": 33.25 },
+        { "position": "right edge", "valueCm": 33.25 },
+        { "position": "bottom-left corner", "valueCm": 13.07 },
+        { "position": "bottom-right corner", "valueCm": 13.07 }
+      ]
+    },
+    {
+      "nameEn": "leg panel (shared front/back)",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left, small segment 1", "valueCm": 8.86 },
+        { "position": "top-left, small segment 2", "valueCm": 7.91 },
+        { "position": "top edge (main)", "valueCm": 77.62 },
+        { "position": "left edge", "valueCm": 35.08 },
+        { "position": "bottom-left, small segment 1", "valueCm": 12.04 },
+        { "position": "bottom-left, small segment 2", "valueCm": 11.77 },
+        { "position": "bottom edge", "valueCm": 77.94 },
+        { "position": "right edge", "valueCm": 27.12 }
+      ]
+    }
+  ],
+  "notes": null
+}

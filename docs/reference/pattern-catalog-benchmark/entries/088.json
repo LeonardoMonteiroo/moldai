@@ -1,0 +1,26 @@
+{
+  "sourceId": "088",
+  "category": "kids-school-legging",
+  "moldaiArchetype": null,
+  "descriptionEn": "school-age kids' leggings, single combined front/back leg piece",
+  "gender": "kids",
+  "baseSizeLabel": "08",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern piece",
+  "pieces": [
+    {
+      "nameEn": "leg panel (combined front/back)",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "upper-left diagonal segment", "valueCm": 20.55 },
+        { "position": "left edge", "valueCm": 25.01 },
+        { "position": "lower-left diagonal segment", "valueCm": 18.75 },
+        { "position": "bottom-left small segment", "valueCm": 8.67 },
+        { "position": "bottom edge", "valueCm": 54.41 },
+        { "position": "right edge", "valueCm": 20.58 },
+        { "position": "upper-right diagonal segment", "valueCm": 54.3 }
+      ]
+    }
+  ],
+  "notes": null
+}

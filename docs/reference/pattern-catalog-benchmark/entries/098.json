@@ -1,0 +1,85 @@
+{
+  "sourceId": "098",
+  "category": "women's polo shirt with placket and rib cuffs",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "women's knit polo shirt with front placket opening and straight rib cuffs",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 45.49 },
+        { "position": "upper diagonal segment", "valueCm": 26.81 },
+        { "position": "next segment down", "valueCm": 14.81 },
+        { "position": "next segment down", "valueCm": 10.66 },
+        { "position": "mirrored segment", "valueCm": 10.66 },
+        { "position": "mirrored segment", "valueCm": 14.81 },
+        {
+          "position": "mirrored diagonal segment near bottom corner",
+          "valueCm": 26.81
+        },
+        { "position": "bottom edge", "valueCm": 45.49 },
+        { "position": "right edge, full height", "valueCm": 51.54 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, curved", "valueCm": 4.67 },
+        { "position": "left edge, vertical", "valueCm": 51.53 },
+        { "position": "right edge, vertical", "valueCm": 38.99 },
+        { "position": "bottom edge, curved", "valueCm": 4.67 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 45.49 },
+        { "position": "upper diagonal segment", "valueCm": 23.97 },
+        { "position": "next segment down", "valueCm": 14.81 },
+        { "position": "next segment down", "valueCm": 11.3 },
+        { "position": "mid segment near placket opening", "valueCm": 2.71 },
+        { "position": "mirrored segment", "valueCm": 11.3 },
+        { "position": "mirrored segment", "valueCm": 14.81 },
+        {
+          "position": "mirrored diagonal segment near bottom corner",
+          "valueCm": 23.97
+        },
+        { "position": "bottom edge", "valueCm": 45.49 },
+        { "position": "right edge, full height", "valueCm": 51.54 }
+      ]
+    },
+    {
+      "nameEn": "placket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 18 },
+        { "position": "left edge", "valueCm": 13 },
+        { "position": "right edge", "valueCm": 13 },
+        { "position": "bottom edge", "valueCm": 18 }
+      ]
+    },
+    {
+      "nameEn": "cuff template (straight)",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 4.65 },
+        { "position": "next segment down", "valueCm": 18.73 },
+        { "position": "mid segment", "valueCm": 35.15 },
+        { "position": "mirrored segment", "valueCm": 18.73 },
+        { "position": "bottom edge", "valueCm": 4.65 }
+      ]
+    }
+  ],
+  "notes": "The front piece's small mid-front segment (2.71cm) is annotated in the drawing with a short construction note translating to 'cut for placket opening', consistent with this being a polo placket slit."
+}

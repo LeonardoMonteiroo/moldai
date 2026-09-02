@@ -1,0 +1,79 @@
+{
+  "sourceId": "277",
+  "category": "pet-coat-with-collar",
+  "moldaiArchetype": null,
+  "descriptionEn": "small-pet coat with a separate collar piece",
+  "gender": null,
+  "baseSizeLabel": "G",
+  "gradeNote": "approx. 3-4 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 4.51 },
+        { "position": "top edge, right segment", "valueCm": 5.69 },
+        { "position": "left edge", "valueCm": 30.46 },
+        { "position": "right edge", "valueCm": 36.72 },
+        { "position": "bottom edge, left segment", "valueCm": 4.51 },
+        { "position": "bottom edge, right segment", "valueCm": 5.69 }
+      ]
+    },
+    {
+      "nameEn": "body",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        {
+          "position": "upper area, right corner (small notch top)",
+          "valueCm": 10.31
+        },
+        { "position": "upper area, right side of notch", "valueCm": 19.67 },
+        {
+          "position": "upper area, right curve continuing outward",
+          "valueCm": 23.59
+        },
+        { "position": "right side edge, full-height curve", "valueCm": 34.82 },
+        {
+          "position": "upper area, left short diagonal segment 1",
+          "valueCm": 7.13
+        },
+        {
+          "position": "upper area, left short diagonal segment 2",
+          "valueCm": 17.81
+        },
+        {
+          "position": "upper area, left short segment near curve",
+          "valueCm": 4.74
+        },
+        { "position": "left side edge, full-height curve", "valueCm": 35.72 },
+        {
+          "position": "lower area, left short segment near curve (mirrors upper)",
+          "valueCm": 4.74
+        },
+        {
+          "position": "lower area, left short diagonal segment 1 (mirrors upper)",
+          "valueCm": 7.13
+        },
+        {
+          "position": "lower area, left short diagonal segment 2 (mirrors upper)",
+          "valueCm": 17.81
+        },
+        {
+          "position": "lower area, right side of notch (mirrors upper)",
+          "valueCm": 19.67
+        },
+        {
+          "position": "lower area, right corner (small notch bottom, mirrors upper)",
+          "valueCm": 10.31
+        },
+        {
+          "position": "lower area, right curve continuing outward (mirrors upper)",
+          "valueCm": 23.59
+        }
+      ]
+    }
+  ],
+  "notes": "The body piece's quantity annotation on the source sheet read as something like '1 (pair)', which is ambiguous — could mean one mirrored/symmetric piece or two physical pieces; recorded qty as 1 since the outline itself is drawn once. Top and bottom edge values mirror each other numerically but no explicit fold line was drawn on this measurement sheet, so cutOnFold was left unset rather than assumed."
+}

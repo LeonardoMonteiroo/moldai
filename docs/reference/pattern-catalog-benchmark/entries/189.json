@@ -1,0 +1,137 @@
+{
+  "sourceId": "189",
+  "category": "sport shorts with compression liner and cup pouch",
+  "moldaiArchetype": null,
+  "descriptionEn": "sport shorts with an inner compression-brief liner including a cup support pouch",
+  "gender": "male",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "yoke",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 12.11 },
+        { "position": "right edge", "valueCm": 25.2 },
+        { "position": "bottom edge", "valueCm": 15.21 },
+        { "position": "left edge", "valueCm": 21.34 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (apex)", "valueCm": 10.69 },
+        { "position": "upper-left edge", "valueCm": 26.12 },
+        { "position": "left edge", "valueCm": 25.02 },
+        { "position": "right edge (curve/diagonal)", "valueCm": 53.86 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 67.06 },
+        { "position": "left edge", "valueCm": 30.61 },
+        { "position": "bottom edge, left segment", "valueCm": 26.63 },
+        { "position": "bottom edge, right segment", "valueCm": 10.93 }
+      ]
+    },
+    {
+      "nameEn": "RECORTE MEIA BOJO",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top edge", "valueCm": 7.5 },
+        { "position": "left edge, upper segment", "valueCm": 8.53 },
+        { "position": "left edge, middle segment", "valueCm": 17.03 },
+        { "position": "left edge, lower segment", "valueCm": 8.53 },
+        { "position": "bottom edge", "valueCm": 7.5 }
+      ]
+    },
+    {
+      "nameEn": "cup panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "left edge (shared boundary)", "valueCm": 17.18 },
+        { "position": "top edge (curve)", "valueCm": 18.41 },
+        { "position": "right edge", "valueCm": 5.43 },
+        { "position": "bottom edge (curve)", "valueCm": 18.41 }
+      ]
+    },
+    {
+      "nameEn": "elastic casing strip",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top edge", "valueCm": 6 },
+        { "position": "left edge, upper segment", "valueCm": 11.17 },
+        { "position": "left edge, overall span", "valueCm": 22.76 },
+        { "position": "left edge, lower segment", "valueCm": 11.17 },
+        { "position": "bottom edge", "valueCm": 6 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 13.1 },
+        { "position": "left edge", "valueCm": 22.34 },
+        { "position": "right edge", "valueCm": 23.29 },
+        { "position": "bottom edge", "valueCm": 13.1 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 23.8 },
+        { "position": "left edge", "valueCm": 13.59 },
+        { "position": "right edge", "valueCm": 13.59 },
+        { "position": "bottom edge", "valueCm": 23.8 }
+      ]
+    },
+    {
+      "nameEn": "front lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left corner (angled)", "valueCm": 19.26 },
+        { "position": "top edge, right corner", "valueCm": 2.03 },
+        { "position": "left edge", "valueCm": 24.99 },
+        { "position": "bottom-left diagonal", "valueCm": 9.42 },
+        { "position": "bottom edge", "valueCm": 45.62 },
+        { "position": "right edge", "valueCm": 12.96 }
+      ]
+    },
+    {
+      "nameEn": "cutout panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 45.53 },
+        { "position": "left edge", "valueCm": 13.8 },
+        { "position": "right edge", "valueCm": 13.6 },
+        { "position": "bottom edge", "valueCm": 47.76 }
+      ]
+    },
+    {
+      "nameEn": "shorts lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 47.55 },
+        { "position": "left edge, upper segment", "valueCm": 9.05 },
+        { "position": "left edge, lower segment", "valueCm": 32.78 },
+        { "position": "right edge, upper segment", "valueCm": 12.96 },
+        { "position": "right edge, lower segment", "valueCm": 2.07 },
+        { "position": "bottom point (center notch)", "valueCm": 21.79 }
+      ]
+    }
+  ],
+  "notes": "Two pieces have uncertain identity: the small piece labeled with fragments read as \"RECORTE MEIA BOJO\" sits between the yoke/front/back group and the cup panel, and is likely a half-cup lining or cutout related to the cup panel, but the printed label could not be read with confidence, so it is kept verbatim and flagged. A narrow strip near an \"ELAST 8/60\" annotation (elastic width/length note) was included as a separate \"elastic casing strip\" piece out of caution, though it may instead be an internal construction line on an adjacent piece rather than its own cut piece. Gender is inferred as male from the presence of a cup/pouch support piece, standard in men's compression-short construction."
+}

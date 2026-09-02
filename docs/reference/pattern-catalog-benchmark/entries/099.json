@@ -1,0 +1,90 @@
+{
+  "sourceId": "099",
+  "category": "boys' kids polo shirt with placket and rib cuffs",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "boys' knit polo shirt with front placket opening and straight rib cuffs",
+  "gender": "kids",
+  "baseSizeLabel": "08",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "placket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 14.01 },
+        { "position": "left edge", "valueCm": 13 },
+        { "position": "right edge", "valueCm": 13 },
+        { "position": "bottom edge", "valueCm": 14.01 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 35.38 },
+        { "position": "upper diagonal segment", "valueCm": 21.06 },
+        { "position": "next segment down", "valueCm": 2.07 },
+        { "position": "next segment down", "valueCm": 10.58 },
+        {
+          "position": "mid segment (deepest labeled sub-segment)",
+          "valueCm": 9.61
+        },
+        { "position": "mirrored segment", "valueCm": 9.61 },
+        { "position": "mirrored segment", "valueCm": 10.58 },
+        { "position": "mirrored segment", "valueCm": 2.07 },
+        {
+          "position": "mirrored diagonal segment near bottom corner",
+          "valueCm": 21.06
+        },
+        { "position": "bottom edge", "valueCm": 35.38 },
+        { "position": "right edge, full height", "valueCm": 41.6 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-right corner, small segment", "valueCm": 4.96 },
+        { "position": "left edge, upper diagonal segment", "valueCm": 21.66 },
+        { "position": "right edge, vertical", "valueCm": 28.93 },
+        { "position": "left edge, lower diagonal segment", "valueCm": 21.66 },
+        { "position": "bottom-right corner, small segment", "valueCm": 4.96 }
+      ]
+    },
+    {
+      "nameEn": "cuff template (straight)",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 4.75 },
+        { "position": "left vertical line", "valueCm": 26.91 },
+        { "position": "right vertical line", "valueCm": 23.18 },
+        { "position": "bottom edge", "valueCm": 4.75 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 35.38 },
+        { "position": "upper diagonal segment", "valueCm": 20.24 },
+        { "position": "next segment down", "valueCm": 10.58 },
+        { "position": "next segment down", "valueCm": 10.4 },
+        { "position": "mid segment near placket opening", "valueCm": 3.01 },
+        { "position": "mirrored segment", "valueCm": 10.41 },
+        { "position": "mirrored segment", "valueCm": 10.58 },
+        {
+          "position": "mirrored diagonal segment near bottom corner",
+          "valueCm": 20.24
+        },
+        { "position": "bottom edge", "valueCm": 35.38 },
+        { "position": "right edge, full height", "valueCm": 41.6 }
+      ]
+    }
+  ],
+  "notes": null
+}

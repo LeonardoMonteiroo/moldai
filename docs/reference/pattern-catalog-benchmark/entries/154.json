@@ -1,0 +1,128 @@
+{
+  "sourceId": "154",
+  "category": "baby-onesie-pajama-with-buttons",
+  "moldaiArchetype": null,
+  "descriptionEn": "baby onesie-style pajama with front button placket, footless, short sleeves, small collar, diamond-shaped crotch gusset",
+  "gender": "baby",
+  "baseSizeLabel": "02",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "front left",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 30.06 },
+        { "position": "top edge, right segment", "valueCm": 25.09 },
+        { "position": "right edge, upper", "valueCm": 13.36 },
+        { "position": "right edge, small notch segment", "valueCm": 5.54 },
+        { "position": "right edge, lowest tiny segment", "valueCm": 2.53 },
+        { "position": "bottom edge (button placket)", "valueCm": 63.34 },
+        { "position": "left edge, lowest tiny segment", "valueCm": 2.53 },
+        { "position": "left edge, lower segment", "valueCm": 6.98 },
+        { "position": "left edge, upper diagonal", "valueCm": 19.13 }
+      ]
+    },
+    {
+      "nameEn": "front right",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left tiny segment", "valueCm": 2.53 },
+        { "position": "top edge (button placket)", "valueCm": 63.34 },
+        { "position": "top edge, right tiny segment", "valueCm": 2.53 },
+        {
+          "position": "right edge, upper small notch segment",
+          "valueCm": 5.54
+        },
+        { "position": "right edge, lower", "valueCm": 13.36 },
+        { "position": "bottom edge, right segment", "valueCm": 25.09 },
+        { "position": "bottom edge, left segment", "valueCm": 30.06 },
+        { "position": "left edge, lower diagonal", "valueCm": 19.13 },
+        { "position": "left edge, upper segment", "valueCm": 6.98 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 30.05 },
+        { "position": "top edge, right segment", "valueCm": 25.09 },
+        { "position": "right edge, upper", "valueCm": 13.36 },
+        { "position": "right edge, inner curve, upper part", "valueCm": 26.11 },
+        { "position": "right edge, inner curve, lower part", "valueCm": 26.12 },
+        { "position": "right edge, lower", "valueCm": 13.36 },
+        { "position": "bottom edge, right segment", "valueCm": 25.09 },
+        { "position": "bottom edge, left segment", "valueCm": 30.05 },
+        { "position": "left edge, lower segment", "valueCm": 21.63 },
+        { "position": "left edge, middle small segment", "valueCm": 10.6 },
+        { "position": "left edge, upper segment", "valueCm": 21.63 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (cap)", "valueCm": 22.86 },
+        { "position": "left edge, upper", "valueCm": 21.6 },
+        { "position": "left edge, lower", "valueCm": 9.52 },
+        { "position": "bottom edge (hem)", "valueCm": 19.14 },
+        { "position": "right edge", "valueCm": 19.99 },
+        { "position": "bottom-right edge", "valueCm": 22.87 }
+      ]
+    },
+    {
+      "nameEn": "crotch gusset panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top point, short edge", "valueCm": 4.98 },
+        { "position": "left edge, upper", "valueCm": 20.56 },
+        { "position": "left edge, lower", "valueCm": 20.59 },
+        { "position": "bottom point, short edge", "valueCm": 4.98 },
+        {
+          "position": "overall length (horizontal dimension line)",
+          "valueCm": 41.15
+        }
+      ]
+    },
+    {
+      "nameEn": "gusset edge binding strip (label 'FUNDO BARRA' unclear)",
+      "originalLabelUnclear": true,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 4.66 },
+        { "position": "top edge, right segment", "valueCm": 4.66 },
+        { "position": "left edge (length)", "valueCm": 22 },
+        { "position": "right edge (length)", "valueCm": 22 },
+        { "position": "bottom edge, left segment", "valueCm": 4.66 },
+        { "position": "bottom edge, right segment", "valueCm": 4.66 }
+      ]
+    },
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left half", "valueCm": 37.83 },
+        { "position": "top edge, right half", "valueCm": 37.84 }
+      ]
+    },
+    {
+      "nameEn": "sleeve cuff binding strip (label 'FUNDO MANGA' unclear)",
+      "originalLabelUnclear": true,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 4.61 },
+        { "position": "top edge, right segment", "valueCm": 4.61 },
+        { "position": "left edge (length)", "valueCm": 17 },
+        { "position": "right edge (length)", "valueCm": 17 },
+        { "position": "bottom edge, left segment", "valueCm": 4.61 },
+        { "position": "bottom edge, right segment", "valueCm": 4.61 }
+      ]
+    }
+  ],
+  "notes": "Front left/right and the small binding/trim strips are mirror-image or symmetric pieces where quantities were inferred from the '1X'/'2X' piece-name suffixes and the 'Quantidade: 1 (Par)' notation, matching the qty-2-for-pair convention used across this source. Two small trim pieces (labeled 'FUNDO BARRA' and 'FUNDO MANGA' in the source, near the crotch gusset and sleeve respectively) have uncertain exact function and were flagged originalLabelUnclear."
+}

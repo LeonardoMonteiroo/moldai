@@ -1,0 +1,81 @@
+{
+  "sourceId": "043",
+  "category": "baby-blouse-with-sleeve-detail",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "baby blouse with a decorative sleeve trim/binding detail",
+  "gender": "baby",
+  "baseSizeLabel": "2",
+  "gradeNote": "approx. 1 cm variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge (to right corner)", "valueCm": 25.35 },
+        { "position": "upper-left curve, segment 1", "valueCm": 13.9 },
+        { "position": "upper-left curve, segment 2", "valueCm": 6.72 },
+        { "position": "left edge", "valueCm": 18.58 },
+        { "position": "center vertical, upper half", "valueCm": 30.44 },
+        { "position": "right edge (full height)", "valueCm": 30.69 },
+        { "position": "center horizontal line", "valueCm": 41.45 },
+        {
+          "position": "lower-left curve, segment 1 (mirrored)",
+          "valueCm": 6.72
+        },
+        {
+          "position": "lower-left curve, segment 2 (mirrored)",
+          "valueCm": 13.9
+        },
+        { "position": "bottom edge (to right corner)", "valueCm": 25.35 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge (to right corner)", "valueCm": 25.35 },
+        { "position": "upper-left curve, segment 1", "valueCm": 14.81 },
+        { "position": "upper-left curve, segment 2", "valueCm": 6.73 },
+        { "position": "left edge", "valueCm": 13.48 },
+        { "position": "center vertical, upper half", "valueCm": 30.43 },
+        { "position": "right edge (full height)", "valueCm": 30.69 },
+        { "position": "center horizontal line", "valueCm": 42.51 },
+        {
+          "position": "lower-left curve, segment 1 (mirrored)",
+          "valueCm": 6.73
+        },
+        {
+          "position": "lower-left curve, segment 2 (mirrored)",
+          "valueCm": 14.81
+        },
+        { "position": "bottom edge (to right corner)", "valueCm": 25.35 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 4.3 },
+        { "position": "left edge", "valueCm": 29.39 },
+        { "position": "mid horizontal segment", "valueCm": 9.86 },
+        { "position": "right edge", "valueCm": 20.5 },
+        { "position": "bottom-left corner (mirrored)", "valueCm": 4.3 }
+      ]
+    },
+    {
+      "nameEn": "REC.MG (sleeve trim strip)",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 2.7 },
+        { "position": "left edge", "valueCm": 29.33 },
+        { "position": "right edge", "valueCm": 29.33 },
+        { "position": "bottom edge", "valueCm": 2.7 }
+      ]
+    }
+  ],
+  "notes": "sourceId 043: several small circular marks on the front/back pieces (rendered as 'Ø') look like balance/notch marks rather than length dimensions and were not transcribed as edge values."
+}

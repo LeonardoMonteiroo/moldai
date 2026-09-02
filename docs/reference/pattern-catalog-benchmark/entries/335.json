@@ -1,0 +1,109 @@
+{
+  "sourceId": "335",
+  "category": "mens-sport-bermuda-shorts",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "men's sport bermuda shorts with front/back panels, waistband, welt pocket, side panel piece and piping strip",
+  "gender": "male",
+  "baseSizeLabel": "P",
+  "pieces": [
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 10 },
+        { "position": "bottom edge", "valueCm": 10 },
+        { "position": "left edge (length)", "valueCm": 102.52 }
+      ]
+    },
+    {
+      "nameEn": "side panel / cutout piece",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 45.14 },
+        { "position": "bottom edge", "valueCm": 45.14 },
+        { "position": "left edge", "valueCm": 6 },
+        { "position": "right edge", "valueCm": 6 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 4.05 },
+        { "position": "top edge, middle segment", "valueCm": 16.38 },
+        { "position": "top edge, right segment", "valueCm": 24.71 },
+        { "position": "left edge", "valueCm": 23.1 },
+        { "position": "right edge", "valueCm": 26.71 },
+        { "position": "bottom-left corner segment 1", "valueCm": 4.02 },
+        { "position": "bottom-left corner segment 2", "valueCm": 14.49 },
+        { "position": "bottom curve, left segment", "valueCm": 6.46 },
+        { "position": "bottom curve, right segment", "valueCm": 9.28 },
+        { "position": "bottom edge, right segment", "valueCm": 19.29 },
+        { "position": "bottom-right corner", "valueCm": 2.05 }
+      ]
+    },
+    {
+      "nameEn": "pocket bag",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 4.05 },
+        { "position": "top edge, middle segment", "valueCm": 16.38 },
+        { "position": "top edge, right segment", "valueCm": 9.19 },
+        { "position": "left edge", "valueCm": 15.59 },
+        { "position": "bottom curved edge", "valueCm": 43.18 }
+      ]
+    },
+    {
+      "nameEn": "pocket welt strip",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 24 },
+        { "position": "bottom edge", "valueCm": 24 },
+        { "position": "left edge", "valueCm": 18 },
+        { "position": "right edge", "valueCm": 18 }
+      ]
+    },
+    {
+      "nameEn": "pocket welt strip, second",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 24 },
+        { "position": "bottom edge", "valueCm": 24 },
+        { "position": "left edge", "valueCm": 18 },
+        { "position": "right edge", "valueCm": 18 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 45.17 },
+        { "position": "left edge", "valueCm": 26.05 },
+        { "position": "right edge", "valueCm": 27.21 },
+        { "position": "bottom-left corner segment 1", "valueCm": 20.37 },
+        { "position": "bottom-left corner segment 2", "valueCm": 14.04 },
+        { "position": "bottom edge, right segment", "valueCm": 19.24 },
+        { "position": "bottom-right corner", "valueCm": 2.13 }
+      ]
+    },
+    {
+      "nameEn": "piping strip",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 6 },
+        { "position": "bottom edge", "valueCm": 6 },
+        { "position": "left edge", "valueCm": 18 },
+        { "position": "right edge", "valueCm": 18 }
+      ]
+    }
+  ],
+  "notes": null
+}

@@ -1,0 +1,82 @@
+{
+  "sourceId": "004",
+  "category": "riding-style pants with zip fly",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "riding-style pants with zipper fly, side panel and welt trim",
+  "gender": null,
+  "baseSizeLabel": "P",
+  "gradeNote": "approx. 1cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 12 },
+        { "position": "bottom edge", "valueCm": 12 },
+        { "position": "left edge", "valueCm": 62 },
+        { "position": "right edge", "valueCm": 62 }
+      ],
+      "notes": "Piece carries an interior text note ('elastic sized to the waistband length') rather than a separate numeric dimension."
+    },
+    {
+      "nameEn": "welt/piping trim",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 14 },
+        { "position": "bottom edge", "valueCm": 14 },
+        { "position": "left edge", "valueCm": 16.9 },
+        { "position": "right edge", "valueCm": 16.9 }
+      ]
+    },
+    {
+      "nameEn": "side panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 85.36 },
+        { "position": "bottom edge", "valueCm": 88.58 },
+        { "position": "right edge", "valueCm": 6.02 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left short segment", "valueCm": 7.55 },
+        { "position": "left edge", "valueCm": 16.88 },
+        { "position": "lower-left diagonal", "valueCm": 20.63 },
+        { "position": "top edge", "valueCm": 87.12 },
+        { "position": "right edge", "valueCm": 6.02 },
+        { "position": "bottom edge", "valueCm": 71.99 }
+      ]
+    },
+    {
+      "nameEn": "zipper fly piece",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 17.11 },
+        { "position": "bottom edge", "valueCm": 17.11 },
+        { "position": "left edge", "valueCm": 4.5 },
+        { "position": "right edge", "valueCm": 4.5 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 91.92 },
+        { "position": "left edge", "valueCm": 18.78 },
+        { "position": "lower-left diagonal", "valueCm": 28.53 },
+        { "position": "bottom edge", "valueCm": 71.78 },
+        { "position": "right edge", "valueCm": 13.25 }
+      ],
+      "notes": "A small rectangular '+' mark near the lower-left of this piece appears to be a placement/notch icon, not a dimension, and was not transcribed."
+    }
+  ],
+  "notes": null
+}

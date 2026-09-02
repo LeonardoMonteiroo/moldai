@@ -1,0 +1,197 @@
+{
+  "sourceId": "218",
+  "category": "womens-short-sleeve-industrial-coverall",
+  "moldaiArchetype": null,
+  "descriptionEn": "women's short-sleeve industrial coverall/jumpsuit with a yoke, front color-block cutout panels, a collar, back and inset pockets, and a lapel",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "average 1cm variation between graded sizes; measurements correspond to the printed pattern output",
+  "notes": "This is the densest sheet processed in this batch (many small overlapping industrial-workwear construction pieces with small corner ticks). Several corner-tick pairs were genuinely ambiguous small merged digits (a recurring artifact seen elsewhere in this batch, e.g. '2.2.03'-shaped text); the more confident of each pair was kept and the other flagged null rather than guessed. A small nested square piece and pieces labeled 'APELA4X' and a lapel template had unclear or only partially legible names.",
+  "pieces": [
+    {
+      "nameEn": "yoke",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left segment", "valueCm": 11.94 },
+        { "position": "top edge", "valueCm": 4.66 },
+        { "position": "left edge", "valueCm": 17.49 },
+        { "position": "right edge", "valueCm": 15 },
+        { "position": "bottom-left segment", "valueCm": 10.62 },
+        { "position": "bottom edge, segment a", "valueCm": 6.56 },
+        { "position": "bottom edge, segment b", "valueCm": 7.88 },
+        { "position": "bottom edge, segment c", "valueCm": 8.12 }
+      ]
+    },
+    {
+      "nameEn": "front cutout panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left segment", "valueCm": 12.26 },
+        { "position": "top edge, tick", "valueCm": 4.65 },
+        { "position": "top edge", "valueCm": 22.07 },
+        { "position": "left edge", "valueCm": 15 },
+        { "position": "right edge, segment a", "valueCm": 30.1 },
+        { "position": "right edge, segment b", "valueCm": 25.61 },
+        { "position": "bottom-left segment", "valueCm": 7.9 },
+        { "position": "bottom edge", "valueCm": 32.9 }
+      ]
+    },
+    {
+      "nameEn": "back (upper)",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left segment", "valueCm": 15.34 },
+        { "position": "top edge", "valueCm": 36.21 },
+        { "position": "top edge, right segment", "valueCm": 34.62 },
+        { "position": "top-right tick", "valueCm": 2.2 },
+        { "position": "top-right tick, second", "valueCm": null },
+        { "position": "left edge", "valueCm": 27.75 },
+        { "position": "right edge", "valueCm": 21.83 },
+        { "position": "bottom edge", "valueCm": 103.31 },
+        { "position": "bottom-right tick", "valueCm": 2.03 },
+        { "position": "bottom-right tick, second", "valueCm": null }
+      ]
+    },
+    {
+      "nameEn": "back (lower)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left segment", "valueCm": 3.17 },
+        { "position": "top edge", "valueCm": 24.82 },
+        { "position": "top-right segment", "valueCm": 22.08 },
+        { "position": "left edge, upper segment", "valueCm": 17.49 },
+        { "position": "left edge, lower segment", "valueCm": 17.49 },
+        { "position": "right edge", "valueCm": 50.21 },
+        { "position": "bottom-left segment", "valueCm": 3.17 },
+        { "position": "bottom edge", "valueCm": 24.82 },
+        { "position": "bottom-right segment", "valueCm": 22.08 }
+      ]
+    },
+    {
+      "nameEn": "front, left side",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, segment a", "valueCm": 7.63 },
+        { "position": "top edge, segment b", "valueCm": 16.01 },
+        { "position": "top edge, segment c", "valueCm": 7.9 },
+        { "position": "top edge, right segment", "valueCm": 71.71 },
+        { "position": "right edge", "valueCm": 18.76 },
+        { "position": "left edge, upper segment", "valueCm": 21.06 },
+        { "position": "left edge, mid segment", "valueCm": 5.44 },
+        { "position": "left edge, lower segment", "valueCm": 3.64 },
+        { "position": "left edge, lower-mid segment", "valueCm": 21.28 },
+        { "position": "bottom edge", "valueCm": 35.85 },
+        { "position": "bottom edge, right segment", "valueCm": 34.97 }
+      ]
+    },
+    {
+      "nameEn": "front, right side",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, segment a", "valueCm": 24.6 },
+        { "position": "top edge, segment b", "valueCm": 3.5 },
+        { "position": "top edge, segment c", "valueCm": 3.38 },
+        { "position": "top edge, segment d", "valueCm": 3.35 },
+        { "position": "left edge, upper segment", "valueCm": 5.44 },
+        { "position": "left edge, lower segment", "valueCm": 21.06 },
+        { "position": "bottom edge, segment a", "valueCm": 7.63 },
+        { "position": "bottom edge, segment b", "valueCm": 16.01 },
+        { "position": "bottom edge, segment c", "valueCm": 7.9 },
+        { "position": "top-right segment", "valueCm": 35.85 },
+        { "position": "right edge, upper segment", "valueCm": 34.97 },
+        { "position": "right edge, lower segment", "valueCm": 18.76 },
+        { "position": "bottom edge, right segment", "valueCm": 71.71 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left tick a", "valueCm": 9.94 },
+        { "position": "top-left tick b", "valueCm": 2.2 },
+        { "position": "left edge", "valueCm": 50.91 },
+        { "position": "right edge", "valueCm": 34.4 },
+        { "position": "bottom-left tick a", "valueCm": 9.94 },
+        { "position": "bottom-left tick b", "valueCm": 2.2 }
+      ]
+    },
+    {
+      "nameEn": "back pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 2 },
+        { "position": "top edge", "valueCm": 16.5 },
+        { "position": "left edge", "valueCm": 16 },
+        { "position": "right edge", "valueCm": 16 },
+        { "position": "bottom-left corner", "valueCm": 2 },
+        { "position": "bottom edge", "valueCm": 16.5 }
+      ]
+    },
+    {
+      "nameEn": "small square piece",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 15 },
+        { "position": "left edge", "valueCm": 13 },
+        { "position": "right edge", "valueCm": 13 },
+        { "position": "bottom edge", "valueCm": 15 }
+      ]
+    },
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 9.7 },
+        { "position": "left edge", "valueCm": 44.29 },
+        { "position": "right edge", "valueCm": 45.04 },
+        { "position": "bottom edge", "valueCm": 9.7 }
+      ]
+    },
+    {
+      "nameEn": "inset pocket",
+      "originalLabelUnclear": false,
+      "qty": 4,
+      "edges": [
+        { "position": "top edge, segment a", "valueCm": 7.63 },
+        { "position": "top edge, segment b", "valueCm": 16.01 },
+        { "position": "top edge, segment c", "valueCm": 7.9 },
+        { "position": "left edge", "valueCm": 4.92 },
+        { "position": "bottom edge, upper segment", "valueCm": 16.14 },
+        { "position": "bottom edge", "valueCm": 47.94 }
+      ]
+    },
+    {
+      "nameEn": "APELA4X",
+      "originalLabelUnclear": true,
+      "qty": 4,
+      "edges": [
+        { "position": "top edge, segment a", "valueCm": 7.76 },
+        { "position": "top edge, segment b", "valueCm": 9.2 },
+        { "position": "right edge", "valueCm": 7.65 },
+        { "position": "bottom edge, segment a", "valueCm": 9.2 },
+        { "position": "bottom edge, segment b", "valueCm": 7.76 }
+      ]
+    },
+    {
+      "nameEn": "lapel template (gabarito lapela)",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 6 },
+        { "position": "left edge", "valueCm": 15 },
+        { "position": "right edge", "valueCm": 7.65 },
+        { "position": "bottom edge", "valueCm": 6 }
+      ]
+    }
+  ]
+}

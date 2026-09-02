@@ -1,0 +1,106 @@
+{
+  "sourceId": "020",
+  "category": "double-layer-crop-top",
+  "moldaiArchetype": null,
+  "descriptionEn": "double-layer crop top (separate outer layer and inner lining layer) with an elastic hem band, no sleeves",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "back (outer layer)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, curve segment", "valueCm": 7.28 },
+        { "position": "top edge, diagonal segment", "valueCm": 26.48 },
+        { "position": "top-right, short segment", "valueCm": 2.5 },
+        { "position": "left edge, length", "valueCm": 33.83 },
+        { "position": "right-of-center vertical, length", "valueCm": 33.97 },
+        {
+          "position": "bottom-right, short segment (mirrored)",
+          "valueCm": 2.5
+        },
+        {
+          "position": "bottom edge, diagonal segment (mirrored)",
+          "valueCm": 26.48
+        },
+        { "position": "bottom edge, curve segment (mirrored)", "valueCm": 7.28 }
+      ]
+    },
+    {
+      "nameEn": "front (outer layer)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, curve segment", "valueCm": 7.28 },
+        { "position": "top edge, diagonal segment", "valueCm": 24.6 },
+        { "position": "top-right, short segment", "valueCm": 2.5 },
+        { "position": "left edge, length", "valueCm": 34 },
+        { "position": "right-of-center vertical, length", "valueCm": 48.31 },
+        {
+          "position": "bottom-right, short segment (mirrored)",
+          "valueCm": 2.5
+        },
+        {
+          "position": "bottom edge, diagonal segment (mirrored)",
+          "valueCm": 24.6
+        },
+        { "position": "bottom edge, curve segment (mirrored)", "valueCm": 7.28 }
+      ]
+    },
+    {
+      "nameEn": "back (inner lining layer)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, curve segment", "valueCm": 8.23 },
+        { "position": "top edge, diagonal segment", "valueCm": 22.73 },
+        { "position": "top-right, short segment", "valueCm": 2.5 },
+        { "position": "left edge, length", "valueCm": 33.83 },
+        { "position": "right-of-center vertical, length", "valueCm": 34.26 },
+        {
+          "position": "bottom-right, short segment (mirrored)",
+          "valueCm": 2.5
+        },
+        {
+          "position": "bottom edge, diagonal segment (mirrored)",
+          "valueCm": 22.73
+        },
+        { "position": "bottom edge, curve segment (mirrored)", "valueCm": 8.23 }
+      ]
+    },
+    {
+      "nameEn": "front (inner lining layer)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, curve segment", "valueCm": 8.23 },
+        { "position": "top edge, diagonal segment", "valueCm": 22.02 },
+        { "position": "top-right, short segment", "valueCm": 2.5 },
+        { "position": "left edge, length", "valueCm": 34 },
+        { "position": "right-of-center vertical, length", "valueCm": 45.72 },
+        {
+          "position": "bottom-right, short segment (mirrored)",
+          "valueCm": 2.5
+        },
+        {
+          "position": "bottom edge, diagonal segment (mirrored)",
+          "valueCm": 22.02
+        },
+        { "position": "bottom edge, curve segment (mirrored)", "valueCm": 8.23 }
+      ]
+    },
+    {
+      "nameEn": "elastic band (hem)",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge (width)", "valueCm": 5 },
+        { "position": "left edge (length)", "valueCm": 66 },
+        { "position": "right edge (length)", "valueCm": 66 },
+        { "position": "bottom edge (width)", "valueCm": 5 }
+      ]
+    }
+  ],
+  "notes": "All four body panels are printed as plain 'Quantidade: 1' despite each showing mirrored top/bottom dimensions around a horizontal center point; recorded literally as qty 1 per the printed label. The elastic hem band piece had no visible 'Quantidade' label near it, so qty is omitted rather than guessed."
+}

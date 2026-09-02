@@ -1,0 +1,85 @@
+{
+  "sourceId": "134",
+  "category": "midi-dress-with-tube-sleeve",
+  "moldaiArchetype": "dress",
+  "descriptionEn": "midi dress with long fitted (tube-style) sleeves and curved side-seam shaping front and back",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "right edge (full height)", "valueCm": 59.94 },
+        {
+          "position": "left edge (curve), segment 1 from top corner",
+          "valueCm": 21.24
+        },
+        { "position": "left edge (curve), segment 2", "valueCm": 12.44 },
+        {
+          "position": "left edge (curve), segment 3 (deepest)",
+          "valueCm": 17.62
+        },
+        {
+          "position": "left edge (curve), segment 4 (mirrored)",
+          "valueCm": 12.44
+        },
+        {
+          "position": "left edge (curve), segment 5 (mirrored)",
+          "valueCm": 21.24
+        },
+        { "position": "top edge, corner tick", "valueCm": 1.55 },
+        { "position": "top edge, span reading 1", "valueCm": 40.67 },
+        { "position": "top edge, span reading 2", "valueCm": 65.35 },
+        { "position": "bottom edge, corner tick", "valueCm": 1.55 },
+        { "position": "bottom edge, span reading 1", "valueCm": 40.67 },
+        { "position": "bottom edge, span reading 2", "valueCm": 65.35 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 23.11 },
+        { "position": "bottom edge", "valueCm": 23.11 },
+        { "position": "left edge", "valueCm": 44.07 },
+        { "position": "right edge", "valueCm": 28.93 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "right edge (full height)", "valueCm": 59.94 },
+        {
+          "position": "left edge (curve), segment 1 from top corner",
+          "valueCm": 21.22
+        },
+        { "position": "left edge (curve), segment 2", "valueCm": 12.44 },
+        {
+          "position": "left edge (curve), segment 3 (deepest)",
+          "valueCm": 19.41
+        },
+        {
+          "position": "left edge (curve), segment 4 (mirrored)",
+          "valueCm": 12.44
+        },
+        {
+          "position": "left edge (curve), segment 5 (mirrored)",
+          "valueCm": 21.22
+        },
+        { "position": "top edge, corner tick", "valueCm": 1.55 },
+        { "position": "top edge, span reading 1", "valueCm": 40.67 },
+        { "position": "top edge, span reading 2", "valueCm": 65.34 },
+        { "position": "bottom edge, corner tick", "valueCm": 1.55 },
+        { "position": "bottom edge, span reading 1", "valueCm": 40.67 },
+        { "position": "bottom edge, span reading 2", "valueCm": 65.34 }
+      ]
+    }
+  ],
+  "notes": "The back and front panels each show two horizontal dimension readings near the top and bottom edges (40.67 and 65.35/65.34) at slightly different heights; both are recorded as separate 'span' readings since it isn't clear whether they measure the same edge via two reference lines or two genuinely different sub-widths. A small grainline/scale marker near the sleeve piece carried its own readings (4.01, 1.01, 34.23, 34.23) but is a construction symbol, not a cut piece, so it was omitted from the pieces list."
+}

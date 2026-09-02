@@ -1,0 +1,175 @@
+{
+  "sourceId": "222",
+  "category": "dress-trousers-with-elastic-back-waistband",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "dress/tailored trousers with an elasticated back waistband section, a fly, front and back pockets, and waistband interfacing pieces",
+  "gender": "unisex",
+  "baseSizeLabel": "M",
+  "gradeNote": "average 1cm variation between graded sizes; measurements correspond to the printed pattern output",
+  "notes": "The front panel carries a small 'abre bolso' (pocket opening) construction note near its lower-left ticks, not transcribed as a separate edge. The back panel shows a small rectangular mark (possibly a dart or vent indicator) with no separate dimension of its own. This is a dense tailored-trousers sheet with several near-duplicate small waistband/interfacing pieces; piece-to-position mapping for the smallest pieces should be treated as lower confidence than the larger front/back panels.",
+  "pieces": [
+    {
+      "nameEn": "fly (braguilha)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 6 },
+        { "position": "top edge", "valueCm": 18.5 },
+        { "position": "top-right corner", "valueCm": 6 },
+        { "position": "bottom edge", "valueCm": 18.5 }
+      ]
+    },
+    {
+      "nameEn": "facing (vista)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 10 },
+        { "position": "top edge", "valueCm": 18.5 },
+        { "position": "top-right corner", "valueCm": 10 },
+        { "position": "bottom edge", "valueCm": 18.5 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left segment", "valueCm": 11.75 },
+        { "position": "top edge", "valueCm": 34.66 },
+        { "position": "bottom-left segment", "valueCm": 3.03 },
+        { "position": "bottom edge", "valueCm": 16.03 },
+        { "position": "bottom-right segment", "valueCm": 10.45 }
+      ]
+    },
+    {
+      "nameEn": "pocket facing (espelho bolso)",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left segment", "valueCm": 6.77 },
+        { "position": "top edge, left segment", "valueCm": 12.89 },
+        { "position": "top edge, curved segment", "valueCm": 33.99 },
+        { "position": "right edge", "valueCm": 42.67 },
+        { "position": "bottom-right segment", "valueCm": 5.15 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left segment a", "valueCm": 5.62 },
+        { "position": "top-left segment b", "valueCm": 17.03 },
+        { "position": "top-left segment c", "valueCm": 4 },
+        { "position": "top edge", "valueCm": 77.55 },
+        { "position": "right edge", "valueCm": 14.28 },
+        { "position": "left edge", "valueCm": 23.64 },
+        { "position": "bottom-left tick a", "valueCm": 3.03 },
+        { "position": "bottom-left tick b", "valueCm": 16.03 },
+        { "position": "bottom-left tick c", "valueCm": 14.57 },
+        { "position": "bottom edge", "valueCm": 70.55 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left segment a", "valueCm": 13.09 },
+        { "position": "top-left segment b", "valueCm": 21.53 },
+        { "position": "top edge", "valueCm": 77.55 },
+        { "position": "right edge", "valueCm": 17.96 },
+        { "position": "left edge, segment a", "valueCm": 12.58 },
+        { "position": "left edge, segment b", "valueCm": 1.99 },
+        { "position": "left edge, segment c", "valueCm": 12.6 },
+        { "position": "bottom edge", "valueCm": 104.36 }
+      ]
+    },
+    {
+      "nameEn": "back pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 23 },
+        { "position": "left edge", "valueCm": 18 },
+        { "position": "right edge", "valueCm": 18 },
+        { "position": "bottom edge", "valueCm": 23 }
+      ]
+    },
+    {
+      "nameEn": "piped pocket (bolso com vivo)",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 26 },
+        { "position": "left edge", "valueCm": 18 },
+        { "position": "right edge", "valueCm": 18 },
+        { "position": "bottom edge", "valueCm": 26 }
+      ]
+    },
+    {
+      "nameEn": "elastic template (gabarito elastico)",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 4.17 },
+        { "position": "left edge, upper segment", "valueCm": 23.59 },
+        {
+          "position": "left edge, full length (midpoint tick)",
+          "valueCm": 49.5
+        },
+        { "position": "left edge, lower segment", "valueCm": 23.59 },
+        { "position": "bottom edge", "valueCm": 4.17 }
+      ]
+    },
+    {
+      "nameEn": "front waistband, left side",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, tick a", "valueCm": 5.2 },
+        { "position": "top edge, tick b", "valueCm": 5.2 },
+        { "position": "left edge", "valueCm": 24.64 },
+        { "position": "right edge", "valueCm": 24.64 },
+        { "position": "bottom edge", "valueCm": 10 }
+      ]
+    },
+    {
+      "nameEn": "front waistband, right side",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 10 },
+        { "position": "left edge", "valueCm": 26.64 },
+        { "position": "right edge", "valueCm": 26.64 },
+        { "position": "bottom edge, tick a", "valueCm": 5.2 },
+        { "position": "bottom edge, tick b", "valueCm": 5.2 }
+      ]
+    },
+    {
+      "nameEn": "front waistband interfacing, left side",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, tick a", "valueCm": 5.2 },
+        { "position": "top edge, tick b", "valueCm": 5.2 },
+        { "position": "left edge", "valueCm": 24.64 },
+        { "position": "right edge", "valueCm": 24.64 },
+        { "position": "bottom edge", "valueCm": 10 }
+      ]
+    },
+    {
+      "nameEn": "front waistband interfacing, right side",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 10 },
+        { "position": "left edge", "valueCm": 26.64 },
+        { "position": "right edge", "valueCm": 26.64 },
+        { "position": "bottom edge, tick a", "valueCm": 5.2 },
+        { "position": "bottom edge, tick b", "valueCm": 5.2 }
+      ]
+    }
+  ]
+}

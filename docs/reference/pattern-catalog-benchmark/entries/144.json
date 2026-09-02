@@ -1,0 +1,56 @@
+{
+  "sourceId": "144",
+  "category": "strapless tube/bandeau top with lining",
+  "moldaiArchetype": null,
+  "descriptionEn": "strapless tube-style top with a curved side seam, fully lined",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 19.9 },
+        { "position": "left edge", "valueCm": 36.83 },
+        { "position": "right edge (curved outward)", "valueCm": 39.45 },
+        { "position": "bottom edge", "valueCm": 19.9 }
+      ]
+    },
+    {
+      "nameEn": "front lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 18.9 },
+        { "position": "left edge", "valueCm": 36.83 },
+        { "position": "right edge (curved outward)", "valueCm": 39.48 },
+        { "position": "bottom edge", "valueCm": 18.9 }
+      ]
+    },
+    {
+      "nameEn": "back lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 18.9 },
+        { "position": "left edge", "valueCm": 36.83 },
+        { "position": "right edge (curved outward)", "valueCm": 39.05 },
+        { "position": "bottom edge", "valueCm": 18.9 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 19.9 },
+        { "position": "left edge", "valueCm": 36.83 },
+        { "position": "right edge (curved outward)", "valueCm": 39.05 },
+        { "position": "bottom edge", "valueCm": 19.9 }
+      ]
+    }
+  ],
+  "notes": null
+}

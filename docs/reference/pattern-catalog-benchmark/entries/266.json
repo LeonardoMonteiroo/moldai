@@ -1,0 +1,58 @@
+{
+  "sourceId": "266",
+  "category": "drawstring backpack body bands",
+  "moldaiArchetype": null,
+  "descriptionEn": "drawstring bag (backpack-style) body assembled from three horizontal bands plus a small loop tab; non-apparel",
+  "gender": null,
+  "baseSizeLabel": "one size",
+  "gradeNote": null,
+  "pieces": [
+    {
+      "nameEn": "upper band",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 31 },
+        { "position": "bottom edge", "valueCm": 31 },
+        { "position": "left edge", "valueCm": 12.93 },
+        { "position": "right edge", "valueCm": 12.93 }
+      ]
+    },
+    {
+      "nameEn": "middle band",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 30.98 },
+        { "position": "bottom edge", "valueCm": 30.98 },
+        { "position": "left edge", "valueCm": 12.15 },
+        { "position": "right edge", "valueCm": 12.15 }
+      ]
+    },
+    {
+      "nameEn": "lower band",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 31 },
+        { "position": "bottom edge", "valueCm": 31 },
+        { "position": "left edge", "valueCm": 8.93 },
+        { "position": "right edge", "valueCm": 8.93 },
+        { "position": "bottom-left corner short segment", "valueCm": 4 },
+        { "position": "bottom-right corner short segment", "valueCm": 4 }
+      ]
+    },
+    {
+      "nameEn": "loop tab",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 5 },
+        { "position": "bottom edge", "valueCm": 5 },
+        { "position": "left edge", "valueCm": 5 },
+        { "position": "right edge", "valueCm": 5 }
+      ]
+    }
+  ],
+  "notes": "Non-apparel item (drawstring bag), included per extraction guidance since the drawing has real dimensioned pattern pieces. Header OBS note stated only that measurements correspond to the printed pattern (no size-grading variation note, since this is a one-size item)."
+}

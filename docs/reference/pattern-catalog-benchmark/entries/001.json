@@ -1,0 +1,121 @@
+{
+  "sourceId": "001",
+  "category": "unisex pants with cuffed hem",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "unisex pants with side panel, cuffed ankle hem and pockets",
+  "gender": "unisex",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 12 },
+        { "position": "bottom edge", "valueCm": 12 },
+        { "position": "left edge", "valueCm": 82.4 },
+        { "position": "right edge", "valueCm": 82.4 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        {
+          "position": "top-left diagonal (apex to left corner)",
+          "valueCm": 33.64
+        },
+        {
+          "position": "top-right diagonal (apex to right corner)",
+          "valueCm": 65.92
+        },
+        { "position": "left edge", "valueCm": 18.29 },
+        { "position": "right edge, upper segment", "valueCm": 12.81 },
+        { "position": "right edge, lower segment", "valueCm": 22.92 },
+        { "position": "bottom edge", "valueCm": 66.34 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 88.58 },
+        { "position": "left edge, upper segment", "valueCm": 17.06 },
+        { "position": "left edge, lower segment", "valueCm": 5.09 },
+        { "position": "right edge", "valueCm": 9.1 },
+        { "position": "lower-right edge", "valueCm": 66.06 },
+        { "position": "bottom edge", "valueCm": 22.92 },
+        {
+          "position": "small curved segment near bottom-left (crotch curve area)",
+          "valueCm": 7.57
+        }
+      ]
+    },
+    {
+      "nameEn": "side panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 102.2 },
+        { "position": "bottom edge", "valueCm": 102.2 },
+        { "position": "left edge", "valueCm": 13.24 },
+        { "position": "right edge", "valueCm": 13.24 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 14 },
+        { "position": "bottom edge", "valueCm": 14 },
+        { "position": "left edge", "valueCm": 13.98 },
+        { "position": "right edge", "valueCm": 13.98 }
+      ]
+    },
+    {
+      "nameEn": "BS1X",
+      "originalLabelUnclear": true,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 2 },
+        { "position": "top edge, right segment", "valueCm": 18 },
+        { "position": "bottom edge, left segment", "valueCm": 2 },
+        { "position": "bottom edge, right segment", "valueCm": 18 },
+        { "position": "left edge", "valueCm": 17.5 },
+        { "position": "right edge", "valueCm": 17.5 }
+      ],
+      "notes": "Piece label 'BS1X' is a cryptic abbreviation (possibly pocket-related, given 'BS' recurs on other small pieces in this drawing) not confidently translatable; kept verbatim."
+    },
+    {
+      "nameEn": "GB BS.LT",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 16.5 },
+        { "position": "bottom edge", "valueCm": 16.5 },
+        { "position": "left edge", "valueCm": 14.5 },
+        { "position": "right edge", "valueCm": 14.5 }
+      ],
+      "notes": "Piece label 'GB BS.LT' is a cryptic abbreviation not confidently translatable; kept verbatim."
+    },
+    {
+      "nameEn": "BGB_BS_TR",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "upper edge, left segment", "valueCm": 11.45 },
+        { "position": "upper edge, right segment", "valueCm": 4.25 },
+        { "position": "short segment near top-right corner", "valueCm": 2 },
+        { "position": "left edge", "valueCm": 17.79 },
+        { "position": "right edge", "valueCm": 16.95 },
+        { "position": "bottom edge", "valueCm": 9.79 }
+      ],
+      "notes": "Piece label 'BGB_BS_TR' is a cryptic abbreviation not confidently translatable; kept verbatim."
+    }
+  ],
+  "notes": null
+}

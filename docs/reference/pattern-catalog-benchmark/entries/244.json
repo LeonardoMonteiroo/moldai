@@ -1,0 +1,74 @@
+{
+  "sourceId": "244",
+  "category": "oversized-knit-tshirt-high-collar",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "Oversized knit t-shirt with a high/mock collar band and set-in sleeves.",
+  "gender": null,
+  "baseSizeLabel": "M",
+  "gradeNote": "Approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces.",
+  "pieces": [
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "left edge, upper segment", "valueCm": 4.61 },
+        { "position": "left edge, lower segment", "valueCm": 4.61 },
+        {
+          "position": "width (arrow measurement, left portion)",
+          "valueCm": 48.8
+        },
+        {
+          "position": "width (arrow measurement, right portion)",
+          "valueCm": 48.8
+        }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, right segment", "valueCm": 51.14 },
+        { "position": "top edge, diagonal segment", "valueCm": 26.17 },
+        { "position": "top-left edge, small segment", "valueCm": 2.8 },
+        { "position": "left edge, upper segment", "valueCm": 18.06 },
+        { "position": "left edge, middle curve segment", "valueCm": 24.11 },
+        { "position": "left edge, lower segment", "valueCm": 18.06 },
+        { "position": "bottom-left edge, small segment", "valueCm": 2.8 },
+        { "position": "bottom edge, diagonal segment", "valueCm": 26.17 },
+        { "position": "bottom edge, right segment", "valueCm": 51.14 },
+        { "position": "right edge (straight)", "valueCm": 59 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, main segment", "valueCm": 12.38 },
+        { "position": "top edge, small segment", "valueCm": 2.59 },
+        { "position": "left edge (curve)", "valueCm": 54.6 },
+        { "position": "vertical center line", "valueCm": 42.35 },
+        { "position": "bottom edge, main segment", "valueCm": 12.38 },
+        { "position": "bottom edge, small segment", "valueCm": 2.59 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, right segment", "valueCm": 51.14 },
+        { "position": "top edge, diagonal segment", "valueCm": 24.84 },
+        { "position": "left edge, upper segment", "valueCm": 18.06 },
+        { "position": "left edge, middle curve segment", "valueCm": 32.14 },
+        { "position": "left edge, lower segment", "valueCm": 18.06 },
+        { "position": "bottom edge, diagonal segment", "valueCm": 24.84 },
+        { "position": "bottom edge, right segment", "valueCm": 51.14 },
+        { "position": "right edge (straight)", "valueCm": 59 }
+      ]
+    }
+  ],
+  "notes": null
+}

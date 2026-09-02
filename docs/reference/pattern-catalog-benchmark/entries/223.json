@@ -1,0 +1,55 @@
+{
+  "sourceId": "223",
+  "category": "short-asymmetric-dress-with-panel-cutouts",
+  "moldaiArchetype": "dress",
+  "descriptionEn": "Short asymmetric dress with panel cutouts and set-in sleeves.",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "Approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces.",
+  "pieces": [
+    {
+      "nameEn": "top panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "upper right edge", "valueCm": 16.87 },
+        { "position": "upper left edge", "valueCm": 21.77 },
+        { "position": "far left edge", "valueCm": 2.97 },
+        { "position": "left edge, vertical", "valueCm": 51 },
+        { "position": "right edge, vertical", "valueCm": 37.64 },
+        { "position": "bottom edge", "valueCm": 3.88 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, outer segment", "valueCm": 14.26 },
+        { "position": "top edge, small segment", "valueCm": 2 },
+        { "position": "left edge", "valueCm": 44.3 },
+        { "position": "right edge, vertical", "valueCm": 28.69 },
+        { "position": "bottom edge, small segment", "valueCm": 2 },
+        { "position": "bottom edge, outer segment", "valueCm": 14.26 }
+      ]
+    },
+    {
+      "nameEn": "front/back panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 3.27 },
+        { "position": "left edge, upper segment", "valueCm": 44.64 },
+        { "position": "top edge, right segment", "valueCm": 48.87 },
+        { "position": "right edge, vertical", "valueCm": 49.35 },
+        { "position": "left edge, lower segment", "valueCm": 25.03 },
+        { "position": "left edge, bottom segment", "valueCm": 6.82 },
+        { "position": "bottom edge, left segment", "valueCm": 21.77 },
+        { "position": "bottom edge, middle segment", "valueCm": 12.98 },
+        { "position": "bottom edge, small segment", "valueCm": 3.88 },
+        { "position": "bottom edge, right diagonal", "valueCm": 47.89 }
+      ]
+    }
+  ],
+  "notes": null
+}

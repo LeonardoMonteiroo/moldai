@@ -1,0 +1,72 @@
+{
+  "sourceId": "329",
+  "category": "layered-blouse-with-attached-camisole",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "women's blouse with an attached camisole/top layer, each in an outer and lining version",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "camisole layer back, lining",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge", "valueCm": 18.9 },
+        { "position": "bottom edge", "valueCm": 18.9 },
+        { "position": "left edge, mid-height", "valueCm": 36.83 },
+        { "position": "right edge, mid-height", "valueCm": 39.05 }
+      ]
+    },
+    {
+      "nameEn": "camisole layer back, outer",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge", "valueCm": 19.9 },
+        { "position": "bottom edge", "valueCm": 19.9 },
+        { "position": "left edge, mid-height", "valueCm": 36.83 },
+        { "position": "right edge, mid-height", "valueCm": 39.05 }
+      ]
+    },
+    {
+      "nameEn": "camisole layer front, V neckline, outer",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge", "valueCm": 19.9 },
+        { "position": "bottom edge", "valueCm": 19.9 },
+        { "position": "left edge, mid-height", "valueCm": 36.83 },
+        { "position": "right edge, mid-height", "valueCm": 39.48 }
+      ]
+    },
+    {
+      "nameEn": "camisole layer front, V neckline, lining",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge", "valueCm": 18.9 },
+        { "position": "bottom edge", "valueCm": 18.9 },
+        { "position": "left edge, mid-height", "valueCm": 36.83 },
+        { "position": "right edge, mid-height", "valueCm": 39.48 }
+      ]
+    },
+    {
+      "nameEn": "blouse back",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge", "valueCm": 50 },
+        { "position": "bottom edge", "valueCm": 50 },
+        { "position": "left edge", "valueCm": 100 },
+        { "position": "right edge", "valueCm": 100 }
+      ]
+    },
+    {
+      "nameEn": "blouse front",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge", "valueCm": 50 },
+        { "position": "bottom edge", "valueCm": 50 },
+        { "position": "left edge", "valueCm": 100 },
+        { "position": "right edge", "valueCm": 100 }
+      ]
+    }
+  ],
+  "notes": null
+}

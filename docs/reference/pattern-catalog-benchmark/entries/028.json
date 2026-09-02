@@ -1,0 +1,123 @@
+{
+  "sourceId": "028",
+  "category": "kids-school-jacket-girls",
+  "moldaiArchetype": null,
+  "descriptionEn": "kids bomber-style school jacket for girls, ribbed cuffs and hem band, front patch pocket and welt pocket, bound neckline",
+  "gender": "kids",
+  "baseSizeLabel": "8",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (curve)", "valueCm": 29.13 },
+        { "position": "bottom edge (curve)", "valueCm": 29.13 },
+        { "position": "horizontal line, center span", "valueCm": 39.47 },
+        { "position": "horizontal line, left endpoint area", "valueCm": 39.4 },
+        { "position": "horizontal line, right endpoint area", "valueCm": 20 }
+      ]
+    },
+    {
+      "nameEn": "patch pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 18.5 },
+        { "position": "left edge", "valueCm": 15.42 },
+        { "position": "right edge", "valueCm": 14.82 },
+        { "position": "bottom edge", "valueCm": 18.46 }
+      ]
+    },
+    {
+      "nameEn": "welt/inset pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 18.5 },
+        { "position": "left edge", "valueCm": 18.42 },
+        { "position": "right edge", "valueCm": 17.82 },
+        { "position": "bottom edge", "valueCm": 18.45 }
+      ]
+    },
+    {
+      "nameEn": "neckline binding",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "length, top to bottom", "valueCm": 37.15 },
+        { "position": "width, mid-point", "valueCm": 6 }
+      ]
+    },
+    {
+      "nameEn": "facing",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left short segment", "valueCm": 5.15 },
+        { "position": "top edge, main span", "valueCm": 48.38 },
+        { "position": "left edge", "valueCm": 10.76 },
+        { "position": "right edge", "valueCm": 7.48 },
+        { "position": "bottom edge", "valueCm": 43.01 }
+      ]
+    },
+    {
+      "nameEn": "front panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 29.76 },
+        { "position": "left edge, upper segment", "valueCm": 18.02 },
+        { "position": "left edge, next segment", "valueCm": 10.53 },
+        { "position": "horizontal line, upper-mid", "valueCm": 20.95 },
+        { "position": "horizontal line, main span", "valueCm": 49.06 },
+        { "position": "right side, near mid line", "valueCm": 19.94 },
+        { "position": "left edge, lower segment", "valueCm": 10.76 },
+        { "position": "bottom edge", "valueCm": 43.01 }
+      ]
+    },
+    {
+      "nameEn": "back panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, right segment", "valueCm": 29.76 },
+        { "position": "top edge, left segment", "valueCm": 20.44 },
+        { "position": "left edge, upper segment", "valueCm": 10.53 },
+        { "position": "left edge, next segment", "valueCm": 17.55 },
+        { "position": "horizontal mid-line, left portion", "valueCm": 40.87 },
+        { "position": "horizontal mid-line, right portion", "valueCm": 38.85 },
+        { "position": "horizontal line, full span (lower)", "valueCm": 51.79 },
+        { "position": "left edge, lower segment", "valueCm": 10.53 },
+        { "position": "bottom edge, left segment", "valueCm": 20.44 },
+        { "position": "bottom edge, right segment", "valueCm": 29.76 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 4.56 },
+        { "position": "top edge, right segment", "valueCm": 4.56 },
+        { "position": "left edge", "valueCm": 18.34 },
+        { "position": "right edge", "valueCm": 18.34 },
+        { "position": "bottom edge, left segment", "valueCm": 4.56 },
+        { "position": "bottom edge, right segment", "valueCm": 4.56 }
+      ]
+    },
+    {
+      "nameEn": "hem band",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 9 },
+        { "position": "left edge", "valueCm": 73.8 },
+        { "position": "right edge", "valueCm": 73.8 },
+        { "position": "bottom edge", "valueCm": 9 }
+      ]
+    }
+  ],
+  "notes": "Sleeve piece: the two values flanking the 39.47 center horizontal line (39.4 and 20) read as an asymmetric pair and could not be independently cross-checked against a mirrored value — transcribed as printed; possibly a partial misread or two distinct call-outs rather than a mirrored pair. Quantities given in the source as 'Quantidade: 1 (Par)' recorded as qty 2, matching each piece's own '2X' label; pieces labeled '1X' with a plain 'Quantidade: 1' recorded as qty 1."
+}

@@ -1,0 +1,73 @@
+{
+  "sourceId": "191",
+  "category": "shorts with side cutout panel and zip pocket",
+  "moldaiArchetype": null,
+  "descriptionEn": "athletic shorts with a side cutout panel and a zippered pocket",
+  "gender": null,
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 4,
+      "edges": [
+        { "position": "top edge", "valueCm": 25.47 },
+        { "position": "left edge", "valueCm": 15.9 },
+        { "position": "bottom edge", "valueCm": 32.9 },
+        { "position": "right edge (curve)", "valueCm": 19.22 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 24.28 },
+        { "position": "top edge, notch", "valueCm": 9.85 },
+        { "position": "top edge, right segment", "valueCm": 16.82 },
+        { "position": "right edge, top corner", "valueCm": 2.01 },
+        { "position": "right edge (vertical)", "valueCm": 25.78 },
+        { "position": "left edge, upper segment", "valueCm": 5.37 },
+        { "position": "left edge, lower segment", "valueCm": 23.75 },
+        { "position": "bottom edge", "valueCm": 46.44 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (curve)", "valueCm": 16.86 },
+        { "position": "right edge, top corner", "valueCm": 2.01 },
+        { "position": "right edge (vertical)", "valueCm": 29.31 },
+        { "position": "upper-left diagonal", "valueCm": 35.85 },
+        { "position": "left edge", "valueCm": 27.2 },
+        { "position": "bottom edge", "valueCm": 44.43 },
+        { "position": "bottom-right corner", "valueCm": 2 }
+      ]
+    },
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 9.5 },
+        { "position": "overall length", "valueCm": 110 },
+        { "position": "bottom edge", "valueCm": 9.5 }
+      ]
+    },
+    {
+      "nameEn": "side cutout panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 46.44 },
+        { "position": "left edge", "valueCm": 7 },
+        { "position": "right edge", "valueCm": 7 },
+        { "position": "bottom edge", "valueCm": 46.44 }
+      ]
+    }
+  ],
+  "notes": "The front piece's bottom edge carries a non-dimensional annotation reading approximately \"ZIPER 15CM\" (a 15 cm zipper note), omitted from the edges list since it is a construction note, not a measured outline segment. The waistband piece also carries a by-size elastic-length table (P/M/G/GG), omitted for the same reason. The side cutout panel's printed label additionally notes it is shown mirrored (\"recorte lado avesso\", i.e. reverse-side view)."
+}

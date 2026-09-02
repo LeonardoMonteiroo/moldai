@@ -1,0 +1,67 @@
+{
+  "sourceId": "136",
+  "category": "midi-skirt-with-slits",
+  "moldaiArchetype": "skirt",
+  "descriptionEn": "midi skirt with side slits, front panel split into two sub-pieces plus a separate waistband",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 7 },
+        { "position": "bottom edge", "valueCm": 7 },
+        { "position": "left edge", "valueCm": 35.5 },
+        { "position": "right edge", "valueCm": 35.5 }
+      ]
+    },
+    {
+      "nameEn": "front panel, piece A",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (curved)", "valueCm": 79.31 },
+        {
+          "position": "right edge (includes 3cm hem allowance per drawing note)",
+          "valueCm": 19.45
+        },
+        { "position": "left edge (short)", "valueCm": 8.22 },
+        { "position": "bottom edge, left segment", "valueCm": 39.55 },
+        { "position": "bottom edge, right segment", "valueCm": 37.98 }
+      ]
+    },
+    {
+      "nameEn": "front panel, piece B",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 39.55 },
+        { "position": "top edge, right segment", "valueCm": 37.98 },
+        { "position": "left edge, upper segment", "valueCm": 12.15 },
+        { "position": "left edge, lower segment", "valueCm": 12.15 },
+        { "position": "right edge", "valueCm": 27.61 },
+        { "position": "bottom edge, left segment", "valueCm": 39.55 },
+        { "position": "bottom edge, right segment", "valueCm": 37.98 }
+      ]
+    },
+    {
+      "nameEn": "back panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (curved)", "valueCm": 79.31 },
+        {
+          "position": "right edge (includes 3cm hem allowance per drawing note)",
+          "valueCm": 32.06
+        },
+        { "position": "left edge (short)", "valueCm": 19.87 },
+        { "position": "bottom edge, left segment", "valueCm": 36.99 },
+        { "position": "bottom edge, right segment", "valueCm": 41.35 }
+      ]
+    }
+  ],
+  "notes": "Source drawing has two distinct front sub-pieces (labelled with piece-number suffixes '1' and '2' in the original file), each quantity given as '1' or '1 (pair)' and recorded here as qty 1 / qty 2 respectively, following the tshirt-benchmark precedent's convention. It was not possible to confirm from the drawing alone which front sub-piece is the main front panel versus a slit facing/underlay, so both are recorded generically as 'piece A' / 'piece B'. Only one back sub-piece is shown. A '3cm hem' construction note appears beside the right edge of the front-A and back panels; it is not a separate outline dimension and is not counted as its own edge."
+}

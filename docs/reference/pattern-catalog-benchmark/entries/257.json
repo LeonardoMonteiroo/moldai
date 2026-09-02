@@ -1,0 +1,60 @@
+{
+  "sourceId": "257",
+  "category": "pencil midi skirt with side slit",
+  "moldaiArchetype": "skirt",
+  "descriptionEn": "fitted pencil-cut midi skirt with a side slit, waistband and two side panels",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge (curved)", "valueCm": 78.56 },
+        { "position": "left edge, upper segment", "valueCm": 19.38 },
+        { "position": "left edge, lower segment", "valueCm": 19.38 },
+        { "position": "right edge", "valueCm": 46.15 },
+        { "position": "bottom edge (curved)", "valueCm": 78.56 }
+      ]
+    },
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top tab", "valueCm": 9 },
+        { "position": "right edge, upper segment", "valueCm": 36.5 },
+        { "position": "right edge, lower segment", "valueCm": 36.5 },
+        { "position": "bottom tab", "valueCm": 9 },
+        { "position": "left edge (total length)", "valueCm": 73 }
+      ]
+    },
+    {
+      "nameEn": "right side panel",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge (curved)", "valueCm": 78.56 },
+        { "position": "left edge", "valueCm": 11.37 },
+        { "position": "right edge", "valueCm": 15.05 },
+        { "position": "bottom edge, left tab", "valueCm": 2 },
+        { "position": "bottom edge, segment 1", "valueCm": 39 },
+        { "position": "bottom edge, segment 2", "valueCm": 38.46 },
+        { "position": "bottom edge, right tab", "valueCm": 2 }
+      ]
+    },
+    {
+      "nameEn": "left side panel",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge, left tab", "valueCm": 2 },
+        { "position": "top edge, segment 1", "valueCm": 39 },
+        { "position": "top edge, segment 2", "valueCm": 38.46 },
+        { "position": "top edge, right tab", "valueCm": 2 },
+        { "position": "left edge", "valueCm": 27.33 },
+        { "position": "right edge", "valueCm": 31.01 },
+        { "position": "bottom edge (curved)", "valueCm": 78.56 }
+      ]
+    }
+  ],
+  "notes": "No explicit 'Quantidade' value was legible near any piece label in this source drawing, so qty is omitted for all pieces rather than inferred from the piece-code suffix. A per-size elastic length table printed beside the waistband piece was not transcribed, as it is supplementary grading data rather than a piece-edge dimension. No separate front piece appears in this drawing; only back, waistband, and the two side panels are shown."
+}

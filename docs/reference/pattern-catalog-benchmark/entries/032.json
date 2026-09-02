@@ -1,0 +1,132 @@
+{
+  "sourceId": "032",
+  "category": "jacket with crew neckline and pocket",
+  "moldaiArchetype": null,
+  "descriptionEn": "casual jacket with round crew neckline, front patch pocket, ribbed cuffs and ribbed hem band",
+  "gender": null,
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1cm variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "hem band",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 13.01 },
+        { "position": "bottom edge", "valueCm": 13.01 },
+        { "position": "left edge", "valueCm": 91.08 },
+        { "position": "right edge", "valueCm": 91.08 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 37.11 },
+        { "position": "top-right diagonal", "valueCm": 22.84 },
+        { "position": "right edge, upper segment", "valueCm": 17.34 },
+        { "position": "right edge, curved segment", "valueCm": 26.49 },
+        { "position": "right edge, lower segment", "valueCm": 17.34 },
+        { "position": "bottom-right diagonal", "valueCm": 22.84 },
+        { "position": "bottom edge", "valueCm": 37.11 },
+        { "position": "left edge, full height", "valueCm": 56 },
+        {
+          "position": "right edge, full height (straight portion)",
+          "valueCm": 58.01
+        },
+        {
+          "position": "middle horizontal (chest-level width)",
+          "valueCm": 62.94
+        }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 37.11 },
+        { "position": "top-right diagonal", "valueCm": 27.99 },
+        { "position": "right edge, upper segment", "valueCm": 17.34 },
+        { "position": "right edge, next segment", "valueCm": 21.75 },
+        { "position": "right edge, lower segment", "valueCm": 17.34 },
+        { "position": "bottom-right diagonal", "valueCm": 27.99 },
+        { "position": "bottom edge", "valueCm": 37.11 },
+        { "position": "left edge, full height", "valueCm": 56 },
+        { "position": "right edge, full height", "valueCm": 58.01 },
+        { "position": "middle horizontal (chest-level width)", "valueCm": 68 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "upper cap curve segment", "valueCm": 46.6 },
+        { "position": "lower cap curve segment", "valueCm": 46.6 },
+        { "position": "left edge", "valueCm": 23.53 },
+        { "position": "right edge", "valueCm": 51.95 },
+        {
+          "position": "middle horizontal (underarm-level width)",
+          "valueCm": 57.98
+        }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 6.63 },
+        { "position": "top edge, right segment", "valueCm": 6.63 },
+        { "position": "left edge", "valueCm": 19.78 },
+        { "position": "right edge", "valueCm": 19.78 },
+        { "position": "bottom edge, left segment", "valueCm": 6.63 },
+        { "position": "bottom edge, right segment", "valueCm": 6.63 }
+      ]
+    },
+    {
+      "nameEn": "neckline band",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 6 },
+        { "position": "bottom edge", "valueCm": 6 },
+        { "position": "left edge", "valueCm": 40 },
+        { "position": "right edge", "valueCm": 40 }
+      ]
+    },
+    {
+      "nameEn": "GAB BLS (pocket template piece, label unclear)",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left diagonal", "valueCm": 7.98 },
+        { "position": "upper-right diagonal", "valueCm": 16.4 },
+        { "position": "left edge", "valueCm": 31.78 },
+        { "position": "right edge", "valueCm": 18.44 },
+        { "position": "lower-right diagonal", "valueCm": 16.4 },
+        { "position": "bottom-left diagonal", "valueCm": 7.98 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner, first segment", "valueCm": 7.4 },
+        { "position": "top-left corner, second segment", "valueCm": 2.8 },
+        { "position": "top edge", "valueCm": 20.92 },
+        { "position": "top-right diagonal", "valueCm": 2.6 },
+        { "position": "left edge", "valueCm": 34.91 },
+        { "position": "right edge", "valueCm": 18.02 },
+        { "position": "bottom-right diagonal", "valueCm": 2.6 },
+        { "position": "bottom edge", "valueCm": 20.92 },
+        { "position": "bottom-left corner, first segment", "valueCm": 7.4 },
+        { "position": "bottom-left corner, second segment", "valueCm": 2.8 }
+      ]
+    }
+  ],
+  "notes": "Piece labeled 'GAB BLS' in the source is likely a pocket template/guide piece (possibly Portuguese 'gabarito bolso') paired with the separate 'BOLSO' (pocket) piece, but the abbreviation is not confidently translated, so it is kept verbatim with originalLabelUnclear:true. Zero-value corner markers ('0') shown at the ends of some horizontal/vertical dimension lines on the front/back/sleeve pieces are corner reference points, not measurements, and were excluded from edges."
+}

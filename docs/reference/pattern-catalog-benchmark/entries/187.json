@@ -1,0 +1,88 @@
+{
+  "sourceId": "187",
+  "category": "tshirt-with-ventilation-cutout-panels",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "short-sleeve knit t-shirt with side and sleeve cutout panels for ventilation",
+  "gender": null,
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 17.97 },
+        { "position": "top edge, right segment", "valueCm": 57.31 },
+        { "position": "upper-left diagonal", "valueCm": 13.87 },
+        { "position": "armhole curve", "valueCm": 31.01 },
+        { "position": "lower-left diagonal", "valueCm": 13.87 },
+        { "position": "bottom edge, left segment", "valueCm": 17.97 },
+        { "position": "bottom edge, right segment", "valueCm": 57.31 },
+        { "position": "right edge", "valueCm": 47.85 }
+      ]
+    },
+    {
+      "nameEn": "sleeve ventilation cutout insert",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 15.54 },
+        { "position": "left edge", "valueCm": 18.64 },
+        { "position": "right edge", "valueCm": 9.9 },
+        { "position": "bottom edge", "valueCm": 15.54 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 15.54 },
+        { "position": "right edge", "valueCm": 25.14 },
+        { "position": "bottom edge", "valueCm": 15.54 },
+        { "position": "left edge (curved)", "valueCm": 43.37 }
+      ]
+    },
+    {
+      "nameEn": "side ventilation cutout panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 57.31 },
+        { "position": "upper-left corner", "valueCm": 7.09 },
+        { "position": "lower-left corner", "valueCm": 6.29 },
+        { "position": "right edge", "valueCm": 9.92 },
+        { "position": "bottom edge", "valueCm": 56.15 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 22.42 },
+        { "position": "top edge, right segment", "valueCm": 56.15 },
+        { "position": "upper-left diagonal", "valueCm": 13.88 },
+        { "position": "curve", "valueCm": 23.76 },
+        { "position": "lower-left diagonal", "valueCm": 13.88 },
+        { "position": "bottom edge, left segment", "valueCm": 22.42 },
+        { "position": "bottom edge, right segment", "valueCm": 56.15 },
+        { "position": "right edge", "valueCm": 48.62 }
+      ]
+    },
+    {
+      "nameEn": "neckline binding strip",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top end (width)", "valueCm": 4.3 },
+        { "position": "upper segment (length)", "valueCm": 23.8 },
+        { "position": "total length", "valueCm": 47.6 },
+        { "position": "lower segment (length)", "valueCm": 23.8 },
+        { "position": "bottom end (width)", "valueCm": 4.3 }
+      ]
+    }
+  ],
+  "notes": null
+}

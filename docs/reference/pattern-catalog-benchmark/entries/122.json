@@ -1,0 +1,95 @@
+{
+  "sourceId": "122",
+  "category": "one-piece-swimsuit-plain-front",
+  "moldaiArchetype": null,
+  "descriptionEn": "one-piece swimsuit with a plain (single-panel) front, back panel, both with lining, and shoulder straps",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "back lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top left corner", "valueCm": 0.56 },
+        { "position": "top edge", "valueCm": 31.91 },
+        { "position": "top right corner", "valueCm": 1.07 },
+        { "position": "upper right edge", "valueCm": 33.96 },
+        { "position": "left edge", "valueCm": 41.62 },
+        { "position": "right edge", "valueCm": 8.89 },
+        { "position": "lower right edge", "valueCm": 33.96 },
+        { "position": "bottom right corner", "valueCm": 1.07 },
+        { "position": "bottom edge", "valueCm": 31.91 },
+        { "position": "bottom left corner", "valueCm": 0.56 }
+      ]
+    },
+    {
+      "nameEn": "front lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "left edge", "valueCm": 30.64 },
+        { "position": "upper left curve, outer segment", "valueCm": 14.17 },
+        { "position": "upper left curve, inner segment", "valueCm": 5.3 },
+        { "position": "top edge", "valueCm": 31.91 },
+        { "position": "top right corner", "valueCm": 1.07 },
+        { "position": "upper right edge", "valueCm": 29.33 },
+        { "position": "right edge", "valueCm": 8.91 },
+        { "position": "lower right edge", "valueCm": 29.33 },
+        { "position": "bottom right corner", "valueCm": 1.07 },
+        { "position": "bottom edge", "valueCm": 31.91 },
+        { "position": "lower left curve, inner segment", "valueCm": 5.3 },
+        { "position": "lower left curve, outer segment", "valueCm": 14.17 }
+      ]
+    },
+    {
+      "nameEn": "back panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top left corner", "valueCm": 0.61 },
+        { "position": "top edge", "valueCm": 31.95 },
+        { "position": "top right corner", "valueCm": 1.66 },
+        { "position": "upper right edge", "valueCm": 34.25 },
+        { "position": "left edge", "valueCm": 42.26 },
+        { "position": "right edge", "valueCm": 9.93 },
+        { "position": "lower right edge", "valueCm": 34.25 },
+        { "position": "bottom right corner", "valueCm": 1.66 },
+        { "position": "bottom edge", "valueCm": 31.95 },
+        { "position": "bottom left corner", "valueCm": 0.61 }
+      ]
+    },
+    {
+      "nameEn": "front panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "left edge", "valueCm": 30.82 },
+        { "position": "upper left curve, outer segment", "valueCm": 14.68 },
+        { "position": "upper left curve, inner segment", "valueCm": 5.96 },
+        { "position": "top edge", "valueCm": 31.96 },
+        { "position": "top right corner", "valueCm": 1.66 },
+        { "position": "upper right edge", "valueCm": 29.48 },
+        { "position": "right edge", "valueCm": 9.83 },
+        { "position": "lower right edge", "valueCm": 29.48 },
+        { "position": "bottom right corner", "valueCm": 1.66 },
+        { "position": "bottom edge", "valueCm": 31.96 },
+        { "position": "lower left curve, inner segment", "valueCm": 5.96 },
+        { "position": "lower left curve, outer segment", "valueCm": 14.68 }
+      ]
+    },
+    {
+      "nameEn": "shoulder strap",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (length)", "valueCm": 154.15 },
+        { "position": "bottom edge (length)", "valueCm": 154.15 },
+        { "position": "left edge (width)", "valueCm": 8.16 },
+        { "position": "right edge (width)", "valueCm": 15.2 }
+      ]
+    }
+  ],
+  "notes": null
+}

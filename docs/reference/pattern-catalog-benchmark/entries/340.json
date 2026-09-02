@@ -1,0 +1,83 @@
+{
+  "sourceId": "340",
+  "category": "long-knit-jumpsuit",
+  "moldaiArchetype": null,
+  "descriptionEn": "women's long knit jumpsuit with front and back panels and matching front/back facing linings",
+  "gender": "female",
+  "baseSizeLabel": "P",
+  "pieces": [
+    {
+      "nameEn": "back facing",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, segment 1", "valueCm": 10.72 },
+        { "position": "top edge, segment 2", "valueCm": 10.72 },
+        { "position": "top-right corner", "valueCm": 16.38 },
+        { "position": "right edge", "valueCm": 24.53 },
+        { "position": "left edge, upper diagonal", "valueCm": 11.36 },
+        { "position": "left edge", "valueCm": 11 },
+        { "position": "bottom edge", "valueCm": 29.43 },
+        { "position": "bottom-right corner", "valueCm": 15.17 }
+      ]
+    },
+    {
+      "nameEn": "front facing",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 30.64 },
+        { "position": "top-left diagonal edge", "valueCm": 12.8 },
+        { "position": "left edge", "valueCm": 11 },
+        { "position": "right edge", "valueCm": 23.89 },
+        { "position": "bottom edge", "valueCm": 22.93 },
+        { "position": "bottom-right corner", "valueCm": 15.08 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, right segment", "valueCm": 34.88 },
+        { "position": "top edge, far-right segment", "valueCm": 47.92 },
+        { "position": "top-right corner", "valueCm": 32.8 },
+        { "position": "right edge", "valueCm": 42.4 },
+        { "position": "top edge, left segment 1", "valueCm": 11.2 },
+        { "position": "top edge, left segment 2", "valueCm": 11.2 },
+        { "position": "top edge, left diagonal segment", "valueCm": 17.91 },
+        { "position": "left edge, upper curve segment", "valueCm": 40.28 },
+        { "position": "left edge, upper diagonal segment", "valueCm": 11.38 },
+        { "position": "left edge, small segment", "valueCm": 11 },
+        { "position": "bottom edge, left segment", "valueCm": 29.44 },
+        { "position": "bottom edge, curve segment", "valueCm": 20.06 },
+        { "position": "bottom edge, middle segment", "valueCm": 49.12 },
+        { "position": "bottom edge, right segment", "valueCm": 63.83 },
+        { "position": "bottom-right corner, segment 1", "valueCm": 3 },
+        { "position": "bottom-right corner, segment 2", "valueCm": 2.8 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, right segment", "valueCm": 34.88 },
+        { "position": "top edge, far-right segment", "valueCm": 47.94 },
+        { "position": "top-right corner", "valueCm": 32.8 },
+        { "position": "right edge", "valueCm": 36.4 },
+        { "position": "left edge, upper diagonal near peak", "valueCm": 35.47 },
+        { "position": "left edge, upper segment", "valueCm": 33.2 },
+        { "position": "left edge, diagonal segment", "valueCm": 12.81 },
+        { "position": "left edge, small segment", "valueCm": 11 },
+        { "position": "bottom edge, left segment", "valueCm": 22.93 },
+        { "position": "bottom edge, curve segment", "valueCm": 20.04 },
+        { "position": "bottom edge, middle segment", "valueCm": 48.96 },
+        { "position": "bottom edge, right segment", "valueCm": 63.92 },
+        { "position": "bottom-right corner, segment 1", "valueCm": 3 },
+        { "position": "bottom-right corner, segment 2", "valueCm": 2.8 }
+      ]
+    }
+  ],
+  "notes": "Only these four pieces appeared on the source page; the garment is a sleeveless long jumpsuit finished with front/back facings rather than a separate collar/sleeve/waistband, consistent with the visible piece set."
+}

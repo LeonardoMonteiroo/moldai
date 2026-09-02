@@ -1,0 +1,114 @@
+{
+  "sourceId": "117",
+  "category": "bikini-set-flap-bottom",
+  "moldaiArchetype": null,
+  "descriptionEn": "two-piece bikini set with a curtain/flap-style bottom, bow-tie trim, and lining pieces for both top and bottom",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "tie band/strip",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (width)", "valueCm": 5 },
+        { "position": "bottom edge (width)", "valueCm": 5 },
+        { "position": "left edge (length)", "valueCm": 32 },
+        { "position": "right edge (length)", "valueCm": 32 }
+      ]
+    },
+    {
+      "nameEn": "lining piece (bottom)",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 1.96 },
+        { "position": "upper left edge", "valueCm": 18.81 },
+        { "position": "left edge", "valueCm": 1.18 },
+        { "position": "right edge (curved)", "valueCm": 19.83 },
+        { "position": "lower left edge", "valueCm": 18.81 },
+        { "position": "bottom edge", "valueCm": 1.96 }
+      ]
+    },
+    {
+      "nameEn": "top/bra piece",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 1.88 },
+        { "position": "upper left edge", "valueCm": 20.1 },
+        { "position": "left edge", "valueCm": 2.21 },
+        { "position": "right edge (curved)", "valueCm": 22.34 },
+        { "position": "lower left edge", "valueCm": 20.1 },
+        { "position": "bottom edge", "valueCm": 1.88 }
+      ]
+    },
+    {
+      "nameEn": "bow trim",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top left corner", "valueCm": 5.14 },
+        { "position": "top right corner", "valueCm": 5.14 },
+        { "position": "left edge", "valueCm": 27.53 },
+        { "position": "right edge", "valueCm": 27.53 },
+        { "position": "bottom left corner", "valueCm": 5.14 },
+        { "position": "bottom right corner", "valueCm": 5.14 }
+      ]
+    },
+    {
+      "nameEn": "back panel (bottom)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 3.79 },
+        { "position": "upper left edge", "valueCm": 32.98 },
+        { "position": "left edge", "valueCm": 37.14 },
+        { "position": "right edge (curved)", "valueCm": 8.47 },
+        { "position": "lower left edge", "valueCm": 32.98 },
+        { "position": "bottom edge", "valueCm": 3.79 }
+      ]
+    },
+    {
+      "nameEn": "back panel lining (bottom)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 3.3 },
+        { "position": "upper left edge", "valueCm": 34.19 },
+        { "position": "left edge", "valueCm": 37.14 },
+        { "position": "right edge (curved)", "valueCm": 7.04 },
+        { "position": "lower left edge", "valueCm": 34.19 },
+        { "position": "bottom edge", "valueCm": 3.3 }
+      ]
+    },
+    {
+      "nameEn": "front panel (bottom)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 3.79 },
+        { "position": "upper left edge", "valueCm": 30.48 },
+        { "position": "left edge", "valueCm": 36.99 },
+        { "position": "right edge (curved)", "valueCm": 8.46 },
+        { "position": "lower left edge", "valueCm": 30.48 },
+        { "position": "bottom edge", "valueCm": 3.79 }
+      ]
+    },
+    {
+      "nameEn": "front panel lining (bottom)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 3.29 },
+        { "position": "upper left edge", "valueCm": 31.57 },
+        { "position": "left edge", "valueCm": 36.99 },
+        { "position": "right edge (curved)", "valueCm": 7.04 },
+        { "position": "lower left edge", "valueCm": 31.57 },
+        { "position": "bottom edge", "valueCm": 3.29 }
+      ]
+    }
+  ],
+  "notes": "Two pieces were labeled with 'Quantidade: 1 (Par)' (a pair) and recorded as qty 2: the lining piece and the top/bra piece. The 'top/bra piece' label in the source drawing reads as a bra/top term even though the folder covers a bottom-focused style; recorded generically since both a top and a bottom are drawn on this sheet."
+}

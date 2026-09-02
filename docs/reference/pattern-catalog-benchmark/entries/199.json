@@ -1,0 +1,72 @@
+{
+  "sourceId": "199",
+  "category": "clochard-style-wide-pants-with-elastic-waistband",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "wide, flowing clochard-style pants with an elastic waistband and front pockets",
+  "gender": "female",
+  "baseSizeLabel": "08",
+  "gradeNote": "average +1cm variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, segment 1", "valueCm": 4 },
+        { "position": "top edge, segment 2", "valueCm": 2.2 },
+        { "position": "top edge, segment 3", "valueCm": 4 },
+        { "position": "left edge", "valueCm": 85.22 },
+        { "position": "right edge", "valueCm": 85.22 },
+        { "position": "bottom edge, segment 1", "valueCm": 4 },
+        { "position": "bottom edge, segment 2", "valueCm": 2.2 },
+        { "position": "bottom edge, segment 3", "valueCm": 4 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 4,
+      "edges": [
+        { "position": "top edge, segment 1", "valueCm": 2.7 },
+        { "position": "top edge, segment 2", "valueCm": 13.04 },
+        { "position": "top edge, segment 3", "valueCm": 11.63 },
+        { "position": "left edge", "valueCm": 15.4 },
+        { "position": "bottom/right curved edge", "valueCm": 38.12 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, segment 1", "valueCm": 2.7 },
+        { "position": "top edge, segment 2", "valueCm": 13.04 },
+        { "position": "top edge, segment 3", "valueCm": 11.63 },
+        { "position": "top edge, segment 4", "valueCm": 28.85 },
+        { "position": "top-right corner tick", "valueCm": 2 },
+        { "position": "right edge", "valueCm": 25.21 },
+        { "position": "left edge, upper segment", "valueCm": 15.4 },
+        { "position": "left edge, mid segment", "valueCm": 5.96 },
+        { "position": "left edge, lower diagonal segment", "valueCm": 11.81 },
+        { "position": "bottom edge, left segment", "valueCm": 6.77 },
+        { "position": "bottom edge", "valueCm": 38.16 },
+        { "position": "bottom-right corner tick", "valueCm": 2 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 56.22 },
+        { "position": "top-right corner tick", "valueCm": 2 },
+        { "position": "left edge", "valueCm": 22.76 },
+        { "position": "bottom edge, left segment", "valueCm": 24.33 },
+        { "position": "bottom edge", "valueCm": 38.19 },
+        { "position": "bottom-right corner tick", "valueCm": 2 },
+        { "position": "right edge", "valueCm": 27.83 }
+      ]
+    }
+  ],
+  "notes": "The back piece carries a small embedded construction note listing what appears to be planned elastic length per size (readable as a short stacked list of cm values); this is a construction note, not a piece-edge dimension, so it was not transcribed as an edge."
+}

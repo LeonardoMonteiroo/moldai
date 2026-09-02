@@ -1,0 +1,73 @@
+{
+  "sourceId": "214",
+  "category": "midi-dress-with-square-neckline",
+  "moldaiArchetype": "dress",
+  "descriptionEn": "midi-length dress with a square neckline and separate front/back facing pieces",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "average 1cm variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 75.54 },
+        { "position": "top edge, right segment", "valueCm": 34.02 },
+        { "position": "top-right tick", "valueCm": 3 },
+        { "position": "left edge, upper segment", "valueCm": 12.99 },
+        { "position": "left edge, lower segment", "valueCm": 16.81 },
+        { "position": "bottom edge, left curved segment", "valueCm": 20.96 },
+        { "position": "bottom edge", "valueCm": 89.85 },
+        { "position": "right edge", "valueCm": 29.08 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left curved segment", "valueCm": 20.95 },
+        { "position": "top edge", "valueCm": 89.85 },
+        { "position": "left edge, upper segment", "valueCm": 16.81 },
+        { "position": "left edge, upper-mid segment", "valueCm": 20.68 },
+        { "position": "left edge, lower-mid segment", "valueCm": 20.68 },
+        { "position": "left edge, lower segment", "valueCm": 16.81 },
+        { "position": "bottom edge, left curved segment", "valueCm": 20.95 },
+        { "position": "bottom edge", "valueCm": 89.85 },
+        { "position": "right edge", "valueCm": 51.18 }
+      ]
+    },
+    {
+      "nameEn": "back facing",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left curved segment", "valueCm": 20.96 },
+        { "position": "top edge", "valueCm": 14.28 },
+        { "position": "left edge, upper segment", "valueCm": 16.81 },
+        { "position": "left edge, mid segment", "valueCm": 24.98 },
+        { "position": "left edge, lower segment", "valueCm": 16.81 },
+        { "position": "bottom edge, left curved segment", "valueCm": 20.96 },
+        { "position": "bottom edge", "valueCm": 14.28 },
+        { "position": "right edge", "valueCm": 39.73 }
+      ]
+    },
+    {
+      "nameEn": "front facing",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left curved segment", "valueCm": 20.95 },
+        { "position": "top edge", "valueCm": 14.28 },
+        { "position": "left edge, upper segment", "valueCm": 16.81 },
+        { "position": "left edge, mid segment", "valueCm": 41.33 },
+        { "position": "left edge, lower segment", "valueCm": 16.81 },
+        { "position": "bottom edge, left curved segment", "valueCm": 20.95 },
+        { "position": "bottom edge", "valueCm": 14.28 },
+        { "position": "right edge", "valueCm": 39.73 }
+      ]
+    }
+  ],
+  "notes": null
+}

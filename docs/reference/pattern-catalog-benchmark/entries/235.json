@@ -1,0 +1,122 @@
+{
+  "sourceId": "235",
+  "category": "romper with collar and tie closure",
+  "moldaiArchetype": null,
+  "descriptionEn": "A short jumpsuit (romper) with a collar, a tie/belt closure, patch pockets, and set-in sleeves.",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "Approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces.",
+  "pieces": [
+    {
+      "nameEn": "facing",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 39.82 },
+        { "position": "left edge", "valueCm": 6.07 },
+        { "position": "right edge", "valueCm": 6.08 },
+        { "position": "bottom edge", "valueCm": 40.48 }
+      ]
+    },
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 9.86 },
+        { "position": "left edge", "valueCm": 40.17 },
+        { "position": "right edge", "valueCm": 41.22 },
+        { "position": "bottom edge", "valueCm": 9.86 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 4,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 10 },
+        { "position": "top edge, segment", "valueCm": 14 },
+        { "position": "top edge, right segment", "valueCm": 10.58 },
+        { "position": "left edge", "valueCm": 17.49 },
+        { "position": "bottom edge (curve)", "valueCm": 47.27 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "left edge", "valueCm": 55.36 },
+        { "position": "right edge", "valueCm": 44.22 },
+        { "position": "top-right corner", "valueCm": null },
+        { "position": "bottom-right corner", "valueCm": null }
+      ]
+    },
+    {
+      "nameEn": "belt tie",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 9 },
+        { "position": "left edge", "valueCm": 160 },
+        { "position": "right edge", "valueCm": 160 },
+        { "position": "bottom edge", "valueCm": 9 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 3.17 },
+        { "position": "top edge", "valueCm": 26.7 },
+        { "position": "top-right corner", "valueCm": 15.11 },
+        { "position": "left edge, upper segment", "valueCm": 17.49 },
+        { "position": "left edge, lower segment", "valueCm": 10.59 },
+        { "position": "bottom edge", "valueCm": 45.01 },
+        { "position": "right edge", "valueCm": 23.64 }
+      ]
+    },
+    {
+      "nameEn": "back leg panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 42.24 },
+        { "position": "left edge", "valueCm": 23.64 },
+        { "position": "right edge", "valueCm": 40 },
+        { "position": "bottom edge (curve)", "valueCm": 42.85 },
+        { "position": "bottom corner", "valueCm": 12.16 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 25.26 },
+        { "position": "top-right corner", "valueCm": 15.11 },
+        { "position": "left edge", "valueCm": 17.49 },
+        { "position": "right edge", "valueCm": 23.12 },
+        { "position": "bottom edge, left segment", "valueCm": 9.28 },
+        { "position": "bottom edge", "valueCm": 31.29 },
+        { "position": "bottom-right small marker", "valueCm": 4 }
+      ]
+    },
+    {
+      "nameEn": "front leg panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 10 },
+        { "position": "top edge, segment", "valueCm": 14 },
+        { "position": "top edge, right segment", "valueCm": 18.24 },
+        { "position": "left edge", "valueCm": 23.64 },
+        { "position": "right edge", "valueCm": 34.22 },
+        { "position": "bottom edge", "valueCm": 32.81 },
+        { "position": "bottom-right corner", "valueCm": 12.16 }
+      ]
+    }
+  ],
+  "notes": "Sleeve piece (MANGA2X): the top-right and bottom-right corner measurements were illegible in the scan (rendered as garbled fragments like '4.3.03' / '4.1103') and are recorded as null rather than guessed. A construction note giving elastic lengths (78/72/74 cm) near the front leg panel was omitted as it is not an outline edge dimension."
+}

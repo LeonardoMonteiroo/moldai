@@ -1,0 +1,111 @@
+{
+  "sourceId": "288",
+  "category": "hooded-jacket-with-dolman-sleeves",
+  "moldaiArchetype": null,
+  "descriptionEn": "hooded jacket with wide dolman/batwing sleeves, cuffs, hem band, hood, hood facing and hood trim band",
+  "gender": null,
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 8.63 },
+        { "position": "top edge, right segment", "valueCm": 8.63 },
+        { "position": "left edge", "valueCm": 21 },
+        { "position": "right edge", "valueCm": 21 },
+        { "position": "bottom edge, left segment", "valueCm": 8.63 },
+        { "position": "bottom edge, right segment", "valueCm": 8.63 }
+      ]
+    },
+    {
+      "nameEn": "hem band",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 17 },
+        { "position": "left edge", "valueCm": 104.56 },
+        { "position": "right edge", "valueCm": 104.56 },
+        { "position": "bottom edge", "valueCm": 17 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 15.3 },
+        { "position": "top edge, curve", "valueCm": 27.97 },
+        { "position": "upper-right diagonal", "valueCm": 27.5 },
+        { "position": "right edge, mid segment", "valueCm": 21.6 },
+        { "position": "lower-right diagonal (mirrors upper)", "valueCm": 27.5 },
+        { "position": "bottom edge, curve (mirrors top)", "valueCm": 27.97 },
+        {
+          "position": "bottom-left corner (mirrors top-left)",
+          "valueCm": 15.3
+        },
+        { "position": "left edge, full height", "valueCm": 68.27 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 15.3 },
+        { "position": "top edge, curve", "valueCm": 27.85 },
+        { "position": "upper-right diagonal", "valueCm": 27.5 },
+        { "position": "right edge, lower segment", "valueCm": 17.66 },
+        { "position": "bottom edge", "valueCm": 42.59 },
+        { "position": "left edge, full height", "valueCm": 35.63 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 36.72 },
+        { "position": "right edge, full height", "valueCm": 56.24 },
+        { "position": "bottom edge (mirrors top)", "valueCm": 36.72 },
+        { "position": "left edge, full height", "valueCm": 48.74 }
+      ]
+    },
+    {
+      "nameEn": "hood facing",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "left edge, small segment", "valueCm": 4 },
+        { "position": "top edge", "valueCm": 30.29 },
+        { "position": "right edge, small segment", "valueCm": 4 },
+        { "position": "bottom edge, curve", "valueCm": 36.69 }
+      ]
+    },
+    {
+      "nameEn": "hood",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 7.09 },
+        { "position": "top edge", "valueCm": 30.28 },
+        { "position": "left edge", "valueCm": 23.79 },
+        { "position": "bottom edge, curve", "valueCm": 47.97 }
+      ]
+    },
+    {
+      "nameEn": "hood trim band",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 48.45 },
+        { "position": "left edge", "valueCm": 9.51 },
+        { "position": "right edge", "valueCm": 9.5 },
+        { "position": "bottom edge", "valueCm": 48.45 }
+      ]
+    }
+  ],
+  "notes": "A small note near the front piece gave a zipper-length reference by size, roughly 66 cm for smaller sizes and 86 cm for larger sizes (not a piece edge)."
+}

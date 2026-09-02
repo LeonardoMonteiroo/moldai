@@ -1,0 +1,182 @@
+{
+  "sourceId": "012",
+  "category": "kids hooded jacket with cut yoke",
+  "moldaiArchetype": null,
+  "descriptionEn": "kids hooded knit jacket with a front yoke seam, lined hood, ribbed cuffs and hem band, and a patch pocket",
+  "gender": "kids",
+  "baseSizeLabel": "8",
+  "gradeNote": "approx. 1 cm variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "front yoke lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 15.23 },
+        { "position": "left edge, upper segment", "valueCm": 8.79 },
+        { "position": "left edge, curved segment", "valueCm": 25.95 },
+        { "position": "left edge, lower segment", "valueCm": 8.79 },
+        { "position": "right edge", "valueCm": 36.12 },
+        { "position": "bottom edge", "valueCm": 15.23 }
+      ]
+    },
+    {
+      "nameEn": "front yoke",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 15.23 },
+        { "position": "left edge, upper segment", "valueCm": 8.79 },
+        { "position": "left edge, curved segment", "valueCm": 25.95 },
+        { "position": "left edge, lower segment", "valueCm": 8.79 },
+        { "position": "right edge", "valueCm": 36.12 },
+        { "position": "bottom edge", "valueCm": 15.23 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, corner notch", "valueCm": 4.75 },
+        { "position": "top edge", "valueCm": 28.94 },
+        { "position": "right edge, upper segment", "valueCm": 35.4 },
+        { "position": "right edge, lower segment", "valueCm": 38.4 },
+        { "position": "bottom edge, corner notch", "valueCm": 4.75 },
+        { "position": "bottom edge", "valueCm": 28.94 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 28.94 },
+        { "position": "left edge, upper curve segment", "valueCm": 21.4 },
+        { "position": "left edge, next segment", "valueCm": 8.78 },
+        { "position": "horizontal center line", "valueCm": 51.39 },
+        {
+          "position": "vertical dimension below center line, left",
+          "valueCm": 19.87
+        },
+        {
+          "position": "vertical dimension below center line, right",
+          "valueCm": 40.93
+        },
+        { "position": "left edge, lower segment", "valueCm": 8.78 },
+        { "position": "left edge, lower curve segment", "valueCm": 21.4 },
+        { "position": "bottom edge", "valueCm": 28.94 }
+      ]
+    },
+    {
+      "nameEn": "pocket template",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, main segment", "valueCm": 12.24 },
+        { "position": "top-right corner segment", "valueCm": 7.35 },
+        { "position": "left edge", "valueCm": 14.2 },
+        { "position": "right edge", "valueCm": 26.76 },
+        { "position": "bottom edge, main segment", "valueCm": 12.24 },
+        { "position": "bottom-right corner segment", "valueCm": 7.35 }
+      ]
+    },
+    {
+      "nameEn": "hem band",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 9 },
+        { "position": "left edge", "valueCm": 66.8 },
+        { "position": "right edge", "valueCm": 66.8 },
+        { "position": "bottom edge", "valueCm": 9 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top area, outer corner segment", "valueCm": 2.92 },
+        { "position": "top area, inner corner segment", "valueCm": 6.05 },
+        { "position": "left edge, upper segment", "valueCm": 19.23 },
+        { "position": "left edge, small mid segment", "valueCm": 2.48 },
+        { "position": "left edge, lower segment", "valueCm": 12.64 },
+        { "position": "right edge", "valueCm": 29.73 },
+        { "position": "bottom area, small mid segment", "valueCm": 2.48 },
+        { "position": "bottom edge, lower segment", "valueCm": 19.23 },
+        { "position": "bottom area, inner corner segment", "valueCm": 6.05 },
+        { "position": "bottom area, outer corner segment", "valueCm": 2.92 }
+      ]
+    },
+    {
+      "nameEn": "CONTRA CTS1X",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top point", "valueCm": 2.44 },
+        { "position": "horizontal mid-line, left segment", "valueCm": 19.85 },
+        { "position": "horizontal mid-line, right segment", "valueCm": 36.26 },
+        { "position": "bottom point", "valueCm": 2.44 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 4.59 },
+        { "position": "top edge, right segment", "valueCm": 4.59 },
+        { "position": "left edge", "valueCm": 18.85 },
+        { "position": "right edge", "valueCm": 18.85 },
+        { "position": "bottom edge, left segment", "valueCm": 4.59 },
+        { "position": "bottom edge, right segment", "valueCm": 4.59 }
+      ]
+    },
+    {
+      "nameEn": "sleeve lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 27.75 },
+        { "position": "left edge (diagonal, upper)", "valueCm": 40.88 },
+        { "position": "horizontal center line", "valueCm": 39.11 },
+        { "position": "right edge (diagonal, upper)", "valueCm": 19.89 },
+        { "position": "bottom edge", "valueCm": 27.75 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 27.75 },
+        { "position": "left edge (diagonal, upper)", "valueCm": 40.88 },
+        { "position": "horizontal center line", "valueCm": 39.11 },
+        { "position": "right edge (diagonal, upper)", "valueCm": 19.89 },
+        { "position": "bottom edge", "valueCm": 27.75 }
+      ]
+    },
+    {
+      "nameEn": "hood",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (curved)", "valueCm": 46.11 },
+        { "position": "right edge", "valueCm": 26.04 },
+        { "position": "bottom edge", "valueCm": 32.95 }
+      ]
+    },
+    {
+      "nameEn": "hood lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (curved)", "valueCm": 43.65 },
+        { "position": "right edge", "valueCm": 23.54 },
+        { "position": "bottom edge", "valueCm": 32.92 }
+      ]
+    }
+  ],
+  "notes": "Back panel's vertical dimension pair below the center line (19.87 / 40.93) is asymmetric, unlike similar pairs on other pieces in this batch; exact geometric relationship to the curved side edge is not fully certain, transcribed by position only. Sleeve/sleeve-lining diagonal side lengths (40.88 / 19.89) are also asymmetric; recorded as read without inferring which is the cap side vs. underarm side. 'CONTRA CTS1X' is a cryptic abbreviation (likely a back facing/counter piece) kept verbatim per instructions rather than guessed."
+}

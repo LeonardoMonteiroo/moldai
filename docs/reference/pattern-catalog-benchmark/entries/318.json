@@ -1,0 +1,36 @@
+{
+  "sourceId": "318",
+  "category": "womens-apron-single-panel",
+  "moldaiArchetype": null,
+  "descriptionEn": "women's apron, single front body panel, one size",
+  "gender": "female",
+  "baseSizeLabel": "UNICO (one size)",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 46.05 },
+        { "position": "upper-left diagonal", "valueCm": 33.62 },
+        { "position": "left edge, upper segment", "valueCm": 13 },
+        {
+          "position": "horizontal reference line through piece center",
+          "valueCm": 70
+        },
+        {
+          "position": "left edge, lower segment (mirrors upper)",
+          "valueCm": 13
+        },
+        { "position": "lower-left diagonal (mirrors upper)", "valueCm": 33.62 },
+        { "position": "bottom edge (mirrors top)", "valueCm": 46.05 },
+        { "position": "right edge, upper segment", "valueCm": 31 },
+        {
+          "position": "right edge, lower segment (mirrors upper)",
+          "valueCm": 31
+        }
+      ]
+    }
+  ],
+  "notes": "This pattern is a single size (no grading table), so there is no per-size variation note to record."
+}

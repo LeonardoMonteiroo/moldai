@@ -1,0 +1,87 @@
+{
+  "sourceId": "129",
+  "category": "cropped-jacket-with-front-yoke",
+  "moldaiArchetype": null,
+  "descriptionEn": "cropped jacket with a separate front yoke/cutout panel, set-in sleeves, cuffs, and a narrow trim piece",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern print output",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 18.78 },
+        { "position": "right edge, upper segment", "valueCm": 14.4 },
+        { "position": "right edge, lower segment", "valueCm": 13.87 },
+        { "position": "bottom edge", "valueCm": 27.25 },
+        { "position": "left edge", "valueCm": 27.88 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 51.31 },
+        { "position": "left edge", "valueCm": 26.23 },
+        { "position": "right edge", "valueCm": 51.92 },
+        { "position": "bottom edge", "valueCm": 51.31 }
+      ]
+    },
+    {
+      "nameEn": "front yoke",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 28.16 },
+        { "position": "top-right corner, small segment", "valueCm": 7.24 },
+        { "position": "right edge", "valueCm": 27.34 },
+        { "position": "bottom edge", "valueCm": 18.67 },
+        { "position": "left edge", "valueCm": 27.68 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 6.66 },
+        { "position": "top edge, right segment", "valueCm": 6.66 },
+        { "position": "left edge", "valueCm": 19.78 },
+        { "position": "right edge", "valueCm": 19.78 },
+        { "position": "bottom edge, left segment", "valueCm": 6.66 },
+        { "position": "bottom edge, right segment", "valueCm": 6.66 }
+      ]
+    },
+    {
+      "nameEn": "LA2X",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 5.51 },
+        { "position": "upper segment", "valueCm": 22.57 },
+        { "position": "full-length center measurement", "valueCm": 45.15 },
+        { "position": "lower segment (mirrored)", "valueCm": 22.57 },
+        { "position": "bottom edge (mirrored)", "valueCm": 5.51 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 28.16 },
+        { "position": "top-right segment", "valueCm": 26.15 },
+        { "position": "right edge, upper segment", "valueCm": 14.2 },
+        { "position": "right edge, deepest segment", "valueCm": 19.62 },
+        { "position": "right edge, lower segment (mirrored)", "valueCm": 14.2 },
+        { "position": "bottom-right segment (mirrored)", "valueCm": 26.15 },
+        { "position": "bottom edge", "valueCm": 28.17 },
+        { "position": "left edge, full height", "valueCm": 52.38 }
+      ]
+    }
+  ],
+  "notes": "one narrow trim/binding piece's name label was partly cut off in the source drawing and rotated 90 degrees, legible only as '...LA2X'; kept verbatim rather than guessing a full translation. The front yoke piece also carries a size-graded fabric-notion note (not a piece edge measurement) that was not transcribed."
+}

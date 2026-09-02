@@ -1,0 +1,117 @@
+{
+  "sourceId": "260",
+  "category": "kids color-block sleep gown",
+  "moldaiArchetype": null,
+  "descriptionEn": "kids color-block nightgown with separate left/right cutout panels on both front and back, set-in sleeves, and a neckband",
+  "gender": "kids",
+  "baseSizeLabel": "08",
+  "gradeNote": "approx. 3 cm average decrease between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "neckband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "end width, top", "valueCm": 5 },
+        { "position": "length, upper half", "valueCm": 19.7 },
+        { "position": "total length (bracket)", "valueCm": 39.4 },
+        { "position": "length, lower half", "valueCm": 19.7 },
+        { "position": "end width, bottom", "valueCm": 5 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "upper-left curve", "valueCm": 21.31 },
+        {
+          "position": "upper-left straight segment (below curve)",
+          "valueCm": 10.73
+        },
+        { "position": "left edge, middle segment", "valueCm": 18.37 },
+        { "position": "lower-left straight segment", "valueCm": 10.73 },
+        { "position": "lower-left curve", "valueCm": 21.31 },
+        { "position": "top-right corner", "valueCm": 3.64 },
+        { "position": "bottom-right corner", "valueCm": 3.64 },
+        { "position": "right edge (full height)", "valueCm": 41.41 }
+      ]
+    },
+    {
+      "nameEn": "back panel, right cutout",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 44.43 },
+        { "position": "top-right corner", "valueCm": 2.04 },
+        { "position": "right edge", "valueCm": 26.88 },
+        { "position": "bottom edge", "valueCm": 49.89 },
+        { "position": "left edge", "valueCm": 21.26 }
+      ]
+    },
+    {
+      "nameEn": "back panel, left cutout",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 49.89 },
+        { "position": "right edge", "valueCm": 26.88 },
+        { "position": "bottom-right corner", "valueCm": 2.04 },
+        { "position": "bottom edge", "valueCm": 44.43 },
+        { "position": "left edge", "valueCm": 21.26 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "left edge, upper segment", "valueCm": 5.07 },
+        { "position": "left edge, lower segment", "valueCm": 5.07 },
+        { "position": "width (horizontal span)", "valueCm": 40.84 },
+        { "position": "right edge", "valueCm": 28.26 }
+      ]
+    },
+    {
+      "nameEn": "front/bust panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "upper-left curve", "valueCm": 18.27 },
+        {
+          "position": "upper-left straight segment (below curve)",
+          "valueCm": 10.73
+        },
+        { "position": "left edge, middle segment", "valueCm": 23.63 },
+        { "position": "lower-left straight segment", "valueCm": 10.73 },
+        { "position": "lower-left curve", "valueCm": 18.27 },
+        { "position": "top-right corner", "valueCm": 3.64 },
+        { "position": "bottom-right corner", "valueCm": 3.64 },
+        { "position": "right edge (full height)", "valueCm": 41.41 }
+      ]
+    },
+    {
+      "nameEn": "front panel, right cutout",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 46.43 },
+        { "position": "right edge", "valueCm": 25.71 },
+        { "position": "bottom edge", "valueCm": 46.15 },
+        { "position": "left edge", "valueCm": 21.26 }
+      ]
+    },
+    {
+      "nameEn": "front panel, left cutout",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 46.15 },
+        { "position": "right edge", "valueCm": 25.71 },
+        { "position": "bottom edge", "valueCm": 46.43 },
+        { "position": "left edge", "valueCm": 21.26 }
+      ]
+    }
+  ],
+  "notes": "moldaiArchetype left null: garment is a full-length sleep gown with separate left/right color-block cutout panels on both front and back rather than a bodice+skirt or simple crew-neck construction, so it doesn't cleanly match one of the five drafting archetypes. Sleeve qty printed as '1 (Par)' (one pair); recorded here as 2 individual pieces to match the piece-count convention used elsewhere (e.g. back/front panels are '1X' = 1 piece). Front/back main panels and their cutout panels are drawn with closely-spaced, partly overlapping dimension text in the source PDF; values transcribed with moderate confidence but not one-to-one re-verified against a higher-resolution render."
+}

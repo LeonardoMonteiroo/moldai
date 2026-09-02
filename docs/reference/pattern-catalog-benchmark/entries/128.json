@@ -1,0 +1,126 @@
+{
+  "sourceId": "128",
+  "category": "cropped-waist-cinched-hoodie",
+  "moldaiArchetype": null,
+  "descriptionEn": "cropped, waist-cinched hooded sweatshirt with cuffed sleeves and a separate hem/waistband",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern print output",
+  "pieces": [
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 44.57 },
+        { "position": "left edge", "valueCm": 25.22 },
+        { "position": "right edge", "valueCm": 46.12 },
+        { "position": "bottom edge", "valueCm": 44.57 }
+      ]
+    },
+    {
+      "nameEn": "hood",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top/right diagonal edge", "valueCm": 55.8 },
+        { "position": "left edge", "valueCm": 32.52 },
+        { "position": "bottom edge", "valueCm": 38.61 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 6.66 },
+        { "position": "top edge, right segment", "valueCm": 6.66 },
+        { "position": "left edge", "valueCm": 19.78 },
+        { "position": "right edge", "valueCm": 19.78 },
+        { "position": "bottom edge, left segment", "valueCm": 6.66 },
+        { "position": "bottom edge, right segment", "valueCm": 6.66 }
+      ]
+    },
+    {
+      "nameEn": "front hem band lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 14.55 },
+        { "position": "left edge", "valueCm": 31.02 },
+        { "position": "right edge", "valueCm": 37.93 },
+        { "position": "bottom edge", "valueCm": 14.55 }
+      ]
+    },
+    {
+      "nameEn": "front hem band",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 15.05 },
+        { "position": "left edge", "valueCm": 31.02 },
+        { "position": "right edge", "valueCm": 37.85 },
+        { "position": "bottom edge", "valueCm": 15.05 }
+      ]
+    },
+    {
+      "nameEn": "back hem band lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 14.55 },
+        { "position": "left edge", "valueCm": 31 },
+        { "position": "right edge", "valueCm": 34.18 },
+        { "position": "bottom edge", "valueCm": 14.55 }
+      ]
+    },
+    {
+      "nameEn": "back hem band",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 15.05 },
+        { "position": "left edge", "valueCm": 31 },
+        { "position": "right edge", "valueCm": 34.22 },
+        { "position": "bottom edge", "valueCm": 15.05 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 21.03 },
+        { "position": "top-right corner, small segment", "valueCm": 7.78 },
+        { "position": "upper-right edge segment", "valueCm": 16.99 },
+        { "position": "right edge, deepest curve segment", "valueCm": 30.37 },
+        { "position": "lower-right edge segment (mirrored)", "valueCm": 16.99 },
+        {
+          "position": "bottom-right corner, small segment (mirrored)",
+          "valueCm": 7.78
+        },
+        { "position": "bottom edge (mirrored)", "valueCm": 21.03 },
+        { "position": "left edge, full height", "valueCm": 59.31 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 24.83 },
+        { "position": "top-right corner, small segment", "valueCm": 7.78 },
+        { "position": "upper-right edge segment", "valueCm": 16.99 },
+        { "position": "right edge, deepest curve segment", "valueCm": 25.01 },
+        { "position": "lower-right edge segment (mirrored)", "valueCm": 16.99 },
+        {
+          "position": "bottom-right corner, small segment (mirrored)",
+          "valueCm": 7.78
+        },
+        { "position": "bottom edge (mirrored)", "valueCm": 24.83 },
+        { "position": "left edge, full height", "valueCm": 42.28 }
+      ]
+    }
+  ],
+  "notes": "front and back body panels each carry a short rotated text annotation along the left edge that could not be read with confidence; it appears to be a construction note rather than a measurement and was not transcribed."
+}

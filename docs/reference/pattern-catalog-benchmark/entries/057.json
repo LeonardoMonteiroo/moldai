@@ -1,0 +1,40 @@
+{
+  "sourceId": "057",
+  "category": "shorts",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "basic shorts with waistband and a shared front-back leg panel",
+  "gender": "unisex",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 9.63 },
+        { "position": "top-right corner", "valueCm": 9.63 },
+        { "position": "left edge", "valueCm": 36.93 },
+        { "position": "right edge", "valueCm": 36.93 },
+        { "position": "bottom-left corner", "valueCm": 9.63 },
+        { "position": "bottom-right corner", "valueCm": 9.63 }
+      ]
+    },
+    {
+      "nameEn": "leg panel (shared front/back)",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left diagonal", "valueCm": 8.43 },
+        { "position": "top-left corner, small segment", "valueCm": 8.34 },
+        { "position": "top edge (main, right side)", "valueCm": 15.31 },
+        { "position": "left edge", "valueCm": 35.08 },
+        { "position": "bottom-left diagonal", "valueCm": 12.04 },
+        { "position": "bottom-left corner, small segment", "valueCm": 11.77 },
+        { "position": "bottom edge", "valueCm": 15.2 },
+        { "position": "right edge", "valueCm": 46.86 }
+      ]
+    }
+  ],
+  "notes": null
+}

@@ -1,0 +1,85 @@
+{
+  "sourceId": "271",
+  "category": "t-shirt with elongated back hem and side vents",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "t-shirt with an elongated back hem, side vents, sleeves and a collar band",
+  "gender": null,
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "upper edge, segment near cap point", "valueCm": 7.57 },
+        {
+          "position": "upper edge, short segment near cap point",
+          "valueCm": 1.99
+        },
+        { "position": "left edge (long, vertical)", "valueCm": 47.85 },
+        { "position": "lower edge, segment near cap point", "valueCm": 7.57 },
+        {
+          "position": "lower edge, short segment near cap point",
+          "valueCm": 1.99
+        },
+        { "position": "right-side edge/interior measurement", "valueCm": 33.54 }
+      ],
+      "notes": "Quantidade field reads '1 (Par)' (one pair) rather than a plain integer; qty recorded as 2 given the piece label 'MANGA2X'."
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, right short segment", "valueCm": 2 },
+        { "position": "top-right edge", "valueCm": 14.05 },
+        { "position": "top-right edge, far short segment", "valueCm": 2 },
+        { "position": "top edge", "valueCm": 33.69 },
+        { "position": "upper-left diagonal edge", "valueCm": 23.34 },
+        { "position": "left edge, upper segment", "valueCm": 8.4 },
+        { "position": "left edge, curve segment (armhole)", "valueCm": 39.26 },
+        { "position": "left edge, lower segment", "valueCm": 8.4 },
+        { "position": "lower-left diagonal edge", "valueCm": 23.34 },
+        { "position": "bottom edge", "valueCm": 33.69 },
+        { "position": "bottom-right edge, near short segment", "valueCm": 2 },
+        { "position": "bottom-right edge", "valueCm": 14.05 },
+        { "position": "bottom-right edge, far short segment", "valueCm": 2 },
+        { "position": "right edge (long, vertical)", "valueCm": 51.24 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-right edge, near short segment", "valueCm": 2 },
+        { "position": "top-right edge", "valueCm": 29.13 },
+        { "position": "top-right edge, far short segment", "valueCm": 2 },
+        { "position": "top edge", "valueCm": 33.69 },
+        { "position": "upper-left diagonal edge", "valueCm": 23.37 },
+        { "position": "left edge, upper segment", "valueCm": 8.4 },
+        { "position": "left edge, curve segment (armhole)", "valueCm": 26.62 },
+        { "position": "left edge, lower segment", "valueCm": 8.4 },
+        { "position": "lower-left diagonal edge", "valueCm": 23.37 },
+        { "position": "bottom edge", "valueCm": 33.69 },
+        { "position": "bottom-right edge, near short segment", "valueCm": 2 },
+        { "position": "bottom-right edge", "valueCm": 29.13 },
+        { "position": "bottom-right edge, far short segment", "valueCm": 2 },
+        { "position": "right edge (long, vertical)", "valueCm": 50.94 }
+      ]
+    },
+    {
+      "nameEn": "collar band",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "left edge (long, vertical)", "valueCm": 54 },
+        { "position": "right edge (long, vertical)", "valueCm": 54 },
+        { "position": "top edge width", "valueCm": null },
+        { "position": "bottom edge width", "valueCm": null }
+      ]
+    }
+  ],
+  "notes": "Collar band piece ('GOLA1X'): the top and bottom width labels are rendered as overlapping/merged digit clusters in the scan (top reads roughly '2 2.69', bottom roughly '2.69 39') and could not be confidently separated into distinct values, so both are recorded as null rather than guessed."
+}

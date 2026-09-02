@@ -1,0 +1,47 @@
+{
+  "sourceId": "180",
+  "category": "triangle-style top with elastic back band and adjustable strap",
+  "moldaiArchetype": null,
+  "descriptionEn": "triangle bikini-style top with an elasticated back band and an adjustable strap regulator, not a fitted blouse silhouette",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "front (triangle cup)",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top point", "valueCm": 6.6 },
+        { "position": "upper-left diagonal, first segment", "valueCm": 13.76 },
+        { "position": "upper-left diagonal, short segment", "valueCm": 1.41 },
+        { "position": "left edge, upper diagonal segment", "valueCm": 13.26 },
+        {
+          "position": "left edge, lower diagonal segment (mirrored)",
+          "valueCm": 13.26
+        },
+        { "position": "lower-left short segment (mirrored)", "valueCm": 1.41 },
+        {
+          "position": "lower-left diagonal segment (mirrored)",
+          "valueCm": 13.76
+        },
+        { "position": "bottom point (mirrored)", "valueCm": 6.6 },
+        { "position": "right edge (curved)", "valueCm": 35.36 }
+      ],
+      "notes": "A construction note printed beside the left edge, between the two 13.26 segments, states that elastic is gathered at a notch point there, with a 14cm finished/gathered length; recorded here as context, not as an outline edge measurement."
+    },
+    {
+      "nameEn": "back band",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 6.6 },
+        { "position": "left edge, upper segment", "valueCm": 19.35 },
+        { "position": "right edge", "valueCm": 35.2 },
+        { "position": "left edge, lower segment (mirrored)", "valueCm": 19.35 },
+        { "position": "bottom edge (mirrored)", "valueCm": 6.6 }
+      ]
+    }
+  ],
+  "notes": "A per-size grading table printed on the drawing gives the finished elastic length inside the band as 68cm (smallest size), 70cm (base size M), 72cm (next size up), and 74cm (largest size) — provided as supplementary context, not derived from the base-size M outline edges above."
+}

@@ -1,0 +1,67 @@
+{
+  "sourceId": "265",
+  "category": "patchwork-style throw pillow / cushion cover",
+  "moldaiArchetype": null,
+  "descriptionEn": "patchwork throw pillow cover assembled from five distinct rectangular panel types (side, top, middle, bottom, and bottom-corner panels)",
+  "gender": null,
+  "baseSizeLabel": "one size",
+  "gradeNote": null,
+  "pieces": [
+    {
+      "nameEn": "side panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 22.96 },
+        { "position": "bottom edge", "valueCm": 22.96 },
+        { "position": "left edge", "valueCm": 36.45 },
+        { "position": "right edge", "valueCm": 36.45 }
+      ]
+    },
+    {
+      "nameEn": "top panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 27.04 },
+        { "position": "bottom edge", "valueCm": 27.04 },
+        { "position": "left edge", "valueCm": 13.55 },
+        { "position": "right edge", "valueCm": 13.55 }
+      ]
+    },
+    {
+      "nameEn": "middle panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 27.04 },
+        { "position": "bottom edge", "valueCm": 27.04 },
+        { "position": "left edge", "valueCm": 23.9 },
+        { "position": "right edge", "valueCm": 23.9 }
+      ]
+    },
+    {
+      "nameEn": "bottom panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 31.99 },
+        { "position": "bottom edge", "valueCm": 31.99 },
+        { "position": "left edge", "valueCm": 13.55 },
+        { "position": "right edge", "valueCm": 13.55 }
+      ]
+    },
+    {
+      "nameEn": "bottom-corner panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 18.01 },
+        { "position": "bottom edge", "valueCm": 18.01 },
+        { "position": "left edge", "valueCm": 13.55 },
+        { "position": "right edge", "valueCm": 13.55 }
+      ]
+    }
+  ],
+  "notes": "Non-garment item (cushion/pillow), extracted per instructions since the qualifying PDF has a real cm-dimensioned drawing (five simple rectangular panels). moldaiArchetype set to null as it is not a garment. No grading/OBS variation note applies since the header states a single size ('TAM. ÚNICO')."
+}

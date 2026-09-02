@@ -1,0 +1,104 @@
+{
+  "sourceId": "203",
+  "category": "long-sleeve-tshirt-rounded-hem-with-pocket",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "long-sleeve t-shirt with a rounded hem, ribbed collar, and a chest patch pocket",
+  "gender": "unisex",
+  "baseSizeLabel": "08",
+  "gradeNote": "average +1cm variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner, segment a", "valueCm": 2.3 },
+        { "position": "top-left corner, segment b", "valueCm": 19.1 },
+        { "position": "top edge", "valueCm": 23.36 },
+        { "position": "top-right tick a", "valueCm": 1 },
+        { "position": "top-right tick b", "valueCm": 11 },
+        { "position": "left edge, upper segment", "valueCm": 10.33 },
+        { "position": "left edge, mid segment", "valueCm": 18.37 },
+        { "position": "left edge, lower segment", "valueCm": 10.33 },
+        { "position": "bottom-left corner, segment a", "valueCm": 2.3 },
+        { "position": "bottom-left corner, segment b", "valueCm": 19.1 },
+        { "position": "bottom edge", "valueCm": 23.36 },
+        { "position": "bottom-right tick a", "valueCm": 1 },
+        { "position": "bottom-right tick b", "valueCm": 11 },
+        { "position": "right edge", "valueCm": 43.43 }
+      ]
+    },
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 5 },
+        { "position": "left edge, upper segment", "valueCm": 19.7 },
+        {
+          "position": "left edge, full length (midpoint tick)",
+          "valueCm": 39.4
+        },
+        { "position": "left edge, lower segment", "valueCm": 19.7 },
+        { "position": "bottom edge", "valueCm": 5 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 23.36 },
+        { "position": "top-right tick a", "valueCm": 1 },
+        { "position": "top-right tick b", "valueCm": 7 },
+        { "position": "top edge, left diagonal segment", "valueCm": 18.39 },
+        { "position": "left edge, upper segment", "valueCm": 10.33 },
+        { "position": "left edge, mid segment", "valueCm": 23.6 },
+        { "position": "left edge, lower segment", "valueCm": 10.35 },
+        { "position": "bottom edge, left segment", "valueCm": 18.38 },
+        { "position": "bottom edge", "valueCm": 23.36 },
+        { "position": "bottom-right tick a", "valueCm": 1 },
+        { "position": "bottom-right tick b", "valueCm": 7 },
+        { "position": "right edge", "valueCm": 43.43 }
+      ]
+    },
+    {
+      "nameEn": "GB RS.LT",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 11 },
+        { "position": "left edge", "valueCm": 9 },
+        { "position": "right edge", "valueCm": 9 },
+        { "position": "bottom edge", "valueCm": 11 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 2 },
+        { "position": "top edge", "valueCm": 12.5 },
+        { "position": "left edge", "valueCm": 12 },
+        { "position": "right edge", "valueCm": 12 },
+        { "position": "bottom-left corner", "valueCm": 2 },
+        { "position": "bottom edge", "valueCm": 12.5 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, diagonal segment", "valueCm": 32.48 },
+        { "position": "top-right corner", "valueCm": 2.18 },
+        { "position": "right edge", "valueCm": 21.54 },
+        { "position": "left edge", "valueCm": 40.84 },
+        { "position": "bottom-right corner", "valueCm": 2.18 },
+        { "position": "bottom edge, diagonal segment", "valueCm": 32.48 }
+      ]
+    }
+  ],
+  "notes": "The small piece labeled 'GB RS.LT' recurs from a related pattern in this batch; the abbreviation could not be confidently translated, kept verbatim."
+}

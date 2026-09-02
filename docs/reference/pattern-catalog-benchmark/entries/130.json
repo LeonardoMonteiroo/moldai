@@ -1,0 +1,90 @@
+{
+  "sourceId": "130",
+  "category": "wide-leg-trousers",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "wide-leg trousers with an elastic waistband and front/back patch pockets",
+  "gender": null,
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 32 },
+        { "position": "left edge", "valueCm": 17.89 },
+        { "position": "bottom edge (angled)", "valueCm": 45.11 }
+      ]
+    },
+    {
+      "nameEn": "pocket facing",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top edge", "valueCm": 14.74 },
+        { "position": "right edge, upper segment", "valueCm": 7.6 },
+        { "position": "right edge, lower segment", "valueCm": 7.29 },
+        { "position": "bottom edge", "valueCm": 14.75 },
+        { "position": "left edge", "valueCm": 14.69 }
+      ]
+    },
+    {
+      "nameEn": "back pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 18.11 },
+        { "position": "right edge, upper segment", "valueCm": 8.95 },
+        { "position": "left edge", "valueCm": 17.6 },
+        { "position": "bottom edge", "valueCm": 18.11 },
+        { "position": "right edge, lower segment", "valueCm": 8.95 }
+      ]
+    },
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 10 },
+        { "position": "bottom edge", "valueCm": 10 },
+        { "position": "left edge", "valueCm": 67.02 },
+        { "position": "right edge", "valueCm": 67.02 }
+      ]
+    },
+    {
+      "nameEn": "elastic gauge template",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge", "valueCm": 4 },
+        { "position": "bottom edge", "valueCm": 4 },
+        { "position": "left edge", "valueCm": 76 },
+        { "position": "right edge", "valueCm": 76 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 105.58 },
+        { "position": "left edge, upper diagonal", "valueCm": 24.93 },
+        { "position": "left edge, lower diagonal", "valueCm": 26.72 },
+        { "position": "right edge", "valueCm": 36.22 },
+        { "position": "bottom edge", "valueCm": 79.95 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 105.58 },
+        { "position": "left edge, upper diagonal", "valueCm": 25.86 },
+        { "position": "left edge, lower diagonal", "valueCm": 36.56 },
+        { "position": "right edge", "valueCm": 35.96 },
+        { "position": "bottom edge", "valueCm": 79.95 }
+      ]
+    }
+  ],
+  "notes": "The front panel also carries a per-size elastic-cord-length note (P 74cm / M 76cm / G 78cm / GG 80cm); this is elastic cord length by grade, not a piece edge, so it was not recorded as an edge value. Three small unmarked tick points on the back panel appear to be placement marks with no attached number and were skipped."
+}

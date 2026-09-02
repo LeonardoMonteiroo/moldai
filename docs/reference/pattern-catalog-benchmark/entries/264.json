@@ -1,0 +1,80 @@
+{
+  "sourceId": "264",
+  "category": "women's wrap cropped blouse with back drawstring channel",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "women's cropped wrap-front blouse with set-in sleeves, a V-shaped facing strip, and a channel piece at the back for a drawstring",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 24.96 },
+        { "position": "upper-right curve", "valueCm": 25.77 },
+        { "position": "right edge, upper segment", "valueCm": 8.38 },
+        { "position": "right edge, lower segment", "valueCm": 19.5 },
+        { "position": "bottom-right corner", "valueCm": 2.66 },
+        { "position": "bottom edge", "valueCm": 30.29 },
+        { "position": "bottom-left corner", "valueCm": 2.05 },
+        { "position": "left edge", "valueCm": 21.97 }
+      ]
+    },
+    {
+      "nameEn": "V-shaped facing strip",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "upper arm, tip", "valueCm": 2.81 },
+        { "position": "upper arm, outer segment", "valueCm": 23.34 },
+        { "position": "upper arm, near vertex", "valueCm": 19.5 },
+        { "position": "lower arm, near vertex", "valueCm": 19.5 },
+        { "position": "lower arm, outer segment", "valueCm": 23.34 },
+        { "position": "lower arm, tip", "valueCm": 2.81 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 2.14 },
+        { "position": "top curve", "valueCm": 12.81 },
+        { "position": "left edge", "valueCm": 36.41 },
+        { "position": "right edge", "valueCm": 51.44 },
+        { "position": "bottom-left corner", "valueCm": 2.14 },
+        { "position": "bottom curve", "valueCm": 12.81 }
+      ]
+    },
+    {
+      "nameEn": "back tunnel/channel panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 2.01 },
+        { "position": "top edge", "valueCm": 14.59 },
+        { "position": "right edge, upper segment", "valueCm": 13.35 },
+        { "position": "left edge (full height)", "valueCm": 41.32 },
+        { "position": "right edge, middle segment", "valueCm": 16.27 },
+        { "position": "right edge, lower segment", "valueCm": 13.35 },
+        { "position": "bottom-left corner", "valueCm": 2.01 },
+        { "position": "bottom edge", "valueCm": 14.59 }
+      ]
+    },
+    {
+      "nameEn": "front/bust panel",
+      "originalLabelUnclear": false,
+      "qty": 4,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 9.37 },
+        { "position": "top curve", "valueCm": 25.76 },
+        { "position": "top-right corner", "valueCm": 8.38 },
+        { "position": "left edge", "valueCm": 29.62 },
+        { "position": "lower-right diagonal edge", "valueCm": 41.17 }
+      ]
+    }
+  ],
+  "notes": "The V-shaped facing strip piece's quantity label was not legibly visible in the drawing (rotated text near the piece); recorded as null rather than guessed. Piece quantities elsewhere were inferred from the printed 'N (Par)' quantity note combined with each piece's own '<n>X' name suffix (e.g. 'BUSTO4X' = 2 pairs = 4 pieces)."
+}

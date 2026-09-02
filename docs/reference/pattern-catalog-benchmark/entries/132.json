@@ -1,0 +1,140 @@
+{
+  "sourceId": "132",
+  "category": "unisex-shirt-jacket",
+  "moldaiArchetype": null,
+  "descriptionEn": "unisex shirt-jacket with a lapel collar, back yoke, welt chest pocket, sleeve placket, and cuffs",
+  "gender": "unisex",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 13.32 },
+        { "position": "top edge, right segment", "valueCm": 40.5 },
+        { "position": "left edge", "valueCm": 54.09 },
+        { "position": "bottom edge, left segment", "valueCm": 13.32 },
+        { "position": "bottom edge, right segment", "valueCm": 40.5 },
+        { "position": "right edge (curved), reading 1", "valueCm": 5.07 },
+        { "position": "right edge (curved), reading 2", "valueCm": 5.04 },
+        { "position": "right edge (curved), reading 3", "valueCm": 31.72 },
+        { "position": "right edge (curved), reading 4", "valueCm": 31.28 },
+        { "position": "right edge (curved), reading 5", "valueCm": 63.37 },
+        { "position": "right edge (curved), reading 6", "valueCm": 63.38 },
+        { "position": "right edge (curved), reading 7", "valueCm": 31.72 },
+        { "position": "right edge (curved), reading 8", "valueCm": 5.07 },
+        { "position": "right edge (curved), reading 9", "valueCm": 5.04 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 25.71 },
+        { "position": "top edge, right segment", "valueCm": 40.5 },
+        { "position": "left edge, upper segment", "valueCm": 21.41 },
+        { "position": "left edge, lower segment", "valueCm": 16.47 },
+        { "position": "right edge", "valueCm": 37.28 },
+        { "position": "bottom edge", "valueCm": 75.67 }
+      ]
+    },
+    {
+      "nameEn": "sleeve placket",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 40.86 },
+        { "position": "left edge", "valueCm": 13.31 },
+        { "position": "bottom edge", "valueCm": 36.94 },
+        { "position": "corner detail, reading 1", "valueCm": 4 },
+        { "position": "corner detail, reading 2", "valueCm": 9.46 },
+        { "position": "corner detail, reading 3", "valueCm": 10.23 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 36.94 },
+        { "position": "left edge", "valueCm": 45.71 },
+        { "position": "right edge, reading 1", "valueCm": 2 },
+        { "position": "right edge, reading 2", "valueCm": 10.15 },
+        { "position": "bottom edge", "valueCm": 41.08 },
+        { "position": "width reading near piece label", "valueCm": 29.3 }
+      ]
+    },
+    {
+      "nameEn": "VTL",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 10.5 },
+        { "position": "left edge", "valueCm": 59.89 },
+        { "position": "right edge", "valueCm": 53.34 },
+        { "position": "bottom edge", "valueCm": 10.5 }
+      ]
+    },
+    {
+      "nameEn": "back yoke",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 21.41 },
+        { "position": "top edge, right segment", "valueCm": 19.83 },
+        { "position": "left edge", "valueCm": 28.21 },
+        { "position": "right edge", "valueCm": 21.41 },
+        { "position": "bottom edge, main segment", "valueCm": 54.11 },
+        { "position": "bottom edge, right segment", "valueCm": 19.83 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 8 },
+        { "position": "left edge", "valueCm": 27 },
+        { "position": "right edge", "valueCm": 27 },
+        { "position": "bottom edge", "valueCm": 8 }
+      ]
+    },
+    {
+      "nameEn": "lapel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 16 },
+        { "position": "top edge, right segment", "valueCm": 18 },
+        { "position": "left edge", "valueCm": 14.99 },
+        { "position": "right edge", "valueCm": 14.99 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 20 },
+        { "position": "left edge", "valueCm": 22 },
+        { "position": "right edge", "valueCm": 22 },
+        { "position": "bottom edge", "valueCm": 20 }
+      ]
+    },
+    {
+      "nameEn": "pocket template",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 18.19 },
+        { "position": "left edge", "valueCm": 15.94 },
+        { "position": "right edge", "valueCm": 15.94 },
+        { "position": "bottom edge", "valueCm": 18.19 }
+      ]
+    }
+  ],
+  "notes": "The back panel's right edge is a single curved seam with multiple close, possibly-parallel dimension-line readings (5.07/5.04, 31.72/31.28, 63.37/63.38) whose exact individual segment boundaries are not fully clear from the drawing; all readings are recorded as separate positions rather than merged. 'VTL' is an abbreviation on the drawing that could not be confidently translated, so it was kept verbatim. moldaiArchetype is null because this garment has a lapel and yoke construction that does not cleanly match this repo's blouse archetype."
+}

@@ -1,0 +1,115 @@
+{
+  "sourceId": "019",
+  "category": "hooded-cropped-sweatshirt",
+  "moldaiArchetype": null,
+  "descriptionEn": "cropped hooded sweatshirt/jacket with long sleeves, a lined hood, and ribbed cuffs",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, diagonal segment (upper)", "valueCm": 45.56 },
+        { "position": "left value near horizontal center line", "valueCm": 22 },
+        {
+          "position": "horizontal center dimension line, span",
+          "valueCm": 56.56
+        },
+        {
+          "position": "right value near horizontal center line",
+          "valueCm": 45.98
+        },
+        {
+          "position": "bottom edge, diagonal segment (lower)",
+          "valueCm": 45.56
+        }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, span", "valueCm": 23.9 },
+        { "position": "top-right diagonal", "valueCm": 20.28 },
+        { "position": "left edge, upper segment", "valueCm": 26.27 },
+        { "position": "right edge, upper segment", "valueCm": 15.79 },
+        { "position": "middle row, left value", "valueCm": 29.05 },
+        {
+          "position": "horizontal center dimension line, span",
+          "valueCm": 50.29
+        },
+        { "position": "bottom-left value", "valueCm": 3 },
+        { "position": "bottom edge, span", "valueCm": 43.71 },
+        { "position": "bottom-right diagonal", "valueCm": 12.69 },
+        { "position": "bottom-right, short segment", "valueCm": 3.05 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, span", "valueCm": 23.9 },
+        { "position": "top-right diagonal", "valueCm": 25.06 },
+        { "position": "right edge, upper segment", "valueCm": 15.79 },
+        { "position": "left edge, middle segment", "valueCm": 52.09 },
+        { "position": "center vertical, middle segment", "valueCm": 52.09 },
+        {
+          "position": "horizontal center dimension line, span",
+          "valueCm": 52.54
+        },
+        { "position": "right edge, lower segment", "valueCm": 23.55 },
+        {
+          "position": "bottom-right diagonal (mirrored, upper)",
+          "valueCm": 15.79
+        },
+        {
+          "position": "bottom-right diagonal (mirrored, outer)",
+          "valueCm": 25.06
+        },
+        { "position": "bottom edge, span", "valueCm": 23.9 }
+      ]
+    },
+    {
+      "nameEn": "hood lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-right curve segment", "valueCm": 62.9 },
+        { "position": "left edge", "valueCm": 34.58 },
+        { "position": "bottom edge", "valueCm": 38.46 }
+      ]
+    },
+    {
+      "nameEn": "hood",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top curve segment", "valueCm": 46.99 },
+        { "position": "left edge", "valueCm": 18.6 },
+        { "position": "bottom edge", "valueCm": 37.93 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 21.81 },
+        { "position": "top-right corner", "valueCm": 6.98 },
+        { "position": "right edge, upper segment", "valueCm": 9.79 },
+        { "position": "right edge, lower segment", "valueCm": 3.87 },
+        { "position": "left edge segment", "valueCm": 9.09 },
+        { "position": "left edge, lower segment (mirrored)", "valueCm": 3.87 },
+        { "position": "right edge, mirrored lower segment", "valueCm": 9.79 },
+        { "position": "bottom-right corner (mirrored)", "valueCm": 6.98 },
+        { "position": "bottom edge (mirrored)", "valueCm": 21.81 }
+      ]
+    }
+  ],
+  "notes": "Quantities printed on the source as '1 (Par)' for sleeve, front, hood lining, hood and cuff pieces, recorded as qty 1 per the printed number (not expanded to 2); the back panel alone was printed as plain 'Quantidade: 1'. The cuff piece's left-side vs. right-side value correspondence (9.09/9.79/3.87 readings) could not be independently confirmed against the outline shape beyond page position, given the piece's small size in the render; treat that piece's edge list as lower confidence than the others in this entry."
+}

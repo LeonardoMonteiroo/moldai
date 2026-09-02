@@ -1,0 +1,136 @@
+{
+  "sourceId": "252",
+  "category": "mens-short-sleeve-polo-shirt",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "men's short-sleeve polo shirt (knit) with collar, collar stand, button placket and a curved chest pocket; this sheet shows no separate sleeve piece",
+  "gender": "male",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 51.03 },
+        { "position": "left edge, segment 1", "valueCm": 26.82 },
+        { "position": "left edge, segment 2", "valueCm": 15.23 },
+        { "position": "left edge, segment 3", "valueCm": 13.31 },
+        { "position": "left edge, segment 4", "valueCm": 13.31 },
+        { "position": "left edge, segment 5", "valueCm": 15.23 },
+        { "position": "left edge, segment 6", "valueCm": 26.82 },
+        { "position": "bottom edge", "valueCm": 51.03 },
+        { "position": "right edge", "valueCm": 53 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 51.03 },
+        { "position": "left edge, segment 1", "valueCm": 25.55 },
+        { "position": "left edge, segment 2", "valueCm": 15.23 },
+        { "position": "left edge, segment 3 (center)", "valueCm": 20.14 },
+        { "position": "left edge, segment 4", "valueCm": 15.23 },
+        { "position": "left edge, segment 5", "valueCm": 25.55 },
+        { "position": "bottom edge", "valueCm": 51.03 },
+        { "position": "right edge", "valueCm": 53 }
+      ]
+    },
+    {
+      "nameEn": "curved piece, label illegible (possibly a pocket)",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top edge, outer", "valueCm": 9.78 },
+        { "position": "top edge, inner", "valueCm": 1.06 },
+        { "position": "width, left segment", "valueCm": 52.63 },
+        { "position": "width, right segment", "valueCm": 35.95 },
+        { "position": "bottom edge, outer", "valueCm": 9.78 },
+        { "position": "bottom edge, inner", "valueCm": 1.06 }
+      ]
+    },
+    {
+      "nameEn": "narrow strip piece, label illegible (collar area)",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top edge (width)", "valueCm": 5.7 },
+        { "position": "upper segment", "valueCm": 9.01 },
+        { "position": "upper-middle segment", "valueCm": 22.89 },
+        { "position": "center length", "valueCm": 24.77 },
+        { "position": "lower-middle segment", "valueCm": 22.89 },
+        { "position": "lower segment", "valueCm": 9.01 },
+        { "position": "bottom edge (width)", "valueCm": 5.7 }
+      ]
+    },
+    {
+      "nameEn": "narrow strip piece, label illegible (collar area)",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top end", "valueCm": 2.53 },
+        { "position": "upper segment", "valueCm": 21.42 },
+        { "position": "center length (vertical)", "valueCm": 46.78 },
+        { "position": "lower segment", "valueCm": 21.42 },
+        { "position": "bottom end, mark 1", "valueCm": 0.5 },
+        { "position": "bottom end, mark 2", "valueCm": 2.53 }
+      ]
+    },
+    {
+      "nameEn": "oval strip piece, label illegible (likely collar stand)",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top end", "valueCm": 26.81 },
+        { "position": "width (horizontal)", "valueCm": 49.86 },
+        { "position": "bottom end", "valueCm": 26.81 }
+      ]
+    },
+    {
+      "nameEn": "placement/spacing template, label illegible",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 0.6 },
+        { "position": "top edge, middle segment", "valueCm": 18.03 },
+        { "position": "top edge, right segment", "valueCm": 8.5 },
+        { "position": "vertical, left", "valueCm": 2 },
+        { "position": "vertical, right", "valueCm": 4 },
+        { "position": "bottom edge, left segment", "valueCm": 0.6 },
+        { "position": "bottom edge, middle segment", "valueCm": 18.03 },
+        { "position": "bottom edge, right segment", "valueCm": 8.5 }
+      ]
+    },
+    {
+      "nameEn": "crescent piece, label illegible (possibly placket strip)",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 5.23 },
+        { "position": "left edge, upper segment", "valueCm": 6.85 },
+        { "position": "left edge, middle segment", "valueCm": 9.8 },
+        { "position": "left edge, lower segment", "valueCm": 12.35 },
+        { "position": "width (horizontal)", "valueCm": 20.13 },
+        { "position": "right edge", "valueCm": 39.67 },
+        { "position": "bottom edge", "valueCm": 5.23 }
+      ]
+    },
+    {
+      "nameEn": "crescent piece, label illegible (possibly placket strip)",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 6.23 },
+        { "position": "left edge, upper segment", "valueCm": 12.35 },
+        { "position": "left edge, middle segment", "valueCm": 9.8 },
+        { "position": "left edge, lower segment", "valueCm": 6.85 },
+        { "position": "width (horizontal)", "valueCm": 20.13 },
+        { "position": "right edge", "valueCm": 42.3 },
+        { "position": "bottom edge", "valueCm": 6.23 }
+      ]
+    }
+  ],
+  "notes": "This sheet has several small pieces in the collar/placket/pocket area whose text labels rendered too small/faint to read confidently in the scan; they are recorded here with generic shape-based names and originalLabelUnclear:true rather than a guessed identity. A vertical bracket measurement of 48.4 cm spans across the two 'crescent piece' shapes in the drawing but could not be confidently attributed to either piece individually, so it was omitted rather than force-assigned. No separate sleeve piece appears on this sheet."
+}

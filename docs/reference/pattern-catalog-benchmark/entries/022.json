@@ -1,0 +1,127 @@
+{
+  "sourceId": "022",
+  "category": "boys-varsity-school-jacket",
+  "moldaiArchetype": null,
+  "descriptionEn": "boys'/men's varsity-style school jacket with ribbed collar, cuffs and hem band, a front facing, and piped lining",
+  "gender": "male",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "hem band",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 13.11 },
+        { "position": "left edge", "valueCm": 100 },
+        { "position": "right edge", "valueCm": 100 },
+        { "position": "bottom edge", "valueCm": 13.11 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge (upper curve)", "valueCm": 49.35 },
+        { "position": "left edge", "valueCm": 23.91 },
+        { "position": "horizontal midline", "valueCm": 60.54 },
+        { "position": "right edge", "valueCm": 55.99 },
+        { "position": "bottom edge (lower curve)", "valueCm": 49.35 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 6.63 },
+        { "position": "top edge, right segment", "valueCm": 6.63 },
+        { "position": "left edge", "valueCm": 23 },
+        { "position": "right edge", "valueCm": 23 },
+        { "position": "bottom edge, left segment", "valueCm": 6.63 },
+        { "position": "bottom edge, right segment", "valueCm": 6.63 }
+      ]
+    },
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 8.06 },
+        { "position": "upper width, below top edge", "valueCm": 51.22 },
+        { "position": "lower width, above bottom edge", "valueCm": 45.95 },
+        { "position": "left edge (curve length)", "valueCm": 55.48 },
+        { "position": "bottom edge", "valueCm": 8.06 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 35.63 },
+        { "position": "right edge, segment 1 (top)", "valueCm": 29.09 },
+        { "position": "right edge, segment 2", "valueCm": 15.72 },
+        { "position": "center vertical (full height)", "valueCm": 59.48 },
+        { "position": "horizontal midline (full width)", "valueCm": 66.86 },
+        { "position": "right edge, segment 3", "valueCm": 22.47 },
+        { "position": "right edge, segment 4", "valueCm": 15.72 },
+        { "position": "right edge, segment 5 (bottom)", "valueCm": 29.09 },
+        { "position": "bottom edge", "valueCm": 35.63 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 35.63 },
+        { "position": "upper-right diagonal segment", "valueCm": 25.98 },
+        { "position": "right edge, upper segment", "valueCm": 15.72 },
+        { "position": "left edge", "valueCm": 28.44 },
+        { "position": "horizontal, upper width", "valueCm": 30.44 },
+        { "position": "horizontal, lower width", "valueCm": 62.98 },
+        { "position": "right edge, lower segment", "valueCm": 13.9 },
+        { "position": "bottom edge", "valueCm": 54.23 }
+      ]
+    },
+    {
+      "nameEn": "front facing",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 1.5 },
+        { "position": "left edge", "valueCm": 8.64 },
+        { "position": "top edge", "valueCm": 38.01 },
+        { "position": "top-right segment", "valueCm": 23.8 },
+        { "position": "right edge, upper segment", "valueCm": 9.91 },
+        { "position": "right edge, lower segment", "valueCm": 13.93 },
+        { "position": "bottom edge", "valueCm": 54.23 }
+      ]
+    },
+    {
+      "nameEn": "piping/binding strip",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 27.27 },
+        { "position": "left edge", "valueCm": 23.8 },
+        { "position": "right edge", "valueCm": 25.14 },
+        { "position": "bottom edge", "valueCm": 27.24 }
+      ]
+    },
+    {
+      "nameEn": "lining piping strip",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 27.27 },
+        { "position": "left edge", "valueCm": 20.8 },
+        { "position": "right edge", "valueCm": 22.14 },
+        { "position": "bottom edge", "valueCm": 27.24 }
+      ]
+    }
+  ],
+  "notes": null
+}

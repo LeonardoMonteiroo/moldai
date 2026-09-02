@@ -1,0 +1,72 @@
+{
+  "sourceId": "156",
+  "category": "strappy-nightgown",
+  "moldaiArchetype": "dress",
+  "descriptionEn": "sleeveless strappy nightgown, simple A-line silhouette with gathered bust panel and lace trim guide",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 62.45 },
+        { "position": "right edge, upper", "valueCm": 23.19 },
+        { "position": "right edge, lower", "valueCm": 23.19 },
+        { "position": "bottom edge", "valueCm": 62.45 },
+        { "position": "left edge", "valueCm": 58.8 }
+      ]
+    },
+    {
+      "nameEn": "lace trim guide (label 'GABARITO RENDA')",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 16.5 },
+        { "position": "left edge", "valueCm": 3.35 },
+        { "position": "right edge", "valueCm": 3.6 },
+        { "position": "bottom edge", "valueCm": 17.01 }
+      ]
+    },
+    {
+      "nameEn": "bust panel (gathered, label 'FRANZIR 10CM')",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 1.54 },
+        { "position": "upper-right diagonal", "valueCm": 15.4 },
+        { "position": "right edge, small segment", "valueCm": 1.03 },
+        { "position": "right edge, lower", "valueCm": 17.36 },
+        { "position": "bottom edge", "valueCm": 5.44 },
+        { "position": "left edge", "valueCm": 30.02 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 67.86 },
+        { "position": "right edge", "valueCm": 45.02 },
+        { "position": "bottom edge", "valueCm": 67.86 },
+        { "position": "left edge", "valueCm": 58.8 }
+      ]
+    },
+    {
+      "nameEn": "bust panel lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 1.61 },
+        { "position": "upper-right diagonal", "valueCm": 15.4 },
+        { "position": "right edge, small segment", "valueCm": 1.03 },
+        { "position": "right edge, lower", "valueCm": 16.77 },
+        { "position": "bottom edge", "valueCm": 5.41 },
+        { "position": "left edge", "valueCm": 23.15 }
+      ]
+    }
+  ],
+  "notes": "The gathered bust panel carries a construction note in the source ('FRANZIR 10CM' = gather to 10cm) which is a sewing instruction, not a further dimensioned edge, and was omitted from the edges list. The lace trim guide piece had no visible 'Quantidade' value in the source, so qty is recorded as null. Front/back qty read as 'Quantidade: 1' (no pair notation) despite the '1X' suffix, matching the source's own label."
+}

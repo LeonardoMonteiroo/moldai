@@ -1,0 +1,136 @@
+{
+  "sourceId": "105",
+  "category": "t-shirt with front and back yoke and small pocket",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "knit t-shirt with a front yoke, back yoke, neckline binding strip and a small pocket",
+  "gender": "unisex",
+  "baseSizeLabel": "P-GG (M)",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "neckline binding",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 4.39 },
+        { "position": "next segment down", "valueCm": 23.96 },
+        { "position": "mid segment", "valueCm": 47.92 },
+        { "position": "mirrored segment", "valueCm": 23.96 },
+        { "position": "bottom edge", "valueCm": 4.39 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        {
+          "position": "top-right corner, small curve segment",
+          "valueCm": 9.33
+        },
+        {
+          "position": "top-right corner, adjacent short segment",
+          "valueCm": 2.54
+        },
+        { "position": "left edge, vertical", "valueCm": 57.55 },
+        { "position": "right edge, vertical", "valueCm": 42.76 },
+        {
+          "position": "bottom-right corner, small curve segment",
+          "valueCm": 9.33
+        },
+        {
+          "position": "bottom-right corner, adjacent short segment",
+          "valueCm": 2.54
+        }
+      ]
+    },
+    {
+      "nameEn": "front yoke",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, diagonal segment", "valueCm": 13.74 },
+        {
+          "position": "top-right corner, short vertical segment",
+          "valueCm": 14.04
+        },
+        { "position": "left edge, upper segment", "valueCm": 13.68 },
+        {
+          "position": "internal vertical reference line, left",
+          "valueCm": 31.66
+        },
+        {
+          "position": "internal vertical reference line, right",
+          "valueCm": 44.65
+        },
+        { "position": "bottom-left segment", "valueCm": 13.68 },
+        { "position": "bottom edge", "valueCm": 13.75 },
+        {
+          "position": "bottom-right corner, short vertical segment",
+          "valueCm": 14.04
+        }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 47.6 },
+        { "position": "right edge, full height", "valueCm": 58 },
+        { "position": "bottom edge", "valueCm": 47.6 }
+      ]
+    },
+    {
+      "nameEn": "GB BS.LT (unclear piece)",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 13 },
+        { "position": "left edge", "valueCm": 12 },
+        { "position": "right edge", "valueCm": 12 },
+        { "position": "bottom edge", "valueCm": 13 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 16.5 },
+        { "position": "left edge", "valueCm": 15 },
+        { "position": "right edge", "valueCm": 15 },
+        { "position": "bottom edge", "valueCm": 16.5 }
+      ]
+    },
+    {
+      "nameEn": "back yoke",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, diagonal segment", "valueCm": 17.85 },
+        {
+          "position": "top-right corner, short vertical segment",
+          "valueCm": 13.3
+        },
+        { "position": "left edge, upper segment", "valueCm": 13.68 },
+        { "position": "left edge, lower diagonal segment", "valueCm": 26.11 },
+        { "position": "left edge, next segment", "valueCm": 13.68 },
+        { "position": "internal vertical reference line", "valueCm": 46.05 },
+        { "position": "bottom-left segment", "valueCm": 17.85 },
+        { "position": "bottom-right corner, short segment", "valueCm": 13.29 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 47.6 },
+        { "position": "right edge, full height", "valueCm": 58 },
+        { "position": "bottom edge", "valueCm": 47.6 }
+      ]
+    }
+  ],
+  "notes": "The front and back yoke pieces are drawn overlapping the larger front/back body pieces, so only the numbers clearly associated with each shape's own outline are attributed to it; a small piece labeled 'GB BS.LT' could not be confidently translated (kept as-is). Base size label on this sheet was a range ('P-GG') with 'M' given as the reference size in parentheses."
+}

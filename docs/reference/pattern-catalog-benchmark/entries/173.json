@@ -1,0 +1,93 @@
+{
+  "sourceId": "173",
+  "category": "casual-bermuda-shorts",
+  "moldaiArchetype": null,
+  "descriptionEn": "casual bermuda shorts with a facing-lined waistband, framed hip pocket, patch back pocket and a side pocket bag",
+  "gender": null,
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 10 },
+        { "position": "bottom edge", "valueCm": 10 },
+        { "position": "left edge", "valueCm": 106.52 },
+        { "position": "right edge", "valueCm": 106.52 }
+      ]
+    },
+    {
+      "nameEn": "facing panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 51.02 },
+        { "position": "bottom edge", "valueCm": 51.02 },
+        { "position": "left edge", "valueCm": 6 },
+        { "position": "right edge", "valueCm": 6 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 51.02 },
+        { "position": "left edge, upper segment", "valueCm": 24.1 },
+        { "position": "left edge, lower segment", "valueCm": 4.02 },
+        { "position": "bottom edge, left segment", "valueCm": 17.32 },
+        { "position": "bottom edge, notch mark, first", "valueCm": 6.7 },
+        { "position": "bottom edge, notch mark, second", "valueCm": 10.93 },
+        { "position": "bottom edge, right segment", "valueCm": 22.16 },
+        { "position": "right edge", "valueCm": 25.72 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 51.02 },
+        { "position": "left edge", "valueCm": 26.66 },
+        { "position": "bottom edge, left segment", "valueCm": 39.41 },
+        { "position": "bottom edge, right segment", "valueCm": 21.85 },
+        { "position": "right edge", "valueCm": 25.72 }
+      ]
+    },
+    {
+      "nameEn": "framed hip pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 26 },
+        { "position": "left edge", "valueCm": 18 },
+        { "position": "right edge", "valueCm": 18 },
+        { "position": "bottom edge", "valueCm": 26 }
+      ]
+    },
+    {
+      "nameEn": "back pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 23 },
+        { "position": "left edge", "valueCm": 18 },
+        { "position": "right edge", "valueCm": 18 },
+        { "position": "bottom edge", "valueCm": 23 }
+      ]
+    },
+    {
+      "nameEn": "pocket bag",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 30.7 },
+        { "position": "left edge", "valueCm": 16.59 },
+        { "position": "bottom edge, curved", "valueCm": 44.91 }
+      ]
+    }
+  ],
+  "notes": null
+}

@@ -1,0 +1,118 @@
+{
+  "sourceId": "221",
+  "category": "mens-blazer-with-pocket",
+  "moldaiArchetype": null,
+  "descriptionEn": "men's blazer with a chest pocket, a zip front closure, a collar, and lining/facing pieces",
+  "gender": "male",
+  "baseSizeLabel": "M",
+  "gradeNote": "average 1cm variation between graded sizes; measurements correspond to the printed pattern output",
+  "notes": "The back panel carries a small construction note ('abertura c/ travete' = opening with bar tack) marking a vent detail, not transcribed as a separate edge beyond its adjacent length reading. The front panel shows a 'ZÍPER' (zipper) label along its right edge as a construction note, not an edge dimension. A narrow strip piece near the collar had an illegible piece-name label and ambiguous small numeric readings; flagged originalLabelUnclear with several values recorded at lower confidence.",
+  "pieces": [
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left curved segment", "valueCm": 59.07 },
+        { "position": "top edge", "valueCm": 48.02 },
+        { "position": "right edge", "valueCm": 29.8 },
+        { "position": "bottom edge", "valueCm": 48.02 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 34.96 },
+        { "position": "left edge", "valueCm": 18.1 },
+        { "position": "right edge", "valueCm": 18.1 },
+        { "position": "bottom edge", "valueCm": 34.96 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left segment", "valueCm": 3.49 },
+        { "position": "top edge, left curved segment", "valueCm": 29.38 },
+        { "position": "top edge", "valueCm": 49.75 },
+        { "position": "right edge, upper segment", "valueCm": 29.16 },
+        { "position": "right edge, lower segment", "valueCm": 15.9 },
+        { "position": "left edge, upper segment", "valueCm": 16.97 },
+        { "position": "left edge, lower segment", "valueCm": 10.75 },
+        { "position": "bottom edge", "valueCm": 67.31 }
+      ]
+    },
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, tick a", "valueCm": 4.1 },
+        { "position": "top edge, tick b", "valueCm": 7.01 },
+        { "position": "left/right edge, reading a", "valueCm": 46.24 },
+        { "position": "left/right edge, reading b", "valueCm": 41.64 },
+        { "position": "bottom edge, tick a", "valueCm": 4.1 },
+        { "position": "bottom edge, tick b", "valueCm": 7.01 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left curved segment", "valueCm": 21.86 },
+        { "position": "top edge", "valueCm": 49.75 },
+        { "position": "right edge", "valueCm": 15.67 },
+        { "position": "left edge, upper segment", "valueCm": 16.97 },
+        { "position": "left edge, mid segment", "valueCm": 8.4 },
+        { "position": "left edge, mid-lower segment", "valueCm": 8.19 },
+        { "position": "left edge, lower segment", "valueCm": 2.45 },
+        { "position": "bottom edge", "valueCm": 56.7 },
+        { "position": "bottom-right segment", "valueCm": 17.98 }
+      ]
+    },
+    {
+      "nameEn": "narrow strip piece",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top edge, tick a", "valueCm": 2.35 },
+        { "position": "top edge, tick b", "valueCm": 8.42 },
+        { "position": "upper-mid segment", "valueCm": 11.51 },
+        { "position": "full length (midpoint tick)", "valueCm": 41.66 },
+        { "position": "lower-mid segment", "valueCm": 11.51 },
+        { "position": "bottom edge, tick a", "valueCm": 8.42 },
+        { "position": "bottom edge, tick b", "valueCm": 0.435 }
+      ]
+    },
+    {
+      "nameEn": "front lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left curved segment", "valueCm": 21.84 },
+        { "position": "top edge", "valueCm": 49.4 },
+        { "position": "right edge", "valueCm": 14.84 },
+        { "position": "left edge", "valueCm": 8.81 },
+        { "position": "bottom edge", "valueCm": 72.59 }
+      ]
+    },
+    {
+      "nameEn": "facing",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 72.57 },
+        { "position": "top-left segment", "valueCm": 9.18 },
+        { "position": "left edge, upper segment", "valueCm": 8.4 },
+        { "position": "left edge, mid segment", "valueCm": 8.19 },
+        { "position": "left edge, lower segment", "valueCm": 2.45 },
+        { "position": "bottom edge", "valueCm": 46.03 },
+        { "position": "bottom-right segment", "valueCm": 30.46 }
+      ]
+    }
+  ]
+}

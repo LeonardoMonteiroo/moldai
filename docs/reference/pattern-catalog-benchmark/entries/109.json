@@ -1,0 +1,100 @@
+{
+  "sourceId": "109",
+  "category": "women's comfort-fit pants with elastic waistband and pockets",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "women's relaxed comfort-fit trousers with an elasticated waistband and side pockets",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 12 },
+        { "position": "left edge", "valueCm": 76 },
+        { "position": "right edge", "valueCm": 76 },
+        { "position": "bottom edge", "valueCm": 12 }
+      ]
+    },
+    {
+      "nameEn": "elastic width gauge (5cm)",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 5 },
+        { "position": "left edge", "valueCm": 76 },
+        { "position": "right edge", "valueCm": 76 },
+        {
+          "position": "internal segment near top ('PRA 2X' sub-label)",
+          "valueCm": 3.02
+        },
+        { "position": "internal segment", "valueCm": 18.57 },
+        {
+          "position": "internal mid segment ('REVEL' sub-label)",
+          "valueCm": 37.98
+        },
+        { "position": "internal segment, mirrored", "valueCm": 18.57 },
+        {
+          "position": "internal segment near bottom, mirrored",
+          "valueCm": 3.02
+        },
+        { "position": "bottom edge", "valueCm": 5 }
+      ]
+    },
+    {
+      "nameEn": "front leg panel",
+      "originalLabelUnclear": true,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, curved", "valueCm": 25.89 },
+        { "position": "top edge", "valueCm": 69.41 },
+        { "position": "right edge", "valueCm": 18.59 },
+        { "position": "bottom edge, diagonal", "valueCm": 63.99 },
+        { "position": "bottom-left corner, short segment", "valueCm": 11.91 },
+        {
+          "position": "bottom-left corner, adjacent short segment",
+          "valueCm": 0.93
+        },
+        { "position": "left edge, lower diagonal", "valueCm": 17.85 },
+        { "position": "left edge, upper segment", "valueCm": 20.41 }
+      ]
+    },
+    {
+      "nameEn": "back leg panel",
+      "originalLabelUnclear": true,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left diagonal from apex", "valueCm": 33.69 },
+        { "position": "top edge, right diagonal from apex", "valueCm": 70.48 },
+        { "position": "right edge", "valueCm": 18.51 },
+        { "position": "bottom edge", "valueCm": 63.99 },
+        { "position": "bottom-left segment", "valueCm": 31.03 },
+        { "position": "left edge", "valueCm": 26.7 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": true,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, curved", "valueCm": 41.38 },
+        { "position": "left edge", "valueCm": 12.15 },
+        { "position": "bottom edge, left segment", "valueCm": 17.85 },
+        { "position": "bottom edge, right segment", "valueCm": 12.83 }
+      ]
+    },
+    {
+      "nameEn": "pocket lining",
+      "originalLabelUnclear": true,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, curved", "valueCm": 41.4 },
+        { "position": "left edge", "valueCm": 17.1 },
+        { "position": "bottom edge", "valueCm": 31.03 }
+      ]
+    }
+  ],
+  "notes": "The printed piece-name labels in the centers of the four body/pocket panels rendered too small and blurred to read directly in this scan. Names for those four pieces ('front leg panel', 'back leg panel', 'pocket', 'pocket lining') are inferred from each piece's outline shape and its similarity to explicitly-labeled pocket/panel shapes elsewhere in this reference set, not read directly off the drawing — flagged accordingly. The thin strip labeled 'GAB MEDIDA ELASTICO 5 CM' (elastic width gauge, 5cm) also carries two small internal sub-labels ('PRA 2X' and 'REVEL') whose exact relationship to the outer strip is unclear; their dimensions are included as internal segments on the same piece."
+}

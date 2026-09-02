@@ -1,0 +1,67 @@
+{
+  "sourceId": "036",
+  "category": "baby short-sleeve bodysuit",
+  "moldaiArchetype": null,
+  "descriptionEn": "baby short-sleeve bodysuit (onesie)",
+  "gender": "baby",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1cm variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 19.83 },
+        { "position": "top-right diagonal, first segment", "valueCm": 12.24 },
+        { "position": "top-right diagonal, second segment", "valueCm": 4.25 },
+        { "position": "right edge (curved)", "valueCm": 35.16 },
+        {
+          "position": "bottom-right diagonal, first segment",
+          "valueCm": 12.24
+        },
+        {
+          "position": "bottom-right diagonal, second segment",
+          "valueCm": 4.25
+        },
+        { "position": "bottom edge", "valueCm": 19.82 },
+        { "position": "left edge", "valueCm": 29.06 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 19.82 },
+        { "position": "top-right diagonal, first segment", "valueCm": 12.04 },
+        { "position": "top-right diagonal, second segment", "valueCm": 4.26 },
+        { "position": "right edge (curved)", "valueCm": 29.55 },
+        {
+          "position": "bottom-right diagonal, first segment",
+          "valueCm": 12.04
+        },
+        {
+          "position": "bottom-right diagonal, second segment",
+          "valueCm": 4.26
+        },
+        { "position": "bottom edge", "valueCm": 19.82 },
+        { "position": "left edge", "valueCm": 35.79 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-right corner, first segment", "valueCm": 4.79 },
+        { "position": "top-right corner, second segment", "valueCm": 1.55 },
+        { "position": "left edge", "valueCm": 25.1 },
+        { "position": "right edge", "valueCm": 20.01 },
+        { "position": "bottom-right corner, first segment", "valueCm": 4.79 },
+        { "position": "bottom-right corner, second segment", "valueCm": 1.55 }
+      ]
+    }
+  ],
+  "notes": "The sleeve piece's printed quantity reads '1 (Par)'; recorded literally as qty 1 (not expanded to 2), consistent with how '(Par)' quantities were handled elsewhere in this batch. Only 3 pieces are shown on this drawing (no crotch/snap-placket piece), so the bodysuit's closure pieces are not covered by this file."
+}

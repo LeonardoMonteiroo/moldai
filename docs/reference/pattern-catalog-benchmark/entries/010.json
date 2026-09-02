@@ -1,0 +1,128 @@
+{
+  "sourceId": "010",
+  "category": "kids raglan-sleeve jacket",
+  "moldaiArchetype": null,
+  "descriptionEn": "kids raglan-sleeve knit jacket with collar, ribbed cuffs, hem band, and a patch pocket",
+  "gender": "kids",
+  "baseSizeLabel": "8",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 27.66 },
+        { "position": "left edge, upper diagonal segment", "valueCm": 21.95 },
+        { "position": "left edge, middle curved segment", "valueCm": 18.66 },
+        { "position": "left edge, lower diagonal segment", "valueCm": 21.95 },
+        { "position": "bottom edge", "valueCm": 27.66 },
+        { "position": "horizontal center reference line", "valueCm": 45.3 },
+        {
+          "position": "vertical segment, left of center line",
+          "valueCm": 40.79
+        },
+        {
+          "position": "vertical segment, right of center line",
+          "valueCm": 38.05
+        }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 27.66 },
+        { "position": "left edge, upper diagonal segment", "valueCm": 25.47 },
+        { "position": "left edge, middle segment", "valueCm": 11.72 },
+        { "position": "left edge, lower diagonal segment", "valueCm": 25.47 },
+        { "position": "bottom edge", "valueCm": 27.66 },
+        { "position": "horizontal center reference line", "valueCm": 48.45 },
+        {
+          "position": "vertical segment, left of center line",
+          "valueCm": 40.79
+        },
+        {
+          "position": "vertical segment, right of center line",
+          "valueCm": 38.05
+        }
+      ]
+    },
+    {
+      "nameEn": "pocket template",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, main segment", "valueCm": 12.24 },
+        { "position": "top-right corner segment", "valueCm": 7.35 },
+        { "position": "left edge", "valueCm": 14.2 },
+        { "position": "right edge", "valueCm": 26.76 },
+        { "position": "bottom edge, main segment", "valueCm": 12.24 },
+        { "position": "bottom-right corner segment", "valueCm": 7.35 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 6.05 },
+        { "position": "left edge, upper diagonal segment", "valueCm": 15.64 },
+        { "position": "left edge, lower segment", "valueCm": 12.64 },
+        { "position": "right edge", "valueCm": 29.73 },
+        { "position": "bottom edge, diagonal segment", "valueCm": 15.64 },
+        { "position": "bottom edge", "valueCm": 6.05 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 6.11 },
+        { "position": "top edge, right segment", "valueCm": 6.11 },
+        { "position": "left edge", "valueCm": 17.37 },
+        { "position": "right edge", "valueCm": 17.37 },
+        { "position": "bottom edge, left segment", "valueCm": 6.11 },
+        { "position": "bottom edge, right segment", "valueCm": 6.11 }
+      ]
+    },
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 7 },
+        { "position": "left edge", "valueCm": 40.4 },
+        { "position": "right edge", "valueCm": 40.4 },
+        { "position": "bottom edge", "valueCm": 7 }
+      ]
+    },
+    {
+      "nameEn": "hem band",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 12 },
+        { "position": "left edge", "valueCm": 66.8 },
+        { "position": "right edge", "valueCm": 66.8 },
+        { "position": "bottom edge", "valueCm": 12 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left diagonal segment", "valueCm": 22.86 },
+        { "position": "top edge, right diagonal segment", "valueCm": 26.71 },
+        { "position": "left edge, upper segment", "valueCm": 9.11 },
+        { "position": "right edge", "valueCm": 20 },
+        { "position": "left edge, lower diagonal segment", "valueCm": 26.54 },
+        { "position": "bottom edge", "valueCm": 26.76 }
+      ]
+    }
+  ],
+  "notes": "Front and back panels each carry a pair of vertical values (40.79 / 38.05) below the horizontal center reference line; their exact geometric relationship to that line is not fully certain from the rendered drawing, transcribed by position only."
+}

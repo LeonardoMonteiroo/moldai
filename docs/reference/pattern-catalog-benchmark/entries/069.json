@@ -1,0 +1,54 @@
+{
+  "sourceId": "069",
+  "category": "skirt-with-side-slit",
+  "moldaiArchetype": "skirt",
+  "descriptionEn": "skirt with a side slit/opening insert panel",
+  "gender": "female",
+  "baseSizeLabel": "P",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 67 },
+        { "position": "left edge", "valueCm": 9 },
+        { "position": "right edge", "valueCm": 9 },
+        { "position": "bottom edge", "valueCm": 67 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 27.02 },
+        { "position": "left edge", "valueCm": 67.21 },
+        { "position": "bottom edge", "valueCm": 30 },
+        { "position": "right edge", "valueCm": 65.47 }
+      ]
+    },
+    {
+      "nameEn": "front slit insert",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 8.02 },
+        { "position": "bottom edge", "valueCm": 11 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 32 },
+        { "position": "left edge", "valueCm": 67.21 },
+        { "position": "bottom edge", "valueCm": 38 },
+        { "position": "right edge", "valueCm": 67.21 }
+      ]
+    }
+  ],
+  "notes": "sourceId 069: a value near the front slit insert piece, transcribed loosely as '47', sits immediately next to the front panel's own '65.47' right-edge label and could not be confidently attributed to either piece as a distinct dimension (possibly a rendering artifact of the adjacent label). It was omitted rather than guessed."
+}

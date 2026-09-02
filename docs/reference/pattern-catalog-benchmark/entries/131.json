@@ -1,0 +1,118 @@
+{
+  "sourceId": "131",
+  "category": "womens-jogger-sweatpants",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "women's jogger-style sweatpants with side pockets, an inset pocket, a back welt pocket, ribbed cuffs, and an elastic waistband",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "back pocket template",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 15.5 },
+        { "position": "left edge", "valueCm": 13.07 },
+        { "position": "right edge", "valueCm": 13.07 },
+        { "position": "bottom edge", "valueCm": 15.5 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 16.78 },
+        { "position": "top edge, right segment", "valueCm": 12.84 },
+        { "position": "left edge", "valueCm": 13.44 },
+        { "position": "right edge", "valueCm": 16.24 },
+        { "position": "bottom edge", "valueCm": 41.49 }
+      ]
+    },
+    {
+      "nameEn": "inset pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 29.43 },
+        { "position": "left edge", "valueCm": 16.24 },
+        { "position": "bottom edge", "valueCm": 41.51 }
+      ]
+    },
+    {
+      "nameEn": "back pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 19 },
+        { "position": "left edge", "valueCm": 16 },
+        { "position": "right edge", "valueCm": 16 },
+        { "position": "bottom edge", "valueCm": 19 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 6.07 },
+        { "position": "top edge, right segment", "valueCm": 6.07 },
+        { "position": "left edge", "valueCm": 24.41 },
+        { "position": "right edge", "valueCm": 24.41 },
+        { "position": "bottom edge, left segment", "valueCm": 6.07 },
+        { "position": "bottom edge, right segment", "valueCm": 6.07 }
+      ]
+    },
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 12 },
+        { "position": "bottom edge", "valueCm": 12 },
+        { "position": "left edge", "valueCm": 74 },
+        { "position": "right edge", "valueCm": 74 }
+      ]
+    },
+    {
+      "nameEn": "elastic gauge template (5 cm)",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge", "valueCm": 5 },
+        { "position": "bottom edge", "valueCm": 5 },
+        { "position": "left edge", "valueCm": 74 },
+        { "position": "right edge", "valueCm": 74 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 16.78 },
+        { "position": "top edge, right segment", "valueCm": 12.85 },
+        { "position": "right edge, upper segment", "valueCm": 67.39 },
+        { "position": "left edge, upper diagonal", "valueCm": 21.38 },
+        { "position": "left edge, small lower segment", "valueCm": 3.84 },
+        { "position": "bottom edge, small left segment", "valueCm": 16.25 },
+        { "position": "bottom edge, small notch", "valueCm": 8.4 },
+        { "position": "right edge, lower segment", "valueCm": 14.39 },
+        { "position": "bottom edge, main segment", "valueCm": 69.39 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, main segment", "valueCm": 96.9 },
+        { "position": "left edge, upper diagonal", "valueCm": 25.29 },
+        { "position": "right edge", "valueCm": 17.32 },
+        { "position": "bottom edge, left segment", "valueCm": 34.44 },
+        { "position": "bottom edge, main segment", "valueCm": 69.55 }
+      ]
+    }
+  ],
+  "notes": "The pocket and inset-pocket pieces sit close together in the drawing and share a '16.24' reading between them; it was assigned to the pocket's right edge and the inset pocket's left edge based on proximity, but the exact edge it labels is not fully certain. Four small unmarked 'x' tick points on the back panel appear to be placement marks with no attached number and were skipped."
+}

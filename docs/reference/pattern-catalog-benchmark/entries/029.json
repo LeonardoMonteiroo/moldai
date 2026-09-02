@@ -1,0 +1,70 @@
+{
+  "sourceId": "029",
+  "category": "kids-school-trousers-girls",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "kids school uniform trousers for girls, elastic waistband, front patch pocket and welt pocket, ribbed leg cuff",
+  "gender": "kids",
+  "baseSizeLabel": "12",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "front panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 29.05 },
+        { "position": "top edge, right segment", "valueCm": 57.98 },
+        { "position": "left edge", "valueCm": 21.1 },
+        { "position": "right edge", "valueCm": 14.03 },
+        { "position": "bottom edge", "valueCm": 85.01 }
+      ]
+    },
+    {
+      "nameEn": "back panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 34.39 },
+        { "position": "top edge, right segment", "valueCm": 41.44 },
+        { "position": "right edge, upper segment", "valueCm": 16.47 },
+        { "position": "right edge, lower segment", "valueCm": 15.49 },
+        { "position": "left edge", "valueCm": 21.66 },
+        { "position": "bottom edge", "valueCm": 85.01 }
+      ]
+    },
+    {
+      "nameEn": "patch pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (curve)", "valueCm": 40.62 },
+        { "position": "left edge", "valueCm": 16.14 },
+        { "position": "bottom edge", "valueCm": 29.07 }
+      ]
+    },
+    {
+      "nameEn": "welt/inset pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (curve)", "valueCm": 43.72 },
+        { "position": "left edge", "valueCm": 19.14 },
+        { "position": "bottom edge", "valueCm": 28.6 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 4.65 },
+        { "position": "top edge, right segment", "valueCm": 4.65 },
+        { "position": "left edge", "valueCm": 21.91 },
+        { "position": "right edge", "valueCm": 21.91 },
+        { "position": "bottom edge, left segment", "valueCm": 4.65 },
+        { "position": "bottom edge, right segment", "valueCm": 4.65 }
+      ]
+    }
+  ],
+  "notes": "Quantities given in the source as 'Quantidade: 1 (Par)' recorded as qty 2 throughout, matching the pieces' own '2X' labels. A separate finished-waist-elastic length table (per graded size, not a piece edge) appeared near the back panel and was not transcribed as an edge."
+}

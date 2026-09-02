@@ -1,0 +1,96 @@
+{
+  "sourceId": "295",
+  "category": "kids-girls-pantacourt-with-pockets",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "kids girls' cropped pants (pantacourt) with front pockets, pocket lining, and a waistband",
+  "gender": "kids",
+  "baseSizeLabel": "8",
+  "gradeNote": "approx. 1 cm variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        {
+          "position": "top-left corner, small segment near peak",
+          "valueCm": 8.24
+        },
+        { "position": "top edge", "valueCm": 26.66 },
+        { "position": "top-right corner, segment", "valueCm": 12.86 },
+        { "position": "top-right corner, tip", "valueCm": 1.6 },
+        { "position": "left edge, upper diagonal segment 1", "valueCm": 1.97 },
+        { "position": "left edge, upper diagonal segment 2", "valueCm": 18.31 },
+        { "position": "left edge, mid segment", "valueCm": 9.71 },
+        { "position": "left edge, lower segment", "valueCm": 5.96 },
+        { "position": "bottom-left corner, segment 1", "valueCm": 11.65 },
+        { "position": "bottom-left corner, segment 2", "valueCm": 6.77 },
+        { "position": "bottom edge", "valueCm": 38.16 },
+        {
+          "position": "bottom-right corner, segment (mirrors top)",
+          "valueCm": 12.86
+        },
+        {
+          "position": "bottom-right corner, tip (mirrors top)",
+          "valueCm": 1.6
+        },
+        { "position": "right edge, full height", "valueCm": 25.21 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": null },
+        { "position": "top-right corner, segment", "valueCm": 12.86 },
+        { "position": "top-right corner, tip", "valueCm": 1.6 },
+        { "position": "left edge, diagonal", "valueCm": 22.76 },
+        { "position": "left edge, small notch cluster", "valueCm": null },
+        { "position": "bottom-left corner", "valueCm": 24.33 },
+        { "position": "bottom edge", "valueCm": 38.17 },
+        {
+          "position": "bottom-right corner, segment (mirrors top)",
+          "valueCm": 12.87
+        },
+        {
+          "position": "bottom-right corner, tip (mirrors top)",
+          "valueCm": 1.6
+        },
+        { "position": "right edge, full height", "valueCm": 27.81 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-right corner", "valueCm": 4.09 },
+        { "position": "top edge/diagonal", "valueCm": 28.29 },
+        { "position": "left edge", "valueCm": 9.71 },
+        { "position": "bottom edge", "valueCm": 34.82 }
+      ]
+    },
+    {
+      "nameEn": "pocket lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 15.88 },
+        { "position": "top-right corner", "valueCm": 8.84 },
+        { "position": "left edge", "valueCm": 14.43 },
+        { "position": "bottom edge", "valueCm": 33.87 }
+      ]
+    },
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "left edge", "valueCm": 42.66 },
+        { "position": "right edge", "valueCm": 42.66 }
+      ]
+    }
+  ],
+  "notes": "This sheet's numeric labels rendered noticeably smaller/lower-resolution than most other sheets in this batch, so overall confidence on this entry is lower than usual — worth a second look before treating any value here as settled. Two values were flagged null: the back panel's top edge (the leading digit was ambiguous between roughly 3, 5, or 6, i.e. could be ~36/56/66) and a small cluster of stacked tiny digits near the back panel's left edge that could not be resolved into a single reading at all. The waistband piece only had its two long-edge lengths legible (both 42.66 cm); no width/short-edge dimension was legible on this sheet. Small '4' tick marks near the top of the waistband strip looked like register/notch marks rather than an edge dimension and were not recorded as an edge."
+}

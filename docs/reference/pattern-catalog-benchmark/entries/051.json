@@ -1,0 +1,40 @@
+{
+  "sourceId": "051",
+  "category": "womens-capri-corsair-pants",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "women's cropped capri/corsair-style pants with a shared front-back leg panel",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 9.63 },
+        { "position": "top-right corner", "valueCm": 9.63 },
+        { "position": "left edge", "valueCm": 34.93 },
+        { "position": "right edge", "valueCm": 34.93 },
+        { "position": "bottom-left corner", "valueCm": 9.63 },
+        { "position": "bottom-right corner", "valueCm": 9.63 }
+      ]
+    },
+    {
+      "nameEn": "leg panel (shared front/back)",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left slope", "valueCm": 8.86 },
+        { "position": "top edge, right slope (main)", "valueCm": 55.5 },
+        { "position": "left edge, upper small segment", "valueCm": 6.92 },
+        { "position": "left edge, main segment", "valueCm": 33.09 },
+        { "position": "bottom-left, small segment 1", "valueCm": 11.1 },
+        { "position": "bottom-left, small segment 2", "valueCm": 11.77 },
+        { "position": "bottom edge", "valueCm": 55.77 },
+        { "position": "right edge", "valueCm": 28.57 }
+      ]
+    }
+  ],
+  "notes": null
+}

@@ -1,0 +1,155 @@
+{
+  "sourceId": "275",
+  "category": "women's button-front shirt dress in light fleece",
+  "moldaiArchetype": null,
+  "descriptionEn": "women's long button-front shirt-dress in light sweatshirt fleece, with front/back yokes, collar with stand, set-in sleeves, patch pockets, and a separate waist sash with belt loops",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (apex to top-right corner)", "valueCm": 40.94 },
+        { "position": "neckline, segment near apex", "valueCm": 11.02 },
+        { "position": "neckline, second segment", "valueCm": 6.5 },
+        { "position": "upper-left diagonal edge", "valueCm": 23.76 },
+        { "position": "left edge, upper-middle segment", "valueCm": 16.01 },
+        { "position": "left edge, lower-middle segment", "valueCm": 10.7 },
+        { "position": "bottom edge", "valueCm": 83.79 },
+        { "position": "right edge", "valueCm": 30.11 },
+        { "position": "interior mark near bottom-left, 1", "valueCm": 2.03 },
+        { "position": "interior mark near bottom-left, 2", "valueCm": 6.75 },
+        { "position": "interior mark near bottom-left, 3", "valueCm": 2.96 },
+        { "position": "interior mark near bottom-right, 1", "valueCm": 2.08 },
+        { "position": "interior mark near bottom-right, 2", "valueCm": 2.07 },
+        { "position": "interior mark near bottom-right, 3", "valueCm": 1.53 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 40.93 },
+        { "position": "neckline, segment near apex", "valueCm": 11.02 },
+        { "position": "neckline, second segment", "valueCm": 6.5 },
+        { "position": "upper-left diagonal edge", "valueCm": 19.29 },
+        { "position": "lower-left diagonal edge", "valueCm": 19.29 },
+        { "position": "neckline (mirrored), second segment", "valueCm": 6.5 },
+        {
+          "position": "neckline (mirrored), segment near apex",
+          "valueCm": 11.02
+        },
+        { "position": "bottom edge", "valueCm": 40.93 },
+        { "position": "right edge", "valueCm": 64.86 }
+      ]
+    },
+    {
+      "nameEn": "back yoke",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "upper-left edge, segment 1", "valueCm": 3.45 },
+        { "position": "upper-left edge, segment 2", "valueCm": 7.22 },
+        { "position": "left edge, upper segment", "valueCm": 16.02 },
+        { "position": "seam edge, outer reading", "valueCm": 21.4 },
+        { "position": "seam edge, inner reading", "valueCm": 21.38 },
+        { "position": "left edge, lower segment", "valueCm": 9.15 }
+      ]
+    },
+    {
+      "nameEn": "front yoke",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 6.78 },
+        { "position": "top edge, right segment", "valueCm": 6.78 },
+        { "position": "left edge", "valueCm": 15 },
+        { "position": "right edge", "valueCm": 15 },
+        { "position": "bottom edge, left segment", "valueCm": 6.78 },
+        { "position": "bottom edge, right segment", "valueCm": 6.78 }
+      ]
+    },
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 7.18 },
+        { "position": "outer edge (curve)", "valueCm": 47.48 },
+        { "position": "inner edge (curve)", "valueCm": 43.87 },
+        { "position": "side edge", "valueCm": 22.7 },
+        { "position": "bottom edge", "valueCm": 7.18 }
+      ]
+    },
+    {
+      "nameEn": "collar stand",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 2 },
+        { "position": "left edge, upper segment", "valueCm": 6.03 },
+        { "position": "outer edge (curve)", "valueCm": 26.81 },
+        { "position": "inner edge (curve)", "valueCm": 21.84 },
+        { "position": "right edge", "valueCm": 7 },
+        { "position": "left edge, lower segment", "valueCm": 6.03 },
+        { "position": "bottom edge", "valueCm": 2 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 41.18 },
+        { "position": "upper-left edge", "valueCm": 25.77 },
+        { "position": "lower-left edge", "valueCm": 26.71 },
+        { "position": "right edge", "valueCm": 23 },
+        { "position": "bottom edge", "valueCm": 41.18 }
+      ]
+    },
+    {
+      "nameEn": "patch pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner segment", "valueCm": 2 },
+        { "position": "top edge", "valueCm": 15 },
+        { "position": "left edge", "valueCm": 15 },
+        { "position": "right edge", "valueCm": 15 },
+        { "position": "bottom edge", "valueCm": 15 },
+        { "position": "bottom-left corner segment", "valueCm": 2 }
+      ]
+    },
+    {
+      "nameEn": "belt loop",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 14 },
+        { "position": "left edge", "valueCm": 12 },
+        { "position": "right edge", "valueCm": 12 },
+        { "position": "bottom edge", "valueCm": 14 }
+      ]
+    },
+    {
+      "nameEn": "waist sash",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 12 },
+        { "position": "upper tip, left side", "valueCm": 4 },
+        { "position": "upper tip, right side", "valueCm": 4 },
+        { "position": "taper shoulder, left side", "valueCm": 29 },
+        { "position": "taper shoulder, right side", "valueCm": 29 },
+        { "position": "left edge (length)", "valueCm": 170.14 },
+        { "position": "right edge (length)", "valueCm": 170.15 },
+        { "position": "bottom edge", "valueCm": 12 }
+      ]
+    }
+  ],
+  "notes": "This is the densest drawing in this batch (11 pieces on one sheet). Several small pieces (front yoke, back yoke, collar, collar stand, patch pocket) are printed at small scale with tightly clustered dimension text; the numeric values themselves were legible but the precise edge-to-position mapping for these pieces carries lower confidence than for the larger pieces (front, back, sleeve, sash, belt loop). The front piece's bottom edge is a long single hem (83.79 cm) with a row of unlabeled tick marks along it (likely button/notch positions for the front opening) plus small clustered numeric marks near each bottom corner; those clustered marks are recorded under generic 'interior mark' positions since their exact individual placement/order could not be confirmed. A separate construction template piece shown on the sheet (not a piece meant to be cut from fabric) was excluded from this entry. An additional small rectangular piece near the sleeve/collar cluster (readable values approx. 8.09, 26.99 x2, 3.84, 8.09) had an illegible name label and was not confidently identifiable as a distinct piece, so it was omitted rather than guessed. This garment (a fitted button-front dress with yokes, collar, and sash) does not match any of the five drafting archetypes as a whole, hence moldaiArchetype is null."
+}

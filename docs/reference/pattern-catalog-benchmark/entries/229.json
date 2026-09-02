@@ -1,0 +1,115 @@
+{
+  "sourceId": "229",
+  "category": "layered midi dress",
+  "moldaiArchetype": "dress",
+  "descriptionEn": "A midi-length dress with a tiered, layered skirt and a single-layer front bodice.",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "Approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces.",
+  "pieces": [
+    {
+      "nameEn": "back cutout panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 6 },
+        { "position": "left edge, upper segment", "valueCm": 21.05 },
+        { "position": "right edge", "valueCm": 41.86 },
+        { "position": "left edge, lower segment", "valueCm": 21.08 },
+        { "position": "bottom edge", "valueCm": 6 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 12.49 },
+        { "position": "left edge", "valueCm": 42.13 },
+        { "position": "right edge", "valueCm": 42.13 },
+        { "position": "bottom edge", "valueCm": 12.49 }
+      ]
+    },
+    {
+      "nameEn": "strap",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 37 },
+        { "position": "left edge", "valueCm": 9 },
+        { "position": "right edge, upper corner", "valueCm": 5.2 },
+        { "position": "right edge, lower corner", "valueCm": 5.2 },
+        { "position": "bottom edge", "valueCm": 37 }
+      ]
+    },
+    {
+      "nameEn": "front lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge (upper corner)", "valueCm": 17.12 },
+        { "position": "left edge, upper curve", "valueCm": 26.35 },
+        { "position": "left edge, upper-middle segment", "valueCm": 4.97 },
+        { "position": "width", "valueCm": 28.41 },
+        { "position": "right edge (height)", "valueCm": 41.42 },
+        { "position": "left edge, lower-middle segment", "valueCm": 4.97 },
+        { "position": "left edge, lower curve", "valueCm": 26.35 },
+        { "position": "bottom edge (lower corner)", "valueCm": 17.12 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, outer segment", "valueCm": 7.74 },
+        { "position": "top edge, small segment", "valueCm": 7 },
+        { "position": "top edge, inner segment", "valueCm": 9.2 },
+        { "position": "top area, diagonal/curve", "valueCm": 7.96 },
+        { "position": "left edge, upper curve", "valueCm": 24.91 },
+        { "position": "left edge, upper-middle segment", "valueCm": 4.97 },
+        { "position": "width", "valueCm": 28.37 },
+        { "position": "right edge (height)", "valueCm": 41.43 },
+        { "position": "left edge, lower-middle segment", "valueCm": 4.97 },
+        { "position": "left edge, lower curve", "valueCm": 24.91 },
+        { "position": "bottom area, diagonal/curve", "valueCm": 6.98 },
+        { "position": "bottom edge, outer segment", "valueCm": 7.74 },
+        { "position": "bottom edge, inner segment", "valueCm": 9.2 }
+      ]
+    },
+    {
+      "nameEn": "lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 37.89 },
+        { "position": "left edge", "valueCm": 44.13 },
+        { "position": "right edge", "valueCm": 60.5 },
+        { "position": "bottom edge", "valueCm": 37.89 }
+      ]
+    },
+    {
+      "nameEn": "upper tier panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 39 },
+        { "position": "left edge", "valueCm": 80 },
+        { "position": "right edge", "valueCm": 80 },
+        { "position": "bottom edge", "valueCm": 39 }
+      ]
+    },
+    {
+      "nameEn": "lower tier panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 41 },
+        { "position": "left edge", "valueCm": 115 },
+        { "position": "right edge", "valueCm": 115 },
+        { "position": "bottom edge", "valueCm": 41 }
+      ]
+    }
+  ],
+  "notes": null
+}

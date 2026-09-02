@@ -1,0 +1,171 @@
+{
+  "sourceId": "002",
+  "category": "fleece jacket with lining",
+  "moldaiArchetype": null,
+  "descriptionEn": "polar fleece jacket with full lining, collar, cuffs and waistband",
+  "gender": null,
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 13.11 },
+        { "position": "bottom edge", "valueCm": 13.11 },
+        { "position": "left edge", "valueCm": 112 },
+        { "position": "right edge", "valueCm": 112 }
+      ]
+    },
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 12.15 },
+        { "position": "bottom edge", "valueCm": 12.15 },
+        { "position": "left edge", "valueCm": 52.14 },
+        { "position": "right edge", "valueCm": 52.14 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "upper cap curve", "valueCm": 49.14 },
+        { "position": "lower cap curve", "valueCm": 49.14 },
+        { "position": "left edge, upper segment", "valueCm": 25.91 },
+        { "position": "horizontal centerline (full width)", "valueCm": 60.54 }
+      ],
+      "notes": "Small '0' marks along the horizontal centerline appear to be notch/reference points, not separate length measurements, and were not recorded as edges."
+    },
+    {
+      "nameEn": "sleeve lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "upper cap curve", "valueCm": 49.14 },
+        { "position": "lower cap curve", "valueCm": 49.14 },
+        { "position": "left edge, upper segment", "valueCm": 25.91 },
+        { "position": "horizontal centerline (full width)", "valueCm": 60.54 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 39.61 },
+        { "position": "left edge, upper diagonal segment", "valueCm": 29.09 },
+        { "position": "left edge, middle segment", "valueCm": 15.22 },
+        { "position": "left edge, total height", "valueCm": 56.48 },
+        { "position": "right edge, total height", "valueCm": 59.48 },
+        { "position": "right edge, extra segment", "valueCm": 23.73 },
+        { "position": "horizontal mid-line (full width)", "valueCm": 70.71 },
+        {
+          "position": "left edge, lower middle segment (mirrored)",
+          "valueCm": 15.22
+        },
+        {
+          "position": "left edge, lower diagonal segment (mirrored)",
+          "valueCm": 29.09
+        },
+        { "position": "bottom edge", "valueCm": 39.61 }
+      ],
+      "notes": "Right-side edge value 23.73 could not be confidently tied to a specific sub-segment; recorded as a separate labeled value near the right end of the mid-line."
+    },
+    {
+      "nameEn": "back lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 39.61 },
+        { "position": "left edge, upper diagonal segment", "valueCm": 29.09 },
+        { "position": "left edge, middle segment", "valueCm": 15.22 },
+        { "position": "left edge, total height", "valueCm": 56.48 },
+        { "position": "right edge, total height", "valueCm": 59.48 },
+        { "position": "right edge, extra segment", "valueCm": 23.73 },
+        { "position": "horizontal mid-line (full width)", "valueCm": 70.71 },
+        {
+          "position": "left edge, lower middle segment (mirrored)",
+          "valueCm": 15.22
+        },
+        {
+          "position": "left edge, lower diagonal segment (mirrored)",
+          "valueCm": 29.09
+        },
+        { "position": "bottom edge", "valueCm": 39.61 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 6.65 },
+        { "position": "top edge, right segment", "valueCm": 6.65 },
+        { "position": "left edge", "valueCm": 24.02 },
+        { "position": "right edge", "valueCm": 24.02 },
+        { "position": "bottom edge, left segment", "valueCm": 6.65 },
+        { "position": "bottom edge, right segment", "valueCm": 6.65 }
+      ]
+    },
+    {
+      "nameEn": "front lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 39.61 },
+        { "position": "upper-right diagonal", "valueCm": 25.97 },
+        { "position": "left edge", "valueCm": 21.3 },
+        { "position": "right edge, upper short segment", "valueCm": 8.31 },
+        { "position": "right edge, lower diagonal segment", "valueCm": 24.52 },
+        { "position": "bottom edge", "valueCm": 42.04 }
+      ]
+    },
+    {
+      "nameEn": "front, lower",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        {
+          "position": "top edge (drawing labels this 'LATERAL')",
+          "valueCm": 36.96
+        },
+        { "position": "left edge", "valueCm": 28.94 },
+        { "position": "right edge, upper segment", "valueCm": 30.34 },
+        { "position": "right edge, lower segment", "valueCm": 30.31 },
+        { "position": "bottom edge", "valueCm": 36.94 }
+      ],
+      "notes": "The drawing itself labels the top edge 'LATERAL' (side); the two close right-edge values (30.34, 30.31) may be near-duplicate readings of the same edge rather than two distinct segments."
+    },
+    {
+      "nameEn": "front facing",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 42.01 },
+        { "position": "left edge", "valueCm": 8.64 },
+        { "position": "upper-right diagonal", "valueCm": 24.25 },
+        { "position": "right edge, upper short segment", "valueCm": 7.91 },
+        { "position": "right edge, lower segment", "valueCm": 14.01 },
+        { "position": "bottom edge", "valueCm": 58.7 }
+      ]
+    },
+    {
+      "nameEn": "front, upper",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left short segment", "valueCm": 3.65 },
+        { "position": "top edge, right segment", "valueCm": 25.98 },
+        { "position": "right edge", "valueCm": 15.22 },
+        { "position": "bottom edge, right short segment", "valueCm": 13.98 },
+        { "position": "bottom edge", "valueCm": 22.79 }
+      ]
+    }
+  ],
+  "notes": "Garment is an outerwear jacket, so moldaiArchetype is null per the 'jacket is out of scope for the five archetypes' rule. Small '0' marks on the sleeve/sleeve-lining centerlines are notch/reference points, not measurements, and were excluded from edges."
+}

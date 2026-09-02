@@ -1,0 +1,116 @@
+{
+  "sourceId": "283",
+  "category": "long-sleeve-blouse-with-voluminous-collar",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "long-sleeve blouse with an oversized/voluminous collar",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, main curve", "valueCm": 33.16 },
+        { "position": "top-right corner, segment 1", "valueCm": 1.93 },
+        { "position": "top-right corner, segment 2", "valueCm": 14.03 },
+        { "position": "top-right corner, tip segment", "valueCm": 2 },
+        { "position": "top-left diagonal", "valueCm": 21.82 },
+        { "position": "top-left corner", "valueCm": 8.1 },
+        { "position": "left edge, full curve", "valueCm": 30.89 },
+        {
+          "position": "bottom-left corner (mirrors top-left corner)",
+          "valueCm": 8.1
+        },
+        {
+          "position": "bottom-left diagonal (mirrors top-left diagonal)",
+          "valueCm": 21.82
+        },
+        {
+          "position": "bottom edge, main curve (mirrors top)",
+          "valueCm": 33.16
+        },
+        {
+          "position": "bottom-right corner, segment 1 (mirrors top)",
+          "valueCm": 1.93
+        },
+        {
+          "position": "bottom-right corner, segment 2 (mirrors top)",
+          "valueCm": 14.03
+        },
+        {
+          "position": "bottom-right corner, tip segment (mirrors top)",
+          "valueCm": 2
+        },
+        { "position": "right edge, full height", "valueCm": 49.24 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, main curve", "valueCm": 33.16 },
+        { "position": "top-right corner, segment 1", "valueCm": 1.93 },
+        { "position": "top-right corner, segment 2", "valueCm": 21.01 },
+        { "position": "top-right corner, tip segment", "valueCm": 2 },
+        { "position": "top-left diagonal", "valueCm": 21.85 },
+        { "position": "top-left corner", "valueCm": 8.11 },
+        { "position": "left edge, full curve", "valueCm": 26.04 },
+        {
+          "position": "bottom-left corner (mirrors top-left corner)",
+          "valueCm": 8.11
+        },
+        {
+          "position": "bottom-left diagonal (mirrors top-left diagonal)",
+          "valueCm": 21.85
+        },
+        {
+          "position": "bottom edge, main curve (mirrors top)",
+          "valueCm": 33.16
+        },
+        {
+          "position": "bottom-right corner, segment 1 (mirrors top)",
+          "valueCm": 1.93
+        },
+        {
+          "position": "bottom-right corner, segment 2 (mirrors top)",
+          "valueCm": 21.01
+        },
+        {
+          "position": "bottom-right corner, tip segment (mirrors top)",
+          "valueCm": 2
+        },
+        { "position": "right edge, full height", "valueCm": 48.94 }
+      ]
+    },
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left half", "valueCm": 27.64 },
+        { "position": "top edge, right half", "valueCm": 27.64 },
+        { "position": "left edge", "valueCm": 55.94 },
+        { "position": "bottom edge, left half", "valueCm": 27.64 },
+        { "position": "bottom edge, right half", "valueCm": 27.64 },
+        { "position": "right edge", "valueCm": 55.94 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (cap)", "valueCm": 48.8 },
+        { "position": "top-right corner", "valueCm": 2.02 },
+        { "position": "right edge", "valueCm": 24.53 },
+        { "position": "bottom-right corner", "valueCm": 2.02 },
+        { "position": "bottom edge (hem)", "valueCm": 48.77 },
+        { "position": "left edge, full-height curve", "valueCm": 45.33 }
+      ]
+    }
+  ],
+  "notes": null
+}

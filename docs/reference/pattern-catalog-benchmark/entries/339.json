@@ -1,0 +1,82 @@
+{
+  "sourceId": "339",
+  "category": "classic-crew-tshirt",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "men's traditional crew-neck knit t-shirt with rib collar and set-in sleeves",
+  "gender": "male",
+  "baseSizeLabel": "P",
+  "pieces": [
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left diagonal", "valueCm": 8.74 },
+        { "position": "top-right corner", "valueCm": 2.54 },
+        { "position": "left edge, upper segment", "valueCm": 27.4 },
+        { "position": "right edge, upper segment", "valueCm": 18.17 },
+        { "position": "right edge, lower segment", "valueCm": 18.17 },
+        { "position": "left edge, lower segment", "valueCm": 27.4 },
+        { "position": "bottom edge, left diagonal", "valueCm": 8.74 },
+        { "position": "bottom-right corner", "valueCm": 2.54 }
+      ]
+    },
+    {
+      "nameEn": "collar/rib",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 6.6 },
+        { "position": "top half, left segment", "valueCm": 20.1 },
+        { "position": "top half, right segment", "valueCm": 20.1 },
+        { "position": "bottom half, left segment", "valueCm": 20.1 },
+        { "position": "bottom half, right segment", "valueCm": 20.1 },
+        { "position": "bottom edge", "valueCm": 6.6 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 45.15 },
+        { "position": "top-right corner", "valueCm": 2.38 },
+        { "position": "top-left corner", "valueCm": 2.61 },
+        {
+          "position": "top edge, diagonal (shoulder) segment",
+          "valueCm": 25.52
+        },
+        { "position": "left edge, upper diagonal segment", "valueCm": 14.88 },
+        { "position": "left edge, upper curve segment", "valueCm": 11.94 },
+        { "position": "left edge, lower curve segment", "valueCm": 11.94 },
+        { "position": "left edge, lower diagonal segment", "valueCm": 14.88 },
+        { "position": "bottom-left corner", "valueCm": 2.61 },
+        { "position": "bottom edge, diagonal segment", "valueCm": 25.52 },
+        { "position": "right edge, upper segment", "valueCm": 27.9 },
+        { "position": "right edge, lower segment", "valueCm": 27.9 },
+        { "position": "bottom edge", "valueCm": 45.15 },
+        { "position": "bottom-right corner", "valueCm": 2.38 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 45.18 },
+        { "position": "top-right corner", "valueCm": 2.36 },
+        { "position": "top edge, diagonal segment", "valueCm": 23.67 },
+        { "position": "left edge, upper diagonal segment", "valueCm": 14.89 },
+        { "position": "left edge, upper curve segment", "valueCm": 13.79 },
+        { "position": "left edge, lower curve segment", "valueCm": 13.79 },
+        { "position": "left edge, lower diagonal segment", "valueCm": 14.89 },
+        { "position": "bottom edge, diagonal segment", "valueCm": 23.67 },
+        { "position": "right edge, upper segment", "valueCm": 27.9 },
+        { "position": "right edge, lower segment", "valueCm": 27.9 },
+        { "position": "bottom edge", "valueCm": 45.18 },
+        { "position": "bottom-right corner", "valueCm": 2.36 }
+      ]
+    }
+  ],
+  "notes": null
+}

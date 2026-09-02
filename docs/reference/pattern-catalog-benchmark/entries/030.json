@@ -1,0 +1,103 @@
+{
+  "sourceId": "030",
+  "category": "cropped-jacket-with-hood",
+  "moldaiArchetype": null,
+  "descriptionEn": "cropped jacket with hood, hood lining, ribbed cuffs",
+  "gender": null,
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "front panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "left edge (outer marking), full height", "valueCm": 55 },
+        {
+          "position": "left edge (inner marking), full height",
+          "valueCm": 58.01
+        },
+        { "position": "top edge segment", "valueCm": 22.14 },
+        { "position": "shoulder/upper curve segment", "valueCm": 22.84 },
+        { "position": "next segment down (armhole, upper)", "valueCm": 16.34 },
+        { "position": "next segment down (armhole, mid)", "valueCm": 29.02 },
+        { "position": "horizontal mid-line", "valueCm": 47.65 },
+        { "position": "mirrored lower armhole segment", "valueCm": 16.34 },
+        {
+          "position": "mirrored lower segment near bottom corner",
+          "valueCm": 22.84
+        },
+        { "position": "bottom edge segment", "valueCm": 22.14 }
+      ]
+    },
+    {
+      "nameEn": "back panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "left edge (outer marking), full height", "valueCm": 55 },
+        {
+          "position": "left edge (inner marking), full height",
+          "valueCm": 58.01
+        },
+        { "position": "top edge segment", "valueCm": 22.14 },
+        { "position": "shoulder/upper curve segment", "valueCm": 27.99 },
+        { "position": "next segment down (armhole, upper)", "valueCm": 16.34 },
+        { "position": "next segment down (armhole, mid)", "valueCm": 24.25 },
+        { "position": "horizontal mid-line", "valueCm": 52.71 },
+        { "position": "mirrored lower armhole segment", "valueCm": 16.34 },
+        {
+          "position": "mirrored lower segment near bottom corner",
+          "valueCm": 27.99
+        },
+        { "position": "bottom edge segment", "valueCm": 22.14 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 6.63 },
+        { "position": "top edge, right segment", "valueCm": 6.63 },
+        { "position": "left edge", "valueCm": 19.78 },
+        { "position": "right edge", "valueCm": 19.78 },
+        { "position": "bottom edge, left segment", "valueCm": 6.63 },
+        { "position": "bottom edge, right segment", "valueCm": 6.63 }
+      ]
+    },
+    {
+      "nameEn": "hood lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (curve)", "valueCm": 51.95 },
+        { "position": "left edge", "valueCm": 28.54 },
+        { "position": "bottom edge", "valueCm": 38.81 }
+      ]
+    },
+    {
+      "nameEn": "hood",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (curve)", "valueCm": 54.92 },
+        { "position": "left edge", "valueCm": 31.56 },
+        { "position": "bottom edge", "valueCm": 38.61 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (curve)", "valueCm": 46.6 },
+        { "position": "bottom edge (curve)", "valueCm": 46.6 },
+        { "position": "horizontal line, left endpoint", "valueCm": 23.53 },
+        { "position": "horizontal line, span", "valueCm": 57.98 },
+        { "position": "horizontal line, right endpoint", "valueCm": 51.95 }
+      ]
+    }
+  ],
+  "notes": "Front and back panels share an identical top/bottom-mirrored structure closely matching the tshirt-benchmark reference's back-panel layout; positions labeled accordingly. Quantities given in the source as 'Quantidade: 1 (Par)' recorded as qty 2, matching each piece's own '2X' label; pieces labeled '1X' with a plain 'Quantidade: 1' recorded as qty 1. No garment gender was stated on the source sheet or in the folder name, so gender is left null."
+}

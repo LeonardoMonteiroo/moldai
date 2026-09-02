@@ -1,0 +1,79 @@
+{
+  "sourceId": "125",
+  "category": "short-slip-dress",
+  "moldaiArchetype": "dress",
+  "descriptionEn": "short slip dress with front and back panels running from bodice to hem, separate linings, and narrow straps",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern print output",
+  "pieces": [
+    {
+      "nameEn": "front lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 18.19 },
+        { "position": "upper-left, first segment", "valueCm": 5.96 },
+        { "position": "upper-left, second segment", "valueCm": 8.01 },
+        {
+          "position": "upper-left, third (diagonal) segment",
+          "valueCm": 13.73
+        },
+        { "position": "left edge, upper segment", "valueCm": 18.17 },
+        { "position": "right edge, full height", "valueCm": 46.03 },
+        { "position": "left edge, lower segment (mirrored)", "valueCm": 18.17 },
+        {
+          "position": "lower-left, first mirrored segment (diagonal)",
+          "valueCm": 13.73
+        },
+        { "position": "lower-left, second mirrored segment", "valueCm": 8.12 },
+        { "position": "lower-left, third mirrored segment", "valueCm": 5.96 },
+        { "position": "bottom edge", "valueCm": 18.19 }
+      ]
+    },
+    {
+      "nameEn": "back lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 18.19 },
+        { "position": "left edge", "valueCm": 45.28 },
+        { "position": "right edge", "valueCm": 46.03 },
+        { "position": "bottom edge", "valueCm": 18.19 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left, first segment", "valueCm": 5.96 },
+        { "position": "top-left, second segment", "valueCm": 8.01 },
+        { "position": "top-left, third (diagonal) segment", "valueCm": 13.73 },
+        { "position": "left edge, upper segment", "valueCm": 18.16 },
+        { "position": "top edge", "valueCm": 65.5 },
+        { "position": "right edge, full height", "valueCm": 56.95 },
+        { "position": "left edge, lower segment (mirrored)", "valueCm": 18.16 },
+        {
+          "position": "bottom-left, first mirrored segment (diagonal)",
+          "valueCm": 13.73
+        },
+        { "position": "bottom-left, second mirrored segment", "valueCm": 8.12 },
+        { "position": "bottom-left, third mirrored segment", "valueCm": 5.96 },
+        { "position": "bottom edge (mirrored)", "valueCm": 65.5 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 65.49 },
+        { "position": "left edge", "valueCm": 45.27 },
+        { "position": "right edge", "valueCm": 56.95 },
+        { "position": "bottom edge (mirrored)", "valueCm": 65.49 }
+      ]
+    }
+  ],
+  "notes": null
+}

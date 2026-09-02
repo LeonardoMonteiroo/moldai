@@ -1,0 +1,126 @@
+{
+  "sourceId": "245",
+  "category": "hooded-sweatshirt-contrast-sleeve",
+  "moldaiArchetype": null,
+  "descriptionEn": "Hooded sweatshirt with a contrasting short-sleeve overlay layer, ribbed cuffs and waistband, and a patch pocket.",
+  "gender": null,
+  "baseSizeLabel": "M",
+  "gradeNote": "Approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces.",
+  "pieces": [
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, main segment", "valueCm": 11.73 },
+        { "position": "top edge, small segment", "valueCm": 2.06 },
+        { "position": "left edge (curve)", "valueCm": 61.19 },
+        { "position": "right edge (straight)", "valueCm": 46.07 },
+        { "position": "bottom edge, main segment", "valueCm": 11.73 },
+        { "position": "bottom edge, small segment", "valueCm": 2.06 }
+      ]
+    },
+    {
+      "nameEn": "double sleeve (contrast overlay)",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 42.89 },
+        { "position": "left edge (straight)", "valueCm": 61.2 },
+        { "position": "right edge (straight)", "valueCm": 29.21 },
+        { "position": "bottom edge", "valueCm": 42.89 }
+      ]
+    },
+    {
+      "nameEn": "waistband (cós)",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 16 },
+        { "position": "left edge (straight)", "valueCm": 53.57 },
+        { "position": "right edge (straight)", "valueCm": 53.57 },
+        { "position": "bottom edge", "valueCm": 16 }
+      ]
+    },
+    {
+      "nameEn": "hood",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top/left edge (curve)", "valueCm": 57 },
+        { "position": "right edge (straight)", "valueCm": 25.07 },
+        { "position": "bottom edge", "valueCm": 39.35 },
+        { "position": "bottom-right corner, small segment", "valueCm": 2.21 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, small diagonal segment", "valueCm": 4.03 },
+        { "position": "top edge, segment", "valueCm": 8.05 },
+        { "position": "upper diagonal edge", "valueCm": 23.87 },
+        { "position": "left edge, upper small segment", "valueCm": 2.23 },
+        { "position": "left edge, main vertical segment", "valueCm": 19.57 },
+        { "position": "left edge, lower small segment", "valueCm": 2.23 },
+        { "position": "lower diagonal edge", "valueCm": 23.87 },
+        { "position": "bottom edge, segment", "valueCm": 8.05 },
+        { "position": "bottom edge, small diagonal segment", "valueCm": 4.03 },
+        { "position": "width (horizontal arrow measurement)", "valueCm": 35.63 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 8.15 },
+        { "position": "top edge, right segment", "valueCm": 8.15 },
+        { "position": "left edge (straight)", "valueCm": 24.8 },
+        { "position": "right edge (straight)", "valueCm": 24.8 },
+        { "position": "bottom edge, left segment", "valueCm": 8.15 },
+        { "position": "bottom edge, right segment", "valueCm": 8.15 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 35.67 },
+        { "position": "top edge, diagonal segment", "valueCm": 28.82 },
+        { "position": "left edge, upper segment", "valueCm": 16.84 },
+        {
+          "position": "width (horizontal arrow measurement)",
+          "valueCm": 25.59
+        },
+        { "position": "left edge, lower segment", "valueCm": 16.84 },
+        { "position": "bottom edge, diagonal segment", "valueCm": 28.82 },
+        { "position": "bottom edge", "valueCm": 35.67 },
+        { "position": "right edge (straight)", "valueCm": 59.98 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 35.67 },
+        { "position": "top edge, small segment", "valueCm": 2.28 },
+        { "position": "top edge, diagonal segment", "valueCm": 30.52 },
+        { "position": "left edge, upper segment", "valueCm": 16.84 },
+        {
+          "position": "width (horizontal arrow measurement)",
+          "valueCm": 22.84
+        },
+        { "position": "left edge, lower segment", "valueCm": 16.84 },
+        { "position": "bottom edge, small segment", "valueCm": 2.28 },
+        { "position": "bottom edge, diagonal segment", "valueCm": 30.52 },
+        { "position": "bottom edge", "valueCm": 35.67 },
+        { "position": "right edge (straight)", "valueCm": 59.97 }
+      ]
+    }
+  ],
+  "notes": null
+}

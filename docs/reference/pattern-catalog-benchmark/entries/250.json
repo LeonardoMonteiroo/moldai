@@ -1,0 +1,122 @@
+{
+  "sourceId": "250",
+  "category": "womens-varsity-bomber-jacket",
+  "moldaiArchetype": null,
+  "descriptionEn": "women's varsity-style bomber jacket with ribbed neckline binding, cuffs and hem band, front patch and welt pockets",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "neckline binding",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left", "valueCm": 9.48 },
+        { "position": "top edge, right", "valueCm": 9.48 },
+        { "position": "widest point, left", "valueCm": 28.84 },
+        { "position": "widest point, right", "valueCm": 28.84 },
+        { "position": "bottom edge, left", "valueCm": 9.48 },
+        { "position": "bottom edge, right", "valueCm": 9.48 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 49.36 },
+        { "position": "left edge", "valueCm": 51.65 },
+        { "position": "right edge", "valueCm": 25.81 },
+        { "position": "bottom edge", "valueCm": 49.36 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left", "valueCm": 4.89 },
+        { "position": "top edge, right", "valueCm": 4.89 },
+        { "position": "width, left", "valueCm": 20.86 },
+        { "position": "width, right", "valueCm": 20.86 },
+        { "position": "bottom edge, left", "valueCm": 4.89 },
+        { "position": "bottom edge, right", "valueCm": 4.89 }
+      ]
+    },
+    {
+      "nameEn": "inset (welt) pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 20.46 },
+        { "position": "left edge", "valueCm": 26.24 },
+        { "position": "right edge", "valueCm": 26.5 },
+        { "position": "bottom edge", "valueCm": 20.5 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 20.46 },
+        { "position": "left edge", "valueCm": 23.74 },
+        { "position": "right edge", "valueCm": 24 },
+        { "position": "bottom edge", "valueCm": 20.5 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 37.04 },
+        { "position": "left edge, upper segment", "valueCm": 26.47 },
+        { "position": "left edge, upper-middle segment", "valueCm": 14.16 },
+        { "position": "left edge, middle segment", "valueCm": 19.66 },
+        { "position": "left edge, lower-middle segment", "valueCm": 14.16 },
+        { "position": "left edge, lower segment", "valueCm": 26.47 },
+        { "position": "bottom edge", "valueCm": 37.04 },
+        { "position": "right edge", "valueCm": 51.49 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 54.91 },
+        { "position": "left edge, upper segment", "valueCm": 14.19 },
+        { "position": "left edge, lower segment", "valueCm": 14.17 },
+        { "position": "left edge, bottom curve segment", "valueCm": 24.13 },
+        { "position": "bottom edge", "valueCm": 37.04 },
+        { "position": "right edge", "valueCm": 29.22 }
+      ]
+    },
+    {
+      "nameEn": "CONTRA (facing-like piece, term not in standard glossary)",
+      "originalLabelUnclear": true,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 54.91 },
+        { "position": "left edge, upper segment", "valueCm": 14.16 },
+        { "position": "left edge, lower segment", "valueCm": 7.24 },
+        { "position": "bottom edge", "valueCm": 61.63 },
+        { "position": "right edge", "valueCm": 7.49 }
+      ]
+    },
+    {
+      "nameEn": "hem ribbing band",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge (width)", "valueCm": 9.1 },
+        { "position": "left edge (length)", "valueCm": 76.02 },
+        { "position": "right edge (length)", "valueCm": 76.02 },
+        { "position": "bottom edge (width)", "valueCm": 9.1 }
+      ]
+    }
+  ],
+  "notes": "A small trim piece (approx. 4.89 cm square, qty 2 by drawing convention) near the front piece has an illegible label in the scan and was not transcribed as a separate piece. The piece labeled 'CONTRA' was kept untranslated because that term is not in the standard glossary used for this extraction; it may be a facing piece but this is unconfirmed."
+}

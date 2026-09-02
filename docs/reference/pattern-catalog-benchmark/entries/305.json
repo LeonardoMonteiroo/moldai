@@ -1,0 +1,101 @@
+{
+  "sourceId": "305",
+  "category": "kids-closed-pullover-coat-round-collar-cuffs",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "kids closed pullover-style coat (knit) with a round collar and ribbed cuffs",
+  "gender": "kids",
+  "baseSizeLabel": "08",
+  "gradeNote": "approx. 1.5 cm variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 27.75 },
+        { "position": "left edge, upper diagonal", "valueCm": 20.44 },
+        { "position": "right edge, full height", "valueCm": 19.89 },
+        {
+          "position": "left edge, lower diagonal (mirrors upper)",
+          "valueCm": 20.44
+        },
+        { "position": "bottom edge (mirrors top)", "valueCm": 27.75 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "left edge", "valueCm": 18.85 },
+        { "position": "right edge", "valueCm": 18.85 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, curve segment", "valueCm": 21.4 },
+        { "position": "top edge, main segment", "valueCm": 28.94 },
+        { "position": "top-left corner", "valueCm": 8.85 },
+        { "position": "left edge, curve", "valueCm": 19.96 },
+        {
+          "position": "bottom-left corner (mirrors top-left)",
+          "valueCm": 8.85
+        },
+        {
+          "position": "bottom edge, curve segment (mirrors top)",
+          "valueCm": 21.4
+        },
+        {
+          "position": "bottom edge, main segment (mirrors top)",
+          "valueCm": 28.94
+        },
+        { "position": "right edge, full height", "valueCm": 38.4 }
+      ]
+    },
+    {
+      "nameEn": "band (unlabeled)",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "left edge", "valueCm": 33.4 },
+        { "position": "right edge", "valueCm": 33.4 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, curve segment", "valueCm": 18.89 },
+        { "position": "top edge, main segment", "valueCm": 28.94 },
+        { "position": "top-left corner", "valueCm": 8.85 },
+        { "position": "left edge, curve", "valueCm": 25.97 },
+        {
+          "position": "bottom-left corner (mirrors top-left)",
+          "valueCm": 8.85
+        },
+        {
+          "position": "bottom edge, curve segment (mirrors top)",
+          "valueCm": 18.89
+        },
+        {
+          "position": "bottom edge, main segment (mirrors top)",
+          "valueCm": 28.94
+        },
+        { "position": "right edge, full height", "valueCm": 38.39 }
+      ]
+    },
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "left edge", "valueCm": null },
+        { "position": "right edge", "valueCm": null }
+      ]
+    }
+  ],
+  "notes": "Three narrow accessory-strip pieces on this sheet (the cuff, an unlabeled band next to the back panel, and the collar) each carried small clustered numeric callouts at their very top and bottom ends (roughly in the 1-9 cm range) that were too small/crowded in the rendering to transcribe reliably — they were omitted rather than guessed. For the collar strip, even its main left/right length values were ambiguous in the rendering (looked like a two-digit number with a stray decimal fragment) and were recorded as null rather than guessed. The band next to the back panel had no legible piece-type label, only a size-range annotation, so its name could not be confidently determined; its left/right length values (33.4 cm each) were legible."
+}

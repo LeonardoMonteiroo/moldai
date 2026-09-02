@@ -1,0 +1,82 @@
+{
+  "sourceId": "143",
+  "category": "cropped-stretch-top-with-bust-seam",
+  "moldaiArchetype": null,
+  "descriptionEn": "cropped stretch-knit top with a bust cutout/seam, front split into side and center sub-pieces, each with a matching lining piece",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "front side panel, lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top peak notch", "valueCm": 1.35 },
+        { "position": "upper-left diagonal edge", "valueCm": 6.55 },
+        { "position": "upper-right diagonal edge", "valueCm": 12.61 },
+        { "position": "left edge (main)", "valueCm": 21.14 },
+        { "position": "right edge", "valueCm": 14.57 },
+        { "position": "bottom edge", "valueCm": 9.65 }
+      ]
+    },
+    {
+      "nameEn": "front side panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top peak notch", "valueCm": 1.35 },
+        { "position": "upper-left diagonal edge", "valueCm": 6.59 },
+        { "position": "upper-right diagonal edge", "valueCm": 13.83 },
+        { "position": "left edge (main)", "valueCm": 24.39 },
+        { "position": "right edge", "valueCm": 17.69 },
+        { "position": "bottom edge", "valueCm": 10.79 }
+      ]
+    },
+    {
+      "nameEn": "front center panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 21.18 },
+        { "position": "left edge", "valueCm": 24.35 },
+        { "position": "right edge", "valueCm": 24.35 },
+        { "position": "bottom edge", "valueCm": 18.02 }
+      ]
+    },
+    {
+      "nameEn": "back panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 40.94 },
+        { "position": "left edge", "valueCm": 17.69 },
+        { "position": "right edge", "valueCm": 17.69 },
+        { "position": "bottom edge", "valueCm": 35.64 }
+      ]
+    },
+    {
+      "nameEn": "front center panel, lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 20.2 },
+        { "position": "left edge", "valueCm": 21.11 },
+        { "position": "right edge", "valueCm": 21.11 },
+        { "position": "bottom edge", "valueCm": 17.85 }
+      ]
+    },
+    {
+      "nameEn": "back panel, lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 40.94 },
+        { "position": "left edge", "valueCm": 14.72 },
+        { "position": "right edge", "valueCm": 14.72 },
+        { "position": "bottom edge", "valueCm": 36.53 }
+      ]
+    }
+  ],
+  "notes": null
+}

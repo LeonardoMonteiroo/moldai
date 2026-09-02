@@ -1,0 +1,90 @@
+{
+  "sourceId": "334",
+  "category": "mens-raglan-polo-jersey",
+  "moldaiArchetype": null,
+  "descriptionEn": "men's raglan-sleeve polo shirt in jersey knit, with front, back, raglan sleeve pieces and small collar/placket components",
+  "gender": "male",
+  "baseSizeLabel": "P",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, right corner", "valueCm": 3 },
+        { "position": "top edge", "valueCm": 46.62 },
+        { "position": "top-left raglan curve", "valueCm": 39.66 },
+        { "position": "left edge, segment 1", "valueCm": 5.31 },
+        { "position": "left edge, segment 2", "valueCm": 5.31 },
+        { "position": "bottom-left raglan curve", "valueCm": 39.66 },
+        { "position": "bottom edge, left corner", "valueCm": 3 },
+        { "position": "bottom edge", "valueCm": 46.62 },
+        { "position": "right edge, upper segment", "valueCm": 31.58 },
+        { "position": "right edge, lower segment", "valueCm": 28.58 }
+      ]
+    },
+    {
+      "nameEn": "raglan sleeve, back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, right corner", "valueCm": 3.05 },
+        { "position": "top edge, segment", "valueCm": 11.15 },
+        { "position": "raglan curve, segment 1", "valueCm": 14.09 },
+        { "position": "raglan curve, segment 2", "valueCm": 25.64 },
+        { "position": "left corner", "valueCm": 12.38 },
+        { "position": "lower-left edge", "valueCm": 34.72 },
+        { "position": "bottom corner", "valueCm": 11.48 },
+        { "position": "bottom edge, right corner", "valueCm": 3.03 },
+        { "position": "right edge", "valueCm": 46.63 }
+      ]
+    },
+    {
+      "nameEn": "small hexagonal piece (collar or placket component)",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 7.9 },
+        { "position": "top edge, right segment", "valueCm": 7.9 },
+        { "position": "upper-right corner", "valueCm": 2.01 },
+        { "position": "right edge", "valueCm": 2.01 },
+        { "position": "left edge", "valueCm": 2.01 },
+        { "position": "upper-left corner", "valueCm": 2.01 },
+        { "position": "bottom edge, left segment", "valueCm": 7.9 },
+        { "position": "bottom edge, right segment", "valueCm": 7.9 }
+      ]
+    },
+    {
+      "nameEn": "small diagonal trim piece",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top corner", "valueCm": 0.9 },
+        { "position": "upper edge", "valueCm": 6.84 },
+        { "position": "lower corner", "valueCm": 3 },
+        { "position": "long edge", "valueCm": 8.064 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, right corner", "valueCm": 3 },
+        { "position": "top edge", "valueCm": 46.62 },
+        { "position": "top-left raglan curve", "valueCm": 34.74 },
+        { "position": "placket curve, segment 1", "valueCm": 4.38 },
+        { "position": "placket curve, segment 2", "valueCm": 5.69 },
+        { "position": "placket curve, segment 3", "valueCm": 1.7 },
+        { "position": "placket curve, segment 4", "valueCm": 1.7 },
+        { "position": "placket curve, segment 5", "valueCm": 5.69 },
+        { "position": "placket curve, segment 6", "valueCm": 4.38 },
+        { "position": "bottom-left raglan curve", "valueCm": 34.74 },
+        { "position": "bottom edge, left corner", "valueCm": 3 },
+        { "position": "bottom edge", "valueCm": 46.62 },
+        { "position": "right edge, upper segment", "valueCm": 31.59 },
+        { "position": "right edge, lower segment", "valueCm": 28.59 }
+      ]
+    }
+  ],
+  "notes": "The hexagonal piece and the small diagonal trim piece had no clearly legible piece label in the source scan (likely a collar/placket component given the polo garment type); their names are generic descriptions, not a transcribed label."
+}

@@ -1,0 +1,71 @@
+{
+  "sourceId": "067",
+  "category": "kids-raglan-tshirt",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "kids raglan-sleeve t-shirt",
+  "gender": "kids",
+  "baseSizeLabel": "08",
+  "gradeNote": "approx. 1 cm increase between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "sleeve/panel A (upper-left)",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top-left, small segment", "valueCm": 18.58 },
+        { "position": "top edge", "valueCm": 35.26 },
+        { "position": "right edge", "valueCm": 18.95 },
+        { "position": "bottom-left, small segment", "valueCm": 20.74 },
+        { "position": "bottom edge", "valueCm": 35.26 },
+        { "position": "left corner", "valueCm": 8.39 }
+      ]
+    },
+    {
+      "nameEn": "sleeve/panel B (upper-right, mirrored)",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top-left, small segment", "valueCm": 20.74 },
+        { "position": "top edge", "valueCm": 35.26 },
+        { "position": "right edge", "valueCm": 18.95 },
+        { "position": "bottom-left, small segment", "valueCm": 18.58 },
+        { "position": "bottom edge", "valueCm": 35.26 },
+        { "position": "right corner", "valueCm": 8.39 }
+      ]
+    },
+    {
+      "nameEn": "trim strip (unlabeled)",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top edge", "valueCm": 3 },
+        { "position": "upper segment", "valueCm": 18.5 },
+        { "position": "total (bracketed)", "valueCm": 37 },
+        { "position": "lower segment", "valueCm": 18.5 },
+        { "position": "bottom edge", "valueCm": 3 }
+      ]
+    },
+    {
+      "nameEn": "body panel A (lower-left)",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top-left diagonal", "valueCm": 21.1 },
+        { "position": "top edge", "valueCm": 32.03 },
+        { "position": "right edge", "valueCm": 38.01 },
+        { "position": "left edge", "valueCm": 9.47 },
+        { "position": "bottom-left diagonal (mirrored)", "valueCm": 21.1 },
+        { "position": "bottom edge", "valueCm": 32.03 }
+      ]
+    },
+    {
+      "nameEn": "body panel B (lower-right)",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top-left diagonal", "valueCm": 18.94 },
+        { "position": "top edge", "valueCm": 32.03 },
+        { "position": "right edge", "valueCm": 38.02 },
+        { "position": "left edge (curved)", "valueCm": 13 },
+        { "position": "bottom-left diagonal (mirrored)", "valueCm": 18.94 },
+        { "position": "bottom edge", "valueCm": 32.03 }
+      ]
+    }
+  ],
+  "notes": "sourceId 067: piece name labels render as illegibly small text in this drawing, so every piece here is flagged originalLabelUnclear and named by its position/shape instead; only the numeric edge dimensions could be confidently read. Piece pairing (sleeve vs. body panel) is inferred from shape only."
+}

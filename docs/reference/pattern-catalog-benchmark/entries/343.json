@@ -1,0 +1,175 @@
+{
+  "sourceId": "343",
+  "category": "tailored-bermuda-shorts",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "women's tailored bermuda shorts in sweatshirt fleece, with waistband, back darts, welt-style back pocket and belt loops",
+  "gender": "female",
+  "baseSizeLabel": "P",
+  "pieces": [
+    {
+      "nameEn": "belt loop strip",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "left end", "valueCm": 3 },
+        { "position": "left-of-center segment", "valueCm": 70 },
+        { "position": "right-of-center segment", "valueCm": 70 },
+        { "position": "right end", "valueCm": 3 }
+      ]
+    },
+    {
+      "nameEn": "front waistband interfacing",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 5.97 },
+        { "position": "right edge, upper segment", "valueCm": 19.64 },
+        { "position": "right edge, lower segment", "valueCm": 17.36 },
+        { "position": "left edge, upper segment", "valueCm": 9.64 },
+        { "position": "left edge, lower segment", "valueCm": 17.36 },
+        { "position": "bottom edge", "valueCm": 5.97 }
+      ]
+    },
+    {
+      "nameEn": "front waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 5.97 },
+        { "position": "right edge, upper segment", "valueCm": 17.36 },
+        { "position": "right edge, lower segment", "valueCm": 19.64 },
+        { "position": "left edge, upper segment", "valueCm": 17.36 },
+        { "position": "left edge, lower segment", "valueCm": 19.64 },
+        { "position": "bottom edge", "valueCm": 5.97 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 10.47 },
+        { "position": "top right corner notch", "valueCm": 2.08 },
+        { "position": "upper diagonal edge", "valueCm": 16.23 },
+        { "position": "right edge, near top", "valueCm": 3.24 },
+        { "position": "left edge, upper segment", "valueCm": 5.73 },
+        { "position": "left edge, below upper segment", "valueCm": 10.04 },
+        { "position": "right edge, middle", "valueCm": 13.24 },
+        { "position": "right edge, lower", "valueCm": 14.18 },
+        { "position": "interior waist point", "valueCm": 9.84 },
+        { "position": "lower left corner", "valueCm": 2.71 },
+        {
+          "position": "bottom edge, pocket opening, left segment",
+          "valueCm": 13.84
+        },
+        {
+          "position": "bottom edge, pocket opening, right segment",
+          "valueCm": 13.48
+        },
+        { "position": "bottom right, segment near corner", "valueCm": 3.23 },
+        { "position": "bottom right corner", "valueCm": 2.06 }
+      ]
+    },
+    {
+      "nameEn": "front pocket lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 44.06 },
+        { "position": "left edge", "valueCm": 11.61 },
+        { "position": "lower left corner", "valueCm": 2.71 },
+        {
+          "position": "bottom edge, pocket opening, segment 1",
+          "valueCm": 1.85
+        },
+        {
+          "position": "bottom edge, pocket opening, segment 2",
+          "valueCm": 2.93
+        }
+      ]
+    },
+    {
+      "nameEn": "back waistband interfacing",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "cutOnFold": true,
+      "edges": [
+        { "position": "top edge", "valueCm": 5.96 },
+        { "position": "right edge, upper segment", "valueCm": 17.54 },
+        { "position": "right edge, lower segment", "valueCm": 10 },
+        { "position": "bottom edge", "valueCm": 5.96 },
+        { "position": "left edge", "valueCm": 17.54 },
+        { "position": "center fold tick", "valueCm": 3.01 }
+      ]
+    },
+    {
+      "nameEn": "back waistband",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "cutOnFold": true,
+      "edges": [
+        { "position": "top edge", "valueCm": 5.96 },
+        { "position": "right edge, upper segment", "valueCm": 10 },
+        { "position": "right edge, lower segment", "valueCm": 17.54 },
+        { "position": "bottom edge", "valueCm": 9.8 },
+        { "position": "center fold tick", "valueCm": 3.01 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top right corner", "valueCm": 2.06 },
+        { "position": "top edge", "valueCm": 10.5 },
+        { "position": "top edge, right segment", "valueCm": 3.23 },
+        { "position": "right edge, upper", "valueCm": 20.68 },
+        { "position": "right edge, full side length", "valueCm": 35.45 },
+        { "position": "left edge, upper", "valueCm": 9.28 },
+        { "position": "interior, upper dart area", "valueCm": 9.93 },
+        { "position": "dart width, upper leg", "valueCm": 1.31 },
+        { "position": "dart width, lower leg", "valueCm": 1.41 },
+        { "position": "dart length", "valueCm": 9.91 },
+        { "position": "bottom edge", "valueCm": 30.08 },
+        { "position": "bottom right, segment", "valueCm": 2.17 },
+        { "position": "bottom right corner", "valueCm": 3.28 }
+      ]
+    },
+    {
+      "nameEn": "VVD BLS CT interfacing",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 6 },
+        { "position": "left edge, upper segment", "valueCm": 17.5 },
+        { "position": "left edge, lower segment", "valueCm": 17.5 },
+        { "position": "bottom edge", "valueCm": 6 }
+      ]
+    },
+    {
+      "nameEn": "VVD BLS CT",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 6 },
+        { "position": "left edge, upper segment", "valueCm": 17.5 },
+        { "position": "left edge, lower segment", "valueCm": 17.5 },
+        { "position": "bottom edge", "valueCm": 6 }
+      ]
+    },
+    {
+      "nameEn": "back pocket (welt)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 25 },
+        { "position": "top edge, right segment", "valueCm": 25 },
+        { "position": "left edge", "valueCm": 17.6 },
+        { "position": "right edge", "valueCm": 17.6 },
+        { "position": "bottom edge, left segment", "valueCm": 23.08 },
+        { "position": "bottom edge, right segment", "valueCm": 23.08 }
+      ]
+    }
+  ],
+  "notes": null
+}

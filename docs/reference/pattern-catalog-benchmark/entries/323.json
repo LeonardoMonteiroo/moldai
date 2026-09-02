@@ -1,0 +1,79 @@
+{
+  "sourceId": "323",
+  "category": "baby-knit-top-round-collar",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "thermal knit baby top with a round neckband/collar and set-in sleeves",
+  "gender": "baby",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 8.88 },
+        { "position": "top edge, middle segment", "valueCm": 21.62 },
+        { "position": "top edge, right segment", "valueCm": 36.12 },
+        { "position": "right edge, upper segment", "valueCm": 20.47 },
+        { "position": "right edge, lower segment", "valueCm": 20.47 },
+        { "position": "bottom edge, right segment", "valueCm": 36.12 },
+        { "position": "bottom edge, middle segment", "valueCm": 21.62 },
+        { "position": "bottom edge, left segment", "valueCm": 8.88 },
+        { "position": "left edge, upper segment", "valueCm": 12.03 },
+        { "position": "left edge, lower segment", "valueCm": 12.03 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "left edge, upper segment", "valueCm": 22.15 },
+        { "position": "top edge", "valueCm": 47.45 },
+        { "position": "top-right corner segment", "valueCm": 2.01 },
+        { "position": "right edge, upper segment", "valueCm": 9.23 },
+        { "position": "right edge, lower segment", "valueCm": 9.23 },
+        { "position": "bottom-right corner segment", "valueCm": 2.01 },
+        { "position": "bottom edge", "valueCm": 47.45 },
+        { "position": "left edge, lower segment", "valueCm": 22.15 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 8.89 },
+        { "position": "top edge, middle segment", "valueCm": 21.62 },
+        { "position": "top edge, right segment", "valueCm": 36.12 },
+        { "position": "right edge, upper segment", "valueCm": 20.5 },
+        { "position": "right edge, lower segment", "valueCm": 20.5 },
+        { "position": "bottom edge, right segment", "valueCm": 36.12 },
+        { "position": "bottom edge, middle segment", "valueCm": 21.62 },
+        { "position": "bottom edge, left segment", "valueCm": 8.89 },
+        { "position": "left edge, upper segment", "valueCm": 14.51 },
+        { "position": "left edge, lower segment", "valueCm": 14.51 }
+      ]
+    },
+    {
+      "nameEn": "round collar/neckband (straight strip)",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        {
+          "position": "top-most small segment (near scan crop)",
+          "valueCm": null
+        },
+        { "position": "top segment (vertical)", "valueCm": 23.75 },
+        { "position": "middle segment (vertical)", "valueCm": 47.5 },
+        { "position": "bottom segment (vertical)", "valueCm": 23.75 },
+        {
+          "position": "bottom-most small segment (near scan crop)",
+          "valueCm": null
+        }
+      ]
+    }
+  ],
+  "notes": "Piece labels 'COSTAS 1X', 'MANGA 2X' and 'FRENTE 1X' were clearly legible and used directly. The fourth piece (a long straight strip) is inferred to be the round neckband/collar named in the garment title, but its own printed label text was too small/garbled to read, and its topmost and bottommost small dimension figures were cropped/illegible at the edge of the scan, so both are recorded as null."
+}

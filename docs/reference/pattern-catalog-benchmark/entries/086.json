@@ -1,0 +1,73 @@
+{
+  "sourceId": "086",
+  "category": "womens-cropped-blouse",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "women's cropped blouse with front placket",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left diagonal segment", "valueCm": 18.94 },
+        { "position": "top-left corner segment", "valueCm": 10.36 },
+        { "position": "top edge", "valueCm": 25.03 },
+        { "position": "right edge", "valueCm": 36.65 },
+        { "position": "bottom edge", "valueCm": 25.03 },
+        { "position": "bottom-left diagonal segment", "valueCm": 18.94 },
+        { "position": "bottom-left corner segment", "valueCm": 10.36 },
+        { "position": "left edge, upper curve segment", "valueCm": 20.32 },
+        { "position": "left edge, lower curve segment", "valueCm": 20.32 },
+        {
+          "position": "left edge, small middle segment (upper)",
+          "valueCm": 5.61
+        },
+        {
+          "position": "left edge, small middle segment (lower)",
+          "valueCm": 1.54
+        }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left diagonal segment", "valueCm": 18.94 },
+        { "position": "top-left corner segment", "valueCm": 10.36 },
+        { "position": "top edge", "valueCm": 25.03 },
+        { "position": "right edge", "valueCm": 36.65 },
+        { "position": "bottom edge", "valueCm": 25.03 },
+        { "position": "bottom-left diagonal segment", "valueCm": 18.94 },
+        { "position": "bottom-left corner segment", "valueCm": 10.36 },
+        { "position": "left edge, curved segment", "valueCm": 23.87 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top diagonal segment", "valueCm": 20.4 },
+        { "position": "right edge", "valueCm": 25.66 },
+        { "position": "bottom diagonal segment", "valueCm": 20.41 },
+        { "position": "left edge, curved segment", "valueCm": 41.33 }
+      ]
+    },
+    {
+      "nameEn": "placket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 7.24 },
+        { "position": "left edge", "valueCm": 3.03 },
+        { "position": "right edge", "valueCm": 3.03 },
+        { "position": "bottom edge", "valueCm": 7.24 }
+      ]
+    }
+  ],
+  "notes": "On the front piece, two small overlapping numbers near the middle of the left curve (rendered as '5.61' over '1.54') were partially overlapping in the source scan; both are recorded but with lower confidence than the rest of the piece's measurements."
+}

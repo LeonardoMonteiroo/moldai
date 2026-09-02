@@ -1,0 +1,73 @@
+{
+  "sourceId": "184",
+  "category": "high-waist-leggings-with-cutout-panels-and-pocket",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "high-waisted leggings with side leg cutout panels and an inset pocket",
+  "gender": null,
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "inset pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 20.89 },
+        { "position": "left edge, upper", "valueCm": 15.21 },
+        { "position": "right edge", "valueCm": 15.6 },
+        { "position": "bottom edge", "valueCm": 22.55 }
+      ]
+    },
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 13.07 },
+        { "position": "top edge, right segment", "valueCm": 13.07 },
+        { "position": "left edge", "valueCm": 36.93 },
+        { "position": "right edge", "valueCm": 36.93 },
+        { "position": "bottom edge, left segment", "valueCm": 13.07 },
+        { "position": "bottom edge, right segment", "valueCm": 13.07 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, right segment", "valueCm": 25.65 },
+        { "position": "top edge, left segment", "valueCm": 16.98 },
+        { "position": "left edge", "valueCm": 10.38 },
+        { "position": "bottom edge", "valueCm": 47.08 }
+      ]
+    },
+    {
+      "nameEn": "leg cutout panel (side insert, spans front and back)",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "upper edge, front-side segment", "valueCm": 41.99 },
+        { "position": "top edge, upper diagonal", "valueCm": 50.05 },
+        { "position": "top-right corner", "valueCm": 2.08 },
+        { "position": "right edge", "valueCm": 26.91 },
+        { "position": "bottom edge, lower diagonal", "valueCm": 50.05 },
+        { "position": "bottom-right corner", "valueCm": 2.08 },
+        { "position": "bottom edge, back-side segment", "valueCm": 46.86 },
+        { "position": "left edge", "valueCm": 16.77 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 52.28 },
+        { "position": "left edge", "valueCm": 11.32 },
+        { "position": "bottom edge, left segment", "valueCm": 22.87 },
+        { "position": "bottom edge, right segment", "valueCm": 25.65 }
+      ]
+    }
+  ],
+  "notes": "A small label immediately next to the inset-pocket piece was illegible/ambiguous (a short vertical word near the pocket outline); it was not treated as a separate piece since it carried no edge dimensions of its own."
+}

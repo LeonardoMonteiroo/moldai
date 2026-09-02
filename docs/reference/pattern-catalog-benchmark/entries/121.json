@@ -1,0 +1,113 @@
+{
+  "sourceId": "121",
+  "category": "wrap-sarong-skirt-with-ruffle",
+  "moldaiArchetype": "skirt",
+  "descriptionEn": "wrap/sarong-style skirt with a ruffle trim, one size, asymmetric front-left/front-right panels plus a separate back panel and waistband pieces",
+  "gender": "female",
+  "baseSizeLabel": "Único",
+  "gradeNote": "one size only; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "front left panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 68.29 },
+        { "position": "left edge", "valueCm": 34.56 },
+        { "position": "right edge", "valueCm": 86.48 },
+        { "position": "bottom edge", "valueCm": 23.07 }
+      ]
+    },
+    {
+      "nameEn": "ruffle, front left",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "outer curve", "valueCm": 161.2 },
+        { "position": "inner curve", "valueCm": 106.6 },
+        { "position": "end edge", "valueCm": 16 }
+      ]
+    },
+    {
+      "nameEn": "ruffle, front right",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "end edge", "valueCm": 16 },
+        { "position": "inner curve", "valueCm": 101.91 },
+        { "position": "outer curve", "valueCm": 156.62 }
+      ]
+    },
+    {
+      "nameEn": "front right panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 23.84 },
+        { "position": "left edge", "valueCm": 29.57 },
+        { "position": "right edge", "valueCm": 81.3 },
+        { "position": "bottom edge", "valueCm": 68.3 }
+      ]
+    },
+    {
+      "nameEn": "waistband, front right",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 10 },
+        { "position": "left edge", "valueCm": 34.5 },
+        { "position": "right edge", "valueCm": 34.5 },
+        { "position": "bottom edge", "valueCm": 10 }
+      ]
+    },
+    {
+      "nameEn": "back panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 68.48 },
+        { "position": "left edge, upper segment", "valueCm": 11.5 },
+        { "position": "left edge, middle segment", "valueCm": 23 },
+        { "position": "left edge, lower segment", "valueCm": 11.5 },
+        { "position": "right edge", "valueCm": 111.65 },
+        { "position": "bottom edge", "valueCm": 68.48 }
+      ]
+    },
+    {
+      "nameEn": "waistband, back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 10 },
+        { "position": "left edge", "valueCm": 45.84 },
+        { "position": "right edge", "valueCm": 45.84 },
+        { "position": "bottom edge", "valueCm": 10 }
+      ]
+    },
+    {
+      "nameEn": "waistband, front left",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 10 },
+        { "position": "left edge, upper segment", "valueCm": 75.5 },
+        { "position": "right edge, upper segment", "valueCm": 75.5 },
+        { "position": "left edge, lower segment", "valueCm": 29.5 },
+        { "position": "right edge, lower segment", "valueCm": 29.5 },
+        { "position": "bottom edge", "valueCm": 10 }
+      ]
+    },
+    {
+      "nameEn": "ruffle, back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "end edge, top", "valueCm": 16.01 },
+        { "position": "inner curve", "valueCm": 106.66 },
+        { "position": "outer curve", "valueCm": 155.66 },
+        { "position": "end edge, bottom", "valueCm": 16.01 }
+      ]
+    }
+  ],
+  "notes": "The back panel's left edge also showed two small values (about 2 cm each) next to dot marks, positioned between the 11.5/23/11.5 segments; these read as internal notch or dart marks rather than outline edges and were not included in the edges list. The waistband 'front left' and 'front right' pieces have notably different lengths in the source, consistent with an asymmetric wrap-skirt closure; their exact segment boundaries (which numbers belong to which physical run of the edge) are recorded as read but not independently confirmed."
+}

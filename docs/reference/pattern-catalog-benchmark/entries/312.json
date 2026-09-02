@@ -1,0 +1,61 @@
+{
+  "sourceId": "312",
+  "category": "hooded towel",
+  "moldaiArchetype": null,
+  "descriptionEn": "kids hooded bath towel, front and back body panels plus a separate hood piece",
+  "gender": "kids",
+  "baseSizeLabel": "one size",
+  "pieces": [
+    {
+      "nameEn": "back panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 67.29 },
+        { "position": "top right corner", "valueCm": 2 },
+        { "position": "right edge, upper segment", "valueCm": 35.79 },
+        { "position": "top left diagonal segment", "valueCm": 25 },
+        { "position": "left edge, curve segment (upper)", "valueCm": 12.9 },
+        { "position": "left edge, curve segment (lower)", "valueCm": 12.9 },
+        { "position": "bottom left diagonal segment", "valueCm": 25 },
+        { "position": "bottom edge", "valueCm": 67.29 },
+        { "position": "bottom right corner", "valueCm": 2 },
+        { "position": "right edge, lower segment", "valueCm": 35.79 }
+      ]
+    },
+    {
+      "nameEn": "hood, left side",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (curve)", "valueCm": 50.33 },
+        { "position": "right edge (diagonal)", "valueCm": 27.54 },
+        { "position": "bottom left corner", "valueCm": 2 },
+        { "position": "bottom edge", "valueCm": 36.96 },
+        { "position": "bottom right corner", "valueCm": 2 }
+      ]
+    },
+    {
+      "nameEn": "front panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 67.29 },
+        { "position": "top right corner", "valueCm": 2 },
+        { "position": "top left diagonal segment", "valueCm": 25 },
+        { "position": "right edge, upper segment", "valueCm": null },
+        { "position": "left edge, curve segment (upper)", "valueCm": 15.35 },
+        { "position": "left edge, curve segment (lower)", "valueCm": 15.35 },
+        {
+          "position": "horizontal center reference line (large annotation, '77 CM')",
+          "valueCm": 77
+        },
+        { "position": "right edge, middle segment", "valueCm": null },
+        { "position": "bottom left diagonal segment", "valueCm": 25 },
+        { "position": "bottom edge", "valueCm": 67.29 },
+        { "position": "bottom right corner", "valueCm": null }
+      ]
+    }
+  ],
+  "notes": "front panel: two right-edge values had their final digit cropped at the source PDF's page/render boundary (visible as '35.7' with a corrupted trailing character, matching the back panel's 35.79 in position but not confirmed), and the bottom-right corner value was not visible at all — all three recorded as null rather than guessed by analogy to the back panel."
+}

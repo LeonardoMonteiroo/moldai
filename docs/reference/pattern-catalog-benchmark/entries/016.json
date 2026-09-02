@@ -1,0 +1,106 @@
+{
+  "sourceId": "016",
+  "category": "sport-raglan-tshirt",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "sport raglan-sleeve t-shirt, knit",
+  "gender": "unisex",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "sleeve (raglan)",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, upper-left short segment", "valueCm": 2.38 },
+        { "position": "top edge, next segment", "valueCm": 8.47 },
+        {
+          "position": "top-right diagonal (raglan seam, upper)",
+          "valueCm": 31.14
+        },
+        { "position": "right edge, short segment", "valueCm": 7.87 },
+        {
+          "position": "bottom-right diagonal (raglan seam, lower)",
+          "valueCm": 34.86
+        },
+        { "position": "left edge, main (long)", "valueCm": 36.57 },
+        { "position": "bottom-left short segment", "valueCm": 2.37 },
+        { "position": "bottom-left segment", "valueCm": 8.45 }
+      ]
+    },
+    {
+      "nameEn": "neckline binding/trim",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 4.3 },
+        { "position": "left edge", "valueCm": 50.6 },
+        { "position": "right edge", "valueCm": 50.6 },
+        { "position": "bottom edge", "valueCm": 4.3 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "cutOnFold": true,
+      "qty": 1,
+      "edges": [
+        {
+          "position": "top edge, right half (center to shoulder)",
+          "valueCm": 52.4
+        },
+        {
+          "position": "top-left diagonal (raglan/shoulder seam)",
+          "valueCm": 34.34
+        },
+        { "position": "right edge (full height)", "valueCm": 57.02 },
+        { "position": "bottom edge, right half", "valueCm": 52.4 },
+        { "position": "bottom-left diagonal", "valueCm": 34.34 },
+        {
+          "position": "left edge, upper segment (armhole/side area)",
+          "valueCm": 15.16
+        },
+        {
+          "position": "horizontal centerline (full width reference)",
+          "valueCm": 79.55
+        },
+        {
+          "position": "vertical centerline (full height reference)",
+          "valueCm": 55.36
+        }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "cutOnFold": true,
+      "qty": 1,
+      "edges": [
+        {
+          "position": "top edge, right half (center to shoulder)",
+          "valueCm": 52.4
+        },
+        {
+          "position": "top-left diagonal (raglan/shoulder seam)",
+          "valueCm": 30.71
+        },
+        { "position": "right edge (full height)", "valueCm": 57.02 },
+        { "position": "bottom edge, right half", "valueCm": 52.4 },
+        { "position": "bottom-left diagonal", "valueCm": 30.71 },
+        {
+          "position": "left edge, curved segment (armhole/side area)",
+          "valueCm": 24.69
+        },
+        {
+          "position": "horizontal centerline (full width reference)",
+          "valueCm": 75.95
+        },
+        {
+          "position": "vertical centerline (full height reference)",
+          "valueCm": 55.36
+        }
+      ]
+    }
+  ],
+  "notes": "Back and front panels are drawn with a vertical centerline and symmetric mirrored dimensions on both halves plus zero-valued origin ticks at the crosshair points (omitted as non-measurements); this symmetry is why cutOnFold was inferred true for both, though no explicit dashed fold-line marking could be confirmed from the render."
+}

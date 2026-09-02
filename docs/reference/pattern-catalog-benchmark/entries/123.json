@@ -1,0 +1,86 @@
+{
+  "sourceId": "123",
+  "category": "mens-wide-swim-brief",
+  "moldaiArchetype": null,
+  "descriptionEn": "men's wide-cut swim brief with front and back panels, full linings, and a separate crotch gusset",
+  "gender": "male",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern print output",
+  "pieces": [
+    {
+      "nameEn": "gusset",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 10.56 },
+        { "position": "left edge", "valueCm": 11.98 },
+        { "position": "right edge", "valueCm": 11.98 },
+        { "position": "bottom edge", "valueCm": 10.56 }
+      ]
+    },
+    {
+      "nameEn": "gusset lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 10.56 },
+        { "position": "left edge", "valueCm": 11.98 },
+        { "position": "right edge", "valueCm": 11.98 },
+        { "position": "bottom edge", "valueCm": 10.56 }
+      ]
+    },
+    {
+      "nameEn": "front lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 22.08 },
+        { "position": "right edge, upper segment", "valueCm": 18.53 },
+        { "position": "right edge, mid segment", "valueCm": 11.98 },
+        { "position": "right edge, lower segment", "valueCm": 18.53 },
+        { "position": "bottom edge", "valueCm": 22.08 },
+        { "position": "left edge", "valueCm": 40.6 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 22.08 },
+        { "position": "right edge, upper segment", "valueCm": 18.53 },
+        { "position": "right edge, mid segment", "valueCm": 11.98 },
+        { "position": "right edge, lower segment", "valueCm": 18.53 },
+        { "position": "bottom edge", "valueCm": 22.08 },
+        { "position": "left edge", "valueCm": 40.6 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 22.08 },
+        { "position": "right edge, upper segment", "valueCm": 18.53 },
+        { "position": "right edge, mid segment", "valueCm": 11.98 },
+        { "position": "right edge, lower segment", "valueCm": 18.53 },
+        { "position": "bottom edge", "valueCm": 22.08 },
+        { "position": "left edge", "valueCm": 40.6 }
+      ]
+    },
+    {
+      "nameEn": "back lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 22.08 },
+        { "position": "right edge, upper segment", "valueCm": 18.53 },
+        { "position": "right edge, mid segment", "valueCm": 11.98 },
+        { "position": "right edge, lower segment", "valueCm": 18.53 },
+        { "position": "bottom edge", "valueCm": 22.08 },
+        { "position": "left edge", "valueCm": 40.6 }
+      ]
+    }
+  ],
+  "notes": null
+}

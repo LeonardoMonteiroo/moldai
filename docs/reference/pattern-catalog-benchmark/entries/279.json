@@ -1,0 +1,95 @@
+{
+  "sourceId": "279",
+  "category": "pet-pullover-with-bands",
+  "moldaiArchetype": null,
+  "descriptionEn": "pet pullover-style coat with a back panel, a front/chest panel, a collar band, a hem band, and two leg-opening bands",
+  "gender": null,
+  "baseSizeLabel": "G",
+  "gradeNote": "approx. 3 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "back panel",
+      "originalLabelUnclear": false,
+      "edges": [
+        {
+          "position": "top edge, right portion near top curve",
+          "valueCm": 12.69
+        },
+        { "position": "top edge, left-of-center segment", "valueCm": 14.05 },
+        { "position": "top-left corner", "valueCm": 7.89 },
+        { "position": "left side, full-height curve", "valueCm": 24.48 },
+        {
+          "position": "bottom-left corner (mirrors top-left)",
+          "valueCm": 7.89
+        },
+        {
+          "position": "bottom edge, left-of-center segment (mirrors top)",
+          "valueCm": 14.05
+        },
+        {
+          "position": "bottom edge, right portion near bottom curve (mirrors top)",
+          "valueCm": 12.69
+        },
+        { "position": "right side, full-height curve", "valueCm": 51.3 }
+      ]
+    },
+    {
+      "nameEn": "front/chest panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, right corner", "valueCm": 13.21 },
+        { "position": "top edge, center segment", "valueCm": 19.34 },
+        { "position": "top-left corner", "valueCm": 7.88 },
+        { "position": "left side, full-height curve", "valueCm": 21.97 },
+        {
+          "position": "bottom-left corner (mirrors top-left)",
+          "valueCm": 7.88
+        },
+        {
+          "position": "bottom edge, center segment (mirrors top)",
+          "valueCm": 19.34
+        },
+        {
+          "position": "bottom edge, right corner (mirrors top)",
+          "valueCm": 13.21
+        },
+        { "position": "right side, full-height curve", "valueCm": 28.7 }
+      ]
+    },
+    {
+      "nameEn": "hem band",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge (band width)", "valueCm": 7 },
+        { "position": "bottom edge (band width)", "valueCm": 7 },
+        { "position": "left edge (band length)", "valueCm": 72 },
+        { "position": "right edge (band length)", "valueCm": 72 }
+      ]
+    },
+    {
+      "nameEn": "collar band",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge (band width)", "valueCm": 7 },
+        { "position": "bottom edge (band width)", "valueCm": 7 },
+        { "position": "left edge (band length)", "valueCm": 44 },
+        { "position": "right edge (band length)", "valueCm": 44 }
+      ]
+    },
+    {
+      "nameEn": "leg band",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (band width)", "valueCm": 7 },
+        { "position": "bottom edge (band width)", "valueCm": 7 },
+        { "position": "left edge (band length)", "valueCm": 25 },
+        { "position": "right edge (band length)", "valueCm": 25 }
+      ]
+    }
+  ],
+  "notes": "The back panel had no explicit quantity marking near its label on the source sheet (unlike the other pieces, which had explicit '1X'/'2X' suffixes), so qty was left unset for it rather than assumed."
+}

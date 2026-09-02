@@ -1,0 +1,114 @@
+{
+  "sourceId": "259",
+  "category": "kids bib overalls with pompom trim",
+  "moldaiArchetype": null,
+  "descriptionEn": "children's bib overalls (jumper-style) with pompom trim detail and elasticized straps",
+  "gender": "kids",
+  "baseSizeLabel": "08",
+  "gradeNote": "approx. 1.2 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "CAS",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 59 },
+        { "position": "left edge (tab)", "valueCm": 7 },
+        { "position": "right edge (tab)", "valueCm": 7 },
+        { "position": "bottom edge", "valueCm": 59 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 10.65 },
+        { "position": "top edge, right segment", "valueCm": 7.98 },
+        { "position": "left edge", "valueCm": 15.59 },
+        { "position": "right edge", "valueCm": 5.17 },
+        { "position": "bottom edge, left segment", "valueCm": 10.65 },
+        { "position": "bottom edge, right segment", "valueCm": 7.98 }
+      ]
+    },
+    {
+      "nameEn": "pocket placement guide",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge", "valueCm": 8.68 },
+        { "position": "top-right corner", "valueCm": 5.59 },
+        { "position": "left edge", "valueCm": 12.59 },
+        { "position": "right edge", "valueCm": 5.21 },
+        { "position": "bottom edge", "valueCm": 8.68 },
+        { "position": "bottom-right corner", "valueCm": 5.59 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top apex", "valueCm": 8.35 },
+        { "position": "top-left diagonal edge", "valueCm": 16.13 },
+        { "position": "top-right corner segment", "valueCm": 7.4 },
+        { "position": "top-right corner small tab", "valueCm": 2.04 },
+        { "position": "left edge", "valueCm": 21.28 },
+        { "position": "right edge", "valueCm": 28.9 },
+        { "position": "bottom edge", "valueCm": 26.92 },
+        { "position": "bottom-right corner tab", "valueCm": 2 }
+      ]
+    },
+    {
+      "nameEn": "front panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 26.62 },
+        { "position": "left edge", "valueCm": 22.63 },
+        { "position": "right edge, upper segment", "valueCm": 16.5 },
+        { "position": "right edge, lower segment", "valueCm": 16.5 },
+        { "position": "bottom edge", "valueCm": 26.62 }
+      ]
+    },
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top tab", "valueCm": 4 },
+        { "position": "right edge, upper segment", "valueCm": 16.5 },
+        { "position": "left edge (total)", "valueCm": 33 },
+        { "position": "right edge, lower segment", "valueCm": 16.5 },
+        { "position": "bottom tab", "valueCm": 4 }
+      ]
+    },
+    {
+      "nameEn": "front bib panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top apex", "valueCm": 8.19 },
+        { "position": "top-left diagonal edge", "valueCm": 11.57 },
+        { "position": "top-right corner segment", "valueCm": 7.4 },
+        { "position": "top-right corner small tab", "valueCm": 2.04 },
+        { "position": "left edge, upper segment", "valueCm": 16.04 },
+        { "position": "left edge, lower segment", "valueCm": 5.3 },
+        { "position": "right edge", "valueCm": 27.03 },
+        { "position": "bottom edge", "valueCm": 26.92 },
+        { "position": "bottom-right corner tab", "valueCm": 2 }
+      ]
+    },
+    {
+      "nameEn": "back strap piece",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top tab", "valueCm": 7 },
+        { "position": "left edge", "valueCm": 54.64 },
+        { "position": "right edge", "valueCm": 54.64 },
+        { "position": "bottom tab", "valueCm": 7 }
+      ]
+    }
+  ],
+  "notes": "Two piece labels in the source render as cryptic or overlapping abbreviations and could not be confidently translated: the top strip piece (kept verbatim as 'CAS') and the tall right-hand strip piece with a per-size elastic table (best-guess read as a back strap piece, but the printed name was partly obscured by overlapping adjacent-piece text). The waistband piece's edge segments were also read amid overlapping adjacent-piece label text, so their exact segment-to-edge attribution carries some uncertainty though the numbers themselves are legible. On the front bib panel, the 5.3 cm value's attribution to a left-edge lower segment (versus an internal placement-mark distance near nearby pompom-position crosses) is likewise uncertain, though the number is legible. Per-size elastic length tables were not transcribed, as they are supplementary grading data rather than piece-edge dimensions. A pocket placement guide/template piece is included for completeness even though it may be a positioning aid rather than a cut fabric piece."
+}

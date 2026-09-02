@@ -1,0 +1,195 @@
+{
+  "sourceId": "346",
+  "category": "mens-tailored-trousers",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "men's tailored dress trousers with front and back leg panels, fly, back welt pocket, front pocket, long waistband strip, and belt loops",
+  "gender": "male",
+  "baseSizeLabel": "P",
+  "pieces": [
+    {
+      "nameEn": "back leg panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 0.49 },
+        { "position": "upper-left curve, segment 1", "valueCm": 8.83 },
+        { "position": "upper-left curve, segment 2", "valueCm": 14.47 },
+        { "position": "top edge, segment 1", "valueCm": 23.83 },
+        { "position": "top edge, segment 2", "valueCm": 36.1 },
+        { "position": "top-right corner", "valueCm": 1.1 },
+        { "position": "right edge, upper", "valueCm": 2.01 },
+        { "position": "right edge (side seam, long)", "valueCm": 25.65 },
+        { "position": "bottom-right corner", "valueCm": 2.01 },
+        { "position": "bottom-right corner, secondary tick", "valueCm": 1.1 },
+        { "position": "bottom edge, segment 1 (from right)", "valueCm": 36.78 },
+        { "position": "bottom edge, segment 2", "valueCm": 21.97 },
+        { "position": "bottom edge, segment 3", "valueCm": 13.42 },
+        { "position": "bottom edge, segment 4 (near left)", "valueCm": 16.47 },
+        { "position": "left edge (crotch curve)", "valueCm": 15.43 },
+        { "position": "dart (labeled PENCE), edge 1", "valueCm": 2.8 },
+        { "position": "dart (labeled PENCE), edge 2", "valueCm": 13.85 },
+        { "position": "dart (labeled PENCE), edge 3", "valueCm": 7.83 },
+        { "position": "dart (labeled PENCE), edge 4", "valueCm": 1.77 },
+        { "position": "dart (labeled PENCE), edge 5", "valueCm": 1.68 },
+        { "position": "dart (labeled PENCE), edge 6", "valueCm": 8.14 },
+        { "position": "dart (labeled PENCE), edge 7", "valueCm": 3.78 },
+        { "position": "dart (labeled PENCE), edge 8", "valueCm": 11.07 }
+      ]
+    },
+    {
+      "nameEn": "front leg panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 8.1 },
+        { "position": "upper-left curve", "valueCm": 14.75 },
+        { "position": "top edge, segment 1", "valueCm": 24 },
+        { "position": "top edge, segment 2", "valueCm": 36.14 },
+        { "position": "top-right corner", "valueCm": 1.1 },
+        { "position": "right edge, upper", "valueCm": 2 },
+        { "position": "right edge (side seam, long)", "valueCm": 22.79 },
+        { "position": "bottom-right corner", "valueCm": 2.01 },
+        { "position": "bottom-right corner, secondary tick", "valueCm": 1.1 },
+        { "position": "bottom edge, segment 1 (from right)", "valueCm": 36.78 },
+        { "position": "bottom edge, segment 2", "valueCm": 21.97 },
+        { "position": "bottom edge, segment 3", "valueCm": 13.42 },
+        { "position": "bottom edge, segment 4 (near left)", "valueCm": 20.25 },
+        { "position": "left edge (crotch curve), lower", "valueCm": 12.69 },
+        { "position": "left edge, middle", "valueCm": 14.09 },
+        { "position": "left edge, upper", "valueCm": 15.47 },
+        { "position": "near top-left, small notch", "valueCm": 3.77 }
+      ]
+    },
+    {
+      "nameEn": "front pocket piece",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 20.91 },
+        { "position": "left edge, upper", "valueCm": 15.32 },
+        { "position": "top-right corner", "valueCm": 5.04 },
+        { "position": "secondary corner", "valueCm": 5.04 },
+        { "position": "left edge, middle", "valueCm": 6.82 },
+        { "position": "right edge, upper", "valueCm": 12.32 },
+        { "position": "right edge, lower", "valueCm": 12.3 },
+        { "position": "bottom-left area", "valueCm": 13.39 },
+        { "position": "bottom edge, segment 1", "valueCm": 5.26 },
+        { "position": "bottom edge, segment 2", "valueCm": 13.93 },
+        { "position": "bottom-right corner", "valueCm": 4.81 }
+      ]
+    },
+    {
+      "nameEn": "back pocket piece",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": null },
+        { "position": "top edge, right segment", "valueCm": 26 },
+        { "position": "right edge", "valueCm": 19.56 },
+        { "position": "left edge, upper", "valueCm": 9.52 },
+        { "position": "interior marker (pocket opening)", "valueCm": 10.03 },
+        { "position": "bottom edge, left segment", "valueCm": 26 },
+        { "position": "bottom edge, right segment", "valueCm": 26 }
+      ]
+    },
+    {
+      "nameEn": "waistband strip",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top end", "valueCm": 5.5 },
+        { "position": "left edge, segment 1 (from top)", "valueCm": 21.75 },
+        { "position": "left edge, segment 2", "valueCm": 41.9 },
+        { "position": "left edge, segment 3", "valueCm": 20.15 },
+        { "position": "left edge, segment 4", "valueCm": 45.9 },
+        { "position": "left edge, segment 5", "valueCm": 20.15 },
+        { "position": "left edge, segment 6", "valueCm": 25.75 },
+        { "position": "bottom end", "valueCm": 5.5 }
+      ]
+    },
+    {
+      "nameEn": "front pocket facing",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 5.24 },
+        { "position": "right edge", "valueCm": 28.16 },
+        { "position": "left edge", "valueCm": 13.29 },
+        { "position": "bottom edge", "valueCm": 13.93 },
+        { "position": "bottom-right corner", "valueCm": 5.92 }
+      ]
+    },
+    {
+      "nameEn": "pocket lining",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 4.43 },
+        { "position": "right edge", "valueCm": 28.17 },
+        { "position": "left edge", "valueCm": 9.32 },
+        { "position": "bottom edge, segment 1", "valueCm": null },
+        { "position": "bottom edge, segment 2", "valueCm": 5.94 },
+        { "position": "bottom-right corner", "valueCm": 6.19 }
+      ]
+    },
+    {
+      "nameEn": "belt loop",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "left end", "valueCm": 4 },
+        { "position": "left segment", "valueCm": 30 },
+        { "position": "right segment", "valueCm": 30 },
+        { "position": "right end", "valueCm": 4 }
+      ]
+    },
+    {
+      "nameEn": "unclear small trim strip",
+      "originalLabelUnclear": true,
+      "qty": 3,
+      "edges": [
+        { "position": "top width", "valueCm": 3 },
+        { "position": "length", "valueCm": 30 },
+        { "position": "bottom width", "valueCm": 3 }
+      ]
+    },
+    {
+      "nameEn": "unclear small trim piece",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 6 },
+        { "position": "left edge", "valueCm": 18.3 },
+        { "position": "right edge", "valueCm": 18.5 },
+        { "position": "bottom edge", "valueCm": 6 }
+      ]
+    },
+    {
+      "nameEn": "fly piece",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 23 },
+        { "position": "top-right corner", "valueCm": 2.3 },
+        { "position": "left edge, upper", "valueCm": 6.3 },
+        { "position": "right edge, upper", "valueCm": 5.57 },
+        { "position": "right edge, lower", "valueCm": 5.57 },
+        { "position": "left edge, lower", "valueCm": 6.3 },
+        { "position": "bottom edge", "valueCm": 23 },
+        { "position": "bottom-right corner", "valueCm": 2.3 }
+      ]
+    },
+    {
+      "nameEn": "fly facing",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 23 },
+        { "position": "top-right corner", "valueCm": 1 },
+        { "position": "right edge/corner", "valueCm": 6.26 },
+        { "position": "left edge", "valueCm": 5 }
+      ]
+    }
+  ],
+  "notes": "Two values were genuinely illegible/ambiguous and recorded as null: back pocket piece's top-left edge segment (obscured/unclear digit grouping), and pocket lining's first bottom-edge segment (overlapped adjacent digits). The waistband strip, dart cluster on the back leg panel, and several small trim pieces are in a densely annotated region of the drawing; edge-to-position assignment for those is a reasonable best-effort reading rather than a pixel-certain one, though all recorded numeric values themselves were legible. Several small piece labels (front pocket facing, pocket lining, belt-loop-adjacent trim pieces, fly piece, fly facing) used abbreviated Portuguese labels that could not be translated with full confidence, so originalLabelUnclear is set for them even where a plausible English name is given."
+}

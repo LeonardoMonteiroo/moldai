@@ -1,0 +1,108 @@
+{
+  "sourceId": "077",
+  "category": "basic-dress",
+  "moldaiArchetype": "dress",
+  "descriptionEn": "basic dress with sleeves and a separate collar",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left, small segment", "valueCm": 8.06 },
+        { "position": "top, small segment", "valueCm": 2.59 },
+        { "position": "left edge", "valueCm": 45.74 },
+        { "position": "right edge", "valueCm": 34.35 },
+        {
+          "position": "bottom-left, small segment (mirrored)",
+          "valueCm": 8.06
+        },
+        { "position": "bottom, small segment (mirrored)", "valueCm": 2.59 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 57.82 },
+        { "position": "top-right, small segment 1", "valueCm": 1.68 },
+        { "position": "top-right, small segment 2", "valueCm": 13.13 },
+        { "position": "upper-left diagonal (shoulder)", "valueCm": 22.83 },
+        { "position": "left curve, upper (armhole)", "valueCm": 10.59 },
+        { "position": "left curve, mid (armhole, deepest)", "valueCm": 32.39 },
+        {
+          "position": "left curve, lower (armhole, mirrored)",
+          "valueCm": 10.59
+        },
+        { "position": "lower-left diagonal (mirrored)", "valueCm": 22.83 },
+        { "position": "bottom edge", "valueCm": 57.82 },
+        {
+          "position": "bottom-right, small segment 1 (mirrored)",
+          "valueCm": 1.68
+        },
+        {
+          "position": "bottom-right, small segment 2 (mirrored)",
+          "valueCm": 13.13
+        },
+        { "position": "right edge (full height)", "valueCm": 58.09 }
+      ]
+    },
+    {
+      "nameEn": "front collar",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left, small segment", "valueCm": 1.95 },
+        { "position": "upper curve", "valueCm": 18.87 },
+        { "position": "main edge", "valueCm": 32.42 },
+        { "position": "lower curve (mirrored)", "valueCm": 18.87 },
+        { "position": "bottom-left, small segment (mirrored)", "valueCm": 1.95 }
+      ]
+    },
+    {
+      "nameEn": "back collar",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top, small segment", "valueCm": 1.95 },
+        { "position": "upper curve", "valueCm": 14.46 },
+        { "position": "main edge", "valueCm": 23.7 },
+        { "position": "lower curve (mirrored)", "valueCm": 14.46 },
+        { "position": "bottom, small segment (mirrored)", "valueCm": 1.95 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 57.82 },
+        { "position": "top-right, small segment 1", "valueCm": 1.68 },
+        { "position": "top-right, small segment 2", "valueCm": 13.13 },
+        { "position": "upper-left diagonal (shoulder)", "valueCm": 22.77 },
+        { "position": "left curve, upper (armhole)", "valueCm": 10.59 },
+        { "position": "left curve, mid (armhole, deepest)", "valueCm": 23.73 },
+        {
+          "position": "left curve, lower (armhole, mirrored)",
+          "valueCm": 10.59
+        },
+        { "position": "lower-left diagonal (mirrored)", "valueCm": 22.77 },
+        { "position": "bottom edge", "valueCm": 57.82 },
+        {
+          "position": "bottom-right, small segment 1 (mirrored)",
+          "valueCm": 1.68
+        },
+        {
+          "position": "bottom-right, small segment 2 (mirrored)",
+          "valueCm": 13.13
+        },
+        { "position": "right edge (full height)", "valueCm": 58.09 }
+      ]
+    }
+  ],
+  "notes": null
+}

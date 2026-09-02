@@ -1,0 +1,97 @@
+{
+  "sourceId": "276",
+  "category": "pet kangaroo-pocket hooded coat (fleece)",
+  "moldaiArchetype": null,
+  "descriptionEn": "pet hooded coat in sweatshirt fleece with kangaroo-style hood, hood lining, body panel with leg cutouts, hem band, small pocket detail, and leg-opening bias binding",
+  "gender": null,
+  "baseSizeLabel": "G",
+  "gradeNote": "approx. 3 to 4 cm average variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "hood lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "upper-left diagonal edge", "valueCm": 41.3 },
+        { "position": "right edge", "valueCm": 24.69 },
+        { "position": "bottom edge", "valueCm": 27.56 }
+      ]
+    },
+    {
+      "nameEn": "hood",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "upper-left diagonal edge", "valueCm": 43.92 },
+        { "position": "right edge", "valueCm": 24.69 },
+        { "position": "bottom edge", "valueCm": 26.85 },
+        { "position": "small mark near bottom-right corner", "valueCm": 2.5 }
+      ]
+    },
+    {
+      "nameEn": "body",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 27.47 },
+        { "position": "top-left corner segment", "valueCm": 2.01 },
+        { "position": "top-right corner segment", "valueCm": 2.09 },
+        { "position": "left edge, segment 1 (uppermost)", "valueCm": 12.84 },
+        { "position": "left edge, segment 2", "valueCm": 7.88 },
+        { "position": "left edge, curve (leg cutout)", "valueCm": 32.7 },
+        { "position": "left edge, segment 3", "valueCm": 7.89 },
+        { "position": "left edge, segment 4 (longest, mid)", "valueCm": 24.73 },
+        { "position": "left edge, segment 5 (mirrored)", "valueCm": 7.89 },
+        { "position": "left edge, curve mirror (leg cutout)", "valueCm": 32.7 },
+        { "position": "left edge, segment 6 (mirrored)", "valueCm": 7.88 },
+        { "position": "left edge, segment 7 (mirrored)", "valueCm": 12.84 },
+        { "position": "bottom-left corner segment", "valueCm": 2.01 },
+        { "position": "bottom-right corner segment", "valueCm": 2.09 },
+        { "position": "bottom edge", "valueCm": 27.47 },
+        { "position": "right edge, upper segment", "valueCm": 31.21 },
+        { "position": "right edge, lower segment", "valueCm": 31.21 },
+        { "position": "right side, mid-width mark", "valueCm": 18.09 }
+      ]
+    },
+    {
+      "nameEn": "hem band",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 7 },
+        { "position": "left edge", "valueCm": 63 },
+        { "position": "right edge", "valueCm": 63 },
+        { "position": "bottom edge", "valueCm": 7 }
+      ]
+    },
+    {
+      "nameEn": "pocket detail",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 0.75 },
+        { "position": "upper-left diagonal", "valueCm": 10.61 },
+        { "position": "upper-right diagonal", "valueCm": 6.24 },
+        { "position": "upper-left corner segment", "valueCm": 1.11 },
+        { "position": "lower-left corner segment", "valueCm": 1.11 },
+        { "position": "left edge", "valueCm": 15.07 },
+        { "position": "right edge", "valueCm": 20.15 },
+        { "position": "lower-left diagonal", "valueCm": 10.61 },
+        { "position": "lower-right diagonal", "valueCm": 6.24 },
+        { "position": "bottom edge", "valueCm": 0.85 }
+      ]
+    },
+    {
+      "nameEn": "leg opening bias binding",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 7 },
+        { "position": "left edge", "valueCm": 27 },
+        { "position": "right edge", "valueCm": 27 },
+        { "position": "bottom edge", "valueCm": 7 }
+      ]
+    }
+  ],
+  "notes": "This is a pet garment (dog/cat coat), not a human garment, so moldaiArchetype and gender are both null per the pattern-catalog schema. All edge values in the source drawing were legible; none required a null/unclear flag."
+}

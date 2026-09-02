@@ -1,0 +1,92 @@
+{
+  "sourceId": "083",
+  "category": "womens-dress-with-ruffles",
+  "moldaiArchetype": "dress",
+  "descriptionEn": "women's dress with tiered ruffle skirt",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-right small segment", "valueCm": 2.4 },
+        { "position": "top edge", "valueCm": 23.66 },
+        { "position": "left edge, upper segment", "valueCm": 4.42 },
+        { "position": "left edge, middle curved segment", "valueCm": 34.1 },
+        { "position": "left edge, lower segment", "valueCm": 4.42 },
+        { "position": "bottom edge", "valueCm": 23.66 },
+        { "position": "bottom-left small segment", "valueCm": 2.4 },
+        { "position": "right edge", "valueCm": 46.97 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-right small segment", "valueCm": 2.4 },
+        { "position": "top edge", "valueCm": 23.66 },
+        { "position": "left edge, upper segment", "valueCm": 4.42 },
+        { "position": "left edge, middle curved segment", "valueCm": 49.85 },
+        { "position": "left edge, lower segment", "valueCm": 4.42 },
+        { "position": "bottom edge", "valueCm": 23.66 },
+        { "position": "bottom-left small segment", "valueCm": 2.4 },
+        { "position": "right edge", "valueCm": 46.97 }
+      ]
+    },
+    {
+      "nameEn": "ruffle, upper tier",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 46 },
+        { "position": "bottom edge", "valueCm": 46 },
+        { "position": "left edge", "valueCm": 71 },
+        { "position": "right edge", "valueCm": 71 }
+      ]
+    },
+    {
+      "nameEn": "ruffle, middle tier",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 26 },
+        { "position": "bottom edge", "valueCm": 26 },
+        { "position": "left edge", "valueCm": 96 },
+        { "position": "right edge", "valueCm": 96 }
+      ]
+    },
+    {
+      "nameEn": "ruffle, lower tier",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 28 },
+        { "position": "bottom edge", "valueCm": 28 },
+        { "position": "left edge", "valueCm": 121 },
+        { "position": "right edge", "valueCm": 121 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 2.5 },
+        { "position": "bottom edge", "valueCm": 2.5 },
+        {
+          "position": "internal vertical measurement line, left",
+          "valueCm": 89.8
+        },
+        {
+          "position": "internal vertical measurement line, right",
+          "valueCm": 86.59
+        }
+      ]
+    }
+  ],
+  "notes": "The sleeve piece's internal vertical measurement line shows a pair of values (89.8 and 86.59) whose exact geometric meaning (which curve/edge each measures) is not fully clear from the drawing layout, similar to the paired internal values seen on other garments in this batch."
+}

@@ -1,0 +1,105 @@
+{
+  "sourceId": "337",
+  "category": "jersey-tshirt",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "women's jersey knit t-shirt with front and back yoke panels and a rib neckband",
+  "gender": "female",
+  "baseSizeLabel": "P",
+  "pieces": [
+    {
+      "nameEn": "neckband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 2.84 },
+        { "position": "top edge, right segment", "valueCm": 2.8 },
+        { "position": "left edge", "valueCm": 24.04 },
+        { "position": "right edge", "valueCm": 24.04 },
+        { "position": "bottom edge, left segment", "valueCm": 2.8 },
+        { "position": "bottom edge, right segment", "valueCm": 2.8 }
+      ]
+    },
+    {
+      "nameEn": "front yoke",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 15.04 },
+        { "position": "left edge, upper segment", "valueCm": 21.6 },
+        { "position": "upper diagonal edge", "valueCm": 25.95 },
+        { "position": "right edge, upper curve segment", "valueCm": 16.52 },
+        { "position": "right edge, lower curve segment", "valueCm": 16.52 },
+        { "position": "lower diagonal edge", "valueCm": 25.95 },
+        { "position": "left edge, lower segment", "valueCm": 21.6 },
+        { "position": "bottom edge", "valueCm": 15.04 }
+      ]
+    },
+    {
+      "nameEn": "back yoke",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, segment 1", "valueCm": 1.83 },
+        { "position": "top edge, segment 2", "valueCm": 16.39 },
+        { "position": "right edge, upper segment", "valueCm": 27 },
+        { "position": "right edge, lower segment", "valueCm": 27 },
+        { "position": "left edge, upper segment", "valueCm": 21.55 },
+        { "position": "left edge, upper curve segment", "valueCm": 9.95 },
+        { "position": "left edge, lower curve segment", "valueCm": 9.95 },
+        { "position": "left edge, lower segment", "valueCm": 21.55 },
+        { "position": "bottom edge, segment 1", "valueCm": 1.83 },
+        { "position": "bottom edge, segment 2", "valueCm": 16.39 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 11.07 },
+        { "position": "top edge, middle segment", "valueCm": 33.97 },
+        { "position": "top-right corner", "valueCm": 3 },
+        { "position": "left edge, upper segment", "valueCm": 25.89 },
+        { "position": "left edge, lower segment", "valueCm": 25.89 },
+        { "position": "right edge, upper segment", "valueCm": 28.39 },
+        { "position": "right edge, lower segment", "valueCm": 28.39 },
+        { "position": "bottom edge, left segment", "valueCm": 11.07 },
+        { "position": "bottom edge, middle segment", "valueCm": 33.97 },
+        { "position": "bottom-right corner", "valueCm": 3 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 10.38 },
+        { "position": "top edge, middle segment", "valueCm": 33.97 },
+        { "position": "top-right corner", "valueCm": 3 },
+        { "position": "left edge, upper segment", "valueCm": 26.87 },
+        { "position": "left edge, lower segment", "valueCm": 26.87 },
+        { "position": "right edge, upper segment", "valueCm": 28.39 },
+        { "position": "right edge, lower segment", "valueCm": 28.39 },
+        { "position": "bottom edge, left segment", "valueCm": 10.38 },
+        { "position": "bottom edge, middle segment", "valueCm": 33.97 },
+        { "position": "bottom-right corner", "valueCm": 3 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 12.41 },
+        { "position": "top-right corner", "valueCm": 3.2 },
+        { "position": "left edge, upper segment", "valueCm": 25.19 },
+        { "position": "left edge, lower segment", "valueCm": 25.19 },
+        { "position": "right edge, upper segment", "valueCm": 21.43 },
+        { "position": "right edge, lower segment", "valueCm": 21.43 },
+        { "position": "bottom edge, left segment", "valueCm": 12.41 },
+        { "position": "bottom-right corner", "valueCm": 3.2 }
+      ]
+    }
+  ],
+  "notes": null
+}

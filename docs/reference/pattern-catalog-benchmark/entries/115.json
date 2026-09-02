@@ -1,0 +1,98 @@
+{
+  "sourceId": "115",
+  "category": "kids boxer-style swim trunks with lining",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "kids boxer-style swim trunks with a fully lined front, back and gusset",
+  "gender": "kids",
+  "baseSizeLabel": "08",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "front lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 23.97 },
+        { "position": "right edge, upper segment", "valueCm": 13.18 },
+        {
+          "position": "mid segment (deepest labeled sub-segment)",
+          "valueCm": 16.44
+        },
+        { "position": "right edge, lower segment", "valueCm": 13.18 },
+        { "position": "bottom edge", "valueCm": 23.97 },
+        { "position": "left edge", "valueCm": 30.59 }
+      ]
+    },
+    {
+      "nameEn": "back lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 23.97 },
+        { "position": "right edge, upper segment", "valueCm": 13.18 },
+        {
+          "position": "mid segment (deepest labeled sub-segment)",
+          "valueCm": 16.44
+        },
+        { "position": "right edge, lower segment", "valueCm": 13.18 },
+        { "position": "bottom edge", "valueCm": 23.97 },
+        { "position": "left edge", "valueCm": 30.43 }
+      ]
+    },
+    {
+      "nameEn": "gusset lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 10.24 },
+        { "position": "left edge", "valueCm": 16.44 },
+        { "position": "right edge", "valueCm": 16.44 },
+        { "position": "bottom edge", "valueCm": 10.24 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 24.23 },
+        { "position": "right edge, upper segment", "valueCm": 13.14 },
+        {
+          "position": "mid segment (deepest labeled sub-segment)",
+          "valueCm": 16.36
+        },
+        { "position": "right edge, lower segment", "valueCm": 13.14 },
+        { "position": "bottom edge", "valueCm": 24.24 },
+        { "position": "left edge", "valueCm": 30.61 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 24.23 },
+        { "position": "right edge, upper segment", "valueCm": 13.14 },
+        {
+          "position": "mid segment (deepest labeled sub-segment)",
+          "valueCm": 16.36
+        },
+        { "position": "right edge, lower segment", "valueCm": 13.14 },
+        { "position": "bottom edge", "valueCm": 24.24 },
+        { "position": "left edge", "valueCm": 30.34 }
+      ]
+    },
+    {
+      "nameEn": "gusset (outer, unlabeled)",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 10.24 },
+        { "position": "left edge", "valueCm": 16.44 },
+        { "position": "right edge", "valueCm": 16.44 },
+        { "position": "bottom edge", "valueCm": 10.24 }
+      ]
+    }
+  ],
+  "notes": "The front and back outer pieces carry a finished waist-elastic length table by size (not a piece edge): size 4 = 46cm, 6 = 48cm, 8 = 50cm, 10 = 52cm, 12 = 54cm. Base size on this sheet is drawn from a range labeled '04-12 (08)', with 08 as the reference size."
+}

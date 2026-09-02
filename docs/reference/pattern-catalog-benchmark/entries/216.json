@@ -1,0 +1,157 @@
+{
+  "sourceId": "216",
+  "category": "tailored-trousers-with-internal-waistband",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "tailored dress trousers with an internal waistband, belt loops, front pockets, a fly piece, and a belt",
+  "gender": "unisex",
+  "baseSizeLabel": "M",
+  "gradeNote": "average 1cm variation between graded sizes; measurements correspond to the printed pattern output",
+  "notes": "This is a dense tailored-trousers sheet with many small construction pieces (belt loop, pocket facings, fly). Piece-to-position mapping for the smallest pieces should be treated as lower confidence than the larger front/back panels.",
+  "pieces": [
+    {
+      "nameEn": "belt",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, tick a", "valueCm": 4.92 },
+        { "position": "top edge, tick b", "valueCm": 4.92 },
+        { "position": "left edge", "valueCm": 120 },
+        { "position": "right edge", "valueCm": 120 },
+        { "position": "bottom edge, tick a", "valueCm": 4.5 },
+        { "position": "bottom edge, tick b", "valueCm": 4.5 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left segment a", "valueCm": 8.49 },
+        { "position": "top-left segment b", "valueCm": 3.02 },
+        { "position": "top-left segment c", "valueCm": 12.99 },
+        { "position": "top edge", "valueCm": 99.05 },
+        { "position": "right edge", "valueCm": 18.99 },
+        { "position": "bottom-left segment", "valueCm": 42.18 },
+        { "position": "bottom edge", "valueCm": 67.18 }
+      ]
+    },
+    {
+      "nameEn": "back waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 7.07 },
+        { "position": "left edge", "valueCm": 38.12 },
+        { "position": "right edge", "valueCm": 40.12 },
+        { "position": "bottom edge", "valueCm": 7.07 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left curved segment a", "valueCm": 6.54 },
+        { "position": "top edge, left curved segment b", "valueCm": 16.71 },
+        { "position": "top edge, left curved segment c", "valueCm": 5.66 },
+        { "position": "left edge, tick a", "valueCm": 3.04 },
+        { "position": "left edge, tick b", "valueCm": 8.05 },
+        { "position": "left edge, lower segment", "valueCm": 9.8 },
+        { "position": "top edge", "valueCm": 69.53 },
+        { "position": "right edge", "valueCm": 16.01 },
+        { "position": "bottom edge, left segment", "valueCm": 35.02 },
+        { "position": "bottom edge", "valueCm": 67.18 }
+      ]
+    },
+    {
+      "nameEn": "front waistband, left side",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 7.06 },
+        { "position": "left edge", "valueCm": 16.39 },
+        { "position": "right edge", "valueCm": 17.12 },
+        { "position": "bottom edge", "valueCm": 7.26 }
+      ]
+    },
+    {
+      "nameEn": "belt loop",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 8 },
+        { "position": "left edge", "valueCm": 7 },
+        { "position": "right edge", "valueCm": 7 },
+        { "position": "bottom edge", "valueCm": 8 }
+      ]
+    },
+    {
+      "nameEn": "pocket lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 7.04 },
+        { "position": "left edge", "valueCm": 16.71 },
+        { "position": "bottom edge", "valueCm": 26.88 }
+      ]
+    },
+    {
+      "nameEn": "pocket facing (vista)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 25.5 },
+        { "position": "left edge", "valueCm": 13 },
+        { "position": "right edge", "valueCm": 13 },
+        { "position": "bottom edge", "valueCm": 25.5 }
+      ]
+    },
+    {
+      "nameEn": "front waistband, right side",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 7.38 },
+        { "position": "left edge", "valueCm": 17.86 },
+        { "position": "right edge", "valueCm": 18.6 },
+        { "position": "bottom edge", "valueCm": 7.06 }
+      ]
+    },
+    {
+      "nameEn": "pocket facing (vista bolso)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, tick a", "valueCm": 5.48 },
+        { "position": "top edge, tick b", "valueCm": 5.48 },
+        { "position": "left edge", "valueCm": 16.71 },
+        { "position": "right edge", "valueCm": 16.71 },
+        { "position": "bottom edge, tick a", "valueCm": 5.68 },
+        { "position": "bottom edge, tick b", "valueCm": 5.68 }
+      ]
+    },
+    {
+      "nameEn": "fly (braguilha)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left tick", "valueCm": 5 },
+        { "position": "top edge", "valueCm": 25.5 },
+        { "position": "top edge, right tick", "valueCm": 8.03 },
+        { "position": "left edge", "valueCm": 20.45 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left segment", "valueCm": 10.95 },
+        { "position": "top edge", "valueCm": 29.85 },
+        { "position": "bottom-left segment a", "valueCm": 8.61 },
+        { "position": "bottom-left segment b", "valueCm": 3.04 },
+        { "position": "bottom edge", "valueCm": 32.68 }
+      ]
+    }
+  ]
+}

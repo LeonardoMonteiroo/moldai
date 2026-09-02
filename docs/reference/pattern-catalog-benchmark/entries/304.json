@@ -1,0 +1,131 @@
+{
+  "sourceId": "304",
+  "category": "dress-with-folded-high-collar-long-sleeves",
+  "moldaiArchetype": "dress",
+  "descriptionEn": "long-sleeve dress with a folded/turned-down high collar",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1.5 cm variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 47.17 },
+        { "position": "top-right corner", "valueCm": 2 },
+        { "position": "left edge, upper segment", "valueCm": 21.19 },
+        {
+          "position": "left edge, lower segment (mirrors upper)",
+          "valueCm": 21.19
+        },
+        { "position": "right edge, full height", "valueCm": 20.87 },
+        { "position": "bottom edge (mirrors top)", "valueCm": 47.17 },
+        { "position": "bottom-right corner (mirrors top)", "valueCm": 2 }
+      ]
+    },
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, segment 1", "valueCm": 6.3 },
+        { "position": "top edge, segment 2", "valueCm": 6.85 },
+        { "position": "top edge, segment 3", "valueCm": 6.82 },
+        { "position": "top edge, segment 4", "valueCm": 6.33 },
+        { "position": "left edge, upper segment", "valueCm": 17.46 },
+        {
+          "position": "left edge, lower segment (mirrors upper)",
+          "valueCm": 17.46
+        },
+        { "position": "right edge, upper segment", "valueCm": 17.46 },
+        {
+          "position": "right edge, lower segment (mirrors upper)",
+          "valueCm": 17.46
+        },
+        {
+          "position": "bottom edge, segment 1 (mirrors top segment 1)",
+          "valueCm": 6.3
+        },
+        {
+          "position": "bottom edge, segment 2 (mirrors top segment 2)",
+          "valueCm": 6.85
+        },
+        {
+          "position": "bottom edge, segment 3 (mirrors top segment 3)",
+          "valueCm": 6.82
+        },
+        {
+          "position": "bottom edge, segment 4 (mirrors top segment 4)",
+          "valueCm": 6.33
+        }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, curve segment", "valueCm": 72.62 },
+        { "position": "top-right corner", "valueCm": 1.51 },
+        {
+          "position": "left edge, segment 1 (upper diagonal)",
+          "valueCm": 21.63
+        },
+        { "position": "left edge, segment 2", "valueCm": 9.21 },
+        { "position": "left edge, segment 3", "valueCm": 9.47 },
+        {
+          "position": "left edge, segment 4 (mirrors segment 3)",
+          "valueCm": 9.47
+        },
+        {
+          "position": "left edge, segment 5 (mirrors segment 2)",
+          "valueCm": 9.21
+        },
+        {
+          "position": "left edge, segment 6 (mirrors segment 1, lower diagonal)",
+          "valueCm": 21.63
+        },
+        { "position": "right edge, upper half", "valueCm": 24.16 },
+        { "position": "right edge, lower half", "valueCm": 24.16 },
+        {
+          "position": "bottom edge, curve segment (mirrors top)",
+          "valueCm": 72.62
+        },
+        { "position": "bottom-right corner (mirrors top)", "valueCm": 1.51 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, curve segment", "valueCm": 72.63 },
+        { "position": "top-right corner", "valueCm": 1.51 },
+        {
+          "position": "left edge, segment 1 (upper diagonal)",
+          "valueCm": 21.63
+        },
+        { "position": "left edge, segment 2", "valueCm": 9.21 },
+        { "position": "left edge, segment 3", "valueCm": 11.53 },
+        { "position": "left edge, segment 4", "valueCm": 11.55 },
+        {
+          "position": "left edge, segment 5 (mirrors segment 2)",
+          "valueCm": 9.21
+        },
+        {
+          "position": "left edge, segment 6 (mirrors segment 1, lower diagonal)",
+          "valueCm": 21.63
+        },
+        { "position": "right edge, upper half", "valueCm": 24.15 },
+        { "position": "right edge, lower half", "valueCm": 24.15 },
+        {
+          "position": "bottom edge, curve segment (mirrors top)",
+          "valueCm": 72.62
+        },
+        { "position": "bottom-right corner (mirrors top)", "valueCm": 1.51 }
+      ]
+    }
+  ],
+  "notes": null
+}

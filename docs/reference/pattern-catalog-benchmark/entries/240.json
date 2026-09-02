@@ -1,0 +1,94 @@
+{
+  "sourceId": "240",
+  "category": "hooded t-shirt with color-blocked panel",
+  "moldaiArchetype": null,
+  "descriptionEn": "Short-sleeve knit top with a round neckline, a two-piece hood, a two-piece (front/back) sleeve construction, and a narrow contrast panel.",
+  "gender": "unisex",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "hood",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "left/top curved edge", "valueCm": 57.74 },
+        { "position": "right edge", "valueCm": 27.41 },
+        { "position": "bottom edge", "valueCm": 40.81 },
+        { "position": "bottom-right corner segment", "valueCm": 2.5 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 47.09 },
+        { "position": "top-right corner segment", "valueCm": 2 },
+        { "position": "right edge", "valueCm": 59.01 },
+        { "position": "bottom edge", "valueCm": 47.09 },
+        { "position": "bottom-right corner segment", "valueCm": 2 },
+        { "position": "top-left area, upper segment", "valueCm": 23.71 },
+        { "position": "top-left area, second segment", "valueCm": 15.98 },
+        { "position": "top-left area, third segment", "valueCm": 10.23 },
+        { "position": "left-center small segment", "valueCm": 2.5 },
+        { "position": "bottom-left area, third segment", "valueCm": 10.23 },
+        { "position": "bottom-left area, second segment", "valueCm": 15.98 },
+        { "position": "bottom-left area, lower segment", "valueCm": 23.71 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 47.09 },
+        { "position": "top-right corner segment", "valueCm": 2.11 },
+        { "position": "bottom edge", "valueCm": 47.09 },
+        { "position": "bottom-right corner segment", "valueCm": 2.11 },
+        { "position": "right edge", "valueCm": 62.83 },
+        { "position": "top-left area, upper segment", "valueCm": 27.1 },
+        { "position": "top-left area, second segment", "valueCm": 15.99 },
+        { "position": "left edge, middle segment", "valueCm": 19.13 },
+        { "position": "bottom-left area, second segment", "valueCm": 15.99 },
+        { "position": "bottom-left area, lower segment", "valueCm": 27.1 }
+      ]
+    },
+    {
+      "nameEn": "sleeve, back panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left/curve segment", "valueCm": 11.89 },
+        { "position": "top-right corner segment", "valueCm": 2 },
+        { "position": "left edge", "valueCm": 27.64 },
+        { "position": "right edge", "valueCm": 21.26 },
+        { "position": "bottom edge", "valueCm": 26.51 }
+      ]
+    },
+    {
+      "nameEn": "sleeve, front panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left/curve segment", "valueCm": 11.89 },
+        { "position": "top-right corner segment", "valueCm": 2 },
+        { "position": "left edge", "valueCm": 24.43 },
+        { "position": "right edge", "valueCm": 18.09 },
+        { "position": "bottom edge", "valueCm": 26.57 }
+      ]
+    },
+    {
+      "nameEn": "contrast panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 40.51 },
+        { "position": "bottom edge", "valueCm": 40.49 },
+        { "position": "left edge", "valueCm": 6.5 },
+        { "position": "right edge", "valueCm": 6.5 }
+      ]
+    }
+  ],
+  "notes": "Piece names in the source drawing carry a '1X'/'2X' suffix (a cut-quantity notation in the source pattern software); the qty field here follows the printed 'Quantidade' annotation instead, reading 2 wherever '(Par)' is noted and 1 otherwise, which matches the suffix in every case observed. The front and back pieces render symmetric top/bottom halves in the drawing (likely due to the piece being folded/rotated in the layout), recorded here purely by position without assuming which half is the neckline vs. hem."
+}

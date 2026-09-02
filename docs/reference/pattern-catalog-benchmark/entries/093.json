@@ -1,0 +1,72 @@
+{
+  "sourceId": "093",
+  "category": "kids school bermuda shorts (girls) with pockets",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "girls' school uniform bermuda shorts with front pockets and elasticated waist",
+  "gender": "kids",
+  "baseSizeLabel": "08",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "pocket bag/facing",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, curved", "valueCm": 41.91 },
+        { "position": "left edge", "valueCm": 18.03 },
+        { "position": "bottom edge", "valueCm": 27.14 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, curved", "valueCm": 39.47 },
+        { "position": "left edge", "valueCm": 15.33 },
+        { "position": "bottom edge", "valueCm": 27.14 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        {
+          "position": "top-right corner, small curve segment",
+          "valueCm": 8.74
+        },
+        {
+          "position": "top-right corner, short vertical segment",
+          "valueCm": 2.01
+        },
+        { "position": "top edge, segment near center", "valueCm": 8.91 },
+        { "position": "upper-left diagonal segment", "valueCm": 18.83 },
+        { "position": "left edge, vertical", "valueCm": 18.7 },
+        { "position": "right edge, vertical", "valueCm": 22.03 },
+        { "position": "bottom-left corner, short segment", "valueCm": 6.01 },
+        { "position": "bottom edge", "valueCm": 28.78 },
+        { "position": "bottom-right corner, short segment", "valueCm": 2 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-right corner, small curve segment", "valueCm": 8.7 },
+        {
+          "position": "top-right corner, short vertical segment",
+          "valueCm": 2.01
+        },
+        { "position": "top edge, segment near center", "valueCm": 8.94 },
+        { "position": "upper-left diagonal segment", "valueCm": 23.25 },
+        { "position": "left edge, vertical", "valueCm": 18.8 },
+        { "position": "right edge, vertical", "valueCm": 24.14 },
+        { "position": "bottom edge", "valueCm": 34.81 },
+        { "position": "bottom-right corner, short segment", "valueCm": 2 }
+      ]
+    }
+  ],
+  "notes": "Drawing also includes a finished waist-elastic length table by size (not a piece edge): size 6 = 56cm, 8 = 59cm, 10 = 62cm, 12 = 65cm."
+}

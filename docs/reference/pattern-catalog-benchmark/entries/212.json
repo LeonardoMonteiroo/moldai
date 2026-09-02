@@ -1,0 +1,115 @@
+{
+  "sourceId": "212",
+  "category": "cropped-shirt-with-pockets-and-straight-grain-hem-band",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "cropped short shirt with chest pockets, a back yoke, cuffed sleeves, and a straight-grain-cut hem band",
+  "gender": "female",
+  "gradeNote": "average 1cm variation between graded sizes; measurements correspond to the printed pattern output",
+  "notes": "No base-size letter/number was printed in the header or per-piece annotations on this sheet (unlike most others in the batch), so baseSizeLabel is omitted rather than guessed. Several pieces carry a 'FIO CONTRÁRIO' (cross/contrary grain) grainline note printed inside the piece outline; this is a construction note, not an edge dimension, and was not transcribed as an edge.",
+  "pieces": [
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 10.03 },
+        { "position": "left edge", "valueCm": 46.58 },
+        { "position": "mid tick", "valueCm": 48.7 },
+        { "position": "bottom edge", "valueCm": 10.03 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 38.06 },
+        { "position": "top-right corner", "valueCm": 6.3 },
+        { "position": "right edge", "valueCm": 18.96 },
+        { "position": "left edge", "valueCm": 49.3 },
+        { "position": "bottom edge", "valueCm": 38.06 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 16.07 },
+        { "position": "left edge", "valueCm": 25.25 },
+        { "position": "right edge", "valueCm": 25.25 },
+        { "position": "bottom edge", "valueCm": 16.07 }
+      ]
+    },
+    {
+      "nameEn": "back yoke",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 3.61 },
+        { "position": "top edge", "valueCm": 12.26 },
+        { "position": "left edge, upper segment", "valueCm": 20.63 },
+        { "position": "left edge, mid segment", "valueCm": 23.94 },
+        { "position": "left edge, lower segment", "valueCm": 20.63 },
+        { "position": "bottom-left corner", "valueCm": 3.61 },
+        { "position": "bottom edge", "valueCm": 12.26 },
+        { "position": "right edge", "valueCm": 50.08 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 13.42 },
+        { "position": "top edge", "valueCm": 35.5 },
+        { "position": "left edge", "valueCm": 50.01 },
+        { "position": "right edge", "valueCm": 59.2 },
+        { "position": "bottom-left corner", "valueCm": 13.42 },
+        { "position": "bottom edge", "valueCm": 35.5 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 3 },
+        { "position": "top edge", "valueCm": 20 },
+        { "position": "left edge", "valueCm": 20.27 },
+        { "position": "right edge", "valueCm": 20.27 },
+        { "position": "bottom-left corner", "valueCm": 3 },
+        { "position": "bottom edge", "valueCm": 20 }
+      ]
+    },
+    {
+      "nameEn": "pocket template (gabarito)",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 18.19 },
+        { "position": "left edge", "valueCm": 15.98 },
+        { "position": "right edge", "valueCm": 15.98 },
+        { "position": "bottom edge", "valueCm": 18.19 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 22.01 },
+        { "position": "top edge", "valueCm": 35.5 },
+        { "position": "right edge", "valueCm": 31.88 },
+        { "position": "left edge, upper segment", "valueCm": 20.63 },
+        { "position": "left edge, lower segment", "valueCm": 10.07 },
+        { "position": "bottom-left corner, tick a", "valueCm": 1.5 },
+        { "position": "bottom-left corner, tick b", "valueCm": 3 },
+        { "position": "bottom-left corner, tick c", "valueCm": 1.01 },
+        { "position": "bottom edge", "valueCm": 65.34 },
+        { "position": "bottom-right corner, tick a", "valueCm": 3 },
+        { "position": "bottom-right corner, tick b", "valueCm": 1 }
+      ]
+    }
+  ]
+}

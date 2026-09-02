@@ -1,0 +1,67 @@
+{
+  "sourceId": "253",
+  "category": "long-straight-cut-tshirt-rounded-hem",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "long-line t-shirt cut on the straight grain with a rounded hem and a ribbed crew neckband",
+  "gender": "unisex",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 10.4 },
+        { "position": "left edge", "valueCm": 53.82 },
+        { "position": "right edge", "valueCm": 38.24 },
+        { "position": "bottom edge", "valueCm": 10.4 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 44.38 },
+        { "position": "left edge, upper segment", "valueCm": 24.87 },
+        { "position": "left edge, segment 2", "valueCm": 11.56 },
+        { "position": "left edge, middle segment", "valueCm": 37 },
+        { "position": "left edge, segment 4", "valueCm": 11.56 },
+        { "position": "left edge, lower segment", "valueCm": 24.87 },
+        { "position": "bottom edge", "valueCm": 44.38 },
+        { "position": "right edge", "valueCm": 58.54 }
+      ]
+    },
+    {
+      "nameEn": "neckband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top end", "valueCm": 5 },
+        { "position": "upper segment", "valueCm": 28.96 },
+        { "position": "center length", "valueCm": 57.92 },
+        { "position": "lower segment", "valueCm": 28.96 },
+        { "position": "bottom end", "valueCm": 5 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 44.38 },
+        { "position": "left edge, segment 1 (top, small)", "valueCm": 2.63 },
+        { "position": "left edge, segment 2", "valueCm": 25.76 },
+        { "position": "left edge, segment 3", "valueCm": 11.56 },
+        { "position": "left edge, middle segment", "valueCm": 29.02 },
+        { "position": "left edge, segment 5", "valueCm": 11.56 },
+        { "position": "left edge, segment 6 (lower, small)", "valueCm": 2.63 },
+        { "position": "left edge, segment 7", "valueCm": 25.76 },
+        { "position": "bottom edge", "valueCm": 44.38 },
+        { "position": "right edge", "valueCm": 60.37 }
+      ]
+    }
+  ],
+  "notes": null
+}

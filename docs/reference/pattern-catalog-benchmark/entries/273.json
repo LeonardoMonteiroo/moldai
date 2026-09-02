@@ -1,0 +1,64 @@
+{
+  "sourceId": "273",
+  "category": "women's set-in-sleeve UV protection t-shirt",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "women's long-sleeve UV-protection t-shirt with set-in sleeves and a separate neckband",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 43.98 },
+        { "position": "upper-left edge", "valueCm": 23.88 },
+        { "position": "left edge, upper segment", "valueCm": 8.58 },
+        { "position": "left edge, middle segment (curve)", "valueCm": 23.91 },
+        { "position": "left edge, lower segment", "valueCm": 8.58 },
+        { "position": "lower-left edge", "valueCm": 23.88 },
+        { "position": "bottom edge", "valueCm": 43.98 },
+        { "position": "right edge", "valueCm": 48.87 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 43.97 },
+        { "position": "upper-left edge", "valueCm": 24.14 },
+        { "position": "left edge, upper segment", "valueCm": 8.58 },
+        { "position": "left edge, middle segment (curve)", "valueCm": 30.48 },
+        { "position": "left edge, lower segment", "valueCm": 8.58 },
+        { "position": "lower-left edge", "valueCm": 24.14 },
+        { "position": "bottom edge", "valueCm": 43.97 },
+        { "position": "right edge", "valueCm": 48.87 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 56.12 },
+        { "position": "left edge (curve)", "valueCm": 47.77 },
+        { "position": "bottom edge", "valueCm": 56.12 },
+        { "position": "right edge", "valueCm": 22.85 }
+      ]
+    },
+    {
+      "nameEn": "neckband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "left edge (length)", "valueCm": 46 },
+        { "position": "right edge (length)", "valueCm": 46 },
+        { "position": "top edge (width)", "valueCm": null },
+        { "position": "bottom edge (width)", "valueCm": null }
+      ]
+    }
+  ],
+  "notes": "Neckband piece: same ambiguous width-value issue as the raglan-sleeve sibling pattern in this source series - two values near the top and bottom of the strip (rendered roughly as '22.69' and '26.39') had overlapping/ambiguous digits and are recorded as null rather than guessed; the two 46 cm length values are unaffected. The sleeve piece drawing was printed rotated 180 degrees in the source; edge values were legible regardless."
+}

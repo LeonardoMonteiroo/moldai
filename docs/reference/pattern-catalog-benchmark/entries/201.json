@@ -1,0 +1,161 @@
+{
+  "sourceId": "201",
+  "category": "unisex-long-jumpsuit-with-elastic-waist",
+  "moldaiArchetype": null,
+  "descriptionEn": "long unisex jumpsuit/overalls with an elastic waist, a collar, sleeves, front and back yoke pieces, and multiple pockets",
+  "gender": "unisex",
+  "baseSizeLabel": "08",
+  "gradeNote": "average +1cm variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "back yoke",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 19.5 },
+        { "position": "top-left corner, segment a", "valueCm": 2.3 },
+        { "position": "top-left corner, segment b", "valueCm": 19.9 },
+        { "position": "left edge, upper segment", "valueCm": 10.73 },
+        { "position": "left edge, mid segment", "valueCm": 18.12 },
+        { "position": "left edge, lower segment", "valueCm": 10.73 },
+        { "position": "bottom-left corner, segment a", "valueCm": 2.3 },
+        { "position": "bottom-left corner, segment b", "valueCm": 19.9 },
+        { "position": "bottom edge", "valueCm": 19.5 },
+        { "position": "right edge", "valueCm": 43.04 }
+      ]
+    },
+    {
+      "nameEn": "back leg/lower back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 19.67 },
+        { "position": "top edge, mid segment", "valueCm": 9.25 },
+        { "position": "top edge, right segment", "valueCm": 23.85 },
+        { "position": "right edge, upper segment", "valueCm": 25.5 },
+        { "position": "right edge, lower segment", "valueCm": 14.29 },
+        { "position": "left edge", "valueCm": 21.49 },
+        { "position": "bottom edge", "valueCm": 44.96 },
+        { "position": "bottom edge, right segment", "valueCm": 25.53 }
+      ]
+    },
+    {
+      "nameEn": "yoke (pala)",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 1.5 },
+        { "position": "top edge, right segment", "valueCm": 6.72 },
+        { "position": "left edge, upper segment", "valueCm": 2.61 },
+        { "position": "left edge, lower segment", "valueCm": 12.17 },
+        { "position": "right edge, outer", "valueCm": 25.95 },
+        { "position": "right edge, inner", "valueCm": 21.91 },
+        { "position": "bottom edge, left segment", "valueCm": 18.75 },
+        { "position": "bottom edge, right segment", "valueCm": 9.23 }
+      ]
+    },
+    {
+      "nameEn": "front bodice",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 28.48 },
+        { "position": "top-right corner, segment a", "valueCm": 1.5 },
+        { "position": "top-right corner, segment b", "valueCm": 2.5 },
+        { "position": "left edge", "valueCm": 21.91 },
+        { "position": "bottom edge, left segment", "valueCm": 10.05 },
+        { "position": "bottom edge", "valueCm": 19.5 },
+        { "position": "right edge", "valueCm": 22.17 }
+      ]
+    },
+    {
+      "nameEn": "front leg/lower front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, segment 1", "valueCm": 3.05 },
+        { "position": "top edge, segment 2", "valueCm": 18.91 },
+        { "position": "top edge, curved segment", "valueCm": 8.43 },
+        { "position": "top edge, right segment", "valueCm": 23.85 },
+        { "position": "right edge, upper segment", "valueCm": 25.5 },
+        { "position": "right edge, lower segment", "valueCm": 13.16 },
+        { "position": "left edge", "valueCm": 17.68 },
+        { "position": "bottom edge, left segment", "valueCm": 14.53 },
+        { "position": "bottom edge", "valueCm": 31.11 },
+        { "position": "bottom edge, right segment", "valueCm": 25.53 }
+      ]
+    },
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 7.43 },
+        { "position": "left edge", "valueCm": 40 },
+        { "position": "right edge", "valueCm": 45 },
+        { "position": "bottom edge", "valueCm": 7.43 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, segment a", "valueCm": null },
+        { "position": "top edge, segment b", "valueCm": null },
+        { "position": "left edge", "valueCm": 40.83 },
+        { "position": "right edge", "valueCm": 29.09 },
+        { "position": "bottom edge, segment a", "valueCm": null },
+        { "position": "bottom edge, segment b", "valueCm": null }
+      ]
+    },
+    {
+      "nameEn": "pocket lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top curved edge", "valueCm": 38.93 },
+        { "position": "left edge", "valueCm": 10.78 },
+        { "position": "bottom-left segment", "valueCm": 14.53 },
+        { "position": "bottom edge", "valueCm": 13.83 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top curved edge", "valueCm": 38.99 },
+        { "position": "left edge", "valueCm": 10.78 },
+        { "position": "bottom-left segment", "valueCm": 4.53 },
+        { "position": "bottom edge, left segment", "valueCm": 13.85 },
+        { "position": "bottom edge, right segment", "valueCm": 13.83 }
+      ]
+    },
+    {
+      "nameEn": "small square piece",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 13 },
+        { "position": "left edge", "valueCm": 11.5 },
+        { "position": "right edge", "valueCm": 11.5 },
+        { "position": "bottom edge", "valueCm": 13 }
+      ]
+    },
+    {
+      "nameEn": "small pocket piece",
+      "originalLabelUnclear": false,
+      "qty": 4,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 2 },
+        { "position": "top edge", "valueCm": 14.5 },
+        { "position": "left edge", "valueCm": 14.5 },
+        { "position": "right edge", "valueCm": 14.5 },
+        { "position": "bottom-left corner", "valueCm": 2 },
+        { "position": "bottom edge", "valueCm": 14.5 }
+      ]
+    }
+  ],
+  "notes": "Two dense pattern sheets carried small, tightly-packed per-size premade-elastic-length tables (near the back yoke and back-leg pieces) that were not transcribed as edges since they are construction notes, not piece dimensions. The sleeve piece's top and bottom corner sub-segment values were genuinely illegible (very small overlapping digits, possibly '4.93'/'0.03'-shaped text) and are recorded as null rather than guessed. A small square piece's own label text could not be confidently read (appears to be a pocket-related gusset/facing but the exact Portuguese term was not legible), so it is flagged originalLabelUnclear. Several other small pieces (yoke, front bodice, small pocket piece) were read with moderate confidence from dense, small-font dimension text and should be treated as 'probably right, worth a second look.'"
+}

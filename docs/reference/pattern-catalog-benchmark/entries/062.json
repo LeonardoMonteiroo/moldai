@@ -1,0 +1,85 @@
+{
+  "sourceId": "062",
+  "category": "mens-sweatpant-style-bermuda-shorts-patch-pocket",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "men's sweatpant-style bermuda shorts with a patch pocket, pocket lining, and elastic waistband",
+  "gender": "male",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output. Elastic length by size noted on the sheet: P=78cm, M=82cm, G=86cm, GG=90cm.",
+  "pieces": [
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 20 },
+        { "position": "left edge", "valueCm": 17.5 },
+        { "position": "right edge", "valueCm": 17.5 },
+        { "position": "bottom edge", "valueCm": 20 }
+      ]
+    },
+    {
+      "nameEn": "pocket template/gauge",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge", "valueCm": 16.5 },
+        { "position": "left edge", "valueCm": 14.5 },
+        { "position": "right edge", "valueCm": 14.5 },
+        { "position": "bottom edge", "valueCm": 16.5 }
+      ]
+    },
+    {
+      "nameEn": "waistband (front/back)",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 12 },
+        { "position": "left edge", "valueCm": 82 },
+        { "position": "right edge", "valueCm": 82 },
+        { "position": "bottom edge", "valueCm": 12 }
+      ]
+    },
+    {
+      "nameEn": "front leg",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left, small vertical segment", "valueCm": 1.49 },
+        { "position": "top-left diagonal", "valueCm": 21.65 },
+        { "position": "top, small notch", "valueCm": 4.53 },
+        { "position": "top edge (main)", "valueCm": 34.63 },
+        { "position": "right edge", "valueCm": 27.27 },
+        { "position": "top-right, small notch", "valueCm": 2.05 },
+        { "position": "bottom-right, small segment", "valueCm": 20.09 },
+        { "position": "bottom, small segment (near crotch)", "valueCm": 10.9 },
+        { "position": "bottom-left diagonal", "valueCm": 21.65 },
+        { "position": "left edge", "valueCm": 22.11 }
+      ]
+    },
+    {
+      "nameEn": "back leg",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 50.62 },
+        { "position": "left edge, upper diagonal", "valueCm": 28.66 },
+        { "position": "left edge, lower diagonal", "valueCm": 24.89 },
+        { "position": "bottom-left, small segment", "valueCm": 14.51 },
+        { "position": "bottom, small segment (near crotch)", "valueCm": 20.19 },
+        { "position": "right edge", "valueCm": 27.54 },
+        { "position": "bottom-right, small notch", "valueCm": 2.05 }
+      ]
+    },
+    {
+      "nameEn": "pocket lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (curved)", "valueCm": 30.8 },
+        { "position": "left edge", "valueCm": 18.16 },
+        { "position": "bottom edge (curved)", "valueCm": 43.76 }
+      ]
+    }
+  ],
+  "notes": null
+}

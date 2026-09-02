@@ -1,0 +1,201 @@
+{
+  "sourceId": "111",
+  "category": "men's sport jacket with multiple front/pocket panel cutouts",
+  "moldaiArchetype": null,
+  "descriptionEn": "men's athletic jacket built from many contrast-panel cutout pieces on the front, pockets and waist area",
+  "gender": "male",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, curved", "valueCm": 59.43 },
+        { "position": "left edge", "valueCm": 55.99 },
+        { "position": "right edge", "valueCm": 30.33 },
+        { "position": "bottom edge, curved", "valueCm": 59.43 }
+      ]
+    },
+    {
+      "nameEn": "left front cutout panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-right corner, short segment", "valueCm": 7.1 },
+        { "position": "upper diagonal segment", "valueCm": 12.26 },
+        { "position": "left edge", "valueCm": 21.44 },
+        { "position": "right edge", "valueCm": 31.65 },
+        { "position": "bottom-left corner, short segment", "valueCm": 18.46 },
+        { "position": "bottom edge", "valueCm": 29.7 }
+      ]
+    },
+    {
+      "nameEn": "unlabeled strip (possibly zipper/facing gauge)",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 5.51 },
+        { "position": "next segment down, left", "valueCm": 25.4 },
+        { "position": "next segment down, right", "valueCm": 25.43 },
+        { "position": "mirrored segment, left", "valueCm": 25.43 },
+        { "position": "mirrored segment, right", "valueCm": 5.43 },
+        { "position": "bottom edge", "valueCm": 5.51 }
+      ]
+    },
+    {
+      "nameEn": "right pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 26.69 },
+        { "position": "left edge", "valueCm": 31.58 },
+        { "position": "right edge", "valueCm": 31.24 },
+        { "position": "bottom edge", "valueCm": 30.69 }
+      ]
+    },
+    {
+      "nameEn": "right waist cutout, upper",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 18.81 },
+        { "position": "left edge", "valueCm": 15.72 },
+        { "position": "diagonal segment", "valueCm": 25.93 },
+        { "position": "bottom edge", "valueCm": 4.8 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left short segment", "valueCm": 11.91 },
+        { "position": "left edge, upper diagonal segment", "valueCm": 24.99 },
+        { "position": "left edge, mid segment", "valueCm": 16.92 },
+        {
+          "position": "left edge, lower diagonal segment (mirrored)",
+          "valueCm": 24.99
+        },
+        { "position": "bottom-left corner, short segment", "valueCm": 11.91 },
+        { "position": "top edge, right segment", "valueCm": 47.26 },
+        { "position": "right edge, full height", "valueCm": 59.3 },
+        { "position": "bottom edge", "valueCm": 47.26 }
+      ]
+    },
+    {
+      "nameEn": "right waist cutout, lower",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 4.8 },
+        { "position": "left edge", "valueCm": 15.72 },
+        { "position": "diagonal segment", "valueCm": 25.93 },
+        { "position": "bottom edge", "valueCm": 18.81 }
+      ]
+    },
+    {
+      "nameEn": "pocket counter/facing",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 30.69 },
+        { "position": "left edge", "valueCm": 9.63 },
+        { "position": "right edge", "valueCm": 9.48 },
+        { "position": "bottom edge", "valueCm": 29.47 }
+      ]
+    },
+    {
+      "nameEn": "left pocket cutout, instance 1",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 26.69 },
+        { "position": "left edge", "valueCm": 31.58 },
+        { "position": "right edge", "valueCm": 31.24 },
+        { "position": "bottom edge", "valueCm": 30.69 }
+      ]
+    },
+    {
+      "nameEn": "left side-middle cutout",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 13.49 },
+        { "position": "left edge", "valueCm": 31.6 },
+        { "position": "right edge", "valueCm": 31.57 },
+        { "position": "bottom edge", "valueCm": 13.48 }
+      ]
+    },
+    {
+      "nameEn": "left pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 30.69 },
+        { "position": "left edge", "valueCm": 31.58 },
+        { "position": "right edge", "valueCm": 31.24 },
+        { "position": "bottom edge", "valueCm": 26.69 }
+      ]
+    },
+    {
+      "nameEn": "left pocket cutout, instance 2",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 30.69 },
+        { "position": "left edge", "valueCm": 31.58 },
+        { "position": "right edge", "valueCm": 31.24 },
+        { "position": "bottom edge", "valueCm": 26.69 }
+      ]
+    },
+    {
+      "nameEn": "right front cutout panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 29.7 },
+        { "position": "top-left corner, short segment", "valueCm": 10.46 },
+        { "position": "left edge", "valueCm": 21.44 },
+        { "position": "right edge", "valueCm": 31.65 },
+        { "position": "lower diagonal segment", "valueCm": 12.26 },
+        { "position": "bottom-right corner, short segment", "valueCm": 7.1 }
+      ]
+    },
+    {
+      "nameEn": "small unclear cutout, instance 1",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 6.19 },
+        { "position": "diagonal segment", "valueCm": 21.79 },
+        { "position": "left edge", "valueCm": 15.72 },
+        { "position": "bottom edge", "valueCm": 15.82 }
+      ]
+    },
+    {
+      "nameEn": "small unclear cutout, instance 2",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 15.82 },
+        { "position": "diagonal segment", "valueCm": 21.79 },
+        { "position": "left edge", "valueCm": 15.72 },
+        { "position": "bottom edge", "valueCm": 6.19 }
+      ]
+    },
+    {
+      "nameEn": "right front-middle cutout",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 13.48 },
+        { "position": "left edge", "valueCm": 31.61 },
+        { "position": "right edge", "valueCm": 31.57 },
+        { "position": "bottom edge", "valueCm": 13.49 }
+      ]
+    }
+  ],
+  "notes": "This sheet is unusually dense (17 small cutout/panel pieces for a multi-panel sport jacket) and several piece-name labels were printed very small; two near-identical small quadrilateral pieces near the front cutouts had labels too small to read with confidence and are recorded generically. Individual piece labels on the sheet additionally show a 'P-GG (M)' size-range tag alongside the sheet's own 'TAM. M' header."
+}

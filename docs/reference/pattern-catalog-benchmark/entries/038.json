@@ -1,0 +1,57 @@
+{
+  "sourceId": "038",
+  "category": "baby-long-sleeve-bodysuit-with-buttons",
+  "moldaiArchetype": null,
+  "descriptionEn": "baby long-sleeve bodysuit with front button placket",
+  "gender": "baby",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 22.63 },
+        { "position": "left edge", "valueCm": 25.07 },
+        { "position": "right edge", "valueCm": 14.85 },
+        { "position": "bottom edge", "valueCm": 22.63 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 19.83 },
+        { "position": "top-right segment, upper", "valueCm": 14.41 },
+        { "position": "top-right segment, small notch 1", "valueCm": 1.51 },
+        { "position": "top-right segment, small notch 2", "valueCm": 5.81 },
+        { "position": "top-right segment, small notch 3", "valueCm": 1.5 },
+        { "position": "right edge", "valueCm": 12.93 },
+        { "position": "bottom-right segment, small notch", "valueCm": 5.73 },
+        { "position": "bottom-right segment, lower", "valueCm": 12.6 },
+        { "position": "left edge", "valueCm": 35.73 },
+        { "position": "bottom edge", "valueCm": 19.84 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 19.83 },
+        { "position": "top-right segment, upper", "valueCm": 11.59 },
+        { "position": "top-right segment, small notch", "valueCm": 5.73 },
+        { "position": "right edge", "valueCm": 15.35 },
+        { "position": "bottom-right segment, small notch 1", "valueCm": 1.5 },
+        { "position": "bottom-right segment, small notch 2", "valueCm": 6.02 },
+        { "position": "bottom-right segment, small notch 3", "valueCm": 1.51 },
+        { "position": "bottom-right segment, lower", "valueCm": 11.59 },
+        { "position": "left edge", "valueCm": 29.01 },
+        { "position": "bottom edge", "valueCm": 19.83 }
+      ]
+    }
+  ],
+  "notes": null
+}

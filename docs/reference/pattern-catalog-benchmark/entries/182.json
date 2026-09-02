@@ -1,0 +1,49 @@
+{
+  "sourceId": "182",
+  "category": "shorts-with-elastic-waist-overlap",
+  "moldaiArchetype": null,
+  "descriptionEn": "sport shorts with an elasticated waist and a front overlap detail",
+  "gender": null,
+  "baseSizeLabel": null,
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, right segment", "valueCm": 6.75 },
+        { "position": "top edge, left segment", "valueCm": 25.03 },
+        { "position": "left edge", "valueCm": 24.98 },
+        { "position": "right edge (curved, corner to hem)", "valueCm": 55.6 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "right edge (curved)", "valueCm": 63.98 },
+        { "position": "left edge", "valueCm": 26.68 },
+        { "position": "bottom edge, right segment", "valueCm": 33.59 },
+        { "position": "bottom edge, left corner", "valueCm": 6.75 }
+      ]
+    },
+    {
+      "nameEn": "front-back waistband overlap panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 21.55 },
+        { "position": "top-right edge, upper segment", "valueCm": 15.56 },
+        { "position": "top-right corner", "valueCm": 2.12 },
+        { "position": "right edge, total", "valueCm": 47.13 },
+        { "position": "bottom edge", "valueCm": 29.18 },
+        { "position": "bottom-right edge, lower segment", "valueCm": 15.56 },
+        { "position": "bottom-right corner", "valueCm": 2.12 },
+        { "position": "left edge", "valueCm": 35.45 }
+      ]
+    }
+  ],
+  "notes": "The drawing also shows a small elastic-length reference table (values roughly in the 70-74 cm range across a size range) near the waistband overlap panel; this is elastic-cord length guidance, not a piece edge dimension, so it was not included in the edges list. A small mirrored construction note near the front piece (about a front/back overlap) was descriptive text, not a measurement."
+}

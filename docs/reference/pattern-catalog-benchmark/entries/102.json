@@ -1,0 +1,115 @@
+{
+  "sourceId": "102",
+  "category": "men's bermuda shorts with back yoke, side panel and pockets",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "men's casual bermuda shorts with contrast side panel cutout, back yoke and patch pockets front and back",
+  "gender": "male",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "front pocket",
+      "originalLabelUnclear": false,
+      "qty": 4,
+      "edges": [
+        { "position": "top edge, curved", "valueCm": 46.15 },
+        { "position": "left edge", "valueCm": 20.5 },
+        { "position": "bottom edge", "valueCm": 35.6 }
+      ]
+    },
+    {
+      "nameEn": "back pocket",
+      "originalLabelUnclear": false,
+      "qty": 4,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 16 },
+        { "position": "left edge, vertical", "valueCm": 20.26 },
+        { "position": "right edge, vertical (curved side)", "valueCm": 28.79 },
+        { "position": "bottom edge, left segment", "valueCm": 16 }
+      ]
+    },
+    {
+      "nameEn": "CD 2X (small unlabeled strip piece)",
+      "originalLabelUnclear": true,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 6 },
+        { "position": "next segment down", "valueCm": 10.13 },
+        { "position": "mid segment", "valueCm": 20.26 },
+        { "position": "mirrored segment", "valueCm": 10.13 },
+        { "position": "bottom edge", "valueCm": 6 }
+      ]
+    },
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 10.01 },
+        { "position": "left edge, vertical", "valueCm": 82.1 },
+        { "position": "right edge, vertical", "valueCm": 82.1 },
+        { "position": "bottom edge", "valueCm": 10.01 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left diagonal segment", "valueCm": 16.19 },
+        { "position": "top edge, next segment", "valueCm": 7.73 },
+        { "position": "small vertical bracket segment", "valueCm": 8.54 },
+        {
+          "position": "top edge, diagonal segment toward right",
+          "valueCm": 24.98
+        },
+        { "position": "top-right corner, short segment", "valueCm": 2.52 },
+        { "position": "left edge, upper segment", "valueCm": 5.16 },
+        { "position": "left edge, lower segment", "valueCm": 26.97 },
+        { "position": "right edge, vertical", "valueCm": 19.61 },
+        { "position": "bottom-left corner, short segment", "valueCm": 9.04 },
+        { "position": "bottom edge, segment", "valueCm": 15.36 },
+        {
+          "position": "bottom-right diagonal segment (toward side panel)",
+          "valueCm": 29.26
+        }
+      ]
+    },
+    {
+      "nameEn": "side panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, diagonal", "valueCm": 45.13 },
+        { "position": "left edge", "valueCm": 12.41 },
+        { "position": "bottom edge", "valueCm": 46.05 },
+        { "position": "right edge", "valueCm": 21.62 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 46.02 },
+        { "position": "left edge, upper segment", "valueCm": 17.21 },
+        { "position": "left edge, lower diagonal segment", "valueCm": 26.01 },
+        { "position": "bottom diagonal segment", "valueCm": 24.85 },
+        { "position": "bottom-right corner, short segment", "valueCm": 2.54 },
+        { "position": "right edge, vertical", "valueCm": 18.78 }
+      ]
+    },
+    {
+      "nameEn": "back yoke",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 9.44 },
+        { "position": "left edge, vertical", "valueCm": 28.77 },
+        { "position": "right edge, vertical", "valueCm": 28.77 },
+        { "position": "bottom edge", "valueCm": 9.44 }
+      ]
+    }
+  ],
+  "notes": "One small strip-shaped piece near the top of the sheet had a label too small/blurry to read with confidence (only a partial 'CD...2X'-like fragment and the reference tag were legible); its numeric edges were still legible and are recorded under a generic placeholder name."
+}

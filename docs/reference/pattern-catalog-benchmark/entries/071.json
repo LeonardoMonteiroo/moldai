@@ -1,0 +1,46 @@
+{
+  "sourceId": "071",
+  "category": "womens-tank-top",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "women's sleeveless tank top with a scooped neckline",
+  "gender": "female",
+  "baseSizeLabel": "P",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 40.1 },
+        { "position": "top-right corner", "valueCm": 2.04 },
+        { "position": "upper-left curve", "valueCm": 28.12 },
+        { "position": "left, small segment", "valueCm": 3.13 },
+        { "position": "left edge curve", "valueCm": 49.3 },
+        { "position": "left, small segment (mirrored)", "valueCm": 3.13 },
+        { "position": "lower-left curve (mirrored)", "valueCm": 28.12 },
+        { "position": "bottom edge", "valueCm": 40.1 },
+        { "position": "bottom-right corner", "valueCm": 2.04 },
+        { "position": "right edge", "valueCm": 49.49 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 40.1 },
+        { "position": "top-right corner", "valueCm": 2.04 },
+        { "position": "upper-left curve", "valueCm": 34.89 },
+        { "position": "left, small segment", "valueCm": 3.13 },
+        { "position": "left edge curve", "valueCm": 17.88 },
+        { "position": "left, small segment (mirrored)", "valueCm": 3.13 },
+        { "position": "lower-left curve (mirrored)", "valueCm": 34.89 },
+        { "position": "bottom edge", "valueCm": 40.1 },
+        { "position": "bottom-right corner", "valueCm": 2.04 },
+        { "position": "right edge", "valueCm": 52.06 }
+      ]
+    }
+  ],
+  "notes": null
+}

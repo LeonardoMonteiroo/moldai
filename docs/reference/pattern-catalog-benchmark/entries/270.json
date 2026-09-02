@@ -1,0 +1,45 @@
+{
+  "sourceId": "270",
+  "category": "sleeveless knit tank top with rounded hem, straight-grain cut",
+  "moldaiArchetype": null,
+  "descriptionEn": "sleeveless knit tank top with a rounded hem, cut on the straight grain, back and front panels only",
+  "gender": null,
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 37.02 },
+        { "position": "left edge, upper diagonal segment", "valueCm": 25.57 },
+        { "position": "left edge, upper short segment", "valueCm": 6.79 },
+        { "position": "left edge, armhole curve segment", "valueCm": 22.37 },
+        { "position": "left edge, lower short segment", "valueCm": 6.79 },
+        { "position": "left edge, lower diagonal segment", "valueCm": 25.57 },
+        { "position": "bottom edge", "valueCm": 37.02 },
+        { "position": "right edge (side curve)", "valueCm": 65.49 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 37.02 },
+        { "position": "left edge, upper diagonal segment", "valueCm": 25.57 },
+        { "position": "left edge, upper short segment", "valueCm": 6.79 },
+        {
+          "position": "left edge, neckline/armhole curve segment",
+          "valueCm": 44.63
+        },
+        { "position": "left edge, lower short segment", "valueCm": 6.79 },
+        { "position": "left edge, lower diagonal segment", "valueCm": 25.57 },
+        { "position": "bottom edge", "valueCm": 37.02 },
+        { "position": "right edge (side curve)", "valueCm": 60.94 }
+      ]
+    }
+  ],
+  "notes": "moldaiArchetype left null: the tshirt archetype in this repo is defined with short sleeves, and this garment is sleeveless (no sleeve piece on the drawing)."
+}

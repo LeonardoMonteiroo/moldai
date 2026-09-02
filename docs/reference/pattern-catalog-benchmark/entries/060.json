@@ -1,0 +1,123 @@
+{
+  "sourceId": "060",
+  "category": "mens-sweatpants-ribbed-waistband",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "men's sweatpants with a separate ribbed waistband, side pocket with facing/lining, and cuffs",
+  "gender": "male",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "GB BS.LT",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top edge", "valueCm": 16.5 },
+        { "position": "left edge", "valueCm": 14.5 },
+        { "position": "right edge", "valueCm": 14.5 },
+        { "position": "bottom edge", "valueCm": 16.5 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 20 },
+        { "position": "left edge", "valueCm": 17.5 },
+        { "position": "right edge", "valueCm": 17.5 },
+        { "position": "bottom edge", "valueCm": 20 }
+      ]
+    },
+    {
+      "nameEn": "pocket lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (curved)", "valueCm": 15 },
+        { "position": "upper-left edge", "valueCm": 17.01 },
+        { "position": "left edge", "valueCm": 9.35 },
+        { "position": "bottom edge (curved)", "valueCm": 44.57 }
+      ]
+    },
+    {
+      "nameEn": "front waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 12 },
+        { "position": "left edge", "valueCm": 48 },
+        { "position": "right edge", "valueCm": 48 },
+        { "position": "bottom edge", "valueCm": 12 }
+      ]
+    },
+    {
+      "nameEn": "back waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 12 },
+        { "position": "left edge", "valueCm": 51.18 },
+        { "position": "right edge", "valueCm": 51.18 },
+        { "position": "bottom edge", "valueCm": 12 }
+      ]
+    },
+    {
+      "nameEn": "pocket facing",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (curved)", "valueCm": 30.76 },
+        { "position": "left edge", "valueCm": 14.05 },
+        { "position": "bottom edge (curved)", "valueCm": 44.57 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 14 },
+        { "position": "left edge", "valueCm": 29.96 },
+        { "position": "right edge", "valueCm": 29.96 },
+        { "position": "bottom edge", "valueCm": 14 }
+      ]
+    },
+    {
+      "nameEn": "front leg",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left, small segment", "valueCm": 17.01 },
+        { "position": "top edge", "valueCm": 72.14 },
+        { "position": "left edge, upper segment", "valueCm": 19.85 },
+        { "position": "left edge, lower diagonal", "valueCm": 20.18 },
+        {
+          "position": "bottom-left, small segment (near crotch)",
+          "valueCm": 8.27
+        },
+        { "position": "bottom edge", "valueCm": 62.87 },
+        { "position": "right edge", "valueCm": 16.16 }
+      ]
+    },
+    {
+      "nameEn": "back leg",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 86.99 },
+        { "position": "left edge, upper diagonal", "valueCm": 26.18 },
+        { "position": "left edge, lower diagonal", "valueCm": 20.74 },
+        {
+          "position": "bottom-left, small segment (near crotch point)",
+          "valueCm": 17.61
+        },
+        {
+          "position": "bottom edge (curved, toward crotch point)",
+          "valueCm": 62.87
+        },
+        { "position": "right edge", "valueCm": 17.79 }
+      ]
+    }
+  ],
+  "notes": null
+}

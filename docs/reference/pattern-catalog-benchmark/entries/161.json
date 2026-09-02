@@ -1,0 +1,108 @@
+{
+  "sourceId": "161",
+  "category": "mens-carrot-fit-trousers",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "men's carrot-fit trousers with elasticated waistband, ankle cuffs, framed hip pocket, patch back pocket and inset side pockets",
+  "gender": "male",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 12 },
+        { "position": "bottom edge", "valueCm": 12 },
+        { "position": "left edge", "valueCm": 82 },
+        { "position": "right edge", "valueCm": 82 }
+      ]
+    },
+    {
+      "nameEn": "front (pant leg)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 4.29 },
+        { "position": "top edge, middle segment", "valueCm": 16.08 },
+        { "position": "top edge, right segment", "valueCm": 73.75 },
+        { "position": "right edge", "valueCm": 18.68 },
+        { "position": "bottom edge", "valueCm": 67.14 },
+        { "position": "left edge, upper segment", "valueCm": 26.56 },
+        { "position": "left edge, lower segment", "valueCm": 4.72 },
+        { "position": "left edge, lower segment continued", "valueCm": 18.27 },
+        {
+          "position": "small notch mark near lower-left curve, first",
+          "valueCm": 6.73
+        },
+        {
+          "position": "small notch mark near lower-left curve, second",
+          "valueCm": 11.22
+        }
+      ]
+    },
+    {
+      "nameEn": "back (pant leg)",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 94.22 },
+        { "position": "left edge", "valueCm": 27.72 },
+        { "position": "right edge", "valueCm": 20.38 },
+        { "position": "bottom edge, right segment", "valueCm": 67.14 },
+        { "position": "bottom edge, left segment", "valueCm": 40.88 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 6.08 },
+        { "position": "top edge, right segment", "valueCm": 6.08 },
+        { "position": "left edge", "valueCm": 29.41 },
+        { "position": "right edge", "valueCm": 29.41 },
+        { "position": "bottom edge, left segment", "valueCm": 6.08 },
+        { "position": "bottom edge, right segment", "valueCm": 6.08 }
+      ]
+    },
+    {
+      "nameEn": "pocket template",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 16.5 },
+        { "position": "left edge", "valueCm": 14.57 },
+        { "position": "right edge", "valueCm": 14.57 },
+        { "position": "bottom edge", "valueCm": 16.5 }
+      ]
+    },
+    {
+      "nameEn": "back pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 2 },
+        { "position": "top edge, right segment", "valueCm": 19 },
+        { "position": "left edge", "valueCm": 17.5 },
+        { "position": "right edge", "valueCm": 17.5 },
+        { "position": "bottom edge, left segment", "valueCm": 2 },
+        { "position": "bottom edge, right segment", "valueCm": 19 }
+      ]
+    },
+    {
+      "nameEn": "inset pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 4.29 },
+        { "position": "top edge, middle segment", "valueCm": 16.08 },
+        { "position": "top edge, right segment", "valueCm": 12.13 },
+        { "position": "left edge", "valueCm": 19.46 },
+        { "position": "right edge, curved", "valueCm": 31.41 },
+        { "position": "bottom edge", "valueCm": 15.68 }
+      ]
+    }
+  ],
+  "notes": null
+}

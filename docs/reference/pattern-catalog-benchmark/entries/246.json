@@ -1,0 +1,141 @@
+{
+  "sourceId": "246",
+  "category": "varsity-style-jacket-contrast-trim",
+  "moldaiArchetype": null,
+  "descriptionEn": "Varsity/letterman-style jacket for men with contrasting welt/hem bands, ribbed cuffs, a collar, lining piping, and a front facing.",
+  "gender": "male",
+  "baseSizeLabel": "M",
+  "gradeNote": "Approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces.",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, right segment", "valueCm": 35.63 },
+        { "position": "top edge, diagonal segment", "valueCm": 26.68 },
+        { "position": "top-left edge, small segment", "valueCm": 2.41 },
+        { "position": "left edge, upper segment", "valueCm": 15.72 },
+        { "position": "left edge, middle curve segment", "valueCm": 22.47 },
+        { "position": "left edge, lower segment", "valueCm": 15.72 },
+        { "position": "bottom-left edge, small segment", "valueCm": 2.41 },
+        { "position": "bottom edge, diagonal segment", "valueCm": 26.68 },
+        { "position": "bottom edge, right segment", "valueCm": 35.63 },
+        { "position": "right edge (straight)", "valueCm": 55.48 }
+      ]
+    },
+    {
+      "nameEn": "hem band (barra)",
+      "originalLabelUnclear": false,
+      "qty": 4,
+      "edges": [
+        { "position": "top edge", "valueCm": 16.01 },
+        { "position": "left edge (straight)", "valueCm": 85.02 },
+        { "position": "right edge (straight)", "valueCm": 85.02 },
+        { "position": "bottom edge", "valueCm": 16.01 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 54.21 },
+        { "position": "top-left corner, small segment", "valueCm": 2.5 },
+        { "position": "diagonal segment (shoulder/neck)", "valueCm": 13.18 },
+        { "position": "left edge, upper segment", "valueCm": 15.72 },
+        { "position": "left edge, curve segment", "valueCm": 25.98 },
+        { "position": "bottom edge", "valueCm": 35.63 },
+        { "position": "right edge (straight)", "valueCm": 30.24 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 8.1 },
+        { "position": "top edge, right segment", "valueCm": 8.1 },
+        { "position": "left edge (straight)", "valueCm": 22 },
+        { "position": "right edge (straight)", "valueCm": 22 },
+        { "position": "bottom edge, left segment", "valueCm": 8.1 },
+        { "position": "bottom edge, right segment", "valueCm": 8.1 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 46.83 },
+        { "position": "left edge (straight)", "valueCm": 55.99 },
+        { "position": "right edge (straight)", "valueCm": 28.88 },
+        { "position": "bottom edge", "valueCm": 46.83 }
+      ]
+    },
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 4,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 10.86 },
+        { "position": "top edge, right segment", "valueCm": 10.86 },
+        { "position": "width, left arrow measurement", "valueCm": 25.7 },
+        { "position": "width, right arrow measurement", "valueCm": 25.7 },
+        { "position": "bottom edge, left segment", "valueCm": 10.86 },
+        { "position": "bottom edge, right segment", "valueCm": 10.86 }
+      ]
+    },
+    {
+      "nameEn": "lining piping (forro vivo)",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 27.24 },
+        { "position": "left edge (straight)", "valueCm": 26.83 },
+        { "position": "right edge (straight)", "valueCm": 25.3 },
+        { "position": "bottom edge", "valueCm": 27.28 }
+      ]
+    },
+    {
+      "nameEn": "front facing (contra)",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (width arrow measurement)", "valueCm": 54.21 },
+        { "position": "right edge (straight)", "valueCm": 9.35 },
+        { "position": "left edge, diagonal segment", "valueCm": 15.69 },
+        { "position": "bottom edge", "valueCm": 62.32 },
+        { "position": "bottom-left corner, small segment", "valueCm": 9.7 }
+      ]
+    },
+    {
+      "nameEn": "unclear piece",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 8.01 },
+        { "position": "top edge, right segment", "valueCm": 8.01 },
+        { "position": "middle width, left arrow measurement", "valueCm": 9.49 },
+        {
+          "position": "middle width, right arrow measurement",
+          "valueCm": 9.49
+        },
+        { "position": "bottom edge, left segment", "valueCm": 8.01 },
+        { "position": "bottom edge, right segment", "valueCm": 8.01 }
+      ]
+    },
+    {
+      "nameEn": "piping (vivo)",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 27.24 },
+        { "position": "left edge (straight)", "valueCm": 28.83 },
+        { "position": "right edge (straight)", "valueCm": 27.3 },
+        { "position": "bottom edge", "valueCm": 27.28 }
+      ]
+    }
+  ],
+  "notes": "For 'hem band' (source label 'BARRA4X') and 'collar' (source label 'GOLA4X'), the piece-name suffix indicates 4 cut pieces but the small 'Quantidade:' annotation next to each was hard to read clearly and appeared to show a lower value; qty was taken from the more legible name suffix. One small piece near the front-facing piece had an illegible/unclear label in the source scan; its edge measurements were recorded but its identity could not be determined, so it is listed as 'unclear piece' with qty read as 1 (also uncertain)."
+}

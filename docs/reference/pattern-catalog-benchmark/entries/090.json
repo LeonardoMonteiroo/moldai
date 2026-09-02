@@ -1,0 +1,48 @@
+{
+  "sourceId": "090",
+  "category": "kids-school-skort",
+  "moldaiArchetype": null,
+  "descriptionEn": "school-age kids' skort (shorts with skirt overlay), elastic waistband",
+  "gender": "kids",
+  "baseSizeLabel": "08",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "back (shorts)",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 35.49 },
+        { "position": "left edge", "valueCm": 18.02 },
+        { "position": "lower-left diagonal segment", "valueCm": 23.47 },
+        { "position": "bottom-left small segment", "valueCm": 6.74 },
+        { "position": "bottom edge", "valueCm": 11.88 },
+        { "position": "right edge", "valueCm": 30.5 }
+      ]
+    },
+    {
+      "nameEn": "front (shorts)",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 35.49 },
+        { "position": "left edge", "valueCm": 17.63 },
+        { "position": "lower-left diagonal segment", "valueCm": 18.54 },
+        { "position": "bottom-left small segment", "valueCm": 5.85 },
+        { "position": "bottom edge", "valueCm": 11.93 },
+        { "position": "right edge", "valueCm": 24.55 }
+      ]
+    },
+    {
+      "nameEn": "skirt overlay",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 33.5 },
+        { "position": "left edge", "valueCm": 35.28 },
+        { "position": "right edge, curved", "valueCm": 63.29 }
+      ]
+    }
+  ],
+  "notes": "The drawing also lists an elastic waistband length reference table next to the back piece, giving approximate elastic lengths for several graded sizes (ranging roughly 56-65 cm); this is garment-level sizing information rather than a piece edge measurement, so it is not included in the pieces list above."
+}

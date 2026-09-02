@@ -1,0 +1,131 @@
+{
+  "sourceId": "251",
+  "category": "womens-short-sleeve-polo-shirt",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "women's short-sleeve polo shirt (knit) with collar, collar stand, back yoke and button placket",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 45.64 },
+        { "position": "left edge, segment 1 (from top)", "valueCm": 23.7 },
+        { "position": "left edge, segment 2", "valueCm": 13.38 },
+        { "position": "left edge, segment 3", "valueCm": 12.28 },
+        { "position": "center front, placket opening gap", "valueCm": 0.25 },
+        { "position": "left edge, segment 4", "valueCm": 12.28 },
+        { "position": "left edge, segment 5", "valueCm": 13.38 },
+        { "position": "left edge, segment 6 (to bottom)", "valueCm": 23.7 },
+        { "position": "bottom edge", "valueCm": 45.64 },
+        { "position": "right edge", "valueCm": 53.54 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 45.65 },
+        { "position": "left edge, segment 1 (top, small)", "valueCm": 2.69 },
+        { "position": "left edge, segment 2", "valueCm": 24.82 },
+        { "position": "left edge, segment 3", "valueCm": 13.38 },
+        {
+          "position": "left edge, segment 4 (center/underarm area)",
+          "valueCm": 20.05
+        },
+        { "position": "left edge, segment 5", "valueCm": 13.38 },
+        { "position": "left edge, segment 6 (lower, small)", "valueCm": 2.69 },
+        { "position": "left edge, segment 7", "valueCm": 24.82 },
+        { "position": "bottom edge", "valueCm": 45.65 },
+        { "position": "right edge", "valueCm": 53.54 }
+      ]
+    },
+    {
+      "nameEn": "collar",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top end", "valueCm": 6.88 },
+        { "position": "upper segment", "valueCm": 7.71 },
+        { "position": "upper-middle segment", "valueCm": 12.92 },
+        { "position": "center length", "valueCm": 45.54 },
+        { "position": "lower-middle segment", "valueCm": 12.92 },
+        { "position": "lower segment", "valueCm": 7.71 },
+        { "position": "bottom end", "valueCm": 6.88 }
+      ]
+    },
+    {
+      "nameEn": "collar interfacing",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top end", "valueCm": 5.72 },
+        { "position": "upper segment", "valueCm": 6.91 },
+        { "position": "upper-middle segment", "valueCm": 12.99 },
+        { "position": "center length", "valueCm": 42.92 },
+        { "position": "lower-middle segment", "valueCm": 12.99 },
+        { "position": "lower segment", "valueCm": 6.91 },
+        { "position": "bottom end", "valueCm": 5.72 }
+      ]
+    },
+    {
+      "nameEn": "collar stand",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top end, left", "valueCm": 2.6 },
+        { "position": "top end, right", "valueCm": 0.5 },
+        { "position": "upper segment, left", "valueCm": 25.42 },
+        { "position": "upper segment, right", "valueCm": 23.53 },
+        { "position": "upper-middle segment", "valueCm": 22.84 },
+        { "position": "middle segment", "valueCm": 19.91 },
+        { "position": "middle segment (mirror)", "valueCm": 19.91 },
+        { "position": "lower-middle segment", "valueCm": 22.85 },
+        { "position": "lower segment, left", "valueCm": 25.42 },
+        { "position": "lower segment, right", "valueCm": 23.53 },
+        { "position": "bottom end, left", "valueCm": 0.5 },
+        { "position": "bottom end, right", "valueCm": 2.6 }
+      ]
+    },
+    {
+      "nameEn": "back yoke placement guide (template)",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top end", "valueCm": 5.32 },
+        { "position": "left edge", "valueCm": 19.96 },
+        { "position": "right edge", "valueCm": 37.53 },
+        { "position": "bottom end", "valueCm": 5.32 }
+      ]
+    },
+    {
+      "nameEn": "back yoke",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top end", "valueCm": 6.41 },
+        { "position": "left edge", "valueCm": 20 },
+        { "position": "right edge", "valueCm": 40.11 },
+        { "position": "bottom end", "valueCm": 6.41 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left", "valueCm": 6.5 },
+        { "position": "top edge, right", "valueCm": 2.34 },
+        { "position": "left edge", "valueCm": 51.81 },
+        { "position": "right edge", "valueCm": 39.16 },
+        { "position": "bottom edge, left", "valueCm": 6.54 },
+        { "position": "bottom edge, right", "valueCm": 2.34 }
+      ]
+    }
+  ],
+  "notes": "The exact top/bottom pairing of the near-duplicate values on the 'collar stand' piece (25.42/23.53, 22.84/22.85, 19.91/19.91) could not be fully disambiguated due to small, partly rotated text in the scan; the numbers themselves are legible, only their precise left/right and upper/lower assignment is uncertain. Small corner measurements (6.5/2.34 and 6.54/2.34) appear at the top and bottom of the sleeve cap and were folded into the sleeve piece rather than treated as a separate piece, since a distinct label for them could not be confirmed."
+}

@@ -1,0 +1,116 @@
+{
+  "sourceId": "309",
+  "category": "kids v-neck t-shirt",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "kids v-neck short-sleeve t-shirt with a narrow neckline binding strip",
+  "gender": "kids",
+  "baseSizeLabel": "08",
+  "gradeNote": "approx. 1 cm variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "collar/neckline binding",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge (short end)", "valueCm": 5 },
+        { "position": "upper segment near top", "valueCm": 10.73 },
+        { "position": "left edge, segment 1 (upper)", "valueCm": 19.7 },
+        {
+          "position": "right edge, segment 1 (upper, mirrored)",
+          "valueCm": 19.7
+        },
+        { "position": "left edge, segment 2", "valueCm": 9.02 },
+        { "position": "left edge, segment 3 (mirrored)", "valueCm": 9.02 },
+        { "position": "left edge, segment 4 (mirrored)", "valueCm": 19.7 },
+        { "position": "right edge, segment 4 (mirrored)", "valueCm": 19.7 },
+        { "position": "lower segment near bottom", "valueCm": 10.73 },
+        { "position": "bottom edge (short end)", "valueCm": 5 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        {
+          "position": "top edge, right corner, upper segment",
+          "valueCm": 4.84
+        },
+        {
+          "position": "top edge, right corner, lower segment",
+          "valueCm": 2.08
+        },
+        { "position": "left edge, upper segment", "valueCm": 18.72 },
+        { "position": "left edge, vertical span (center)", "valueCm": 29.37 },
+        { "position": "right edge, upper segment", "valueCm": 13.27 },
+        { "position": "horizontal center line", "valueCm": 16.74 },
+        {
+          "position": "right edge, lower segment (mirrored)",
+          "valueCm": 13.27
+        },
+        { "position": "left edge, lower segment", "valueCm": 18.72 },
+        {
+          "position": "bottom edge, right corner, upper segment",
+          "valueCm": 4.84
+        },
+        {
+          "position": "bottom edge, right corner, lower segment",
+          "valueCm": 2.08
+        }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 35.3 },
+        { "position": "top left diagonal segment", "valueCm": 20.21 },
+        { "position": "right edge, upper segment", "valueCm": 20.21 },
+        { "position": "horizontal center span", "valueCm": 57.7 },
+        { "position": "vertical center span (height)", "valueCm": 40.43 },
+        {
+          "position": "right edge, lower segment (mirrored)",
+          "valueCm": 20.21
+        },
+        {
+          "position": "bottom left diagonal segment (mirrored)",
+          "valueCm": 20.21
+        },
+        { "position": "bottom edge", "valueCm": 35.3 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        {
+          "position": "top left diagonal segment (v-neck, upper)",
+          "valueCm": 18.22
+        },
+        { "position": "top edge", "valueCm": 34.06 },
+        { "position": "right edge, upper segment", "valueCm": 20.21 },
+        { "position": "left edge, segment below diagonal", "valueCm": 10.35 },
+        { "position": "horizontal center span", "valueCm": 54.39 },
+        {
+          "position": "left edge, next segment (v-neck depth)",
+          "valueCm": 11.71
+        },
+        { "position": "vertical center span (height)", "valueCm": 40.43 },
+        { "position": "left edge, next segment (mirrored)", "valueCm": 11.71 },
+        {
+          "position": "left edge, segment above bottom diagonal (mirrored)",
+          "valueCm": 10.35
+        },
+        {
+          "position": "bottom left diagonal segment (mirrored)",
+          "valueCm": 18.22
+        },
+        { "position": "bottom edge", "valueCm": 34.06 },
+        { "position": "right edge, lower segment (mirrored)", "valueCm": 20.21 }
+      ]
+    }
+  ],
+  "notes": null
+}

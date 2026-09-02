@@ -1,0 +1,55 @@
+{
+  "sourceId": "185",
+  "category": "bum-lift-leggings-with-shaped-waistband",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "leggings with separate, shaped front and back waistbands designed to lift the seat",
+  "gender": null,
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "front waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 13.7 },
+        { "position": "top edge, right segment", "valueCm": 13.7 },
+        { "position": "left edge", "valueCm": 36.09 },
+        { "position": "right edge", "valueCm": 36.09 },
+        { "position": "bottom edge, left segment", "valueCm": 13.7 },
+        { "position": "bottom edge, right segment", "valueCm": 13.7 }
+      ]
+    },
+    {
+      "nameEn": "back waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 13.69 },
+        { "position": "top edge, right segment", "valueCm": 13.69 },
+        { "position": "upper-left curved edge", "valueCm": 21.98 },
+        { "position": "upper-right curved edge", "valueCm": 21.98 },
+        { "position": "lower-left curved edge", "valueCm": 21.98 },
+        { "position": "lower-right curved edge", "valueCm": 21.98 },
+        { "position": "bottom edge, left segment", "valueCm": 13.69 },
+        { "position": "bottom edge, right segment", "valueCm": 13.69 }
+      ]
+    },
+    {
+      "nameEn": "front/back leg panel",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "upper-left edge", "valueCm": 18.4 },
+        { "position": "top edge (long diagonal)", "valueCm": 75.56 },
+        { "position": "top-right corner", "valueCm": 2.04 },
+        { "position": "right edge", "valueCm": 27.12 },
+        { "position": "bottom-right corner", "valueCm": 2.04 },
+        { "position": "bottom edge (long diagonal)", "valueCm": 75.56 },
+        { "position": "left edge", "valueCm": 40.01 },
+        { "position": "bottom-left edge", "valueCm": 27.25 }
+      ]
+    }
+  ],
+  "notes": "A small handwritten construction note near the leg panel, about grain alignment between notches on the front/back sides, was too small to read reliably and was not extracted as a dimension."
+}

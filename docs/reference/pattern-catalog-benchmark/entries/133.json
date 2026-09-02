@@ -1,0 +1,157 @@
+{
+  "sourceId": "133",
+  "category": "casual-trousers-with-front-pintuck",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "casual trousers with a decorative front pintuck seam, lined side pockets, welt back pockets, and a two-piece front waistband",
+  "gender": null,
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "pocket lining",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 5.78 },
+        { "position": "top edge, right segment", "valueCm": 42.25 },
+        { "position": "left edge", "valueCm": 17.51 },
+        { "position": "bottom edge, left segment", "valueCm": 18.03 },
+        { "position": "bottom edge, right segment", "valueCm": 16.04 }
+      ]
+    },
+    {
+      "nameEn": "back pocket template",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 15 },
+        { "position": "right edge, upper segment", "valueCm": 7.39 },
+        { "position": "left edge", "valueCm": 14.51 },
+        { "position": "right edge, lower segment", "valueCm": 7.39 },
+        { "position": "bottom edge", "valueCm": 15 }
+      ]
+    },
+    {
+      "nameEn": "back pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 16.23 },
+        { "position": "right edge, upper segment", "valueCm": 8.92 },
+        { "position": "left edge", "valueCm": 17.51 },
+        { "position": "bottom edge", "valueCm": 16.23 },
+        { "position": "right edge, lower segment", "valueCm": 8.92 },
+        { "position": "top-left corner, small segment", "valueCm": 3 },
+        { "position": "bottom-left corner, small segment", "valueCm": 3 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 25.65 },
+        { "position": "top edge, right segment", "valueCm": 76.16 },
+        { "position": "left edge, upper segment", "valueCm": 17.52 },
+        { "position": "left edge, lower diagonal", "valueCm": 18.03 },
+        { "position": "right edge", "valueCm": 14.28 },
+        { "position": "bottom edge", "valueCm": 84.58 }
+      ]
+    },
+    {
+      "nameEn": "back yoke",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 9.12 },
+        { "position": "left edge, upper diagonal", "valueCm": 28.01 },
+        { "position": "left edge, lower diagonal", "valueCm": 28.24 },
+        { "position": "bottom edge", "valueCm": 6.5 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 29.12 },
+        { "position": "top edge, right segment", "valueCm": 75.95 },
+        { "position": "left edge", "valueCm": 28.21 },
+        { "position": "right edge", "valueCm": 17.96 },
+        { "position": "bottom edge", "valueCm": 97.16 }
+      ]
+    },
+    {
+      "nameEn": "belt loop, variant 1",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 18.5 },
+        { "position": "left edge", "valueCm": 6 },
+        { "position": "right edge", "valueCm": 6 },
+        { "position": "bottom edge", "valueCm": 18.5 }
+      ]
+    },
+    {
+      "nameEn": "belt loop, variant 2",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 18.5 },
+        { "position": "left edge", "valueCm": 10 },
+        { "position": "right edge", "valueCm": 10 },
+        { "position": "bottom edge", "valueCm": 18.5 }
+      ]
+    },
+    {
+      "nameEn": "front waistband, left half",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, overall width bracket", "valueCm": 11 },
+        { "position": "top edge, sub-segment 1", "valueCm": 5.68 },
+        { "position": "top edge, sub-segment 2", "valueCm": 5.68 },
+        { "position": "left edge", "valueCm": 24.5 },
+        { "position": "right edge", "valueCm": 24.5 },
+        { "position": "bottom edge, overall width bracket", "valueCm": 11 }
+      ]
+    },
+    {
+      "nameEn": "front waistband, right half",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, overall width bracket", "valueCm": 11 },
+        { "position": "left edge", "valueCm": 26.5 },
+        { "position": "right edge", "valueCm": 26.5 },
+        { "position": "bottom edge, sub-segment 1", "valueCm": 5.68 },
+        { "position": "bottom edge, sub-segment 2", "valueCm": 5.68 },
+        { "position": "bottom edge, overall width bracket", "valueCm": 11 }
+      ]
+    },
+    {
+      "nameEn": "back waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 5.22 },
+        { "position": "top edge, right segment", "valueCm": 5.22 },
+        { "position": "left edge", "valueCm": 57 },
+        { "position": "right edge", "valueCm": 57 },
+        { "position": "bottom edge, left segment", "valueCm": 5.22 },
+        { "position": "bottom edge, right segment", "valueCm": 5.22 }
+      ]
+    },
+    {
+      "nameEn": "elastic gauge template",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "left edge", "valueCm": 39 },
+        { "position": "right edge", "valueCm": 39 },
+        { "position": "bottom edge, width bracket", "valueCm": 4 }
+      ]
+    }
+  ],
+  "notes": "A second, near-identical pocket-lining piece (a variant of the first) appears in the drawing, but its individual edge dimensions were not legibly distinguishable from the first piece's callouts in the scan, so it was omitted rather than guessed. Several nearby pocket pieces carry close-but-distinct values in the 16.0-17.5 cm range (16.04, 16.23, 17.51) read under limited scan resolution; treat these as lower confidence. Small unmarked 'x' tick points and a short dash mark on the back-leg panel appear to be placement/grain marks with no attached number and were skipped."
+}

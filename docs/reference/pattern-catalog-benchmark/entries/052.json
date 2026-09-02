@@ -1,0 +1,128 @@
+{
+  "sourceId": "052",
+  "category": "mens-kangaroo-pocket-hoodie",
+  "moldaiArchetype": null,
+  "descriptionEn": "men's hooded pullover sweatshirt with kangaroo pocket, ribbed waistband and cuffs",
+  "gender": "male",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 38.41 },
+        { "position": "upper-right diagonal (shoulder)", "valueCm": 25.98 },
+        { "position": "right curve, upper (armhole)", "valueCm": 15.13 },
+        { "position": "right curve, mid (armhole, deepest)", "valueCm": 26.64 },
+        {
+          "position": "right curve, lower (armhole, mirrored)",
+          "valueCm": 15.13
+        },
+        { "position": "lower-right diagonal (mirrored)", "valueCm": 25.98 },
+        { "position": "bottom edge", "valueCm": 38.41 },
+        { "position": "left edge (full height)", "valueCm": 56.31 }
+      ]
+    },
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 16 },
+        { "position": "left edge", "valueCm": 51.07 },
+        { "position": "right edge", "valueCm": 51.07 },
+        { "position": "bottom edge", "valueCm": 16 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 8.11 },
+        { "position": "top-right corner", "valueCm": 8.11 },
+        { "position": "left edge", "valueCm": 20.92 },
+        { "position": "right edge", "valueCm": 20.92 },
+        { "position": "bottom-left corner", "valueCm": 8.11 },
+        { "position": "bottom-right corner", "valueCm": 8.11 }
+      ]
+    },
+    {
+      "nameEn": "kangaroo pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner, small segment 1", "valueCm": 8.28 },
+        { "position": "top-left corner, small segment 2", "valueCm": 3.32 },
+        { "position": "upper-right diagonal", "valueCm": 25.88 },
+        { "position": "right edge, upper small segment", "valueCm": 2.35 },
+        { "position": "right edge, main segment", "valueCm": 20 },
+        { "position": "right edge, lower small segment", "valueCm": 2.35 },
+        { "position": "lower-right diagonal (mirrored)", "valueCm": 25.88 },
+        {
+          "position": "bottom-left corner, small segment 1 (mirrored)",
+          "valueCm": 8.28
+        },
+        {
+          "position": "bottom-left corner, small segment 2 (mirrored)",
+          "valueCm": 3.32
+        },
+        { "position": "left edge", "valueCm": 41.42 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 38.41 },
+        { "position": "upper-right diagonal (shoulder)", "valueCm": 29.17 },
+        { "position": "right curve, upper (armhole)", "valueCm": 15.22 },
+        { "position": "right curve, mid (armhole, deepest)", "valueCm": 23.55 },
+        {
+          "position": "right curve, lower (armhole, mirrored)",
+          "valueCm": 15.22
+        },
+        { "position": "lower-right diagonal (mirrored)", "valueCm": 29.17 },
+        { "position": "bottom edge", "valueCm": 38.41 },
+        { "position": "left edge (full height)", "valueCm": 56.31 }
+      ]
+    },
+    {
+      "nameEn": "hood lining",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner, small segment", "valueCm": 2.47 },
+        { "position": "top edge", "valueCm": 41.08 },
+        { "position": "left edge", "valueCm": 25.05 },
+        { "position": "bottom edge (curved)", "valueCm": 56.31 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 51.48 },
+        { "position": "left edge", "valueCm": 26.19 },
+        { "position": "right edge", "valueCm": 55.99 },
+        { "position": "bottom edge", "valueCm": 51.48 }
+      ]
+    },
+    {
+      "nameEn": "hood",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner, small segment", "valueCm": 2.5 },
+        { "position": "top edge", "valueCm": 40.81 },
+        { "position": "left edge", "valueCm": 27.72 },
+        { "position": "bottom edge (curved)", "valueCm": 59.01 }
+      ]
+    }
+  ],
+  "notes": null
+}

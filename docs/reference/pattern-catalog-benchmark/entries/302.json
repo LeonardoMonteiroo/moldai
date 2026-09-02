@@ -1,0 +1,94 @@
+{
+  "sourceId": "302",
+  "category": "womens-viscose-pants-with-cuffed-hem",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "women's flowy viscose-fabric pants with elastic waistband and cuffed hem",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "front leg",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top-left diagonal (waist to side)", "valueCm": 25.89 },
+        { "position": "top edge (waist span)", "valueCm": 69.84 },
+        { "position": "right edge, upper (side seam)", "valueCm": 12.47 },
+        { "position": "left edge, below waist diagonal", "valueCm": 20.41 },
+        { "position": "lower-left diagonal (hip curve)", "valueCm": 17.85 },
+        { "position": "crotch curve, small segment 1", "valueCm": 11.91 },
+        { "position": "crotch curve, small segment 2 (tiny)", "valueCm": 0.93 },
+        { "position": "bottom edge (inseam span)", "valueCm": 64.17 }
+      ]
+    },
+    {
+      "nameEn": "back leg",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top-left diagonal (waist to side)", "valueCm": 32.19 },
+        { "position": "top edge (waist span)", "valueCm": 70.91 },
+        { "position": "right edge, upper (side seam)", "valueCm": 14.11 },
+        { "position": "left edge, below waist diagonal", "valueCm": 26.7 },
+        {
+          "position": "lower-left segment (hip/crotch curve)",
+          "valueCm": 31.03
+        },
+        { "position": "bottom edge (inseam span)", "valueCm": 64.17 }
+      ]
+    },
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge (band width)", "valueCm": 12 },
+        { "position": "bottom edge (band width)", "valueCm": 12 }
+      ]
+    },
+    {
+      "nameEn": "elastic casing band",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge (band width)", "valueCm": 5 },
+        { "position": "bottom edge (band width)", "valueCm": 5 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left half", "valueCm": 6.07 },
+        { "position": "top edge, right half", "valueCm": 6.07 },
+        { "position": "left edge, upper segment", "valueCm": 12.37 },
+        { "position": "right edge, upper segment", "valueCm": 12.37 },
+        { "position": "left edge, lower segment", "valueCm": 12.37 },
+        { "position": "right edge, lower segment", "valueCm": 12.37 },
+        { "position": "bottom edge, left half", "valueCm": 6.07 },
+        { "position": "bottom edge, right half", "valueCm": 6.07 }
+      ]
+    },
+    {
+      "nameEn": "unlabeled piece 1",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top edge", "valueCm": 41.38 },
+        { "position": "top-right corner", "valueCm": 4.69 },
+        { "position": "left edge", "valueCm": 7.47 },
+        { "position": "bottom-left segment", "valueCm": 17.85 },
+        { "position": "bottom edge", "valueCm": 12.83 }
+      ]
+    },
+    {
+      "nameEn": "unlabeled piece 2",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top/right curve", "valueCm": 41.4 },
+        { "position": "left edge, upper segment", "valueCm": 12.05 },
+        { "position": "left edge, corner", "valueCm": 4.94 },
+        { "position": "bottom-left segment", "valueCm": 18.2 },
+        { "position": "bottom edge", "valueCm": 12.83 }
+      ]
+    }
+  ],
+  "notes": "The waistband and elastic-casing band strips were drawn as long strips whose printed length was broken into a repeating interval mark (appearing many times down the strip) rather than one clean end-to-end dimension, so only their band widths (perpendicular measurement) are recorded here with confidence; their total lengths are not reliably reconstructable from this sheet. Two additional small pieces (bottom of sheet) had labels too small/unclear to transcribe confidently — kept as generic 'unlabeled piece' names with originalLabelUnclear set rather than guessing their function (possibly pocket-related components)."
+}

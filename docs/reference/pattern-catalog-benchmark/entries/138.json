@@ -1,0 +1,33 @@
+{
+  "sourceId": "138",
+  "category": "asymmetric-top-with-rolled-trim",
+  "moldaiArchetype": null,
+  "descriptionEn": "asymmetric sleeveless top with a rolled-trim (bias tube) finish along one curved edge, single panel shape used for front, back and lining",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "front/back/lining panel (one shape used for all three)",
+      "originalLabelUnclear": false,
+      "qty": 4,
+      "edges": [
+        {
+          "position": "upper-right diagonal edge (from top peak)",
+          "valueCm": 20.23
+        },
+        { "position": "right edge (vertical)", "valueCm": 34.75 },
+        { "position": "lower-right diagonal edge", "valueCm": 20.23 },
+        { "position": "bottom diagonal edge", "valueCm": 22.57 },
+        { "position": "lower-left curve segment", "valueCm": 3.71 },
+        { "position": "left edge, main curve segment", "valueCm": 16.94 },
+        { "position": "upper-left curve segment", "valueCm": 2.23 },
+        {
+          "position": "upper-left diagonal edge (back to top peak)",
+          "valueCm": 25.1
+        }
+      ]
+    }
+  ],
+  "notes": "The drawing labels this single piece shape as used for front, back, AND lining, quantity '2 (pair)' = 4 physical pieces total, recorded here as qty 4. A rolled-trim (bias tube) construction note giving a 10cm trim width is written along the upper-left curve segment (valueCm 2.23); that 10cm figure describes the separate trim strip, not this panel's own outline, so it is not recorded as an edge."
+}

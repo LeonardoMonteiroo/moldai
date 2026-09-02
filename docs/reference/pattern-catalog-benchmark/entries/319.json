@@ -1,0 +1,43 @@
+{
+  "sourceId": "319",
+  "category": "mens-apron-with-strap",
+  "moldaiArchetype": null,
+  "descriptionEn": "men's apron with a front body panel and a separate strap/tie piece, one size",
+  "gender": "male",
+  "baseSizeLabel": "UNICO (one size)",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 59.04 },
+        { "position": "upper-left diagonal", "valueCm": 34.88 },
+        { "position": "left edge, upper segment", "valueCm": 13 },
+        {
+          "position": "left edge, lower segment (mirrors upper)",
+          "valueCm": 13
+        },
+        { "position": "lower-left diagonal (mirrors upper)", "valueCm": 34.88 },
+        { "position": "bottom edge (mirrors top)", "valueCm": 59.04 },
+        { "position": "right edge, upper segment", "valueCm": 36 },
+        {
+          "position": "right edge, lower segment (mirrors upper)",
+          "valueCm": 36
+        }
+      ]
+    },
+    {
+      "nameEn": "strap/tie (label illegible)",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 4.5 },
+        { "position": "length, left measurement", "valueCm": 52 },
+        { "position": "length, right measurement", "valueCm": 52 },
+        { "position": "bottom edge", "valueCm": 4.5 }
+      ]
+    }
+  ],
+  "notes": "This pattern is a single size (no grading table), so there is no per-size variation note to record. The strap piece's own printed label was too small/illegible in the source scan to transcribe confidently."
+}

@@ -1,0 +1,84 @@
+{
+  "sourceId": "331",
+  "category": "mens-oversized-tshirt",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "men's oversized knit t-shirt with front, back, sleeve and neckband pieces",
+  "gender": "male",
+  "baseSizeLabel": "P",
+  "pieces": [
+    {
+      "nameEn": "neckband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left corner", "valueCm": 4.6 },
+        { "position": "top edge, right corner", "valueCm": 4.6 },
+        { "position": "left edge", "valueCm": 21.4 },
+        { "position": "right edge", "valueCm": 21.4 },
+        { "position": "bottom edge, left corner", "valueCm": 4.6 },
+        { "position": "bottom edge, right corner", "valueCm": 4.6 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left corner segment", "valueCm": 2.73 },
+        { "position": "top edge, curved segment", "valueCm": 25.3 },
+        { "position": "top edge, straight segment", "valueCm": 47.64 },
+        { "position": "top edge, right corner segment", "valueCm": 2.5 },
+        { "position": "right edge, upper segment", "valueCm": 27.42 },
+        { "position": "right edge, lower segment", "valueCm": 29.84 },
+        { "position": "left edge (curved), segment 1 (top)", "valueCm": 17.48 },
+        { "position": "left edge (curved), segment 2", "valueCm": 11.68 },
+        { "position": "left edge (curved), segment 3", "valueCm": 11.68 },
+        {
+          "position": "left edge (curved), segment 4 (bottom)",
+          "valueCm": 17.48
+        },
+        { "position": "bottom edge, left corner segment", "valueCm": 2.73 },
+        { "position": "bottom edge, curved segment", "valueCm": 25.3 },
+        { "position": "bottom edge, straight segment", "valueCm": 47.64 },
+        { "position": "bottom edge, right corner segment", "valueCm": 2.5 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left corner", "valueCm": 11.92 },
+        { "position": "top edge, right corner", "valueCm": 2.49 },
+        { "position": "left edge, upper segment", "valueCm": 26.16 },
+        { "position": "left edge, lower segment", "valueCm": 26.16 },
+        { "position": "right edge", "valueCm": 40.51 },
+        { "position": "bottom edge, left corner", "valueCm": 11.92 },
+        { "position": "bottom edge, right corner", "valueCm": 2.49 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, curved segment (left)", "valueCm": 23.89 },
+        { "position": "top edge, straight segment", "valueCm": 47.64 },
+        { "position": "top edge, right corner segment", "valueCm": 2.5 },
+        { "position": "right edge, upper segment", "valueCm": 28.63 },
+        { "position": "right edge, lower segment", "valueCm": 28.63 },
+        { "position": "left edge (curved), segment 1 (top)", "valueCm": 17.48 },
+        { "position": "left edge (curved), segment 2", "valueCm": 15.51 },
+        { "position": "left edge (curved), segment 3", "valueCm": 15.51 },
+        {
+          "position": "left edge (curved), segment 4 (bottom)",
+          "valueCm": 17.48
+        },
+        { "position": "bottom edge, curved segment (left)", "valueCm": 23.89 },
+        { "position": "bottom edge, straight segment", "valueCm": 47.64 },
+        { "position": "bottom edge, right corner segment", "valueCm": 2.5 }
+      ]
+    }
+  ],
+  "notes": null
+}

@@ -1,0 +1,108 @@
+{
+  "sourceId": "095",
+  "category": "women's sport t-shirt with set-in sleeves",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "women's athletic knit t-shirt with separate left/right set-in sleeve pieces",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "sleeve, right",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner, small segment", "valueCm": null },
+        {
+          "position": "top-left corner, adjacent small segment",
+          "valueCm": 4.87
+        },
+        { "position": "upper diagonal segment", "valueCm": 24.54 },
+        { "position": "left edge, vertical", "valueCm": 32.84 },
+        { "position": "right corner segment", "valueCm": 7.92 },
+        { "position": "lower diagonal segment", "valueCm": 28.24 },
+        { "position": "bottom-left corner, small segment", "valueCm": 2.29 },
+        {
+          "position": "bottom-left corner, adjacent small segment",
+          "valueCm": 0.86
+        }
+      ]
+    },
+    {
+      "nameEn": "sleeve, left",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-right corner, small segment", "valueCm": 4.82 },
+        {
+          "position": "top-right corner, adjacent small segment",
+          "valueCm": 2.3
+        },
+        { "position": "upper diagonal segment", "valueCm": 24.54 },
+        { "position": "left corner segment", "valueCm": 7.93 },
+        { "position": "right edge, vertical", "valueCm": 32.84 },
+        { "position": "lower diagonal segment", "valueCm": 28.24 },
+        { "position": "bottom-right corner, small segment", "valueCm": 4.86 },
+        {
+          "position": "bottom-right corner, adjacent small segment",
+          "valueCm": 2.9
+        }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 46.34 },
+        { "position": "upper diagonal segment", "valueCm": 23.83 },
+        {
+          "position": "mid segment (deepest labeled sub-segment)",
+          "valueCm": 22.8
+        },
+        { "position": "mirrored lower diagonal segment", "valueCm": 23.83 },
+        { "position": "bottom edge", "valueCm": 46.34 },
+        { "position": "right edge, full height", "valueCm": 48.2 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 46.34 },
+        { "position": "upper diagonal segment", "valueCm": 26.17 },
+        { "position": "next segment down", "valueCm": 23.2 },
+        {
+          "position": "mid segment (deepest labeled sub-segment)",
+          "valueCm": 17.3
+        },
+        { "position": "mirrored segment", "valueCm": 23.2 },
+        { "position": "mirrored lower diagonal segment", "valueCm": 26.17 },
+        { "position": "bottom edge", "valueCm": 46.34 },
+        { "position": "right edge, full height", "valueCm": 48.2 },
+        {
+          "position": "separate left-side dimension reference, top segment",
+          "valueCm": 4.3
+        },
+        {
+          "position": "separate left-side dimension reference, next segment",
+          "valueCm": 23.2
+        },
+        {
+          "position": "separate left-side dimension reference, middle/total",
+          "valueCm": 46.4
+        },
+        {
+          "position": "separate left-side dimension reference, mirrored segment",
+          "valueCm": 23.2
+        },
+        {
+          "position": "separate left-side dimension reference, bottom segment",
+          "valueCm": 4.3
+        }
+      ]
+    }
+  ],
+  "notes": "Both sleeve pieces have a pair of very small corner values near their top and bottom tips that were hard to read precisely; one (right sleeve, top-left corner) was illegible and recorded as null, the rest are best-effort reads with lower confidence than the larger dimensions. The back panel also carries a second, detached vertical dimension chain to the left of its own outline (4.3/23.2/46.4/23.2/4.3) whose exact meaning (a duplicate reference, grainline, or center-back seam length) is not stated on the drawing; it is included as extra edges on the back piece rather than omitted."
+}

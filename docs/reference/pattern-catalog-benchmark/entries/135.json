@@ -1,0 +1,91 @@
+{
+  "sourceId": "135",
+  "category": "oversized-dress",
+  "moldaiArchetype": "dress",
+  "descriptionEn": "oversized dress with a dropped-shoulder silhouette, set-in sleeves, and a separate neckline binding strip",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "neckline binding strip",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 5.7 },
+        { "position": "upper segment", "valueCm": 26.4 },
+        { "position": "overall length (center bracket)", "valueCm": 52.8 },
+        { "position": "lower segment", "valueCm": 26.4 },
+        { "position": "bottom edge", "valueCm": 5.7 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 28.51 },
+        { "position": "top edge, right segment", "valueCm": 52.13 },
+        { "position": "top-right corner, reading 1", "valueCm": 3 },
+        { "position": "top-right corner, reading 2", "valueCm": 8.43 },
+        { "position": "top-right corner, reading 3", "valueCm": 3 },
+        { "position": "left edge (curve), segment 1", "valueCm": 20 },
+        {
+          "position": "left edge (curve), segment 2 (deepest)",
+          "valueCm": 24.11
+        },
+        {
+          "position": "left edge (curve), segment 3 (mirrored)",
+          "valueCm": 20
+        },
+        { "position": "right edge (curved, full height)", "valueCm": 68.27 },
+        { "position": "bottom edge, left segment", "valueCm": 28.51 },
+        { "position": "bottom edge, right segment", "valueCm": 52.13 },
+        { "position": "bottom-right corner, reading 1", "valueCm": 3 },
+        { "position": "bottom-right corner, reading 2", "valueCm": 8.43 },
+        { "position": "bottom-right corner, reading 3", "valueCm": 3 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, reading 1", "valueCm": 6.24 },
+        { "position": "top edge, reading 2", "valueCm": 3.07 },
+        { "position": "left edge", "valueCm": 54.6 },
+        { "position": "right edge", "valueCm": 44.78 },
+        { "position": "bottom edge, reading 1", "valueCm": 6.24 },
+        { "position": "bottom edge, reading 2", "valueCm": 3.07 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 24.13 },
+        { "position": "top edge, right segment", "valueCm": 52.13 },
+        { "position": "top-right corner, reading 1", "valueCm": 3 },
+        { "position": "top-right corner, reading 2", "valueCm": 8 },
+        { "position": "top-right corner, reading 3", "valueCm": 3 },
+        { "position": "left edge (curve), segment 1", "valueCm": 20 },
+        {
+          "position": "left edge (curve), segment 2 (deepest)",
+          "valueCm": 32.14
+        },
+        {
+          "position": "left edge (curve), segment 3 (mirrored)",
+          "valueCm": 20
+        },
+        { "position": "right edge (full height)", "valueCm": 60 },
+        { "position": "bottom edge, left segment", "valueCm": 24.13 },
+        { "position": "bottom edge, right segment", "valueCm": 52.13 },
+        { "position": "bottom-right corner, reading 1", "valueCm": 3 },
+        { "position": "bottom-right corner, reading 2", "valueCm": 8 },
+        { "position": "bottom-right corner, reading 3", "valueCm": 3 }
+      ]
+    }
+  ],
+  "notes": null
+}

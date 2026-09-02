@@ -1,0 +1,50 @@
+{
+  "sourceId": "149",
+  "category": "pajama-pants-with-cuff",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "pajama pants with elastic waistband and ribbed ankle cuffs",
+  "gender": "unisex",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 99.6 },
+        { "position": "right edge", "valueCm": 16.79 },
+        { "position": "bottom edge", "valueCm": 68.64 },
+        { "position": "crotch curve, small corner segment", "valueCm": 15.2 },
+        { "position": "left edge, lower segment", "valueCm": 24.65 },
+        { "position": "left edge, upper segment", "valueCm": 23.83 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 99.6 },
+        { "position": "right edge", "valueCm": 14.89 },
+        { "position": "bottom edge", "valueCm": 68.63 },
+        { "position": "crotch curve, small corner segment", "valueCm": 30.69 },
+        { "position": "left edge", "valueCm": 21.76 }
+      ]
+    },
+    {
+      "nameEn": "ankle cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left half", "valueCm": 4.6 },
+        { "position": "top edge, right half", "valueCm": 4.6 },
+        { "position": "bottom edge, left half", "valueCm": 4.6 },
+        { "position": "bottom edge, right half", "valueCm": 4.6 },
+        { "position": "left edge", "valueCm": 25.91 },
+        { "position": "right edge", "valueCm": 25.91 }
+      ]
+    }
+  ],
+  "notes": "Pattern also lists elastic waistband length by size (not a piece edge measurement): P 70cm, M 72cm, G 74cm, GG 76cm."
+}

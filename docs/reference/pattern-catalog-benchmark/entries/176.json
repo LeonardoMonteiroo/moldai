@@ -1,0 +1,83 @@
+{
+  "sourceId": "176",
+  "category": "basic-raglan-back-tshirt",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "basic t-shirt with raglan-cut back sleeves, front, back, sleeve and neckband pieces",
+  "gender": null,
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        {
+          "position": "cap edge, upper notch segment, first",
+          "valueCm": 11.21
+        },
+        {
+          "position": "cap edge, upper notch segment, second",
+          "valueCm": 2.04
+        },
+        {
+          "position": "diagonal edge labeled COSTAS (back) in the drawing",
+          "valueCm": 31.05
+        },
+        {
+          "position": "diagonal edge labeled FRENTE (front) in the drawing",
+          "valueCm": 38.32
+        },
+        {
+          "position": "center vertical length, cap point to underarm tip",
+          "valueCm": 46.2
+        },
+        {
+          "position": "cap edge, lower notch segment, first",
+          "valueCm": 11.21
+        },
+        { "position": "cap edge, lower notch segment, second", "valueCm": 2.04 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 50 },
+        { "position": "top edge, left diagonal segment", "valueCm": 38.97 },
+        { "position": "left edge, curved", "valueCm": 17.07 },
+        { "position": "bottom edge, left diagonal segment", "valueCm": 38.97 },
+        { "position": "bottom edge", "valueCm": 50 },
+        { "position": "right edge", "valueCm": 60 }
+      ]
+    },
+    {
+      "nameEn": "neckband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 4 },
+        { "position": "left edge", "valueCm": 56 },
+        { "position": "right edge", "valueCm": 56 },
+        { "position": "bottom edge", "valueCm": 4 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 50 },
+        { "position": "top edge, left diagonal segment", "valueCm": 38.29 },
+        { "position": "left edge, upper segment", "valueCm": 8.51 },
+        { "position": "left edge, deep curved segment", "valueCm": 47.09 },
+        { "position": "left edge, lower segment", "valueCm": 8.51 },
+        { "position": "bottom edge, left diagonal segment", "valueCm": 38.29 },
+        { "position": "bottom edge", "valueCm": 50 },
+        { "position": "right edge", "valueCm": 60 }
+      ]
+    }
+  ],
+  "notes": null
+}

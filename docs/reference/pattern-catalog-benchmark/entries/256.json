@@ -1,0 +1,57 @@
+{
+  "sourceId": "256",
+  "category": "strapless cropped top with rings and ties",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "cropped strapless (halter-less) top with O-ring hardware and ties, stretch knit with elastic shirring top and bottom",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "bust/strap piece",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge (diagonal)", "valueCm": 14.41 },
+        { "position": "left edge", "valueCm": 22.73 },
+        { "position": "right edge", "valueCm": 18.04 },
+        { "position": "bottom-left segment", "valueCm": 13.46 },
+        { "position": "bottom-right segment", "valueCm": 8.98 },
+        { "position": "bottom corner point", "valueCm": 1.01 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left tab", "valueCm": 1.03 },
+        { "position": "top edge, main segment", "valueCm": 13.3 },
+        { "position": "top edge, right tab", "valueCm": 2.01 },
+        { "position": "left edge, upper segment", "valueCm": 17.8 },
+        { "position": "left edge, middle segment", "valueCm": 2.06 },
+        { "position": "left edge, lower segment", "valueCm": 17.8 },
+        { "position": "right edge", "valueCm": 35.47 },
+        { "position": "bottom edge, left tab", "valueCm": 1.03 },
+        { "position": "bottom edge, main segment", "valueCm": 13.3 },
+        { "position": "bottom edge, right tab", "valueCm": 2.01 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left tab", "valueCm": 1.03 },
+        { "position": "top edge, main segment", "valueCm": 26.61 },
+        { "position": "top edge, right tab", "valueCm": 2.01 },
+        { "position": "left edge", "valueCm": 40.84 },
+        { "position": "right edge", "valueCm": 35.47 },
+        { "position": "bottom edge, left tab", "valueCm": 1.03 },
+        { "position": "bottom edge, main segment", "valueCm": 26.61 },
+        { "position": "bottom edge, right tab", "valueCm": 2.01 }
+      ]
+    }
+  ],
+  "notes": "Bust/strap piece labeled 'Quantidade: 2 (Par)' in the source; recorded qty as the literal count of 2. Per-size elastic length tables printed alongside the front/back pieces were not transcribed, as they are supplementary grading data rather than piece-edge dimensions."
+}

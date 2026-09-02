@@ -1,0 +1,110 @@
+{
+  "sourceId": "160",
+  "category": "adult-onesie-pajama-with-hood",
+  "moldaiArchetype": null,
+  "descriptionEn": "adult onesie-style pajama with hood, cuffed sleeves, elastic-trimmed hem, front placket, and an inset pocket",
+  "gender": "unisex",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 2 cm average variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 50.76 },
+        { "position": "top edge, small middle segment", "valueCm": 1.5 },
+        { "position": "top edge, middle segment", "valueCm": 29.52 },
+        { "position": "top edge, right segment", "valueCm": 65.91 },
+        { "position": "right edge", "valueCm": 23.2 },
+        { "position": "bottom edge", "valueCm": 120.8 },
+        { "position": "bottom-left diagonal", "valueCm": 26.98 },
+        { "position": "left edge, lower", "valueCm": 16.58 },
+        { "position": "left edge, upper", "valueCm": 14.51 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 85.44 },
+        { "position": "top edge, right segment", "valueCm": 65.86 },
+        { "position": "right edge", "valueCm": 23.18 },
+        { "position": "bottom edge", "valueCm": 120.81 },
+        { "position": "bottom-left diagonal", "valueCm": 31.9 },
+        { "position": "left edge, lower", "valueCm": 16.58 },
+        { "position": "left edge, upper", "valueCm": 15.47 }
+      ]
+    },
+    {
+      "nameEn": "front placket flap (label 'TAPA-FR' unclear)",
+      "originalLabelUnclear": true,
+      "qty": 2,
+      "edges": [
+        { "position": "left edge", "valueCm": 6 },
+        { "position": "right edge", "valueCm": 6 },
+        { "position": "top edge (length)", "valueCm": 50.67 },
+        { "position": "bottom edge (length)", "valueCm": 50.67 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 6.64 },
+        { "position": "top edge, right segment", "valueCm": 6.64 },
+        { "position": "left edge (length)", "valueCm": 24.48 },
+        { "position": "right edge (length)", "valueCm": 24.48 },
+        { "position": "bottom edge, left segment", "valueCm": 6.64 },
+        { "position": "bottom edge, right segment", "valueCm": 6.64 }
+      ]
+    },
+    {
+      "nameEn": "hem trim strip",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 6.64 },
+        { "position": "top edge, right segment", "valueCm": 6.64 },
+        { "position": "left edge (length)", "valueCm": 35.5 },
+        { "position": "right edge (length)", "valueCm": 35.5 },
+        { "position": "bottom edge, left segment", "valueCm": 6.64 },
+        { "position": "bottom edge, right segment", "valueCm": 6.64 }
+      ]
+    },
+    {
+      "nameEn": "hood",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 41.6 },
+        { "position": "right edge", "valueCm": 32.58 },
+        { "position": "bottom edge (curved)", "valueCm": 58.73 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, right of peak", "valueCm": 47.83 },
+        { "position": "left edge", "valueCm": 58.87 },
+        { "position": "right edge", "valueCm": 28.39 },
+        { "position": "bottom edge", "valueCm": 47.83 }
+      ]
+    },
+    {
+      "nameEn": "inset pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 49.37 },
+        { "position": "left edge", "valueCm": 23.59 },
+        { "position": "bottom edge", "valueCm": 31.56 }
+      ]
+    }
+  ],
+  "notes": "Quantities inferred from the '2X' piece-name suffixes matching the qty-2-for-pair convention used across this source (the front placket flap's 'Quantidade' field was partly cut off in the scan but its layout matches the other paired trim pieces, so qty 2 was used). The narrow rectangular piece near the front (labeled similarly to a 'TAPA-FR' flap seen in a companion pattern from the same source set) has an uncertain exact reading of its abbreviation and was flagged originalLabelUnclear."
+}

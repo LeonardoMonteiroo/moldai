@@ -1,0 +1,109 @@
+{
+  "sourceId": "103",
+  "category": "cropped high-collar top with center-back zipper",
+  "moldaiArchetype": "blouse",
+  "descriptionEn": "women's cropped top with a high stand collar and a center-back zip closure (back cut in two halves)",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "back collar",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 5.18 },
+        { "position": "top edge, right segment", "valueCm": 5.18 },
+        { "position": "left edge", "valueCm": 13 },
+        { "position": "right edge", "valueCm": 13 },
+        { "position": "bottom edge", "valueCm": 9.54 }
+      ]
+    },
+    {
+      "nameEn": "front collar",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 5.27 },
+        { "position": "top edge, right segment", "valueCm": 5.27 },
+        { "position": "left edge", "valueCm": 25.6 },
+        { "position": "right edge", "valueCm": 25.6 },
+        { "position": "bottom edge, left segment", "valueCm": 5.27 },
+        { "position": "bottom edge, right segment", "valueCm": 5.27 }
+      ]
+    },
+    {
+      "nameEn": "GA/facing strip (ambiguous)",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 3.02 },
+        { "position": "next segment down", "valueCm": 21.79 },
+        { "position": "mid segment", "valueCm": 43.06 },
+        { "position": "mirrored segment", "valueCm": 21.79 },
+        { "position": "bottom edge", "valueCm": 3.02 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, curved", "valueCm": 13.9 },
+        { "position": "left edge, vertical", "valueCm": 47.94 },
+        { "position": "right edge, vertical", "valueCm": 43.05 },
+        { "position": "bottom edge, curved", "valueCm": 13.9 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 25.91 },
+        { "position": "upper diagonal segment", "valueCm": 23.81 },
+        { "position": "next segment down", "valueCm": 14.18 },
+        {
+          "position": "mid segment (deepest labeled sub-segment)",
+          "valueCm": 24.08
+        },
+        { "position": "mirrored segment", "valueCm": 14.18 },
+        {
+          "position": "mirrored diagonal segment near bottom corner",
+          "valueCm": 23.81
+        },
+        { "position": "bottom edge", "valueCm": 25.91 },
+        { "position": "right edge, full height", "valueCm": 50 }
+      ]
+    },
+    {
+      "nameEn": "back, right half",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 25.91 },
+        { "position": "top edge, right segment", "valueCm": 25.91 },
+        { "position": "next segment down", "valueCm": 13.31 },
+        { "position": "next segment down", "valueCm": 15.12 },
+        { "position": "bottom-left corner, short segment", "valueCm": 11.25 },
+        { "position": "bottom edge", "valueCm": 39.62 },
+        { "position": "right edge, full height", "valueCm": 26.5 }
+      ]
+    },
+    {
+      "nameEn": "back, left half",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 11.25 },
+        { "position": "top edge, right segment", "valueCm": 39.62 },
+        { "position": "next segment down", "valueCm": 15.12 },
+        { "position": "next segment down", "valueCm": 13.31 },
+        { "position": "bottom edge, left segment", "valueCm": 25.91 },
+        { "position": "bottom edge, right segment", "valueCm": 25.91 },
+        { "position": "right edge, full height", "valueCm": 26.5 }
+      ]
+    }
+  ],
+  "notes": "A thin vertical strip in the drawing carried two overlapping small rotated labels ('GA 2X' and something resembling 'REVEL 1' / facing) sharing what appears to be one dimension chain; it was unclear whether this represents one piece or two adjacent ones, so it is recorded as a single ambiguous entry."
+}

@@ -1,0 +1,75 @@
+{
+  "sourceId": "200",
+  "category": "athletic-shorts-with-pockets-and-contrast-bias-trim",
+  "moldaiArchetype": "trousers",
+  "descriptionEn": "athletic shorts with an elastic waistband, front inset pockets, patch pockets, and contrasting bias-trim finishing",
+  "gender": "unisex",
+  "baseSizeLabel": "08",
+  "gradeNote": "average +1cm variation between graded sizes; measurements correspond to the printed pattern output",
+  "pieces": [
+    {
+      "nameEn": "waistband",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 7 },
+        { "position": "left edge, upper half", "valueCm": 39.69 },
+        {
+          "position": "left edge, full length (midpoint tick)",
+          "valueCm": 79.38
+        },
+        { "position": "left edge, lower half", "valueCm": 39.69 },
+        { "position": "bottom edge", "valueCm": 7 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-right corner", "valueCm": 9.15 },
+        { "position": "upper-right segment", "valueCm": 9.52 },
+        { "position": "top edge, left diagonal segment", "valueCm": 26.83 },
+        { "position": "left edge", "valueCm": 21.94 },
+        { "position": "right edge", "valueCm": 24.35 },
+        { "position": "bottom edge", "valueCm": 22.76 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-right corner", "valueCm": 9.15 },
+        { "position": "top edge, left diagonal segment", "valueCm": 21.92 },
+        { "position": "left edge", "valueCm": 16.25 },
+        { "position": "right edge", "valueCm": 28.7 },
+        { "position": "bottom edge, left segment", "valueCm": 11.31 },
+        { "position": "bottom edge", "valueCm": 12.13 }
+      ]
+    },
+    {
+      "nameEn": "inset pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-right curved edge", "valueCm": 32.3 },
+        { "position": "top-left segment", "valueCm": 13.1 },
+        { "position": "bottom-left segment", "valueCm": 11.31 },
+        { "position": "bottom edge", "valueCm": 6.94 }
+      ]
+    },
+    {
+      "nameEn": "patch pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-right curved edge", "valueCm": 32.22 },
+        { "position": "left edge", "valueCm": 16.15 },
+        { "position": "bottom-left segment", "valueCm": 10.63 },
+        { "position": "bottom edge", "valueCm": 6.94 }
+      ]
+    }
+  ],
+  "notes": "The waistband piece carries a small embedded per-size elastic-length note (a short stacked list of cm values keyed to size numbers); this is a construction note, not a piece-edge dimension, so it was not transcribed as an edge."
+}

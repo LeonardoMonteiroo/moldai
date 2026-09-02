@@ -1,0 +1,78 @@
+{
+  "sourceId": "049",
+  "category": "mens-basic-tshirt",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "men's basic short-sleeve t-shirt, crew neck",
+  "gender": "male",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 49.09 },
+        { "position": "upper-left diagonal (shoulder)", "valueCm": 29.11 },
+        { "position": "left curve, upper (armhole)", "valueCm": 13.67 },
+        { "position": "left curve, mid (armhole, deepest)", "valueCm": 26.14 },
+        {
+          "position": "left curve, lower (armhole, mirrored)",
+          "valueCm": 13.67
+        },
+        { "position": "lower-left diagonal (mirrored)", "valueCm": 29.11 },
+        { "position": "bottom edge", "valueCm": 49.09 },
+        { "position": "right edge (full height)", "valueCm": 58.01 }
+      ]
+    },
+    {
+      "nameEn": "collar/neckline trim strip",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top small segment", "valueCm": 4.39 },
+        { "position": "upper half", "valueCm": 23.96 },
+        { "position": "total (bracketed)", "valueCm": 47.92 },
+        { "position": "lower half", "valueCm": 23.96 },
+        { "position": "bottom small segment", "valueCm": null }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 49.09 },
+        { "position": "upper-left diagonal (shoulder)", "valueCm": 25.73 },
+        { "position": "left curve, upper (armhole)", "valueCm": 13.68 },
+        { "position": "left curve, mid (armhole, deepest)", "valueCm": 31.68 },
+        {
+          "position": "left curve, lower (armhole, mirrored)",
+          "valueCm": 13.68
+        },
+        { "position": "lower-left diagonal (mirrored)", "valueCm": 25.73 },
+        { "position": "bottom edge", "valueCm": 49.09 },
+        { "position": "right edge (full height)", "valueCm": 58.01 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        {
+          "position": "cap curve, left side, corner-to-corner",
+          "valueCm": 55.93
+        },
+        {
+          "position": "vertical centerline (cap height + hem)",
+          "valueCm": 43.59
+        },
+        { "position": "top corner, outer", "valueCm": 11.89 },
+        { "position": "top corner, inner", "valueCm": 2.59 },
+        { "position": "bottom corner, outer (mirrored)", "valueCm": 11.89 },
+        { "position": "bottom corner, inner (mirrored)", "valueCm": 2.59 }
+      ]
+    }
+  ],
+  "notes": "sourceId 049: the small strip to the left of the back panel has a bottom small-segment value transcribed on the source drawing as something like '2.2.2', which is almost certainly a misread/misprint of a single number; recorded as null rather than guessed."
+}

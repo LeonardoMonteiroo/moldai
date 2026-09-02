@@ -1,0 +1,60 @@
+{
+  "sourceId": "035",
+  "category": "baby raglan t-shirt with UV protection fabric",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "baby raglan-sleeve t-shirt in UV-protective fabric",
+  "gender": "baby",
+  "baseSizeLabel": "02",
+  "gradeNote": "approx. 1cm variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge", "valueCm": 28.03 },
+        { "position": "top-left diagonal", "valueCm": 15.97 },
+        { "position": "left edge", "valueCm": 7.87 },
+        { "position": "bottom-left diagonal", "valueCm": 15.97 },
+        { "position": "bottom edge", "valueCm": 28.03 },
+        { "position": "right edge", "valueCm": 30.01 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge", "valueCm": 28.03 },
+        { "position": "top-left diagonal", "valueCm": 13.82 },
+        { "position": "left edge", "valueCm": 11.12 },
+        { "position": "bottom-left diagonal", "valueCm": 13.82 },
+        { "position": "bottom edge", "valueCm": 28.03 },
+        { "position": "right edge", "valueCm": 30.01 }
+      ]
+    },
+    {
+      "nameEn": "raglan sleeve panel (piece A)",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top edge", "valueCm": 26.98 },
+        { "position": "top-left diagonal", "valueCm": 13.9 },
+        { "position": "left edge", "valueCm": 7.61 },
+        { "position": "bottom-left diagonal", "valueCm": 16.12 },
+        { "position": "bottom edge", "valueCm": 26.98 },
+        { "position": "right edge", "valueCm": 16.15 }
+      ]
+    },
+    {
+      "nameEn": "raglan sleeve panel (piece B)",
+      "originalLabelUnclear": true,
+      "edges": [
+        { "position": "top edge", "valueCm": 26.98 },
+        { "position": "top-left diagonal", "valueCm": 16.12 },
+        { "position": "left edge", "valueCm": 7.61 },
+        { "position": "bottom-left diagonal", "valueCm": 13.9 },
+        { "position": "bottom edge", "valueCm": 26.98 },
+        { "position": "right edge", "valueCm": 16.15 }
+      ]
+    }
+  ],
+  "notes": "The two sleeve pieces have a small label starting with a term for 'sleeve' followed by a modifier too small to read reliably in the rendering (possibly a left/right or front/back designator for a two-panel raglan sleeve construction), so their labels are kept generic ('piece A'/'piece B') with originalLabelUnclear:true rather than guessed. Their dimensions are near-mirror images of each other (13.9/16.12 swapped), consistent with front and back raglan sleeve panels sewn together over the shoulder. No 'Quantidade' (quantity) label was visible near any of the four pieces on this drawing, so qty is omitted for all. A separate small bracketed vertical scale between the back and front pieces (values 3, 14.5, 29, 14.5, 3, with 29 = 14.5+14.5) appears to be a dimension/notch reference rather than a distinct cut piece, and was not recorded as a piece."
+}

@@ -1,0 +1,116 @@
+{
+  "sourceId": "116",
+  "category": "oversized cropped top with straight-grain cut detail and scalloped hem cutout",
+  "moldaiArchetype": "tshirt",
+  "descriptionEn": "women's oversized cropped top with a straight-grain-cut style note, small reverse-side cutout pieces, a pocket and a decorative scalloped hem cutout",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces",
+  "pieces": [
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 25.5 },
+        { "position": "upper diagonal segment", "valueCm": 19.97 },
+        { "position": "next segment down", "valueCm": 17.34 },
+        {
+          "position": "mid segment (deepest labeled sub-segment)",
+          "valueCm": 26.49
+        },
+        { "position": "mirrored segment", "valueCm": 17.34 },
+        {
+          "position": "mirrored diagonal segment near bottom corner",
+          "valueCm": 19.97
+        },
+        { "position": "bottom edge", "valueCm": 25.5 },
+        { "position": "left edge, full height", "valueCm": 52.65 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 25.5 },
+        { "position": "upper diagonal segment", "valueCm": 25.09 },
+        { "position": "next segment down", "valueCm": 17.34 },
+        {
+          "position": "mid segment (deepest labeled sub-segment)",
+          "valueCm": 21.77
+        },
+        { "position": "mirrored segment", "valueCm": 17.34 },
+        {
+          "position": "mirrored diagonal segment near bottom corner",
+          "valueCm": 25.09
+        },
+        { "position": "bottom edge", "valueCm": 25.5 },
+        { "position": "left edge, full height", "valueCm": 52.65 }
+      ]
+    },
+    {
+      "nameEn": "reverse-side cutout, scalloped hem",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "outer curve, segment 1", "valueCm": 3.14 },
+        { "position": "outer curve, segment 2", "valueCm": 17.54 },
+        { "position": "outer curve, mid segment", "valueCm": 26.47 },
+        { "position": "outer curve, segment 4 (mirrored)", "valueCm": 17.54 },
+        { "position": "outer curve, segment 5 (mirrored)", "valueCm": 3.14 }
+      ]
+    },
+    {
+      "nameEn": "GB BS LT (unclear small piece)",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 14.85 },
+        { "position": "left segment", "valueCm": 7.44 },
+        { "position": "right segment", "valueCm": 7.44 },
+        { "position": "right edge, vertical", "valueCm": 14.5 },
+        { "position": "bottom edge", "valueCm": 14.85 }
+      ]
+    },
+    {
+      "nameEn": "reverse-side cutout, small",
+      "originalLabelUnclear": true,
+      "qty": null,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 25.5 },
+        { "position": "top edge, right segment", "valueCm": 8.47 },
+        { "position": "left edge", "valueCm": 7.44 },
+        { "position": "right edge", "valueCm": 7.98 },
+        { "position": "bottom edge, left segment", "valueCm": 25.6 },
+        { "position": "bottom edge, right segment", "valueCm": 8.47 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 16.21 },
+        { "position": "top-right corner, short segment", "valueCm": 3 },
+        { "position": "left edge, upper segment", "valueCm": 8.98 },
+        { "position": "right edge", "valueCm": 17.5 },
+        { "position": "left edge, lower segment", "valueCm": 8.98 },
+        { "position": "bottom edge", "valueCm": 16.21 },
+        { "position": "bottom-right corner, short segment", "valueCm": 3 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 51.53 },
+        { "position": "left edge", "valueCm": 23.88 },
+        { "position": "right edge", "valueCm": 51.95 },
+        { "position": "bottom edge", "valueCm": 51.53 }
+      ]
+    }
+  ],
+  "notes": "This sheet has several pieces printed rotated/upside-down (their reference tag reads mirrored), and a scalloped decorative cutout piece near the bottom-left carries a second, partly overlapping chain of small numbers (with point markers '1'-'5') alongside its main curve dimensions; that second chain could not be reliably separated from reference-point labels and was left out rather than guessed at. Two small 'reverse-side cutout' pieces have labels only partially legible ('recorte lado avesso')."
+}

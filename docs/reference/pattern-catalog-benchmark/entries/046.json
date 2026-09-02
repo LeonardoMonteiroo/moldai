@@ -1,0 +1,97 @@
+{
+  "sourceId": "046",
+  "category": "loose-fit-dress-with-pocket",
+  "moldaiArchetype": "dress",
+  "descriptionEn": "loose-fit dress with patch pocket and sleeves",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the pattern's printed output",
+  "pieces": [
+    {
+      "nameEn": "pocket template/gauge",
+      "originalLabelUnclear": false,
+      "edges": [
+        { "position": "top edge", "valueCm": 14.5 },
+        { "position": "left edge", "valueCm": 12.5 },
+        { "position": "right edge", "valueCm": 12.5 },
+        { "position": "bottom edge", "valueCm": 14.5 }
+      ]
+    },
+    {
+      "nameEn": "pocket",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 3 },
+        { "position": "top edge", "valueCm": 16.5 },
+        { "position": "left edge", "valueCm": 16.5 },
+        { "position": "right edge", "valueCm": 16.5 },
+        { "position": "bottom-left corner", "valueCm": 3 },
+        { "position": "bottom edge", "valueCm": 16.5 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        {
+          "position": "top edge, upper segment (near neckline)",
+          "valueCm": 20.38
+        },
+        { "position": "top edge, main segment", "valueCm": 62.87 },
+        { "position": "top-right corner, small notch", "valueCm": 3.07 },
+        { "position": "left edge, upper diagonal", "valueCm": 18.74 },
+        { "position": "left edge, side curve", "valueCm": 33.64 },
+        {
+          "position": "left edge, lower diagonal (mirrored)",
+          "valueCm": 18.74
+        },
+        {
+          "position": "bottom edge, upper segment (near hem curve start)",
+          "valueCm": 20.38
+        },
+        { "position": "bottom edge, main segment", "valueCm": 62.87 },
+        { "position": "bottom-right corner, small notch", "valueCm": 3.07 },
+        { "position": "right edge (full height)", "valueCm": 58.09 },
+        { "position": "center front line, top small segment", "valueCm": 2 },
+        { "position": "center front line, upper half", "valueCm": 25.16 },
+        { "position": "center front line, total", "valueCm": 50.32 },
+        { "position": "center front line, lower half", "valueCm": 25.16 },
+        { "position": "center front line, bottom small segment", "valueCm": 2 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, upper segment", "valueCm": 19.93 },
+        { "position": "top edge, main segment", "valueCm": 62.87 },
+        { "position": "top-right corner, small notch", "valueCm": 3.07 },
+        { "position": "left edge, upper diagonal", "valueCm": 18.74 },
+        { "position": "left edge, side curve", "valueCm": 25.69 },
+        {
+          "position": "left edge, lower diagonal (mirrored)",
+          "valueCm": 18.74
+        },
+        { "position": "bottom edge, upper segment", "valueCm": 19.93 },
+        { "position": "bottom edge, main segment", "valueCm": 62.87 },
+        { "position": "bottom-right corner, small notch", "valueCm": 3.07 },
+        { "position": "right edge (full height)", "valueCm": 58.09 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 6.5 },
+        { "position": "left edge, mid", "valueCm": 40 },
+        { "position": "right edge, mid", "valueCm": 40 },
+        { "position": "bottom edge", "valueCm": 6.5 }
+      ]
+    }
+  ],
+  "notes": "sourceId 046: four small 'x' marks inside the front panel outline look like fold/placement marks rather than dimensioned points and were not transcribed as edge values."
+}

@@ -1,0 +1,107 @@
+{
+  "sourceId": "155",
+  "category": "kids-onesie-pajama-with-zipper-and-hood",
+  "moldaiArchetype": null,
+  "descriptionEn": "kids onesie-style pajama with front zipper, hood, cuffed sleeves and hem",
+  "gender": "kids",
+  "baseSizeLabel": "08",
+  "gradeNote": "approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern",
+  "pieces": [
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 29.78 },
+        { "position": "left edge", "valueCm": 39.2 },
+        { "position": "right edge", "valueCm": 23.9 },
+        { "position": "bottom edge", "valueCm": 29.78 }
+      ]
+    },
+    {
+      "nameEn": "cuff",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 4.6 },
+        { "position": "top edge, right segment", "valueCm": 4.6 },
+        { "position": "left edge (length)", "valueCm": 19.42 },
+        { "position": "right edge (length)", "valueCm": 19.42 },
+        { "position": "bottom edge, left segment", "valueCm": 4.6 },
+        { "position": "bottom edge, right segment", "valueCm": 4.6 }
+      ]
+    },
+    {
+      "nameEn": "hood",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 32.95 },
+        { "position": "top-right small mark", "valueCm": 2.5 },
+        { "position": "left edge", "valueCm": 25.25 },
+        { "position": "right edge", "valueCm": 21.61 },
+        { "position": "bottom edge (curved)", "valueCm": 21.23 }
+      ]
+    },
+    {
+      "nameEn": "hem trim strip",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 4.56 },
+        { "position": "top edge, right segment", "valueCm": 4.56 },
+        { "position": "left edge (length)", "valueCm": 26.34 },
+        { "position": "right edge (length)", "valueCm": 26.34 },
+        { "position": "bottom edge, left segment", "valueCm": 4.56 },
+        { "position": "bottom edge, right segment", "valueCm": null }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left (long) segment", "valueCm": 67.25 },
+        { "position": "top edge, peak segment", "valueCm": 22.5 },
+        { "position": "top edge, right segment", "valueCm": 25.19 },
+        { "position": "left edge, upper", "valueCm": 10.36 },
+        { "position": "left edge, lower", "valueCm": 11.95 },
+        { "position": "bottom-left diagonal", "valueCm": 19.44 },
+        { "position": "bottom edge", "valueCm": 61.76 },
+        { "position": "right edge", "valueCm": 18.02 },
+        { "position": "bottom-right diagonal", "valueCm": 30.05 }
+      ]
+    },
+    {
+      "nameEn": "front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left small segment", "valueCm": 1.5 },
+        { "position": "top edge, main segment", "valueCm": 45.03 },
+        { "position": "top edge, right small segment", "valueCm": 1.5 },
+        { "position": "top edge, diagonal toward peak", "valueCm": 14.85 },
+        { "position": "top edge, peak segment", "valueCm": 22.51 },
+        { "position": "top edge, right of peak", "valueCm": 25.19 },
+        { "position": "left edge, upper", "valueCm": 10.89 },
+        { "position": "left edge, lower", "valueCm": 11.95 },
+        { "position": "bottom-left diagonal", "valueCm": 18.23 },
+        { "position": "bottom edge", "valueCm": 61.77 },
+        { "position": "right edge", "valueCm": 17.22 },
+        { "position": "bottom-right diagonal", "valueCm": 30.05 }
+      ]
+    },
+    {
+      "nameEn": "zipper placket flap (label 'TAPA-FR' unclear)",
+      "originalLabelUnclear": true,
+      "qty": 2,
+      "edges": [
+        { "position": "left edge", "valueCm": 6 },
+        { "position": "right edge", "valueCm": 6 },
+        { "position": "top edge (length)", "valueCm": 46 },
+        { "position": "bottom edge (length)", "valueCm": 46 }
+      ]
+    }
+  ],
+  "notes": "Quantities inferred from the '2X' piece-name suffixes matching the qty-2-for-pair convention used across this source. The narrow rectangular piece labeled 'TAPA-FR' (likely a placket flap covering the front zipper) has an uncertain exact reading of its abbreviation and was flagged originalLabelUnclear. Hem trim strip's bottom-right corner value is unreadable: overlaps another number in the scan and appears as approx. '1.56'; by symmetry with the other three corners (4.56) it is likely also 4.56, but recorded as null rather than guessed."
+}

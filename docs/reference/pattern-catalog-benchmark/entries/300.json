@@ -1,0 +1,58 @@
+{
+  "sourceId": "300",
+  "category": "tote-bag-with-straps",
+  "moldaiArchetype": null,
+  "descriptionEn": "simple tote bag with a rectangular body panel and two straps",
+  "gender": null,
+  "baseSizeLabel": "one size",
+  "pieces": [
+    {
+      "nameEn": "strap",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 1.5 },
+        { "position": "top edge", "valueCm": 65 },
+        { "position": "top-right corner", "valueCm": 1.5 },
+        { "position": "left edge", "valueCm": 10 },
+        { "position": "right edge", "valueCm": 10 },
+        { "position": "bottom-left corner", "valueCm": 1.5 },
+        { "position": "bottom edge", "valueCm": 65 },
+        { "position": "bottom-right corner", "valueCm": 1.5 }
+      ]
+    },
+    {
+      "nameEn": "bag body",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top-left corner", "valueCm": 4 },
+        { "position": "top edge, left segment", "valueCm": 37 },
+        { "position": "top edge, center notch left", "valueCm": 4 },
+        { "position": "top edge, center notch middle", "valueCm": 9 },
+        { "position": "top edge, center notch right", "valueCm": 4 },
+        { "position": "top edge, right segment", "valueCm": 37 },
+        { "position": "top-right corner", "valueCm": 4 },
+        { "position": "left edge", "valueCm": 43 },
+        { "position": "right edge", "valueCm": 43 },
+        { "position": "bottom-left corner (mirrored)", "valueCm": 4 },
+        { "position": "bottom edge, left segment (mirrored)", "valueCm": 37 },
+        {
+          "position": "bottom edge, center notch left (mirrored)",
+          "valueCm": 4
+        },
+        {
+          "position": "bottom edge, center notch middle (mirrored)",
+          "valueCm": 9
+        },
+        {
+          "position": "bottom edge, center notch right (mirrored)",
+          "valueCm": 4
+        },
+        { "position": "bottom edge, right segment (mirrored)", "valueCm": 37 },
+        { "position": "bottom-right corner (mirrored)", "valueCm": 4 }
+      ]
+    }
+  ],
+  "notes": null
+}

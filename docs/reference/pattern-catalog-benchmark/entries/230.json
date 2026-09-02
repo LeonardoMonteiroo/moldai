@@ -1,0 +1,124 @@
+{
+  "sourceId": "230",
+  "category": "peasant-style midi dress with slit and drawstring channel",
+  "moldaiArchetype": "dress",
+  "descriptionEn": "A midi-length peasant-style dress with a front slit, a drawstring (tunnel) channel at the neckline, and set-in sleeves.",
+  "gender": "female",
+  "baseSizeLabel": "M",
+  "gradeNote": "Approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces.",
+  "pieces": [
+    {
+      "nameEn": "side panel insert",
+      "originalLabelUnclear": false,
+      "qty": 4,
+      "edges": [
+        { "position": "top edge", "valueCm": 17.05 },
+        { "position": "upper-left edge", "valueCm": 21.11 },
+        { "position": "far-left edge", "valueCm": 5.56 },
+        { "position": "lower-left edge", "valueCm": 12.83 },
+        { "position": "bottom edge", "valueCm": 26.41 },
+        { "position": "right edge", "valueCm": 12.59 }
+      ]
+    },
+    {
+      "nameEn": "skirt side panel, right",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 81.31 },
+        { "position": "right edge", "valueCm": 21.54 },
+        { "position": "bottom edge", "valueCm": 80.18 },
+        { "position": "left edge", "valueCm": 12.59 }
+      ]
+    },
+    {
+      "nameEn": "center front",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge", "valueCm": 26.41 },
+        { "position": "left edge, upper corner", "valueCm": 2.78 },
+        { "position": "left edge, upper curve segment", "valueCm": 24.55 },
+        { "position": "left edge, upper-middle segment", "valueCm": 20.93 },
+        { "position": "center-left width", "valueCm": 21.5 },
+        { "position": "center-right width", "valueCm": 17.69 },
+        { "position": "left edge, lower-middle segment", "valueCm": 20.93 },
+        { "position": "left edge, lower curve segment", "valueCm": 24.55 },
+        { "position": "left edge, lower corner", "valueCm": 2.78 },
+        { "position": "bottom edge", "valueCm": 26.41 }
+      ]
+    },
+    {
+      "nameEn": "center skirt panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 80.18 },
+        { "position": "left edge", "valueCm": 17.64 },
+        { "position": "right edge", "valueCm": 27.65 },
+        { "position": "bottom edge, left segment", "valueCm": 38.66 },
+        { "position": "bottom edge, middle marker", "valueCm": 1 },
+        { "position": "bottom edge, right segment", "valueCm": 41.57 }
+      ]
+    },
+    {
+      "nameEn": "skirt side panel, left",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 38.66 },
+        { "position": "top edge, middle marker", "valueCm": 1 },
+        { "position": "top edge, right segment", "valueCm": 41.57 },
+        { "position": "left edge", "valueCm": 12.59 },
+        { "position": "right edge", "valueCm": 21.54 },
+        { "position": "bottom edge", "valueCm": 81.31 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, small marker", "valueCm": 3 },
+        { "position": "top edge curve", "valueCm": 24.41 },
+        { "position": "top-right segment", "valueCm": 12.75 },
+        { "position": "right edge, small segment", "valueCm": 5.3 },
+        { "position": "right edge", "valueCm": 20.95 },
+        { "position": "left edge", "valueCm": 5.56 },
+        { "position": "lower-left edge", "valueCm": 20.93 },
+        { "position": "bottom-left corner", "valueCm": 2.66 },
+        { "position": "bottom edge", "valueCm": 28.87 },
+        { "position": "bottom-right corner", "valueCm": 2.05 }
+      ]
+    },
+    {
+      "nameEn": "back skirt panel",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 86.02 },
+        { "position": "left edge, upper segment", "valueCm": 2.13 },
+        { "position": "left edge", "valueCm": 40.17 },
+        { "position": "right edge", "valueCm": 68.72 },
+        { "position": "left edge, lower segment", "valueCm": 2.13 },
+        { "position": "bottom edge", "valueCm": 86.02 }
+      ]
+    },
+    {
+      "nameEn": "sleeve",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 13.39 },
+        { "position": "top edge, right segment", "valueCm": 2.05 },
+        { "position": "left edge, upper curve", "valueCm": 19.8 },
+        { "position": "far-left edge", "valueCm": 20.07 },
+        { "position": "center vertical", "valueCm": 48.09 },
+        { "position": "left edge, lower curve", "valueCm": 19.8 },
+        { "position": "bottom edge, left segment", "valueCm": 13.39 },
+        { "position": "bottom edge, right segment", "valueCm": 2.05 }
+      ]
+    }
+  ],
+  "notes": null
+}

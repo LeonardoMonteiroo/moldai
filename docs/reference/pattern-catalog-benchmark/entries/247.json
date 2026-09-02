@@ -1,0 +1,191 @@
+{
+  "sourceId": "247",
+  "category": "pleated dress shorts, menswear",
+  "moldaiArchetype": null,
+  "descriptionEn": "Men's tailored dress shorts with front pleats, fly-front closure, an inset/welt-style back pocket, and a waistband with separate front waistband pieces.",
+  "gender": "male",
+  "baseSizeLabel": "M",
+  "gradeNote": "Approx. 1 cm average variation between graded sizes; measurements correspond to the printed pattern pieces.",
+  "pieces": [
+    {
+      "nameEn": "back pocket",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, main segment", "valueCm": 17.23 },
+        { "position": "top edge, corner segment", "valueCm": 2 },
+        { "position": "bottom edge, main segment", "valueCm": 17.23 },
+        { "position": "bottom edge, corner segment", "valueCm": 2 },
+        { "position": "left edge", "valueCm": 17.51 },
+        { "position": "right edge", "valueCm": 17.49 }
+      ]
+    },
+    {
+      "nameEn": "pocket template (guide/gauge, not a cut piece)",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "top edge", "valueCm": 16 },
+        { "position": "bottom edge", "valueCm": 16 },
+        { "position": "left edge", "valueCm": 14.51 },
+        { "position": "right edge", "valueCm": 14.49 }
+      ]
+    },
+    {
+      "nameEn": "fly",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 18.5 },
+        { "position": "bottom edge", "valueCm": 18.5 },
+        { "position": "left edge", "valueCm": 6 },
+        { "position": "right edge", "valueCm": 6 }
+      ]
+    },
+    {
+      "nameEn": "small unlabeled piece near fly (possibly a fly facing/reinforcement)",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 18.5 },
+        { "position": "bottom edge", "valueCm": 18.5 },
+        { "position": "left edge, upper segment", "valueCm": 4.5 },
+        { "position": "left edge, lower segment", "valueCm": 4.5 },
+        { "position": "right edge, upper segment", "valueCm": 4.5 },
+        { "position": "right edge, lower segment", "valueCm": 4.5 }
+      ]
+    },
+    {
+      "nameEn": "elastic gauge/template (guide, not a cut piece)",
+      "originalLabelUnclear": false,
+      "qty": null,
+      "edges": [
+        { "position": "overall length", "valueCm": 47.18 },
+        { "position": "width bracket", "valueCm": 9.5 },
+        { "position": "top end", "valueCm": 4.17 },
+        { "position": "bottom end", "valueCm": 4.17 }
+      ]
+    },
+    {
+      "nameEn": "front waistband, left",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, segment 1", "valueCm": 5.2 },
+        { "position": "top edge, segment 2", "valueCm": 5.2 },
+        { "position": "left edge", "valueCm": 24.64 },
+        { "position": "right edge", "valueCm": 24.64 },
+        { "position": "bottom edge", "valueCm": 10 }
+      ]
+    },
+    {
+      "nameEn": "front waistband, left, second layer (label partly illegible, likely a facing/interfacing)",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge, segment 1", "valueCm": 5.2 },
+        { "position": "top edge, segment 2", "valueCm": 5.2 },
+        { "position": "left edge", "valueCm": 24.64 },
+        { "position": "right edge", "valueCm": 24.64 },
+        { "position": "bottom edge", "valueCm": 10 }
+      ]
+    },
+    {
+      "nameEn": "front waistband, right",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 10 },
+        { "position": "left edge", "valueCm": 26.64 },
+        { "position": "right edge", "valueCm": 26.64 },
+        { "position": "bottom edge, segment 1", "valueCm": 5.2 },
+        { "position": "bottom edge, segment 2", "valueCm": 5.2 }
+      ]
+    },
+    {
+      "nameEn": "front waistband, right, second layer (label partly illegible, likely a facing/interfacing)",
+      "originalLabelUnclear": true,
+      "qty": 1,
+      "edges": [
+        { "position": "top edge", "valueCm": 10 },
+        { "position": "left edge", "valueCm": 26.64 },
+        { "position": "right edge", "valueCm": 26.64 },
+        { "position": "bottom edge, segment 1", "valueCm": 5.2 },
+        { "position": "bottom edge, segment 2", "valueCm": 5.2 }
+      ]
+    },
+    {
+      "nameEn": "inset/embedded pocket bag",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, left segment", "valueCm": 16.14 },
+        { "position": "top edge, right segment", "valueCm": 15.5 },
+        { "position": "top-left corner segment", "valueCm": 2.03 },
+        { "position": "left/curved edge", "valueCm": 23.64 },
+        { "position": "lower curved edge", "valueCm": 43.91 },
+        { "position": "small tail segment", "valueCm": 6.71 }
+      ]
+    },
+    {
+      "nameEn": "left front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top (waist) edge, segment 1", "valueCm": 16.09 },
+        { "position": "top (waist) edge, segment 2", "valueCm": 15.42 },
+        { "position": "top (waist) edge, segment 3", "valueCm": 15.03 },
+        { "position": "top-right corner segment", "valueCm": 1 },
+        { "position": "left edge, upper segment", "valueCm": 2.03 },
+        { "position": "left edge, mid-upper segment", "valueCm": 11.82 },
+        { "position": "left edge, small segment 1", "valueCm": 2.01 },
+        { "position": "left edge, small segment 2", "valueCm": 2.01 },
+        { "position": "left edge, lower segment", "valueCm": 11.82 },
+        { "position": "bottom (hem) edge, segment 1", "valueCm": 3.53 },
+        { "position": "bottom (hem) edge, segment 2", "valueCm": 12.73 },
+        { "position": "bottom (hem) edge, segment 3", "valueCm": 6.01 },
+        { "position": "bottom (hem) edge, segment 4", "valueCm": 9.61 },
+        { "position": "bottom (hem) edge, segment 5", "valueCm": 22.39 },
+        { "position": "bottom-right corner segment", "valueCm": 1.01 },
+        { "position": "right (side) edge", "valueCm": 28.92 }
+      ]
+    },
+    {
+      "nameEn": "right front",
+      "originalLabelUnclear": false,
+      "qty": 1,
+      "edges": [
+        { "position": "top (waist) edge, segment 1", "valueCm": 16.03 },
+        { "position": "top (waist) edge, segment 2", "valueCm": 9.61 },
+        { "position": "top (waist) edge, segment 3", "valueCm": 22.44 },
+        { "position": "top-right corner segment", "valueCm": 1.01 },
+        { "position": "left edge, upper segment", "valueCm": 11.82 },
+        { "position": "left edge, small segment 1", "valueCm": 2.01 },
+        { "position": "left edge, small segment 2", "valueCm": 2.01 },
+        { "position": "left edge, lower segment", "valueCm": 11.82 },
+        { "position": "bottom-left corner segment", "valueCm": 2.02 },
+        { "position": "bottom (hem) edge, segment 1", "valueCm": 16.1 },
+        { "position": "bottom (hem) edge, segment 2", "valueCm": 15.42 },
+        { "position": "bottom (hem) edge, segment 3", "valueCm": 15.03 },
+        { "position": "bottom-right corner segment", "valueCm": 1 },
+        { "position": "right (side) edge", "valueCm": 28.92 }
+      ]
+    },
+    {
+      "nameEn": "back",
+      "originalLabelUnclear": false,
+      "qty": 2,
+      "edges": [
+        { "position": "top edge, segment 1", "valueCm": 22.33 },
+        { "position": "top-right corner segment", "valueCm": 1.01 },
+        { "position": "top edge, segment 2", "valueCm": 12.1 },
+        { "position": "top edge, segment 3", "valueCm": 21.99 },
+        { "position": "left (side) edge", "valueCm": 28.69 },
+        { "position": "right (side) edge", "valueCm": 34.92 },
+        { "position": "bottom (hem) edge", "valueCm": 48.57 },
+        { "position": "bottom-right corner segment", "valueCm": 1 }
+      ]
+    }
+  ],
+  "notes": "Two small pieces near the fly/waistband area (a small unlabeled piece and the second-layer waistband pieces) had labels that were partly illegible in the scan; kept generic and flagged as originalLabelUnclear. Two small 'X' marks on the back piece appeared to be dart/grainline symbols rather than dimensions and were not recorded as edges."
+}
