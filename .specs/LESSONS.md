@@ -91,6 +91,13 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: components/settings/SettingsShell.tsx:47-58 (AccountSummaryCard rendered unconditionally) (components)
 - last seen: 2026-09-02T02:07:08Z
 
+### L-012 - When a spec AC is a bare CSS-class visual value (fixed width, accent-bar color/width), either write a toHaveClass/querySelector assertion for it in the component test or explicitly move it to Out of Scope in spec.md -- don't leave it as a numbered AC with no Independent Test commitment, or coverage silently ends up evidence-free.
+
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `components/size-charts` · harmful: 0
+- features: redesign-size-charts
+- evidence: SZCH-04,SZCH-08 (components/size-charts)
+- last seen: 2026-09-02T12:01:18Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

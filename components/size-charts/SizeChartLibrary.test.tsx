@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { renderWithIntl, ptBR, screen } from "@/components/test-utils";
+import { renderWithIntl, ptBR, screen, within } from "@/components/test-utils";
 import type { SizeChartListEntry } from "@/lib/types";
 import { useSizeChartsStore } from "@/lib/sizeChartsStore";
 import { SizeChartLibrary } from "./SizeChartLibrary";
@@ -157,5 +157,41 @@ describe("SizeChartLibrary", () => {
     );
     expect(newChartIndex).toBeGreaterThanOrEqual(0);
     expect(importIndex).toBeGreaterThan(newChartIndex);
+  });
+
+  // Verifier gap (L-012): SZCH-04/SZCH-08 had no assertion at all -- the
+  // width and the card's selection accent bar were correct by inspection
+  // but evidence-free per the evidence-or-zero rule.
+  it("renders the library column at the design's 252px width", () => {
+    useSizeChartsStore.setState({ charts: [] });
+    const { container } = renderWithIntl(<SizeChartLibrary />);
+
+    expect(container.firstChild).toHaveClass("w-[252px]");
+  });
+
+  it("shows an olive accent bar on the selected card, transparent otherwise", () => {
+    useSizeChartsStore.setState({
+      selectedId: "sel",
+      charts: [
+        chart({ id: "sel", name: "Selecionada" }),
+        chart({ id: "other", name: "Não selecionada" }),
+      ],
+    });
+
+    renderWithIntl(<SizeChartLibrary />);
+
+    const selectedCard = screen.getByRole("button", { name: /Selecionada/ });
+    const selectedBar = within(selectedCard).getByText("", {
+      selector: "span[aria-hidden]",
+    });
+    expect(selectedBar).toHaveClass("bg-olive");
+
+    const otherCard = screen.getByRole("button", {
+      name: /Não selecionada/,
+    });
+    const otherBar = within(otherCard).getByText("", {
+      selector: "span[aria-hidden]",
+    });
+    expect(otherBar).toHaveClass("bg-transparent");
   });
 });

@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 12,
+  "next_id": 13,
   "lessons": [
     {
       "id": "L-001",
@@ -172,6 +172,20 @@
       ],
       "created": "2026-09-02T02:07:08Z",
       "last_seen": "2026-09-02T02:07:08Z"
+    },
+    {
+      "id": "L-012",
+      "key": "spec_precision_gap::when a spec ac is a bare css class visual value fixed width accent bar color width either write a tohaveclass queryselector assertion for it in the component test or explicitly move it to out of scope in spec md don t leave it as a numbered ac with no independent test commitment or coverage silently ends up evidence free",
+      "text": "When a spec AC is a bare CSS-class visual value (fixed width, accent-bar color/width), either write a toHaveClass/querySelector assertion for it in the component test or explicitly move it to Out of Scope in spec.md -- don't leave it as a numbered AC with no Independent Test commitment, or coverage silently ends up evidence-free.",
+      "signal": "spec_precision_gap",
+      "scope": "components/size-charts",
+      "status": "candidate",
+      "features": ["redesign-size-charts"],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": ["SZCH-04,SZCH-08 (components/size-charts)"],
+      "created": "2026-09-02T12:01:18Z",
+      "last_seen": "2026-09-02T12:01:18Z"
     }
   ]
 }
