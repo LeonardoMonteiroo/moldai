@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { AppShell } from "@/components/shared/AppShell";
 import { ActionErrorNotice } from "@/components/shared/ActionErrorNotice";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Sidebar } from "@/components/dashboard/Sidebar";
 import { SizeChartLibrary } from "./SizeChartLibrary";
 import { SizeChartTable } from "./SizeChartTable";
 import { useSizeChartsStore } from "@/lib/sizeChartsStore";
@@ -32,10 +33,10 @@ export function SizeChartsShell({
   return (
     <AppShell
       title={t("title")}
-      subtitle={t("subtitle")}
       backHref="/"
       credits={credits}
       userEmail={userEmail}
+      sidebar={<Sidebar active="size-charts" />}
     >
       {/* A failed save/activate/delete used to be completely silent, with
           `dirty` left true and no explanation. */}

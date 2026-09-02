@@ -103,9 +103,9 @@ T5
 
 **Done when**:
 
-- [ ] Sidebar renders with "Medidas e grades" marked current
-- [ ] Top `PageHeader` no longer receives `subtitle`
-- [ ] New `SizeChartsShell.test.tsx` covers the sidebar wiring
+- [x] Sidebar renders with "Medidas e grades" marked current
+- [x] Top `PageHeader` no longer receives `subtitle`
+- [x] New `SizeChartsShell.test.tsx` covers the sidebar wiring
 
 **Tests**: unit
 **Gate**: quick
@@ -127,12 +127,12 @@ T5
 
 **Done when**:
 
-- [ ] Column is `w-[252px]`
-- [ ] Header block renders `SizeCharts.title`/`SizeCharts.subtitle`
-- [ ] Two labeled sections render, split by `c.isSystem`
-- [ ] `houseStandardNote` renders exactly once, after the system section
-- [ ] Each card shows the 3px accent bar
-- [ ] Footer: "＋ Nova grade" precedes the import trigger in DOM order
+- [x] Column is `w-[252px]`
+- [x] Header block renders `SizeCharts.title`/`SizeCharts.subtitle`
+- [x] Two labeled sections render, split by `c.isSystem`
+- [x] `houseStandardNote` renders exactly once, after the system section
+- [x] Each card shows the 3px accent bar
+- [x] Footer: "＋ Nova grade" precedes the import trigger in DOM order
 
 **Tests**: unit
 **Gate**: quick

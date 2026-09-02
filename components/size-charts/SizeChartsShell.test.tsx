@@ -60,16 +60,35 @@ const CHART: SizeChartListEntry = {
 // e graduação" -- but pickSizeChartForGeneration falls back to the system
 // chart whenever the garment's gender differs, exactly what the library's
 // own "activeScope" badge already admits. The two must not contradict.
+//
+// The subtitle lives in SizeChartLibrary's own header block (matching the
+// design, where it sits inside the library column rather than the top
+// PageHeader), so it only appears once the list has loaded -- the design's
+// own loading skeleton shows no real text either.
 describe("SizeChartsShell", () => {
-  it("states the gender-scoped rule in the subtitle, not a blanket claim", () => {
+  it("states the gender-scoped rule in the subtitle, not a blanket claim", async () => {
+    vi.mocked(listSizeCharts).mockResolvedValue([]);
     renderWithIntl(<SizeChartsShell userEmail="a@b.com" credits={CREDITS} />);
 
-    expect(screen.getByText(ptBR.SizeCharts.subtitle)).toBeInTheDocument();
+    expect(
+      await screen.findByText(ptBR.SizeCharts.subtitle),
+    ).toBeInTheDocument();
     expect(
       screen.queryByText(
         "A grade escolhida vale para toda geração e graduação",
       ),
     ).not.toBeInTheDocument();
+  });
+
+  it("marks Medidas e grades current in the shared nav sidebar", async () => {
+    vi.mocked(listSizeCharts).mockResolvedValue([]);
+    renderWithIntl(<SizeChartsShell userEmail="a@b.com" credits={CREDITS} />);
+
+    expect(
+      await screen.findByRole("button", {
+        name: ptBR.Sidebar.measurementsLabel,
+      }),
+    ).toHaveAttribute("aria-current", "page");
   });
 });
 
