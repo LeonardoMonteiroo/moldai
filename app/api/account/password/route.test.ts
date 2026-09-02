@@ -22,6 +22,7 @@ const user = {
   passwordHash: "HASH",
   name: "Dev",
   emailVerified: new Date(),
+  createdAt: new Date("2026-01-01T00:00:00Z"),
 };
 
 function req(body: unknown) {

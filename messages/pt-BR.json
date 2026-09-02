@@ -1074,6 +1074,10 @@
       "unauthorized": "Sua sessão expirou. Faça login novamente para salvar."
     }
   },
+  "AccountSummaryCard": {
+    "renewsNote": "Renova em {days, plural, one {# dia} other {# dias}}.",
+    "memberSince": "Membro desde {date} · {count, plural, one {# molde} other {# moldes}}"
+  },
   "PasswordSection": {
     "heading": "Alterar senha",
     "currentLabel": "Senha atual",

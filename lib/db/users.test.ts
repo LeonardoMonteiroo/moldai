@@ -115,6 +115,7 @@ const USER_ROW = {
   passwordHash: "HASH",
   name: "Ana",
   emailVerified: new Date("2026-08-01T00:00:00Z"),
+  createdAt: new Date("2026-01-01T00:00:00Z"),
 };
 
 /** Exactly the columns UserRecord is made of -- see lib/auth/types.ts. */
@@ -124,6 +125,7 @@ const USER_RECORD_SELECT = {
   passwordHash: true,
   name: true,
   emailVerified: true,
+  createdAt: true,
 };
 
 describe("getUserByEmail / getUserById", () => {

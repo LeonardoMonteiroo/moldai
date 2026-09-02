@@ -40,7 +40,10 @@ vi.mock("@/lib/db/users", () => ({
   getOnboardingStatus: vi.fn(),
 }));
 vi.mock("@/lib/db/wallet", () => ({ loadWallet: vi.fn() }));
-vi.mock("@/lib/db/pattern", () => ({ loadPattern: vi.fn() }));
+vi.mock("@/lib/db/pattern", () => ({
+  loadPattern: vi.fn(),
+  countPatternsForUser: vi.fn(async () => 0),
+}));
 vi.mock("@/lib/db/account", () => ({
   getLedgerHistory: vi.fn(async () => []),
 }));
@@ -134,6 +137,7 @@ const USER = {
   passwordHash: "H",
   name: "Ana",
   emailVerified: new Date("2026-08-01T00:00:00Z"),
+  createdAt: new Date("2026-01-01T00:00:00Z"),
 };
 const WALLET: Wallet = {
   plan: "free",

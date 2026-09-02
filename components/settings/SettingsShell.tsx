@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { SettingsSidebar } from "./SettingsSidebar";
 import type { SettingsSection } from "@/lib/settings/sections";
 import { ProfileSection } from "./ProfileSection";
+import { AccountSummaryCard } from "./AccountSummaryCard";
 import { PasswordSection } from "./PasswordSection";
 import { DangerZoneSection } from "./DangerZoneSection";
 import { UsageSection } from "./UsageSection";
@@ -19,6 +20,8 @@ export function SettingsShell({
   credits,
   ledger,
   activeSection,
+  memberSince,
+  patternCount,
 }: {
   userEmail: string;
   initialName: string;
@@ -26,6 +29,8 @@ export function SettingsShell({
   credits: Credits;
   ledger: LedgerHistoryEntry[];
   activeSection: SettingsSection;
+  memberSince: string;
+  patternCount: number;
 }) {
   const t = useTranslations("SettingsShell");
 
@@ -40,7 +45,16 @@ export function SettingsShell({
       <ScrollArea className="bg-paper min-h-0 flex-1">
         <div className="flex flex-col gap-4 px-[14px] py-[22px] sm:px-[24px]">
           {activeSection === "profile" && (
-            <ProfileSection initialName={initialName} email={userEmail} />
+            <div className="grid grid-cols-1 items-start gap-[14px] lg:grid-cols-[minmax(0,2.1fr)_minmax(210px,1fr)]">
+              <ProfileSection initialName={initialName} email={userEmail} />
+              <AccountSummaryCard
+                name={initialName}
+                email={userEmail}
+                credits={credits}
+                memberSince={memberSince}
+                patternCount={patternCount}
+              />
+            </div>
           )}
           {activeSection === "password" && (
             <PasswordSection hasPassword={hasPassword} />

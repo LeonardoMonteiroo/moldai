@@ -69,6 +69,8 @@ function renderShell(
       credits={CREDITS}
       ledger={LEDGER}
       activeSection={activeSection}
+      memberSince="2026-03-01T00:00:00.000Z"
+      patternCount={24}
     />,
   );
 }

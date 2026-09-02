@@ -19,6 +19,7 @@ const USER = {
   passwordHash: "HASH",
   name: "Novo",
   emailVerified: new Date(),
+  createdAt: new Date("2026-01-01T00:00:00Z"),
 };
 
 // #62: the JWT's session/jwt callbacks never re-check that the row still

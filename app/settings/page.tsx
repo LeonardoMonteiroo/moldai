@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { getUserById } from "@/lib/db/users";
 import { loadWallet } from "@/lib/db/wallet";
 import { getLedgerHistory } from "@/lib/db/account";
+import { countPatternsForUser } from "@/lib/db/pattern";
 import { buildCredits } from "@/lib/api/compose";
 import { SettingsShell } from "@/components/settings/SettingsShell";
 import {
@@ -31,10 +32,11 @@ export default async function SettingsPage({
   const session = await auth();
   if (!session?.user?.email || !session.user.id) redirect("/login");
 
-  const [user, wallet, ledger, params] = await Promise.all([
+  const [user, wallet, ledger, patternCount, params] = await Promise.all([
     getUserById(session.user.id),
     loadWallet(session.user.id),
     getLedgerHistory(session.user.id, 30),
+    countPatternsForUser(session.user.id),
     searchParams,
   ]);
   // #62: the session cookie outlives account deletion (up to the JWT's
@@ -51,6 +53,8 @@ export default async function SettingsPage({
       credits={buildCredits(wallet, new Date())}
       ledger={ledger}
       activeSection={parseSection(params.section)}
+      memberSince={user.createdAt.toISOString()}
+      patternCount={patternCount}
     />
   );
 }

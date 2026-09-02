@@ -4,6 +4,7 @@ export interface UserRecord {
   passwordHash: string | null;
   name: string | null;
   emailVerified: Date | null;
+  createdAt: Date;
 }
 
 export interface SessionUser {

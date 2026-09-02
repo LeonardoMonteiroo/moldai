@@ -40,6 +40,7 @@ const UNVERIFIED = {
   passwordHash: "HASH",
   name: "Novo",
   emailVerified: null,
+  createdAt: new Date("2026-01-01T00:00:00Z"),
 };
 
 describe("POST /api/verify-email/resend", () => {

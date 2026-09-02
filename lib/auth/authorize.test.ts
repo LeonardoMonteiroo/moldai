@@ -8,6 +8,7 @@ const user: UserRecord = {
   passwordHash: "HASH",
   name: "Dev",
   emailVerified: new Date("2026-08-01T00:00:00.000Z"),
+  createdAt: new Date("2026-01-01T00:00:00Z"),
 };
 
 const unverified: UserRecord = { ...user, emailVerified: null };

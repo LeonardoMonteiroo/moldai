@@ -13,6 +13,7 @@ export function getUserByEmail(email: string): Promise<UserRecord | null> {
       passwordHash: true,
       name: true,
       emailVerified: true,
+      createdAt: true,
     },
   });
 }
@@ -26,6 +27,7 @@ export function getUserById(id: string): Promise<UserRecord | null> {
       passwordHash: true,
       name: true,
       emailVerified: true,
+      createdAt: true,
     },
   });
 }
@@ -148,6 +150,7 @@ export async function createUser(input: NewUser): Promise<UserRecord | null> {
         passwordHash: true,
         name: true,
         emailVerified: true,
+        createdAt: true,
       },
     });
   } catch (e) {

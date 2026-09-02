@@ -53,6 +53,7 @@ describe("POST /api/signup", () => {
       passwordHash: "hashed",
       name: "Leonardo",
       emailVerified: null,
+      createdAt: new Date("2026-01-01T00:00:00Z"),
     });
     vi.mocked(consume).mockReset();
     vi.mocked(issueToken).mockReset();
@@ -85,6 +86,7 @@ describe("POST /api/signup", () => {
       passwordHash: "x",
       name: null,
       emailVerified: null,
+      createdAt: new Date("2026-01-01T00:00:00Z"),
     });
     const res = await POST(req(VALID));
     expect(res.status).toBe(409);

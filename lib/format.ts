@@ -32,6 +32,16 @@ export function initialsFromEmail(email: string): string {
   return (letters.slice(0, 2) || "?").toUpperCase();
 }
 
+// "Membro desde {mês} de {ano}" on the settings account-summary card. Locale
+// comes from the catalog (t("dateLocale")), the same injection relativeTime
+// already uses, rather than a hardcoded "pt-BR" literal.
+export function formatMonthYear(t: Translate, iso: string): string {
+  return new Intl.DateTimeFormat(t("dateLocale"), {
+    month: "long",
+    year: "numeric",
+  }).format(new Date(iso));
+}
+
 // "updated" labels on the dashboard, the usage list and the editor header.
 // The caller supplies a translator scoped to the Format namespace.
 export function relativeTime(

@@ -68,6 +68,7 @@ describe("app/page.tsx (#13/#14)", () => {
       passwordHash: "x",
       name: null,
       emailVerified: new Date(),
+      createdAt: new Date("2026-01-01T00:00:00Z"),
     });
     vi.mocked(getOnboardingStatus).mockResolvedValue({ onboardedAt: null });
 
@@ -84,6 +85,7 @@ describe("app/page.tsx (#13/#14)", () => {
       passwordHash: "x",
       name: null,
       emailVerified: new Date(),
+      createdAt: new Date("2026-01-01T00:00:00Z"),
     });
     vi.mocked(getOnboardingStatus).mockResolvedValue({
       onboardedAt: new Date("2026-01-01"),

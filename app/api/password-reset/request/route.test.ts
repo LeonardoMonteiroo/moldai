@@ -30,6 +30,7 @@ const KNOWN = {
   passwordHash: "HASH",
   name: "Novo",
   emailVerified: new Date(),
+  createdAt: new Date("2026-01-01T00:00:00Z"),
 };
 
 describe("POST /api/password-reset/request", () => {

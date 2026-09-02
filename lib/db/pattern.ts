@@ -137,6 +137,13 @@ export interface PatternListItem {
   thumbnailSvg: string;
 }
 
+// A plain count, not listPatternsForUser's length -- that read is capped at
+// MAX_PATTERNS_LISTED and parses every row's blob just to build thumbnails,
+// which the settings account-summary card (its one caller) needs neither of.
+export function countPatternsForUser(userId: string): Promise<number> {
+  return prisma.pattern.count({ where: { userId } });
+}
+
 export async function listPatternsForUser(
   userId: string,
 ): Promise<PatternListItem[]> {
