@@ -214,6 +214,19 @@ describe("LandingPage spacing (redesign reference)", () => {
     expect(textColumn).not.toBeNull();
   });
 
+  // LAND-06: the image container uses the same radius every other card on
+  // this page uses (14px-equivalent rounded-card), not the heavier
+  // rounded-modal (16px) it shipped with before this fix.
+  it("hero: image container uses rounded-card, not rounded-modal", () => {
+    renderWithIntl(<LandingPage />);
+    const heroImage = screen.getByRole("img", {
+      name: ptBR.Landing.hero.imageAlt,
+    });
+    const imageContainer = heroImage.parentElement;
+    expect(imageContainer).toHaveClass("rounded-card");
+    expect(imageContainer).not.toHaveClass("rounded-modal");
+  });
+
   it("how-it-works: pt-[60px] / pb-14 (56px)", () => {
     const { container } = renderWithIntl(<LandingPage />);
     const row = container.querySelector('[class*="pt-[60px]"][class*="pb-14"]');
