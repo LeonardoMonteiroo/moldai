@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import type { ReactElement } from "react";
 import { render } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
@@ -73,7 +73,15 @@ function makeVersions(): [PatternVersionEntry, PatternVersionEntry] {
 describe("VersionCompare", () => {
   it("shows a placeholder rather than comparing with fewer than two versions", () => {
     const [older] = makeVersions();
-    renderWithIntl(<VersionCompare versions={[older]} />);
+    renderWithIntl(
+      <VersionCompare
+        versions={[older]}
+        fromVersion={1}
+        toVersion={1}
+        restoring={false}
+        onRestore={vi.fn()}
+      />,
+    );
     expect(
       screen.getByText(ptBR.VersionCompare.needsTwoVersions),
     ).toBeInTheDocument();
@@ -83,7 +91,13 @@ describe("VersionCompare", () => {
     const [older, newer] = makeVersions();
     // Newest-first, the real API's own order (lib/db/patternVersion.ts).
     const { container } = renderWithIntl(
-      <VersionCompare versions={[newer, older]} />,
+      <VersionCompare
+        versions={[newer, older]}
+        fromVersion={1}
+        toVersion={2}
+        restoring={false}
+        onRestore={vi.fn()}
+      />,
     );
 
     // Both layers present: the newer (solid) is the labelled/visible one,
@@ -123,7 +137,15 @@ describe("VersionCompare", () => {
 
   it("shows non-zero armhole and consumption deltas computed from the real drafting engine", () => {
     const [older, newer] = makeVersions();
-    renderWithIntl(<VersionCompare versions={[newer, older]} />);
+    renderWithIntl(
+      <VersionCompare
+        versions={[newer, older]}
+        fromVersion={1}
+        toVersion={2}
+        restoring={false}
+        onRestore={vi.fn()}
+      />,
+    );
 
     expect(
       screen.getByText(ptBR.VersionCompare.armholeDeltaLabel),
@@ -133,22 +155,32 @@ describe("VersionCompare", () => {
     ).toBeInTheDocument();
     // The armhole was deepened by 3cm between versions -- the two rendered
     // numbers must differ (not asserting exact cm, which would duplicate
-    // the drafting engine's own tests; only that a real delta reaches the UI).
-    const armholeCard = screen
+    // the drafting engine's own tests; only that a real delta reaches the UI,
+    // with a real +/− sign, not the unchanged "—" placeholder).
+    const armholeRow = screen
       .getByText(ptBR.VersionCompare.armholeDeltaLabel)
-      .closest("div");
-    expect(armholeCard?.textContent).toMatch(/→/);
+      .closest("li");
+    expect(armholeRow?.textContent).toMatch(/→/);
+    expect(armholeRow?.textContent).toMatch(/[+−]/);
   });
 
   it("shows a comprimento delta alongside cava and consumo (#234)", () => {
     const [older, newer] = makeVersions();
-    renderWithIntl(<VersionCompare versions={[newer, older]} />);
+    renderWithIntl(
+      <VersionCompare
+        versions={[newer, older]}
+        fromVersion={1}
+        toVersion={2}
+        restoring={false}
+        onRestore={vi.fn()}
+      />,
+    );
 
-    const lengthCard = screen
+    const lengthRow = screen
       .getByText(ptBR.VersionCompare.lengthDeltaLabel)
-      .closest("div");
-    expect(lengthCard?.textContent).toMatch(/→/);
-    expect(lengthCard?.textContent).toMatch(/cm/);
+      .closest("li");
+    expect(lengthRow?.textContent).toMatch(/→/);
+    expect(lengthRow?.textContent).toMatch(/cm/);
     // Shown alongside the existing two, not replacing them.
     expect(
       screen.getByText(ptBR.VersionCompare.armholeDeltaLabel),
@@ -156,5 +188,80 @@ describe("VersionCompare", () => {
     expect(
       screen.getByText(ptBR.VersionCompare.consumptionDeltaLabel),
     ).toBeInTheDocument();
+  });
+
+  // The design shows an unchanged metric as "—" in muted color, not a
+  // spurious "+0,0" -- both versions here share the exact same spec, so
+  // every metric is identical.
+  it("shows the unchanged placeholder, not a spurious delta, when a metric hasn't moved", () => {
+    const [older] = makeVersions();
+    const sameSpecTwin: PatternVersionEntry = {
+      ...older,
+      id: "pv1b",
+      version: 3,
+      createdAt: "2026-08-17T13:00:00.000Z",
+    };
+    renderWithIntl(
+      <VersionCompare
+        versions={[sameSpecTwin, older]}
+        fromVersion={1}
+        toVersion={3}
+        restoring={false}
+        onRestore={vi.fn()}
+      />,
+    );
+
+    const armholeRow = screen
+      .getByText(ptBR.VersionCompare.armholeDeltaLabel)
+      .closest("li");
+    expect(armholeRow?.textContent).toContain("—");
+  });
+
+  it("derives the compare canvas caption from the real drafted piece names", () => {
+    const [older, newer] = makeVersions();
+    renderWithIntl(
+      <VersionCompare
+        versions={[newer, older]}
+        fromVersion={1}
+        toVersion={2}
+        restoring={false}
+        onRestore={vi.fn()}
+      />,
+    );
+
+    // Never a hardcoded "Frente · Costas · Manga" -- derived from whatever
+    // pieces this garment actually drafted, joined the same way.
+    const caption = document.querySelector(
+      '[data-slot="version-compare-overlay"] span',
+    );
+    expect(caption?.textContent).toContain("·");
+  });
+
+  it("restoring the 'from' version opens the confirm flow and calls onRestore with its id", async () => {
+    const [older, newer] = makeVersions();
+    const onRestore = vi.fn();
+    const user = userEvent.setup();
+    renderWithIntl(
+      <VersionCompare
+        versions={[newer, older]}
+        fromVersion={1}
+        toVersion={2}
+        restoring={false}
+        onRestore={onRestore}
+      />,
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: ptBR.VersionList.restoreButton.replace("{version}", "1"),
+      }),
+    );
+    await user.click(
+      screen.getByRole("button", {
+        name: ptBR.VersionList.restoreModalConfirmButton,
+      }),
+    );
+
+    expect(onRestore).toHaveBeenCalledWith("pv1");
   });
 });

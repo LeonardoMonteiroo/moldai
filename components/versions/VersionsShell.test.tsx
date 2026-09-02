@@ -244,4 +244,57 @@ describe("VersionsShell", () => {
     ).toBeVisible();
     expect(push).not.toHaveBeenCalled();
   });
+
+  // The redesign unifies VersionList's card row and VersionCompare into one
+  // selection mechanism -- clicking a card must actually move the compare
+  // panel, not just update VersionList's own badge.
+  it("clicking a version card updates the compare panel's legend", async () => {
+    listVersions.mockResolvedValue(makeRows());
+    const user = userEvent.setup();
+    renderWithIntl(
+      <VersionsShell
+        userEmail="dev@moldai.local"
+        credits={CREDITS}
+        patternId="m1"
+        patternName="Blusa"
+        activeVersion={3}
+      />,
+    );
+
+    // Defaults to the two most recent: from=2, to=3.
+    await waitFor(() =>
+      expect(screen.getByText("v2 → v3")).toBeInTheDocument(),
+    );
+
+    // v1 is neither "from" nor "to" -- clicking it replaces "from" (2) with
+    // the old "to" (3), and makes v1 the new "to".
+    await user.click(
+      screen.getByRole("button", { name: tList("selectHint", { version: 1 }) }),
+    );
+
+    expect(screen.getByText("v3 → v1")).toBeInTheDocument();
+  });
+
+  it("clicking the current 'to' card swaps the compare pair instead of replacing it", async () => {
+    listVersions.mockResolvedValue(makeRows());
+    const user = userEvent.setup();
+    renderWithIntl(
+      <VersionsShell
+        userEmail="dev@moldai.local"
+        credits={CREDITS}
+        patternId="m1"
+        patternName="Blusa"
+        activeVersion={3}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText("v2 → v3")).toBeInTheDocument(),
+    );
+
+    const toBadge = await screen.findByText(ptBR.VersionList.toBadge);
+    await user.click(toBadge.closest("button")!);
+
+    expect(screen.getByText("v3 → v2")).toBeInTheDocument();
+  });
 });
