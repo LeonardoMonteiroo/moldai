@@ -34,6 +34,21 @@ describe("PricingPage", () => {
     expect(screen.getByText(ptBR.Pricing.toggle.annual)).toBeInTheDocument();
   });
 
+  // Planos.dc.html:36 specifies asymmetric hero padding (56px top / 44px
+  // bottom) and a 18px gap between the Grátis card and the paid-plan grid
+  // (line 52) -- both had rounded to a uniform/narrower value before this fix.
+  it("matches the redesign reference's hero padding and card-row gap", () => {
+    const { container } = renderWithIntl(
+      <PricingPage signedIn={false} currentPlan={null} />,
+    );
+    const hero = container.querySelector('[class*="pb-11"]');
+    expect(hero).not.toBeNull();
+    expect(hero).toHaveClass("pt-14");
+
+    const cardRow = container.querySelector('[class*="gap-[18px]"]');
+    expect(cardRow).not.toBeNull();
+  });
+
   it("renders four plan cards with the documented price and credit amount from lib/billing/plans.ts", () => {
     renderWithIntl(<PricingPage signedIn={false} currentPlan={null} />);
     for (const id of PLAN_IDS) {

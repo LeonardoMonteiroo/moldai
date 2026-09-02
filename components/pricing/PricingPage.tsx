@@ -59,7 +59,7 @@ export function PricingPage({
       <ScrollArea className="min-h-0 flex-1">
         <div className="flex flex-col">
           <section className="border-border bg-paper border-b">
-            <div className="mx-auto flex max-w-[1160px] flex-wrap items-end gap-8 px-[34px] py-[40px]">
+            <div className="mx-auto flex max-w-[1160px] flex-wrap items-end gap-8 px-[34px] pt-14 pb-11">
               <div className="flex min-w-0 flex-1 flex-col gap-[10px]">
                 <span className="text-olive text-meta tracking-eyebrow font-semibold uppercase">
                   {t("title")}
@@ -96,7 +96,7 @@ export function PricingPage({
           </section>
 
           <div className="mx-auto flex w-full max-w-[1160px] flex-col gap-6 px-[34px] py-[28px]">
-            <div className="flex flex-wrap items-stretch gap-[14px]">
+            <div className="flex flex-wrap items-stretch gap-[18px]">
               <FreeCard signedIn={signedIn} currentPlan={currentPlan} />
 
               <div className="grid min-w-0 flex-1 grid-cols-1 gap-[14px] sm:grid-cols-3">
