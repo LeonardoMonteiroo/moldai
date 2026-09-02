@@ -63,6 +63,13 @@ next-env.d.ts
 /.claude/worktrees/
 /.claude/scheduled_tasks.lock
 
+# playwright-skill — installed dependencies and its own per-run scratch
+# scripts, both generated locally by run.js; only SKILL.md/lib/run.js/
+# package.json are part of the skill itself.
+/.claude/skills/playwright-skill/node_modules/
+/.claude/skills/playwright-skill/package-lock.json
+/.claude/skills/playwright-skill/.temp-execution-*.js
+
 # design-sync — staged converter scripts, generated bundle output and
 # machine-local verification state; .design-sync/config.json, NOTES.md,
 # conventions.md, previews/ and overrides/ ARE committed (see .design-sync/NOTES.md)

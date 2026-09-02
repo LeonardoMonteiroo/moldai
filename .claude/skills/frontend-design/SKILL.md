@@ -1,149 +1,144 @@
 ---
 name: frontend-design
-description: Create distinctive, production-grade frontend interfaces with high design quality. Use this skill when the user asks to build web components, pages, artifacts, posters, or applications. Generates creative, polished code that avoids generic AI aesthetics. Do NOT use for design review or audit (use web-design-guidelines or web-quality-audit).
-metadata:
-  author: Impeccable (Paul Bakaus), based on Anthropic frontend-design
-  version: '1.0.0'
-source: https://github.com/pbakaus/impeccable
+description: Build distinctive, production-grade frontend interfaces with high design quality, guided by named aesthetic philosophies. Use when building components, pages, or applications. Generates working code with exceptional attention to aesthetic details and creative choices that avoid generic AI output.
 ---
 
-This skill guides creation of distinctive, production-grade frontend interfaces that avoid generic "AI slop" aesthetics. Implement real working code with exceptional attention to aesthetic details and creative choices.
+This skill guides creation of distinctive, production-grade frontend interfaces. Implement real working code with exceptional attention to aesthetic detail.
 
-## Design Direction
+## Example prompts
 
-Commit to a BOLD aesthetic direction:
-- **Purpose**: What problem does this interface solve? Who uses it?
-- **Tone**: Pick an extreme: brutally minimal, maximalist chaos, retro-futuristic, organic/natural, luxury/refined, playful/toy-like, editorial/magazine, brutalist/raw, art deco/geometric, soft/pastel, industrial/utilitarian, etc. There are so many flavors to choose from. Use these for inspiration but design one that is true to the aesthetic direction.
-- **Constraints**: Technical requirements (framework, performance, accessibility).
-- **Differentiation**: What makes this UNFORGETTABLE? What's the one thing someone will remember?
+- "Build the hero section from the brief"
+- "Create a card component in a Scandinavian style"
+- "I want this to feel like a Japanese magazine. Build the layout."
+- "Build the settings page. Use whatever style fits."
 
-**CRITICAL**: Choose a clear conceptual direction and execute it with precision. Bold maximalism and refined minimalism both work—the key is intentionality, not intensity.
+## Before You Write Any Code
 
-Then implement working code that is:
-- Production-grade and functional
-- Visually striking and memorable
-- Cohesive with a clear aesthetic point-of-view
-- Meticulously refined in every detail
+1. **Explore the existing codebase first.** Scan specifically for:
+   - **Component directories**: `components/`, `ui/`, `shared/` and list every component by name and its props/API
+   - **CSS variables / tokens**: files named `tokens.css`, `variables.css`, `theme.css`, or `:root` declarations with custom properties
+   - **Tailwind config**: `tailwind.config.js` or `tailwind.config.ts`, check `theme.extend` for custom values
+   - **UI framework themes**: Material UI `createTheme`, Chakra `extendTheme`, shadcn `globals.css` and `components.json`
+   - **Storybook**: `.storybook/` directory or `*.stories.*` files indicating documented components
+   - **Font loading**: Google Fonts links, `@font-face` declarations, font imports
+   - **Layout patterns**: how existing pages handle grid, containers, breakpoints, and spacing
+   - **Package.json UI dependencies**: tailwindcss, @mui/material, @chakra-ui/react, @radix-ui, lucide-react, framer-motion, etc.
+   - If components exist that match or partially match what you need to build, extend or compose them. Do not create duplicates.
 
-## Frontend Aesthetics Guidelines
+2. **Understand the context:**
+   - What problem does this interface solve? Who uses it?
+   - What is the intended emotional tone?
+   - What are the hard constraints (framework, devices, performance, accessibility)?
 
-### Typography
-→ *Consult [typography reference](references/typography.md) for scales, pairing, and loading strategies.*
+3. **Commit to an aesthetic direction.** Either the user names one (see philosophies below) or you choose one that fits the context. State your choice and why before writing code.
 
-Choose fonts that are beautiful, unique, and interesting. Pair a distinctive display font with a refined body font.
+## Aesthetic Philosophies
 
-**DO**: Use a modular type scale with fluid sizing (clamp)
-**DO**: Vary font weights and sizes to create clear visual hierarchy
-**DON'T**: Use overused fonts—Inter, Roboto, Arial, Open Sans, system defaults
-**DON'T**: Use monospace typography as lazy shorthand for "technical/developer" vibes
-**DON'T**: Put large icons with rounded corners above every heading—they rarely add value and make sites look templated
+When the user names a philosophy or describes a vibe, use these as concrete implementation guides. Each philosophy defines typography, color, layout, spacing, motion, and detail treatment.
 
-### Color & Theme
-→ *Consult [color reference](references/color-and-contrast.md) for OKLCH, palettes, and dark mode.*
+### Dieter Rams (Functionalist)
+Less but better. Every element earns its place. Nothing decorative without function.
+- **Typography**: Clean sans-serif (Helvetica Neue, Suisse Intl, Akkurat). Tight letterspacing on headings. Generous line height on body. One size scale, used strictly.
+- **Color**: Restrained. Monochromatic with a single functional accent. White or light grey backgrounds. Color is information, not decoration.
+- **Layout**: Strict grid. Clear functional hierarchy. Components aligned to a spatial system. No asymmetry for its own sake.
+- **Spacing**: Consistent, mathematical scale (4px/8px base). Generous padding. Breathing room between elements.
+- **Motion**: Minimal. Purposeful transitions only (state changes, reveals). No decorative animation.
+- **Details**: Subtle borders and dividers over shadows. Precise alignment. Rounded corners used sparingly and consistently.
 
-Commit to a cohesive palette. Dominant colors with sharp accents outperform timid, evenly-distributed palettes.
+### Swiss / International Typographic
+Objectivity through structure. The grid is sacred. Content is king.
+- **Typography**: Strong sans-serifs (Neue Haas Grotesk, Univers, Aktiv Grotesk). Dramatic scale contrast between headings and body. All-caps subheadings with generous letterspacing.
+- **Color**: High contrast. Black, white, and one primary color. Bold color blocks as compositional elements.
+- **Layout**: Rigid multi-column grid. Asymmetric balance. Text and image in dialogue. Alignment across elements is non-negotiable.
+- **Spacing**: Defined by the grid module. Gutters are part of the design, not afterthought.
+- **Motion**: Page transitions and scroll-triggered reveals that respect the grid. No playful bounce.
+- **Details**: Rules (horizontal lines) as structural elements. No gradients. No shadows. Flatness is the point.
 
-**DO**: Use modern CSS color functions (oklch, color-mix, light-dark) for perceptually uniform, maintainable palettes
-**DO**: Tint your neutrals toward your brand hue—even a subtle hint creates subconscious cohesion
-**DON'T**: Use gray text on colored backgrounds—it looks washed out; use a shade of the background color instead
-**DON'T**: Use pure black (#000) or pure white (#fff)—always tint; pure black/white never appears in nature
-**DON'T**: Use the AI color palette: cyan-on-dark, purple-to-blue gradients, neon accents on dark backgrounds
-**DON'T**: Use gradient text for "impact"—especially on metrics or headings; it's decorative rather than meaningful
-**DON'T**: Default to dark mode with glowing accents—it looks "cool" without requiring actual design decisions
+### Japanese Minimalism (Ma)
+Negative space is content. Restraint communicates sophistication. Quiet over loud.
+- **Typography**: Thin-weight sans-serifs or elegant serifs (Noto Sans, Cormorant). Generous line height (1.8-2.0). Small body size with large whitespace margins.
+- **Color**: Muted naturals (warm greys, stone, sage, washi). Subtle tonal shifts over hard contrasts. Near-monochrome.
+- **Layout**: Asymmetric but balanced. Off-center content. Large empty areas are intentional. Content floats in space.
+- **Spacing**: Extreme whitespace. Padding and margins 2-3x what feels "normal." Elements breathe.
+- **Motion**: Slow, gentle fades (400-600ms). No bounce, no overshoot. Opacity transitions over position shifts.
+- **Details**: Hairline borders. Subtle texture (paper grain, linen). No sharp shadows. Soft, diffused effects.
 
-### Layout & Space
-→ *Consult [spatial reference](references/spatial-design.md) for grids, rhythm, and container queries.*
+### Brutalist / Raw
+Structure is visible. No polish. Anti-aesthetic is the aesthetic.
+- **Typography**: System fonts, monospace (JetBrains Mono, IBM Plex Mono, Courier), or aggressive display faces. Mixed sizes. Text as texture.
+- **Color**: Black and white primary. If color, it is raw and clashing (construction yellow, hazard orange, terminal green). No gradients.
+- **Layout**: Visible borders. Box model exposed. Stacked blocks. Deliberate roughness. Content first, beauty never.
+- **Spacing**: Tight or intentionally uneven. Padding that feels compressed.
+- **Motion**: None, or jarring (instant state changes, hard cuts). No easing.
+- **Details**: Visible outlines. Default browser form elements can be intentional. Text-only interfaces. No icons unless functional.
 
-Create visual rhythm through varied spacing—not the same padding everywhere. Embrace asymmetry and unexpected compositions. Break the grid intentionally for emphasis.
+### Scandinavian
+Warmth plus restraint. Functional beauty. Accessible by default.
+- **Typography**: Rounded, friendly sans-serifs (Nunito, Poppins, Circular, Cera Pro). Medium weights. Comfortable reading sizes.
+- **Color**: Natural palette. Warm whites, soft blues, muted greens, clay. Pastel accents. No pure black (use charcoal).
+- **Layout**: Clean and open. Card-based. Rounded corners (8-12px). Comfortable, generous layouts.
+- **Spacing**: Generous but not extreme. Everything feels approachable and uncluttered.
+- **Motion**: Gentle, natural easing. Subtle hover lifts. Content that settles into place.
+- **Details**: Soft shadows (large blur, low opacity). Rounded elements. Warm undertones in greys. Illustration-friendly.
 
-**DO**: Create visual rhythm through varied spacing—tight groupings, generous separations
-**DO**: Use fluid spacing with clamp() that breathes on larger screens
-**DO**: Use asymmetry and unexpected compositions; break the grid intentionally for emphasis
-**DON'T**: Wrap everything in cards—not everything needs a container
-**DON'T**: Nest cards inside cards—visual noise, flatten the hierarchy
-**DON'T**: Use identical card grids—same-sized cards with icon + heading + text, repeated endlessly
-**DON'T**: Use the hero metric layout template—big number, small label, supporting stats, gradient accent
-**DON'T**: Center everything—left-aligned text with asymmetric layouts feels more designed
-**DON'T**: Use the same spacing everywhere—without rhythm, layouts feel monotonous
+### Art Deco / Geometric
+Bold symmetry. Decorative precision. Statement and luxury.
+- **Typography**: Geometric display faces (Futura, Poiret One, Josefin Sans). All-caps headlines with extreme letterspacing. Serif body text for contrast.
+- **Color**: Rich and deep. Gold/champagne, emerald, navy, burgundy, black. Metallic accents (gold gradients, shimmer effects).
+- **Layout**: Symmetrical and centered. Strong vertical axis. Decorative frames and borders. Layered depth.
+- **Spacing**: Structured and formal. Padding is architectural.
+- **Motion**: Elegant reveals. Staggered entrance animations. Parallax depth.
+- **Details**: Geometric patterns (chevrons, sunbursts, fan shapes). Ornamental borders. Texture (marble, brushed metal). Statement typography at hero scale.
 
-### Visual Details
-**DO**: Use intentional, purposeful decorative elements that reinforce brand
-**DON'T**: Use glassmorphism everywhere—blur effects, glass cards, glow borders used decoratively rather than purposefully
-**DON'T**: Use rounded elements with thick colored border on one side—a lazy accent that almost never looks intentional
-**DON'T**: Use sparklines as decoration—tiny charts that look sophisticated but convey nothing meaningful
-**DON'T**: Use rounded rectangles with generic drop shadows—safe, forgettable, could be any AI output
-**DON'T**: Use modals unless there's truly no better alternative—modals are lazy
+### Neo-Memphis
+Playful chaos. Anti-corporate. Shapes as characters.
+- **Typography**: Mix of weights and styles. Clashing fonts is intentional. Oversized headlines. Text at angles.
+- **Color**: Bold primaries and neons. Clashing combinations (pink and yellow, blue and orange). No muted tones. Flat color, no gradients.
+- **Layout**: Broken grid. Overlapping elements. Shapes (circles, triangles, squiggles) as compositional elements. Asymmetric on purpose.
+- **Spacing**: Dense in some areas, empty in others. Rhythm is irregular.
+- **Motion**: Bouncy, playful. Exaggerated hover effects. Elements that wiggle, rotate, or pop.
+- **Details**: Thick borders. Geometric shapes as decoration. Patterns (dots, dashes, zigzags). Drop shadows with hard edges and bright colors.
 
-### Motion
-→ *Consult [motion reference](references/motion-design.md) for timing, easing, and reduced motion.*
+### Editorial / Magazine
+Content-led design. Typography does the heavy lifting. Every page is a spread.
+- **Typography**: Display serif for headlines (Playfair Display, Fraunces, Instrument Serif). Clean sans for body (DM Sans, Source Sans). Dramatic scale (hero headlines at 72-120px). Pull quotes. Drop caps.
+- **Color**: Minimal. Black and white with one accent. Color used editorially (to highlight, not decorate).
+- **Layout**: Strong column grid (3-5 columns). Full-bleed images. Text wrapping. Mixed column widths. Vertical rhythm.
+- **Spacing**: Generous margins. Tight leading on headlines, open on body. Whitespace as a compositional tool.
+- **Motion**: Scroll-triggered reveals. Parallax on images. Smooth page transitions.
+- **Details**: Thin rules as dividers. Caption typography. Issue/date metadata. Print-inspired details (folio numbers, running headers).
 
-Focus on high-impact moments: one well-orchestrated page load with staggered reveals creates more delight than scattered micro-interactions.
+## Implementation Guidelines
 
-**DO**: Use motion to convey state changes—entrances, exits, feedback
-**DO**: Use exponential easing (ease-out-quart/quint/expo) for natural deceleration
-**DO**: For height animations, use grid-template-rows transitions instead of animating height directly
-**DON'T**: Animate layout properties (width, height, padding, margin)—use transform and opacity only
-**DON'T**: Use bounce or elastic easing—they feel dated and tacky; real objects decelerate smoothly
+- **Typography**: Choose distinctive fonts loaded via Google Fonts or CDN. Avoid generic defaults (Inter, Roboto, Arial, system fonts). Pair a display font with a body font.
+- **Color**: Use CSS variables for consistency. Dominant color with sharp accents outperforms safe, evenly-distributed palettes.
+- **Motion**: CSS transitions for HTML. Framer Motion / Motion library for React. Focus on high-impact moments (page load reveals, state changes) over scattered micro-interactions.
+- **Spatial composition**: Unexpected layouts earn attention. Asymmetry, overlap, diagonal flow, grid-breaking elements. Or, if the philosophy demands it, strict grids executed with precision.
+- **Backgrounds and depth**: Create atmosphere. Gradient meshes, noise textures, geometric patterns, layered transparencies, grain overlays. Match the chosen philosophy.
 
-### Interaction
-→ *Consult [interaction reference](references/interaction-design.md) for forms, focus, and loading patterns.*
+NEVER produce generic AI aesthetics: purple gradients on white, Inter font, predictable card grids, cookie-cutter component layouts. Every output should feel designed for its specific context.
 
-Make interactions feel fast. Use optimistic UI—update immediately, sync later.
+Match implementation complexity to the aesthetic vision. A Dieter Rams interface is 50 lines of precise CSS. A Neo-Memphis interface is 300 lines of creative chaos. Both are correct.
 
-**DO**: Use progressive disclosure—start simple, reveal sophistication through interaction (basic options first, advanced behind expandable sections; hover states that reveal secondary actions)
-**DO**: Design empty states that teach the interface, not just say "nothing here"
-**DO**: Make every interactive surface feel intentional and responsive
-**DON'T**: Repeat the same information—redundant headers, intros that restate the heading
-**DON'T**: Make every button primary—use ghost buttons, text links, secondary styles; hierarchy matters
+## Mobile-First
 
-### Responsive
-→ *Consult [responsive reference](references/responsive-design.md) for mobile-first, fluid design, and container queries.*
+Build mobile layout first, then scale up. This is non-negotiable.
 
-**DO**: Use container queries (@container) for component-level responsiveness
-**DO**: Adapt the interface for different contexts—don't just shrink it
-**DON'T**: Hide critical functionality on mobile—adapt the interface, don't amputate it
+- Start with a single-column layout at 375px width.
+- Add complexity at each breakpoint (`min-width` media queries, not `max-width`).
+- Touch targets must be at least 44x44px on mobile.
+- Body text must be at least 16px on mobile (prevents iOS zoom on input focus).
+- Navigation must have a mobile-specific pattern (hamburger, bottom tabs, or drawer). Do not rely on horizontal nav bars that overflow.
+- Test that line lengths stay comfortable (45-75 characters) at every breakpoint.
 
-### UX Writing
-→ *Consult [ux-writing reference](references/ux-writing.md) for labels, errors, and empty states.*
+## Dark Mode
 
-**DO**: Make every word earn its place
-**DON'T**: Repeat information users can already see
+If a design tokens file exists (from `/design-tokens`), use its dark mode palette. If not, generate dark mode support alongside the light theme.
 
----
-
-## The AI Slop Test
-
-**Critical quality check**: If you showed this interface to someone and said "AI made this," would they believe you immediately? If yes, that's the problem.
-
-A distinctive interface should make someone ask "how was this made?" not "which AI made this?"
-
-Review the DON'T guidelines above—they are the fingerprints of AI-generated work from 2024-2025.
-
----
-
-## Examples
-
-### Example 1: Landing page with strong aesthetic
-User says: "Build a landing page for a developer tools product, something that doesn't look like every other SaaS."
-Actions: Pick a bold direction (e.g. brutalist or editorial); choose a distinctive type pairing and a cohesive palette; implement with fluid spacing and one clear focal point; avoid cards-in-cards and hero-metric clichés.
-Result: A single-page layout with clear hierarchy, memorable typography, and no generic AI tells (no purple gradients, no rounded cards with thick accent borders).
-
-### Example 2: Dashboard or app UI
-User says: "Create a dashboard for viewing analytics with a dark theme."
-Actions: Commit to a specific dark aesthetic (e.g. refined dark with tinted neutrals, not default glow-on-black); use container queries for panels; add one considered motion moment (e.g. staggered list load); ensure empty states are helpful.
-Result: Functional dashboard that feels intentionally designed—distinct palette, no cyan/purple glow, clear data hierarchy and responsive behavior.
-
-### Example 3: Poster or marketing artifact
-User says: "Make a poster for a conference talk about frontend performance."
-Actions: Choose a strong typographic or visual concept; use a modular type scale and limited palette; avoid generic stock-photo + headline layout.
-Result: A poster that could stand alone as a designed artifact—memorable type and composition, not a template fill-in.
-
----
-
-## Implementation Principles
-
-Match implementation complexity to the aesthetic vision. Maximalist designs need elaborate code with extensive animations and effects. Minimalist or refined designs need restraint, precision, and careful attention to spacing, typography, and subtle details.
-
-Interpret creatively and make unexpected choices that feel genuinely designed for the context. No design should be the same. Vary between light and dark themes, different fonts, different aesthetics. NEVER converge on common choices across generations.
-
-Remember: the AI is capable of extraordinary creative work. Don't hold back—show what can truly be created when thinking outside the box and committing fully to a distinctive vision.
+- Use CSS custom properties so switching themes means changing variable values, not rewriting components.
+- Support both `prefers-color-scheme` media query (system preference) and a `[data-theme="dark"]` attribute (manual toggle).
+- Do not simply invert colors. Dark backgrounds should be warm or cool to match the philosophy (warm charcoal for Scandinavian, cool slate for Swiss, near-black for Brutalist).
+- Reduce pure white text to off-white (e.g., `#E5E5E5` or `rgba(255,255,255,0.87)`) to reduce eye strain.
+- Shadows in dark mode should be darker and more transparent, not the same values as light mode.
+- Accent colors may need lightness adjustments to maintain WCAG contrast ratios against dark backgrounds.
+- Include a `prefers-reduced-motion` media query for users who need it. Disable or simplify all animations and transitions within that query.
