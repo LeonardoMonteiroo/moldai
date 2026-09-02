@@ -272,7 +272,7 @@ describe("draftGarment", () => {
       "sleeve",
     ]);
   });
-  it("tshirt generates front/back/sleeve, no dart, round neckline", () => {
+  it("tshirt generates front/back/sleeve/collar, no dart, round neckline", () => {
     const { pieces } = draftGarment(
       {
         type: "tshirt",
@@ -284,12 +284,27 @@ describe("draftGarment", () => {
       t,
     );
     const ids = pieces.map((p) => p.id).sort();
-    expect(ids).toEqual(["body-back", "body-front", "sleeve"]);
+    expect(ids).toEqual(["body-back", "body-front", "collar", "sleeve"]);
     const front = pieces.find((p) => p.id === "body-front")!;
     expect(front.darts).toBeUndefined();
     expect(front.detailRows.some((r) => r.value === "neckline.round")).toBe(
       true,
     );
+  });
+  // tshirt-fit-calibration: the default collar: "band" must not override an
+  // explicit caller choice.
+  it("tshirt with an explicit collar: none drafts no collar piece", () => {
+    const { pieces } = draftGarment(
+      {
+        type: "tshirt",
+        gender: "male",
+        measurementOverrides: {},
+        style: { collar: "none" },
+      },
+      SIZE_TABLE_MALE.M,
+      t,
+    );
+    expect(pieces.map((p) => p.id)).not.toContain("collar");
   });
   it("skirt generates the skirt panel plus its default waistband, and viewBox > 0 (#131)", () => {
     const { pieces, viewBox } = draftGarment(
@@ -500,7 +515,7 @@ describe("sleeve cap ease is real, and measured from the drafted geometry", () =
 });
 
 describe("draftPiecesCm", () => {
-  it("returns pieces in cm (front/back/sleeve) for tshirt", () => {
+  it("returns pieces in cm (front/back/sleeve/collar) for tshirt", () => {
     const pcs = draftPiecesCm(
       {
         type: "tshirt",
@@ -511,7 +526,12 @@ describe("draftPiecesCm", () => {
       SIZE_TABLE_MALE.M,
       t,
     );
-    expect(pcs.map((p) => p.id)).toEqual(["body-front", "body-back", "sleeve"]);
+    expect(pcs.map((p) => p.id)).toEqual([
+      "body-front",
+      "body-back",
+      "sleeve",
+      "collar",
+    ]);
     const front = pcs[0];
     // outlineCm in real cm: front width in the tens of cm, not hundreds (px)
     const xs = front.outlineCm.map(([x]) => x);

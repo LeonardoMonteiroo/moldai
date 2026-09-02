@@ -326,7 +326,9 @@ function draftAll(
     // A dress's own bodice ends at the waist (lengthCm above) -- the skirt
     // block below adds its own panel length on top once it's drafted.
     garmentLengthCm = lengthCm;
-    // T-shirt base model: round neckline, no darts, short sleeve by default.
+    // T-shirt base model: round neckline, no darts, short sleeve, ribbed
+    // collar band by default -- a bare crew neck with no collar at all
+    // isn't how any real basic tee is constructed (tshirt-fit-calibration).
     const style: GarmentStyle =
       spec.type === "tshirt"
         ? {
@@ -334,6 +336,7 @@ function draftAll(
             neckline: spec.style.neckline ?? "round",
             darts: false,
             sleeve: spec.style.sleeve ?? "short",
+            collar: spec.style.collar ?? "band",
           }
         : spec.style;
     const opts: BlockOpts = {

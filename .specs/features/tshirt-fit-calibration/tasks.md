@@ -87,7 +87,7 @@ no consumer changes.
       equation above, plus a note that it's solved against the benchmark's size-M figure, not
       a scaled-per-size table)
 - [ ] `spec.type === "tshirt"` computes `lengthCm = measurements.backLength +
-  TSHIRT_HEM_DROP_CM`; `blouse` keeps `backLength + hipHeight + 5`; `dress` keeps
+TSHIRT_HEM_DROP_CM`; `blouse` keeps `backLength + hipHeight + 5`; `dress` keeps
       `backLength` — unchanged
 - [ ] The old combined test is split: "reports the blouse body length" (unchanged assertion)
       and "reports the tshirt body length" (asserts `backLength + TSHIRT_HEM_DROP_CM`)
@@ -144,7 +144,7 @@ that default tshirt ease is much larger than 0)
 
 ---
 
-### T3: Default t-shirt collar to a rib band
+### T3: Default t-shirt collar to a rib band ✅ Complete (also fixed `draftPiecesCm`'s exact-order piece-id assertion, which the task's own "Where" already anticipated)
 
 **What**: Default `tshirt`'s style block to `collar: spec.style.collar ?? "band"` (was
 implicitly `"none"`), and update the one existing test whose exact-match piece-id assertion
@@ -241,7 +241,7 @@ static import.
 **Done when**:
 
 - [ ] `measurePiece(piece: DraftedPiece)` returns `{perimeterCm, areaCm2,
-  rectilinearPerimeterCm, curvePerimeterCm, widthCm, heightCm}` matching
+rectilinearPerimeterCm, curvePerimeterCm, widthCm, heightCm}` matching
       `measurements.json`'s field shape exactly
 - [ ] The test drafts P/M/G/GG and measures back/front/sleeve/collar-band for each
 - [ ] `docs/reference/tshirt-benchmark/comparison-report.md` is written (overwrite, not
