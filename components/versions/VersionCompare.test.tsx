@@ -162,6 +162,12 @@ describe("VersionCompare", () => {
       .closest("li");
     expect(armholeRow?.textContent).toMatch(/→/);
     expect(armholeRow?.textContent).toMatch(/[+−]/);
+    // A real (non-"—") delta is colored olive-dark, not the muted
+    // unchanged color.
+    const spans = armholeRow?.querySelectorAll("span") ?? [];
+    const deltaCell = spans[spans.length - 1];
+    expect(deltaCell).toHaveClass("text-olive-dark");
+    expect(deltaCell).not.toHaveClass("text-muted");
   });
 
   it("shows a comprimento delta alongside cava and consumo (#234)", () => {
@@ -215,6 +221,12 @@ describe("VersionCompare", () => {
       .getByText(ptBR.VersionCompare.armholeDeltaLabel)
       .closest("li");
     expect(armholeRow?.textContent).toContain("—");
+    // Muted, not the changed-delta olive-dark color -- the delta cell is the
+    // row's last span (label, range, delta, in that DOM order).
+    const spans = armholeRow?.querySelectorAll("span") ?? [];
+    const deltaCell = spans[spans.length - 1];
+    expect(deltaCell).toHaveClass("text-muted");
+    expect(deltaCell).not.toHaveClass("text-olive-dark");
   });
 
   it("derives the compare canvas caption from the real drafted piece names", () => {

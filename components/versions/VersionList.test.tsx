@@ -85,10 +85,25 @@ function renderList(
 describe("VersionList", () => {
   it("renders one selectable card per version, each with a real drafted thumbnail", () => {
     renderList();
-    // Three selection buttons (one per version) plus two restore buttons
-    // (v1, v2 -- v3 is current and shows "Versão atual" instead).
     const svgs = document.querySelectorAll("svg[viewBox]");
     expect(svgs.length).toBe(3);
+    // Real drafted geometry, not an empty placeholder svg -- each thumbnail
+    // must actually contain outline shapes (a blouse drafts several pieces,
+    // each a <polygon> or <path> via OutlineShape).
+    svgs.forEach((svg) => {
+      expect(svg.querySelectorAll("polygon, path").length).toBeGreaterThan(0);
+    });
+  });
+
+  // Two real <button> elements must never nest -- the design's own mockup
+  // does this (Versoes.dc.html:116,136), which is invalid ARIA (interactive
+  // content inside interactive content). VersionList deliberately puts the
+  // restore button as a sibling instead (see the comment in VersionList.tsx).
+  it("never nests the restore button inside the selection button", () => {
+    renderList();
+    document.querySelectorAll("button").forEach((button) => {
+      expect(button.querySelector("button")).toBeNull();
+    });
   });
 
   it("marks the current version 'Versão atual' instead of offering to restore it", () => {

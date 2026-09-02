@@ -105,6 +105,27 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: components/slopers/SlopersShell.test.tsx:209 (components/slopers,components/shared/PageHeader.tsx)
 - last seen: 2026-09-02T12:33:31Z
 
+### L-014 - A test asserting an SVG thumbnail is 'real' must check for geometry inside it (polygon/path), not just count svg[viewBox] elements -- an empty svg passes a bare-tag check.
+
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `components/versions` · harmful: 0
+- features: redesign-versions
+- evidence: VersionList.tsx:VersionThumbnail (components/versions)
+- last seen: 2026-09-02T13:32:40Z
+
+### L-015 - When a selection rule has swap/replace/no-op branches split across a child (emits the event) and parent (owns the state), test the no-op branch at the parent that owns state -- the child's own test proving the event fires with the right value does not prove the parent's no-op.
+
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `components/versions` · harmful: 0
+- features: redesign-versions
+- evidence: VersionsShell.tsx:selectVersion no-op branch (components/versions)
+- last seen: 2026-09-02T13:32:40Z
+
+### L-016 - A spec AC naming a specific visual distinction (e.g. muted vs accent color for unchanged vs changed) needs its own class/style assertion -- asserting only the text content ('--' vs a number) leaves the color-coding half of the AC unguarded.
+
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `components/versions` · harmful: 0
+- features: redesign-versions
+- evidence: VersionCompare.tsx:288 unchanged-color class (components/versions)
+- last seen: 2026-09-02T13:32:42Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

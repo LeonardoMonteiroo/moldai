@@ -297,4 +297,34 @@ describe("VersionsShell", () => {
 
     expect(screen.getByText("v3 → v2")).toBeInTheDocument();
   });
+
+  // The third branch of the design's own select() rule: clicking the
+  // version already selected as "from" changes nothing. VersionList's own
+  // tests only prove onSelect fires with the right version -- this rule
+  // lives in VersionsShell's selectVersion, so only a shell-level test can
+  // catch a regression that turns this branch into another swap.
+  it("clicking the current 'from' card is a no-op", async () => {
+    listVersions.mockResolvedValue(makeRows());
+    const user = userEvent.setup();
+    renderWithIntl(
+      <VersionsShell
+        userEmail="dev@moldai.local"
+        credits={CREDITS}
+        patternId="m1"
+        patternName="Blusa"
+        activeVersion={3}
+      />,
+    );
+
+    // Defaults to the two most recent: from=2, to=3.
+    await waitFor(() =>
+      expect(screen.getByText("v2 → v3")).toBeInTheDocument(),
+    );
+
+    const fromBadge = await screen.findByText(ptBR.VersionList.fromBadge);
+    await user.click(fromBadge.closest("button")!);
+
+    // Unchanged -- not swapped to "v3 → v2".
+    expect(screen.getByText("v2 → v3")).toBeInTheDocument();
+  });
 });

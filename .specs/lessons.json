@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 14,
+  "next_id": 17,
   "lessons": [
     {
       "id": "L-001",
@@ -202,6 +202,52 @@
       ],
       "created": "2026-09-02T12:33:31Z",
       "last_seen": "2026-09-02T12:33:31Z"
+    },
+    {
+      "id": "L-014",
+      "key": "surviving_mutant::a test asserting an svg thumbnail is real must check for geometry inside it polygon path not just count svg viewbox elements an empty svg passes a bare tag check",
+      "text": "A test asserting an SVG thumbnail is 'real' must check for geometry inside it (polygon/path), not just count svg[viewBox] elements -- an empty svg passes a bare-tag check.",
+      "signal": "surviving_mutant",
+      "scope": "components/versions",
+      "status": "candidate",
+      "features": ["redesign-versions"],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": ["VersionList.tsx:VersionThumbnail (components/versions)"],
+      "created": "2026-09-02T13:32:40Z",
+      "last_seen": "2026-09-02T13:32:40Z"
+    },
+    {
+      "id": "L-015",
+      "key": "ac_gap::when a selection rule has swap replace no op branches split across a child emits the event and parent owns the state test the no op branch at the parent that owns state the child s own test proving the event fires with the right value does not prove the parent s no op",
+      "text": "When a selection rule has swap/replace/no-op branches split across a child (emits the event) and parent (owns the state), test the no-op branch at the parent that owns state -- the child's own test proving the event fires with the right value does not prove the parent's no-op.",
+      "signal": "ac_gap",
+      "scope": "components/versions",
+      "status": "candidate",
+      "features": ["redesign-versions"],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "VersionsShell.tsx:selectVersion no-op branch (components/versions)"
+      ],
+      "created": "2026-09-02T13:32:40Z",
+      "last_seen": "2026-09-02T13:32:40Z"
+    },
+    {
+      "id": "L-016",
+      "key": "spec_precision_gap::a spec ac naming a specific visual distinction e g muted vs accent color for unchanged vs changed needs its own class style assertion asserting only the text content vs a number leaves the color coding half of the ac unguarded",
+      "text": "A spec AC naming a specific visual distinction (e.g. muted vs accent color for unchanged vs changed) needs its own class/style assertion -- asserting only the text content ('--' vs a number) leaves the color-coding half of the AC unguarded.",
+      "signal": "spec_precision_gap",
+      "scope": "components/versions",
+      "status": "candidate",
+      "features": ["redesign-versions"],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "VersionCompare.tsx:288 unchanged-color class (components/versions)"
+      ],
+      "created": "2026-09-02T13:32:42Z",
+      "last_seen": "2026-09-02T13:32:42Z"
     }
   ]
 }
