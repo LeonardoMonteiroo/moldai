@@ -6,10 +6,10 @@
 
 ## Goals
 
-- [ ] `VerificationPanel` shows the account's real balance ("Saldo: N créditos") next to the paid "Importar molde" action, matching `Importacao.dc.html:248`.
-- [ ] `LayerMappingPanel`'s header shows "{mapped} de {total} papéis esperados mapeados", matching `Importacao.dc.html:205`.
-- [ ] `LayerPreviewCanvas` overlays "Nenhuma linha de corte mapeada ainda" while no layer is mapped to the `cut` role, matching `Importacao.dc.html:115-119`.
-- [ ] No fabricated data — the balance is a real fetch (the `dashboardStore`/`PageHeader` precedent: null forever on failure, no error state for a display-only figure), and the progress/hint text derive from data the store already computes (`roles`, the same `missingExpected` logic `LayerMappingPanel` already uses for its badges).
+- [x] `VerificationPanel` shows the account's real balance ("Saldo: N créditos") next to the paid "Importar molde" action, matching `Importacao.dc.html:248`.
+- [x] `LayerMappingPanel`'s header shows "{mapped} de {total} papéis esperados mapeados", matching `Importacao.dc.html:205`.
+- [x] `LayerPreviewCanvas` overlays "Nenhuma linha de corte mapeada ainda" while no layer is mapped to the `cut` role, matching `Importacao.dc.html:115-119`.
+- [x] No fabricated data — the balance is a real fetch (the `dashboardStore`/`PageHeader` precedent: null forever on failure, no error state for a display-only figure), and the progress/hint text derive from data the store already computes (`roles`, the same `missingExpected` logic `LayerMappingPanel` already uses for its badges).
 
 ## Out of Scope
 
@@ -49,11 +49,11 @@
 
 ## Requirement Traceability
 
-| Requirement ID | Story                         | Phase   | Status  |
-| -------------- | ----------------------------- | ------- | ------- |
-| IMPT-01        | P1: Real cost/mapping context | Execute | Pending |
-| IMPT-02        | P1: Real cost/mapping context | Execute | Pending |
-| IMPT-03        | P1: Real cost/mapping context | Execute | Pending |
+| Requirement ID | Story                         | Phase   | Status   |
+| -------------- | ----------------------------- | ------- | -------- |
+| IMPT-01        | P1: Real cost/mapping context | Execute | Verified |
+| IMPT-02        | P1: Real cost/mapping context | Execute | Verified |
+| IMPT-03        | P1: Real cost/mapping context | Execute | Verified |
 
 **Coverage:** 3 total, 3 mapped, 0 unmapped.
 
@@ -61,8 +61,8 @@
 
 ## Success Criteria
 
-- [ ] `npx vitest run --project dom components/import` and `npx vitest run --project node lib/importStore.test.ts` pass.
-- [ ] `npx vitest run` (full suite) passes — no regressions.
-- [ ] `npx eslint` and `npm run build` (typecheck) pass, full repo.
-- [ ] No new hex values, `text-[Npx]` sizes, or hardcoded pt-BR strings.
-- [ ] No database migration, no new fields — the balance reuses the existing `getAccountSummary` endpoint.
+- [x] `npx vitest run --project dom components/import` and `npx vitest run --project node lib/importStore.test.ts` pass.
+- [x] `npx vitest run` (full suite) passes — no regressions.
+- [x] `npx eslint` and `npm run build` (typecheck) pass, full repo.
+- [x] No new hex values, `text-[Npx]` sizes, or hardcoded pt-BR strings.
+- [x] No database migration, no new fields — the balance reuses the existing `getAccountSummary` endpoint.

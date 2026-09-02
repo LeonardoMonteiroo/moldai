@@ -18,9 +18,12 @@ import { RulCompanionCard } from "./RulCompanionCard";
  * fidelity target, scoped down for this first pass; see the PR body). No
  * sidebar, like /size-charts — this screen isn't part of either nav column.
  *
- * Deliberately no `credits` prop fetch: importing costs nothing and the
- * screen says so with its own amber "importação grátis" badge rather than
- * reading the account's balance for a number that's never spent.
+ * The top header's own `credits` prop stays `null` (the design's own choice
+ * for this screen, and analysis itself is genuinely free — the amber
+ * "importação grátis" badge says so). But the "Importar molde" action IS
+ * paid, so `loadCredits()` still fetches the real balance below, shown only
+ * where that cost actually is (`VerificationPanel`'s footer) — never
+ * surfaced as a header pill for a number the header's own flow never spends.
  *
  * No generic ActionErrorNotice here — the store's only failure mode
  * (`pick()`) has exactly three distinguishable causes, and each is resolved
