@@ -401,6 +401,22 @@
     "gender": {
       "male": "masculina",
       "female": "feminina"
+    },
+    "techSheetPdf": {
+      "title": "Ficha técnica — {name}",
+      "subtitle": "Base {baseSize} · unidade {unit}",
+      "summaryHeading": "Resumo",
+      "summaryLine": "{type} {gender} · {pieces} peças · {copies} cópias · {seamAllowance} cm de folga de costura",
+      "sizeChartLine": "Grade usada: {name}",
+      "measurementsHeading": "Medidas",
+      "measurementLine": "{girth}: molde pronto {finished} cm · corpo (grade) {body} cm",
+      "piecesHeading": "Peças",
+      "pieceLine": "{name} · {qty}x · {width} × {height} cm",
+      "assemblyHeading": "Instruções de montagem",
+      "stepDart": "Costure {count, plural, one {a pence} other {as # pences}} em {piece}.",
+      "stepSeam": "Una {a} com {b}.",
+      "stepHem": "Faça a bainha de {piece} ({length} cm).",
+      "assemblyConflictNote": "Uma ou mais costuras acima têm um conflito ativo — confira antes de cortar."
     }
   },
   "CutPlanTab": {
@@ -482,6 +498,31 @@
     "presetLoadRetry": "Tentar novamente",
     "downloadButton": "Baixar arquivo",
     "downloadDisabledConflictTitle": "Resolva o conflito de costura antes de exportar."
+  },
+  "ExportModal": {
+    "title2d": "Exportar molde 2D",
+    "titleCorte": "Exportar plano de corte",
+    "titleFicha": "Exportar ficha técnica",
+    "subtitle2d": "Dados vetoriais da peça, para CAD e plotter.",
+    "subtitleCorte": "Arquivo pronto para imprimir e cortar.",
+    "subtitleFicha": "Documentação da peça, sem os traçados do molde.",
+    "conflictNote": "Conflito de costura ativo. Resolva no editor antes de exportar.",
+    "formatVectorHeading": "Formato vetorial",
+    "vectorAlwaysIncludedNote": "Margem de costura, piques e fio de urdidura são sempre incluídos no arquivo.",
+    "formatPdfHeading": "Formato PDF",
+    "consumptionValue": "Consumo estimado {length} m em tecido de {width} m",
+    "consumptionUnavailable": "Não foi possível estimar o consumo.",
+    "formatHeading": "Formato",
+    "formatPdf": "PDF",
+    "formatXlsx": "XLSX",
+    "includeHeading": "O que incluir",
+    "includeMeasurements": "Tabela de medidas",
+    "includeMaterials": "Lista de materiais",
+    "includePerSize": "Ficha por tamanho",
+    "includeAssembly": "Instruções de montagem",
+    "cancelButton": "Cancelar",
+    "downloadDefault": "Baixar arquivo",
+    "downloadFicha": "Baixar ficha técnica"
   },
   "Proof3DTab": {
     "title": "Prova 3D",

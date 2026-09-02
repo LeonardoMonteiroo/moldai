@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { EditorTab, useEditorStore } from "@/lib/store";
 import { useCanvasViewport } from "@/lib/canvas/useCanvasViewport";
@@ -11,6 +11,7 @@ import {
 } from "@/lib/draft/garment";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { TabBar } from "./TabBar";
+import { ExportModal, exportVariantForTab } from "./ExportModal";
 import { GeneratingOverlay } from "./GeneratingOverlay";
 import { PatternCanvas } from "./PatternCanvas";
 import { FloatingToolbar } from "./FloatingToolbar";
@@ -55,6 +56,7 @@ export function CanvasArea() {
   const addMeasurement = useEditorStore((s) => s.addMeasurement);
   const removeMeasurement = useEditorStore((s) => s.removeMeasurement);
   const clearMeasurements = useEditorStore((s) => s.clearMeasurements);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
 
   const svgRef = useRef<SVGSVGElement | null>(null);
   const vbW = pattern?.viewBox?.w;
@@ -150,166 +152,183 @@ export function CanvasArea() {
           unit: pattern.unit,
         });
 
-  return (
-    <Tabs
-      value={activeTab}
-      onValueChange={(v) => setActiveTab(v as EditorTab)}
-      className="relative flex min-h-0 min-w-0 flex-1 flex-col gap-0"
-    >
-      {isGenerating ? (
-        <GeneratingOverlay
-          stepIndex={generationStepIndex}
-          onCancel={cancelGeneration}
-        />
-      ) : (
-        <TabBar
-          activeTab={activeTab}
-          baseSize={pattern.baseSize}
-          sizes={pattern.sizes}
-          detailsOpen={detailsPanelOpen}
-          onToggleDetails={toggleDetailsPanel}
-          hasSelectedPiece={selectedPiece !== null && !conflict}
-          exportHref={exportDisabled ? null : `/pattern/${pattern.id}/export`}
-          exportTitle={exportTitle}
-        />
-      )}
+  const exportVariant = exportVariantForTab(activeTab);
 
-      <TabsContent
-        value="pattern2d"
-        className="pattern-grid bg-paper relative min-h-[300px] overflow-hidden p-[22px]"
+  return (
+    <>
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) => setActiveTab(v as EditorTab)}
+        className="relative flex min-h-0 min-w-0 flex-1 flex-col gap-0"
       >
-        <div
-          className={[
-            // EDCH-03: top-[58px] (Editor.dc.html:227) clears the floating
-            // tab bar's ~46px height + margin, replacing the old top-[22px]
-            // that assumed a flow-reserved static row above the canvas.
-            "absolute top-[58px] bottom-[22px] left-[22px] transition-[right] duration-200",
-            rightOverlayOpen ? "right-[268px]" : "right-[22px]",
-          ].join(" ")}
+        {isGenerating ? (
+          <GeneratingOverlay
+            stepIndex={generationStepIndex}
+            onCancel={cancelGeneration}
+          />
+        ) : (
+          <TabBar
+            activeTab={activeTab}
+            baseSize={pattern.baseSize}
+            sizes={pattern.sizes}
+            detailsOpen={detailsPanelOpen}
+            onToggleDetails={toggleDetailsPanel}
+            hasSelectedPiece={selectedPiece !== null && !conflict}
+            onExport={() => setExportModalOpen(true)}
+            exportDisabled={exportDisabled}
+            exportTitle={exportTitle}
+          />
+        )}
+
+        <TabsContent
+          value="pattern2d"
+          className="pattern-grid bg-paper relative min-h-[300px] overflow-hidden p-[22px]"
         >
-          <PatternCanvas
-            pieces={pattern.pieces}
-            selectedPieceId={selectedPieceId}
-            conflict={conflict}
-            dimmed={isGenerating}
-            viewport={vp.viewport}
-            scale={vp.scale}
-            activeTool={activeTool}
-            measurements={measurements}
-            svgRef={svgRef}
-            onSelectPiece={selectPiece}
-            onWheelZoom={vp.zoomAtScreen}
-            onPan={vp.panByScreen}
-            screenToUser={vp.screenToUser}
-            onAddMeasurement={(a, b) =>
-              addMeasurement({ id: crypto.randomUUID(), a, b })
-            }
-            onRemoveMeasurement={removeMeasurement}
-            armholeLenCm={seams?.armholeLenCm}
-            sleeveArmholeCm={seams?.sleeveArmholeCm}
-            seamGraph={seamGraph}
-            gradedOverlays={gradedOverlays}
-            foldLabel={tData("foldLabel")}
-          />
-        </div>
-        {!isGenerating && !hasPieces && (
-          <Empty className="pointer-events-none absolute inset-0">
-            <EmptyHeader>
-              <EmptyTitle className="font-display text-muted-2">
-                {t("emptyStateTitle")}
-              </EmptyTitle>
-              <EmptyDescription className="max-w-[300px]">
-                {t("emptyStateDescription")}
-              </EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        )}
-        {!isGenerating && hasPieces && (
-          // EDCH-01 assumption (spec.md): FloatingToolbar/measure-note/
-          // "Limpar medições" moved from top-5/bottom-5 into one top-left
-          // stack at top-[54px] -- clears the floating tab bar (no design
-          // reference depicts this control at all; co-locating it with the
-          // measure tool it belongs to, rather than the bottom-left corner
-          // the design's status pill now claims, is the deliberate call).
-          <div className="absolute top-[54px] left-4 z-10 flex flex-col items-start gap-2">
-            <FloatingToolbar activeTool={activeTool} onSelect={setActiveTool} />
-            {activeTool === "measure" && (
-              <p className="bg-surface border-border rounded-item shadow-card text-meta text-muted-2 max-w-[220px] border px-[10px] py-[7px]">
-                {t("measurePointerOnlyNote")}
-              </p>
-            )}
-            {measurements.length > 0 && (
-              <Button
-                variant="outline"
-                size="chrome"
-                onClick={clearMeasurements}
-                className="text-muted-2 shadow-card"
-              >
-                {t("clearMeasurementsButton")}
-              </Button>
-            )}
-          </div>
-        )}
-        {!isGenerating && hasPieces && (
-          <ZoomControls
-            scale={vp.scale}
-            onZoomIn={vp.zoomIn}
-            onZoomOut={vp.zoomOut}
-            onFit={vp.fitToScreen}
-          />
-        )}
-        {!isGenerating && (
-          // EDCH-04: the status line moved here from Footer.tsx, as a
-          // floating pill at the canvas's bottom-left corner
-          // (Editor.dc.html:487-489).
           <div
-            role="status"
-            className="bg-surface/86 border-border text-muted shadow-card text-meta absolute bottom-4 left-4 z-10 flex h-[30px] items-center gap-2 rounded-full border px-3 backdrop-blur-sm"
+            className={[
+              // EDCH-03: top-[58px] (Editor.dc.html:227) clears the floating
+              // tab bar's ~46px height + margin, replacing the old top-[22px]
+              // that assumed a flow-reserved static row above the canvas.
+              "absolute top-[58px] bottom-[22px] left-[22px] transition-[right] duration-200",
+              rightOverlayOpen ? "right-[268px]" : "right-[22px]",
+            ].join(" ")}
           >
-            {statusText}
+            <PatternCanvas
+              pieces={pattern.pieces}
+              selectedPieceId={selectedPieceId}
+              conflict={conflict}
+              dimmed={isGenerating}
+              viewport={vp.viewport}
+              scale={vp.scale}
+              activeTool={activeTool}
+              measurements={measurements}
+              svgRef={svgRef}
+              onSelectPiece={selectPiece}
+              onWheelZoom={vp.zoomAtScreen}
+              onPan={vp.panByScreen}
+              screenToUser={vp.screenToUser}
+              onAddMeasurement={(a, b) =>
+                addMeasurement({ id: crypto.randomUUID(), a, b })
+              }
+              onRemoveMeasurement={removeMeasurement}
+              armholeLenCm={seams?.armholeLenCm}
+              sleeveArmholeCm={seams?.sleeveArmholeCm}
+              seamGraph={seamGraph}
+              gradedOverlays={gradedOverlays}
+              foldLabel={tData("foldLabel")}
+            />
           </div>
-        )}
-        {!isGenerating && conflict && (
-          <ConflictInfoCard
-            conflict={conflict}
-            armholeLenCm={seams?.armholeLenCm}
-            sleeveArmholeCm={seams?.sleeveArmholeCm}
-            seamGraph={seamGraph}
-          />
-        )}
-        {!isGenerating && !conflict && detailsPanelOpen && selectedPiece && (
-          <PieceDetailsPanel
-            piece={selectedPiece}
-            pattern={pattern}
-            onClose={toggleDetailsPanel}
-            onGraduate={graduateSizes}
-            graduating={graduating}
-          />
-        )}
-      </TabsContent>
-      {/* EDCH-03: pt-[58px] on each panel clears the floating tab bar that
+          {!isGenerating && !hasPieces && (
+            <Empty className="pointer-events-none absolute inset-0">
+              <EmptyHeader>
+                <EmptyTitle className="font-display text-muted-2">
+                  {t("emptyStateTitle")}
+                </EmptyTitle>
+                <EmptyDescription className="max-w-[300px]">
+                  {t("emptyStateDescription")}
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          )}
+          {!isGenerating && hasPieces && (
+            // EDCH-01 assumption (spec.md): FloatingToolbar/measure-note/
+            // "Limpar medições" moved from top-5/bottom-5 into one top-left
+            // stack at top-[54px] -- clears the floating tab bar (no design
+            // reference depicts this control at all; co-locating it with the
+            // measure tool it belongs to, rather than the bottom-left corner
+            // the design's status pill now claims, is the deliberate call).
+            <div className="absolute top-[54px] left-4 z-10 flex flex-col items-start gap-2">
+              <FloatingToolbar
+                activeTool={activeTool}
+                onSelect={setActiveTool}
+              />
+              {activeTool === "measure" && (
+                <p className="bg-surface border-border rounded-item shadow-card text-meta text-muted-2 max-w-[220px] border px-[10px] py-[7px]">
+                  {t("measurePointerOnlyNote")}
+                </p>
+              )}
+              {measurements.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="chrome"
+                  onClick={clearMeasurements}
+                  className="text-muted-2 shadow-card"
+                >
+                  {t("clearMeasurementsButton")}
+                </Button>
+              )}
+            </div>
+          )}
+          {!isGenerating && hasPieces && (
+            <ZoomControls
+              scale={vp.scale}
+              onZoomIn={vp.zoomIn}
+              onZoomOut={vp.zoomOut}
+              onFit={vp.fitToScreen}
+            />
+          )}
+          {!isGenerating && (
+            // EDCH-04: the status line moved here from Footer.tsx, as a
+            // floating pill at the canvas's bottom-left corner
+            // (Editor.dc.html:487-489).
+            <div
+              role="status"
+              className="bg-surface/86 border-border text-muted shadow-card text-meta absolute bottom-4 left-4 z-10 flex h-[30px] items-center gap-2 rounded-full border px-3 backdrop-blur-sm"
+            >
+              {statusText}
+            </div>
+          )}
+          {!isGenerating && conflict && (
+            <ConflictInfoCard
+              conflict={conflict}
+              armholeLenCm={seams?.armholeLenCm}
+              sleeveArmholeCm={seams?.sleeveArmholeCm}
+              seamGraph={seamGraph}
+            />
+          )}
+          {!isGenerating && !conflict && detailsPanelOpen && selectedPiece && (
+            <PieceDetailsPanel
+              piece={selectedPiece}
+              pattern={pattern}
+              onClose={toggleDetailsPanel}
+              onGraduate={graduateSizes}
+              graduating={graduating}
+            />
+          )}
+        </TabsContent>
+        {/* EDCH-03: pt-[58px] on each panel clears the floating tab bar that
           now overlays the top of every tab, not just pattern2d -- the same
           58px PatternCanvas's own inset uses. The tab's own content
           (Proof3DTab/TechSheetTab/CutPlanTab) is out of scope; this is only
           the shared wrapper's clearance. */}
-      <TabsContent
-        value="proof3d"
-        className="flex min-h-0 flex-1 flex-col pt-[58px]"
-      >
-        <Proof3DTab />
-      </TabsContent>
-      <TabsContent
-        value="techsheet"
-        className="flex min-h-0 flex-1 flex-col pt-[58px]"
-      >
-        <TechSheetTab pattern={pattern} />
-      </TabsContent>
-      <TabsContent
-        value="cutplan"
-        className="flex min-h-0 flex-1 flex-col pt-[58px]"
-      >
-        <CutPlanTab pattern={pattern} />
-      </TabsContent>
-    </Tabs>
+        <TabsContent
+          value="proof3d"
+          className="flex min-h-0 flex-1 flex-col pt-[58px]"
+        >
+          <Proof3DTab />
+        </TabsContent>
+        <TabsContent
+          value="techsheet"
+          className="flex min-h-0 flex-1 flex-col pt-[58px]"
+        >
+          <TechSheetTab pattern={pattern} />
+        </TabsContent>
+        <TabsContent
+          value="cutplan"
+          className="flex min-h-0 flex-1 flex-col pt-[58px]"
+        >
+          <CutPlanTab pattern={pattern} />
+        </TabsContent>
+      </Tabs>
+      {exportVariant && (
+        <ExportModal
+          pattern={pattern}
+          variant={exportVariant}
+          conflictActive={conflictActive}
+          open={exportModalOpen}
+          onOpenChange={setExportModalOpen}
+        />
+      )}
+    </>
   );
 }

@@ -2,7 +2,6 @@
 
 import { ChevronDownIcon, XIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import Link from "next/link";
 import { EditorTab } from "@/lib/store";
 import { SizeLabel } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
@@ -71,7 +70,8 @@ export function TabBar({
   detailsOpen,
   onToggleDetails,
   hasSelectedPiece,
-  exportHref,
+  onExport,
+  exportDisabled,
   exportTitle,
 }: {
   activeTab: EditorTab;
@@ -80,8 +80,11 @@ export function TabBar({
   detailsOpen: boolean;
   onToggleDetails: () => void;
   hasSelectedPiece: boolean;
-  /** `null` while Exportar is disabled -- EDCH-02, moved from Footer.tsx. */
-  exportHref: string | null;
+  /** Opens ExportModal -- EDCH-02 moved this from Footer.tsx as a Link to the
+   *  dedicated /export screen; it now opens the in-editor modal instead
+   *  (Editor.dc.html's own "Exportar"). */
+  onExport: () => void;
+  exportDisabled: boolean;
   exportTitle?: string;
 }) {
   const t = useTranslations("TabBar");
@@ -112,12 +115,16 @@ export function TabBar({
           {detailsOpen && <XIcon data-icon="inline-end" />}
         </Button>
       )}
-      {exportHref ? (
-        <Button variant="outline" size="chrome" asChild>
-          <Link href={exportHref}>{tFooter("exportButton")}</Link>
-        </Button>
-      ) : (
-        <Button variant="outline" size="chrome" disabled title={exportTitle}>
+      {/* Prova 3D exports nothing -- Editor.dc.html hides the button on that
+          tab entirely rather than showing a permanently-disabled one. */}
+      {activeTab !== "proof3d" && (
+        <Button
+          variant="outline"
+          size="chrome"
+          onClick={onExport}
+          disabled={exportDisabled}
+          title={exportTitle}
+        >
           {tFooter("exportButton")}
         </Button>
       )}

@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   renderWithIntl,
   ptBR,
@@ -20,7 +20,8 @@ function renderTabBar(
         detailsOpen={false}
         onToggleDetails={() => {}}
         hasSelectedPiece={false}
-        exportHref={`/pattern/p1/export`}
+        onExport={() => {}}
+        exportDisabled={false}
         {...overrides}
       />
     </Tabs>,
@@ -76,14 +77,18 @@ describe("TabBar — tabs/size/details (unchanged behavior)", () => {
   });
 });
 
-// EDCH-02: Exportar moved here from Footer.tsx -- same enabled-link vs
-// disabled-button-with-reason contract, same Footer.* copy.
-describe("TabBar — Exportar (moved from Footer, #17/#116)", () => {
-  it("links to the export screen when enabled", () => {
-    renderTabBar({ exportHref: "/pattern/p1/export" });
-    expect(
-      screen.getByRole("link", { name: ptBR.Footer.exportButton }),
-    ).toHaveAttribute("href", "/pattern/p1/export");
+// EDCH-02/redesign-fidelity-pass round 2: Exportar moved here from
+// Footer.tsx as a Link to the dedicated /export screen, then from a Link
+// into opening ExportModal in-editor (Editor.dc.html's own "Exportar").
+describe("TabBar — Exportar (moved from Footer, #17/#116, modal round 2)", () => {
+  it("calls onExport when enabled", async () => {
+    const user = userEvent.setup();
+    const onExport = vi.fn();
+    renderTabBar({ onExport, exportDisabled: false });
+    await user.click(
+      screen.getByRole("button", { name: ptBR.Footer.exportButton }),
+    );
+    expect(onExport).toHaveBeenCalledTimes(1);
   });
 
   it.each([
@@ -91,7 +96,7 @@ describe("TabBar — Exportar (moved from Footer, #17/#116)", () => {
     ["an active conflict", ptBR.Footer.exportDisabledConflictTitle],
     ["a regeneration in progress", ptBR.Footer.exportDisabledGeneratingTitle],
   ])("renders disabled with a reason for %s", (_label, title) => {
-    renderTabBar({ exportHref: null, exportTitle: title });
+    renderTabBar({ exportDisabled: true, exportTitle: title });
     const button = screen.getByRole("button", {
       name: ptBR.Footer.exportButton,
     });
@@ -99,10 +104,12 @@ describe("TabBar — Exportar (moved from Footer, #17/#116)", () => {
     expect(button).toHaveAttribute("title", title);
   });
 
-  it("renders no link at all while disabled", () => {
-    renderTabBar({ exportHref: null, exportTitle: undefined });
+  // Editor.dc.html: "a aba Prova 3D não exporta e esconde o botão" -- not a
+  // permanently-disabled button, no button at all.
+  it("hides the Exportar button entirely on the Prova 3D tab", () => {
+    renderTabBar({ activeTab: "proof3d" });
     expect(
-      screen.queryByRole("link", { name: ptBR.Footer.exportButton }),
+      screen.queryByRole("button", { name: ptBR.Footer.exportButton }),
     ).not.toBeInTheDocument();
   });
 });

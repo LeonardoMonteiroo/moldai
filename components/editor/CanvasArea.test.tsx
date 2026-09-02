@@ -393,15 +393,20 @@ describe("CanvasArea status pill (moved from Footer)", () => {
 });
 
 // EDCH-02: Exportar's gating now flows from CanvasArea into TabBar (#17/#116
-// moved from Footer.tsx) -- same enabled-link/disabled-reason contract.
+// moved from Footer.tsx). Round 2 (redesign-fidelity-pass): Exportar opens
+// ExportModal in-editor instead of linking to the dedicated /export screen.
 describe("CanvasArea Exportar wiring (moved from Footer)", () => {
-  it("links the pattern's export screen when drafted and conflict-free", () => {
+  it("opens the export modal when drafted and conflict-free", async () => {
+    const user = userEvent.setup();
     const pattern = draftedPattern();
     seedCanvas({ pattern });
     renderWithIntl(<CanvasArea />);
+    await user.click(
+      screen.getByRole("button", { name: ptBR.Footer.exportButton }),
+    );
     expect(
-      screen.getByRole("link", { name: ptBR.Footer.exportButton }),
-    ).toHaveAttribute("href", `/pattern/${pattern.id}/export`);
+      screen.getByRole("dialog", { name: ptBR.ExportModal.title2d }),
+    ).toBeInTheDocument();
   });
 
   it("disables with the blank-pattern reason before anything is drafted", () => {

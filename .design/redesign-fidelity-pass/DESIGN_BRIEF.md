@@ -58,6 +58,14 @@ Out of scope. The reference screenshots are desktop-only captures; this pass val
 
 No regressions: any fix must preserve existing `aria-live`/`role` wiring (`ChatPanel`'s `log`, `GeneratingOverlay`'s `status`, load `status`/error `alert` regions per CLAUDE.md), focus order, and contrast (`--color-muted` stays at its WCAG-AA-passing value). A visual fix is never allowed to regress an accessibility invariant already documented in CLAUDE.md.
 
+## Round 2 Addendum (2026-09-02, handoff refresh)
+
+The design handoff was refreshed with `docs/design/screenshots/states/<screen>/*.png` (106 captures: empty, loading, load-error, action-error, dialogs, wizard steps, tabs, content variations) and `Estados de interacao.dc.html`/`estados-de-interacao.png` (a hover/focus/pressed/disabled sheet). None of this existed during Round 1, which only checked each screen's default state. Round 2 covers it, **exhaustively** (all 106, per the designer's explicit choice over a sampled pass).
+
+**One real scope expansion, not a visual fix**: the refreshed Editor section documents "Exportar" opening an **in-editor modal** whose content (title/subtitle/body/download-label) varies by the active tab (Molde 2D / Plano de corte / Ficha técnica — Prova 3D hides the button), backed by three new state screenshots. The current implementation is a `Link` navigating to the dedicated `/pattern/[id]/export` screen. Per the designer's explicit choice, **this modal is now real, in-scope build work** — not a note-and-skip. It is additive: the dedicated `/export` screen (#17, its own checklist/format list) stays as-is; the modal is a second, faster path opened from the editor's tab bar for a quick export without leaving the canvas.
+
+Out-of-scope carryover from Round 1 still applies (no new tokens, no unrelated content changes) except where this addendum explicitly overrides it (the export modal).
+
 ## Out of Scope
 
 - Any new content, copy, or functional behavior change (those four already shipped as #232–#235 and are not being revisited).
