@@ -6,12 +6,12 @@
 
 ## Goals
 
-- [ ] Version cards render in a horizontal scrollable row, each with a real drafted-geometry thumbnail (not a fake icon), matching `Versoes.dc.html:114-144`.
-- [ ] Clicking a card selects it as "De" or "Para" for the compare panel below, per the design's own swap/replace logic (`Versoes.dc.html:243-249`); selection state is shared between the card row and the compare panel (lifted into `VersionsShell`).
-- [ ] `VersionCompare` becomes a controlled component (reads `fromVersion`/`toVersion` from its parent) with no `<Select>` dropdowns of its own.
-- [ ] The "O que mudou" panel matches the design's row layout (label · range · delta) instead of a 2-column card grid, and gains a "Restaurar v{from}" action.
-- [ ] The compare canvas gains the legend row (dashed/solid swatches + "v{from} → v{to}") and the "Frente · Costas · Manga"-style caption, the latter derived from the real drafted piece names, never a hardcoded garment-specific string.
-- [ ] No fabricated data: every rendered field traces to a real `PatternVersionEntry` field or something derivable from it (spec/sizeTable via `draftGarment`/`measureSeams`/`planCutLayout`, all already in use).
+- [x] Version cards render in a horizontal scrollable row, each with a real drafted-geometry thumbnail (not a fake icon), matching `Versoes.dc.html:114-144`.
+- [x] Clicking a card selects it as "De" or "Para" for the compare panel below, per the design's own swap/replace logic (`Versoes.dc.html:243-249`); selection state is shared between the card row and the compare panel (lifted into `VersionsShell`).
+- [x] `VersionCompare` becomes a controlled component (reads `fromVersion`/`toVersion` from its parent) with no `<Select>` dropdowns of its own.
+- [x] The "O que mudou" panel matches the design's row layout (label · range · delta) instead of a 2-column card grid, and gains a "Restaurar v{from}" action.
+- [x] The compare canvas gains the legend row (dashed/solid swatches + "v{from} → v{to}") and the "Frente · Costas · Manga"-style caption, the latter derived from the real drafted piece names, never a hardcoded garment-specific string.
+- [x] No fabricated data: every rendered field traces to a real `PatternVersionEntry` field or something derivable from it (spec/sizeTable via `draftGarment`/`measureSeams`/`planCutLayout`, all already in use).
 
 ## Out of Scope
 
@@ -67,16 +67,16 @@
 
 ## Requirement Traceability
 
-| Requirement ID | Story                  | Phase   | Status  |
-| -------------- | ---------------------- | ------- | ------- |
-| VERS-01        | P1: Version cards      | Execute | Pending |
-| VERS-02        | P1: Version cards      | Execute | Pending |
-| VERS-03        | P1: Version cards      | Execute | Pending |
-| VERS-04        | P1: Version cards      | Execute | Pending |
-| VERS-05        | P2: Controlled compare | Execute | Pending |
-| VERS-06        | P2: Controlled compare | Execute | Pending |
-| VERS-07        | P2: Controlled compare | Execute | Pending |
-| VERS-08        | P2: Controlled compare | Execute | Pending |
+| Requirement ID | Story                  | Phase   | Status   |
+| -------------- | ---------------------- | ------- | -------- |
+| VERS-01        | P1: Version cards      | Execute | Verified |
+| VERS-02        | P1: Version cards      | Execute | Verified |
+| VERS-03        | P1: Version cards      | Execute | Verified |
+| VERS-04        | P1: Version cards      | Execute | Verified |
+| VERS-05        | P2: Controlled compare | Execute | Verified |
+| VERS-06        | P2: Controlled compare | Execute | Verified |
+| VERS-07        | P2: Controlled compare | Execute | Verified |
+| VERS-08        | P2: Controlled compare | Execute | Verified |
 
 **Coverage:** 8 total, 8 mapped, 0 unmapped.
 
@@ -84,8 +84,8 @@
 
 ## Success Criteria
 
-- [ ] `npx vitest run --project dom components/versions` passes.
-- [ ] `npx vitest run` (full suite) passes — no regressions.
-- [ ] `npx eslint` and `npm run build` (typecheck) pass, full repo.
-- [ ] No new hex values, `text-[Npx]` sizes, or hardcoded pt-BR strings.
-- [ ] No database migration, no new `PatternVersion` fields, no fabricated data.
+- [x] `npx vitest run --project dom components/versions` passes (19 → 21 after the integration tests added; final count confirmed at Verifier close-out).
+- [x] `npx vitest run` (full suite) passes — 3111 passed, 3 skipped, no regressions.
+- [x] `npx eslint app lib components` and `npm run build` (typecheck) pass, full repo.
+- [x] No new hex values, `text-[Npx]` sizes, or hardcoded pt-BR strings — confirmed by `moldai-conventions` review (clean).
+- [x] No database migration, no new `PatternVersion` fields, no fabricated data — confirmed by `moldai-conventions` review.
