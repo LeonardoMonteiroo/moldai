@@ -8,11 +8,11 @@ The remaining divergences are visual/content-placement fixes reusing data the sc
 
 ## Goals
 
-- [ ] `/slopers` gets real search (by name) + garment-type filter, mirroring `dashboardStore`'s `search`/`typeFilter`/`filteredPatterns` shape and `PatternGrid`'s control layout, matching `Bases do atelie.dc.html:112-129`.
-- [ ] The screen's description text moves from the top `PageHeader` into the content column, next to the count label, matching `Bases do atelie.dc.html:105-110` — and is rewritten to explain the mechanism (open a pattern, "Salvar como base"), per the design's own copy.
-- [ ] Each card shows a garment-type badge overlaid on its thumbnail, matching `Bases do atelie.dc.html:149`.
-- [ ] The empty state (zero slopers) gains a "Ir para meus moldes" CTA, matching `Bases do atelie.dc.html:137-139`; a distinct "no matches" state covers a nonzero list that a search/filter narrows to zero.
-- [ ] No new content beyond what's needed for search/filter — everything else repositions or restyles data the screen already fetches.
+- [x] `/slopers` gets real search (by name) + garment-type filter, mirroring `dashboardStore`'s `search`/`typeFilter`/`filteredPatterns` shape and `PatternGrid`'s control layout, matching `Bases do atelie.dc.html:112-129`.
+- [x] The screen's description text moves from the top `PageHeader` into the content column, next to the count label, matching `Bases do atelie.dc.html:105-110` — and is rewritten to explain the mechanism (open a pattern, "Salvar como base"), per the design's own copy.
+- [x] Each card shows a garment-type badge overlaid on its thumbnail, matching `Bases do atelie.dc.html:149`.
+- [x] The empty state (zero slopers) gains a "Ir para meus moldes" CTA, matching `Bases do atelie.dc.html:137-139`; a distinct "no matches" state covers a nonzero list that a search/filter narrows to zero.
+- [x] No new content beyond what's needed for search/filter — everything else repositions or restyles data the screen already fetches.
 
 ## Out of Scope
 
@@ -62,14 +62,14 @@ The remaining divergences are visual/content-placement fixes reusing data the sc
 
 ## Requirement Traceability
 
-| Requirement ID | Story              | Phase   | Status  |
-| -------------- | ------------------ | ------- | ------- |
-| SLPR-01        | P1: Search/filter  | Execute | Pending |
-| SLPR-02        | P1: Search/filter  | Execute | Pending |
-| SLPR-03        | P1: Search/filter  | Execute | Pending |
-| SLPR-04        | P2: Content layout | Execute | Pending |
-| SLPR-05        | P2: Content layout | Execute | Pending |
-| SLPR-06        | P2: Content layout | Execute | Pending |
+| Requirement ID | Story              | Phase   | Status   |
+| -------------- | ------------------ | ------- | -------- |
+| SLPR-01        | P1: Search/filter  | Execute | Verified |
+| SLPR-02        | P1: Search/filter  | Execute | Verified |
+| SLPR-03        | P1: Search/filter  | Execute | Verified |
+| SLPR-04        | P2: Content layout | Execute | Verified |
+| SLPR-05        | P2: Content layout | Execute | Verified |
+| SLPR-06        | P2: Content layout | Execute | Verified |
 
 **Coverage:** 6 total, 6 mapped, 0 unmapped.
 
@@ -77,8 +77,8 @@ The remaining divergences are visual/content-placement fixes reusing data the sc
 
 ## Success Criteria
 
-- [ ] `npx vitest run --project dom components/slopers` and `npx vitest run --project node lib/slopersStore.test.ts` (or equivalent) pass.
-- [ ] `npx vitest run` (full suite) passes — no regressions.
-- [ ] `npx eslint` and `npm run build` (typecheck) pass, full repo.
-- [ ] No new hex values, `text-[Npx]` sizes, or hardcoded pt-BR strings.
-- [ ] No database migration, no new `Sloper` fields — filtering runs client-side over the already-fetched list, matching `PatternGrid`.
+- [x] `npx vitest run --project dom components/slopers` (23 tests) and `npx vitest run --project node lib/slopersStore.test.ts` (13 tests) pass.
+- [x] `npx vitest run` (full suite) passes — 3098 passed, 3 skipped, no regressions.
+- [x] `npx eslint app lib components` and `npm run build` (typecheck) pass, full repo.
+- [x] No new hex values, `text-[Npx]` sizes, or hardcoded pt-BR strings — confirmed by `moldai-conventions` review (clean).
+- [x] No database migration, no new `Sloper` fields — filtering runs client-side over the already-fetched list, matching `PatternGrid`.
