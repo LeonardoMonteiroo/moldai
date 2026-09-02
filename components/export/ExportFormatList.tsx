@@ -57,7 +57,13 @@ export function ExportFormatList({
               {t(fmt.labelKey)}
             </span>
             {fmt.noteKey && (
-              <span className="text-muted text-meta leading-snug font-normal">
+              // The Button primitive's base classes force whitespace-nowrap
+              // (correct for a normal one-line label) -- these notes are full
+              // sentences that need to wrap inside the card instead of
+              // overflowing past its right edge (the TechSheetTab.tsx
+              // TableCell precedent for the same primitive-vs-long-text
+              // conflict).
+              <span className="text-muted text-meta w-full leading-snug font-normal whitespace-normal">
                 {t(fmt.noteKey)}
               </span>
             )}
