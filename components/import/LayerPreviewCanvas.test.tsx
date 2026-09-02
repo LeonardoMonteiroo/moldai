@@ -1,8 +1,10 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { renderWithIntl } from "@/components/test-utils";
+import { renderWithIntl, screen, translatorFor } from "@/components/test-utils";
 import { useImportStore } from "@/lib/importStore";
 import { LayerPreviewCanvas } from "./LayerPreviewCanvas";
 import { parseDxf } from "@/lib/import/dxf";
+
+const tImport = translatorFor("Import");
 
 function docFrom(codes: (string | number)[]) {
   return parseDxf(
@@ -47,6 +49,7 @@ describe("LayerPreviewCanvas — per-piece highlight", () => {
       doc,
       hoveredLayers: null,
       hoveredPieceKey: null,
+      roles: {},
     });
   });
 
@@ -59,5 +62,29 @@ describe("LayerPreviewCanvas — per-piece highlight", () => {
     useImportStore.setState({ hoveredPieceKey: "0" });
     const { container } = renderWithIntl(<LayerPreviewCanvas />);
     expect(container.querySelectorAll("path")).toHaveLength(2);
+  });
+});
+
+describe("LayerPreviewCanvas — no-cut-mapped hint", () => {
+  beforeEach(() => {
+    useImportStore.setState({
+      doc,
+      hoveredLayers: null,
+      hoveredPieceKey: null,
+    });
+  });
+
+  it("shows the hint while no layer is mapped to the cut role", () => {
+    useImportStore.setState({ roles: { CUTLAYER: "ignore" } });
+    renderWithIntl(<LayerPreviewCanvas />);
+    expect(screen.getByText(tImport("noCutLineMapped"))).toBeInTheDocument();
+  });
+
+  it("hides the hint once a layer is mapped to the cut role", () => {
+    useImportStore.setState({ roles: { CUTLAYER: "cut" } });
+    renderWithIntl(<LayerPreviewCanvas />);
+    expect(
+      screen.queryByText(tImport("noCutLineMapped")),
+    ).not.toBeInTheDocument();
   });
 });

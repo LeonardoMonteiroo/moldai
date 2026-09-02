@@ -24,6 +24,7 @@ import {
 export function LayerPreviewCanvas() {
   const t = useTranslations("Import");
   const doc = useImportStore((s) => s.doc);
+  const roles = useImportStore((s) => s.roles);
   const hoveredLayers = useImportStore((s) => s.hoveredLayers);
   const hoveredPieceKey = useImportStore((s) => s.hoveredPieceKey);
 
@@ -32,49 +33,61 @@ export function LayerPreviewCanvas() {
   if (preview.segments.length === 0) return null;
 
   const hovered = hoveredLayers ? new Set(hoveredLayers) : null;
+  const hasNoCutMapped = !Object.values(roles).includes("cut");
 
   return (
     <div className="border-border bg-surface rounded-lg border p-[18px]">
       <span className="text-meta text-muted tracking-eyebrow uppercase">
         {t("previewSectionLabel")}
       </span>
-      <svg
-        viewBox={preview.viewBox}
-        aria-hidden="true"
-        className="mt-[10px] h-[280px] w-full lg:h-[calc(100vh-160px)]"
-      >
-        {preview.segments.map((segment) => {
-          const isHighlighted = hovered?.has(segment.layer) ?? false;
-          const isDimmed = hovered !== null && !isHighlighted;
-          return (
-            <path
-              key={segment.layer}
-              d={segment.d}
-              fill="none"
-              stroke={
-                isDimmed ? "var(--color-border)" : colorForLayer(segment.layer)
-              }
-              strokeWidth={isHighlighted ? 2 : 1}
-              opacity={isDimmed ? 0.4 : 1}
-              vectorEffect="non-scaling-stroke"
-            />
-          );
-        })}
-        {hoveredPieceKey &&
-          (() => {
-            const d = buildPiecePreviewPath(doc, hoveredPieceKey);
-            if (!d) return null;
+      <div className="relative">
+        <svg
+          viewBox={preview.viewBox}
+          aria-hidden="true"
+          className="mt-[10px] h-[280px] w-full lg:h-[calc(100vh-160px)]"
+        >
+          {preview.segments.map((segment) => {
+            const isHighlighted = hovered?.has(segment.layer) ?? false;
+            const isDimmed = hovered !== null && !isHighlighted;
             return (
               <path
-                d={d}
+                key={segment.layer}
+                d={segment.d}
                 fill="none"
-                stroke="var(--color-primary)"
-                strokeWidth={3}
+                stroke={
+                  isDimmed
+                    ? "var(--color-border)"
+                    : colorForLayer(segment.layer)
+                }
+                strokeWidth={isHighlighted ? 2 : 1}
+                opacity={isDimmed ? 0.4 : 1}
                 vectorEffect="non-scaling-stroke"
               />
             );
-          })()}
-      </svg>
+          })}
+          {hoveredPieceKey &&
+            (() => {
+              const d = buildPiecePreviewPath(doc, hoveredPieceKey);
+              if (!d) return null;
+              return (
+                <path
+                  d={d}
+                  fill="none"
+                  stroke="var(--color-primary)"
+                  strokeWidth={3}
+                  vectorEffect="non-scaling-stroke"
+                />
+              );
+            })()}
+        </svg>
+        {hasNoCutMapped && (
+          <div className="pointer-events-none absolute inset-x-0 top-[6px] flex items-center justify-center">
+            <span className="text-muted text-ui max-w-[220px] text-center">
+              {t("noCutLineMapped")}
+            </span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

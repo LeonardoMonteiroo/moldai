@@ -16,6 +16,7 @@ vi.mock("@/lib/api-client", async () => {
     createPattern: vi.fn(),
     generate: vi.fn(),
     recordChecklistEvent: vi.fn(() => Promise.resolve()),
+    getAccountSummary: vi.fn(),
   };
 });
 
@@ -456,5 +457,41 @@ describe("createPatternFromImport", () => {
 
     expect(id).toBeNull();
     expect(useImportStore.getState().actionError).toBe("request_failed");
+  });
+});
+
+describe("useImportStore.loadCredits", () => {
+  beforeEach(() => {
+    vi.mocked(api.getAccountSummary).mockReset();
+    useImportStore.setState({ credits: null });
+  });
+
+  it("stores the real balance on success", async () => {
+    vi.mocked(api.getAccountSummary).mockResolvedValue({
+      credits: { plan: "free", balance: 12, total: 30, renewsInDays: 12 },
+      recentUsage: [],
+      checklist: {
+        hasCustomSizeChart: false,
+        hasExported: false,
+        hasImported: false,
+      },
+    });
+
+    await useImportStore.getState().loadCredits();
+
+    expect(useImportStore.getState().credits?.balance).toBe(12);
+  });
+
+  // The balance line is display-only and this screen's analysis step stays
+  // free either way -- a failed fetch must never surface an error state,
+  // the PageHeader precedent (stays null forever, no retry, no banner).
+  it("leaves credits null on failure, without throwing", async () => {
+    vi.mocked(api.getAccountSummary).mockRejectedValue(new Error("boom"));
+
+    await expect(
+      useImportStore.getState().loadCredits(),
+    ).resolves.toBeUndefined();
+
+    expect(useImportStore.getState().credits).toBeNull();
   });
 });

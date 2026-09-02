@@ -27,6 +27,7 @@ export function VerificationPanel() {
   const reset = useImportStore((s) => s.reset);
   const creating = useImportStore((s) => s.creating);
   const actionError = useImportStore((s) => s.actionError);
+  const credits = useImportStore((s) => s.credits);
   const createPatternFromImport = useImportStore(
     (s) => s.createPatternFromImport,
   );
@@ -79,19 +80,26 @@ export function VerificationPanel() {
           actionError !== "image_failed" && (
             <p className="text-ui text-amber-text">{t("createError")}</p>
           )}
-        <div className="flex items-center justify-end gap-[10px]">
-          <Button variant="outline" onClick={reset}>
-            {t("cancelButton")}
-          </Button>
-          <Button
-            disabled={analysis.pieceCount === 0 || creating}
-            onClick={handleImport}
-          >
-            {creating
-              ? t("creatingLabel")
-              : t("createButton", { cost: COSTS.adjust })}
-          </Button>
-          <Badge variant="soon">{t("betaBadge")}</Badge>
+        <div className="flex items-center justify-between gap-[10px]">
+          {credits && (
+            <span className="text-meta text-muted">
+              {t("balanceLabel", { balance: credits.balance })}
+            </span>
+          )}
+          <div className="ml-auto flex items-center gap-[10px]">
+            <Button variant="outline" onClick={reset}>
+              {t("cancelButton")}
+            </Button>
+            <Button
+              disabled={analysis.pieceCount === 0 || creating}
+              onClick={handleImport}
+            >
+              {creating
+                ? t("creatingLabel")
+                : t("createButton", { cost: COSTS.adjust })}
+            </Button>
+            <Badge variant="soon">{t("betaBadge")}</Badge>
+          </div>
         </div>
       </div>
     </div>

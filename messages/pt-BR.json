@@ -1294,6 +1294,8 @@
       "dxf-generic": "DXF genérico"
     },
     "layersSectionLabel": "Camadas detectadas",
+    "layersMappedProgress": "{mapped} de {total} papéis esperados mapeados",
+    "noCutLineMapped": "Nenhuma linha de corte mapeada ainda",
     "layerRole": {
       "cut": "Linha de corte",
       "seam": "Linha de costura",
@@ -1336,6 +1338,7 @@
       "rulFileTruncated": "Arquivo .rul grande demais; parte do conteúdo foi descartada durante a leitura",
       "rulNameMismatch": "O nome do arquivo .rul ({rulName}) não corresponde ao .dxf carregado ({dxfName})"
     },
+    "balanceLabel": "Saldo: {balance, plural, one {# crédito} other {# créditos}}",
     "cancelButton": "Cancelar",
     "createButton": "Importar molde · {cost, plural, one {# crédito} other {# créditos}}",
     "creatingLabel": "Reconstruindo molde…",

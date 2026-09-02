@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { AppShell } from "@/components/shared/AppShell";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -31,6 +32,14 @@ export function ImportShell({ userEmail }: { userEmail: string }) {
   const t = useTranslations("Import");
   const step = useImportStore((s) => s.step);
   const analysis = useImportStore((s) => s.analysis);
+  const loadCredits = useImportStore((s) => s.loadCredits);
+
+  // The top header stays credits-less (design's own choice for this screen)
+  // -- this only feeds VerificationPanel's "Saldo" line, shown next to the
+  // one real paid action here.
+  useEffect(() => {
+    loadCredits();
+  }, [loadCredits]);
 
   return (
     <AppShell

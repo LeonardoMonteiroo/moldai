@@ -44,9 +44,17 @@ export function LayerMappingPanel() {
 
   return (
     <div className="border-border bg-surface flex min-h-0 flex-col gap-[10px] rounded-lg border p-[18px]">
-      <span className="text-meta text-muted tracking-eyebrow uppercase">
-        {t("layersSectionLabel")}
-      </span>
+      <div className="flex items-baseline justify-between gap-[8px]">
+        <span className="text-meta text-muted tracking-eyebrow uppercase">
+          {t("layersSectionLabel")}
+        </span>
+        <span className="text-meta text-muted">
+          {t("layersMappedProgress", {
+            mapped: EXPECTED_ROLES.length - missingExpected.length,
+            total: EXPECTED_ROLES.length,
+          })}
+        </span>
+      </div>
       {missingExpected.length > 0 && (
         <div className="flex flex-wrap gap-[6px]">
           {missingExpected.map((role) => (

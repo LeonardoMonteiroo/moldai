@@ -169,6 +169,12 @@ describe("ImportShell — expected-but-absent role", () => {
         `${tImport("layerRole.seam")}: ${tImport("layerNotFound")}`,
       ),
     ).toBeInTheDocument();
+    // Only "cut" is mapped -- 1 of the 3 expected roles (cut/seam/grain).
+    expect(
+      screen.getByText(
+        tImport("layersMappedProgress", { mapped: 1, total: 3 }),
+      ),
+    ).toBeInTheDocument();
   });
 });
 
@@ -287,8 +293,9 @@ describe("ImportShell — grouped layer preview (#238)", () => {
     setStateWithSamePenAcrossTwoPages();
     renderWithIntl(<ImportShell userEmail="a@b.com" />);
 
-    const previewSvg = screen.getByText(tImport("previewSectionLabel"))
-      .nextElementSibling as SVGSVGElement;
+    const previewSvg = screen
+      .getByText(tImport("previewSectionLabel"))
+      .nextElementSibling!.querySelector("svg") as SVGSVGElement;
     expect(previewSvg.tagName).toBe("svg");
     expect(previewSvg.querySelectorAll("path")).toHaveLength(2);
   });

@@ -77,6 +77,27 @@ beforeEach(() => {
     pieceLabels: {},
     creating: false,
     actionError: null,
+    credits: null,
+  });
+});
+
+describe("VerificationPanel — balance line", () => {
+  it("shows the real balance next to the paid action, once credits have loaded", () => {
+    useImportStore.setState({
+      credits: { plan: "free", balance: 12, total: 30, renewsInDays: 12 },
+    });
+    renderWithIntl(<VerificationPanel />);
+    expect(
+      screen.getByText(tImport("balanceLabel", { balance: 12 })),
+    ).toBeInTheDocument();
+  });
+
+  it("omits the balance line entirely while credits haven't loaded", () => {
+    useImportStore.setState({ credits: null });
+    renderWithIntl(<VerificationPanel />);
+    expect(
+      screen.queryByText(tImport("balanceLabel", { balance: 12 })),
+    ).not.toBeInTheDocument();
   });
 });
 

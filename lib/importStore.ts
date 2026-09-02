@@ -12,6 +12,7 @@ import { errorCode } from "./api-client";
 import { detectPieces, type DetectedPiece } from "./import/pieces";
 import { buildReconstructionContext } from "./import/reconstructMeta";
 import { prepareImage } from "./editor/attachment";
+import type { Credits } from "./types";
 
 /**
  * Client-side cap on the *source* file, mirroring lib/editor/attachment.ts's
@@ -76,7 +77,19 @@ interface ImportStore {
   pendingPatternId: string | null;
   /** Code for the last failed `.RUL` pick, or null — independent of `actionError`: a RUL companion is additive, so its own failure must never block the DXF-only flow. */
   rulActionError: RulPickErrorCode | null;
+  /**
+   * The account's real balance, shown next to the "Importar molde" button's
+   * real cost — analysis itself stays free (the screen's top badge already
+   * says so without needing this fetch), but the import action charges
+   * COSTS.adjust, so this is the "show the cost where the paid action is"
+   * pattern already established elsewhere, not a re-litigation of the
+   * screen's own free-analysis framing. Null forever on failure -- the
+   * balance line is simply absent, the same PageHeader precedent (never a
+   * loading placeholder or error state for a display-only figure).
+   */
+  credits: Credits | null;
   pick: (file: File) => Promise<void>;
+  loadCredits: () => Promise<void>;
   /** Attaches an optional `.RUL` companion's grading-rule summary onto `analysis.rul`. No-op before a DXF has been picked. */
   pickRul: (file: File) => Promise<void>;
   /** Drops the attached `.RUL` summary so the user can pick a different companion file. */
@@ -135,6 +148,17 @@ export const useImportStore = create<ImportStore>((set, get) => ({
   actionError: null,
   pendingPatternId: null,
   rulActionError: null,
+  credits: null,
+
+  loadCredits: async () => {
+    try {
+      const { credits } = await api.getAccountSummary();
+      set({ credits });
+    } catch {
+      // Stays null -- the balance line is simply absent, never a broken
+      // fetch surfaced on a screen whose analysis step is otherwise free.
+    }
+  },
 
   pick: async (file) => {
     set({ actionError: null, loading: true });
