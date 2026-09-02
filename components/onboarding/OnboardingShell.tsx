@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import { Wordmark } from "@/components/shared/Wordmark";
 import * as api from "@/lib/api-client";
@@ -131,21 +132,15 @@ export function OnboardingShell({ credits }: { credits: Credits }) {
     <div className="bg-paper flex h-full justify-center overflow-y-auto px-4 py-8">
       <div className="bg-surface border-border rounded-card shadow-card my-auto w-full max-w-[600px] border p-7">
         <Wordmark />
-        <div className="mt-4 flex items-center gap-[6px]">
-          {([1, 2, 3] as Step[]).map((s) => (
-            <span
-              key={s}
-              aria-hidden="true"
-              className={
-                s === step
-                  ? "bg-olive size-[9px] rounded-full"
-                  : "border-border size-[9px] rounded-full border"
-              }
-            />
-          ))}
-          <span className="text-muted text-meta ml-1">
+        <div className="mt-[18px] flex flex-col gap-[6px]">
+          <span className="text-muted-2 text-meta tracking-eyebrow font-semibold uppercase">
             {t("stepLabel", { n: step })}
           </span>
+          <Progress
+            value={Math.round((step / 3) * 100)}
+            aria-label={t("stepLabel", { n: step })}
+            className="bg-track h-[6px]"
+          />
         </div>
 
         {step === 1 && (
@@ -190,7 +185,7 @@ export function OnboardingShell({ credits }: { credits: Credits }) {
                     className={
                       "rounded-item flex flex-col gap-1 border p-[14px] text-left transition-colors " +
                       (selected
-                        ? "border-olive bg-olive-tint border-[1.5px]"
+                        ? "border-olive bg-olive-tint border-2"
                         : "border-border hover:bg-surface-alt")
                     }
                   >

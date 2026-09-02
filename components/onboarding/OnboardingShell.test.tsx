@@ -67,6 +67,36 @@ describe("OnboardingShell", () => {
     vi.mocked(api.completeOnboarding).mockResolvedValue({ status: "ok" });
   });
 
+  // Onboarding.dc.html:30 uses a real linear progress bar under the step
+  // label, not a dot stepper -- value tracks step/3 (33/67/100%).
+  it("shows a progress bar tracking the current step, not a dot stepper", async () => {
+    const user = userEvent.setup();
+    renderWithIntl(<OnboardingShell credits={CREDITS} />);
+
+    const bar = screen.getByRole("progressbar");
+    expect(bar).toHaveAttribute("aria-valuenow", "33");
+
+    await goToStep2(user);
+    expect(screen.getByRole("progressbar")).toHaveAttribute(
+      "aria-valuenow",
+      "67",
+    );
+  });
+
+  // Onboarding.dc.html:161's selected work-style option uses a 2px border
+  // ("border-2 border-olive"), not the app's earlier 1.5px.
+  it("marks a selected work-style option with a 2px olive border", async () => {
+    const user = userEvent.setup();
+    renderWithIntl(<OnboardingShell credits={CREDITS} />);
+
+    const option = screen.getByRole("radio", {
+      name: ptBR.Onboarding.step1.brand.title,
+    });
+    expect(option).not.toHaveClass("border-2");
+    await user.click(option);
+    expect(option).toHaveClass("border-2", "border-olive");
+  });
+
   it("shows step 1 of 3 first, and Continuar is disabled until a work style is chosen", async () => {
     const user = userEvent.setup();
     renderWithIntl(<OnboardingShell credits={CREDITS} />);
