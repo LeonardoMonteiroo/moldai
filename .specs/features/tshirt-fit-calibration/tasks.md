@@ -12,7 +12,7 @@ review, Verifier, discrimination sensor).
 ---
 
 **Design**: `.specs/features/tshirt-fit-calibration/design.md`
-**Status**: Draft
+**Status**: In Progress
 
 ---
 
@@ -262,7 +262,7 @@ rectilinearPerimeterCm, curvePerimeterCm, widthCm, heightCm}` matching
 
 ---
 
-### T6: Full regression sweep and AC8 verification
+### T6: Full regression sweep and AC8 verification ✅ Complete — `npm test` 3057 passed/3 skipped/0 failed (both projects); `npm run build` clean (TS check included); `npm run lint` clean for every file this feature touched (6 pre-existing, unrelated errors remain in vendored `.claude/skills/mermaid-studio` and `.claude/skills/playwright-skill` scripts — not touched by this feature, not introduced by it); `git diff` on `garment.ts` confirms every change is gated on `spec.type === "tshirt"`, and no `blouse`/`dress`/`skirt`/`trousers` file was modified. No fix needed — no commit for this task.
 
 **What**: Run the full test suite and lint/build gates; fix any other pre-existing test this
 feature's changes broke that wasn't already covered in T1-T4 (a stray assertion the earlier

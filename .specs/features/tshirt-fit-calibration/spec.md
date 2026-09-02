@@ -173,23 +173,23 @@ and the collar piece's presence/height all change as ACs 1-4 specify, and that
 
 ## Requirement Traceability
 
-| Requirement ID | Story                     | Phase  | Status       |
-| -------------- | ------------------------- | ------ | ------------ |
-| TSHIRT-01      | P1: Tuned t-shirt drafter | Tasks  | Implementing |
-| TSHIRT-02      | P1: Tuned t-shirt drafter | Tasks  | Implementing |
-| TSHIRT-03      | P1: Tuned t-shirt drafter | Tasks  | Implementing |
-| TSHIRT-04      | P1: Tuned t-shirt drafter | Tasks  | Implementing |
-| TSHIRT-05      | P1: Tuned t-shirt drafter | Tasks  | Implementing |
-| TSHIRT-06      | P1: Tuned t-shirt drafter | Tasks  | Implementing |
-| TSHIRT-07      | P1: Tuned t-shirt drafter | Tasks  | Implementing |
-| TSHIRT-08      | P1: Tuned t-shirt drafter | Design | Pending      |
-| TSHIRT-09      | P1: Tuned t-shirt drafter | Design | Pending      |
+| Requirement ID | Story                     | Phase | Status       |
+| -------------- | ------------------------- | ----- | ------------ |
+| TSHIRT-01      | P1: Tuned t-shirt drafter | Tasks | Implementing |
+| TSHIRT-02      | P1: Tuned t-shirt drafter | Tasks | Implementing |
+| TSHIRT-03      | P1: Tuned t-shirt drafter | Tasks | Implementing |
+| TSHIRT-04      | P1: Tuned t-shirt drafter | Tasks | Implementing |
+| TSHIRT-05      | P1: Tuned t-shirt drafter | Tasks | Implementing |
+| TSHIRT-06      | P1: Tuned t-shirt drafter | Tasks | Implementing |
+| TSHIRT-07      | P1: Tuned t-shirt drafter | Tasks | Implementing |
+| TSHIRT-08      | P1: Tuned t-shirt drafter | Tasks | Implementing |
+| TSHIRT-09      | P1: Tuned t-shirt drafter | Tasks | Implementing |
 
 **ID format:** `TSHIRT-NN`, matching AC numbers 1-9 above 1:1.
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 9 total, 0 mapped to tasks, 9 unmapped ⚠️ (Design/Tasks phase not yet run)
+**Coverage:** 9 total, 9 mapped to tasks (T1-T5), 0 unmapped
 
 ---
 

@@ -1,7 +1,7 @@
 # T-Shirt Fit Calibration Design
 
 **Spec**: `.specs/features/tshirt-fit-calibration/spec.md`
-**Status**: Draft
+**Status**: In Progress
 
 ---
 
