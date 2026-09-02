@@ -90,9 +90,28 @@ describe("Sidebar", () => {
     expect(entry).toBeEnabled();
     await user.click(entry);
     expect(push).toHaveBeenCalledWith("/import");
-    // /import renders no sidebar (the /size-charts precedent), so this
-    // entry is never the active one — matching measurementsLabel's own
-    // hardcoded isActive={false}.
+    // /import renders no sidebar, so this entry is never the active one.
     expect(entry).not.toHaveAttribute("aria-current");
+  });
+
+  it("marks the active section and navigates home from the size-charts screen", async () => {
+    const user = userEvent.setup();
+    renderWithIntl(<Sidebar active="size-charts" onNewPattern={vi.fn()} />);
+
+    expect(
+      screen.getByRole("button", { name: ptBR.Sidebar.measurementsLabel }),
+    ).toHaveAttribute("aria-current", "page");
+    await user.click(
+      screen.getByRole("button", { name: ptBR.Sidebar.myPatternsLabel }),
+    );
+    expect(push).toHaveBeenCalledWith("/");
+  });
+
+  it("omits the new-pattern button when the screen owns no such action", () => {
+    renderWithIntl(<Sidebar active="size-charts" />);
+
+    expect(
+      screen.queryByRole("button", { name: ptBR.Sidebar.newPatternButton }),
+    ).not.toBeInTheDocument();
   });
 });

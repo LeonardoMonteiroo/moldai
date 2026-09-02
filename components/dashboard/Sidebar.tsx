@@ -41,9 +41,12 @@ export function Sidebar({
   onNewPattern,
   disabled,
 }: {
-  active: "patterns" | "slopers";
-  /** Owned by the screen, so its store is the one that records a failure. */
-  onNewPattern: () => void;
+  active: "patterns" | "slopers" | "size-charts";
+  /** Owned by the screen, so its store is the one that records a failure.
+   *  Omitted on /size-charts — the design's sidebar there has no "＋ Novo
+   *  molde" button, and creating a blank pattern isn't that screen's action
+   *  (the library column already offers "＋ Nova grade"). */
+  onNewPattern?: () => void;
   disabled?: boolean;
 }) {
   const t = useTranslations("Sidebar");
@@ -57,10 +60,9 @@ export function Sidebar({
           isActive={active === "patterns"}
           onSelect={() => router.push("/")}
         />
-        {/* /size-charts renders no sidebar, so this entry is never the active one. */}
         <NavItem
           label={t("measurementsLabel")}
-          isActive={false}
+          isActive={active === "size-charts"}
           onSelect={() => router.push("/size-charts")}
         />
         <NavItem
@@ -73,8 +75,7 @@ export function Sidebar({
             beta exists at /import would be the exact silent-limitation
             failure CLAUDE.md forbids, the inverse of the /slopers rollout
             (disabled+badged until the screen existed, then a real NavItem).
-            /import renders no sidebar (the /size-charts precedent just
-            above), so this entry is never the active one either. */}
+            /import renders no sidebar, so this entry is never the active one. */}
         <NavItem
           label={t("importLabel")}
           isActive={false}
@@ -82,9 +83,11 @@ export function Sidebar({
         />
       </nav>
       <div className="flex-1" />
-      <Button onClick={onNewPattern} disabled={disabled}>
-        {t("newPatternButton")}
-      </Button>
+      {onNewPattern && (
+        <Button onClick={onNewPattern} disabled={disabled}>
+          {t("newPatternButton")}
+        </Button>
+      )}
     </div>
   );
 }
