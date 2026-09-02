@@ -1040,15 +1040,22 @@
     "loadError": "Não foi possível carregar o histórico de versões. Tente recarregar a página."
   },
   "VersionList": {
+    "sectionLabel": "Versões",
+    "compareHint": "clique em duas para comparar",
     "versionLabel": "v{version}",
     "costFree": "grátis",
     "costCredits": "{cost, plural, one {# crédito} other {# créditos}}",
     "restoreButton": "Restaurar v{version}",
+    "currentVersionLabel": "Versão atual",
     "totalSpent": "Total gasto neste molde: {total, plural, one {# crédito} other {# créditos}}",
     "restoreModalTitle": "Restaurar v{version}?",
     "restoreModalDescription": "Isso cria uma nova versão a partir da versão selecionada. O histórico do chat não é restaurado, e nada é apagado.",
     "restoreModalConfirmButton": "Restaurar",
     "restoreModalCancelButton": "Cancelar",
+    "fromBadge": "De",
+    "toBadge": "Para",
+    "selectHint": "Comparar v{version}",
+    "selectedHint": "Selecionada para comparação",
     "reason": {
       "generate": "Geração inicial",
       "adjust": "Ajuste",
@@ -1059,11 +1066,9 @@
   },
   "VersionCompare": {
     "needsTwoVersions": "É preciso pelo menos duas versões para comparar.",
-    "fromLabel": "De",
-    "toLabel": "Para",
-    "versionOption": "v{version}",
     "overlayToggle": "Sobrepor",
     "overlayAriaLabel": "Comparação entre v{from} e v{to}",
+    "whatChangedTitle": "O que mudou",
     "armholeDeltaLabel": "Cava",
     "lengthDeltaLabel": "Comprimento",
     "consumptionDeltaLabel": "Consumo"

@@ -35,6 +35,10 @@ const badgeVariants = cva(
           "border-border bg-surface-alt text-muted text-tick font-semibold tracking-eyebrow uppercase",
         olive:
           "border-olive-border bg-olive-tint text-olive text-tick font-semibold tracking-eyebrow uppercase",
+        // The heavier of the two version-compare selection badges ("Para") --
+        // "olive" (tinted) is the lighter one ("De").
+        oliveSolid:
+          "border-transparent bg-olive text-white text-tick font-semibold tracking-eyebrow uppercase",
       },
       // A size label on a graded pattern is a square mark, not a rounded tag —
       // and five pill-shaped chips overflowed the size popover.
