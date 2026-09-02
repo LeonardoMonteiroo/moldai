@@ -134,6 +134,54 @@ export function SizeChartTable() {
             className="font-display text-body h-auto w-auto py-1 font-semibold"
           />
         )}
+        {/* State badge: only the two cases the design shows a label for --
+            never claims "grade ativa" for every editable chart the way the
+            design's own single-editable-chart demo data does. */}
+        {readOnly ? (
+          <span className="border-border bg-surface-alt text-muted rounded-full border px-2 py-0.5 text-[10px] font-bold tracking-[0.08em] uppercase">
+            {t("systemChartBadge")}
+          </span>
+        ) : (
+          isActive && (
+            <span className="border-olive-border bg-olive-tint text-olive rounded-full border px-2 py-0.5 text-[10px] font-bold tracking-[0.08em] uppercase">
+              {t("activeSizeChartNote")}
+            </span>
+          )
+        )}
+        <div className="flex-1" />
+        {!readOnly && (
+          <Button
+            variant={editingRule ? "soft" : "outline"}
+            size="chrome"
+            onClick={() => setEditingRule(!editingRule)}
+          >
+            {editingRule ? t("doneEditingRuleButton") : t("editRuleButton")}
+          </Button>
+        )}
+        <Button
+          variant="outline"
+          size="chrome"
+          onClick={() => duplicate(selectedId)}
+        >
+          {t("duplicateButton")}
+        </Button>
+        {!readOnly && (
+          <Button
+            variant="destructiveOutline"
+            size="chrome"
+            onClick={() => remove(selectedId)}
+          >
+            {t("deleteButton")}
+          </Button>
+        )}
+        {readOnly && !isActive && (
+          <Button size="chrome" onClick={() => activate(selectedId)}>
+            {t("useSizeChartButton")}
+          </Button>
+        )}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 gap-y-[8px]">
         <Select
           value={draft.bodyType}
           disabled={readOnly}
@@ -167,36 +215,18 @@ export function SizeChartTable() {
           {t("bodyTypeNote")}
         </span>
         <div className="flex-1" />
-        {!readOnly && (
-          <Button
-            variant={editingRule ? "soft" : "outline"}
-            size="chrome"
-            onClick={() => setEditingRule(!editingRule)}
-          >
-            {editingRule ? t("doneEditingRuleButton") : t("editRuleButton")}
-          </Button>
+        {readOnly && (
+          <span className="text-muted text-meta">
+            {t("systemReadOnlyNote")}
+          </span>
         )}
-        <Button
-          variant="outline"
-          size="chrome"
-          onClick={() => duplicate(selectedId)}
-        >
-          {t("duplicateButton")}
-        </Button>
         {!readOnly && (
-          <Button
-            variant="destructiveOutline"
-            size="chrome"
-            onClick={() => remove(selectedId)}
-          >
-            {t("deleteButton")}
-          </Button>
+          <span className="text-muted text-meta flex items-center gap-[6px]">
+            <span className="bg-olive size-[5px] rounded-full" />
+            {t("overrideLegend")}
+          </span>
         )}
       </div>
-
-      {readOnly && (
-        <span className="text-muted text-meta">{t("systemReadOnlyNote")}</span>
-      )}
 
       <div className="border-border rounded-card bg-surface overflow-x-auto border">
         <div className="bg-surface-alt border-border text-muted text-meta tracking-eyebrow flex border-b px-[14px] py-[10px] font-semibold uppercase">

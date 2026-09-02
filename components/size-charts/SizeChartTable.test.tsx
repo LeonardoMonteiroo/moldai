@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import {
   renderWithIntl,
   ptBR,
@@ -318,6 +318,138 @@ describe("SizeChartTable progression card", () => {
 // #133: bodyType is documented as descriptive metadata that never affects
 // the drafted geometry -- the control has to say so on screen, not just in
 // CLAUDE.md, or a user reasonably assumes changing it reshapes the pattern.
+// The header row's state badge/activate button reflect the REAL isActive
+// flag, not "every editable chart" the design's own single-editable-chart
+// demo data implies -- an inactive custom chart must not read as active.
+describe("SizeChartTable header state", () => {
+  it("badges a read-only chart as a system chart, with a header activate button", async () => {
+    seed({ isSystem: true });
+    useSizeChartsStore.setState({
+      charts: [
+        {
+          id: "g1",
+          updatedAt: "2026-08-21T00:00:00.000Z",
+          isActive: false,
+          ...BASE,
+          isSystem: true,
+        } as SizeChartListEntry,
+      ],
+    });
+    const realActivate = useSizeChartsStore.getState().activate;
+    const activate = vi.fn();
+    useSizeChartsStore.setState({ activate });
+    const user = userEvent.setup();
+    renderWithIntl(<SizeChartTable />);
+
+    expect(
+      screen.getByText(ptBR.SizeChartTable.systemChartBadge),
+    ).toBeInTheDocument();
+    const activateButtons = screen.getAllByRole("button", {
+      name: ptBR.SizeChartTable.useSizeChartButton,
+    });
+    // One in the header row (new), one at the bottom of the page (unchanged).
+    expect(activateButtons).toHaveLength(2);
+    await user.click(activateButtons[0]);
+    expect(activate).toHaveBeenCalledWith("g1");
+    useSizeChartsStore.setState({ activate: realActivate });
+  });
+
+  it("shows no header activate button once a read-only chart is the real active one", () => {
+    seed({ isSystem: true });
+    useSizeChartsStore.setState({
+      charts: [
+        {
+          id: "g1",
+          updatedAt: "2026-08-21T00:00:00.000Z",
+          isActive: true,
+          ...BASE,
+          isSystem: true,
+        } as SizeChartListEntry,
+      ],
+    });
+    renderWithIntl(<SizeChartTable />);
+
+    expect(
+      screen.queryByRole("button", {
+        name: ptBR.SizeChartTable.useSizeChartButton,
+      }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText(ptBR.SizeChartTable.systemChartBadge),
+    ).toBeInTheDocument();
+  });
+
+  it("badges the real active editable chart, with no header activate button", () => {
+    seed();
+    useSizeChartsStore.setState({
+      charts: [
+        {
+          id: "g1",
+          updatedAt: "2026-08-21T00:00:00.000Z",
+          isActive: true,
+          ...BASE,
+        } as SizeChartListEntry,
+      ],
+    });
+    renderWithIntl(<SizeChartTable />);
+
+    // "Grade ativa" also labels the (disabled) bottom activate button --
+    // the badge itself is the non-button occurrence.
+    const matches = screen.getAllByText(
+      ptBR.SizeChartTable.activeSizeChartNote,
+    );
+    expect(matches.some((el) => el.tagName !== "BUTTON")).toBe(true);
+    expect(
+      screen.queryByRole("button", {
+        name: ptBR.SizeChartTable.useSizeChartButton,
+      }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows no badge for an inactive editable chart, and keeps its bottom activate button", () => {
+    seed();
+    renderWithIntl(<SizeChartTable />);
+
+    expect(
+      screen.queryByText(ptBR.SizeChartTable.activeSizeChartNote),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(ptBR.SizeChartTable.systemChartBadge),
+    ).not.toBeInTheDocument();
+    // The design gives no header placement for this case -- the only real
+    // activate affordance stays at the bottom of the page, unchanged.
+    expect(
+      screen.getByRole("button", {
+        name: ptBR.SizeChartTable.useSizeChartButton,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows the override-legend caption for an editable chart, not the read-only note", () => {
+    seed();
+    renderWithIntl(<SizeChartTable />);
+
+    expect(
+      screen.getByText(ptBR.SizeChartTable.overrideLegend),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(ptBR.SizeChartTable.systemReadOnlyNote),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows the read-only note for a system chart, not the override legend", () => {
+    seed({ isSystem: true });
+    renderWithIntl(<SizeChartTable />);
+
+    expect(
+      screen.getByText(ptBR.SizeChartTable.systemReadOnlyNote),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(ptBR.SizeChartTable.overrideLegend),
+    ).not.toBeInTheDocument();
+  });
+});
+
 describe("SizeChartTable body type note", () => {
   it("states that the body type is descriptive and does not affect the draft", () => {
     seed();

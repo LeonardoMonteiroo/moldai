@@ -154,10 +154,10 @@ T5
 
 **Done when**:
 
-- [ ] Badge shows "Grade do sistema" (readOnly), "Grade ativa" (real `isActive`), or nothing
-- [ ] Read-only header row shows "Usar esta grade" calling `activate(selectedId)`; absent when editable
-- [ ] Bottom activate button still renders unconditionally (regression guard)
-- [ ] Editable second row shows the override-legend caption; `systemReadOnlyNote` moved into that row for readOnly
+- [x] Badge shows "Grade do sistema" (readOnly), "Grade ativa" (real `isActive`), or nothing
+- [x] Read-only header row shows "Usar esta grade" calling `activate(selectedId)`; absent when editable
+- [x] Bottom activate button still renders unconditionally (regression guard)
+- [x] Editable second row shows the override-legend caption; `systemReadOnlyNote` moved into that row for readOnly
 
 **Tests**: unit
 **Gate**: quick
