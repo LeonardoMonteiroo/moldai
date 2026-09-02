@@ -103,4 +103,59 @@ describe("SizeChartLibrary", () => {
       screen.queryByText(ptBR.SizeChartLibrary.houseStandardNote),
     ).not.toBeInTheDocument();
   });
+
+  // The design groups system vs. custom charts under two labeled sections
+  // instead of one flat list -- both derive from the isSystem flag the
+  // cards already branch on, so a mixed list has to split correctly.
+  it("groups charts under labeled system/custom sections", () => {
+    useSizeChartsStore.setState({
+      charts: [
+        chart({ id: "sys1", name: "Feminino adulto", isSystem: true }),
+        chart({ id: "mine1", name: "Grade do ateliê", isSystem: false }),
+      ],
+    });
+
+    renderWithIntl(<SizeChartLibrary />);
+
+    expect(
+      screen.getByText(ptBR.SizeChartLibrary.systemSectionLabel),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(ptBR.SizeChartLibrary.myChartsSectionLabel),
+    ).toBeInTheDocument();
+    // The note renders once per group, not once per card.
+    expect(
+      screen.getAllByText(ptBR.SizeChartLibrary.houseStandardNote),
+    ).toHaveLength(1);
+  });
+
+  it("omits a section header for a group with no charts", () => {
+    useSizeChartsStore.setState({
+      charts: [chart({ id: "sys1", isSystem: true })],
+    });
+
+    renderWithIntl(<SizeChartLibrary />);
+
+    expect(
+      screen.queryByText(ptBR.SizeChartLibrary.myChartsSectionLabel),
+    ).not.toBeInTheDocument();
+  });
+
+  // The design places "＋ Nova grade" before the import trigger; the two
+  // used to be swapped.
+  it("renders the new-chart button before the import trigger", () => {
+    useSizeChartsStore.setState({ charts: [] });
+
+    renderWithIntl(<SizeChartLibrary />);
+
+    const buttons = screen.getAllByRole("button");
+    const newChartIndex = buttons.findIndex(
+      (b) => b.textContent === ptBR.SizeCharts.newSizeChartButton,
+    );
+    const importIndex = buttons.findIndex((b) =>
+      b.textContent?.includes("Importar"),
+    );
+    expect(newChartIndex).toBeGreaterThanOrEqual(0);
+    expect(importIndex).toBeGreaterThan(newChartIndex);
+  });
 });

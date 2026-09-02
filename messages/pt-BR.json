@@ -865,6 +865,8 @@
     }
   },
   "SizeChartLibrary": {
+    "systemSectionLabel": "Do sistema",
+    "myChartsSectionLabel": "Minhas grades",
     "systemBadge": "padrão do sistema",
     "customBadge": "minha grade",
     "activeBadge": "ativa",
@@ -892,6 +894,8 @@
     "progressionTitle": "Progressão",
     "useSizeChartButton": "Usar esta grade",
     "activeSizeChartNote": "Grade ativa",
+    "systemChartBadge": "Grade do sistema",
+    "overrideLegend": "valor ajustado à mão, fora da regra",
     "saveButton": "Salvar alterações",
     "saveButtonSaving": "Salvando…",
     "systemReadOnlyNote": "Grades do sistema não podem ser editadas. Duplique para personalizar.",
