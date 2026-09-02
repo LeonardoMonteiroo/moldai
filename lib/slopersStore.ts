@@ -1,7 +1,9 @@
 import { create } from "zustand";
 import * as api from "./api-client";
 import { errorCode } from "./api-client";
-import type { SloperListItem } from "./types";
+import type { GarmentType, SloperListItem } from "./types";
+
+export type SloperTypeFilter = GarmentType | "all";
 
 interface SlopersStore {
   ready: boolean;
@@ -14,12 +16,16 @@ interface SlopersStore {
    */
   actionError: string | null;
   slopers: SloperListItem[];
+  search: string;
+  typeFilter: SloperTypeFilter;
   init: () => Promise<void>;
   /** Blank when called with no id, drafted from the base when given one. */
   createPattern: (sloperId?: string) => Promise<string | null>;
   rename: (id: string, name: string) => Promise<void>;
   remove: (id: string) => Promise<void>;
   clearActionError: () => void;
+  setSearch: (q: string) => void;
+  setTypeFilter: (t: SloperTypeFilter) => void;
 }
 
 export const useSlopersStore = create<SlopersStore>((set) => ({
@@ -27,6 +33,8 @@ export const useSlopersStore = create<SlopersStore>((set) => ({
   error: false,
   actionError: null,
   slopers: [],
+  search: "",
+  typeFilter: "all",
 
   init: async () => {
     set({ ready: false, error: false });
@@ -74,4 +82,24 @@ export const useSlopersStore = create<SlopersStore>((set) => ({
   },
 
   clearActionError: () => set({ actionError: null }),
+
+  setSearch: (search) => set({ search }),
+  setTypeFilter: (typeFilter) => set({ typeFilter }),
 }));
+
+// Pure — takes a slice matching the store's shape so it's usable both from a
+// live store snapshot and directly in tests. Mirrors dashboardStore's
+// filteredPatterns exactly.
+export function filteredSlopers(state: {
+  slopers: SloperListItem[];
+  search: string;
+  typeFilter: SloperTypeFilter;
+}): SloperListItem[] {
+  const q = state.search.trim().toLowerCase();
+  return state.slopers.filter((s) => {
+    const matchesSearch = !q || s.name.toLowerCase().includes(q);
+    const matchesType =
+      state.typeFilter === "all" || s.garmentType === state.typeFilter;
+    return matchesSearch && matchesType;
+  });
+}

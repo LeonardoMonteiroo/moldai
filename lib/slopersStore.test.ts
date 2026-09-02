@@ -16,7 +16,7 @@ vi.mock("./api-client", async () => {
 
 import * as api from "./api-client";
 import { ApiError } from "./api-client";
-import { useSlopersStore } from "./slopersStore";
+import { useSlopersStore, filteredSlopers } from "./slopersStore";
 
 function sloper(overrides: Partial<SloperListItem> = {}): SloperListItem {
   return {
@@ -36,6 +36,8 @@ function resetStore() {
     error: false,
     actionError: null,
     slopers: [],
+    search: "",
+    typeFilter: "all",
   });
 }
 
@@ -191,5 +193,36 @@ describe("slopersStore.createPattern", () => {
 
     expect(api.createPattern).toHaveBeenCalledWith("s1");
     expect(id).toBe("p1");
+  });
+});
+
+describe("filteredSlopers", () => {
+  const slopers = [
+    sloper({ id: "s1", name: "Base vestido festa", garmentType: "dress" }),
+    sloper({ id: "s2", name: "Base camiseta básica", garmentType: "tshirt" }),
+    sloper({ id: "s3", name: "Base vestido curto", garmentType: "dress" }),
+  ];
+
+  it("filters by case-insensitive name search", () => {
+    const out = filteredSlopers({
+      slopers,
+      search: "vestido",
+      typeFilter: "all",
+    });
+    expect(out.map((s) => s.id)).toEqual(["s1", "s3"]);
+  });
+
+  it("filters by garment type", () => {
+    const out = filteredSlopers({ slopers, search: "", typeFilter: "tshirt" });
+    expect(out.map((s) => s.id)).toEqual(["s2"]);
+  });
+
+  it("combines search and type filter", () => {
+    const out = filteredSlopers({
+      slopers,
+      search: "curto",
+      typeFilter: "dress",
+    });
+    expect(out.map((s) => s.id)).toEqual(["s3"]);
   });
 });
