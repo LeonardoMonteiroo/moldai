@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 17,
+  "next_id": 18,
   "lessons": [
     {
       "id": "L-001",
@@ -248,6 +248,22 @@
       ],
       "created": "2026-09-02T13:32:42Z",
       "last_seen": "2026-09-02T13:32:42Z"
+    },
+    {
+      "id": "L-017",
+      "key": "surviving_mutant::a silent catch store method s failure test must assert the error action error field stays untouched not just that the primary field stays null unset a mutant that adds a side effect error set in the catch block otherwise survives",
+      "text": "A silent-catch store method's failure test must assert the error/action-error field stays untouched, not just that the primary field stays null/unset -- a mutant that adds a side-effect error set() in the catch block otherwise survives.",
+      "signal": "surviving_mutant",
+      "scope": "lib/*Store.ts,lib/*.test.ts",
+      "status": "candidate",
+      "features": ["redesign-import"],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "lib/importStore.test.ts:488-497 (lib/*Store.ts,lib/*.test.ts)"
+      ],
+      "created": "2026-09-02T15:59:04Z",
+      "last_seen": "2026-09-02T15:59:04Z"
     }
   ]
 }

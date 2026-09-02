@@ -494,4 +494,17 @@ describe("useImportStore.loadCredits", () => {
 
     expect(useImportStore.getState().credits).toBeNull();
   });
+
+  // A failed balance fetch must stay fully silent -- VerificationPanel
+  // renders its own createError message off actionError !== "image_failed",
+  // so a loadCredits() failure that touched actionError would silently
+  // poison an unrelated part of that screen's UI.
+  it("leaves actionError untouched on failure", async () => {
+    useImportStore.setState({ actionError: null });
+    vi.mocked(api.getAccountSummary).mockRejectedValue(new Error("boom"));
+
+    await useImportStore.getState().loadCredits();
+
+    expect(useImportStore.getState().actionError).toBeNull();
+  });
 });

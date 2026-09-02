@@ -126,6 +126,13 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: VersionCompare.tsx:288 unchanged-color class (components/versions)
 - last seen: 2026-09-02T13:32:42Z
 
+### L-017 - A silent-catch store method's failure test must assert the error/action-error field stays untouched, not just that the primary field stays null/unset -- a mutant that adds a side-effect error set() in the catch block otherwise survives.
+
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `lib/*Store.ts,lib/*.test.ts` · harmful: 0
+- features: redesign-import
+- evidence: lib/importStore.test.ts:488-497 (lib/_Store.ts,lib/_.test.ts)
+- last seen: 2026-09-02T15:59:04Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
