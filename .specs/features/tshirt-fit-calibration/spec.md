@@ -173,17 +173,17 @@ and the collar piece's presence/height all change as ACs 1-4 specify, and that
 
 ## Requirement Traceability
 
-| Requirement ID | Story                     | Phase | Status       |
-| -------------- | ------------------------- | ----- | ------------ |
-| TSHIRT-01      | P1: Tuned t-shirt drafter | Tasks | Implementing |
-| TSHIRT-02      | P1: Tuned t-shirt drafter | Tasks | Implementing |
-| TSHIRT-03      | P1: Tuned t-shirt drafter | Tasks | Implementing |
-| TSHIRT-04      | P1: Tuned t-shirt drafter | Tasks | Implementing |
-| TSHIRT-05      | P1: Tuned t-shirt drafter | Tasks | Implementing |
-| TSHIRT-06      | P1: Tuned t-shirt drafter | Tasks | Implementing |
-| TSHIRT-07      | P1: Tuned t-shirt drafter | Tasks | Implementing |
-| TSHIRT-08      | P1: Tuned t-shirt drafter | Tasks | Implementing |
-| TSHIRT-09      | P1: Tuned t-shirt drafter | Tasks | Implementing |
+| Requirement ID | Story                     | Phase | Status      |
+| -------------- | ------------------------- | ----- | ----------- |
+| TSHIRT-01      | P1: Tuned t-shirt drafter | Tasks | ✅ Verified |
+| TSHIRT-02      | P1: Tuned t-shirt drafter | Tasks | ✅ Verified |
+| TSHIRT-03      | P1: Tuned t-shirt drafter | Tasks | ✅ Verified |
+| TSHIRT-04      | P1: Tuned t-shirt drafter | Tasks | ✅ Verified |
+| TSHIRT-05      | P1: Tuned t-shirt drafter | Tasks | ✅ Verified |
+| TSHIRT-06      | P1: Tuned t-shirt drafter | Tasks | ✅ Verified |
+| TSHIRT-07      | P1: Tuned t-shirt drafter | Tasks | ✅ Verified |
+| TSHIRT-08      | P1: Tuned t-shirt drafter | Tasks | ✅ Verified |
+| TSHIRT-09      | P1: Tuned t-shirt drafter | Tasks | ✅ Verified |
 
 **ID format:** `TSHIRT-NN`, matching AC numbers 1-9 above 1:1.
 
