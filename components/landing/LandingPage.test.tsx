@@ -200,3 +200,37 @@ describe("LandingPage", () => {
     ).toBeInTheDocument();
   });
 });
+
+// Landing.dc.html's per-section padding is asymmetric (top != bottom on
+// three of the four sections below) -- a uniform `py-N` utility silently
+// rounds that away. Each assertion cites the exact design value.
+describe("LandingPage spacing (redesign reference)", () => {
+  it("hero: pt-16 (64px) / pb-[60px], text column capped at 460px", () => {
+    const { container } = renderWithIntl(<LandingPage />);
+    const heroRow = container.querySelector('[class*="pb-[60px]"]');
+    expect(heroRow).not.toBeNull();
+    expect(heroRow).toHaveClass("pt-16");
+    const textColumn = container.querySelector('[class*="max-w-[460px]"]');
+    expect(textColumn).not.toBeNull();
+  });
+
+  it("how-it-works: pt-[60px] / pb-14 (56px)", () => {
+    const { container } = renderWithIntl(<LandingPage />);
+    const row = container.querySelector('[class*="pt-[60px]"][class*="pb-14"]');
+    expect(row).not.toBeNull();
+  });
+
+  it("credits/plans: pt-14 (56px) / pb-16 (64px), 380px plan card, 34px gap", () => {
+    const { container } = renderWithIntl(<LandingPage />);
+    const row = container.querySelector('[class*="grid-cols-[1fr_380px]"]');
+    expect(row).not.toBeNull();
+    expect(row).toHaveClass("pt-14", "pb-16", "gap-[34px]");
+  });
+
+  it("footer: pt-[22px] / pb-[34px]", () => {
+    const { container } = renderWithIntl(<LandingPage />);
+    const row = container.querySelector('[class*="pt-[22px]"]');
+    expect(row).not.toBeNull();
+    expect(row).toHaveClass("pb-[34px]");
+  });
+});

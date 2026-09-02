@@ -8,7 +8,7 @@ export function LandingFooter() {
 
   return (
     <div className="border-border bg-surface border-t">
-      <div className="mx-auto flex max-w-[1160px] flex-wrap items-center gap-3 px-[34px] py-6">
+      <div className="mx-auto flex max-w-[1160px] flex-wrap items-center gap-3 px-[34px] pt-[22px] pb-[34px]">
         <Wordmark />
         <div className="flex-1" />
         <span className="text-muted text-ui">{t("footer.billingNote")}</span>

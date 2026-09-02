@@ -16,8 +16,8 @@ export function LandingHero() {
 
   return (
     <section className="border-border bg-paper border-b">
-      <div className="mx-auto flex max-w-[1160px] flex-wrap items-center gap-12 px-[34px] py-16">
-        <div className="flex min-w-0 flex-1 basis-[360px] flex-col gap-5">
+      <div className="mx-auto flex max-w-[1160px] flex-wrap items-center gap-12 px-[34px] pt-16 pb-[60px]">
+        <div className="flex max-w-[460px] min-w-0 flex-1 basis-[360px] flex-col gap-5">
           <span className="text-olive text-meta tracking-eyebrow font-semibold uppercase">
             {t("hero.eyebrow")}
           </span>
@@ -36,7 +36,7 @@ export function LandingHero() {
             <span className="text-muted text-ui">{t("hero.noCardNote")}</span>
           </div>
         </div>
-        <div className="border-border rounded-modal shadow-modal min-w-0 flex-1 basis-[560px] overflow-hidden border">
+        <div className="border-border rounded-card shadow-modal min-w-0 flex-1 basis-[560px] overflow-hidden border">
           {/* eslint-disable-next-line @next/next/no-img-element -- a fixed
               local asset; no repo precedent for next/image and none of its
               optimization pipeline applies to a single static asset. */}
