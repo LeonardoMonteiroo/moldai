@@ -40,7 +40,6 @@ export function SlopersShell({
   return (
     <AppShell
       title={t("title")}
-      subtitle={t("subtitle")}
       backHref="/"
       credits={credits}
       userEmail={userEmail}

@@ -1006,12 +1006,17 @@
   },
   "Slopers": {
     "title": "Bases do ateliê",
-    "subtitle": "Moldes salvos como ponto de partida para novas peças",
+    "subtitle": "Uma base nasce de um molde: abra um molde no editor e use “Salvar como base” para guardá-lo aqui como ponto de partida reutilizável.",
     "countLabel": "{count, plural, =0 {Nenhuma base} one {# base} other {# bases}}",
+    "searchPlaceholder": "Buscar base…",
+    "typeFilterAll": "Todos os tipos",
     "loading": "Carregando bases…",
     "loadError": "Não foi possível carregar suas bases. Tente recarregar a página.",
     "emptyTitle": "Nenhuma base salva",
-    "emptyDescription": "Abra um molde já gerado e use “Salvar como base” no rodapé do editor."
+    "emptyDescription": "Abra um molde já gerado e use “Salvar como base” no rodapé do editor.",
+    "emptyAction": "Ir para meus moldes",
+    "noMatchesTitle": "Nenhuma base encontrada",
+    "noMatchesDescription": "Tente outro termo de busca ou filtro."
   },
   "SloperCard": {
     "useButton": "Usar base",

@@ -7,6 +7,7 @@ import type { SloperListItem } from "@/lib/types";
 import { MAX_PATTERN_NAME_LENGTH } from "@/lib/types";
 import { useSlopersStore } from "@/lib/slopersStore";
 import { ConfirmModal } from "@/components/shared/ConfirmModal";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -48,13 +49,16 @@ export function SloperCard({
   };
 
   return (
-    <div className="border-border rounded-card group relative flex flex-col gap-2 border bg-white p-[10px]">
-      <div className="bg-surface-alt rounded-item flex h-[112px] w-full items-center justify-center overflow-hidden">
+    <div className="border-border rounded-card group bg-surface relative flex flex-col gap-2 border p-[10px]">
+      <div className="bg-surface-alt rounded-item relative flex h-[112px] w-full items-center justify-center overflow-hidden">
         <span
           aria-hidden="true"
           className="h-full w-full [&_svg]:h-full [&_svg]:w-full"
           dangerouslySetInnerHTML={{ __html: sloper.thumbnailSvg }}
         />
+        <Badge variant="quiet" size="chip" className="absolute top-2 left-2">
+          {tGarment(`garmentType.${sloper.garmentType}`)}
+        </Badge>
       </div>
       <div className="flex items-start justify-between gap-1">
         {/* min-w-0 so `truncate` has something to shrink against instead of

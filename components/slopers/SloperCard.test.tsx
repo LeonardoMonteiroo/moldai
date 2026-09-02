@@ -40,6 +40,17 @@ describe("SloperCard", () => {
     expect(screen.getByText(SLOPER.sizeChartName!)).toBeVisible();
   });
 
+  // The design overlays a garment-type badge on the thumbnail itself, in
+  // addition to the meta line below the name.
+  it("badges the thumbnail with the garment type", () => {
+    renderWithIntl(<SloperCard sloper={SLOPER} onUse={vi.fn()} />);
+    expect(
+      screen.getByText(ptBR.TechSheetTab.garmentType.blouse, {
+        selector: "span[data-slot='badge']",
+      }),
+    ).toBeVisible();
+  });
+
   it("omits the chart line when the base carries no chart name", () => {
     const { sizeChartName: _drop, ...noChart } = SLOPER;
     renderWithIntl(<SloperCard sloper={noChart} onUse={vi.fn()} />);
