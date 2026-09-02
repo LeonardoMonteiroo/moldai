@@ -849,7 +849,8 @@
     "noMatchesTitle": "Nenhum molde encontrado",
     "noMatchesDescription": "Tente outro termo de busca ou filtro.",
     "importCardLabel": "Importar molde · .dxf",
-    "emptyAction": "Criar meu primeiro molde"
+    "emptyAction": "Criar meu primeiro molde",
+    "newPatternButton": "＋ Novo molde"
   },
   "SizeCharts": {
     "title": "Medidas e grades",
@@ -995,8 +996,7 @@
     "measurementsLabel": "Medidas e grades",
     "studioBasesLabel": "Bases do ateliê",
     "comingSoonBadge": "em breve",
-    "importLabel": "Importar molde · .dxf",
-    "newPatternButton": "＋ Novo molde"
+    "importLabel": "Importar molde · .dxf"
   },
   "DashboardShell": {
     "loading": "Carregando moldes…",

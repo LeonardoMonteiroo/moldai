@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useDashboardStore, filteredPatterns } from "@/lib/dashboardStore";
@@ -26,9 +27,15 @@ import {
 export function PatternGrid({
   onOpen,
   onNewPattern,
+  checklistSlot,
 }: {
   onOpen: (id: string) => void;
   onNewPattern: () => void;
+  /** The onboarding checklist card, rendered between the heading/search row
+   *  and the grid — Dashboard.dc.html's own DOM order, not above it. Owned
+   *  by DashboardShell (it knows whether there's a checklist at all); this
+   *  component only knows where the slot goes. */
+  checklistSlot?: ReactNode;
 }) {
   const t = useTranslations("PatternGrid");
   const tGarment = useTranslations("TechSheetTab");
@@ -84,7 +91,14 @@ export function PatternGrid({
             </SelectGroup>
           </SelectContent>
         </Select>
+        {/* Dashboard.dc.html:124 -- "+ Novo molde" lives in this row, not as
+            a persistent Sidebar action (the sidebar there is nav-only). */}
+        <Button size="sm" onClick={onNewPattern}>
+          {t("newPatternButton")}
+        </Button>
       </div>
+
+      {checklistSlot}
 
       {isTrulyEmpty && (
         <Empty>

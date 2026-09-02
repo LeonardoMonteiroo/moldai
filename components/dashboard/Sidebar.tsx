@@ -1,7 +1,9 @@
 "use client";
 
+import type { ComponentType } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { Folder, Ruler, Layers, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -9,13 +11,19 @@ import { Button } from "@/components/ui/button";
  * skipped by keyboard tabbing, and exposing "current page" through styling
  * alone. It's a real Button now, still visually the olive-tint label, and
  * `aria-current="page"` carries the state programmatically.
+ *
+ * Icon matches Dashboard.dc.html's own per-item lucide SVGs (Folder/Ruler/
+ * Layers) -- size-[15px] to match its `width="15" height="15"` exactly,
+ * rather than the type scale's icon-sizing rule, which has no 15px step.
  */
 function NavItem({
   label,
+  icon: Icon,
   isActive,
   onSelect,
 }: {
   label: string;
+  icon: ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
   isActive: boolean;
   onSelect: () => void;
 }) {
@@ -27,10 +35,11 @@ function NavItem({
       aria-current={isActive ? "page" : undefined}
       className={
         isActive
-          ? "bg-olive-tint text-olive hover:bg-olive-tint hover:text-olive rounded-item h-auto justify-start px-[10px] py-[7px] font-medium"
-          : "text-muted-2 justify-start"
+          ? "bg-olive-tint text-olive hover:bg-olive-tint hover:text-olive rounded-item h-auto justify-start gap-[9px] px-[10px] py-[7px] font-medium"
+          : "text-muted-2 justify-start gap-[9px]"
       }
     >
+      <Icon className="size-[15px]" aria-hidden />
       {label}
     </Button>
   );
@@ -38,16 +47,8 @@ function NavItem({
 
 export function Sidebar({
   active,
-  onNewPattern,
-  disabled,
 }: {
   active: "patterns" | "slopers" | "size-charts";
-  /** Owned by the screen, so its store is the one that records a failure.
-   *  Omitted on /size-charts — the design's sidebar there has no "＋ Novo
-   *  molde" button, and creating a blank pattern isn't that screen's action
-   *  (the library column already offers "＋ Nova grade"). */
-  onNewPattern?: () => void;
-  disabled?: boolean;
 }) {
   const t = useTranslations("Sidebar");
   const router = useRouter();
@@ -57,16 +58,19 @@ export function Sidebar({
       <nav className="flex flex-col gap-1">
         <NavItem
           label={t("myPatternsLabel")}
+          icon={Folder}
           isActive={active === "patterns"}
           onSelect={() => router.push("/")}
         />
         <NavItem
           label={t("measurementsLabel")}
+          icon={Ruler}
           isActive={active === "size-charts"}
           onSelect={() => router.push("/size-charts")}
         />
         <NavItem
           label={t("studioBasesLabel")}
+          icon={Layers}
           isActive={active === "slopers"}
           onSelect={() => router.push("/slopers")}
         />
@@ -78,16 +82,11 @@ export function Sidebar({
             /import renders no sidebar, so this entry is never the active one. */}
         <NavItem
           label={t("importLabel")}
+          icon={Upload}
           isActive={false}
           onSelect={() => router.push("/import")}
         />
       </nav>
-      <div className="flex-1" />
-      {onNewPattern && (
-        <Button onClick={onNewPattern} disabled={disabled}>
-          {t("newPatternButton")}
-        </Button>
-      )}
     </div>
   );
 }

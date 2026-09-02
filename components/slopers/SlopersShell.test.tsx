@@ -141,19 +141,17 @@ describe("SlopersShell", () => {
     await waitFor(() => expect(push).toHaveBeenCalledWith("/pattern/p9"));
   });
 
-  it("creates a blank pattern from the sidebar, with no base id", async () => {
+  // Bases.dc.html's sidebar has no "＋ Nova base" of its own -- a base is
+  // only ever created from the editor's "Salvar como base", so this screen
+  // must not offer a blank-pattern shortcut anywhere (unlike Dashboard).
+  it("renders no new-pattern button in its sidebar", async () => {
     vi.mocked(listSlopers).mockResolvedValue([SLOPER]);
-    vi.mocked(createPattern).mockResolvedValue({ id: "p10" });
     renderShell();
-    const user = userEvent.setup();
-    await user.click(
-      await screen.findByRole("button", {
-        name: ptBR.Sidebar.newPatternButton,
-      }),
-    );
 
-    expect(createPattern).toHaveBeenCalledWith(undefined);
-    await waitFor(() => expect(push).toHaveBeenCalledWith("/pattern/p10"));
+    await screen.findByText(SLOPER.name);
+    expect(
+      screen.queryByRole("button", { name: /novo molde/i }),
+    ).not.toBeInTheDocument();
   });
 
   // The point of this screen owning its own store: a failed create here has
@@ -183,17 +181,6 @@ describe("SlopersShell", () => {
       screen.getByRole("button", { name: ptBR.ActionErrorNotice.dismiss }),
     );
     expect(screen.queryByText(ptBR.ActionErrorNotice.message)).toBeNull();
-  });
-
-  it("disables the sidebar's new-pattern button while the load is broken", async () => {
-    vi.mocked(listSlopers).mockRejectedValue(new ApiError(500, "server_error"));
-    renderShell();
-
-    await waitFor(() =>
-      expect(
-        screen.getByRole("button", { name: ptBR.Sidebar.newPatternButton }),
-      ).toBeDisabled(),
-    );
   });
 
   it("renders through AppShell, with a back button to the dashboard", async () => {

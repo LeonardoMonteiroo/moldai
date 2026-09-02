@@ -136,4 +136,46 @@ describe("PatternGrid", () => {
     ).toBeInTheDocument();
     two.unmount();
   });
+
+  // Dashboard.dc.html:124 -- "+ Novo molde" lives in this heading row
+  // (always, not just on the truly-empty state) rather than as a persistent
+  // sidebar action.
+  it("offers the new-pattern button in its heading row even with patterns already present", async () => {
+    useDashboardStore.setState({ patterns: [PATTERN] });
+    const onNewPattern = vi.fn();
+    const user = userEvent.setup();
+    renderWithIntl(
+      <PatternGrid onOpen={vi.fn()} onNewPattern={onNewPattern} />,
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: ptBR.PatternGrid.newPatternButton }),
+    );
+    expect(onNewPattern).toHaveBeenCalledTimes(1);
+  });
+
+  // Dashboard.dc.html renders the checklist between the heading/search row
+  // and the grid, never above the heading -- DashboardShell now passes it in
+  // as a slot instead of owning that ordering itself.
+  it("renders the checklist slot between the heading row and the grid", () => {
+    useDashboardStore.setState({ patterns: [PATTERN] });
+    const tGrid = translatorFor("PatternGrid");
+    renderWithIntl(
+      <PatternGrid
+        onOpen={vi.fn()}
+        onNewPattern={vi.fn()}
+        checklistSlot={<div data-testid="checklist-marker" />}
+      />,
+    );
+
+    const marker = screen.getByTestId("checklist-marker");
+    const headingRow = screen
+      .getByText(tGrid("countLabel", { count: 1 }))
+      .closest("div")!;
+    // The marker must come after the heading row, in document order.
+    expect(
+      headingRow.compareDocumentPosition(marker) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
 });

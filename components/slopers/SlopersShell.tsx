@@ -30,9 +30,13 @@ export function SlopersShell({
     init();
   }, [init]);
 
-  // Both the sidebar's "＋ Novo molde" (blank) and a card's "Usar base"
-  // (drafted) land here, so a failure is recorded on THIS screen's store.
-  const openNewPattern = async (sloperId?: string) => {
+  // A card's "Usar base" (drafted) lands here, so a failure is recorded on
+  // THIS screen's store. Bases.dc.html's sidebar carries no "＋ Nova base" of
+  // its own -- a base is only ever created from the editor's "Salvar como
+  // base" (this screen's own empty state says so), so unlike Dashboard there
+  // is no blank-pattern action to wire up here, and this wrapper only ever
+  // takes a real sloper id.
+  const openNewPattern = async (sloperId: string) => {
     const id = await createPattern(sloperId);
     if (id) router.push(`/pattern/${id}`);
   };
@@ -43,13 +47,7 @@ export function SlopersShell({
       backHref="/"
       credits={credits}
       userEmail={userEmail}
-      sidebar={
-        <Sidebar
-          active="slopers"
-          onNewPattern={() => openNewPattern()}
-          disabled={error}
-        />
-      }
+      sidebar={<Sidebar active="slopers" />}
     >
       {actionError && <ActionErrorNotice onDismiss={clearActionError} />}
       {!ready && (

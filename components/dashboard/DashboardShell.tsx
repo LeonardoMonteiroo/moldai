@@ -58,13 +58,7 @@ export function DashboardShell({
     <AppShell
       credits={credits}
       userEmail={userEmail}
-      sidebar={
-        <Sidebar
-          active="patterns"
-          onNewPattern={handleNewPattern}
-          disabled={error}
-        />
-      }
+      sidebar={<Sidebar active="patterns" />}
     >
       {/* Sits above the list: a failed rename/delete/create leaves the list
           itself perfectly usable, so it gets a notice, not a takeover. */}
@@ -111,13 +105,18 @@ export function DashboardShell({
         // Deliberately no `fill` -- that's what forces the stretch.
         <ScrollArea className="min-h-0 flex-1">
           <div className="flex flex-col gap-4 pt-[22px]">
-            {checklist && (
-              <OnboardingChecklistCard
-                patterns={patterns}
-                checklist={checklist}
-              />
-            )}
-            <PatternGrid onOpen={openPattern} onNewPattern={handleNewPattern} />
+            <PatternGrid
+              onOpen={openPattern}
+              onNewPattern={handleNewPattern}
+              checklistSlot={
+                checklist && (
+                  <OnboardingChecklistCard
+                    patterns={patterns}
+                    checklist={checklist}
+                  />
+                )
+              }
+            />
             {credits && (
               <div className="flex flex-col gap-[14px] px-[22px] pb-[22px] sm:flex-row">
                 <CreditsCard credits={credits} />

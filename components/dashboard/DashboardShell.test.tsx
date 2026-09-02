@@ -86,7 +86,12 @@ describe("DashboardShell", () => {
     expect(screen.getAllByText(ptBR.Sidebar.myPatternsLabel)).toHaveLength(1);
   });
 
-  it("disables the create-pattern button while in the error state", async () => {
+  // The "＋ Novo molde" button moved from the (always-rendered) sidebar into
+  // PatternGrid's own heading row, matching Dashboard.dc.html's DOM order —
+  // that row is part of the content region, which a load error replaces
+  // outright, so the button is genuinely absent now rather than merely
+  // disabled.
+  it("has no create-pattern button while in the error state", async () => {
     listPatterns.mockRejectedValue(new Error("boom"));
     getAccountSummary.mockRejectedValue(new Error("boom"));
 
@@ -94,9 +99,12 @@ describe("DashboardShell", () => {
 
     await waitFor(() =>
       expect(
-        screen.getByRole("button", { name: ptBR.Sidebar.newPatternButton }),
-      ).toBeDisabled(),
+        screen.getByText(ptBR.DashboardShell.loadError),
+      ).toBeInTheDocument(),
     );
+    expect(
+      screen.queryByRole("button", { name: ptBR.PatternGrid.newPatternButton }),
+    ).not.toBeInTheDocument();
   });
 });
 
