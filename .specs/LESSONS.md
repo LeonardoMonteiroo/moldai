@@ -70,6 +70,13 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: EDCH-09 (validation.md) (components-editor)
 - last seen: 2026-09-01T23:05:15Z
 
+### L-009 - When an AC changes a Tailwind utility class (e.g. a radius/border/shadow token swap), add a test asserting that exact class on the element, not just the padding/width ACs that happen to share the same commit.
+
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `components/landing` · harmful: 0
+- features: redesign-landing
+- evidence: LAND-06 / components/landing/LandingPage.test.tsx (no rounded assertion found) (components/landing)
+- last seen: 2026-09-02T00:45:52Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 9,
+  "next_id": 10,
   "lessons": [
     {
       "id": "L-001",
@@ -124,6 +124,22 @@
       "evidence": ["EDCH-09 (validation.md) (components-editor)"],
       "created": "2026-09-01T23:05:15Z",
       "last_seen": "2026-09-01T23:05:15Z"
+    },
+    {
+      "id": "L-009",
+      "key": "ac_gap::when an ac changes a tailwind utility class e g a radius border shadow token swap add a test asserting that exact class on the element not just the padding width acs that happen to share the same commit",
+      "text": "When an AC changes a Tailwind utility class (e.g. a radius/border/shadow token swap), add a test asserting that exact class on the element, not just the padding/width ACs that happen to share the same commit.",
+      "signal": "ac_gap",
+      "scope": "components/landing",
+      "status": "candidate",
+      "features": ["redesign-landing"],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "LAND-06 / components/landing/LandingPage.test.tsx (no rounded assertion found) (components/landing)"
+      ],
+      "created": "2026-09-02T00:45:52Z",
+      "last_seen": "2026-09-02T00:45:52Z"
     }
   ]
 }
