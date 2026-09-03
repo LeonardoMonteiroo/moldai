@@ -273,6 +273,51 @@ describe("createPattern", () => {
       (rows[0].data as { pattern: { version: number } }).pattern.version,
     ).toBe(0);
   });
+
+  // PFORM-04: the creation form knows the pattern's name before the pattern
+  // exists, so it starts under that name rather than being created as "Novo
+  // molde" and immediately renamed.
+  it("starts the pattern under a supplied name", async () => {
+    await createPattern("u1", t, "Blusa gola alta");
+    expect((rows[0].data as { pattern: { name: string } }).pattern.name).toBe(
+      "Blusa gola alta",
+    );
+  });
+
+  // Every existing caller passes no name, and must keep resolving the
+  // catalog's own default through the injected translator.
+  it("keeps the catalog's default name when none is supplied", async () => {
+    await createPattern("u1", t);
+    expect((rows[0].data as { pattern: { name: string } }).pattern.name).toBe(
+      t("newPatternName"),
+    );
+  });
+
+  // PFORM-04's empty-name case: submitting with the field untouched creates
+  // the pattern under the default rather than under an empty string, and the
+  // fallback holds here too, not only where the route trims.
+  it("falls back to the default name for a blank name", async () => {
+    await createPattern("u1", t, "");
+    expect((rows[0].data as { pattern: { name: string } }).pattern.name).toBe(
+      t("newPatternName"),
+    );
+  });
+
+  // A supplied name changes the name and nothing else -- an implementation
+  // that built its own state instead of seeding one would pass the name
+  // assertion above and fail here.
+  it("changes only the name, leaving the rest of the seeded blank state intact", async () => {
+    await createPattern("u1", t, "Saia godê");
+    const state = rows[0].data as {
+      pattern: { version: number; pieces: unknown[] };
+      chat: unknown[];
+      conflict: unknown;
+    };
+    expect(state.pattern.version).toBe(0);
+    expect(state.pattern.pieces).toEqual([]);
+    expect(state.chat).toEqual([]);
+    expect(state.conflict).toBeNull();
+  });
 });
 
 describe("listPatternsForUser", () => {

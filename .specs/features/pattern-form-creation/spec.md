@@ -176,7 +176,7 @@ All four stories below are P1: the user explicitly chose the full-capability opt
 | PFORM-01       | P1: Form creates a real pattern | Design           | Pending      |
 | PFORM-02       | P1: Form creates a real pattern | Design           | Pending      |
 | PFORM-03       | P1: Form creates a real pattern | Design           | Pending      |
-| PFORM-04       | P1: Form creates a real pattern | Design           | Pending      |
+| PFORM-04       | P1: Form creates a real pattern | Execute (T9)     | Implementing |
 | PFORM-05       | P1: Form creates a real pattern | Design           | Pending      |
 | PFORM-06       | P1: Form creates a real pattern | Design           | Pending      |
 | PFORM-07       | P1: Form creates a real pattern | Design           | Pending      |

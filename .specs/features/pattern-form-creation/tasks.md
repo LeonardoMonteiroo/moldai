@@ -338,7 +338,7 @@ T19 -> T20 -> T21
 
 ---
 
-#### T9: Let a pattern be created under a caller-supplied name
+#### T9: Let a pattern be created under a caller-supplied name ✅
 
 **What**: `createPattern(userId, t, name?)` seeds `state.pattern.name` with `name` when given and with `t("newPatternName")` otherwise.
 **Where**: `lib/db/pattern.ts`
@@ -353,10 +353,10 @@ T19 -> T20 -> T21
 
 **Done when**:
 
-- [ ] A supplied name lands on the persisted blob's `pattern.name`
-- [ ] An omitted name still resolves `t("newPatternName")`, so every existing caller is unchanged
-- [ ] Gate check passes: `npx vitest run --project node`
-- [ ] Test count: 3+ new tests pass (no silent deletions)
+- [x] A supplied name lands on the persisted blob's `pattern.name`
+- [x] An omitted name still resolves `t("newPatternName")`, so every existing caller is unchanged — and a blank name falls back to it too
+- [x] Gate check passes: `npx vitest run --project node` — 2588 passed
+- [x] Test count: 3+ new tests pass (no silent deletions) — 4 new tests
 
 **Tests**: unit
 **Gate**: quick
