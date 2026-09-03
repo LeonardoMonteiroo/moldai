@@ -123,7 +123,7 @@ T19 -> T20 -> T21
 
 ---
 
-#### T2: Add the form spec's trust boundary and merge rule
+#### T2: Add the form spec's trust boundary and merge rule ✅
 
 **What**: `validateFormSpec(raw): GarmentSpec | null` (rejects an absent/unrecognized `type`, then runs `validateSpec`, then drops style keys the type does not apply, `measurementOverrides` and `sleeveRefit`) and `mergeFormSpec(ai, form)` (form's `type`/`gender`/defined style keys win; the AI's `measurementOverrides` survive untouched).
 **Where**: `lib/ai/formSpec.ts`
@@ -138,14 +138,14 @@ T19 -> T20 -> T21
 
 **Done when**:
 
-- [ ] `validateFormSpec` returns `null` for `undefined`, a non-object, `{}`, and `{ type: "corset" }` (PFORM-28)
-- [ ] An unrecognized enum value on an applicable field is dropped, and the rest of the spec still returns (PFORM-24)
-- [ ] `{ type: "skirt", style: { collar: "shirt" } }` returns with no `collar` key at all (PFORM-22 server half)
-- [ ] `sleeveRefit: true` never appears on the returned spec (PFORM-27)
-- [ ] `mergeFormSpec` leaves an AI style field the form did not set at the AI's value, and overwrites one the form did set (PFORM-25)
-- [ ] `mergeFormSpec` preserves `ai.measurementOverrides` verbatim when `form.measurementOverrides` is `{}`
-- [ ] Gate check passes: `npx vitest run --project node`
-- [ ] Test count: 12+ new tests pass (no silent deletions)
+- [x] `validateFormSpec` returns `null` for `undefined`, a non-object, `{}`, and `{ type: "corset" }` (PFORM-28)
+- [x] An unrecognized enum value on an applicable field is dropped, and the rest of the spec still returns (PFORM-24)
+- [x] `{ type: "skirt", style: { collar: "shirt" } }` returns with no `collar` key at all (PFORM-22 server half)
+- [x] `sleeveRefit: true` never appears on the returned spec (PFORM-27)
+- [x] `mergeFormSpec` leaves an AI style field the form did not set at the AI's value, and overwrites one the form did set (PFORM-25)
+- [x] `mergeFormSpec` preserves `ai.measurementOverrides` verbatim when `form.measurementOverrides` is `{}`
+- [x] Gate check passes: `npx vitest run --project node`
+- [x] Test count: 12+ new tests pass (no silent deletions) — 21 new tests
 
 **Tests**: unit
 **Gate**: quick
