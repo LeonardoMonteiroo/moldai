@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { ChevronRightIcon } from "lucide-react";
 import { useEditorStore } from "@/lib/store";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -18,6 +19,59 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+function PurchaseRow({
+  title,
+  badge,
+  detail,
+  price,
+  period,
+  onClick,
+  disabled,
+  highlighted,
+}: {
+  title: string;
+  badge?: string;
+  detail: string;
+  price: string;
+  period: string;
+  onClick: () => void;
+  disabled: boolean;
+  highlighted?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      // #31: double-clicking granted double credits -- applyPurchase has no
+      // idempotency key, so nothing but this flag stood between one click
+      // and two purchase requests.
+      className={[
+        "rounded-card flex w-full items-center justify-between gap-3 border p-[14px] text-left transition-colors disabled:pointer-events-none disabled:opacity-50",
+        highlighted
+          ? "border-olive bg-olive-tint hover:brightness-[0.98]"
+          : "border-border bg-surface hover:bg-surface-alt",
+      ].join(" ")}
+    >
+      <div className="flex flex-col gap-[3px]">
+        <div className="flex items-center gap-[7px]">
+          <span className="text-control font-semibold">{title}</span>
+          {badge && <Badge variant="notice">{badge}</Badge>}
+        </div>
+        <span className="text-muted text-meta">{detail}</span>
+      </div>
+      <div className="flex items-center gap-1">
+        <div className="flex flex-col items-end">
+          <span className="font-display text-title font-semibold">{price}</span>
+          <span className="text-muted-2 text-meta whitespace-nowrap">
+            {period}
+          </span>
+        </div>
+        <ChevronRightIcon className="text-muted-2" />
+      </div>
+    </button>
+  );
+}
+
 export function PaywallModal() {
   const t = useTranslations("PaywallModal");
   const paywall = useEditorStore((s) => s.paywall);
@@ -27,6 +81,12 @@ export function PaywallModal() {
   const close = useEditorStore((s) => s.closePaywall);
 
   if (!credits) return null;
+  // #37: same clamp PageHeader's own credits pill uses -- a top-up can push
+  // balance past total, so the bar must not overflow its track.
+  const pct = Math.min(
+    100,
+    Math.round((credits.balance / credits.total) * 100),
+  );
 
   return (
     <Dialog
@@ -37,78 +97,60 @@ export function PaywallModal() {
     >
       <DialogContent className="sm:max-w-[470px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-[9px]">
-            <span
-              aria-hidden="true"
-              className="bg-amber-bg border-amber-border text-amber-text text-ui flex h-[26px] w-[26px] items-center justify-center rounded-full border"
-            >
-              ◆
-            </span>
-            {t("title")}
-          </DialogTitle>
+          <span className="text-muted text-meta tracking-eyebrow font-semibold uppercase">
+            {t("eyebrow")}
+          </span>
+          <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>
             {t("description", {
               action: paywall.action ? t(`actions.${paywall.action}`) : "",
               required: paywall.required,
-              balance: paywall.balance,
             })}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex gap-3">
-          <button
-            onClick={() => purchase("topup")}
-            disabled={purchasing}
-            // #31: double-clicking granted double credits -- applyPurchase
-            // has no idempotency key, so nothing but this flag stood
-            // between one click and two purchase requests.
-            className="border-border rounded-card bg-surface-alt flex flex-1 flex-col gap-[5px] border p-[14px] text-left transition-colors hover:bg-white disabled:pointer-events-none disabled:opacity-50"
-          >
-            <span className="text-control font-semibold">
-              {t("topupTitle")}
+        <div className="border-line flex flex-col gap-[7px] border-t pt-3">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="text-ui">
+              {t("usageLabel", {
+                balance: credits.balance,
+                total: credits.total,
+              })}
             </span>
-            <span className="font-display text-title font-semibold">
-              {formatBRL(TOPUP_PRICE_CENTS)}
+            <span className="text-muted text-meta whitespace-nowrap">
+              {t("usageRenewsNote", { days: credits.renewsInDays })}
             </span>
-            <span className="text-muted text-meta">{t("topupDetail")}</span>
-            <div className="min-h-2 flex-1" />
-            <span className="text-olive text-ui font-semibold">
-              {t("topupCta")}
-            </span>
-          </button>
-          <button
+          </div>
+          <div className="bg-track h-1 w-full overflow-hidden rounded-full">
+            <div className="bg-olive h-full" style={{ width: `${pct}%` }} />
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          <PurchaseRow
             // #9: the plan is now named at the call site rather than
-            // defaulted server-side -- this card IS Ateliê per design 5d.
+            // defaulted server-side -- this row IS Ateliê per design 5d.
+            title={t("subscribeTitle")}
+            badge={t("subscribeBadge")}
+            detail={t("subscribeDetail")}
+            price={formatBRL(PLAN_PRICE_CENTS.atelier)}
+            period={t("subscribePeriod")}
             onClick={() => purchase("subscribe", "atelier")}
             disabled={purchasing}
-            className="border-olive rounded-card bg-olive-tint flex flex-1 flex-col gap-[5px] border-2 p-[14px] text-left transition-[filter] hover:brightness-[0.98] disabled:pointer-events-none disabled:opacity-50"
-          >
-            <div className="flex items-center gap-[7px]">
-              <span className="text-control font-semibold">
-                {t("subscribeTitle")}
-              </span>
-              <Badge variant="notice">{t("subscribeBadge")}</Badge>
-            </div>
-            <div className="flex items-baseline gap-[3px]">
-              <span className="font-display text-title font-semibold">
-                {formatBRL(PLAN_PRICE_CENTS.atelier)}
-              </span>
-              <span className="text-muted-2 text-ui">
-                {t("subscribePeriod")}
-              </span>
-            </div>
-            <span className="text-olive text-meta">{t("subscribeDetail")}</span>
-            <div className="min-h-2 flex-1" />
-            <span className="text-olive-dark text-ui font-semibold">
-              {t("subscribeCta")}
-            </span>
-          </button>
+            highlighted
+          />
+          <PurchaseRow
+            title={t("topupTitle")}
+            detail={t("topupDetail")}
+            price={formatBRL(TOPUP_PRICE_CENTS)}
+            period={t("topupPeriod")}
+            onClick={() => purchase("topup")}
+            disabled={purchasing}
+          />
         </div>
 
         <DialogFooter className="sm:justify-start">
-          <span className="text-muted text-ui">
-            {t("renewsNote", { days: credits.renewsInDays })}
-          </span>
+          <span className="text-muted text-ui">{t("paymentNote")}</span>
           <div className="flex-1" />
           <Button variant="link" size="sm" onClick={close}>
             {t("backButton")}

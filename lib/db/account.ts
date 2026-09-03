@@ -1,5 +1,9 @@
 import { prisma } from "./prisma";
-import type { LedgerEntryType, LedgerHistoryEntry } from "@/lib/types";
+import type {
+  LedgerEntryType,
+  LedgerHistoryEntry,
+  UsageThisCycle,
+} from "@/lib/types";
 
 export interface RecentUsageEntry {
   reason: string | null;
@@ -42,6 +46,28 @@ export async function getLedgerHistory(
     amount: r.amount,
     createdAt: r.createdAt.toISOString(),
   }));
+}
+
+// Counts debit-type transactions since `since` (the current billing cycle's
+// start), grouped by the only two reasons a debit ever carries -- "generate"
+// covers every chat-driven draft/adjustment alike (this app has no separate
+// "first generation" vs "later edit" distinction to report), "graduate"
+// covers grading. Settings' "Usados neste ciclo" stat card.
+export async function getUsageThisCycle(
+  userId: string,
+  since: Date,
+): Promise<UsageThisCycle> {
+  const rows = await prisma.transaction.groupBy({
+    by: ["reason"],
+    where: { userId, type: "debit", createdAt: { gte: since } },
+    _count: { _all: true },
+  });
+  const result: UsageThisCycle = { generate: 0, graduate: 0 };
+  for (const row of rows) {
+    if (row.reason === "generate") result.generate = row._count._all;
+    else if (row.reason === "graduate") result.graduate = row._count._all;
+  }
+  return result;
 }
 
 /** The two events the dashboard onboarding checklist (#232) can record. */

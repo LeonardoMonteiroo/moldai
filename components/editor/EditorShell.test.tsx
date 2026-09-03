@@ -143,6 +143,39 @@ describe("EditorShell", () => {
     ).toBeInTheDocument();
   });
 
+  // The header used to be fully absent through loading/error/desktop-only --
+  // an early-return bare <div>, no AppShell at all. The redesign handoff's
+  // Round 2 reference screenshots all show the header persisting through
+  // every one of these states, so it does now too.
+  it("keeps the header mounted through a load error, not just the ready state", async () => {
+    useEditorStore.setState({ ready: false, error: null, pattern: null });
+    vi.mocked(fetchPattern).mockRejectedValueOnce(
+      new ApiError(500, "request_failed"),
+    );
+
+    renderWithIntl(<EditorShell userEmail="user@example.com" patternId="p1" />);
+
+    await waitFor(() => {
+      expect(screen.getByText(ptBR.EditorShell.loadError)).toBeInTheDocument();
+    });
+    expect(screen.getByRole("banner")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: ptBR.PageHeader.accountMenuLabel }),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps the header mounted while still loading, with a skeleton instead of the real content", () => {
+    useEditorStore.setState({ ready: false, error: null, pattern: null });
+
+    renderWithIntl(<EditorShell userEmail="user@example.com" patternId="p1" />);
+
+    expect(screen.getByRole("banner")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: ptBR.PageHeader.accountMenuLabel }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(ptBR.EditorShell.loading)).toBeInTheDocument();
+  });
+
   it("tells the user to sign in again when the session expired", async () => {
     useEditorStore.setState({ ready: false, error: null, pattern: null });
     vi.mocked(fetchPattern).mockRejectedValueOnce(
@@ -316,6 +349,8 @@ describe("EditorShell desktop-only gate (#119)", () => {
     ).toBeInTheDocument();
     // The real editor never mounts -- not hidden, just not rendered.
     expect(screen.queryByText("Vestido")).not.toBeInTheDocument();
+    // The header persists even here -- only the content region swaps.
+    expect(screen.getByRole("banner")).toBeInTheDocument();
   });
 
   it("renders the normal editor at and above the breakpoint", () => {

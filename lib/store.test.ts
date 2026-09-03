@@ -376,9 +376,30 @@ describe("store error handling", () => {
     await useEditorStore.getState().sendMessage("uma blusa");
 
     const s = useEditorStore.getState();
-    expect(s.generationStatus).not.toBe("generating");
-    expect(s.error).toBe("request_failed");
+    expect(s.generationStatus).toBe("error");
+    // Deliberately does NOT set the top-level `error` -- a failed generation
+    // is signaled once, by ChatPanel's own notice bubble (generationStatus),
+    // not also by the page-level ActionErrorNotice.
+    expect(s.error).toBeNull();
     expect(s.chat.some((m) => m.id.startsWith("optimistic-"))).toBe(false);
+  });
+
+  it("sendMessage sets a retry closure that resends the same failed message", async () => {
+    genMock.mockRejectedValueOnce(new ApiError(500, "request_failed"));
+
+    await useEditorStore.getState().sendMessage("uma blusa");
+    expect(useEditorStore.getState().lastFailedSend).not.toBeNull();
+
+    genMock.mockResolvedValueOnce({ status: "ok", state: emptyState() });
+    useEditorStore.getState().lastFailedSend?.();
+    await vi.waitFor(() =>
+      expect(genMock).toHaveBeenCalledWith(
+        "m1",
+        "uma blusa",
+        undefined,
+        undefined,
+      ),
+    );
   });
 
   it("a failed sendMessage never overwrites the pattern with undefined", async () => {

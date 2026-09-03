@@ -54,7 +54,7 @@ const PANEL_MARKER: Record<SettingsSection, string> = {
   password: ptBR.PasswordSection.currentLabel,
   danger: ptBR.DangerZoneSection.warning,
   usage: ptBR.UsageSection.historyHeading,
-  plan: ptBR.PlanSection.costsHeading,
+  plan: ptBR.PlanSection.viewAllPlansLink,
 };
 
 function renderShell(
@@ -71,6 +71,8 @@ function renderShell(
       activeSection={activeSection}
       memberSince="2026-03-01T00:00:00.000Z"
       patternCount={24}
+      usageThisCycle={{ generate: 8, graduate: 4 }}
+      patternsCreatedThisWeek={3}
     />,
   );
 }

@@ -88,6 +88,15 @@ function RequestForm() {
           {loading ? t("requestButtonLoading") : t("requestButton")}
         </Button>
       </form>
+      <p className="text-muted text-meta mt-4 text-center">
+        {t.rich("backToLoginNote", {
+          a: (chunks) => (
+            <Link href="/login" className="text-olive-dark font-medium">
+              {chunks}
+            </Link>
+          ),
+        })}
+      </p>
     </>
   );
 }

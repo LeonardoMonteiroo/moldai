@@ -6,6 +6,7 @@ interface Row {
   userId: string;
   data: unknown;
   updatedAt: Date;
+  createdAt?: Date;
 }
 let rows: Row[] = [];
 let nextId = 1;
@@ -38,8 +39,17 @@ vi.mock("./prisma", () => ({
           .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()),
       ),
       count: vi.fn(
-        async ({ where }: { where: { userId: string } }) =>
-          rows.filter((r) => r.userId === where.userId).length,
+        async ({
+          where,
+        }: {
+          where: { userId: string; createdAt?: { gte: Date } };
+        }) =>
+          rows.filter(
+            (r) =>
+              r.userId === where.userId &&
+              (!where.createdAt ||
+                (r.createdAt?.getTime() ?? 0) >= where.createdAt.gte.getTime()),
+          ).length,
       ),
       create: vi.fn(
         async ({
@@ -80,6 +90,7 @@ import {
   createPattern,
   listPatternsForUser,
   countPatternsForUser,
+  countPatternsCreatedSince,
   renamePattern,
   deletePattern,
   patternNotFound,
@@ -301,6 +312,32 @@ describe("listPatternsForUser", () => {
     await expect(countPatternsForUser("u1")).resolves.toBe(2);
     await expect(countPatternsForUser("u2")).resolves.toBe(1);
     await expect(countPatternsForUser("nobody")).resolves.toBe(0);
+  });
+
+  // Settings' "Moldes ativos" stat card's own sub-caption.
+  it("countPatternsCreatedSince counts only that user's patterns created on or after the cutoff", async () => {
+    rows.push(
+      {
+        id: "m4",
+        userId: "u1",
+        data: seedPatternState(t),
+        updatedAt: new Date("2026-03-05"),
+        createdAt: new Date("2026-03-05"),
+      },
+      {
+        id: "m5",
+        userId: "u2",
+        data: seedPatternState(t),
+        updatedAt: new Date("2026-03-05"),
+        createdAt: new Date("2026-03-05"),
+      },
+    );
+    await expect(
+      countPatternsCreatedSince("u1", new Date("2026-03-01")),
+    ).resolves.toBe(1);
+    await expect(
+      countPatternsCreatedSince("u1", new Date("2027-01-01")),
+    ).resolves.toBe(0);
   });
 
   // #101: the query had no `take` at all -- an account with many patterns

@@ -51,6 +51,7 @@ import PasswordResetPage, {
   generateMetadata as resetMetadata,
 } from "./password-reset/page";
 import VerifyCard from "@/components/auth/VerifyCard";
+import SignupCard from "@/components/auth/SignupCard";
 import PasswordResetCard from "@/components/auth/PasswordResetCard";
 
 /** Every element in the tree, depth-first, including the root. */
@@ -107,16 +108,28 @@ describe("auth page metadata", () => {
 describe("auth page bodies", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it.each([
-    ["/login", () => LoginPage(), messages.Login.heading],
-    ["/signup", () => SignupPage(), messages.Signup.heading],
-  ] as [string, () => Promise<ReactNode>, string][])(
+  it.each([["/login", () => LoginPage(), messages.Login.heading]] as [
+    string,
+    () => Promise<ReactNode>,
+    string,
+  ][])(
     "%s renders its own heading above the card",
     async (_route, render, heading) => {
       const tree = await render();
       expect(textOf(tree)).toContain(heading);
     },
   );
+
+  // /signup deliberately does NOT: SignupCard owns the one heading itself
+  // (switching to the success heading once the account is created), fixed
+  // after a static page-level heading alongside it produced two at once.
+  // generateMetadata's own translator (asserted above) still needs no card
+  // rendered to resolve the tab title.
+  it("/signup renders no static heading of its own, and hands the card no props", () => {
+    const tree = SignupPage();
+    expect(textOf(tree)).not.toContain(messages.Signup.heading);
+    expect(findByType(tree, SignupCard)).not.toBeUndefined();
+  });
 
   // /verify: a missing token IS an error -- there is nothing to confirm, so
   // offering the confirm button would guarantee a failed request.

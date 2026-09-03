@@ -7,6 +7,7 @@ import { AppShell } from "@/components/shared/AppShell";
 import { ActionErrorNotice } from "@/components/shared/ActionErrorNotice";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { SloperGrid } from "./SloperGrid";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useSlopersStore } from "@/lib/slopersStore";
 import type { Credits } from "@/lib/types";
 
@@ -51,11 +52,19 @@ export function SlopersShell({
     >
       {actionError && <ActionErrorNotice onDismiss={clearActionError} />}
       {!ready && (
-        <div
-          role="status"
-          className="text-muted text-control flex flex-1 items-center justify-center"
-        >
-          {t("loading")}
+        <div role="status" className="flex flex-1 flex-col gap-4 p-[22px]">
+          <span className="sr-only">{t("loading")}</span>
+          <Skeleton className="h-8 w-[160px]" />
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex-1" />
+            <Skeleton className="h-[34px] w-[200px]" />
+            <Skeleton className="h-[34px] w-[150px]" />
+          </div>
+          <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="rounded-card h-[168px] w-full" />
+            ))}
+          </div>
         </div>
       )}
       {ready && error && (

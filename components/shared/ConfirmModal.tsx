@@ -23,6 +23,10 @@ export function ConfirmModal({
   cancelLabel,
   onConfirm,
   onCancel,
+  // Most confirmations guard a destructive action (delete). Restore is the
+  // one call site that isn't -- append-only and free, per CLAUDE.md -- so it
+  // opts into the neutral primary treatment instead of sharing delete's red.
+  variant = "destructiveOutline",
 }: {
   title: string;
   description: string;
@@ -30,6 +34,7 @@ export function ConfirmModal({
   cancelLabel: string;
   onConfirm: () => void;
   onCancel: () => void;
+  variant?: "destructiveOutline" | "default";
 }) {
   return (
     <AlertDialog
@@ -47,11 +52,7 @@ export function ConfirmModal({
           <AlertDialogCancel size="sm" onClick={onCancel}>
             {cancelLabel}
           </AlertDialogCancel>
-          <AlertDialogAction
-            size="sm"
-            variant="destructiveOutline"
-            onClick={onConfirm}
-          >
+          <AlertDialogAction size="sm" variant={variant} onClick={onConfirm}>
             {confirmLabel}
           </AlertDialogAction>
         </AlertDialogFooter>

@@ -106,7 +106,10 @@ function EntryRows({
         showGap={aIsLonger}
       />
       <span className="text-alert text-ui">
-        {t("entryDiffLabel", { diff: cm(entry.diffCm) })}
+        {t("entryGapLabel", {
+          direction: aIsLonger ? "larger" : "smaller",
+          diff: cm(entry.diffCm),
+        })}
       </span>
     </div>
   );

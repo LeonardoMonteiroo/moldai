@@ -66,6 +66,7 @@ export function PasswordSection({ hasPassword }: { hasPassword: boolean }) {
       {!hasPassword && (
         <p className="text-muted-2 text-ui leading-[1.5]">{t("setNote")}</p>
       )}
+      {hasPassword && <p className="text-muted-2 text-ui">{t("hintNote")}</p>}
       <FieldGroup className="max-w-[420px]">
         {hasPassword && (
           <Field data-invalid={status === "error" || undefined}>
@@ -115,10 +116,14 @@ export function PasswordSection({ hasPassword }: { hasPassword: boolean }) {
         <Button onClick={submit} disabled={!canSubmit || status === "saving"}>
           {hasPassword ? t("submitButton") : t("setSubmitButton")}
         </Button>
-        {status === "ok" && (
+        {status === "ok" ? (
           <span className="text-olive-dark text-ui">
             {hasPassword ? t("successMessage") : t("setSuccessMessage")}
           </span>
+        ) : (
+          hasPassword && (
+            <span className="text-muted text-ui">{t("deviceNote")}</span>
+          )
         )}
       </div>
     </section>

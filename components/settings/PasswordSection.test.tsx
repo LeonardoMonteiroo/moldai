@@ -17,6 +17,18 @@ describe("PasswordSection", () => {
   // ProfileSection.test.tsx / UsageSection.test.tsx (#44/#33).
   afterEach(() => vi.mocked(changePassword).mockReset());
 
+  it("shows the accurate length hint and the stay-logged-in device note", () => {
+    renderWithIntl(<PasswordSection hasPassword={true} />);
+
+    expect(screen.getByText(ptBR.PasswordSection.hintNote)).toBeInTheDocument();
+    expect(
+      screen.getByText(ptBR.PasswordSection.deviceNote),
+    ).toBeInTheDocument();
+    // The hint must not claim a rule validateNewPassword doesn't enforce --
+    // only length is checked, no digit requirement.
+    expect(ptBR.PasswordSection.hintNote).not.toMatch(/número/);
+  });
+
   it("renders the catalog text for a wrong_password code", async () => {
     vi.mocked(changePassword).mockResolvedValue({
       status: "error",

@@ -107,7 +107,7 @@ export function PricingPage({
                       ? annualMonthlyEquivalentCents(id)
                       : monthly;
                   const isCurrent = currentPlan === id;
-                  const isFeatured = id === "studio";
+                  const isFeatured = id === "atelier";
 
                   return (
                     <div
@@ -183,6 +183,7 @@ export function PricingPage({
                         id={id}
                         signedIn={signedIn}
                         isCurrent={isCurrent}
+                        isFeatured={isFeatured}
                       />
                     </div>
                   );
@@ -276,7 +277,12 @@ function FreeCard({
 
       <div className="min-h-2 flex-1" />
 
-      <PlanCta id="free" signedIn={signedIn} isCurrent={isCurrent} />
+      <PlanCta
+        id="free"
+        signedIn={signedIn}
+        isCurrent={isCurrent}
+        isFeatured={false}
+      />
       <span className="text-olive-dark text-meta">{t("freeNote")}</span>
     </div>
   );
@@ -304,10 +310,12 @@ function PlanCta({
   id,
   signedIn,
   isCurrent,
+  isFeatured,
 }: {
   id: PlanId;
   signedIn: boolean;
   isCurrent: boolean;
+  isFeatured: boolean;
 }) {
   const t = useTranslations("Pricing");
   const tPlan = useTranslations("PlanSection");
@@ -333,7 +341,7 @@ function PlanCta({
 
   const href = signedIn ? "/settings?section=plan" : "/signup";
   return (
-    <Button asChild size="sm" variant={id === "free" ? "outline" : "default"}>
+    <Button asChild size="sm" variant={isFeatured ? "default" : "outline"}>
       <Link href={href}>{t(`plans.${id}.cta`)}</Link>
     </Button>
   );

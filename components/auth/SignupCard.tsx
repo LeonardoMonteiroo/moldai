@@ -20,9 +20,10 @@ import {
 } from "@/lib/account/settings";
 import { GoogleIcon } from "@/components/auth/GoogleIcon";
 
-// #109: the page heading moved to app/signup/page.tsx (a Server Component,
-// so it can also export generateMetadata for the tab title) -- this keeps
-// only the interactive form, mirroring VerifyCard's split.
+// #109: app/signup/page.tsx stays a Server Component so it can export
+// generateMetadata for the tab title, but the visible heading itself lives
+// here -- it has to switch to the success heading once the account is
+// created, which a static server-rendered heading can't do.
 export default function SignupCard() {
   const t = useTranslations("Signup");
   const [name, setName] = useState("");
@@ -88,12 +89,11 @@ export default function SignupCard() {
 
   return (
     <>
+      <h1 className="text-body mt-4 font-semibold">
+        {sent ? t("sentHeading") : t("heading")}
+      </h1>
       {sent ? (
         <div className="mt-3">
-          {/* A <p>, not a second <h1> -- app/signup/page.tsx already renders
-              the route's one real heading; mirrors VerifyCard's own
-              success-state styling. */}
-          <p className="text-body font-semibold">{t("sentHeading")}</p>
           <p className="text-muted-2 text-ui mt-2">
             {t.rich("sentBody", {
               email,

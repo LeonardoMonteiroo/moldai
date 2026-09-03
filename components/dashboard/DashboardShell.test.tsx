@@ -51,7 +51,7 @@ describe("DashboardShell", () => {
     // sidebar already names the section), no credits bar yet, but the account
     // menu is already reachable.
     expect(
-      screen.queryByRole("button", { name: ptBR.PageHeader.backButton }),
+      screen.queryByRole("button", { name: ptBR.PageHeader.backTitle }),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: ptBR.PageHeader.buyCreditsButton }),

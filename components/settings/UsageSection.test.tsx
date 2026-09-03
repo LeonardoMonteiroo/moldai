@@ -7,7 +7,8 @@ import {
   waitFor,
   translatorFor,
 } from "@/components/test-utils";
-import type { Credits } from "@/lib/types";
+import type { Credits, UsageThisCycle } from "@/lib/types";
+import { COSTS } from "@/lib/types";
 import { UsageSection } from "./UsageSection";
 import { purchase, ApiError } from "@/lib/api-client";
 import { TOPUP_PRICE_CENTS, formatBRL } from "@/lib/billing/plans";
@@ -20,12 +21,23 @@ vi.mock("@/lib/api-client", async () => {
   return { ...actual, purchase: vi.fn() };
 });
 
+// #106: COSTS is a plain object, not frozen -- mocking @/lib/types with a
+// shallow copy of it (rather than the same frozen reference the real module
+// exports) lets these tests force each boundary value (0, 1, 2) through the
+// same COSTS the component reads, without a separate mock per cost key.
+vi.mock("@/lib/types", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/types")>();
+  return { ...actual, COSTS: { ...actual.COSTS } };
+});
+
 const CREDITS: Credits = {
   plan: "free",
   balance: 15,
   total: 30,
   renewsInDays: 10,
 };
+
+const NO_USAGE: UsageThisCycle = { generate: 0, graduate: 0 };
 
 // #206: the top-up button's label now interpolates the price from
 // lib/billing/plans.ts instead of carrying "R$ 19" as a catalog literal, so
@@ -58,7 +70,13 @@ describe("UsageSection", () => {
       renewsInDays: 10,
     };
     const { container } = renderWithIntl(
-      <UsageSection credits={credits} initialLedger={[]} />,
+      <UsageSection
+        credits={credits}
+        initialLedger={[]}
+        patternCount={0}
+        usageThisCycle={NO_USAGE}
+        patternsCreatedThisWeek={0}
+      />,
     );
     const bar = container.querySelector(".bg-olive") as HTMLElement;
     expect(bar.style.width).toBe("50%");
@@ -75,7 +93,13 @@ describe("UsageSection", () => {
       renewsInDays: 1,
     };
     const { container } = renderWithIntl(
-      <UsageSection credits={credits} initialLedger={[]} />,
+      <UsageSection
+        credits={credits}
+        initialLedger={[]}
+        patternCount={0}
+        usageThisCycle={NO_USAGE}
+        patternsCreatedThisWeek={0}
+      />,
     );
     const bar = container.querySelector(".bg-olive") as HTMLElement;
     expect(bar.style.width).toBe("100%");
@@ -90,7 +114,15 @@ describe("UsageSection", () => {
       throw new ApiError(500, "server_error");
     });
     const user = userEvent.setup();
-    renderWithIntl(<UsageSection credits={CREDITS} initialLedger={[]} />);
+    renderWithIntl(
+      <UsageSection
+        credits={CREDITS}
+        initialLedger={[]}
+        patternCount={0}
+        usageThisCycle={NO_USAGE}
+        patternsCreatedThisWeek={0}
+      />,
+    );
 
     const button = screen.getByRole("button", {
       name: topupLabel,
@@ -109,12 +141,22 @@ describe("UsageSection", () => {
       credits: { ...CREDITS, balance: 115 },
     });
     const user = userEvent.setup();
-    renderWithIntl(<UsageSection credits={CREDITS} initialLedger={[]} />);
+    const { container } = renderWithIntl(
+      <UsageSection
+        credits={CREDITS}
+        initialLedger={[]}
+        patternCount={0}
+        usageThisCycle={NO_USAGE}
+        patternsCreatedThisWeek={0}
+      />,
+    );
 
     await user.click(screen.getByRole("button", { name: topupLabel }));
 
+    // Scoped to the balance panel's own big number -- the "Créditos
+    // restantes" stat card now shows the identical balance too.
     await waitFor(() => {
-      expect(screen.getByText("115")).toBeVisible();
+      expect(container.querySelector(".text-display")).toHaveTextContent("115");
     });
     expect(
       screen.queryByText(ptBR.ActionErrorNotice.message),
@@ -136,7 +178,15 @@ describe("UsageSection", () => {
       .spyOn(window, "location", "get")
       .mockReturnValue({ assign } as unknown as Location);
     const user = userEvent.setup();
-    renderWithIntl(<UsageSection credits={CREDITS} initialLedger={[]} />);
+    const { container } = renderWithIntl(
+      <UsageSection
+        credits={CREDITS}
+        initialLedger={[]}
+        patternCount={0}
+        usageThisCycle={NO_USAGE}
+        patternsCreatedThisWeek={0}
+      />,
+    );
 
     await user.click(screen.getByRole("button", { name: topupLabel }));
 
@@ -145,7 +195,11 @@ describe("UsageSection", () => {
     });
     // The balance shown is still the one this section was rendered with --
     // no optimistic "115" (CREDITS.balance + TOPUP_CREDITS) ever appears.
-    expect(screen.getByText(String(CREDITS.balance))).toBeVisible();
+    // Scoped to the balance panel's own big number -- the "Créditos
+    // restantes" stat card now shows the identical balance too.
+    expect(container.querySelector(".text-display")).toHaveTextContent(
+      String(CREDITS.balance),
+    );
 
     assignSpy.mockRestore();
   });
@@ -161,7 +215,13 @@ describe("UsageSection", () => {
         renewsInDays,
       };
       const { unmount } = renderWithIntl(
-        <UsageSection credits={credits} initialLedger={[]} />,
+        <UsageSection
+          credits={credits}
+          initialLedger={[]}
+          patternCount={0}
+          usageThisCycle={NO_USAGE}
+          patternsCreatedThisWeek={0}
+        />,
       );
       expect(
         screen.getByText(
@@ -187,6 +247,9 @@ describe("UsageSection", () => {
               createdAt: new Date().toISOString(),
             },
           ]}
+          patternCount={0}
+          usageThisCycle={NO_USAGE}
+          patternsCreatedThisWeek={0}
         />,
       );
       expect(
@@ -208,11 +271,114 @@ describe("UsageSection", () => {
               createdAt: new Date().toISOString(),
             },
           ]}
+          patternCount={0}
+          usageThisCycle={NO_USAGE}
+          patternsCreatedThisWeek={0}
         />,
       );
       expect(
         screen.getByText(ptBR.UsageSection.typeSubscribe),
       ).toBeInTheDocument();
+    });
+  });
+
+  // The three stat cards moved here from AccountSummaryCard/PlanSection are
+  // real, derived data -- not the design mockup's "8 gerações · 4 ajustes"
+  // split, which this app's ledger cannot honestly produce (every chat-driven
+  // draft or later adjustment shares the identical "generate" reason code;
+  // there is no separate "first generation" concept to count).
+  describe("stat cards", () => {
+    it("shows the real balance/total, usage-this-cycle, and pattern counts", () => {
+      const tUsage = translatorFor("UsageSection");
+      renderWithIntl(
+        <UsageSection
+          credits={CREDITS}
+          initialLedger={[]}
+          patternCount={24}
+          usageThisCycle={{ generate: 8, graduate: 4 }}
+          patternsCreatedThisWeek={3}
+        />,
+      );
+
+      expect(
+        screen.getByText(ptBR.UsageSection.statCreditsRemaining),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(tUsage("statCreditsRemainingSub", { total: 30 })),
+      ).toBeInTheDocument();
+
+      expect(
+        screen.getByText(ptBR.UsageSection.statUsedThisCycle),
+      ).toBeInTheDocument();
+      // 8 generate + 4 graduate = 12 total actions this cycle.
+      expect(screen.getByText("12")).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          tUsage("statUsedThisCycleSub", { generate: 8, graduate: 4 }),
+        ),
+      ).toBeInTheDocument();
+
+      expect(
+        screen.getByText(ptBR.UsageSection.statActivePatterns),
+      ).toBeInTheDocument();
+      expect(screen.getByText("24")).toBeInTheDocument();
+      expect(
+        screen.getByText(tUsage("statActivePatternsSub", { count: 3 })),
+      ).toBeInTheDocument();
+    });
+  });
+
+  // Moved here from PlanSection (#233 follow-up): the design's own
+  // Plano-e-cobrança reference shows no cost-per-action panel at all --
+  // it lives only on Créditos e uso.
+  describe("cost-per-action panel", () => {
+    it("prices generation and adjustment the same, at the real debited cost", () => {
+      const tUsage = translatorFor("UsageSection");
+      renderWithIntl(
+        <UsageSection
+          credits={CREDITS}
+          initialLedger={[]}
+          patternCount={0}
+          usageThisCycle={NO_USAGE}
+          patternsCreatedThisWeek={0}
+        />,
+      );
+      expect(
+        screen.getByText(tUsage("costGenerate", { cost: COSTS.adjust })),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(tUsage("costAdjust", { cost: COSTS.adjust })),
+      ).toBeInTheDocument();
+    });
+
+    // #106: "{cost} créditos" was a hardcoded plural noun -- COSTS.adjust is
+    // 1, so this panel rendered "Ajuste · 1 créditos" on every load.
+    describe("cost line pluralization (#106)", () => {
+      const ORIGINAL_COSTS = { ...COSTS };
+      afterEach(() => Object.assign(COSTS, ORIGINAL_COSTS));
+
+      it.each([
+        ["costGenerate", "adjust"],
+        ["costAdjust", "adjust"],
+        ["costGraduate", "graduate"],
+        ["costCorrection", "correction"],
+      ] as const)("pluralizes %s at 0, 1 and 2 credits", (key, costsKey) => {
+        const tUsage = translatorFor("UsageSection");
+        for (const cost of [0, 1, 2]) {
+          Object.assign(COSTS, { [costsKey]: cost });
+          const { unmount } = renderWithIntl(
+            <UsageSection
+              credits={CREDITS}
+              initialLedger={[]}
+              patternCount={0}
+              usageThisCycle={NO_USAGE}
+              patternsCreatedThisWeek={0}
+            />,
+          );
+          expect(screen.getByText(tUsage(key, { cost }))).toBeInTheDocument();
+          unmount();
+        }
+      });
     });
   });
 });

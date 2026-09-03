@@ -209,7 +209,7 @@ describe("SlopersShell", () => {
     // The screen cannot hand-roll a header, so this is really an assertion
     // that it goes through AppShell/PageHeader at all.
     await user.click(
-      screen.getByRole("button", { name: ptBR.PageHeader.backButton }),
+      screen.getByRole("button", { name: ptBR.PageHeader.backTitle }),
     );
     expect(push).toHaveBeenCalledWith("/");
   });

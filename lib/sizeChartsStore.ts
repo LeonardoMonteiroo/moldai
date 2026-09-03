@@ -28,6 +28,8 @@ interface SizeChartsStore {
   init: () => Promise<void>;
   select: (id: string) => void;
   updateDraft: (patch: Partial<SizeChartData>) => void;
+  /** Reverts an unsaved draft back to the last-saved chart, without navigating away. */
+  discard: () => void;
   setEditingRule: (v: boolean) => void;
   clearActionError: () => void;
   save: () => Promise<void>;
@@ -94,6 +96,13 @@ export const useSizeChartsStore = create<SizeChartsStore>((set, get) => ({
       // this chart's own save state too.
       saving: false,
     });
+  },
+
+  discard: () => {
+    const { selectedId, charts } = get();
+    const c = charts.find((x) => x.id === selectedId);
+    if (!c) return;
+    set({ draft: draftFrom(c), dirty: false, editingRule: false });
   },
 
   updateDraft: (patch) => {

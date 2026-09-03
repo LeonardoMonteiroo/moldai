@@ -38,7 +38,7 @@ describe("PageHeader", () => {
       <PageHeader title="Meus moldes" credits={CREDITS} userEmail="a@b.com" />,
     );
     expect(
-      screen.queryByRole("button", { name: t.backButton }),
+      screen.queryByRole("button", { name: t.backTitle }),
     ).not.toBeInTheDocument();
   });
 
@@ -51,7 +51,7 @@ describe("PageHeader", () => {
         userEmail="a@b.com"
       />,
     );
-    await userEvent.click(screen.getByRole("button", { name: t.backButton }));
+    await userEvent.click(screen.getByRole("button", { name: t.backTitle }));
     expect(push).toHaveBeenCalledWith("/");
   });
 

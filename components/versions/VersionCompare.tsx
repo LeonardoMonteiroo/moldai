@@ -311,6 +311,7 @@ export function VersionCompare({
           description={tList("restoreModalDescription")}
           confirmLabel={tList("restoreModalConfirmButton")}
           cancelLabel={tList("restoreModalCancelButton")}
+          variant="default"
           onConfirm={() => {
             setConfirmingRestore(false);
             onRestore(from.id);

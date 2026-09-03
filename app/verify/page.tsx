@@ -20,11 +20,18 @@ export default async function VerifyPage({
     <div className="bg-paper flex h-full justify-center overflow-y-auto px-4 py-8">
       <div className="bg-surface border-border rounded-card shadow-card my-auto w-full max-w-[380px] border p-7">
         <Wordmark />
-        <h1 className="text-body mt-4 font-semibold">{t("heading")}</h1>
         {token ? (
+          // The heading itself lives in VerifyCard, not here -- it has to
+          // switch to the success heading once verification completes, and a
+          // static server-rendered <h1> alongside it produced two headings
+          // at once (fixed after the redesign handoff's Round 2 reference
+          // screenshot showed only one).
           <VerifyCard token={token} />
         ) : (
-          <p className="text-alert text-ui mt-3">{t("missingToken")}</p>
+          <>
+            <h1 className="text-body mt-4 font-semibold">{t("heading")}</h1>
+            <p className="text-alert text-ui mt-3">{t("missingToken")}</p>
+          </>
         )}
       </div>
     </div>

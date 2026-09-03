@@ -39,8 +39,6 @@ export function SloperGrid({ onUse }: { onUse: (id: string) => void }) {
   const hasNoMatches = !isTrulyEmpty && filtered.length === 0;
 
   return (
-    // `fill` + `min-h-full` so an Empty state still centres in the region
-    // instead of collapsing to its own content height.
     <ScrollArea fill className="min-h-0 flex-1">
       <div className="flex min-h-full flex-col gap-4 p-[22px]">
         <div className="flex flex-col gap-px">

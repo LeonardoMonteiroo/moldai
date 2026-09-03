@@ -4,8 +4,11 @@ import { getTranslations } from "next-intl/server";
 import { auth } from "@/auth";
 import { getUserById } from "@/lib/db/users";
 import { loadWallet } from "@/lib/db/wallet";
-import { getLedgerHistory } from "@/lib/db/account";
-import { countPatternsForUser } from "@/lib/db/pattern";
+import { getLedgerHistory, getUsageThisCycle } from "@/lib/db/account";
+import {
+  countPatternsForUser,
+  countPatternsCreatedSince,
+} from "@/lib/db/pattern";
 import { buildCredits } from "@/lib/api/compose";
 import { SettingsShell } from "@/components/settings/SettingsShell";
 import {
@@ -45,6 +48,21 @@ export default async function SettingsPage({
   // fabricated free wallet, for an account that no longer exists.
   if (!user || !wallet) redirect("/login");
 
+  // Cycle start for the "Usados neste ciclo"/"criados esta semana" stat
+  // cards -- derived from the wallet's own renewsAt/planInterval (annual
+  // subscriptions renew every 365 days, everything else every 30), not
+  // guessed from the capped 30-row ledger, which could under-report a very
+  // active account's usage if it holds more than 30 transactions this cycle.
+  const cycleLengthDays = wallet.planInterval === "year" ? 365 : 30;
+  const cycleStart = wallet.renewsAt
+    ? new Date(wallet.renewsAt.getTime() - cycleLengthDays * 86_400_000)
+    : new Date(0);
+  const weekAgo = new Date(new Date().getTime() - 7 * 86_400_000);
+  const [usageThisCycle, patternsCreatedThisWeek] = await Promise.all([
+    getUsageThisCycle(session.user.id, cycleStart),
+    countPatternsCreatedSince(session.user.id, weekAgo),
+  ]);
+
   return (
     <SettingsShell
       userEmail={session.user.email}
@@ -55,6 +73,8 @@ export default async function SettingsPage({
       activeSection={parseSection(params.section)}
       memberSince={user.createdAt.toISOString()}
       patternCount={patternCount}
+      usageThisCycle={usageThisCycle}
+      patternsCreatedThisWeek={patternsCreatedThisWeek}
     />
   );
 }

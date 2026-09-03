@@ -185,6 +185,7 @@ export function VersionList({
           description={t("restoreModalDescription")}
           confirmLabel={t("restoreModalConfirmButton")}
           cancelLabel={t("restoreModalCancelButton")}
+          variant="default"
           onConfirm={() => {
             setConfirmingId(null);
             onRestore(confirming.id);

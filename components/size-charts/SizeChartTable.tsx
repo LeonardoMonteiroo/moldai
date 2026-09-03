@@ -13,6 +13,7 @@ import {
 } from "@/lib/measurements";
 import { BODY_TYPES, type BodyType } from "@/lib/types";
 import { formatCm } from "@/lib/format";
+import { ConfirmModal } from "@/components/shared/ConfirmModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -52,11 +53,13 @@ export function SizeChartTable() {
   const updateDraft = useSizeChartsStore((s) => s.updateDraft);
   const setEditingRule = useSizeChartsStore((s) => s.setEditingRule);
   const save = useSizeChartsStore((s) => s.save);
+  const discard = useSizeChartsStore((s) => s.discard);
   const duplicate = useSizeChartsStore((s) => s.duplicate);
   const remove = useSizeChartsStore((s) => s.remove);
   const activate = useSizeChartsStore((s) => s.activate);
   const [addingSize, setAddingSize] = useState(false);
   const [newSize, setNewSize] = useState("");
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   // Lifted out of the cells so the message can sit under the table rather than
   // being squeezed into a 56px column.
   const [invalidHint, setInvalidHint] = useState<{
@@ -164,7 +167,7 @@ export function SizeChartTable() {
           <Button
             variant="destructiveOutline"
             size="chrome"
-            onClick={() => remove(selectedId)}
+            onClick={() => setConfirmingDelete(true)}
           >
             {t("deleteButton")}
           </Button>
@@ -438,6 +441,20 @@ export function SizeChartTable() {
         </DialogContent>
       </Dialog>
 
+      {confirmingDelete && (
+        <ConfirmModal
+          title={t("deleteModalTitle")}
+          description={t("deleteModalDescription")}
+          confirmLabel={t("deleteConfirmButton")}
+          cancelLabel={t("deleteCancelButton")}
+          onConfirm={() => {
+            setConfirmingDelete(false);
+            remove(selectedId);
+          }}
+          onCancel={() => setConfirmingDelete(false)}
+        />
+      )}
+
       <div className="flex flex-col gap-3 sm:flex-row">
         <div className="border-border rounded-card bg-surface flex-1 border p-[14px]">
           <span className="text-muted text-meta tracking-eyebrow font-semibold uppercase">
@@ -458,9 +475,29 @@ export function SizeChartTable() {
         </div>
         <div className="flex flex-col justify-end gap-2 sm:w-[220px]">
           {dirty && !readOnly && (
-            <Button variant="accent" disabled={saving} onClick={() => save()}>
-              {saving ? t("saveButtonSaving") : t("saveButton")}
-            </Button>
+            <>
+              <span className="text-muted text-meta">
+                {t("unsavedChangesNote")}
+              </span>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  disabled={saving}
+                  onClick={() => discard()}
+                >
+                  {t("discardButton")}
+                </Button>
+                <Button
+                  variant="accent"
+                  className="flex-1"
+                  disabled={saving}
+                  onClick={() => save()}
+                >
+                  {saving ? t("saveButtonSaving") : t("saveButton")}
+                </Button>
+              </div>
+            </>
           )}
           <Button disabled={isActive} onClick={() => activate(selectedId)}>
             {isActive ? t("activeSizeChartNote") : t("useSizeChartButton")}

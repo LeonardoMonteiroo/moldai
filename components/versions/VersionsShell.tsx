@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { AppShell } from "@/components/shared/AppShell";
 import { ActionErrorNotice } from "@/components/shared/ActionErrorNotice";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   listVersions,
   restoreVersion,
@@ -120,11 +121,14 @@ export function VersionsShell({
         <ActionErrorNotice onDismiss={() => setActionError(null)} />
       )}
       {versions === null && !loadError && (
-        <div
-          role="status"
-          className="text-muted text-control flex flex-1 items-center justify-center"
-        >
-          {t("loading")}
+        <div role="status" className="flex flex-1 flex-col gap-4 p-[22px]">
+          <span className="sr-only">{t("loading")}</span>
+          <div className="flex gap-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="rounded-card h-[90px] flex-1" />
+            ))}
+          </div>
+          <Skeleton className="rounded-card h-[280px] w-full" />
         </div>
       )}
       {loadError && (

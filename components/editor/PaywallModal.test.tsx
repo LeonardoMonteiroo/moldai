@@ -42,7 +42,6 @@ describe("PaywallModal", () => {
     const expected = tPaywall("description", {
       action: t.actions.graduate,
       required: 3,
-      balance: 1,
     });
     expect(screen.getByText(expected)).toBeInTheDocument();
   });
@@ -56,7 +55,6 @@ describe("PaywallModal", () => {
     const expected = tPaywall("description", {
       action: t.actions.adjust,
       required: 3,
-      balance: 1,
     });
     expect(screen.getByText(expected)).toBeInTheDocument();
   });
@@ -70,26 +68,28 @@ describe("PaywallModal", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
-  // #31: double-clicking either plan card sent two purchase requests --
+  // #31: double-clicking either plan row sent two purchase requests --
   // nothing disabled them while the first was still in flight, so a top-up
   // granted double credits with no idempotency key on the server side to
   // catch it.
-  it("disables both plan cards while a purchase is already in flight", () => {
+  it("disables both purchase rows while a purchase is already in flight", () => {
     useEditorStore.setState({ purchasing: true });
     renderWithIntl(<PaywallModal />);
 
-    const topupButton = screen.getByText(t.topupCta).closest("button")!;
-    const subscribeButton = screen.getByText(t.subscribeCta).closest("button")!;
+    const topupButton = screen.getByText(t.topupTitle).closest("button")!;
+    const subscribeButton = screen
+      .getByText(t.subscribeTitle)
+      .closest("button")!;
     expect(topupButton).toBeDisabled();
     expect(subscribeButton).toBeDisabled();
   });
 
-  it("leaves both plan cards enabled when no purchase is in flight", () => {
+  it("leaves both purchase rows enabled when no purchase is in flight", () => {
     useEditorStore.setState({ purchasing: false });
     renderWithIntl(<PaywallModal />);
 
-    expect(screen.getByText(t.topupCta).closest("button")).toBeEnabled();
-    expect(screen.getByText(t.subscribeCta).closest("button")).toBeEnabled();
+    expect(screen.getByText(t.topupTitle).closest("button")).toBeEnabled();
+    expect(screen.getByText(t.subscribeTitle).closest("button")).toBeEnabled();
   });
 
   // #106: {required} créditos and {days} dias were hardcoded plural nouns --
@@ -104,7 +104,6 @@ describe("PaywallModal", () => {
       const expected = tPaywall("description", {
         action: t.actions.adjust,
         required,
-        balance: 1,
       });
       expect(screen.getByText(expected)).toBeInTheDocument();
       unmount();
@@ -114,12 +113,15 @@ describe("PaywallModal", () => {
   // #112: "renova todo dia 1" claimed a fixed calendar renewal day the
   // wallet doesn't implement -- renewWallet rolls renewsAt forward 30 days
   // from the previous (scheduled) renewal, so the actual date drifts
-  // through the month depending on when the user subscribed.
-  it("describes the 30-day renewal cycle the wallet actually implements, not a fixed calendar day", () => {
+  // through the month depending on when the user subscribed. The Ateliê
+  // row's own detail text now makes no renewal-cadence claim at all
+  // (per the redesign handoff); the real, dynamic day count lives in the
+  // usage row below instead, tested separately.
+  it("does not claim a fixed renewal cadence in the Ateliê row's own detail text", () => {
     renderWithIntl(<PaywallModal />);
     expect(screen.getByText(t.subscribeDetail)).toBeInTheDocument();
     expect(t.subscribeDetail).not.toMatch(/dia \d+\b/);
-    expect(t.subscribeDetail).toMatch(/30 dias/);
+    expect(t.subscribeDetail).not.toMatch(/\d+ dias/);
   });
 
   // A regression guard for this exact phrasing reappearing anywhere else in
@@ -134,15 +136,25 @@ describe("PaywallModal", () => {
     expect(raw).not.toMatch(/todo dia \d+/);
   });
 
-  it("pluralizes the renewal note at 0, 1 and 2 days", () => {
+  it("pluralizes the usage row's renewal note at 0, 1 and 2 days", () => {
     for (const days of [0, 1, 2]) {
       useEditorStore.setState((s) => ({
         credits: { ...s.credits!, renewsInDays: days },
       }));
       const { unmount } = renderWithIntl(<PaywallModal />);
-      const expected = tPaywall("renewsNote", { days });
+      const expected = tPaywall("usageRenewsNote", { days });
       expect(screen.getByText(expected)).toBeInTheDocument();
       unmount();
     }
+  });
+
+  it("shows the real balance/total in the usage row, clamping the bar at 100%", () => {
+    useEditorStore.setState({
+      credits: { plan: "free", balance: 35, total: 30, renewsInDays: 5 },
+    });
+    renderWithIntl(<PaywallModal />);
+    expect(
+      screen.getByText(tPaywall("usageLabel", { balance: 35, total: 30 })),
+    ).toBeInTheDocument();
   });
 });

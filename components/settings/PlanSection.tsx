@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import type { Credits, PlanId } from "@/lib/types";
-import { COSTS, PLAN_IDS } from "@/lib/types";
+import { PLAN_IDS } from "@/lib/types";
 import {
   PLAN_CREDITS,
   PLAN_PRICE_CENTS,
@@ -92,7 +92,7 @@ export function PlanSection({ credits: initial }: { credits: Credits }) {
           <ToggleGroupItem value="year">{t("toggle.annual")}</ToggleGroupItem>
         </ToggleGroup>
       </div>
-      <section className="grid grid-cols-2 gap-3">
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {PLAN_IDS.map((id) => {
           const isCurrent = credits.plan === id && currentInterval === interval;
           // Grátis never participates in the annual toggle -- there is no
@@ -183,20 +183,6 @@ export function PlanSection({ credits: initial }: { credits: Credits }) {
           docs/decisions.md) -- the gateway's real BRL-only/Visa-Mastercard-only
           limitations no longer render here. */}
       <p className="text-muted text-ui">{t("paymentNote")}</p>
-      <section className="bg-surface border-border rounded-card flex flex-col gap-2 border p-[18px]">
-        <h2 className="font-display text-body font-semibold">
-          {t("costsHeading")}
-        </h2>
-        <ul className="text-muted-2 text-ui flex flex-col gap-1">
-          {/* #108: generation debits the same constant as an adjustment —
-              there is no separate, higher "first draft" price. The cut plan
-              has no entry here at all: it's computed client-side and free. */}
-          <li>{t("costGenerate", { cost: COSTS.adjust })}</li>
-          <li>{t("costAdjust", { cost: COSTS.adjust })}</li>
-          <li>{t("costGraduate", { cost: COSTS.graduate })}</li>
-          <li>{t("costCorrection", { cost: COSTS.correction })}</li>
-        </ul>
-      </section>
       {/* #15: the public pricing screen -- feature bullets, the annual
           toggle, and Confecção's "Falar com vendas" don't belong in this
           three-line card grid, so this links out rather than duplicating

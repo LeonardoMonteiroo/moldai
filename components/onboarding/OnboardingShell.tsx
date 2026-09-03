@@ -232,9 +232,14 @@ export function OnboardingShell({ credits }: { credits: Credits }) {
                   type="button"
                   disabled
                   title={t("step2.importOption.comingSoonTitle")}
-                  className="text-placeholder text-control flex-1 text-left font-semibold disabled:cursor-not-allowed"
+                  className="flex flex-1 flex-col gap-1 text-left disabled:cursor-not-allowed"
                 >
-                  {t("step2.importOption.title")}
+                  <span className="text-placeholder text-control font-semibold">
+                    {t("step2.importOption.title")}
+                  </span>
+                  <span className="text-placeholder text-ui">
+                    {t("step2.importOption.subtitle")}
+                  </span>
                 </button>
                 <Badge variant="soon">{t("step2.comingSoonBadge")}</Badge>
               </div>
@@ -243,9 +248,14 @@ export function OnboardingShell({ credits }: { credits: Credits }) {
                   type="button"
                   disabled
                   title={t("step2.fillOption.comingSoonTitle")}
-                  className="text-placeholder text-control flex-1 text-left font-semibold disabled:cursor-not-allowed"
+                  className="flex flex-1 flex-col gap-1 text-left disabled:cursor-not-allowed"
                 >
-                  {t("step2.fillOption.title")}
+                  <span className="text-placeholder text-control font-semibold">
+                    {t("step2.fillOption.title")}
+                  </span>
+                  <span className="text-placeholder text-ui">
+                    {t("step2.fillOption.subtitle")}
+                  </span>
                 </button>
                 <Badge variant="soon">{t("step2.comingSoonBadge")}</Badge>
               </div>

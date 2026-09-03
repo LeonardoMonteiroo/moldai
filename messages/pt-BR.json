@@ -1,7 +1,6 @@
 {
   "PageHeader": {
     "backTitle": "Voltar para meus moldes",
-    "backButton": "← Voltar",
     "creditsLabel": "{planLabel} · {balance, plural, one {# crédito} other {# créditos}}",
     "outOfTotal": "de {total}",
     "buyCreditsButton": "Comprar créditos",
@@ -42,7 +41,9 @@
   "ChatPanel": {
     "title": "Conversa",
     "subtitle": "MoldAI v2 Pro",
-    "generationError": "A geração falhou, mas seus créditos foram devolvidos. Tente novamente.",
+    "generationError": "A geração falhou, mas seus créditos foram devolvidos.",
+    "generationErrorRetryButton": "Tentar novamente",
+    "generationErrorNoCostNote": "sem custo",
     "generatingCost": "−{cost, plural, one {# crédito} other {# créditos}} · gerando…",
     "generateButton": "Gerar",
     "cancelButton": "Cancelar"
@@ -111,17 +112,19 @@
     }
   },
   "PaywallModal": {
-    "title": "Seus créditos acabaram",
-    "description": "{action} usa {required, plural, one {# crédito} other {# créditos}} e você tem {balance}. Nada foi perdido: o molde continua salvo.",
+    "eyebrow": "Créditos",
+    "title": "Você usou todos os seus créditos",
+    "description": "{action} custa {required, plural, one {# crédito} other {# créditos}}. Nada foi perdido: o molde continua salvo do jeito que estava.",
+    "usageLabel": "{balance} de {total} créditos do mês",
+    "usageRenewsNote": "renovam em {days, plural, one {# dia} other {# dias}}",
     "topupTitle": "Créditos avulsos",
-    "topupDetail": "100 créditos · sem assinatura",
-    "topupCta": "Comprar ›",
-    "subscribeTitle": "Ateliê",
-    "subscribeBadge": "melhor custo",
-    "subscribePeriod": "/mês",
-    "subscribeDetail": "500 créditos/mês · renova a cada 30 dias",
-    "subscribeCta": "Assinar ›",
-    "renewsNote": "Seus créditos grátis renovam em {days, plural, one {# dia} other {# dias}}.",
+    "topupDetail": "100 créditos · sem assinatura, não expiram",
+    "topupPeriod": "pagamento único",
+    "subscribeTitle": "Plano Ateliê",
+    "subscribeBadge": "custo-benefício",
+    "subscribePeriod": "por mês",
+    "subscribeDetail": "500 créditos por mês · cancela quando quiser",
+    "paymentNote": "Pagamentos processados pela Stripe.",
     "backButton": "Voltar ao molde",
     "actions": {
       "adjust": "Esse ajuste",
@@ -135,7 +138,8 @@
     "sleeveRowLabel": "Cava · copa",
     "valueCm": "{value} cm",
     "gapLabel": "{direction, select, larger {falta {diff} cm na copa} smaller {sobra {diff} cm na copa} other {}}",
-    "entryDiffLabel": "diferença de {diff} cm"
+    "entryDiffLabel": "diferença de {diff} cm",
+    "entryGapLabel": "{direction, select, larger {falta {diff} cm} smaller {sobra {diff} cm} other {}}"
   },
   "ConflictActions": {
     "fixButton": "Corrigir manga",
@@ -734,6 +738,7 @@
     "successHeading": "Email confirmado!",
     "successBody": "Tudo certo. Agora é só entrar com sua senha.",
     "loginLink": "Ir para o login",
+    "backToLoginLink": "Voltar para login",
     "errors": {
       "invalid_token": "Este link não é válido. Peça um novo na tela de login.",
       "expired_token": "Este link expirou. Peça um novo na tela de login.",
@@ -769,11 +774,13 @@
         "subtitle": "Grade padrão do sistema. Você pode trocar depois em Medidas e grades."
       },
       "importOption": {
-        "title": "Importar planilha ou tabela do Audaces",
+        "title": "Importar planilha ou tabela",
+        "subtitle": "Suba seu arquivo e a IA mapeia as medidas automaticamente.",
         "comingSoonTitle": "Importação de planilha chega em breve"
       },
       "fillOption": {
         "title": "Preencher agora",
+        "subtitle": "Digite suas próprias medidas antes de continuar.",
         "comingSoonTitle": "Preencher agora chega em breve; use a grade padrão por enquanto"
       },
       "note": "Pode fazer depois: a IA usa a grade padrão até você trocar.",
@@ -803,8 +810,9 @@
     "ignore": "Se você não criou uma conta no MoldAI, pode ignorar esta mensagem."
   },
   "PasswordReset": {
-    "requestHeading": "Esqueci minha senha",
-    "requestIntro": "Informe seu email. Se ele estiver cadastrado, enviamos um link para redefinir sua senha.",
+    "requestHeading": "Redefinir senha",
+    "requestIntro": "Informe seu email e enviaremos um link para redefinir sua senha.",
+    "backToLoginNote": "Voltar para <a>login</a>.",
     "emailLabel": "Email",
     "requestButton": "Enviar link",
     "requestButtonLoading": "Enviando…",
@@ -940,6 +948,8 @@
     "overrideLegend": "valor ajustado à mão, fora da regra",
     "saveButton": "Salvar alterações",
     "saveButtonSaving": "Salvando…",
+    "unsavedChangesNote": "Alterações não salvas nesta grade.",
+    "discardButton": "Descartar",
     "systemReadOnlyNote": "Grades do sistema não podem ser editadas. Duplique para personalizar.",
     "deleteModalTitle": "Excluir esta grade?",
     "deleteModalDescription": "Isso apaga a grade e não pode ser desfeito.",
@@ -1120,7 +1130,7 @@
     "emailLabel": "E-mail",
     "emailHint": "O e-mail é o identificador de login e não pode ser alterado.",
     "saveButton": "Salvar",
-    "saveSuccess": "Perfil atualizado.",
+    "saveSuccess": "Alterações salvas.",
     "saveError": "Não foi possível salvar. Tente novamente.",
     "nameRequired": "Nome obrigatório.",
     "errors": {
@@ -1139,7 +1149,9 @@
     "newLabel": "Nova senha",
     "confirmLabel": "Confirmar nova senha",
     "submitButton": "Alterar senha",
-    "mismatchError": "As senhas não coincidem.",
+    "hintNote": "Mínimo de 8 caracteres.",
+    "deviceNote": "Você continuará conectado(a) neste dispositivo.",
+    "mismatchError": "As senhas não conferem.",
     "tooShortError": "A nova senha deve ter pelo menos 8 caracteres.",
     "successMessage": "Senha alterada com sucesso.",
     "setHeading": "Definir senha",
@@ -1159,7 +1171,7 @@
     "warning": "Essa ação exclui permanentemente todos os seus moldes, créditos e histórico. Não pode ser desfeita.",
     "emailConfirmLabel": "Digite {email} para confirmar",
     "passwordLabel": "Senha",
-    "submitButton": "Excluir conta",
+    "submitButton": "Excluir minha conta",
     "genericError": "Não foi possível excluir a conta. Tente novamente.",
     "errors": {
       "bad_body": "Não foi possível excluir a conta. Tente novamente.",
@@ -1194,7 +1206,18 @@
     "reasonGraduate": "Graduação",
     "reasonGenerateAsk": "Pergunta",
     "reasonGenerateDeclined": "Recusado",
-    "reasonGenerateError": "Erro"
+    "reasonGenerateError": "Erro",
+    "statCreditsRemaining": "Créditos restantes",
+    "statCreditsRemainingSub": "de {total} no ciclo",
+    "statUsedThisCycle": "Usados neste ciclo",
+    "statUsedThisCycleSub": "{generate, plural, one {# ajuste} other {# ajustes}} · {graduate, plural, one {# graduação} other {# graduações}}",
+    "statActivePatterns": "Moldes ativos",
+    "statActivePatternsSub": "{count, plural, one {# criado} other {# criados}} esta semana",
+    "costsHeading": "Custo por ação",
+    "costGenerate": "Geração · {cost, plural, one {# crédito} other {# créditos}}",
+    "costAdjust": "Ajuste · {cost, plural, one {# crédito} other {# créditos}}",
+    "costGraduate": "Graduação · {cost, plural, one {# crédito} other {# créditos}}",
+    "costCorrection": "Correção · {cost, plural, one {# crédito} other {# créditos}}"
   },
   "PlanSection": {
     "currentBadge": "Plano atual",
@@ -1203,11 +1226,6 @@
     "downgradeButton": "Indisponível",
     "downgradeNote": "Por enquanto só é possível fazer upgrade de plano por aqui.",
     "viewAllPlansLink": "Ver todos os planos →",
-    "costsHeading": "Custo por ação",
-    "costGenerate": "Geração · {cost, plural, one {# crédito} other {# créditos}}",
-    "costAdjust": "Ajuste · {cost, plural, one {# crédito} other {# créditos}}",
-    "costGraduate": "Graduação · {cost, plural, one {# crédito} other {# créditos}}",
-    "costCorrection": "Correção · {cost, plural, one {# crédito} other {# créditos}}",
     "toggleLabel": "Ciclo de cobrança",
     "toggle": {
       "monthly": "Mensal",

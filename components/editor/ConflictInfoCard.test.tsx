@@ -199,12 +199,17 @@ describe("ConflictInfoCard with entries (#134)", () => {
     expect(
       screen.getByText(t("valueCm", { value: "43,8" })),
     ).toBeInTheDocument();
-    // Both entries' own diff lines render.
+    // Both entries' own diff lines render, direction-aware (both are
+    // "a longer than b" here, so both read "falta").
     expect(
-      screen.getByText(t("entryDiffLabel", { diff: "3,1" })),
+      screen.getByText(
+        t("entryGapLabel", { direction: "larger", diff: "3,1" }),
+      ),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(t("entryDiffLabel", { diff: "4,2" })),
+      screen.getByText(
+        t("entryGapLabel", { direction: "larger", diff: "4,2" }),
+      ),
     ).toBeInTheDocument();
   });
 
@@ -243,6 +248,45 @@ describe("ConflictInfoCard with entries (#134)", () => {
     // The card's own title already says this; a duplicate entry heading
     // with the identical text would be redundant.
     expect(screen.getAllByText("Cava e manga não batem")).toHaveLength(1);
+  });
+
+  it("reads 'sobra' instead of 'falta' when the b side is the longer one", () => {
+    const entries: ConflictInfo["entries"] = [
+      {
+        key: "armhole-cap",
+        label: "Cava e manga",
+        aLabel: "Cava · frente",
+        bLabel: "Cava · copa",
+        aPieceId: "body-front",
+        bPieceId: "sleeve",
+        diffCm: 1.5,
+        fixable: true,
+        markers: [],
+      },
+    ];
+    renderWithIntl(
+      <ConflictInfoCard
+        conflict={entryConflict(entries)}
+        seamGraph={[
+          {
+            key: "armhole-cap",
+            labelKey: "armholeCap",
+            aPieceId: "body-front",
+            bPieceId: "sleeve",
+            aLenCm: 18.0,
+            bLenCm: 19.5,
+            diffCm: 1.5,
+            fixable: true,
+            easeCm: 2.5,
+          },
+        ]}
+      />,
+    );
+    expect(
+      screen.getByText(
+        t("entryGapLabel", { direction: "smaller", diff: "1,5" }),
+      ),
+    ).toBeInTheDocument();
   });
 
   it("falls back to the bare diff line when the matching seamGraph measurement is missing", () => {

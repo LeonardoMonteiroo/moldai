@@ -7,6 +7,7 @@ import { relativeTime } from "@/lib/format";
 import { AppShell, DESKTOP_MEDIA_QUERY } from "@/components/shared/AppShell";
 import { ActionErrorNotice } from "@/components/shared/ActionErrorNotice";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ChatPanel } from "./ChatPanel";
 import { CanvasArea } from "./CanvasArea";
 import { HeaderActions } from "./HeaderActions";
@@ -71,21 +72,29 @@ export function EditorShell({
     init(patternId);
   }, [init, patternId, desktopMatch]);
 
-  // #119: the gate comes before the load/error/loading checks below -- a
-  // narrow viewport has nothing to gain from the editor's data loading at
-  // all, and showing "Carregando molde…" first would just replace one
+  // The header persists through every one of these states now (it did not
+  // used to -- see CLAUDE.md) -- only the content region swaps. `title` is
+  // omitted rather than guessed at: the pattern's real name isn't known yet
+  // in any of these branches, and AppShell already treats an absent title as
+  // valid (the dashboard's own header has none).
+  //
+  // #119: the desktop gate comes before the load/error/loading checks below
+  // -- a narrow viewport has nothing to gain from the editor's data loading
+  // at all, and showing "Carregando molde…" first would just replace one
   // unusable screen with another.
   if (!isDesktop) {
     return (
-      <div
-        role="status"
-        className="flex flex-1 flex-col items-center justify-center gap-2 p-[22px] text-center"
-      >
-        <p className="text-control font-semibold">{t("desktopOnlyTitle")}</p>
-        <p className="text-muted text-ui max-w-[320px]">
-          {t("desktopOnlyDescription")}
-        </p>
-      </div>
+      <AppShell backHref="/" credits={credits} userEmail={userEmail}>
+        <div
+          role="status"
+          className="flex flex-1 flex-col items-center justify-center gap-2 p-[22px] text-center"
+        >
+          <p className="text-control font-semibold">{t("desktopOnlyTitle")}</p>
+          <p className="text-muted text-ui max-w-[320px]">
+            {t("desktopOnlyDescription")}
+          </p>
+        </div>
+      </AppShell>
     );
   }
 
@@ -94,37 +103,45 @@ export function EditorShell({
   // text below was the permanent end state.
   if (error && !pattern) {
     return (
-      <div
-        role="alert"
-        className="flex flex-1 flex-col items-center justify-center gap-[14px]"
-      >
-        <p className="text-alert text-control">
-          {error === "unauthorized" ? t("sessionExpired") : t("loadError")}
-        </p>
-        <Button
-          variant="outline"
-          size="chrome"
-          onClick={() => {
-            clearError();
-            init(patternId);
-          }}
+      <AppShell backHref="/" credits={credits} userEmail={userEmail}>
+        <div
+          role="alert"
+          className="flex flex-1 flex-col items-center justify-center gap-[14px]"
         >
-          {t("retryButton")}
-        </Button>
-      </div>
+          <p className="text-alert text-control">
+            {error === "unauthorized" ? t("sessionExpired") : t("loadError")}
+          </p>
+          <Button
+            variant="outline"
+            size="chrome"
+            onClick={() => {
+              clearError();
+              init(patternId);
+            }}
+          >
+            {t("retryButton")}
+          </Button>
+        </div>
+      </AppShell>
     );
   }
 
-  // The header's title IS the pattern name, so unlike the other screens there
-  // is nothing to paint until the store is ready.
   if (!ready || !pattern || !credits) {
     return (
-      <div
-        role="status"
-        className="text-muted text-control flex flex-1 items-center justify-center"
-      >
-        {t("loading")}
-      </div>
+      <AppShell backHref="/" credits={credits} userEmail={userEmail}>
+        <div role="status" className="flex min-h-0 flex-1">
+          <span className="sr-only">{t("loading")}</span>
+          <div className="border-border flex w-[312px] shrink-0 flex-col gap-3 border-r p-4">
+            <Skeleton className="h-6 w-2/3" />
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-16 w-full" />
+            ))}
+          </div>
+          <div className="flex flex-1 items-center justify-center p-[22px]">
+            <Skeleton className="h-full max-h-[500px] w-full max-w-[700px]" />
+          </div>
+        </div>
+      </AppShell>
     );
   }
 

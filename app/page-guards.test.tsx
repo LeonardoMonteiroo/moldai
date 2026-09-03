@@ -43,9 +43,11 @@ vi.mock("@/lib/db/wallet", () => ({ loadWallet: vi.fn() }));
 vi.mock("@/lib/db/pattern", () => ({
   loadPattern: vi.fn(),
   countPatternsForUser: vi.fn(async () => 0),
+  countPatternsCreatedSince: vi.fn(async () => 0),
 }));
 vi.mock("@/lib/db/account", () => ({
   getLedgerHistory: vi.fn(async () => []),
+  getUsageThisCycle: vi.fn(async () => ({ generate: 0, graduate: 0 })),
 }));
 // Resolves against the REAL catalog rather than echoing keys, so a metadata
 // title naming a key that does not exist fails here instead of passing with

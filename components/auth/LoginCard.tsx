@@ -138,7 +138,7 @@ export default function LoginCard() {
         >
           {t("forgotPasswordLink")}
         </Link>
-        {unverified && (
+        {unverified && !resent && (
           <Button
             type="button"
             variant="outline"

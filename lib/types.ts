@@ -306,6 +306,16 @@ export interface LedgerHistoryEntry {
   createdAt: string;
 }
 
+// Settings' "Usados neste ciclo" stat card -- counts of debit transactions
+// since the current billing cycle started, by the only two reasons a debit
+// ever carries. "generate" covers every chat-driven draft/adjustment alike
+// (this app has no separate "first generation" vs "later edit" distinction
+// in its data model), "graduate" covers grading.
+export interface UsageThisCycle {
+  generate: number;
+  graduate: number;
+}
+
 // #134: one divergent seam pair out of the full graph lib/draft/seams.ts's
 // walkSeamPairs measures -- what ConflictInfo.entries holds, one per
 // mismatch beyond SEAM_TOLERANCE_CM (not every declared pair). `label`/

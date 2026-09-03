@@ -171,6 +171,11 @@ describe("LoginCard", () => {
     // The unverified error is replaced by the confirmation, not stacked
     // under it.
     expect(screen.queryByText(ptBR.Login.unverifiedEmail)).toBeNull();
+    // The resend button itself must not stay re-clickable once it succeeded
+    // -- it used to render forever alongside the confirmation text.
+    expect(
+      screen.queryByRole("button", { name: ptBR.Login.resendButton }),
+    ).not.toBeInTheDocument();
   });
 
   it.each([

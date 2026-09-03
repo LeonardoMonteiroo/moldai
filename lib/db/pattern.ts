@@ -144,6 +144,17 @@ export function countPatternsForUser(userId: string): Promise<number> {
   return prisma.pattern.count({ where: { userId } });
 }
 
+// Settings' "Moldes ativos" stat card own sub-caption -- a real count, not
+// the plan-allowance-shaped number countPatternsForUser already serves.
+export function countPatternsCreatedSince(
+  userId: string,
+  since: Date,
+): Promise<number> {
+  return prisma.pattern.count({
+    where: { userId, createdAt: { gte: since } },
+  });
+}
+
 export async function listPatternsForUser(
   userId: string,
 ): Promise<PatternListItem[]> {

@@ -44,6 +44,32 @@ vi.mock("./prisma", () => ({
             )
             .slice(0, take),
       ),
+      groupBy: vi.fn(
+        async ({
+          where,
+        }: {
+          where: {
+            userId: string;
+            type: string;
+            createdAt: { gte: Date };
+          };
+        }) => {
+          const matching = rows.filter(
+            (r) =>
+              r.userId === where.userId &&
+              r.type === where.type &&
+              r.createdAt.getTime() >= where.createdAt.gte.getTime(),
+          );
+          const counts = new Map<string | null, number>();
+          for (const r of matching) {
+            counts.set(r.reason, (counts.get(r.reason) ?? 0) + 1);
+          }
+          return Array.from(counts.entries()).map(([reason, count]) => ({
+            reason,
+            _count: { _all: count },
+          }));
+        },
+      ),
     },
     user: {
       findUnique: vi.fn(
@@ -77,6 +103,7 @@ vi.mock("./prisma", () => ({
 import {
   getRecentUsage,
   getLedgerHistory,
+  getUsageThisCycle,
   isChecklistEvent,
   recordChecklistEvent,
   getChecklistProgress,
@@ -224,6 +251,69 @@ describe("getLedgerHistory", () => {
     expect(ledger.some((e) => e.amount === 4 && e.reason === "generate")).toBe(
       false,
     );
+  });
+});
+
+describe("getUsageThisCycle", () => {
+  beforeEach(() => {
+    rows = [
+      {
+        userId: "u1",
+        type: "debit",
+        amount: 1,
+        reason: "generate",
+        createdAt: new Date("2026-01-10"),
+      },
+      {
+        userId: "u1",
+        type: "debit",
+        amount: 1,
+        reason: "generate",
+        createdAt: new Date("2026-01-11"),
+      },
+      {
+        userId: "u1",
+        type: "debit",
+        amount: 6,
+        reason: "graduate",
+        createdAt: new Date("2026-01-12"),
+      },
+      // Before the cycle started -- must not be counted.
+      {
+        userId: "u1",
+        type: "debit",
+        amount: 1,
+        reason: "generate",
+        createdAt: new Date("2025-12-01"),
+      },
+      // A refund, not a debit -- must not be counted even though it's a
+      // "generate"-adjacent reason and inside the cycle window.
+      {
+        userId: "u1",
+        type: "refund",
+        amount: 1,
+        reason: "generate-declined",
+        createdAt: new Date("2026-01-10"),
+      },
+      // Another user's debit inside the same window -- must not leak in.
+      {
+        userId: "u2",
+        type: "debit",
+        amount: 4,
+        reason: "generate",
+        createdAt: new Date("2026-01-10"),
+      },
+    ];
+  });
+
+  it("counts only this user's in-cycle debits, split by reason", async () => {
+    const usage = await getUsageThisCycle("u1", new Date("2026-01-05"));
+    expect(usage).toEqual({ generate: 2, graduate: 1 });
+  });
+
+  it("reports zero for both reasons when nothing happened this cycle", async () => {
+    const usage = await getUsageThisCycle("u1", new Date("2026-06-01"));
+    expect(usage).toEqual({ generate: 0, graduate: 0 });
   });
 });
 

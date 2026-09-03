@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { AppShell } from "@/components/shared/AppShell";
 import { ActionErrorNotice } from "@/components/shared/ActionErrorNotice";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { SizeChartLibrary } from "./SizeChartLibrary";
 import { SizeChartTable } from "./SizeChartTable";
@@ -44,9 +45,15 @@ export function SizeChartsShell({
       {!ready && (
         <div
           role="status"
-          className="text-muted text-control flex flex-1 items-center justify-center"
+          className="flex flex-1 flex-col gap-4 p-[22px] lg:flex-row"
         >
-          {t("loading")}
+          <span className="sr-only">{t("loading")}</span>
+          <div className="flex w-full flex-col gap-2 lg:w-[220px]">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-10 w-full" />
+            ))}
+          </div>
+          <Skeleton className="rounded-card h-[400px] flex-1" />
         </div>
       )}
       {ready && error && (

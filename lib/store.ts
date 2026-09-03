@@ -73,6 +73,13 @@ interface EditorStore {
   generationStatus: GenerationStatus;
   generationStepIndex: number;
   generationRequestId: number;
+  /**
+   * Resends the exact call that just failed (same message/opts). Only the
+   * generation-error chat bubble needs it -- a load failure or a mutation's
+   * own ActionErrorNotice retry through a plain page reload / re-click
+   * instead. Null whenever generationStatus isn't "error".
+   */
+  lastFailedSend: (() => void) | null;
 
   // #31: in-flight flags for the two paid actions that have no other
   // "already running" signal in the UI (sendMessage has generationStatus,
@@ -144,7 +151,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
   activeTab: "pattern2d",
   selectedPieceId: null,
-  detailsPanelOpen: true,
+  detailsPanelOpen: false,
   activeTool: "cursor",
   measurements: [],
 
@@ -155,6 +162,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   generationStatus: "idle",
   generationStepIndex: 0,
   generationRequestId: 0,
+  lastFailedSend: null,
 
   graduating: false,
   purchasing: false,
@@ -186,7 +194,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
             credits: null,
             conflict: null,
             selectedPieceId: null,
-            detailsPanelOpen: true,
+            detailsPanelOpen: false,
             measurements: [],
             cutFabricWidthCm: 150,
             nestingMode: "auto" as NestingMode,
@@ -194,6 +202,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
             generationStatus: "idle" as GenerationStatus,
             generationStepIndex: 0,
             generationRequestId: get().generationRequestId + 1,
+            lastFailedSend: null,
             // #31: a graduate/purchase in flight for the pattern being left
             // must not go on disabling the new pattern's own buttons --
             // graduateSizes/purchase deliberately leave this flag untouched
@@ -239,6 +248,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       generationStatus: "generating",
       generationStepIndex: 0,
       generationRequestId: requestId,
+      lastFailedSend: null,
       chat: [
         ...s.chat,
         {
@@ -282,14 +292,17 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         opts?.answering,
         opts?.image,
       );
-    } catch (err) {
+    } catch {
       clearTimeout(stepTimer);
       if (get().generationRequestId !== requestId) return; // canceled
       // Roll the optimistic message back and leave the pattern untouched --
-      // applyState would have written undefined over it.
+      // applyState would have written undefined over it. Deliberately does
+      // NOT set the top-level `error` -- a failed generation is signaled
+      // once, by the chat's own notice bubble (generationStatus), not also
+      // by the page-level ActionErrorNotice on top of it.
       set((s) => ({
         generationStatus: "error",
-        error: errorCode(err),
+        lastFailedSend: () => get().sendMessage(message, opts),
         chat: s.chat.filter((m) => !m.id.startsWith("optimistic-")),
       }));
       return;

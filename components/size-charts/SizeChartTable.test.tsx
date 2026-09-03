@@ -450,6 +450,46 @@ describe("SizeChartTable header state", () => {
   });
 });
 
+describe("SizeChartTable delete confirmation", () => {
+  it("asks for confirmation before deleting a custom chart", async () => {
+    seed();
+    const realRemove = useSizeChartsStore.getState().remove;
+    const remove = vi.fn();
+    useSizeChartsStore.setState({ remove });
+    const user = userEvent.setup();
+    renderWithIntl(<SizeChartTable />);
+
+    await user.click(
+      screen.getByRole("button", { name: ptBR.SizeChartTable.deleteButton }),
+    );
+    expect(
+      screen.getByText(ptBR.SizeChartTable.deleteModalTitle),
+    ).toBeInTheDocument();
+    expect(remove).not.toHaveBeenCalled();
+
+    await user.click(
+      screen.getByRole("button", {
+        name: ptBR.SizeChartTable.deleteCancelButton,
+      }),
+    );
+    expect(remove).not.toHaveBeenCalled();
+    expect(
+      screen.queryByText(ptBR.SizeChartTable.deleteModalTitle),
+    ).not.toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", { name: ptBR.SizeChartTable.deleteButton }),
+    );
+    await user.click(
+      screen.getByRole("button", {
+        name: ptBR.SizeChartTable.deleteConfirmButton,
+      }),
+    );
+    expect(remove).toHaveBeenCalledWith("g1");
+    useSizeChartsStore.setState({ remove: realRemove });
+  });
+});
+
 describe("SizeChartTable body type note", () => {
   it("states that the body type is descriptive and does not affect the draft", () => {
     seed();
@@ -522,6 +562,48 @@ describe("SizeChartTable save button", () => {
       name: ptBR.SizeChartTable.saveButton,
     });
     expect(button).toBeEnabled();
+  });
+
+  it("hides the unsaved-changes note and Descartar button when not dirty", () => {
+    seed();
+    useSizeChartsStore.setState({ dirty: false });
+    renderWithIntl(<SizeChartTable />);
+    expect(
+      screen.queryByText(ptBR.SizeChartTable.unsavedChangesNote),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", {
+        name: ptBR.SizeChartTable.discardButton,
+      }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows the unsaved-changes note and a Descartar button while dirty", () => {
+    seed();
+    useSizeChartsStore.setState({ dirty: true });
+    renderWithIntl(<SizeChartTable />);
+    expect(
+      screen.getByText(ptBR.SizeChartTable.unsavedChangesNote),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: ptBR.SizeChartTable.discardButton }),
+    ).toBeInTheDocument();
+  });
+
+  it("Descartar reverts the draft to the last-saved chart", async () => {
+    seed();
+    useSizeChartsStore.setState({
+      draft: { ...BASE, name: "Editado sem salvar" },
+      dirty: true,
+    });
+    const user = userEvent.setup();
+    renderWithIntl(<SizeChartTable />);
+
+    await user.click(
+      screen.getByRole("button", { name: ptBR.SizeChartTable.discardButton }),
+    );
+    expect(useSizeChartsStore.getState().draft?.name).toBe(BASE.name);
+    expect(useSizeChartsStore.getState().dirty).toBe(false);
   });
 });
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import type { Credits, LedgerHistoryEntry } from "@/lib/types";
+import type { Credits, LedgerHistoryEntry, UsageThisCycle } from "@/lib/types";
 import { AppShell } from "@/components/shared/AppShell";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SettingsSidebar } from "./SettingsSidebar";
@@ -22,6 +22,8 @@ export function SettingsShell({
   activeSection,
   memberSince,
   patternCount,
+  usageThisCycle,
+  patternsCreatedThisWeek,
 }: {
   userEmail: string;
   initialName: string;
@@ -31,6 +33,8 @@ export function SettingsShell({
   activeSection: SettingsSection;
   memberSince: string;
   patternCount: number;
+  usageThisCycle: UsageThisCycle;
+  patternsCreatedThisWeek: number;
 }) {
   const t = useTranslations("SettingsShell");
 
@@ -66,7 +70,13 @@ export function SettingsShell({
             />
           )}
           {activeSection === "usage" && (
-            <UsageSection credits={credits} initialLedger={ledger} />
+            <UsageSection
+              credits={credits}
+              initialLedger={ledger}
+              patternCount={patternCount}
+              usageThisCycle={usageThisCycle}
+              patternsCreatedThisWeek={patternsCreatedThisWeek}
+            />
           )}
           {activeSection === "plan" && <PlanSection credits={credits} />}
         </div>

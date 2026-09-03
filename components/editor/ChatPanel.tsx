@@ -19,6 +19,7 @@ export function ChatPanel() {
   const conflict = useEditorStore((s) => s.conflict);
   const generationStatus = useEditorStore((s) => s.generationStatus);
   const generationStepIndex = useEditorStore((s) => s.generationStepIndex);
+  const lastFailedSend = useEditorStore((s) => s.lastFailedSend);
   const sendMessage = useEditorStore((s) => s.sendMessage);
   const cancelGeneration = useEditorStore((s) => s.cancelGeneration);
   const resolveConflict = useEditorStore((s) => s.resolveConflict);
@@ -96,7 +97,21 @@ export function ChatPanel() {
             // primitive. `role="alert"` because a failed generation appearing
             // in the thread announced nothing at all before.
             <Bubble variant="notice">
-              <BubbleContent role="alert">{t("generationError")}</BubbleContent>
+              <BubbleContent role="alert" className="flex flex-col gap-2">
+                <span>{t("generationError")}</span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => lastFailedSend?.()}
+                  >
+                    {t("generationErrorRetryButton")}
+                  </Button>
+                  <span className="text-muted-2 text-meta">
+                    {t("generationErrorNoCostNote")}
+                  </span>
+                </div>
+              </BubbleContent>
             </Bubble>
           )}
         </div>

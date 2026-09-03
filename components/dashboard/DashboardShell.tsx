@@ -6,6 +6,7 @@ import { XIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useDashboardStore } from "@/lib/dashboardStore";
 import { AppShell } from "@/components/shared/AppShell";
 import { ActionErrorNotice } from "@/components/shared/ActionErrorNotice";
@@ -82,11 +83,23 @@ export function DashboardShell({
         </div>
       )}
       {!ready && (
-        <div
-          role="status"
-          className="text-muted text-control flex flex-1 items-center justify-center"
-        >
-          {t("loading")}
+        <div role="status" className="flex flex-1 flex-col gap-4 p-[22px]">
+          <span className="sr-only">{t("loading")}</span>
+          <div className="flex flex-wrap items-center gap-3">
+            <Skeleton className="h-8 w-[200px]" />
+            <div className="flex-1" />
+            <Skeleton className="h-[34px] w-[200px]" />
+            <Skeleton className="h-[34px] w-[150px]" />
+          </div>
+          <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="rounded-card h-[168px] w-full" />
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-4">
+            <Skeleton className="rounded-card h-[100px] min-w-[200px] flex-1" />
+            <Skeleton className="rounded-card h-[100px] min-w-[200px] flex-1" />
+          </div>
         </div>
       )}
       {ready && error && (

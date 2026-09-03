@@ -138,22 +138,28 @@ describe("OnboardingShell", () => {
     await goToStep2(user);
 
     const importOption = screen.getByRole("button", {
-      name: ptBR.Onboarding.step2.importOption.title,
+      name: new RegExp(ptBR.Onboarding.step2.importOption.title),
     });
     expect(importOption).toBeDisabled();
     expect(importOption).toHaveAttribute(
       "title",
       ptBR.Onboarding.step2.importOption.comingSoonTitle,
     );
+    expect(
+      screen.getByText(ptBR.Onboarding.step2.importOption.subtitle),
+    ).toBeInTheDocument();
 
     const fillOption = screen.getByRole("button", {
-      name: ptBR.Onboarding.step2.fillOption.title,
+      name: new RegExp(ptBR.Onboarding.step2.fillOption.title),
     });
     expect(fillOption).toBeDisabled();
     expect(fillOption).toHaveAttribute(
       "title",
       ptBR.Onboarding.step2.fillOption.comingSoonTitle,
     );
+    expect(
+      screen.getByText(ptBR.Onboarding.step2.fillOption.subtitle),
+    ).toBeInTheDocument();
 
     expect(
       screen.getAllByText(ptBR.Onboarding.step2.comingSoonBadge).length,

@@ -70,13 +70,28 @@ describe("PricingPage", () => {
     }
   });
 
-  it("gives the Estúdio card the 2px olive border and the mais escolhido badge", () => {
+  // Regression guard: this previously targeted "studio" (a real, previously
+  // shipped bug found by the redesign fidelity pass's Round 2 audit) --
+  // the design's own default state features Ateliê (R$59), not Estúdio.
+  it("gives the Ateliê card the 2px olive border, the mais escolhido badge, and the one solid CTA", () => {
     renderWithIntl(<PricingPage signedIn={false} currentPlan={null} />);
     expect(screen.getByText(ptBR.Pricing.mostChosenBadge)).toBeInTheDocument();
-    const studioName = screen.getByText(ptBR.PlanSection.plans.studio.name);
-    const card = studioName.closest("div.border-2");
+    const atelierName = screen.getByText(ptBR.PlanSection.plans.atelier.name);
+    const card = atelierName.closest("div.border-2");
     expect(card).not.toBeNull();
     expect(card).toHaveClass("border-olive");
+
+    const atelierCta = screen.getByRole("link", {
+      name: ptBR.Pricing.plans.atelier.cta,
+    });
+    expect(atelierCta).toHaveAttribute("data-variant", "default");
+
+    // Neither of the other two paid plans is featured -- their CTAs stay
+    // outline, not the solid fill only the featured card should carry.
+    const studioCta = screen.getByRole("link", {
+      name: ptBR.Pricing.plans.studio.cta,
+    });
+    expect(studioCta).toHaveAttribute("data-variant", "outline");
   });
 
   it("marks every unshipped capability em breve and leaves shipped ones unbadged", () => {

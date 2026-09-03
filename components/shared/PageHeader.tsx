@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDownIcon } from "lucide-react";
+import { ChevronDownIcon, ChevronLeftIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { signOut } from "next-auth/react";
 import type { Credits } from "@/lib/types";
@@ -86,12 +86,13 @@ export function PageHeader({
       {backHref && (
         <Button
           variant="outline"
-          size="chrome"
+          size="icon-sm"
           onClick={() => router.push(backHref)}
           title={t("backTitle")}
+          aria-label={t("backTitle")}
           className="text-muted-2"
         >
-          {t("backButton")}
+          <ChevronLeftIcon />
         </Button>
       )}
       {title && (

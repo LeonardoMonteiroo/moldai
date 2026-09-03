@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDownIcon, XIcon } from "lucide-react";
+import { ChevronDownIcon, PanelRightIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { EditorTab } from "@/lib/store";
 import { SizeLabel } from "@/lib/types";
@@ -107,12 +107,14 @@ export function TabBar({
       {activeTab === "pattern2d" && (
         <Button
           variant={detailsOpen ? "accent" : "outline"}
-          size="chrome"
+          size="icon-sm"
           onClick={onToggleDetails}
           disabled={!hasSelectedPiece}
+          aria-label={t("pieceDetailsButton")}
+          aria-pressed={detailsOpen}
+          title={t("pieceDetailsButton")}
         >
-          {t("pieceDetailsButton")}
-          {detailsOpen && <XIcon data-icon="inline-end" />}
+          <PanelRightIcon />
         </Button>
       )}
       {/* Prova 3D exports nothing -- Editor.dc.html hides the button on that
