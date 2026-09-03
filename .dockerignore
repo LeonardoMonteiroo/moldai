@@ -5,6 +5,12 @@ node_modules
 .env*
 .superpowers
 docs
+# ...except the one fixture a type-checked test imports. next build typechecks
+# lib/draft/tshirtBenchmark.test.ts, which does a real
+# `import benchmark from "@/docs/reference/tshirt-benchmark/measurements.json"`,
+# so excluding all of docs/ made every Docker build fail TS2307 while the host
+# build passed -- the file is simply there on the host.
+!docs/reference/tshirt-benchmark/measurements.json
 .claude
 .vscode
 npm-debug.log*
