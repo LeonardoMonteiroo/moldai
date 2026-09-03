@@ -53,12 +53,17 @@
       <text x="395" y="284">COSTAS · 1×</text>
     </g>
 
-    <!-- tab row -->
+    <!-- The editor's four tabs, all of them: Molde 2D is the one open here,
+         and the other three are the real screens behind it. Showing only two
+         made the product look thinner than it is. Labels are the TabBar
+         catalog's own strings. -->
     <g font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="9">
-      <rect x="202" y="62" width="152" height="22" rx="11" fill="#ffffff" stroke="#ded9cc" />
-      <rect x="205" y="65" width="58" height="16" rx="8" fill="#eaeee2" />
-      <text x="213" y="76" fill="#4a5a3a" font-weight="600">Molde 2D</text>
-      <text x="270" y="76" fill="#6e6b60">Plano de corte</text>
+      <rect x="202" y="62" width="272" height="22" rx="11" fill="#ffffff" stroke="#ded9cc" />
+      <rect x="205" y="65" width="54" height="16" rx="8" fill="#eaeee2" />
+      <text x="212" y="76" fill="#4a5a3a" font-weight="600">Molde 2D</text>
+      <text x="268" y="76" fill="#6e6b60">Prova 3D</text>
+      <text x="322" y="76" fill="#6e6b60">Ficha técnica</text>
+      <text x="392" y="76" fill="#6e6b60">Plano de corte</text>
     </g>
 
     <!-- chat column -->

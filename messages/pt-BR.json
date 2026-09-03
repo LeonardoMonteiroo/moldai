@@ -600,7 +600,7 @@
       "body": "Descreva a peça em uma conversa. A IA pergunta o que falta, desenha as peças e grada os tamanhos pela sua tabela de medidas.",
       "primaryCta": "Começar com {credits} créditos grátis",
       "noCardNote": "Sem cartão de crédito.",
-      "imageAlt": "Ilustração do editor do MoldAI: à esquerda, a conversa que descreve a camisa e pede um ajuste; à direita, as peças de manga, frente e costas desenhadas sobre a mesa de corte.",
+      "imageAlt": "Ilustração do editor do MoldAI: à esquerda, a conversa que descreve a camisa e pede um ajuste; à direita, as abas Molde 2D, Prova 3D, Ficha técnica e Plano de corte, com as peças de manga, frente e costas desenhadas sobre a mesa de corte.",
       "proof": {
         "credits": "{credits} créditos grátis por mês",
         "formats": "{formats} formatos de exportação",
