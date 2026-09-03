@@ -4,7 +4,10 @@ import { GenerateBodySchema } from "@/lib/schemas/pattern";
 import { getTranslations } from "next-intl/server";
 import { withPatternAndWallet } from "@/lib/db/pattern-wallet";
 import { patternNotFound } from "@/lib/db/pattern";
-import { getSizeChartForGeneration } from "@/lib/db/sizeChart";
+import {
+  getSizeChartForGeneration,
+  getSizeChartGenderForUser,
+} from "@/lib/db/sizeChart";
 import { recordVersion } from "@/lib/db/patternVersion";
 import {
   addMessage,
@@ -16,7 +19,12 @@ import { debitWallet, refundWallet } from "@/lib/billing/wallet";
 import type { LedgerEntry } from "@/lib/billing/wallet";
 import { composeEditorState } from "@/lib/api/compose";
 import { apiError } from "@/lib/api/errors";
-import { COSTS, MAX_CHAT_MESSAGE_LENGTH, type GarmentSpec } from "@/lib/types";
+import {
+  COSTS,
+  MAX_CHAT_MESSAGE_LENGTH,
+  type GarmentSpec,
+  type Gender,
+} from "@/lib/types";
 import { proposeGarment } from "@/lib/ai";
 import { validateFormSpec, mergeFormSpec } from "@/lib/ai/formSpec";
 import {
@@ -101,6 +109,42 @@ export async function POST(request: Request, { params }: Ctx) {
     formSpec = validateFormSpec(body.formSpec);
     if (!formSpec) return apiError("invalid_form_spec", 400);
   }
+  // The chart this molde should be drafted from, chosen per molde. Read
+  // tolerantly (an absent, non-string or blank value simply means "no chart
+  // named") because that case has a well-defined fallback -- the account's
+  // active chart, which is exactly what every generate request has always
+  // done. That is the same tolerance POST /api/patterns applies to sloperId,
+  // and it is why only an id that genuinely resolves to nothing is refused.
+  const sizeChartId =
+    typeof body.sizeChartId === "string" && body.sizeChartId
+      ? body.sizeChartId
+      : null;
+  // The drafted gender comes from the chosen chart, never from a client
+  // field: one source of truth, and it makes the chart/gender mismatch that
+  // pickSizeChartForGeneration's substitution path exists to report
+  // unreachable from this flow.
+  //
+  // Read here, outside the transaction, for two reasons. The 400 has to land
+  // before any lock is taken or credit debited, and the gender has to be
+  // known before the AI call so the prompt can state it. The authoritative
+  // snapshot still comes from the in-transaction pick below, which sees the
+  // same locked view as the write; if the chart is deleted in the gap,
+  // pickSizeChartForGeneration simply does not find the id and falls through
+  // to today's active-then-system path, so a race resolves to safe existing
+  // behavior rather than an error.
+  let chartGender: Gender | null = null;
+  if (sizeChartId) {
+    chartGender = await getSizeChartGenderForUser(sizeChartId, gate.id);
+    // Unreachable from the real UI, so this is a forged or badly stale
+    // request rather than a fallback case. Substituting silently would draft
+    // from measurements the caller did not ask for, and a fabricated
+    // substitution notice would name a chart that does not exist.
+    if (!chartGender) return apiError("invalid_size_chart", 400);
+  }
+  // Stated to the model as the user's own decision, so it does not infer the
+  // other gender and then have its answer quietly contradicted by the spec
+  // the merge below produces.
+  if (formSpec && chartGender) formSpec = { ...formSpec, gender: chartGender };
   const answering = body.answering === true;
   // Client-computed metadata from a DXF import reconstruction (#238
   // follow-up) -- never user-typed prose, never persisted, only used to
@@ -277,9 +321,16 @@ export async function POST(request: Request, { params }: Ctx) {
               // and before applyGarmentSpec, so the drafted geometry
               // reflects the merge. ask/decline/explain draft nothing, so
               // there is no spec of theirs to correct.
-              const spec = formSpec
+              const merged = formSpec
                 ? mergeFormSpec(decision.spec, formSpec)
                 : decision.spec;
+              // The named chart's gender wins over the model's, whether or
+              // not the request also carried a form spec: the chart IS the
+              // measurements this molde is drafted from, so its gender is
+              // the only one the geometry can honestly claim.
+              const spec = chartGender
+                ? { ...merged, gender: chartGender }
+                : merged;
               // The size chart is snapshotted once, at the first generation.
               // That is also the only moment the account's active chart can
               // be passed over, so it is the only moment there is a
@@ -297,6 +348,7 @@ export async function POST(request: Request, { params }: Ctx) {
                     gate.id,
                     spec.gender ?? "female",
                     tCharts,
+                    sizeChartId,
                   );
                 seedPatternSizeSnapshot(state, chart);
                 substitutedFrom = rejectedActiveName;

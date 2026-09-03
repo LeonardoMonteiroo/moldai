@@ -469,7 +469,7 @@ T19 -> T20 -> T21
 
 ---
 
-#### T13: Draft from a caller-named size chart
+#### T13: Draft from a caller-named size chart ✅
 
 **What**: Read `sizeChartId`, resolve its gender through `getSizeChartGenderForUser` before the transaction (400 `invalid_size_chart` on `null`), use that gender for the spec and the prompt, and pass the id into `getSizeChartForGeneration` so `seedPatternSizeSnapshot` freezes the requested chart on a first draft.
 **Where**: `app/api/patterns/[id]/generate/route.ts`
@@ -484,15 +484,17 @@ T19 -> T20 -> T21
 
 **Done when**:
 
-- [ ] A `sizeChartId` the account owns is frozen into the snapshot on a first draft, with `sizeChartName` matching that chart (PFORM-42)
-- [ ] The spec's `gender` becomes the chart's own gender even when the AI returned the other one (PFORM-41)
-- [ ] A `sizeChartId` naming a nonexistent chart, and one owned by another account, each answer 400 `invalid_size_chart` with no debit and no `proposeGarment` call (PFORM-43)
-- [ ] With a valid `sizeChartId`, no substitution notice message is appended (`rejectedActiveName` is null by construction) (PFORM-44)
-- [ ] An omitted `sizeChartId` leaves the active-then-system pick and its substitution notice unchanged, pinned by the route's existing tests (PFORM-45)
-- [ ] A `sizeChartId` sent for a pattern that already has pieces leaves the frozen snapshot untouched (PFORM-46)
-- [ ] `User.activeSizeChartId` is never written by this route (PFORM-47)
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: 9+ new tests pass (no silent deletions)
+- [x] A `sizeChartId` the account owns is frozen into the snapshot on a first draft, with `sizeChartName` matching that chart (PFORM-42) — the test double honours `requestedId` and returns a second, differently-named chart for it, so a route that dropped the argument fails rather than passing on the default
+- [x] The spec's `gender` becomes the chart's own gender even when the AI returned the other one (PFORM-41) — asserted on the persisted spec and on the gender the pick is asked for
+- [x] A `sizeChartId` naming a nonexistent chart, and one owned by another account, each answer 400 `invalid_size_chart` with no debit and no `proposeGarment` call (PFORM-43) — both reach this route as the same `null`, deliberately, so it cannot become an existence oracle; the reader's own two causes are covered in `lib/db/sizeChart.test.ts` (T8)
+- [x] With a valid `sizeChartId`, no substitution notice message is appended (`rejectedActiveName` is null by construction) (PFORM-44)
+- [x] An omitted `sizeChartId` leaves the active-then-system pick and its substitution notice unchanged, pinned by the route's existing tests (PFORM-45) — plus one test asserting the ownership read is not even performed and the pick receives no requested id
+- [x] A `sizeChartId` sent for a pattern that already has pieces leaves the frozen snapshot untouched (PFORM-46)
+- [x] `User.activeSizeChartId` is never written by this route (PFORM-47) — `setActiveSizeChart` is mocked purely so "not called" is a real assertion rather than a claim resting on the import list
+- [x] Gate check passes: `npm test` — 3301 passed
+- [x] Test count: 9+ new tests pass (no silent deletions) — 10 new tests
+
+**Scope note**: also adds `sizeChartId: z.unknown().optional()` to `GenerateBodySchema`, on the same absorb-the-blocking-dependency rule T11 and T12 applied. `sizeChartId` is read tolerantly (absent, non-string or blank means "no chart named") because that case has a well-defined fallback, the account's active chart — the same tolerance `POST /api/patterns` gives `sloperId`. Only an id that genuinely resolves to nothing is refused, since substituting there would draft from measurements nobody asked for.
 
 **Tests**: unit
 **Gate**: full

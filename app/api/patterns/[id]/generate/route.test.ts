@@ -91,8 +91,29 @@ const CHART = {
   },
   rejectedActiveName: null as string | null,
 };
+// PFORM-42: the id a request names is the pick's first preference, so the
+// double has to honour it -- returning CHART regardless would let a route
+// that dropped `requestedId` on the floor pass every assertion below.
+const REQUESTED_CHART_ID = "g-male-atelier";
+const REQUESTED_CHART = {
+  chart: { ...CHART.chart, name: "Masculino do ateliê", gender: "male" },
+  rejectedActiveName: null as string | null,
+};
 vi.mock("@/lib/db/sizeChart", () => ({
-  getSizeChartForGeneration: vi.fn(async () => CHART),
+  getSizeChartForGeneration: vi.fn(
+    async (
+      _tx: unknown,
+      _userId: string,
+      _gender: string,
+      _t: unknown,
+      requestedId?: string | null,
+    ) => (requestedId === REQUESTED_CHART_ID ? REQUESTED_CHART : CHART),
+  ),
+  getSizeChartGenderForUser: vi.fn(async () => null),
+  // PFORM-47: never called by this route. Mocked purely so "not called" is
+  // an assertion a future edit that reached for it would fail, rather than a
+  // claim resting on the import list.
+  setActiveSizeChart: vi.fn(),
 }));
 vi.mock("@/lib/observability/report", () => ({ reportError: vi.fn() }));
 
@@ -102,7 +123,11 @@ import { requireUser } from "@/lib/auth/guard";
 import { unauthorized } from "@/lib/auth/session";
 import { withPatternAndWallet } from "@/lib/db/pattern-wallet";
 import { reportError } from "@/lib/observability/report";
-import { getSizeChartForGeneration } from "@/lib/db/sizeChart";
+import {
+  getSizeChartForGeneration,
+  getSizeChartGenderForUser,
+  setActiveSizeChart,
+} from "@/lib/db/sizeChart";
 import { recordVersion } from "@/lib/db/patternVersion";
 
 const mockPropose = proposeGarment as unknown as ReturnType<typeof vi.fn>;
@@ -128,6 +153,10 @@ describe("POST /api/patterns/[id]/generate", () => {
     mockPropose.mockReset();
     vi.mocked(reportError).mockReset();
     vi.mocked(recordVersion).mockReset();
+    vi.mocked(getSizeChartForGeneration).mockClear();
+    vi.mocked(getSizeChartGenderForUser).mockReset();
+    vi.mocked(getSizeChartGenderForUser).mockResolvedValue(null);
+    vi.mocked(setActiveSizeChart).mockClear();
     vi.mocked(requireUser).mockResolvedValue({
       id: "u1",
       email: "dev@moldai.local",
@@ -1108,6 +1137,255 @@ describe("POST /api/patterns/[id]/generate", () => {
       expect(state.pattern.pieces).toHaveLength(0);
     },
   );
+
+  // PFORM-42: the chart the request names is what gets frozen, so a one-off
+  // menswear molde does not force the account to change the grade its whole
+  // library uses.
+  it("freezes the requested chart into the snapshot on a first draft", async () => {
+    vi.mocked(getSizeChartGenderForUser).mockResolvedValue("male");
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+
+    const res = await POST(
+      req({ message: "uma blusa", sizeChartId: REQUESTED_CHART_ID }),
+      ctx(),
+    );
+
+    expect(res.status).toBe(200);
+    expect(getSizeChartGenderForUser).toHaveBeenCalledWith(
+      REQUESTED_CHART_ID,
+      "u1",
+    );
+    expect(vi.mocked(getSizeChartForGeneration).mock.calls[0][4]).toBe(
+      REQUESTED_CHART_ID,
+    );
+    expect(state.pattern.sizeChartName).toBe("Masculino do ateliê");
+  });
+
+  // PFORM-41: the chart IS the measurements the molde is drafted from, so
+  // its gender is the only one the geometry can honestly claim -- it wins
+  // over the model's inference, and it is the gender the pick is asked for.
+  it("drafts under the requested chart's gender even when the model returned the other one", async () => {
+    vi.mocked(getSizeChartGenderForUser).mockResolvedValue("male");
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+
+    await POST(
+      req({ message: "uma blusa", sizeChartId: REQUESTED_CHART_ID }),
+      ctx(),
+    );
+
+    expect(state.pattern.spec?.gender).toBe("male");
+    expect(vi.mocked(getSizeChartForGeneration).mock.calls[0][2]).toBe("male");
+  });
+
+  // The prompt half: the model is told the gender as the user's own decision
+  // rather than inferring the other one and having its answer quietly
+  // contradicted by the spec the merge produces.
+  it("states the requested chart's gender in the form spec it sends the model", async () => {
+    vi.mocked(getSizeChartGenderForUser).mockResolvedValue("male");
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+
+    await POST(
+      req({
+        message: "uma blusa",
+        formSpec: { type: "blouse" },
+        sizeChartId: REQUESTED_CHART_ID,
+      }),
+      ctx(),
+    );
+
+    expect(mockPropose.mock.calls[0][1].formSpec.gender).toBe("male");
+  });
+
+  // PFORM-43: unreachable from the real UI, so a forged or badly stale
+  // request -- refused before any lock, debit or AI call rather than
+  // substituted, which would draft from measurements nobody asked for.
+  // getSizeChartGenderForUser answers null identically for both causes on
+  // purpose (its own two cases are covered in lib/db/sizeChart.test.ts), so
+  // this route cannot become an existence oracle for another account's ids.
+  it.each([
+    "an id that names no chart at all",
+    "an id owned by another account",
+  ])(
+    "answers invalid_size_chart for %s, with no debit and no proposeGarment call",
+    async () => {
+      const balanceBefore = wallet.balance;
+      vi.mocked(getSizeChartGenderForUser).mockResolvedValue(null);
+
+      const res = await POST(
+        req({ message: "uma blusa", sizeChartId: "not-mine" }),
+        ctx(),
+      );
+
+      expect(res.status).toBe(400);
+      expect((await res.json()).error).toBe("invalid_size_chart");
+      expect(wallet.balance).toBe(balanceBefore);
+      expect(lastEntries).toEqual([]);
+      expect(mockPropose).not.toHaveBeenCalled();
+      expect(getSizeChartForGeneration).not.toHaveBeenCalled();
+    },
+  );
+
+  // PFORM-44: nothing was passed over silently, so there is no substitution
+  // to report -- naming the active chart here would report a choice the user
+  // made deliberately.
+  it("adds no substitution notice when the request named its own chart", async () => {
+    vi.mocked(getSizeChartGenderForUser).mockResolvedValue("male");
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+
+    await POST(
+      req({ message: "uma blusa", sizeChartId: REQUESTED_CHART_ID }),
+      ctx(),
+    );
+
+    expect(state.chat.some((m) => m.tone === "notice")).toBe(false);
+  });
+
+  // PFORM-45: the existing active-then-system pick is reached with no
+  // requested id, and the ownership read is not even performed -- the whole
+  // path a chat-driven generation takes is untouched.
+  it("leaves the active-then-system pick alone when no chart is named", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+
+    await POST(req({ message: "uma blusa" }), ctx());
+
+    expect(getSizeChartGenderForUser).not.toHaveBeenCalled();
+    expect(vi.mocked(getSizeChartForGeneration).mock.calls[0][4]).toBeNull();
+    expect(state.pattern.sizeChartName).toBe("Feminino adulto · ABNT");
+  });
+
+  // PFORM-45's tolerance boundary: "no chart named" has a well-defined
+  // fallback (the account's active chart), so a blank id is treated as
+  // absent rather than refused -- unlike one that genuinely resolves to
+  // nothing, which has no safe default.
+  it("treats a blank sizeChartId as no chart named rather than refusing it", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+
+    const res = await POST(
+      req({ message: "uma blusa", sizeChartId: "" }),
+      ctx(),
+    );
+
+    expect(res.status).toBe(200);
+    expect(getSizeChartGenderForUser).not.toHaveBeenCalled();
+    expect(state.pattern.sizeChartName).toBe("Feminino adulto · ABNT");
+  });
+
+  // PFORM-46: a pattern freezes its snapshot at the first generation on
+  // purpose, so editing or reassigning a chart never retroactively redraws
+  // an in-progress molde. A late sizeChartId cannot reopen that.
+  it("leaves an already-drafted pattern's frozen snapshot untouched", async () => {
+    vi.mocked(getSizeChartGenderForUser).mockResolvedValue("male");
+    state.pattern = {
+      ...state.pattern,
+      sizeChartName: "Feminino adulto · ABNT",
+      pieces: [
+        {
+          id: "x",
+          name: "x",
+          qty: 1,
+          outline: { kind: "polygon", points: "0,0" },
+          label: { x: 0, y: 0 },
+          detailRows: [],
+        },
+      ],
+    };
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+
+    await POST(
+      req({ message: "ajusta a cava", sizeChartId: REQUESTED_CHART_ID }),
+      ctx(),
+    );
+
+    expect(getSizeChartForGeneration).not.toHaveBeenCalled();
+    expect(state.pattern.sizeChartName).toBe("Feminino adulto · ABNT");
+  });
+
+  // PFORM-47: a per-molde choice is not an account-level setting. The molde
+  // gets the grade it asked for; /size-charts still shows whatever the
+  // account made active.
+  it("never changes which chart is account-active", async () => {
+    vi.mocked(getSizeChartGenderForUser).mockResolvedValue("male");
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+
+    await POST(
+      req({ message: "uma blusa", sizeChartId: REQUESTED_CHART_ID }),
+      ctx(),
+    );
+
+    expect(setActiveSizeChart).not.toHaveBeenCalled();
+  });
 
   // #61: a throw past withPatternAndWallet's own transaction close (e.g. it
   // already timed out — a slow AI call plus retries could previously

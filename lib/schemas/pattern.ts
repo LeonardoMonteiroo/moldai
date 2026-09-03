@@ -112,6 +112,7 @@ export const GenerateBodySchema = z.object({
   answering: z.unknown().optional(),
   importContext: z.unknown().optional(),
   formSpec: z.unknown().optional(),
+  sizeChartId: z.unknown().optional(),
 });
 
 // graduate: `sizes` is read with `Array.isArray(body.sizes) ? body.sizes :
