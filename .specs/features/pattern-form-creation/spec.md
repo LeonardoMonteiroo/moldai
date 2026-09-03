@@ -195,11 +195,11 @@ All four stories below are P1: the user explicitly chose the full-capability opt
 | PFORM-28       | P1: Structured style choices    | Execute (T2) | Verified |
 | PFORM-40       | P1: Per-molde size chart        | Design       | Pending  |
 | PFORM-41       | P1: Per-molde size chart        | Design       | Pending  |
-| PFORM-42       | P1: Per-molde size chart        | Design       | Pending  |
+| PFORM-42       | P1: Per-molde size chart        | Execute (T4) | Verified |
 | PFORM-43       | P1: Per-molde size chart        | Design       | Pending  |
 | PFORM-44       | P1: Per-molde size chart        | Design       | Pending  |
-| PFORM-45       | P1: Per-molde size chart        | Design       | Pending  |
-| PFORM-46       | P1: Per-molde size chart        | Design       | Pending  |
+| PFORM-45       | P1: Per-molde size chart        | Execute (T4) | Verified |
+| PFORM-46       | P1: Per-molde size chart        | Execute (T4) | Verified |
 | PFORM-47       | P1: Per-molde size chart        | Design       | Pending  |
 | PFORM-60       | P1: Several photos              | Execute (T3) | Verified |
 | PFORM-61       | P1: Several photos              | Design       | Pending  |

@@ -184,7 +184,7 @@ T19 -> T20 -> T21
 
 ---
 
-#### T4: Let a caller request a specific size chart for generation
+#### T4: Let a caller request a specific size chart for generation ✅
 
 **What**: `pickSizeChartForGeneration(charts, activeSizeChartId, gender, requestedId?)` — when `requestedId` names a chart in the list, return it with `rejectedActive: null`; otherwise every existing branch is unchanged.
 **Where**: `lib/sizeCharts/compute.ts`
@@ -199,11 +199,11 @@ T19 -> T20 -> T21
 
 **Done when**:
 
-- [ ] A `requestedId` in the list is returned even when it does not match `gender` and even when a different chart is active, with `rejectedActive: null` (PFORM-42)
-- [ ] A `requestedId` absent from the list falls through to the existing active-then-system-then-first path, and `rejectedActive` is reported exactly as before (PFORM-46)
-- [ ] Every pre-existing test in `lib/sizeCharts/compute.test.ts` still passes untouched, proving the no-`requestedId` path is byte-for-byte unchanged (PFORM-45)
-- [ ] Gate check passes: `npx vitest run --project node`
-- [ ] Test count: 4+ new tests pass, 0 existing tests changed or deleted
+- [x] A `requestedId` in the list is returned even when it does not match `gender` and even when a different chart is active, with `rejectedActive: null` (PFORM-42)
+- [x] A `requestedId` absent from the list falls through to the existing active-then-system-then-first path, and `rejectedActive` is reported exactly as before (PFORM-46)
+- [x] Every pre-existing test in `lib/sizeCharts/compute.test.ts` still passes untouched, proving the no-`requestedId` path is byte-for-byte unchanged (PFORM-45) — the diff is insertions only
+- [x] Gate check passes: `npx vitest run --project node`
+- [x] Test count: 4+ new tests pass, 0 existing tests changed or deleted
 
 **Tests**: unit
 **Gate**: quick

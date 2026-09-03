@@ -67,16 +67,33 @@ export interface SizeChartChoice {
   rejectedActive: SizeChartRecord | null;
 }
 
-// Picks which size chart a NEW generation should draft from: the account's
-// active chart if its gender matches the spec being drafted, else the system
-// default for that gender. `charts` must contain at least one system chart
-// per gender (guaranteed by lib/db/sizeChart.ts's ensureSystemSizeCharts) or
-// this degrades to the active chart (if any) or the first chart in the list.
+// Picks which size chart a NEW generation should draft from: the chart the
+// request itself named, else the account's active chart if its gender
+// matches the spec being drafted, else the system default for that gender.
+// `charts` must contain at least one system chart per gender (guaranteed by
+// lib/db/sizeChart.ts's ensureSystemSizeCharts) or this degrades to the
+// active chart (if any) or the first chart in the list.
 export function pickSizeChartForGeneration(
   charts: SizeChartRecord[],
   activeSizeChartId: string | null,
   gender: Gender,
+  requestedId?: string | null,
 ): SizeChartChoice {
+  // A per-molde choice wins outright, and its gender is not re-checked: the
+  // drafted spec's gender comes FROM this chart (see the generate route), so
+  // there is no mismatch left to fall back over. rejectedActive is null
+  // because nothing was passed over silently -- the substitution notice
+  // exists to report a chart the account chose and generation could not use,
+  // and naming the active chart here would report a substitution the user
+  // made deliberately.
+  //
+  // An id naming no chart in the list falls through to every branch below
+  // unchanged. That is also what makes the deleted-between-check-and-lock
+  // race resolve to today's safe behavior rather than an error.
+  if (requestedId) {
+    const requested = charts.find((c) => c.id === requestedId);
+    if (requested) return { chart: requested, rejectedActive: null };
+  }
   const active = charts.find((c) => c.id === activeSizeChartId) ?? null;
   if (active && active.gender === gender) {
     return { chart: active, rejectedActive: null };
