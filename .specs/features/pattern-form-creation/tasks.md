@@ -698,7 +698,7 @@ Two smaller decisions worth naming: a `status: "error"` / `"answered"` response 
 
 ---
 
-#### T19: Build the form step
+#### T19: Build the form step ✅
 
 **What**: `NewPatternForm` — name, garment type, size chart (loaded from `GET /api/size-charts`, disabled with a reason on failure), the per-type style selects each defaulting to "deixar a IA decidir", the photo row capped at `MAX_ATTACHMENT_COUNT` with per-photo removal, the details textarea, the stated `COSTS.adjust` cost, and the composed message — plus its own `NewPatternForm` catalog namespace.
 **Where**: `components/dashboard/NewPatternForm.tsx`
@@ -713,27 +713,29 @@ Two smaller decisions worth naming: a `status: "error"` / `"answered"` response 
 
 **Done when**:
 
-- [ ] Name input carries `maxLength={MAX_PATTERN_NAME_LENGTH}`; details textarea carries `maxLength={MAX_CHAT_MESSAGE_LENGTH}` (PFORM-03, PFORM-05)
-- [ ] Every style select's default option is the "deixar a IA decidir" entry and submitting with it selected omits that field from `formSpec` (PFORM-20)
-- [ ] Selecting `skirt` renders no neckline/sleeve/collar/cuff/front-closure control; selecting `blouse` renders no waistband control (PFORM-21)
-- [ ] The cuff control appears only after sleeve is set to `long`, and disappears when it changes away (PFORM-22)
-- [ ] Changing the garment type clears every now-inapplicable style value, asserted on the submitted `formSpec` (PFORM-23)
-- [ ] The chart select lists every entry `listSizeCharts` returned, and the submitted `sizeChartId` is the selected one (PFORM-40)
-- [ ] A failed chart fetch renders the select disabled with its stated reason and submit still fires with `sizeChartId: null` (PFORM-47)
-- [ ] The add cell disappears at `MAX_ATTACHMENT_COUNT` held photos (PFORM-60)
-- [ ] A `prepareImage` rejection renders that file's own reason and leaves already-held photos in place (PFORM-62)
-- [ ] Each photo's remove control removes only that photo (PFORM-63)
-- [ ] The submit label states `COSTS.adjust` (PFORM-10)
-- [ ] The composed message names the garment type and every selected style value, resolved from catalog lookups keyed by the EN enum value — never a hand-written `Record<Enum, string>`
-- [ ] No hardcoded pt-BR string and no hex color; `.claude/hooks/check-conventions.mjs` clean
-- [ ] Catalog assertions compare against the resolved `ptBR` object, never a pasted literal
-- [ ] Gate check passes: `npx vitest run --project dom`
-- [ ] Test count: 18+ new tests pass (no silent deletions)
+- [x] Name input carries `maxLength={MAX_PATTERN_NAME_LENGTH}`; details textarea carries `maxLength={MAX_CHAT_MESSAGE_LENGTH}` (PFORM-03, PFORM-05)
+- [x] Every style select's default option is the "deixar a IA decidir" entry and submitting with it selected omits that field from `formSpec` (PFORM-20)
+- [x] Selecting `skirt` renders no neckline/sleeve/collar/cuff/front-closure control; selecting `blouse` renders no waistband control (PFORM-21)
+- [x] The cuff control appears only after sleeve is set to `long`, and disappears when it changes away (PFORM-22)
+- [x] Changing the garment type clears every now-inapplicable style value, asserted on the submitted `formSpec` (PFORM-23)
+- [x] The chart select lists every entry `listSizeCharts` returned, and the submitted `sizeChartId` is the selected one (PFORM-40)
+- [x] A failed chart fetch renders the select disabled with its stated reason and submit still fires with `sizeChartId: null` (PFORM-47)
+- [x] The add cell disappears at `MAX_ATTACHMENT_COUNT` held photos (PFORM-60)
+- [x] A `prepareImage` rejection renders that file's own reason and leaves already-held photos in place (PFORM-62)
+- [x] Each photo's remove control removes only that photo (PFORM-63)
+- [x] The submit label states `COSTS.adjust` (PFORM-10)
+- [x] The composed message names the garment type and every selected style value, resolved from catalog lookups keyed by the EN enum value — never a hand-written `Record<Enum, string>`
+- [x] No hardcoded pt-BR string and no hex color; `.claude/hooks/check-conventions.mjs` clean
+- [x] Catalog assertions compare against the resolved `ptBR` object, never a pasted literal
+- [x] Gate check passes: `npx vitest run --project dom`
+- [x] Test count: 18+ new tests pass (no silent deletions)
 
 **Tests**: unit (jsdom + RTL)
 **Gate**: quick-dom
 
 **Commit**: `feat(dashboard): build the new-pattern form step`
+
+> **Scope note (conventions review).** The review flagged that `frontClosure` was offered for `dress` and `tshirt`, where `lib/draft/body.ts:163-167` never splits the front — a control that silently does nothing, which is PFORM-21's own prohibition and the exact failure mode the option was withheld for. Fixed at the single source (`lib/draft/formFields.ts`, outside this task's `Where`, because the form and the server's own drop step read the same map), and two of T1's tests that asserted the old map were updated with the drafter evidence cited. Also from that review: the details cap now reserves room for the composed head so a full field cannot produce a `message_too_long` the user could never retry past; the failure notice moved to the amber `notice` token with a `/settings?section=plan` link, since the store keeps `pendingPatternId` alive for exactly that retry; the "+" glyph is sized as an icon rather than priced on the type scale; the three captions and the photo group use `FieldDescription`/`FieldTitle` instead of hand-rolled spans; and the chart select now states that its choice decides the drafted block's gender.
 
 ---
 

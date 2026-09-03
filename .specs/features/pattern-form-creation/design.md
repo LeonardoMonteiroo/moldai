@@ -81,13 +81,15 @@ graph TD
 
 The map, derived from which drafter actually reads each field:
 
-| Type       | Fields                                                   |
-| ---------- | -------------------------------------------------------- |
-| `blouse`   | neckline, sleeve, cuff, collar, frontClosure, fit        |
-| `dress`    | neckline, sleeve, cuff, collar, frontClosure, skirt, fit |
-| `tshirt`   | neckline, sleeve, cuff, collar, frontClosure, fit        |
-| `skirt`    | skirt, waistband, fit                                    |
-| `trousers` | waistband, fit                                           |
+| Type       | Fields                                            |
+| ---------- | ------------------------------------------------- |
+| `blouse`   | neckline, sleeve, cuff, collar, frontClosure, fit |
+| `dress`    | neckline, sleeve, cuff, collar, skirt, fit        |
+| `tshirt`   | neckline, sleeve, cuff, collar, fit               |
+| `skirt`    | skirt, waistband, fit                             |
+| `trousers` | waistband, fit                                    |
+
+**Corrected during Execute (T19), after a conventions review:** `frontClosure` was originally listed for `dress` and `tshirt` too, on the reasoning that the AI-facing catalog in `garment.ts` lists it for every body-having type and the drafter owns the gate. That is right for the model, which can answer an impossible request with `decline` or `ask`, and wrong for a form, whose select cannot. `lib/draft/body.ts:163-167` splits the front only when `!opts.knit && opts.dressHemHalfCm === undefined` -- never for a tshirt, never for a dress -- and `body.test.ts` pins both cases. Offering the control there was a field that silently did nothing, which PFORM-21 forbids and which is the exact failure mode the form was withheld for in the first place. Two of T1's tests asserted the old map and were updated to the corrected one.
 
 ### `lib/ai/formSpec.ts` (new, pure)
 

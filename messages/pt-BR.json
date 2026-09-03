@@ -899,6 +899,87 @@
       "subtitle": "Envie um arquivo .dxf existente."
     }
   },
+  "NewPatternForm": {
+    "title": "Preencher formulário",
+    "subtitle": "Descreva a peça e a IA monta um molde inicial.",
+    "back": "Voltar",
+    "submit": "Gerar molde com IA",
+    "submitting": "Gerando molde…",
+    "namePlaceholder": "ex: Blusa manga longa",
+    "detailsPlaceholder": "ex: manga longa com punho, gola redonda, fechamento com zíper invisível nas costas",
+    "styleAuto": "Deixar a IA decidir",
+    "addPhoto": "Adicionar foto",
+    "photoLimitNote": "Até {max, plural, one {# foto} other {# fotos}} por molde.",
+    "chartLoading": "Carregando…",
+    "chartLoadFailed": "Não foi possível carregar as tabelas de medidas. O molde vai usar a grade ativa da conta.",
+    "chartGenderNote": "A tabela escolhida define se o molde é traçado no bloco feminino ou masculino.",
+    "buyCreditsLink": "Comprar créditos",
+    "field": {
+      "name": "Nome do molde",
+      "type": "Tipo de peça",
+      "sizeChart": "Tabela de medidas",
+      "neckline": "Decote",
+      "sleeve": "Manga",
+      "cuff": "Punho",
+      "collar": "Gola",
+      "frontClosure": "Fechamento frontal",
+      "skirt": "Silhueta da saia",
+      "waistband": "Cós",
+      "fit": "Caimento",
+      "photos": "Fotos e croquis (opcional)",
+      "details": "Detalhes da peça"
+    },
+    "value": {
+      "neckline": {
+        "straight": "Reto",
+        "V": "Decote V",
+        "round": "Redondo"
+      },
+      "sleeve": {
+        "none": "Sem manga",
+        "short": "Curta",
+        "long": "Longa"
+      },
+      "cuff": {
+        "none": "Sem punho",
+        "straight": "Reto, com carcela"
+      },
+      "collar": {
+        "none": "Sem gola",
+        "convertible": "Esporte, dobrável",
+        "band": "Chinesa, em pé",
+        "shirt": "Camiseira, com pé e viradinha"
+      },
+      "frontClosure": {
+        "none": "Sem abertura",
+        "buttonStand": "Abotoamento frontal"
+      },
+      "skirt": {
+        "straight": "Reta",
+        "a-line": "Evasê",
+        "gore": "Godê",
+        "half-circle": "Meia-roda",
+        "circle": "Círculo"
+      },
+      "waistband": {
+        "none": "Sem cós",
+        "straight": "Reto, com sobreposição"
+      },
+      "fit": {
+        "close": "Justo",
+        "fitted": "Ajustado",
+        "semiFitted": "Semiajustado",
+        "loose": "Solto"
+      }
+    },
+    "errors": {
+      "insufficient_credits": "Você não tem créditos suficientes para gerar este molde.",
+      "create_failed": "A geração não foi concluída. Tente novamente.",
+      "rate_limited": "Muitas tentativas em pouco tempo. Aguarde alguns minutos.",
+      "message_too_long": "A descrição ficou longa demais. Reduza os detalhes da peça.",
+      "fallback": "Não foi possível gerar o molde. Tente novamente."
+    }
+  },
   "RecentUsageCard": {
     "title": "Uso recente",
     "empty": "Nenhum uso ainda.",

@@ -175,36 +175,36 @@ All four stories below are P1: the user explicitly chose the full-capability opt
 | -------------- | ------------------------------- | ---------------------------- | ------------ |
 | PFORM-01       | P1: Form creates a real pattern | Design                       | Pending      |
 | PFORM-02       | P1: Form creates a real pattern | Design                       | Pending      |
-| PFORM-03       | P1: Form creates a real pattern | Design                       | Pending      |
+| PFORM-03       | P1: Form creates a real pattern | Execute (T19)                | Verified     |
 | PFORM-04       | P1: Form creates a real pattern | Execute (T9, T10)            | Verified     |
-| PFORM-05       | P1: Form creates a real pattern | Design                       | Pending      |
+| PFORM-05       | P1: Form creates a real pattern | Execute (T19)                | Verified     |
 | PFORM-06       | P1: Form creates a real pattern | Execute (T14, T17)           | Implementing |
 | PFORM-07       | P1: Form creates a real pattern | Execute (T17)                | Implementing |
 | PFORM-08       | P1: Form creates a real pattern | Execute (T17)                | Implementing |
 | PFORM-09       | P1: Form creates a real pattern | Execute (T17)                | Implementing |
-| PFORM-10       | P1: Form creates a real pattern | Design                       | Pending      |
+| PFORM-10       | P1: Form creates a real pattern | Execute (T19)                | Verified     |
 | PFORM-11       | P1: Form creates a real pattern | Execute (T10)                | Verified     |
-| PFORM-20       | P1: Structured style choices    | Design                       | Pending      |
-| PFORM-21       | P1: Structured style choices    | Execute (T1)                 | Implementing |
-| PFORM-22       | P1: Structured style choices    | Execute (T1)                 | Implementing |
-| PFORM-23       | P1: Structured style choices    | Execute (T1)                 | Implementing |
+| PFORM-20       | P1: Structured style choices    | Execute (T19)                | Verified     |
+| PFORM-21       | P1: Structured style choices    | Execute (T1, T19)            | Verified     |
+| PFORM-22       | P1: Structured style choices    | Execute (T1, T19)            | Verified     |
+| PFORM-23       | P1: Structured style choices    | Execute (T1, T19)            | Verified     |
 | PFORM-24       | P1: Structured style choices    | Execute (T2, T12)            | Verified     |
 | PFORM-25       | P1: Structured style choices    | Execute (T2, T12)            | Verified     |
 | PFORM-26       | P1: Structured style choices    | Execute (T6, T12)            | Verified     |
 | PFORM-27       | P1: Structured style choices    | Execute (T2, T12)            | Verified     |
 | PFORM-28       | P1: Structured style choices    | Execute (T2, T12)            | Verified     |
-| PFORM-40       | P1: Per-molde size chart        | Design                       | Pending      |
+| PFORM-40       | P1: Per-molde size chart        | Execute (T19)                | Verified     |
 | PFORM-41       | P1: Per-molde size chart        | Execute (T13)                | Verified     |
 | PFORM-42       | P1: Per-molde size chart        | Execute (T4, T8, T13)        | Verified     |
 | PFORM-43       | P1: Per-molde size chart        | Execute (T8, T13)            | Verified     |
 | PFORM-44       | P1: Per-molde size chart        | Execute (T13)                | Verified     |
 | PFORM-45       | P1: Per-molde size chart        | Execute (T4, T8, T13)        | Verified     |
 | PFORM-46       | P1: Per-molde size chart        | Execute (T4, T8, T13)        | Verified     |
-| PFORM-47       | P1: Per-molde size chart        | Execute (T13)                | Implementing |
-| PFORM-60       | P1: Several photos              | Execute (T3)                 | Implementing |
-| PFORM-61       | P1: Several photos              | Design                       | Pending      |
-| PFORM-62       | P1: Several photos              | Design                       | Pending      |
-| PFORM-63       | P1: Several photos              | Design                       | Pending      |
+| PFORM-47       | P1: Per-molde size chart        | Execute (T19)                | Verified     |
+| PFORM-60       | P1: Several photos              | Execute (T3, T19)            | Verified     |
+| PFORM-61       | P1: Several photos              | Execute (T19)                | Verified     |
+| PFORM-62       | P1: Several photos              | Execute (T19)                | Verified     |
+| PFORM-63       | P1: Several photos              | Execute (T19)                | Verified     |
 | PFORM-64       | P1: Several photos              | Execute (T11, T14, T15, T16) | Verified     |
 | PFORM-65       | P1: Several photos              | Execute (T3, T11)            | Verified     |
 | PFORM-66       | P1: Several photos              | Execute (T7)                 | Verified     |

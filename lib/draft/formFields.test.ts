@@ -27,27 +27,38 @@ describe("STYLE_FIELDS_BY_TYPE", () => {
     ]);
   });
 
-  it("dress offers the blouse set plus the skirt silhouette", () => {
+  it("dress swaps the blouse's front closure for the skirt silhouette", () => {
     expect(STYLE_FIELDS_BY_TYPE.dress).toEqual([
       "neckline",
       "sleeve",
       "cuff",
       "collar",
-      "frontClosure",
       "skirt",
       "fit",
     ]);
   });
 
-  it("tshirt offers the same set as blouse", () => {
+  it("tshirt offers the blouse set without the front closure", () => {
     expect(STYLE_FIELDS_BY_TYPE.tshirt).toEqual([
       "neckline",
       "sleeve",
       "cuff",
       "collar",
-      "frontClosure",
       "fit",
     ]);
+  });
+
+  // The reason those two drop it, pinned against the drafter rather than
+  // restated: body.ts splits the front only for a non-knit garment with no
+  // dress hem, so a tshirt or dress that asked for a button stand gets an
+  // unsplit cut-on-fold front either way (body.test.ts's own two cases). A
+  // form select cannot decline the way the model can, so offering it there
+  // would be a control that silently does nothing -- PFORM-21.
+  it("offers the front closure for the blouse alone", () => {
+    const withClosure = TYPES.filter((type) =>
+      STYLE_FIELDS_BY_TYPE[type].includes("frontClosure"),
+    );
+    expect(withClosure).toEqual(["blouse"]);
   });
 
   it("skirt offers only skirt, waistband and fit", () => {

@@ -49,25 +49,25 @@ export type FormStyleField = (typeof FORM_STYLE_FIELDS)[number];
 
 // Derived from which drafter actually reads each field, not from what looks
 // plausible on a form: a blouse has no skirt panel to shape and no waistband
-// (lib/draft/body.ts), trousers have neither a neckline nor a sleeve
-// (lib/draft/trousers.ts), and frontClosure is gated off dress and tshirt
-// inside body.ts -- but it stays listed for both here because the AI-facing
-// catalog does too and the drafter, not this map, owns that gate.
+// (lib/draft/body.ts), and trousers have neither a neckline nor a sleeve
+// (lib/draft/trousers.ts).
+//
+// `frontClosure` is listed for the BLOUSE ONLY, unlike the AI-facing catalog
+// in garment.ts, which offers it for every body-having type and lets the
+// drafter decide. body.ts:163-167 splits the front only when
+// `!opts.knit && opts.dressHemHalfCm === undefined`, i.e. never for a tshirt
+// (knit) and never for a dress (whose bodice hem doubles as the waist-join
+// seam and assumes the front's full width) -- body.test.ts pins both. The
+// model can answer an impossible request with decline or ask; a form select
+// cannot, so offering it there would be a control that silently does
+// nothing, the same reason `cuff` is gated below.
 export const STYLE_FIELDS_BY_TYPE: Record<
   GarmentType,
   readonly FormStyleField[]
 > = {
   blouse: ["neckline", "sleeve", "cuff", "collar", "frontClosure", "fit"],
-  dress: [
-    "neckline",
-    "sleeve",
-    "cuff",
-    "collar",
-    "frontClosure",
-    "skirt",
-    "fit",
-  ],
-  tshirt: ["neckline", "sleeve", "cuff", "collar", "frontClosure", "fit"],
+  dress: ["neckline", "sleeve", "cuff", "collar", "skirt", "fit"],
+  tshirt: ["neckline", "sleeve", "cuff", "collar", "fit"],
   skirt: ["skirt", "waistband", "fit"],
   trousers: ["waistband", "fit"],
 };
