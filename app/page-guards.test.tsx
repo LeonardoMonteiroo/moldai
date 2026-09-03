@@ -57,7 +57,19 @@ vi.mock("next-intl/server", () => ({
     const ns = (messages as Record<string, Record<string, unknown>>)[namespace];
     if (!ns) throw new Error(`unknown catalog namespace: ${namespace}`);
     return (key: string, values?: Record<string, unknown>) => {
-      const value = ns[key];
+      // Resolves a dotted path the way next-intl does ("faq.seamCheck.
+      // question"), not just a flat top-level key -- app/page.tsx's FAQPage
+      // structured data reads nested ones, and a flat lookup would report
+      // every one of them as missing.
+      const value = key
+        .split(".")
+        .reduce<unknown>(
+          (node, part) =>
+            node && typeof node === "object"
+              ? (node as Record<string, unknown>)[part]
+              : undefined,
+          ns,
+        );
       if (typeof value !== "string") {
         throw new Error(`missing catalog key: ${namespace}.${key}`);
       }
@@ -333,6 +345,11 @@ describe("app/**/page.tsx session guards", () => {
       "/signup",
       "/verify",
       "/password-reset",
+      // The footer's legal pages. Public for the same reason /planos is:
+      // the person deciding whether to sign up is exactly who reads them,
+      // and neither renders anything account-scoped.
+      "/privacy",
+      "/terms",
     ];
     const gated = GATED_PAGES.map((p) => p.route);
     // /onboarding has its own guard test below (its extra
