@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { ArrowRightIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import type { Credits, PlanId } from "@/lib/types";
@@ -182,14 +183,23 @@ export function PlanSection({ credits: initial }: { credits: Credits }) {
       {/* #docs/design: reverted to the design handoff's generic copy (see
           docs/decisions.md) -- the gateway's real BRL-only/Visa-Mastercard-only
           limitations no longer render here. */}
-      <p className="text-muted text-ui">{t("paymentNote")}</p>
-      {/* #15: the public pricing screen -- feature bullets, the annual
-          toggle, and Confecção's "Falar com vendas" don't belong in this
-          three-line card grid, so this links out rather than duplicating
-          them. */}
-      <Link href="/planos" className="text-olive-dark text-ui font-semibold">
-        {t("viewAllPlansLink")}
-      </Link>
+      {/* One card holding the note and the link side by side, per the design
+          -- they used to be two loose runs of text on the page ground, which
+          read as leftovers below the grid rather than as its footer. */}
+      <div className="border-border rounded-card bg-surface flex flex-wrap items-start justify-between gap-[18px] border px-4 py-[14px]">
+        <p className="text-muted-2 text-ui max-w-[560px]">{t("paymentNote")}</p>
+        {/* #15: the public pricing screen -- feature bullets, the annual
+            toggle, and Confecção's "Falar com vendas" don't belong in this
+            three-line card grid, so this links out rather than duplicating
+            them. */}
+        <Link
+          href="/planos"
+          className="text-olive-dark text-ui flex items-center gap-1 font-semibold whitespace-nowrap"
+        >
+          {t("viewAllPlansLink")}
+          <ArrowRightIcon className="size-[13px]" aria-hidden />
+        </Link>
+      </div>
     </div>
   );
 }

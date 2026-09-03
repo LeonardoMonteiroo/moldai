@@ -137,18 +137,32 @@ export function PatternCanvas({
       : (10 * viewport.w) / (svg?.clientWidth || viewport.w);
   };
 
-  // mouse wheel = zoom-at-cursor (both tools); non-passive listener for preventDefault
+  // Ctrl/⌘ + wheel = zoom-at-cursor; a plain wheel pans instead.
+  //
+  // A bare wheel used to zoom, which made an ordinary two-finger trackpad
+  // scroll over the canvas rocket the zoom: every tick multiplies by
+  // ZOOM_STEP, and one gesture emits dozens of them (~12 ticks is already
+  // 3.1x), leaving the pattern far off-screen with no obvious way back.
+  // Ctrl-to-zoom is the convention every canvas tool uses, and a trackpad
+  // pinch natively arrives as a wheel event with ctrlKey set, so pinch-zoom
+  // keeps working untouched. Non-passive listener, for preventDefault.
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
-      const factor = e.deltaY < 0 ? ZOOM_STEP : 1 / ZOOM_STEP;
-      onWheelZoom(e.clientX, e.clientY, factor);
+      if (e.ctrlKey || e.metaKey) {
+        const factor = e.deltaY < 0 ? ZOOM_STEP : 1 / ZOOM_STEP;
+        onWheelZoom(e.clientX, e.clientY, factor);
+        return;
+      }
+      // Same handler the drag gesture uses, so both pans agree on direction:
+      // scrolling down moves the content up, like dragging upward.
+      onPan(-e.deltaX, -e.deltaY);
     };
     svg.addEventListener("wheel", onWheel, { passive: false });
     return () => svg.removeEventListener("wheel", onWheel);
-  }, [svgRef, onWheelZoom]);
+  }, [svgRef, onWheelZoom, onPan]);
 
   // switching tools clears the preview ("adjust state on prop change" pattern)
   const [prevTool, setPrevTool] = useState(activeTool);

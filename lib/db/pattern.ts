@@ -122,11 +122,20 @@ export async function createPatternFromState(
   return row.id;
 }
 
+// `name` is the name the pattern should start under, for a caller that
+// already knows it (the creation form's "Nome do molde"). Omitted -- or
+// blank, which is the same thing here -- keeps seedPatternState's own
+// t("newPatternName"), so every existing caller is unchanged. The cap and
+// the NUL check belong to the route, not here: this repository has no way to
+// answer a rejection, and PATCH /api/patterns/[id] already owns that pair.
 export async function createPattern(
   userId: string,
   t: Translate,
+  name?: string,
 ): Promise<string> {
-  return createPatternFromState(userId, seedPatternState(t));
+  const state = seedPatternState(t);
+  if (name) state.pattern.name = name;
+  return createPatternFromState(userId, state);
 }
 
 export interface PatternListItem {

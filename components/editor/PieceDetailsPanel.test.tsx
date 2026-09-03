@@ -42,6 +42,17 @@ const PATTERN: Pattern = {
   pieces: [PIECE],
 };
 
+// Editor.dc.html:563: the graduate action IS the sentence naming the sizes
+// and the cost -- there is no separate generic "Graduar" button any more, so
+// that summary is how the control is found.
+const graduateLabel = translatorFor("PieceDetailsPanel")("graduateSummary", {
+  list: formatList(
+    translatorFor("Format"),
+    PATTERN.sizesPending.filter((s) => s !== PATTERN.baseSize),
+  ),
+  cost: COSTS.graduate,
+});
+
 describe("PieceDetailsPanel", () => {
   // #31: the graduate button had no in-flight signal at all -- a double
   // click sent two grade requests, and the server's row lock serialized
@@ -57,9 +68,7 @@ describe("PieceDetailsPanel", () => {
       />,
     );
 
-    expect(
-      screen.getByRole("button", { name: t.graduateButton }),
-    ).toBeDisabled();
+    expect(screen.getByRole("button", { name: graduateLabel })).toBeDisabled();
   });
 
   it("leaves the graduate button enabled when there is nothing in flight and sizes are pending", () => {
@@ -73,9 +82,7 @@ describe("PieceDetailsPanel", () => {
       />,
     );
 
-    expect(
-      screen.getByRole("button", { name: t.graduateButton }),
-    ).toBeEnabled();
+    expect(screen.getByRole("button", { name: graduateLabel })).toBeEnabled();
   });
 
   // EDCH-03: top-[58px] clears the floating tab bar (Editor.dc.html:227's
@@ -109,9 +116,8 @@ describe("PieceDetailsPanel", () => {
       />,
     );
 
-    expect(
-      screen.getByRole("button", { name: t.graduateButton }),
-    ).toBeDisabled();
+    // Nothing left to grade: the button states that instead of the summary.
+    expect(screen.getByRole("button", { name: t.allGraduated })).toBeDisabled();
   });
 
   // #50: the ungraded size chip used text-placeholder (2.68:1 on surface),

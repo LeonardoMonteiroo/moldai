@@ -196,3 +196,75 @@ describe("OnboardingChecklistCard", () => {
     }
   });
 });
+
+describe("OnboardingChecklistCard done/pending treatment", () => {
+  const allDone = {
+    hasCustomSizeChart: true,
+    hasExported: true,
+    hasImported: true,
+  };
+
+  function iconFor(title: string): HTMLElement {
+    return screen.getByText(title).closest("li")!
+      .firstElementChild as HTMLElement;
+  }
+
+  // Dashboard.dc.html gives a done step its own iconBg/iconColor/labelColor.
+  // Before this, done and pending shared bg-surface-alt and an ink label, so
+  // the only signal was the check glyph itself.
+  it("tints a completed step's icon olive and leaves a pending one neutral", () => {
+    renderWithIntl(
+      <OnboardingChecklistCard patterns={[pattern()]} checklist={noProgress} />,
+    );
+    expect(iconFor(ptBR.OnboardingChecklistCard.step1Title)).toHaveClass(
+      "bg-olive-tint",
+      "text-olive",
+    );
+    expect(iconFor(ptBR.OnboardingChecklistCard.step2Title)).toHaveClass(
+      "bg-surface-alt",
+      "text-muted",
+    );
+  });
+
+  it("drops a completed step's label to muted, keeping a pending one in ink", () => {
+    renderWithIntl(
+      <OnboardingChecklistCard patterns={[pattern()]} checklist={noProgress} />,
+    );
+    expect(
+      screen.getByText(ptBR.OnboardingChecklistCard.step1Title),
+    ).toHaveClass("text-muted");
+    expect(
+      screen.getByText(ptBR.OnboardingChecklistCard.step2Title),
+    ).not.toHaveClass("text-muted");
+  });
+
+  // The arrow is a real 13px icon now. It used to be a literal "→" inside
+  // each catalog value -- a glyph doing an icon's job, and three copies of
+  // the same mark living inside translatable strings.
+  it("renders the CTA arrow as an icon, not a glyph in the catalog value", () => {
+    renderWithIntl(
+      <OnboardingChecklistCard patterns={[pattern()]} checklist={noProgress} />,
+    );
+    for (const key of ["step2Cta", "step3Cta", "step4Cta"] as const) {
+      expect(ptBR.OnboardingChecklistCard[key]).not.toContain("→");
+    }
+    const cta = screen
+      .getByText(ptBR.OnboardingChecklistCard.step2Cta)
+      .closest("a")!;
+    expect(cta.querySelector("svg")).not.toBeNull();
+  });
+
+  it("shows every step done without any icon falling back to neutral", () => {
+    renderWithIntl(
+      <OnboardingChecklistCard patterns={[pattern()]} checklist={allDone} />,
+    );
+    for (const title of [
+      ptBR.OnboardingChecklistCard.step1Title,
+      ptBR.OnboardingChecklistCard.step2Title,
+      ptBR.OnboardingChecklistCard.step3Title,
+      ptBR.OnboardingChecklistCard.step4Title,
+    ]) {
+      expect(iconFor(title)).toHaveClass("bg-olive-tint");
+    }
+  });
+});

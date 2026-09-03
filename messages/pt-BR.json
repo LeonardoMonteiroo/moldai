@@ -23,12 +23,12 @@
     "formatPltNote": "Segue o padrão HPGL/2 e foi verificado apenas de forma estrutural (sintaxe, arredondamento de coordenadas, contagem de faixas, canetas distintas), mas nunca plotado em um equipamento físico. O nome da peça usa a fonte interna do plotter, não uma tipografia específica; variantes de dialeto Audaces/Molde.me também podem diferir.",
     "statusConflict": "v{version} · não exportável com conflito",
     "statusGenerating": "gerando molde…",
-    "statusReady": "{copyCount, plural, one {# cópia} other {# cópias}} · base {baseSize} · unidade {unit}",
+    "statusReady": "{copyCount, plural, one {# peça} other {# peças}} · base {baseSize} · {unit}",
     "exportButton": "Exportar",
     "exportDisabledConflictTitle": "Resolva o conflito de costura antes de exportar.",
     "exportDisabledGeneratingTitle": "Aguarde a geração terminar antes de exportar.",
     "exportDisabledBlankTitle": "Gere o molde antes de exportar.",
-    "versionsHistoryButton": "Histórico de versões",
+    "versionsHistoryButton": "Histórico",
     "saveAsBaseButton": "Salvar como base",
     "saveAsBaseDisabledTitle": "Gere o molde e resolva o conflito de costura antes de salvar como base.",
     "saveAsBaseTitle": "Salvar como base do ateliê",
@@ -50,7 +50,7 @@
   },
   "ChatBubble": {
     "questionsAnswered": "Perguntas respondidas.",
-    "imageAttached": "imagem enviada",
+    "imagesAttached": "{count, plural, one {imagem enviada} other {# imagens enviadas}}",
     "assemblyDisclaimer": "Ordem de montagem gerada por IA a partir da modelagem; não substitui a verificação de um(a) costureiro(a)."
   },
   "MessageInput": {
@@ -59,11 +59,8 @@
     "creditCost": "{cost, plural, one {# crédito} other {# créditos}}"
   },
   "AttachmentChips": {
-    "photo": "＋ foto",
-    "sketch": "＋ croqui",
-    "dxf": "＋ molde .dxf",
+    "photo": "Anexar foto",
     "dxfComingSoonTitle": "Anexar molde .dxf chega em breve",
-    "comingSoonBadge": "em breve",
     "preparing": "Preparando imagem…",
     "removeAttachment": "Remover anexo",
     "errors": {
@@ -553,7 +550,7 @@
   },
   "EditorShell": {
     "loading": "Carregando molde…",
-    "savedVersion": "{savedAgo} · v{version}",
+    "savedVersion": "v{version} · salvo {savedAgo}",
     "loadError": "Não foi possível carregar este molde. Tente novamente.",
     "sessionExpired": "Sua sessão expirou. Entre novamente para continuar.",
     "retryButton": "Tentar de novo",
@@ -921,7 +918,8 @@
     "deleteCancelButton": "Cancelar",
     "blankLabel": "em branco",
     "renameSaveButton": "Salvar",
-    "renameCancelButton": "Cancelar"
+    "renameCancelButton": "Cancelar",
+    "updatedLabel": "Editado {when}"
   },
   "CreditsCard": {
     "title": "Créditos do mês",
@@ -936,16 +934,113 @@
     "step1Description": "Você já criou seu primeiro molde com a IA.",
     "step2Title": "Configurar tabela de medidas",
     "step2Description": "Cadastre as medidas do seu público para graduar moldes automaticamente.",
-    "step2Cta": "Configurar →",
+    "step2Cta": "Configurar",
     "step3Title": "Exportar um PDF",
     "step3Description": "Baixe seu molde pronto para impressão e corte.",
-    "step3Cta": "Exportar →",
+    "step3Cta": "Exportar",
     "step4Title": "Importar moldes existentes",
     "step4Description": "Já tem moldes em .dxf? Importe para continuar trabalhando neles aqui.",
-    "step4Cta": "Importar →",
+    "step4Cta": "Importar",
     "step5Title": "Convidar alguém da equipe",
     "step5Description": "Compartilhe o ateliê com quem também vai criar e ajustar moldes.",
     "step5Badge": "Em breve"
+  },
+  "NewPatternDialog": {
+    "title": "Novo molde",
+    "subtitle": "Como você quer começar?",
+    "promptOption": {
+      "title": "Começar com prompt",
+      "subtitle": "Descreva a peça em texto livre e a IA gera o molde."
+    },
+    "formOption": {
+      "title": "Preencher formulário",
+      "subtitle": "Responda um passo a passo e a IA monta o molde."
+    },
+    "importOption": {
+      "title": "Importar molde",
+      "subtitle": "Envie um arquivo .dxf existente."
+    }
+  },
+  "NewPatternForm": {
+    "title": "Preencher formulário",
+    "subtitle": "Descreva a peça e a IA monta um molde inicial.",
+    "back": "Voltar",
+    "submit": "Gerar molde com IA",
+    "submitting": "Gerando molde…",
+    "namePlaceholder": "ex: Blusa manga longa",
+    "detailsPlaceholder": "ex: manga longa com punho, gola redonda, fechamento com zíper invisível nas costas",
+    "styleAuto": "Deixar a IA decidir",
+    "addPhoto": "Adicionar foto",
+    "photoLimitNote": "Até {max, plural, one {# foto} other {# fotos}} por molde.",
+    "chartLoading": "Carregando…",
+    "chartLoadFailed": "Não foi possível carregar as tabelas de medidas. O molde vai usar a grade ativa da conta.",
+    "chartGenderNote": "A tabela escolhida define se o molde é traçado no bloco feminino ou masculino.",
+    "buyCreditsLink": "Comprar créditos",
+    "field": {
+      "name": "Nome do molde",
+      "type": "Tipo de peça",
+      "sizeChart": "Tabela de medidas",
+      "neckline": "Decote",
+      "sleeve": "Manga",
+      "cuff": "Punho",
+      "collar": "Gola",
+      "frontClosure": "Fechamento frontal",
+      "skirt": "Silhueta da saia",
+      "waistband": "Cós",
+      "fit": "Caimento",
+      "photos": "Fotos e croquis (opcional)",
+      "details": "Detalhes da peça"
+    },
+    "value": {
+      "neckline": {
+        "straight": "Reto",
+        "V": "Decote V",
+        "round": "Redondo"
+      },
+      "sleeve": {
+        "none": "Sem manga",
+        "short": "Curta",
+        "long": "Longa"
+      },
+      "cuff": {
+        "none": "Sem punho",
+        "straight": "Reto, com carcela"
+      },
+      "collar": {
+        "none": "Sem gola",
+        "convertible": "Esporte, dobrável",
+        "band": "Chinesa, em pé",
+        "shirt": "Camiseira, com pé e viradinha"
+      },
+      "frontClosure": {
+        "none": "Sem abertura",
+        "buttonStand": "Abotoamento frontal"
+      },
+      "skirt": {
+        "straight": "Reta",
+        "a-line": "Evasê",
+        "gore": "Godê",
+        "half-circle": "Meia-roda",
+        "circle": "Círculo"
+      },
+      "waistband": {
+        "none": "Sem cós",
+        "straight": "Reto, com sobreposição"
+      },
+      "fit": {
+        "close": "Justo",
+        "fitted": "Ajustado",
+        "semiFitted": "Semiajustado",
+        "loose": "Solto"
+      }
+    },
+    "errors": {
+      "insufficient_credits": "Você não tem créditos suficientes para gerar este molde.",
+      "create_failed": "A geração não foi concluída. Tente novamente.",
+      "rate_limited": "Muitas tentativas em pouco tempo. Aguarde alguns minutos.",
+      "message_too_long": "A descrição ficou longa demais. Reduza os detalhes da peça.",
+      "fallback": "Não foi possível gerar o molde. Tente novamente."
+    }
   },
   "RecentUsageCard": {
     "title": "Uso recente",
@@ -969,7 +1064,6 @@
     "title": "Medidas e grades",
     "subtitle": "A grade ativa vale só para o gênero dela; geração e graduação usam a grade padrão do sistema para o outro",
     "newSizeChartButton": "＋ Nova grade",
-    "importLabel": "↥ Importar planilha ou tabela de medidas do Audaces",
     "loading": "Carregando grades…",
     "loadError": "Não foi possível carregar suas grades. Tente recarregar a página.",
     "copySuffix": " (cópia)",
@@ -1000,6 +1094,7 @@
     "rangeHint": "Valor fora do intervalo aceito. Use entre {min} e {max} cm.",
     "measurementColumnLabel": "Medida (cm)",
     "bodyTypeNote": "apenas descritivo; não altera o corte",
+    "bodyTypeLabel": "Tipo de corpo",
     "resetOverrideTitle": "Resetar para a regra",
     "addSizeButton": "＋ tamanho",
     "addSizePrompt": "Nome do novo tamanho",
@@ -1067,10 +1162,11 @@
       "rise": "Meça sentada(o), da cintura até o assento, passando entre as pernas.",
       "bustPointHeight": "Meça do ombro até a ponta do busto (ápice), acompanhando a curva do peito.",
       "bustSpan": "Meça a distância entre as pontas (ápices) do busto, de um lado a outro."
-    }
+    },
+    "baseSizeTag": "base"
   },
   "SizeChartImport": {
-    "trigger": "↥ Importar planilha ou tabela de medidas",
+    "trigger": "Importar planilha ou tabela de medidas",
     "dialogTitle": "Importar grade de medidas",
     "formatNote": "Aceita arquivos .csv e .tsv (texto separado por vírgula, ponto e vírgula ou tabulação); não lê .xlsx.",
     "chooseFileButton": "Escolher arquivo",
@@ -1110,8 +1206,7 @@
     "myPatternsLabel": "Meus moldes",
     "measurementsLabel": "Medidas e grades",
     "studioBasesLabel": "Bases do ateliê",
-    "comingSoonBadge": "em breve",
-    "importLabel": "Importar molde · .dxf"
+    "comingSoonBadge": "em breve"
   },
   "DashboardShell": {
     "loading": "Carregando moldes…",
@@ -1256,8 +1351,8 @@
     "planLabel": "Plano e cobrança"
   },
   "UsageSection": {
-    "heading": "Créditos e uso",
-    "outOfTotal": "de {total} · renova em {days, plural, one {# dia} other {# dias}}",
+    "balanceOfTotal": "{balance} de {total, plural, one {# crédito} other {# créditos}}",
+    "renewsIn": "renova em {days, plural, one {# dia} other {# dias}}",
     "topupButton": "Comprar créditos avulsos · {price}",
     "historyHeading": "Histórico",
     "empty": "Nenhuma movimentação ainda.",
@@ -1289,7 +1384,7 @@
     "subscribeButton": "Assinar {plan}",
     "downgradeButton": "Indisponível",
     "downgradeNote": "Por enquanto só é possível fazer upgrade de plano por aqui.",
-    "viewAllPlansLink": "Ver todos os planos →",
+    "viewAllPlansLink": "Ver todos os planos",
     "toggleLabel": "Ciclo de cobrança",
     "toggle": {
       "monthly": "Mensal",
@@ -1430,6 +1525,8 @@
     "layerNotFound": "não encontrada",
     "layerGroupCount": "{count} camadas",
     "previewSectionLabel": "Prévia",
+    "previewResetZoom": "restaurar zoom",
+    "previewViewHint": "Ctrl + rolagem para ampliar, arraste para mover",
     "piecesSectionLabel": "Identificar peças (opcional)",
     "pieceRowLabel": "Peça {index}",
     "pieceCustomNamePlaceholder": "Nome da peça",

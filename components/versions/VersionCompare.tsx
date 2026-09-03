@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowRightIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { PatternVersionEntry } from "@/lib/api-client";
@@ -195,12 +196,19 @@ export function VersionCompare({
         <div className="border-border flex flex-none items-center gap-[10px] border-b px-[14px] py-[10px]">
           <div className="flex min-w-0 items-center gap-[7px]">
             <span className="text-control flex items-center gap-[6px] font-semibold">
-              <span className="border-muted-2 inline-block w-3 border-t border-dashed" />
+              <span className="border-muted-2 inline-block w-3 border-t-[1.5px] border-dashed" />
               {tList("versionLabel", { version: fromVersion })}
             </span>
-            <span aria-hidden="true">→</span>
+            {/* The design's own 14px arrow. This one is purely visual (it is
+                already aria-hidden), so it is an icon, not text -- unlike the
+                "v6 → v7" runs below and in each diff row, which the design
+                writes as text and which stay that way. */}
+            <ArrowRightIcon
+              className="text-muted size-[14px] shrink-0"
+              aria-hidden
+            />
             <span className="text-control flex items-center gap-[6px] font-semibold">
-              <span className="border-ink inline-block w-3 border-t" />
+              <span className="border-ink inline-block w-3 border-t-[1.5px]" />
               {tList("versionLabel", { version: toVersion })}
             </span>
           </div>

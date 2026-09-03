@@ -3,7 +3,7 @@
 import type { ComponentType } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Folder, Ruler, Layers, Upload } from "lucide-react";
+import { Folder, Ruler, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -54,7 +54,7 @@ export function Sidebar({
   const router = useRouter();
 
   return (
-    <div className="border-border bg-surface flex h-full w-[186px] flex-col border-r p-[14px]">
+    <div className="border-border bg-surface flex h-full w-[200px] flex-col border-r p-[14px]">
       <nav className="flex flex-col gap-1">
         <NavItem
           label={t("myPatternsLabel")}
@@ -74,18 +74,16 @@ export function Sidebar({
           isActive={active === "slopers"}
           onSelect={() => router.push("/slopers")}
         />
-        {/* The DXF import first pass (issue #11) shipped in the same commit
-            as this wiring — an inert "em breve" card here while a working
-            beta exists at /import would be the exact silent-limitation
-            failure CLAUDE.md forbids, the inverse of the /slopers rollout
-            (disabled+badged until the screen existed, then a real NavItem).
-            /import renders no sidebar, so this entry is never the active one. */}
-        <NavItem
-          label={t("importLabel")}
-          icon={Upload}
-          isActive={false}
-          onSelect={() => router.push("/import")}
-        />
+        {/* No import entry: Dashboard.dc.html's sidebar is these three
+            sections only, and importing a .dxf is a way to START a pattern,
+            not a section of the app — it belongs in NewPatternDialog's
+            chooser, which is where the design puts it and where it now lives.
+            This entry (issue #11) predated that chooser, when the grid card
+            was still an inert "em breve" placeholder and the sidebar was the
+            only real way in; that reason is gone. /import stays reachable
+            from the chooser and from the onboarding checklist's step 4, so
+            nothing is hidden — it is just no longer claiming to be a
+            top-level destination. */}
       </nav>
     </div>
   );

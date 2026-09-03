@@ -191,7 +191,7 @@ describe("slopersStore.createPattern", () => {
 
     const id = await useSlopersStore.getState().createPattern("s1");
 
-    expect(api.createPattern).toHaveBeenCalledWith("s1");
+    expect(api.createPattern).toHaveBeenCalledWith({ sloperId: "s1" });
     expect(id).toBe("p1");
   });
 });

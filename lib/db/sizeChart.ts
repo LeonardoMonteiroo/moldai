@@ -333,8 +333,36 @@ export async function setActiveSizeChart(
 }
 
 /**
- * The size chart a NEW generation should draft from: the account's active
- * chart if its gender matches, else the system default for that gender.
+ * The gender of one chart the account owns, or null when the id names no
+ * chart of theirs. An ownership-scoped read outside any transaction, on the
+ * loadPattern contract: it never throws and it answers null identically for
+ * "no such chart" and "somebody else's chart", so it cannot be used as an
+ * existence oracle for another account's ids.
+ *
+ * Read separately from getSizeChartForGeneration below, and deliberately
+ * earlier: the generate route needs the gender before the AI call (it goes
+ * into the drafted spec and the prompt) and needs its 400 to land before any
+ * lock is taken or credit debited. The authoritative snapshot still comes
+ * from the in-transaction pick, which sees the same locked view as the write.
+ */
+export async function getSizeChartGenderForUser(
+  sizeChartId: string,
+  userId: string,
+): Promise<Gender | null> {
+  const row = await prisma.sizeChart.findUnique({ where: { id: sizeChartId } });
+  if (!row || row.userId !== userId) return null;
+  const parsed = SizeChartDataSchema.safeParse(row.data);
+  if (!parsed.success) {
+    reportError("db.sizeChart.parse", parsed.error, { sizeChartId });
+    return null;
+  }
+  return parsed.data.gender;
+}
+
+/**
+ * The size chart a NEW generation should draft from: the chart `requestedId`
+ * names, else the account's active chart if its gender matches, else the
+ * system default for that gender.
  *
  * Returns the passed-over active chart's name too, so the route can tell the
  * user its measurements were not the ones used. Previously this returned only
@@ -345,6 +373,7 @@ export async function getSizeChartForGeneration(
   userId: string,
   gender: Gender,
   t: Translate,
+  requestedId?: string | null,
 ): Promise<{ chart: SizeChartData; rejectedActiveName: string | null }> {
   const charts = await listSizeChartsForUser(tx, userId, t);
   const activeSizeChartId = await getActiveSizeChartId(tx, userId);
@@ -352,6 +381,7 @@ export async function getSizeChartForGeneration(
     charts,
     activeSizeChartId,
     gender,
+    requestedId,
   );
   const { id: _id, updatedAt: _updatedAt, ...data } = record;
   return { chart: data, rejectedActiveName: rejectedActive?.name ?? null };

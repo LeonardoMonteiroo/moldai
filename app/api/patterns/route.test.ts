@@ -29,7 +29,7 @@ import { consume } from "@/lib/rate-limit/consume";
 import { seedPatternState, applyGarmentSpec } from "@/lib/editor/state";
 import { sloperFromPattern } from "@/lib/slopers/convert";
 import { t as translate } from "@/lib/i18n/test-translate";
-import type { GarmentSpec } from "@/lib/types";
+import { MAX_PATTERN_NAME_LENGTH, type GarmentSpec } from "@/lib/types";
 
 const mockList = listPatternsForUser as unknown as ReturnType<typeof vi.fn>;
 const mockCreate = createPattern as unknown as ReturnType<typeof vi.fn>;
@@ -170,5 +170,69 @@ describe("POST /api/patterns", () => {
     const res = await POST(post());
     expect(res.status).toBe(401);
     expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  // PFORM-04: the creation form knows the name before the molde exists, so
+  // the pattern is created under it rather than renamed a request later.
+  it("creates the pattern under a supplied name", async () => {
+    mockCreate.mockResolvedValue("m11");
+    const res = await POST(post({ name: "Blusa gola alta" }));
+    expect(mockCreate).toHaveBeenCalledWith(
+      "u1",
+      expect.any(Function),
+      "Blusa gola alta",
+    );
+    expect(await res.json()).toEqual({ id: "m11" });
+  });
+
+  // PFORM-11's accepted boundary: exactly at the cap is a legitimate name,
+  // and the client's own maxLength lets it through.
+  it("accepts a name of exactly MAX_PATTERN_NAME_LENGTH", async () => {
+    mockCreate.mockResolvedValue("m12");
+    const name = "a".repeat(MAX_PATTERN_NAME_LENGTH);
+    const res = await POST(post({ name }));
+    expect(res.status).toBe(200);
+    expect(mockCreate).toHaveBeenCalledWith("u1", expect.any(Function), name);
+  });
+
+  // PFORM-11: one character past the cap is refused rather than truncated --
+  // a truncated name is one the user never chose.
+  it("400s invalid_name for a name one character over the cap, creating nothing", async () => {
+    const res = await POST(
+      post({ name: "a".repeat(MAX_PATTERN_NAME_LENGTH + 1) }),
+    );
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe("invalid_name");
+    expect(mockCreate).not.toHaveBeenCalled();
+    expect(mockCreateFromState).not.toHaveBeenCalled();
+  });
+
+  // PFORM-11: a NUL byte survives .trim() and would otherwise only abort the
+  // jsonb write, after the row insert was already attempted.
+  it("400s invalid_name for a name carrying a NUL byte, creating nothing", async () => {
+    const res = await POST(post({ name: `Blusa${String.fromCharCode(0)}` }));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe("invalid_name");
+    expect(mockCreate).not.toHaveBeenCalled();
+    expect(mockCreateFromState).not.toHaveBeenCalled();
+  });
+
+  // PFORM-04's empty-field case: an untouched name field must not block
+  // submission, and must not create the molde under an empty string either.
+  it("creates a default-named pattern for a whitespace-only name", async () => {
+    mockCreate.mockResolvedValue("m13");
+    const res = await POST(post({ name: "   " }));
+    expect(res.status).toBe(200);
+    expect(mockCreate).toHaveBeenCalledWith("u1", expect.any(Function));
+  });
+
+  // The route's own tolerance boundary: a non-string name is not a rejection,
+  // it is simply no name -- the same shape a body with no `name` key at all
+  // takes, so api.createPattern()'s existing `{}` request is unchanged.
+  it("creates a default-named pattern for a non-string name", async () => {
+    mockCreate.mockResolvedValue("m14");
+    const res = await POST(post({ name: 42 }));
+    expect(res.status).toBe(200);
+    expect(mockCreate).toHaveBeenCalledWith("u1", expect.any(Function));
   });
 });

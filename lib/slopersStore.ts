@@ -49,7 +49,7 @@ export const useSlopersStore = create<SlopersStore>((set) => ({
   // the caller navigates to it — the dashboardStore.create precedent.
   createPattern: async (sloperId) => {
     try {
-      const { id } = await api.createPattern(sloperId);
+      const { id } = await api.createPattern({ sloperId });
       return id;
     } catch (err) {
       set({ actionError: errorCode(err) });

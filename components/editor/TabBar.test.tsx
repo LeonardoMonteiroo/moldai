@@ -29,11 +29,28 @@ function renderTabBar(
 }
 
 describe("TabBar — floating chrome (EDCH-01)", () => {
-  it("renders as a translucent, blurred, absolutely-positioned overlay", () => {
+  // The chrome belongs to each cluster, NOT to the row holding them:
+  // Editor.dc.html:452 positions a transparent row and gives `.float-chrome`
+  // to the tab cluster, the size cluster, the details toggle and Exportar
+  // separately, so the canvas grid shows through between them. This used to
+  // be one translucent bar spanning the canvas, which read as a solid white
+  // strip across the top -- the exact thing this asserts against now.
+  it("positions the clusters on a transparent row, not a full-width bar", () => {
     renderTabBar();
-    const bar = screen.getByRole("tablist").closest(".absolute");
-    expect(bar).not.toBeNull();
-    expect(bar).toHaveClass("bg-surface/86", "backdrop-blur-sm", "shadow-card");
+    const row = screen.getByRole("tablist").closest(".absolute");
+    expect(row).not.toBeNull();
+    expect(row).not.toHaveClass("bg-surface/86");
+    expect(row).not.toHaveClass("shadow-card");
+  });
+
+  it("gives the tab cluster itself the translucent, blurred chip styling", () => {
+    renderTabBar();
+    const tabs = screen.getByRole("tablist");
+    expect(tabs).toHaveClass(
+      "bg-surface/86",
+      "backdrop-blur-sm",
+      "shadow-card",
+    );
   });
 });
 

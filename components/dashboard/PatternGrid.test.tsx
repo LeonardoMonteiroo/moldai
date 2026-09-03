@@ -88,16 +88,27 @@ describe("PatternGrid", () => {
   // "em breve" for a DXF import flow that had already shipped at /import
   // (#163). It's a real control now, matching Sidebar's own fix for the
   // identical defect (#11).
-  it("navigates to the import screen — the card is no longer a placeholder", async () => {
+  // The trailing cell used to link straight into /import. Dashboard.dc.html
+  // makes it a second "+ Novo molde" opening the same chooser as the toolbar
+  // button, with importing a .dxf one of the three options inside it -- so
+  // this asserts the cell defers to the chooser rather than picking one way
+  // of starting for the user.
+  it("opens the new-pattern chooser from the trailing grid cell", async () => {
     useDashboardStore.setState({ patterns: [PATTERN] });
+    const onNewPattern = vi.fn();
     const user = userEvent.setup();
-    renderWithIntl(<PatternGrid onOpen={vi.fn()} onNewPattern={vi.fn()} />);
+    renderWithIntl(
+      <PatternGrid onOpen={vi.fn()} onNewPattern={onNewPattern} />,
+    );
 
-    const card = screen.getByRole("button", {
-      name: ptBR.PatternGrid.importCardLabel,
+    const cells = screen.getAllByRole("button", {
+      name: ptBR.PatternGrid.newPatternButton,
     });
-    await user.click(card);
-    expect(push).toHaveBeenCalledWith("/import");
+    // The toolbar button and the trailing cell, in DOM order.
+    expect(cells).toHaveLength(2);
+    await user.click(cells[1]);
+    expect(onNewPattern).toHaveBeenCalledTimes(1);
+    expect(push).not.toHaveBeenCalled();
   });
 
   // #106: CLDR puts 0 in pt's "one" plural category, so the count label
@@ -148,8 +159,12 @@ describe("PatternGrid", () => {
       <PatternGrid onOpen={vi.fn()} onNewPattern={onNewPattern} />,
     );
 
+    // getAllBy…[0]: the trailing grid cell carries the same label now, so
+    // this pins the toolbar one specifically.
     await user.click(
-      screen.getByRole("button", { name: ptBR.PatternGrid.newPatternButton }),
+      screen.getAllByRole("button", {
+        name: ptBR.PatternGrid.newPatternButton,
+      })[0],
     );
     expect(onNewPattern).toHaveBeenCalledTimes(1);
   });

@@ -39,7 +39,7 @@ describe("proposeGarment", () => {
         ],
       }),
     );
-    const d = await proposeGarment(baseState, false);
+    const d = await proposeGarment(baseState, { answering: false });
     expect(d.decision).toBe("ask");
     expect(d.questions).toHaveLength(1);
     expect(d.questions![0].id).toBe("q0");
@@ -59,7 +59,7 @@ describe("proposeGarment", () => {
         },
       }),
     );
-    const d = await proposeGarment(baseState, false);
+    const d = await proposeGarment(baseState, { answering: false });
     expect(d.decision).toBe("apply");
   });
 
@@ -77,7 +77,7 @@ describe("proposeGarment", () => {
         },
       }),
     );
-    const d = await proposeGarment(baseState, true);
+    const d = await proposeGarment(baseState, { answering: true });
     expect(d.decision).toBe("apply");
     expect(d.questions).toBeUndefined();
   });
@@ -86,7 +86,9 @@ describe("proposeGarment", () => {
     create.mockResolvedValue(
       toolResp({ decision: "apply", assistantMessage: "done" }),
     );
-    await expect(proposeGarment(baseState, false)).rejects.toThrow(/spec/);
+    await expect(
+      proposeGarment(baseState, { answering: false }),
+    ).rejects.toThrow(/spec/);
   });
 
   // #99: a reply that hits the 1024 max_tokens ceiling (routine for a
@@ -100,9 +102,9 @@ describe("proposeGarment", () => {
       ...toolResp({ decision: "apply", assistantMessage: "x" }),
       stop_reason: "max_tokens",
     });
-    await expect(proposeGarment(baseState, false)).rejects.toThrow(
-      /max_tokens/,
-    );
+    await expect(
+      proposeGarment(baseState, { answering: false }),
+    ).rejects.toThrow(/max_tokens/);
   });
 
   // #53: block.input is `unknown` from the SDK's own types — the call site
@@ -111,25 +113,25 @@ describe("proposeGarment", () => {
   // every field were guaranteed present.
   it("rejects a non-object tool_use.input instead of casting it", async () => {
     create.mockResolvedValue(toolResp(null));
-    await expect(proposeGarment(baseState, false)).rejects.toThrow(
-      /not an object/,
-    );
+    await expect(
+      proposeGarment(baseState, { answering: false }),
+    ).rejects.toThrow(/not an object/);
   });
 
   it("rejects an empty object payload rather than fabricating a decision", async () => {
     create.mockResolvedValue(toolResp({}));
-    await expect(proposeGarment(baseState, false)).rejects.toThrow(
-      /unrecognized decision/,
-    );
+    await expect(
+      proposeGarment(baseState, { answering: false }),
+    ).rejects.toThrow(/unrecognized decision/);
   });
 
   it("rejects an unrecognized decision value", async () => {
     create.mockResolvedValue(
       toolResp({ decision: "banana", assistantMessage: "x" }),
     );
-    await expect(proposeGarment(baseState, false)).rejects.toThrow(
-      /unrecognized decision/,
-    );
+    await expect(
+      proposeGarment(baseState, { answering: false }),
+    ).rejects.toThrow(/unrecognized decision/);
   });
 
   // #53: assistantMessage is typed `string` by RawToolInput but that type is
@@ -140,14 +142,14 @@ describe("proposeGarment", () => {
     create.mockResolvedValue(
       toolResp({ decision: "decline", assistantMessage: 12345 }),
     );
-    const d = await proposeGarment(baseState, false);
+    const d = await proposeGarment(baseState, { answering: false });
     expect(d.assistantMessage).toBe("");
   });
 
   // #18: the image block is attached to the FINAL user turn, appended
   // before the text block -- buildHistory's own output for earlier turns is
   // untouched (it stays text-only, see history.ts).
-  it("attaches an image block to the final user turn, ahead of its text", async () => {
+  it("attaches one attachment's image block to the final user turn, ahead of its text", async () => {
     create.mockResolvedValue(
       toolResp({ decision: "decline", assistantMessage: "x" }),
     );
@@ -156,9 +158,9 @@ describe("proposeGarment", () => {
       chat: [{ author: "user", text: "uma blusa com gola V" }],
     } as unknown as EditorState;
 
-    await proposeGarment(state, false, {
-      mediaType: "image/jpeg",
-      base64: "ZmFrZS1iYXNlNjQ=",
+    await proposeGarment(state, {
+      answering: false,
+      images: [{ mediaType: "image/jpeg", base64: "ZmFrZS1iYXNlNjQ=" }],
     });
 
     const call = create.mock.calls[0][0];
@@ -185,7 +187,7 @@ describe("proposeGarment", () => {
     create.mockResolvedValue(
       toolResp({ decision: "decline", assistantMessage: "x" }),
     );
-    await proposeGarment(baseState, false);
+    await proposeGarment(baseState, { answering: false });
     const call = create.mock.calls[0][0];
     const messages = call.messages as Array<{
       role: string;
@@ -216,9 +218,9 @@ describe("proposeGarment", () => {
         },
       }),
     );
-    const d = await proposeGarment(baseState, false, {
-      mediaType: "image/jpeg",
-      base64: "ZmFrZS1iYXNlNjQ=",
+    const d = await proposeGarment(baseState, {
+      answering: false,
+      images: [{ mediaType: "image/jpeg", base64: "ZmFrZS1iYXNlNjQ=" }],
     });
     expect(d.decision).toBe("apply");
     expect(d.spec.measurementOverrides.bust).toBe(500);
@@ -236,7 +238,10 @@ describe("proposeGarment", () => {
     create.mockResolvedValue(
       toolResp({ decision: "decline", assistantMessage: "x" }),
     );
-    await proposeGarment(baseState, false, undefined, "IMPORT CONTEXT MARKER");
+    await proposeGarment(baseState, {
+      answering: false,
+      importContext: "IMPORT CONTEXT MARKER",
+    });
     const call = create.mock.calls[create.mock.calls.length - 1][0];
     expect(systemText(call)).toContain("IMPORT CONTEXT MARKER");
   });
@@ -245,7 +250,7 @@ describe("proposeGarment", () => {
     create.mockResolvedValue(
       toolResp({ decision: "decline", assistantMessage: "x" }),
     );
-    await proposeGarment(baseState, false);
+    await proposeGarment(baseState, { answering: false });
     const call = create.mock.calls[create.mock.calls.length - 1][0];
     expect(systemText(call)).not.toContain("Imported pattern reconstruction");
   });
@@ -258,7 +263,7 @@ describe("proposeGarment", () => {
     create.mockResolvedValue(
       toolResp({ decision: "decline", assistantMessage: "x" }),
     );
-    await proposeGarment(baseState, false);
+    await proposeGarment(baseState, { answering: false });
     const call = create.mock.calls[create.mock.calls.length - 1][0];
     expect(call.system).toHaveLength(2);
     expect(call.system[0].cache_control).toEqual({
@@ -278,8 +283,152 @@ describe("proposeGarment", () => {
     create.mockResolvedValue(
       toolResp({ decision: "decline", assistantMessage: "x" }),
     );
-    await proposeGarment(baseState, false);
+    await proposeGarment(baseState, { answering: false });
     expect(Anthropic).toHaveBeenCalledWith(ANTHROPIC_OPTIONS);
     expect(ANTHROPIC_OPTIONS.timeout).toBeLessThan(30_000);
+  });
+});
+
+// The form's photo row sends up to MAX_ATTACHMENT_COUNT references at once,
+// so every attachment has to become its own image content block on the one
+// final user turn -- in the order received, ahead of that turn's text.
+describe("proposeGarment: N attached images", () => {
+  function lastContent(): unknown {
+    const call = create.mock.calls[create.mock.calls.length - 1][0];
+    const messages = call.messages as Array<{ role: string; content: unknown }>;
+    return messages[messages.length - 1].content;
+  }
+
+  function imageBlock(data: string) {
+    return {
+      type: "image",
+      source: { type: "base64", media_type: "image/jpeg", data },
+    };
+  }
+
+  const state = {
+    pattern: { pieces: [], spec: undefined },
+    chat: [{ author: "user", text: "uma blusa com gola V" }],
+  } as unknown as EditorState;
+
+  beforeEach(() => {
+    create.mockReset();
+    create.mockResolvedValue(
+      toolResp({ decision: "decline", assistantMessage: "x" }),
+    );
+  });
+
+  it("sends two image blocks then exactly one text block, in the order received", async () => {
+    await proposeGarment(state, {
+      answering: false,
+      images: [
+        { mediaType: "image/jpeg", base64: "frente" },
+        { mediaType: "image/jpeg", base64: "costas" },
+      ],
+    });
+    expect(lastContent()).toEqual([
+      imageBlock("frente"),
+      imageBlock("costas"),
+      { type: "text", text: "uma blusa com gola V" },
+    ]);
+  });
+
+  it("sends four image blocks then exactly one text block, in the order received", async () => {
+    const images = ["a", "b", "c", "d"].map((base64) => ({
+      mediaType: "image/jpeg" as const,
+      base64,
+    }));
+    await proposeGarment(state, { answering: false, images });
+    expect(lastContent()).toEqual([
+      imageBlock("a"),
+      imageBlock("b"),
+      imageBlock("c"),
+      imageBlock("d"),
+      { type: "text", text: "uma blusa com gola V" },
+    ]);
+  });
+
+  it("keeps each attachment's own media type rather than normalizing them", async () => {
+    await proposeGarment(state, {
+      answering: false,
+      images: [
+        { mediaType: "image/png", base64: "p" },
+        { mediaType: "image/webp", base64: "w" },
+      ],
+    });
+    expect(lastContent()).toEqual([
+      {
+        type: "image",
+        source: { type: "base64", media_type: "image/png", data: "p" },
+      },
+      {
+        type: "image",
+        source: { type: "base64", media_type: "image/webp", data: "w" },
+      },
+      { type: "text", text: "uma blusa com gola V" },
+    ]);
+  });
+
+  // Identity, not a re-wrapped single-element content array: a text-only
+  // turn's content stays the plain string buildHistory produced.
+  it("returns the turns unchanged when no images are attached", async () => {
+    await proposeGarment(state, { answering: false });
+    expect(lastContent()).toBe("uma blusa com gola V");
+  });
+
+  it("treats an empty images array as no attachment at all", async () => {
+    await proposeGarment(state, { answering: false, images: [] });
+    expect(lastContent()).toBe("uma blusa com gola V");
+  });
+
+  // Unreachable today (the route appends the user's message before calling
+  // this), but the guard DROPS the attachments rather than mis-attaching
+  // them to an assistant turn. Pinned so a future buildHistory change that
+  // can leave an assistant turn last fails loudly instead of silently
+  // discarding the user's reference photos.
+  it("drops the attachments when the final turn is not a user turn", async () => {
+    const assistantLast = {
+      pattern: { pieces: [], spec: undefined },
+      chat: [
+        { author: "user", text: "uma blusa" },
+        { author: "ai", text: "Qual decote?" },
+      ],
+    } as unknown as EditorState;
+    await proposeGarment(assistantLast, {
+      answering: false,
+      images: [{ mediaType: "image/jpeg", base64: "frente" }],
+    });
+    const call = create.mock.calls[create.mock.calls.length - 1][0];
+    const messages = call.messages as Array<{
+      role: string;
+      content: unknown;
+    }>;
+    expect(messages[messages.length - 1].role).toBe("assistant");
+    for (const m of messages) expect(typeof m.content).toBe("string");
+  });
+
+  it("threads formSpec into the system prompt sent to Anthropic", async () => {
+    const formSpec = {
+      type: "blouse" as const,
+      gender: "male" as const,
+      measurementOverrides: {},
+      style: { collar: "band" as const },
+    };
+    await proposeGarment(state, { answering: false, formSpec });
+    const call = create.mock.calls[create.mock.calls.length - 1][0];
+    const system = (call.system as Array<{ text: string }>)
+      .map((b) => b.text)
+      .join("\n\n");
+    expect(system).toContain("# Fields already decided by the user");
+    expect(system).toContain(JSON.stringify(formSpec));
+  });
+
+  it("omits the fields-already-decided section when no formSpec is given", async () => {
+    await proposeGarment(state, { answering: false });
+    const call = create.mock.calls[create.mock.calls.length - 1][0];
+    const system = (call.system as Array<{ text: string }>)
+      .map((b) => b.text)
+      .join("\n\n");
+    expect(system).not.toContain("# Fields already decided by the user");
   });
 });

@@ -16,6 +16,27 @@ const ChatMessageSchema = z.object({
   questions: z.array(ClarifyQuestionSchema).optional(),
   tone: z.enum(["neutral", "conflict", "notice"]).optional(),
   createdAt: z.number(),
+  // The three flags below are listed because a key this object does not name
+  // is STRIPPED, and the strip is not confined to the response: lockPattern
+  // returns the parsed state and savePattern writes that same object
+  // straight back, so an unlisted message field is deleted from the row by
+  // the next mutating turn. Writing one at the route and omitting it here
+  // gives it a one-turn lifetime -- long enough to pass a "the persisted
+  // message carries it" assertion and still be gone by the time anyone
+  // reloads. All three are pinned by lib/db/pattern.test.ts's per-key
+  // round-trip tests rather than left to the read path's own silence.
+  //
+  // `hasImage` and `assembly` were missing here for as long as they have
+  // existed, and were being destroyed exactly that way: measured against the
+  // real schema, and in a live database only 4 of 157 persisted messages
+  // still carried `hasImage` -- every one of them the newest generation's
+  // own user turn, none having survived a later turn. That cost `hasImage`
+  // its attachment chip on reload and `assembly` the disclaimer that marks
+  // an answer as AI-generated sewing guidance (#138), which is a label the
+  // reader is owed rather than a decoration.
+  imageCount: z.number().int().nonnegative().optional(),
+  hasImage: z.boolean().optional(),
+  assembly: z.boolean().optional(),
 });
 
 const ConflictInfoSchema = z.object({
@@ -74,20 +95,37 @@ export const PatternStateSchema = z.object({
 // own more specific domain check" precedent as AccountProfilePatchSchema.
 
 // generate: `message` is trimmed/length-checked/NUL-checked by the route
-// itself (missing_message/message_too_long); `image` is re-validated by
-// lib/editor/attachment.ts's validateAttachmentInput, which already takes
+// itself (missing_message/message_too_long); `images` is re-validated by
+// lib/editor/attachment.ts's validateAttachmentInputs, which already takes
 // `unknown`; `answering` is read with `=== true`. None of that moves here.
-// All three are `.optional()`, not just wrong-typed-tolerant: zod v4 treats
-// a bare z.unknown() key as required-but-any-value, so an entirely absent
-// key (e.g. `{}`) would 400 as the generic bad_body here rather than
+// All of them are `.optional()`, not just wrong-typed-tolerant: zod v4
+// treats a bare z.unknown() key as required-but-any-value, so an entirely
+// absent key (e.g. `{}`) would 400 as the generic bad_body here rather than
 // reaching the route's own more specific missing_message -- the opposite of
 // the "readJsonObject caller keeps its own check" precedent this schema is
 // supposed to follow (verified against this repo's zod version).
+//
+// `images` replaced the singular `image` outright rather than joining it: a
+// wire field that is never persisted is the cheap direction of a wire
+// change, and keeping both shapes would mean two validators and two prompt
+// paths. Because z.object strips a key it does not name, a caller still
+// sending `image` is indistinguishable from a text-only request: it is
+// charged as one and drafts with no image blocks, NOT refused. That is
+// exactly why the rename had to make every caller a compile error rather
+// than accept both shapes -- a stale caller loses its reference silently,
+// so the compiler is the only thing that can catch one.
+// `formSpec` stays z.unknown() for the same reason every other key here
+// does: validateFormSpec (lib/ai/formSpec.ts) is its real trust boundary,
+// and it needs the RAW value -- it decides field by field whether the
+// request already named a value validateSpec recognizes, which a schema
+// that had already coerced or defaulted anything would have destroyed.
 export const GenerateBodySchema = z.object({
   message: z.unknown().optional(),
-  image: z.unknown().optional(),
+  images: z.unknown().optional(),
   answering: z.unknown().optional(),
   importContext: z.unknown().optional(),
+  formSpec: z.unknown().optional(),
+  sizeChartId: z.unknown().optional(),
 });
 
 // graduate: `sizes` is read with `Array.isArray(body.sizes) ? body.sizes :

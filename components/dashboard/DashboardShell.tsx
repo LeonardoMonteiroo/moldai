@@ -7,10 +7,14 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useDashboardStore } from "@/lib/dashboardStore";
+import {
+  useDashboardStore,
+  type NewPatternFormInput,
+} from "@/lib/dashboardStore";
 import { AppShell } from "@/components/shared/AppShell";
 import { ActionErrorNotice } from "@/components/shared/ActionErrorNotice";
 import { Sidebar } from "./Sidebar";
+import { NewPatternDialog } from "./NewPatternDialog";
 import { PatternGrid } from "./PatternGrid";
 import { CreditsCard } from "./CreditsCard";
 import { RecentUsageCard } from "./RecentUsageCard";
@@ -44,11 +48,40 @@ export function DashboardShell({
   const create = useDashboardStore((s) => s.create);
   const openPattern = (id: string) => router.push(`/pattern/${id}`);
 
+  // Dashboard.dc.html routes every "new pattern" affordance through one
+  // chooser rather than creating a blank pattern outright -- the toolbar
+  // button, the empty state and the grid's trailing cell all open it.
+  const [chooserOpen, setChooserOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+
   // create() records its own failure on this screen's store, which the
   // ActionErrorNotice below renders.
-  const handleNewPattern = async () => {
+  const handleStartFromPrompt = async () => {
+    setCreating(true);
     const id = await create();
+    setCreating(false);
     if (id) openPattern(id);
+    // Closed on failure too: create() records the error on this screen's
+    // store, and that notice renders in the content region behind the
+    // dialog -- leaving it open would hide the only feedback there is.
+    else setChooserOpen(false);
+  };
+
+  const createFromForm = useDashboardStore((s) => s.createFromForm);
+  const creatingFromForm = useDashboardStore((s) => s.creatingFromForm);
+  const [formErrorCode, setFormErrorCode] = useState<string | null>(null);
+
+  // Unlike the prompt option, a failure here keeps the dialog OPEN: the form
+  // holds everything the user filled in, and the store keeps the created
+  // Pattern's id so submitting again resumes it rather than orphaning a
+  // second one. The code is handed back to the form, which resolves its own
+  // message -- ActionErrorNotice renders one fixed sentence and sits behind
+  // the dialog.
+  const handleSubmitForm = async (input: NewPatternFormInput) => {
+    setFormErrorCode(null);
+    const result = await createFromForm(input);
+    if (result.status === "ok") openPattern(result.id);
+    else setFormErrorCode(result.code);
   };
 
   // Loading and error live inside the content region, not in place of the
@@ -76,6 +109,7 @@ export function DashboardShell({
             variant="ghost"
             size="icon-xs"
             aria-label={t("dismissPatternMissing")}
+            title={t("dismissPatternMissing")}
             onClick={() => setDismissedMissing(true)}
           >
             <XIcon />
@@ -85,20 +119,30 @@ export function DashboardShell({
       {!ready && (
         <div role="status" className="flex flex-1 flex-col gap-4 p-[22px]">
           <span className="sr-only">{t("loading")}</span>
+          {/* Mirrors Dashboard.dc.html's own loading composition: a short
+              count placeholder, then one placeholder per real control in the
+              row (search / filter / "+ Novo molde" -- the button's was
+              missing), then cards shaped like the cards they stand in for
+              rather than plain blocks, so the skeleton doesn't reflow into a
+              different layout the moment data lands. */}
           <div className="flex flex-wrap items-center gap-3">
-            <Skeleton className="h-8 w-[200px]" />
+            <Skeleton className="h-[26px] w-[120px]" />
             <div className="flex-1" />
             <Skeleton className="h-[34px] w-[200px]" />
             <Skeleton className="h-[34px] w-[150px]" />
+            <Skeleton className="h-[34px] w-[120px]" />
           </div>
           <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2 lg:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="rounded-card h-[168px] w-full" />
+              <div
+                key={i}
+                className="border-border rounded-card flex flex-col gap-2 border bg-white p-[10px]"
+              >
+                <Skeleton className="rounded-item h-[128px] w-full" />
+                <Skeleton className="h-[13px] w-[70%]" />
+                <Skeleton className="h-[11px] w-[45%]" />
+              </div>
             ))}
-          </div>
-          <div className="flex flex-wrap gap-4">
-            <Skeleton className="rounded-card h-[100px] min-w-[200px] flex-1" />
-            <Skeleton className="rounded-card h-[100px] min-w-[200px] flex-1" />
           </div>
         </div>
       )}
@@ -120,7 +164,7 @@ export function DashboardShell({
           <div className="flex flex-col gap-4 pt-[22px]">
             <PatternGrid
               onOpen={openPattern}
-              onNewPattern={handleNewPattern}
+              onNewPattern={() => setChooserOpen(true)}
               checklistSlot={
                 checklist && (
                   <OnboardingChecklistCard
@@ -139,6 +183,15 @@ export function DashboardShell({
           </div>
         </ScrollArea>
       )}
+      <NewPatternDialog
+        open={chooserOpen}
+        onOpenChange={setChooserOpen}
+        onStartFromPrompt={handleStartFromPrompt}
+        creating={creating}
+        onSubmitForm={handleSubmitForm}
+        submittingForm={creatingFromForm}
+        formErrorCode={formErrorCode}
+      />
     </AppShell>
   );
 }

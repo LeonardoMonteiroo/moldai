@@ -95,9 +95,16 @@ interface EditorStore {
 
   init: (patternId: string) => Promise<void>;
   clearError: () => void;
+  /**
+   * `images` is a list because the wire is (`POST .../generate` takes
+   * `images[]`), not because the composer sends more than one -- it still
+   * attaches at most one photo per turn, deliberately: a mid-conversation
+   * adjustment is one thought, and the multi-photo surface is the creation
+   * form's opening brief.
+   */
   sendMessage: (
     message: string,
-    opts?: { answering?: boolean; image?: PreparedAttachment },
+    opts?: { answering?: boolean; images?: PreparedAttachment[] },
   ) => Promise<void>;
   cancelGeneration: () => void;
   graduateSizes: (sizes: string[]) => Promise<void>;
@@ -238,7 +245,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
   sendMessage: async (
     message: string,
-    opts?: { answering?: boolean; image?: PreparedAttachment },
+    opts?: { answering?: boolean; images?: PreparedAttachment[] },
   ) => {
     if (!message.trim()) return;
     const patternId = get().patternId;
@@ -256,9 +263,13 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
           author: "user",
           text: message,
           createdAt: Date.now(),
-          // #18: the bytes travel with the request only -- this is enough to
-          // render the "imagem enviada" chip, never a thumbnail.
-          ...(opts?.image ? { hasImage: true } : {}),
+          // #18: the bytes travel with the request only -- the count is
+          // enough to render the "imagens enviadas" chip, never a thumbnail.
+          // hasImage stays written alongside imageCount, matching what the
+          // route persists, so a reader that predates the count still works.
+          ...(opts?.images?.length
+            ? { hasImage: true, imageCount: opts.images.length }
+            : {}),
         },
       ],
     }));
@@ -286,12 +297,12 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
     let result: Awaited<ReturnType<typeof api.generate>>;
     try {
-      result = await api.generate(
-        patternId,
-        message,
-        opts?.answering,
-        opts?.image,
-      );
+      result = await api.generate(patternId, message, {
+        answering: opts?.answering,
+        // Spread rather than assigned, so a text-only send carries no
+        // `images` key at all -- the route refuses an empty list.
+        ...(opts?.images?.length ? { images: opts.images } : {}),
+      });
     } catch {
       clearTimeout(stepTimer);
       if (get().generationRequestId !== requestId) return; // canceled

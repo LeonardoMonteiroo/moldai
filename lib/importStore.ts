@@ -262,21 +262,19 @@ export const useImportStore = create<ImportStore>((set, get) => ({
     try {
       const id = pendingPatternId ?? (await api.createPattern()).id;
       set({ pendingPatternId: id });
-      let result = await api.generate(
-        id,
-        message,
-        undefined,
-        image,
+      // One entry: a reconstruction has exactly one rendered preview. The
+      // wire takes a list (the creation form sends several), so this is the
+      // list shape with one member, never the removed singular `image` key.
+      let result = await api.generate(id, message, {
+        images: [image],
         importContext,
-      );
+      });
       if (result.status === "clarify") {
-        result = await api.generate(
-          id,
-          autoDefaultMessage,
-          true,
-          image,
+        result = await api.generate(id, autoDefaultMessage, {
+          answering: true,
+          images: [image],
           importContext,
-        );
+        });
       }
       if (result.status === "insufficient_credits") {
         set({ creating: false, actionError: "insufficient_credits" });

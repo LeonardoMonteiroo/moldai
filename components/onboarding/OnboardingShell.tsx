@@ -111,7 +111,9 @@ export function OnboardingShell({ credits }: { credits: Credits }) {
       // it has no UI to ask. This costs the one credit apply always costs;
       // the first, clarifying attempt itself was free (ask never debits).
       if (result.status === "clarify") {
-        result = await api.generate(id, t("step3.autoDefaultMessage"), true);
+        result = await api.generate(id, t("step3.autoDefaultMessage"), {
+          answering: true,
+        });
       }
       // Anything other than a real draft (declined/error/insufficient_credits,
       // or a thrown ApiError below) leaves the user on this step with a
@@ -139,13 +141,15 @@ export function OnboardingShell({ credits }: { credits: Credits }) {
           <Progress
             value={Math.round((step / 3) * 100)}
             aria-label={t("stepLabel", { n: step })}
-            className="bg-track h-[6px]"
+            className="h-[6px]"
           />
         </div>
 
         {step === 1 && (
           <div className="mt-5 flex flex-col gap-4">
-            <h1 className="text-body font-semibold">{t("step1.title")}</h1>
+            <h1 className="font-display text-title font-semibold">
+              {t("step1.title")}
+            </h1>
             <div
               role="radiogroup"
               aria-label={t("step1.title")}
@@ -212,7 +216,9 @@ export function OnboardingShell({ credits }: { credits: Credits }) {
 
         {step === 2 && (
           <div className="mt-5 flex flex-col gap-4">
-            <h1 className="text-body font-semibold">{t("step2.title")}</h1>
+            <h1 className="font-display text-title font-semibold">
+              {t("step2.title")}
+            </h1>
             <div className="flex flex-col gap-[10px]">
               <button
                 type="button"
@@ -284,7 +290,9 @@ export function OnboardingShell({ credits }: { credits: Credits }) {
 
         {step === 3 && (
           <div className="mt-5 flex flex-col gap-4">
-            <h1 className="text-body font-semibold">{t("step3.title")}</h1>
+            <h1 className="font-display text-title font-semibold">
+              {t("step3.title")}
+            </h1>
             <Textarea
               value={message}
               onChange={(event) => setMessage(event.target.value)}

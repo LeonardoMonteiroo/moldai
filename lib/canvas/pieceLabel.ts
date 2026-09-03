@@ -1,6 +1,8 @@
 import type { Piece, Point } from "@/lib/types";
 
-// The design's piece label: 11px, bottom-left inside the piece ("FRENTE · 1×").
+// The design's piece label: 11px, inside the piece, in normal case
+// (Editor.dc.html:246 renders `<text>Frente · 1×</text>` -- uppercase there
+// is reserved for the eyebrow labels, which this never was).
 export const MAX_LABEL_FONT_SIZE = 11;
 // #81: the shrink-to-fit formula below had no floor -- a narrow piece (a long
 // sleeve at the hem) shrank its label to ~5.4 SVG user units, well under
@@ -36,7 +38,7 @@ export function estimateTextWidth(text: string, fontSize: number): number {
 }
 
 export function pieceLabelText(piece: Pick<Piece, "name" | "qty">): string {
-  return `${piece.name.toUpperCase()} · ${piece.qty}×`;
+  return `${piece.name} · ${piece.qty}×`;
 }
 
 // Horizontal extent of the piece at height `y` — a scanline against the
@@ -110,7 +112,7 @@ export function fitPieceLabel(
   // piece name rather than spilling the label past the outline (CLAUDE.md:
   // a scope limitation must be surfaced, never silently overflowed, and a
   // piece must never end up unlabelled).
-  const shortText = piece.name.toUpperCase();
+  const shortText = piece.name;
   const shortWantedAtFloor = estimateTextWidth(shortText, MIN_LABEL_FONT_SIZE);
   if (available >= shortWantedAtFloor) {
     return { x: lo + PAD, y, fontSize: MIN_LABEL_FONT_SIZE, text: shortText };

@@ -114,10 +114,19 @@ const SHAPE_CASES: ShapeCase[] = [
   },
   {
     name: "createPattern (from a sloper)",
-    call: () => createPattern("sl1"),
+    call: () => createPattern({ sloperId: "sl1" }),
     url: "/api/patterns",
     method: "POST",
     body: { sloperId: "sl1" },
+  },
+  {
+    // The creation form names the pattern up front; every other caller
+    // leaves the key off and gets PatternData.newPatternName server-side.
+    name: "createPattern (under a name)",
+    call: () => createPattern({ name: "Blusa gola alta" }),
+    url: "/api/patterns",
+    method: "POST",
+    body: { name: "Blusa gola alta" },
   },
   {
     name: "fetchPattern",
@@ -159,10 +168,96 @@ const SHAPE_CASES: ShapeCase[] = [
   },
   {
     name: "generate (answering a clarify card)",
-    call: () => generate("p1", "manga curta", true),
+    call: () => generate("p1", "manga curta", { answering: true }),
     url: "/api/patterns/p1/generate",
     method: "POST",
     body: { message: "manga curta", answering: true },
+  },
+  {
+    // The wire field is `images`, an array of {mediaType, data} -- the
+    // singular `image` it replaced is gone, and PreparedAttachment's
+    // client-local `base64` is renamed at this one seam.
+    name: "generate (one attachment)",
+    call: () =>
+      generate("p1", "assim", {
+        images: [{ mediaType: "image/jpeg", base64: "AAAA" }],
+      }),
+    url: "/api/patterns/p1/generate",
+    method: "POST",
+    body: {
+      message: "assim",
+      images: [{ mediaType: "image/jpeg", data: "AAAA" }],
+    },
+  },
+  {
+    // Order is meaningful: it is the order the model reads the blocks in.
+    name: "generate (four attachments, in the order given)",
+    call: () =>
+      generate("p1", "assim", {
+        images: [
+          { mediaType: "image/jpeg", base64: "AA" },
+          { mediaType: "image/jpeg", base64: "BB" },
+          { mediaType: "image/jpeg", base64: "CC" },
+          { mediaType: "image/jpeg", base64: "DD" },
+        ],
+      }),
+    url: "/api/patterns/p1/generate",
+    method: "POST",
+    body: {
+      message: "assim",
+      images: [
+        { mediaType: "image/jpeg", data: "AA" },
+        { mediaType: "image/jpeg", data: "BB" },
+        { mediaType: "image/jpeg", data: "CC" },
+        { mediaType: "image/jpeg", data: "DD" },
+      ],
+    },
+  },
+  {
+    // A form submit with no photos: the key is omitted entirely rather than
+    // sent as [], which the route refuses as a malformed attachment list.
+    name: "generate (an empty attachment list)",
+    call: () => generate("p1", "uma blusa", { images: [] }),
+    url: "/api/patterns/p1/generate",
+    method: "POST",
+    body: { message: "uma blusa" },
+  },
+  {
+    name: "generate (carrying the form's own spec)",
+    call: () =>
+      generate("p1", "uma blusa", {
+        formSpec: {
+          type: "blouse",
+          gender: "female",
+          measurementOverrides: {},
+          style: { collar: "convertible" },
+        },
+      }),
+    url: "/api/patterns/p1/generate",
+    method: "POST",
+    body: {
+      message: "uma blusa",
+      formSpec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: { collar: "convertible" },
+      },
+    },
+  },
+  {
+    name: "generate (naming the size chart to draft from)",
+    call: () => generate("p1", "uma blusa", { sizeChartId: "sc1" }),
+    url: "/api/patterns/p1/generate",
+    method: "POST",
+    body: { message: "uma blusa", sizeChartId: "sc1" },
+  },
+  {
+    name: "generate (carrying an import reconstruction context)",
+    call: () => generate("p1", "reconstrua", { importContext: "oskar.dxf" }),
+    url: "/api/patterns/p1/generate",
+    method: "POST",
+    body: { message: "reconstrua", importContext: "oskar.dxf" },
   },
   {
     name: "graduate",

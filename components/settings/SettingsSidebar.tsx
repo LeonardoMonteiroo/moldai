@@ -19,7 +19,7 @@ export function SettingsSidebar({ active }: { active: SettingsSection }) {
   const router = useRouter();
 
   return (
-    <div className="border-border bg-surface flex h-full w-[186px] flex-col gap-1 border-r p-[14px]">
+    <div className="border-border bg-surface flex h-full w-[172px] flex-col gap-[2px] border-r px-3 py-[14px]">
       <span className="text-muted tracking-eyebrow text-tick px-[11px] pb-2 font-semibold uppercase">
         {t("sectionEyebrow")}
       </span>

@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { CheckIcon, XIcon } from "lucide-react";
+import { ArrowRightIcon, CheckIcon, XIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -151,6 +151,7 @@ export function OnboardingChecklistCard({
           variant="ghost"
           size="icon-xs"
           aria-label={t("dismissLabel")}
+          title={t("dismissLabel")}
           onClick={writeDismissed}
         >
           <XIcon />
@@ -163,18 +164,28 @@ export function OnboardingChecklistCard({
             key={step.titleKey}
             className="border-border flex items-center gap-[12px] border-t py-[9px]"
           >
+            {/* A completed step is tinted olive and its label drops to muted
+                (Dashboard.dc.html's own iconBg/iconColor/labelColor per item)
+                -- the check glyph alone left "done" and "pending" sharing the
+                same neutral circle and the same ink label. */}
             <span
               className={
                 "text-meta flex size-[22px] shrink-0 items-center justify-center rounded-full font-semibold " +
                 (step.done
-                  ? "bg-surface-alt text-olive-dark"
+                  ? "bg-olive-tint text-olive"
                   : "bg-surface-alt text-muted")
               }
             >
               {step.done ? <CheckIcon className="size-[13px]" /> : i + 1}
             </span>
             <div className="flex min-w-0 flex-1 flex-col">
-              <span className="text-ui font-semibold">{t(step.titleKey)}</span>
+              <span
+                className={
+                  "text-ui font-semibold " + (step.done ? "text-muted" : "")
+                }
+              >
+                {t(step.titleKey)}
+              </span>
               <span className="text-muted text-meta">
                 {t(step.descriptionKey)}
               </span>
@@ -190,9 +201,14 @@ export function OnboardingChecklistCard({
             {!step.done && !step.soon && step.href && step.ctaKey && (
               <Link
                 href={step.href}
-                className="text-olive-dark text-ui shrink-0 font-semibold"
+                className="text-olive-dark text-ui flex shrink-0 items-center gap-1 font-semibold"
               >
                 {t(step.ctaKey)}
+                {/* The design's own 13px arrow. It used to be a literal "→"
+                    baked into each catalog value -- a glyph doing an icon's
+                    job, priced on the type scale, and three copies of the
+                    same mark inside translatable strings. */}
+                <ArrowRightIcon className="size-[13px]" aria-hidden />
               </Link>
             )}
           </li>

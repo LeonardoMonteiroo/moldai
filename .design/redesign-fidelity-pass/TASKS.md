@@ -63,3 +63,190 @@ Same method as Round 1, applied per **state** now instead of just the default on
 - [x] **Three explicit decisions requested and applied** (asked via AskUserQuestion, all "Recommended" chosen): (1) Editor's loading/error/desktop-only states now keep the header mounted, matching the new reference screenshots — reverses the prior documented "full-screen early-return" rule; (2) Editor's Prova 3D/Ficha técnica/Plano de corte tabs' extra richness vs. their mockups is intentional, left unbuilt; (3) Configurações' payment note stays the same short generic Stripe line as `/planos`, not the design's longer BRL/card-brand text.
 - [x] **Fix CLAUDE.md again**: the editor-chrome rule under "Screens" now describes the header-persists-through-every-state behavior (with the reversal noted), rather than the old "full-screen early-return" claim.
 - [x] **Design review** (Phase 7, round 2): full gate — `npm test`: **3143 passed, 3 skipped, 0 failed** (both projects). `npx tsc --noEmit`: clean. `npm run build`: clean, all 33 routes compiled. `npx eslint` on every changed file: clean. Re-screenshotting all ~30 fixed states individually was not done in this pass (the fixes were verified via the existing component/unit test suite plus the reference PNGs already inspected during triage) — a follow-up spot-check re-screenshot pass against the live app would be the natural next step if more assurance is wanted before calling Round 2 fully closed.
+
+## Round 4 — deep single-screen audit: Dashboard (2026-09-02)
+
+Round 3 (`07032ca`) showed that a **deep, one-screen** audit finds substantially more than a broad parallel state sweep does — the editor pass turned up a wrong chrome layout, a composer built as three blocks instead of one card, a chat header claiming an unshipped AI model, a toolbar that does not exist in the design at all, and a real wheel-zoom defect, none of which Rounds 1–2 had caught on that same screen. This round applies that depth to the **Dashboard** (`Dashboard.dc.html`, 474 lines — the largest reference after the already-deep-audited Editor, and the app's home).
+
+Method, following Round 1's Landing precedent (the most rigorous of the three used so far): extract every value from the `.dc.html` source directly, compare against the component source, then confirm against both `docs/design/screenshots/dashboard.png` and a live 1280×900 screenshot of the running app. Live states reached with the disposable `fidelity-dashboard@moldai.test` / `fidelity-dashboard-empty@moldai.test` accounts already in the dev DB.
+
+**Real divergences found and fixed:**
+
+- **Pattern cards carried no garment-type chip.** `Dashboard.dc.html` corners every thumbnail with a `Badge variant="quiet" size="chip"` naming the type ("Blusa", "Vestido", …) and the reference PNG shows it on all six cards. This is _not_ the pattern-STATE badge CLAUDE.md deliberately rules out ("exportado" can't be derived honestly) — the garment type is real, already persisted, and already drives this screen's own filter. A blank pattern has no type, so it correctly gets no chip rather than an invented one.
+- **Thumbnail height 112px → 128px**, the design's own value. This also made the grid's dashed card visibly short, see below.
+- **The card timestamp rendered bare** ("há 3h") where the design reads "Editado há 12 min" — the prefix is what says the date is a last-edit, not a creation date. New `PatternCard.updatedLabel`.
+- **Pattern cards had no hover treatment**; the design's `style-hover` sets `border-color: var(--color-olive)`.
+- **The checklist made "done" and "pending" nearly indistinguishable.** The design gives each item its own `iconBg`/`iconColor`/`labelColor`: a completed step is olive-tinted with a muted label, a pending one stays neutral with an ink label. Both shared `bg-surface-alt` and an ink label, leaving the check glyph as the only signal.
+- **The checklist CTA arrow was a literal "→" baked into three catalog values** — a glyph doing an icon's job, priced on the type scale, inside translatable strings (CLAUDE.md's own rule). Now a real 13px `ArrowRightIcon`, arrow stripped from `step2Cta`/`step3Cta`/`step4Cta`.
+- **The toolbar's three controls were three different heights.** The design puts search / filter / "+ Novo molde" all at 34px; live they were 34 / 32 / 32, because `sm` is the dialogs' 32px size. Height set at this call site rather than rescaling the shared size (the `Input` already did exactly that). Search input also 180px → the design's 200px — which is what `/slopers`' equivalent input already used.
+- **`Progress`'s track was shadcn's stock `bg-primary/20`** (a tint of the olive fill) where every track in the handoff is the `--color-track` (#ece8dd) token. Three call sites had each been overriding it back to `bg-track` one at a time; fixed in the primitive per CLAUDE.md's "tune a primitive, never per-call-site", and the two now-redundant overrides removed. New `components/ui/progress.test.tsx`.
+- **The loading skeleton was a different layout from the screen it stands in for**: one control placeholder short (the "+ Novo molde" button had none), an over-tall count placeholder, and four plain blocks where the design draws card-shaped skeletons (bordered card + 128px thumbnail + two text lines). It now reflows into the real layout instead of out of it. The bottom summary-card skeletons were dropped — the design's loading state has none.
+- **The grid's dashed card hardcoded `h-[168px]`**, already short of a card even at the old 112px thumbnail. Replaced with `min-h-[196px]` (a real card's measured height): the grid's own stretch handles the in-row case, and the min only covers wrapping onto a row of its own with nothing to stretch against. Measured live at 196px vs the card's 196.5px.
+- **Both sidebars rendered at 186px, matching neither design value.** `Dashboard`/`Bases do atelie`/`Medidas e grades`.dc.html all specify **200px** for the nav sidebar; `Configuracoes.dc.html` specifies **172px** for the settings section list. Fixed to the two real values, and CLAUDE.md's "must set the 186px width itself" rule corrected (it stated a single number for two different columns). Verified live on all four sidebar-bearing screens — no label wraps or overflows at 172px.
+
+**Found, deliberately NOT changed** (each a documented decision or new scope, recorded rather than silently left):
+
+- **The dashboard header shows no title or divider**, where `Dashboard.dc.html` shows `MoldAI │ Meus moldes`. CLAUDE.md documents this as deliberate ("the sidebar already marks the section… rather than printing the same words twice") — but the design's own answer is to print both. This contradicts a documented rule, so it needs a decision rather than a unilateral edit.
+- **`PageHeader.buyCreditsButton` reads "Comprar créditos"** where the design's pill has a lowercase inline "comprar", and the credits label carries a plan prefix the design's "34 de 60" doesn't. The plan label is explicitly documented as a deliberate addition (Round 1); the button copy is not, and together they make the pill roughly three times the design's width. Cross-cutting to every authenticated screen, so flagged rather than changed in a dashboard round.
+- **`CreditsCard`/`RecentUsageCard`** sit below the grid with no counterpart anywhere in `Dashboard.dc.html`. Left as real functionality per Round 2's standing decision that extra richness beats a simplified mockup.
+- **The 3-option "Novo molde" chooser dialog** (prompt / form / import) still doesn't exist — already recorded as new feature work in Round 2, unchanged here.
+- **Sidebar naming and its fourth entry** ("Bases do ateliê" + "Importar molde · .dxf" vs the design's 3-item "Bases e modelos") — the app's own more-current naming over a real shipped screen, per Round 1.
+
+**Verification:** `npm test` **3154 passed, 3 skipped, 0 failed** (up from 3144 — 10 new tests across `PatternCard`, `OnboardingChecklistCard` and the new `components/ui/progress.test.tsx`). `npx tsc --noEmit` clean, `npm run build` clean (all 33 routes), eslint clean on every changed file. The garment-type chip assertion was mutation-tested (badge stubbed to `false` → the test fails, then restored) to confirm it isn't matching the pattern name instead. Live re-screenshotted after every fix at 1280×900, and the dashed card / pattern card heights measured in the running app rather than eyeballed.
+
+## Round 5 — deep single-screen audit: Medidas e grades (2026-09-02)
+
+Same method as Round 4, applied to `Medidas e grades.dc.html` (466 lines) and `/size-charts`. Round 1 had recorded "no fix needed" for this screen and Round 2 found two gaps; going at the design source line by line found that the screen's whole **layout model** was wrong, which is what produced the two real defects below.
+
+**The root finding: the screen is three fixed regions plus a scrolling one in the design, and one long scrolling document in the app.** `SizeChartsShell` wrapped both columns in a single padded `ScrollArea`, so every "pinned" element was actually laid out against the _table's_ height. Measured live at 1280×900:
+
+- **The library footer — "＋ Nova grade" and "Importar planilha" — rendered at y=1307 in a 900px viewport.** The screen's primary action was reachable only by scrolling past every measurement row of the chart shown beside it. Now y=778, inside the fold, pinned to the library panel's own bottom edge.
+- **The unsaved-changes bar had the same defect**, and worse timing: it sat at the very end of the flow, so on any chart long enough to scroll (every real one) the Save button was off-screen at exactly the moment there was something to save. It is now the design's own pinned bottom bar — verified live at y=858 with the rows scrolling above it.
+
+Restructured to the design's shape: the library is a flush full-height panel (fixed heading / scrolling chart list / pinned footer), the table panel is fixed toolbar / scrolling rows / pinned action bar, and the two sit flush rather than as two padded cards inside a shared scroll. Below `lg` they still stack and the region scrolls as one (#119) — correct there, since a 252px column and a wide table cannot sit side by side.
+
+**Also found and fixed:**
+
+- **The `.csv`/`.tsv` import trigger opened with a literal "↥" (U+21A5), which Archivo has no glyph for** — the browser fell back and painted a stray mark that reads as the digit "1" on screen. Same glyph-doing-an-icon's-job class as Round 4's checklist arrow, except this one did not even render. Now a real `UploadIcon`, glyph stripped from the catalog value. The label also dropped its "do Audaces" suffix — the design doesn't have it and the parser is `.csv`/`.tsv`, so naming a vendor overclaimed.
+- **The body-type control had no label.** The design labels it "Tipo de corpo"; the app opened on a bare dropdown whose only context was the caveat printed after it. Added, wired via `aria-labelledby`, and the trigger narrowed 170px → the design's 156px.
+- **The base size column was untagged.** The design puts a small olive "base" tag under the base column's header; the app's only signal was the boxed cells in that column, which reads as "selected" rather than "the row everything else is derived from".
+- **The loading skeleton** was a 220px bar against a 252px column plus one undifferentiated block; it now matches the two panels at their real widths.
+- **Dead catalog key** `SizeCharts.importLabel`, unused since #12 replaced the inert placeholder with the real dialog (the `PageHeader.backButton` precedent).
+- **A regression caught during the restructure and fixed before commit**: making the rows region a flex column let the table (default `flex-shrink: 1`) be compressed to ~5 rows instead of overflowing. It is a block scroll container now.
+
+**Found, deliberately NOT changed:**
+
+- **The design shows a permanent "Regra · cm/tam" column** beside the size columns; the app instead has an "Editar regra de progressão" mode that swaps every size column for a rule input (#49). That is an interaction-model change, not a styling one, and #49's shape is deliberate — recorded for a decision rather than rewritten inside a fidelity round.
+- **The design's measurement table is flush and full-bleed with a sticky header**, where the app's is a rounded bordered card inside the scroll region. Now that the rows have their own scroll container a sticky header is finally possible; doing it means restyling the table itself, so it is recorded as the natural next step on this screen rather than bundled here.
+- **The progression-summary card** at the end of the table has no counterpart in the design — kept, per the standing "real functionality beats a simplified mockup" decision.
+
+**Verification:** `npm test` **3162 passed, 3 skipped, 0 failed** (up from 3154 — 8 new tests). `npx tsc --noEmit` clean, `npm run build` clean, eslint clean. The pinned-save-bar assertion was mutation-tested (bar moved back inside the scroll region → the test fails, then restored). Both defects were measured in the running app before and after, not eyeballed: library footer 1307px → 778px, save bar visible at 858px in a 900px viewport. One existing test (`SizeChartLibrary`'s 252px width) was updated rather than deleted: the width is `lg:` scoped now, since the old unprefixed 252px also applied in the stacked below-`lg` layout, where it was wrong.
+
+## Round 6 — deep single-screen audit: Importação (2026-09-03)
+
+Same method, applied to `Importacao.dc.html` (448 lines) and `/import`. Note this screen's reference PNGs are largely unusable — Round 2 found 6 of its 11 captures are broken (all render only the empty step-1 card) — so the `.dc.html` source is the only real reference, which is exactly what this method reads anyway. Step 2 was reached live by hand-building a DXF fixture (four closed `CONTORNO` pieces, a `COSTURA` inset, grain lines, notches, and a `TEXTO` entity) and driving the real file chooser.
+
+`ImportShell`'s structure already matches the design closely — file summary card, sticky preview column, `.rul` companion, "identificar peças", and the layers/verification pair in a two-column grid all line up. The gap was in the preview itself.
+
+**Real divergences found and fixed:**
+
+- **The layer preview had no pan or zoom at all**, where the design gives it wheel zoom, drag pan, and a "restaurar zoom" reset. This is not decoration: the panel exists so a user can visually identify which layer of an unrecognised-vocabulary CAD file is the actual cut line, and without zoom a dense real-world DXF renders as an unreadable thumbnail. Implemented with local component state (no store entry — nothing outside the canvas reads it, and it is meaningless once the file changes).
+  - **Deliberately NOT the design's literal "role para dar zoom".** A bare-wheel zoom is the exact defect Round 3 fixed on the editor canvas — one trackpad gesture emits dozens of ticks — and here it would additionally fight the page scroll this panel sits inside. Ctrl/⌘ + wheel zooms at the cursor, a plain wheel pans, and a trackpad pinch still arrives with `ctrlKey` set so pinch-to-zoom works untouched. The on-screen hint says so rather than repeating the design's wording for behavior the app deliberately doesn't have.
+  - Verified live, not just unit-tested: ctrl+wheel took the transform from `scale(1)` to `scale(1.1)` with the translate adjusted to pin the cursor point; a plain wheel afterwards changed only the translate, leaving the scale at 1.1; a drag panned both axes; and "restaurar zoom" returned it to `translate(0 0) scale(1)`.
+- **`getScreenCTM()` was called unguarded** in three places. jsdom doesn't implement it, which is how the tests surfaced it, but the same throw would take out panning in any context lacking it — the pan handler had no fallback path at all despite already writing `?? 1` as though it did. All three are optional calls now.
+- **The preview was 80px taller than the design** (`calc(100vh-160px)` vs `calc(100vh-240px)`) and carried no `min-height`; both now match, and the panel measures 660px live at a 900px viewport.
+
+**Found, deliberately NOT changed:**
+
+- **The design has a draggable `col-resize` splitter** between the preview and the panels column, with a dynamic `previewGridCols`; the app uses a fixed `lg:grid-cols-[420px_1fr]`. A real interaction addition rather than a styling gap — recorded, not built.
+- **The design's scroll region is `background: var(--color-surface)`** (white), where this app renders it on paper like every other screen. Importação is the only `.dc.html` that sets this, and the app's paper ground is what separates the white cards from the page — flipping it on the strength of one attribute would make the screen flatter, not more faithful. Recorded as a question rather than applied.
+- **The header carries no credits pill in the design**, matching the app, which already documents why (`ImportShell`'s own comment): analysis is free, and the real balance is surfaced next to the one paid action in `VerificationPanel`.
+
+**Verification:** `npm test` **3167 passed, 3 skipped, 0 failed** (up from 3162 — 5 new tests). `npx tsc --noEmit` clean, `npm run build` clean, eslint clean. The wheel-convention assertions were mutation-tested (made a bare wheel zoom, the design's literal behavior → two tests fail, then restored). One existing `ImportShell` assertion was updated rather than deleted: it reached the preview canvas by `nextElementSibling`, which the new header row legitimately changed; it now finds the canvas from the panel it belongs to, so it no longer re-encodes the layout.
+
+## Round 7 — deep single-screen audit: Configurações (2026-09-03)
+
+Same method, applied to `Configuracoes.dc.html` (355 lines) and `/settings`, across all five sections. Round 2 called this screen "the richest single haul of real, structural gaps" and fixed a lot of them, so this was the first round expected to come up mostly clean — the remaining gaps are smaller than earlier rounds', and Perfil and Excluir conta needed no structural change at all.
+
+**Real divergences found and fixed:**
+
+- **`UsageSection`'s balance panel repeated the number the stat card directly above it already shows.** Round 2 added the three stat cards ("Créditos restantes 28" / "Usados neste ciclo" / "Moldes ativos"); the balance panel underneath kept its own `text-display` "28" alongside them, and ran its progress bar full-bleed under the buy button. The design has neither: one compact row, balance and renewal on a single baseline, the bar in that same column, button beside it. `outOfTotal` split into `balanceOfTotal` + `renewsIn` to match, and the now-unused `heading` key dropped (the sidebar and the stat cards already title the section).
+- **The plan section's payment note and "Ver todos os planos" were two loose runs of text on the page ground**, reading as leftovers below the card grid. The design puts them in one bordered card, note left and link right.
+- **`PlanSection.viewAllPlansLink` carried a literal "→"** — the third instance of the glyph-doing-an-icon's-job class (after Round 4's checklist CTAs and Round 6's unrenderable `↥`). Now a real `ArrowRightIcon`. A full catalog sweep for arrow/plus glyphs found only one other family: the three `＋` in "＋ Nova grade" / "＋ tamanho" / "+ Novo molde", which the design writes exactly that way and which render correctly — left alone.
+- **Neither Perfil nor Alterar senha ruled its action row off from the fields above it.** The design gives both a `border-top` + 12px padding, which is what separates the form from its submit.
+- **"Custo por ação" was set at the same 16px as "Histórico" beside it.** The design deliberately puts it a step down (13.5px): it is the secondary of the pair, a reference list rather than the account's own record. Its rows were also missing the design's `border-bottom` dividers.
+- **`SettingsSidebar` padding and gap** (`14px 12px` / 2px, against the app's uniform 14px / 4px).
+
+**Verification:** `npm test` **3169 passed, 3 skipped, 0 failed** (up from 3167 — 2 new tests). `npx tsc --noEmit` clean, `npm run build` clean, eslint clean. The footer-card assertion was mutation-tested (card unwrapped → the test fails, then restored). Three existing `UsageSection` assertions were updated rather than deleted, since the copy they pinned genuinely changed — and one of them demonstrated the catalog-assertion rule from CLAUDE.md working as intended: it failed with `expected 'UsageSection.outOfTotal' not to contain 'outOfTotal'`, i.e. next-intl rendering the literal key path for a key that no longer exists, exactly the silent-pass trap that rule exists to prevent.
+
+## Round 8 — deep single-screen audit: Versões (2026-09-03)
+
+Same method, applied to `Versoes.dc.html` (326 lines) and `/pattern/[id]/versions`, reached live on a pattern with 7 real versions (`fidelity-editor@moldai.test`). This screen was already the closest match of any audited so far: the versions strip, the "clique em duas para comparar" hint, "Total gasto neste molde", per-version cost, the PARA/DE badges, the overlay toggle, the 268px "O que mudou" panel with its `surface-alt` footer, and the fixed-height no-scroll layout (`document.scrollHeight === innerHeight === 900`, matching the design's `overflow: hidden`) all already agreed.
+
+**Real divergence found and fixed — one, but a structural one:**
+
+- **Every version card rendered ~330px tall against the design's ~210px**, so the versions strip ate a third of the screen and squeezed the comparison it exists to serve. The card declared the design's `w-[152px]` and its thumbnail box the design's `aspect-[4/3]`, and both were being ignored: the SVG inside was sized `h-full w-full`, and `h-full` is a percentage against a parent whose height comes from an aspect ratio rather than a resolved length — so it resolved to `auto` and the SVG's own intrinsic ratio drove the box instead. Every pattern here is portrait, so the "4:3" box rendered 3:4. The design's answer is to take the SVG out of flow (`position: absolute; inset: 0`), which is what lets the ratio decide. Measured after: card 152 × 217.8, thumbnail 150 × 112.5 — exactly 4:3 — and the compare panel gained ~110px of height.
+  - Worth recording because of how it hid: the component's classes already named both design values, so a written-spec check or a source read would have passed it. Only a rendered measurement showed the ratio was inert.
+  - The letterboxing this leaves (a portrait pattern fits by height in a landscape box, ~77px wide inside 150px) is correct and deliberate — `xMidYMid meet` shows the whole piece set, where cropping to fill would hide geometry, which is the one thing a version thumbnail exists to show.
+
+**Also fixed:**
+
+- The from/to legend's `→` was a bare text glyph where the design uses a 14px arrow SVG. Converted — it is already `aria-hidden` and purely visual, so it is an icon by any reading. The `v6 → v7` runs in the panel header and in each diff row stay as text: the design writes those as text too. Fourth and final member of the glyph-as-icon family found across this pass.
+- The legend's rules were 1px against the design's 1.5px.
+
+**Confirmed unbuilt, unchanged:** the design's per-version `reasonNote` ("Cava alargada 1,2 cm a pedido; consumo subiu um pouco.") in the compare footer — already recorded in Round 2 as needing a data-model addition `PatternVersionEntry` doesn't have.
+
+**Verification:** `npm test` **3171 passed, 3 skipped, 0 failed** (up from 3169 — 2 new tests). `npx tsc --noEmit` clean, `npm run build` clean, eslint clean. The thumbnail assertion was mutation-tested (SVG reverted to `h-full` alone → the test fails, then restored). Card and thumbnail dimensions were measured in the running app before and after, not read off the source — which is the only reason this was caught at all.
+
+## Round 9 — deep single-screen audit: Bases do ateliê (2026-09-03)
+
+Same method, applied to `Bases do atelie.dc.html` (247 lines) and `/slopers`. Round 8's lesson — that a component can name every design value in its own classes and still render wrong — meant leading with measurement rather than reading source. Everything measured clean: card thumbnail **112px** (this screen's own value, deliberately not the dashboard's 128px), search input **200×34**, "Usar base" **full width × 32px**, grid `repeat(4, …)` at `gap-[14px]`, the type chip on the thumbnail, the intro line under the count, and the toolbar on its own right-aligned row (which the design does specify here, unlike the dashboard's single combined row) — all already correct.
+
+**Real divergence found and fixed — one:**
+
+- **"Usar base" rendered as a solid primary button where the design specifies `variant="outline"`.** This is the one grid in the app where the same action repeats on every tile, so a solid fill turns a four-across grid into a wall of olive and stops reading as emphasis at all — which is presumably why the design chose outline here while leaving the dashboard's `PatternCard` (no card-level CTA) alone.
+
+**Found, deliberately NOT changed:**
+
+- **The card's "⋯" menu is 32×32 where this design says 28×28** — but `Dashboard.dc.html` says 32×32 for the identical affordance on the identical kind of card. Two design files disagreeing about the same control reads as design-tool drift, not intent; the app is already self-consistent at 32, and `Button` has no 28px icon step, so adding one for a single call site would be an abstraction beyond need. Recorded rather than churned.
+- **The card body carries three lines** (name / "Blusa · base M" / chart name) where the design shows two (name / chart). The extra line is real, already-persisted data the design's placeholder didn't model — the standing "real functionality beats a simplified mockup" decision.
+
+**Verification:** `npm test` **3173 passed, 3 skipped, 0 failed** (up from 3171 — 2 new tests). `npx tsc --noEmit` clean, `npm run build` clean, eslint clean. The variant assertion was mutation-tested (button reverted to solid → the test fails, then restored). Card, thumbnail, button and input dimensions were measured in the running app before touching anything.
+
+## Round 10 — deep audit: the three public screens (2026-09-03)
+
+`Planos.dc.html` (233), `Autenticacao.dc.html` (208) and `Landing.dc.html` (192) taken together — 633 lines, less than `Dashboard.dc.html` alone, and all reachable without a session. Measured first throughout, per Round 8's lesson.
+
+**All three measured clean. No code changed this round.**
+
+- **Autenticação** — card width **380px** on login/reset and **420px** on signup, matching the design's own `cardWidth: isSignup ? "420px" : "380px"` exactly; padding 28px and `radius-card` (13.5px) likewise. Round 2's 16-state pass had already taken this screen's copy and structure gaps.
+- **Landing** — hero headline measured **54px / 55.08px line-height / −1.6px tracking**, against the design's `font-size: 54px; line-height: 1.02; letter-spacing: -1.6px`. Identical. The hero and step-card image slots render neutral placeholders, which matches the design (its own `image-slot` elements sit in exactly those positions) and is documented in `LandingHero.tsx`/`StepsSection.tsx` as awaiting real artwork — a content gap, not a fidelity one.
+- **Planos** — the asymmetric free-card-plus-3-column grid, the billing toggle, the featured Ateliê treatment (Round 2's fix), the credits pill on paid cards, and the cost-per-action tiles all match.
+
+**One divergence found, deliberately reverted rather than shipped:**
+
+- The design gives each paid plan card a **4px olive top bar** over a **1px** border (`topBar: featured ? "var(--color-olive)" : "transparent"`), where the app uses a **2px** olive border and no bar. I implemented the design's version, then reverted it: `PricingPage.tsx`'s own header comment records this exact treatment as considered and declined — "the CreditsSection/PlanSection `border-olive bg-olive-tint border-2` idiom, reused rather than the mockup's separate 1px-border-plus-top-bar treatment this codebase has no other user of". Overriding a documented decision on a purely aesthetic point is the kind of silent drift this file exists to prevent, so it goes to the open-decisions list instead (below) rather than into a commit.
+
+## Open decisions — five, all raised across Rounds 4–10 and none yet answered
+
+Each is a real divergence from the reference where the app's current behavior is either explicitly documented as deliberate or is a judgement call this pass should not make unilaterally. None blocks anything; all are recorded here so they stay visible rather than quietly settling.
+
+1. **Dashboard header shows no title or divider.** `Dashboard.dc.html` shows `MoldAI │ Meus moldes`; CLAUDE.md documents the omission ("the sidebar already marks the section… rather than printing the same words twice"). The design's own answer is to print both.
+2. **`PageHeader`'s credits pill runs ~3× the design's width** — `Grátis · 28 créditos de 30` + `Comprar créditos` against the design's `34 de 60` + `comprar`. The plan prefix is documented as deliberate (Round 1); the button copy is not. Cross-cutting to every authenticated screen.
+3. **Size charts show no permanent "Regra · cm/tam" column** — the design has one beside the size columns; the app swaps the whole table into a rule-editing mode instead (#49). An interaction-model change, not a styling one.
+4. **`/import` renders on paper, not the design's white scroll region.** Importação is the only `.dc.html` setting `background: var(--color-surface)` on its content; paper is what separates that screen's white cards from the page.
+5. **Paid plan cards use a 2px border instead of the design's 1px + 4px olive top bar** — see Round 10 above.
+
+## Round 11 — deep single-screen audit: Onboarding (2026-09-03) — pass complete
+
+The last screen, and the only one never checked in a browser: Round 2's Onboarding fork hit the shared IP signup rate limit and fell back to code verification, explicitly recording that. Reached live here by nulling `onboardedAt` on a disposable test row — the exact state the route gates on, and no signups spent.
+
+Measured clean throughout: card **600px** wide with **28px** padding and `radius-card`, progress track **6px** at `#ece8dd` (the Round 4 `Progress` primitive fix is what makes that automatic now), option cards at **14px** padding and **11px** radius, three `role="radio"` options in a real `role="radiogroup"` on step 1.
+
+**Real divergence found and fixed:**
+
+- **All three step headings rendered at `text-body` (16px Archivo) where the design specifies `font-display text-title` (21px Bricolage).** On the app's first-run screen that left the step title barely distinguishable from the 13.5px option titles directly beneath it — the one place a new account needs an obvious "what am I being asked" line. Now `font-display text-title font-semibold`, the idiom already used for section headings elsewhere (`SizeChartLibrary`, `UsageSection`'s stat cards). Verified live: 16px → 21px on both reachable steps.
+
+**Found, deliberately NOT changed:**
+
+- **Step 2 is not a `radiogroup`**, where the design makes it one. Only one of its three options is selectable — the other two are the documented disabled + "em breve" rows — and a radiogroup announcing three choices where two cannot be chosen is worse than the app's current shape (one real button plus two disabled rows). The app is more honest than the mockup here.
+- **"‹ Voltar" keeps its literal `‹`**, which is what the design writes and which renders correctly in Archivo — unlike Round 6's `↥`, which did not.
+
+**A note on method, from a mistake made in this round:** the first mutation test of the new heading assertion passed, which would have meant a vacuous test. It was not — prettier had wrapped the `<h1>` across lines after the edit, so the single-line `sed` mutation silently matched nothing. Re-run against the real formatted text, the assertion failed as it should. A mutation test that _passes_ is a result to investigate, not to accept: it means either the assertion is vacuous or the mutation never landed.
+
+---
+
+## Pass complete — all 11 screens deep-audited
+
+Rounds 3–11 gave every screen in the handoff an individual audit against its `.dc.html` source plus a live measured render, after Rounds 1–2 had covered defaults and per-state coverage. Coverage: Editor (R3), Dashboard (R4), Medidas e grades (R5), Importação (R6), Configurações (R7), Versões (R8), Bases do ateliê (R9), Planos + Autenticação + Landing (R10), Onboarding (R11).
+
+**What the deep passes found that the earlier rounds structurally could not.** Rounds 1–2 compared code against written specs and screenshots against reference PNGs. Four of this pass's findings were invisible to both, because the code named the right values and the screenshots looked plausible:
+
+- `/size-charts`' library footer — "Nova grade" and "Importar planilha", the screen's primary actions — rendered at **y=1307 in a 900px viewport**, and its Save bar was off-screen exactly when there was something to save. Both were laid out against the _table's_ height because the whole screen was one scroll region instead of the design's fixed panels.
+- Version cards rendered **~330px tall against the design's ~210px** on a fixed-height screen. The card declared `w-[152px]` and `aspect-[4/3]`; both were inert, because the SVG inside used `h-full` against an aspect-ratio parent.
+- The import preview had **no pan or zoom at all**, making a dense CAD file unreadable on the one screen whose job is verifying it.
+- The `.csv` import trigger opened with **`↥` (U+21A5), which Archivo has no glyph for** — the fallback painted a mark that reads as the digit "1".
+
+The through-line: **a component can name every value the design states and still render wrong.** Measuring the rendered box is what caught all four; reading the source would not have.
+
+**Five open decisions remain**, listed in the section above. Each is a real divergence where the app's behavior is either documented as deliberate or is a judgement call this pass declined to make unilaterally. They are the only known outstanding gaps against the reference.

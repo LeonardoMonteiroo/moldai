@@ -14,7 +14,6 @@ import { TabBar } from "./TabBar";
 import { ExportModal, exportVariantForTab } from "./ExportModal";
 import { GeneratingOverlay } from "./GeneratingOverlay";
 import { PatternCanvas } from "./PatternCanvas";
-import { FloatingToolbar } from "./FloatingToolbar";
 import { ZoomControls } from "./ZoomControls";
 import { PieceDetailsPanel } from "./PieceDetailsPanel";
 import { ConflictInfoCard } from "./ConflictInfoCard";
@@ -230,41 +229,44 @@ export function CanvasArea() {
               </EmptyHeader>
             </Empty>
           )}
-          {!isGenerating && hasPieces && (
-            // EDCH-01 assumption (spec.md): FloatingToolbar/measure-note/
-            // "Limpar medições" moved from top-5/bottom-5 into one top-left
-            // stack at top-[54px] -- clears the floating tab bar (no design
-            // reference depicts this control at all; co-locating it with the
-            // measure tool it belongs to, rather than the bottom-left corner
-            // the design's status pill now claims, is the deliberate call).
-            <div className="absolute top-[54px] left-4 z-10 flex flex-col items-start gap-2">
-              <FloatingToolbar
-                activeTool={activeTool}
-                onSelect={setActiveTool}
-              />
-              {activeTool === "measure" && (
-                <p className="bg-surface border-border rounded-item shadow-card text-meta text-muted-2 max-w-[220px] border px-[10px] py-[7px]">
-                  {t("measurePointerOnlyNote")}
-                </p>
-              )}
-              {measurements.length > 0 && (
-                <Button
-                  variant="outline"
-                  size="chrome"
-                  onClick={clearMeasurements}
-                  className="text-muted-2 shadow-card"
-                >
-                  {t("clearMeasurementsButton")}
-                </Button>
-              )}
-            </div>
-          )}
+          {!isGenerating &&
+            hasPieces &&
+            (activeTool === "measure" || measurements.length > 0) && (
+              // The vertical select/measure tool column is gone: Editor.dc.html
+              // has no such control, and its measure toggle lives in the
+              // bottom-right zoom cluster instead (see ZoomControls). What stays
+              // here is only what the measure tool itself needs while active --
+              // its pointer-only note and "Limpar medições" -- which the design
+              // depicts nowhere, so they keep this documented placement rather
+              // than the bottom-left corner the status pill now claims.
+              <div className="absolute top-[54px] left-4 z-10 flex flex-col items-start gap-2">
+                {activeTool === "measure" && (
+                  <p className="bg-surface border-border rounded-item shadow-card text-meta text-muted-2 max-w-[220px] border px-[10px] py-[7px]">
+                    {t("measurePointerOnlyNote")}
+                  </p>
+                )}
+                {measurements.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="chrome"
+                    onClick={clearMeasurements}
+                    className="text-muted-2 shadow-card"
+                  >
+                    {t("clearMeasurementsButton")}
+                  </Button>
+                )}
+              </div>
+            )}
           {!isGenerating && hasPieces && (
             <ZoomControls
               scale={vp.scale}
               onZoomIn={vp.zoomIn}
               onZoomOut={vp.zoomOut}
               onFit={vp.fitToScreen}
+              measureActive={activeTool === "measure"}
+              onToggleMeasure={() =>
+                setActiveTool(activeTool === "measure" ? "cursor" : "measure")
+              }
             />
           )}
           {!isGenerating && (

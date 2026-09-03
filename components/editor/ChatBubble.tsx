@@ -19,11 +19,20 @@ export function ChatBubble({
         <BubbleContent>
           {message.text}
           {message.hasImage && (
-            // #18: the bytes were never persisted -- this says an image was
-            // used, it is not a thumbnail that would vanish on reload.
+            // #18: the bytes were never persisted -- this says how many
+            // images were used, it is not a thumbnail that would vanish on
+            // reload.
+            //
+            // `hasImage` stays the gate and `imageCount` only supplies the
+            // number, so a message persisted before a turn could carry more
+            // than one attachment reads as exactly one rather than
+            // disappearing. Nothing writes a count without the flag.
             <div className="mt-[9px] flex flex-wrap gap-[6px]">
-              <span className="rounded-pill text-meta bg-surface border-border border px-2 py-[3px]">
-                {t("imageAttached")}
+              {/* Tinted from the bubble's OWN foreground, not bg-surface: this
+                  chip sits on the olive user bubble, where a white fill under
+                  the bubble's near-white text left the label unreadable. */}
+              <span className="rounded-pill text-meta bg-primary-foreground/15 border-primary-foreground/30 border px-2 py-[3px]">
+                {t("imagesAttached", { count: message.imageCount ?? 1 })}
               </span>
             </div>
           )}

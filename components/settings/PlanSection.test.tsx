@@ -287,3 +287,30 @@ describe("PlanSection", () => {
     });
   });
 });
+
+describe("PlanSection footer card", () => {
+  // The note and the link used to be two loose runs of text on the page
+  // ground below the grid; the design puts them in one bordered card, note
+  // left and link right.
+  it("holds the payment note and the all-plans link in one card", () => {
+    renderWithIntl(<PlanSection credits={CREDITS} />);
+    const note = screen.getByText(ptBR.PlanSection.paymentNote);
+    const link = screen.getByRole("link", {
+      name: ptBR.PlanSection.viewAllPlansLink,
+    });
+    const card = note.closest("div.rounded-card")!;
+    expect(card).not.toBeNull();
+    expect(card.contains(link)).toBe(true);
+  });
+
+  // Third instance of the same class as the dashboard checklist's arrows:
+  // a glyph doing an icon's job inside a translated value.
+  it("renders the link arrow as an icon, not a glyph in the catalog value", () => {
+    renderWithIntl(<PlanSection credits={CREDITS} />);
+    expect(ptBR.PlanSection.viewAllPlansLink).not.toContain("→");
+    const link = screen.getByRole("link", {
+      name: ptBR.PlanSection.viewAllPlansLink,
+    });
+    expect(link.querySelector("svg")).not.toBeNull();
+  });
+});

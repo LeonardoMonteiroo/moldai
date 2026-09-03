@@ -47,15 +47,22 @@ export function ClarifyCard({ questions }: { questions: ClarifyQuestion[] }) {
         {questions.map((q) => (
           <div key={q.id} className="flex flex-col gap-[7px]">
             <span className="text-ink text-ui font-semibold">{q.label}</span>
+            {/* Editor.dc.html:162-166: independently-rounded pills with a gap,
+                size sm -- NOT the joined segmented control the default
+                spacing=0 produces. With real AI option text ("Convertible
+                (gola esporte dobrada)") the joined variant collapsed into one
+                full-width row per option; spaced pills wrap several per row,
+                which is what makes a 4-option question scannable. */}
             <ToggleGroup
               type="single"
               variant="outline"
+              size="sm"
+              spacing={1.5}
               aria-label={q.label}
               value={choice[q.id] ?? ""}
               onValueChange={(value) => {
                 if (value) setChoice((s) => ({ ...s, [q.id]: value }));
               }}
-              className="flex-wrap"
             >
               {q.options.map((opt) => (
                 <ToggleGroupItem key={opt} value={opt}>

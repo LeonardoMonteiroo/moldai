@@ -36,7 +36,14 @@ function ToggleGroup({
       data-spacing={spacing}
       style={{ "--gap": spacing } as React.CSSProperties}
       className={cn(
-        "group/toggle-group flex w-fit items-center gap-[--spacing(var(--gap))] rounded-md data-[spacing=default]:data-[variant=outline]:shadow-xs",
+        // flex-wrap: a spaced group (spacing > 0) is a row of independent
+        // pills, and a long option set has to wrap instead of overflowing its
+        // panel. `w-fit` is capped by the containing block, so this only ever
+        // engages when the options genuinely don't fit. A joined group
+        // (spacing 0) is a segmented control whose items share borders --
+        // it stays on one line, which is what data-[spacing=0]:flex-nowrap
+        // below pins.
+        "group/toggle-group flex w-fit flex-wrap items-center gap-[--spacing(var(--gap))] rounded-md data-[spacing=0]:flex-nowrap data-[spacing=default]:data-[variant=outline]:shadow-xs",
         className,
       )}
       {...props}

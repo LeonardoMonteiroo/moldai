@@ -137,7 +137,7 @@ describe("SlopersShell", () => {
 
     // The base's id is what makes this a free, already-drafted create
     // rather than a blank pattern.
-    expect(createPattern).toHaveBeenCalledWith(SLOPER.id);
+    expect(createPattern).toHaveBeenCalledWith({ sloperId: SLOPER.id });
     await waitFor(() => expect(push).toHaveBeenCalledWith("/pattern/p9"));
   });
 

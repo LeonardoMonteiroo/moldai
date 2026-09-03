@@ -41,6 +41,20 @@ const eslintConfig = defineConfig([
     // so a nested checkout's build output is not covered by them -- left
     // unignored, a stale worktree took the same lint run to 212632 problems.
     ".claude/worktrees/**",
+    // Vendored agent tooling and the design handoff's own editor runtime.
+    // None of it is this repo's source, all of it is written to its authors'
+    // conventions (CommonJS `require`, ReactDOM.render), and .prettierignore
+    // ALREADY excludes `.claude/` and `docs/design/screens/` -- so leaving
+    // them unignored here made eslint and prettier disagree about which
+    // files are ours. Measured: 10 errors and 13 warnings from
+    // .claude/skills/{mermaid-studio,playwright-skill}/** and
+    // docs/design/screens/support.js, none of them actionable, which made a
+    // bare `npm run lint` useless locally while CI -- which lints only
+    // `app lib components` -- stayed green. That gap is the whole reason
+    // `npm run lint` could not be trusted to predict CI.
+    ".claude/skills/**",
+    ".agents/skills/**",
+    "docs/design/screens/**",
   ]),
   {
     rules: {

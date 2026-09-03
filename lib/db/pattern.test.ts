@@ -188,6 +188,55 @@ describe("withPattern", () => {
     expect(seen).toBe("m1");
   });
 
+  // PFORM-67: ChatMessageSchema strips any message key it does not name, and
+  // the strip is not confined to the response -- lockPattern returns the
+  // PARSED state and savePattern writes that same object straight back, so an
+  // unlisted field is deleted from the row by the very next mutating turn.
+  // A route that writes imageCount into a message it never reads again would
+  // pass its own "the persisted message carries imageCount" assertion and
+  // still lose the value one turn later, which is what this pins.
+  //
+  // One case per flag, deliberately, rather than one case asserting all
+  // three: a single grouped assertion passes as soon as any one key is
+  // listed in the schema, so it could not tell "all three survive" from
+  // "imageCount survives and the other two are gone" -- which is exactly
+  // the state this file was in before T22.
+  const FLAG_CASES = [
+    { key: "imageCount" as const, value: 3 },
+    { key: "hasImage" as const, value: true },
+    { key: "assembly" as const, value: true },
+  ];
+
+  for (const { key, value } of FLAG_CASES) {
+    it(`keeps a chat message's ${key} across a read-modify-write round trip`, async () => {
+      const seeded = seedPatternState(t);
+      seeded.chat.push({
+        id: "c1",
+        author: "user",
+        text: "uma blusa como nessas fotos",
+        createdAt: 1,
+        [key]: value,
+      });
+      rows = [
+        {
+          id: "m1",
+          userId: "u1",
+          data: JSON.parse(JSON.stringify(seeded)),
+          updatedAt: new Date(),
+        },
+      ];
+
+      await withPattern("m1", "u1", (state) => bumpVersion(state));
+
+      const saved = rows.find((r) => r.id === "m1")!.data as {
+        chat: Record<string, unknown>[];
+      };
+      const persisted = saved.chat.find((m) => m.id === "c1");
+      expect(persisted).toBeDefined();
+      expect(persisted![key]).toBe(value);
+    });
+  }
+
   // #72: every current caller only reaches savePattern after lockPattern has
   // already verified ownership inside the same transaction, so this can't be
   // exploited through withPattern's own API today -- it guards a future
@@ -272,6 +321,51 @@ describe("createPattern", () => {
     expect(
       (rows[0].data as { pattern: { version: number } }).pattern.version,
     ).toBe(0);
+  });
+
+  // PFORM-04: the creation form knows the pattern's name before the pattern
+  // exists, so it starts under that name rather than being created as "Novo
+  // molde" and immediately renamed.
+  it("starts the pattern under a supplied name", async () => {
+    await createPattern("u1", t, "Blusa gola alta");
+    expect((rows[0].data as { pattern: { name: string } }).pattern.name).toBe(
+      "Blusa gola alta",
+    );
+  });
+
+  // Every existing caller passes no name, and must keep resolving the
+  // catalog's own default through the injected translator.
+  it("keeps the catalog's default name when none is supplied", async () => {
+    await createPattern("u1", t);
+    expect((rows[0].data as { pattern: { name: string } }).pattern.name).toBe(
+      t("newPatternName"),
+    );
+  });
+
+  // PFORM-04's empty-name case: submitting with the field untouched creates
+  // the pattern under the default rather than under an empty string, and the
+  // fallback holds here too, not only where the route trims.
+  it("falls back to the default name for a blank name", async () => {
+    await createPattern("u1", t, "");
+    expect((rows[0].data as { pattern: { name: string } }).pattern.name).toBe(
+      t("newPatternName"),
+    );
+  });
+
+  // A supplied name changes the name and nothing else -- an implementation
+  // that built its own state instead of seeding one would pass the name
+  // assertion above and fail here.
+  it("changes only the name, leaving the rest of the seeded blank state intact", async () => {
+    await createPattern("u1", t, "Saia godê");
+    const state = rows[0].data as {
+      pattern: { version: number; pieces: unknown[] };
+      chat: unknown[];
+      conflict: unknown;
+    };
+    expect(state.pattern.version).toBe(0);
+    expect(state.pattern.pieces).toEqual([]);
+    expect(state.chat).toEqual([]);
+    expect(state.conflict).toBeNull();
   });
 });
 

@@ -197,3 +197,49 @@ export function validateAttachmentInput(value: unknown): WireAttachment | null {
   if (data.length > MAX_ATTACHMENT_BASE64_CHARS) return null;
   return { mediaType, data };
 }
+
+// How many photos/sketches one generate request may carry. A real garment
+// brief is front, back, one detail and one sketch. The cap is also what
+// bounds the request body, so it needs to be a number rather than "a few":
+// 4 prepared attachments (MAX_ATTACHMENT_LONG_EDGE_PX, JPEG) sit well
+// inside the combined ceiling below.
+export const MAX_ATTACHMENT_COUNT = 4;
+
+// The combined base64 ceiling across every attachment on one request. Below
+// 4 x MAX_ATTACHMENT_BASE64_CHARS on purpose: the per-image ceiling is
+// generous headroom for ONE image that skipped the browser's preparation,
+// and multiplying that headroom by the count would let a forged request
+// carry 24 MB of base64 into the paid Anthropic call. Still comfortably
+// above four real prepared photos, and above one image at its own ceiling,
+// so no legitimate request is refused here. MAX_GENERATE_BODY_BYTES is
+// re-derived from this constant rather than restating a byte figure.
+export const MAX_ATTACHMENTS_TOTAL_BASE64_CHARS = 8 * 1024 * 1024;
+
+/**
+ * The list form of the same trust boundary: `null` unless `value` is an
+ * array of 1..MAX_ATTACHMENT_COUNT entries, every one accepted by
+ * validateAttachmentInput, whose combined `data` length is at or under
+ * MAX_ATTACHMENTS_TOTAL_BASE64_CHARS. Accepted entries come back in the
+ * order received -- the order the model reads them as image blocks.
+ *
+ * An empty array is `null`, not `[]`: a text-only request omits the key
+ * entirely, so "sent an `images` key holding nothing" is a caller that
+ * meant to attach something and did not, which is worth one clean 400
+ * rather than a paid call that silently lost the reference.
+ */
+export function validateAttachmentInputs(
+  value: unknown,
+): WireAttachment[] | null {
+  if (!Array.isArray(value)) return null;
+  if (value.length === 0 || value.length > MAX_ATTACHMENT_COUNT) return null;
+  const attachments: WireAttachment[] = [];
+  let totalChars = 0;
+  for (const entry of value) {
+    const attachment = validateAttachmentInput(entry);
+    if (!attachment) return null;
+    totalChars += attachment.data.length;
+    if (totalChars > MAX_ATTACHMENTS_TOTAL_BASE64_CHARS) return null;
+    attachments.push(attachment);
+  }
+  return attachments;
+}

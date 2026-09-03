@@ -4,7 +4,10 @@ import { GenerateBodySchema } from "@/lib/schemas/pattern";
 import { getTranslations } from "next-intl/server";
 import { withPatternAndWallet } from "@/lib/db/pattern-wallet";
 import { patternNotFound } from "@/lib/db/pattern";
-import { getSizeChartForGeneration } from "@/lib/db/sizeChart";
+import {
+  getSizeChartForGeneration,
+  getSizeChartGenderForUser,
+} from "@/lib/db/sizeChart";
 import { recordVersion } from "@/lib/db/patternVersion";
 import {
   addMessage,
@@ -16,11 +19,18 @@ import { debitWallet, refundWallet } from "@/lib/billing/wallet";
 import type { LedgerEntry } from "@/lib/billing/wallet";
 import { composeEditorState } from "@/lib/api/compose";
 import { apiError } from "@/lib/api/errors";
-import { COSTS, MAX_CHAT_MESSAGE_LENGTH } from "@/lib/types";
-import { proposeGarment } from "@/lib/ai";
 import {
-  validateAttachmentInput,
-  MAX_ATTACHMENT_BASE64_CHARS,
+  COSTS,
+  MAX_CHAT_MESSAGE_LENGTH,
+  type GarmentSpec,
+  type Gender,
+} from "@/lib/types";
+import { proposeGarment } from "@/lib/ai";
+import { validateFormSpec, mergeFormSpec } from "@/lib/ai/formSpec";
+import {
+  validateAttachmentInputs,
+  MAX_ATTACHMENTS_TOTAL_BASE64_CHARS,
+  type WireAttachment,
 } from "@/lib/editor/attachment";
 import { MAX_IMPORT_CONTEXT_CHARS } from "@/lib/import/reconstructMeta";
 import { requireUser } from "@/lib/auth/guard";
@@ -29,10 +39,16 @@ import { reportError } from "@/lib/observability/report";
 type Ctx = { params: Promise<{ id: string }> };
 
 // #18: this is the one route whose body can carry an attachment's base64
-// payload -- headroom over MAX_ATTACHMENT_BASE64_CHARS for the JSON envelope
-// plus the message/answering fields, not the shared MAX_BODY_BYTES every
-// other (text-only) route reads through.
-const MAX_GENERATE_BODY_BYTES = MAX_ATTACHMENT_BASE64_CHARS + 16 * 1024;
+// payload -- headroom over the combined attachment ceiling for the JSON
+// envelope plus the message/answering fields, not the shared MAX_BODY_BYTES
+// every other (text-only) route reads through.
+//
+// Derived from MAX_ATTACHMENTS_TOTAL_BASE64_CHARS rather than restating a
+// byte figure, so the byte ceiling and the field ceiling cannot drift apart:
+// a smaller one here would refuse a request validateAttachmentInputs would
+// have allowed, and it would refuse it as the generic bad_body, before the
+// attachment validator could say what was actually wrong.
+const MAX_GENERATE_BODY_BYTES = MAX_ATTACHMENTS_TOTAL_BASE64_CHARS + 16 * 1024;
 
 export async function POST(request: Request, { params }: Ctx) {
   const gate = await requireUser();
@@ -66,12 +82,69 @@ export async function POST(request: Request, { params }: Ctx) {
   // #18: re-validated here regardless of what the browser's own
   // prepareImage() already enforced -- that is a UX affordance, not the
   // trust boundary. Rejected before any debit or Anthropic call, same as
-  // the message-length/NUL checks above.
-  let image: ReturnType<typeof validateAttachmentInput> = null;
-  if (body.image !== undefined) {
-    image = validateAttachmentInput(body.image);
-    if (!image) return apiError("invalid_attachment", 400);
+  // the message-length/NUL checks above. One code covers every way the list
+  // can be unusable (not an array, empty, over count, an entry over the
+  // per-image ceiling, a combined payload over the total one), because a
+  // forged request has no use for the distinction and each of them is the
+  // same answer: this request's attachments cannot be trusted.
+  //
+  // A text-only request omits the key entirely; `images: []` is a caller
+  // that meant to attach something and sent nothing, which is refused
+  // rather than charged for a call that lost the reference.
+  let images: WireAttachment[] | null = null;
+  if (body.images !== undefined) {
+    images = validateAttachmentInputs(body.images);
+    if (!images) return apiError("invalid_attachment", 400);
   }
+  // The user's own explicit choices, when the request came from the creation
+  // form rather than free prose. Same placement and same reasoning as the
+  // attachment check above: rejected before any lock, debit or Anthropic
+  // call. A present-but-unusable formSpec is refused rather than ignored,
+  // because validateSpec defaults an absent `type` to "blouse" -- silently
+  // dropping the field would merge that default over whatever garment the
+  // model correctly inferred, which is worse than answering a code for a
+  // request the real UI cannot produce anyway.
+  let formSpec: GarmentSpec | null = null;
+  if (body.formSpec !== undefined) {
+    formSpec = validateFormSpec(body.formSpec);
+    if (!formSpec) return apiError("invalid_form_spec", 400);
+  }
+  // The chart this molde should be drafted from, chosen per molde. Read
+  // tolerantly (an absent, non-string or blank value simply means "no chart
+  // named") because that case has a well-defined fallback -- the account's
+  // active chart, which is exactly what every generate request has always
+  // done. That is the same tolerance POST /api/patterns applies to sloperId,
+  // and it is why only an id that genuinely resolves to nothing is refused.
+  const sizeChartId =
+    typeof body.sizeChartId === "string" && body.sizeChartId
+      ? body.sizeChartId
+      : null;
+  // The drafted gender comes from the chosen chart, never from a client
+  // field: one source of truth, and it makes the chart/gender mismatch that
+  // pickSizeChartForGeneration's substitution path exists to report
+  // unreachable from this flow.
+  //
+  // Read here, outside the transaction, for two reasons. The 400 has to land
+  // before any lock is taken or credit debited, and the gender has to be
+  // known before the AI call so the prompt can state it. The authoritative
+  // snapshot still comes from the in-transaction pick below, which sees the
+  // same locked view as the write; if the chart is deleted in the gap,
+  // pickSizeChartForGeneration simply does not find the id and falls through
+  // to today's active-then-system path, so a race resolves to safe existing
+  // behavior rather than an error.
+  let chartGender: Gender | null = null;
+  if (sizeChartId) {
+    chartGender = await getSizeChartGenderForUser(sizeChartId, gate.id);
+    // Unreachable from the real UI, so this is a forged or badly stale
+    // request rather than a fallback case. Substituting silently would draft
+    // from measurements the caller did not ask for, and a fabricated
+    // substitution notice would name a chart that does not exist.
+    if (!chartGender) return apiError("invalid_size_chart", 400);
+  }
+  // Stated to the model as the user's own decision, so it does not infer the
+  // other gender and then have its answer quietly contradicted by the spec
+  // the merge below produces.
+  if (formSpec && chartGender) formSpec = { ...formSpec, gender: chartGender };
   const answering = body.answering === true;
   // Client-computed metadata from a DXF import reconstruction (#238
   // follow-up) -- never user-typed prose, never persisted, only used to
@@ -129,7 +202,10 @@ export async function POST(request: Request, { params }: Ctx) {
           author: "user",
           text: trimmed,
           createdAt: Date.now(),
-          ...(image ? { hasImage: true } : {}),
+          // The count, never the bytes: the attachments travel with this
+          // request only. hasImage stays written alongside imageCount so a
+          // reader that predates the count keeps working.
+          ...(images ? { hasImage: true, imageCount: images.length } : {}),
         });
         // #39: this used to debit unconditionally here, then refund it in
         // the ask/decline/error branches below -- a debit+refund pair, not
@@ -144,14 +220,28 @@ export async function POST(request: Request, { params }: Ctx) {
         const entries: LedgerEntry[] = [];
 
         try {
-          const decision = await proposeGarment(
-            state,
+          const decision = await proposeGarment(state, {
             answering,
-            image
-              ? { mediaType: image.mediaType, base64: image.data }
-              : undefined,
+            // The wire's `data` becomes the prepared block's `base64` --
+            // one rename at the one seam between the two shapes, in the
+            // order received, which is the order the model reads them in.
+            ...(images
+              ? {
+                  images: images.map((a) => ({
+                    mediaType: a.mediaType,
+                    base64: a.data,
+                  })),
+                }
+              : {}),
             importContext,
-          );
+            // Told to the model so its own reply text stays coherent and it
+            // does not ask about an already-answered field. That is
+            // necessary but it is NOT the guarantee -- the merge in the
+            // apply branch below is, the same way applyGarmentSpec clamps
+            // every measurement regardless of what the model claims
+            // prompted the value.
+            ...(formSpec ? { formSpec } : {}),
+          });
 
           // #99: this used to be three positive `if`s (ask/decline/explain)
           // with an implicit else that applied — so any decision value the
@@ -225,6 +315,22 @@ export async function POST(request: Request, { params }: Ctx) {
             }
             case "apply": {
               entries.push(debitWallet(wallet, cost, "generate"));
+              // The structural half of "the user's explicit choice wins",
+              // and the only branch it belongs in: after the model has
+              // spoken, so a field the form left alone keeps its inference,
+              // and before applyGarmentSpec, so the drafted geometry
+              // reflects the merge. ask/decline/explain draft nothing, so
+              // there is no spec of theirs to correct.
+              const merged = formSpec
+                ? mergeFormSpec(decision.spec, formSpec)
+                : decision.spec;
+              // The named chart's gender wins over the model's, whether or
+              // not the request also carried a form spec: the chart IS the
+              // measurements this molde is drafted from, so its gender is
+              // the only one the geometry can honestly claim.
+              const spec = chartGender
+                ? { ...merged, gender: chartGender }
+                : merged;
               // The size chart is snapshotted once, at the first generation.
               // That is also the only moment the account's active chart can
               // be passed over, so it is the only moment there is a
@@ -240,13 +346,14 @@ export async function POST(request: Request, { params }: Ctx) {
                   await getSizeChartForGeneration(
                     tx,
                     gate.id,
-                    decision.spec.gender ?? "female",
+                    spec.gender ?? "female",
                     tCharts,
+                    sizeChartId,
                   );
                 seedPatternSizeSnapshot(state, chart);
                 substitutedFrom = rejectedActiveName;
               }
-              applyGarmentSpec(state, decision.spec, t);
+              applyGarmentSpec(state, spec, t);
               bumpVersion(state);
               // #16: recorded in the SAME transaction as the debit and the
               // pattern save -- a version row can never exist without the

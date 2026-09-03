@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { UploadIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSizeChartsStore } from "@/lib/sizeChartsStore";
 import { parseSizeChartFile, type ImportResult } from "@/lib/sizeCharts/import";
@@ -135,11 +136,15 @@ export function ImportSizeChartDialog() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="border-border rounded-card bg-paper text-muted text-ui hover:bg-surface-alt border border-dashed p-3 text-left leading-relaxed transition-colors"
+        className="border-border rounded-card bg-paper text-muted text-ui hover:bg-surface-alt flex items-center gap-2 border border-dashed p-3 text-left leading-relaxed transition-colors"
       >
+        {/* The label used to open with a literal "↥" (U+21A5), which Archivo
+            has no glyph for -- the browser fell back and painted a stray mark
+            that read as a digit. An icon belongs in the markup. */}
+        <UploadIcon className="size-[15px] shrink-0" aria-hidden />
         {t("trigger")}
       </button>
-      <DialogContent className="max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>{t("dialogTitle")}</DialogTitle>
         </DialogHeader>

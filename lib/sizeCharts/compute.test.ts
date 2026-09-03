@@ -138,4 +138,82 @@ describe("pickSizeChartForGeneration", () => {
     const out = pickSizeChartForGeneration([active], "custom", "female");
     expect(out.rejectedActive).toBeNull();
   });
+
+  // A per-molde chart choice: the request names the chart it drafts from,
+  // without changing which one is account-active.
+  describe("with a requested chart id", () => {
+    it("returns the requested chart even when its gender does not match and another chart is active", () => {
+      const active = record({ id: "custom", gender: "female" });
+      const sysFemale = record({
+        id: "sys-f",
+        isSystem: true,
+        gender: "female",
+      });
+      const wanted = record({ id: "wanted", gender: "male" });
+      const out = pickSizeChartForGeneration(
+        [active, sysFemale, wanted],
+        "custom",
+        "female",
+        "wanted",
+      );
+      expect(out.chart.id).toBe("wanted");
+      expect(out.rejectedActive).toBeNull();
+    });
+
+    // Requesting the active chart is a deliberate choice too, so a gender
+    // mismatch must not send it down the substitution path.
+    it("returns the active chart when it is the one requested, gender mismatch and all", () => {
+      const active = record({ id: "custom", gender: "male" });
+      const sysFemale = record({
+        id: "sys-f",
+        isSystem: true,
+        gender: "female",
+      });
+      const out = pickSizeChartForGeneration(
+        [active, sysFemale],
+        "custom",
+        "female",
+        "custom",
+      );
+      expect(out.chart.id).toBe("custom");
+      expect(out.rejectedActive).toBeNull();
+    });
+
+    it("falls through to the existing pick, substitution notice included, when the id names no chart in the list", () => {
+      const active = record({
+        id: "custom",
+        name: "Masculino adulto (cópia)",
+        gender: "male",
+      });
+      const sysFemale = record({
+        id: "sys-f",
+        isSystem: true,
+        gender: "female",
+      });
+      const out = pickSizeChartForGeneration(
+        [active, sysFemale],
+        "custom",
+        "female",
+        "deleted-chart",
+      );
+      expect(out.chart.id).toBe("sys-f");
+      expect(out.rejectedActive?.name).toBe("Masculino adulto (cópia)");
+    });
+
+    it("treats undefined, null and an empty id exactly as omitting the argument", () => {
+      const active = record({ id: "custom", gender: "male" });
+      const sysFemale = record({
+        id: "sys-f",
+        isSystem: true,
+        gender: "female",
+      });
+      const charts = [active, sysFemale];
+      const omitted = pickSizeChartForGeneration(charts, "custom", "female");
+      for (const requested of [undefined, null, ""]) {
+        expect(
+          pickSizeChartForGeneration(charts, "custom", "female", requested),
+        ).toEqual(omitted);
+      }
+    });
+  });
 });

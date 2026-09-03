@@ -151,28 +151,27 @@ export function UsageSection({
           sub={t("statActivePatternsSub", { count: patternsCreatedThisWeek })}
         />
       </div>
-      <section className="bg-surface border-border rounded-card flex flex-col gap-3 border p-[18px]">
-        <h2 className="font-display text-body font-semibold">{t("heading")}</h2>
-        <div className="flex items-end gap-4">
-          <div className="flex flex-col gap-1">
-            <span className="font-display text-display font-semibold">
-              {balance}
+      {/* One compact balance row, per the design: the label, the renewal on
+          the same baseline, and the bar directly under them -- not a second
+          big number repeating the "Créditos restantes" stat card immediately
+          above, with a full-bleed bar running under the buy button. */}
+      <section className="bg-surface border-border rounded-card flex flex-wrap items-center gap-[14px] border p-[18px]">
+        <div className="flex min-w-[240px] flex-1 flex-col gap-[5px]">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="text-ui font-semibold">
+              {t("balanceOfTotal", { balance, total: credits.total })}
             </span>
             <span className="text-muted text-meta">
-              {t("outOfTotal", {
-                total: credits.total,
-                days: credits.renewsInDays,
-              })}
+              {t("renewsIn", { days: credits.renewsInDays })}
             </span>
           </div>
-          <div className="flex-1" />
-          <Button onClick={buyTopup} disabled={buying}>
-            {t("topupButton", { price: formatBRL(TOPUP_PRICE_CENTS) })}
-          </Button>
+          <div className="bg-track h-[5px] overflow-hidden rounded-full">
+            <div className="bg-olive h-full" style={{ width: `${pct}%` }} />
+          </div>
         </div>
-        <div className="bg-track h-[5px] overflow-hidden rounded-full">
-          <div className="bg-olive h-full" style={{ width: `${pct}%` }} />
-        </div>
+        <Button onClick={buyTopup} disabled={buying}>
+          {t("topupButton", { price: formatBRL(TOPUP_PRICE_CENTS) })}
+        </Button>
       </section>
       <div className="flex flex-col gap-4 lg:flex-row">
         <section className="bg-surface border-border rounded-card flex flex-1 flex-col gap-2 border p-[18px]">
@@ -227,17 +226,30 @@ export function UsageSection({
           )}
         </section>
         <section className="bg-surface border-border rounded-card flex flex-col gap-2 border p-[18px] lg:w-[280px]">
-          <h2 className="font-display text-body font-semibold">
+          {/* text-control, not text-body: the design deliberately sets this
+              panel's heading a step below "Histórico" beside it -- it is the
+              secondary of the pair, a reference list rather than the account's
+              own record. */}
+          <h2 className="font-display text-control font-semibold">
             {t("costsHeading")}
           </h2>
-          <ul className="text-muted-2 text-ui flex flex-col gap-1">
+          <ul className="text-muted-2 text-ui flex flex-col">
             {/* #108: generation debits the same constant as an adjustment —
               there is no separate, higher "first draft" price. The cut plan
               has no entry here at all: it's computed client-side and free. */}
-            <li>{t("costGenerate", { cost: COSTS.adjust })}</li>
-            <li>{t("costAdjust", { cost: COSTS.adjust })}</li>
-            <li>{t("costGraduate", { cost: COSTS.graduate })}</li>
-            <li>{t("costCorrection", { cost: COSTS.correction })}</li>
+            {[
+              t("costGenerate", { cost: COSTS.adjust }),
+              t("costAdjust", { cost: COSTS.adjust }),
+              t("costGraduate", { cost: COSTS.graduate }),
+              t("costCorrection", { cost: COSTS.correction }),
+            ].map((line) => (
+              <li
+                key={line}
+                className="border-line border-b py-[6px] last:border-b-0"
+              >
+                {line}
+              </li>
+            ))}
           </ul>
         </section>
       </div>

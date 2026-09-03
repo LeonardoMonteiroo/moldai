@@ -17,27 +17,29 @@ import { prepareImage } from "@/lib/editor/attachment";
 const mockPrepare = prepareImage as unknown as ReturnType<typeof vi.fn>;
 
 describe("AttachmentChips", () => {
-  // #18: photo/sketch are real controls now; only .dxf stays a disabled,
-  // dashed placeholder -- and only it carries the "em breve" badge.
-  it("enables the photo and sketch chips, and keeps the .dxf chip disabled with its badge and a reason", () => {
+  // #18: attaching an image is a real control; only .dxf stays a disabled
+  // placeholder. Editor.dc.html:206-214 turned all three into icon-only
+  // buttons on the composer's own row, which left no room for the visible
+  // "em breve" badge -- so the .dxf button's own name AND tooltip carry that
+  // explanation instead, and every one of the three keeps a tooltip (an
+  // icon with no text beside it always does, per CLAUDE.md).
+  it("enables the one image button, and keeps .dxf disabled with its reason as name and tooltip", () => {
     renderWithIntl(<AttachmentChips attachment={null} onChange={vi.fn()} />);
 
-    expect(
-      screen.getByRole("button", { name: ptBR.AttachmentChips.photo }),
-    ).toBeEnabled();
-    expect(
-      screen.getByRole("button", { name: ptBR.AttachmentChips.sketch }),
-    ).toBeEnabled();
+    const photo = screen.getByRole("button", {
+      name: ptBR.AttachmentChips.photo,
+    });
+    expect(photo).toBeEnabled();
+    expect(photo).toHaveAttribute("title", ptBR.AttachmentChips.photo);
 
-    const dxf = screen.getByRole("button", { name: ptBR.AttachmentChips.dxf });
+    const dxf = screen.getByRole("button", {
+      name: ptBR.AttachmentChips.dxfComingSoonTitle,
+    });
     expect(dxf).toBeDisabled();
     expect(dxf).toHaveAttribute(
       "title",
       ptBR.AttachmentChips.dxfComingSoonTitle,
     );
-    expect(
-      screen.getByText(ptBR.AttachmentChips.comingSoonBadge),
-    ).toBeInTheDocument();
   });
 
   it("prepares a selected file, reporting preparing then ready", async () => {
@@ -67,10 +69,10 @@ describe("AttachmentChips", () => {
     const { container } = renderWithIntl(
       <AttachmentChips attachment={null} onChange={onChange} />,
     );
-    const [, sketchInput] = container.querySelectorAll('input[type="file"]');
+    const [photoInput] = container.querySelectorAll('input[type="file"]');
     const file = new File(["x"], "croqui.png", { type: "image/png" });
 
-    await userEvent.upload(sketchInput as HTMLInputElement, file);
+    await userEvent.upload(photoInput as HTMLInputElement, file);
 
     await waitFor(() =>
       expect(onChange).toHaveBeenNthCalledWith(2, {

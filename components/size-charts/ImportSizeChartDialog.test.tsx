@@ -335,3 +335,23 @@ describe("ImportSizeChartDialog review controls", () => {
     ).toBeNull();
   });
 });
+
+describe("ImportSizeChartDialog trigger", () => {
+  // The label opened with a literal "↥" (U+21A5). Archivo has no glyph for
+  // it, so the browser fell back and painted a stray mark that read as a
+  // digit -- a glyph doing an icon's job, and one that did not even render.
+  it("carries no unrenderable arrow glyph in the catalog value", () => {
+    expect(ptBR.SizeChartImport.trigger).not.toContain("↥");
+    expect(ptBR.SizeChartImport.trigger).toBe(
+      "Importar planilha ou tabela de medidas",
+    );
+  });
+
+  it("renders the upload affordance as a real icon", () => {
+    renderWithIntl(<ImportSizeChartDialog />);
+    const trigger = screen.getByRole("button", {
+      name: ptBR.SizeChartImport.trigger,
+    });
+    expect(trigger.querySelector("svg")).not.toBeNull();
+  });
+});

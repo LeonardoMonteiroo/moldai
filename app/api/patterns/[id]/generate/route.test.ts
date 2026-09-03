@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { seedPatternState } from "@/lib/editor/state";
 import { COSTS, MAX_CHAT_MESSAGE_LENGTH } from "@/lib/types";
 import { MEASUREMENT_RANGES } from "@/lib/measurements";
+import {
+  MAX_ATTACHMENT_BASE64_CHARS,
+  MAX_ATTACHMENT_COUNT,
+  MAX_ATTACHMENTS_TOTAL_BASE64_CHARS,
+} from "@/lib/editor/attachment";
 import { seedWallet } from "@/lib/billing/wallet";
 import { t } from "@/lib/i18n/test-translate";
 import type { PatternState } from "@/lib/types";
@@ -86,8 +91,29 @@ const CHART = {
   },
   rejectedActiveName: null as string | null,
 };
+// PFORM-42: the id a request names is the pick's first preference, so the
+// double has to honour it -- returning CHART regardless would let a route
+// that dropped `requestedId` on the floor pass every assertion below.
+const REQUESTED_CHART_ID = "g-male-atelier";
+const REQUESTED_CHART = {
+  chart: { ...CHART.chart, name: "Masculino do ateliê", gender: "male" },
+  rejectedActiveName: null as string | null,
+};
 vi.mock("@/lib/db/sizeChart", () => ({
-  getSizeChartForGeneration: vi.fn(async () => CHART),
+  getSizeChartForGeneration: vi.fn(
+    async (
+      _tx: unknown,
+      _userId: string,
+      _gender: string,
+      _t: unknown,
+      requestedId?: string | null,
+    ) => (requestedId === REQUESTED_CHART_ID ? REQUESTED_CHART : CHART),
+  ),
+  getSizeChartGenderForUser: vi.fn(async () => null),
+  // PFORM-47: never called by this route. Mocked purely so "not called" is
+  // an assertion a future edit that reached for it would fail, rather than a
+  // claim resting on the import list.
+  setActiveSizeChart: vi.fn(),
 }));
 vi.mock("@/lib/observability/report", () => ({ reportError: vi.fn() }));
 
@@ -97,7 +123,11 @@ import { requireUser } from "@/lib/auth/guard";
 import { unauthorized } from "@/lib/auth/session";
 import { withPatternAndWallet } from "@/lib/db/pattern-wallet";
 import { reportError } from "@/lib/observability/report";
-import { getSizeChartForGeneration } from "@/lib/db/sizeChart";
+import {
+  getSizeChartForGeneration,
+  getSizeChartGenderForUser,
+  setActiveSizeChart,
+} from "@/lib/db/sizeChart";
 import { recordVersion } from "@/lib/db/patternVersion";
 
 const mockPropose = proposeGarment as unknown as ReturnType<typeof vi.fn>;
@@ -123,6 +153,10 @@ describe("POST /api/patterns/[id]/generate", () => {
     mockPropose.mockReset();
     vi.mocked(reportError).mockReset();
     vi.mocked(recordVersion).mockReset();
+    vi.mocked(getSizeChartForGeneration).mockClear();
+    vi.mocked(getSizeChartGenderForUser).mockReset();
+    vi.mocked(getSizeChartGenderForUser).mockResolvedValue(null);
+    vi.mocked(setActiveSizeChart).mockClear();
     vi.mocked(requireUser).mockResolvedValue({
       id: "u1",
       email: "dev@moldai.local",
@@ -422,15 +456,15 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(recordVersion).not.toHaveBeenCalled();
   });
 
-  // #18: the route re-validates `image` regardless of what the browser's own
-  // prepareImage() already enforced -- rejected before any debit or
-  // Anthropic call, same as the message-length/NUL checks.
+  // #18: the route re-validates the attachments regardless of what the
+  // browser's own prepareImage() already enforced -- rejected before any
+  // debit or Anthropic call, same as the message-length/NUL checks.
   it("rejects an unrecognized image mediaType before debiting or calling the AI", async () => {
     const balanceBefore = wallet.balance;
     const res = await POST(
       req({
         message: "uma blusa",
-        image: { mediaType: "text/html", data: "abc" },
+        images: [{ mediaType: "text/html", data: "abc" }],
       }),
       ctx(),
     );
@@ -443,15 +477,17 @@ describe("POST /api/patterns/[id]/generate", () => {
   // Even a base64 payload that would fit inside the route's own raised body
   // ceiling is still rejected once past MAX_ATTACHMENT_BASE64_CHARS -- the
   // browser would have caught this first, but the route is the real boundary.
-  it("rejects an oversized image.data before debiting or calling the AI", async () => {
+  it("rejects an oversized entry's data before debiting or calling the AI", async () => {
     const balanceBefore = wallet.balance;
     const res = await POST(
       req({
         message: "uma blusa",
-        image: {
-          mediaType: "image/jpeg",
-          data: "a".repeat(6 * 1024 * 1024 + 1),
-        },
+        images: [
+          {
+            mediaType: "image/jpeg",
+            data: "a".repeat(MAX_ATTACHMENT_BASE64_CHARS + 1),
+          },
+        ],
       }),
       ctx(),
     );
@@ -461,8 +497,126 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(mockPropose).not.toHaveBeenCalled();
   });
 
-  it("a valid image reaches proposeGarment and debits exactly COSTS.adjust, same as text-only", async () => {
+  // PFORM-65: every other way the list can be unusable answers the same one
+  // code, and none of them may cost a credit or reach the paid call.
+  it.each([
+    ["not an array", { mediaType: "image/jpeg", data: "ZmFrZQ==" }],
+    ["an empty array", []],
+    [
+      "more entries than MAX_ATTACHMENT_COUNT",
+      Array.from({ length: MAX_ATTACHMENT_COUNT + 1 }, () => ({
+        mediaType: "image/jpeg",
+        data: "ZmFrZQ==",
+      })),
+    ],
+    ["an entry with empty data", [{ mediaType: "image/jpeg", data: "" }]],
+  ] as const)(
+    "rejects images that is %s, with no debit and no proposeGarment call",
+    async (_label, images) => {
+      const balanceBefore = wallet.balance;
+      const res = await POST(req({ message: "uma blusa", images }), ctx());
+      expect(res.status).toBe(400);
+      expect((await res.json()).error).toBe("invalid_attachment");
+      expect(wallet.balance).toBe(balanceBefore);
+      expect(lastEntries).toEqual([]);
+      expect(mockPropose).not.toHaveBeenCalled();
+    },
+  );
+
+  // PFORM-65's combined cap: each entry is individually legal, so only the
+  // sum can refuse this -- and it must refuse it as invalid_attachment, not
+  // as the body reader's generic bad_body, which is what would happen if
+  // MAX_GENERATE_BODY_BYTES were the smaller of the two ceilings.
+  it("rejects a combined payload over the total ceiling, with no debit and no proposeGarment call", async () => {
     const balanceBefore = wallet.balance;
+    const half = "a".repeat(MAX_ATTACHMENTS_TOTAL_BASE64_CHARS / 2);
+    const res = await POST(
+      req({
+        message: "uma blusa",
+        images: [
+          { mediaType: "image/jpeg", data: half },
+          { mediaType: "image/jpeg", data: half + "a" },
+        ],
+      }),
+      ctx(),
+    );
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe("invalid_attachment");
+    expect(wallet.balance).toBe(balanceBefore);
+    expect(lastEntries).toEqual([]);
+    expect(mockPropose).not.toHaveBeenCalled();
+  });
+
+  // The other side of that derivation: a request sitting exactly ON the
+  // combined ceiling is accepted rather than refused by the byte cap before
+  // validateAttachmentInputs ever runs. Under the pre-change ceiling (the
+  // per-image figure plus 16 KB) this body was too large outright.
+  it("accepts a request whose attachments sit exactly on the combined ceiling", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "explain",
+      assistantMessage: "ok",
+    });
+    const half = "a".repeat(MAX_ATTACHMENTS_TOTAL_BASE64_CHARS / 2);
+    const res = await POST(
+      req({
+        message: "uma blusa",
+        images: [
+          { mediaType: "image/jpeg", data: half },
+          { mediaType: "image/jpeg", data: half },
+        ],
+      }),
+      ctx(),
+    );
+    expect(res.status).toBe(200);
+    expect(mockPropose).toHaveBeenCalledTimes(1);
+  });
+
+  // PFORM-64: N image blocks, in the order received. The N=1 case is #18's
+  // original test, migrated to the list rather than duplicated.
+  it.each([1, 2, 4] as const)(
+    "forwards %i attachments to proposeGarment in the order received",
+    async (count) => {
+      const balanceBefore = wallet.balance;
+      mockPropose.mockResolvedValue({
+        decision: "apply",
+        spec: {
+          type: "blouse",
+          gender: "female",
+          measurementOverrides: {},
+          style: {},
+        },
+        assistantMessage: "Pronto",
+      });
+      const images = Array.from({ length: count }, (_, i) => ({
+        mediaType: "image/jpeg" as const,
+        data: `foto-${i}`,
+      }));
+
+      const res = await POST(
+        req({ message: "uma blusa como nessas fotos", images }),
+        ctx(),
+      );
+
+      expect(res.status).toBe(200);
+      expect(mockPropose).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          answering: false,
+          images: images.map((a, i) => ({
+            mediaType: "image/jpeg",
+            base64: `foto-${i}`,
+          })),
+        }),
+      );
+      expect(wallet.balance).toBe(balanceBefore - COSTS.adjust);
+    },
+  );
+
+  // PFORM-67: the count is persisted, the bytes are not -- asserted against
+  // the SERIALIZED blob, which is what actually reaches the jsonb column, so
+  // a payload hidden anywhere in the state (not just on the message object
+  // the assertion above reads) would fail this.
+  it("persists hasImage and imageCount on the user turn, and no image bytes anywhere in the state", async () => {
     mockPropose.mockResolvedValue({
       decision: "apply",
       spec: {
@@ -473,6 +627,70 @@ describe("POST /api/patterns/[id]/generate", () => {
       },
       assistantMessage: "Pronto",
     });
+    const data = "Y2FmZS1iYXNlNjQtcGF5bG9hZA==";
+
+    await POST(
+      req({
+        message: "uma blusa como nessas fotos",
+        images: [
+          { mediaType: "image/jpeg", data },
+          { mediaType: "image/png", data },
+          { mediaType: "image/webp", data },
+        ],
+      }),
+      ctx(),
+    );
+
+    const userTurn = state.chat.find((m) => m.author === "user")!;
+    expect(userTurn.hasImage).toBe(true);
+    expect(userTurn.imageCount).toBe(3);
+    expect(JSON.stringify(state)).not.toContain(data);
+  });
+
+  // A text-only request omits the key entirely, and must behave exactly as
+  // it did before the wire carried a list at all.
+  it("an omitted images key sends no attachments and marks the turn with neither field", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+
+    const res = await POST(req({ message: "uma blusa" }), ctx());
+
+    expect(res.status).toBe(200);
+    expect(mockPropose.mock.calls[0][1]).toEqual({
+      answering: false,
+      importContext: undefined,
+    });
+    const userTurn = state.chat.find((m) => m.author === "user")!;
+    expect(userTurn.hasImage).toBeUndefined();
+    expect(userTurn.imageCount).toBeUndefined();
+  });
+
+  // The rename's own failure mode, pinned so it is a known shape rather than
+  // a surprise: a caller still on the singular `image` key is treated as
+  // carrying no attachment at all -- not as a silent one-image request that
+  // quietly keeps some of the reference. It is charged as the text-only
+  // request it now is, which is precisely why the rename had to make every
+  // caller a compile error instead of accepting both shapes.
+  it("treats the old singular image key as no attachment at all", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+
     const res = await POST(
       req({
         message: "uma blusa como nessa foto",
@@ -480,16 +698,15 @@ describe("POST /api/patterns/[id]/generate", () => {
       }),
       ctx(),
     );
+
     expect(res.status).toBe(200);
-    expect(mockPropose).toHaveBeenCalledWith(
-      expect.anything(),
-      false,
-      { mediaType: "image/jpeg", base64: "ZmFrZS1iYXNlNjQ=" },
-      undefined,
-    );
-    expect(wallet.balance).toBe(balanceBefore - COSTS.adjust);
-    const userTurn = state.chat.find((m) => m.author === "user");
-    expect(userTurn?.hasImage).toBe(true);
+    expect(mockPropose.mock.calls[0][1]).toEqual({
+      answering: false,
+      importContext: undefined,
+    });
+    const userTurn = state.chat.find((m) => m.author === "user")!;
+    expect(userTurn.hasImage).toBeUndefined();
+    expect(userTurn.imageCount).toBeUndefined();
   });
 
   // #18: prompt injection via an attached image's own text is not a new
@@ -511,7 +728,7 @@ describe("POST /api/patterns/[id]/generate", () => {
     const res = await POST(
       req({
         message: "uma blusa como nessa foto",
-        image: { mediaType: "image/jpeg", data: "ZmFrZS1iYXNlNjQ=" },
+        images: [{ mediaType: "image/jpeg", data: "ZmFrZS1iYXNlNjQ=" }],
       }),
       ctx(),
     );
@@ -533,9 +750,10 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(res.status).toBe(200);
     expect(mockPropose).toHaveBeenCalledWith(
       expect.anything(),
-      false,
-      undefined,
-      "MARKER TEXT",
+      expect.objectContaining({
+        answering: false,
+        importContext: "MARKER TEXT",
+      }),
     );
     const userTurn = state.chat.find((m) => m.author === "user");
     expect(userTurn?.text).toBe("reconstruct");
@@ -553,7 +771,7 @@ describe("POST /api/patterns/[id]/generate", () => {
       ctx(),
     );
     expect(res.status).toBe(200);
-    const [, , , sentContext] = mockPropose.mock.calls[0];
+    const sentContext = mockPropose.mock.calls[0][1].importContext;
     expect((sentContext as string).length).toBeLessThanOrEqual(4000);
   });
 
@@ -700,6 +918,473 @@ describe("POST /api/patterns/[id]/generate", () => {
     await POST(req({ message: "uma blusa" }), ctx());
 
     expect(state.pattern.sizeChartName).toBe("Feminino adulto · ABNT");
+  });
+
+  // PFORM-28: a present-but-unusable formSpec is refused, never ignored.
+  // validateSpec defaults an absent `type` to "blouse", so dropping the
+  // field silently would merge that default over whatever garment the model
+  // correctly inferred -- the one failure the explicit-type rule exists for.
+  it.each([
+    ["carries no type", {}],
+    ["is not an object", "blouse"],
+    ["names an unrecognized type", { type: "corset" }],
+    ["is an array", [{ type: "blouse" }]],
+    ["is null", null],
+  ] as const)(
+    "answers invalid_form_spec when the form spec %s, with no debit and no proposeGarment call",
+    async (_label, formSpec) => {
+      const balanceBefore = wallet.balance;
+      const res = await POST(req({ message: "uma blusa", formSpec }), ctx());
+      expect(res.status).toBe(400);
+      expect((await res.json()).error).toBe("invalid_form_spec");
+      expect(wallet.balance).toBe(balanceBefore);
+      expect(lastEntries).toEqual([]);
+      expect(mockPropose).not.toHaveBeenCalled();
+    },
+  );
+
+  // PFORM-25: the guarantee is structural, not an instruction the model may
+  // ignore -- the form's value is re-applied over whatever it returned.
+  it("overwrites the model's garment type with the form's", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "tshirt",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+
+    await POST(
+      req({ message: "uma saia", formSpec: { type: "skirt" } }),
+      ctx(),
+    );
+
+    expect(state.pattern.spec?.type).toBe("skirt");
+  });
+
+  it.each([
+    ["collar", "shirt", "none"],
+    ["sleeve", "long", "short"],
+    ["neckline", "V", "round"],
+  ] as const)(
+    "overwrites the model's %s with the form's",
+    async (field, formValue, aiValue) => {
+      mockPropose.mockResolvedValue({
+        decision: "apply",
+        spec: {
+          type: "blouse",
+          gender: "female",
+          measurementOverrides: {},
+          style: { [field]: aiValue },
+        },
+        assistantMessage: "Pronto",
+      });
+
+      await POST(
+        req({
+          message: "uma blusa",
+          formSpec: { type: "blouse", style: { [field]: formValue } },
+        }),
+        ctx(),
+      );
+
+      expect(state.pattern.spec?.style[field]).toBe(formValue);
+    },
+  );
+
+  // PFORM-25's other half: a select the user left on "deixar a IA decidir"
+  // sends nothing for that field, and the model's inference has to stand.
+  it("leaves a style field the form did not set at the model's own value", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: { neckline: "V", collar: "none" },
+      },
+      assistantMessage: "Pronto",
+    });
+
+    await POST(
+      req({
+        message: "uma blusa",
+        formSpec: { type: "blouse", style: { collar: "shirt" } },
+      }),
+      ctx(),
+    );
+
+    expect(state.pattern.spec?.style.collar).toBe("shirt");
+    expect(state.pattern.spec?.style.neckline).toBe("V");
+  });
+
+  // The form has no measurement fields, so its own measurementOverrides is
+  // always empty -- spreading it would wipe an override the model extracted
+  // from the details text ("cintura 4 cm mais folgada"), a real capability
+  // the form must not cost.
+  it("keeps a measurementOverride the model returned", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: { waist: 80 },
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+
+    await POST(
+      req({
+        message: "uma blusa com a cintura mais folgada",
+        formSpec: { type: "blouse", style: { collar: "shirt" } },
+      }),
+      ctx(),
+    );
+
+    expect(state.pattern.spec?.measurementOverrides.waist).toBe(80);
+    expect(state.pattern.baseMeasurements?.waist).toBe(80);
+  });
+
+  // PFORM-26: the validated form spec reaches the prompt through
+  // proposeGarment's options. The rest of that chain is pinned where it
+  // lives -- lib/ai/index.test.ts:410 asserts formSpec reaches the SDK's
+  // captured `system` blocks, and lib/ai/prompt.test.ts asserts the section's
+  // content and its position after the blank-pattern ask instruction.
+  it("forwards the validated form spec to proposeGarment", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+
+    await POST(
+      req({
+        message: "uma blusa",
+        formSpec: { type: "blouse", style: { collar: "shirt" } },
+      }),
+      ctx(),
+    );
+
+    expect(mockPropose.mock.calls[0][1].formSpec).toEqual({
+      type: "blouse",
+      measurementOverrides: {},
+      style: { collar: "shirt" },
+    });
+  });
+
+  it("sends no formSpec and persists the model's spec verbatim when the request carries none", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "tshirt",
+        gender: "male",
+        measurementOverrides: {},
+        style: { neckline: "round" },
+      },
+      assistantMessage: "Pronto",
+    });
+
+    await POST(req({ message: "uma camiseta" }), ctx());
+
+    expect(mockPropose.mock.calls[0][1].formSpec).toBeUndefined();
+    expect(state.pattern.spec?.type).toBe("tshirt");
+    expect(state.pattern.spec?.style.neckline).toBe("round");
+  });
+
+  // The merge belongs to the apply branch alone: the other three decisions
+  // draft nothing, so there is no spec of theirs to correct, and running it
+  // there would rewrite the pattern's stored spec for a turn that produced
+  // no geometry.
+  it.each(["ask", "decline", "explain"] as const)(
+    "leaves the pattern's spec and version untouched on %s even with a form spec",
+    async (decision) => {
+      const specBefore = JSON.stringify(state.pattern.spec);
+      const versionBefore = state.pattern.version;
+      mockPropose.mockResolvedValue({
+        decision,
+        spec: {
+          type: "tshirt",
+          gender: "male",
+          measurementOverrides: {},
+          style: {},
+        },
+        questions:
+          decision === "ask"
+            ? [{ id: "q0", label: "Gola", options: ["redonda"] }]
+            : undefined,
+        assistantMessage: "…",
+      });
+
+      await POST(
+        req({
+          message: "uma saia",
+          formSpec: { type: "skirt", style: { waistband: "straight" } },
+        }),
+        ctx(),
+      );
+
+      expect(JSON.stringify(state.pattern.spec)).toBe(specBefore);
+      expect(state.pattern.version).toBe(versionBefore);
+      expect(state.pattern.pieces).toHaveLength(0);
+    },
+  );
+
+  // PFORM-42: the chart the request names is what gets frozen, so a one-off
+  // menswear molde does not force the account to change the grade its whole
+  // library uses.
+  it("freezes the requested chart into the snapshot on a first draft", async () => {
+    vi.mocked(getSizeChartGenderForUser).mockResolvedValue("male");
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+
+    const res = await POST(
+      req({ message: "uma blusa", sizeChartId: REQUESTED_CHART_ID }),
+      ctx(),
+    );
+
+    expect(res.status).toBe(200);
+    expect(getSizeChartGenderForUser).toHaveBeenCalledWith(
+      REQUESTED_CHART_ID,
+      "u1",
+    );
+    expect(vi.mocked(getSizeChartForGeneration).mock.calls[0][4]).toBe(
+      REQUESTED_CHART_ID,
+    );
+    expect(state.pattern.sizeChartName).toBe("Masculino do ateliê");
+  });
+
+  // PFORM-41: the chart IS the measurements the molde is drafted from, so
+  // its gender is the only one the geometry can honestly claim -- it wins
+  // over the model's inference, and it is the gender the pick is asked for.
+  it("drafts under the requested chart's gender even when the model returned the other one", async () => {
+    vi.mocked(getSizeChartGenderForUser).mockResolvedValue("male");
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+
+    await POST(
+      req({ message: "uma blusa", sizeChartId: REQUESTED_CHART_ID }),
+      ctx(),
+    );
+
+    expect(state.pattern.spec?.gender).toBe("male");
+    expect(vi.mocked(getSizeChartForGeneration).mock.calls[0][2]).toBe("male");
+  });
+
+  // The prompt half: the model is told the gender as the user's own decision
+  // rather than inferring the other one and having its answer quietly
+  // contradicted by the spec the merge produces.
+  it("states the requested chart's gender in the form spec it sends the model", async () => {
+    vi.mocked(getSizeChartGenderForUser).mockResolvedValue("male");
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+
+    await POST(
+      req({
+        message: "uma blusa",
+        formSpec: { type: "blouse" },
+        sizeChartId: REQUESTED_CHART_ID,
+      }),
+      ctx(),
+    );
+
+    expect(mockPropose.mock.calls[0][1].formSpec.gender).toBe("male");
+  });
+
+  // PFORM-43: unreachable from the real UI, so a forged or badly stale
+  // request -- refused before any lock, debit or AI call rather than
+  // substituted, which would draft from measurements nobody asked for.
+  // getSizeChartGenderForUser answers null identically for both causes on
+  // purpose (its own two cases are covered in lib/db/sizeChart.test.ts), so
+  // this route cannot become an existence oracle for another account's ids.
+  it.each([
+    "an id that names no chart at all",
+    "an id owned by another account",
+  ])(
+    "answers invalid_size_chart for %s, with no debit and no proposeGarment call",
+    async () => {
+      const balanceBefore = wallet.balance;
+      vi.mocked(getSizeChartGenderForUser).mockResolvedValue(null);
+
+      const res = await POST(
+        req({ message: "uma blusa", sizeChartId: "not-mine" }),
+        ctx(),
+      );
+
+      expect(res.status).toBe(400);
+      expect((await res.json()).error).toBe("invalid_size_chart");
+      expect(wallet.balance).toBe(balanceBefore);
+      expect(lastEntries).toEqual([]);
+      expect(mockPropose).not.toHaveBeenCalled();
+      expect(getSizeChartForGeneration).not.toHaveBeenCalled();
+    },
+  );
+
+  // A consequence of PFORM-41/42, not an AC of its own: nothing was passed over silently, so there is no substitution
+  // to report -- naming the active chart here would report a choice the user
+  // made deliberately.
+  it("adds no substitution notice when the request named its own chart", async () => {
+    vi.mocked(getSizeChartGenderForUser).mockResolvedValue("male");
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+
+    await POST(
+      req({ message: "uma blusa", sizeChartId: REQUESTED_CHART_ID }),
+      ctx(),
+    );
+
+    expect(state.chat.some((m) => m.tone === "notice")).toBe(false);
+  });
+
+  // PFORM-44: the existing active-then-system pick is reached with no
+  // requested id, and the ownership read is not even performed -- the whole
+  // path a chat-driven generation takes is untouched.
+  it("leaves the active-then-system pick alone when no chart is named", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+
+    await POST(req({ message: "uma blusa" }), ctx());
+
+    expect(getSizeChartGenderForUser).not.toHaveBeenCalled();
+    expect(vi.mocked(getSizeChartForGeneration).mock.calls[0][4]).toBeNull();
+    expect(state.pattern.sizeChartName).toBe("Feminino adulto · ABNT");
+  });
+
+  // PFORM-44's tolerance boundary: "no chart named" has a well-defined
+  // fallback (the account's active chart), so a blank id is treated as
+  // absent rather than refused -- unlike one that genuinely resolves to
+  // nothing, which has no safe default.
+  it("treats a blank sizeChartId as no chart named rather than refusing it", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+
+    const res = await POST(
+      req({ message: "uma blusa", sizeChartId: "" }),
+      ctx(),
+    );
+
+    expect(res.status).toBe(200);
+    expect(getSizeChartGenderForUser).not.toHaveBeenCalled();
+    expect(state.pattern.sizeChartName).toBe("Feminino adulto · ABNT");
+  });
+
+  // PFORM-45: a pattern freezes its snapshot at the first generation on
+  // purpose, so editing or reassigning a chart never retroactively redraws
+  // an in-progress molde. A late sizeChartId cannot reopen that.
+  it("leaves an already-drafted pattern's frozen snapshot untouched", async () => {
+    vi.mocked(getSizeChartGenderForUser).mockResolvedValue("male");
+    state.pattern = {
+      ...state.pattern,
+      sizeChartName: "Feminino adulto · ABNT",
+      pieces: [
+        {
+          id: "x",
+          name: "x",
+          qty: 1,
+          outline: { kind: "polygon", points: "0,0" },
+          label: { x: 0, y: 0 },
+          detailRows: [],
+        },
+      ],
+    };
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+
+    await POST(
+      req({ message: "ajusta a cava", sizeChartId: REQUESTED_CHART_ID }),
+      ctx(),
+    );
+
+    expect(getSizeChartForGeneration).not.toHaveBeenCalled();
+    expect(state.pattern.sizeChartName).toBe("Feminino adulto · ABNT");
+  });
+
+  // PFORM-47: a per-molde choice is not an account-level setting. The molde
+  // gets the grade it asked for; /size-charts still shows whatever the
+  // account made active.
+  it("never changes which chart is account-active", async () => {
+    vi.mocked(getSizeChartGenderForUser).mockResolvedValue("male");
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+
+    await POST(
+      req({ message: "uma blusa", sizeChartId: REQUESTED_CHART_ID }),
+      ctx(),
+    );
+
+    expect(setActiveSizeChart).not.toHaveBeenCalled();
   });
 
   // #61: a throw past withPatternAndWallet's own transaction close (e.g. it

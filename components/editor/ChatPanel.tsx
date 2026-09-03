@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useEditorStore, GENERATION_STEP_COUNT } from "@/lib/store";
 import { ChatBubble } from "./ChatBubble";
-import { AttachmentChips, type AttachmentSelection } from "./AttachmentChips";
+import { type AttachmentSelection } from "./AttachmentChips";
 import { MessageInput } from "./MessageInput";
 import { ConflictActions } from "./ConflictActions";
 import { COSTS } from "@/lib/types";
@@ -53,14 +53,12 @@ export function ChatPanel() {
 
   return (
     <div className="bg-surface border-border flex min-h-0 w-[312px] shrink-0 flex-col border-r">
-      <div className="border-line flex items-center gap-2 border-b px-4 py-[13px]">
-        <span className="text-muted text-meta tracking-eyebrow font-semibold uppercase">
-          {t("title")}
-        </span>
-        <div className="flex-1" />
-        <span className="text-muted text-meta">{t("subtitle")}</span>
-      </div>
-
+      {/* No header bar: Editor.dc.html's chat column starts straight at the
+          first bubble. The old "CONVERSA / MoldAI v2 Pro" strip also stated a
+          capability that does not exist -- lib/billing/plans.ts marks
+          `modelV2Pro` as status "soon", and every plan drafts with
+          claude-sonnet-5, so the editor was claiming an unshipped model as
+          present fact on every screen. */}
       <ScrollArea viewportRef={listRef} className="min-h-0 flex-1">
         {/* role="log" + polite: the AI's reply is the whole point of this
             screen, and its arrival was announced nowhere. "log" (rather than
@@ -117,57 +115,66 @@ export function ChatPanel() {
         </div>
       </ScrollArea>
 
-      <div className="border-line flex flex-col gap-[10px] border-t px-4 py-[14px]">
+      {/* Editor.dc.html:185: the composer sits on its own warm band, with the
+          card inside it white -- the band used to be the same surface as the
+          thread above, so the composer had no edge of its own. */}
+      <div className="border-border bg-surface-alt flex flex-col gap-[9px] border-t px-[14px] py-3">
         {isGenerating ? (
-          <>
-            <div className="border-disabled-border rounded-item text-muted-2 bg-surface-alt text-ui border border-dashed p-2">
-              {tSteps("steps.stepLabel", {
-                n: generationStepIndex + 1,
-                stage: tSteps("steps.stage" + (generationStepIndex + 1)),
-              })}
-              <Progress
-                value={Math.min(
-                  92,
-                  ((generationStepIndex + 1) / (GENERATION_STEP_COUNT + 0.5)) *
-                    100,
-                )}
-                aria-label={tSteps("steps.stage" + (generationStepIndex + 1))}
-                className="bg-track mt-[7px] h-[6px] [&>[data-slot=progress-indicator]]:animate-pulse"
-              />
+          // Editor.dc.html:187-198: one card carrying the step label, the
+          // credit cost, the bar, and Cancelar alone on the trailing row.
+          // The greyed full-width "Gerar" placeholder that used to sit beside
+          // Cancelar is not in the design -- it only restated the state the
+          // progress bar above it already shows.
+          <div className="border-border rounded-card bg-surface border px-3 py-[11px]">
+            <div className="flex items-baseline gap-2">
+              <span className="text-muted-2 text-ui">
+                {tSteps("steps.stepLabel", {
+                  n: generationStepIndex + 1,
+                  stage: tSteps("steps.stage" + (generationStepIndex + 1)),
+                })}
+              </span>
+              <div className="flex-1" />
+              <span className="text-muted text-meta whitespace-nowrap">
+                {t("generatingCost", { cost: COSTS.adjust })}
+              </span>
             </div>
-            <span className="text-muted text-meta">
-              {t("generatingCost", { cost: COSTS.adjust })}
-            </span>
-            <div className="flex items-center gap-[10px]">
-              <div className="bg-disabled-border text-disabled rounded-item text-control flex-1 py-[11px] text-center font-semibold">
-                {t("generateButton")}
-              </div>
+            <Progress
+              value={Math.min(
+                92,
+                ((generationStepIndex + 1) / (GENERATION_STEP_COUNT + 0.5)) *
+                  100,
+              )}
+              aria-label={tSteps("steps.stage" + (generationStepIndex + 1))}
+              className="mt-[9px] h-[5px] [&>[data-slot=progress-indicator]]:animate-pulse"
+            />
+            <div className="mt-[11px] flex items-center">
+              <div className="flex-1" />
               <Button
                 variant="outline"
                 size="chrome"
                 onClick={cancelGeneration}
-                className="text-muted-2"
+                className="text-muted-2 h-8"
               >
                 {t("cancelButton")}
               </Button>
             </div>
-          </>
+          </div>
         ) : (
-          <>
-            <AttachmentChips attachment={attachment} onChange={setAttachment} />
-            <MessageInput
-              disabled={isGenerating || attachment?.status === "preparing"}
-              onSend={(message) => {
-                sendMessage(message, {
-                  image:
-                    attachment?.status === "ready"
-                      ? attachment.prepared
-                      : undefined,
-                });
-                setAttachment(null);
-              }}
-            />
-          </>
+          <MessageInput
+            disabled={isGenerating || attachment?.status === "preparing"}
+            attachment={attachment}
+            onAttachmentChange={setAttachment}
+            onSend={(message) => {
+              const prepared =
+                attachment?.status === "ready" ? attachment.prepared : null;
+              sendMessage(message, {
+                // One at most: the composer's own cap, unchanged by the
+                // wire moving to a list.
+                images: prepared ? [prepared] : undefined,
+              });
+              setAttachment(null);
+            }}
+          />
         )}
       </div>
     </div>
