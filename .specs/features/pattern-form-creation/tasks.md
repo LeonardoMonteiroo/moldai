@@ -194,7 +194,7 @@ T19 -> T20 -> T21
 **Where**: `lib/sizeCharts/compute.ts`
 **Depends on**: None
 **Reuses**: the existing `SizeChartChoice` shape, so no caller sees a new return type
-**Requirement**: PFORM-42, PFORM-45, PFORM-46
+**Requirement**: PFORM-42, PFORM-44, PFORM-45
 
 **Tools**:
 
@@ -489,9 +489,9 @@ T19 -> T20 -> T21
 - [x] A `sizeChartId` the account owns is frozen into the snapshot on a first draft, with `sizeChartName` matching that chart (PFORM-42) — the test double honours `requestedId` and returns a second, differently-named chart for it, so a route that dropped the argument fails rather than passing on the default
 - [x] The spec's `gender` becomes the chart's own gender even when the AI returned the other one (PFORM-41) — asserted on the persisted spec and on the gender the pick is asked for
 - [x] A `sizeChartId` naming a nonexistent chart, and one owned by another account, each answer 400 `invalid_size_chart` with no debit and no `proposeGarment` call (PFORM-43) — both reach this route as the same `null`, deliberately, so it cannot become an existence oracle; the reader's own two causes are covered in `lib/db/sizeChart.test.ts` (T8)
-- [x] With a valid `sizeChartId`, no substitution notice message is appended (`rejectedActiveName` is null by construction) (PFORM-44)
-- [x] An omitted `sizeChartId` leaves the active-then-system pick and its substitution notice unchanged, pinned by the route's existing tests (PFORM-45) — plus one test asserting the ownership read is not even performed and the pick receives no requested id
-- [x] A `sizeChartId` sent for a pattern that already has pieces leaves the frozen snapshot untouched (PFORM-46)
+- [x] With a valid `sizeChartId`, no substitution notice message is appended (`rejectedActiveName` is null by construction) — a consequence of PFORM-41/42, not an AC of its own
+- [x] An omitted `sizeChartId` leaves the active-then-system pick and its substitution notice unchanged, pinned by the route's existing tests (PFORM-44) — plus one test asserting the ownership read is not even performed and the pick receives no requested id
+- [x] A `sizeChartId` sent for a pattern that already has pieces leaves the frozen snapshot untouched (PFORM-45)
 - [x] `User.activeSizeChartId` is never written by this route (PFORM-47) — `setActiveSizeChart` is mocked purely so "not called" is a real assertion rather than a claim resting on the import list
 - [x] Gate check passes: `npm test` — 3301 passed
 - [x] Test count: 9+ new tests pass (no silent deletions) — 10 new tests
@@ -704,7 +704,7 @@ Two smaller decisions worth naming: a `status: "error"` / `"answered"` response 
 **Where**: `components/dashboard/NewPatternForm.tsx`
 **Depends on**: T1, T17
 **Reuses**: `Field`/`FieldLabel`/`Input`/`Select`/`Textarea`/`Button`/`Badge` from `components/ui`; `formStyleFieldsFor` from T1; `prepareImage` and `MAX_ATTACHMENT_COUNT`; `garmentType.*` catalog keys; `api.listSizeCharts`; `/import`'s `VerificationPanel` as the "state the real cost next to the paid action" precedent
-**Requirement**: PFORM-03, PFORM-05, PFORM-10, PFORM-20, PFORM-21, PFORM-22, PFORM-23, PFORM-40, PFORM-47, PFORM-60, PFORM-61, PFORM-62, PFORM-63
+**Requirement**: PFORM-03, PFORM-05, PFORM-10, PFORM-20, PFORM-21, PFORM-22, PFORM-23, PFORM-40, PFORM-46, PFORM-60, PFORM-61, PFORM-62, PFORM-63
 
 **Tools**:
 
@@ -719,7 +719,7 @@ Two smaller decisions worth naming: a `status: "error"` / `"answered"` response 
 - [x] The cuff control appears only after sleeve is set to `long`, and disappears when it changes away (PFORM-22)
 - [x] Changing the garment type clears every now-inapplicable style value, asserted on the submitted `formSpec` (PFORM-23)
 - [x] The chart select lists every entry `listSizeCharts` returned, and the submitted `sizeChartId` is the selected one (PFORM-40)
-- [x] A failed chart fetch renders the select disabled with its stated reason and submit still fires with `sizeChartId: null` (PFORM-47)
+- [x] A failed chart fetch renders the select disabled with its stated reason and submit still fires with `sizeChartId: null` (PFORM-46)
 - [x] The add cell disappears at `MAX_ATTACHMENT_COUNT` held photos (PFORM-60)
 - [x] A `prepareImage` rejection renders that file's own reason and leaves already-held photos in place (PFORM-62)
 - [x] Each photo's remove control removes only that photo (PFORM-63)
@@ -939,9 +939,9 @@ All 36 spec requirements map to at least one task; no requirement is unmapped. T
 | PFORM-21, 22, 23     | T1, T19            |
 | PFORM-24, 25, 27, 28 | T2, T12            |
 | PFORM-26             | T6, T12            |
-| PFORM-40, 47         | T19                |
-| PFORM-41, 44         | T13                |
-| PFORM-42, 45, 46     | T4, T8, T13        |
+| PFORM-40, 46         | T19                |
+| PFORM-41, 47         | T13                |
+| PFORM-42, 44, 45     | T4, T8, T13        |
 | PFORM-43             | T8, T13            |
 | PFORM-60             | T3, T19            |
 | PFORM-61, 62, 63     | T19                |

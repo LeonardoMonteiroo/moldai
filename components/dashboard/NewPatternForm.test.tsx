@@ -454,6 +454,38 @@ describe("NewPatternForm — photos", () => {
     );
   });
 
+  // PFORM-60's "accept up to MAX_ATTACHMENT_COUNT" clause. Found by the
+  // Verifier's sensor: the per-batch cap in pickPhotos survived deletion
+  // because nothing picked more than the cap in ONE multi-select. Without
+  // it the server refuses the over-count list pre-debit, but only after a
+  // Pattern was created, and its 400 resolves to the generic message.
+  it("holds only the first MAX_ATTACHMENT_COUNT of an over-long selection", async () => {
+    const user = setup();
+    vi.mocked(prepareImage).mockImplementation(async (file: File) =>
+      prepared(file.name),
+    );
+
+    const tooMany = Array.from({ length: MAX_ATTACHMENT_COUNT + 2 }, (_, i) =>
+      jpeg(`p${i}.jpg`),
+    );
+    await user.upload(photoInput(), tooMany);
+
+    await waitFor(() =>
+      expect(
+        screen.getAllByRole("button", {
+          name: ptBR.AttachmentChips.removeAttachment,
+        }),
+      ).toHaveLength(MAX_ATTACHMENT_COUNT),
+    );
+
+    await submit(user);
+    expect(submitted!.images).toHaveLength(MAX_ATTACHMENT_COUNT);
+    // The first N, in the order picked -- not the last N, and not shuffled.
+    expect(submitted!.images.map((i) => i.base64)).toEqual(
+      Array.from({ length: MAX_ATTACHMENT_COUNT }, (_, i) => `p${i}.jpg`),
+    );
+  });
+
   it("sends every prepared photo it holds", async () => {
     const user = setup();
     vi.mocked(prepareImage).mockImplementation(async (file: File) =>
