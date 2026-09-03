@@ -1063,8 +1063,7 @@
     "myPatternsLabel": "Meus moldes",
     "measurementsLabel": "Medidas e grades",
     "studioBasesLabel": "Bases do ateliê",
-    "comingSoonBadge": "em breve",
-    "importLabel": "Importar molde · .dxf"
+    "comingSoonBadge": "em breve"
   },
   "DashboardShell": {
     "loading": "Carregando moldes…",

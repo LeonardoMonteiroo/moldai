@@ -65,22 +65,20 @@ describe("Sidebar", () => {
     ).not.toHaveAttribute("aria-current");
   });
 
-  // Issue #11: the import entry used to be an inert dashed placeholder
-  // advertising formats nothing parsed (Audaces/Molde.me native + .dxf). It
-  // is now a real control navigating to the DXF import first pass, and its
-  // label names only the format actually read.
-  it("navigates to the import screen — the entry is no longer a placeholder", async () => {
-    const user = userEvent.setup();
+  // Dashboard.dc.html's sidebar is these three sections only. Importing a
+  // .dxf is a way to START a pattern, not a section of the app, so it lives
+  // in NewPatternDialog's chooser instead. The entry here (issue #11)
+  // predated that chooser, when the grid card was still an inert "em breve"
+  // placeholder and this was the only real way in.
+  it("lists exactly the design's three sections, with no import entry", () => {
     renderWithIntl(<Sidebar active="patterns" />);
 
-    const entry = screen.getByRole("button", {
-      name: ptBR.Sidebar.importLabel,
-    });
-    expect(entry).toBeEnabled();
-    await user.click(entry);
-    expect(push).toHaveBeenCalledWith("/import");
-    // /import renders no sidebar, so this entry is never the active one.
-    expect(entry).not.toHaveAttribute("aria-current");
+    const entries = screen.getAllByRole("button");
+    expect(entries.map((e) => e.textContent?.trim())).toEqual([
+      ptBR.Sidebar.myPatternsLabel,
+      ptBR.Sidebar.measurementsLabel,
+      ptBR.Sidebar.studioBasesLabel,
+    ]);
   });
 
   it("marks the active section and navigates home from the size-charts screen", async () => {
@@ -97,8 +95,8 @@ describe("Sidebar", () => {
   });
 
   // Dashboard.dc.html gives every nav entry its own lucide icon
-  // (Folder/Ruler/Layers/Upload) -- a plain-text row was a real, confirmed
-  // gap against that source markup, not a viewport artifact of the design
+  // (Folder/Ruler/Layers) -- a plain-text row was a real, confirmed gap
+  // against that source markup, not a viewport artifact of the design
   // screenshots (which are captured narrower than this app and reflow).
   it("renders a distinct icon svg for every nav entry", () => {
     renderWithIntl(<Sidebar active="patterns" />);
@@ -107,7 +105,6 @@ describe("Sidebar", () => {
       ptBR.Sidebar.myPatternsLabel,
       ptBR.Sidebar.measurementsLabel,
       ptBR.Sidebar.studioBasesLabel,
-      ptBR.Sidebar.importLabel,
     ];
     for (const name of labels) {
       const entry = screen.getByRole("button", { name });
