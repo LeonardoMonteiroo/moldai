@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, Archivo } from "next/font/google";
+import { Bricolage_Grotesque, Archivo, Geist } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import "./globals.css";
@@ -8,6 +8,18 @@ const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
   subsets: ["latin"],
   weight: ["600", "700"],
+});
+
+// The public marketing surface (/ and /planos) runs its own type system --
+// Geist alone, on Tailwind's default scale -- while the authenticated app
+// keeps Bricolage + Archivo on the named --text-tick..--text-hero scale.
+// The two are deliberately separate systems with an explicit boundary
+// (the `font-marketing` utility opts in); see CLAUDE.md. Weights stop
+// at 700: the marketing system never uses a 900/black weight.
+const geist = Geist({
+  variable: "--font-geist",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 const archivo = Archivo({
@@ -34,7 +46,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="pt-BR"
-      className={`${bricolage.variable} ${archivo.variable} h-full antialiased`}
+      className={`${bricolage.variable} ${archivo.variable} ${geist.variable} h-full antialiased`}
     >
       <body className="bg-paper text-ink flex h-screen flex-col overflow-hidden font-sans">
         <NextIntlClientProvider messages={messages}>

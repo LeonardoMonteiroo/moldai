@@ -89,8 +89,16 @@ const RAW_OUTPUT_TEXT_EXEMPT = ["lib/export/", "lib/ai/"];
 
 /** CHECK 2's lib/ exemptions: modules that hand-build a raw SVG/HTML string consumed
  *  outside the app's own Tailwind/@theme pipeline (an exported file, an email client),
- *  where a literal color is the actual content, not a design-token violation. */
-const RAW_OUTPUT_COLOR_EXEMPT = ["lib/export/", "lib/mail/", "lib/editor/thumbnail.ts"];
+ *  where a literal color is the actual content, not a design-token violation.
+ *  lib/brand/og.ts joins them for the same reason as lib/editor/thumbnail.ts: the
+ *  Open Graph card is rendered by satori, outside the browser and outside the
+ *  stylesheet, so a var(--color-*) there resolves to nothing. */
+const RAW_OUTPUT_COLOR_EXEMPT = [
+  "lib/export/",
+  "lib/mail/",
+  "lib/editor/thumbnail.ts",
+  "lib/brand/og.ts",
+];
 
 const isUnderAny = (rel, prefixes) => prefixes.some((p) => rel === p || rel.startsWith(p));
 

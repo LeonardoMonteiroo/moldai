@@ -1,12 +1,45 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // #13/#14: app/page.tsx and app/onboarding/page.tsx are async Server
-// Components that only call auth()/lib/db functions/redirect() -- none of
-// next-intl's request-scoped translation resolution -- so, unlike
-// generateMetadata (see app/page-titles.test.ts's comment), the default
-// export itself can be executed directly here with mocked dependencies,
-// which is a real behavioural test rather than a source-text assertion.
+// Components whose only dependencies are auth(), lib/db functions,
+// redirect() and -- since the landing page began emitting FAQPage
+// structured data -- getTranslations. All four are mocked here, so the
+// default export itself can be executed directly, which is a real
+// behavioural test rather than a source-text assertion.
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
+// Resolves dotted paths against the REAL catalog, the same stub
+// app/page-guards.test.tsx uses: a key that does not exist throws here
+// rather than silently rendering its own key path (next-intl does not throw
+// on a miss, so an echoing stub would make every assertion vacuous).
+vi.mock("next-intl/server", async () => {
+  const messages = (await import("@/messages/pt-BR.json")).default as Record<
+    string,
+    unknown
+  >;
+  return {
+    getTranslations: vi.fn(async (namespace: string) => {
+      const ns = messages[namespace];
+      if (!ns) throw new Error(`unknown catalog namespace: ${namespace}`);
+      return (key: string, values?: Record<string, unknown>) => {
+        const value = key
+          .split(".")
+          .reduce<unknown>(
+            (node, part) =>
+              node && typeof node === "object"
+                ? (node as Record<string, unknown>)[part]
+                : undefined,
+            ns,
+          );
+        if (typeof value !== "string") {
+          throw new Error(`missing catalog key: ${namespace}.${key}`);
+        }
+        return values
+          ? value.replace(/\{(\w+)\}/g, (_m, k) => String(values[k]))
+          : value;
+      };
+    }),
+  };
+});
 vi.mock("@/lib/db/users", () => ({
   getUserById: vi.fn(),
   getOnboardingStatus: vi.fn(),
@@ -24,6 +57,7 @@ import { loadWallet } from "@/lib/db/wallet";
 import { redirect } from "next/navigation";
 import Home from "./page";
 import OnboardingPage from "./onboarding/page";
+import { FAQ_KEYS } from "@/lib/landing/faq";
 
 // `auth` is one overload of NextAuth's exported function (also callable as
 // middleware), which vi.mocked's overload resolution picks the wrong one
@@ -54,10 +88,48 @@ describe("app/page.tsx (#13/#14)", () => {
 
     expect(getUserById).not.toHaveBeenCalled();
     expect(redirect).not.toHaveBeenCalled();
+
+    // The signed-out branch is a Fragment now: the FAQPage structured data
+    // alongside the page itself. Assert on the children rather than on the
+    // root's own name, which a Fragment does not have.
+    const children = (
+      result as { props: { children: { type: { name?: string } }[] } }
+    ).props.children;
     // A LandingPage element, not a redirect and not DashboardShell.
-    expect((result as { type: { name?: string } }).type.name).toBe(
-      "LandingPage",
-    );
+    expect(children.map((c) => c.type.name ?? c.type)).toContain("LandingPage");
+  });
+
+  // A7 (AEO): the landing page's FAQ is emitted as FAQPage structured data
+  // built from the same catalog the section renders, so a search engine and
+  // a reader are told the same thing.
+  it("emits FAQPage structured data alongside the landing page", async () => {
+    mockAuth.mockResolvedValue(null);
+
+    const result = await Home({ searchParams: searchParams() });
+    const children = (
+      result as {
+        props: {
+          children: {
+            type: string;
+            props: { dangerouslySetInnerHTML?: { __html: string } };
+          }[];
+        };
+      }
+    ).props.children;
+
+    const script = children.find((c) => c.type === "script");
+    expect(script).toBeDefined();
+
+    const ld = JSON.parse(script!.props.dangerouslySetInnerHTML!.__html);
+    expect(ld["@type"]).toBe("FAQPage");
+    expect(ld.mainEntity).toHaveLength(FAQ_KEYS.length);
+    for (const entry of ld.mainEntity) {
+      expect(entry.name).toBeTruthy();
+      expect(entry.acceptedAnswer.text).toBeTruthy();
+      // A placeholder that reached the schema unresolved would be a real
+      // defect a truthiness check alone would miss.
+      expect(entry.acceptedAnswer.text).not.toMatch(/\{\w+\}/);
+    }
   });
 
   it("redirects a signed-in, never-onboarded account to /onboarding", async () => {
