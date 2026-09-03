@@ -41,6 +41,7 @@ import {
 
 const RANGE_HINT_ID = "size-chart-range-hint";
 const BODY_TYPE_NOTE_ID = "size-chart-body-type-note";
+const BODY_TYPE_LABEL_ID = "size-chart-body-type-label";
 
 export function SizeChartTable() {
   const t = useTranslations("SizeChartTable");
@@ -125,385 +126,424 @@ export function SizeChartTable() {
     // SizeChartLibrary -- without it, the flex item refuses to shrink below
     // the table's own min-content width, and the *row* overflows horizontally
     // instead of the table's own overflow-x-auto container ever engaging.
-    <div className="flex min-w-0 flex-1 flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-[10px]">
-        {readOnly ? (
-          <span className="font-display text-body font-semibold">
-            {draft.name}
-          </span>
-        ) : (
-          <Input
-            value={draft.name}
-            onChange={(event) => updateDraft({ name: event.target.value })}
-            className="font-display text-body h-auto w-auto py-1 font-semibold"
-          />
-        )}
-        {/* State badge: only the two cases the design shows a label for --
+    <div className="flex min-w-0 flex-1 flex-col lg:min-h-0">
+      {/* Region 1, fixed: the chart's identity and its actions stay put while
+          the measurement rows scroll under them. */}
+      <div className="border-border bg-surface flex flex-none flex-col gap-[10px] border-b px-[22px] pt-4 pb-[14px]">
+        <div className="flex flex-wrap items-center gap-[10px]">
+          {readOnly ? (
+            <span className="font-display text-body font-semibold">
+              {draft.name}
+            </span>
+          ) : (
+            <Input
+              value={draft.name}
+              onChange={(event) => updateDraft({ name: event.target.value })}
+              className="font-display text-body h-auto w-auto py-1 font-semibold"
+            />
+          )}
+          {/* State badge: only the two cases the design shows a label for --
             never claims "grade ativa" for every editable chart the way the
             design's own single-editable-chart demo data does. */}
-        {readOnly ? (
-          <Badge variant="muted">{t("systemChartBadge")}</Badge>
-        ) : (
-          isActive && <Badge variant="olive">{t("activeSizeChartNote")}</Badge>
-        )}
-        <div className="flex-1" />
-        {!readOnly && (
+          {readOnly ? (
+            <Badge variant="muted">{t("systemChartBadge")}</Badge>
+          ) : (
+            isActive && (
+              <Badge variant="olive">{t("activeSizeChartNote")}</Badge>
+            )
+          )}
+          <div className="flex-1" />
+          {!readOnly && (
+            <Button
+              variant={editingRule ? "soft" : "outline"}
+              size="chrome"
+              onClick={() => setEditingRule(!editingRule)}
+            >
+              {editingRule ? t("doneEditingRuleButton") : t("editRuleButton")}
+            </Button>
+          )}
           <Button
-            variant={editingRule ? "soft" : "outline"}
+            variant="outline"
             size="chrome"
-            onClick={() => setEditingRule(!editingRule)}
+            onClick={() => duplicate(selectedId)}
           >
-            {editingRule ? t("doneEditingRuleButton") : t("editRuleButton")}
+            {t("duplicateButton")}
           </Button>
-        )}
-        <Button
-          variant="outline"
-          size="chrome"
-          onClick={() => duplicate(selectedId)}
-        >
-          {t("duplicateButton")}
-        </Button>
-        {!readOnly && (
-          <Button
-            variant="destructiveOutline"
-            size="chrome"
-            onClick={() => setConfirmingDelete(true)}
-          >
-            {t("deleteButton")}
-          </Button>
-        )}
-        {readOnly && !isActive && (
-          <Button size="chrome" onClick={() => activate(selectedId)}>
-            {t("useSizeChartButton")}
-          </Button>
-        )}
-      </div>
+          {!readOnly && (
+            <Button
+              variant="destructiveOutline"
+              size="chrome"
+              onClick={() => setConfirmingDelete(true)}
+            >
+              {t("deleteButton")}
+            </Button>
+          )}
+          {readOnly && !isActive && (
+            <Button size="chrome" onClick={() => activate(selectedId)}>
+              {t("useSizeChartButton")}
+            </Button>
+          )}
+        </div>
 
-      <div className="flex flex-wrap items-center gap-2 gap-y-[8px]">
-        <Select
-          value={draft.bodyType}
-          disabled={readOnly}
-          onValueChange={(value) =>
-            updateDraft({ bodyType: value as BodyType })
-          }
-        >
-          {/* #133: bodyType is documented (CLAUDE.md) as descriptive metadata
+        <div className="flex flex-wrap items-center gap-2 gap-y-[8px]">
+          {/* The design labels this control; without it the row opened on a
+            bare dropdown whose only context was the caveat printed after it. */}
+          <span id={BODY_TYPE_LABEL_ID} className="text-muted text-meta">
+            {t("bodyTypeLabel")}
+          </span>
+          <Select
+            value={draft.bodyType}
+            disabled={readOnly}
+            onValueChange={(value) =>
+              updateDraft({ bodyType: value as BodyType })
+            }
+          >
+            {/* #133: bodyType is documented (CLAUDE.md) as descriptive metadata
               that never affects the drafted geometry -- the control has to
               say so on screen, not just document it, or a user reasonably
               assumes changing "reto"/"ampulheta" reshapes the pattern. */}
-          <SelectTrigger
-            size="sm"
-            className="w-[170px]"
-            title={t("bodyTypeNote")}
-            aria-describedby={BODY_TYPE_NOTE_ID}
-          >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              {BODY_TYPES.map((bt) => (
-                <SelectItem key={bt} value={bt}>
-                  {t(`bodyType.${bt}`)}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-        <span id={BODY_TYPE_NOTE_ID} className="text-muted text-meta">
-          {t("bodyTypeNote")}
-        </span>
-        <div className="flex-1" />
-        {readOnly && (
-          <span className="text-muted text-meta">
-            {t("systemReadOnlyNote")}
+            <SelectTrigger
+              size="sm"
+              className="w-[156px]"
+              title={t("bodyTypeNote")}
+              aria-labelledby={BODY_TYPE_LABEL_ID}
+              aria-describedby={BODY_TYPE_NOTE_ID}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {BODY_TYPES.map((bt) => (
+                  <SelectItem key={bt} value={bt}>
+                    {t(`bodyType.${bt}`)}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          <span id={BODY_TYPE_NOTE_ID} className="text-muted text-meta">
+            {t("bodyTypeNote")}
           </span>
-        )}
-        {!readOnly && (
-          <span className="text-muted text-meta flex items-center gap-[6px]">
-            <span className="bg-olive size-[5px] rounded-full" />
-            {t("overrideLegend")}
-          </span>
-        )}
-      </div>
-
-      <div className="border-border rounded-card bg-surface overflow-x-auto border">
-        <div className="bg-surface-alt border-border text-muted text-meta tracking-eyebrow flex border-b px-[14px] py-[10px] font-semibold uppercase">
-          <span className="flex-[2]">{t("measurementColumnLabel")}</span>
-          {editingRule ? (
-            // #49: the body swaps every size column for a single rule input
-            // per row -- the header has to follow, or the columns it still
-            // shows (with live remove buttons) no longer match the cells
-            // underneath them.
-            <span className="text-muted flex-1 text-right font-normal tracking-normal normal-case">
-              {t("ruleHint")}
+          <div className="flex-1" />
+          {readOnly && (
+            <span className="text-muted text-meta">
+              {t("systemReadOnlyNote")}
             </span>
-          ) : (
-            draft.sizes.map((size, idx) => {
-              const isBaseColumn = idx === draft.baseSizeIndex;
-              return (
-                <span
-                  key={size}
-                  className="flex flex-1 items-center justify-end gap-1"
-                >
-                  {size}
-                  {!readOnly &&
-                    draft.sizes.length > 1 &&
-                    (isBaseColumn ? (
-                      // #47: the base column is what baseMeasurements describes
-                      // -- removing it has nowhere to re-anchor to without an
-                      // explicit base reassignment, which this table doesn't
-                      // offer, so it stays visible but disabled rather than
-                      // silently shifting the base onto a neighbouring column.
-                      <Button
-                        variant="ghost"
-                        size="icon-xs"
-                        aria-label={t("removeBaseSizeTitle")}
-                        title={t("removeBaseSizeTitle")}
-                        disabled
-                        className="text-placeholder"
-                      >
-                        <XIcon />
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="ghost"
-                        size="icon-xs"
-                        aria-label={t("removeSizeTitle")}
-                        onClick={() => removeSize(size)}
-                        className="text-placeholder hover:text-alert"
-                      >
-                        <XIcon />
-                      </Button>
-                    ))}
-                </span>
-              );
-            })
+          )}
+          {!readOnly && (
+            <span className="text-muted text-meta flex items-center gap-[6px]">
+              <span className="bg-olive size-[5px] rounded-full" />
+              {t("overrideLegend")}
+            </span>
           )}
         </div>
-        {MEASUREMENT_KEYS.map((key, i) => (
-          <div
-            key={key}
-            className={[
-              "text-ui flex items-center px-[14px] py-[9px]",
-              i < MEASUREMENT_KEYS.length - 1 ? "border-line border-b" : "",
-            ].join(" ")}
-          >
-            <span className="text-muted flex flex-[2] items-center gap-1">
-              {t(`measurement.${key}`)}
-              {/* #132: a guided definition — where to put the tape — for
-                  every measurement row, reachable right where the row lives
-                  rather than only documented elsewhere. Popover (not a
-                  hover-only `title`) so it's reachable by keyboard/touch
-                  too, not just a mouse hover. */}
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon-xs"
-                    aria-label={t("measurementGuideLabel", {
-                      name: t(`measurement.${key}`),
-                    })}
-                    className="text-placeholder hover:text-muted"
-                  >
-                    <InfoIcon />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent side="right" className="text-ui w-64">
-                  {t(`measurementGuide.${key}`)}
-                </PopoverContent>
-              </Popover>
-            </span>
+      </div>
+
+      {/* Region 2, the only scrolling part. */}
+      <div
+        data-slot="size-chart-rows"
+        className="space-y-3 px-[22px] py-4 lg:min-h-0 lg:flex-1 lg:overflow-y-auto"
+      >
+        <div className="border-border rounded-card bg-surface overflow-x-auto border">
+          <div className="bg-surface-alt border-border text-muted text-meta tracking-eyebrow flex border-b px-[14px] py-[10px] font-semibold uppercase">
+            <span className="flex-[2]">{t("measurementColumnLabel")}</span>
             {editingRule ? (
-              <input
-                type="number"
-                step="0.1"
-                value={draft.progressionRule[key] ?? 0}
-                onChange={(e) => setRule(key, Number(e.target.value))}
-                aria-label={t(`measurement.${key}`)}
-                className="border-border rounded-btn text-ui ml-auto w-[70px] border px-2 py-1 text-right"
-              />
+              // #49: the body swaps every size column for a single rule input
+              // per row -- the header has to follow, or the columns it still
+              // shows (with live remove buttons) no longer match the cells
+              // underneath them.
+              <span className="text-muted flex-1 text-right font-normal tracking-normal normal-case">
+                {t("ruleHint")}
+              </span>
             ) : (
               draft.sizes.map((size, idx) => {
-                const isBase = idx === draft.baseSizeIndex;
-                const overridden = draft.overrides[size]?.[key] !== undefined;
-                const value = resolveSizeChartSize(draft, size)[key];
+                const isBaseColumn = idx === draft.baseSizeIndex;
                 return (
                   <span
                     key={size}
-                    className="flex flex-1 items-center justify-end gap-1"
+                    className="flex flex-1 flex-col items-end gap-px"
                   >
-                    {overridden && !isBase && !readOnly && (
-                      // The dot stays 5px, but a 5x5 hit target fails WCAG 2.2
-                      // AA 2.5.8 (24x24 minimum), so the button around it is
-                      // full size and the dot is what you see.
-                      <Button
-                        variant="ghost"
-                        size="icon-xs"
-                        aria-label={t("resetOverrideTitle")}
-                        onClick={() => clearOverride(size, key)}
-                        className="hover:bg-transparent"
-                      >
-                        <span className="bg-olive size-[5px] rounded-full" />
-                      </Button>
+                    <span className="flex items-center justify-end gap-1">
+                      {size}
+                      {!readOnly &&
+                        draft.sizes.length > 1 &&
+                        (isBaseColumn ? (
+                          // #47: the base column is what baseMeasurements describes
+                          // -- removing it has nowhere to re-anchor to without an
+                          // explicit base reassignment, which this table doesn't
+                          // offer, so it stays visible but disabled rather than
+                          // silently shifting the base onto a neighbouring column.
+                          <Button
+                            variant="ghost"
+                            size="icon-xs"
+                            aria-label={t("removeBaseSizeTitle")}
+                            title={t("removeBaseSizeTitle")}
+                            disabled
+                            className="text-placeholder"
+                          >
+                            <XIcon />
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="icon-xs"
+                            aria-label={t("removeSizeTitle")}
+                            onClick={() => removeSize(size)}
+                            className="text-placeholder hover:text-alert"
+                          >
+                            <XIcon />
+                          </Button>
+                        ))}
+                    </span>
+                    {/* The design tags the base column in the header. The base
+                      row is what every other column is derived FROM, and the
+                      only on-screen signal used to be the boxed cells in that
+                      column -- which reads as "selected", not "base". */}
+                    {isBaseColumn && (
+                      <span className="text-olive text-tick tracking-eyebrow font-bold normal-case">
+                        {t("baseSizeTag")}
+                      </span>
                     )}
-                    <MeasurementCell
-                      value={value}
-                      min={MEASUREMENT_RANGES[key].min}
-                      max={MEASUREMENT_RANGES[key].max}
-                      disabled={readOnly}
-                      onCommit={(next) => setCell(size, key, next)}
-                      onInvalid={setInvalidHint}
-                      ariaLabel={`${t(`measurement.${key}`)} · ${size}`}
-                      describedBy={RANGE_HINT_ID}
-                      className={
-                        isBase
-                          ? "border-olive-border bg-olive-tint font-semibold"
-                          : "border-transparent bg-transparent"
-                      }
-                    />
                   </span>
                 );
               })
             )}
           </div>
-        ))}
-      </div>
+          {MEASUREMENT_KEYS.map((key, i) => (
+            <div
+              key={key}
+              className={[
+                "text-ui flex items-center px-[14px] py-[9px]",
+                i < MEASUREMENT_KEYS.length - 1 ? "border-line border-b" : "",
+              ].join(" ")}
+            >
+              <span className="text-muted flex flex-[2] items-center gap-1">
+                {t(`measurement.${key}`)}
+                {/* #132: a guided definition — where to put the tape — for
+                  every measurement row, reachable right where the row lives
+                  rather than only documented elsewhere. Popover (not a
+                  hover-only `title`) so it's reachable by keyboard/touch
+                  too, not just a mouse hover. */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon-xs"
+                      aria-label={t("measurementGuideLabel", {
+                        name: t(`measurement.${key}`),
+                      })}
+                      className="text-placeholder hover:text-muted"
+                    >
+                      <InfoIcon />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent side="right" className="text-ui w-64">
+                    {t(`measurementGuide.${key}`)}
+                  </PopoverContent>
+                </Popover>
+              </span>
+              {editingRule ? (
+                <input
+                  type="number"
+                  step="0.1"
+                  value={draft.progressionRule[key] ?? 0}
+                  onChange={(e) => setRule(key, Number(e.target.value))}
+                  aria-label={t(`measurement.${key}`)}
+                  className="border-border rounded-btn text-ui ml-auto w-[70px] border px-2 py-1 text-right"
+                />
+              ) : (
+                draft.sizes.map((size, idx) => {
+                  const isBase = idx === draft.baseSizeIndex;
+                  const overridden = draft.overrides[size]?.[key] !== undefined;
+                  const value = resolveSizeChartSize(draft, size)[key];
+                  return (
+                    <span
+                      key={size}
+                      className="flex flex-1 items-center justify-end gap-1"
+                    >
+                      {overridden && !isBase && !readOnly && (
+                        // The dot stays 5px, but a 5x5 hit target fails WCAG 2.2
+                        // AA 2.5.8 (24x24 minimum), so the button around it is
+                        // full size and the dot is what you see.
+                        <Button
+                          variant="ghost"
+                          size="icon-xs"
+                          aria-label={t("resetOverrideTitle")}
+                          onClick={() => clearOverride(size, key)}
+                          className="hover:bg-transparent"
+                        >
+                          <span className="bg-olive size-[5px] rounded-full" />
+                        </Button>
+                      )}
+                      <MeasurementCell
+                        value={value}
+                        min={MEASUREMENT_RANGES[key].min}
+                        max={MEASUREMENT_RANGES[key].max}
+                        disabled={readOnly}
+                        onCommit={(next) => setCell(size, key, next)}
+                        onInvalid={setInvalidHint}
+                        ariaLabel={`${t(`measurement.${key}`)} · ${size}`}
+                        describedBy={RANGE_HINT_ID}
+                        className={
+                          isBase
+                            ? "border-olive-border bg-olive-tint font-semibold"
+                            : "border-transparent bg-transparent"
+                        }
+                      />
+                    </span>
+                  );
+                })
+              )}
+            </div>
+          ))}
+        </div>
 
-      {/* Says what the allowed range is, at the moment a value leaves it —
+        {/* Says what the allowed range is, at the moment a value leaves it —
           the old behaviour was to clamp silently and show a different number
           than the one that was typed. Stable id so the invalid cell's
           aria-describedby can point at it -- aria-invalid alone told a
           screen-reader user "invalid" with no way to reach the accepted
           range, which lives in this separate, unlinked region. */}
-      {invalidHint && (
-        <span id={RANGE_HINT_ID} role="status" className="text-alert text-meta">
-          {t("rangeHint", { min: invalidHint.min, max: invalidHint.max })}
-        </span>
-      )}
+        {invalidHint && (
+          <span
+            id={RANGE_HINT_ID}
+            role="status"
+            className="text-alert text-meta"
+          >
+            {t("rangeHint", { min: invalidHint.min, max: invalidHint.max })}
+          </span>
+        )}
 
-      {!readOnly && (
-        <div className="flex flex-col items-start gap-1">
+        {!readOnly && (
+          <div className="flex flex-col items-start gap-1">
+            <Button
+              variant="outline"
+              size="chrome"
+              onClick={() => {
+                setNewSize("");
+                setAddingSize(true);
+              }}
+              disabled={atSizeCap}
+              className="self-start"
+            >
+              {t("addSizeButton")}
+            </Button>
+            {atSizeCap && (
+              <span className="text-muted text-meta">
+                {t("maxSizesReachedHint", { max: MAX_SIZE_CHART_SIZES })}
+              </span>
+            )}
+          </div>
+        )}
+
+        <Dialog open={addingSize} onOpenChange={setAddingSize}>
+          <DialogContent>
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                addSize();
+              }}
+            >
+              <DialogHeader>
+                <DialogTitle>{t("addSizePrompt")}</DialogTitle>
+              </DialogHeader>
+              <Field className="py-4">
+                <FieldLabel htmlFor="new-size">
+                  {t("addSizeFieldLabel")}
+                </FieldLabel>
+                <Input
+                  id="new-size"
+                  value={newSize}
+                  onChange={(event) => setNewSize(event.target.value)}
+                />
+              </Field>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setAddingSize(false)}
+                >
+                  {t("addSizeCancelButton")}
+                </Button>
+                <Button type="submit" size="sm" disabled={!newSize.trim()}>
+                  {t("addSizeSaveButton")}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {confirmingDelete && (
+          <ConfirmModal
+            title={t("deleteModalTitle")}
+            description={t("deleteModalDescription")}
+            confirmLabel={t("deleteConfirmButton")}
+            cancelLabel={t("deleteCancelButton")}
+            onConfirm={() => {
+              setConfirmingDelete(false);
+              remove(selectedId);
+            }}
+            onCancel={() => setConfirmingDelete(false)}
+          />
+        )}
+
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="border-border rounded-card bg-surface flex-1 border p-[14px]">
+            <span className="text-muted text-meta tracking-eyebrow font-semibold uppercase">
+              {t("progressionTitle")}
+            </span>
+            <div className="mt-2 flex flex-col gap-[6px]">
+              {MEASUREMENT_KEYS.filter((k) => draft.progressionRule[k]).map(
+                (key) => (
+                  <div key={key} className="text-ui flex justify-between">
+                    <span className="text-muted">
+                      {t(`measurement.${key}`)}
+                    </span>
+                    <span className="font-semibold">
+                      {formatCm(draft.progressionRule[key] ?? 0)} cm
+                    </span>
+                  </div>
+                ),
+              )}
+            </div>
+          </div>
+          <div className="flex flex-col justify-end gap-2 sm:w-[220px]">
+            <Button disabled={isActive} onClick={() => activate(selectedId)}>
+              {isActive ? t("activeSizeChartNote") : t("useSizeChartButton")}
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Region 3, pinned to the panel's bottom edge -- the design's own
+          unsaved-changes bar. It used to sit at the end of the scrolling
+          flow, so on a chart with enough rows to scroll (every real one) the
+          Save button was off-screen at exactly the moment there was
+          something to save. */}
+      {dirty && !readOnly && (
+        <div className="border-border bg-surface flex flex-none items-center gap-3 border-t px-[22px] py-3">
+          <span className="text-muted text-meta flex-1">
+            {t("unsavedChangesNote")}
+          </span>
           <Button
             variant="outline"
             size="chrome"
-            onClick={() => {
-              setNewSize("");
-              setAddingSize(true);
-            }}
-            disabled={atSizeCap}
-            className="self-start"
+            disabled={saving}
+            onClick={() => discard()}
           >
-            {t("addSizeButton")}
+            {t("discardButton")}
           </Button>
-          {atSizeCap && (
-            <span className="text-muted text-meta">
-              {t("maxSizesReachedHint", { max: MAX_SIZE_CHART_SIZES })}
-            </span>
-          )}
-        </div>
-      )}
-
-      <Dialog open={addingSize} onOpenChange={setAddingSize}>
-        <DialogContent>
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              addSize();
-            }}
+          <Button
+            variant="accent"
+            size="chrome"
+            disabled={saving}
+            onClick={() => save()}
           >
-            <DialogHeader>
-              <DialogTitle>{t("addSizePrompt")}</DialogTitle>
-            </DialogHeader>
-            <Field className="py-4">
-              <FieldLabel htmlFor="new-size">
-                {t("addSizeFieldLabel")}
-              </FieldLabel>
-              <Input
-                id="new-size"
-                value={newSize}
-                onChange={(event) => setNewSize(event.target.value)}
-              />
-            </Field>
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setAddingSize(false)}
-              >
-                {t("addSizeCancelButton")}
-              </Button>
-              <Button type="submit" size="sm" disabled={!newSize.trim()}>
-                {t("addSizeSaveButton")}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {confirmingDelete && (
-        <ConfirmModal
-          title={t("deleteModalTitle")}
-          description={t("deleteModalDescription")}
-          confirmLabel={t("deleteConfirmButton")}
-          cancelLabel={t("deleteCancelButton")}
-          onConfirm={() => {
-            setConfirmingDelete(false);
-            remove(selectedId);
-          }}
-          onCancel={() => setConfirmingDelete(false)}
-        />
-      )}
-
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <div className="border-border rounded-card bg-surface flex-1 border p-[14px]">
-          <span className="text-muted text-meta tracking-eyebrow font-semibold uppercase">
-            {t("progressionTitle")}
-          </span>
-          <div className="mt-2 flex flex-col gap-[6px]">
-            {MEASUREMENT_KEYS.filter((k) => draft.progressionRule[k]).map(
-              (key) => (
-                <div key={key} className="text-ui flex justify-between">
-                  <span className="text-muted">{t(`measurement.${key}`)}</span>
-                  <span className="font-semibold">
-                    {formatCm(draft.progressionRule[key] ?? 0)} cm
-                  </span>
-                </div>
-              ),
-            )}
-          </div>
-        </div>
-        <div className="flex flex-col justify-end gap-2 sm:w-[220px]">
-          {dirty && !readOnly && (
-            <>
-              <span className="text-muted text-meta">
-                {t("unsavedChangesNote")}
-              </span>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  disabled={saving}
-                  onClick={() => discard()}
-                >
-                  {t("discardButton")}
-                </Button>
-                <Button
-                  variant="accent"
-                  className="flex-1"
-                  disabled={saving}
-                  onClick={() => save()}
-                >
-                  {saving ? t("saveButtonSaving") : t("saveButton")}
-                </Button>
-              </div>
-            </>
-          )}
-          <Button disabled={isActive} onClick={() => activate(selectedId)}>
-            {isActive ? t("activeSizeChartNote") : t("useSizeChartButton")}
+            {saving ? t("saveButtonSaving") : t("saveButton")}
           </Button>
         </div>
-      </div>
+      )}
     </div>
   );
 }

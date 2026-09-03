@@ -941,3 +941,66 @@ describe("SizeChartTable cell keyboard commits", () => {
     expect(screen.queryByRole("status")).toBeNull();
   });
 });
+
+describe("SizeChartTable panel structure", () => {
+  // The screen is three regions in the design, not one long flow: a fixed
+  // toolbar, the scrolling measurement rows, and a pinned action bar. Laid
+  // out as one flow, the Save button sat at the end of the table -- off
+  // screen on any chart long enough to scroll, i.e. every real one.
+  it("pins the unsaved-changes bar outside the scrolling region", () => {
+    seed();
+    useSizeChartsStore.setState({ dirty: true });
+    const { container } = renderWithIntl(<SizeChartTable />);
+
+    const bar = screen
+      .getByText(ptBR.SizeChartTable.unsavedChangesNote)
+      .closest("div")!;
+    expect(bar).toHaveClass("flex-none", "border-t");
+
+    const scroll = container.querySelector('[data-slot="size-chart-rows"]');
+    expect(scroll).not.toBeNull();
+    expect(scroll!.contains(bar)).toBe(false);
+  });
+
+  it("keeps the chart's toolbar out of the scrolling region too", () => {
+    seed();
+    const { container } = renderWithIntl(<SizeChartTable />);
+    const scroll = container.querySelector('[data-slot="size-chart-rows"]')!;
+    const duplicate = screen.getByRole("button", {
+      name: ptBR.SizeChartTable.duplicateButton,
+    });
+    expect(scroll.contains(duplicate)).toBe(false);
+  });
+
+  it("shows no unsaved-changes bar while the draft is clean", () => {
+    seed();
+    useSizeChartsStore.setState({ dirty: false });
+    renderWithIntl(<SizeChartTable />);
+    expect(
+      screen.queryByText(ptBR.SizeChartTable.unsavedChangesNote),
+    ).toBeNull();
+  });
+});
+
+describe("SizeChartTable body type and base column labelling", () => {
+  it("labels the body-type control and names it for assistive tech", () => {
+    seed();
+    renderWithIntl(<SizeChartTable />);
+    const label = screen.getByText(ptBR.SizeChartTable.bodyTypeLabel);
+    expect(label).toBeVisible();
+
+    const trigger = screen.getByRole("combobox");
+    expect(trigger).toHaveAttribute("aria-labelledby", label.id);
+  });
+
+  // The base row is what every other column is derived FROM. Its only signal
+  // used to be the boxed cells in that column, which reads as "selected".
+  it("tags the base size column in the header, and only that one", () => {
+    seed();
+    renderWithIntl(<SizeChartTable />);
+    const tags = screen.getAllByText(ptBR.SizeChartTable.baseSizeTag);
+    expect(tags).toHaveLength(1);
+    // BASE.baseSizeIndex is 1 -> "M".
+    expect(tags[0].parentElement!.textContent).toContain("M");
+  });
+});

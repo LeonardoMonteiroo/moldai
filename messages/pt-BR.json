@@ -903,7 +903,6 @@
     "title": "Medidas e grades",
     "subtitle": "A grade ativa vale só para o gênero dela; geração e graduação usam a grade padrão do sistema para o outro",
     "newSizeChartButton": "＋ Nova grade",
-    "importLabel": "↥ Importar planilha ou tabela de medidas do Audaces",
     "loading": "Carregando grades…",
     "loadError": "Não foi possível carregar suas grades. Tente recarregar a página.",
     "copySuffix": " (cópia)",
@@ -934,6 +933,7 @@
     "rangeHint": "Valor fora do intervalo aceito. Use entre {min} e {max} cm.",
     "measurementColumnLabel": "Medida (cm)",
     "bodyTypeNote": "apenas descritivo; não altera o corte",
+    "bodyTypeLabel": "Tipo de corpo",
     "resetOverrideTitle": "Resetar para a regra",
     "addSizeButton": "＋ tamanho",
     "addSizePrompt": "Nome do novo tamanho",
@@ -1001,10 +1001,11 @@
       "rise": "Meça sentada(o), da cintura até o assento, passando entre as pernas.",
       "bustPointHeight": "Meça do ombro até a ponta do busto (ápice), acompanhando a curva do peito.",
       "bustSpan": "Meça a distância entre as pontas (ápices) do busto, de um lado a outro."
-    }
+    },
+    "baseSizeTag": "base"
   },
   "SizeChartImport": {
-    "trigger": "↥ Importar planilha ou tabela de medidas",
+    "trigger": "Importar planilha ou tabela de medidas",
     "dialogTitle": "Importar grade de medidas",
     "formatNote": "Aceita arquivos .csv e .tsv (texto separado por vírgula, ponto e vírgula ou tabulação); não lê .xlsx.",
     "chooseFileButton": "Escolher arquivo",

@@ -93,3 +93,31 @@ Method, following Round 1's Landing precedent (the most rigorous of the three us
 - **Sidebar naming and its fourth entry** ("Bases do ateliê" + "Importar molde · .dxf" vs the design's 3-item "Bases e modelos") — the app's own more-current naming over a real shipped screen, per Round 1.
 
 **Verification:** `npm test` **3154 passed, 3 skipped, 0 failed** (up from 3144 — 10 new tests across `PatternCard`, `OnboardingChecklistCard` and the new `components/ui/progress.test.tsx`). `npx tsc --noEmit` clean, `npm run build` clean (all 33 routes), eslint clean on every changed file. The garment-type chip assertion was mutation-tested (badge stubbed to `false` → the test fails, then restored) to confirm it isn't matching the pattern name instead. Live re-screenshotted after every fix at 1280×900, and the dashed card / pattern card heights measured in the running app rather than eyeballed.
+
+## Round 5 — deep single-screen audit: Medidas e grades (2026-09-02)
+
+Same method as Round 4, applied to `Medidas e grades.dc.html` (466 lines) and `/size-charts`. Round 1 had recorded "no fix needed" for this screen and Round 2 found two gaps; going at the design source line by line found that the screen's whole **layout model** was wrong, which is what produced the two real defects below.
+
+**The root finding: the screen is three fixed regions plus a scrolling one in the design, and one long scrolling document in the app.** `SizeChartsShell` wrapped both columns in a single padded `ScrollArea`, so every "pinned" element was actually laid out against the _table's_ height. Measured live at 1280×900:
+
+- **The library footer — "＋ Nova grade" and "Importar planilha" — rendered at y=1307 in a 900px viewport.** The screen's primary action was reachable only by scrolling past every measurement row of the chart shown beside it. Now y=778, inside the fold, pinned to the library panel's own bottom edge.
+- **The unsaved-changes bar had the same defect**, and worse timing: it sat at the very end of the flow, so on any chart long enough to scroll (every real one) the Save button was off-screen at exactly the moment there was something to save. It is now the design's own pinned bottom bar — verified live at y=858 with the rows scrolling above it.
+
+Restructured to the design's shape: the library is a flush full-height panel (fixed heading / scrolling chart list / pinned footer), the table panel is fixed toolbar / scrolling rows / pinned action bar, and the two sit flush rather than as two padded cards inside a shared scroll. Below `lg` they still stack and the region scrolls as one (#119) — correct there, since a 252px column and a wide table cannot sit side by side.
+
+**Also found and fixed:**
+
+- **The `.csv`/`.tsv` import trigger opened with a literal "↥" (U+21A5), which Archivo has no glyph for** — the browser fell back and painted a stray mark that reads as the digit "1" on screen. Same glyph-doing-an-icon's-job class as Round 4's checklist arrow, except this one did not even render. Now a real `UploadIcon`, glyph stripped from the catalog value. The label also dropped its "do Audaces" suffix — the design doesn't have it and the parser is `.csv`/`.tsv`, so naming a vendor overclaimed.
+- **The body-type control had no label.** The design labels it "Tipo de corpo"; the app opened on a bare dropdown whose only context was the caveat printed after it. Added, wired via `aria-labelledby`, and the trigger narrowed 170px → the design's 156px.
+- **The base size column was untagged.** The design puts a small olive "base" tag under the base column's header; the app's only signal was the boxed cells in that column, which reads as "selected" rather than "the row everything else is derived from".
+- **The loading skeleton** was a 220px bar against a 252px column plus one undifferentiated block; it now matches the two panels at their real widths.
+- **Dead catalog key** `SizeCharts.importLabel`, unused since #12 replaced the inert placeholder with the real dialog (the `PageHeader.backButton` precedent).
+- **A regression caught during the restructure and fixed before commit**: making the rows region a flex column let the table (default `flex-shrink: 1`) be compressed to ~5 rows instead of overflowing. It is a block scroll container now.
+
+**Found, deliberately NOT changed:**
+
+- **The design shows a permanent "Regra · cm/tam" column** beside the size columns; the app instead has an "Editar regra de progressão" mode that swaps every size column for a rule input (#49). That is an interaction-model change, not a styling one, and #49's shape is deliberate — recorded for a decision rather than rewritten inside a fidelity round.
+- **The design's measurement table is flush and full-bleed with a sticky header**, where the app's is a rounded bordered card inside the scroll region. Now that the rows have their own scroll container a sticky header is finally possible; doing it means restyling the table itself, so it is recorded as the natural next step on this screen rather than bundled here.
+- **The progression-summary card** at the end of the table has no counterpart in the design — kept, per the standing "real functionality beats a simplified mockup" decision.
+
+**Verification:** `npm test` **3162 passed, 3 skipped, 0 failed** (up from 3154 — 8 new tests). `npx tsc --noEmit` clean, `npm run build` clean, eslint clean. The pinned-save-bar assertion was mutation-tested (bar moved back inside the scroll region → the test fails, then restored). Both defects were measured in the running app before and after, not eyeballed: library footer 1307px → 778px, save bar visible at 858px in a 900px viewport. One existing test (`SizeChartLibrary`'s 252px width) was updated rather than deleted: the width is `lg:` scoped now, since the old unprefixed 252px also applied in the stacked below-`lg` layout, where it was wrong.

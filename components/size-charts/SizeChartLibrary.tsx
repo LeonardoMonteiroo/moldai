@@ -71,8 +71,12 @@ export function SizeChartLibrary() {
   const myCharts = charts.filter((c) => !c.isSystem);
 
   return (
-    <div className="border-border flex w-[252px] shrink-0 flex-col border-r">
-      <div className="flex flex-col gap-[3px] pb-3">
+    // Three regions, per the design: a fixed heading, the chart list as the
+    // only scrolling part, and a footer pinned to the panel's own bottom. It
+    // used to be one flow whose `flex-1` spacer measured against the table
+    // beside it, which is what pushed the footer off-screen.
+    <div className="border-border bg-paper flex w-full shrink-0 flex-col border-b lg:h-full lg:min-h-0 lg:w-[252px] lg:border-r lg:border-b-0">
+      <div className="flex flex-none flex-col gap-[3px] px-[18px] pt-[20px] pb-3">
         <span className="font-display text-title font-semibold">
           {t("title")}
         </span>
@@ -81,7 +85,7 @@ export function SizeChartLibrary() {
         </span>
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 px-[14px] pt-1 pb-[14px] lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
         {systemCharts.length > 0 && (
           <div className="flex flex-col gap-[6px]">
             <span className="text-muted text-tick tracking-eyebrow px-1 font-semibold uppercase">
@@ -121,9 +125,7 @@ export function SizeChartLibrary() {
         )}
       </div>
 
-      <div className="flex-1" />
-
-      <div className="border-border flex flex-col gap-[7px] border-t pt-3">
+      <div className="border-border flex flex-none flex-col gap-[7px] border-t px-[14px] py-3">
         <Button onClick={() => create()}>{t("newSizeChartButton")}</Button>
         {/* #12: was an inert dashed placeholder (SizeCharts.importLabel) with
             no onClick, no file input, no parser -- ImportSizeChartDialog is

@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { AppShell } from "@/components/shared/AppShell";
 import { ActionErrorNotice } from "@/components/shared/ActionErrorNotice";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { SizeChartLibrary } from "./SizeChartLibrary";
@@ -43,17 +42,27 @@ export function SizeChartsShell({
           `dirty` left true and no explanation. */}
       {actionError && <ActionErrorNotice onDismiss={clearActionError} />}
       {!ready && (
-        <div
-          role="status"
-          className="flex flex-1 flex-col gap-4 p-[22px] lg:flex-row"
-        >
+        // Shaped like the two panels it stands in for, at their real widths,
+        // so the skeleton doesn't reflow into a different layout when the
+        // charts land. The library half was 220px wide against a 252px
+        // column, and the table half a single undifferentiated block.
+        <div role="status" className="flex min-h-0 flex-1 flex-col lg:flex-row">
           <span className="sr-only">{t("loading")}</span>
-          <div className="flex w-full flex-col gap-2 lg:w-[220px]">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-10 w-full" />
+          <div className="border-border flex w-full shrink-0 flex-col gap-2 border-b p-[14px] lg:w-[252px] lg:border-r lg:border-b-0">
+            <Skeleton className="mb-1 h-[15px] w-[60%]" />
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="rounded-item h-[52px] w-full" />
             ))}
           </div>
-          <Skeleton className="rounded-card h-[400px] flex-1" />
+          <div className="flex min-w-0 flex-1 flex-col gap-3 p-[22px]">
+            <div className="flex items-center gap-[10px]">
+              <Skeleton className="h-[30px] w-[200px]" />
+              <Skeleton className="h-[18px] w-[84px] rounded-full" />
+              <div className="flex-1" />
+              <Skeleton className="h-[28px] w-[76px]" />
+            </div>
+            <Skeleton className="rounded-card h-[400px] w-full" />
+          </div>
         </div>
       )}
       {ready && error && (
@@ -64,18 +73,20 @@ export function SizeChartsShell({
           {t("loadError")}
         </div>
       )}
-      {/* `fill` + `min-h-full`: at `lg` and up the two columns are full-height
-          panels, not a stack of cards, so the row has to keep the region's
-          height. Below `lg` (#119) they stack instead -- the library's own
-          w-[230px] cards fit a narrow column fine, and the table keeps its own
-          overflow-x-auto for whatever width it ends up with. */}
+      {/* Two flush full-height panels at `lg` and up, each owning its own
+          scroll -- Medidas e grades.dc.html's own structure, and not a
+          cosmetic point: as one padded region scrolling together, the
+          library's footer ("Nova grade" / "Importar planilha") was laid out
+          against the *table's* height and rendered ~400px below the fold on a
+          900px viewport, so the screen's primary action was reachable only by
+          scrolling past every measurement row. Below `lg` (#119) they stack
+          and this region scrolls as one, which is correct there -- a 252px
+          column and a wide table cannot sit side by side. */}
       {ready && !error && (
-        <ScrollArea fill className="min-h-0 flex-1">
-          <div className="flex min-h-full flex-col gap-4 p-[22px] lg:flex-row">
-            <SizeChartLibrary />
-            {draft && <SizeChartTable />}
-          </div>
-        </ScrollArea>
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
+          <SizeChartLibrary />
+          {draft && <SizeChartTable />}
+        </div>
       )}
     </AppShell>
   );

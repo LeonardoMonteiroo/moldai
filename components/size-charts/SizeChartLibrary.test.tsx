@@ -162,11 +162,29 @@ describe("SizeChartLibrary", () => {
   // Verifier gap (L-012): SZCH-04/SZCH-08 had no assertion at all -- the
   // width and the card's selection accent bar were correct by inspection
   // but evidence-free per the evidence-or-zero rule.
-  it("renders the library column at the design's 252px width", () => {
+  // The 252px is the side-by-side width only. Below `lg` the two panels stack
+  // (#119) and the column goes full-width -- it used to stay pinned at 252px
+  // there, leaving a narrow column with the table underneath it.
+  it("renders the library column at the design's 252px width beside the table", () => {
     useSizeChartsStore.setState({ charts: [] });
     const { container } = renderWithIntl(<SizeChartLibrary />);
 
-    expect(container.firstChild).toHaveClass("w-[252px]");
+    expect(container.firstChild).toHaveClass("lg:w-[252px]", "w-full");
+  });
+
+  // Regression guard for the real defect this structure exists to prevent:
+  // as one flow, the footer's position was decided by the table's height and
+  // landed ~400px below the fold. The list is the only scrolling region, and
+  // the footer is a flex-none sibling of it, so it cannot be pushed away.
+  it("scrolls only the chart list, keeping the footer actions in the panel", () => {
+    useSizeChartsStore.setState({ charts: [] });
+    const { container } = renderWithIntl(<SizeChartLibrary />);
+    const panel = container.firstChild as HTMLElement;
+    const [, list, footer] = Array.from(panel.children) as HTMLElement[];
+
+    expect(list).toHaveClass("lg:overflow-y-auto", "lg:flex-1");
+    expect(footer).toHaveClass("flex-none", "border-t");
+    expect(panel).not.toHaveClass("overflow-y-auto");
   });
 
   it("shows an olive accent bar on the selected card, transparent otherwise", () => {
