@@ -192,3 +192,27 @@ Same method, applied to `Bases do atelie.dc.html` (247 lines) and `/slopers`. Ro
 - **The card body carries three lines** (name / "Blusa · base M" / chart name) where the design shows two (name / chart). The extra line is real, already-persisted data the design's placeholder didn't model — the standing "real functionality beats a simplified mockup" decision.
 
 **Verification:** `npm test` **3173 passed, 3 skipped, 0 failed** (up from 3171 — 2 new tests). `npx tsc --noEmit` clean, `npm run build` clean, eslint clean. The variant assertion was mutation-tested (button reverted to solid → the test fails, then restored). Card, thumbnail, button and input dimensions were measured in the running app before touching anything.
+
+## Round 10 — deep audit: the three public screens (2026-09-03)
+
+`Planos.dc.html` (233), `Autenticacao.dc.html` (208) and `Landing.dc.html` (192) taken together — 633 lines, less than `Dashboard.dc.html` alone, and all reachable without a session. Measured first throughout, per Round 8's lesson.
+
+**All three measured clean. No code changed this round.**
+
+- **Autenticação** — card width **380px** on login/reset and **420px** on signup, matching the design's own `cardWidth: isSignup ? "420px" : "380px"` exactly; padding 28px and `radius-card` (13.5px) likewise. Round 2's 16-state pass had already taken this screen's copy and structure gaps.
+- **Landing** — hero headline measured **54px / 55.08px line-height / −1.6px tracking**, against the design's `font-size: 54px; line-height: 1.02; letter-spacing: -1.6px`. Identical. The hero and step-card image slots render neutral placeholders, which matches the design (its own `image-slot` elements sit in exactly those positions) and is documented in `LandingHero.tsx`/`StepsSection.tsx` as awaiting real artwork — a content gap, not a fidelity one.
+- **Planos** — the asymmetric free-card-plus-3-column grid, the billing toggle, the featured Ateliê treatment (Round 2's fix), the credits pill on paid cards, and the cost-per-action tiles all match.
+
+**One divergence found, deliberately reverted rather than shipped:**
+
+- The design gives each paid plan card a **4px olive top bar** over a **1px** border (`topBar: featured ? "var(--color-olive)" : "transparent"`), where the app uses a **2px** olive border and no bar. I implemented the design's version, then reverted it: `PricingPage.tsx`'s own header comment records this exact treatment as considered and declined — "the CreditsSection/PlanSection `border-olive bg-olive-tint border-2` idiom, reused rather than the mockup's separate 1px-border-plus-top-bar treatment this codebase has no other user of". Overriding a documented decision on a purely aesthetic point is the kind of silent drift this file exists to prevent, so it goes to the open-decisions list instead (below) rather than into a commit.
+
+## Open decisions — five, all raised across Rounds 4–10 and none yet answered
+
+Each is a real divergence from the reference where the app's current behavior is either explicitly documented as deliberate or is a judgement call this pass should not make unilaterally. None blocks anything; all are recorded here so they stay visible rather than quietly settling.
+
+1. **Dashboard header shows no title or divider.** `Dashboard.dc.html` shows `MoldAI │ Meus moldes`; CLAUDE.md documents the omission ("the sidebar already marks the section… rather than printing the same words twice"). The design's own answer is to print both.
+2. **`PageHeader`'s credits pill runs ~3× the design's width** — `Grátis · 28 créditos de 30` + `Comprar créditos` against the design's `34 de 60` + `comprar`. The plan prefix is documented as deliberate (Round 1); the button copy is not. Cross-cutting to every authenticated screen.
+3. **Size charts show no permanent "Regra · cm/tam" column** — the design has one beside the size columns; the app swaps the whole table into a rule-editing mode instead (#49). An interaction-model change, not a styling one.
+4. **`/import` renders on paper, not the design's white scroll region.** Importação is the only `.dc.html` setting `background: var(--color-surface)` on its content; paper is what separates that screen's white cards from the page.
+5. **Paid plan cards use a 2px border instead of the design's 1px + 4px olive top bar** — see Round 10 above.
