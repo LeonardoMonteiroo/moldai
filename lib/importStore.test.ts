@@ -286,13 +286,10 @@ describe("createPatternFromImport", () => {
       .createPatternFromImport(file, "msg", "auto");
 
     expect(id).toBe("p1");
-    expect(api.generate).toHaveBeenCalledWith(
-      "p1",
-      "msg",
-      undefined,
-      preparedImage,
-      expect.stringContaining("oskar.dxf"),
-    );
+    expect(api.generate).toHaveBeenCalledWith("p1", "msg", {
+      images: [preparedImage],
+      importContext: expect.stringContaining("oskar.dxf"),
+    });
     expect(useImportStore.getState().pendingPatternId).toBeNull();
   });
 
@@ -349,14 +346,60 @@ describe("createPatternFromImport", () => {
 
     expect(id).toBe("p1");
     expect(api.generate).toHaveBeenCalledTimes(2);
-    expect(api.generate).toHaveBeenNthCalledWith(
-      2,
-      "p1",
-      "auto fallback",
-      true,
-      preparedImage,
-      expect.stringContaining("oskar.dxf"),
-    );
+    expect(api.generate).toHaveBeenNthCalledWith(2, "p1", "auto fallback", {
+      answering: true,
+      images: [preparedImage],
+      importContext: expect.stringContaining("oskar.dxf"),
+    });
+  });
+
+  // The wire's singular `image` was replaced outright, not joined: a caller
+  // still sending it is indistinguishable from a text-only request, so the
+  // reconstruction's preview would silently vanish from the AI call while
+  // the request still charged for it. Asserted on the options object itself
+  // on BOTH calls -- the retry is the easier one to miss.
+  it("never sends the removed singular image key, on either call", async () => {
+    useImportStore.setState({
+      doc: {} as never,
+      analysis: { fileName: "oskar.dxf" } as never,
+    });
+    vi.mocked(api.createPattern).mockResolvedValue({ id: "p1" });
+    vi.mocked(api.generate)
+      .mockResolvedValueOnce({ status: "clarify", state: {} as never })
+      .mockResolvedValueOnce({ status: "ok", state: {} as never });
+
+    await useImportStore
+      .getState()
+      .createPatternFromImport(file, "msg", "auto fallback");
+
+    for (const call of vi.mocked(api.generate).mock.calls) {
+      const opts = call[2]!;
+      expect(opts).not.toHaveProperty("image");
+      expect(opts.images).toEqual([preparedImage]);
+    }
+  });
+
+  // The first call must not claim to be answering a clarify card: the
+  // route's own `answering` guard forces apply over another ask, so an
+  // always-true flag would spend the credit on the model's best guess
+  // instead of letting it ask once for free.
+  it("marks only the retry as answering", async () => {
+    useImportStore.setState({
+      doc: {} as never,
+      analysis: { fileName: "oskar.dxf" } as never,
+    });
+    vi.mocked(api.createPattern).mockResolvedValue({ id: "p1" });
+    vi.mocked(api.generate)
+      .mockResolvedValueOnce({ status: "clarify", state: {} as never })
+      .mockResolvedValueOnce({ status: "ok", state: {} as never });
+
+    await useImportStore
+      .getState()
+      .createPatternFromImport(file, "msg", "auto fallback");
+
+    const calls = vi.mocked(api.generate).mock.calls;
+    expect(calls[0][2]).not.toHaveProperty("answering");
+    expect(calls[1][2]?.answering).toBe(true);
   });
 
   it("sets actionError to image_failed and never calls the API when prepareImage fails", async () => {

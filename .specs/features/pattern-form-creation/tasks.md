@@ -571,7 +571,7 @@ T19 -> T20 -> T21
 
 ---
 
-#### T16: Migrate the import reconstruction's attachment
+#### T16: Migrate the import reconstruction's attachment ✅
 
 **What**: `createPatternFromImport` passes its single rendered preview through the new `images` option.
 **Where**: `lib/importStore.ts`
@@ -586,10 +586,10 @@ T19 -> T20 -> T21
 
 **Done when**:
 
-- [ ] The preview reaches `api.generate` as a one-entry `images` array on both the first call and the `clarify` retry
-- [ ] `pendingPatternId` reuse, `insufficient_credits`, `image_failed` and the checklist ping are all unchanged, pinned by existing tests
-- [ ] Gate check passes: `npx vitest run --project node`
-- [ ] Test count: 2+ new tests pass, 0 existing tests weakened
+- [x] The preview reaches `api.generate` as a one-entry `images` array on both the first call and the `clarify` retry
+- [x] `pendingPatternId` reuse, `insufficient_credits`, `image_failed` and the checklist ping are all unchanged, pinned by existing tests
+- [x] Gate check passes: `npx vitest run --project node` — 2645 passed
+- [x] Test count: 2+ new tests pass, 0 existing tests weakened — 2 new tests; the two migrated cases changed argument shape only. The additions assert the options object directly rather than by deep equality: that the removed singular `image` key is absent on both calls (the rename's own silent-failure mode, the design's Risks table second row), and that `answering` is set on the retry only
 
 **Tests**: unit
 **Gate**: quick
