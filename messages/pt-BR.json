@@ -50,7 +50,7 @@
   },
   "ChatBubble": {
     "questionsAnswered": "Perguntas respondidas.",
-    "imageAttached": "imagem enviada",
+    "imagesAttached": "{count, plural, one {imagem enviada} other {# imagens enviadas}}",
     "assemblyDisclaimer": "Ordem de montagem gerada por IA a partir da modelagem; não substitui a verificação de um(a) costureiro(a)."
   },
   "MessageInput": {

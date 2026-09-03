@@ -668,7 +668,7 @@ Two smaller decisions worth naming: a `status: "error"` / `"answered"` response 
 
 ---
 
-#### T18: Say how many images a turn carried
+#### T18: Say how many images a turn carried ✅
 
 **What**: `ChatBubble` renders `t("imagesAttached", { count: message.imageCount ?? 1 })` in place of the fixed `imageAttached` chip, with the plural ICU entry replacing the old key in the catalog.
 **Where**: `components/editor/ChatBubble.tsx`
@@ -683,13 +683,13 @@ Two smaller decisions worth naming: a `status: "error"` / `"answered"` response 
 
 **Done when**:
 
-- [ ] A message with `imageCount: 3` renders the plural form; one with `imageCount: 1` renders the singular
-- [ ] A message with `hasImage: true` and no `imageCount` renders the singular form (PFORM-68)
-- [ ] A message with neither renders no chip
-- [ ] Assertions compare against the resolved `ptBR` catalog value, never a pasted pt-BR literal or a substring
-- [ ] The old `imageAttached` key is removed, and no call site still reads it
-- [ ] Gate check passes: `npx vitest run --project dom`
-- [ ] Test count: 4+ new tests pass (no silent deletions)
+- [x] A message with `imageCount: 3` renders the plural form; one with `imageCount: 1` renders the singular
+- [x] A message with `hasImage: true` and no `imageCount` renders the singular form (PFORM-68)
+- [x] A message with neither renders no chip
+- [x] Assertions compare against the resolved `ptBR` catalog value, never a pasted pt-BR literal or a substring
+- [x] The old `imageAttached` key is removed, and no call site still reads it
+- [x] Gate check passes: `npx vitest run --project dom`
+- [x] Test count: 4+ new tests pass (no silent deletions)
 
 **Tests**: unit (jsdom + RTL)
 **Gate**: quick-dom
