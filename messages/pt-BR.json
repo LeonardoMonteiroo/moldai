@@ -854,7 +854,8 @@
     "deleteCancelButton": "Cancelar",
     "blankLabel": "em branco",
     "renameSaveButton": "Salvar",
-    "renameCancelButton": "Cancelar"
+    "renameCancelButton": "Cancelar",
+    "updatedLabel": "Editado {when}"
   },
   "CreditsCard": {
     "title": "Créditos do mês",
@@ -869,13 +870,13 @@
     "step1Description": "Você já criou seu primeiro molde com a IA.",
     "step2Title": "Configurar tabela de medidas",
     "step2Description": "Cadastre as medidas do seu público para graduar moldes automaticamente.",
-    "step2Cta": "Configurar →",
+    "step2Cta": "Configurar",
     "step3Title": "Exportar um PDF",
     "step3Description": "Baixe seu molde pronto para impressão e corte.",
-    "step3Cta": "Exportar →",
+    "step3Cta": "Exportar",
     "step4Title": "Importar moldes existentes",
     "step4Description": "Já tem moldes em .dxf? Importe para continuar trabalhando neles aqui.",
-    "step4Cta": "Importar →",
+    "step4Cta": "Importar",
     "step5Title": "Convidar alguém da equipe",
     "step5Description": "Compartilhe o ateliê com quem também vai criar e ajustar moldes.",
     "step5Badge": "Em breve"

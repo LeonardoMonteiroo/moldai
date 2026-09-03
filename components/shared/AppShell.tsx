@@ -27,7 +27,11 @@ export const DESKTOP_MEDIA_QUERY = "(min-width: 1024px)";
  *
  * `sidebar` is whatever nav column the screen owns (the dashboard's Sidebar,
  * SettingsSidebar) — there is deliberately no global nav. The sidebar's own
- * chrome (w-[186px] border-r bg-surface p-[14px]) stays with that component.
+ * chrome (its width, border-r bg-surface p-[14px]) stays with that component,
+ * and the two are deliberately NOT the same width: the design handoff gives
+ * the nav sidebar 200px on all three screens that carry it (Dashboard, Bases
+ * do atelie, Medidas e grades) and the settings section list 172px
+ * (Configuracoes.dc.html). Both used to render at 186px, matching neither.
  *
  * The content region is a column; a screen with a row body (the editor) passes
  * one child that is itself a row.

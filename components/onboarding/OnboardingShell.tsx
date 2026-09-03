@@ -139,7 +139,7 @@ export function OnboardingShell({ credits }: { credits: Credits }) {
           <Progress
             value={Math.round((step / 3) * 100)}
             aria-label={t("stepLabel", { n: step })}
-            className="bg-track h-[6px]"
+            className="h-[6px]"
           />
         </div>
 

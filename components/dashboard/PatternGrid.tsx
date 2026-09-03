@@ -71,13 +71,17 @@ export function PatternGrid({
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder={t("searchPlaceholder")}
-          className="h-[34px] w-full sm:w-[180px]"
+          className="h-[34px] w-full sm:w-[200px]"
         />
         <Select
           value={typeFilter}
           onValueChange={(value) => setTypeFilter(value as typeof typeFilter)}
         >
-          <SelectTrigger size="sm" className="w-full sm:w-[150px]">
+          {/* All three controls in this row are 34px in Dashboard.dc.html --
+              taller than the 32px `sm` the dialogs use, so the height is set
+              here rather than by rescaling the shared size. Without it the
+              select and button sat 2px short of the input beside them. */}
+          <SelectTrigger size="sm" className="h-[34px] w-full sm:w-[150px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -93,7 +97,7 @@ export function PatternGrid({
         </Select>
         {/* Dashboard.dc.html:124 -- "+ Novo molde" lives in this row, not as
             a persistent Sidebar action (the sidebar there is nav-only). */}
-        <Button size="sm" onClick={onNewPattern}>
+        <Button size="sm" className="h-[34px]" onClick={onNewPattern}>
           {t("newPatternButton")}
         </Button>
       </div>
@@ -135,7 +139,14 @@ export function PatternGrid({
           <button
             type="button"
             onClick={() => router.push("/import")}
-            className="border-border rounded-card text-muted text-ui hover:bg-surface-alt flex h-[168px] flex-col items-center justify-center gap-1 border border-dashed text-center transition-colors"
+            // `min-h`, not a fixed height: sharing a row with pattern cards,
+            // the grid's own stretch already matches it to them, so this only
+            // has to carry the case where it wraps onto a row of its own with
+            // nothing to stretch against. 196px is a PatternCard's real
+            // height (10px padding + 128px thumbnail + 8px gap + its two text
+            // lines + 10px padding) -- the 168px this used to hardcode was
+            // short even of the old 112px thumbnail's card.
+            className="border-border rounded-card text-muted text-ui hover:bg-surface-alt flex min-h-[196px] flex-col items-center justify-center gap-1 border border-dashed text-center transition-colors"
           >
             {t("importCardLabel")}
           </button>

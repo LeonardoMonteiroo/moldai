@@ -197,3 +197,46 @@ describe("PatternCard rename", () => {
     expect(renameField()).toHaveValue(PATTERN.name);
   });
 });
+
+describe("PatternCard garment-type chip and edited timestamp", () => {
+  beforeEach(() => {
+    useDashboardStore.setState({ rename, remove });
+  });
+
+  // Dashboard.dc.html puts a type chip on every thumbnail. This is NOT the
+  // pattern-STATE badge CLAUDE.md rules out ("exportado" can't be derived
+  // honestly) -- the garment type is real, persisted, and already drives
+  // this screen's own filter.
+  it("labels the thumbnail with the resolved garment type", () => {
+    renderWithIntl(<PatternCard pattern={PATTERN} onOpen={vi.fn()} />);
+    expect(
+      screen.getByText(ptBR.TechSheetTab.garmentType.blouse),
+    ).toBeVisible();
+  });
+
+  it("shows no type chip on a blank pattern rather than inventing one", () => {
+    const blank = { ...PATTERN, garmentType: null };
+    renderWithIntl(<PatternCard pattern={blank} onOpen={vi.fn()} />);
+    for (const label of Object.values(ptBR.TechSheetTab.garmentType)) {
+      expect(screen.queryByText(label as string)).toBeNull();
+    }
+  });
+
+  // The timestamp used to render bare ("há 3h"), losing the design's own
+  // "Editado" prefix -- which is what says the date is a last-edit, not a
+  // creation date.
+  it("prefixes the relative timestamp with the catalog's Editado label", () => {
+    renderWithIntl(<PatternCard pattern={PATTERN} onOpen={vi.fn()} />);
+    // Built from the catalog value itself, with only the {when} placeholder
+    // left free -- so a copy change to the prefix fails this, while the
+    // relative part stays independent of what "today" is when it runs.
+    const pattern = new RegExp(
+      "^" +
+        ptBR.PatternCard.updatedLabel
+          .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+          .replace("\\{when\\}", ".+") +
+        "$",
+    );
+    expect(screen.getByText(pattern)).toBeVisible();
+  });
+});

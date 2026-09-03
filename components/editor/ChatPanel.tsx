@@ -145,7 +145,7 @@ export function ChatPanel() {
                   100,
               )}
               aria-label={tSteps("steps.stage" + (generationStepIndex + 1))}
-              className="bg-track mt-[9px] h-[5px] [&>[data-slot=progress-indicator]]:animate-pulse"
+              className="mt-[9px] h-[5px] [&>[data-slot=progress-indicator]]:animate-pulse"
             />
             <div className="mt-[11px] flex items-center">
               <div className="flex-1" />

@@ -86,20 +86,30 @@ export function DashboardShell({
       {!ready && (
         <div role="status" className="flex flex-1 flex-col gap-4 p-[22px]">
           <span className="sr-only">{t("loading")}</span>
+          {/* Mirrors Dashboard.dc.html's own loading composition: a short
+              count placeholder, then one placeholder per real control in the
+              row (search / filter / "+ Novo molde" -- the button's was
+              missing), then cards shaped like the cards they stand in for
+              rather than plain blocks, so the skeleton doesn't reflow into a
+              different layout the moment data lands. */}
           <div className="flex flex-wrap items-center gap-3">
-            <Skeleton className="h-8 w-[200px]" />
+            <Skeleton className="h-[26px] w-[120px]" />
             <div className="flex-1" />
             <Skeleton className="h-[34px] w-[200px]" />
             <Skeleton className="h-[34px] w-[150px]" />
+            <Skeleton className="h-[34px] w-[120px]" />
           </div>
           <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2 lg:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="rounded-card h-[168px] w-full" />
+              <div
+                key={i}
+                className="border-border rounded-card flex flex-col gap-2 border bg-white p-[10px]"
+              >
+                <Skeleton className="rounded-item h-[128px] w-full" />
+                <Skeleton className="h-[13px] w-[70%]" />
+                <Skeleton className="h-[11px] w-[45%]" />
+              </div>
             ))}
-          </div>
-          <div className="flex flex-wrap gap-4">
-            <Skeleton className="rounded-card h-[100px] min-w-[200px] flex-1" />
-            <Skeleton className="rounded-card h-[100px] min-w-[200px] flex-1" />
           </div>
         </div>
       )}

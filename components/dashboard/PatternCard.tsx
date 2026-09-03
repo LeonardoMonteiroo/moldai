@@ -7,6 +7,7 @@ import type { PatternListItem } from "@/lib/api-client";
 import { useDashboardStore } from "@/lib/dashboardStore";
 import { relativeTime } from "@/lib/format";
 import { ConfirmModal } from "@/components/shared/ConfirmModal";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -35,6 +36,7 @@ export function PatternCard({
 }) {
   const t = useTranslations("PatternCard");
   const tf = useTranslations("Format");
+  const tGarment = useTranslations("TechSheetTab");
   const [renaming, setRenaming] = useState(false);
   const [draftName, setDraftName] = useState(pattern.name);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -49,23 +51,40 @@ export function PatternCard({
   };
 
   return (
-    <div className="border-border rounded-card group relative flex flex-col gap-2 border bg-white p-[10px]">
-      <button
-        type="button"
-        onClick={() => onOpen(pattern.id)}
-        aria-label={pattern.name}
-        className="bg-surface-alt rounded-item flex h-[112px] w-full items-center justify-center overflow-hidden"
-      >
-        {pattern.garmentType ? (
-          <span
-            aria-hidden="true"
-            className="h-full w-full [&_svg]:h-full [&_svg]:w-full"
-            dangerouslySetInnerHTML={{ __html: pattern.thumbnailSvg }}
-          />
-        ) : (
-          <span className="text-muted text-meta">{t("blankLabel")}</span>
+    <div className="border-border rounded-card group hover:border-olive relative flex flex-col gap-2 border bg-white p-[10px] transition-colors">
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => onOpen(pattern.id)}
+          aria-label={pattern.name}
+          className="bg-surface-alt rounded-item flex h-[128px] w-full items-center justify-center overflow-hidden"
+        >
+          {pattern.garmentType ? (
+            <span
+              aria-hidden="true"
+              className="h-full w-full [&_svg]:h-full [&_svg]:w-full"
+              dangerouslySetInnerHTML={{ __html: pattern.thumbnailSvg }}
+            />
+          ) : (
+            <span className="text-muted text-meta">{t("blankLabel")}</span>
+          )}
+        </button>
+        {/* Dashboard.dc.html corners every thumbnail with the garment type.
+            Distinct from the pattern-STATE badge CLAUDE.md rules out (there
+            is no honest way to derive "exportado"): the type is real, already
+            persisted, and already drives this screen's own filter. A blank
+            pattern has no type yet, so it carries no chip rather than an
+            invented one. */}
+        {pattern.garmentType && (
+          <Badge
+            variant="quiet"
+            size="chip"
+            className="pointer-events-none absolute top-2 left-2"
+          >
+            {tGarment(`garmentType.${pattern.garmentType}`)}
+          </Badge>
         )}
-      </button>
+      </div>
       <div className="flex items-start justify-between gap-1">
         {/* min-w-0 so the name can actually shrink inside the flex row --
             without it `truncate` has nothing to truncate against and a long
@@ -75,7 +94,7 @@ export function PatternCard({
             {pattern.name}
           </span>
           <span className="text-muted text-meta">
-            {relativeTime(tf, pattern.updatedAt)}
+            {t("updatedLabel", { when: relativeTime(tf, pattern.updatedAt) })}
           </span>
         </div>
         <DropdownMenu>
