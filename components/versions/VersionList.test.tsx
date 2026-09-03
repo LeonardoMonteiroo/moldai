@@ -199,3 +199,32 @@ describe("VersionList", () => {
     expect(onRestore).toHaveBeenCalledWith("pv1");
   });
 });
+
+describe("VersionList thumbnail sizing", () => {
+  // The thumbnail box is `aspect-[4/3]`, but the SVG inside was sized with
+  // `h-full` alone -- a percentage against a parent whose height comes from
+  // an aspect ratio rather than a resolved length, so it fell back to the
+  // SVG's own intrinsic ratio. A portrait pattern then drove the box, making
+  // every card ~330px tall against the design's ~210px and turning a compact
+  // filmstrip into a third of the screen. Taking the SVG out of flow is what
+  // lets the ratio decide the box.
+  it("takes the thumbnail SVG out of flow so the 4:3 box owns the height", () => {
+    renderList();
+    const svgs = document.querySelectorAll("svg[viewBox]");
+    expect(svgs.length).toBeGreaterThan(0);
+    svgs.forEach((svg) => {
+      expect(svg).toHaveClass("absolute", "inset-0");
+      const box = svg.parentElement!;
+      expect(box.className).toContain("aspect-[4/3]");
+      expect(box).toHaveClass("relative");
+    });
+  });
+
+  it("keeps every card at the design's 152px width", () => {
+    renderList();
+    document.querySelectorAll("svg[viewBox]").forEach((svg) => {
+      const card = svg.closest('div[class*="rounded-card"]')!;
+      expect(card).toHaveClass("w-[152px]", "flex-none");
+    });
+  });
+});

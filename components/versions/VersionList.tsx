@@ -38,7 +38,17 @@ function VersionThumbnail({
   const { w, h } = drafted.viewBox;
   if (!w || !h) return null;
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} aria-hidden="true" className="h-full w-full">
+    // absolute inset-0, per the design: `h-full` alone is a percentage
+    // against a parent whose height comes from `aspect-[4/3]` rather than
+    // from a resolved length, so it fell back to the SVG's own intrinsic
+    // ratio -- a portrait pattern then made every card ~330px tall instead
+    // of the design's ~210px, turning a compact filmstrip into a third of
+    // the screen. Taking the SVG out of flow lets the ratio decide the box.
+    <svg
+      viewBox={`0 0 ${w} ${h}`}
+      aria-hidden="true"
+      className="absolute inset-0 h-full w-full"
+    >
       {drafted.pieces.map((piece) => (
         <OutlineShape
           key={piece.id}

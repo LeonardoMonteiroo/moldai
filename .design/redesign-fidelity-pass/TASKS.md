@@ -158,3 +158,22 @@ Same method, applied to `Configuracoes.dc.html` (355 lines) and `/settings`, acr
 - **`SettingsSidebar` padding and gap** (`14px 12px` / 2px, against the app's uniform 14px / 4px).
 
 **Verification:** `npm test` **3169 passed, 3 skipped, 0 failed** (up from 3167 — 2 new tests). `npx tsc --noEmit` clean, `npm run build` clean, eslint clean. The footer-card assertion was mutation-tested (card unwrapped → the test fails, then restored). Three existing `UsageSection` assertions were updated rather than deleted, since the copy they pinned genuinely changed — and one of them demonstrated the catalog-assertion rule from CLAUDE.md working as intended: it failed with `expected 'UsageSection.outOfTotal' not to contain 'outOfTotal'`, i.e. next-intl rendering the literal key path for a key that no longer exists, exactly the silent-pass trap that rule exists to prevent.
+
+## Round 8 — deep single-screen audit: Versões (2026-09-03)
+
+Same method, applied to `Versoes.dc.html` (326 lines) and `/pattern/[id]/versions`, reached live on a pattern with 7 real versions (`fidelity-editor@moldai.test`). This screen was already the closest match of any audited so far: the versions strip, the "clique em duas para comparar" hint, "Total gasto neste molde", per-version cost, the PARA/DE badges, the overlay toggle, the 268px "O que mudou" panel with its `surface-alt` footer, and the fixed-height no-scroll layout (`document.scrollHeight === innerHeight === 900`, matching the design's `overflow: hidden`) all already agreed.
+
+**Real divergence found and fixed — one, but a structural one:**
+
+- **Every version card rendered ~330px tall against the design's ~210px**, so the versions strip ate a third of the screen and squeezed the comparison it exists to serve. The card declared the design's `w-[152px]` and its thumbnail box the design's `aspect-[4/3]`, and both were being ignored: the SVG inside was sized `h-full w-full`, and `h-full` is a percentage against a parent whose height comes from an aspect ratio rather than a resolved length — so it resolved to `auto` and the SVG's own intrinsic ratio drove the box instead. Every pattern here is portrait, so the "4:3" box rendered 3:4. The design's answer is to take the SVG out of flow (`position: absolute; inset: 0`), which is what lets the ratio decide. Measured after: card 152 × 217.8, thumbnail 150 × 112.5 — exactly 4:3 — and the compare panel gained ~110px of height.
+  - Worth recording because of how it hid: the component's classes already named both design values, so a written-spec check or a source read would have passed it. Only a rendered measurement showed the ratio was inert.
+  - The letterboxing this leaves (a portrait pattern fits by height in a landscape box, ~77px wide inside 150px) is correct and deliberate — `xMidYMid meet` shows the whole piece set, where cropping to fill would hide geometry, which is the one thing a version thumbnail exists to show.
+
+**Also fixed:**
+
+- The from/to legend's `→` was a bare text glyph where the design uses a 14px arrow SVG. Converted — it is already `aria-hidden` and purely visual, so it is an icon by any reading. The `v6 → v7` runs in the panel header and in each diff row stay as text: the design writes those as text too. Fourth and final member of the glyph-as-icon family found across this pass.
+- The legend's rules were 1px against the design's 1.5px.
+
+**Confirmed unbuilt, unchanged:** the design's per-version `reasonNote` ("Cava alargada 1,2 cm a pedido; consumo subiu um pouco.") in the compare footer — already recorded in Round 2 as needing a data-model addition `PatternVersionEntry` doesn't have.
+
+**Verification:** `npm test` **3171 passed, 3 skipped, 0 failed** (up from 3169 — 2 new tests). `npx tsc --noEmit` clean, `npm run build` clean, eslint clean. The thumbnail assertion was mutation-tested (SVG reverted to `h-full` alone → the test fails, then restored). Card and thumbnail dimensions were measured in the running app before and after, not read off the source — which is the only reason this was caught at all.
