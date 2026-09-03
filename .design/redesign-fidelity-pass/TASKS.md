@@ -177,3 +177,18 @@ Same method, applied to `Versoes.dc.html` (326 lines) and `/pattern/[id]/version
 **Confirmed unbuilt, unchanged:** the design's per-version `reasonNote` ("Cava alargada 1,2 cm a pedido; consumo subiu um pouco.") in the compare footer — already recorded in Round 2 as needing a data-model addition `PatternVersionEntry` doesn't have.
 
 **Verification:** `npm test` **3171 passed, 3 skipped, 0 failed** (up from 3169 — 2 new tests). `npx tsc --noEmit` clean, `npm run build` clean, eslint clean. The thumbnail assertion was mutation-tested (SVG reverted to `h-full` alone → the test fails, then restored). Card and thumbnail dimensions were measured in the running app before and after, not read off the source — which is the only reason this was caught at all.
+
+## Round 9 — deep single-screen audit: Bases do ateliê (2026-09-03)
+
+Same method, applied to `Bases do atelie.dc.html` (247 lines) and `/slopers`. Round 8's lesson — that a component can name every design value in its own classes and still render wrong — meant leading with measurement rather than reading source. Everything measured clean: card thumbnail **112px** (this screen's own value, deliberately not the dashboard's 128px), search input **200×34**, "Usar base" **full width × 32px**, grid `repeat(4, …)` at `gap-[14px]`, the type chip on the thumbnail, the intro line under the count, and the toolbar on its own right-aligned row (which the design does specify here, unlike the dashboard's single combined row) — all already correct.
+
+**Real divergence found and fixed — one:**
+
+- **"Usar base" rendered as a solid primary button where the design specifies `variant="outline"`.** This is the one grid in the app where the same action repeats on every tile, so a solid fill turns a four-across grid into a wall of olive and stops reading as emphasis at all — which is presumably why the design chose outline here while leaving the dashboard's `PatternCard` (no card-level CTA) alone.
+
+**Found, deliberately NOT changed:**
+
+- **The card's "⋯" menu is 32×32 where this design says 28×28** — but `Dashboard.dc.html` says 32×32 for the identical affordance on the identical kind of card. Two design files disagreeing about the same control reads as design-tool drift, not intent; the app is already self-consistent at 32, and `Button` has no 28px icon step, so adding one for a single call site would be an abstraction beyond need. Recorded rather than churned.
+- **The card body carries three lines** (name / "Blusa · base M" / chart name) where the design shows two (name / chart). The extra line is real, already-persisted data the design's placeholder didn't model — the standing "real functionality beats a simplified mockup" decision.
+
+**Verification:** `npm test` **3173 passed, 3 skipped, 0 failed** (up from 3171 — 2 new tests). `npx tsc --noEmit` clean, `npm run build` clean, eslint clean. The variant assertion was mutation-tested (button reverted to solid → the test fails, then restored). Card, thumbnail, button and input dimensions were measured in the running app before touching anything.

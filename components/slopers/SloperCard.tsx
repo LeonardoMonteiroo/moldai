@@ -113,7 +113,12 @@ export function SloperCard({
         </DropdownMenu>
       </div>
 
-      <Button size="sm" onClick={() => onUse(sloper.id)}>
+      {/* outline, per the design: every card in this grid carries this same
+          action, so a solid fill turns a four-across grid into a wall of
+          olive and stops reading as emphasis. The dashboard's PatternCard
+          has no card-level CTA to compare against -- this is the one grid
+          where the button repeats per tile. */}
+      <Button variant="outline" size="sm" onClick={() => onUse(sloper.id)}>
         {t("useButton")}
       </Button>
 

@@ -183,3 +183,30 @@ describe("SloperCard rename", () => {
     expect(renameField()).toHaveValue(SLOPER.name);
   });
 });
+
+describe("SloperCard use action", () => {
+  beforeEach(() => {
+    useSlopersStore.setState({ remove, rename });
+  });
+
+  // The design gives this the outline treatment. Every tile in the grid
+  // carries the same action, so a solid fill turns a four-across grid into a
+  // wall of olive and stops reading as emphasis at all.
+  it("renders the use action as an outline button, not a solid fill", () => {
+    renderWithIntl(<SloperCard sloper={SLOPER} onUse={vi.fn()} />);
+    const button = screen.getByRole("button", {
+      name: ptBR.SloperCard.useButton,
+    });
+    expect(button).toHaveAttribute("data-variant", "outline");
+  });
+
+  it("still invokes onUse with the sloper id", async () => {
+    const onUse = vi.fn();
+    const user = userEvent.setup();
+    renderWithIntl(<SloperCard sloper={SLOPER} onUse={onUse} />);
+    await user.click(
+      screen.getByRole("button", { name: ptBR.SloperCard.useButton }),
+    );
+    expect(onUse).toHaveBeenCalledWith("s1");
+  });
+});
