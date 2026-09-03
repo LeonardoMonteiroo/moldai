@@ -70,6 +70,40 @@ export function formatBRL(cents: number): string {
 }
 
 /**
+ * The same amount as {@link formatBRL}, in the machine-readable form a wire
+ * format wants: major units, a "." separator, no currency symbol, no
+ * thousands grouping -- "59.00", never "R$ 59,00".
+ *
+ * Lives here for the reason formatBRL does: this module is the only place a
+ * decimal separator is allowed to appear, and schema.org's `Offer.price` is
+ * a second consumer of exactly that conversion. Building it at the call site
+ * would be the duplicated-money-fact drift CLAUDE.md documents for the
+ * deleted Wallet.planLabel column.
+ */
+export function priceDecimalString(cents: number): string {
+  return (cents / 100).toFixed(2);
+}
+
+/**
+ * The plans a visitor can actually buy without talking to a human.
+ *
+ * Confeccao is deliberately absent. Its price is real and it renders on
+ * /planos like the others, but its CTA is permanently disabled behind an "em
+ * breve" badge (issue #15's own decision: "Falar com vendas" has no
+ * destination -- there is no support or sales channel anywhere in this
+ * repo). PlanCta reads this list rather than testing `id === "factory"`, so
+ * the pricing page and the structured data it emits cannot disagree about
+ * which tiers are obtainable -- a JSON-LD `Offer` is a machine-readable
+ * claim that something is for sale, and this repo's rule is that a public
+ * pricing page must not sell what another screen admits does not exist.
+ */
+export const SELF_SERVE_PLAN_IDS: readonly PlanId[] = [
+  "free",
+  "atelier",
+  "studio",
+];
+
+/**
  * Narrows an untrusted wire value to a paid PlanId. Same trust-boundary
  * shape as isPurchaseType (lib/billing/wallet.ts) -- an unrecognised value,
  * or the literal "free", must never reach applyPurchase's subscribe branch.

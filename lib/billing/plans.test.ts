@@ -11,6 +11,8 @@ import {
   annualMonthlyEquivalentCents,
   annualPriceCents,
   ANNUAL_DISCOUNT_FACTOR,
+  priceDecimalString,
+  SELF_SERVE_PLAN_IDS,
 } from "./plans";
 import { PLAN_IDS } from "@/lib/types";
 
@@ -198,5 +200,57 @@ describe("PLAN_PRICE_CENTS / PLAN_FEATURES", () => {
 describe("TOPUP_CREDITS", () => {
   it("is the mock top-up's fixed grant", () => {
     expect(TOPUP_CREDITS).toBe(100);
+  });
+});
+
+describe("priceDecimalString", () => {
+  // The machine-readable counterpart to formatBRL, for schema.org's
+  // Offer.price: major units, "." separator, no symbol, no grouping.
+  it.each([
+    [0, "0.00"],
+    [5900, "59.00"],
+    [14900, "149.00"],
+    [39900, "399.00"],
+    [1900, "19.00"],
+    [1, "0.01"],
+    [123456, "1234.56"],
+  ])("renders %i centavos as %s", (cents, expected) => {
+    expect(priceDecimalString(cents)).toBe(expected);
+  });
+
+  it("never emits a currency symbol, a comma or a thousands separator", () => {
+    for (const cents of Object.values(PLAN_PRICE_CENTS)) {
+      expect(priceDecimalString(cents)).toMatch(/^\d+\.\d{2}$/);
+    }
+  });
+
+  it("disagrees with formatBRL only in presentation, never in value", () => {
+    for (const cents of Object.values(PLAN_PRICE_CENTS)) {
+      const machine = Number(priceDecimalString(cents));
+      expect(machine).toBeCloseTo(cents / 100, 2);
+    }
+  });
+});
+
+describe("SELF_SERVE_PLAN_IDS", () => {
+  // A JSON-LD Offer is a machine-readable claim that something is for sale.
+  // Confeccao's CTA is permanently disabled behind an "em breve" badge --
+  // there is no sales channel to route it to -- so it must not appear as one.
+  it("excludes the tier whose CTA has no destination", () => {
+    expect(SELF_SERVE_PLAN_IDS).not.toContain("factory");
+  });
+
+  it("covers every other plan, so a new tier is not silently unsellable", () => {
+    const missing = PLAN_IDS.filter(
+      (id) => id !== "factory" && !SELF_SERVE_PLAN_IDS.includes(id),
+    );
+    expect(missing).toEqual([]);
+  });
+
+  it("names only real plans", () => {
+    for (const id of SELF_SERVE_PLAN_IDS) {
+      expect(PLAN_IDS).toContain(id);
+      expect(PLAN_PRICE_CENTS[id]).toBeTypeOf("number");
+    }
   });
 });

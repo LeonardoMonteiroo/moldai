@@ -5,7 +5,11 @@ import { Wordmark } from "@/components/shared/Wordmark";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Signup");
-  return { title: t("heading") };
+  // Public so it renders for an anonymous visitor, but never indexed: a thin
+  // auth entry point whose description duplicates the root layout's. Left
+  // OUT of robots.txt's disallow list on purpose -- a blocked URL is never
+  // fetched, so this directive would never be read. See lib/seo/site.ts.
+  return { title: t("heading"), robots: { index: false, follow: true } };
 }
 
 export default function SignupPage() {

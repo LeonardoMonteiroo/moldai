@@ -49,6 +49,19 @@ RUN apk add --no-cache libc6-compat openssl
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+# The public origin, needed at BUILD time (not just runtime) because
+# app/layout.tsx's `metadataBase` is baked into the two statically
+# prerendered pages, /login and /signup. Without it those two freeze
+# Next's own localhost fallback into their og:image/twitter:image and a
+# shared link previews blank. Every other public route is dynamic and
+# reads APP_URL from env_file at runtime instead.
+#
+# Not a secret (it is the URL users type), so unlike DATABASE_URL and the
+# rest this is safe to bake -- and the prod stack builds the image locally
+# per deploy anyway. Absent, it becomes ENV APP_URL= , which parseSiteUrl
+# treats as unset: the empty-string case exists for exactly this reason.
+ARG APP_URL
+ENV APP_URL=${APP_URL}
 RUN npm run build
 
 # ---- runner: production (next start + toolchain for migrate/seed) ----

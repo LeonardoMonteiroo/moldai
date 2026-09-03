@@ -16,7 +16,14 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const t = await getTranslations("PasswordReset");
   const token = (await searchParams).token ?? "";
-  return { title: token ? t("confirmHeading") : t("requestHeading") };
+  // Never indexed, and nothing followed out of it: this URL carries a
+  // single-use token from a mailed link. Crawlable on purpose (a disallowed
+  // URL is never fetched, so the directive below would never be read) --
+  // see NOINDEX_ROUTES in lib/seo/site.ts.
+  return {
+    title: token ? t("confirmHeading") : t("requestHeading"),
+    robots: { index: false, follow: false },
+  };
 }
 
 // One of the three centered-card screens that bypass AppShell (with /login

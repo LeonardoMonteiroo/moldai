@@ -101,8 +101,9 @@ describe("app/page.tsx (#13/#14)", () => {
 
   // A7 (AEO): the landing page's FAQ is emitted as FAQPage structured data
   // built from the same catalog the section renders, so a search engine and
-  // a reader are told the same thing.
-  it("emits FAQPage structured data alongside the landing page", async () => {
+  // a reader are told the same thing. It now travels in an @graph alongside
+  // the Organization and WebSite nodes that say who publishes the site.
+  it("emits an Organization/WebSite/FAQPage graph alongside the landing page", async () => {
     mockAuth.mockResolvedValue(null);
 
     const result = await Home({ searchParams: searchParams() });
@@ -121,9 +122,24 @@ describe("app/page.tsx (#13/#14)", () => {
     expect(script).toBeDefined();
 
     const ld = JSON.parse(script!.props.dangerouslySetInnerHTML!.__html);
-    expect(ld["@type"]).toBe("FAQPage");
-    expect(ld.mainEntity).toHaveLength(FAQ_KEYS.length);
-    for (const entry of ld.mainEntity) {
+    expect(ld["@context"]).toBe("https://schema.org");
+    const graph = ld["@graph"] as Record<string, unknown>[];
+    expect(graph.map((node) => node["@type"])).toEqual([
+      "Organization",
+      "WebSite",
+      "FAQPage",
+    ]);
+
+    // The WebSite hangs off the Organization by @id rather than repeating it.
+    const [org, site, faq] = graph;
+    expect(site.publisher).toEqual({ "@id": org["@id"] });
+
+    const entries = faq.mainEntity as {
+      name: string;
+      acceptedAnswer: { text: string };
+    }[];
+    expect(entries).toHaveLength(FAQ_KEYS.length);
+    for (const entry of entries) {
       expect(entry.name).toBeTruthy();
       expect(entry.acceptedAnswer.text).toBeTruthy();
       // A placeholder that reached the schema unresolved would be a real

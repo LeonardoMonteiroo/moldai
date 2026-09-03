@@ -9,6 +9,11 @@ services:
   app:
     build:
       target: runner
+      args:
+        # Interpolated from the project env file (--env-file .env.local), the
+        # same way POSTGRES_PASSWORD below is -- a service's own `env_file:`
+        # is a runtime concern and does not reach a build arg.
+        APP_URL: ${APP_URL:?set APP_URL in .env.local}
     restart: unless-stopped
     volumes: !reset []
     environment:
@@ -26,6 +31,12 @@ services:
   cron:
     build:
       target: runner
+      # Identical to app's above on purpose: both build the same `runner`
+      # target, and a differing build arg would fork the layer cache into two
+      # near-identical images. The cron loop never renders a page, so the
+      # value itself is inert here.
+      args:
+        APP_URL: ${APP_URL:?set APP_URL in .env.local}
     restart: unless-stopped
     volumes: !reset []
     entrypoint: ["docker-entrypoint-cron.sh"]

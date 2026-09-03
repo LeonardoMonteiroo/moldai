@@ -93,6 +93,10 @@ describe("app/privacy and app/terms", () => {
     await expect(meta()).resolves.toEqual({
       title: ns.metaTitle,
       description: ns.metaDescription,
+      // Self-referencing and relative, resolved against the root layout's
+      // metadataBase. Without it every ?utm_* variant of these URLs is a
+      // separate indexable duplicate.
+      alternates: { canonical: `/${kind}` },
     });
   });
 });

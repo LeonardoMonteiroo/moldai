@@ -5,7 +5,11 @@ import { Wordmark } from "@/components/shared/Wordmark";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Verify");
-  return { title: t("heading") };
+  // Never indexed, and nothing followed out of it: this URL carries a
+  // single-use token from a mailed link. Crawlable on purpose (a disallowed
+  // URL is never fetched, so the directive below would never be read) --
+  // see NOINDEX_ROUTES in lib/seo/site.ts.
+  return { title: t("heading"), robots: { index: false, follow: false } };
 }
 
 export default async function VerifyPage({

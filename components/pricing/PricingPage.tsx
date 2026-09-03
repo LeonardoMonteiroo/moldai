@@ -14,6 +14,7 @@ import {
   TOPUP_PRICE_CENTS,
   annualMonthlyEquivalentCents,
   effectiveCredits,
+  SELF_SERVE_PLAN_IDS,
 } from "@/lib/billing/plans";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -328,7 +329,12 @@ function PlanCta({
     );
   }
 
-  if (id === "factory") {
+  // Not `id === "factory"`: SELF_SERVE_PLAN_IDS is the single source for
+  // which tiers are actually obtainable, shared with the Offer nodes
+  // app/planos/page.tsx emits. A plan listed here but missing from the
+  // structured data (or the reverse) would be the page and its schema
+  // disagreeing about what is for sale.
+  if (!SELF_SERVE_PLAN_IDS.includes(id)) {
     return (
       <div className="flex flex-col items-center gap-2">
         <Button

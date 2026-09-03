@@ -6,6 +6,13 @@ import { getUserById, getOnboardingStatus } from "@/lib/db/users";
 import { COSTS } from "@/lib/types";
 import { PLAN_CREDITS } from "@/lib/billing/plans";
 import { FAQ_KEYS } from "@/lib/landing/faq";
+import { SITE_NAME, siteRootUrl } from "@/lib/seo/site";
+import {
+  faqPageNode,
+  jsonLdGraph,
+  organizationNode,
+  webSiteNode,
+} from "@/lib/seo/jsonLd";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { LandingPage } from "@/components/landing/LandingPage";
 
@@ -36,7 +43,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description: t("metaDescription"),
       openGraph: {
         type: "website",
-        siteName: "MoldAI",
+        siteName: SITE_NAME,
         locale: "pt_BR",
         title: t("metaTitle"),
         description: t("metaDescription"),
@@ -46,6 +53,12 @@ export async function generateMetadata(): Promise<Metadata> {
         title: t("metaTitle"),
         description: t("metaDescription"),
       },
+      // Self-referencing, and relative so it resolves against the root
+      // layout's metadataBase. This route legitimately serves other query
+      // strings (?missing=pattern, set by /pattern/[id]) and collects the
+      // usual ?utm_* on inbound links -- each of which is a separate
+      // indexable duplicate of the landing page without this.
+      alternates: { canonical: "/" },
     };
   }
   const t = await getTranslations("Sidebar");
@@ -64,29 +77,33 @@ export default async function Home({
   if (!session?.user?.email || !session.user.id) {
     const t = await getTranslations("Landing");
     const values = { adjust: COSTS.adjust, credits: PLAN_CREDITS.free };
-    // A7 (AEO): the FAQ is already plain question-and-answer prose on the
-    // page, so it is also emitted as FAQPage structured data. Both walk the
-    // same FAQ_KEYS list, which is what keeps the markup and the schema from
-    // describing different questions.
-    const faqLd = {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: FAQ_KEYS.map((key) => ({
-        "@type": "Question",
-        name: t(`faq.${key}.question`, values),
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: t(`faq.${key}.answer`, values),
-        },
-      })),
-    };
+    const site = siteRootUrl();
+    const description = t("metaDescription");
+    // A7 (AEO): one @graph, three nodes. FAQPage was already here and is
+    // unchanged in substance -- the FAQ is plain question-and-answer prose on
+    // the page, and both it and the schema walk the same FAQ_KEYS list, which
+    // is what keeps the markup and the schema from describing different
+    // questions. Organization and WebSite are new: nothing previously told a
+    // search engine what entity publishes this site, and it is the node every
+    // other one hangs off by @id.
+    const structuredData = jsonLdGraph([
+      organizationNode(site, SITE_NAME, description),
+      webSiteNode(site, SITE_NAME, description),
+      faqPageNode(
+        FAQ_KEYS.map((key) => ({
+          question: t(`faq.${key}.question`, values),
+          answer: t(`faq.${key}.answer`, values),
+        })),
+      ),
+    ]);
     return (
       <>
         <script
           type="application/ld+json"
-          // JSON.stringify of our own catalog strings; no user input reaches
-          // this, and Next requires the raw-HTML form for a ld+json block.
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }}
+          // Our own catalog strings; no user input reaches this, and Next
+          // requires the raw-HTML form for a ld+json block. jsonLdGraph
+          // escapes "<" regardless, so no future value can close the tag.
+          dangerouslySetInnerHTML={{ __html: structuredData }}
         />
         <LandingPage />
       </>
