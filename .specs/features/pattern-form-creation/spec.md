@@ -190,7 +190,7 @@ All four stories below are P1: the user explicitly chose the full-capability opt
 | PFORM-23       | P1: Structured style choices    | Execute (T1) | Verified |
 | PFORM-24       | P1: Structured style choices    | Execute (T2) | Verified |
 | PFORM-25       | P1: Structured style choices    | Execute (T2) | Verified |
-| PFORM-26       | P1: Structured style choices    | Design       | Pending  |
+| PFORM-26       | P1: Structured style choices    | Execute (T6) | Verified |
 | PFORM-27       | P1: Structured style choices    | Execute (T2) | Verified |
 | PFORM-28       | P1: Structured style choices    | Execute (T2) | Verified |
 | PFORM-40       | P1: Per-molde size chart        | Design       | Pending  |

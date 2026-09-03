@@ -242,7 +242,7 @@ T19 -> T20 -> T21
 
 ---
 
-#### T6: Render the decided fields into the dynamic prompt section
+#### T6: Render the decided fields into the dynamic prompt section ✅
 
 **What**: `buildDynamicSection(state, opts)` and `buildSystem(state, opts)` take `ProposeOptions`, and emit a new `# Fields already decided by the user` section (with the closing "prefer apply over ask" sentence) only when `opts.formSpec` is present.
 **Where**: `lib/ai/prompt.ts`
@@ -257,12 +257,14 @@ T19 -> T20 -> T21
 
 **Done when**:
 
-- [ ] With no `formSpec`, the produced string is byte-identical to the pre-change output for the same state (asserted against a snapshot built in the test, not a stored file)
-- [ ] With a `formSpec`, the section appears exactly once, contains `JSON.stringify(formSpec)`, and appears **after** the blank-pattern `ask` instruction it overrides (index comparison, not just presence) — the Risks table's first row
-- [ ] The section instructs the model not to ask about, and not to contradict, a listed field
-- [ ] `STATIC_SECTIONS` is not modified
-- [ ] Gate check passes: `npx vitest run --project node`
-- [ ] Test count: 6+ new tests pass, existing `lib/ai/prompt.test.ts` cases migrated to the options object with no assertion weakened
+- [x] With no `formSpec`, the produced string is byte-identical to the pre-change output for the same state (asserted against a snapshot built in the test, not a stored file)
+- [x] With a `formSpec`, the section appears exactly once, contains `JSON.stringify(formSpec)`, and appears **after** the blank-pattern `ask` instruction it overrides (index comparison, not just presence) — the Risks table's first row
+- [x] The section instructs the model not to ask about, and not to contradict, a listed field
+- [x] `STATIC_SECTIONS` is not modified
+- [x] Gate check passes: `npx vitest run --project node`
+- [x] Test count: 6+ new tests pass, existing `lib/ai/prompt.test.ts` cases migrated to the options object with no assertion weakened — 9 new tests; the migration changed argument shape only, every assertion kept verbatim
+
+**Scope note**: this commit also updates the one `buildDynamicSection` call in `lib/ai/index.ts` (a single argument, `{ answering, importContext }`). That caller is broken by this task's own signature change, and leaving it stale made `lib/ai/index.test.ts`'s importContext case fail — the gate cannot pass without it, and weakening that test is not an option. T7 rewrites the same call anyway.
 
 **Tests**: unit
 **Gate**: quick

@@ -1,4 +1,5 @@
 import type { PatternState } from "@/lib/types";
+import type { ProposeOptions } from "./options";
 import {
   TYPES,
   GENDERS,
@@ -136,6 +137,19 @@ Write assistantMessage, and any question labels/options, in the natural language
 // never actually invoked for any string the AI reads.
 const NO_OP_T: Translate = (key) => key;
 
+// The instruction paragraph for a form-supplied spec. Its last sentence is
+// there to override the blank-pattern rule in "# Current state" above --
+// that rule tells the model to `ask` whenever a from-scratch request carries
+// little more than a garment type, which is exactly what a minimally-filled
+// form sends, so without this a form submit would routinely clarify instead
+// of drafting. The section is emitted LAST for the same reason: it has to
+// read as the later, more specific instruction.
+//
+// It is per-call data, so it belongs in this dynamic block and never in
+// STATIC_SECTIONS, whose cache breakpoint depends on being byte-identical
+// across every user and request.
+const FORM_SPEC_INSTRUCTION = `The user filled a form rather than writing free prose. Every field in the JSON below is their explicit choice: do NOT ask about it, do NOT contradict it in assistantMessage, and return it unchanged in your spec. Fields absent from the JSON are yours to infer as usual. Because the garment type and these fields are already given, this request is NOT underspecified on their account — prefer apply over ask, and reserve ask for something genuinely unclear outside them.`;
+
 // The per-request half of the system prompt — everything that actually
 // varies (current spec, size table, ease report, assembly order, import
 // context). Split out from buildSystem so index.ts can send it as a second,
@@ -143,8 +157,7 @@ const NO_OP_T: Translate = (key) => key;
 // STATIC_SECTIONS's own comment for why that split is the whole point.
 export function buildDynamicSection(
   state: PatternState,
-  answering: boolean,
-  importContext?: string,
+  opts: ProposeOptions,
 ): string {
   const isEmpty = state.pattern.pieces.length === 0;
   const lines = [
@@ -154,7 +167,7 @@ export function buildDynamicSection(
       ? 'BLANK pattern, no piece created yet. This is a from-scratch request: build the entire GarmentSpec the garment needs. If the request already provides enough, use apply; but a generic request with only the piece type (e.g. "make a t-shirt" — no gender, size, neckline, sleeve, or fit) is UNDERSPECIFIED: use decision=ask before drafting. That rule is about garment REQUESTS — a question still gets decision=explain, blank pattern or not.'
       : "A spec is already applied (below). Treat the request as an adjustment: start from the current spec and return the ENTIRE UPDATED spec with the requested changes.",
   ];
-  if (answering) {
+  if (opts.answering) {
     lines.push(
       "",
       "The user just ANSWERED your clarifying questions (the answers are in their last message). Do NOT use decision=ask again — use apply (or decline if out of scope) with your best understanding of the answers.",
@@ -198,7 +211,7 @@ export function buildDynamicSection(
       JSON.stringify(assembly),
     );
   }
-  if (importContext) {
+  if (opts.importContext) {
     lines.push(
       "",
       "# Imported pattern reconstruction",
@@ -212,7 +225,19 @@ export function buildDynamicSection(
         "reconstruction from an imported reference and may diverge from " +
         "the original file.",
       "",
-      importContext,
+      opts.importContext,
+    );
+  }
+  // Emitted last, so it is the model's most recent instruction -- see
+  // FORM_SPEC_INSTRUCTION on which earlier rule it has to override.
+  if (opts.formSpec) {
+    lines.push(
+      "",
+      "# Fields already decided by the user",
+      "",
+      FORM_SPEC_INSTRUCTION,
+      "",
+      JSON.stringify(opts.formSpec),
     );
   }
   return lines.join("\n");
@@ -222,10 +247,6 @@ export function buildDynamicSection(
 // Kept for callers that don't need the two parts separately (prompt.test.ts).
 // index.ts does NOT use this: it sends the two parts as separate system
 // blocks so only STATIC_SECTIONS carries cache_control.
-export function buildSystem(
-  state: PatternState,
-  answering: boolean,
-  importContext?: string,
-): string {
-  return `${STATIC_SECTIONS}\n\n${buildDynamicSection(state, answering, importContext)}`;
+export function buildSystem(state: PatternState, opts: ProposeOptions): string {
+  return `${STATIC_SECTIONS}\n\n${buildDynamicSection(state, opts)}`;
 }

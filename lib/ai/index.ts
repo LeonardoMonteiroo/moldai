@@ -79,7 +79,7 @@ export async function proposeGarment(
       },
       {
         type: "text",
-        text: buildDynamicSection(state, answering, importContext),
+        text: buildDynamicSection(state, { answering, importContext }),
       },
     ],
     tools: [TOOL],
