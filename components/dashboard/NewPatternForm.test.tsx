@@ -62,6 +62,24 @@ const CHARTS = [
   }),
 ];
 
+// Ordered male-first with NEITHER active, which is what a brand-new account
+// actually gets: the two system charts are seeded on first access and no
+// activeSizeChartId is set yet.
+const CHARTS_NONE_ACTIVE = [
+  chart({
+    id: "sc-m",
+    name: "Padrão masculino",
+    gender: "male",
+    isActive: false,
+  }),
+  chart({
+    id: "sc-f",
+    name: "Padrão feminino",
+    gender: "female",
+    isActive: false,
+  }),
+];
+
 function prepared(base64: string) {
   return { mediaType: "image/jpeg" as const, base64 };
 }
@@ -148,6 +166,33 @@ describe("NewPatternForm — bounds", () => {
     const after = Number(detailsField().getAttribute("maxlength"));
     expect(after).toBeLessThan(before);
     expect(after).toBe(before - ` · ${F.neckline}: ${V.neckline.round}`.length);
+  });
+
+  // Dashboard.dc.html:285-290 gives the form's Input and every SelectTrigger
+  // hint-size="100%,36px", and the two footer Buttons size="sm"
+  // hint-size="auto,32px". SelectTrigger's `sm` renders 32px, so using it
+  // here left every select a step shorter than the name input beside it --
+  // caught by measuring a real render, not by reading the code. data-size is
+  // the primitive's own contract, which is assertable where a computed
+  // height in jsdom is not.
+  it("sizes every select to the design's 36px, matching the name input", () => {
+    setup();
+    for (const el of document.querySelectorAll(
+      '[data-slot="select-trigger"]',
+    )) {
+      expect(el).toHaveAttribute("data-size", "default");
+    }
+    expect(screen.getByLabelText(F.name)).toHaveClass("h-9");
+  });
+
+  it("keeps the footer actions at the design's smaller 32px", () => {
+    setup();
+    for (const name of [t("back"), t("submit")]) {
+      expect(screen.getByRole("button", { name })).toHaveAttribute(
+        "data-size",
+        "sm",
+      );
+    }
   });
 
   // PFORM-10: the real charge, stated where the paying action is.
@@ -352,6 +397,22 @@ describe("NewPatternForm — size chart", () => {
     );
   });
 
+  // Caught by a real render: a brand-new account has no active chart, and
+  // taking the first entry handed it the MALE block for a form that defaults
+  // to "Blusa", with nothing on screen saying so. The app's own fallback
+  // elsewhere is the system female chart.
+  it("falls back to the system female chart when none is active", async () => {
+    vi.mocked(listSizeCharts).mockResolvedValue(CHARTS_NONE_ACTIVE);
+    const user = setup();
+    await waitFor(() =>
+      expect(
+        screen.getByRole("combobox", { name: F.sizeChart }),
+      ).toHaveTextContent("Padrão feminino"),
+    );
+    await submit(user);
+    expect(submitted!.sizeChartId).toBe("sc-f");
+  });
+
   // PFORM-47: additive failure -- it states why and still lets you submit.
   it("disables the chart select with a stated reason when the list fails to load", async () => {
     vi.mocked(listSizeCharts).mockRejectedValue(new Error("nope"));
@@ -471,6 +532,19 @@ describe("NewPatternForm — photos", () => {
     await submit(user);
 
     expect(submitted!.images.map((i) => i.base64)).toEqual(["a.jpg", "c.jpg"]);
+  });
+
+  // Also caught by a real render: with the style selects added the dialog
+  // grew taller than a 900px viewport, which put "Gerar molde com IA" below
+  // the fold. Only the field column scrolls, so the footer stays reachable.
+  it("scrolls the field column rather than growing past the viewport", () => {
+    setup();
+    const column = screen.getByLabelText(F.name).closest("div.overflow-y-auto");
+    expect(column).not.toBeNull();
+    expect(column).toHaveClass("max-h-[55vh]");
+    // The footer sits OUTSIDE that scroller, which is what keeps it on screen.
+    const submitBtn = screen.getByRole("button", { name: t("submit") });
+    expect(column!.contains(submitBtn)).toBe(false);
   });
 
   it("states the photo cap on screen", () => {

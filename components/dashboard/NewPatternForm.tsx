@@ -142,9 +142,18 @@ export function NewPatternForm({
       .then((list) => {
         if (!live) return;
         setCharts(list);
-        // The account's own active chart is the honest default: it is what a
-        // prompt-started molde would have used.
-        setSizeChartId((list.find((c) => c.isActive) ?? list[0])?.id ?? null);
+        // The account's own active chart first: it is what a prompt-started
+        // molde would have used. With none active, the system FEMALE chart,
+        // matching what the app already does elsewhere -- seedPatternState
+        // bootstraps a blank pattern from it, and pickSizeChartForGeneration
+        // falls back to the system chart for the spec's gender. Taking
+        // list[0] instead handed a brand-new account the male block for a
+        // form that defaults to "Blusa", with nothing saying so.
+        const preferred =
+          list.find((c) => c.isActive) ??
+          list.find((c) => c.isSystem && c.gender === "female") ??
+          list[0];
+        setSizeChartId(preferred?.id ?? null);
       })
       .catch(() => {
         if (!live) return;
@@ -241,7 +250,18 @@ export function NewPatternForm({
 
   return (
     <div className="flex flex-col gap-[18px]">
-      <div className="flex flex-col gap-[14px]">
+      {/* The design's own form is four fields tall and fits; the style
+          selects make it taller than a 900px viewport, which left "Gerar
+          molde com IA" below the fold and the primary action unreachable.
+          Only the field column scrolls, so the dialog's title above and the
+          footer below stay put.
+
+          A plain max-height plus native overflow rather than ScrollArea: the
+          Radix box needs a definite height to not collapse (the reason
+          ScrollArea carries a local `fill` prop at all), and a bounded
+          native scroller keeps the keyboard and scrollbar behaviour a form
+          wants. */}
+      <div className="flex max-h-[55vh] flex-col gap-[14px] overflow-y-auto pr-1">
         <Field>
           <FieldLabel htmlFor="nm-name">{t("field.name")}</FieldLabel>
           <FieldContent>
@@ -264,7 +284,7 @@ export function NewPatternForm({
               onValueChange={changeType}
               disabled={submitting}
             >
-              <SelectTrigger id="nm-type" size="sm" className="w-full">
+              <SelectTrigger id="nm-type" className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -290,7 +310,6 @@ export function NewPatternForm({
             >
               <SelectTrigger
                 id="nm-grade"
-                size="sm"
                 className="w-full"
                 aria-describedby="nm-grade-note"
               >
@@ -329,11 +348,7 @@ export function NewPatternForm({
                 }
                 disabled={submitting}
               >
-                <SelectTrigger
-                  id={`nm-style-${field}`}
-                  size="sm"
-                  className="w-full"
-                >
+                <SelectTrigger id={`nm-style-${field}`} className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
