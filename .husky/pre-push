@@ -1,0 +1,25 @@
+# Runs the two CHEAP checks CI runs, against the WHOLE tree, before anything
+# leaves this machine.
+#
+# pre-commit only formats *staged* files (lint-staged), which leaves three
+# holes that all showed up in practice: a merge commit (lint-staged's
+# stash-based flow is unsafe mid-merge, so merge commits routinely skip it),
+# any `--no-verify`, and the fact that nothing ever looked at the tree AS A
+# WHOLE. CI was therefore the first thing to check the repository, which is
+# exactly why the recurring symptom was "prettier passes locally, CI fails" --
+# not a difference between the two prettiers (same 3.9.6, same config, and no
+# CRLF involved), but a file that no local command had ever been asked about.
+#
+# These are the same invocations as .github/workflows/ci.yml's `format` and
+# `lint` jobs, so a green pre-push means those two jobs are green. Build,
+# tests, migrations and the coverage gate stay in CI on purpose: they need
+# minutes and a Postgres service, and a push-time hook that slow gets
+# bypassed, which would put us right back here.
+# `set -e` is load-bearing: without it the hook returns only the LAST
+# command's status, so a failing format:check followed by a passing lint
+# exits 0 and the push sails through -- a guard that does not block.
+# Verified by breaking the formatting on purpose and watching this fail.
+set -e
+
+npm run format:check
+npm run lint
