@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
+import { FLOAT_CHROME, FLOAT_CHROME_EDGE } from "./floatChrome";
 
 const TAB_IDS: EditorTab[] = ["pattern2d", "proof3d", "techsheet", "cutplan"];
 
@@ -34,7 +36,11 @@ function SizeSelector({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="chrome" className="text-muted-2">
+        <Button
+          variant="outline"
+          size="chrome"
+          className={cn(FLOAT_CHROME, "rounded-btn text-muted-2 h-8")}
+        >
           {t("sizeButton", { size: baseSize })}
           <ChevronDownIcon data-icon="inline-end" />
         </Button>
@@ -90,12 +96,13 @@ export function TabBar({
   const t = useTranslations("TabBar");
   const tFooter = useTranslations("Footer");
   return (
-    // EDCH-01: floating translucent chip over the canvas (Editor.dc.html:453),
-    // replacing the old static full-width row -- bg-surface/86 + backdrop-blur
-    // reproduce the design's rgba(255,255,255,.86) + blur(6px) on the existing
-    // token, the same border/shadow FloatingToolbar/ZoomControls already use.
-    <div className="bg-surface/86 border-border rounded-item shadow-card absolute inset-x-4 top-4 z-10 flex items-center gap-2 border p-1 backdrop-blur-sm">
-      <TabsList>
+    // EDCH-01 / Editor.dc.html:452: a TRANSPARENT positioning row, not a bar.
+    // Each control below carries the design's own `.float-chrome` chip
+    // styling individually, so the canvas grid shows through between them --
+    // this row used to be one full-width translucent bar, which read as a
+    // solid white strip across the top of the canvas.
+    <div className="absolute inset-x-4 top-4 z-10 flex items-center gap-1">
+      <TabsList className={cn(FLOAT_CHROME, "rounded-btn h-8")}>
         {TAB_IDS.map((id) => (
           <TabsTrigger key={id} value={id}>
             {t(TAB_LABEL_KEYS[id])}
@@ -113,6 +120,12 @@ export function TabBar({
           aria-label={t("pieceDetailsButton")}
           aria-pressed={detailsOpen}
           title={t("pieceDetailsButton")}
+          className={cn(
+            // Only the resting (unpressed) chip is translucent white; the
+            // pressed one keeps `accent`'s own fill.
+            detailsOpen ? FLOAT_CHROME_EDGE : FLOAT_CHROME,
+            "rounded-btn h-8 w-[30px]",
+          )}
         >
           <PanelRightIcon />
         </Button>
@@ -121,11 +134,14 @@ export function TabBar({
           tab entirely rather than showing a permanently-disabled one. */}
       {activeTab !== "proof3d" && (
         <Button
-          variant="outline"
           size="chrome"
           onClick={onExport}
           disabled={exportDisabled}
           title={exportTitle}
+          // Solid olive per Editor.dc.html:474 (`background: var(--color-olive)`)
+          // -- it was an outline button, which lost the design's one clear
+          // primary action on the canvas.
+          className={cn(FLOAT_CHROME_EDGE, "rounded-btn h-8")}
         >
           {tFooter("exportButton")}
         </Button>

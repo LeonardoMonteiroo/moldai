@@ -36,6 +36,7 @@ export function PieceDetailsPanel({
           variant="ghost"
           size="icon-xs"
           aria-label={t("closeAriaLabel")}
+          title={t("closeAriaLabel")}
           onClick={onClose}
           className="text-placeholder hover:text-muted-2"
         >
@@ -43,7 +44,14 @@ export function PieceDetailsPanel({
         </Button>
       </div>
 
-      <div className="font-display text-body font-semibold">{piece.name}</div>
+      {/* Editor.dc.html:544-547: the name carries its cut quantity beside it,
+          the same "· N×" the canvas label and the cut plan already state. */}
+      <div className="flex items-baseline gap-2">
+        <span className="font-display text-title font-semibold">
+          {piece.name}
+        </span>
+        <span className="text-muted text-meta">{piece.qty}×</span>
+      </div>
 
       {detailRows.length > 0 && (
         <div className="text-ui flex flex-col gap-2">
@@ -64,7 +72,13 @@ export function PieceDetailsPanel({
       <div className="text-muted text-meta tracking-eyebrow mt-[2px] font-semibold uppercase">
         {t("graduationLabel")}
       </div>
-      <div className="border-pattern-guide rounded-item bg-surface-alt border border-dashed p-[10px]">
+      {/* Editor.dc.html:552-563: the size chips sit directly under the
+          eyebrow, and the action below them is ONE full-width button whose
+          own label names the sizes and the cost. The chips used to be boxed
+          in a dashed panel with that sentence repeated inside it as static
+          text, above a second button that just said "Graduar" -- two controls'
+          worth of chrome for one action. */}
+      <div>
         <div className="text-meta flex gap-[5px]">
           {pattern.sizes.map((size) => {
             const isBase = size === pattern.baseSize;
@@ -88,18 +102,12 @@ export function PieceDetailsPanel({
             );
           })}
         </div>
-        <div className="text-muted text-meta mt-2">
-          {gradable.length > 0
-            ? t("graduateSummary", {
-                list: formatList(tf, gradable),
-                cost: COSTS.graduate,
-              })
-            : t("allGraduated")}
-        </div>
       </div>
 
       <Button
         variant="outline"
+        size="sm"
+        className="w-full"
         // #31: graduating also guards against a double click double-billing
         // the account -- this action had no other in-flight signal (no
         // spinner, the panel isn't hidden the way it is during a
@@ -108,7 +116,12 @@ export function PieceDetailsPanel({
         disabled={gradable.length === 0 || graduating}
         onClick={() => onGraduate(gradable)}
       >
-        {t("graduateButton")}
+        {gradable.length > 0
+          ? t("graduateSummary", {
+              list: formatList(tf, gradable),
+              cost: COSTS.graduate,
+            })
+          : t("allGraduated")}
       </Button>
     </div>
   );

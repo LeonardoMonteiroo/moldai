@@ -126,6 +126,7 @@ export function AppShell({
             aria-expanded={navOpen}
             aria-controls={SIDEBAR_ID}
             aria-label={navOpen ? t("closeNavLabel") : t("openNavLabel")}
+            title={navOpen ? t("closeNavLabel") : t("openNavLabel")}
             onClick={() => setNavOpen((open) => !open)}
           >
             {navOpen ? <XIcon /> : <MenuIcon />}

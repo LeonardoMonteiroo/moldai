@@ -86,6 +86,7 @@ export function PatternCard({
               variant="ghost"
               size="icon-sm"
               aria-label={t("menuAriaLabel")}
+              title={t("menuAriaLabel")}
               className="opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
             >
               <MoreHorizontalIcon />

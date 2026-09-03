@@ -76,6 +76,7 @@ export function DashboardShell({
             variant="ghost"
             size="icon-xs"
             aria-label={t("dismissPatternMissing")}
+            title={t("dismissPatternMissing")}
             onClick={() => setDismissedMissing(true)}
           >
             <XIcon />

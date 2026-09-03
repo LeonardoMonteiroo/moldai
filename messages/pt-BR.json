@@ -23,12 +23,12 @@
     "formatPltNote": "Segue o padrão HPGL/2 e foi verificado apenas de forma estrutural (sintaxe, arredondamento de coordenadas, contagem de faixas, canetas distintas), mas nunca plotado em um equipamento físico. O nome da peça usa a fonte interna do plotter, não uma tipografia específica; variantes de dialeto Audaces/Molde.me também podem diferir.",
     "statusConflict": "v{version} · não exportável com conflito",
     "statusGenerating": "gerando molde…",
-    "statusReady": "{copyCount, plural, one {# cópia} other {# cópias}} · base {baseSize} · unidade {unit}",
+    "statusReady": "{copyCount, plural, one {# peça} other {# peças}} · base {baseSize} · {unit}",
     "exportButton": "Exportar",
     "exportDisabledConflictTitle": "Resolva o conflito de costura antes de exportar.",
     "exportDisabledGeneratingTitle": "Aguarde a geração terminar antes de exportar.",
     "exportDisabledBlankTitle": "Gere o molde antes de exportar.",
-    "versionsHistoryButton": "Histórico de versões",
+    "versionsHistoryButton": "Histórico",
     "saveAsBaseButton": "Salvar como base",
     "saveAsBaseDisabledTitle": "Gere o molde e resolva o conflito de costura antes de salvar como base.",
     "saveAsBaseTitle": "Salvar como base do ateliê",
@@ -59,11 +59,8 @@
     "creditCost": "{cost, plural, one {# crédito} other {# créditos}}"
   },
   "AttachmentChips": {
-    "photo": "＋ foto",
-    "sketch": "＋ croqui",
-    "dxf": "＋ molde .dxf",
+    "photo": "Anexar foto",
     "dxfComingSoonTitle": "Anexar molde .dxf chega em breve",
-    "comingSoonBadge": "em breve",
     "preparing": "Preparando imagem…",
     "removeAttachment": "Remover anexo",
     "errors": {
@@ -553,7 +550,7 @@
   },
   "EditorShell": {
     "loading": "Carregando molde…",
-    "savedVersion": "{savedAgo} · v{version}",
+    "savedVersion": "v{version} · salvo {savedAgo}",
     "loadError": "Não foi possível carregar este molde. Tente novamente.",
     "sessionExpired": "Sua sessão expirou. Entre novamente para continuar.",
     "retryButton": "Tentar de novo",

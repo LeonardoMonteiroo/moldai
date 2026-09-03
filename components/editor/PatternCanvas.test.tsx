@@ -74,7 +74,7 @@ describe("PatternCanvas piece selection", () => {
   it("selects a piece on pointer down+up with no drag", () => {
     const { onSelectPiece } = renderCanvas();
 
-    const group = screen.getByText(/COSTAS/).closest("g")!;
+    const group = screen.getByText(/Costas/).closest("g")!;
     clickPoint(group);
 
     expect(onSelectPiece).toHaveBeenCalledWith("back");
@@ -83,8 +83,8 @@ describe("PatternCanvas piece selection", () => {
   it("changes the selection when a different piece is clicked", () => {
     const { onSelectPiece } = renderCanvas();
 
-    clickPoint(screen.getByText(/FRENTE/).closest("g")!);
-    clickPoint(screen.getByText(/COSTAS/).closest("g")!);
+    clickPoint(screen.getByText(/Frente/).closest("g")!);
+    clickPoint(screen.getByText(/Costas/).closest("g")!);
 
     expect(onSelectPiece).toHaveBeenNthCalledWith(1, "front");
     expect(onSelectPiece).toHaveBeenNthCalledWith(2, "back");
@@ -113,23 +113,23 @@ describe("PatternCanvas keyboard selection", () => {
     const { onSelectPiece } = renderCanvas();
 
     await user.tab();
-    expect(screen.getByRole("button", { name: /FRENTE/ })).toHaveFocus();
+    expect(screen.getByRole("button", { name: /Frente/ })).toHaveFocus();
     await user.keyboard("{Enter}");
     expect(onSelectPiece).toHaveBeenCalledWith("front");
 
     await user.tab();
-    expect(screen.getByRole("button", { name: /COSTAS/ })).toHaveFocus();
+    expect(screen.getByRole("button", { name: /Costas/ })).toHaveFocus();
     await user.keyboard(" ");
     expect(onSelectPiece).toHaveBeenCalledWith("back");
   });
 
   it("marks the selected piece with aria-pressed", () => {
     renderCanvas({ selectedPieceId: "back" });
-    expect(screen.getByRole("button", { name: /FRENTE/ })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: /Frente/ })).toHaveAttribute(
       "aria-pressed",
       "false",
     );
-    expect(screen.getByRole("button", { name: /COSTAS/ })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: /Costas/ })).toHaveAttribute(
       "aria-pressed",
       "true",
     );
@@ -138,7 +138,7 @@ describe("PatternCanvas keyboard selection", () => {
   it("is not keyboard-focusable while the measure tool is active", () => {
     renderCanvas({ activeTool: "measure" });
     expect(
-      screen.queryByRole("button", { name: /FRENTE/ }),
+      screen.queryByRole("button", { name: /Frente/ }),
     ).not.toBeInTheDocument();
   });
 });
@@ -189,7 +189,7 @@ describe("PatternCanvas piece labels", () => {
     // #81: "MANGA · 2×" no longer fits this synthetic narrow piece even at
     // the floor size -- it shortens to the bare piece name instead of
     // shrinking below --text-tick.
-    const label = screen.getByText("MANGA");
+    const label = screen.getByText("Manga");
 
     const fontSize = parseFloat(label.style.fontSize);
     expect(fontSize).toBeGreaterThanOrEqual(MIN_LABEL_FONT_SIZE);
@@ -200,12 +200,12 @@ describe("PatternCanvas piece labels", () => {
     const y = Number(label.getAttribute("y"));
     expect(x).not.toBe(999);
     expect(y).not.toBe(999);
-    expect(x + estimateTextWidth("MANGA", fontSize)).toBeLessThanOrEqual(63.58);
+    expect(x + estimateTextWidth("Manga", fontSize)).toBeLessThanOrEqual(63.58);
   });
 
   it("leaves a wide piece's label at the design's full size", () => {
     renderCanvas({ pieces: [widePiece] });
-    const label = screen.getByText("FRENTE · 1×");
+    const label = screen.getByText("Frente · 1×");
     expect(parseFloat(label.style.fontSize)).toBe(MAX_LABEL_FONT_SIZE);
   });
 });

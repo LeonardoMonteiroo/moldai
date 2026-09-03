@@ -21,7 +21,14 @@ describe("MessageInput", () => {
   // The app's primary interaction is describing a garment; a single-line
   // <input> scrolled a long description sideways with no way to see it.
   it("is a multi-line field", () => {
-    renderWithIntl(<MessageInput disabled={false} onSend={vi.fn()} />);
+    renderWithIntl(
+      <MessageInput
+        disabled={false}
+        attachment={null}
+        onAttachmentChange={() => {}}
+        onSend={vi.fn()}
+      />,
+    );
     expect(
       screen.getByPlaceholderText(ptBR.MessageInput.placeholder).tagName,
     ).toBe("TEXTAREA");
@@ -29,7 +36,14 @@ describe("MessageInput", () => {
 
   it("sends on Enter", async () => {
     const onSend = vi.fn();
-    renderWithIntl(<MessageInput disabled={false} onSend={onSend} />);
+    renderWithIntl(
+      <MessageInput
+        disabled={false}
+        attachment={null}
+        onAttachmentChange={() => {}}
+        onSend={onSend}
+      />,
+    );
 
     const field = screen.getByPlaceholderText(ptBR.MessageInput.placeholder);
     await userEvent.type(field, "uma blusa{Enter}");
@@ -40,7 +54,14 @@ describe("MessageInput", () => {
 
   it("inserts a newline on Shift+Enter instead of sending", async () => {
     const onSend = vi.fn();
-    renderWithIntl(<MessageInput disabled={false} onSend={onSend} />);
+    renderWithIntl(
+      <MessageInput
+        disabled={false}
+        attachment={null}
+        onAttachmentChange={() => {}}
+        onSend={onSend}
+      />,
+    );
 
     const field = screen.getByPlaceholderText(ptBR.MessageInput.placeholder);
     await userEvent.type(field, "manga longa{Shift>}{Enter}{/Shift}gola V");
@@ -51,7 +72,14 @@ describe("MessageInput", () => {
 
   it("does not send whitespace only", async () => {
     const onSend = vi.fn();
-    renderWithIntl(<MessageInput disabled={false} onSend={onSend} />);
+    renderWithIntl(
+      <MessageInput
+        disabled={false}
+        attachment={null}
+        onAttachmentChange={() => {}}
+        onSend={onSend}
+      />,
+    );
 
     await userEvent.type(
       screen.getByPlaceholderText(ptBR.MessageInput.placeholder),
@@ -63,7 +91,14 @@ describe("MessageInput", () => {
 
   it("sends the trimmed text", async () => {
     const onSend = vi.fn();
-    renderWithIntl(<MessageInput disabled={false} onSend={onSend} />);
+    renderWithIntl(
+      <MessageInput
+        disabled={false}
+        attachment={null}
+        onAttachmentChange={() => {}}
+        onSend={onSend}
+      />,
+    );
 
     await userEvent.type(
       screen.getByPlaceholderText(ptBR.MessageInput.placeholder),
@@ -78,7 +113,14 @@ describe("MessageInput", () => {
   // PatternCard/Footer/SloperCard cap their rename inputs at
   // MAX_PATTERN_NAME_LENGTH.
   it("caps input at MAX_CHAT_MESSAGE_LENGTH", () => {
-    renderWithIntl(<MessageInput disabled={false} onSend={vi.fn()} />);
+    renderWithIntl(
+      <MessageInput
+        disabled={false}
+        attachment={null}
+        onAttachmentChange={() => {}}
+        onSend={vi.fn()}
+      />,
+    );
     expect(
       screen.getByPlaceholderText(ptBR.MessageInput.placeholder),
     ).toHaveAttribute("maxLength", String(MAX_CHAT_MESSAGE_LENGTH));
@@ -86,7 +128,14 @@ describe("MessageInput", () => {
 
   it("sends nothing while a generation is in flight", async () => {
     const onSend = vi.fn();
-    renderWithIntl(<MessageInput disabled onSend={onSend} />);
+    renderWithIntl(
+      <MessageInput
+        disabled
+        attachment={null}
+        onAttachmentChange={() => {}}
+        onSend={onSend}
+      />,
+    );
 
     const field = screen.getByPlaceholderText(ptBR.MessageInput.placeholder);
     expect(field).toBeDisabled();
@@ -107,7 +156,12 @@ describe("MessageInput", () => {
       for (const cost of [0, 1, 2]) {
         Object.assign(COSTS, { adjust: cost });
         const { unmount } = renderWithIntl(
-          <MessageInput disabled={false} onSend={vi.fn()} />,
+          <MessageInput
+            disabled={false}
+            attachment={null}
+            onAttachmentChange={() => {}}
+            onSend={vi.fn()}
+          />,
         );
         expect(
           screen.getByText(tInput("creditCost", { cost })),

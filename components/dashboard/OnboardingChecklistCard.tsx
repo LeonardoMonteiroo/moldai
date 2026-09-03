@@ -151,6 +151,7 @@ export function OnboardingChecklistCard({
           variant="ghost"
           size="icon-xs"
           aria-label={t("dismissLabel")}
+          title={t("dismissLabel")}
           onClick={writeDismissed}
         >
           <XIcon />

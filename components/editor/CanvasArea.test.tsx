@@ -118,7 +118,7 @@ describe("CanvasArea blank state", () => {
       screen.queryByText(ptBR.CanvasArea.measurePointerOnlyNote),
     ).toBeNull();
     expect(
-      screen.queryByRole("radio", { name: ptBR.FloatingToolbar.measureTool }),
+      screen.queryByRole("button", { name: ptBR.FloatingToolbar.measureTool }),
     ).toBeNull();
   });
 
@@ -128,7 +128,7 @@ describe("CanvasArea blank state", () => {
 
     expect(screen.queryByText(ptBR.CanvasArea.emptyStateTitle)).toBeNull();
     expect(
-      screen.getByRole("radio", { name: ptBR.FloatingToolbar.measureTool }),
+      screen.getByRole("button", { name: ptBR.FloatingToolbar.measureTool }),
     ).toBeVisible();
   });
 });
@@ -212,7 +212,7 @@ describe("CanvasArea while generating", () => {
     renderWithIntl(<CanvasArea />);
 
     expect(
-      screen.queryByRole("radio", { name: ptBR.FloatingToolbar.measureTool }),
+      screen.queryByRole("button", { name: ptBR.FloatingToolbar.measureTool }),
     ).toBeNull();
     expect(
       screen.queryByRole("button", {

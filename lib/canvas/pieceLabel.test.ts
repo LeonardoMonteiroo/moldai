@@ -26,7 +26,7 @@ const blouse: GarmentSpec = {
 const labelFor = (
   piece: keyof typeof ptBR.PatternData.pieceNames,
   qty: number,
-) => `${ptBR.PatternData.pieceNames[piece].toUpperCase()} · ${qty}×`;
+) => `${ptBR.PatternData.pieceNames[piece]} · ${qty}×`;
 
 function drafted(id: string): Piece {
   const { pieces } = draftGarment(blouse, SIZE_TABLE.M, t);
@@ -218,10 +218,10 @@ describe("fitPieceLabel", () => {
         { x: 0, y: 80 },
       ],
     };
-    const text = labelFor("sleeve", 2); // "MANGA · 2×" -- does not fit at the floor
+    const text = labelFor("sleeve", 2); // "Manga · 2×" -- does not fit at the floor
     const placed = fitPieceLabel(narrow, text, MAX_LABEL_FONT_SIZE);
 
-    expect(placed.text).toBe("MANGA");
+    expect(placed.text).toBe("Manga");
     expect(placed.fontSize).toBe(MIN_LABEL_FONT_SIZE);
   });
 });

@@ -22,7 +22,10 @@ export function ChatBubble({
             // #18: the bytes were never persisted -- this says an image was
             // used, it is not a thumbnail that would vanish on reload.
             <div className="mt-[9px] flex flex-wrap gap-[6px]">
-              <span className="rounded-pill text-meta bg-surface border-border border px-2 py-[3px]">
+              {/* Tinted from the bubble's OWN foreground, not bg-surface: this
+                  chip sits on the olive user bubble, where a white fill under
+                  the bubble's near-white text left the label unreadable. */}
+              <span className="rounded-pill text-meta bg-primary-foreground/15 border-primary-foreground/30 border px-2 py-[3px]">
                 {t("imageAttached")}
               </span>
             </div>
