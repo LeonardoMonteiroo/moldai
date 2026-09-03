@@ -771,7 +771,7 @@ Two smaller decisions worth naming: a `status: "error"` / `"answered"` response 
 
 ---
 
-#### T21: Wire the form to the store and the editor
+#### T21: Wire the form to the store and the editor ✅
 
 **What**: `DashboardShell` passes `createFromForm` and `creatingFromForm` into the dialog and navigates to `/pattern/[id]` on success; a returned failure code keeps the dialog open with `actionError` already set by the store.
 **Where**: `components/dashboard/DashboardShell.tsx`
@@ -786,12 +786,12 @@ Two smaller decisions worth naming: a `status: "error"` / `"answered"` response 
 
 **Done when**:
 
-- [ ] A successful submit navigates to `/pattern/<returned id>` exactly once (PFORM-06)
-- [ ] A failure leaves the dialog open, renders the form's own message for the returned code, and leaves `ActionErrorNotice` showing behind it (PFORM-09)
-- [ ] Controls are disabled and the dialog undismissable while `creatingFromForm` is true (PFORM-07)
-- [ ] A 402 followed by a second submit issues no second `createPattern` (PFORM-08), asserted end to end through the shell
-- [ ] Gate check passes: `npm test && npx eslint app lib components && npm run build`
-- [ ] Test count: 6+ new tests pass (no silent deletions)
+- [x] A successful submit navigates to `/pattern/<returned id>` exactly once (PFORM-06)
+- [x] A failure leaves the dialog open, renders the form's own message for the returned code, and leaves `ActionErrorNotice` showing behind it (PFORM-09)
+- [x] Controls are disabled and the dialog undismissable while `creatingFromForm` is true (PFORM-07)
+- [x] A 402 followed by a second submit issues no second `createPattern` (PFORM-08), asserted end to end through the shell
+- [x] Gate check passes: `npm test && npx eslint app lib components && npm run build`
+- [x] Test count: 6+ new tests pass (no silent deletions)
 
 **Tests**: unit (jsdom + RTL)
 **Gate**: build
