@@ -273,7 +273,7 @@ T19 -> T20 -> T21
 
 ---
 
-#### T7: Attach N image blocks to the final turn
+#### T7: Attach N image blocks to the final turn ✅
 
 **What**: Replace `withImage` with `withImages(turns, images)` emitting one image block per entry in order ahead of the text block, and change `proposeGarment(state, opts)` to the options object, forwarding `formSpec` to `buildDynamicSection`.
 **Where**: `lib/ai/index.ts`
@@ -288,12 +288,14 @@ T19 -> T20 -> T21
 
 **Done when**:
 
-- [ ] For N of 1, 2 and 4 images the final message's `content` is N image blocks followed by exactly one text block carrying the turn's text (PFORM-66)
-- [ ] With no images the turns are returned unchanged (identity, not a re-wrapped single-element content array)
-- [ ] The pre-existing "final turn is not a user turn" guard still drops the attachment rather than mis-attaching it, pinned by its own test — the Risks table's third row
-- [ ] `formSpec` reaches `buildDynamicSection`, asserted through the mocked SDK's captured `system` argument
-- [ ] Gate check passes: `npx vitest run --project node`
-- [ ] Test count: 7+ new tests pass, existing `lib/ai/index.test.ts` cases migrated to the options object with no assertion weakened
+- [x] For N of 1, 2 and 4 images the final message's `content` is N image blocks followed by exactly one text block carrying the turn's text (PFORM-66)
+- [x] With no images the turns are returned unchanged (identity, not a re-wrapped single-element content array) — also pinned for `images: []`
+- [x] The pre-existing "final turn is not a user turn" guard still drops the attachment rather than mis-attaching it, pinned by its own test — the Risks table's third row
+- [x] `formSpec` reaches `buildDynamicSection`, asserted through the mocked SDK's captured `system` argument
+- [x] Gate check passes: `npx vitest run --project node` — 2577 passed
+- [x] Test count: 7+ new tests pass, existing `lib/ai/index.test.ts` cases migrated to the options object with no assertion weakened — 8 new tests; the N=1 case is the pre-existing #18 test, migrated rather than duplicated
+
+> **Handoff to T11 — the tree does not typecheck until T11 lands.** `proposeGarment`'s new signature leaves exactly one compile error, `app/api/patterns/[id]/generate/route.ts:150` (`Expected 2 arguments, but got 4`), which is the design's Risks-table safety mechanism working as intended: every caller of the renamed wire becomes a compile error. That file is T11's `Where`, and T11 rewrites this call anyway (it has to add `images`, `formSpec` and `sizeChartId`). The `node` project stays green throughout because the route's own tests mock `@/lib/ai`. **Do not run a `build`-gated check between Phase 2 and T11.**
 
 **Tests**: unit
 **Gate**: quick

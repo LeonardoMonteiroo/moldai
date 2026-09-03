@@ -11,18 +11,26 @@ import type { ProposeImage, ProposeOptions } from "./options";
 // moved.
 export type { AiDecision, ProposeImage, ProposeOptions };
 
-// Attaches `image` to the FINAL turn's content, converting it from a plain
+// Attaches every image in `images` to the FINAL turn's content, in the order
+// received and ahead of that turn's text, converting the content from a plain
 // string to the Messages API's content-block-array form. buildHistory stays
 // pure/text-only on purpose (see history.ts) -- this is the one place that
 // needs to know about images, and it runs after buildHistory has already
-// normalized roles/merging. The final turn is always "user": the route
-// appends the new user message to state.chat before calling proposeGarment,
-// so it is always the last chat entry buildHistory sees.
-function withImage(
+// normalized roles/merging.
+//
+// The final turn is always "user" in practice: the route appends the new user
+// message to state.chat before calling proposeGarment, so it is always the
+// last chat entry buildHistory sees. The role guard is therefore unreachable
+// today, but it silently DROPS the attachments rather than mis-attaching them
+// to an assistant turn, and with N images that loss is bigger than it was
+// with one. Kept as-is and pinned by its own test, so a future buildHistory
+// change that can leave an assistant turn last fails loudly instead of
+// quietly discarding the user's reference photos.
+function withImages(
   turns: HistoryTurn[],
-  image: ProposeImage | undefined,
+  images: ProposeImage[] | undefined,
 ): Anthropic.MessageParam[] {
-  if (!image || turns.length === 0) return turns;
+  if (!images || images.length === 0 || turns.length === 0) return turns;
   const last = turns[turns.length - 1];
   if (last.role !== "user") return turns;
   return [
@@ -30,15 +38,15 @@ function withImage(
     {
       role: "user",
       content: [
-        {
-          type: "image",
+        ...images.map((image) => ({
+          type: "image" as const,
           source: {
-            type: "base64",
+            type: "base64" as const,
             media_type: image.mediaType,
             data: image.base64,
           },
-        },
-        { type: "text", text: last.content },
+        })),
+        { type: "text" as const, text: last.content },
       ],
     },
   ];
@@ -55,9 +63,7 @@ export const ANTHROPIC_OPTIONS = { timeout: 20_000, maxRetries: 1 } as const;
 
 export async function proposeGarment(
   state: PatternState,
-  answering: boolean,
-  image?: ProposeImage,
-  importContext?: string,
+  opts: ProposeOptions,
 ): Promise<AiDecision> {
   const client = new Anthropic(ANTHROPIC_OPTIONS);
   const resp = await client.messages.create({
@@ -79,12 +85,12 @@ export async function proposeGarment(
       },
       {
         type: "text",
-        text: buildDynamicSection(state, { answering, importContext }),
+        text: buildDynamicSection(state, opts),
       },
     ],
     tools: [TOOL],
     tool_choice: { type: "tool", name: "propose_garment" },
-    messages: withImage(buildHistory(state.chat), image),
+    messages: withImages(buildHistory(state.chat), opts.images),
   });
 
   // #99: a reply that hits max_tokens (routine for a token-heavy Portuguese
@@ -100,5 +106,5 @@ export async function proposeGarment(
   if (!block || block.type !== "tool_use") {
     throw new Error("Model did not return a tool_use block");
   }
-  return resolveDecision(parseRawToolInput(block.input), answering);
+  return resolveDecision(parseRawToolInput(block.input), opts.answering);
 }
