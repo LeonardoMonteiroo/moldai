@@ -293,9 +293,13 @@ describe("ImportShell — grouped layer preview (#238)", () => {
     setStateWithSamePenAcrossTwoPages();
     renderWithIntl(<ImportShell userEmail="a@b.com" />);
 
-    const previewSvg = screen
+    // Reached from the panel the eyebrow belongs to, not by sibling position:
+    // the label now shares a row with the "restaurar zoom" control, and the
+    // canvas is no longer the element immediately after it.
+    const panel = screen
       .getByText(tImport("previewSectionLabel"))
-      .nextElementSibling!.querySelector("svg") as SVGSVGElement;
+      .closest("div.rounded-lg")!;
+    const previewSvg = panel.querySelector("svg") as SVGSVGElement;
     expect(previewSvg.tagName).toBe("svg");
     expect(previewSvg.querySelectorAll("path")).toHaveLength(2);
   });

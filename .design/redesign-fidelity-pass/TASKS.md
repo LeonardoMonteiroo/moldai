@@ -121,3 +121,25 @@ Restructured to the design's shape: the library is a flush full-height panel (fi
 - **The progression-summary card** at the end of the table has no counterpart in the design — kept, per the standing "real functionality beats a simplified mockup" decision.
 
 **Verification:** `npm test` **3162 passed, 3 skipped, 0 failed** (up from 3154 — 8 new tests). `npx tsc --noEmit` clean, `npm run build` clean, eslint clean. The pinned-save-bar assertion was mutation-tested (bar moved back inside the scroll region → the test fails, then restored). Both defects were measured in the running app before and after, not eyeballed: library footer 1307px → 778px, save bar visible at 858px in a 900px viewport. One existing test (`SizeChartLibrary`'s 252px width) was updated rather than deleted: the width is `lg:` scoped now, since the old unprefixed 252px also applied in the stacked below-`lg` layout, where it was wrong.
+
+## Round 6 — deep single-screen audit: Importação (2026-09-03)
+
+Same method, applied to `Importacao.dc.html` (448 lines) and `/import`. Note this screen's reference PNGs are largely unusable — Round 2 found 6 of its 11 captures are broken (all render only the empty step-1 card) — so the `.dc.html` source is the only real reference, which is exactly what this method reads anyway. Step 2 was reached live by hand-building a DXF fixture (four closed `CONTORNO` pieces, a `COSTURA` inset, grain lines, notches, and a `TEXTO` entity) and driving the real file chooser.
+
+`ImportShell`'s structure already matches the design closely — file summary card, sticky preview column, `.rul` companion, "identificar peças", and the layers/verification pair in a two-column grid all line up. The gap was in the preview itself.
+
+**Real divergences found and fixed:**
+
+- **The layer preview had no pan or zoom at all**, where the design gives it wheel zoom, drag pan, and a "restaurar zoom" reset. This is not decoration: the panel exists so a user can visually identify which layer of an unrecognised-vocabulary CAD file is the actual cut line, and without zoom a dense real-world DXF renders as an unreadable thumbnail. Implemented with local component state (no store entry — nothing outside the canvas reads it, and it is meaningless once the file changes).
+  - **Deliberately NOT the design's literal "role para dar zoom".** A bare-wheel zoom is the exact defect Round 3 fixed on the editor canvas — one trackpad gesture emits dozens of ticks — and here it would additionally fight the page scroll this panel sits inside. Ctrl/⌘ + wheel zooms at the cursor, a plain wheel pans, and a trackpad pinch still arrives with `ctrlKey` set so pinch-to-zoom works untouched. The on-screen hint says so rather than repeating the design's wording for behavior the app deliberately doesn't have.
+  - Verified live, not just unit-tested: ctrl+wheel took the transform from `scale(1)` to `scale(1.1)` with the translate adjusted to pin the cursor point; a plain wheel afterwards changed only the translate, leaving the scale at 1.1; a drag panned both axes; and "restaurar zoom" returned it to `translate(0 0) scale(1)`.
+- **`getScreenCTM()` was called unguarded** in three places. jsdom doesn't implement it, which is how the tests surfaced it, but the same throw would take out panning in any context lacking it — the pan handler had no fallback path at all despite already writing `?? 1` as though it did. All three are optional calls now.
+- **The preview was 80px taller than the design** (`calc(100vh-160px)` vs `calc(100vh-240px)`) and carried no `min-height`; both now match, and the panel measures 660px live at a 900px viewport.
+
+**Found, deliberately NOT changed:**
+
+- **The design has a draggable `col-resize` splitter** between the preview and the panels column, with a dynamic `previewGridCols`; the app uses a fixed `lg:grid-cols-[420px_1fr]`. A real interaction addition rather than a styling gap — recorded, not built.
+- **The design's scroll region is `background: var(--color-surface)`** (white), where this app renders it on paper like every other screen. Importação is the only `.dc.html` that sets this, and the app's paper ground is what separates the white cards from the page — flipping it on the strength of one attribute would make the screen flatter, not more faithful. Recorded as a question rather than applied.
+- **The header carries no credits pill in the design**, matching the app, which already documents why (`ImportShell`'s own comment): analysis is free, and the real balance is surfaced next to the one paid action in `VerificationPanel`.
+
+**Verification:** `npm test` **3167 passed, 3 skipped, 0 failed** (up from 3162 — 5 new tests). `npx tsc --noEmit` clean, `npm run build` clean, eslint clean. The wheel-convention assertions were mutation-tested (made a bare wheel zoom, the design's literal behavior → two tests fail, then restored). One existing `ImportShell` assertion was updated rather than deleted: it reached the preview canvas by `nextElementSibling`, which the new header row legitimately changed; it now finds the canvas from the panel it belongs to, so it no longer re-encodes the layout.

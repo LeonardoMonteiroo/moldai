@@ -1365,6 +1365,8 @@
     "layerNotFound": "não encontrada",
     "layerGroupCount": "{count} camadas",
     "previewSectionLabel": "Prévia",
+    "previewResetZoom": "restaurar zoom",
+    "previewViewHint": "Ctrl + rolagem para ampliar, arraste para mover",
     "piecesSectionLabel": "Identificar peças (opcional)",
     "pieceRowLabel": "Peça {index}",
     "pieceCustomNamePlaceholder": "Nome da peça",
