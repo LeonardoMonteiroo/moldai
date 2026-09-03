@@ -71,7 +71,8 @@ export function ProfileSection({
           <FieldDescription>{t("emailHint")}</FieldDescription>
         </Field>
       </FieldGroup>
-      <div className="flex items-center gap-3">
+      {/* The design rules the action row off from the fields above it. */}
+      <div className="border-line flex items-center gap-3 border-t pt-3">
         <Button onClick={save} disabled={status === "saving"}>
           {t("saveButton")}
         </Button>

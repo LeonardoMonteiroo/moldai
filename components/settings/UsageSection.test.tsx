@@ -141,7 +141,7 @@ describe("UsageSection", () => {
       credits: { ...CREDITS, balance: 115 },
     });
     const user = userEvent.setup();
-    const { container } = renderWithIntl(
+    renderWithIntl(
       <UsageSection
         credits={CREDITS}
         initialLedger={[]}
@@ -153,10 +153,17 @@ describe("UsageSection", () => {
 
     await user.click(screen.getByRole("button", { name: topupLabel }));
 
-    // Scoped to the balance panel's own big number -- the "Créditos
-    // restantes" stat card now shows the identical balance too.
+    // The balance row, not a big number: the panel stopped repeating the
+    // figure the "Créditos restantes" stat card already shows.
     await waitFor(() => {
-      expect(container.querySelector(".text-display")).toHaveTextContent("115");
+      expect(
+        screen.getByText(
+          translatorFor("UsageSection")("balanceOfTotal", {
+            balance: 115,
+            total: CREDITS.total,
+          }),
+        ),
+      ).toBeInTheDocument();
     });
     expect(
       screen.queryByText(ptBR.ActionErrorNotice.message),
@@ -178,7 +185,7 @@ describe("UsageSection", () => {
       .spyOn(window, "location", "get")
       .mockReturnValue({ assign } as unknown as Location);
     const user = userEvent.setup();
-    const { container } = renderWithIntl(
+    renderWithIntl(
       <UsageSection
         credits={CREDITS}
         initialLedger={[]}
@@ -195,11 +202,14 @@ describe("UsageSection", () => {
     });
     // The balance shown is still the one this section was rendered with --
     // no optimistic "115" (CREDITS.balance + TOPUP_CREDITS) ever appears.
-    // Scoped to the balance panel's own big number -- the "Créditos
-    // restantes" stat card now shows the identical balance too.
-    expect(container.querySelector(".text-display")).toHaveTextContent(
-      String(CREDITS.balance),
-    );
+    expect(
+      screen.getByText(
+        translatorFor("UsageSection")("balanceOfTotal", {
+          balance: CREDITS.balance,
+          total: CREDITS.total,
+        }),
+      ),
+    ).toBeInTheDocument();
 
     assignSpy.mockRestore();
   });
@@ -224,9 +234,7 @@ describe("UsageSection", () => {
         />,
       );
       expect(
-        screen.getByText(
-          tUsage("outOfTotal", { total: 30, days: renewsInDays }),
-        ),
+        screen.getByText(tUsage("renewsIn", { days: renewsInDays })),
       ).toBeInTheDocument();
       unmount();
     }

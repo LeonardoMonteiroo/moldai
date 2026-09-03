@@ -1191,8 +1191,8 @@
     "planLabel": "Plano e cobrança"
   },
   "UsageSection": {
-    "heading": "Créditos e uso",
-    "outOfTotal": "de {total} · renova em {days, plural, one {# dia} other {# dias}}",
+    "balanceOfTotal": "{balance} de {total, plural, one {# crédito} other {# créditos}}",
+    "renewsIn": "renova em {days, plural, one {# dia} other {# dias}}",
     "topupButton": "Comprar créditos avulsos · {price}",
     "historyHeading": "Histórico",
     "empty": "Nenhuma movimentação ainda.",
@@ -1224,7 +1224,7 @@
     "subscribeButton": "Assinar {plan}",
     "downgradeButton": "Indisponível",
     "downgradeNote": "Por enquanto só é possível fazer upgrade de plano por aqui.",
-    "viewAllPlansLink": "Ver todos os planos →",
+    "viewAllPlansLink": "Ver todos os planos",
     "toggleLabel": "Ciclo de cobrança",
     "toggle": {
       "monthly": "Mensal",

@@ -112,7 +112,8 @@ export function PasswordSection({ hasPassword }: { hasPassword: boolean }) {
           {mismatch && <FieldError>{t("mismatchError")}</FieldError>}
         </Field>
       </FieldGroup>
-      <div className="flex items-center gap-3">
+      {/* The design rules the action row off from the fields above it. */}
+      <div className="border-line flex items-center gap-3 border-t pt-3">
         <Button onClick={submit} disabled={!canSubmit || status === "saving"}>
           {hasPassword ? t("submitButton") : t("setSubmitButton")}
         </Button>
