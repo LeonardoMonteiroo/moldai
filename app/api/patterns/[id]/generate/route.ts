@@ -16,8 +16,9 @@ import { debitWallet, refundWallet } from "@/lib/billing/wallet";
 import type { LedgerEntry } from "@/lib/billing/wallet";
 import { composeEditorState } from "@/lib/api/compose";
 import { apiError } from "@/lib/api/errors";
-import { COSTS, MAX_CHAT_MESSAGE_LENGTH } from "@/lib/types";
+import { COSTS, MAX_CHAT_MESSAGE_LENGTH, type GarmentSpec } from "@/lib/types";
 import { proposeGarment } from "@/lib/ai";
+import { validateFormSpec, mergeFormSpec } from "@/lib/ai/formSpec";
 import {
   validateAttachmentInputs,
   MAX_ATTACHMENTS_TOTAL_BASE64_CHARS,
@@ -86,6 +87,19 @@ export async function POST(request: Request, { params }: Ctx) {
   if (body.images !== undefined) {
     images = validateAttachmentInputs(body.images);
     if (!images) return apiError("invalid_attachment", 400);
+  }
+  // The user's own explicit choices, when the request came from the creation
+  // form rather than free prose. Same placement and same reasoning as the
+  // attachment check above: rejected before any lock, debit or Anthropic
+  // call. A present-but-unusable formSpec is refused rather than ignored,
+  // because validateSpec defaults an absent `type` to "blouse" -- silently
+  // dropping the field would merge that default over whatever garment the
+  // model correctly inferred, which is worse than answering a code for a
+  // request the real UI cannot produce anyway.
+  let formSpec: GarmentSpec | null = null;
+  if (body.formSpec !== undefined) {
+    formSpec = validateFormSpec(body.formSpec);
+    if (!formSpec) return apiError("invalid_form_spec", 400);
   }
   const answering = body.answering === true;
   // Client-computed metadata from a DXF import reconstruction (#238
@@ -176,6 +190,13 @@ export async function POST(request: Request, { params }: Ctx) {
                 }
               : {}),
             importContext,
+            // Told to the model so its own reply text stays coherent and it
+            // does not ask about an already-answered field. That is
+            // necessary but it is NOT the guarantee -- the merge in the
+            // apply branch below is, the same way applyGarmentSpec clamps
+            // every measurement regardless of what the model claims
+            // prompted the value.
+            ...(formSpec ? { formSpec } : {}),
           });
 
           // #99: this used to be three positive `if`s (ask/decline/explain)
@@ -250,6 +271,15 @@ export async function POST(request: Request, { params }: Ctx) {
             }
             case "apply": {
               entries.push(debitWallet(wallet, cost, "generate"));
+              // The structural half of "the user's explicit choice wins",
+              // and the only branch it belongs in: after the model has
+              // spoken, so a field the form left alone keeps its inference,
+              // and before applyGarmentSpec, so the drafted geometry
+              // reflects the merge. ask/decline/explain draft nothing, so
+              // there is no spec of theirs to correct.
+              const spec = formSpec
+                ? mergeFormSpec(decision.spec, formSpec)
+                : decision.spec;
               // The size chart is snapshotted once, at the first generation.
               // That is also the only moment the account's active chart can
               // be passed over, so it is the only moment there is a
@@ -265,13 +295,13 @@ export async function POST(request: Request, { params }: Ctx) {
                   await getSizeChartForGeneration(
                     tx,
                     gate.id,
-                    decision.spec.gender ?? "female",
+                    spec.gender ?? "female",
                     tCharts,
                   );
                 seedPatternSizeSnapshot(state, chart);
                 substitutedFrom = rejectedActiveName;
               }
-              applyGarmentSpec(state, decision.spec, t);
+              applyGarmentSpec(state, spec, t);
               bumpVersion(state);
               // #16: recorded in the SAME transaction as the debit and the
               // pattern save -- a version row can never exist without the

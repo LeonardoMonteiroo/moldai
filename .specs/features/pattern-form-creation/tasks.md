@@ -435,7 +435,7 @@ T19 -> T20 -> T21
 
 ---
 
-#### T12: Honor a form-supplied spec on the generate route
+#### T12: Honor a form-supplied spec on the generate route ✅
 
 **What**: Read `formSpec` through `validateFormSpec`, answer 400 `invalid_form_spec` when present-but-unusable (before any debit or AI call), forward it into the prompt via `ProposeOptions`, and apply `mergeFormSpec` to the returned spec in the `apply` branch before `applyGarmentSpec`.
 **Where**: `app/api/patterns/[id]/generate/route.ts`
@@ -450,15 +450,17 @@ T19 -> T20 -> T21
 
 **Done when**:
 
-- [ ] A `formSpec` with no `type`, a non-object `formSpec`, and one naming an unrecognized type each answer 400 `invalid_form_spec` with no debit and no `proposeGarment` call (PFORM-28)
-- [ ] With the AI stubbed to return a contradicting `collar`/`sleeve`/`type`, the persisted spec carries the form's values (PFORM-25)
-- [ ] A style field the form left unset keeps the AI's returned value in the persisted spec (PFORM-25)
-- [ ] A `measurementOverrides` entry the AI returned survives the merge (PFORM-25)
-- [ ] `formSpec` reaches the prompt, asserted through the mocked SDK's `system` blocks (PFORM-26)
-- [ ] An omitted `formSpec` leaves the whole flow unchanged, pinned by the route's existing tests
-- [ ] The merge runs only in the `apply` branch — `ask`, `decline` and `explain` are untouched
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: 10+ new tests pass (no silent deletions)
+- [x] A `formSpec` with no `type`, a non-object `formSpec`, and one naming an unrecognized type each answer 400 `invalid_form_spec` with no debit and no `proposeGarment` call (PFORM-28) — plus an array and a literal `null`, the two other shapes `validateFormSpec` refuses
+- [x] With the AI stubbed to return a contradicting `collar`/`sleeve`/`type`, the persisted spec carries the form's values (PFORM-25) — and a contradicting `neckline` too
+- [x] A style field the form left unset keeps the AI's returned value in the persisted spec (PFORM-25)
+- [x] A `measurementOverrides` entry the AI returned survives the merge (PFORM-25) — asserted on the persisted spec AND on the drafted `baseMeasurements`, so it is proven to have reached the drafter, not merely been stored
+- [x] `formSpec` reaches the prompt (PFORM-26) — asserted at this layer as the validated spec reaching `proposeGarment`'s options. The rest of that chain is pinned where it lives, since this route's tests mock `@/lib/ai` wholesale: `lib/ai/index.test.ts:410` asserts `formSpec` reaches the mocked SDK's captured `system` blocks (T7), and `lib/ai/prompt.test.ts:281-309` asserts the section's content and its position after the blank-pattern `ask` instruction (T6)
+- [x] An omitted `formSpec` leaves the whole flow unchanged, pinned by the route's existing tests — plus one explicit test that no `formSpec` reaches the options and the model's spec persists verbatim
+- [x] The merge runs only in the `apply` branch — `ask`, `decline` and `explain` are untouched, each pinned by its own case asserting the pattern's spec, version and piece list are all unchanged
+- [x] Gate check passes: `npm test` — 3291 passed
+- [x] Test count: 10+ new tests pass (no silent deletions) — 16 new tests
+
+**Scope note**: this commit also adds `formSpec: z.unknown().optional()` to `GenerateBodySchema`. A zod key has no behavior of its own and `body.formSpec` is a compile error without it, so it is absorbed here on the same "absorb the blocking dependency so the task is self-testable" rule T11 applied to `images`. It stays `z.unknown()` because `validateFormSpec` needs the RAW value: it decides field by field whether the request already named a value `validateSpec` recognizes, which anything coerced or defaulted at the schema layer would have destroyed.
 
 **Tests**: unit
 **Gate**: full

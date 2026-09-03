@@ -101,11 +101,17 @@ export const PatternStateSchema = z.object({
 // exactly why the rename had to make every caller a compile error rather
 // than accept both shapes -- a stale caller loses its reference silently,
 // so the compiler is the only thing that can catch one.
+// `formSpec` stays z.unknown() for the same reason every other key here
+// does: validateFormSpec (lib/ai/formSpec.ts) is its real trust boundary,
+// and it needs the RAW value -- it decides field by field whether the
+// request already named a value validateSpec recognizes, which a schema
+// that had already coerced or defaulted anything would have destroyed.
 export const GenerateBodySchema = z.object({
   message: z.unknown().optional(),
   images: z.unknown().optional(),
   answering: z.unknown().optional(),
   importContext: z.unknown().optional(),
+  formSpec: z.unknown().optional(),
 });
 
 // graduate: `sizes` is read with `Array.isArray(body.sizes) ? body.sizes :

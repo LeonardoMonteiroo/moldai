@@ -891,6 +891,224 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(state.pattern.sizeChartName).toBe("Feminino adulto · ABNT");
   });
 
+  // PFORM-28: a present-but-unusable formSpec is refused, never ignored.
+  // validateSpec defaults an absent `type` to "blouse", so dropping the
+  // field silently would merge that default over whatever garment the model
+  // correctly inferred -- the one failure the explicit-type rule exists for.
+  it.each([
+    ["carries no type", {}],
+    ["is not an object", "blouse"],
+    ["names an unrecognized type", { type: "corset" }],
+    ["is an array", [{ type: "blouse" }]],
+    ["is null", null],
+  ] as const)(
+    "answers invalid_form_spec when the form spec %s, with no debit and no proposeGarment call",
+    async (_label, formSpec) => {
+      const balanceBefore = wallet.balance;
+      const res = await POST(req({ message: "uma blusa", formSpec }), ctx());
+      expect(res.status).toBe(400);
+      expect((await res.json()).error).toBe("invalid_form_spec");
+      expect(wallet.balance).toBe(balanceBefore);
+      expect(lastEntries).toEqual([]);
+      expect(mockPropose).not.toHaveBeenCalled();
+    },
+  );
+
+  // PFORM-25: the guarantee is structural, not an instruction the model may
+  // ignore -- the form's value is re-applied over whatever it returned.
+  it("overwrites the model's garment type with the form's", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "tshirt",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+
+    await POST(
+      req({ message: "uma saia", formSpec: { type: "skirt" } }),
+      ctx(),
+    );
+
+    expect(state.pattern.spec?.type).toBe("skirt");
+  });
+
+  it.each([
+    ["collar", "shirt", "none"],
+    ["sleeve", "long", "short"],
+    ["neckline", "V", "round"],
+  ] as const)(
+    "overwrites the model's %s with the form's",
+    async (field, formValue, aiValue) => {
+      mockPropose.mockResolvedValue({
+        decision: "apply",
+        spec: {
+          type: "blouse",
+          gender: "female",
+          measurementOverrides: {},
+          style: { [field]: aiValue },
+        },
+        assistantMessage: "Pronto",
+      });
+
+      await POST(
+        req({
+          message: "uma blusa",
+          formSpec: { type: "blouse", style: { [field]: formValue } },
+        }),
+        ctx(),
+      );
+
+      expect(state.pattern.spec?.style[field]).toBe(formValue);
+    },
+  );
+
+  // PFORM-25's other half: a select the user left on "deixar a IA decidir"
+  // sends nothing for that field, and the model's inference has to stand.
+  it("leaves a style field the form did not set at the model's own value", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: { neckline: "V", collar: "none" },
+      },
+      assistantMessage: "Pronto",
+    });
+
+    await POST(
+      req({
+        message: "uma blusa",
+        formSpec: { type: "blouse", style: { collar: "shirt" } },
+      }),
+      ctx(),
+    );
+
+    expect(state.pattern.spec?.style.collar).toBe("shirt");
+    expect(state.pattern.spec?.style.neckline).toBe("V");
+  });
+
+  // The form has no measurement fields, so its own measurementOverrides is
+  // always empty -- spreading it would wipe an override the model extracted
+  // from the details text ("cintura 4 cm mais folgada"), a real capability
+  // the form must not cost.
+  it("keeps a measurementOverride the model returned", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: { waist: 80 },
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+
+    await POST(
+      req({
+        message: "uma blusa com a cintura mais folgada",
+        formSpec: { type: "blouse", style: { collar: "shirt" } },
+      }),
+      ctx(),
+    );
+
+    expect(state.pattern.spec?.measurementOverrides.waist).toBe(80);
+    expect(state.pattern.baseMeasurements?.waist).toBe(80);
+  });
+
+  // PFORM-26: the validated form spec reaches the prompt through
+  // proposeGarment's options. The rest of that chain is pinned where it
+  // lives -- lib/ai/index.test.ts:410 asserts formSpec reaches the SDK's
+  // captured `system` blocks, and lib/ai/prompt.test.ts asserts the section's
+  // content and its position after the blank-pattern ask instruction.
+  it("forwards the validated form spec to proposeGarment", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+
+    await POST(
+      req({
+        message: "uma blusa",
+        formSpec: { type: "blouse", style: { collar: "shirt" } },
+      }),
+      ctx(),
+    );
+
+    expect(mockPropose.mock.calls[0][1].formSpec).toEqual({
+      type: "blouse",
+      measurementOverrides: {},
+      style: { collar: "shirt" },
+    });
+  });
+
+  it("sends no formSpec and persists the model's spec verbatim when the request carries none", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "tshirt",
+        gender: "male",
+        measurementOverrides: {},
+        style: { neckline: "round" },
+      },
+      assistantMessage: "Pronto",
+    });
+
+    await POST(req({ message: "uma camiseta" }), ctx());
+
+    expect(mockPropose.mock.calls[0][1].formSpec).toBeUndefined();
+    expect(state.pattern.spec?.type).toBe("tshirt");
+    expect(state.pattern.spec?.style.neckline).toBe("round");
+  });
+
+  // The merge belongs to the apply branch alone: the other three decisions
+  // draft nothing, so there is no spec of theirs to correct, and running it
+  // there would rewrite the pattern's stored spec for a turn that produced
+  // no geometry.
+  it.each(["ask", "decline", "explain"] as const)(
+    "leaves the pattern's spec and version untouched on %s even with a form spec",
+    async (decision) => {
+      const specBefore = JSON.stringify(state.pattern.spec);
+      const versionBefore = state.pattern.version;
+      mockPropose.mockResolvedValue({
+        decision,
+        spec: {
+          type: "tshirt",
+          gender: "male",
+          measurementOverrides: {},
+          style: {},
+        },
+        questions:
+          decision === "ask"
+            ? [{ id: "q0", label: "Gola", options: ["redonda"] }]
+            : undefined,
+        assistantMessage: "…",
+      });
+
+      await POST(
+        req({
+          message: "uma saia",
+          formSpec: { type: "skirt", style: { waistband: "straight" } },
+        }),
+        ctx(),
+      );
+
+      expect(JSON.stringify(state.pattern.spec)).toBe(specBefore);
+      expect(state.pattern.version).toBe(versionBefore);
+      expect(state.pattern.pieces).toHaveLength(0);
+    },
+  );
+
   // #61: a throw past withPatternAndWallet's own transaction close (e.g. it
   // already timed out — a slow AI call plus retries could previously
   // outlive TX_OPTS.timeout) used to escape as a bare, uncoded HTTP 500.
