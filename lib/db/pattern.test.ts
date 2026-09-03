@@ -196,36 +196,46 @@ describe("withPattern", () => {
   // pass its own "the persisted message carries imageCount" assertion and
   // still lose the value one turn later, which is what this pins.
   //
-  // Note it asserts imageCount only. `hasImage` and `assembly` are absent
-  // from that same schema and are being destroyed the same way today -- a
-  // real pre-existing defect, reported separately rather than folded into
-  // this feature's commit, since it predates it and needs its own coverage.
-  it("keeps a chat message's imageCount across a read-modify-write round trip", async () => {
-    const seeded = seedPatternState(t);
-    seeded.chat.push({
-      id: "c1",
-      author: "user",
-      text: "uma blusa como nessas fotos",
-      createdAt: 1,
-      hasImage: true,
-      imageCount: 3,
+  // One case per flag, deliberately, rather than one case asserting all
+  // three: a single grouped assertion passes as soon as any one key is
+  // listed in the schema, so it could not tell "all three survive" from
+  // "imageCount survives and the other two are gone" -- which is exactly
+  // the state this file was in before T22.
+  const FLAG_CASES = [
+    { key: "imageCount" as const, value: 3 },
+    { key: "hasImage" as const, value: true },
+    { key: "assembly" as const, value: true },
+  ];
+
+  for (const { key, value } of FLAG_CASES) {
+    it(`keeps a chat message's ${key} across a read-modify-write round trip`, async () => {
+      const seeded = seedPatternState(t);
+      seeded.chat.push({
+        id: "c1",
+        author: "user",
+        text: "uma blusa como nessas fotos",
+        createdAt: 1,
+        [key]: value,
+      });
+      rows = [
+        {
+          id: "m1",
+          userId: "u1",
+          data: JSON.parse(JSON.stringify(seeded)),
+          updatedAt: new Date(),
+        },
+      ];
+
+      await withPattern("m1", "u1", (state) => bumpVersion(state));
+
+      const saved = rows.find((r) => r.id === "m1")!.data as {
+        chat: Record<string, unknown>[];
+      };
+      const persisted = saved.chat.find((m) => m.id === "c1");
+      expect(persisted).toBeDefined();
+      expect(persisted![key]).toBe(value);
     });
-    rows = [
-      {
-        id: "m1",
-        userId: "u1",
-        data: JSON.parse(JSON.stringify(seeded)),
-        updatedAt: new Date(),
-      },
-    ];
-
-    await withPattern("m1", "u1", (state) => bumpVersion(state));
-
-    const saved = rows.find((r) => r.id === "m1")!.data as {
-      chat: { imageCount?: number }[];
-    };
-    expect(saved.chat[0].imageCount).toBe(3);
-  });
+  }
 
   // #72: every current caller only reaches savePattern after lockPattern has
   // already verified ownership inside the same transaction, so this can't be

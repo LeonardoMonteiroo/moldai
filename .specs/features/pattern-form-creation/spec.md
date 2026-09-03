@@ -209,7 +209,7 @@ All four stories below are P1: the user explicitly chose the full-capability opt
 | PFORM-65       | P1: Several photos              | Execute (T3, T11)            | Verified     |
 | PFORM-66       | P1: Several photos              | Execute (T7)                 | Verified     |
 | PFORM-67       | P1: Several photos              | Execute (T11, T15)           | Verified     |
-| PFORM-68       | P1: Several photos              | Design                       | Pending      |
+| PFORM-68       | P1: Several photos              | Execute (T22)                | Implementing |
 
 **ID format:** `PFORM-NN`, numbered per story block (01-11 form shell, 20-28 style controls, 40-47 size chart, 60-68 photos) so each story's acceptance criteria map to its IDs in order.
 

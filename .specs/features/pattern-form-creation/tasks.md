@@ -85,8 +85,10 @@ T14 -> T17
 
 ### Phase 5: UI
 
+T22 leads: the chip T18 renders is destroyed on the next mutating turn until the read boundary keeps its field.
+
 ```
-T18
+T22 -> T18
 T19 -> T20 -> T21
 ```
 
@@ -635,11 +637,42 @@ Two smaller decisions worth naming: a `status: "error"` / `"answered"` response 
 
 ### Phase 5: UI
 
+#### T22: Stop the read boundary from deleting a message's own flags ✅
+
+**What**: Add `hasImage` and `assembly` to `ChatMessageSchema` so neither is stripped by the parse `toState` runs on every read, with a round-trip test that fails per key when its entry is removed.
+**Where**: `lib/schemas/pattern.ts`
+**Depends on**: None
+**Reuses**: the `imageCount` entry and its explanatory comment that Batch B added to this same object after `migration-safety` flagged the identical defect
+**Requirement**: PFORM-67, PFORM-68 (enabling — `ChatBubble` gates the chip on `hasImage`, so without this the chip cannot survive a reload)
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [x] `hasImage` and `assembly` both survive `PatternStateSchema.safeParse`, asserted on the parsed message rather than the input
+- [x] A read-modify-write round trip (parse, mutate an unrelated field, re-serialize) preserves both, matching the shape of the `imageCount` round-trip test in `lib/db/pattern.test.ts`
+- [x] Each key's test is verified to FAIL when that key's schema entry is removed — checked individually, not as a group
+- [x] No other schema key is added, renamed or loosened
+- [x] Gate check passes: `npx vitest run --project node`
+- [x] Test count: 4+ new tests pass (no silent deletions)
+
+**Tests**: unit
+**Gate**: quick
+
+**Commit**: `fix(patterns): keep a chat message's image and assembly flags on read`
+
+> **SPEC_DEVIATION — deliberate, user-approved scope increase.** `assembly` is not required by any `PFORM` requirement; `hasImage` is (PFORM-67/68 cannot work in the app without it, only in their tests). Both are one line in the same schema object and one round-trip test covers all three keys, so fixing only half while editing two lines away was judged worse than the scope cost. Confirmed empirically before the decision: running the real schema strips `hasImage` and `assembly` and keeps `imageCount`, and in the live dev database only 4 of 157 persisted messages still carry `hasImage` — every one of them the most recent generation's user turn, with no later mutating turn to destroy it. `assembly` is the #138 signal that marks an answer as AI-generated sewing guidance so `ChatBubble` can attach its disclaimer; stripped, that disclaimer disappears one turn after it is earned.
+
+---
+
 #### T18: Say how many images a turn carried
 
 **What**: `ChatBubble` renders `t("imagesAttached", { count: message.imageCount ?? 1 })` in place of the fixed `imageAttached` chip, with the plural ICU entry replacing the old key in the catalog.
 **Where**: `components/editor/ChatBubble.tsx`
-**Depends on**: T11
+**Depends on**: T11, T22
 **Reuses**: the existing chip markup and its `bg-primary-foreground/15` tinting note
 **Requirement**: PFORM-68
 
@@ -785,7 +818,7 @@ Phase 4:
   T14 -> T16
   T14 -> T17
 Phase 5:
-  T18
+  T22 -> T18
   T19 -> T20 -> T21
 ```
 
@@ -816,6 +849,7 @@ Execution is strictly sequential — there is no intra-phase parallelism. A sing
 | T15: editor store migration       | 1 store action                                      | ✅ Granular                                                                                                                                                                                                                    |
 | T16: import store migration       | 1 store action                                      | ✅ Granular                                                                                                                                                                                                                    |
 | T17: `createFromForm`             | 1 store action                                      | ✅ Granular                                                                                                                                                                                                                    |
+| T22: keep message flags on read   | 2 keys in 1 schema object                           | ✅ Granular (2-3 related things in one file)                                                                                                                                                                                   |
 | T18: image-count chip             | 1 component + its own catalog key                   | ✅ Granular                                                                                                                                                                                                                    |
 | T19: the form component           | 1 component + its own catalog namespace             | ✅ Granular (one component; its namespace is not separately testable)                                                                                                                                                          |
 | T20: two-step dialog              | 1 component                                         | ✅ Granular                                                                                                                                                                                                                    |
@@ -844,7 +878,8 @@ Execution is strictly sequential — there is no intra-phase parallelism. A sing
 | T15  | T14                                 | T14 → T15               | ✅ Match |
 | T16  | T14                                 | T14 → T16               | ✅ Match |
 | T17  | T14                                 | T14 → T17               | ✅ Match |
-| T18  | T11 (cross-phase)                   | — (cross-phase, exempt) | ✅ Match |
+| T22  | None                                | (no inbound arrow)      | ✅ Match |
+| T18  | T11 (cross-phase), T22              | T22 → T18               | ✅ Match |
 | T19  | T1 (cross-phase), T17 (cross-phase) | — (cross-phase, exempt) | ✅ Match |
 | T20  | T19                                 | T19 → T20               | ✅ Match |
 | T21  | T17 (cross-phase), T20              | T20 → T21               | ✅ Match |
@@ -874,6 +909,7 @@ Cross-phase dependencies point strictly backward and, per the checker's own rule
 | T15  | Client store                           | unit             | unit             | ✅ OK  |
 | T16  | Client store                           | unit             | unit             | ✅ OK  |
 | T17  | Client store                           | unit             | unit             | ✅ OK  |
+| T22  | Zod schema at the read boundary        | unit             | unit             | ✅ OK  |
 | T18  | React component (+ catalog entry)      | unit (jsdom+RTL) | unit (jsdom+RTL) | ✅ OK  |
 | T19  | React component (+ catalog namespace)  | unit (jsdom+RTL) | unit (jsdom+RTL) | ✅ OK  |
 | T20  | React component                        | unit (jsdom+RTL) | unit (jsdom+RTL) | ✅ OK  |
@@ -885,7 +921,7 @@ T5 is the only `Tests: none`, and it matches the matrix's own "none" row: a type
 
 ## Requirement Coverage
 
-All 36 spec requirements map to at least one task; no requirement is unmapped.
+All 36 spec requirements map to at least one task; no requirement is unmapped. T22 was added during Execute (see its own SPEC_DEVIATION note) and carries no requirement of its own — it unblocks PFORM-67/68 in the running app rather than in their tests.
 
 | Requirement range    | Tasks              |
 | -------------------- | ------------------ |
@@ -908,5 +944,5 @@ All 36 spec requirements map to at least one task; no requirement is unmapped.
 | PFORM-64             | T11, T14, T15, T16 |
 | PFORM-65             | T3, T11            |
 | PFORM-66             | T7                 |
-| PFORM-67             | T11, T15           |
-| PFORM-68             | T18                |
+| PFORM-67             | T11, T15, T22      |
+| PFORM-68             | T18, T22           |

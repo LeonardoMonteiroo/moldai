@@ -16,14 +16,27 @@ const ChatMessageSchema = z.object({
   questions: z.array(ClarifyQuestionSchema).optional(),
   tone: z.enum(["neutral", "conflict", "notice"]).optional(),
   createdAt: z.number(),
-  // Listed because a key this object does not name is STRIPPED, and the
-  // strip is not confined to the response: lockPattern returns the parsed
-  // state and savePattern writes that same object straight back, so an
-  // unlisted message field is deleted from the row by the next mutating
-  // turn. Writing imageCount at the route and omitting it here would give
-  // it a one-turn lifetime. Pinned by lib/db/pattern.test.ts's round-trip
-  // test rather than left to the read path's own silence.
+  // The three flags below are listed because a key this object does not name
+  // is STRIPPED, and the strip is not confined to the response: lockPattern
+  // returns the parsed state and savePattern writes that same object
+  // straight back, so an unlisted message field is deleted from the row by
+  // the next mutating turn. Writing one at the route and omitting it here
+  // gives it a one-turn lifetime -- long enough to pass a "the persisted
+  // message carries it" assertion and still be gone by the time anyone
+  // reloads. All three are pinned by lib/db/pattern.test.ts's per-key
+  // round-trip tests rather than left to the read path's own silence.
+  //
+  // `hasImage` and `assembly` were missing here for as long as they have
+  // existed, and were being destroyed exactly that way: measured against the
+  // real schema, and in a live database only 4 of 157 persisted messages
+  // still carried `hasImage` -- every one of them the newest generation's
+  // own user turn, none having survived a later turn. That cost `hasImage`
+  // its attachment chip on reload and `assembly` the disclaimer that marks
+  // an answer as AI-generated sewing guidance (#138), which is a label the
+  // reader is owed rather than a decoration.
   imageCount: z.number().int().nonnegative().optional(),
+  hasImage: z.boolean().optional(),
+  assembly: z.boolean().optional(),
 });
 
 const ConflictInfoSchema = z.object({
