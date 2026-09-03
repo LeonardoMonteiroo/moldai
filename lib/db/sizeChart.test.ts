@@ -206,6 +206,7 @@ import {
   deleteSizeChart,
   setActiveSizeChart,
   getSizeChartForGeneration,
+  getSizeChartGenderForUser,
   hasCustomActiveSizeChart,
   MAX_SIZE_CHARTS_LISTED,
 } from "./sizeChart";
@@ -620,6 +621,106 @@ describe("setActiveSizeChart / getSizeChartForGeneration", () => {
       T,
     );
     expect(rejectedActiveName).toBeNull();
+  });
+
+  // PFORM-42: a per-molde choice wins outright -- its gender is not
+  // re-checked (the drafted spec's gender comes FROM this chart) and nothing
+  // was passed over silently, so rejectedActiveName stays null even though a
+  // different chart is active.
+  it("drafts from the requested chart even when its gender differs and another chart is active", async () => {
+    const charts = await listSizeChartsForUser(prisma, "u1", T);
+    const male = charts.find((c) => c.gender === "male")!;
+    const female = charts.find((c) => c.gender === "female")!;
+    await setActiveSizeChart("u1", female.id);
+
+    const { chart, rejectedActiveName } = await getSizeChartForGeneration(
+      prisma,
+      "u1",
+      "female",
+      T,
+      male.id,
+    );
+
+    expect(chart.name).toBe(male.name);
+    expect(chart.gender).toBe("male");
+    expect(rejectedActiveName).toBeNull();
+  });
+
+  // PFORM-46: an id naming no chart in the account's list falls through to
+  // every existing branch unchanged -- which is also what makes a chart
+  // deleted between the route's ownership check and the lock resolve to
+  // today's safe behavior instead of an error.
+  it("falls through to the active-then-system pick, substitution notice included, for a requestedId it cannot resolve", async () => {
+    const created = (await createSizeChart("u1", T))!; // female
+    await setActiveSizeChart("u1", created.id);
+
+    const { chart, rejectedActiveName } = await getSizeChartForGeneration(
+      prisma,
+      "u1",
+      "male",
+      T,
+      "does-not-exist",
+    );
+
+    expect(chart.isSystem).toBe(true);
+    expect(chart.gender).toBe("male");
+    expect(rejectedActiveName).toBe(created.name);
+  });
+});
+
+// PFORM-43: the generate route needs one chart's gender before it enters the
+// transaction -- the gender goes into the drafted spec and the prompt, and a
+// 400 for a chart the account does not own has to land before any lock,
+// debit or Anthropic call.
+describe("getSizeChartGenderForUser", () => {
+  beforeEach(() => {
+    rows = [];
+    users = {};
+    nextId = 1;
+    deleteRowOnNextRead = null;
+  });
+
+  it("returns the chart's own gender for a chart the account owns", async () => {
+    const charts = await listSizeChartsForUser(prisma, "u1", T);
+    const male = charts.find((c) => c.gender === "male")!;
+    const female = charts.find((c) => c.gender === "female")!;
+
+    expect(await getSizeChartGenderForUser(male.id, "u1")).toBe("male");
+    expect(await getSizeChartGenderForUser(female.id, "u1")).toBe("female");
+  });
+
+  it("returns null for an id that names no chart at all", async () => {
+    await listSizeChartsForUser(prisma, "u1", T);
+    expect(await getSizeChartGenderForUser("does-not-exist", "u1")).toBeNull();
+  });
+
+  it("returns null for a chart owned by another account", async () => {
+    const otherUsersChart = (await createSizeChart("u2", T))!;
+    expect(
+      await getSizeChartGenderForUser(otherUsersChart.id, "u1"),
+    ).toBeNull();
+  });
+
+  // The loadPattern contract: both misses answer with the identical value, so
+  // the reader can never be used to probe whether another account's chart id
+  // exists.
+  it("answers identically for a nonexistent chart and another account's chart", async () => {
+    const otherUsersChart = (await createSizeChart("u2", T))!;
+    const missing = await getSizeChartGenderForUser("does-not-exist", "u1");
+    const unowned = await getSizeChartGenderForUser(otherUsersChart.id, "u1");
+    expect(missing).toBe(unowned);
+    expect(missing).toBeNull();
+  });
+
+  // #58's precedent, applied to this reader: a drifted blob returns null the
+  // same way an unowned chart does, rather than throwing into the route.
+  it("returns null instead of throwing when the stored row is unparseable", async () => {
+    const created = (await createSizeChart("u1", T))!;
+    const row = rows.find((r) => r.id === created.id)!;
+    row.data = { ...(row.data as object), baseMeasurements: {} };
+    await expect(
+      getSizeChartGenderForUser(created.id, "u1"),
+    ).resolves.toBeNull();
   });
 });
 

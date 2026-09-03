@@ -30,14 +30,16 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 
 > Generated from codebase — confirm before Execute.
 
-| Gate Level | When to Use                                                       | Command                                     |
-| ---------- | ----------------------------------------------------------------- | ------------------------------------------- |
-| Quick      | Tasks touching only `lib/**` or `app/api/**` (the `node` project) | `npx vitest run --project node`             |
-| Quick-dom  | Tasks touching only `components/**` (the `dom` project)           | `npx vitest run --project dom`              |
-| Full       | Tasks that change a wire contract both projects read              | `npm test`                                  |
-| Build      | Phase completion, and any type-only / catalog-only change         | `npm test && npm run lint && npm run build` |
+| Gate Level | When to Use                                                       | Command                                                      |
+| ---------- | ----------------------------------------------------------------- | ------------------------------------------------------------ |
+| Quick      | Tasks touching only `lib/**` or `app/api/**` (the `node` project) | `npx vitest run --project node`                              |
+| Quick-dom  | Tasks touching only `components/**` (the `dom` project)           | `npx vitest run --project dom`                               |
+| Full       | Tasks that change a wire contract both projects read              | `npm test`                                                   |
+| Build      | Phase completion, and any type-only / catalog-only change         | `npm test && npx eslint app lib components && npm run build` |
 
 `npm run format` runs on every task before its commit (husky + prettier are already wired); it is not a gate of its own.
+
+**Correction (surfaced during Batch A, verified independently and by a repo hook):** the build gate lints `app lib components` explicitly instead of the bare `npm run lint` script. That script is `eslint` with no path argument, so it crawls `.claude/worktrees/` — whose nested worktrees hold full copies of the source tree — and `docs/design/screens/support.js`, the design handoff's own editor runtime. Together those report 9 errors belonging to no file in this checkout, identical at base commit `ee32304`. `npx eslint app lib components` exits 0 and is exactly what `.husky/pre-push` and `.github/workflows/ci.yml` execute, so it is the result that actually matters. Adding the missing ignore entries to `eslint.config.mjs` is a real fix but belongs to no task in this feature.
 
 ---
 
@@ -306,7 +308,7 @@ T19 -> T20 -> T21
 
 ### Phase 3: Server wire
 
-#### T8: Read a size chart's gender under the ownership scope
+#### T8: Read a size chart's gender under the ownership scope ✅
 
 **What**: `getSizeChartGenderForUser(sizeChartId, userId): Promise<Gender | null>` — an ownership-scoped read returning `null` for a chart that is missing or not the caller's — plus a `requestedId?` parameter on `getSizeChartForGeneration` forwarded straight to `pickSizeChartForGeneration`.
 **Where**: `lib/db/sizeChart.ts`
@@ -321,13 +323,13 @@ T19 -> T20 -> T21
 
 **Done when**:
 
-- [ ] Returns the chart's own `gender` for a chart the account owns
-- [ ] Returns `null` for an id that does not exist and for one owned by another account, with the same value for both so it is not an existence oracle
-- [ ] Never throws for a malformed or missing blob
-- [ ] `getSizeChartForGeneration` forwards `requestedId` and is unchanged when it is absent
-- [ ] `vi.mock` names `"./prisma"`, the exact specifier the subject imports (CLAUDE.md's silent-mismatch rule)
-- [ ] Gate check passes: `npx vitest run --project node`
-- [ ] Test count: 6+ new tests pass (no silent deletions)
+- [x] Returns the chart's own `gender` for a chart the account owns
+- [x] Returns `null` for an id that does not exist and for one owned by another account, with the same value for both so it is not an existence oracle
+- [x] Never throws for a malformed or missing blob
+- [x] `getSizeChartForGeneration` forwards `requestedId` and is unchanged when it is absent — the absent path stays pinned by the four pre-existing tests in its own describe block
+- [x] `vi.mock` names `"./prisma"`, the exact specifier the subject imports (CLAUDE.md's silent-mismatch rule)
+- [x] Gate check passes: `npx vitest run --project node` — 2584 passed
+- [x] Test count: 6+ new tests pass (no silent deletions) — 7 new tests
 
 **Tests**: unit
 **Gate**: quick
@@ -728,7 +730,7 @@ T19 -> T20 -> T21
 - [ ] A failure leaves the dialog open, renders the form's own message for the returned code, and leaves `ActionErrorNotice` showing behind it (PFORM-09)
 - [ ] Controls are disabled and the dialog undismissable while `creatingFromForm` is true (PFORM-07)
 - [ ] A 402 followed by a second submit issues no second `createPattern` (PFORM-08), asserted end to end through the shell
-- [ ] Gate check passes: `npm test && npm run lint && npm run build`
+- [ ] Gate check passes: `npm test && npx eslint app lib components && npm run build`
 - [ ] Test count: 6+ new tests pass (no silent deletions)
 
 **Tests**: unit (jsdom + RTL)
