@@ -1,20 +1,15 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { PatternState } from "@/lib/types";
-import type { ImageMediaType } from "@/lib/editor/attachment";
 import { STATIC_SECTIONS, buildDynamicSection } from "./prompt";
 import { buildHistory, type HistoryTurn } from "./history";
 import { TOOL, parseRawToolInput } from "./schema";
 import { resolveDecision, type AiDecision } from "./decision";
+import type { ProposeImage, ProposeOptions } from "./options";
 
-export type { AiDecision };
-
-// #18: the prepared (already downscaled/re-encoded) attachment proposeGarment
-// forwards to the model, one image content block per generate call -- never
-// persisted, see lib/editor/attachment.ts.
-export interface ProposeImage {
-  mediaType: ImageMediaType;
-  base64: string;
-}
+// ProposeImage was declared here before ProposeOptions needed it too (see
+// options.ts on the cycle) -- re-exported so no importer has to know it
+// moved.
+export type { AiDecision, ProposeImage, ProposeOptions };
 
 // Attaches `image` to the FINAL turn's content, converting it from a plain
 // string to the Messages API's content-block-array form. buildHistory stays

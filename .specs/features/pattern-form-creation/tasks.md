@@ -214,7 +214,7 @@ T19 -> T20 -> T21
 
 ### Phase 2: The AI call carries options, N images and the decided fields
 
-#### T5: Extract the propose-call's inputs into one options type
+#### T5: Extract the propose-call's inputs into one options type ✅
 
 **What**: A type-only module exporting `ProposeImage` (moved from `lib/ai/index.ts`) and `ProposeOptions { answering; images?; importContext?; formSpec? }`, so `prompt.ts` and `index.ts` can both name it without a cycle.
 **Where**: `lib/ai/options.ts`
@@ -229,9 +229,11 @@ T19 -> T20 -> T21
 
 **Done when**:
 
-- [ ] `ProposeImage` and `ProposeOptions` exported; `lib/ai/index.ts` re-exports `ProposeImage` so no external importer breaks
-- [ ] `npm run build`'s TypeScript check passes with no `any` and no new lint error
-- [ ] Gate check passes: `npm test && npm run lint && npm run build`
+- [x] `ProposeImage` and `ProposeOptions` exported; `lib/ai/index.ts` re-exports `ProposeImage` so no external importer breaks
+- [x] `npm run build`'s TypeScript check passes with no `any` and no new lint error
+- [x] Gate check passes — `npm test` 3229 passed, `npm run build` clean, lint clean.
+
+> **Lint invocation, for every later `build`-gate task (T21):** the repo-root `lint` script is a bare `eslint`, which crawls `.claude/worktrees/` and the vendored skill scripts and reports 9 errors belonging to no file in this checkout — identically at this batch's base commit `ee32304`, so they are not a regression. The invocation `.husky/pre-push` and `.github/workflows/ci.yml` actually run is **`npx eslint app lib components`**, which exits 0. Use that one; a repo hook blocks the bare script.
 
 **Tests**: none — type-only module, "none" row of the coverage matrix; its two consumers (T6, T7) carry the behavior tests
 **Gate**: build
