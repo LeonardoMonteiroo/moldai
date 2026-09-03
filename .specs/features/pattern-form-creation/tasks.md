@@ -739,7 +739,7 @@ Two smaller decisions worth naming: a `status: "error"` / `"answered"` response 
 
 ---
 
-#### T20: Turn the chooser into a two-step dialog
+#### T20: Turn the chooser into a two-step dialog ✅
 
 **What**: `NewPatternDialog` gains `step: "options" | "form"`, enables the form option (no badge, no reason `title`), renders `NewPatternForm` on the form step at the design's `460px` width, blocks dismissal while submitting, and drops the now-false `formOption.comingSoonTitle` catalog entry.
 **Where**: `components/dashboard/NewPatternDialog.tsx`
@@ -754,18 +754,20 @@ Two smaller decisions worth naming: a `status: "error"` / `"answered"` response 
 
 **Done when**:
 
-- [ ] Activating the form option switches to the form step without navigating (PFORM-01)
-- [ ] "Voltar" returns to the chooser with values already typed still present after switching back (PFORM-02) — proven by asserting a typed name survives a form → chooser → form round trip
-- [ ] The form option renders enabled, with no `soon` badge and no reason `title`
-- [ ] `onOpenChange` is a no-op while `submitting`, so an Escape press and an overlay click both leave the dialog open
-- [ ] The dialog's stale "em breve" assertions in `NewPatternDialog.test.tsx` are rewritten in this same commit, not deleted
-- [ ] Gate check passes: `npx vitest run --project dom`
-- [ ] Test count: 8+ new tests pass (no silent deletions)
+- [x] Activating the form option switches to the form step without navigating (PFORM-01)
+- [x] "Voltar" returns to the chooser with values already typed still present after switching back (PFORM-02) — proven by asserting a typed name survives a form → chooser → form round trip
+- [x] The form option renders enabled, with no `soon` badge and no reason `title`
+- [x] `onOpenChange` is a no-op while `submitting`, so an Escape press and an overlay click both leave the dialog open
+- [x] The dialog's stale "em breve" assertions in `NewPatternDialog.test.tsx` are rewritten in this same commit, not deleted
+- [x] Gate check passes: `npx vitest run --project dom`
+- [x] Test count: 8+ new tests pass (no silent deletions)
 
 **Tests**: unit (jsdom + RTL)
 **Gate**: quick-dom
 
 **Commit**: `feat(dashboard): open the new-pattern form from the chooser`
+
+> **Notes.** The form step is a **visibility toggle, not a conditional render** — it is mounted lazily on first entry and kept mounted after. PFORM-02 ("Voltar" preserves what was typed) only holds that way, since the form owns its own state; mutation-checked by unmounting it and watching the assertion fail. `Option`'s `reason` and `badge` props were removed along with their last caller, and the now-false `formOption.comingSoonTitle` / `comingSoonBadge` catalog keys with them. Leaves exactly one TypeScript error, at `DashboardShell.tsx:166` (the two new required props), which is T21's own `Where` — the same deliberate compile-error handoff Phase 2 used into T11.
 
 ---
 

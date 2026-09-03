@@ -173,8 +173,8 @@ All four stories below are P1: the user explicitly chose the full-capability opt
 
 | Requirement ID | Story                           | Phase                        | Status       |
 | -------------- | ------------------------------- | ---------------------------- | ------------ |
-| PFORM-01       | P1: Form creates a real pattern | Design                       | Pending      |
-| PFORM-02       | P1: Form creates a real pattern | Design                       | Pending      |
+| PFORM-01       | P1: Form creates a real pattern | Execute (T20)                | Verified     |
+| PFORM-02       | P1: Form creates a real pattern | Execute (T20)                | Verified     |
 | PFORM-03       | P1: Form creates a real pattern | Execute (T19)                | Verified     |
 | PFORM-04       | P1: Form creates a real pattern | Execute (T9, T10)            | Verified     |
 | PFORM-05       | P1: Form creates a real pattern | Execute (T19)                | Verified     |

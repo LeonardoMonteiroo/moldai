@@ -884,15 +884,13 @@
   "NewPatternDialog": {
     "title": "Novo molde",
     "subtitle": "Como você quer começar?",
-    "comingSoonBadge": "em breve",
     "promptOption": {
       "title": "Começar com prompt",
       "subtitle": "Descreva a peça em texto livre e a IA gera o molde."
     },
     "formOption": {
       "title": "Preencher formulário",
-      "subtitle": "Responda um passo a passo e a IA monta o molde.",
-      "comingSoonTitle": "O formulário pede uma tabela de medidas por molde e várias fotos; nenhuma das duas existe ainda."
+      "subtitle": "Responda um passo a passo e a IA monta o molde."
     },
     "importOption": {
       "title": "Importar molde",
