@@ -11,6 +11,7 @@ import { useDashboardStore } from "@/lib/dashboardStore";
 import { AppShell } from "@/components/shared/AppShell";
 import { ActionErrorNotice } from "@/components/shared/ActionErrorNotice";
 import { Sidebar } from "./Sidebar";
+import { NewPatternDialog } from "./NewPatternDialog";
 import { PatternGrid } from "./PatternGrid";
 import { CreditsCard } from "./CreditsCard";
 import { RecentUsageCard } from "./RecentUsageCard";
@@ -44,11 +45,23 @@ export function DashboardShell({
   const create = useDashboardStore((s) => s.create);
   const openPattern = (id: string) => router.push(`/pattern/${id}`);
 
+  // Dashboard.dc.html routes every "new pattern" affordance through one
+  // chooser rather than creating a blank pattern outright -- the toolbar
+  // button, the empty state and the grid's trailing cell all open it.
+  const [chooserOpen, setChooserOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+
   // create() records its own failure on this screen's store, which the
   // ActionErrorNotice below renders.
-  const handleNewPattern = async () => {
+  const handleStartFromPrompt = async () => {
+    setCreating(true);
     const id = await create();
+    setCreating(false);
     if (id) openPattern(id);
+    // Closed on failure too: create() records the error on this screen's
+    // store, and that notice renders in the content region behind the
+    // dialog -- leaving it open would hide the only feedback there is.
+    else setChooserOpen(false);
   };
 
   // Loading and error live inside the content region, not in place of the
@@ -131,7 +144,7 @@ export function DashboardShell({
           <div className="flex flex-col gap-4 pt-[22px]">
             <PatternGrid
               onOpen={openPattern}
-              onNewPattern={handleNewPattern}
+              onNewPattern={() => setChooserOpen(true)}
               checklistSlot={
                 checklist && (
                   <OnboardingChecklistCard
@@ -150,6 +163,12 @@ export function DashboardShell({
           </div>
         </ScrollArea>
       )}
+      <NewPatternDialog
+        open={chooserOpen}
+        onOpenChange={setChooserOpen}
+        onStartFromPrompt={handleStartFromPrompt}
+        creating={creating}
+      />
     </AppShell>
   );
 }

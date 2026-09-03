@@ -144,7 +144,7 @@ export function ImportSizeChartDialog() {
         <UploadIcon className="size-[15px] shrink-0" aria-hidden />
         {t("trigger")}
       </button>
-      <DialogContent className="max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>{t("dialogTitle")}</DialogTitle>
         </DialogHeader>

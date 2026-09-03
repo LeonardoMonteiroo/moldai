@@ -881,6 +881,24 @@
     "step5Description": "Compartilhe o ateliê com quem também vai criar e ajustar moldes.",
     "step5Badge": "Em breve"
   },
+  "NewPatternDialog": {
+    "title": "Novo molde",
+    "subtitle": "Como você quer começar?",
+    "comingSoonBadge": "em breve",
+    "promptOption": {
+      "title": "Começar com prompt",
+      "subtitle": "Descreva a peça em texto livre e a IA gera o molde."
+    },
+    "formOption": {
+      "title": "Preencher formulário",
+      "subtitle": "Responda um passo a passo e a IA monta o molde.",
+      "comingSoonTitle": "O formulário pede uma tabela de medidas por molde e várias fotos; nenhuma das duas existe ainda."
+    },
+    "importOption": {
+      "title": "Importar molde",
+      "subtitle": "Envie um arquivo .dxf existente."
+    }
+  },
   "RecentUsageCard": {
     "title": "Uso recente",
     "empty": "Nenhum uso ainda.",

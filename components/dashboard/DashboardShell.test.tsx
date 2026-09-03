@@ -148,17 +148,30 @@ describe("DashboardShell empty-grid layout (#114)", () => {
     ).not.toBeNull();
   });
 
-  it("wires the empty-state create action through to pattern creation", async () => {
+  // Every "new pattern" affordance now opens Dashboard.dc.html's chooser
+  // first, rather than creating a blank pattern outright -- so the empty
+  // state's action reaches creation through the chooser's own prompt option,
+  // not directly.
+  it("wires the empty-state action through the chooser to pattern creation", async () => {
     const { createPattern } = await import("@/lib/api-client");
     vi.mocked(createPattern).mockResolvedValue({ id: "new-1" });
     const user = userEvent.setup();
 
     renderWithIntl(<DashboardShell userEmail="user@example.com" />);
 
-    const button = await screen.findByRole("button", {
-      name: ptBR.PatternGrid.emptyAction,
-    });
-    await user.click(button);
+    await user.click(
+      await screen.findByRole("button", {
+        name: ptBR.PatternGrid.emptyAction,
+      }),
+    );
+    // Nothing created yet: the chooser is the first thing that happens.
+    expect(createPattern).not.toHaveBeenCalled();
+
+    await user.click(
+      await screen.findByRole("button", {
+        name: new RegExp(ptBR.NewPatternDialog.promptOption.title),
+      }),
+    );
     expect(createPattern).toHaveBeenCalledTimes(1);
   });
 });

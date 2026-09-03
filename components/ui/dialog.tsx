@@ -70,6 +70,12 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
+          // A caller overriding the width MUST prefix it: `sm:max-w-[420px]`,
+          // never a bare `max-w-[420px]`. The default below is itself an
+          // `sm:` variant, so an unprefixed override loses to it at every
+          // width above the breakpoint and silently renders at 512px --
+          // ImportSizeChartDialog declared 600px and shipped at 512 for
+          // exactly this reason.
           "bg-background data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 outline-none sm:max-w-lg",
           className,
         )}

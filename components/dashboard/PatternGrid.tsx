@@ -1,7 +1,6 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useDashboardStore, filteredPatterns } from "@/lib/dashboardStore";
 import { PatternCard } from "./PatternCard";
@@ -39,7 +38,6 @@ export function PatternGrid({
 }) {
   const t = useTranslations("PatternGrid");
   const tGarment = useTranslations("TechSheetTab");
-  const router = useRouter();
   const patterns = useDashboardStore((s) => s.patterns);
   const search = useDashboardStore((s) => s.search);
   const typeFilter = useDashboardStore((s) => s.typeFilter);
@@ -130,15 +128,16 @@ export function PatternGrid({
           {filtered.map((p) => (
             <PatternCard key={p.id} pattern={p} onOpen={onOpen} />
           ))}
-          {/* Issue #210: this used to be an inert dashed placeholder badged
-              "em breve" for a DXF import flow that had already shipped at
-              /import (#163) -- the Sidebar entry linked straight into it
-              while this card three columns over still claimed it didn't
-              exist. It's a real control now, matching Sidebar's own fix for
-              the identical defect (#11). */}
+          {/* Dashboard.dc.html's trailing cell is a second "+ Novo molde"
+              opening the same chooser as the toolbar button, not a shortcut
+              into one particular way of starting. Importing a .dxf is one of
+              the three options inside that chooser now (it was #210's fix to
+              make this cell a real control rather than an inert "em breve"
+              placeholder; the control is real either way, it just points at
+              the chooser the design routes everything through). */}
           <button
             type="button"
-            onClick={() => router.push("/import")}
+            onClick={onNewPattern}
             // `min-h`, not a fixed height: sharing a row with pattern cards,
             // the grid's own stretch already matches it to them, so this only
             // has to carry the case where it wraps onto a row of its own with
@@ -148,7 +147,7 @@ export function PatternGrid({
             // short even of the old 112px thumbnail's card.
             className="border-border rounded-card text-muted text-ui hover:bg-surface-alt flex min-h-[196px] flex-col items-center justify-center gap-1 border border-dashed text-center transition-colors"
           >
-            {t("importCardLabel")}
+            {t("newPatternButton")}
           </button>
         </div>
       )}
