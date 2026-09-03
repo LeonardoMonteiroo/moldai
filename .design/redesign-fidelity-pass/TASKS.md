@@ -216,3 +216,37 @@ Each is a real divergence from the reference where the app's current behavior is
 3. **Size charts show no permanent "Regra · cm/tam" column** — the design has one beside the size columns; the app swaps the whole table into a rule-editing mode instead (#49). An interaction-model change, not a styling one.
 4. **`/import` renders on paper, not the design's white scroll region.** Importação is the only `.dc.html` setting `background: var(--color-surface)` on its content; paper is what separates that screen's white cards from the page.
 5. **Paid plan cards use a 2px border instead of the design's 1px + 4px olive top bar** — see Round 10 above.
+
+## Round 11 — deep single-screen audit: Onboarding (2026-09-03) — pass complete
+
+The last screen, and the only one never checked in a browser: Round 2's Onboarding fork hit the shared IP signup rate limit and fell back to code verification, explicitly recording that. Reached live here by nulling `onboardedAt` on a disposable test row — the exact state the route gates on, and no signups spent.
+
+Measured clean throughout: card **600px** wide with **28px** padding and `radius-card`, progress track **6px** at `#ece8dd` (the Round 4 `Progress` primitive fix is what makes that automatic now), option cards at **14px** padding and **11px** radius, three `role="radio"` options in a real `role="radiogroup"` on step 1.
+
+**Real divergence found and fixed:**
+
+- **All three step headings rendered at `text-body` (16px Archivo) where the design specifies `font-display text-title` (21px Bricolage).** On the app's first-run screen that left the step title barely distinguishable from the 13.5px option titles directly beneath it — the one place a new account needs an obvious "what am I being asked" line. Now `font-display text-title font-semibold`, the idiom already used for section headings elsewhere (`SizeChartLibrary`, `UsageSection`'s stat cards). Verified live: 16px → 21px on both reachable steps.
+
+**Found, deliberately NOT changed:**
+
+- **Step 2 is not a `radiogroup`**, where the design makes it one. Only one of its three options is selectable — the other two are the documented disabled + "em breve" rows — and a radiogroup announcing three choices where two cannot be chosen is worse than the app's current shape (one real button plus two disabled rows). The app is more honest than the mockup here.
+- **"‹ Voltar" keeps its literal `‹`**, which is what the design writes and which renders correctly in Archivo — unlike Round 6's `↥`, which did not.
+
+**A note on method, from a mistake made in this round:** the first mutation test of the new heading assertion passed, which would have meant a vacuous test. It was not — prettier had wrapped the `<h1>` across lines after the edit, so the single-line `sed` mutation silently matched nothing. Re-run against the real formatted text, the assertion failed as it should. A mutation test that _passes_ is a result to investigate, not to accept: it means either the assertion is vacuous or the mutation never landed.
+
+---
+
+## Pass complete — all 11 screens deep-audited
+
+Rounds 3–11 gave every screen in the handoff an individual audit against its `.dc.html` source plus a live measured render, after Rounds 1–2 had covered defaults and per-state coverage. Coverage: Editor (R3), Dashboard (R4), Medidas e grades (R5), Importação (R6), Configurações (R7), Versões (R8), Bases do ateliê (R9), Planos + Autenticação + Landing (R10), Onboarding (R11).
+
+**What the deep passes found that the earlier rounds structurally could not.** Rounds 1–2 compared code against written specs and screenshots against reference PNGs. Four of this pass's findings were invisible to both, because the code named the right values and the screenshots looked plausible:
+
+- `/size-charts`' library footer — "Nova grade" and "Importar planilha", the screen's primary actions — rendered at **y=1307 in a 900px viewport**, and its Save bar was off-screen exactly when there was something to save. Both were laid out against the _table's_ height because the whole screen was one scroll region instead of the design's fixed panels.
+- Version cards rendered **~330px tall against the design's ~210px** on a fixed-height screen. The card declared `w-[152px]` and `aspect-[4/3]`; both were inert, because the SVG inside used `h-full` against an aspect-ratio parent.
+- The import preview had **no pan or zoom at all**, making a dense CAD file unreadable on the one screen whose job is verifying it.
+- The `.csv` import trigger opened with **`↥` (U+21A5), which Archivo has no glyph for** — the fallback painted a mark that reads as the digit "1".
+
+The through-line: **a component can name every value the design states and still render wrong.** Measuring the rendered box is what caught all four; reading the source would not have.
+
+**Five open decisions remain**, listed in the section above. Each is a real divergence where the app's behavior is either documented as deliberate or is a judgement call this pass declined to make unilaterally. They are the only known outstanding gaps against the reference.

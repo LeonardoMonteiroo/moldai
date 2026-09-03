@@ -554,3 +554,22 @@ describe("OnboardingShell step 2 default chart", () => {
     ).toHaveAttribute("aria-checked", "true");
   });
 });
+
+describe("OnboardingShell step heading scale", () => {
+  // Onboarding.dc.html sets each step's h1 to `font-display text-title` --
+  // 21px Bricolage. It was rendering at `text-body` (16px Archivo), which on
+  // the app's first-run screen left the step title barely distinguishable
+  // from the 13.5px option titles right under it.
+  it("renders the step heading on the display face at the title step", () => {
+    renderWithIntl(<OnboardingShell credits={CREDITS} />);
+    const heading = screen.getByRole("heading", { level: 1 });
+    expect(heading).toHaveClass("font-display", "text-title");
+    expect(heading).not.toHaveClass("text-body");
+  });
+
+  it("keeps the option titles a step below the heading", () => {
+    renderWithIntl(<OnboardingShell credits={CREDITS} />);
+    const option = screen.getByText(ptBR.Onboarding.step1.patternmaker.title);
+    expect(option).toHaveClass("text-control");
+  });
+});

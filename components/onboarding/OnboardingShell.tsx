@@ -145,7 +145,9 @@ export function OnboardingShell({ credits }: { credits: Credits }) {
 
         {step === 1 && (
           <div className="mt-5 flex flex-col gap-4">
-            <h1 className="text-body font-semibold">{t("step1.title")}</h1>
+            <h1 className="font-display text-title font-semibold">
+              {t("step1.title")}
+            </h1>
             <div
               role="radiogroup"
               aria-label={t("step1.title")}
@@ -212,7 +214,9 @@ export function OnboardingShell({ credits }: { credits: Credits }) {
 
         {step === 2 && (
           <div className="mt-5 flex flex-col gap-4">
-            <h1 className="text-body font-semibold">{t("step2.title")}</h1>
+            <h1 className="font-display text-title font-semibold">
+              {t("step2.title")}
+            </h1>
             <div className="flex flex-col gap-[10px]">
               <button
                 type="button"
@@ -284,7 +288,9 @@ export function OnboardingShell({ credits }: { credits: Credits }) {
 
         {step === 3 && (
           <div className="mt-5 flex flex-col gap-4">
-            <h1 className="text-body font-semibold">{t("step3.title")}</h1>
+            <h1 className="font-display text-title font-semibold">
+              {t("step3.title")}
+            </h1>
             <Textarea
               value={message}
               onChange={(event) => setMessage(event.target.value)}
