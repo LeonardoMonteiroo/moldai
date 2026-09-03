@@ -171,45 +171,45 @@ All four stories below are P1: the user explicitly chose the full-capability opt
 
 ## Requirement Traceability
 
-| Requirement ID | Story                           | Phase            | Status       |
-| -------------- | ------------------------------- | ---------------- | ------------ |
-| PFORM-01       | P1: Form creates a real pattern | Design           | Pending      |
-| PFORM-02       | P1: Form creates a real pattern | Design           | Pending      |
-| PFORM-03       | P1: Form creates a real pattern | Design           | Pending      |
-| PFORM-04       | P1: Form creates a real pattern | Execute (T9)     | Implementing |
-| PFORM-05       | P1: Form creates a real pattern | Design           | Pending      |
-| PFORM-06       | P1: Form creates a real pattern | Design           | Pending      |
-| PFORM-07       | P1: Form creates a real pattern | Design           | Pending      |
-| PFORM-08       | P1: Form creates a real pattern | Design           | Pending      |
-| PFORM-09       | P1: Form creates a real pattern | Design           | Pending      |
-| PFORM-10       | P1: Form creates a real pattern | Design           | Pending      |
-| PFORM-11       | P1: Form creates a real pattern | Design           | Pending      |
-| PFORM-20       | P1: Structured style choices    | Design           | Pending      |
-| PFORM-21       | P1: Structured style choices    | Execute (T1)     | Implementing |
-| PFORM-22       | P1: Structured style choices    | Execute (T1)     | Implementing |
-| PFORM-23       | P1: Structured style choices    | Execute (T1)     | Implementing |
-| PFORM-24       | P1: Structured style choices    | Execute (T2)     | Implementing |
-| PFORM-25       | P1: Structured style choices    | Execute (T2)     | Implementing |
-| PFORM-26       | P1: Structured style choices    | Execute (T6)     | Implementing |
-| PFORM-27       | P1: Structured style choices    | Execute (T2)     | Implementing |
-| PFORM-28       | P1: Structured style choices    | Execute (T2)     | Implementing |
-| PFORM-40       | P1: Per-molde size chart        | Design           | Pending      |
-| PFORM-41       | P1: Per-molde size chart        | Design           | Pending      |
-| PFORM-42       | P1: Per-molde size chart        | Execute (T4, T8) | Implementing |
-| PFORM-43       | P1: Per-molde size chart        | Execute (T8)     | Implementing |
-| PFORM-44       | P1: Per-molde size chart        | Design           | Pending      |
-| PFORM-45       | P1: Per-molde size chart        | Execute (T4)     | Implementing |
-| PFORM-46       | P1: Per-molde size chart        | Execute (T4)     | Implementing |
-| PFORM-47       | P1: Per-molde size chart        | Design           | Pending      |
-| PFORM-60       | P1: Several photos              | Execute (T3)     | Implementing |
-| PFORM-61       | P1: Several photos              | Design           | Pending      |
-| PFORM-62       | P1: Several photos              | Design           | Pending      |
-| PFORM-63       | P1: Several photos              | Design           | Pending      |
-| PFORM-64       | P1: Several photos              | Design           | Pending      |
-| PFORM-65       | P1: Several photos              | Execute (T3)     | Implementing |
-| PFORM-66       | P1: Several photos              | Execute (T7)     | Verified     |
-| PFORM-67       | P1: Several photos              | Design           | Pending      |
-| PFORM-68       | P1: Several photos              | Design           | Pending      |
+| Requirement ID | Story                           | Phase             | Status       |
+| -------------- | ------------------------------- | ----------------- | ------------ |
+| PFORM-01       | P1: Form creates a real pattern | Design            | Pending      |
+| PFORM-02       | P1: Form creates a real pattern | Design            | Pending      |
+| PFORM-03       | P1: Form creates a real pattern | Design            | Pending      |
+| PFORM-04       | P1: Form creates a real pattern | Execute (T9, T10) | Verified     |
+| PFORM-05       | P1: Form creates a real pattern | Design            | Pending      |
+| PFORM-06       | P1: Form creates a real pattern | Design            | Pending      |
+| PFORM-07       | P1: Form creates a real pattern | Design            | Pending      |
+| PFORM-08       | P1: Form creates a real pattern | Design            | Pending      |
+| PFORM-09       | P1: Form creates a real pattern | Design            | Pending      |
+| PFORM-10       | P1: Form creates a real pattern | Design            | Pending      |
+| PFORM-11       | P1: Form creates a real pattern | Execute (T10)     | Verified     |
+| PFORM-20       | P1: Structured style choices    | Design            | Pending      |
+| PFORM-21       | P1: Structured style choices    | Execute (T1)      | Implementing |
+| PFORM-22       | P1: Structured style choices    | Execute (T1)      | Implementing |
+| PFORM-23       | P1: Structured style choices    | Execute (T1)      | Implementing |
+| PFORM-24       | P1: Structured style choices    | Execute (T2)      | Implementing |
+| PFORM-25       | P1: Structured style choices    | Execute (T2)      | Implementing |
+| PFORM-26       | P1: Structured style choices    | Execute (T6)      | Implementing |
+| PFORM-27       | P1: Structured style choices    | Execute (T2)      | Implementing |
+| PFORM-28       | P1: Structured style choices    | Execute (T2)      | Implementing |
+| PFORM-40       | P1: Per-molde size chart        | Design            | Pending      |
+| PFORM-41       | P1: Per-molde size chart        | Design            | Pending      |
+| PFORM-42       | P1: Per-molde size chart        | Execute (T4, T8)  | Implementing |
+| PFORM-43       | P1: Per-molde size chart        | Execute (T8)      | Implementing |
+| PFORM-44       | P1: Per-molde size chart        | Design            | Pending      |
+| PFORM-45       | P1: Per-molde size chart        | Execute (T4)      | Implementing |
+| PFORM-46       | P1: Per-molde size chart        | Execute (T4)      | Implementing |
+| PFORM-47       | P1: Per-molde size chart        | Design            | Pending      |
+| PFORM-60       | P1: Several photos              | Execute (T3)      | Implementing |
+| PFORM-61       | P1: Several photos              | Design            | Pending      |
+| PFORM-62       | P1: Several photos              | Design            | Pending      |
+| PFORM-63       | P1: Several photos              | Design            | Pending      |
+| PFORM-64       | P1: Several photos              | Design            | Pending      |
+| PFORM-65       | P1: Several photos              | Execute (T3)      | Implementing |
+| PFORM-66       | P1: Several photos              | Execute (T7)      | Verified     |
+| PFORM-67       | P1: Several photos              | Design            | Pending      |
+| PFORM-68       | P1: Several photos              | Design            | Pending      |
 
 **ID format:** `PFORM-NN`, numbered per story block (01-11 form shell, 20-28 style controls, 40-47 size chart, 60-68 photos) so each story's acceptance criteria map to its IDs in order.
 

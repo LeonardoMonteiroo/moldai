@@ -365,7 +365,7 @@ T19 -> T20 -> T21
 
 ---
 
-#### T10: Accept and validate a name on the create route
+#### T10: Accept and validate a name on the create route ✅
 
 **What**: `POST /api/patterns` reads an optional `name`, rejects one over `MAX_PATTERN_NAME_LENGTH` or carrying a NUL byte with 400 `invalid_name` and no `Pattern` created, and treats an absent or blank name as "use the default".
 **Where**: `app/api/patterns/route.ts`
@@ -380,15 +380,15 @@ T19 -> T20 -> T21
 
 **Done when**:
 
-- [ ] A valid name creates the pattern under it (PFORM-04)
-- [ ] A name of exactly `MAX_PATTERN_NAME_LENGTH` is accepted; one character more answers 400 `invalid_name` (PFORM-11)
-- [ ] A NUL byte answers 400 `invalid_name` (PFORM-11)
-- [ ] Every rejection asserts `createPattern` was never called
-- [ ] An absent, non-string or blank `name` still creates a default-named pattern, so the existing `api.createPattern()` shape is unchanged
-- [ ] The `sloperId` branch and the `create` rate-limit bucket are untouched, pinned by their existing tests
-- [ ] The route carries a comment stating why a bad `name` rejects while a bad `sloperId` is tolerated (design's Risks table, fifth row)
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: 6+ new tests pass (no silent deletions)
+- [x] A valid name creates the pattern under it (PFORM-04)
+- [x] A name of exactly `MAX_PATTERN_NAME_LENGTH` is accepted; one character more answers 400 `invalid_name` (PFORM-11)
+- [x] A NUL byte answers 400 `invalid_name` (PFORM-11)
+- [x] Every rejection asserts `createPattern` was never called — and `createPatternFromState` too, so neither create path runs
+- [x] An absent, non-string or blank `name` still creates a default-named pattern, so the existing `api.createPattern()` shape is unchanged — the name is passed only when present, so the two-argument call is byte-for-byte what it was
+- [x] The `sloperId` branch and the `create` rate-limit bucket are untouched, pinned by their existing tests
+- [x] The route carries a comment stating why a bad `name` rejects while a bad `sloperId` is tolerated (design's Risks table, fifth row)
+- [x] Gate check passes: `npm test` — 3263 passed
+- [x] Test count: 6+ new tests pass (no silent deletions) — 6 new tests
 
 **Tests**: unit
 **Gate**: full
