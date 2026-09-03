@@ -111,7 +111,9 @@ export function OnboardingShell({ credits }: { credits: Credits }) {
       // it has no UI to ask. This costs the one credit apply always costs;
       // the first, clarifying attempt itself was free (ask never debits).
       if (result.status === "clarify") {
-        result = await api.generate(id, t("step3.autoDefaultMessage"), true);
+        result = await api.generate(id, t("step3.autoDefaultMessage"), {
+          answering: true,
+        });
       }
       // Anything other than a real draft (declined/error/insufficient_credits,
       // or a thrown ApiError below) leaves the user on this step with a

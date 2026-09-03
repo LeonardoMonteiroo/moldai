@@ -274,7 +274,7 @@ describe("OnboardingShell", () => {
       2,
       "p1",
       ptBR.Onboarding.step3.autoDefaultMessage,
-      true,
+      { answering: true },
     );
   });
 

@@ -226,9 +226,15 @@ export function listPatterns(): Promise<PatternListItem[]> {
   return getJson<PatternListItem[]>("/api/patterns");
 }
 
-export function createPattern(sloperId?: string): Promise<{ id: string }> {
+export function createPattern(opts?: {
+  sloperId?: string;
+  name?: string;
+}): Promise<{ id: string }> {
   // JSON.stringify drops an undefined value, so the blank case still posts {}.
-  return postJson<{ id: string }>("/api/patterns", { sloperId });
+  return postJson<{ id: string }>("/api/patterns", {
+    sloperId: opts?.sloperId,
+    name: opts?.name,
+  });
 }
 
 export function fetchPattern(patternId: string): Promise<EditorState> {
@@ -263,25 +269,54 @@ export function restoreVersion(
   );
 }
 
+/**
+ * Everything a generation request carries beyond the message. An options
+ * object rather than five positional parameters: `formSpec` and `sizeChartId`
+ * would have made this the fifth and sixth boolean-or-string in a row, which
+ * is the same reasoning lib/ai's ProposeOptions records for its own call.
+ */
+export interface GenerateOptions {
+  /** Answers a clarify card -- server-side this forces apply over another ask. */
+  answering?: boolean;
+  /** Prepared client-side; the bytes travel with this request only. */
+  images?: PreparedAttachment[];
+  /** The creation form's own explicit choices, re-applied over the model's spec. */
+  formSpec?: GarmentSpec;
+  /** The chart this molde is drafted from, chosen per molde. */
+  sizeChartId?: string;
+  /** Client-computed metadata from a DXF import reconstruction (#238). */
+  importContext?: string;
+}
+
 export function generate(
   patternId: string,
   message: string,
-  answering?: boolean,
-  image?: PreparedAttachment,
-  importContext?: string,
+  opts?: GenerateOptions,
 ): Promise<GenerateResult> {
   return postJson<GenerateResult>(
     `/api/patterns/${patternId}/generate`,
     {
       message,
-      answering,
+      // Every optional field below is simply left undefined when unset, and
+      // JSON.stringify drops an undefined value -- so an absent option means
+      // an absent body key rather than an explicit null the route would then
+      // have to tolerate.
+      answering: opts?.answering,
       // #18: the wire field is `data`, matching Anthropic's own
       // Base64ImageSource -- PreparedAttachment's `base64` is a client-local
-      // name (JSON.stringify drops the key entirely when image is absent).
-      image: image
-        ? { mediaType: image.mediaType, data: image.base64 }
+      // name. An EMPTY list is treated as "no attachment" and omits the key
+      // entirely: the route refuses `images: []` outright (a caller that
+      // meant to attach something and sent nothing), so producing it here
+      // would turn a photo-less form submit into a 400.
+      images: opts?.images?.length
+        ? opts.images.map((image) => ({
+            mediaType: image.mediaType,
+            data: image.base64,
+          }))
         : undefined,
-      importContext,
+      formSpec: opts?.formSpec,
+      sizeChartId: opts?.sizeChartId,
+      importContext: opts?.importContext,
     },
     PAYWALL,
   );

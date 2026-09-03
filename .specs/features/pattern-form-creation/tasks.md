@@ -505,7 +505,7 @@ T19 -> T20 -> T21
 
 ### Phase 4: Client plumbing
 
-#### T14: Move the API client to the new generate contract
+#### T14: Move the API client to the new generate contract ✅
 
 **What**: `generate(patternId, message, opts?)` with `{ answering?, images?, formSpec?, sizeChartId?, importContext? }`, sending `images` as `{mediaType, data}` entries; and `createPattern(opts?)` taking `{ sloperId?, name? }`.
 **Where**: `lib/api-client.ts`
@@ -520,13 +520,19 @@ T19 -> T20 -> T21
 
 **Done when**:
 
-- [ ] `generate` posts `images` as an array of `{mediaType, data}` and omits the key entirely when no attachment is passed
-- [ ] `formSpec` and `sizeChartId` are omitted from the body when not passed (`JSON.stringify` drops `undefined`)
-- [ ] `createPattern({ name })` posts the name; `createPattern()` still posts `{}`
-- [ ] `PAYWALL` stays the only `handled` list on `generate`
-- [ ] `lib/api-client.contract.test.ts` still passes, or is updated in this same commit with no assertion weakened
-- [ ] Gate check passes: `npx vitest run --project node`
-- [ ] Test count: 7+ new tests pass (no silent deletions)
+- [x] `generate` posts `images` as an array of `{mediaType, data}` and omits the key entirely when no attachment is passed — including for `images: []`, which the route refuses outright, so the client never produces it
+- [x] `formSpec` and `sizeChartId` are omitted from the body when not passed (`JSON.stringify` drops `undefined`) — pinned by the text-only case's exact `toEqual({ message })`
+- [x] `createPattern({ name })` posts the name; `createPattern()` still posts `{}`
+- [x] `PAYWALL` stays the only `handled` list on `generate`
+- [x] `lib/api-client.contract.test.ts` still passes, or is updated in this same commit with no assertion weakened — the two migrated cases changed argument shape only
+- [x] Gate check passes: `npx vitest run --project node` — 2639 passed
+- [x] Test count: 7+ new tests pass (no silent deletions) — 8 new cases
+
+**Scope note** — three callers this task's own signature change breaks, absorbed here on T6's precedent (a stale caller the gate cannot pass around):
+
+1. `lib/slopersStore.ts`'s `api.createPattern(sloperId)` and the two tests asserting that call's shape — `lib/slopersStore.test.ts` (`node`, so the quick gate fails without it) and `components/slopers/SlopersShell.test.tsx` (`dom`, which mocks the api-client directly and is caught by the pre-commit hook's `vitest related`, not by this task's own gate). Both move to `{ sloperId }`.
+2. `components/onboarding/OnboardingShell.tsx`'s `api.generate(id, msg, true)` and its `dom` test's matching assertion, both moved to `{ answering: true }`. Argument shape only; no assertion weakened.
+3. `lib/store.ts` and `lib/importStore.ts` are deliberately left broken — the same handoff Phase 2 made to T11. They are T15's and T16's own `Where`, `npx tsc --noEmit` reports exactly those two files and nothing else, and both stores' tests mock `api.generate`, so the `node` project stays green in between.
 
 **Tests**: unit
 **Gate**: quick
