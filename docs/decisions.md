@@ -379,3 +379,40 @@ cheaper. **Without `IntersectionObserver`, both primitives fall back to the END
 state** — visible content, never a section stuck at opacity 0 with no event that can
 arrive to un-stick it. The test asserts that fallback, having first been written to
 assert the opposite.
+
+**A bug only a running browser could show: sections left permanently
+invisible.** The reveals looked correct in tests and in a first screenshot,
+because everything above the fold reveals on load. Driving the real page
+found that scrolling to the bottom left **12 of 24** `[data-reveal]` elements
+still at `opacity: 0` — including sections already scrolled well past.
+
+Two causes, stacked, and the first fix was wrong in a way that looked right:
+
+1. **IntersectionObserver only fires when a threshold is _crossed_.** A
+   jump-scroll — which the nav's own `/#how-it-works` and `/#faq` anchors
+   perform — can move a section from below the viewport to above it between
+   two frames. The intersection ratio goes 0 → 0, nothing is crossed, no
+   entry is ever delivered, and the section stays invisible with nothing left
+   that could un-stick it. The remedy is an enormous **top** `rootMargin`, so
+   "already scrolled past" counts as intersecting.
+2. **That remedy silently did nothing on its own.** These pages do not scroll
+   the window — `app/layout.tsx`'s body is `h-screen overflow-hidden`, so
+   `MarketingShell`'s Radix `ScrollArea` viewport is the real scroller. With
+   the default `root: null` the browser still clips the target by that
+   scrolling ancestor, and **`rootMargin` cannot expand past an intermediate
+   clip**. Re-running the measurement after adding the margin returned the
+   identical 12 of 24 — which is what exposed the second cause. Naming the
+   scroller as the observer's `root` (`scrollRootOf`, an
+   `el.closest("[data-radix-scroll-area-viewport]")`) is what makes the margin
+   apply. After that: 24 of 24.
+
+`components/landing/reveal.test.tsx` pins it by stubbing
+`IntersectionObserver` and asserting the **options** — the part that was
+wrong, and the part no rendered assertion can see, since jsdom implements no
+observer at all and every component therefore takes the fallback branch.
+Verified by reverting `root` to `null` and watching exactly the two root
+assertions go red.
+
+The general lesson is the one the repo keeps paying for: a written spec, a
+green test suite and a single above-the-fold screenshot all agreed the page
+was fine. Only driving it did not.

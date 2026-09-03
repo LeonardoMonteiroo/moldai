@@ -15,6 +15,23 @@ import type { ReactNode } from "react";
 // of every call site having to remember it.
 
 /**
+ * The marketing pages do NOT scroll the window: app/layout.tsx's body is
+ * `h-screen overflow-hidden`, so MarketingShell owns a Radix ScrollArea and
+ * that viewport is the real scroller.
+ *
+ * This matters to IntersectionObserver, and it is not a detail that can be
+ * left implicit. With the default `root: null` the observer measures against
+ * the window, but the browser still clips the target by every scrolling
+ * ancestor -- and `rootMargin` cannot expand past that clip. So an oversized
+ * rootMargin silently does nothing (measured: 12 of 24 reveals stayed hidden
+ * either way). Naming the scroller as the root is what makes the margin
+ * apply.
+ */
+function scrollRootOf(el: Element): Element | null {
+  return el.closest("[data-radix-scroll-area-viewport]");
+}
+
+/**
  * B7 scroll interpolation: a section fades up from
  * `translate-y-16 blur-md opacity-0` as it enters the viewport, over 800ms.
  *
@@ -65,9 +82,28 @@ export function Reveal({
           }
         }
       },
-      // Fire a little before the element is fully on screen, so the motion
-      // reads as the section arriving rather than catching up to the reader.
-      { rootMargin: "0px 0px -12% 0px", threshold: 0.1 },
+      // The bottom margin fires a little before the element is fully on
+      // screen, so the motion reads as the section arriving rather than
+      // catching up to the reader.
+      //
+      // The enormous TOP margin is not cosmetic: it is what stops a section
+      // being left permanently invisible. IntersectionObserver only fires
+      // when a threshold is *crossed*, and a jump-scroll -- which the nav's
+      // own "/#how-it-works" and "/#faq" anchors perform -- can move a
+      // section from below the viewport to above it between two frames. The
+      // ratio goes 0 -> 0, nothing is crossed, no entry is delivered, and
+      // the section stays at opacity 0 with nothing left to un-stick it.
+      // Extending the root far upward makes "already scrolled past" count as
+      // intersecting, so those sections reveal instead. Measured: without
+      // it, jumping to the bottom of the page left 12 of 24 reveals hidden.
+      //
+      // `root` must be the real scroller for that margin to apply at all --
+      // see scrollRootOf above.
+      {
+        root: scrollRootOf(el),
+        rootMargin: "9999px 0px -12% 0px",
+        threshold: 0.1,
+      },
     );
     observer.observe(el);
     return () => {
@@ -113,7 +149,15 @@ export function LitWords({ text }: { text: string }) {
           observer.unobserve(entry.target);
         }
       },
-      { rootMargin: "0px 0px -33% 0px", threshold: 1 },
+      // Same root and same enormous top margin as Reveal above, for the same
+      // reason: a word scrolled past without crossing a threshold would stay
+      // at 30% ink forever. `threshold: 1` makes that more likely here, not
+      // less, since the whole word has to be inside the root to count.
+      {
+        root: scrollRootOf(root),
+        rootMargin: "9999px 0px -33% 0px",
+        threshold: 1,
+      },
     );
     for (const node of nodes) observer.observe(node);
     return () => observer.disconnect();
