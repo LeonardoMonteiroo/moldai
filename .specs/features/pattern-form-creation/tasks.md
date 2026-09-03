@@ -541,7 +541,7 @@ T19 -> T20 -> T21
 
 ---
 
-#### T15: Migrate the editor composer's single attachment
+#### T15: Migrate the editor composer's single attachment ✅
 
 **What**: `sendMessage(message, opts)` takes `opts.images` (the composer still supplies at most one), sends it through the new client signature, and records `imageCount` alongside `hasImage` on the optimistic user message.
 **Where**: `lib/store.ts`
@@ -556,11 +556,13 @@ T19 -> T20 -> T21
 
 **Done when**:
 
-- [ ] One attachment still reaches `api.generate` and the optimistic message carries `hasImage: true` and `imageCount: 1`
-- [ ] A text-only send passes no `images` key and sets neither field
-- [ ] `cancelGeneration`'s rollback still removes the optimistic message unchanged
-- [ ] Gate check passes: `npx vitest run --project node`
-- [ ] Test count: 4+ new tests pass, existing `lib/store.test.ts` image cases migrated with no assertion weakened
+- [x] One attachment still reaches `api.generate` and the optimistic message carries `hasImage: true` and `imageCount: 1`
+- [x] A text-only send passes no `images` key and sets neither field — asserted on the call's own third argument (`not.toHaveProperty("images")`), since `toHaveBeenCalledWith` ignores an `undefined` property and would have passed either way
+- [x] `cancelGeneration`'s rollback still removes the optimistic message unchanged — pinned for an attachment-marked message specifically
+- [x] Gate check passes: `npx vitest run --project node` — 2643 passed
+- [x] Test count: 4+ new tests pass, existing `lib/store.test.ts` image cases migrated with no assertion weakened — 4 new tests; the three migrated cases changed argument shape only, and `imageCount` is asserted as the list's real length so a hardcoded `1` fails
+
+**Scope note**: also updates `components/editor/ChatPanel.tsx`'s one `sendMessage` call, the only caller of the option this task renames (`image` to `images`), wrapping its at-most-one attachment in a list. The composer's own UI is unchanged and stays capped at one photo per turn, per the spec's Out of Scope table.
 
 **Tests**: unit
 **Gate**: quick

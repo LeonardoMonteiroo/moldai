@@ -98,15 +98,36 @@ describe("store.sendMessage", () => {
       .getState()
       .sendMessage("gola redonda", { answering: true });
 
-    expect(genMock).toHaveBeenCalledWith("m1", "gola redonda", true, undefined);
+    expect(genMock).toHaveBeenCalledWith("m1", "gola redonda", {
+      answering: true,
+    });
     expect(useEditorStore.getState().generationStatus).toBe("idle");
     expect(useEditorStore.getState().selectedPieceId).toBeNull();
     const last = useEditorStore.getState().chat.at(-1)!;
     expect(last.questions).toHaveLength(1);
   });
 
+  // A text-only send must not carry an `images` key at all: the route
+  // refuses `images: []` outright (a caller that meant to attach something
+  // and sent nothing), so an always-present key would 400 every plain
+  // message. toHaveBeenCalledWith ignores undefined properties, hence the
+  // direct property check.
+  it("passes no images key and marks no attachment on a text-only send", async () => {
+    genMock.mockResolvedValue({ status: "ok", state: emptyState() });
+    const promise = useEditorStore.getState().sendMessage("uma blusa");
+
+    const optimistic = useEditorStore
+      .getState()
+      .chat.find((m) => m.id.startsWith("optimistic-"))!;
+    expect(optimistic.hasImage).toBeUndefined();
+    expect(optimistic.imageCount).toBeUndefined();
+
+    await promise;
+    expect(genMock.mock.calls[0][2]).not.toHaveProperty("images");
+  });
+
   // #18: the prepared attachment travels with the request only -- the
-  // optimistic chat message records that one was used (for the "imagem
+  // optimistic chat message records how many were used (for the "imagem
   // enviada" chip), never the bytes themselves. Checked mid-flight, before
   // applyState replaces `chat` wholesale with the server's own response.
   it("forwards a prepared image to api.generate and marks the optimistic message", async () => {
@@ -116,21 +137,103 @@ describe("store.sendMessage", () => {
 
     const promise = useEditorStore
       .getState()
-      .sendMessage("uma blusa assim", { image });
+      .sendMessage("uma blusa assim", { images: [image] });
 
-    expect(genMock).toHaveBeenCalledWith(
-      "m1",
-      "uma blusa assim",
-      undefined,
-      image,
-    );
+    expect(genMock).toHaveBeenCalledWith("m1", "uma blusa assim", {
+      answering: undefined,
+      images: [image],
+    });
     const optimistic = useEditorStore
       .getState()
       .chat.find((m) => m.id.startsWith("optimistic-"));
     expect(optimistic?.hasImage).toBe(true);
+    // The composer sends one at a time, so the count it records is 1 -- and
+    // it is recorded rather than assumed, which is what lets ChatBubble tell
+    // this turn apart from a multi-photo one created from the form.
+    expect(optimistic?.imageCount).toBe(1);
 
     gen.resolve({ status: "clarify", state: emptyState() });
     await promise;
+  });
+
+  // The count is the list's own length, not a literal 1 that happens to
+  // match what the composer sends today -- the store's own API is the list,
+  // and a hardcoded count would misreport every turn the form can produce.
+  it("records the list's real length as imageCount", async () => {
+    const gen = deferred<Awaited<ReturnType<typeof api.generate>>>();
+    genMock.mockReturnValue(gen.promise);
+    const images = [
+      { mediaType: "image/jpeg" as const, base64: "AA" },
+      { mediaType: "image/jpeg" as const, base64: "BB" },
+      { mediaType: "image/jpeg" as const, base64: "CC" },
+    ];
+
+    const promise = useEditorStore
+      .getState()
+      .sendMessage("uma blusa assim", { images });
+
+    const optimistic = useEditorStore
+      .getState()
+      .chat.find((m) => m.id.startsWith("optimistic-"));
+    expect(optimistic?.imageCount).toBe(3);
+    expect(genMock.mock.calls[0][2]).toEqual({
+      answering: undefined,
+      images,
+    });
+
+    gen.resolve({ status: "clarify", state: emptyState() });
+    await promise;
+  });
+
+  // The optimistic message is client-only state, so its rollback is the one
+  // signal a canceled send leaves behind -- an attachment chip left on a
+  // message the server never persisted would outlive the request itself.
+  it("rolls the attachment-marked optimistic message back on cancel", async () => {
+    const gen = deferred<Awaited<ReturnType<typeof api.generate>>>();
+    genMock.mockReturnValue(gen.promise);
+    const image = { mediaType: "image/jpeg" as const, base64: "ZmFrZQ==" };
+
+    const promise = useEditorStore
+      .getState()
+      .sendMessage("uma blusa assim", { images: [image] });
+    expect(useEditorStore.getState().chat.some((m) => m.imageCount === 1)).toBe(
+      true,
+    );
+
+    useEditorStore.getState().cancelGeneration();
+
+    expect(
+      useEditorStore
+        .getState()
+        .chat.filter((m) => m.id.startsWith("optimistic-")),
+    ).toHaveLength(0);
+    expect(useEditorStore.getState().generationStatus).toBe("idle");
+
+    gen.resolve({ status: "clarify", state: emptyState() });
+    await promise;
+  });
+
+  // Both resend paths (the error bubble's own retry, and the paywall's after
+  // a purchase) replay the send through the same opts object, so the
+  // attachment has to survive the replay -- a retry that quietly dropped the
+  // photo would charge for a call that lost the reference.
+  it("replays the same images list on the retry after a failure", async () => {
+    genMock.mockRejectedValueOnce(new Error("boom"));
+    const image = { mediaType: "image/jpeg" as const, base64: "ZmFrZQ==" };
+
+    await useEditorStore
+      .getState()
+      .sendMessage("uma blusa assim", { images: [image] });
+    expect(useEditorStore.getState().generationStatus).toBe("error");
+
+    genMock.mockResolvedValueOnce({ status: "ok", state: emptyState() });
+    await useEditorStore.getState().lastFailedSend!();
+
+    expect(genMock.mock.calls[1]).toEqual([
+      "m1",
+      "uma blusa assim",
+      { answering: undefined, images: [image] },
+    ]);
   });
 });
 
@@ -393,12 +496,9 @@ describe("store error handling", () => {
     genMock.mockResolvedValueOnce({ status: "ok", state: emptyState() });
     useEditorStore.getState().lastFailedSend?.();
     await vi.waitFor(() =>
-      expect(genMock).toHaveBeenCalledWith(
-        "m1",
-        "uma blusa",
-        undefined,
-        undefined,
-      ),
+      expect(genMock).toHaveBeenCalledWith("m1", "uma blusa", {
+        answering: undefined,
+      }),
     );
   });
 

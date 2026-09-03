@@ -165,11 +165,12 @@ export function ChatPanel() {
             attachment={attachment}
             onAttachmentChange={setAttachment}
             onSend={(message) => {
+              const prepared =
+                attachment?.status === "ready" ? attachment.prepared : null;
               sendMessage(message, {
-                image:
-                  attachment?.status === "ready"
-                    ? attachment.prepared
-                    : undefined,
+                // One at most: the composer's own cap, unchanged by the
+                // wire moving to a list.
+                images: prepared ? [prepared] : undefined,
               });
               setAttachment(null);
             }}
