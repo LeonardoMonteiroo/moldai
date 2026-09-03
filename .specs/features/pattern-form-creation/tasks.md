@@ -526,7 +526,7 @@ T19 -> T20 -> T21
 - [x] `PAYWALL` stays the only `handled` list on `generate`
 - [x] `lib/api-client.contract.test.ts` still passes, or is updated in this same commit with no assertion weakened — the two migrated cases changed argument shape only
 - [x] Gate check passes: `npx vitest run --project node` — 2639 passed
-- [x] Test count: 7+ new tests pass (no silent deletions) — 8 new cases
+- [x] Test count: 7+ new tests pass (no silent deletions) — 7 new cases
 
 **Scope note** — three callers this task's own signature change breaks, absorbed here on T6's precedent (a stale caller the gate cannot pass around):
 
@@ -598,7 +598,7 @@ T19 -> T20 -> T21
 
 ---
 
-#### T17: Create and generate a pattern from the form
+#### T17: Create and generate a pattern from the form ✅
 
 **What**: `createFromForm(input)` on the dashboard store — create (with the name) or reuse `pendingPatternId`, generate once with the message, `formSpec`, `sizeChartId` and prepared images, return the id for `ok`/`conflict`/`clarify`/`declined`, and on failure set `actionError` and return the code.
 **Where**: `lib/dashboardStore.ts`
@@ -613,14 +613,18 @@ T19 -> T20 -> T21
 
 **Done when**:
 
-- [ ] A successful submit calls `createPattern` once then `generate` once and resolves to the id (PFORM-06)
-- [ ] `status: "clarify"` and `status: "declined"` both resolve to the id without a second generate call (spec's Assumptions)
-- [ ] A 402 sets `insufficient_credits`, keeps `pendingPatternId`, and a second call reuses that id instead of creating another `Pattern` (PFORM-08)
-- [ ] A thrown `ApiError` sets `actionError` to its wire code and resolves to that code, leaving `pendingPatternId` set so a retry is still cheap (PFORM-09)
-- [ ] `creatingFromForm` is true for the whole round trip and false in every exit path, including the throwing one (PFORM-07)
-- [ ] The store passes no catalog key or pt-BR literal of its own — `message` arrives pre-resolved
-- [ ] Gate check passes: `npx vitest run --project node`
-- [ ] Test count: 9+ new tests pass (no silent deletions)
+- [x] A successful submit calls `createPattern` once then `generate` once and resolves to the id (PFORM-06)
+- [x] `status: "clarify"` and `status: "declined"` both resolve to the id without a second generate call (spec's Assumptions) — `conflict` too, in the same matrix
+- [x] A 402 sets `insufficient_credits`, keeps `pendingPatternId`, and a second call reuses that id instead of creating another `Pattern` (PFORM-08)
+- [x] A thrown `ApiError` sets `actionError` to its wire code and resolves to that code, leaving `pendingPatternId` set so a retry is still cheap (PFORM-09)
+- [x] `creatingFromForm` is true for the whole round trip and false in every exit path, including the throwing one (PFORM-07) — the in-flight state is asserted against a generate call held open, not inferred from the final value
+- [x] The store passes no catalog key or pt-BR literal of its own — `message` arrives pre-resolved
+- [x] Gate check passes: `npx vitest run --project node` — 2660 passed (`npm test`: 3329, `npx eslint app lib components`: clean, `npx tsc --noEmit`: clean, closing Phase 4)
+- [x] Test count: 9+ new tests pass (no silent deletions) — 15 new tests
+
+**Scope note — the return shape is a discriminated result, not the design's `Promise<string | null>`.** The task's own "Done when" requires resolving to the id on success AND to the failure's wire code, and both are strings, so a bare union would leave the caller unable to tell `"p1"` from `"insufficient_credits"`. `CreateFromFormResult` is `{ status: "ok"; id } | { status: "error"; code }`; T21 navigates on the first and renders the code's own message on the second, which is exactly what the design's `string | null` could not express once the code had to reach the dialog. `actionError` is still set on every failure, so `ActionErrorNotice` needs no change.
+
+Two smaller decisions worth naming: a `status: "error"` / `"answered"` response (no draft produced at all, distinct from `declined`) reports `create_failed`, reusing `createPatternFromImport`'s own code for the same outcome; and `pendingPatternId` is kept on every failure, not only on the 402, since a `Pattern` exists by then either way and re-creating one on the next attempt is what the field exists to prevent.
 
 **Tests**: unit
 **Gate**: quick

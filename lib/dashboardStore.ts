@@ -6,9 +6,36 @@ import type {
   RecentUsageEntry,
   AccountSummary,
 } from "./api-client";
-import type { Credits, GarmentType } from "./types";
+import type { Credits, GarmentSpec, GarmentType } from "./types";
+import type { PreparedAttachment } from "./editor/attachment";
 
 export type TypeFilter = GarmentType | "all";
+
+/**
+ * One submit of the new-pattern form. `message` and `name` arrive
+ * pre-resolved from the component: the form composes its own pt-BR line from
+ * catalog lookups, so this store stays translation-agnostic like every other
+ * one. `formSpec` is the structured copy of the same choices, which is what
+ * the route actually re-applies over the model's spec.
+ */
+export interface NewPatternFormInput {
+  name: string;
+  message: string;
+  formSpec: GarmentSpec;
+  /** Null when the chart list could not be loaded -- the account's active chart is then used. */
+  sizeChartId: string | null;
+  images: PreparedAttachment[];
+}
+
+/**
+ * A discriminated result rather than `string | null`, because the caller has
+ * to do two different things with the two outcomes: navigate to the id, or
+ * render the failure's own per-code message. `ActionErrorNotice` shows one
+ * fixed sentence, so the dialog needs the code itself, and a bare string
+ * union would leave "p1" and "insufficient_credits" indistinguishable.
+ */
+export type CreateFromFormResult =
+  { status: "ok"; id: string } | { status: "error"; code: string };
 
 interface DashboardStore {
   ready: boolean;
@@ -28,10 +55,20 @@ interface DashboardStore {
   recentUsage: RecentUsageEntry[];
   search: string;
   typeFilter: TypeFilter;
+  /** True for the whole create-and-generate round trip the form submits. */
+  creatingFromForm: boolean;
+  /**
+   * Set once `api.createPattern` succeeds inside `createFromForm`, so a
+   * retry — after buying credits, or after any other failure — resumes the
+   * SAME blank Pattern instead of orphaning a new one per attempt. The
+   * `createPatternFromImport` precedent. Cleared only on success.
+   */
+  pendingPatternId: string | null;
 
   init: () => Promise<void>;
   /** Resolves to null when creation failed — the caller navigates to the id. */
   create: () => Promise<string | null>;
+  createFromForm: (input: NewPatternFormInput) => Promise<CreateFromFormResult>;
   clearActionError: () => void;
   rename: (id: string, name: string) => Promise<void>;
   remove: (id: string) => Promise<void>;
@@ -39,7 +76,7 @@ interface DashboardStore {
   setTypeFilter: (t: TypeFilter) => void;
 }
 
-export const useDashboardStore = create<DashboardStore>((set) => ({
+export const useDashboardStore = create<DashboardStore>((set, get) => ({
   ready: false,
   error: false,
   actionError: null,
@@ -49,6 +86,8 @@ export const useDashboardStore = create<DashboardStore>((set) => ({
   recentUsage: [],
   search: "",
   typeFilter: "all",
+  creatingFromForm: false,
+  pendingPatternId: null,
 
   init: async () => {
     set({ ready: false, error: false });
@@ -76,6 +115,59 @@ export const useDashboardStore = create<DashboardStore>((set) => ({
     } catch (err) {
       set({ actionError: errorCode(err) });
       return null;
+    }
+  },
+
+  // Structurally the same flow as lib/importStore.ts's
+  // createPatternFromImport: create (or reuse) one blank Pattern, then
+  // generate against it exactly once.
+  //
+  // ask and decline are successes here. Both leave the model's question or
+  // refusal in the pattern's own chat, which is where the user answers it --
+  // the editor is the surface the import flow does not have, which is why
+  // that one auto-answers a clarify and this one does not.
+  createFromForm: async (input) => {
+    set({ creatingFromForm: true, actionError: null });
+    try {
+      const id =
+        get().pendingPatternId ??
+        (
+          await api.createPattern({
+            // A blank name is left off the body entirely rather than sent as
+            // "", so the route resolves PatternData.newPatternName -- the
+            // same default every other create path starts under.
+            name: input.name.trim() || undefined,
+          })
+        ).id;
+      set({ pendingPatternId: id });
+      const result = await api.generate(id, input.message, {
+        formSpec: input.formSpec,
+        // Omitted, not sent as null: an absent id means "use the account's
+        // active chart", which is what a failed chart fetch falls back to.
+        sizeChartId: input.sizeChartId ?? undefined,
+        images: input.images,
+      });
+      if (result.status === "insufficient_credits") {
+        // pendingPatternId deliberately survives: buying credits and
+        // submitting again resumes this same Pattern.
+        set({ creatingFromForm: false, actionError: "insufficient_credits" });
+        return { status: "error", code: "insufficient_credits" };
+      }
+      if (
+        result.status !== "ok" &&
+        result.status !== "conflict" &&
+        result.status !== "clarify" &&
+        result.status !== "declined"
+      ) {
+        set({ creatingFromForm: false, actionError: "create_failed" });
+        return { status: "error", code: "create_failed" };
+      }
+      set({ creatingFromForm: false, pendingPatternId: null });
+      return { status: "ok", id };
+    } catch (err) {
+      const code = errorCode(err);
+      set({ creatingFromForm: false, actionError: code });
+      return { status: "error", code };
     }
   },
 
