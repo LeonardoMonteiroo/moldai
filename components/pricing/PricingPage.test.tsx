@@ -14,6 +14,12 @@ import {
 } from "@/lib/billing/plans";
 import { COSTS, PLAN_IDS } from "@/lib/types";
 
+// LandingNav reads usePathname() to mark the current page, and outside an
+// App Router context there is no pathname to read. The specifier is the one
+// LandingNav itself imports ("next/navigation"), per CLAUDE.md's rule that a
+// mismatched mock specifier fails silently rather than loudly.
+vi.mock("next/navigation", () => ({ usePathname: () => "/planos" }));
+
 // #106/#9's own precedent: COSTS is a plain object, not frozen -- mocking
 // @/lib/types with a shallow copy lets the footer test force a boundary
 // value through the same COSTS the component reads.
@@ -34,19 +40,36 @@ describe("PricingPage", () => {
     expect(screen.getByText(ptBR.Pricing.toggle.annual)).toBeInTheDocument();
   });
 
-  // Planos.dc.html:36 specifies asymmetric hero padding (56px top / 44px
-  // bottom) and a 18px gap between the Grátis card and the paid-plan grid
-  // (line 52) -- both had rounded to a uniform/narrower value before this fix.
-  it("matches the redesign reference's hero padding and card-row gap", () => {
+  // This used to pin Planos.dc.html's own asymmetric hero padding (56/44px)
+  // and 18px card gap. /planos now runs the marketing surface's Part B
+  // system instead, whose spacing rule is checked across every file by
+  // components/landing/marketingDesignSystem.test.ts -- so what is worth
+  // pinning here is the structure that rule cannot see: this screen shares
+  // the landing page's chrome rather than rebuilding it.
+  it("renders through the shared marketing shell, not its own chrome", () => {
     const { container } = renderWithIntl(
       <PricingPage signedIn={false} currentPlan={null} />,
     );
-    const hero = container.querySelector('[class*="pb-11"]');
-    expect(hero).not.toBeNull();
-    expect(hero).toHaveClass("pt-14");
 
-    const cardRow = container.querySelector('[class*="gap-[18px]"]');
-    expect(cardRow).not.toBeNull();
+    // One nav, and it is the floating pill -- not a second, hand-rolled bar.
+    const navs = container.querySelectorAll("nav[aria-label]");
+    expect(navs).toHaveLength(1);
+    expect(navs[0]).toHaveClass("rounded-full", "w-max", "mt-6");
+
+    expect(container.querySelector("main#main")).not.toBeNull();
+    expect(
+      screen.getByRole("link", { name: ptBR.Landing.skipToContent }),
+    ).toHaveAttribute("href", "#main");
+  });
+
+  // B9: /planos is the one nav item that is a real route, so it is the one
+  // that must show as the current page.
+  it("marks Planos as the current page in the nav", () => {
+    renderWithIntl(<PricingPage signedIn={false} currentPlan={null} />);
+
+    expect(
+      screen.getByRole("link", { name: ptBR.Landing.nav.plans }),
+    ).toHaveAttribute("aria-current", "page");
   });
 
   it("renders four plan cards with the documented price and credit amount from lib/billing/plans.ts", () => {

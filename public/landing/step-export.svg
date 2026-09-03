@@ -1,8 +1,46 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 148">
-  <rect x="0" y="0" width="320" height="148" fill="#fcfbf7" />
-  <g transform="translate(160 74)" fill="none" stroke="#ded9cc" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
-    <rect x="-46" y="-32" width="92" height="64" rx="6" />
-    <circle cx="-20" cy="-13" r="8" />
-    <path d="M-46 20 L-14 -4 L10 14 L26 2 L46 20" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 152" width="330" height="152" role="img">
+  <!--
+    Step 3, "Grade e exporte": the cut plan, with the numbers the app computes
+    (fabric consumption, yield, how many pieces get cut) above the real nesting
+    - pieces packed into a chosen fabric width, grain locked, no rotation.
+    Cartooned from the live screen; the figures are the ones planCutLayout
+    produced for this shirt.
+  -->
+  <rect width="330" height="152" fill="#f4f2ec" />
+
+  <g font-family="system-ui,-apple-system,'Segoe UI',sans-serif">
+    <!-- the three stat tiles -->
+    <g>
+      <rect x="10" y="10" width="100" height="42" rx="9" fill="#ffffff" stroke="#ded9cc" />
+      <text x="20" y="25" font-size="7.5" font-weight="600" fill="#6e6b60" letter-spacing="0.7">CONSUMO</text>
+      <text x="20" y="43" font-size="15" font-weight="700" fill="#1c1c19">1,48 m</text>
+    </g>
+    <g>
+      <rect x="118" y="10" width="100" height="42" rx="9" fill="#ffffff" stroke="#ded9cc" />
+      <text x="128" y="25" font-size="7.5" font-weight="600" fill="#6e6b60" letter-spacing="0.7">APROVEITAMENTO</text>
+      <text x="128" y="43" font-size="15" font-weight="700" fill="#1c1c19">58%</text>
+    </g>
+    <g>
+      <rect x="226" y="10" width="94" height="42" rx="9" fill="#ffffff" stroke="#ded9cc" />
+      <text x="236" y="25" font-size="7.5" font-weight="600" fill="#6e6b60" letter-spacing="0.7">PEÇAS</text>
+      <text x="236" y="43" font-size="15" font-weight="700" fill="#1c1c19">4</text>
+    </g>
+
+    <!-- the fabric, with the pieces nested into it -->
+    <rect x="10" y="62" width="310" height="80" rx="8" fill="#ffffff" stroke="#ded9cc" />
+    <rect x="22" y="70" width="286" height="64" fill="none" stroke="#b3ab93" stroke-dasharray="4 3" />
+    <text x="26" y="66" font-size="7" fill="#6e6b60">1,50 m</text>
+
+    <!-- Two sleeves and two body panels packed into the fabric width, grain
+         locked and never rotated - which is what planCutLayout actually does.
+         The two silhouettes stay visibly different. -->
+    <g stroke="#1c1c19" stroke-width="1.6" stroke-linejoin="round" fill="#eaeee2">
+      <path transform="translate(30,74) scale(0.46)" d="M16 120 L10 46 Q25 4 40 46 L34 120 Z" />
+      <path transform="translate(58,74) scale(0.46)" d="M16 120 L10 46 Q25 4 40 46 L34 120 Z" />
+      <path transform="translate(92,74) scale(0.46)"
+            d="M8 120 L8 52 Q10 34 18 22 L30 14 Q40 26 50 14 L62 22 Q70 34 72 52 L72 120 Z" />
+      <path transform="translate(136,74) scale(0.46)"
+            d="M8 120 L8 52 Q10 34 18 22 L30 14 Q40 26 50 14 L62 22 Q70 34 72 52 L72 120 Z" />
+    </g>
   </g>
 </svg>

@@ -34,6 +34,16 @@ const buttonVariants = cva(
         sm: "h-8 gap-1.5 rounded-md px-[13px] text-ui has-[>svg]:px-2.5",
         lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
         icon: "size-9",
+        // Marketing surface (/ and /planos) only. Padding is the
+        // landing-page-design skill's B2 figure for a main button (8px
+        // vertical, 12px horizontal) and the type is its B1 button scale --
+        // text-base for a main button, text-sm for a smaller header one.
+        // They live here, as sizes on the primitive, rather than as
+        // per-call-site className overrides, per CLAUDE.md.
+        marketing:
+          "rounded-full px-3 py-2 text-base font-semibold transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]",
+        marketingSm:
+          "rounded-full px-3 py-2 text-sm font-semibold transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]",
         "icon-xs": "size-6 rounded-md [&_svg:not([class*='size-'])]:size-3",
         "icon-sm": "size-8",
         "icon-lg": "size-10",

@@ -1,8 +1,47 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 148">
-  <rect x="0" y="0" width="320" height="148" fill="#fcfbf7" />
-  <g transform="translate(160 74)" fill="none" stroke="#ded9cc" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
-    <rect x="-46" y="-32" width="92" height="64" rx="6" />
-    <circle cx="-20" cy="-13" r="8" />
-    <path d="M-46 20 L-14 -4 L10 14 L26 2 L46 20" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 152" width="330" height="152" role="img">
+  <!--
+    Step 1, "Descreva ou envie": the request written in the chat and the AI's
+    reply, with the piece it drew appearing beside them. Cartooned from the
+    real editor; the bubbles, the credit chip and the two attachment buttons
+    all exist in the product.
+
+    viewBox is near 1:1 with the 321x148 thumbnail this renders in, so the
+    type stays readable at that size.
+  -->
+  <defs>
+    <pattern id="g1" width="18" height="18" patternUnits="userSpaceOnUse">
+      <path d="M18 0H0V18" fill="none" stroke="#e8e4d8" stroke-width="1" />
+    </pattern>
+  </defs>
+
+  <rect width="330" height="152" fill="#f4f2ec" />
+  <rect x="196" y="0" width="134" height="152" fill="url(#g1)" />
+
+  <!-- the piece the conversation produced: a body panel, with the flat
+       shoulders and neck scoop that tell it apart from a sleeve -->
+  <g stroke="#1c1c19" stroke-width="2" stroke-linejoin="round">
+    <path transform="translate(224,24) scale(0.94)" fill="#eaeee2"
+          d="M8 120 L8 52 Q10 34 18 22 L30 14 Q40 26 50 14 L62 22 Q70 34 72 52 L72 120 Z" />
+  </g>
+  <path d="M262 62 L262 130" stroke="#4a5a3a" stroke-width="1.5" stroke-dasharray="5 4" opacity="0.7" />
+
+  <g font-family="system-ui,-apple-system,'Segoe UI',sans-serif">
+    <!-- user -->
+    <rect x="14" y="14" width="176" height="36" rx="10" fill="#4a5a3a" />
+    <text x="24" y="30" font-size="10" fill="#f7f7f2">Camisa feminina básica,</text>
+    <text x="24" y="43" font-size="10" fill="#f7f7f2">manga longa e gola.</text>
+
+    <!-- assistant -->
+    <rect x="14" y="58" width="176" height="60" rx="10" fill="#fdf3d8" stroke="#f0dfa8" />
+    <text x="24" y="74" font-size="10" fill="#1c1c19">Desenhei a frente, as</text>
+    <text x="24" y="87" font-size="10" fill="#1c1c19">costas e a manga.</text>
+    <rect x="24" y="95" width="56" height="16" rx="8" fill="#f4f2ec" />
+    <text x="31" y="106" font-size="8" fill="#7a5f14">−1 crédito</text>
+
+    <!-- attachment affordances -->
+    <rect x="14" y="126" width="52" height="18" rx="9" fill="#ffffff" stroke="#ded9cc" />
+    <text x="40" y="138" font-size="9" fill="#5a564a" text-anchor="middle">+ foto</text>
+    <rect x="72" y="126" width="60" height="18" rx="9" fill="#ffffff" stroke="#ded9cc" />
+    <text x="102" y="138" font-size="9" fill="#5a564a" text-anchor="middle">+ croqui</text>
   </g>
 </svg>

@@ -155,3 +155,91 @@ body {
   --text-hero--line-height: 1.02;
   --tracking-hero: -1.6px;
 }
+
+/* ---------------------------------------------------------------------------
+   Marketing surface (/ and /planos)
+   ---------------------------------------------------------------------------
+   The public pages run a SECOND, deliberately separate type system from the
+   authenticated app: one typeface (Geist) on Tailwind's own default type
+   scale, per the landing-page-design skill's Part B. The app keeps Bricolage
+   + Archivo on the named --text-tick..--text-hero scale. `font-marketing` is
+   the explicit opt-in boundary between the two -- nothing outside
+   components/landing and components/pricing should reach for it.
+
+   These are values the skill fixes literally, so they live here as tokens
+   rather than as hex in a component (the repo's no-hardcoded-hex rule). */
+@theme inline {
+  --font-marketing: var(--font-geist);
+
+  /* B5: the hero heading's left-to-right text gradient. The app is
+     light-only (@custom-variant dark keeps every dark: class inert), so
+     only the skill's LIGHT theme pair applies; its dark-mode background
+     palette is deliberately unused here rather than half-adopted. */
+  --color-hero-gradient-from: #000000;
+  --color-hero-gradient-to: #666666;
+
+  /* B7: the one easing curve every marketing transition uses. Named so a
+     call site can never quietly fall back to a framework default. */
+  --ease-fluid: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* B5: gradient applies to the hero heading TEXT only. Never a background --
+   B4 forbids background gradients outright. */
+.marketing-hero-title {
+  background-image: linear-gradient(
+    to right,
+    var(--color-hero-gradient-from),
+    var(--color-hero-gradient-to)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* B7: scroll interpolation. Elements enter with a heavy, blurred fade up
+   rather than appearing statically. `data-reveal` is the hook the
+   IntersectionObserver in components/landing/useReveal.ts toggles. */
+[data-reveal] {
+  opacity: 0;
+  filter: blur(12px);
+  transform: translateY(4rem);
+  transition:
+    opacity 800ms var(--ease-fluid),
+    filter 800ms var(--ease-fluid),
+    transform 800ms var(--ease-fluid);
+}
+
+[data-reveal="shown"] {
+  opacity: 1;
+  filter: blur(0);
+  transform: translateY(0);
+}
+
+/* B11: each word of the tagline starts muted and resolves to full ink as it
+   crosses the trigger line, one word at a time. */
+.marketing-word {
+  color: color-mix(in srgb, var(--color-ink) 30%, transparent);
+  transition: color 600ms var(--ease-fluid);
+}
+
+.marketing-word[data-lit="true"] {
+  color: var(--color-ink);
+}
+
+/* Motion is decoration here, so a visitor who asked for less gets the end
+   state immediately rather than a slower version of the same animation. */
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal],
+  [data-reveal="shown"] {
+    opacity: 1;
+    filter: none;
+    transform: none;
+    transition: none;
+  }
+
+  .marketing-word,
+  .marketing-word[data-lit="true"] {
+    color: var(--color-ink);
+    transition: none;
+  }
+}
