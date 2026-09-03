@@ -72,10 +72,9 @@ describe("LandingPage", () => {
     }
   });
 
-  // The hero's image is a neutral placeholder for now
-  // (public/landing/hero-editor.svg) -- assert it renders by its catalog
-  // alt text.
-  it("renders the hero's placeholder image", () => {
+  // The hero's image is a cartooned SVG of the editor, drawn at the size the
+  // design gives it -- asserted by its catalog alt text and its src.
+  it("renders the hero illustration", () => {
     renderWithIntl(<LandingPage />);
 
     const heroImage = screen.getByRole("img", {
@@ -102,12 +101,12 @@ describe("LandingPage", () => {
       expect(
         screen.getByText(ptBR.Landing.steps[key].body),
       ).toBeInTheDocument();
-      // Each thumbnail is a neutral placeholder for now
-      // (public/landing/*.svg) -- assert the image itself, named by its
-      // catalog alt.
+      // One illustration per step -- assert the image itself, named by its
+      // catalog alt, and that it points at the shipped asset rather than a
+      // leftover placeholder.
       expect(
         screen.getByRole("img", { name: ptBR.Landing.steps[key].imageAlt }),
-      ).toBeInTheDocument();
+      ).toHaveAttribute("src", `/landing/step-${key}.svg`);
     }
   });
 

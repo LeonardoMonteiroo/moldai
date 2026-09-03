@@ -10,9 +10,20 @@ import { Reveal } from "./reveal";
 // The hero drops the earlier disabled "Ver um molde real" secondary CTA
 // entirely rather than keeping a permanently-disabled control -- a single
 // real CTA plus the no-card note underneath it, per A4 ("never place
-// competing CTAs above the fold"). The hero image
-// (public/landing/hero-editor.svg) is a neutral placeholder deliberately
-// standing in for real artwork rather than claiming to be one.
+// competing CTAs above the fold").
+//
+// The hero image is a cartooned SVG of the editor, drawn from real captures
+// of it (see public/landing/*.svg). It is deliberately NOT a screenshot: the
+// design gives this image a 531x341 box, and a 1400px screenshot downscaled
+// into that lands the app's 12px UI text under 5px, which reads as a grey
+// smudge rather than as a product. An illustration can be drawn at the size
+// it will be seen, so the bubbles, the piece labels and the credit chip stay
+// legible.
+//
+// It still has to be TRUE: every panel, label and number in it exists in the
+// product, and none of it claims a capability the app does not have. That is
+// the line B8 draws -- a stylised drawing of the real thing is fine, an
+// invented feature is not.
 //
 // landing-page-design B5: the h1 takes the left-to-right text gradient
 // (light theme #000000 -> #666666, since the app is light-only), and both

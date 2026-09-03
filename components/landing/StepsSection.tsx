@@ -10,9 +10,18 @@ const STEPS = [
 ] as const;
 
 // English id -- the "Como funciona" nav anchor's target, per the
-// English-identifiers/pt-BR-display-text boundary. Each card's thumbnail
-// (public/landing/*.svg) is a neutral placeholder deliberately standing in
-// for real artwork rather than claiming to be one.
+// English-identifiers/pt-BR-display-text boundary.
+//
+// The three thumbnails are cartooned SVGs drawn from real captures of the
+// same drafted shirt, one per step: the conversation that produced it, the
+// seam-conflict warning it raised, and the cut plan with its fabric
+// consumption. Each renders in a 321x148 box -- far too small for a
+// screenshot to stay legible -- so they are drawn at that size instead. See
+// the note in LandingHero.
+//
+// A sleeve and a body panel are given deliberately different silhouettes (a
+// domed cap versus flat shoulders and a neck scoop): drawn alike they read as
+// identical blobs rather than as a garment.
 //
 // A2 #8: three steps, no more. The cards stagger in per B7 rather than all
 // appearing at once, which is what makes the sequence read as a sequence.

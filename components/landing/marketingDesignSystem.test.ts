@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
 // The landing-page-design skill's Part B, enforced against the source rather
@@ -155,6 +155,25 @@ describe("marketing surface · Part B design system", () => {
       .filter(({ text }) => /addEventListener\(\s*["']scroll["']/.test(text))
       .map(({ rel }) => rel);
     expect(offenders).toEqual([]);
+  });
+
+  // B10: alt text and working images. A wrong src renders a broken image and
+  // nothing else fails -- RTL happily matches an <img> whose file does not
+  // exist -- so the asset is checked on disk. This also catches the reverse
+  // of the bug it was written for: the page shipped for a while pointing at
+  // placeholder .svg glyphs, and swapping in the real .png captures without
+  // updating every reference would have left exactly that silent breakage.
+  it("references only image assets that exist in public/", () => {
+    const missing: string[] = [];
+    for (const { rel, text } of files) {
+      for (const match of text.matchAll(/["'](\/landing\/[^"']+)["']/g)) {
+        const asset = match[1];
+        if (!existsSync(join(process.cwd(), "public", asset))) {
+          missing.push(`${rel}: ${asset}`);
+        }
+      }
+    }
+    expect(missing).toEqual([]);
   });
 
   // B7: no default transitions -- every one carries the fluid curve.

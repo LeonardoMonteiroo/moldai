@@ -600,7 +600,7 @@
       "body": "Descreva a peça em uma conversa. A IA pergunta o que falta, desenha as peças e grada os tamanhos pela sua tabela de medidas.",
       "primaryCta": "Começar com {credits} créditos grátis",
       "noCardNote": "Sem cartão de crédito.",
-      "imageAlt": "Editor do MoldAI com a conversa sobre uma camisa básica, incluindo as perguntas de detalhamento da IA, e o molde já gerado",
+      "imageAlt": "Ilustração do editor do MoldAI: à esquerda, a conversa que descreve a camisa e pede um ajuste; à direita, as peças de manga, frente e costas desenhadas sobre a mesa de corte.",
       "proof": {
         "credits": "{credits} créditos grátis por mês",
         "formats": "{formats} formatos de exportação",
@@ -614,19 +614,19 @@
         "step": "Passo 1",
         "title": "Descreva ou envie",
         "body": "Texto, foto de referência ou croqui. Quando falta um detalhe de modelagem, a IA pergunta antes de desenhar.",
-        "imageAlt": "Peça de frente de uma camisa gerada a partir da descrição no chat"
+        "imageAlt": "Ilustração do chat: o pedido da peça, a resposta da IA e os botões para anexar foto ou croqui."
       },
       "adjust": {
         "step": "Passo 2",
         "title": "Ajuste conversando",
         "body": "Peça a mudança em linguagem de modelagem (copa da manga, cava, pence, comprimento) e veja a peça mudar.",
-        "imageAlt": "Peça de manga de uma camisa, com a linha de dobra marcada"
+        "imageAlt": "Ilustração do aviso de conflito: a cava do corpo e a copa da manga medidas em centímetros, com a diferença entre as duas marcada nas peças."
       },
       "export": {
         "step": "Passo 3",
         "title": "Grade e exporte",
         "body": "Grade a coleção pela sua tabela de medidas e exporte em escala 1:1 para plotter, CAD ou folha A4.",
-        "imageAlt": "Peça de frente posicionada no plano de corte"
+        "imageAlt": "Ilustração do plano de corte: o consumo de tecido, o aproveitamento e as peças encaixadas na largura escolhida."
       }
     },
     "faq": {

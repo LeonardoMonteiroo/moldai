@@ -1,9 +1,106 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1072 840">
-  <rect x="0" y="0" width="1072" height="840" fill="#fcfbf7" />
-  <rect x="1" y="1" width="1070" height="838" fill="none" stroke="#ded9cc" stroke-width="2" />
-  <g transform="translate(536 420)" fill="none" stroke="#ded9cc" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
-    <rect x="-90" y="-70" width="180" height="140" rx="10" />
-    <circle cx="-40" cy="-28" r="16" />
-    <path d="M-90 42 L-30 -8 L20 32 L52 4 L90 42" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 347" width="540" height="347" role="img">
+  <!--
+    A cartooned illustration of the MoldAI editor, drawn from the real screen:
+    the conversation on the left, the drafted pieces on the canvas, the credit
+    balance in the header. Simplified on purpose, but nothing here is invented
+    - the panels, the piece set and the wording all exist in the product.
+
+    The viewBox is close to 1:1 with the box this renders in (531x341), so a
+    12px label in here stays a 12px label on the page instead of collapsing
+    into a smudge the way a downscaled screenshot did.
+
+    Colours are the MoldAI tokens, inlined because an external SVG loaded
+    through <img> cannot reach the stylesheet.
+  -->
+  <defs>
+    <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
+      <path d="M24 0H0V24" fill="none" stroke="#e8e4d8" stroke-width="1" />
+    </pattern>
+    <clipPath id="win">
+      <rect x="12" y="12" width="516" height="323" rx="14" />
+    </clipPath>
+  </defs>
+
+  <rect width="540" height="347" fill="#f4f2ec" />
+
+  <g clip-path="url(#win)">
+    <rect x="12" y="12" width="516" height="323" fill="#ffffff" />
+
+    <!-- canvas -->
+    <rect x="192" y="52" width="336" height="283" fill="#f4f2ec" />
+    <rect x="192" y="52" width="336" height="283" fill="url(#grid)" />
+
+    <!-- Pattern pieces. A sleeve is a domed cap tapering to the wrist; a body
+         panel has flat shoulders and a neck scoop. Keeping those two
+         silhouettes clearly different is the whole point - drawn alike they
+         read as three identical blobs rather than a garment. -->
+    <g stroke="#1c1c19" stroke-width="2" stroke-linejoin="round">
+      <path transform="translate(210,140) scale(1.05)" fill="#ffffff"
+            d="M16 120 L10 46 Q25 4 40 46 L34 120 Z" />
+      <path transform="translate(285,140) scale(1.05)" fill="#eaeee2"
+            d="M8 120 L8 52 Q10 34 18 22 L30 14 Q40 26 50 14 L62 22 Q70 34 72 52 L72 120 Z" />
+      <path transform="translate(395,140) scale(1.05)" fill="#ffffff"
+            d="M8 120 L8 52 Q10 34 18 22 L30 14 Q40 26 50 14 L62 22 Q70 34 72 52 L72 120 Z" />
+    </g>
+    <g stroke="#4a5a3a" stroke-width="1.5" stroke-dasharray="5 4" opacity="0.7">
+      <path d="M236 190 L236 258" />
+      <path d="M327 178 L327 258" />
+      <path d="M437 178 L437 258" />
+    </g>
+    <g font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="9" fill="#5a564a">
+      <text x="210" y="284">MANGA · 2×</text>
+      <text x="285" y="284">FRENTE · 1×</text>
+      <text x="395" y="284">COSTAS · 1×</text>
+    </g>
+
+    <!-- tab row -->
+    <g font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="9">
+      <rect x="202" y="62" width="152" height="22" rx="11" fill="#ffffff" stroke="#ded9cc" />
+      <rect x="205" y="65" width="58" height="16" rx="8" fill="#eaeee2" />
+      <text x="213" y="76" fill="#4a5a3a" font-weight="600">Molde 2D</text>
+      <text x="270" y="76" fill="#6e6b60">Plano de corte</text>
+    </g>
+
+    <!-- chat column -->
+    <rect x="12" y="52" width="180" height="283" fill="#ffffff" />
+    <path d="M192 52 V335" stroke="#ded9cc" stroke-width="1" />
+
+    <g font-family="system-ui,-apple-system,'Segoe UI',sans-serif">
+      <rect x="24" y="66" width="156" height="36" rx="10" fill="#4a5a3a" />
+      <text x="34" y="82" font-size="10" fill="#f7f7f2">Camisa feminina básica,</text>
+      <text x="34" y="95" font-size="10" fill="#f7f7f2">manga longa e gola.</text>
+
+      <rect x="24" y="112" width="156" height="78" rx="10" fill="#fdf3d8" stroke="#f0dfa8" />
+      <text x="34" y="128" font-size="10" fill="#1c1c19">Desenhei a frente, as</text>
+      <text x="34" y="141" font-size="10" fill="#1c1c19">costas e a manga, com</text>
+      <text x="34" y="154" font-size="10" fill="#1c1c19">gola convertível.</text>
+      <rect x="34" y="163" width="56" height="16" rx="8" fill="#f4f2ec" />
+      <text x="41" y="174" font-size="8" fill="#7a5f14">−1 crédito</text>
+
+      <!-- a second turn, because adjusting by talking is the point -->
+      <rect x="24" y="198" width="156" height="24" rx="10" fill="#4a5a3a" />
+      <text x="34" y="214" font-size="10" fill="#f7f7f2">Abre 1 cm na cava.</text>
+
+      <rect x="24" y="232" width="156" height="30" rx="10" fill="#fdf3d8" stroke="#f0dfa8" />
+      <text x="34" y="248" font-size="10" fill="#1c1c19">Pronto. As costuras</text>
+      <text x="34" y="258" font-size="10" fill="#1c1c19">voltaram a bater.</text>
+
+      <rect x="24" y="270" width="156" height="24" rx="12" fill="#ffffff" stroke="#ded9cc" />
+      <text x="36" y="286" font-size="9" fill="#a29e91">Descreva o ajuste…</text>
+
+      <rect x="24" y="300" width="156" height="26" rx="13" fill="#4a5a3a" />
+      <text x="102" y="317" font-size="11" font-weight="600" fill="#f7f7f2" text-anchor="middle">Gerar</text>
+    </g>
+
+    <!-- header -->
+    <rect x="12" y="12" width="516" height="40" fill="#ffffff" />
+    <path d="M12 52 H528" stroke="#ded9cc" stroke-width="1" />
+    <g font-family="system-ui,-apple-system,'Segoe UI',sans-serif">
+      <text x="28" y="38" font-size="15" font-weight="700" fill="#1c1c19">Mold<tspan fill="#4a5a3a">AI</tspan></text>
+      <rect x="392" y="22" width="124" height="20" rx="10" fill="#f4f2ec" stroke="#ded9cc" />
+      <text x="454" y="36" font-size="9" fill="#4a5a3a" text-anchor="middle">30 créditos · plano grátis</text>
+    </g>
   </g>
+
+  <rect x="12" y="12" width="516" height="323" rx="14" fill="none" stroke="#ded9cc" stroke-width="1.5" />
 </svg>
