@@ -16,6 +16,14 @@ const ChatMessageSchema = z.object({
   questions: z.array(ClarifyQuestionSchema).optional(),
   tone: z.enum(["neutral", "conflict", "notice"]).optional(),
   createdAt: z.number(),
+  // Listed because a key this object does not name is STRIPPED, and the
+  // strip is not confined to the response: lockPattern returns the parsed
+  // state and savePattern writes that same object straight back, so an
+  // unlisted message field is deleted from the row by the next mutating
+  // turn. Writing imageCount at the route and omitting it here would give
+  // it a one-turn lifetime. Pinned by lib/db/pattern.test.ts's round-trip
+  // test rather than left to the read path's own silence.
+  imageCount: z.number().int().nonnegative().optional(),
 });
 
 const ConflictInfoSchema = z.object({
@@ -74,18 +82,28 @@ export const PatternStateSchema = z.object({
 // own more specific domain check" precedent as AccountProfilePatchSchema.
 
 // generate: `message` is trimmed/length-checked/NUL-checked by the route
-// itself (missing_message/message_too_long); `image` is re-validated by
-// lib/editor/attachment.ts's validateAttachmentInput, which already takes
+// itself (missing_message/message_too_long); `images` is re-validated by
+// lib/editor/attachment.ts's validateAttachmentInputs, which already takes
 // `unknown`; `answering` is read with `=== true`. None of that moves here.
-// All three are `.optional()`, not just wrong-typed-tolerant: zod v4 treats
-// a bare z.unknown() key as required-but-any-value, so an entirely absent
-// key (e.g. `{}`) would 400 as the generic bad_body here rather than
+// All of them are `.optional()`, not just wrong-typed-tolerant: zod v4
+// treats a bare z.unknown() key as required-but-any-value, so an entirely
+// absent key (e.g. `{}`) would 400 as the generic bad_body here rather than
 // reaching the route's own more specific missing_message -- the opposite of
 // the "readJsonObject caller keeps its own check" precedent this schema is
 // supposed to follow (verified against this repo's zod version).
+//
+// `images` replaced the singular `image` outright rather than joining it: a
+// wire field that is never persisted is the cheap direction of a wire
+// change, and keeping both shapes would mean two validators and two prompt
+// paths. Because z.object strips a key it does not name, a caller still
+// sending `image` is indistinguishable from a text-only request: it is
+// charged as one and drafts with no image blocks, NOT refused. That is
+// exactly why the rename had to make every caller a compile error rather
+// than accept both shapes -- a stale caller loses its reference silently,
+// so the compiler is the only thing that can catch one.
 export const GenerateBodySchema = z.object({
   message: z.unknown().optional(),
-  image: z.unknown().optional(),
+  images: z.unknown().optional(),
   answering: z.unknown().optional(),
   importContext: z.unknown().optional(),
 });

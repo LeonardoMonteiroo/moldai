@@ -19,8 +19,9 @@ import { apiError } from "@/lib/api/errors";
 import { COSTS, MAX_CHAT_MESSAGE_LENGTH } from "@/lib/types";
 import { proposeGarment } from "@/lib/ai";
 import {
-  validateAttachmentInput,
-  MAX_ATTACHMENT_BASE64_CHARS,
+  validateAttachmentInputs,
+  MAX_ATTACHMENTS_TOTAL_BASE64_CHARS,
+  type WireAttachment,
 } from "@/lib/editor/attachment";
 import { MAX_IMPORT_CONTEXT_CHARS } from "@/lib/import/reconstructMeta";
 import { requireUser } from "@/lib/auth/guard";
@@ -29,10 +30,16 @@ import { reportError } from "@/lib/observability/report";
 type Ctx = { params: Promise<{ id: string }> };
 
 // #18: this is the one route whose body can carry an attachment's base64
-// payload -- headroom over MAX_ATTACHMENT_BASE64_CHARS for the JSON envelope
-// plus the message/answering fields, not the shared MAX_BODY_BYTES every
-// other (text-only) route reads through.
-const MAX_GENERATE_BODY_BYTES = MAX_ATTACHMENT_BASE64_CHARS + 16 * 1024;
+// payload -- headroom over the combined attachment ceiling for the JSON
+// envelope plus the message/answering fields, not the shared MAX_BODY_BYTES
+// every other (text-only) route reads through.
+//
+// Derived from MAX_ATTACHMENTS_TOTAL_BASE64_CHARS rather than restating a
+// byte figure, so the byte ceiling and the field ceiling cannot drift apart:
+// a smaller one here would refuse a request validateAttachmentInputs would
+// have allowed, and it would refuse it as the generic bad_body, before the
+// attachment validator could say what was actually wrong.
+const MAX_GENERATE_BODY_BYTES = MAX_ATTACHMENTS_TOTAL_BASE64_CHARS + 16 * 1024;
 
 export async function POST(request: Request, { params }: Ctx) {
   const gate = await requireUser();
@@ -66,11 +73,19 @@ export async function POST(request: Request, { params }: Ctx) {
   // #18: re-validated here regardless of what the browser's own
   // prepareImage() already enforced -- that is a UX affordance, not the
   // trust boundary. Rejected before any debit or Anthropic call, same as
-  // the message-length/NUL checks above.
-  let image: ReturnType<typeof validateAttachmentInput> = null;
-  if (body.image !== undefined) {
-    image = validateAttachmentInput(body.image);
-    if (!image) return apiError("invalid_attachment", 400);
+  // the message-length/NUL checks above. One code covers every way the list
+  // can be unusable (not an array, empty, over count, an entry over the
+  // per-image ceiling, a combined payload over the total one), because a
+  // forged request has no use for the distinction and each of them is the
+  // same answer: this request's attachments cannot be trusted.
+  //
+  // A text-only request omits the key entirely; `images: []` is a caller
+  // that meant to attach something and sent nothing, which is refused
+  // rather than charged for a call that lost the reference.
+  let images: WireAttachment[] | null = null;
+  if (body.images !== undefined) {
+    images = validateAttachmentInputs(body.images);
+    if (!images) return apiError("invalid_attachment", 400);
   }
   const answering = body.answering === true;
   // Client-computed metadata from a DXF import reconstruction (#238
@@ -129,7 +144,10 @@ export async function POST(request: Request, { params }: Ctx) {
           author: "user",
           text: trimmed,
           createdAt: Date.now(),
-          ...(image ? { hasImage: true } : {}),
+          // The count, never the bytes: the attachments travel with this
+          // request only. hasImage stays written alongside imageCount so a
+          // reader that predates the count keeps working.
+          ...(images ? { hasImage: true, imageCount: images.length } : {}),
         });
         // #39: this used to debit unconditionally here, then refund it in
         // the ask/decline/error branches below -- a debit+refund pair, not
@@ -144,14 +162,21 @@ export async function POST(request: Request, { params }: Ctx) {
         const entries: LedgerEntry[] = [];
 
         try {
-          const decision = await proposeGarment(
-            state,
+          const decision = await proposeGarment(state, {
             answering,
-            image
-              ? { mediaType: image.mediaType, base64: image.data }
-              : undefined,
+            // The wire's `data` becomes the prepared block's `base64` --
+            // one rename at the one seam between the two shapes, in the
+            // order received, which is the order the model reads them in.
+            ...(images
+              ? {
+                  images: images.map((a) => ({
+                    mediaType: a.mediaType,
+                    base64: a.data,
+                  })),
+                }
+              : {}),
             importContext,
-          );
+          });
 
           // #99: this used to be three positive `if`s (ask/decline/explain)
           // with an implicit else that applied — so any decision value the

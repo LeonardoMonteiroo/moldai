@@ -397,7 +397,7 @@ T19 -> T20 -> T21
 
 ---
 
-#### T11: Move the generate wire from one image to a list
+#### T11: Move the generate wire from one image to a list ✅
 
 **What**: Replace the route's singular `image` handling with `images` — the `images` key on `GenerateBodySchema` (replacing `image`), `validateAttachmentInputs` before any debit, `MAX_GENERATE_BODY_BYTES` re-derived from `MAX_ATTACHMENTS_TOTAL_BASE64_CHARS`, `imageCount` on the persisted `ChatMessage` (new optional field on the interface), and the list forwarded through `proposeGarment`'s options object.
 **Where**: `app/api/patterns/[id]/generate/route.ts` (plus the `images` key in `lib/schemas/pattern.ts` and the `imageCount` field in `lib/types.ts` — merged in per the reference's "absorb the blocking dependency so the task is self-testable" rule, since a schema key or a type field alone has no testable behavior)
@@ -412,14 +412,21 @@ T19 -> T20 -> T21
 
 **Done when**:
 
-- [ ] A valid 1-, 2- and 4-entry `images` array reaches `proposeGarment` in order, asserted on the mocked call (PFORM-64)
-- [ ] A malformed, empty, over-count, over-per-image and over-combined-cap `images` each answer 400 `invalid_attachment`, and each asserts **no debit and no `proposeGarment` call** (PFORM-65)
-- [ ] An omitted `images` key behaves exactly as a text-only request does today
-- [ ] The persisted user `ChatMessage` carries `hasImage: true` and `imageCount: N`, and no base64 appears anywhere in the persisted state (asserted by searching the serialized blob) (PFORM-67)
-- [ ] A request sending the old singular `image` key is treated as carrying no attachment, not as a silent one-image request
-- [ ] `MAX_GENERATE_BODY_BYTES` is computed from `MAX_ATTACHMENTS_TOTAL_BASE64_CHARS`, not a second literal
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: 10+ new tests pass, existing image tests migrated with no assertion weakened
+- [x] A valid 1-, 2- and 4-entry `images` array reaches `proposeGarment` in order, asserted on the mocked call (PFORM-64)
+- [x] A malformed, empty, over-count, over-per-image and over-combined-cap `images` each answer 400 `invalid_attachment`, and each asserts **no debit and no `proposeGarment` call** (PFORM-65)
+- [x] An omitted `images` key behaves exactly as a text-only request does today
+- [x] The persisted user `ChatMessage` carries `hasImage: true` and `imageCount: N`, and no base64 appears anywhere in the persisted state (asserted by searching the serialized blob) (PFORM-67)
+- [x] A request sending the old singular `image` key is treated as carrying no attachment, not as a silent one-image request
+- [x] `MAX_GENERATE_BODY_BYTES` is computed from `MAX_ATTACHMENTS_TOTAL_BASE64_CHARS`, not a second literal — pinned behaviourally from both sides: a request exactly ON the combined ceiling is accepted (the pre-change ceiling refused it as `bad_body`), one byte past it answers `invalid_attachment` rather than `bad_body`
+- [x] Gate check passes: `npm test` — 3275 passed
+- [x] Test count: 10+ new tests pass, existing image tests migrated with no assertion weakened — 13 new tests; the single-image case is #18's own test migrated into the N=1/2/4 matrix rather than duplicated, and every assertion it carried (the debit, the forwarded payload, `hasImage`) is kept
+
+**Scope note** — two additions, both found by the `migration-safety` agent run on this task's own diff:
+
+1. `imageCount` had to be listed on `ChatMessageSchema` as well, not only on the `ChatMessage` interface. `z.object` strips a key it does not name, and the strip is not confined to the response: `lockPattern` returns the PARSED state and `savePattern` writes that same object straight back, so the field would have been deleted from the row by the next mutating turn while still satisfying this task's own write-side assertion. Pinned by a read-modify-write round-trip test in `lib/db/pattern.test.ts`, verified to fail with the schema key removed.
+2. The schema comment on the `image` to `images` rename was wrong and is corrected: a caller still sending `image` is indistinguishable from a text-only request and is charged as one, it is not refused. That is exactly why the rename had to make every caller a compile error.
+
+**Pre-existing defect, reported and deliberately NOT fixed here** (outside every task's `Where` in this feature): `hasImage` and `assembly` are absent from that same `ChatMessageSchema` and are destroyed on every read-then-write today, so the "imagem enviada" chip and the assembly-order disclaimer both vanish one turn after they are earned. Needs its own ticket, fix and coverage.
 
 **Tests**: unit
 **Gate**: full

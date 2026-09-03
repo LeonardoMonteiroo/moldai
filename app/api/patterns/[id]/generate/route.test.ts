@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { seedPatternState } from "@/lib/editor/state";
 import { COSTS, MAX_CHAT_MESSAGE_LENGTH } from "@/lib/types";
 import { MEASUREMENT_RANGES } from "@/lib/measurements";
+import {
+  MAX_ATTACHMENT_BASE64_CHARS,
+  MAX_ATTACHMENT_COUNT,
+  MAX_ATTACHMENTS_TOTAL_BASE64_CHARS,
+} from "@/lib/editor/attachment";
 import { seedWallet } from "@/lib/billing/wallet";
 import { t } from "@/lib/i18n/test-translate";
 import type { PatternState } from "@/lib/types";
@@ -422,15 +427,15 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(recordVersion).not.toHaveBeenCalled();
   });
 
-  // #18: the route re-validates `image` regardless of what the browser's own
-  // prepareImage() already enforced -- rejected before any debit or
-  // Anthropic call, same as the message-length/NUL checks.
+  // #18: the route re-validates the attachments regardless of what the
+  // browser's own prepareImage() already enforced -- rejected before any
+  // debit or Anthropic call, same as the message-length/NUL checks.
   it("rejects an unrecognized image mediaType before debiting or calling the AI", async () => {
     const balanceBefore = wallet.balance;
     const res = await POST(
       req({
         message: "uma blusa",
-        image: { mediaType: "text/html", data: "abc" },
+        images: [{ mediaType: "text/html", data: "abc" }],
       }),
       ctx(),
     );
@@ -443,15 +448,17 @@ describe("POST /api/patterns/[id]/generate", () => {
   // Even a base64 payload that would fit inside the route's own raised body
   // ceiling is still rejected once past MAX_ATTACHMENT_BASE64_CHARS -- the
   // browser would have caught this first, but the route is the real boundary.
-  it("rejects an oversized image.data before debiting or calling the AI", async () => {
+  it("rejects an oversized entry's data before debiting or calling the AI", async () => {
     const balanceBefore = wallet.balance;
     const res = await POST(
       req({
         message: "uma blusa",
-        image: {
-          mediaType: "image/jpeg",
-          data: "a".repeat(6 * 1024 * 1024 + 1),
-        },
+        images: [
+          {
+            mediaType: "image/jpeg",
+            data: "a".repeat(MAX_ATTACHMENT_BASE64_CHARS + 1),
+          },
+        ],
       }),
       ctx(),
     );
@@ -461,8 +468,126 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(mockPropose).not.toHaveBeenCalled();
   });
 
-  it("a valid image reaches proposeGarment and debits exactly COSTS.adjust, same as text-only", async () => {
+  // PFORM-65: every other way the list can be unusable answers the same one
+  // code, and none of them may cost a credit or reach the paid call.
+  it.each([
+    ["not an array", { mediaType: "image/jpeg", data: "ZmFrZQ==" }],
+    ["an empty array", []],
+    [
+      "more entries than MAX_ATTACHMENT_COUNT",
+      Array.from({ length: MAX_ATTACHMENT_COUNT + 1 }, () => ({
+        mediaType: "image/jpeg",
+        data: "ZmFrZQ==",
+      })),
+    ],
+    ["an entry with empty data", [{ mediaType: "image/jpeg", data: "" }]],
+  ] as const)(
+    "rejects images that is %s, with no debit and no proposeGarment call",
+    async (_label, images) => {
+      const balanceBefore = wallet.balance;
+      const res = await POST(req({ message: "uma blusa", images }), ctx());
+      expect(res.status).toBe(400);
+      expect((await res.json()).error).toBe("invalid_attachment");
+      expect(wallet.balance).toBe(balanceBefore);
+      expect(lastEntries).toEqual([]);
+      expect(mockPropose).not.toHaveBeenCalled();
+    },
+  );
+
+  // PFORM-65's combined cap: each entry is individually legal, so only the
+  // sum can refuse this -- and it must refuse it as invalid_attachment, not
+  // as the body reader's generic bad_body, which is what would happen if
+  // MAX_GENERATE_BODY_BYTES were the smaller of the two ceilings.
+  it("rejects a combined payload over the total ceiling, with no debit and no proposeGarment call", async () => {
     const balanceBefore = wallet.balance;
+    const half = "a".repeat(MAX_ATTACHMENTS_TOTAL_BASE64_CHARS / 2);
+    const res = await POST(
+      req({
+        message: "uma blusa",
+        images: [
+          { mediaType: "image/jpeg", data: half },
+          { mediaType: "image/jpeg", data: half + "a" },
+        ],
+      }),
+      ctx(),
+    );
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe("invalid_attachment");
+    expect(wallet.balance).toBe(balanceBefore);
+    expect(lastEntries).toEqual([]);
+    expect(mockPropose).not.toHaveBeenCalled();
+  });
+
+  // The other side of that derivation: a request sitting exactly ON the
+  // combined ceiling is accepted rather than refused by the byte cap before
+  // validateAttachmentInputs ever runs. Under the pre-change ceiling (the
+  // per-image figure plus 16 KB) this body was too large outright.
+  it("accepts a request whose attachments sit exactly on the combined ceiling", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "explain",
+      assistantMessage: "ok",
+    });
+    const half = "a".repeat(MAX_ATTACHMENTS_TOTAL_BASE64_CHARS / 2);
+    const res = await POST(
+      req({
+        message: "uma blusa",
+        images: [
+          { mediaType: "image/jpeg", data: half },
+          { mediaType: "image/jpeg", data: half },
+        ],
+      }),
+      ctx(),
+    );
+    expect(res.status).toBe(200);
+    expect(mockPropose).toHaveBeenCalledTimes(1);
+  });
+
+  // PFORM-64: N image blocks, in the order received. The N=1 case is #18's
+  // original test, migrated to the list rather than duplicated.
+  it.each([1, 2, 4] as const)(
+    "forwards %i attachments to proposeGarment in the order received",
+    async (count) => {
+      const balanceBefore = wallet.balance;
+      mockPropose.mockResolvedValue({
+        decision: "apply",
+        spec: {
+          type: "blouse",
+          gender: "female",
+          measurementOverrides: {},
+          style: {},
+        },
+        assistantMessage: "Pronto",
+      });
+      const images = Array.from({ length: count }, (_, i) => ({
+        mediaType: "image/jpeg" as const,
+        data: `foto-${i}`,
+      }));
+
+      const res = await POST(
+        req({ message: "uma blusa como nessas fotos", images }),
+        ctx(),
+      );
+
+      expect(res.status).toBe(200);
+      expect(mockPropose).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          answering: false,
+          images: images.map((a, i) => ({
+            mediaType: "image/jpeg",
+            base64: `foto-${i}`,
+          })),
+        }),
+      );
+      expect(wallet.balance).toBe(balanceBefore - COSTS.adjust);
+    },
+  );
+
+  // PFORM-67: the count is persisted, the bytes are not -- asserted against
+  // the SERIALIZED blob, which is what actually reaches the jsonb column, so
+  // a payload hidden anywhere in the state (not just on the message object
+  // the assertion above reads) would fail this.
+  it("persists hasImage and imageCount on the user turn, and no image bytes anywhere in the state", async () => {
     mockPropose.mockResolvedValue({
       decision: "apply",
       spec: {
@@ -473,6 +598,70 @@ describe("POST /api/patterns/[id]/generate", () => {
       },
       assistantMessage: "Pronto",
     });
+    const data = "Y2FmZS1iYXNlNjQtcGF5bG9hZA==";
+
+    await POST(
+      req({
+        message: "uma blusa como nessas fotos",
+        images: [
+          { mediaType: "image/jpeg", data },
+          { mediaType: "image/png", data },
+          { mediaType: "image/webp", data },
+        ],
+      }),
+      ctx(),
+    );
+
+    const userTurn = state.chat.find((m) => m.author === "user")!;
+    expect(userTurn.hasImage).toBe(true);
+    expect(userTurn.imageCount).toBe(3);
+    expect(JSON.stringify(state)).not.toContain(data);
+  });
+
+  // A text-only request omits the key entirely, and must behave exactly as
+  // it did before the wire carried a list at all.
+  it("an omitted images key sends no attachments and marks the turn with neither field", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+
+    const res = await POST(req({ message: "uma blusa" }), ctx());
+
+    expect(res.status).toBe(200);
+    expect(mockPropose.mock.calls[0][1]).toEqual({
+      answering: false,
+      importContext: undefined,
+    });
+    const userTurn = state.chat.find((m) => m.author === "user")!;
+    expect(userTurn.hasImage).toBeUndefined();
+    expect(userTurn.imageCount).toBeUndefined();
+  });
+
+  // The rename's own failure mode, pinned so it is a known shape rather than
+  // a surprise: a caller still on the singular `image` key is treated as
+  // carrying no attachment at all -- not as a silent one-image request that
+  // quietly keeps some of the reference. It is charged as the text-only
+  // request it now is, which is precisely why the rename had to make every
+  // caller a compile error instead of accepting both shapes.
+  it("treats the old singular image key as no attachment at all", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+
     const res = await POST(
       req({
         message: "uma blusa como nessa foto",
@@ -480,16 +669,15 @@ describe("POST /api/patterns/[id]/generate", () => {
       }),
       ctx(),
     );
+
     expect(res.status).toBe(200);
-    expect(mockPropose).toHaveBeenCalledWith(
-      expect.anything(),
-      false,
-      { mediaType: "image/jpeg", base64: "ZmFrZS1iYXNlNjQ=" },
-      undefined,
-    );
-    expect(wallet.balance).toBe(balanceBefore - COSTS.adjust);
-    const userTurn = state.chat.find((m) => m.author === "user");
-    expect(userTurn?.hasImage).toBe(true);
+    expect(mockPropose.mock.calls[0][1]).toEqual({
+      answering: false,
+      importContext: undefined,
+    });
+    const userTurn = state.chat.find((m) => m.author === "user")!;
+    expect(userTurn.hasImage).toBeUndefined();
+    expect(userTurn.imageCount).toBeUndefined();
   });
 
   // #18: prompt injection via an attached image's own text is not a new
@@ -511,7 +699,7 @@ describe("POST /api/patterns/[id]/generate", () => {
     const res = await POST(
       req({
         message: "uma blusa como nessa foto",
-        image: { mediaType: "image/jpeg", data: "ZmFrZS1iYXNlNjQ=" },
+        images: [{ mediaType: "image/jpeg", data: "ZmFrZS1iYXNlNjQ=" }],
       }),
       ctx(),
     );
@@ -533,9 +721,10 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(res.status).toBe(200);
     expect(mockPropose).toHaveBeenCalledWith(
       expect.anything(),
-      false,
-      undefined,
-      "MARKER TEXT",
+      expect.objectContaining({
+        answering: false,
+        importContext: "MARKER TEXT",
+      }),
     );
     const userTurn = state.chat.find((m) => m.author === "user");
     expect(userTurn?.text).toBe("reconstruct");
@@ -553,7 +742,7 @@ describe("POST /api/patterns/[id]/generate", () => {
       ctx(),
     );
     expect(res.status).toBe(200);
-    const [, , , sentContext] = mockPropose.mock.calls[0];
+    const sentContext = mockPropose.mock.calls[0][1].importContext;
     expect((sentContext as string).length).toBeLessThanOrEqual(4000);
   });
 

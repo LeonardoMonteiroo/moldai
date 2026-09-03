@@ -188,6 +188,45 @@ describe("withPattern", () => {
     expect(seen).toBe("m1");
   });
 
+  // PFORM-67: ChatMessageSchema strips any message key it does not name, and
+  // the strip is not confined to the response -- lockPattern returns the
+  // PARSED state and savePattern writes that same object straight back, so an
+  // unlisted field is deleted from the row by the very next mutating turn.
+  // A route that writes imageCount into a message it never reads again would
+  // pass its own "the persisted message carries imageCount" assertion and
+  // still lose the value one turn later, which is what this pins.
+  //
+  // Note it asserts imageCount only. `hasImage` and `assembly` are absent
+  // from that same schema and are being destroyed the same way today -- a
+  // real pre-existing defect, reported separately rather than folded into
+  // this feature's commit, since it predates it and needs its own coverage.
+  it("keeps a chat message's imageCount across a read-modify-write round trip", async () => {
+    const seeded = seedPatternState(t);
+    seeded.chat.push({
+      id: "c1",
+      author: "user",
+      text: "uma blusa como nessas fotos",
+      createdAt: 1,
+      hasImage: true,
+      imageCount: 3,
+    });
+    rows = [
+      {
+        id: "m1",
+        userId: "u1",
+        data: JSON.parse(JSON.stringify(seeded)),
+        updatedAt: new Date(),
+      },
+    ];
+
+    await withPattern("m1", "u1", (state) => bumpVersion(state));
+
+    const saved = rows.find((r) => r.id === "m1")!.data as {
+      chat: { imageCount?: number }[];
+    };
+    expect(saved.chat[0].imageCount).toBe(3);
+  });
+
   // #72: every current caller only reaches savePattern after lockPattern has
   // already verified ownership inside the same transaction, so this can't be
   // exploited through withPattern's own API today -- it guards a future

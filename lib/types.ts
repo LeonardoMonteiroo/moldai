@@ -261,6 +261,13 @@ export interface ChatMessage {
   // "imagem enviada" chip, not a thumbnail. Additive/optional, so a message
   // recorded before this existed simply lacks it.
   hasImage?: boolean;
+  // How many attachments that turn carried, once a turn could carry more
+  // than one. Additive alongside hasImage rather than replacing it: a
+  // message persisted before multi-attachment support has hasImage and no
+  // imageCount, and renders as exactly one -- the same readable-when-absent
+  // shape Piece.darts and ConflictInfo.entries already use, and the reason
+  // no blob migration or reset is needed. Still never the bytes.
+  imageCount?: number;
   // #138: set on an "ai" turn that answered a sewing/assembly-order
   // question (decision=explain + assemblyOrder=true, see lib/ai/decision.ts)
   // -- lets ChatBubble attach the catalog-sourced "AI-generated guidance,
