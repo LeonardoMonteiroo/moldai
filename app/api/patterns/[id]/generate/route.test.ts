@@ -1252,7 +1252,7 @@ describe("POST /api/patterns/[id]/generate", () => {
     },
   );
 
-  // PFORM-44: nothing was passed over silently, so there is no substitution
+  // A consequence of PFORM-41/42, not an AC of its own: nothing was passed over silently, so there is no substitution
   // to report -- naming the active chart here would report a choice the user
   // made deliberately.
   it("adds no substitution notice when the request named its own chart", async () => {
@@ -1276,7 +1276,7 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(state.chat.some((m) => m.tone === "notice")).toBe(false);
   });
 
-  // PFORM-45: the existing active-then-system pick is reached with no
+  // PFORM-44: the existing active-then-system pick is reached with no
   // requested id, and the ownership read is not even performed -- the whole
   // path a chat-driven generation takes is untouched.
   it("leaves the active-then-system pick alone when no chart is named", async () => {
@@ -1298,7 +1298,7 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(state.pattern.sizeChartName).toBe("Feminino adulto · ABNT");
   });
 
-  // PFORM-45's tolerance boundary: "no chart named" has a well-defined
+  // PFORM-44's tolerance boundary: "no chart named" has a well-defined
   // fallback (the account's active chart), so a blank id is treated as
   // absent rather than refused -- unlike one that genuinely resolves to
   // nothing, which has no safe default.
@@ -1324,7 +1324,7 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(state.pattern.sizeChartName).toBe("Feminino adulto · ABNT");
   });
 
-  // PFORM-46: a pattern freezes its snapshot at the first generation on
+  // PFORM-45: a pattern freezes its snapshot at the first generation on
   // purpose, so editing or reassigning a chart never retroactively redraws
   // an in-progress molde. A late sizeChartId cannot reopen that.
   it("leaves an already-drafted pattern's frozen snapshot untouched", async () => {

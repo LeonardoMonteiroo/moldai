@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/pattern-form-creation/design.md`
-**Status**: Approved
+**Status**: Done
 
 ---
 
@@ -90,6 +90,9 @@ T22 leads: the chip T18 renders is destroyed on the next mutating turn until the
 ```
 T22 -> T18
 T19 -> T20 -> T21
+T19 -> T23
+T20 -> T23
+T21 -> T23
 ```
 
 ---
@@ -194,7 +197,7 @@ T19 -> T20 -> T21
 **Where**: `lib/sizeCharts/compute.ts`
 **Depends on**: None
 **Reuses**: the existing `SizeChartChoice` shape, so no caller sees a new return type
-**Requirement**: PFORM-42, PFORM-44, PFORM-45
+**Requirement**: PFORM-42, PFORM-44
 
 **Tools**:
 
@@ -204,8 +207,8 @@ T19 -> T20 -> T21
 **Done when**:
 
 - [x] A `requestedId` in the list is returned even when it does not match `gender` and even when a different chart is active, with `rejectedActive: null` (PFORM-42)
-- [x] A `requestedId` absent from the list falls through to the existing active-then-system-then-first path, and `rejectedActive` is reported exactly as before (PFORM-46)
-- [x] Every pre-existing test in `lib/sizeCharts/compute.test.ts` still passes untouched, proving the no-`requestedId` path is byte-for-byte unchanged (PFORM-45) — the diff is insertions only
+- [x] A `requestedId` absent from the list falls through to the existing active-then-system-then-first path, and `rejectedActive` is reported exactly as before (PFORM-44)
+- [x] Every pre-existing test in `lib/sizeCharts/compute.test.ts` still passes untouched, proving the no-`requestedId` path is byte-for-byte unchanged (PFORM-44) — the diff is insertions only
 - [x] Gate check passes: `npx vitest run --project node`
 - [x] Test count: 4+ new tests pass, 0 existing tests changed or deleted
 
@@ -668,6 +671,37 @@ Two smaller decisions worth naming: a `status: "error"` / `"answered"` response 
 
 ---
 
+#### T23: Close the three gaps a real render exposed ✅
+
+**What**: Fixes found by rendering the form in a real browser at the design's own 1280x900 and measuring it: the field column scrolls so the dialog cannot outgrow the viewport, every `SelectTrigger` takes the design's 36px instead of `size="sm"`'s 32px, and the chart default falls back to the system female chart rather than whichever entry happened to be first.
+**Where**: `components/dashboard/NewPatternForm.tsx`
+**Depends on**: T19, T20, T21
+**Reuses**: `Dashboard.dc.html:282-320`'s literal `hint-size` values as the comparison; `select.tsx`'s own `data-size` contract as the assertable proxy for a height jsdom cannot lay out
+**Requirement**: none of its own — see the note below
+
+**Tools**:
+
+- MCP: NONE
+- Skill: `playwright-skill` (the capture and measurement harness)
+
+**Done when**:
+
+- [x] The whole dialog fits a 900px viewport and the submit button is fully on screen, measured in a real browser (654px of 900)
+- [x] Every select measures 36px and both footer buttons 32px, matching the design's stated values
+- [x] A brand-new account with no active chart defaults to the system female chart, not to `list[0]`
+- [x] Each of the three is pinned by a test that fails when the fix is reverted
+- [x] Gate check passes: `npm test && npx eslint app lib components && npm run build`
+- [x] Test count: 4 new tests pass (no silent deletions)
+
+**Tests**: unit (jsdom + RTL)
+**Gate**: build
+
+**Commit**: `fix(dashboard): close three form gaps a real render exposed`
+
+> **No requirement of its own, deliberately.** None of the three is an AC: the spec never states a viewport budget (the design's own form is four fields tall and fits, so the question did not arise until the style controls made it taller), the control heights are design values rather than spec ACs, and PFORM-40 says only that the select is populated from `GET /api/size-charts` — not which entry is preselected. They are recorded here rather than retro-fitted as ACs, because inventing an AC after the fact to justify a fix hides that the spec was silent. The chart default is logged as an assumption in `spec.md` instead, which is where an Execute-time decision belongs.
+
+---
+
 #### T18: Say how many images a turn carried ✅
 
 **What**: `ChatBubble` renders `t("imagesAttached", { count: message.imageCount ?? 1 })` in place of the fixed `imageAttached` chip, with the plural ICU entry replacing the old key in the catalog.
@@ -824,6 +858,9 @@ Phase 4:
 Phase 5:
   T22 -> T18
   T19 -> T20 -> T21
+  T19 -> T23
+  T20 -> T23
+  T21 -> T23
 ```
 
 Execution is strictly sequential — there is no intra-phase parallelism. A single agent (or batch worker) works one task at a time, in listed order. Tasks with no arrow into them have no dependency; they still run in the order listed.
@@ -853,6 +890,7 @@ Execution is strictly sequential — there is no intra-phase parallelism. A sing
 | T15: editor store migration       | 1 store action                                      | ✅ Granular                                                                                                                                                                                                                    |
 | T16: import store migration       | 1 store action                                      | ✅ Granular                                                                                                                                                                                                                    |
 | T17: `createFromForm`             | 1 store action                                      | ✅ Granular                                                                                                                                                                                                                    |
+| T23: render-found form fixes      | 3 cohesive fixes in 1 component                     | ✅ Granular (2-3 related things in one file)                                                                                                                                                                                   |
 | T22: keep message flags on read   | 2 keys in 1 schema object                           | ✅ Granular (2-3 related things in one file)                                                                                                                                                                                   |
 | T18: image-count chip             | 1 component + its own catalog key                   | ✅ Granular                                                                                                                                                                                                                    |
 | T19: the form component           | 1 component + its own catalog namespace             | ✅ Granular (one component; its namespace is not separately testable)                                                                                                                                                          |
@@ -863,30 +901,31 @@ Execution is strictly sequential — there is no intra-phase parallelism. A sing
 
 ## Diagram-Definition Cross-Check
 
-| Task | Depends On (task body)              | Diagram Shows           | Status   |
-| ---- | ----------------------------------- | ----------------------- | -------- |
-| T1   | None                                | (no inbound arrow)      | ✅ Match |
-| T2   | T1                                  | T1 → T2                 | ✅ Match |
-| T3   | None                                | (no inbound arrow)      | ✅ Match |
-| T4   | None                                | (no inbound arrow)      | ✅ Match |
-| T5   | None                                | (no inbound arrow)      | ✅ Match |
-| T6   | T5                                  | T5 → T6                 | ✅ Match |
-| T7   | T5, T6                              | T5 → T7, T6 → T7        | ✅ Match |
-| T8   | T4 (cross-phase)                    | T8 → T13 outbound only  | ✅ Match |
-| T9   | None                                | (no inbound arrow)      | ✅ Match |
-| T10  | T9                                  | T9 → T10                | ✅ Match |
-| T11  | T3, T7 (cross-phase)                | — (cross-phase, exempt) | ✅ Match |
-| T12  | T2, T7 (cross-phase), T11           | T11 → T12               | ✅ Match |
-| T13  | T8, T11                             | T8 → T13, T11 → T13     | ✅ Match |
-| T14  | T10, T11, T12, T13 (cross-phase)    | — (cross-phase, exempt) | ✅ Match |
-| T15  | T14                                 | T14 → T15               | ✅ Match |
-| T16  | T14                                 | T14 → T16               | ✅ Match |
-| T17  | T14                                 | T14 → T17               | ✅ Match |
-| T22  | None                                | (no inbound arrow)      | ✅ Match |
-| T18  | T11 (cross-phase), T22              | T22 → T18               | ✅ Match |
-| T19  | T1 (cross-phase), T17 (cross-phase) | — (cross-phase, exempt) | ✅ Match |
-| T20  | T19                                 | T19 → T20               | ✅ Match |
-| T21  | T17 (cross-phase), T20              | T20 → T21               | ✅ Match |
+| Task | Depends On (task body)              | Diagram Shows                   | Status   |
+| ---- | ----------------------------------- | ------------------------------- | -------- |
+| T1   | None                                | (no inbound arrow)              | ✅ Match |
+| T2   | T1                                  | T1 → T2                         | ✅ Match |
+| T3   | None                                | (no inbound arrow)              | ✅ Match |
+| T4   | None                                | (no inbound arrow)              | ✅ Match |
+| T5   | None                                | (no inbound arrow)              | ✅ Match |
+| T6   | T5                                  | T5 → T6                         | ✅ Match |
+| T7   | T5, T6                              | T5 → T7, T6 → T7                | ✅ Match |
+| T8   | T4 (cross-phase)                    | T8 → T13 outbound only          | ✅ Match |
+| T9   | None                                | (no inbound arrow)              | ✅ Match |
+| T10  | T9                                  | T9 → T10                        | ✅ Match |
+| T11  | T3, T7 (cross-phase)                | — (cross-phase, exempt)         | ✅ Match |
+| T12  | T2, T7 (cross-phase), T11           | T11 → T12                       | ✅ Match |
+| T13  | T8, T11                             | T8 → T13, T11 → T13             | ✅ Match |
+| T14  | T10, T11, T12, T13 (cross-phase)    | — (cross-phase, exempt)         | ✅ Match |
+| T15  | T14                                 | T14 → T15                       | ✅ Match |
+| T16  | T14                                 | T14 → T16                       | ✅ Match |
+| T17  | T14                                 | T14 → T17                       | ✅ Match |
+| T22  | None                                | (no inbound arrow)              | ✅ Match |
+| T23  | T19, T20, T21                       | T19 → T23, T20 → T23, T21 → T23 | ✅ Match |
+| T18  | T11 (cross-phase), T22              | T22 → T18                       | ✅ Match |
+| T19  | T1 (cross-phase), T17 (cross-phase) | — (cross-phase, exempt)         | ✅ Match |
+| T20  | T19                                 | T19 → T20                       | ✅ Match |
+| T21  | T17 (cross-phase), T20              | T20 → T21                       | ✅ Match |
 
 Cross-phase dependencies point strictly backward and, per the checker's own rule, are validated by the forward-phase check rather than needing a per-phase diagram arrow.
 
@@ -914,6 +953,7 @@ Cross-phase dependencies point strictly backward and, per the checker's own rule
 | T16  | Client store                           | unit             | unit             | ✅ OK  |
 | T17  | Client store                           | unit             | unit             | ✅ OK  |
 | T22  | Zod schema at the read boundary        | unit             | unit             | ✅ OK  |
+| T23  | React component                        | unit (jsdom+RTL) | unit (jsdom+RTL) | ✅ OK  |
 | T18  | React component (+ catalog entry)      | unit (jsdom+RTL) | unit (jsdom+RTL) | ✅ OK  |
 | T19  | React component (+ catalog namespace)  | unit (jsdom+RTL) | unit (jsdom+RTL) | ✅ OK  |
 | T20  | React component                        | unit (jsdom+RTL) | unit (jsdom+RTL) | ✅ OK  |
@@ -941,7 +981,9 @@ All 36 spec requirements map to at least one task; no requirement is unmapped. T
 | PFORM-26             | T6, T12            |
 | PFORM-40, 46         | T19                |
 | PFORM-41, 47         | T13                |
-| PFORM-42, 44, 45     | T4, T8, T13        |
+| PFORM-42             | T4, T8, T13        |
+| PFORM-44             | T4, T13            |
+| PFORM-45             | T13                |
 | PFORM-43             | T8, T13            |
 | PFORM-60             | T3, T19            |
 | PFORM-61, 62, 63     | T19                |

@@ -133,6 +133,27 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: lib/importStore.test.ts:488-497 (lib/_Store.ts,lib/_.test.ts)
 - last seen: 2026-09-02T15:59:04Z
 
+### L-018 - A fixture whose every row shares the attribute under test cannot discriminate that attribute: give one row the opposite value, ordered so a dropped guard picks the wrong one.
+
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `components/**/*.test.tsx` · harmful: 0
+- features: pattern-form-creation
+- evidence: components/dashboard/NewPatternForm.test.tsx:CHARTS_NONE_ACTIVE (components/**/*.test.tsx)
+- last seen: 2026-09-03T15:45:14Z
+
+### L-019 - A cap enforced per batch needs a test that exceeds it in ONE action; picking the cap N times leaves the clamp unexercised.
+
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `components/**` · harmful: 0
+- features: pattern-form-creation
+- evidence: PFORM-60 / NewPatternForm.tsx:194 slice(0, room) (components/**)
+- last seen: 2026-09-03T15:45:14Z
+
+### L-020 - Renumbering a requirement must sweep every task's own bullets and every test comment, not just the traceability tables, or one id ends up naming two criteria.
+
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `.specs/**` · harmful: 0
+- features: pattern-form-creation
+- evidence: PFORM-44..47 renumbering (.specs/**)
+- last seen: 2026-09-03T15:45:15Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

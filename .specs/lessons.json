@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 18,
+  "next_id": 21,
   "lessons": [
     {
       "id": "L-001",
@@ -264,6 +264,52 @@
       ],
       "created": "2026-09-02T15:59:04Z",
       "last_seen": "2026-09-02T15:59:04Z"
+    },
+    {
+      "id": "L-018",
+      "key": "surviving_mutant::a fixture whose every row shares the attribute under test cannot discriminate that attribute give one row the opposite value ordered so a dropped guard picks the wrong one",
+      "text": "A fixture whose every row shares the attribute under test cannot discriminate that attribute: give one row the opposite value, ordered so a dropped guard picks the wrong one.",
+      "signal": "surviving_mutant",
+      "scope": "components/**/*.test.tsx",
+      "status": "candidate",
+      "features": ["pattern-form-creation"],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "components/dashboard/NewPatternForm.test.tsx:CHARTS_NONE_ACTIVE (components/**/*.test.tsx)"
+      ],
+      "created": "2026-09-03T15:45:14Z",
+      "last_seen": "2026-09-03T15:45:14Z"
+    },
+    {
+      "id": "L-019",
+      "key": "ac_gap::a cap enforced per batch needs a test that exceeds it in one action picking the cap n times leaves the clamp unexercised",
+      "text": "A cap enforced per batch needs a test that exceeds it in ONE action; picking the cap N times leaves the clamp unexercised.",
+      "signal": "ac_gap",
+      "scope": "components/**",
+      "status": "candidate",
+      "features": ["pattern-form-creation"],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "PFORM-60 / NewPatternForm.tsx:194 slice(0, room) (components/**)"
+      ],
+      "created": "2026-09-03T15:45:14Z",
+      "last_seen": "2026-09-03T15:45:14Z"
+    },
+    {
+      "id": "L-020",
+      "key": "spec_precision_gap::renumbering a requirement must sweep every task s own bullets and every test comment not just the traceability tables or one id ends up naming two criteria",
+      "text": "Renumbering a requirement must sweep every task's own bullets and every test comment, not just the traceability tables, or one id ends up naming two criteria.",
+      "signal": "spec_precision_gap",
+      "scope": ".specs/**",
+      "status": "candidate",
+      "features": ["pattern-form-creation"],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": ["PFORM-44..47 renumbering (.specs/**)"],
+      "created": "2026-09-03T15:45:15Z",
+      "last_seen": "2026-09-03T15:45:15Z"
     }
   ]
 }

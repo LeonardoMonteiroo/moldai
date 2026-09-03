@@ -646,7 +646,7 @@ describe("setActiveSizeChart / getSizeChartForGeneration", () => {
     expect(rejectedActiveName).toBeNull();
   });
 
-  // PFORM-46: an id naming no chart in the account's list falls through to
+  // PFORM-44: an id naming no chart in the account's list falls through to
   // every existing branch unchanged -- which is also what makes a chart
   // deleted between the route's ownership check and the lock resolve to
   // today's safe behavior instead of an error.

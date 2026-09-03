@@ -65,11 +65,24 @@ const CHARTS = [
 // Ordered male-first with NEITHER active, which is what a brand-new account
 // actually gets: the two system charts are seeded on first access and no
 // activeSizeChartId is set yet.
+//
+// The middle entry is a CUSTOM female chart placed ahead of the system one on
+// purpose. Without it every row is `isSystem`, so the fixture could not tell
+// "the system female chart wins" from "any female chart wins" -- dropping
+// `isSystem` from the preference left the suite green. Found by the
+// Verifier's sensor.
 const CHARTS_NONE_ACTIVE = [
   chart({
     id: "sc-m",
     name: "Padrão masculino",
     gender: "male",
+    isActive: false,
+  }),
+  chart({
+    id: "sc-custom-f",
+    name: "Minha grade",
+    gender: "female",
+    isSystem: false,
     isActive: false,
   }),
   chart({
@@ -413,7 +426,7 @@ describe("NewPatternForm — size chart", () => {
     expect(submitted!.sizeChartId).toBe("sc-f");
   });
 
-  // PFORM-47: additive failure -- it states why and still lets you submit.
+  // PFORM-46: additive failure -- it states why and still lets you submit.
   it("disables the chart select with a stated reason when the list fails to load", async () => {
     vi.mocked(listSizeCharts).mockRejectedValue(new Error("nope"));
     setup();
