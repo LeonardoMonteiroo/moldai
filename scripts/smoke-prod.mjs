@@ -106,18 +106,24 @@ async function main() {
   }
   ok("GET /api/auth/providers → 200");
 
-  // Root without a session should redirect to /login.
+  // Root without a session serves the public landing page (#13). This used to
+  // assert a redirect to /login, and went stale the day that landing shipped.
+  // Status alone is too weak a check -- it would pass if / leaked the dashboard
+  // to an anonymous visitor -- so it also requires the landing's own signup CTA,
+  // which only the signed-out branch of app/page.tsx renders.
   const anon = await req("/");
-  const anonLoc = anon.headers.get("location") ?? "";
-  if (
-    ![301, 302, 307, 308].includes(anon.status) ||
-    !anonLoc.includes("/login")
-  ) {
+  if (anon.status !== 200) {
     fail(
-      `GET / (anonymous) → ${anon.status} loc="${anonLoc}" (expected redirect to /login)`,
+      `GET / (anonymous) → ${anon.status} (expected 200 — the public landing)`,
     );
   }
-  ok("GET / (anonymous) → redirect /login");
+  const anonHtml = await anon.text();
+  if (!anonHtml.includes('href="/signup"')) {
+    fail(
+      "GET / (anonymous) → 200 but no signup CTA — wrong branch of app/page.tsx?",
+    );
+  }
+  ok("GET / (anonymous) → 200 (public landing)");
 
   // CSRF token (Auth.js v5).
   const csrfRes = await req("/api/auth/csrf");
