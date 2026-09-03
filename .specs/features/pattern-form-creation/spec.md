@@ -201,12 +201,12 @@ All four stories below are P1: the user explicitly chose the full-capability opt
 | PFORM-45       | P1: Per-molde size chart        | Design       | Pending  |
 | PFORM-46       | P1: Per-molde size chart        | Design       | Pending  |
 | PFORM-47       | P1: Per-molde size chart        | Design       | Pending  |
-| PFORM-60       | P1: Several photos              | Design       | Pending  |
+| PFORM-60       | P1: Several photos              | Execute (T3) | Verified |
 | PFORM-61       | P1: Several photos              | Design       | Pending  |
 | PFORM-62       | P1: Several photos              | Design       | Pending  |
 | PFORM-63       | P1: Several photos              | Design       | Pending  |
 | PFORM-64       | P1: Several photos              | Design       | Pending  |
-| PFORM-65       | P1: Several photos              | Design       | Pending  |
+| PFORM-65       | P1: Several photos              | Execute (T3) | Verified |
 | PFORM-66       | P1: Several photos              | Design       | Pending  |
 | PFORM-67       | P1: Several photos              | Design       | Pending  |
 | PFORM-68       | P1: Several photos              | Design       | Pending  |

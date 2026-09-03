@@ -154,7 +154,7 @@ T19 -> T20 -> T21
 
 ---
 
-#### T3: Accept a list of attachments at the wire's trust boundary
+#### T3: Accept a list of attachments at the wire's trust boundary ✅
 
 **What**: Add `MAX_ATTACHMENT_COUNT = 4`, `MAX_ATTACHMENTS_TOTAL_BASE64_CHARS = 8 * 1024 * 1024` and `validateAttachmentInputs(value): WireAttachment[] | null`, which rejects a non-array, an empty array, an over-count array, any entry `validateAttachmentInput` rejects, and a combined `data` length over the total ceiling.
 **Where**: `lib/editor/attachment.ts`
@@ -169,13 +169,13 @@ T19 -> T20 -> T21
 
 **Done when**:
 
-- [ ] Returns `null` for `undefined`, `null`, `{}`, `[]`, and an array of `MAX_ATTACHMENT_COUNT + 1` valid entries
-- [ ] Returns `null` when any single entry has an unknown media type, empty `data`, or `data` over `MAX_ATTACHMENT_BASE64_CHARS`
-- [ ] Returns `null` when the combined `data` length exceeds `MAX_ATTACHMENTS_TOTAL_BASE64_CHARS` even though every entry is individually valid
-- [ ] Returns the entries in the order received for a valid 1-, 2- and 4-entry array
-- [ ] A single 6 MB attachment (today's per-image ceiling) is still accepted, so the existing single-image case is unchanged
-- [ ] Gate check passes: `npx vitest run --project node`
-- [ ] Test count: 9+ new tests pass (no silent deletions)
+- [x] Returns `null` for `undefined`, `null`, `{}`, `[]`, and an array of `MAX_ATTACHMENT_COUNT + 1` valid entries
+- [x] Returns `null` when any single entry has an unknown media type, empty `data`, or `data` over `MAX_ATTACHMENT_BASE64_CHARS`
+- [x] Returns `null` when the combined `data` length exceeds `MAX_ATTACHMENTS_TOTAL_BASE64_CHARS` even though every entry is individually valid
+- [x] Returns the entries in the order received for a valid 1-, 2- and 4-entry array
+- [x] A single 6 MB attachment (today's per-image ceiling) is still accepted, so the existing single-image case is unchanged
+- [x] Gate check passes: `npx vitest run --project node`
+- [x] Test count: 9+ new tests pass (no silent deletions) — 11 new tests
 
 **Tests**: unit
 **Gate**: quick
