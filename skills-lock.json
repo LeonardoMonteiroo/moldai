@@ -49,11 +49,23 @@
       "skillPath": "SKILL.md",
       "computedHash": "14fc8a965b6e0a8dc100ba4dffeab55cb94bbac112abbde7e014d5c15a35c202"
     },
+    "image-to-code": {
+      "source": "Leonxlnx/taste-skill",
+      "sourceType": "github",
+      "skillPath": "skills/image-to-code-skill/SKILL.md",
+      "computedHash": "3d2ac14d956fdafc5500d2108b90895e134d847f9f199e7f1d18bf1f814cf7c8"
+    },
     "information-architecture": {
       "source": "julianoczkowski/designer-skills",
       "sourceType": "github",
       "skillPath": "information-architecture/SKILL.md",
       "computedHash": "35b6a262d1fd0492804d00fada1400f3f54eadd008fad28ac506991cdedc6061"
+    },
+    "landing-page-design": {
+      "source": "elayadesign/ai-design-skills",
+      "sourceType": "github",
+      "skillPath": "skills/landing-page-design/SKILL.md",
+      "computedHash": "45a4ccd7cd4a374d973207a8ae9afc26cbbfc699f59c93f6700f3b944d276bec"
     },
     "shadcn": {
       "source": "shadcn/ui",
