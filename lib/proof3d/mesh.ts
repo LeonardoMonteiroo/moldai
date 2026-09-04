@@ -1,7 +1,7 @@
 import type { Pattern } from "@/lib/types";
 import { Measurements, resolveMeasurements } from "@/lib/measurements";
 import { draftPiecesCm } from "@/lib/draft/engine/facade";
-import { DEFAULT_ENGINE_ID } from "@/lib/draft/engine/capability";
+import { engineFor } from "@/lib/draft/engine/capability";
 import {
   bbox,
   catmullRomSegments,
@@ -228,8 +228,14 @@ export function buildProofMesh(pattern: Pattern, t: Translate): ProofMesh {
     baseMeasurements,
     spec.measurementOverrides,
   );
-  // #267: DEFAULT_ENGINE_ID until pattern.engine (frozen per pattern) lands.
-  const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, baseMeasurements, t);
+  // #267: the pattern's own FROZEN engine, never a fresh default -- see
+  // lib/draft/easeReport.ts's identical comment.
+  const pieces = draftPiecesCm(
+    engineFor(pattern.engine),
+    spec,
+    baseMeasurements,
+    t,
+  );
 
   const front = findPiece(pieces, "body-front");
   const back = findPiece(pieces, "body-back");

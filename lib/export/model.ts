@@ -7,7 +7,7 @@ import {
   type Pt,
 } from "@/lib/draft/core";
 import { draftPiecesCm } from "@/lib/draft/engine/facade";
-import { DEFAULT_ENGINE_ID } from "@/lib/draft/engine/capability";
+import { engineFor } from "@/lib/draft/engine/capability";
 import { offsetOutlineCm } from "./offset";
 import type { Translate } from "@/lib/i18n/translate";
 
@@ -188,9 +188,10 @@ export function buildExportModel(
   if (!spec) throw new Error("buildExportModel: pattern has no spec");
   const resolvedSize = pattern.sizeTable[size] ? size : pattern.baseSize;
   const baseMeasurements = pattern.sizeTable[resolvedSize];
-  // #267: DEFAULT_ENGINE_ID until pattern.engine (frozen per pattern) lands.
+  // #267: the pattern's own FROZEN engine, never a fresh default -- see
+  // lib/draft/easeReport.ts's identical comment.
   const drafted: DraftedPiece[] = draftPiecesCm(
-    DEFAULT_ENGINE_ID,
+    engineFor(pattern.engine),
     spec,
     baseMeasurements,
     t,

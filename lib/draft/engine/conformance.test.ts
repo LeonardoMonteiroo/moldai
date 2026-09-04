@@ -171,6 +171,79 @@ describe("no direct drafter import", () => {
   });
 });
 
+// A pattern's own frozen `pattern.engine` must drive every redraft of it --
+// the additive-blob precedent lib/types.ts's own Pattern.engine doc comment
+// states. Before a second engine existed this was unenforceable (every
+// facade call site necessarily read DEFAULT_ENGINE_ID, since there was
+// nothing else to read); the moment a second engine is registered, any call
+// site that still hardcodes DEFAULT_ENGINE_ID silently redrafts a
+// freesewing-engine pattern with moldai instead. This scans for exactly that
+// regression: a facade call whose first argument is the DEFAULT_ENGINE_ID
+// identifier rather than something derived from the pattern
+// (engineFor(pattern.engine) or an already-resolved `engine` variable).
+describe("no hardcoded DEFAULT_ENGINE_ID at a facade call site", () => {
+  const FIVE_NAMES = [
+    "draftPiecesCm",
+    "measureSeams",
+    "measureSeamGraph",
+    "draftGradedOverlays",
+    "draftGarment",
+  ];
+  // app/api/patterns/[id]/generate/route.ts's seedPatternSizeSnapshot call is
+  // the one legitimate creation-time use: a brand-new pattern has no frozen
+  // engine yet to read, so DEFAULT_ENGINE_ID IS the correct value there --
+  // that's a call to seedPatternSizeSnapshot, not to one of the FIVE_NAMES
+  // facade functions, so the regex below never matches it anyway.
+  const EXEMPT_DIRS = [
+    join(process.cwd(), "lib", "draft", "engine"),
+    join(process.cwd(), "lib", "draft"),
+  ];
+
+  function listSourceFiles(dir: string, out: string[] = []): string[] {
+    for (const entry of readdirSync(dir)) {
+      const full = join(dir, entry);
+      const stat = statSync(full);
+      if (stat.isDirectory()) {
+        if (entry === "node_modules" || entry === ".next") continue;
+        listSourceFiles(full, out);
+      } else if (
+        /\.(ts|tsx)$/.test(entry) &&
+        !/\.test\.(ts|tsx)$/.test(entry)
+      ) {
+        out.push(full);
+      }
+    }
+    return out;
+  }
+
+  it("every facade call site resolves its engine from the pattern, not a hardcoded default", () => {
+    const roots = ["app", "lib", "components"].map((d) =>
+      join(process.cwd(), d),
+    );
+    const violations: string[] = [];
+    const CALL_RE = new RegExp(
+      `\\b(${FIVE_NAMES.join("|")})\\s*\\(\\s*DEFAULT_ENGINE_ID\\b`,
+      "g",
+    );
+    for (const root of roots) {
+      for (const file of listSourceFiles(root)) {
+        if (
+          EXEMPT_DIRS.some(
+            (d) => file.startsWith(d + "\\") || file.startsWith(d + "/"),
+          )
+        ) {
+          continue;
+        }
+        const src = readFileSync(file, "utf-8");
+        for (const match of src.matchAll(CALL_RE)) {
+          violations.push(`${relative(process.cwd(), file)}: ${match[1]}`);
+        }
+      }
+    }
+    expect(violations).toEqual([]);
+  });
+});
+
 // vocabulary.ts and capability.ts pin their own leaf-ness in their own test
 // files (vocabulary.test.ts, capability.test.ts) -- this covers the third
 // module the design names, lib/types.ts, which every leaf and every drafter

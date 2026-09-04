@@ -9,7 +9,7 @@ import {
   measureSeamGraph,
   draftGradedOverlays,
 } from "@/lib/draft/engine/facade";
-import { DEFAULT_ENGINE_ID } from "@/lib/draft/engine/capability";
+import { engineFor } from "@/lib/draft/engine/capability";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { TabBar } from "./TabBar";
 import { ExportModal, exportVariantForTab } from "./ExportModal";
@@ -71,16 +71,19 @@ export function CanvasArea() {
   // re-renders on every pan and zoom frame.
   const spec = pattern?.spec;
   const baseMeasurements = pattern?.baseMeasurements;
+  // #267: the pattern's own FROZEN engine, never a fresh default -- see
+  // lib/draft/easeReport.ts's identical comment.
+  const engine = engineFor(pattern?.engine);
   const seams = useMemo(() => {
     if (!conflict || !spec || !baseMeasurements) return null;
     try {
-      return measureSeams(DEFAULT_ENGINE_ID, spec, baseMeasurements, tData);
+      return measureSeams(engine, spec, baseMeasurements, tData);
     } catch {
       // No usable spec: the card and the markers fall back to the difference
       // alone, rather than the whole canvas failing to render.
       return null;
     }
-  }, [conflict, spec, baseMeasurements, tData]);
+  }, [conflict, spec, baseMeasurements, engine, tData]);
 
   // #134: the FULL seam graph, re-derived the same way `seams` above always
   // has been (never read off the persisted ConflictInfo, which only ever
@@ -90,11 +93,11 @@ export function CanvasArea() {
   const seamGraph = useMemo(() => {
     if (!conflict?.entries || !spec || !baseMeasurements) return null;
     try {
-      return measureSeamGraph(DEFAULT_ENGINE_ID, spec, baseMeasurements, tData);
+      return measureSeamGraph(engine, spec, baseMeasurements, tData);
     } catch {
       return null;
     }
-  }, [conflict, spec, baseMeasurements, tData]);
+  }, [conflict, spec, baseMeasurements, engine, tData]);
 
   // #59: the graduation curve for every applied size, drawn dashed over the
   // base -- recomputed here rather than read off the pattern, the same
@@ -106,7 +109,7 @@ export function CanvasArea() {
     }
     try {
       return draftGradedOverlays(
-        DEFAULT_ENGINE_ID,
+        engine,
         spec,
         pattern.pieces,
         baseMeasurements,
@@ -117,7 +120,7 @@ export function CanvasArea() {
     } catch {
       return [];
     }
-  }, [spec, baseMeasurements, pattern, sizesApplied, tData]);
+  }, [spec, baseMeasurements, pattern, sizesApplied, engine, tData]);
 
   if (!pattern) return null;
   const isGenerating = generationStatus === "generating";
