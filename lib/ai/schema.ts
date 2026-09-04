@@ -1,19 +1,9 @@
 import type Anthropic from "@anthropic-ai/sdk";
-import {
-  TYPES,
-  GENDERS,
-  NECKLINES,
-  SLEEVES,
-  SKIRTS,
-  COLLARS,
-  CUFFS,
-  WAISTBANDS,
-  FRONT_CLOSURES,
-  STYLE_LIMITS,
-  FIT_CLASSES,
-  STRETCH_CLASSES,
-} from "@/lib/draft/garment";
+import { GENDERS } from "@/lib/draft/garment";
 import { MEASUREMENT_RANGES } from "@/lib/measurements";
+import { ENGINE_IDS } from "@/lib/draft/engine/capability";
+import type { EngineId, EngineCapability } from "@/lib/draft/engine/capability";
+import { getEngine } from "@/lib/draft/engine/registry";
 
 // Raw shape as returned by the model's tool_use block, before validation —
 // `spec` here is untrusted/unknown-shaped input, not yet a GarmentSpec.
@@ -58,96 +48,148 @@ const bounded = (r: { min: number; max: number }) => ({
   maximum: r.max,
 });
 
-// The enums and numeric bounds all derive from the same constants
-// validateSpec clamps with (lib/draft/garment.ts) — schema, prompt, and
-// validator cannot drift.
-export const TOOL: Anthropic.Tool = {
-  name: "propose_garment",
-  description:
-    "Report your decision for the user's request as a GarmentSpec. The decision policy, catalogs, and valid ranges are in the system prompt.",
-  input_schema: {
-    type: "object",
-    properties: {
-      decision: {
-        type: "string",
-        enum: ["apply", "decline", "ask", "explain"],
-      },
-      spec: {
-        type: "object",
-        description:
-          "The COMPLETE, UPDATED GarmentSpec (not just the delta). Required when decision=apply — include everything that already existed plus the requested changes.",
-        properties: {
-          type: { type: "string", enum: [...TYPES] },
-          gender: { type: "string", enum: [...GENDERS] },
-          measurementOverrides: {
-            type: "object",
-            description:
-              "Body-measurement overrides in cm — only what the request explicitly adjusts.",
-            properties: Object.fromEntries(
-              Object.entries(MEASUREMENT_RANGES).map(([k, r]) => [
-                k,
-                bounded(r),
-              ]),
-            ),
-            additionalProperties: false,
+// #267: MEASUREMENT_RANGES stays app-level -- see lib/ai/prompt.ts's own
+// measurementLines for why -- but which KEYS get a property at all is
+// scoped to the given engine's own declared vocabulary.
+function measurementProperties(capability: EngineCapability) {
+  return Object.fromEntries(
+    [
+      ...capability.measurements.required,
+      ...capability.measurements.optional,
+    ].map((k) => [k, bounded(MEASUREMENT_RANGES[k])]),
+  );
+}
+
+// The enums and numeric bounds all derive from the ACTIVE ENGINE's own
+// declared capability (lib/draft/engine/capability.ts) — schema, prompt,
+// and validator cannot drift. #267: this used to read module-level
+// TYPES/STYLE_LIMITS constants directly; now scoped per engine.
+function buildTool(capability: EngineCapability): Anthropic.Tool {
+  return {
+    name: "propose_garment",
+    description:
+      "Report your decision for the user's request as a GarmentSpec. The decision policy, catalogs, and valid ranges are in the system prompt.",
+    input_schema: {
+      type: "object",
+      properties: {
+        decision: {
+          type: "string",
+          enum: ["apply", "decline", "ask", "explain"],
+        },
+        spec: {
+          type: "object",
+          description:
+            "The COMPLETE, UPDATED GarmentSpec (not just the delta). Required when decision=apply — include everything that already existed plus the requested changes.",
+          properties: {
+            type: { type: "string", enum: [...capability.types] },
+            gender: { type: "string", enum: [...GENDERS] },
+            measurementOverrides: {
+              type: "object",
+              description:
+                "Body-measurement overrides in cm — only what the request explicitly adjusts.",
+              properties: measurementProperties(capability),
+              additionalProperties: false,
+            },
+            style: {
+              type: "object",
+              properties: {
+                neckline: {
+                  type: "string",
+                  enum: [...capability.styleEnums.neckline],
+                },
+                necklineDepthCm: bounded(
+                  capability.styleLimits.necklineDepthCm,
+                ),
+                sleeve: {
+                  type: "string",
+                  enum: [...capability.styleEnums.sleeve],
+                },
+                skirt: {
+                  type: "string",
+                  enum: [...capability.styleEnums.skirt],
+                },
+                skirtLengthCm: bounded(capability.styleLimits.skirtLengthCm),
+                darts: { type: "boolean" },
+                seamAllowanceCm: bounded(
+                  capability.styleLimits.seamAllowanceCm,
+                ),
+                fit: { type: "string", enum: [...capability.styleEnums.fit] },
+                stretch: {
+                  type: "string",
+                  enum: [...capability.styleEnums.stretch],
+                },
+                armholeDeepenCm: bounded(
+                  capability.styleLimits.armholeDeepenCm,
+                ),
+                collar: {
+                  type: "string",
+                  enum: [...capability.styleEnums.collar],
+                },
+                cuff: { type: "string", enum: [...capability.styleEnums.cuff] },
+                waistband: {
+                  type: "string",
+                  enum: [...capability.styleEnums.waistband],
+                },
+                frontClosure: {
+                  type: "string",
+                  enum: [...capability.styleEnums.frontClosure],
+                },
+                trouserLengthCm: bounded(
+                  capability.styleLimits.trouserLengthCm,
+                ),
+              },
+            },
           },
-          style: {
+          required: ["type", "gender", "measurementOverrides", "style"],
+        },
+        questions: {
+          type: "array",
+          description:
+            "Only when decision=ask: 1 to 4 objective single-choice questions.",
+          items: {
             type: "object",
             properties: {
-              neckline: { type: "string", enum: [...NECKLINES] },
-              necklineDepthCm: bounded(STYLE_LIMITS.necklineDepthCm),
-              sleeve: { type: "string", enum: [...SLEEVES] },
-              skirt: { type: "string", enum: [...SKIRTS] },
-              skirtLengthCm: bounded(STYLE_LIMITS.skirtLengthCm),
-              darts: { type: "boolean" },
-              seamAllowanceCm: bounded(STYLE_LIMITS.seamAllowanceCm),
-              fit: { type: "string", enum: [...FIT_CLASSES] },
-              stretch: { type: "string", enum: [...STRETCH_CLASSES] },
-              armholeDeepenCm: bounded(STYLE_LIMITS.armholeDeepenCm),
-              collar: { type: "string", enum: [...COLLARS] },
-              cuff: { type: "string", enum: [...CUFFS] },
-              waistband: { type: "string", enum: [...WAISTBANDS] },
-              frontClosure: { type: "string", enum: [...FRONT_CLOSURES] },
-              trouserLengthCm: bounded(STYLE_LIMITS.trouserLengthCm),
+              label: { type: "string" },
+              options: {
+                type: "array",
+                items: { type: "string" },
+                minItems: 2,
+                maxItems: 6,
+              },
+              allowOther: { type: "boolean" },
             },
+            required: ["label", "options"],
           },
         },
-        required: ["type", "gender", "measurementOverrides", "style"],
-      },
-      questions: {
-        type: "array",
-        description:
-          "Only when decision=ask: 1 to 4 objective single-choice questions.",
-        items: {
-          type: "object",
-          properties: {
-            label: { type: "string" },
-            options: {
-              type: "array",
-              items: { type: "string" },
-              minItems: 2,
-              maxItems: 6,
-            },
-            allowOther: { type: "boolean" },
-          },
-          required: ["label", "options"],
+        declineReason: {
+          type: "string",
+          description: "Only when decision=decline.",
+        },
+        assemblyOrder: {
+          type: "boolean",
+          description:
+            "Only when decision=explain: set true when assistantMessage narrates the sewing/assembly order from the 'Assembly order' structure in the system prompt. Otherwise omit or false.",
+        },
+        assistantMessage: {
+          type: "string",
+          description:
+            "Short chat reply, in the user's own language. When decision=explain this carries the entire answer.",
         },
       },
-      declineReason: {
-        type: "string",
-        description: "Only when decision=decline.",
-      },
-      assemblyOrder: {
-        type: "boolean",
-        description:
-          "Only when decision=explain: set true when assistantMessage narrates the sewing/assembly order from the 'Assembly order' structure in the system prompt. Otherwise omit or false.",
-      },
-      assistantMessage: {
-        type: "string",
-        description:
-          "Short chat reply, in the user's own language. When decision=explain this carries the entire answer.",
-      },
+      required: ["decision", "assistantMessage"],
     },
-    required: ["decision", "assistantMessage"],
-  },
-};
+  };
+}
+
+// #267: built EAGERLY, once per registered engine, at module load -- see
+// lib/ai/prompt.ts's STATIC_SECTIONS_BY_ENGINE for the full reasoning
+// (byte-identity across requests is what the prompt cache needs; this eager
+// build is for provability and cost, not correctness).
+export const TOOL_BY_ENGINE: Record<EngineId, Anthropic.Tool> =
+  Object.fromEntries(
+    ENGINE_IDS.map((id) => [id, buildTool(getEngine(id).capability)]),
+  ) as Record<EngineId, Anthropic.Tool>;
+
+export function toolFor(id: EngineId): Anthropic.Tool {
+  return TOOL_BY_ENGINE[id];
+}

@@ -1,10 +1,11 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { PatternState } from "@/lib/types";
-import { STATIC_SECTIONS, buildDynamicSection } from "./prompt";
+import { staticSectionsFor, buildDynamicSection } from "./prompt";
 import { buildHistory, type HistoryTurn } from "./history";
-import { TOOL, parseRawToolInput } from "./schema";
+import { toolFor, parseRawToolInput } from "./schema";
 import { resolveDecision, type AiDecision } from "./decision";
 import type { ProposeImage, ProposeOptions } from "./options";
+import { engineFor } from "@/lib/draft/engine/capability";
 
 // ProposeImage was declared here before ProposeOptions needed it too (see
 // options.ts on the cycle) -- re-exported so no importer has to know it
@@ -65,22 +66,27 @@ export async function proposeGarment(
   state: PatternState,
   opts: ProposeOptions,
 ): Promise<AiDecision> {
+  // #267: reads the pattern's own FROZEN engine (absent -> the default) --
+  // never a bare default -- so the prompt/tool never disagree with what
+  // will actually draft the spec this call produces.
+  const engine = engineFor(state.pattern.engine);
   const client = new Anthropic(ANTHROPIC_OPTIONS);
   const resp = await client.messages.create({
     model: "claude-sonnet-5",
     max_tokens: 1024,
-    // Split system prompt: STATIC_SECTIONS (~6.2k tokens, byte-identical
-    // across every user/request) carries the cache breakpoint, so it's a
-    // cache hit for essentially every generate call in the app rather than
-    // only within one conversation — see STATIC_SECTIONS's own comment.
-    // buildDynamicSection (current spec/size table/ease report/assembly
-    // order) genuinely changes per call and stays uncached. A 1h TTL trades
-    // a slightly pricier cache write for staying warm across the app's full
-    // request volume rather than expiring every 5 minutes.
+    // Split system prompt: the static section (~6.2k tokens, byte-identical
+    // across every user/request USING THE SAME ENGINE) carries the cache
+    // breakpoint, so it's a cache hit for essentially every generate call in
+    // the app rather than only within one conversation — see
+    // staticSectionsFor's own comment (lib/ai/prompt.ts). buildDynamicSection
+    // (current spec/size table/ease report/assembly order) genuinely changes
+    // per call and stays uncached. A 1h TTL trades a slightly pricier cache
+    // write for staying warm across the app's full request volume rather
+    // than expiring every 5 minutes.
     system: [
       {
         type: "text",
-        text: STATIC_SECTIONS,
+        text: staticSectionsFor(engine),
         cache_control: { type: "ephemeral", ttl: "1h" },
       },
       {
@@ -88,7 +94,7 @@ export async function proposeGarment(
         text: buildDynamicSection(state, opts),
       },
     ],
-    tools: [TOOL],
+    tools: [toolFor(engine)],
     tool_choice: { type: "tool", name: "propose_garment" },
     messages: withImages(buildHistory(state.chat), opts.images),
   });

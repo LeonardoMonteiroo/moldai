@@ -1,31 +1,30 @@
 import type { PatternState } from "@/lib/types";
 import type { ProposeOptions } from "./options";
-import {
-  TYPES,
-  GENDERS,
-  NECKLINES,
-  SLEEVES,
-  SKIRTS,
-  COLLARS,
-  CUFFS,
-  WAISTBANDS,
-  FRONT_CLOSURES,
-  STYLE_LIMITS,
-  FIT_CLASSES,
-  STRETCH_CLASSES,
-} from "@/lib/draft/garment";
+import { GENDERS } from "@/lib/draft/garment";
 import { MEASUREMENT_RANGES } from "@/lib/measurements";
 import { COSTS } from "@/lib/types";
 import { EXPORT_FORMATS } from "@/lib/export/formats";
 import { buildEaseReport } from "@/lib/draft/easeReport";
 import { buildAssemblyOrder } from "@/lib/draft/assembly";
 import type { Translate } from "@/lib/i18n/translate";
+import { ENGINE_IDS } from "@/lib/draft/engine/capability";
+import type { EngineId, EngineCapability } from "@/lib/draft/engine/capability";
+import { getEngine } from "@/lib/draft/engine/registry";
 
 const fmtRange = (r: { min: number; max: number }) => `${r.min}–${r.max} cm`;
 
-const MEASUREMENT_LINES = Object.entries(MEASUREMENT_RANGES)
-  .map(([k, r]) => `  - ${k}: ${fmtRange(r)}`)
-  .join("\n");
+// #267: MEASUREMENT_RANGES stays app-level (every engine's measurement KEYS
+// are a subset of it, per capability.test.ts's own invariant) -- so a
+// measurement line reads its bound from there, but which KEYS get a line at
+// all is scoped to the given engine's own declared vocabulary.
+function measurementLines(capability: EngineCapability): string {
+  return [
+    ...capability.measurements.required,
+    ...capability.measurements.optional,
+  ]
+    .map((k) => `  - ${k}: ${fmtRange(MEASUREMENT_RANGES[k])}`)
+    .join("\n");
+}
 
 // #108: rendering raw COSTS keys (e.g. "cuttingPlan") let the model quote
 // that camelCase identifier verbatim in an assistantMessage — a code
@@ -47,45 +46,58 @@ const COST_LINES = COST_DESCRIPTIONS.map(
   ([label, cost]) => `  - ${label}: ${cost} credit${cost === 1 ? "" : "s"}`,
 ).join("\n");
 
-// Static sections first, per-pattern state last. All numeric bounds render
-// from the same constants validateSpec clamps with — the model is never told
-// a range the validator doesn't enforce.
+// Static sections first, per-pattern state last. All numeric bounds and
+// enums render from the ACTIVE ENGINE's own declared capability
+// (lib/draft/engine/capability.ts) — the model is never told a range or a
+// type/style value the engine (and, transitively, validateSpec) doesn't
+// actually support. #267: this used to read module-level TYPES/STYLE_LIMITS
+// constants; the enums/bounds interpolated below now come from `capability`
+// instead. The hand-written English PROSE (the trousers-are-straight-leg-
+// only note, the three-collar taxonomy, "# Vocabulary mapping") is
+// deliberately left describing the "moldai" engine specifically — read
+// literally, #267's acceptance criteria ask only for enums/numeric bounds
+// to be engine-derived, and moving ~40 lines of the highest-leverage prompt
+// text behind an indirection buys nothing while only one engine exists.
+// Revisit if a second engine is ever registered.
 //
-// Exported (alongside buildDynamicSection below) so index.ts can send it as
-// its own cache_control'd system block: this text plus the propose_garment
-// tool schema are byte-identical across every user and every request (no
-// interpolation happens in either), so caching this ~6.2k-token prefix is a
-// cache hit for essentially every generate call in the app, not just repeat
-// calls within one conversation. Measured via the real count_tokens
-// endpoint: static (this + tool schema) ≈ 6,189 tokens vs. ≈ 2,190 for the
-// per-request dynamic section below — most of every request was, before
-// this, paying full price for text that never changes.
-export const STATIC_SECTIONS = `# Role
+// staticSectionsFor(id) below (built once per engine at module load, see
+// its own comment) is what index.ts actually sends as its cache_control'd
+// system block: this text plus the propose_garment tool schema are
+// byte-identical across every user and every request FOR A GIVEN ENGINE (no
+// interpolation happens beyond what the engine's own capability fixes), so
+// caching this ~6.2k-token prefix is a cache hit for essentially every
+// generate call using that engine, not just repeat calls within one
+// conversation. Measured via the real count_tokens endpoint (against the
+// "moldai" capability): static (this + tool schema) ≈ 6,189 tokens vs.
+// ≈ 2,190 for the per-request dynamic section below — most of every request
+// was, before this, paying full price for text that never changes.
+function buildStaticSections(capability: EngineCapability): string {
+  return `# Role
 
 You are MoldAI's pattern-drafting engine. You receive natural-language requests about a garment and translate them into a GarmentSpec via the propose_garment tool. You never draw — no SVG, no coordinates, only the spec.
 
 # GarmentSpec
 
-- type: ${TYPES.join(" | ")}. tshirt = knit garment (round neckline, short set-in sleeve, no darts by default); blouse = woven fabric (may have darts, any neckline); trousers = a straight-leg block only (front + back panels + waistband) — no tapered, wide, flared, or cargo silhouette exists yet, only the length is adjustable (trouserLengthCm, a shorter value gives cropped/capri-length trousers, not a true shorts cut). Choose tshirt for a t-shirt and blouse for a blouse/shirt.
+- type: ${capability.types.join(" | ")}. tshirt = knit garment (round neckline, short set-in sleeve, no darts by default); blouse = woven fabric (may have darts, any neckline); trousers = a straight-leg block only (front + back panels + waistband) — no tapered, wide, flared, or cargo silhouette exists yet, only the length is adjustable (trouserLengthCm, a shorter value gives cropped/capri-length trousers, not a true shorts cut). Choose tshirt for a t-shirt and blouse for a blouse/shirt.
 - gender: ${GENDERS.join(" | ")} — the measurement base. Infer from cues like "men's"/"women's" in any language; no cue -> female.
 - measurementOverrides: body measurements in cm that override the size table. Include ONLY what the request explicitly adjusts. Valid ranges:
-${MEASUREMENT_LINES}
+${measurementLines(capability)}
 - style:
-  - neckline: ${NECKLINES.join(" | ")}
-  - necklineDepthCm: ${fmtRange(STYLE_LIMITS.necklineDepthCm)}
-  - sleeve: ${SLEEVES.join(" | ")}
-  - skirt (silhouette): ${SKIRTS.join(" | ")}
-  - skirtLengthCm: ${fmtRange(STYLE_LIMITS.skirtLengthCm)}
+  - neckline: ${capability.styleEnums.neckline.join(" | ")}
+  - necklineDepthCm: ${fmtRange(capability.styleLimits.necklineDepthCm)}
+  - sleeve: ${capability.styleEnums.sleeve.join(" | ")}
+  - skirt (silhouette): ${capability.styleEnums.skirt.join(" | ")}
+  - skirtLengthCm: ${fmtRange(capability.styleLimits.skirtLengthCm)}
   - darts: boolean
-  - seamAllowanceCm: ${fmtRange(STYLE_LIMITS.seamAllowanceCm)}
-  - armholeDeepenCm: ${fmtRange(STYLE_LIMITS.armholeDeepenCm)} — deepens the body's armhole; use when asked to increase/lower/deepen the armhole. It only affects the body, so the sleeve cap may stop matching and trigger a seam-conflict warning: that's expected, the user resolves it with the sleeve-fix action.
-  - fit (woven garments — blouse/dress/skirt bodice): ${FIT_CLASSES.join(" | ")}. How loose the garment is drafted relative to the body. Default fitted. ALWAYS express a looser/tighter/closer-fitting request through this field — never by inflating measurementOverrides, which would corrupt the recorded body measurements instead of changing the garment's ease.
-  - stretch (knit garments — tshirt): ${STRETCH_CLASSES.join(" | ")}. How much negative ease the fabric tolerates (a stretchier fabric can be drafted smaller than the body and still fit). Default none.
-  - collar (blouse/dress/tshirt): ${COLLARS.join(" | ")}. "convertible" is a soft, foldable classic collar sized from the drafted neckline itself. "band" is a stand/mandarin collar — a straight-up band with NO folded-over fall, structurally different from convertible: it stands close to the throat, and the neckline it seats against is lowered slightly first so the stand isn't tight. "shirt" is the classic two-piece shirt/dress-shirt collar — a stand (the same construction as "band", sized from the same lowered neckline plus the button-stand width) with a separate fall (the "convertible" shape) sewn on top of it; use this for a genuine button-down/dress-shirt collar rather than "convertible" alone. No other collar shape (Peter Pan, notched) exists yet: if the request needs one of those, don't silently substitute one of the three built shapes — ask whether one is an acceptable stand-in, or decline/explain that it isn't built yet. Default none (unchanged shell), same as before this field existed.
-  - cuff (only meaningful with sleeve: long): ${CUFFS.join(" | ")}. "straight" is a plain straight cuff band with a simple placket, sized from the drafted sleeve hem. No shaped/contoured cuff or tower placket exists yet — same ask/decline rule as collar. Default none.
-  - waistband (skirt and trousers only): ${WAISTBANDS.join(" | ")}. "straight" is a plain straight band with a fixed closure overlap, sized from the drafted waist edge — the default for any skirt or trousers, since neither can be finished without one. No contoured or faced waistband exists yet. Set "none" only if the user explicitly asks for a raw/unfinished waist.
-  - frontClosure (blouse only): ${FRONT_CLOSURES.join(" | ")}. "buttonStand" adds a button-stand strip sewn to the front bodice's own center-front edge, sized from the drafted opening — the only front-closure shape MoldAI drafts today. Not available for a dress or tshirt (a bodice sewn to a skirt, or a knit pullover) — treat a request for either like any other unsupported combination below. No button/buttonhole placement mark exists yet. Default none (unchanged, pullover-style front).
-  - trouserLengthCm (trousers only): ${fmtRange(STYLE_LIMITS.trouserLengthCm)}. Total waist-to-hem length. Defaults to a fixed adult length if unset (not sized per body/height).
+  - seamAllowanceCm: ${fmtRange(capability.styleLimits.seamAllowanceCm)}
+  - armholeDeepenCm: ${fmtRange(capability.styleLimits.armholeDeepenCm)} — deepens the body's armhole; use when asked to increase/lower/deepen the armhole. It only affects the body, so the sleeve cap may stop matching and trigger a seam-conflict warning: that's expected, the user resolves it with the sleeve-fix action.
+  - fit (woven garments — blouse/dress/skirt bodice): ${capability.styleEnums.fit.join(" | ")}. How loose the garment is drafted relative to the body. Default fitted. ALWAYS express a looser/tighter/closer-fitting request through this field — never by inflating measurementOverrides, which would corrupt the recorded body measurements instead of changing the garment's ease.
+  - stretch (knit garments — tshirt): ${capability.styleEnums.stretch.join(" | ")}. How much negative ease the fabric tolerates (a stretchier fabric can be drafted smaller than the body and still fit). Default none.
+  - collar (blouse/dress/tshirt): ${capability.styleEnums.collar.join(" | ")}. "convertible" is a soft, foldable classic collar sized from the drafted neckline itself. "band" is a stand/mandarin collar — a straight-up band with NO folded-over fall, structurally different from convertible: it stands close to the throat, and the neckline it seats against is lowered slightly first so the stand isn't tight. "shirt" is the classic two-piece shirt/dress-shirt collar — a stand (the same construction as "band", sized from the same lowered neckline plus the button-stand width) with a separate fall (the "convertible" shape) sewn on top of it; use this for a genuine button-down/dress-shirt collar rather than "convertible" alone. No other collar shape (Peter Pan, notched) exists yet: if the request needs one of those, don't silently substitute one of the three built shapes — ask whether one is an acceptable stand-in, or decline/explain that it isn't built yet. Default none (unchanged shell), same as before this field existed.
+  - cuff (only meaningful with sleeve: long): ${capability.styleEnums.cuff.join(" | ")}. "straight" is a plain straight cuff band with a simple placket, sized from the drafted sleeve hem. No shaped/contoured cuff or tower placket exists yet — same ask/decline rule as collar. Default none.
+  - waistband (skirt and trousers only): ${capability.styleEnums.waistband.join(" | ")}. "straight" is a plain straight band with a fixed closure overlap, sized from the drafted waist edge — the default for any skirt or trousers, since neither can be finished without one. No contoured or faced waistband exists yet. Set "none" only if the user explicitly asks for a raw/unfinished waist.
+  - frontClosure (blouse only): ${capability.styleEnums.frontClosure.join(" | ")}. "buttonStand" adds a button-stand strip sewn to the front bodice's own center-front edge, sized from the drafted opening — the only front-closure shape MoldAI drafts today. Not available for a dress or tshirt (a bodice sewn to a skirt, or a knit pullover) — treat a request for either like any other unsupported combination below. No button/buttonhole placement mark exists yet. Default none (unchanged, pullover-style front).
+  - trouserLengthCm (trousers only): ${fmtRange(capability.styleLimits.trouserLengthCm)}. Total waist-to-hem length. Defaults to a fixed adult length if unset (not sized per body/height).
 
 # Vocabulary mapping
 
@@ -128,6 +140,27 @@ If the user asks for a value outside its valid range, set the nearest bound in t
 # Language
 
 Write assistantMessage, and any question labels/options, in the natural language of the user's most recent message — mirror it exactly, never default to a fixed language.`;
+}
+
+// #267: built EAGERLY, once per registered engine, at module load -- never
+// per-request. Correctness of Anthropic's prompt cache depends on the
+// serialized BYTES being identical across requests, not on object identity,
+// so a freshly-built-but-identical string would still hit; this eager build
+// is for provability and cost (avoiding a template re-evaluation on every
+// request), not because a lazy per-request build would be wrong. With one
+// registered engine there is exactly one string, so this is provably the
+// same bytes STATIC_SECTIONS used to be. staticSectionsFor's own pinned
+// sha256 test (prompt.test.ts) is what actually guards this — do not
+// "optimize" this back into a per-request build believing the hash test
+// requires it; it doesn't.
+export const STATIC_SECTIONS_BY_ENGINE: Record<EngineId, string> =
+  Object.fromEntries(
+    ENGINE_IDS.map((id) => [id, buildStaticSections(getEngine(id).capability)]),
+  ) as Record<EngineId, string>;
+
+export function staticSectionsFor(id: EngineId): string {
+  return STATIC_SECTIONS_BY_ENGINE[id];
+}
 
 // #137: buildEaseReport needs a Translate (draftPiecesCm/measureSeamGraph's
 // own signature, used elsewhere to resolve drafter-emitted display text)
@@ -243,10 +276,15 @@ export function buildDynamicSection(
   return lines.join("\n");
 }
 
-// Full system prompt as one string — STATIC_SECTIONS + buildDynamicSection.
-// Kept for callers that don't need the two parts separately (prompt.test.ts).
-// index.ts does NOT use this: it sends the two parts as separate system
-// blocks so only STATIC_SECTIONS carries cache_control.
-export function buildSystem(state: PatternState, opts: ProposeOptions): string {
-  return `${STATIC_SECTIONS}\n\n${buildDynamicSection(state, opts)}`;
+// Full system prompt as one string — staticSectionsFor(engine) +
+// buildDynamicSection. Kept for callers that don't need the two parts
+// separately (prompt.test.ts). index.ts does NOT use this: it sends the two
+// parts as separate system blocks so only the static one carries
+// cache_control.
+export function buildSystem(
+  engine: EngineId,
+  state: PatternState,
+  opts: ProposeOptions,
+): string {
+  return `${staticSectionsFor(engine)}\n\n${buildDynamicSection(state, opts)}`;
 }

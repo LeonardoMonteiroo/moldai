@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { TOOL } from "./schema";
+import { toolFor } from "./schema";
 import {
   NECKLINES,
   SLEEVES,
@@ -15,6 +15,7 @@ import {
   STRETCH_CLASSES,
 } from "@/lib/draft/garment";
 import { MEASUREMENT_RANGES } from "@/lib/measurements";
+import { DEFAULT_ENGINE_ID } from "@/lib/draft/engine/capability";
 
 interface Prop {
   enum?: string[];
@@ -23,6 +24,7 @@ interface Prop {
   properties?: Record<string, Prop>;
 }
 
+const TOOL = toolFor(DEFAULT_ENGINE_ID);
 const input = TOOL.input_schema as unknown as {
   properties: Record<string, Prop>;
 };
