@@ -276,6 +276,28 @@ describe("withPattern", () => {
     });
   }
 
+  // #267: pattern.engine must be named in PatternSchema or it is stripped
+  // the same way an unnamed style field was (STYLE_FLAG_CASES above).
+  it("keeps pattern.engine across a read-modify-write round trip", async () => {
+    const seeded = seedPatternState(t);
+    seeded.pattern = { ...seeded.pattern, engine: "moldai" };
+    rows = [
+      {
+        id: "m1",
+        userId: "u1",
+        data: JSON.parse(JSON.stringify(seeded)),
+        updatedAt: new Date(),
+      },
+    ];
+
+    await withPattern("m1", "u1", (state) => bumpVersion(state));
+
+    const saved = rows.find((r) => r.id === "m1")!.data as {
+      pattern: { engine?: string };
+    };
+    expect(saved.pattern.engine).toBe("moldai");
+  });
+
   // #72: every current caller only reaches savePattern after lockPattern has
   // already verified ownership inside the same transaction, so this can't be
   // exploited through withPattern's own API today -- it guards a future

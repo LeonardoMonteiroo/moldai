@@ -16,6 +16,7 @@ import {
   seedPatternSizeSnapshot,
 } from "@/lib/editor/state";
 import { debitWallet, refundWallet } from "@/lib/billing/wallet";
+import { DEFAULT_ENGINE_ID } from "@/lib/draft/engine/capability";
 import type { LedgerEntry } from "@/lib/billing/wallet";
 import { composeEditorState } from "@/lib/api/compose";
 import { apiError } from "@/lib/api/errors";
@@ -350,7 +351,7 @@ export async function POST(request: Request, { params }: Ctx) {
                     tCharts,
                     sizeChartId,
                   );
-                seedPatternSizeSnapshot(state, chart);
+                seedPatternSizeSnapshot(state, chart, DEFAULT_ENGINE_ID);
                 substitutedFrom = rejectedActiveName;
               }
               applyGarmentSpec(state, spec, t);

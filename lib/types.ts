@@ -396,6 +396,21 @@ export interface Pattern {
    * row when it is absent rather than inventing a name.
    */
   sizeChartName?: string;
+  /**
+   * #267: which drafting engine this pattern was drafted with, frozen at
+   * the first generation alongside `sizeTable`/`sizeChartName` -- the same
+   * reason: switching the app's default engine must not silently redraw an
+   * existing pattern's geometry on its next regeneration.
+   *
+   * Optional because patterns drafted before this existed simply do not
+   * carry it (an additive blob key, so no reset migration) -- absent means
+   * `"moldai"`, the app's default. A plain wire `string`, not `EngineId`,
+   * the same reason `sizeChartName` isn't a strict enum: this is untrusted
+   * once read back off a persisted blob, and `isEngineId`/`engineFor`
+   * (lib/draft/engine/capability.ts) are the trust boundary that narrows
+   * it, not the type itself.
+   */
+  engine?: string;
   pieces: Piece[];
   spec?: GarmentSpec;
   viewBox?: { w: number; h: number };

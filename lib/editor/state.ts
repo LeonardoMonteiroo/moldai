@@ -11,7 +11,8 @@ import {
 import { seamCheck } from "@/lib/draft/garment";
 import type { SeamMeasurement } from "@/lib/draft/garment";
 import { draftGarment } from "@/lib/draft/engine/facade";
-import { DEFAULT_ENGINE_ID } from "@/lib/draft/engine/capability";
+import { engineFor } from "@/lib/draft/engine/capability";
+import type { EngineId } from "@/lib/draft/engine/capability";
 import { buildSizeTable } from "@/lib/sizeCharts/compute";
 import { buildSystemSizeChart } from "@/lib/sizeCharts/seed";
 import type { Translate } from "@/lib/i18n/translate";
@@ -180,9 +181,19 @@ export function seedPatternState(t: Translate): PatternState {
 // pattern; editing the account's active size chart afterward never
 // retroactively changes an in-progress pattern (same precedent as the i18n
 // locale-snapshot limitation).
+//
+// #267: `engine` is frozen in this SAME assignment, alongside sizeTable/
+// sizeChartName -- one function, one moment, so "the engine is frozen
+// alongside the size snapshot" is structurally true rather than a
+// convention two separate call sites could drift apart on. A required
+// parameter (not an optional one defaulting to DEFAULT_ENGINE_ID inside
+// this function) so a future caller can't forget to pass the pattern's
+// actual choice -- the same "compiler forces every caller" reasoning the
+// facade's EngineId parameter already uses.
 export function seedPatternSizeSnapshot(
   state: PatternState,
   sizeChart: SizeChartData,
+  engine: EngineId,
 ): void {
   const sizeTable = buildSizeTable(sizeChart);
   const baseSize = sizeChart.sizes[sizeChart.baseSizeIndex];
@@ -192,6 +203,7 @@ export function seedPatternSizeSnapshot(
     baseSize,
     sizeTable,
     sizeChartName: sizeChart.name,
+    engine,
     sizesApplied: [],
     sizesPending: sizeChart.sizes,
   };
@@ -234,9 +246,10 @@ export function applyGarmentSpec(
   t: Translate,
 ): void {
   const baseRow = state.pattern.sizeTable[state.pattern.baseSize];
-  // #267: DEFAULT_ENGINE_ID for now -- Pattern.engine (the frozen per-
-  // pattern choice) doesn't exist until the next commit, which also
-  // rewires this to read the pattern's own frozen engine instead.
+  // #267: reads the pattern's own FROZEN engine -- never a fresh default --
+  // so the one route-reachable draft path can never disagree with the
+  // choice seedPatternSizeSnapshot already made for this pattern.
+  const engine = engineFor(state.pattern.engine);
   const {
     pieces,
     viewBox,
@@ -244,7 +257,7 @@ export function applyGarmentSpec(
     armholeLenCm,
     sleeveArmholeCm,
     seamGraph,
-  } = draftGarment(DEFAULT_ENGINE_ID, spec, baseRow, t);
+  } = draftGarment(engine, spec, baseRow, t);
   state.pattern = {
     ...state.pattern,
     pieces,

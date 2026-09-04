@@ -12,6 +12,7 @@ import {
 } from "./state";
 import { t } from "@/lib/i18n/test-translate";
 import type { SizeChartData } from "@/lib/types";
+import { DEFAULT_ENGINE_ID } from "@/lib/draft/engine/capability";
 
 describe("seedPatternState", () => {
   it("takes the new-pattern name from the translator", () => {
@@ -53,7 +54,47 @@ describe("version and chat", () => {
   });
 });
 
-describe("applyGarmentSpec / conflict / refit", () => {
+describe("applyGarmentSpec / conflict / refit / engine freeze", () => {
+  // #267: absent-means-default is the entire no-migration guarantee for the
+  // engine freeze -- a legacy pattern with no `engine` key must draft
+  // byte-identical pieces to one explicitly frozen to "moldai".
+  it("drafts identically whether pattern.engine is absent or explicitly moldai", () => {
+    const spec = {
+      type: "blouse" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { sleeve: "short" as const },
+    };
+    const absent = seedPatternState(t);
+    delete absent.pattern.engine;
+    applyGarmentSpec(absent, spec, t);
+
+    const explicit = seedPatternState(t);
+    explicit.pattern.engine = "moldai";
+    applyGarmentSpec(explicit, spec, t);
+
+    expect(absent.pattern.pieces).toEqual(explicit.pattern.pieces);
+  });
+
+  // #267: applyGarmentSpec never writes pattern.engine -- it only reads the
+  // already-frozen choice (seedPatternSizeSnapshot is the one and only
+  // writer), so repeated regeneration can never drift it.
+  it("never changes an already-frozen pattern.engine, across repeated regenerations", () => {
+    const s = seedPatternState(t);
+    s.pattern.engine = "moldai";
+    applyGarmentSpec(
+      s,
+      { type: "blouse", measurementOverrides: {}, style: {} },
+      t,
+    );
+    applyGarmentSpec(
+      s,
+      { type: "dress", measurementOverrides: {}, style: {} },
+      t,
+    );
+    expect(s.pattern.engine).toBe("moldai");
+  });
+
   it("drafts a skirt and stores it on the pattern", () => {
     const s = seedPatternState(t);
     applyGarmentSpec(
@@ -186,7 +227,7 @@ describe("seedPatternSizeSnapshot", () => {
 
   it("freezes the chart's sizes and base size onto the pattern", () => {
     const s = seedPatternState(t);
-    seedPatternSizeSnapshot(s, chart);
+    seedPatternSizeSnapshot(s, chart, DEFAULT_ENGINE_ID);
     expect(s.pattern.sizes).toEqual(["P", "M", "G"]);
     expect(s.pattern.baseSize).toBe("M");
     expect(Object.keys(s.pattern.sizeTable)).toEqual(["P", "M", "G"]);
@@ -197,7 +238,15 @@ describe("seedPatternSizeSnapshot", () => {
   // reassigning the chart later must not rewrite an existing pattern's history.
   it("records the name of the chart it drafted from", () => {
     const s = seedPatternState(t);
-    seedPatternSizeSnapshot(s, chart);
+    seedPatternSizeSnapshot(s, chart, DEFAULT_ENGINE_ID);
     expect(s.pattern.sizeChartName).toBe("Feminino adulto · ABNT");
+  });
+
+  // #267: the engine is frozen in the SAME assignment as sizeTable/
+  // sizeChartName -- one function, one moment.
+  it("records the drafting engine it drafted with", () => {
+    const s = seedPatternState(t);
+    seedPatternSizeSnapshot(s, chart, DEFAULT_ENGINE_ID);
+    expect(s.pattern.engine).toBe("moldai");
   });
 });

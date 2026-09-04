@@ -30,6 +30,7 @@ import {
   STRETCH_CLASSES,
   STYLE_LIMITS,
 } from "@/lib/draft/vocabulary";
+import { reportError } from "@/lib/observability/report";
 
 // #267: the declared capability of one drafting engine -- what CLAUDE.md's
 // docs/decisions.md #266->#267 entry calls "a stated contract for what our
@@ -52,6 +53,26 @@ export const DEFAULT_ENGINE_ID: EngineId = "moldai";
 // must never reach applyPurchase.
 export function isEngineId(value: unknown): value is EngineId {
   return (ENGINE_IDS as readonly unknown[]).includes(value);
+}
+
+/**
+ * Narrows `Pattern.engine`/`SloperData.engine`/`PatternVersion.engine` --
+ * each a plain wire `string | undefined`, never `EngineId` itself, since a
+ * value read back off a persisted blob is untrusted the same way any other
+ * stored field is -- to the engine that value actually names. `undefined`
+ * (the additive-blob, no-migration case) resolves to `DEFAULT_ENGINE_ID`
+ * silently, since that IS the documented meaning of absent. A recognised
+ * but no-longer-registered id would be a real data problem (an engine this
+ * app once supported and has since retired) and is reported via
+ * reportError before falling back -- the db.sizeChart.parse precedent
+ * (lib/db/sizeChart.ts) for "an unexpected persisted value degrades
+ * gracefully but is not silently swallowed."
+ */
+export function engineFor(value: string | undefined): EngineId {
+  if (value === undefined) return DEFAULT_ENGINE_ID;
+  if (isEngineId(value)) return value;
+  reportError("draft.engine.unknown", new Error(`unknown engine id: ${value}`));
+  return DEFAULT_ENGINE_ID;
 }
 
 export interface Range {

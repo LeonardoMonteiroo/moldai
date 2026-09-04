@@ -66,6 +66,11 @@ const PatternSchema = z
     sizesPending: z.array(z.string()),
     sizeTable: z.record(z.string(), MeasurementsSchema),
     sizeChartName: z.string().optional(),
+    // #267: a plain string, not z.enum(ENGINE_IDS) -- an enum would fail
+    // the WHOLE blob's safeParse the day an engine id is ever retired,
+    // turning one bad string into a 404 for the whole pattern.
+    // engineFor (lib/draft/engine/capability.ts) is the real narrowing.
+    engine: z.string().optional(),
     pieces: z.array(PieceSchema),
     spec: GarmentSpecSchema.optional(),
     viewBox: z.object({ w: z.number(), h: z.number() }).optional(),
