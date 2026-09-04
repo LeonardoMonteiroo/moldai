@@ -32,8 +32,8 @@ import {
 } from "@/lib/draft/vocabulary";
 import { reportError } from "@/lib/observability/report";
 
-// #267: the declared capability of one drafting engine -- what CLAUDE.md's
-// docs/decisions.md #266->#267 entry calls "a stated contract for what our
+// #267: the declared capability of one drafting engine -- what
+// docs/decisions/drafting.md's #266->#267 entry calls "a stated contract for what our
 // own drafters actually support", so a gap is REPORTABLE (checkEngineSupport
 // below) instead of silently defaulted. A leaf module: imports only types
 // and the leaf lib/draft/vocabulary/lib/measurements catalogs, nothing from

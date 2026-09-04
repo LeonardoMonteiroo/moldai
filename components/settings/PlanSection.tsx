@@ -181,7 +181,7 @@ export function PlanSection({ credits: initial }: { credits: Credits }) {
         <p className="text-muted text-ui">{t("downgradeNote")}</p>
       )}
       {/* #docs/design: reverted to the design handoff's generic copy (see
-          docs/decisions.md) -- the gateway's real BRL-only/Visa-Mastercard-only
+          docs/decisions/billing.md) -- the gateway's real BRL-only/Visa-Mastercard-only
           limitations no longer render here. */}
       {/* One card holding the note and the link side by side, per the design
           -- they used to be two loose runs of text on the page ground, which

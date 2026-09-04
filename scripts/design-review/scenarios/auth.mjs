@@ -204,7 +204,7 @@ const scenarios = [
         await page.getAttribute("#login-password", "aria-invalid"),
         "true",
       );
-      // Deliberate divergence from the .dc.html, recorded in docs/decisions.md:
+      // Deliberate divergence from the .dc.html, recorded in docs/decisions/design-handoff.md:
       // the design leaves labels at default ink, this app reddens them.
       t.eq(
         "label vermelho (divergencia deliberada)",

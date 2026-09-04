@@ -1,0 +1,7 @@
+# Testing conventions
+
+> This is the _why_. For the operative rule, see [`../architecture/testing.md`](../architecture/testing.md).
+> For universal, cross-cutting rules, see the root [`CLAUDE.md`](../../CLAUDE.md).
+
+- **`next-intl` does not throw on a missing key — it renders the literal key path, logs `IntlError: MISSING_MESSAGE`, and the test still passes.** This was verified empirically, not assumed: a test written against a substring, a regex, or the key name itself will pass whether or not the catalog actually resolves — which is precisely why the rule is "assert against the exported `ptBR` catalog object," not "assert some plausible-looking text is present." A test suite that looks green can still be blind to every catalog key silently failing to resolve.
+- **`vi.mock` specifier mismatches are silent, which is what makes them dangerous.** If a test mocks `"@/lib/db/prisma"` but the subject module imports `"./prisma"` and the two don't independently resolve to the same absolute path, the mock simply never intercepts — the real dependency runs, and the test's own assertions report zero calls instead of throwing an error. There is no exception, no red test pointing at the mismatch; the test that should have caught a regression just quietly stops testing anything. `lib/db/aliasResolution.test.ts` exists as a standing regression guard specifically because this collapse (alias path vs. relative path resolving to different things) happened once and left a real defect uncaught.

@@ -1,0 +1,17 @@
+# Auth: Credentials, email verification, Google OAuth
+
+> For the why behind these rules — the Google OAuth linking decisions and the live-verification evidence — see [`../decisions/auth.md`](../decisions/auth.md).
+> For universal, cross-cutting rules, see the root [`CLAUDE.md`](../../CLAUDE.md).
+
+**Auth.js v5** (Credentials + JWT), users in Postgres via Prisma. Self-service sign-up at `/signup` creates the account and mails a verification link; it does **not** sign the visitor in. `authorizeUser` returns `AuthorizeResult` — `{ok:true,user}` or `{ok:false,reason:"invalid"|"unverified"|"rate_limited"|"no_password"}` — and `auth.ts` maps `invalid` to Auth.js's generic `null` and the other three to `CredentialsSignin` subclasses carrying `code: "unverified_email"` / `"rate_limited"` / `"no_password"`, so `/login` distinguishes them. Verification tokens are sha-256 digests of 32 random bytes, 24 h, single use, newest-only (`lib/auth/verification.ts` pure + `lib/db/verification.ts` repo). Mail goes through `lib/mail/` (`nodemailer`); with `SMTP_HOST` unset it logs the link outside production and throws (`mail_unavailable`) in production — never a silent drop.
+
+**Google OAuth is a second, fully working provider, not decorative.** `auth.ts` adds a `Google` provider alongside Credentials, backed by `@auth/prisma-adapter` (new `Account`/`Session`/`VerificationToken` Prisma models) — session strategy stays JWT throughout, the one combination Auth.js supports alongside Credentials.
+
+- **`allowDangerousEmailAccountLinking: true` lets a Google sign-in auto-link to an existing Credentials `User` sharing that email** — deliberate, because Google verifies email ownership itself; a `signIn` callback re-checks `profile.email_verified === true` before allowing it, never trusting the flag alone.
+- **Linking to an existing _unverified_ Credentials row also stamps `emailVerified` now** (`lib/db/users.ts`'s `stampEmailVerifiedIfMissing`, a single `updateMany` with the null check in its own `WHERE` clause) — Google's proof is strictly stronger evidence than an unclicked mail link, and it unblocks that account's Credentials login too.
+- A brand-new Google signup skips MoldAI's own verification mail entirely.
+- `Session`/`VerificationToken` exist only to satisfy the adapter's contract and are never written to — this app keeps JWT sessions and its own `EmailVerificationToken`/`PasswordResetToken`.
+- **`User.passwordHash` is nullable**: a Google-only account has none, and `authorizeUser`'s `no_password` reason covers a Credentials attempt against one (`POST /api/verify-email/resend` has the identical guard, spending the same dummy-hash cost as its unknown-email branch).
+- `/settings`'s `PasswordSection` lets that account set a password once (no current-password field); until it does, `DangerZoneSection`'s account-deletion password check is skipped (email-match only).
+- `LoginCard` reads a failed Google redirect's `?error=` query param (Auth.js's own convention) — which is why it renders inside a `<Suspense>` boundary in `app/login/page.tsx`, since `useSearchParams()` otherwise opts the whole static `/login` page out of prerendering.
+- The `Google(...)` provider passes `clientId`/`clientSecret` explicitly from `process.env.GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` — Auth.js v5 only auto-populates a provider's credentials from env vars named `AUTH_<PROVIDER>_ID`/`_SECRET`, never from an arbitrary name, so this repo's own `.env.example` naming needed the explicit read.

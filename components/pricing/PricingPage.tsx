@@ -36,7 +36,7 @@ const PAID_PLAN_IDS = PLAN_IDS.filter((id) => id !== "free");
 //
 // Copy stays whatever the real app charges/limits, with one deliberate
 // exception: paymentNote uses the design handoff's generic "Pagamentos
-// processados pela Stripe." (see docs/decisions.md) rather than the
+// processados pela Stripe." (see docs/decisions/billing.md) rather than the
 // gateway's real BRL-only/Visa-Mastercard limitations.
 //
 // landing-page-design: this screen shares the marketing surface's type

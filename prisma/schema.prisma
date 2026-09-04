@@ -120,7 +120,7 @@ model Account {
 // PasswordResetToken (Auth.js's own VerificationToken backs its Email/
 // magic-link provider only, which this app doesn't use). Two empty tables
 // are the conscious cost of choosing the full adapter over a lightweight
-// column -- see docs/decisions.md's Authentication section.
+// column -- see docs/decisions/auth.md.
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique

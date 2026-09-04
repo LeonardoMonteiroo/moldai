@@ -27,7 +27,7 @@ class NoPasswordError extends CredentialsSignin {
 export const { handlers, auth, signIn, signOut } = NextAuth({
   // #235: only used for Google account-linking (Account rows) -- session
   // storage stays JWT (below), so Session/VerificationToken are never
-  // actually written. See docs/decisions.md's Authentication section.
+  // actually written. See docs/decisions/auth.md.
   adapter: PrismaAdapter(prisma),
   // Self-hosted (Docker/`next start`): Auth.js v5 only trusts the host
   // automatically in dev. In production, without this every auth request fails with UntrustedHost.

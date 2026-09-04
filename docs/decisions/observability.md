@@ -1,0 +1,9 @@
+# Observability
+
+> This is the _why_. For the operative rule, see [`../architecture/observability.md`](../architecture/observability.md).
+> For universal, cross-cutting rules, see the root [`CLAUDE.md`](../../CLAUDE.md).
+
+- **Before `reportError` existed, the AI generation flow's `catch` had no error binding at all.** An Anthropic 401/429 (a rotated key, a spend cap) was structurally unloggable, the credit was silently refunded, and the operator's stdout held nothing: not the cause, not even a line saying a generation was attempted. That silence — a real failure with zero trace of it anywhere — is the whole reason `reportError(scope, err, context?)` exists as a single seam rather than each catch block growing its own `console.error`.
+- It's now called from that catch (with `patternId`/`userId` context), from `app/error.tsx`/`app/global-error.tsx`'s boundaries (replacing a bare `console.error(error)`), and from `scripts/cron-renew.ts`'s failure path — three call sites chosen because each one previously either had no logging or an inconsistent one-off.
+- **`SECURITY_HEADERS` had to be pure data specifically because `next.config.ts` sits outside both vitest projects' include globs** (`lib/**`, `app/**`, `components/**`) — if the header list lived inline in `next.config.ts`, nothing in the test suite could ever assert against it, and a header silently dropped from the array would ship unnoticed.
+- **A Content-Security-Policy is deliberately absent, not forgotten.** Next's inline bootstrap script needs a nonce and a naive policy would break the app outright, so it stays a tracked follow-up rather than a rushed, broken CSP; `X-Frame-Options` is the interim clickjacking mitigation for `/login`'s credentials form that CSP's `frame-ancestors` would otherwise supersede once it lands.
