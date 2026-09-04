@@ -49,17 +49,21 @@
 
 ## The drafting engine is a swappable choice, not the only code path (#266 → #267)
 
-**Decided, not yet built.** The engine is still monolithic in `lib/draft/*` today; #267
-tracks the work. This entry exists so the next session reads the seam as a decision
-instead of drift, and so nobody re-runs the #266 evaluation from scratch.
+**Decided and built.** `lib/draft/engine/{types,capability,moldai,registry,facade,
+conformance.test}.ts` are the interface; `"moldai"` is the only engine registered.
+No second engine was added by this issue — that was an explicit acceptance criterion,
+not an oversight — so everything below that reads as forward-looking ("when a second
+engine exists...") describes a seam that is real and load-bearing today even though
+only one implementation stands behind it.
 
-**The rule this changed.** `CLAUDE.md` says "Don't add abstractions beyond what's
-needed", citing `/settings` and `/pattern/[id]/versions` deliberately having no Zustand
-store. One implementation behind an interface is exactly the shape that rule warns
-about, and it is being granted an explicit exception here. The exception is not "we
-might swap engines one day" — that is precisely the speculative argument the rule
-exists to refuse. It is that three things are impossible while the engine is implicit,
-and all three came out of measurement rather than taste.
+**The rule this changed.** [`conventions.md`](../architecture/conventions.md) says
+"Don't add abstractions beyond what's needed", citing `/settings` and
+`/pattern/[id]/versions` deliberately having no Zustand store. One implementation
+behind an interface is exactly the shape that rule warns about, and it is being
+granted an explicit exception here. The exception is not "we might swap engines one
+day" — that is precisely the speculative argument the rule exists to refuse. It is
+that three things were impossible while the engine was implicit, and all three came
+out of measurement rather than taste.
 
 **Why the question came up at all.** #266 asked whether Freesewing should replace the
 ~4,000 lines of hand-written drafters, on the grounds that writing them from scratch was
@@ -162,3 +166,83 @@ fitted to that benchmark and Freesewing was not, so its "ours is closer" deltas 
 circular, and its two representation-dependent metrics (the curve/straight perimeter
 split, and the orientation-dependent bounding box) are not comparable across engines at
 all.**
+
+### Build-time decisions the design above didn't settle in advance
+
+**Two verbs, one rule, for what happens to a value that doesn't fit.** `validateSpec`
+(`lib/draft/garment.ts`) narrows _untrusted wire data_ to the _app's_ vocabulary and may
+substitute a default for garbage — that's what a trust boundary does, not a silent
+feature substitution. `checkEngineSupport` (`lib/draft/engine/capability.ts`) narrows an
+_already-valid_ spec to what the _active engine_ can honor, and may only report, never
+substitute — a legitimate stated intent (the caller already chose "shirt collar", not
+"gnorf") must never be silently swapped for something else. `validateSpec` stays
+app-level and unparameterized by engine on purpose: it is called from pure,
+pattern-free `lib/ai/decision.ts`/`lib/ai/formSpec.ts`, and `lib/schemas/garment.ts`'s
+persisted-blob schema must keep accepting every value any pattern ever persisted under
+any engine, forever — narrowing it to one engine's vocabulary would strip fields off
+older patterns, the identical failure class the `GarmentStyleSchema` fix below
+describes. The safety net for keeping the two separate is
+`capability.test.ts`'s own invariant: every registered engine's capability is a subset
+of the app-level vocabulary.
+
+**The capability declaration is a leaf module; the registry is not, on purpose.**
+`lib/draft/vocabulary.ts` and `lib/draft/engine/capability.ts` import only types and
+each other — nothing from `garment.ts` or any drafter. `lib/draft/engine/moldai.ts`
+(which imports `garment.ts`'s `draftAll`), `registry.ts` and `facade.ts` are "heavy" —
+importing any of them pulls the whole drafter tree into the caller's bundle. This
+matters because `NewPatternForm` (a client component, disabling an unsupported garment
+type in its `Select`) reads `MOLDAI_CAPABILITY` directly rather than going through the
+registry, so a client bundle never pays for drafting logic it only needs to ask "is
+this type supported" of.
+
+**`PatternVersion.engine` is a real column, argued honestly.** The engine cannot
+change after a pattern's freeze, so `version.engine === pattern.engine` always holds
+today — "restore would use the wrong engine otherwise" is not a real risk and doesn't
+belong in the justification. The real argument is narrower: `/pattern/[id]/versions`
+never loads the `Pattern` blob at all (`VersionList`/`VersionCompare` draft directly
+from a `PatternVersionEntry`), so without the column those two components have no way
+to know which engine drafted a historical version. It is also principled the same way
+`recordVersion`'s existing comment already is: a version row omits pieces because
+`draftGarment` is deterministic from `spec` + `sizeTable`; the engine is a third input
+to that determinism, and omitting it means the row no longer fully determines its own
+geometry.
+
+**Acceptance criterion 6, read literally.** It asks that `lib/ai/prompt.ts`/`schema.ts`
+render their **enums and numeric bounds** from the active engine's capability — and
+that is exactly what changed. The hand-written English prose (the trousers-are-
+straight-leg-only note, the three-collar taxonomy, "# Vocabulary mapping") still
+describes `"moldai"` specifically. Moving ~40 lines of the highest-leverage prompt text
+behind an indirection would have bought nothing while a single engine is registered;
+revisit if a second one lands. The prompt-cache prefix this touches is guarded by a
+pinned sha256 test (`prompt.test.ts`) over `staticSectionsFor("moldai") +
+JSON.stringify(toolFor("moldai"))` — the one assertion that would actually catch an
+accidental byte change to what Anthropic caches, since every other test here checks a
+substring or a structural property, never the whole rendered text.
+
+**Two real, pre-existing bugs the #267 audit surfaced, of the identical shape.**
+`lib/schemas/garment.ts`'s `GarmentStyleSchema` named 11 of `GarmentStyle`'s 16 fields;
+`collar`/`cuff`/`waistband`/`frontClosure`/`trouserLengthCm` were silently stripped from
+`Pattern.spec.style` on every read-modify-write, because `z.object` drops unnamed keys
+and `savePattern` writes the parsed object straight back — the same failure
+[`generation-flow.md`](../architecture/generation-flow.md) already documents for
+`ChatMessage`'s `hasImage`/`assembly`. Fixed first, ahead of the
+engine-capability work, since a capability declaration about supported style fields
+would otherwise describe fields that don't survive persistence (issue #268, closed).
+`lib/schemas/pattern.ts`'s `ConflictInfoSchema` has the identical strip bug for
+`ConflictInfo.entries` (#134's multi-divergence list) — found, not fixed here, tracked
+separately.
+
+**A style-field capability gap is reachable for `"moldai"` itself, not only a
+hypothetical second engine.** `validateSpec` does not gate style fields by
+`spec.type` — it happily resolves `style.collar` on a `type: "trousers"` spec, which
+`MOLDAI_CAPABILITY.styleFieldsByType.trousers` does not list. `checkEngineSupport`
+reports this as a `styleField` gap today, drafts anyway with the field dropped
+(matching what silently happened before this issue), and now says so in a
+`tone: "notice"` chat bubble. `styleFieldsByType` was built as ground truth by reading
+every drafter directly, which surfaced a separate, adjacent, deliberately-unfixed
+finding: `lib/draft/formFields.ts`'s own `STYLE_FIELDS_BY_TYPE` offers a "fit" control
+for `tshirt`/`skirt`/`trousers` that no drafter reads for those types (`tshirt` reads
+`stretch` instead; `skirt`/`trousers` don't read `fit` or `stretch` at all — their own
+wearing ease is a fixed constant). `capability.test.ts` documents the three cases in a
+comment rather than "fixing" `NewPatternForm`'s rendered fields as a side effect of an
+unrelated issue.
