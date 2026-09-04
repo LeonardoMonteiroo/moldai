@@ -480,3 +480,119 @@ must never be able to fail a build. It reaches Playwright by absolute path insid
 same arrangement this repo already uses to drive a browser. Redis buckets are cleared
 through the container up front, because every account these scenarios use fails on
 purpose and would otherwise soft-lock its own helper by the tenth run.
+
+### The drafting engine is a swappable choice, not the only code path (#266 → #267)
+
+**Decided, not yet built.** The engine is still monolithic in `lib/draft/*` today; #267
+tracks the work. This entry exists so the next session reads the seam as a decision
+instead of drift, and so nobody re-runs the #266 evaluation from scratch.
+
+**The rule this changed.** `CLAUDE.md` says "Don't add abstractions beyond what's
+needed", citing `/settings` and `/pattern/[id]/versions` deliberately having no Zustand
+store. One implementation behind an interface is exactly the shape that rule warns
+about, and it is being granted an explicit exception here. The exception is not "we
+might swap engines one day" — that is precisely the speculative argument the rule
+exists to refuse. It is that three things are impossible while the engine is implicit,
+and all three came out of measurement rather than taste.
+
+**Why the question came up at all.** #266 asked whether Freesewing should replace the
+~4,000 lines of hand-written drafters, on the grounds that writing them from scratch was
+an unexamined default with no decision record. It was a fair charge. The spike ran
+against `@freesewing/*@4.10.1` and the full evidence is in
+`docs/reference/freesewing-spike/README.md`; the answer was **decline the swap, on cost
+rather than on capability**: adopting their t-shirt block means ~7 new _required_
+measurements (`wrist` and `waistToArmpit` have no counterpart in our `Measurements` at
+all, and their `shoulderSlope` is degrees where ours is a cm drop), which is a
+`SizeChartData` wire-shape change — the expensive kind. On top of that, 50 options on
+Teagan alone against one small validated `GarmentSpec`; every one of their 74 design
+packages ships `i18n/en.json` only, and `@freesewing/i18n@4.10.1` is not keyed by locale
+at all, so there is no pt-BR slot to fill; and there is no sub-piece composition layer —
+Teagan drafts no collar band, where ours lands within 0.08 cm of the benchmark.
+
+**But "should we replace ours?" and "can we ever try another one?" were the same
+question, and that is the actual defect.** Any engine trial was a one-way rewrite of
+`garment.ts`. Three consequences, each concrete:
+
+1. **A candidate cannot be scored in-repo.** #266's own fourth acceptance criterion —
+   draft the benchmark t-shirt with another engine and compare on the same metrics — had
+   to be run in a throwaway project outside the repo, and its numbers are therefore not
+   reproducible by `npm test`. With a registry, `tshirtBenchmark.test.ts` scores any
+   registered engine on one harness.
+2. **"Best engine per archetype" is not expressible.** The spike found Freesewing
+   genuinely ahead on the armhole/sleevecap pair — `@freesewing/library`'s sleeve
+   iterates the cap up to 50 times and converges to **0.42–1.71 mm** measured across our
+   four benchmark sizes, against our 1 cm (10 mm) `SEAM_TOLERANCE_CM` plus a
+   manual "Corrigir manga" — and genuinely behind on collars. Neither fact can be acted on while
+   the engine is a compile-time constant.
+3. **Our own drafters have no stated contract.** Which `Measurements` keys each one
+   requires, which `GarmentType`s and `GarmentStyle` fields it honours, are implicit in
+   the code. An engine that must _declare_ them makes a gap reportable instead of
+   silently defaulted.
+
+**What made this cheap enough to be worth doing.** The feared blocker was a geometry
+model mismatch: Freesewing paths are explicit cubic Béziers with arbitrary control
+points, while `DraftedPiece.outlineCm` is a `Pt[]` vertex list whose curves are
+Catmull-Rom-derived from `curvedSpans`. Measured, by flattening Teagan's seam paths at N
+samples per curve op and comparing our own `curveArcLengthCm` against Freesewing's
+`Path.length()`: **8 samples per curve reproduces the true arc length to 0.009 cm**, at
+36 vertices against today's 14; even 2 samples (0.368 cm) is inside `SEAM_TOLERANCE_CM`.
+So **`DraftedPiece` needs no type change** — which is what keeps the blast radius off
+the 13 non-test files and 5,215 LOC that read `outlineCm`/`curvedSpans`/`seamEdges`.
+Persistence is untouched either way: `Piece.outline` is already an SVG `d` string.
+
+The consumer surface is likewise already an interface in all but name. Every one of the
+nine call sites of `draftPiecesCm`/`measureSeams`/`measureSeamGraph`/`draftGradedOverlays`/
+`draftGarment` reads `DraftedPiece` and nothing else.
+
+**Three invariants the abstraction must not lose.** Each is an existing rule, extended —
+not a new idea:
+
+- **The engine is frozen per pattern at its first generation**, alongside `sizeTable` and
+  `sizeChartName`: an additive blob key, absent meaning `"moldai"`, no reset migration.
+  Without it, changing the engine silently redraws every existing pattern's geometry on
+  its next regeneration. This is the same reason a pattern snapshots its size chart
+  instead of resolving it live, and the same additive-blob shape `savedAgo` and
+  `sizeChartName` already established.
+- **A capability gap is surfaced, never substituted.** An engine that cannot satisfy a
+  chart's measurements, or cannot draft a requested `GarmentType`/style combination, must
+  report that where the user meets it — the `pickSizeChartForGeneration` /
+  `rejectedActive` precedent, which exists precisely because discarding the fact of a
+  fallback meant nothing could report it.
+- **The seam graph stays ours and stays engine-agnostic.** An engine supplies geometry
+  plus `seamEdges`; it never supplies conflict or manufacturability semantics.
+  `lib/draft/seams.ts` and `lib/draft/assembly.ts` must not gain an engine branch. Note
+  #266's premise needed narrowing here: Freesewing has no _declarative_ mated-seam check
+  (`@freesewing/core` has no seam-pair or topology concept; `Path.length()` is the only
+  primitive), but it does target mated seam length by construction and does surface
+  failures through `store.flag.*`, used by 51 of the 91 packages installed. What is
+  genuinely ours is the declarative, whole-garment, per-pair _reported_ graph and the
+  assembly order walked from it.
+
+Also, `lib/ai/prompt.ts` and `lib/ai/schema.ts` must render their enums and numeric
+bounds from the **active engine's** declared capability rather than module-level
+`TYPES`/`STYLE_LIMITS`, or the standing "never tell the model a range the validator does
+not enforce" rule breaks the day a second engine exists.
+
+**The honest close.** If those three capabilities are not worth the indirection, the
+right outcome is to close #267 rather than build a seam nobody crosses — and that
+sentence is in the issue too. What is settled is the direction and the reasoning; the
+build is not a foregone conclusion.
+
+**Not part of this decision, and tracked separately: the spike found a shipped fit
+defect in our own `tshirt` archetype.** Our size-M `body-back` is a whole mirrored panel
+78.0 cm wide, so two of them make a 156 cm finished chest on a 100 cm body — 56% wearing
+ease, where Freesewing's Teagan at published defaults holds 18.0% flat across the same
+four sizes. The cause is `TSHIRT_BASE_EASE_CM = 55.9` (`lib/draft/ease.ts`), solved
+_backwards_ from the benchmark's size-M panel width with the arithmetic in its own
+comment. That figure cannot bear the weight: `docs/reference/tshirt-benchmark/`'s own
+`segment-measurements.md` reads the same panel span as 49.09 cm rather than 79.99 and
+already flags the discrepancy, and our collar band — sized from the _measured_ neckline
+arc, independent of `halfChest` — lands within 0.08 cm of the benchmark at M, which says
+the reference's "M" really is a ~100 cm-chest garment. Relatedly, #242's −17.52 cm back
+armhole gap is constant to 0.06 cm across all four sizes, which is the signature of a
+fixed-length curve rather than a graded armhole error, and points at the back
+**neckline**. **A corollary for anyone reading `comparison-report.md`: our drafter was
+fitted to that benchmark and Freesewing was not, so its "ours is closer" deltas are
+circular, and its two representation-dependent metrics (the curve/straight perimeter
+split, and the orientation-dependent bounding box) are not comparable across engines at
+all.**
