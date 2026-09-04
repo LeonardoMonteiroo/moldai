@@ -6,7 +6,9 @@ import type { Pattern } from "@/lib/types";
 import { SIZE_TABLE, SIZE_TABLE_MALE } from "@/lib/measurements";
 import { t } from "@/lib/i18n/test-translate";
 import { DECORATION_CASES } from "@/lib/draft/fixtures";
-import { STYLE_LIMITS, draftPiecesCm } from "@/lib/draft/garment";
+import { STYLE_LIMITS } from "@/lib/draft/garment";
+import { draftPiecesCm } from "@/lib/draft/engine/facade";
+import { DEFAULT_ENGINE_ID } from "@/lib/draft/engine/capability";
 
 describe("outlineSegments", () => {
   it("emits line on an edge outside a span and cubic inside a span", () => {
@@ -49,7 +51,7 @@ describe("outlinePath / outlineSegments cross-path parity (#86)", () => {
     let cubicCount = 0;
     for (const [, spec] of DECORATION_CASES) {
       const base = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
-      const pieces = draftPiecesCm(spec, base, t);
+      const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, base, t);
       for (const dp of pieces) {
         const spans = dp.curvedSpans ?? [];
         if (spans.length === 0) continue;

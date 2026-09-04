@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import type { PatternVersionEntry } from "@/lib/api-client";
 import { relativeTime } from "@/lib/format";
-import { draftGarment } from "@/lib/draft/garment";
+import { draftGarment } from "@/lib/draft/engine/facade";
+import { DEFAULT_ENGINE_ID } from "@/lib/draft/engine/capability";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmModal } from "@/components/shared/ConfirmModal";
@@ -34,7 +35,8 @@ function VersionThumbnail({
 }) {
   const base = version.sizeTable[version.baseSize];
   if (!base) return null;
-  const drafted = draftGarment(version.spec, base, t);
+  // #267: DEFAULT_ENGINE_ID until PatternVersion.engine lands.
+  const drafted = draftGarment(DEFAULT_ENGINE_ID, version.spec, base, t);
   const { w, h } = drafted.viewBox;
   if (!w || !h) return null;
   return (

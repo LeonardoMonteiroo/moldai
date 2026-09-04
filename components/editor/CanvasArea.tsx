@@ -8,7 +8,8 @@ import {
   measureSeams,
   measureSeamGraph,
   draftGradedOverlays,
-} from "@/lib/draft/garment";
+} from "@/lib/draft/engine/facade";
+import { DEFAULT_ENGINE_ID } from "@/lib/draft/engine/capability";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { TabBar } from "./TabBar";
 import { ExportModal, exportVariantForTab } from "./ExportModal";
@@ -73,7 +74,7 @@ export function CanvasArea() {
   const seams = useMemo(() => {
     if (!conflict || !spec || !baseMeasurements) return null;
     try {
-      return measureSeams(spec, baseMeasurements, tData);
+      return measureSeams(DEFAULT_ENGINE_ID, spec, baseMeasurements, tData);
     } catch {
       // No usable spec: the card and the markers fall back to the difference
       // alone, rather than the whole canvas failing to render.
@@ -89,7 +90,7 @@ export function CanvasArea() {
   const seamGraph = useMemo(() => {
     if (!conflict?.entries || !spec || !baseMeasurements) return null;
     try {
-      return measureSeamGraph(spec, baseMeasurements, tData);
+      return measureSeamGraph(DEFAULT_ENGINE_ID, spec, baseMeasurements, tData);
     } catch {
       return null;
     }
@@ -105,6 +106,7 @@ export function CanvasArea() {
     }
     try {
       return draftGradedOverlays(
+        DEFAULT_ENGINE_ID,
         spec,
         pattern.pieces,
         baseMeasurements,

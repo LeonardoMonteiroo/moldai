@@ -1,5 +1,7 @@
 import { Pattern } from "@/lib/types";
-import { draftPiecesCm, measureSeamGraph, seamCheck } from "./garment";
+import { seamCheck } from "./garment";
+import { draftPiecesCm, measureSeamGraph } from "./engine/facade";
+import { DEFAULT_ENGINE_ID } from "./engine/capability";
 import type { SeamMeasurement } from "./seams";
 import { DraftedPiece, dartsOf, curveArcLengthCm } from "./core";
 import type { Translate } from "@/lib/i18n/translate";
@@ -183,11 +185,12 @@ export function buildAssemblyOrder(
   const bodyRow = pattern.sizeTable?.[pattern.baseSize];
   if (!spec || !bodyRow || pattern.pieces.length === 0) return null;
 
+  // #267: DEFAULT_ENGINE_ID until pattern.engine (frozen per pattern) lands.
   let pieces: DraftedPiece[];
   let seamGraph: SeamMeasurement[];
   try {
-    pieces = draftPiecesCm(spec, bodyRow, t);
-    seamGraph = measureSeamGraph(spec, bodyRow, t);
+    pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, bodyRow, t);
+    seamGraph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, bodyRow, t);
   } catch {
     return null;
   }

@@ -8,18 +8,9 @@ import {
   GarmentSpec,
   GarmentStyle,
   Gender,
-  Piece,
   PieceOutline,
 } from "@/lib/types";
-import {
-  autoLayout,
-  curveArcLengthCm,
-  DraftedPiece,
-  PX,
-  outlinePath,
-  polyPath,
-  translateOutline,
-} from "./core";
+import { curveArcLengthCm, DraftedPiece } from "./core";
 import { BlockOpts, draftBody } from "./body";
 import { draftSleeve, CAP_EASE_CM, WRIST_EASE_CM } from "./sleeve";
 import { draftSkirt, dressWaistHalfCm } from "./skirt";
@@ -67,7 +58,6 @@ import {
   SeamMeasurement,
   SeamPairDecl,
   SEAM_TOLERANCE_CM,
-  walkSeamPairs,
 } from "./seams";
 import type { Translate } from "@/lib/i18n/translate";
 
@@ -256,7 +246,16 @@ const edgeRef = (
   to,
 });
 
-function draftAll(
+// #267: the "moldai" engine's own raw draft implementation, wrapped by
+// lib/draft/engine/moldai.ts into the declared DraftingEngine contract --
+// exported for that wrapper alone, never imported by a consumer directly
+// (enforced by lib/draft/engine/conformance.test.ts's source scan). Returns
+// `seamPairs` (DECLARATIONS this garment's own topology names, built up as
+// each piece is drafted below) rather than a walked graph: measuring them
+// off `drafted` is lib/draft/seams.ts's walkSeamPairs's job, called by the
+// facade, never here -- this is what keeps an engine's output structurally
+// incapable of carrying a measurement, only a declaration.
+export function draftAll(
   spec: GarmentSpec,
   baseMeasurements: Measurements,
   t: Translate,
@@ -266,7 +265,7 @@ function draftAll(
   armholeLenCm?: number;
   sleeveArmholeCm?: number;
   garmentLengthCm?: number;
-  seamGraph: SeamMeasurement[];
+  seamPairs: SeamPairDecl[];
 } {
   const gender: Gender = spec.gender ?? "female";
   const measurements: Measurements = resolveMeasurements(
@@ -818,136 +817,26 @@ function draftAll(
     }
   }
 
-  const seamGraph = walkSeamPairs(drafted, seamPairs);
   return {
     drafted,
     measurements,
     armholeLenCm,
     sleeveArmholeCm,
     garmentLengthCm,
-    seamGraph,
+    seamPairs,
   };
 }
 
-export function draftPiecesCm(
-  spec: GarmentSpec,
-  baseMeasurements: Measurements,
-  t: Translate,
-): DraftedPiece[] {
-  return draftAll(spec, baseMeasurements, t).drafted;
-}
-
-// The pair of seam lengths seamCheck compares, without the pieces or the layout.
-// Both are undefined for a garment with no armhole (a skirt). The conflict card
-// and the canvas markers derive their numbers from here rather than reading them
-// off a persisted ConflictInfo: they follow from the spec, so storing them beside
-// the armholeDeepenCm that moved them would be the same duplication CLAUDE.md
-// already removed twice (Pattern.savedAgo, Wallet.planLabel) — and deriving also
-// gives the lengths to conflicts persisted before this existed.
-export function measureSeams(
-  spec: GarmentSpec,
-  baseMeasurements: Measurements,
-  t: Translate,
-): {
-  armholeLenCm?: number;
-  sleeveArmholeCm?: number;
-  garmentLengthCm?: number;
-} {
-  const { armholeLenCm, sleeveArmholeCm, garmentLengthCm } = draftAll(
-    spec,
-    baseMeasurements,
-    t,
-  );
-  return { armholeLenCm, sleeveArmholeCm, garmentLengthCm };
-}
-
-// #134: the FULL seam graph -- every mated pair this garment declares,
-// whether or not it diverges -- derived the same way measureSeams derives
-// its own narrower pair (draftAll, without the pieces or the layout). This
-// is what CanvasArea hands to ConflictInfoCard/PatternCanvas for the
-// multi-entry conflict list, and the shape #138's assembly/sewing-order
-// feature consumes directly.
-export function measureSeamGraph(
-  spec: GarmentSpec,
-  baseMeasurements: Measurements,
-  t: Translate,
-): SeamMeasurement[] {
-  return draftAll(spec, baseMeasurements, t).seamGraph;
-}
-
+// #267: draftPiecesCm/measureSeams/measureSeamGraph/draftGradedOverlays/
+// draftGarment moved to lib/draft/engine/facade.ts -- each is now a generic
+// wrapper taking an EngineId as its required first parameter and dispatching
+// through lib/draft/engine/registry.ts's getEngine, not a moldai-specific
+// function living here. `GradedOverlay` stays: it's a pure data shape (no
+// drafter logic), reused by the facade's own draftGradedOverlays and by
+// components/editor/PatternCanvas.tsx, which keeps importing it from this
+// module unchanged.
 export interface GradedOverlay {
   pieceId: string;
   size: string;
   outline: PieceOutline;
-}
-
-// #59: graduation produces real per-size geometry, recomputed on demand from
-// the pattern's own frozen sizeTable rather than persisted onto it -- the
-// same derive-don't-store precedent as measureSeams/fitPieceLabel. Each
-// applied size is redrafted with draftPiecesCm and aligned onto the base
-// piece's own already-placed position (read off its `vertices[0]`, not
-// re-run through autoLayout), so the two outlines land in the same canvas
-// coordinate space and are visually comparable. Piece order/ids are stable
-// across measurements for the same spec (draftPiecesCm's per-piece id and
-// count depend only on garment type/style), so pairing by index is safe.
-export function draftGradedOverlays(
-  spec: GarmentSpec,
-  pieces: Piece[],
-  baseMeasurements: Measurements,
-  sizeTable: Record<string, Measurements>,
-  sizes: string[],
-  t: Translate,
-): GradedOverlay[] {
-  if (sizes.length === 0) return [];
-  const baseDrafted = draftPiecesCm(spec, baseMeasurements, t);
-  const overlays: GradedOverlay[] = [];
-  for (const size of sizes) {
-    const measurements = sizeTable[size];
-    if (!measurements) continue;
-    const graded = draftPiecesCm(spec, measurements, t);
-    graded.forEach((dp, i) => {
-      const base = baseDrafted[i];
-      const placed = pieces[i];
-      // A piece with no vertices predates the measure tool's snap (#79's
-      // legacy-blob case) -- there's no placed position to align onto.
-      if (!base || !placed?.vertices?.length) return;
-      const [bx, by] = base.outlineCm[0];
-      const dxPx = placed.vertices[0].x - PX(bx);
-      const dyPx = placed.vertices[0].y - PX(by);
-      const rawOutline = dp.curvedSpans?.length
-        ? outlinePath(dp.outlineCm, dp.curvedSpans)
-        : polyPath(dp.outlineCm);
-      overlays.push({
-        pieceId: dp.id,
-        size,
-        outline: translateOutline(rawOutline, dxPx, dyPx),
-      });
-    });
-  }
-  return overlays;
-}
-
-export function draftGarment(
-  spec: GarmentSpec,
-  baseMeasurements: Measurements,
-  t: Translate,
-) {
-  const {
-    drafted,
-    measurements,
-    armholeLenCm,
-    sleeveArmholeCm,
-    garmentLengthCm,
-    seamGraph,
-  } = draftAll(spec, baseMeasurements, t);
-  const { pieces, viewBox } = autoLayout(drafted, 8);
-  return {
-    pieces,
-    viewBox,
-    measurements,
-    armholeLenCm,
-    sleeveArmholeCm,
-    garmentLengthCm,
-    seamGraph,
-  };
 }

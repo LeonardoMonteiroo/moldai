@@ -8,8 +8,10 @@ import {
   Pattern,
   Piece,
 } from "@/lib/types";
-import { draftGarment, seamCheck } from "@/lib/draft/garment";
+import { seamCheck } from "@/lib/draft/garment";
 import type { SeamMeasurement } from "@/lib/draft/garment";
+import { draftGarment } from "@/lib/draft/engine/facade";
+import { DEFAULT_ENGINE_ID } from "@/lib/draft/engine/capability";
 import { buildSizeTable } from "@/lib/sizeCharts/compute";
 import { buildSystemSizeChart } from "@/lib/sizeCharts/seed";
 import type { Translate } from "@/lib/i18n/translate";
@@ -232,6 +234,9 @@ export function applyGarmentSpec(
   t: Translate,
 ): void {
   const baseRow = state.pattern.sizeTable[state.pattern.baseSize];
+  // #267: DEFAULT_ENGINE_ID for now -- Pattern.engine (the frozen per-
+  // pattern choice) doesn't exist until the next commit, which also
+  // rewires this to read the pattern's own frozen engine instead.
   const {
     pieces,
     viewBox,
@@ -239,7 +244,7 @@ export function applyGarmentSpec(
     armholeLenCm,
     sleeveArmholeCm,
     seamGraph,
-  } = draftGarment(spec, baseRow, t);
+  } = draftGarment(DEFAULT_ENGINE_ID, spec, baseRow, t);
   state.pattern = {
     ...state.pattern,
     pieces,

@@ -13,11 +13,7 @@ import type { EngineCapability, EngineId } from "./capability";
 // the leaf property the same way importing body.ts/sleeve.ts/etc. would.
 
 /**
- * What one call to `DraftingEngine.draft` returns. Deliberately narrower
- * than garment.ts's historical `draftAll` return shape: `armholeLenCm`/
- * `sleeveArmholeCm` are NOT here (they named one archetype's one seam pair
- * as if every engine owed the app two special-cased numbers; the facade
- * derives them from `seamPairs`' own `"armhole-cap"` entry once measured).
+ * What one call to `DraftingEngine.draft` returns.
  *
  * `seamPairs` are DECLARATIONS, never measurements: an engine states which
  * edge ranges on which drafted pieces are meant to mate, and
@@ -27,6 +23,16 @@ import type { EngineCapability, EngineId } from "./capability";
  * structural rather than a convention an engine implementation could
  * violate -- an engine physically cannot hand back a measurement, only a
  * declaration.
+ *
+ * `armholeLenCm`/`sleeveArmholeCm` stay first-class fields (not derived from
+ * `seamPairs` once walked) on purpose: `walkSeamPairs` rounds every measured
+ * length to 0.1 cm, while these two are today's raw, unrounded drafter
+ * output, read by `lib/editor/state.ts`'s legacy singular `ConflictInfo`
+ * fields, `VersionCompare`'s Cava delta, and `CanvasArea`'s marker fallback.
+ * Deriving them from the rounded graph would be a real, if small, behavior
+ * change to every one of those -- verified by reading garment.ts's own
+ * `draftAll` (armholeLenCm/sleeveArmholeCm are assigned straight from
+ * draftBody/draftSleeve's return, never through walkSeamPairs's rounding).
  *
  * Contract every engine must uphold (pinned by
  * lib/draft/engine/conformance.test.ts): for a fixed `spec`, `drafted`'s
@@ -38,6 +44,8 @@ export interface EngineDraft {
   drafted: DraftedPiece[];
   measurements: Measurements;
   seamPairs: SeamPairDecl[];
+  armholeLenCm?: number;
+  sleeveArmholeCm?: number;
   garmentLengthCm?: number;
 }
 

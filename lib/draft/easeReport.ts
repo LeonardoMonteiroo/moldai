@@ -1,5 +1,6 @@
 import { Pattern, Girth, FitClass } from "@/lib/types";
-import { draftPiecesCm, measureSeamGraph } from "./garment";
+import { draftPiecesCm, measureSeamGraph } from "./engine/facade";
+import { DEFAULT_ENGINE_ID } from "./engine/capability";
 import { DraftedPiece, Pt, curveArcLengthCm, dartsOf } from "./core";
 import { classifyGirthFit } from "./ease";
 import type { Translate } from "@/lib/i18n/translate";
@@ -151,11 +152,12 @@ export function buildEaseReport(
   const bodyRow = pattern.sizeTable?.[pattern.baseSize];
   if (!spec || !bodyRow || pattern.pieces.length === 0) return null;
 
+  // #267: DEFAULT_ENGINE_ID until pattern.engine (frozen per pattern) lands.
   let pieces: DraftedPiece[];
   let seamGraph: ReturnType<typeof measureSeamGraph>;
   try {
-    pieces = draftPiecesCm(spec, bodyRow, t);
-    seamGraph = measureSeamGraph(spec, bodyRow, t);
+    pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, bodyRow, t);
+    seamGraph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, bodyRow, t);
   } catch {
     return null;
   }

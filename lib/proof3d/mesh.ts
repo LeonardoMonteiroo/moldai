@@ -1,6 +1,7 @@
 import type { Pattern } from "@/lib/types";
 import { Measurements, resolveMeasurements } from "@/lib/measurements";
-import { draftPiecesCm } from "@/lib/draft/garment";
+import { draftPiecesCm } from "@/lib/draft/engine/facade";
+import { DEFAULT_ENGINE_ID } from "@/lib/draft/engine/capability";
 import {
   bbox,
   catmullRomSegments,
@@ -227,7 +228,8 @@ export function buildProofMesh(pattern: Pattern, t: Translate): ProofMesh {
     baseMeasurements,
     spec.measurementOverrides,
   );
-  const pieces = draftPiecesCm(spec, baseMeasurements, t);
+  // #267: DEFAULT_ENGINE_ID until pattern.engine (frozen per pattern) lands.
+  const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, baseMeasurements, t);
 
   const front = findPiece(pieces, "body-front");
   const back = findPiece(pieces, "body-back");

@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { writeFileSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { draftPiecesCm } from "./garment";
+import { draftPiecesCm } from "./engine/facade";
+import { DEFAULT_ENGINE_ID } from "./engine/capability";
 import { bbox, catmullRomSegments, curveArcLengthCm } from "./core";
 import type { DraftedPiece, Pt } from "./core";
 import { SIZE_TABLE_MALE } from "@/lib/measurements";
@@ -144,7 +145,12 @@ beforeAll(() => {
   );
   rows = [];
   for (const size of GRADE) {
-    const pieces = draftPiecesCm(tshirtSpec(), SIZE_TABLE_MALE[size], t);
+    const pieces = draftPiecesCm(
+      DEFAULT_ENGINE_ID,
+      tshirtSpec(),
+      SIZE_TABLE_MALE[size],
+      t,
+    );
     for (const [benchPiece, pieceId] of Object.entries(PIECE_IDS) as [
       BenchmarkPiece,
       string,
@@ -238,7 +244,12 @@ describe("tshirt benchmark comparison", () => {
     const content = readReport();
     const size = "M";
     const spec = tshirtSpec();
-    const pieces = draftPiecesCm(spec, SIZE_TABLE_MALE[size], t);
+    const pieces = draftPiecesCm(
+      DEFAULT_ENGINE_ID,
+      spec,
+      SIZE_TABLE_MALE[size],
+      t,
+    );
     const front = pieces.find((p) => p.id === PIECE_IDS.front)!;
     const metrics = measurePiece(front);
     const line = content

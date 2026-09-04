@@ -3,7 +3,8 @@ import type { GarmentSpec, Pattern, SkirtSilhouette } from "@/lib/types";
 import { SIZE_TABLE, SIZE_TABLE_MALE } from "@/lib/measurements";
 import { t } from "@/lib/i18n/test-translate";
 import { DECORATION_CASES } from "./fixtures";
-import { measureSeamGraph } from "./garment";
+import { measureSeamGraph } from "./engine/facade";
+import { DEFAULT_ENGINE_ID } from "./engine/capability";
 import {
   buildAssemblyOrder,
   PHASE_BY_KEY,
@@ -75,7 +76,7 @@ describe("buildAssemblyOrder", () => {
     for (const [name, spec] of DECORATION_CASES) {
       const base = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
       const p = fakePattern(spec);
-      const graph = measureSeamGraph(spec, base, t);
+      const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, base, t);
       const order = buildAssemblyOrder(p, t);
       expect(order, name).not.toBeNull();
       const steps = seamSteps(order!.steps);
@@ -95,7 +96,8 @@ describe("buildAssemblyOrder", () => {
     const seen = new Set<string>();
     for (const [, spec] of DECORATION_CASES) {
       const base = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
-      for (const m of measureSeamGraph(spec, base, t)) seen.add(m.key);
+      for (const m of measureSeamGraph(DEFAULT_ENGINE_ID, spec, base, t))
+        seen.add(m.key);
     }
     expect(seen.size).toBeGreaterThan(0);
     for (const key of seen) {

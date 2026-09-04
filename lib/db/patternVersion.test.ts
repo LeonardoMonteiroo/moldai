@@ -111,7 +111,8 @@ import {
   withPatternVersioned,
 } from "./patternVersion";
 import { seedPatternState, applyGarmentSpec } from "@/lib/editor/state";
-import { draftGarment } from "@/lib/draft/garment";
+import { draftGarment } from "@/lib/draft/engine/facade";
+import { DEFAULT_ENGINE_ID } from "@/lib/draft/engine/capability";
 import { t } from "@/lib/i18n/test-translate";
 import type { GarmentSpec } from "@/lib/types";
 
@@ -413,6 +414,7 @@ describe("lib/db/patternVersion", () => {
       };
 
       const redrafted = draftGarment(
+        DEFAULT_ENGINE_ID,
         snapshot.spec,
         snapshot.sizeTable[snapshot.baseSize],
         t,

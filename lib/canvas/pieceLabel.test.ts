@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { draftGarment } from "@/lib/draft/garment";
+import { draftGarment } from "@/lib/draft/engine/facade";
+import { DEFAULT_ENGINE_ID } from "@/lib/draft/engine/capability";
 import { SIZE_TABLE } from "@/lib/measurements";
 import { t } from "@/lib/i18n/test-translate";
 import ptBR from "@/messages/pt-BR.json";
@@ -29,7 +30,7 @@ const labelFor = (
 ) => `${ptBR.PatternData.pieceNames[piece]} · ${qty}×`;
 
 function drafted(id: string): Piece {
-  const { pieces } = draftGarment(blouse, SIZE_TABLE.M, t);
+  const { pieces } = draftGarment(DEFAULT_ENGINE_ID, blouse, SIZE_TABLE.M, t);
   const piece = pieces.find((p) => p.id === id);
   if (!piece) throw new Error(`no piece ${id}`);
   return piece;
@@ -136,7 +137,7 @@ describe("fitPieceLabel", () => {
   });
 
   it("every drafted piece's label fits inside its own outline", () => {
-    const { pieces } = draftGarment(blouse, SIZE_TABLE.M, t);
+    const { pieces } = draftGarment(DEFAULT_ENGINE_ID, blouse, SIZE_TABLE.M, t);
     const texts = [
       labelFor("front", 1),
       labelFor("back", 1),
@@ -189,7 +190,12 @@ describe("fitPieceLabel", () => {
       ...blouse,
       style: { ...blouse.style, sleeve: "long" },
     };
-    const { pieces } = draftGarment(longSleeveBlouse, SIZE_TABLE.M, t);
+    const { pieces } = draftGarment(
+      DEFAULT_ENGINE_ID,
+      longSleeveBlouse,
+      SIZE_TABLE.M,
+      t,
+    );
     const sleeve = pieces.find((p) => p.id === "sleeve")!;
     const text = labelFor("sleeve", 2);
     const placed = fitPieceLabel(sleeve, text, MAX_LABEL_FONT_SIZE);

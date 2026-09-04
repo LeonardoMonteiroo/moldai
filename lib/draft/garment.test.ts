@@ -1,15 +1,18 @@
 import { describe, it, expect } from "vitest";
 import {
   validateSpec,
-  draftGarment,
   validateQuestions,
+  seamCheck,
+  STYLE_LIMITS,
+} from "./garment";
+import {
+  draftGarment,
   draftPiecesCm,
   draftGradedOverlays,
   measureSeams,
   measureSeamGraph,
-  seamCheck,
-  STYLE_LIMITS,
-} from "./garment";
+} from "./engine/facade";
+import { DEFAULT_ENGINE_ID } from "./engine/capability";
 import {
   SIZE_TABLE,
   SIZE_TABLE_MALE,
@@ -257,6 +260,7 @@ describe("validateSpec", () => {
 describe("draftGarment", () => {
   it("blouse generates front, back, and sleeve", () => {
     const { pieces } = draftGarment(
+      DEFAULT_ENGINE_ID,
       {
         type: "blouse",
         gender: "female",
@@ -274,6 +278,7 @@ describe("draftGarment", () => {
   });
   it("tshirt generates front/back/sleeve/collar, no dart, round neckline", () => {
     const { pieces } = draftGarment(
+      DEFAULT_ENGINE_ID,
       {
         type: "tshirt",
         gender: "male",
@@ -295,6 +300,7 @@ describe("draftGarment", () => {
   // explicit caller choice.
   it("tshirt with an explicit collar: none drafts no collar piece", () => {
     const { pieces } = draftGarment(
+      DEFAULT_ENGINE_ID,
       {
         type: "tshirt",
         gender: "male",
@@ -308,6 +314,7 @@ describe("draftGarment", () => {
   });
   it("skirt generates the skirt panel plus its default waistband, and viewBox > 0 (#131)", () => {
     const { pieces, viewBox } = draftGarment(
+      DEFAULT_ENGINE_ID,
       {
         type: "skirt",
         gender: "female",
@@ -323,6 +330,7 @@ describe("draftGarment", () => {
 
   it('skirt with waistband: "none" generates only the skirt piece (#131)', () => {
     const { pieces } = draftGarment(
+      DEFAULT_ENGINE_ID,
       {
         type: "skirt",
         gender: "female",
@@ -336,6 +344,7 @@ describe("draftGarment", () => {
   });
   it("dress combines body + skirt", () => {
     const { pieces } = draftGarment(
+      DEFAULT_ENGINE_ID,
       {
         type: "dress",
         gender: "female",
@@ -351,6 +360,7 @@ describe("draftGarment", () => {
   });
   it("armholeDeepenCm makes the body armhole diverge from the sleeve cap (triggers seamCheck)", () => {
     const { armholeLenCm, sleeveArmholeCm } = draftGarment(
+      DEFAULT_ENGINE_ID,
       {
         type: "blouse",
         gender: "female",
@@ -368,6 +378,7 @@ describe("draftGarment", () => {
     // argument passed into draftSleeve (#78) — so this only holds if the
     // solver in sleeve.ts actually converges the cap to the target.
     const { armholeLenCm, sleeveArmholeCm } = draftGarment(
+      DEFAULT_ENGINE_ID,
       {
         type: "blouse",
         gender: "female",
@@ -381,6 +392,7 @@ describe("draftGarment", () => {
   });
   it("sleeveRefit remakes the cap for the adjusted armhole (seams match again)", () => {
     const { armholeLenCm, sleeveArmholeCm } = draftGarment(
+      DEFAULT_ENGINE_ID,
       {
         type: "blouse",
         gender: "female",
@@ -404,6 +416,7 @@ describe("draftGarment", () => {
   it("throws fast instead of hanging on an incomplete measurements row", () => {
     expect(() =>
       draftGarment(
+        DEFAULT_ENGINE_ID,
         {
           type: "blouse",
           gender: "female",
@@ -423,7 +436,7 @@ describe("draftGarment", () => {
 // measured from the emitted geometry (curveArcLengthCm on the actual
 // outline/curvedSpans), never from the arguments that built it.
 describe("sleeve cap ease is real, and measured from the drafted geometry", () => {
-  const CASES: [string, Parameters<typeof draftPiecesCm>[0], number][] = [
+  const CASES: [string, Parameters<typeof draftPiecesCm>[1], number][] = [
     [
       "female short woven",
       {
@@ -474,7 +487,7 @@ describe("sleeve cap ease is real, and measured from the drafted geometry", () =
   for (const [name, spec, expectedEaseCm] of CASES) {
     it(`${name}: cap arc exceeds full armhole arc by ~${expectedEaseCm} cm`, () => {
       const m = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
-      const pieces = draftPiecesCm(spec, m, t);
+      const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, m, t);
       const front = pieces.find((p) => p.id === "body-front")!;
       const back = pieces.find((p) => p.id === "body-back")!;
       const sleeve = pieces.find((p) => p.id === "sleeve")!;
@@ -517,6 +530,7 @@ describe("sleeve cap ease is real, and measured from the drafted geometry", () =
 describe("draftPiecesCm", () => {
   it("returns pieces in cm (front/back/sleeve/collar) for tshirt", () => {
     const pcs = draftPiecesCm(
+      DEFAULT_ENGINE_ID,
       {
         type: "tshirt",
         gender: "male",
@@ -550,13 +564,14 @@ describe("measureSeams", () => {
       style: { sleeve: "short" as const, armholeDeepenCm: 3 },
     };
     const { armholeLenCm, sleeveArmholeCm } = measureSeams(
+      DEFAULT_ENGINE_ID,
       spec,
       SIZE_TABLE.M,
       t,
     );
     // The body's armhole is the deepened one; the cap is still sized from the base.
     expect(armholeLenCm!).toBeGreaterThan(sleeveArmholeCm!);
-    const graph = measureSeamGraph(spec, SIZE_TABLE.M, t);
+    const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     const conflicts = seamCheck(graph);
     const armholeCap = conflicts.find((c) => c.key === "armhole-cap");
     expect(armholeCap).toBeDefined();
@@ -572,8 +587,8 @@ describe("measureSeams", () => {
       measurementOverrides: { bust: 96 },
       style: { sleeve: "short" as const, armholeDeepenCm: 2 },
     };
-    const drafted = draftGarment(spec, SIZE_TABLE.M, t);
-    expect(measureSeams(spec, SIZE_TABLE.M, t)).toEqual({
+    const drafted = draftGarment(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
+    expect(measureSeams(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t)).toEqual({
       armholeLenCm: drafted.armholeLenCm,
       sleeveArmholeCm: drafted.sleeveArmholeCm,
       garmentLengthCm: drafted.garmentLengthCm,
@@ -581,6 +596,7 @@ describe("measureSeams", () => {
   });
   it("reports no seams for a garment without an armhole", () => {
     const { armholeLenCm, sleeveArmholeCm } = measureSeams(
+      DEFAULT_ENGINE_ID,
       {
         type: "skirt",
         gender: "female",
@@ -601,6 +617,7 @@ describe("measureSeams", () => {
   // duplicated hardcoded cm figure.
   it("reports the blouse body length", () => {
     const { garmentLengthCm } = measureSeams(
+      DEFAULT_ENGINE_ID,
       { type: "blouse", gender: "female", measurementOverrides: {}, style: {} },
       SIZE_TABLE.M,
       t,
@@ -614,6 +631,7 @@ describe("measureSeams", () => {
   // hip-length formula -- see garment.ts's TSHIRT_HEM_DROP_CM.
   it("reports the tshirt body length using its own hem-drop constant, not the blouse hip-length formula", () => {
     const { garmentLengthCm } = measureSeams(
+      DEFAULT_ENGINE_ID,
       { type: "tshirt", gender: "female", measurementOverrides: {}, style: {} },
       SIZE_TABLE.M,
       t,
@@ -626,6 +644,7 @@ describe("measureSeams", () => {
   });
   it("reports a dress's bodice-to-waist length plus its skirt panel", () => {
     const { garmentLengthCm } = measureSeams(
+      DEFAULT_ENGINE_ID,
       {
         type: "dress",
         gender: "female",
@@ -642,6 +661,7 @@ describe("measureSeams", () => {
   });
   it("reports a standalone skirt's own length", () => {
     const { garmentLengthCm } = measureSeams(
+      DEFAULT_ENGINE_ID,
       { type: "skirt", gender: "female", measurementOverrides: {}, style: {} },
       SIZE_TABLE.M,
       t,
@@ -650,6 +670,7 @@ describe("measureSeams", () => {
   });
   it("reports the trouser's own waist-to-hem length, style override included", () => {
     const { garmentLengthCm } = measureSeams(
+      DEFAULT_ENGINE_ID,
       {
         type: "trousers",
         gender: "female",
@@ -676,15 +697,24 @@ describe("draftGradedOverlays", () => {
   };
 
   it("returns no overlays when no size is applied", () => {
-    const { pieces } = draftGarment(spec, SIZE_TABLE.M, t);
+    const { pieces } = draftGarment(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     expect(
-      draftGradedOverlays(spec, pieces, SIZE_TABLE.M, SIZE_TABLE, [], t),
+      draftGradedOverlays(
+        DEFAULT_ENGINE_ID,
+        spec,
+        pieces,
+        SIZE_TABLE.M,
+        SIZE_TABLE,
+        [],
+        t,
+      ),
     ).toEqual([]);
   });
 
   it("returns one overlay per piece per applied size, keyed to the base piece's own id", () => {
-    const { pieces } = draftGarment(spec, SIZE_TABLE.M, t);
+    const { pieces } = draftGarment(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     const overlays = draftGradedOverlays(
+      DEFAULT_ENGINE_ID,
       spec,
       pieces,
       SIZE_TABLE.M,
@@ -700,8 +730,9 @@ describe("draftGradedOverlays", () => {
   });
 
   it("produces a distinct outline from the base piece (G is a real size larger than M)", () => {
-    const { pieces } = draftGarment(spec, SIZE_TABLE.M, t);
+    const { pieces } = draftGarment(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     const [overlay] = draftGradedOverlays(
+      DEFAULT_ENGINE_ID,
       spec,
       pieces,
       SIZE_TABLE.M,
@@ -720,9 +751,10 @@ describe("draftGradedOverlays", () => {
     // transform down: same measurements -> byte-identical outline (the
     // computed dx/dy exactly recovers what autoLayout originally placed this
     // piece at); different measurements (G, above) -> a different outline.
-    const { pieces } = draftGarment(spec, SIZE_TABLE.M, t);
+    const { pieces } = draftGarment(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     const front = pieces.find((p) => p.id === "body-front")!;
     const overlays = draftGradedOverlays(
+      DEFAULT_ENGINE_ID,
       spec,
       pieces,
       SIZE_TABLE.M,
@@ -735,9 +767,10 @@ describe("draftGradedOverlays", () => {
   });
 
   it("silently skips a size missing from the sizeTable rather than throwing", () => {
-    const { pieces } = draftGarment(spec, SIZE_TABLE.M, t);
+    const { pieces } = draftGarment(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     expect(
       draftGradedOverlays(
+        DEFAULT_ENGINE_ID,
         spec,
         pieces,
         SIZE_TABLE.M,
@@ -917,7 +950,7 @@ describe("drafted decorations stay inside their own piece", () => {
   for (const [name, spec] of DECORATION_CASES) {
     it(`${name}: grainline and dart never leave the outline`, () => {
       const m = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
-      assertDecorationsContained(draftPiecesCm(spec, m, t));
+      assertDecorationsContained(draftPiecesCm(DEFAULT_ENGINE_ID, spec, m, t));
     });
   }
 });
@@ -986,8 +1019,8 @@ describe("#132: drafting with no extended measurement keys is byte-identical to 
         bicep: base.bust * 0.3,
       };
 
-      const a = draftPiecesCm(spec, withoutExtended, t);
-      const b = draftPiecesCm(spec, withFormula, t);
+      const a = draftPiecesCm(DEFAULT_ENGINE_ID, spec, withoutExtended, t);
+      const b = draftPiecesCm(DEFAULT_ENGINE_ID, spec, withFormula, t);
       expect(roundNumbersDeep(b)).toEqual(roundNumbersDeep(a));
     });
   }
@@ -1048,7 +1081,7 @@ describe("#132: a chart carrying a plausible value for every extended key drafts
       it(`${personaName} / ${name}`, () => {
         const base = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
         const m: Measurements = { ...base, ...persona };
-        const pieces = draftPiecesCm(spec, m, t);
+        const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, m, t);
         assertPositiveGeometry(pieces);
         assertDecorationsContained(pieces);
       });
@@ -1068,11 +1101,13 @@ describe("#132: a chart carrying a plausible value for every extended key drafts
     // backWidth), so it wouldn't show this difference at all.
     const spec = DECORATION_CASES[0][1];
     const petite = draftPiecesCm(
+      DEFAULT_ENGINE_ID,
       spec,
       { ...SIZE_TABLE.M, ...PERSONAS[0][1] },
       t,
     );
     const fuller = draftPiecesCm(
+      DEFAULT_ENGINE_ID,
       spec,
       { ...SIZE_TABLE.M, ...PERSONAS[1][1] },
       t,
@@ -1127,7 +1162,9 @@ describe("drafted decorations stay inside their own piece, at the measurement ra
       it(`${name} @ ${cornerName}: grainline and dart never leave the outline`, () => {
         const base = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
         const m = { ...base, ...corner };
-        assertDecorationsContained(draftPiecesCm(spec, m, t));
+        assertDecorationsContained(
+          draftPiecesCm(DEFAULT_ENGINE_ID, spec, m, t),
+        );
       });
     }
   }
@@ -1149,7 +1186,7 @@ describe("drafted decorations stay inside their own piece, at the measurement ra
         darts: true,
       },
     };
-    assertDecorationsContained(draftPiecesCm(spec, m, t));
+    assertDecorationsContained(draftPiecesCm(DEFAULT_ENGINE_ID, spec, m, t));
   });
 });
 
@@ -1212,7 +1249,7 @@ describe("#124: sleeve pitch notches match the body's, generated from the same c
     if (!spec.style.sleeve || spec.style.sleeve === "none") continue;
     it(`${name}: sleeve's single/double pitch notches land the same distance from the underarm as front's/back's own`, () => {
       const m = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
-      const pieces = draftPiecesCm(spec, m, t);
+      const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, m, t);
       const sleeve = pieces.find((p) => p.id === "sleeve")!;
       const front = pieces.find((p) => p.id === "body-front")!;
       const back = pieces.find((p) => p.id === "body-back")!;
@@ -1240,13 +1277,13 @@ describe("#124: sleeve pitch notches match the body's, generated from the same c
   }
 
   it("still matches when armholeDeepenCm creates a seam conflict (unrefit) -- the sleeve's cap and pitch notches both stay keyed to the BASE armhole", () => {
-    const spec: Parameters<typeof draftPiecesCm>[0] = {
+    const spec: Parameters<typeof draftPiecesCm>[1] = {
       type: "blouse",
       gender: "female",
       measurementOverrides: {},
       style: { sleeve: "short", armholeDeepenCm: 3 },
     };
-    const pieces = draftPiecesCm(spec, SIZE_TABLE.M, t);
+    const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     const sleeve = pieces.find((p) => p.id === "sleeve")!;
     // The sleeve's own pitch-notch distance only ever needs to be internally
     // consistent with whichever armhole its cap was actually sized against
@@ -1258,13 +1295,13 @@ describe("#124: sleeve pitch notches match the body's, generated from the same c
   });
 
   it("matches again once sleeveRefit remakes the cap for the adjusted armhole", () => {
-    const spec: Parameters<typeof draftPiecesCm>[0] = {
+    const spec: Parameters<typeof draftPiecesCm>[1] = {
       type: "blouse",
       gender: "female",
       measurementOverrides: {},
       style: { sleeve: "short", armholeDeepenCm: 3, sleeveRefit: true },
     };
-    const pieces = draftPiecesCm(spec, SIZE_TABLE.M, t);
+    const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     const sleeve = pieces.find((p) => p.id === "sleeve")!;
     const front = pieces.find((p) => p.id === "body-front")!;
     const [slSingle] = sleeve.notches!;
@@ -1280,7 +1317,7 @@ describe("fold edge is additive metadata, not a geometry change (#126)", () => {
   for (const [name, spec] of DECORATION_CASES) {
     it(`${name}: every piece's foldEdge endpoints change no rendered coordinate`, () => {
       const m = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
-      const pieces = draftPiecesCm(spec, m, t);
+      const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, m, t);
       const withFold = pieces.filter((p) => p.foldEdge);
       // #128: trousers legitimately drafts NO on-fold piece -- a straight
       // trouser leg panel is not symmetric about any centre line the way a
@@ -1307,7 +1344,9 @@ describe("fold edge is additive metadata, not a geometry change (#126)", () => {
   it("at least one DECORATION_CASES entry drafts an on-fold piece", () => {
     const anyFold = DECORATION_CASES.some(([, spec]) => {
       const m = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
-      return draftPiecesCm(spec, m, t).some((p) => p.foldEdge);
+      return draftPiecesCm(DEFAULT_ENGINE_ID, spec, m, t).some(
+        (p) => p.foldEdge,
+      );
     });
     expect(anyFold).toBe(true);
   });
@@ -1317,7 +1356,7 @@ describe("drafted outlines have no retraced edge (#79)", () => {
   for (const [name, spec] of DECORATION_CASES) {
     it(`${name}: no three consecutive same-y vertices reverse direction`, () => {
       const m = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
-      for (const piece of draftPiecesCm(spec, m, t)) {
+      for (const piece of draftPiecesCm(DEFAULT_ENGINE_ID, spec, m, t)) {
         expect(
           hasRetracedEdge(piece.outlineCm as [number, number][]),
           `${piece.id} outline retraces an edge`,
@@ -1327,13 +1366,13 @@ describe("drafted outlines have no retraced edge (#79)", () => {
   }
 
   it("a dress bodice's hem width equals the skirt panel's own waist width", () => {
-    const spec: Parameters<typeof draftPiecesCm>[0] = {
+    const spec: Parameters<typeof draftPiecesCm>[1] = {
       type: "dress",
       gender: "female",
       measurementOverrides: {},
       style: { sleeve: "short", darts: true, skirt: "straight" },
     };
-    const pieces = draftPiecesCm(spec, SIZE_TABLE.M, t);
+    const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     const front = pieces.find((p) => p.id === "body-front")!;
     const skirt = pieces.find((p) => p.id === "skirt")!;
 
@@ -1370,7 +1409,7 @@ describe("seam graph (#134)", () => {
   it("reports zero divergences for every DECORATION_CASES entry", () => {
     for (const [name, spec] of DECORATION_CASES) {
       const base = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
-      const graph = measureSeamGraph(spec, base, t);
+      const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, base, t);
       const conflicts = seamCheck(graph);
       expect(conflicts, `${name}: ${JSON.stringify(conflicts)}`).toEqual([]);
     }
@@ -1381,7 +1420,9 @@ describe("seam graph (#134)", () => {
       for (const [cornerName, corner] of MEASUREMENT_CORNERS) {
         const base = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
         const m = { ...base, ...corner };
-        const conflicts = seamCheck(measureSeamGraph(spec, m, t));
+        const conflicts = seamCheck(
+          measureSeamGraph(DEFAULT_ENGINE_ID, spec, m, t),
+        );
         expect(
           conflicts,
           `${name} @ ${cornerName}: ${JSON.stringify(conflicts)}`,
@@ -1403,7 +1444,9 @@ describe("seam graph (#134)", () => {
     for (const [name, spec] of DECORATION_CASES) {
       const table = spec.gender === "male" ? SIZE_TABLE_MALE : SIZE_TABLE;
       for (const size of sizes) {
-        const conflicts = seamCheck(measureSeamGraph(spec, table[size], t));
+        const conflicts = seamCheck(
+          measureSeamGraph(DEFAULT_ENGINE_ID, spec, table[size], t),
+        );
         expect(
           conflicts,
           `${name} @ ${size}: ${JSON.stringify(conflicts)}`,
@@ -1419,7 +1462,9 @@ describe("seam graph (#134)", () => {
       measurementOverrides: {},
       style: { sleeve: "short" as const, armholeDeepenCm: 3 },
     };
-    const conflicts = seamCheck(measureSeamGraph(spec, SIZE_TABLE.M, t));
+    const conflicts = seamCheck(
+      measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t),
+    );
     expect(conflicts).toHaveLength(1);
     expect(conflicts[0].key).toBe("armhole-cap");
     expect(conflicts[0].fixable).toBe(true);
@@ -1437,7 +1482,9 @@ describe("seam graph (#134)", () => {
         sleeveRefit: true,
       },
     };
-    const conflicts = seamCheck(measureSeamGraph(spec, SIZE_TABLE.M, t));
+    const conflicts = seamCheck(
+      measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t),
+    );
     expect(conflicts).toEqual([]);
   });
 
@@ -1473,7 +1520,7 @@ describe("seam graph (#134)", () => {
         measurementOverrides: {},
         style: { sleeve: "none" as const, darts: true, skirt },
       };
-      const graph = measureSeamGraph(spec, SIZE_TABLE.M, t);
+      const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
       const joins = graph.filter((m) => m.key.startsWith("waist-join"));
       expect(joins, skirt).toHaveLength(2);
       for (const j of joins) {
@@ -1511,7 +1558,7 @@ describe("seam graph (#134)", () => {
         skirt: "half-circle" as const,
       },
     };
-    const graph = measureSeamGraph(spec, SIZE_TABLE.M, t);
+    const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     const front = graph.find((m) => m.key === "waist-join-front")!;
     const back = graph.find((m) => m.key === "waist-join-back")!;
     expect(front.bLenCm + back.bLenCm).toBeCloseTo(SIZE_TABLE.M.waist, 1);
@@ -1524,7 +1571,7 @@ describe("seam graph (#134)", () => {
       measurementOverrides: {},
       style: { sleeve: "short" as const },
     };
-    const graph = measureSeamGraph(spec, SIZE_TABLE.M, t);
+    const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     const keys = graph.map((m) => m.key).sort();
     expect(keys).toEqual(
       ["armhole-cap", "shoulder", "side", "sleeve-underarm"].sort(),
@@ -1553,7 +1600,7 @@ describe("seam graph (#134)", () => {
         collar: "convertible" as const,
       },
     };
-    const graph = measureSeamGraph(spec, SIZE_TABLE.M, t);
+    const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     const pair = graph.find((m) => m.key === "collar-neckline");
     expect(pair).toBeDefined();
     expect(pair!.fixable).toBe(false);
@@ -1576,7 +1623,7 @@ describe("seam graph (#134)", () => {
         collar: "band" as const,
       },
     };
-    const graph = measureSeamGraph(spec, SIZE_TABLE.M, t);
+    const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     const pair = graph.find((m) => m.key === "collar-neckline");
     expect(pair).toBeDefined();
     expect(pair!.fixable).toBe(false);
@@ -1597,11 +1644,13 @@ describe("seam graph (#134)", () => {
       style: { neckline: "round" as const, sleeve: "none" as const },
     };
     const convertibleArc = measureSeamGraph(
+      DEFAULT_ENGINE_ID,
       { ...base, style: { ...base.style, collar: "convertible" as const } },
       SIZE_TABLE.M,
       t,
     ).find((m) => m.key === "collar-neckline")!.aLenCm;
     const bandArc = measureSeamGraph(
+      DEFAULT_ENGINE_ID,
       { ...base, style: { ...base.style, collar: "band" as const } },
       SIZE_TABLE.M,
       t,
@@ -1619,7 +1668,7 @@ describe("seam graph (#134)", () => {
       measurementOverrides: {},
       style: { neckline: "round" as const, collar: "band" as const },
     };
-    const pieces = draftPiecesCm(spec, SIZE_TABLE.M, t);
+    const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     const collar = pieces.find((p) => p.id === "collar")!;
     expect(collar).toBeDefined();
     expect(collar.curvedSpans ?? []).toHaveLength(0);
@@ -1635,7 +1684,7 @@ describe("seam graph (#134)", () => {
       measurementOverrides: {},
       style: { neckline: "round" as const, collar: "band" as const },
     };
-    const pieces = draftPiecesCm(spec, SIZE_TABLE.M, t);
+    const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     const collar = pieces.find((p) => p.id === "collar")!;
     const ys = collar.outlineCm.map(([, y]) => y);
     expect(Math.max(...ys) - Math.min(...ys)).toBeCloseTo(5, 5);
@@ -1652,7 +1701,7 @@ describe("seam graph (#134)", () => {
       measurementOverrides: {},
       style: { neckline: "round" as const, collar: "shirt" as const },
     };
-    const pieces = draftPiecesCm(spec, SIZE_TABLE.M, t);
+    const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     const ids = pieces.map((p) => p.id);
     expect(ids).toContain("collar-stand");
     expect(ids).toContain("collar-fall");
@@ -1666,7 +1715,7 @@ describe("seam graph (#134)", () => {
       measurementOverrides: {},
       style: { neckline: "round" as const, collar: "shirt" as const },
     };
-    const graph = measureSeamGraph(spec, SIZE_TABLE.M, t);
+    const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     const pair = graph.find((m) => m.key === "collar-neckline");
     expect(pair).toBeDefined();
     expect(pair!.fixable).toBe(false);
@@ -1686,7 +1735,7 @@ describe("seam graph (#134)", () => {
       measurementOverrides: {},
       style: { neckline: "round" as const, collar: "shirt" as const },
     };
-    const graph = measureSeamGraph(spec, SIZE_TABLE.M, t);
+    const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     const pair = graph.find((m) => m.key === "collar-stand-fall");
     expect(pair).toBeDefined();
     expect(pair!.fixable).toBe(false);
@@ -1703,7 +1752,7 @@ describe("seam graph (#134)", () => {
       measurementOverrides: {},
       style: { neckline: "round" as const, collar: "shirt" as const },
     };
-    const pieces = draftPiecesCm(spec, SIZE_TABLE.M, t);
+    const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     const stand = pieces.find((p) => p.id === "collar-stand")!;
     expect(stand).toBeDefined();
     expect(stand.curvedSpans ?? []).not.toHaveLength(0);
@@ -1733,10 +1782,14 @@ describe("seam graph (#134)", () => {
       measurementOverrides: {},
       style: { neckline: "round" as const, collar: "shirt" as const },
     };
-    const femalePair = measureSeamGraph(spec, SIZE_TABLE.M, t).find(
-      (m) => m.key === "collar-neckline",
-    )!;
+    const femalePair = measureSeamGraph(
+      DEFAULT_ENGINE_ID,
+      spec,
+      SIZE_TABLE.M,
+      t,
+    ).find((m) => m.key === "collar-neckline")!;
     const malePair = measureSeamGraph(
+      DEFAULT_ENGINE_ID,
       { ...spec, gender: "male" as const },
       SIZE_TABLE_MALE.M,
       t,
@@ -1762,7 +1815,7 @@ describe("seam graph (#134)", () => {
       measurementOverrides: {},
       style: { sleeve: "long" as const, cuff: "straight" as const },
     };
-    const graph = measureSeamGraph(spec, SIZE_TABLE.M, t);
+    const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     const pair = graph.find((m) => m.key === "cuff-hem");
     expect(pair).toBeDefined();
     expect(pair!.fixable).toBe(false);
@@ -1776,7 +1829,7 @@ describe("seam graph (#134)", () => {
       measurementOverrides: {},
       style: { frontClosure: "buttonStand" as const },
     };
-    const graph = measureSeamGraph(spec, SIZE_TABLE.M, t);
+    const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     const pair = graph.find((m) => m.key === "button-stand-center-front");
     expect(pair).toBeDefined();
     expect(pair!.fixable).toBe(false);
@@ -1794,7 +1847,7 @@ describe("seam graph (#134)", () => {
     // file; draftPiecesCm is the exported wrapper the existing "no cuff is
     // drafted for a short sleeve..." test above already uses for the
     // identical shape of assertion.
-    const pieces = draftPiecesCm(spec, SIZE_TABLE.M, t);
+    const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     expect(pieces.map((p) => p.id)).not.toContain("button-stand");
   });
 
@@ -1809,7 +1862,7 @@ describe("seam graph (#134)", () => {
         frontClosure: "buttonStand" as const,
       },
     };
-    const graph = measureSeamGraph(spec, SIZE_TABLE.M, t);
+    const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     const pair = graph.find((m) => m.key === "collar-neckline");
     expect(pair).toBeDefined();
     expect(pair!.diffCm).toBeLessThan(0.3);
@@ -1822,7 +1875,7 @@ describe("seam graph (#134)", () => {
       measurementOverrides: {},
       style: { sleeve: "short" as const, cuff: "straight" as const },
     };
-    const pieces = draftPiecesCm(spec, SIZE_TABLE.M, t);
+    const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     expect(pieces.map((p) => p.id)).not.toContain("cuff");
     expect(pieces.map((p) => p.id)).not.toContain("placket");
   });
@@ -1840,7 +1893,7 @@ describe("seam graph (#134)", () => {
       measurementOverrides: {},
       style: { sleeve: "long" as const, cuff: "straight" as const },
     };
-    const pieces = draftPiecesCm(spec, SIZE_TABLE.M, t);
+    const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     const placket = pieces.find((p) => p.id === "placket");
     expect(placket).toBeDefined();
 
@@ -1888,7 +1941,7 @@ describe("seam graph (#134)", () => {
         measurementOverrides: {},
         style: { skirt: silhouette },
       };
-      const graph = measureSeamGraph(spec, SIZE_TABLE.M, t);
+      const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
       const pair = graph.find((m) => m.key === "waistband-waist");
       expect(pair, silhouette).toBeDefined();
       expect(pair!.fixable, silhouette).toBe(false);
@@ -1903,9 +1956,9 @@ describe("seam graph (#134)", () => {
       measurementOverrides: {},
       style: { sleeve: "none" as const, darts: true, skirt: "a-line" as const },
     };
-    const graph = measureSeamGraph(spec, SIZE_TABLE.M, t);
+    const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     expect(graph.find((m) => m.key === "waistband-waist")).toBeUndefined();
-    const pieces = draftPiecesCm(spec, SIZE_TABLE.M, t);
+    const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     expect(pieces.map((p) => p.id)).not.toContain("waistband");
   });
 
@@ -1922,7 +1975,7 @@ describe("seam graph (#134)", () => {
       measurementOverrides: {},
       style: {},
     };
-    const graph = measureSeamGraph(spec, SIZE_TABLE.M, t);
+    const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     const keys = graph.map((m) => m.key).sort();
     expect(keys).toEqual(
       [
@@ -1947,11 +2000,11 @@ describe("seam graph (#134)", () => {
       measurementOverrides: {},
       style: { waistband: "none" as const },
     };
-    const graph = measureSeamGraph(spec, SIZE_TABLE.M, t);
+    const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     expect(
       graph.find((m) => m.key === "trouser-waistband-waist"),
     ).toBeUndefined();
-    const pieces = draftPiecesCm(spec, SIZE_TABLE.M, t);
+    const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     expect(pieces.map((p) => p.id)).not.toContain("waistband");
   });
 
@@ -1995,9 +2048,11 @@ describe("seam graph (#134)", () => {
           style: {},
         };
         const m: Measurements = { ...SIZE_TABLE.M, ...corner };
-        const conflicts = seamCheck(measureSeamGraph(spec, m, t));
+        const conflicts = seamCheck(
+          measureSeamGraph(DEFAULT_ENGINE_ID, spec, m, t),
+        );
         expect(conflicts, JSON.stringify(conflicts)).toEqual([]);
-        const pieces = draftPiecesCm(spec, m, t);
+        const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, m, t);
         assertPositiveGeometry(pieces);
         assertDecorationsContained(pieces);
       });
@@ -2039,7 +2094,9 @@ describe("drafted decorations stay inside their own piece, with a real bust-apex
       it(`${name} @ ${cornerName}: grainline, dart and notches never leave the outline`, () => {
         const base = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
         const m = { ...base, ...corner };
-        assertDecorationsContained(draftPiecesCm(spec, m, t));
+        assertDecorationsContained(
+          draftPiecesCm(DEFAULT_ENGINE_ID, spec, m, t),
+        );
       });
     }
   }
@@ -2051,7 +2108,9 @@ describe("seam graph (#134), with a real bust-apex delta (bust-dart-shaping)", (
       for (const [cornerName, corner] of BUST_APEX_CORNERS) {
         const base = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
         const m = { ...base, ...corner };
-        const conflicts = seamCheck(measureSeamGraph(spec, m, t));
+        const conflicts = seamCheck(
+          measureSeamGraph(DEFAULT_ENGINE_ID, spec, m, t),
+        );
         expect(
           conflicts,
           `${name} @ ${cornerName}: ${JSON.stringify(conflicts)}`,
@@ -2106,8 +2165,13 @@ describe("seam graph (#134), with a real bust-apex delta (bust-dart-shaping)", (
     };
     const base = SIZE_TABLE.M;
 
-    const graphNoDelta = measureSeamGraph(spec, base, t);
-    const graphWithDelta = measureSeamGraph(specWithDelta, base, t);
+    const graphNoDelta = measureSeamGraph(DEFAULT_ENGINE_ID, spec, base, t);
+    const graphWithDelta = measureSeamGraph(
+      DEFAULT_ENGINE_ID,
+      specWithDelta,
+      base,
+      t,
+    );
     expect(graphWithDelta.length).toBe(graphNoDelta.length);
     expect(graphWithDelta.map((m) => m.key).sort()).toEqual(
       graphNoDelta.map((m) => m.key).sort(),

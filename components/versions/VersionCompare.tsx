@@ -5,7 +5,8 @@ import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { PatternVersionEntry } from "@/lib/api-client";
 import type { Pattern } from "@/lib/types";
-import { draftGarment, measureSeams } from "@/lib/draft/garment";
+import { draftGarment, measureSeams } from "@/lib/draft/engine/facade";
+import { DEFAULT_ENGINE_ID } from "@/lib/draft/engine/capability";
 import { planCutLayout, FABRIC_WIDTHS_CM } from "@/lib/export/cutplan";
 import { formatCm } from "@/lib/format";
 import { Toggle } from "@/components/ui/toggle";
@@ -107,9 +108,10 @@ export function VersionCompare({
     const fromBase = from.sizeTable[from.baseSize];
     const toBase = to.sizeTable[to.baseSize];
     if (!fromBase || !toBase) return null;
+    // #267: DEFAULT_ENGINE_ID until PatternVersion.engine lands.
     return {
-      from: draftGarment(from.spec, fromBase, tData),
-      to: draftGarment(to.spec, toBase, tData),
+      from: draftGarment(DEFAULT_ENGINE_ID, from.spec, fromBase, tData),
+      to: draftGarment(DEFAULT_ENGINE_ID, to.spec, toBase, tData),
     };
     // tData is a stable translator instance for the component's lifetime.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -120,8 +122,13 @@ export function VersionCompare({
     const fromBase = from.sizeTable[from.baseSize];
     const toBase = to.sizeTable[to.baseSize];
     if (!fromBase || !toBase) return null;
-    const fromSeams = measureSeams(from.spec, fromBase, tData);
-    const toSeams = measureSeams(to.spec, toBase, tData);
+    const fromSeams = measureSeams(
+      DEFAULT_ENGINE_ID,
+      from.spec,
+      fromBase,
+      tData,
+    );
+    const toSeams = measureSeams(DEFAULT_ENGINE_ID, to.spec, toBase, tData);
     const fromCut = planCutLayout(
       toComparablePattern(from),
       COMPARE_FABRIC_WIDTH_CM,

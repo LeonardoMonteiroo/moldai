@@ -5,7 +5,8 @@ import { useEditorStore } from "@/lib/store";
 import type { Pattern, PatternRecord } from "@/lib/types";
 import { SIZE_TABLE, SIZE_TABLE_MALE, Measurements } from "@/lib/measurements";
 import { t as stubT } from "@/lib/i18n/test-translate";
-import { draftGarment } from "@/lib/draft/garment";
+import { draftGarment } from "@/lib/draft/engine/facade";
+import { DEFAULT_ENGINE_ID } from "@/lib/draft/engine/capability";
 import { Proof3DTab } from "./Proof3DTab";
 
 function draftedPattern(
@@ -22,7 +23,12 @@ function draftedPattern(
       darts: true,
     },
   };
-  const { pieces } = draftGarment(spec, baseMeasurements, stubT);
+  const { pieces } = draftGarment(
+    DEFAULT_ENGINE_ID,
+    spec,
+    baseMeasurements,
+    stubT,
+  );
   return {
     id: "p1",
     name: "Blusa",

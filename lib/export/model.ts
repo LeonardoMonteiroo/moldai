@@ -6,7 +6,8 @@ import {
   type InternalCm,
   type Pt,
 } from "@/lib/draft/core";
-import { draftPiecesCm } from "@/lib/draft/garment";
+import { draftPiecesCm } from "@/lib/draft/engine/facade";
+import { DEFAULT_ENGINE_ID } from "@/lib/draft/engine/capability";
 import { offsetOutlineCm } from "./offset";
 import type { Translate } from "@/lib/i18n/translate";
 
@@ -187,7 +188,13 @@ export function buildExportModel(
   if (!spec) throw new Error("buildExportModel: pattern has no spec");
   const resolvedSize = pattern.sizeTable[size] ? size : pattern.baseSize;
   const baseMeasurements = pattern.sizeTable[resolvedSize];
-  const drafted: DraftedPiece[] = draftPiecesCm(spec, baseMeasurements, t);
+  // #267: DEFAULT_ENGINE_ID until pattern.engine (frozen per pattern) lands.
+  const drafted: DraftedPiece[] = draftPiecesCm(
+    DEFAULT_ENGINE_ID,
+    spec,
+    baseMeasurements,
+    t,
+  );
   const allowanceCm = spec.style.seamAllowanceCm ?? 1;
 
   const padCm = 6;
