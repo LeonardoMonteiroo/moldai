@@ -36,6 +36,7 @@ declare module "@freesewing/teagan" {
   }
   interface FreesewingPart {
     paths: Record<string, FreesewingPath>;
+    points: Record<string, FreesewingPoint>;
   }
   interface FreesewingPatternConfig {
     measurements: string[];

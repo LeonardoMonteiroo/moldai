@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { draftTeagan } from "./teagan";
+import { draftTshirt } from "./tshirt";
 import { curveArcLengthCm } from "../../../core";
 import { SIZE_TABLE_MALE, SIZE_TABLE } from "@/lib/measurements";
 import { t } from "@/lib/i18n/test-translate";
@@ -16,9 +16,9 @@ function tshirtSpec(
   };
 }
 
-describe("draftTeagan", () => {
+describe("draftTshirt", () => {
   it("drafts exactly three pieces: body-front, body-back, sleeve", () => {
-    const { drafted } = draftTeagan(tshirtSpec(), SIZE_TABLE_MALE.M, t);
+    const { drafted } = draftTshirt(tshirtSpec(), SIZE_TABLE_MALE.M, t);
     expect(drafted.map((p) => p.id)).toEqual([
       "body-front",
       "body-back",
@@ -27,7 +27,7 @@ describe("draftTeagan", () => {
   });
 
   it("every piece has a real, finite, closed outline", () => {
-    const { drafted } = draftTeagan(tshirtSpec(), SIZE_TABLE_MALE.M, t);
+    const { drafted } = draftTshirt(tshirtSpec(), SIZE_TABLE_MALE.M, t);
     for (const piece of drafted) {
       expect(piece.outlineCm.length).toBeGreaterThanOrEqual(3);
       for (const [x, y] of piece.outlineCm) {
@@ -38,7 +38,7 @@ describe("draftTeagan", () => {
   });
 
   it("front and back panels are mirrored symmetric about their own foldEdge", () => {
-    const { drafted } = draftTeagan(tshirtSpec(), SIZE_TABLE_MALE.M, t);
+    const { drafted } = draftTshirt(tshirtSpec(), SIZE_TABLE_MALE.M, t);
     for (const piece of drafted.filter((p) => p.id !== "sleeve")) {
       expect(piece.foldEdge).toBeDefined();
       const [a, b] = piece.foldEdge!;
@@ -48,14 +48,14 @@ describe("draftTeagan", () => {
   });
 
   it("declares the four expected seam pairs", () => {
-    const { seamPairs } = draftTeagan(tshirtSpec(), SIZE_TABLE_MALE.M, t);
+    const { seamPairs } = draftTshirt(tshirtSpec(), SIZE_TABLE_MALE.M, t);
     expect(seamPairs.map((p) => p.key).sort()).toEqual(
       ["armhole-cap", "shoulder", "side", "sleeve-underarm"].sort(),
     );
   });
 
   it("the armhole-cap pair measures within a few mm -- Teagan's own solver, not ours", () => {
-    const { seamPairs, drafted } = draftTeagan(
+    const { seamPairs, drafted } = draftTshirt(
       tshirtSpec(),
       SIZE_TABLE_MALE.M,
       t,
@@ -80,12 +80,12 @@ describe("draftTeagan", () => {
   });
 
   it("a longer sleeveLength style produces a longer sleeve", () => {
-    const short = draftTeagan(
+    const short = draftTshirt(
       tshirtSpec({ sleeve: "short" }),
       SIZE_TABLE_MALE.M,
       t,
     );
-    const long = draftTeagan(
+    const long = draftTshirt(
       tshirtSpec({ sleeve: "long" }),
       SIZE_TABLE_MALE.M,
       t,
@@ -101,7 +101,7 @@ describe("draftTeagan", () => {
   });
 
   it("drafts for a female base row too", () => {
-    const { drafted } = draftTeagan(
+    const { drafted } = draftTshirt(
       { ...tshirtSpec(), gender: "female" },
       SIZE_TABLE.M,
       t,
@@ -113,14 +113,14 @@ describe("draftTeagan", () => {
     const spec = tshirtSpec();
     const rows = [SIZE_TABLE_MALE.PP, SIZE_TABLE_MALE.M, SIZE_TABLE_MALE.GG];
     const idSequences = rows.map((row) =>
-      draftTeagan(spec, row, t).drafted.map((p) => p.id),
+      draftTshirt(spec, row, t).drafted.map((p) => p.id),
     );
     expect(idSequences[1]).toEqual(idSequences[0]);
     expect(idSequences[2]).toEqual(idSequences[0]);
   });
 
   it("garmentLengthCm and armholeLenCm/sleeveArmholeCm are real, positive numbers", () => {
-    const draft = draftTeagan(tshirtSpec(), SIZE_TABLE_MALE.M, t);
+    const draft = draftTshirt(tshirtSpec(), SIZE_TABLE_MALE.M, t);
     expect(draft.garmentLengthCm).toBeGreaterThan(0);
     expect(draft.armholeLenCm).toBeGreaterThan(0);
     expect(draft.sleeveArmholeCm).toBeGreaterThan(0);

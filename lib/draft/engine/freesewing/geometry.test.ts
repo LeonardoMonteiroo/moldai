@@ -1,6 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { Teagan } from "@freesewing/teagan";
-import { flattenFreesewingSeam, mirrorFoldedPanel } from "./geometry";
+import {
+  flattenFreesewingSeam,
+  mirrorFoldedPanel,
+  locatePointIndex,
+} from "./geometry";
 import { curveArcLengthCm } from "../../core";
 
 // A real, live Teagan draft (not a captured fixture) -- the whole point of
@@ -151,5 +155,32 @@ describe("mirrorFoldedPanel, against a live Teagan draft", () => {
     const seam = parts["teagan.sleeve"].paths.seam;
     const half = flattenFreesewingSeam(seam);
     expect(() => mirrorFoldedPanel(half)).toThrow();
+  });
+});
+
+describe("locatePointIndex, against a live Teagan draft", () => {
+  it("finds the exact index of a named point (armhole) inside the flattened outline", () => {
+    const parts = draftTeagan();
+    const front = parts["teagan.front"];
+    const { outlineCm } = flattenFreesewingSeam(front.paths.seam);
+    // Teagan's own saBase draws armhole -> armholeHollow -> shoulder as the
+    // FIRST two curve ops after the side curve -- verified independently in
+    // designs/teagan.test.ts against the live store value. Confirms
+    // locatePointIndex agrees with that hand-derived index (9, per
+    // teagan.ts's own SIDE_SAMPLES-based split) without assuming the op
+    // count itself.
+    const idx = locatePointIndex(outlineCm, front.points.armhole);
+    expect(idx).toBe(9);
+  });
+
+  it("throws for a point that is not actually a vertex on this seam", () => {
+    const parts = draftTeagan();
+    const front = parts["teagan.front"];
+    const { outlineCm } = flattenFreesewingSeam(front.paths.seam);
+    // armholeHollowCp1 is a Bézier CONTROL point, never itself an on-curve
+    // vertex -- must not silently match some unrelated nearby index.
+    expect(() =>
+      locatePointIndex(outlineCm, front.points.armholeHollowCp1),
+    ).toThrow();
   });
 });

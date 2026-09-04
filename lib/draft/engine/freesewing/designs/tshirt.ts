@@ -1,4 +1,11 @@
-import { Teagan } from "@freesewing/teagan";
+// The upstream package name ("teagan") is Joost De Cock's own codename for
+// this design (@freesewing/collection tags it "tops") -- an implementation
+// detail confined to this one import line. Every other identifier in this
+// file (and its own file name) is named after the GarmentType it drafts,
+// not the designer's arbitrary name for their block, the same "code
+// identifiers are ours, never a transliterated third-party term"
+// discipline CLAUDE.md applies to domain terms generally.
+import { Teagan as TshirtDesign } from "@freesewing/teagan";
 import type { Measurements } from "@/lib/measurements";
 import type { GarmentSpec } from "@/lib/types";
 import type { Translate } from "@/lib/i18n/translate";
@@ -40,7 +47,7 @@ function shoulderSlopeDegrees(m: Measurements): number {
   return (Math.atan(slope / m.shoulder) * 180) / Math.PI;
 }
 
-function toTeaganMeasurementsMm(m: Measurements): Record<string, number> {
+function toTshirtMeasurementsMm(m: Measurements): Record<string, number> {
   return {
     biceps: m.bicep * MM_PER_CM,
     chest: m.bust * MM_PER_CM,
@@ -100,7 +107,7 @@ function sleeveLengthFraction(spec: GarmentSpec, m: Measurements): number {
 // "armhole" the way an earlier version of this file assumed (a bug this
 // comment exists to keep from recurring: that assumption measured the
 // WHOLE side+armhole run as "the armhole," off by roughly 3x, caught by
-// teagan.test.ts's own store-value cross-check against
+// tshirt.test.ts's own store-value cross-check against
 // `library.sleeve.frontArmholeLength`/`backArmholeLength`).
 const SIDE_SAMPLES = CURVE_SAMPLES_PER_OP; // exactly 1 curve op, hem -> armhole
 
@@ -112,7 +119,7 @@ function buildBodyPanel(
 ): { piece: DraftedPiece; seamEdges: Record<string, [number, number]> } {
   if (half.curvedSpans.length !== 2) {
     throw new Error(
-      `freesewing/teagan: expected exactly 2 curved runs (side+armhole, neckline) on ${id}, got ${half.curvedSpans.length}`,
+      `freesewing tshirt design: expected exactly 2 curved runs (side+armhole, neckline) on ${id}, got ${half.curvedSpans.length}`,
     );
   }
   const [sideArmholeRun, necklineRun] = half.curvedSpans;
@@ -156,7 +163,7 @@ function buildSleeve(
   const flat = flattenFreesewingSeam(sleevePart.paths.seam);
   if (flat.curvedSpans.length !== 1) {
     throw new Error(
-      `freesewing/teagan: expected exactly 1 curved run (the cap) on sleeve, got ${flat.curvedSpans.length}`,
+      `freesewing tshirt design: expected exactly 1 curved run (the cap) on sleeve, got ${flat.curvedSpans.length}`,
     );
   }
   const [cap] = flat.curvedSpans;
@@ -185,13 +192,13 @@ function buildSleeve(
   return { piece, seamEdges, capLenCm };
 }
 
-export function draftTeagan(
+export function draftTshirt(
   spec: GarmentSpec,
   base: Measurements,
   t: Translate,
 ): EngineDraft {
-  const measurements = toTeaganMeasurementsMm(base);
-  const pattern = new Teagan({
+  const measurements = toTshirtMeasurementsMm(base);
+  const pattern = new TshirtDesign({
     measurements,
     options: { sleeveLength: sleeveLengthFraction(spec, base) },
   });

@@ -165,6 +165,61 @@ export function flattenFreesewingSeam(path: FreesewingPath): FlattenedPath {
   return { outlineCm, curvedSpans };
 }
 
+// A point closer than this (cm) counts as "the same point" when locating a
+// named freesewing point (e.g. `points.armhole`) inside a flattened
+// outline -- loose enough for the ~0.02 cm sampling error
+// CURVE_SAMPLES_PER_OP=8 measured (this module's own top comment), tight
+// enough that two genuinely different vertices a few cm apart never
+// collide.
+const LOCATE_TOLERANCE_CM = 0.05;
+
+/**
+ * Finds the index of the flattened outline point matching a named
+ * freesewing point (e.g. `part.points.armhole`, in mm) -- the general,
+ * robust alternative to assuming a fixed op/sample count between two
+ * named features. Necessary because a design's own op count between two
+ * named points is NOT always constant across measurement sets (verified:
+ * Diana's own `hips` point coincides with `hem` for some bodies and not
+ * others, collapsing or expanding the straight-line op count between
+ * them) -- counting ops or samples is fragile where matching the actual
+ * on-curve coordinate is not, since every named anchor point a design
+ * exposes is, by construction, an exact vertex of the same path
+ * (`flattenFreesewingSeam` samples every curve op's endpoint exactly,
+ * never only its interior).
+ *
+ * Throws rather than silently returning a wrong or approximate index --
+ * a design wrapper asking for a point that isn't actually a vertex on
+ * this seam (a construction-only reference point, or a name that belongs
+ * to a different part) is a bug in that wrapper's own understanding of
+ * the design, not a soft-fail case.
+ */
+export function locatePointIndex(
+  outlineCm: Pt[],
+  target: { x: number; y: number },
+  searchFrom = 0,
+  searchTo = outlineCm.length,
+): number {
+  const targetCm = toCm(target);
+  let bestIdx = -1;
+  let bestDist = Infinity;
+  for (let i = searchFrom; i < searchTo; i++) {
+    const [x, y] = outlineCm[i];
+    const dist = Math.hypot(x - targetCm[0], y - targetCm[1]);
+    if (dist < bestDist) {
+      bestDist = dist;
+      bestIdx = i;
+    }
+  }
+  if (bestDist > LOCATE_TOLERANCE_CM) {
+    throw new Error(
+      `locatePointIndex: no outline vertex within ${LOCATE_TOLERANCE_CM} cm of ` +
+        `(${targetCm[0]}, ${targetCm[1]}) cm -- closest was ${bestDist.toFixed(4)} cm ` +
+        `at index ${bestIdx}`,
+    );
+  }
+  return bestIdx;
+}
+
 export interface MirroredPanel {
   outlineCm: Pt[];
   curvedSpans: [number, number][];
