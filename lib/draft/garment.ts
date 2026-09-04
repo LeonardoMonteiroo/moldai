@@ -5,16 +5,8 @@ import {
 } from "@/lib/measurements";
 import {
   ClarifyQuestion,
-  Neckline,
   GarmentSpec,
   GarmentStyle,
-  GarmentType,
-  SleeveLength,
-  SkirtSilhouette,
-  CollarType,
-  CuffType,
-  WaistbandType,
-  FrontClosureType,
   Gender,
   Piece,
   PieceOutline,
@@ -44,7 +36,32 @@ import {
   BAND_COLLAR_FRONT_EXTENSION_CM,
   BUTTON_STAND_WIDTH_CM,
 } from "./subpieces";
-import { FIT_CLASSES, STRETCH_CLASSES, wearingEaseCm } from "./ease";
+// #267: the AI-facing vocabulary (TYPES/GENDERS/NECKLINES/SLEEVES/SKIRTS/
+// COLLARS/CUFFS/WAISTBANDS/FRONT_CLOSURES/STYLE_LIMITS, plus the ./ease
+// re-exports) moved to lib/draft/vocabulary.ts, a leaf module with no
+// dependency on this file or any drafter -- lib/draft/engine/capability.ts
+// builds the "moldai" engine's declared capability from it. Imported here
+// (validateSpec below still reads every one of these directly) AND
+// re-exported verbatim, so every existing importer (lib/ai's prompt/schema,
+// TechSheetTab, the dashboard/sloper components) keeps reading
+// `@/lib/draft/garment` with no import-path change.
+import {
+  TYPES,
+  GENDERS,
+  NECKLINES,
+  SLEEVES,
+  SKIRTS,
+  COLLARS,
+  CUFFS,
+  WAISTBANDS,
+  FRONT_CLOSURES,
+  STYLE_LIMITS,
+  FIT_CLASSES,
+  STRETCH_CLASSES,
+  FIT_EASE_CM,
+  STRETCH_EASE_PCT,
+  wearingEaseCm,
+} from "./vocabulary";
 import {
   SeamEdgeRef,
   SeamMeasurement,
@@ -56,59 +73,23 @@ import type { Translate } from "@/lib/i18n/translate";
 
 export type { SeamMeasurement } from "./seams";
 
-export const TYPES: GarmentType[] = [
-  "blouse",
-  "dress",
-  "skirt",
-  "tshirt",
-  "trousers",
-];
-export const GENDERS: Gender[] = ["female", "male"];
-export const NECKLINES: Neckline[] = ["straight", "V", "round"];
-export const SLEEVES: SleeveLength[] = ["none", "short", "long"];
-export const SKIRTS: SkirtSilhouette[] = [
-  "straight",
-  "a-line",
-  "gore",
-  "half-circle",
-  "circle",
-];
-// #129/#130/#131/#221/#222: one exported source per sub-piece enum, the same
-// rule every other AI-facing catalog here follows -- schema.ts/prompt.ts
-// render from these, never a hardcoded duplicate list.
-export const COLLARS: CollarType[] = ["none", "convertible", "band", "shirt"];
-export const CUFFS: CuffType[] = ["none", "straight"];
-export const WAISTBANDS: WaistbandType[] = ["none", "straight"];
-// #223: same footing as the three above -- the AI-facing catalog, rendered
-// into the prompt/schema from this one export, never a hardcoded duplicate.
-export const FRONT_CLOSURES: FrontClosureType[] = ["none", "buttonStand"];
-// #125: FIT_CLASSES/STRETCH_CLASSES/FIT_EASE_CM/STRETCH_EASE_PCT/wearingEaseCm
-// live in ./ease, a leaf module with no dependency on this file or on
-// body.ts — body.ts needs them too (the actual drafting), and it's a
-// drafter this file already imports, so defining them here would cycle.
-// Re-exported so every existing importer (lib/ai's prompt/schema, this
-// file's own validateSpec, TechSheetTab) keeps reading one place, matching
-// how STYLE_LIMITS below is quoted verbatim by the AI layer.
 export {
+  TYPES,
+  GENDERS,
+  NECKLINES,
+  SLEEVES,
+  SKIRTS,
+  COLLARS,
+  CUFFS,
+  WAISTBANDS,
+  FRONT_CLOSURES,
+  STYLE_LIMITS,
   FIT_CLASSES,
   STRETCH_CLASSES,
   FIT_EASE_CM,
   STRETCH_EASE_PCT,
   wearingEaseCm,
-} from "./ease";
-
-// Clamp bounds validateSpec applies to numeric style fields. Exported so the
-// AI layer (lib/ai) quotes the same numbers in its prompt and tool schema —
-// they must never drift from what actually gets enforced here.
-export const STYLE_LIMITS = {
-  necklineDepthCm: { min: 0, max: 15 },
-  skirtLengthCm: { min: 25, max: 120 },
-  seamAllowanceCm: { min: 0, max: 4 },
-  armholeDeepenCm: { min: 0, max: 6 },
-  // #128: total waist-to-hem trouser length -- shorts/capri at the low end
-  // up to a full-length ankle trouser at the high end.
-  trouserLengthCm: { min: 60, max: 115 },
-} as const;
+};
 
 // tshirt-fit-calibration: a men's crew-neck tee's own hem drop below the
 // nape-to-waist point (backLength), replacing the blouse hip-length reuse
