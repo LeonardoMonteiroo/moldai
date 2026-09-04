@@ -65,7 +65,7 @@ function toBlouseMeasurementsMm(m: Measurements): Record<string, number> {
 // declared range of -40%..+10% (@freesewing/library's sleeve.mjs) --
 // meaning even at its shortest, Diana's sleeve is at least 60% of the
 // full shoulderToWrist, nowhere near a true short/cap sleeve. This is why
-// FREESEWING_CAPABILITY's blouse entry declares styleEnums.sleeve as
+// FREESEWING_CAPABILITY's blouse entry declares styleEnumsByType.sleeve as
 // ["long"] only -- a "short" request is a real, reportable capability gap
 // for this design, not something to silently approximate at the option's
 // floor. This function still must not throw if it's ever called with

@@ -78,7 +78,7 @@ function toTshirtMeasurementsMm(m: Measurements): Record<string, number> {
 // the proportion, never a second invented number" approach the rest of this
 // adapter follows. Teagan has no sleeveless option (it's a t-shirt design,
 // physically always sleeved) -- style.sleeve === "none" is a declared
-// capability gap (FREESEWING_CAPABILITY.styleEnums.sleeve for tshirt omits
+// capability gap (FREESEWING_CAPABILITY.styleEnumsByType.tshirt.sleeve omits
 // "none"), reported by checkEngineSupport before this ever runs; this
 // function still must not throw on it, so it falls back to "short" the same
 // way an unsupported style value drafts anyway with the field effectively
