@@ -18,15 +18,17 @@
 ## Pieces are drafted from measurements, not deltas
 
 - `lib/measurements.ts` defines `Measurements` (`shoulder` is the half-width from the centre line to the shoulder tip, not the full seam) plus the legacy `SIZE_TABLE`/`SIZE_TABLE_MALE`, now only seed data for the two system size charts and the pre-generation bootstrap.
-- **`Measurements` has two tiers.** `CORE_MEASUREMENT_KEYS` — the 9 proportional keys (`bust`, `waist`, `hip`, `hipHeight`, `backLength`, `shoulder`, `skirtLength`, `shortSleeveLength`, `longSleeveLength`) — stay **required**, enforced by `assertResolvedMeasurements` on every base row. `EXTENDED_MEASUREMENT_KEYS` are 6 **optional** overrides, each read by exactly one drafter and each falling back to the proportion it replaces:
+- **`Measurements` has two tiers.** `CORE_MEASUREMENT_KEYS` — the 9 proportional keys (`bust`, `waist`, `hip`, `hipHeight`, `backLength`, `shoulder`, `skirtLength`, `shortSleeveLength`, `longSleeveLength`) — stay **required**, enforced by `assertResolvedMeasurements` on every base row. `EXTENDED_MEASUREMENT_KEYS` are 8 **optional** overrides, each read by exactly one drafter and each falling back to the proportion it replaces:
 
   ```
-  neckGirth     → body.ts     neckHalf = neckGirth/6 + offset      ← bust/14 + offset
-  highBust      → body.ts     armholeDepthBase = highBust/8 + off  ← bust/8 + offset
-  shoulderSlope → body.ts     shoulderSlope                        ← 4.0 female / 4.5 male
-  backWidth     → body.ts     BACK PANEL ONLY: armCtrlX at midArmY ← (shoulderHalf + halfChest)/2 - 1
-  bicep         → sleeve.ts   bicep = bicep + wearingEase          ← bust*BICEP_PROPORTION_OF_BUST + ease
-  rise          → trousers.ts riseCm (crotch depth)                ← hip/4 + 4
+  neckGirth       → body.ts   neckHalf = neckGirth/6 + offset      ← bust/14 + offset
+  highBust        → body.ts   armholeDepthBase = highBust/8 + off  ← bust/8 + offset
+  shoulderSlope   → body.ts   shoulderSlope                        ← 4.0 female / 4.5 male
+  backWidth       → body.ts   BACK PANEL ONLY: armCtrlX at midArmY ← (shoulderHalf + halfChest)/2 - 1
+  bicep           → sleeve.ts bicep = bicep + wearingEase          ← bust*BICEP_PROPORTION_OF_BUST + ease
+  rise            → trousers.ts riseCm (crotch depth)              ← hip/4 + 4
+  bustPointHeight → body.ts   shoulder seam → bust apex, vertical  ← 26.5 (seeded default)
+  bustSpan        → body.ts   apex-to-apex, horizontal             ← 18.5 (seeded default)
   ```
 
   **`halfChest` (the underarm-level width where front, back and sleeve all meet) stays bust-derived for both panels, always — never wire `backWidth` into it.** `backWidth` is an upper-chest/shoulder-blade measurement feeding the armhole curve's control point; routing it through `halfChest` makes a user who measures honestly get a back too narrow per side. Seeding is a deliberate no-op for four keys (`neckGirth`/`highBust`/`shoulderSlope`/`bicep` seed to the exact value reproducing the fallback formula) but **intentionally not** for `backWidth` (`bust*0.4`, a real proportion) or `rise` (per-size graded) — both genuinely change what a new chart drafts. **No migration:** a pattern snapshots its chart once, so an existing pattern keeps taking every fallback forever.
