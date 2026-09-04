@@ -2,6 +2,7 @@ import type { DraftingEngine, EngineDraft } from "../types";
 import { FREESEWING_CAPABILITY } from "../capability";
 import { draftTshirt } from "./designs/tshirt";
 import { draftBlouse } from "./designs/blouse";
+import { draftSkirt } from "./designs/skirt";
 
 // #269: the freesewing DraftingEngine -- registered in
 // lib/draft/engine/registry.ts alongside moldai. Dispatches by
@@ -24,6 +25,8 @@ export const freesewingEngine: DraftingEngine = {
         return draftTshirt(spec, base, t);
       case "blouse":
         return draftBlouse(spec, base, t);
+      case "skirt":
+        return draftSkirt(spec, base, t);
       default:
         throw new Error(
           `freesewing engine: no design wired for garment type "${spec.type}"`,

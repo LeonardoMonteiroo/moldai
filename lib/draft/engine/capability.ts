@@ -260,36 +260,50 @@ export const MOLDAI_CAPABILITY: EngineCapability = {
   },
 };
 
-// #269: the freesewing engine's declared capability. Only `tshirt`
+// #269: the freesewing engine's declared capability. `tshirt`
 // (lib/draft/engine/freesewing/designs/tshirt.ts, backed by
-// @freesewing/teagan) and `blouse` (designs/blouse.ts, backed by
-// @freesewing/diana) are wired today -- dress/skirt/trousers are a later
-// phase, tracked in docs/decisions/drafting.md, not silently claimed here.
+// @freesewing/teagan), `blouse` (designs/blouse.ts, backed by
+// @freesewing/diana) and `skirt` (designs/skirt.ts, backed by
+// @freesewing/sandy) are wired today -- dress/trousers are a later phase,
+// tracked in docs/decisions/drafting.md, not silently claimed here.
 // Ground truth from reading each design wrapper's own conversion function
 // directly, the same "grep the drafter, don't assume" discipline
 // MOLDAI_CAPABILITY above follows:
-// - required: the UNION of every Measurements field either wired design
-//   reads unconditionally. Both designs happen to need the identical 13
+// - required: the UNION of every Measurements field some wired design
+//   reads unconditionally. tshirt/blouse need the identical 13
 //   (@freesewing/collection's own requiredMeasurements, verified before
-//   either was picked), so this list doesn't grow with blouse.
+//   either was picked); skirt needs a disjoint, much smaller set (waist,
+//   hip, hipHeight, waistToFloor, skirtLength) -- the union is simply both
+//   lists concatenated, since a chart's base row already carries every
+//   CORE key regardless of which type it'll be drafted as.
 //   shortSleeveLength/longSleeveLength are both listed even though only one
 //   is read per draft (whichever style.sleeve picks) -- both are already-
 //   required CORE fields regardless.
 // - optional: highBust/shoulderSlope -- each design's own `?? bust`/`?? 4.0`
 //   fallback, mirroring EXTENDED_MEASUREMENT_KEYS' shape for moldai.
-// - styleFieldsByType lists ONLY "sleeve" for both types: neither design's
+// - styleFieldsByType lists ONLY "sleeve" for tshirt/blouse, and "skirt"
+//   ("skirt" silhouette) + "skirtLengthCm" for skirt: neither tshirt/blouse
 //   wrapper reads neckline/collar/cuff/darts/fit yet (each design drafts
 //   its own fixed neckline regardless of spec.style.neckline, and neither
 //   has a collar/cuff subpiece wired -- Diana's own construction has none
 //   at all; Teagan's has none per docs/reference/freesewing-spike's own
-//   finding). Declaring more here than a wrapper actually reads would
-//   violate the same "never tell the model a range the validator does not
-//   enforce" rule MOLDAI_CAPABILITY's own comment cites.
+//   finding). skirt.ts doesn't actually BRANCH on style.skirt (Sandy is
+//   always a circle skirt) -- but it's declared supported anyway
+//   (styleEnumsByType.skirt.skirt below is ["circle"] only), because the
+//   alternative -- treating an explicit "circle" request as an
+//   unsupported FIELD -- would be a false gap for the one value this
+//   wrapper genuinely does honor; a request for a different silhouette
+//   still gets a real styleValue gap. Declaring more here than a wrapper
+//   actually reads would violate the same "never tell the model a range
+//   the validator does not enforce" rule MOLDAI_CAPABILITY's own comment
+//   cites.
 // - styleEnumsByType.sleeve genuinely DIFFERS by type: Teagan drafts a real
 //   short sleeve; Diana's own sleeveLengthBonus option cannot go below 60%
 //   of full arm length (@freesewing/library's sleeve.mjs), so blouse.ts
 //   declares "long" only -- a "short" blouse request via freesewing is a
 //   real, reportable gap, not a silent near-long approximation.
+//   styleEnumsByType.skirt.skirt is ["circle"] only -- Sandy cannot draft
+//   straight/a-line/gore/half-circle.
 const FREESEWING_REQUIRED_MEASUREMENTS: readonly (keyof Measurements)[] = [
   "bust",
   "waist",
@@ -305,6 +319,8 @@ const FREESEWING_REQUIRED_MEASUREMENTS: readonly (keyof Measurements)[] = [
   "wrist",
   "shortSleeveLength",
   "longSleeveLength",
+  "waistToFloor",
+  "skirtLength",
 ];
 
 const FREESEWING_EMPTY_STYLE_ENUMS: StyleEnums = {
@@ -325,12 +341,12 @@ export const FREESEWING_CAPABILITY: EngineCapability = {
     required: FREESEWING_REQUIRED_MEASUREMENTS,
     optional: ["highBust", "shoulderSlope"],
   },
-  types: ["tshirt", "blouse"],
+  types: ["tshirt", "blouse", "skirt"],
   styleEnumsByType: {
     blouse: { ...FREESEWING_EMPTY_STYLE_ENUMS, sleeve: ["long"] },
     dress: FREESEWING_EMPTY_STYLE_ENUMS,
     tshirt: { ...FREESEWING_EMPTY_STYLE_ENUMS, sleeve: ["short", "long"] },
-    skirt: FREESEWING_EMPTY_STYLE_ENUMS,
+    skirt: { ...FREESEWING_EMPTY_STYLE_ENUMS, skirt: ["circle"] },
     trousers: FREESEWING_EMPTY_STYLE_ENUMS,
   },
   styleLimits: STYLE_LIMITS,
@@ -338,7 +354,7 @@ export const FREESEWING_CAPABILITY: EngineCapability = {
     blouse: ["sleeve"],
     dress: [],
     tshirt: ["sleeve"],
-    skirt: [],
+    skirt: ["skirt", "skirtLengthCm"],
     trousers: [],
   },
 };

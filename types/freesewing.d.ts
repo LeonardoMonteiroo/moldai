@@ -30,6 +30,9 @@ interface FreesewingPath {
 interface FreesewingPart {
   paths: Record<string, FreesewingPath>;
   points: Record<string, FreesewingPoint>;
+  context: {
+    settings: { options: Record<string, unknown> };
+  };
 }
 interface FreesewingPatternConfig {
   measurements: string[];
@@ -61,4 +64,8 @@ declare module "@freesewing/teagan" {
 
 declare module "@freesewing/diana" {
   export class Diana extends FreesewingDesignClass {}
+}
+
+declare module "@freesewing/sandy" {
+  export class Sandy extends FreesewingDesignClass {}
 }

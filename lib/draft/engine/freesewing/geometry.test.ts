@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { Teagan } from "@freesewing/teagan";
+import { Sandy } from "@freesewing/sandy";
 import {
   flattenFreesewingSeam,
   mirrorFoldedPanel,
@@ -150,11 +151,68 @@ describe("mirrorFoldedPanel, against a live Teagan draft", () => {
     expect(wholeMeasuredCm).toBeCloseTo(2 * halfMeasuredCm, 0);
   });
 
-  it("throws if the half-panel's endpoints are not on the fold axis (e.g. a whole piece like the sleeve)", () => {
-    const parts = draftTeagan();
-    const seam = parts["teagan.sleeve"].paths.seam;
-    const half = flattenFreesewingSeam(seam);
-    expect(() => mirrorFoldedPanel(half)).toThrow();
+  // #269: the fold axis is now WHATEVER line passes through the half-
+  // panel's own first and last point (generalized for Sandy's circle-
+  // skirt wedge, whose fold axis is a vertical line NOT through the
+  // origin the way Teagan/Diana's is) -- this only rejects a truly
+  // DEGENERATE axis (first and last point coincide, so there's no line to
+  // reflect across at all), not "this piece wasn't meant to be mirrored."
+  // A design wrapper calling this on a genuinely whole piece (like a
+  // sleeve, whose own first/last points are real, distinct vertices) is a
+  // caller bug this primitive can no longer catch on its own -- each
+  // wrapper's own tests (e.g. tshirt.test.ts's "drafts exactly three
+  // pieces") are what guard against that misuse in practice.
+  // #269: a live Sandy (circle skirt) draft -- its own wedge's fold axis
+  // is a VERTICAL line, but NOT at x=0 (Sandy's own drafting coordinate
+  // system isn't centred there the way Teagan/Diana's is), the concrete
+  // case that motivated generalizing this function away from an x=0-only
+  // mirror.
+  it("mirrors correctly across an axis that is NOT x=0 (a live Sandy circle-skirt wedge)", () => {
+    const pattern = new Sandy({
+      measurements: {
+        waist: 700,
+        waistToFloor: 1050,
+        waistToHips: 200,
+        hips: 950,
+      },
+      options: { panels: 1 },
+    });
+    pattern.draft();
+    const half = flattenFreesewingSeam(
+      pattern.parts[0]["sandy.skirt"].paths.seam,
+    );
+    // Confirms the fold axis really isn't x=0 for this design -- otherwise
+    // this test would accidentally exercise the same x=0 case Teagan/Diana
+    // already cover.
+    expect(Math.abs(half.outlineCm[0][0])).toBeGreaterThan(0.1);
+
+    const { outlineCm, foldEdge } = mirrorFoldedPanel(half);
+    const [a, b] = foldEdge;
+    const axisX = outlineCm[a][0];
+    expect(outlineCm[b][0]).toBeCloseTo(axisX, 6);
+    // Every mirrored point sits the same distance on the OTHER side of the
+    // vertical axis line x=axisX as its source point.
+    for (const [x, y] of outlineCm) {
+      const mirrorX = 2 * axisX - x;
+      const hasMirror = outlineCm.some(
+        ([mx, my]) => Math.abs(mx - mirrorX) < 1e-6 && Math.abs(my - y) < 1e-6,
+      );
+      expect(hasMirror).toBe(true);
+    }
+  });
+
+  it("throws for a degenerate axis (first and last point coincide)", () => {
+    expect(() =>
+      mirrorFoldedPanel({
+        outlineCm: [
+          [0, 0],
+          [5, 0],
+          [5, 5],
+          [0, 0],
+        ],
+        curvedSpans: [],
+      }),
+    ).toThrow();
   });
 });
 

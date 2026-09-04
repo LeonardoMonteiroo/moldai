@@ -36,10 +36,12 @@ const MM_PER_CM = 10;
 // land on the same coordinate (e.g. a fold-closing line back to the path's
 // own start) is far smaller than this. 0.01 mm = 0.001 cm.
 const COINCIDENT_MM = 0.01;
-// How close to x=0 (mm) a point must be to count as "on the fold axis" --
-// loose enough for floating-point noise, tight enough that a real seam
-// point a few mm off centre (there are none in a fold-cut panel by
-// definition) would still fail loudly rather than mirror wrong.
+// The shortest (mm) a half-panel's first-to-last-point span may be and
+// still count as a real fold axis to reflect across -- below this, the two
+// points are coincident noise, not a genuine axis, and mirrorFoldedPanel
+// must fail loudly rather than reflect across an effectively-zero-length
+// line (which would silently produce garbage coordinates, not just a
+// slightly-off mirror).
 const FOLD_AXIS_MM = 0.05;
 
 function toCm(p: { x: number; y: number }): Pt {
@@ -226,24 +228,44 @@ export interface MirroredPanel {
   foldEdge: [number, number];
 }
 
+// Reflects point `p` across the line through `a` and `b` (standard
+// point-reflection: project onto the line, then go the same distance past
+// it on the other side). Generalizes the earlier x=0-only mirror -- a
+// bodice's fold axis (Teagan/Diana) happens to be a vertical line through
+// the origin, but a circle-skirt wedge's own fold axis (Sandy) is a
+// vertical line NOT through the origin, and a future design's could in
+// principle not be vertical at all; reflecting across the panel's own two
+// endpoints handles all three without knowing which case it is.
+function reflectAcrossLine(p: Pt, a: Pt, b: Pt): Pt {
+  const dx = b[0] - a[0];
+  const dy = b[1] - a[1];
+  const lenSq = dx * dx + dy * dy;
+  const t = ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / lenSq;
+  const cx = a[0] + t * dx;
+  const cy = a[1] + t * dy;
+  return [2 * cx - p[0], 2 * cy - p[1]];
+}
+
 /**
- * Mirrors a "cut on fold" half-panel (a design's front/back, ALWAYS drawn
- * starting and ending on the fold axis x=0 -- brian/teagan's own shared
- * drafting convention, verified against a live Teagan draft while building
- * this adapter) into the WHOLE symmetric outline `DraftedPiece.outlineCm`
- * expects. Every one of our own drafters already stores the whole,
- * both-halves outline (lib/draft/body.ts's own front/back panels), with
- * `foldEdge` a pure two-point RENDER annotation (PatternCanvas draws a
- * dashed line directly between those two vertex coordinates, independent of
- * polygon adjacency) rather than a real boundary edge -- so the fold-axis
- * points from the half-panel become two ordinary vertices in the whole
- * outline, not a seam.
+ * Mirrors a "cut on fold" half-panel (a design's front/back, or -- for a
+ * radial silhouette like a circle skirt -- one wedge's own half) into the
+ * WHOLE symmetric outline `DraftedPiece.outlineCm` expects. Every one of
+ * our own drafters already stores the whole, both-halves outline
+ * (lib/draft/body.ts's own front/back panels), with `foldEdge` a pure
+ * two-point RENDER annotation (PatternCanvas draws a dashed line directly
+ * between those two vertex coordinates, independent of polygon adjacency)
+ * rather than a real boundary edge -- so the fold-axis points from the
+ * half-panel become two ordinary vertices in the whole outline, not a
+ * seam.
  *
- * Requires (throws otherwise, never silently widens the fold-axis
- * tolerance) that `half.outlineCm[0]` and `half.outlineCm[n-1]` both sit on
- * x=0 -- a design whose fold axis isn't a plain vertical line needs a
- * different adapter entirely, not a mirror that silently produces a
- * self-intersecting outline.
+ * The fold axis is whatever line passes through `half.outlineCm[0]` and
+ * `half.outlineCm[n-1]` -- verified constant per design (Teagan/Diana:
+ * x=0; Sandy: a different vertical line, since its own drafting
+ * coordinate system isn't centred at the fold), never assumed to be a
+ * specific line. Requires (throws otherwise) that those two points are
+ * actually distinct -- a degenerate "axis" of zero length can't define a
+ * reflection at all, and silently producing NaN coordinates would be far
+ * worse than failing loudly here.
  */
 export function mirrorFoldedPanel(half: FlattenedPath): MirroredPanel {
   const { outlineCm: half_, curvedSpans } = half;
@@ -251,10 +273,13 @@ export function mirrorFoldedPanel(half: FlattenedPath): MirroredPanel {
   if (n < 3) {
     throw new Error("mirrorFoldedPanel: half-panel needs at least 3 points");
   }
-  const onAxis = (p: Pt) => Math.abs(p[0] * MM_PER_CM) < FOLD_AXIS_MM;
-  if (!onAxis(half_[0]) || !onAxis(half_[n - 1])) {
+  const foldA = half_[0];
+  const foldB = half_[n - 1];
+  const axisLenMm =
+    Math.hypot(foldB[0] - foldA[0], foldB[1] - foldA[1]) * MM_PER_CM;
+  if (axisLenMm < FOLD_AXIS_MM) {
     throw new Error(
-      "mirrorFoldedPanel: first/last point is not on the x=0 fold axis",
+      "mirrorFoldedPanel: first and last point are the same point -- no fold axis to reflect across",
     );
   }
 
@@ -262,7 +287,7 @@ export function mirrorFoldedPanel(half: FlattenedPath): MirroredPanel {
   const mirroredInterior = interior
     .slice()
     .reverse()
-    .map(([x, y]) => [-x, y] as Pt);
+    .map((p) => reflectAcrossLine(p, foldA, foldB));
   const outlineCm: Pt[] = [...half_, ...mirroredInterior];
   const L = outlineCm.length; // == 2n - 2
 
