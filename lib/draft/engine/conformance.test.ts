@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
-import { ENGINE_IDS } from "./capability";
+import { ENGINE_IDS, checkEngineSupport } from "./capability";
 import { getEngine } from "./registry";
 import { walkSeamPairs } from "../seams";
 import { DECORATION_CASES } from "../fixtures";
@@ -20,12 +20,28 @@ function baseRowFor(spec: GarmentSpec) {
   return spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
 }
 
+// #269: an engine's `capability.types` may be a strict subset of every
+// archetype DECORATION_CASES covers (freesewing declares only "tshirt"
+// today) -- checked the same way tshirtBenchmark.test.ts already does,
+// via checkEngineSupport's own `type` gap, so an unsupported case is
+// skipped rather than failing on a "no design wired" throw that isn't
+// this suite's concern. A `spec` this rejects for a REGISTERED-and-
+// supported type would still fail loudly (this only skips the type gap).
+function supports(engineId: (typeof ENGINE_IDS)[number], spec: GarmentSpec) {
+  const capability = getEngine(engineId).capability;
+  return !checkEngineSupport(capability, spec, baseRowFor(spec)).some(
+    (g) => g.kind === "type",
+  );
+}
+
 describe("engine conformance", () => {
   for (const engineId of ENGINE_IDS) {
     const engine = getEngine(engineId);
 
     describe(engineId, () => {
       for (const [label, spec] of DECORATION_CASES) {
+        if (!supports(engineId, spec)) continue;
+
         it(`${label}: every declared seam pair names a piece that was actually drafted`, () => {
           const { drafted, seamPairs } = engine.draft(
             spec,
@@ -66,14 +82,15 @@ describe("engine conformance", () => {
       // facade.ts): for a FIXED spec, piece order/ids/count must depend
       // only on the spec, never on the measurements row -- draftPiecesCm at
       // one size and at another must line up 1:1 by array index for the
-      // graded-overlay alignment to be meaningful at all.
+      // graded-overlay alignment to be meaningful at all. Uses whichever
+      // DECORATION_CASES spec this engine actually supports (its own first
+      // supported case), rather than a hardcoded "blouse" every engine may
+      // not draft.
       it("piece id/order/count for a fixed spec depends only on the spec, not the measurements row", () => {
-        const spec: GarmentSpec = {
-          type: "blouse",
-          gender: "female",
-          measurementOverrides: {},
-          style: { neckline: "round", sleeve: "long", collar: "band" },
-        };
+        const spec =
+          DECORATION_CASES.map(([, s]) => s).find((s) =>
+            supports(engineId, s),
+          ) ?? DECORATION_CASES[0][1];
         const rows = [SIZE_TABLE.PP, SIZE_TABLE.M, SIZE_TABLE.GG];
         const idSequences = rows.map((row) =>
           engine.draft(spec, row, t).drafted.map((p) => p.id),

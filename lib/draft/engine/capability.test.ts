@@ -30,8 +30,12 @@ describe("isEngineId", () => {
     for (const id of ENGINE_IDS) expect(isEngineId(id)).toBe(true);
   });
 
+  // #269: "freesewing" moved from "the unrecognised example" to a real,
+  // registered engine id -- "garmentcode" replaces it here (#269's own
+  // decision log declined registering it, so it names something this app
+  // genuinely does not recognise, the same role "freesewing" used to play).
   it("rejects an unrecognised value -- the isPurchaseType precedent", () => {
-    expect(isEngineId("freesewing")).toBe(false);
+    expect(isEngineId("garmentcode")).toBe(false);
     expect(isEngineId(undefined)).toBe(false);
     expect(isEngineId(null)).toBe(false);
     expect(isEngineId(42)).toBe(false);

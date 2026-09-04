@@ -139,6 +139,17 @@ const PIECE_IDS_BY_ENGINE: Record<
     sleeve: "sleeve",
     collarBand: "collar",
   },
+  // #269: the freesewing adapter (lib/draft/engine/freesewing/designs/
+  // teagan.ts) reuses our OWN canonical piece ids for front/back/sleeve, so
+  // the mapping is identical to moldai's for those three. collarBand is
+  // deliberately absent -- Teagan draws no collar band at all
+  // (docs/reference/freesewing-spike's own finding) -- which reports as a
+  // zeroed row below, not a silent drop.
+  freesewing: {
+    back: "body-back",
+    front: "body-front",
+    sleeve: "sleeve",
+  },
 };
 const BENCHMARK_PIECES = ["back", "front", "sleeve", "collarBand"] as const;
 type BenchmarkPiece = (typeof BENCHMARK_PIECES)[number];

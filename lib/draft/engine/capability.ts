@@ -13,10 +13,7 @@ import type {
   StretchClass,
 } from "@/lib/types";
 import type { Measurements } from "@/lib/measurements";
-import {
-  CORE_MEASUREMENT_KEYS,
-  EXTENDED_MEASUREMENT_KEYS,
-} from "@/lib/measurements";
+import { EXTENDED_MEASUREMENT_KEYS } from "@/lib/measurements";
 import {
   TYPES,
   NECKLINES,
@@ -43,7 +40,7 @@ import { reportError } from "@/lib/observability/report";
 // type in its Select) read an engine's capability without pulling the whole
 // drafting engine into its bundle.
 
-export const ENGINE_IDS = ["moldai"] as const;
+export const ENGINE_IDS = ["moldai", "freesewing"] as const;
 export type EngineId = (typeof ENGINE_IDS)[number];
 export const DEFAULT_ENGINE_ID: EngineId = "moldai";
 
@@ -234,6 +231,74 @@ export const MOLDAI_CAPABILITY: EngineCapability = {
     ],
     skirt: ["skirt", "skirtLengthCm", "waistband", "seamAllowanceCm"],
     trousers: ["trouserLengthCm", "waistband", "seamAllowanceCm"],
+  },
+};
+
+// #269: the freesewing engine's declared capability. Only `tshirt` is wired
+// today (lib/draft/engine/freesewing/designs/teagan.ts) -- the other four
+// archetypes are a later phase, tracked in docs/decisions/drafting.md, not
+// silently claimed here. Ground truth from reading teagan.ts's own
+// toTeaganMeasurementsMm/sleeveLengthFraction directly, the same
+// "grep the drafter, don't assume" discipline MOLDAI_CAPABILITY above
+// follows:
+// - required: every Measurements field the adapter reads unconditionally
+//   for a tshirt draft. shortSleeveLength/longSleeveLength are both listed
+//   even though only one is read per draft (whichever style.sleeve picks) --
+//   both are already-required CORE fields regardless, so listing both costs
+//   nothing and avoids a conditional-on-style entry this list has no shape
+//   for.
+// - optional: highBust/shoulderSlope -- the adapter's own `?? bust`/`?? 4.0`
+//   fallbacks, mirroring EXTENDED_MEASUREMENT_KEYS' shape for moldai.
+// - styleFieldsByType.tshirt lists ONLY "sleeve": Teagan's own neckline,
+//   collar and cuff are NOT wired to any style field yet (the adapter drafts
+//   Teagan's own fixed neckline regardless of spec.style.neckline, and has
+//   no collar/cuff subpiece at all -- docs/reference/freesewing-spike's own
+//   finding that "Teagan drafts no collar band at all"). Declaring more
+//   here than the adapter actually reads would violate the same
+//   "never tell the model a range the validator does not enforce" rule
+//   MOLDAI_CAPABILITY's own comment cites.
+const FREESEWING_REQUIRED_MEASUREMENTS: readonly (keyof Measurements)[] = [
+  "bust",
+  "waist",
+  "hip",
+  "hipHeight",
+  "backLength",
+  "shoulder",
+  "bicep",
+  "bustPointHeight",
+  "neckGirth",
+  "waistToArmpit",
+  "shoulderToWrist",
+  "wrist",
+  "shortSleeveLength",
+  "longSleeveLength",
+];
+
+export const FREESEWING_CAPABILITY: EngineCapability = {
+  id: "freesewing",
+  measurements: {
+    required: FREESEWING_REQUIRED_MEASUREMENTS,
+    optional: ["highBust", "shoulderSlope"],
+  },
+  types: ["tshirt"],
+  styleEnums: {
+    neckline: ["round"],
+    sleeve: SLEEVES,
+    skirt: [],
+    collar: ["none"],
+    cuff: ["none"],
+    waistband: [],
+    frontClosure: ["none"],
+    fit: [],
+    stretch: [],
+  },
+  styleLimits: STYLE_LIMITS,
+  styleFieldsByType: {
+    blouse: [],
+    dress: [],
+    tshirt: ["sleeve"],
+    skirt: [],
+    trousers: [],
   },
 };
 
