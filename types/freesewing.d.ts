@@ -5,9 +5,45 @@
 // this file exists only so importing a design PACKAGE itself (`new
 // Teagan(...)`, `pattern.draft()`, `pattern.parts`) type-checks at all --
 // narrowed to the properties this repo's adapter actually touches, not a
-// full model of @freesewing/core's API surface. Add one `declare module`
-// block per design package as the freesewing engine grows to cover more
-// archetypes (see docs/architecture/drafting.md).
+// full model of @freesewing/core's API surface. Every design package
+// shares the identical shape (a `Design` subclass with `patternConfig`/
+// `parts`/`draft()`), so it's declared ONCE here and reused per package,
+// rather than repeating the same five interfaces per `declare module`
+// block -- add one `type X = FreesewingDesignClass` line per design
+// package as the freesewing engine grows to cover more archetypes (see
+// docs/architecture/drafting.md).
+
+interface FreesewingPoint {
+  x: number;
+  y: number;
+}
+interface FreesewingPathOp {
+  type: "move" | "line" | "curve" | "close";
+  to?: FreesewingPoint;
+  cp1?: FreesewingPoint;
+  cp2?: FreesewingPoint;
+}
+interface FreesewingPath {
+  ops: FreesewingPathOp[];
+  length(): number;
+}
+interface FreesewingPart {
+  paths: Record<string, FreesewingPath>;
+  points: Record<string, FreesewingPoint>;
+}
+interface FreesewingPatternConfig {
+  measurements: string[];
+  optionalMeasurements: string[];
+}
+declare class FreesewingDesignClass {
+  static patternConfig: FreesewingPatternConfig;
+  parts: Record<string, FreesewingPart>[];
+  constructor(settings: {
+    measurements: Record<string, number>;
+    options?: Record<string, unknown>;
+  });
+  draft(): void;
+}
 
 // scripts/backfill-freesewing-measurements.ts's only consumer -- a plain
 // { [sizeKey: string]: { chest: number, ...everything else: number } } bag
@@ -20,35 +56,9 @@ declare module "@freesewing/models" {
 }
 
 declare module "@freesewing/teagan" {
-  interface FreesewingPoint {
-    x: number;
-    y: number;
-  }
-  interface FreesewingPathOp {
-    type: "move" | "line" | "curve" | "close";
-    to?: FreesewingPoint;
-    cp1?: FreesewingPoint;
-    cp2?: FreesewingPoint;
-  }
-  interface FreesewingPath {
-    ops: FreesewingPathOp[];
-    length(): number;
-  }
-  interface FreesewingPart {
-    paths: Record<string, FreesewingPath>;
-    points: Record<string, FreesewingPoint>;
-  }
-  interface FreesewingPatternConfig {
-    measurements: string[];
-    optionalMeasurements: string[];
-  }
-  export class Teagan {
-    static patternConfig: FreesewingPatternConfig;
-    parts: Record<string, FreesewingPart>[];
-    constructor(settings: {
-      measurements: Record<string, number>;
-      options?: Record<string, unknown>;
-    });
-    draft(): void;
-  }
+  export class Teagan extends FreesewingDesignClass {}
+}
+
+declare module "@freesewing/diana" {
+  export class Diana extends FreesewingDesignClass {}
 }

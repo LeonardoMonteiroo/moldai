@@ -2,7 +2,11 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { GENDERS } from "@/lib/draft/garment";
 import { MEASUREMENT_RANGES } from "@/lib/measurements";
 import { ENGINE_IDS } from "@/lib/draft/engine/capability";
-import type { EngineId, EngineCapability } from "@/lib/draft/engine/capability";
+import type {
+  EngineId,
+  EngineCapability,
+  StyleEnums,
+} from "@/lib/draft/engine/capability";
 import { getEngine } from "@/lib/draft/engine/registry";
 
 // Raw shape as returned by the model's tool_use block, before validation —
@@ -60,6 +64,29 @@ function measurementProperties(capability: EngineCapability) {
   );
 }
 
+// #269: a JSON Schema `enum` is one flat list -- it cannot express "valid
+// values differ by the sibling `type` field" the way lib/ai/prompt.ts's own
+// styleEnumLine prose can. This renders the UNION across every type the
+// engine supports (a "shirt collar" is a syntactically valid tool call
+// regardless of type), deliberately coarser than the prompt's own per-type
+// guidance: the schema's job is shape validation (reject "collar: gnorf"
+// outright), not the nuanced per-type constraint -- checkEngineSupport
+// stays the real, final gate that would report a type-specific mismatch
+// (e.g. "sleeve: short" for a freesewing blouse) even though the schema
+// itself allowed the tool call through.
+function styleEnumUnion(
+  capability: EngineCapability,
+  field: keyof StyleEnums,
+): string[] {
+  const seen = new Set<string>();
+  for (const type of capability.types) {
+    for (const value of capability.styleEnumsByType[type][field]) {
+      seen.add(value);
+    }
+  }
+  return [...seen];
+}
+
 // The enums and numeric bounds all derive from the ACTIVE ENGINE's own
 // declared capability (lib/draft/engine/capability.ts) — schema, prompt,
 // and validator cannot drift. #267: this used to read module-level
@@ -95,44 +122,50 @@ function buildTool(capability: EngineCapability): Anthropic.Tool {
               properties: {
                 neckline: {
                   type: "string",
-                  enum: [...capability.styleEnums.neckline],
+                  enum: styleEnumUnion(capability, "neckline"),
                 },
                 necklineDepthCm: bounded(
                   capability.styleLimits.necklineDepthCm,
                 ),
                 sleeve: {
                   type: "string",
-                  enum: [...capability.styleEnums.sleeve],
+                  enum: styleEnumUnion(capability, "sleeve"),
                 },
                 skirt: {
                   type: "string",
-                  enum: [...capability.styleEnums.skirt],
+                  enum: styleEnumUnion(capability, "skirt"),
                 },
                 skirtLengthCm: bounded(capability.styleLimits.skirtLengthCm),
                 darts: { type: "boolean" },
                 seamAllowanceCm: bounded(
                   capability.styleLimits.seamAllowanceCm,
                 ),
-                fit: { type: "string", enum: [...capability.styleEnums.fit] },
+                fit: {
+                  type: "string",
+                  enum: styleEnumUnion(capability, "fit"),
+                },
                 stretch: {
                   type: "string",
-                  enum: [...capability.styleEnums.stretch],
+                  enum: styleEnumUnion(capability, "stretch"),
                 },
                 armholeDeepenCm: bounded(
                   capability.styleLimits.armholeDeepenCm,
                 ),
                 collar: {
                   type: "string",
-                  enum: [...capability.styleEnums.collar],
+                  enum: styleEnumUnion(capability, "collar"),
                 },
-                cuff: { type: "string", enum: [...capability.styleEnums.cuff] },
+                cuff: {
+                  type: "string",
+                  enum: styleEnumUnion(capability, "cuff"),
+                },
                 waistband: {
                   type: "string",
-                  enum: [...capability.styleEnums.waistband],
+                  enum: styleEnumUnion(capability, "waistband"),
                 },
                 frontClosure: {
                   type: "string",
-                  enum: [...capability.styleEnums.frontClosure],
+                  enum: styleEnumUnion(capability, "frontClosure"),
                 },
                 trouserLengthCm: bounded(
                   capability.styleLimits.trouserLengthCm,

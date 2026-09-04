@@ -8,10 +8,45 @@ import { buildEaseReport } from "@/lib/draft/easeReport";
 import { buildAssemblyOrder } from "@/lib/draft/assembly";
 import type { Translate } from "@/lib/i18n/translate";
 import { ENGINE_IDS } from "@/lib/draft/engine/capability";
-import type { EngineId, EngineCapability } from "@/lib/draft/engine/capability";
+import type {
+  EngineId,
+  EngineCapability,
+  StyleEnums,
+} from "@/lib/draft/engine/capability";
 import { getEngine } from "@/lib/draft/engine/registry";
 
 const fmtRange = (r: { min: number; max: number }) => `${r.min}–${r.max} cm`;
+
+// #269: a style-enum field's allowed values can now genuinely differ by
+// GarmentType within the SAME engine (EngineCapability.styleEnumsByType's
+// own doc comment: FreeSewing's blouse design can't draft a true short
+// sleeve, its tshirt design can) -- rendering one flat list, as before
+// #269, would tell the model "short" is valid for every type when the
+// validator (checkEngineSupport) would reject it for blouse specifically,
+// exactly the "never tell the model a range the validator does not
+// enforce" violation this file's own rule exists to prevent. Renders the
+// single shared list when every type that actually reads this field
+// (per styleFieldsByType) agrees, or a per-type breakdown when they
+// don't -- moldai's own values are uniform across every type today, so
+// this is a no-op for moldai's own rendered prompt.
+function styleEnumLine(
+  capability: EngineCapability,
+  field: keyof StyleEnums,
+): string {
+  const supportingTypes = capability.types.filter((type) =>
+    (capability.styleFieldsByType[type] as readonly string[]).includes(field),
+  );
+  const valuesByType = supportingTypes.map(
+    (type) => capability.styleEnumsByType[type][field],
+  );
+  const uniform = valuesByType.every(
+    (v) => v.join("|") === valuesByType[0]?.join("|"),
+  );
+  if (uniform) return (valuesByType[0] ?? []).join(" | ");
+  return supportingTypes
+    .map((type, i) => `${valuesByType[i].join(" | ")} (${type})`)
+    .join("; ");
+}
 
 // #267: MEASUREMENT_RANGES stays app-level (every engine's measurement KEYS
 // are a subset of it, per capability.test.ts's own invariant) -- so a
@@ -83,20 +118,20 @@ You are MoldAI's pattern-drafting engine. You receive natural-language requests 
 - measurementOverrides: body measurements in cm that override the size table. Include ONLY what the request explicitly adjusts. Valid ranges:
 ${measurementLines(capability)}
 - style:
-  - neckline: ${capability.styleEnums.neckline.join(" | ")}
+  - neckline: ${styleEnumLine(capability, "neckline")}
   - necklineDepthCm: ${fmtRange(capability.styleLimits.necklineDepthCm)}
-  - sleeve: ${capability.styleEnums.sleeve.join(" | ")}
-  - skirt (silhouette): ${capability.styleEnums.skirt.join(" | ")}
+  - sleeve: ${styleEnumLine(capability, "sleeve")}
+  - skirt (silhouette): ${styleEnumLine(capability, "skirt")}
   - skirtLengthCm: ${fmtRange(capability.styleLimits.skirtLengthCm)}
   - darts: boolean
   - seamAllowanceCm: ${fmtRange(capability.styleLimits.seamAllowanceCm)}
   - armholeDeepenCm: ${fmtRange(capability.styleLimits.armholeDeepenCm)} — deepens the body's armhole; use when asked to increase/lower/deepen the armhole. It only affects the body, so the sleeve cap may stop matching and trigger a seam-conflict warning: that's expected, the user resolves it with the sleeve-fix action.
-  - fit (woven garments — blouse/dress/skirt bodice): ${capability.styleEnums.fit.join(" | ")}. How loose the garment is drafted relative to the body. Default fitted. ALWAYS express a looser/tighter/closer-fitting request through this field — never by inflating measurementOverrides, which would corrupt the recorded body measurements instead of changing the garment's ease.
-  - stretch (knit garments — tshirt): ${capability.styleEnums.stretch.join(" | ")}. How much negative ease the fabric tolerates (a stretchier fabric can be drafted smaller than the body and still fit). Default none.
-  - collar (blouse/dress/tshirt): ${capability.styleEnums.collar.join(" | ")}. "convertible" is a soft, foldable classic collar sized from the drafted neckline itself. "band" is a stand/mandarin collar — a straight-up band with NO folded-over fall, structurally different from convertible: it stands close to the throat, and the neckline it seats against is lowered slightly first so the stand isn't tight. "shirt" is the classic two-piece shirt/dress-shirt collar — a stand (the same construction as "band", sized from the same lowered neckline plus the button-stand width) with a separate fall (the "convertible" shape) sewn on top of it; use this for a genuine button-down/dress-shirt collar rather than "convertible" alone. No other collar shape (Peter Pan, notched) exists yet: if the request needs one of those, don't silently substitute one of the three built shapes — ask whether one is an acceptable stand-in, or decline/explain that it isn't built yet. Default none (unchanged shell), same as before this field existed.
-  - cuff (only meaningful with sleeve: long): ${capability.styleEnums.cuff.join(" | ")}. "straight" is a plain straight cuff band with a simple placket, sized from the drafted sleeve hem. No shaped/contoured cuff or tower placket exists yet — same ask/decline rule as collar. Default none.
-  - waistband (skirt and trousers only): ${capability.styleEnums.waistband.join(" | ")}. "straight" is a plain straight band with a fixed closure overlap, sized from the drafted waist edge — the default for any skirt or trousers, since neither can be finished without one. No contoured or faced waistband exists yet. Set "none" only if the user explicitly asks for a raw/unfinished waist.
-  - frontClosure (blouse only): ${capability.styleEnums.frontClosure.join(" | ")}. "buttonStand" adds a button-stand strip sewn to the front bodice's own center-front edge, sized from the drafted opening — the only front-closure shape MoldAI drafts today. Not available for a dress or tshirt (a bodice sewn to a skirt, or a knit pullover) — treat a request for either like any other unsupported combination below. No button/buttonhole placement mark exists yet. Default none (unchanged, pullover-style front).
+  - fit (woven garments — blouse/dress/skirt bodice): ${styleEnumLine(capability, "fit")}. How loose the garment is drafted relative to the body. Default fitted. ALWAYS express a looser/tighter/closer-fitting request through this field — never by inflating measurementOverrides, which would corrupt the recorded body measurements instead of changing the garment's ease.
+  - stretch (knit garments — tshirt): ${styleEnumLine(capability, "stretch")}. How much negative ease the fabric tolerates (a stretchier fabric can be drafted smaller than the body and still fit). Default none.
+  - collar (blouse/dress/tshirt): ${styleEnumLine(capability, "collar")}. "convertible" is a soft, foldable classic collar sized from the drafted neckline itself. "band" is a stand/mandarin collar — a straight-up band with NO folded-over fall, structurally different from convertible: it stands close to the throat, and the neckline it seats against is lowered slightly first so the stand isn't tight. "shirt" is the classic two-piece shirt/dress-shirt collar — a stand (the same construction as "band", sized from the same lowered neckline plus the button-stand width) with a separate fall (the "convertible" shape) sewn on top of it; use this for a genuine button-down/dress-shirt collar rather than "convertible" alone. No other collar shape (Peter Pan, notched) exists yet: if the request needs one of those, don't silently substitute one of the three built shapes — ask whether one is an acceptable stand-in, or decline/explain that it isn't built yet. Default none (unchanged shell), same as before this field existed.
+  - cuff (only meaningful with sleeve: long): ${styleEnumLine(capability, "cuff")}. "straight" is a plain straight cuff band with a simple placket, sized from the drafted sleeve hem. No shaped/contoured cuff or tower placket exists yet — same ask/decline rule as collar. Default none.
+  - waistband (skirt and trousers only): ${styleEnumLine(capability, "waistband")}. "straight" is a plain straight band with a fixed closure overlap, sized from the drafted waist edge — the default for any skirt or trousers, since neither can be finished without one. No contoured or faced waistband exists yet. Set "none" only if the user explicitly asks for a raw/unfinished waist.
+  - frontClosure (blouse only): ${styleEnumLine(capability, "frontClosure")}. "buttonStand" adds a button-stand strip sewn to the front bodice's own center-front edge, sized from the drafted opening — the only front-closure shape MoldAI drafts today. Not available for a dress or tshirt (a bodice sewn to a skirt, or a knit pullover) — treat a request for either like any other unsupported combination below. No button/buttonhole placement mark exists yet. Default none (unchanged, pullover-style front).
   - trouserLengthCm (trousers only): ${fmtRange(capability.styleLimits.trouserLengthCm)}. Total waist-to-hem length. Defaults to a fixed adult length if unset (not sized per body/height).
 
 # Vocabulary mapping

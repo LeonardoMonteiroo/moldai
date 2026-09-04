@@ -6,8 +6,10 @@ import {
   isEngineId,
   DEFAULT_ENGINE_ID,
   MOLDAI_CAPABILITY,
+  FREESEWING_CAPABILITY,
   checkEngineSupport,
 } from "./capability";
+import type { StyleEnums } from "./capability";
 import {
   TYPES,
   NECKLINES,
@@ -54,7 +56,11 @@ describe("DEFAULT_ENGINE_ID", () => {
 // could hand a legitimate app-level value to an engine whose own capability
 // disagrees with the very trust boundary that produced it.
 describe("every registered engine's capability is a subset of the app-level vocabulary", () => {
-  const capabilities = [MOLDAI_CAPABILITY];
+  // #269: every registered engine, not just moldai -- freesewing was
+  // missing from this list entirely (a pre-existing gap this file's own
+  // ENGINE_IDS-driven tests below never caught, since this describe block
+  // built its own hardcoded array instead of iterating ENGINE_IDS).
+  const capabilities = [MOLDAI_CAPABILITY, FREESEWING_CAPABILITY];
 
   for (const cap of capabilities) {
     describe(cap.id, () => {
@@ -71,19 +77,30 @@ describe("every registered engine's capability is a subset of the app-level voca
         }
       });
 
-      it("every style enum ⊆ its app-level list", () => {
-        for (const v of cap.styleEnums.neckline) expect(NECKLINES).toContain(v);
-        for (const v of cap.styleEnums.sleeve) expect(SLEEVES).toContain(v);
-        for (const v of cap.styleEnums.skirt) expect(SKIRTS).toContain(v);
-        for (const v of cap.styleEnums.collar) expect(COLLARS).toContain(v);
-        for (const v of cap.styleEnums.cuff) expect(CUFFS).toContain(v);
-        for (const v of cap.styleEnums.waistband)
-          expect(WAISTBANDS).toContain(v);
-        for (const v of cap.styleEnums.frontClosure)
-          expect(FRONT_CLOSURES).toContain(v);
-        for (const v of cap.styleEnums.fit) expect(FIT_CLASSES).toContain(v);
-        for (const v of cap.styleEnums.stretch)
-          expect(STRETCH_CLASSES).toContain(v);
+      // #269: styleEnumsByType is keyed per GarmentType now (a second
+      // engine can genuinely support different values per type for the
+      // same field) -- checked for every type this engine declares
+      // support for, not just once globally.
+      it("every style enum, for every declared type, ⊆ its app-level list", () => {
+        const appLists: Record<keyof StyleEnums, readonly string[]> = {
+          neckline: NECKLINES,
+          sleeve: SLEEVES,
+          skirt: SKIRTS,
+          collar: COLLARS,
+          cuff: CUFFS,
+          waistband: WAISTBANDS,
+          frontClosure: FRONT_CLOSURES,
+          fit: FIT_CLASSES,
+          stretch: STRETCH_CLASSES,
+        };
+        for (const type of cap.types) {
+          const enums = cap.styleEnumsByType[type];
+          for (const field of Object.keys(appLists) as (keyof StyleEnums)[]) {
+            for (const v of enums[field]) {
+              expect(appLists[field]).toContain(v);
+            }
+          }
+        }
       });
 
       it("every numeric limit range ⊆ the matching app-level STYLE_LIMITS range", () => {
@@ -186,9 +203,12 @@ describe("checkEngineSupport", () => {
   it("reports an out-of-capability enum value for a supported field", () => {
     const narrowed = {
       ...MOLDAI_CAPABILITY,
-      styleEnums: {
-        ...MOLDAI_CAPABILITY.styleEnums,
-        collar: ["none"] as const,
+      styleEnumsByType: {
+        ...MOLDAI_CAPABILITY.styleEnumsByType,
+        blouse: {
+          ...MOLDAI_CAPABILITY.styleEnumsByType.blouse,
+          collar: ["none"] as const,
+        },
       },
     };
     const gaps = checkEngineSupport(
