@@ -920,6 +920,63 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(state.pattern.sizeChartName).toBe("Feminino adulto · ABNT");
   });
 
+  // #267: checkEngineSupport's "may only report, never substitute" half --
+  // a required measurement the chosen chart doesn't have refunds and stops,
+  // the same shape decision=decline already uses, rather than drafting
+  // through resolveMeasurements's own silent NaN-avoidance clamp.
+  it("refunds and adds a notice instead of drafting when a required measurement is missing", async () => {
+    const savedBust = CHART.chart.baseMeasurements.bust;
+    delete CHART.chart.baseMeasurements.bust;
+    const balanceBefore = wallet.balance;
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Feito!",
+    });
+
+    const res = await POST(req({ message: "uma blusa" }), ctx());
+    const json = (await res.json()) as { status: string };
+
+    expect(json.status).toBe("declined");
+    expect(wallet.balance).toBe(balanceBefore);
+    const notice = state.chat.find((m) => m.tone === "notice");
+    expect(notice).toBeDefined();
+    expect(notice!.text).toBe("chat.engineMeasurementsUnsupported");
+    expect(recordVersion).not.toHaveBeenCalled();
+
+    CHART.chart.baseMeasurements.bust = savedBust;
+  });
+
+  // #267: a style field the active engine doesn't read for this garment
+  // type (trousers has no `collar`) still drafts -- dropping an
+  // unsupported field silently is today's behavior -- but says so, rather
+  // than leaving the user to notice the field simply had no effect.
+  it("adds a notice naming a style field the engine drops for this type, but still drafts", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "trousers",
+        gender: "female",
+        measurementOverrides: {},
+        style: { collar: "band" },
+      },
+      assistantMessage: "Feito!",
+    });
+
+    const res = await POST(req({ message: "uma calça" }), ctx());
+    expect(res.status).toBe(200);
+
+    const notice = state.chat.find((m) => m.tone === "notice");
+    expect(notice).toBeDefined();
+    expect(notice!.text).toBe("chat.engineStyleUnsupported");
+    expect(state.pattern.pieces.length).toBeGreaterThan(0);
+  });
+
   // PFORM-28: a present-but-unusable formSpec is refused, never ignored.
   // validateSpec defaults an absent `type` to "blouse", so dropping the
   // field silently would merge that default over whatever garment the model

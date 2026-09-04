@@ -347,7 +347,27 @@
       "sizeChartSubstituted": "Sua grade ativa (“{rejected}”) não serve para esta peça, então usei “{used}”. Para usar a sua, ative uma grade do mesmo gênero em Medidas e grades.",
       "fromSloper": "Molde criado a partir da base “{name}”. Peça os ajustes por aqui.",
       "restored": "Versão restaurada a partir da v{version}.",
-      "restoreChip": "restauração gratuita"
+      "restoreChip": "restauração gratuita",
+      "engineTypeUnsupported": "O motor de modelagem atual ainda não traça peças do tipo “{type}”. Não foi possível gerar o molde.",
+      "engineMeasurementsUnsupported": "O motor de modelagem atual precisa de medidas que a grade escolhida não tem ({missing}). Não foi possível gerar o molde.",
+      "engineStyleUnsupported": "O motor de modelagem atual ignorou estas opções, que não se aplicam a esta peça: {fields}."
+    },
+    "styleField": {
+      "neckline": "decote",
+      "necklineDepthCm": "profundidade do decote",
+      "sleeve": "manga",
+      "skirt": "silhueta da saia",
+      "skirtLengthCm": "comprimento da saia",
+      "darts": "pences",
+      "seamAllowanceCm": "folga de costura",
+      "fit": "caimento",
+      "stretch": "elasticidade",
+      "armholeDeepenCm": "aprofundamento da cava",
+      "collar": "gola",
+      "cuff": "punho",
+      "waistband": "cós",
+      "frontClosure": "fechamento frontal",
+      "trouserLengthCm": "comprimento da calça"
     },
     "pdf": {
       "pageLabel": "Página {pageNumber} de {totalPages} · Linha {rowNumber} · Coluna {colNumber} de {totalRows}x{totalCols}",
@@ -369,6 +389,10 @@
     "chipFit": "Caimento",
     "chipFabric": "Tecido",
     "chipSizeChart": "Grade usada",
+    "chipEngine": "Motor de modelagem",
+    "engine": {
+      "moldai": "MoldAI"
+    },
     "dimensionsLabel": "Dimensões (larg × alt)",
     "noDetails": "Sem detalhes.",
     "easeReport": {
@@ -977,6 +1001,7 @@
     "chartLoading": "Carregando…",
     "chartLoadFailed": "Não foi possível carregar as tabelas de medidas. O molde vai usar a grade ativa da conta.",
     "chartGenderNote": "A tabela escolhida define se o molde é traçado no bloco feminino ou masculino.",
+    "typeUnsupportedByEngine": "O motor de modelagem atual ainda não traça este tipo de peça.",
     "buyCreditsLink": "Comprar créditos",
     "field": {
       "name": "Nome do molde",

@@ -16,7 +16,12 @@ import {
   seedPatternSizeSnapshot,
 } from "@/lib/editor/state";
 import { debitWallet, refundWallet } from "@/lib/billing/wallet";
-import { DEFAULT_ENGINE_ID } from "@/lib/draft/engine/capability";
+import {
+  DEFAULT_ENGINE_ID,
+  engineFor,
+  checkEngineSupport,
+} from "@/lib/draft/engine/capability";
+import { getEngine } from "@/lib/draft/engine/registry";
 import type { LedgerEntry } from "@/lib/billing/wallet";
 import { composeEditorState } from "@/lib/api/compose";
 import { apiError } from "@/lib/api/errors";
@@ -167,6 +172,10 @@ export async function POST(request: Request, { params }: Ctx) {
   // transaction (30s timeout, holding the Pattern+Wallet locks for the whole
   // AI call), and getTranslations has no reason to run inside that.
   const tCharts = await getTranslations("SizeCharts");
+  // #267: for checkEngineSupport's own "unsupported type" notice, which
+  // names the garment type using the same catalog TechSheetTab already
+  // resolves it through -- never a second, driftable label map.
+  const tGarment = await getTranslations("TechSheetTab");
   const now = new Date();
 
   let result;
@@ -354,6 +363,66 @@ export async function POST(request: Request, { params }: Ctx) {
                 seedPatternSizeSnapshot(state, chart, DEFAULT_ENGINE_ID);
                 substitutedFrom = rejectedActiveName;
               }
+              // #267: checkEngineSupport narrows the already-validated spec
+              // to what the pattern's own FROZEN engine can honestly honor
+              // -- validateSpec has already rejected garbage, so anything
+              // reported here is a legitimate choice the engine genuinely
+              // cannot draft, never substituted for something else.
+              const engineCapability = getEngine(
+                engineFor(state.pattern.engine),
+              ).capability;
+              const engineGaps = checkEngineSupport(
+                engineCapability,
+                spec,
+                state.pattern.sizeTable[state.pattern.baseSize],
+              );
+              // type/measurements: the engine cannot honestly draft this at
+              // all. Refund (the debit above already happened), report why,
+              // and stop -- the same shape as decision=decline, which also
+              // drafts nothing.
+              const blockingGap = engineGaps.find(
+                (g) => g.kind === "type" || g.kind === "measurements",
+              );
+              if (blockingGap) {
+                entries.push(
+                  refundWallet(wallet, cost, "generate-unsupported"),
+                );
+                addMessage(state, {
+                  id: `msg-${Date.now()}-ai`,
+                  author: "ai",
+                  text:
+                    blockingGap.kind === "type"
+                      ? t("chat.engineTypeUnsupported", {
+                          type: tGarment(`garmentType.${blockingGap.type}`),
+                        })
+                      : t("chat.engineMeasurementsUnsupported", {
+                          missing: blockingGap.missing
+                            .map((k) => String(k))
+                            .join(", "),
+                        }),
+                  tone: "notice",
+                  createdAt: Date.now(),
+                });
+                return {
+                  result: NextResponse.json({
+                    status: "declined",
+                    state: composeEditorState(state, wallet, now),
+                  }),
+                  entries,
+                };
+              }
+              // style field/value/limit: the engine drafts anyway with the
+              // field dropped (today's silent behavior) -- but says so,
+              // rather than leaving the user to notice the field simply
+              // didn't apply.
+              const droppedStyleFields = engineGaps
+                .filter(
+                  (g) =>
+                    g.kind === "styleField" ||
+                    g.kind === "styleValue" ||
+                    g.kind === "styleLimit",
+                )
+                .map((g) => t(`styleField.${g.field}`));
               applyGarmentSpec(state, spec, t);
               bumpVersion(state);
               // #16: recorded in the SAME transaction as the debit and the
@@ -392,6 +461,17 @@ export async function POST(request: Request, { params }: Ctx) {
                   text: t("chat.sizeChartSubstituted", {
                     rejected: substitutedFrom,
                     used: state.pattern.sizeChartName ?? "",
+                  }),
+                  tone: "notice",
+                  createdAt: Date.now(),
+                });
+              }
+              if (droppedStyleFields.length > 0) {
+                addMessage(state, {
+                  id: `msg-${Date.now()}-engine`,
+                  author: "ai",
+                  text: t("chat.engineStyleUnsupported", {
+                    fields: droppedStyleFields.join(", "),
                   }),
                   tone: "notice",
                   createdAt: Date.now(),

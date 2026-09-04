@@ -120,6 +120,27 @@ describe("TechSheetTab", () => {
     ).not.toBeInTheDocument();
   });
 
+  // #267: unlike sizeChartName, the engine chip always renders -- absent
+  // pattern.engine resolves through engineFor to the real default, since
+  // there's always an actual engine, never a name that would need to be
+  // guessed.
+  it("names the drafting engine, defaulting to moldai for a pattern with no engine recorded", () => {
+    renderWithIntl(<TechSheetTab pattern={pattern()} />);
+
+    expect(screen.getByText(ptBR.TechSheetTab.chipEngine)).toBeInTheDocument();
+    expect(
+      screen.getByText(ptBR.TechSheetTab.engine.moldai),
+    ).toBeInTheDocument();
+  });
+
+  it("names the pattern's own frozen engine when one is recorded", () => {
+    renderWithIntl(<TechSheetTab pattern={pattern({ engine: "moldai" })} />);
+
+    expect(
+      screen.getByText(ptBR.TechSheetTab.engine.moldai),
+    ).toBeInTheDocument();
+  });
+
   // #125: a woven garment shows the fit class chip; the ease REPORT (#137)
   // is a separate section, tested below.
   it("shows the fit class for a woven garment", () => {

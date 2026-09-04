@@ -7,6 +7,7 @@ import {
   type EaseReport,
 } from "@/lib/draft/easeReport";
 import { formatCm as cm, formatPct } from "@/lib/format";
+import { engineFor } from "@/lib/draft/engine/capability";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Table,
@@ -105,6 +106,17 @@ export function TechSheetTab({ pattern }: { pattern: Pattern }) {
             {pattern.sizeChartName && (
               <Chip label={t("chipSizeChart")} value={pattern.sizeChartName} />
             )}
+            {/* #267: the frozen choice, made visible -- with one engine and
+                no picker, this chip is the only place EngineId reaches a
+                screen at all. Catalog lookup keyed by the enum value, never
+                a hand-written label map. Always renders (even for a pattern
+                predating the freeze, which resolves through engineFor to
+                the default) since, unlike sizeChartName, there is always a
+                real engine to name. */}
+            <Chip
+              label={t("chipEngine")}
+              value={t(`engine.${engineFor(pattern.engine)}`)}
+            />
           </div>
         )}
 

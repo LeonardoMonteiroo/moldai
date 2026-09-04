@@ -20,6 +20,12 @@ import {
   STYLE_FIELDS_BY_TYPE,
   type FormStyleField,
 } from "@/lib/draft/formFields";
+// #267: MOLDAI_CAPABILITY directly, not lib/draft/engine/registry -- this
+// form always creates against DEFAULT_ENGINE_ID (a pattern has no frozen
+// engine yet to read), and the registry is a HEAVY module (it imports
+// moldai.ts -> garment.ts -> every drafter). capability.ts is the leaf
+// half specifically so a client bundle never has to pay for that.
+import { MOLDAI_CAPABILITY } from "@/lib/draft/engine/capability";
 import {
   prepareImage,
   MAX_ATTACHMENT_COUNT,
@@ -289,11 +295,27 @@ export function NewPatternForm({
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  {TYPES.map((gt) => (
-                    <SelectItem key={gt} value={gt}>
-                      {tGarment(`garmentType.${gt}`)}
-                    </SelectItem>
-                  ))}
+                  {TYPES.map((gt) => {
+                    // #267: never hide an unsupported type -- CLAUDE.md's
+                    // "prefer showing an option disabled+badged over hiding
+                    // it." Unreachable today (the one registered engine
+                    // supports every TYPES member), but structural: a future
+                    // engine with a narrower capability disables here
+                    // without a second place to update.
+                    const supported = MOLDAI_CAPABILITY.types.includes(gt);
+                    return (
+                      <SelectItem
+                        key={gt}
+                        value={gt}
+                        disabled={!supported}
+                        title={
+                          supported ? undefined : t("typeUnsupportedByEngine")
+                        }
+                      >
+                        {tGarment(`garmentType.${gt}`)}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectGroup>
               </SelectContent>
             </Select>
