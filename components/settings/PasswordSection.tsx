@@ -92,6 +92,7 @@ export function PasswordSection({ hasPassword }: { hasPassword: boolean }) {
             onChange={(event) => setNext(event.target.value)}
             minLength={MIN_PASSWORD_LENGTH}
             maxLength={MAX_PASSWORD_LENGTH}
+            aria-invalid={(!hasPassword && status === "error") || undefined}
           />
           {!hasPassword && status === "error" && error && (
             <FieldError>{error}</FieldError>

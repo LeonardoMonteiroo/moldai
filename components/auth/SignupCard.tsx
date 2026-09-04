@@ -94,7 +94,7 @@ export default function SignupCard() {
       </h1>
       {sent ? (
         <div className="mt-3">
-          <p className="text-muted-2 text-ui mt-2">
+          <p className="text-ink text-ui mt-2 leading-[1.6]">
             {t.rich("sentBody", {
               email,
               b: (chunks) => (
@@ -103,16 +103,18 @@ export default function SignupCard() {
             })}
           </p>
           <p className="text-muted text-meta mt-3">{t("sentHint")}</p>
-          {error && <p className="text-alert text-ui mt-3">{error}</p>}
+          {error && <p className="text-alert text-meta mt-3">{error}</p>}
           {resent && (
             <p className="text-olive-dark text-ui mt-3">{t("resendDone")}</p>
           )}
+          {/* w-full because this panel is a plain div, not the flex-col form
+              that stretches LoginCard's equivalent button for free. */}
           <Button
             type="button"
             variant="outline"
             onClick={onResend}
             disabled={resending}
-            className="mt-4"
+            className="mt-4 w-full"
           >
             {resending ? t("resendButtonLoading") : t("resendButton")}
           </Button>
@@ -192,7 +194,7 @@ export default function SignupCard() {
       )}
       {!sent && (
         <>
-          <div className="my-1 flex items-center gap-3">
+          <div className="mt-4 mb-3 flex items-center gap-3">
             <div className="bg-border h-px flex-1" />
             <span className="text-muted text-meta">{t("orDivider")}</span>
             <div className="bg-border h-px flex-1" />
@@ -208,15 +210,25 @@ export default function SignupCard() {
           </Button>
         </>
       )}
-      <p className="text-muted text-meta mt-4">
-        {t.rich("loginNote", {
-          a: (chunks) => (
-            <Link href="/login" className="text-olive-dark font-medium">
-              {chunks}
-            </Link>
-          ),
-        })}
-      </p>
+      {/* Once the account exists, "Já tem uma conta?" reads as if the visitor
+          picked the wrong screen. The design swaps it for a plain way back. */}
+      {sent ? (
+        <p className="text-muted text-meta mt-4 text-center">
+          <Link href="/login" className="hover:underline">
+            {t("backToLogin")}
+          </Link>
+        </p>
+      ) : (
+        <p className="text-muted text-meta mt-4">
+          {t.rich("loginNote", {
+            a: (chunks) => (
+              <Link href="/login" className="text-olive-dark font-medium">
+                {chunks}
+              </Link>
+            ),
+          })}
+        </p>
+      )}
     </>
   );
 }

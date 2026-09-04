@@ -97,7 +97,7 @@ export default function LoginCard() {
   return (
     <>
       {oauthErrorKey && (
-        <p className="text-alert text-ui mt-3">
+        <p className="text-alert text-meta mt-3">
           {t(`errors.${oauthErrorKey}`)}
         </p>
       )}
@@ -112,6 +112,7 @@ export default function LoginCard() {
               onChange={(event) => setEmail(event.target.value)}
               required
               autoComplete="username"
+              aria-invalid={!!error || undefined}
               className="bg-surface-alt"
             />
           </Field>
@@ -153,7 +154,7 @@ export default function LoginCard() {
           {loading ? t("submitButtonLoading") : t("submitButton")}
         </Button>
       </form>
-      <div className="my-1 flex items-center gap-3">
+      <div className="mt-4 mb-3 flex items-center gap-3">
         <div className="bg-border h-px flex-1" />
         <span className="text-muted text-meta">{t("orDivider")}</span>
         <div className="bg-border h-px flex-1" />

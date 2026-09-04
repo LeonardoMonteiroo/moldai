@@ -52,13 +52,17 @@ function RequestForm() {
     return (
       <div className="mt-3">
         <h1 className="text-body font-semibold">{t("requestSentHeading")}</h1>
-        <p className="text-muted-2 text-ui mt-2">{t("requestSentBody")}</p>
-        <Link
-          href="/login"
-          className="rounded-btn bg-olive hover:bg-olive-dark text-control mt-4 inline-block px-4 py-2 font-semibold text-white transition-colors"
-        >
-          {t("loginLink")}
-        </Link>
+        <p className="text-ink text-ui mt-2 leading-[1.6]">
+          {t("requestSentBody")}
+        </p>
+        {/* A quiet way back, not a solid CTA: nothing here needs pushing, and
+            the design gives this screen the same muted centred link the
+            signup confirmation uses. */}
+        <p className="text-muted text-meta mt-4 text-center">
+          <Link href="/login" className="hover:underline">
+            {t("backToLogin")}
+          </Link>
+        </p>
       </div>
     );
   }
@@ -66,7 +70,9 @@ function RequestForm() {
   return (
     <>
       <h1 className="text-body mt-4 font-semibold">{t("requestHeading")}</h1>
-      <p className="text-muted-2 text-ui mt-2">{t("requestIntro")}</p>
+      <p className="text-muted-2 text-ui mt-2 leading-[1.6]">
+        {t("requestIntro")}
+      </p>
       <form onSubmit={onSubmit} className="mt-4 flex flex-col gap-3">
         <FieldGroup>
           <Field data-invalid={!!error || undefined}>
@@ -135,12 +141,11 @@ function ConfirmForm({ token }: { token: string }) {
           {t("confirmSuccessHeading")}
         </h1>
         <p className="text-muted-2 text-ui mt-2">{t("confirmSuccessBody")}</p>
-        <Link
-          href="/login"
-          className="rounded-btn bg-olive hover:bg-olive-dark text-control mt-4 inline-block px-4 py-2 font-semibold text-white transition-colors"
-        >
-          {t("loginLink")}
-        </Link>
+        {/* asChild, same as VerifyCard's: the hand-written button classes were
+            a duplicate of the primitive and never stretched. */}
+        <Button asChild className="mt-4 w-full">
+          <Link href="/login">{t("loginLink")}</Link>
+        </Button>
       </div>
     );
   }

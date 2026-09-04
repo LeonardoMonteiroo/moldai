@@ -75,7 +75,7 @@ describe("PasswordResetCard", () => {
         screen.getByText(ptBR.PasswordReset.requestSentBody),
       ).toBeVisible();
       expect(
-        screen.getByRole("link", { name: ptBR.PasswordReset.loginLink }),
+        screen.getByRole("link", { name: ptBR.PasswordReset.backToLogin }),
       ).toHaveAttribute("href", "/login");
     });
 

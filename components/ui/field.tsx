@@ -33,7 +33,7 @@ function FieldLegend({
       className={cn(
         "mb-3 font-medium",
         "data-[variant=legend]:text-body",
-        "data-[variant=label]:text-control",
+        "data-[variant=label]:text-ui",
         className,
       )}
       {...props}
@@ -46,7 +46,7 @@ function FieldGroup({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="field-group"
       className={cn(
-        "group/field-group @container/field-group flex w-full flex-col gap-7 data-[slot=checkbox-group]:gap-3 [&>[data-slot=field-group]]:gap-4",
+        "group/field-group @container/field-group flex w-full flex-col gap-3 data-[slot=checkbox-group]:gap-3 [&>[data-slot=field-group]]:gap-4",
         className,
       )}
       {...props}
@@ -55,18 +55,18 @@ function FieldGroup({ className, ...props }: React.ComponentProps<"div">) {
 }
 
 const fieldVariants = cva(
-  "group/field flex w-full gap-3 data-[invalid=true]:text-destructive",
+  "group/field flex w-full data-[invalid=true]:text-destructive",
   {
     variants: {
       orientation: {
-        vertical: ["flex-col [&>*]:w-full [&>.sr-only]:w-auto"],
+        vertical: ["flex-col gap-1.5 [&>*]:w-full [&>.sr-only]:w-auto"],
         horizontal: [
-          "flex-row items-center",
+          "flex-row items-center gap-3",
           "[&>[data-slot=field-label]]:flex-auto",
           "has-[>[data-slot=field-content]]:items-start has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px",
         ],
         responsive: [
-          "flex-col @md/field-group:flex-row @md/field-group:items-center [&>*]:w-full @md/field-group:[&>*]:w-auto [&>.sr-only]:w-auto",
+          "flex-col gap-1.5 @md/field-group:flex-row @md/field-group:gap-3 @md/field-group:items-center [&>*]:w-full @md/field-group:[&>*]:w-auto [&>.sr-only]:w-auto",
           "@md/field-group:[&>[data-slot=field-label]]:flex-auto",
           "@md/field-group:has-[>[data-slot=field-content]]:items-start @md/field-group:has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px",
         ],
@@ -130,7 +130,7 @@ function FieldTitle({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="field-label"
       className={cn(
-        "text-control flex w-fit items-center gap-2 leading-snug font-medium group-data-[disabled=true]/field:opacity-50",
+        "text-ui flex w-fit items-center gap-2 leading-snug font-medium group-data-[disabled=true]/field:opacity-50",
         className,
       )}
       {...props}
@@ -143,7 +143,7 @@ function FieldDescription({ className, ...props }: React.ComponentProps<"p">) {
     <p
       data-slot="field-description"
       className={cn(
-        "text-muted-foreground text-ui leading-normal font-normal group-has-[[data-orientation=horizontal]]/field:text-balance",
+        "text-muted-foreground text-meta leading-normal font-normal group-has-[[data-orientation=horizontal]]/field:text-balance",
         "last:mt-0 nth-last-2:-mt-1 [[data-variant=legend]+&]:-mt-1.5",
         "[&>a:hover]:text-primary [&>a]:underline [&>a]:underline-offset-4",
         className,
@@ -226,7 +226,7 @@ function FieldError({
     <div
       role="alert"
       data-slot="field-error"
-      className={cn("text-destructive text-ui font-normal", className)}
+      className={cn("text-destructive text-meta font-normal", className)}
       {...props}
     >
       {content}
