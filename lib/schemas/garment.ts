@@ -5,6 +5,10 @@ import {
   NECKLINES,
   SLEEVES,
   SKIRTS,
+  COLLARS,
+  CUFFS,
+  WAISTBANDS,
+  FRONT_CLOSURES,
   FIT_CLASSES,
   STRETCH_CLASSES,
 } from "@/lib/draft/garment";
@@ -12,6 +16,18 @@ import {
 // Reuses the same exported enum arrays lib/ai's prompt/schema and
 // validateSpec already read, per CLAUDE.md's one-exported-source rule --
 // this schema can never drift from the values the drafter actually accepts.
+//
+// Every key of lib/types.ts's GarmentStyle must be named here: z.object
+// strips unnamed keys, and lib/db/pattern.ts's toState/savePattern writes
+// the parsed (stripped) object straight back into the row -- an unnamed
+// field is deleted from persistence on the pattern's next mutating turn,
+// the exact failure CLAUDE.md documents for ChatMessage's hasImage/assembly.
+// collar/cuff/waistband/frontClosure/trouserLengthCm were missing this way
+// until a #267 audit found it: any shirt collar, cuff, waistband, button
+// stand or non-default trouser length was silently erased from every
+// pattern (and every PatternVersion.spec recorded after it) the first time
+// the chat turn round-tripped through this schema. Pinned by
+// lib/db/pattern.test.ts's style-field round-trip cases.
 export const GarmentStyleSchema = z.object({
   neckline: z.enum(NECKLINES).optional(),
   necklineDepthCm: z.number().optional(),
@@ -24,6 +40,11 @@ export const GarmentStyleSchema = z.object({
   stretch: z.enum(STRETCH_CLASSES).optional(),
   armholeDeepenCm: z.number().optional(),
   sleeveRefit: z.boolean().optional(),
+  collar: z.enum(COLLARS).optional(),
+  cuff: z.enum(CUFFS).optional(),
+  waistband: z.enum(WAISTBANDS).optional(),
+  frontClosure: z.enum(FRONT_CLOSURES).optional(),
+  trouserLengthCm: z.number().optional(),
 });
 
 export const GarmentSpecSchema = z.object({

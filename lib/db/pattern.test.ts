@@ -237,6 +237,45 @@ describe("withPattern", () => {
     });
   }
 
+  // #267 audit: GarmentStyleSchema was missing collar/cuff/waistband/
+  // frontClosure/trouserLengthCm, so a pattern using any of them had the
+  // choice deleted from Pattern.spec.style on the very next mutating turn --
+  // the identical failure shape FLAG_CASES above pins for ChatMessage. One
+  // case per field for the same reason: a single grouped assertion would
+  // have passed the moment any one field was named.
+  const STYLE_FLAG_CASES = [
+    { key: "collar" as const, value: "shirt" as const },
+    { key: "cuff" as const, value: "straight" as const },
+    { key: "waistband" as const, value: "straight" as const },
+    { key: "frontClosure" as const, value: "buttonStand" as const },
+    { key: "trouserLengthCm" as const, value: 95 },
+  ];
+
+  for (const { key, value } of STYLE_FLAG_CASES) {
+    it(`keeps spec.style.${key} across a read-modify-write round trip`, async () => {
+      const seeded = seedPatternState(t);
+      seeded.pattern.spec = {
+        ...seeded.pattern.spec!,
+        style: { ...seeded.pattern.spec!.style, [key]: value },
+      };
+      rows = [
+        {
+          id: "m1",
+          userId: "u1",
+          data: JSON.parse(JSON.stringify(seeded)),
+          updatedAt: new Date(),
+        },
+      ];
+
+      await withPattern("m1", "u1", (state) => bumpVersion(state));
+
+      const saved = rows.find((r) => r.id === "m1")!.data as {
+        pattern: { spec?: { style?: Record<string, unknown> } };
+      };
+      expect(saved.pattern.spec?.style?.[key]).toBe(value);
+    });
+  }
+
   // #72: every current caller only reaches savePattern after lockPattern has
   // already verified ownership inside the same transaction, so this can't be
   // exploited through withPattern's own API today -- it guards a future
