@@ -17,6 +17,7 @@ interface VersionRow {
   baseSize: string;
   sizeTable: unknown;
   sizeChartName: string | null;
+  engine: string | null;
   reason: string;
   cost: number;
   createdAt: Date;
@@ -132,6 +133,7 @@ function makeVersionRow(overrides: Partial<VersionRow> = {}): VersionRow {
     baseSize: "M",
     sizeTable: { M: { bust: 92 } },
     sizeChartName: "Feminino adulto",
+    engine: "moldai",
     reason: "generate",
     cost: 1,
     createdAt: new Date("2026-08-17T12:00:00.000Z"),
@@ -185,6 +187,7 @@ describe("lib/db/patternVersion", () => {
         baseSize: "M",
         sizeTable: { M: { bust: 92 } },
         sizeChartName: "Feminino adulto",
+        engine: "moldai",
         reason: "generate",
         cost: 1,
         createdAt: "2026-08-17T12:00:00.000Z",
@@ -253,6 +256,7 @@ describe("lib/db/patternVersion", () => {
           baseSize: "M",
           sizeTable: { M: { bust: 92 } },
           sizeChartName: "Feminino adulto",
+          engine: null,
           reason: "adjust",
           cost: 1,
         },
@@ -284,6 +288,36 @@ describe("lib/db/patternVersion", () => {
       expect(create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ sizeChartName: null }),
+        }),
+      );
+    });
+
+    // #267: same shape as sizeChartName above.
+    it("drops an absent engine to null rather than undefined -- JSON has no undefined", async () => {
+      const { tx, create } = fakeTx();
+      await recordVersion(
+        tx,
+        "m1",
+        "u1",
+        {
+          version: 1,
+          spec: {
+            type: "blouse",
+            gender: "female",
+            measurementOverrides: {},
+            style: {},
+          },
+          sizes: ["M"],
+          baseSize: "M",
+          sizeTable: { M: {} as never },
+          engine: undefined,
+        },
+        "generate",
+        1,
+      );
+      expect(create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ engine: null }),
         }),
       );
     });

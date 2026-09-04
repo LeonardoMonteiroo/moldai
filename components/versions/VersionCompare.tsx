@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import type { PatternVersionEntry } from "@/lib/api-client";
 import type { Pattern } from "@/lib/types";
 import { draftGarment, measureSeams } from "@/lib/draft/engine/facade";
-import { DEFAULT_ENGINE_ID } from "@/lib/draft/engine/capability";
+import { engineFor } from "@/lib/draft/engine/capability";
 import { planCutLayout, FABRIC_WIDTHS_CM } from "@/lib/export/cutplan";
 import { formatCm } from "@/lib/format";
 import { Toggle } from "@/components/ui/toggle";
@@ -108,10 +108,20 @@ export function VersionCompare({
     const fromBase = from.sizeTable[from.baseSize];
     const toBase = to.sizeTable[to.baseSize];
     if (!fromBase || !toBase) return null;
-    // #267: DEFAULT_ENGINE_ID until PatternVersion.engine lands.
+    // #267: each version's own frozen engine, never a fresh default.
     return {
-      from: draftGarment(DEFAULT_ENGINE_ID, from.spec, fromBase, tData),
-      to: draftGarment(DEFAULT_ENGINE_ID, to.spec, toBase, tData),
+      from: draftGarment(
+        engineFor(from.engine ?? undefined),
+        from.spec,
+        fromBase,
+        tData,
+      ),
+      to: draftGarment(
+        engineFor(to.engine ?? undefined),
+        to.spec,
+        toBase,
+        tData,
+      ),
     };
     // tData is a stable translator instance for the component's lifetime.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -123,12 +133,17 @@ export function VersionCompare({
     const toBase = to.sizeTable[to.baseSize];
     if (!fromBase || !toBase) return null;
     const fromSeams = measureSeams(
-      DEFAULT_ENGINE_ID,
+      engineFor(from.engine ?? undefined),
       from.spec,
       fromBase,
       tData,
     );
-    const toSeams = measureSeams(DEFAULT_ENGINE_ID, to.spec, toBase, tData);
+    const toSeams = measureSeams(
+      engineFor(to.engine ?? undefined),
+      to.spec,
+      toBase,
+      tData,
+    );
     const fromCut = planCutLayout(
       toComparablePattern(from),
       COMPARE_FABRIC_WIDTH_CM,

@@ -308,6 +308,12 @@ model PatternVersion {
   baseSize      String
   sizeTable     Json
   sizeChartName String?
+  // #267: which drafting engine this version was drafted with. Additive,
+  // nullable, absent-means-"moldai" -- the sizeChartName precedent. Written
+  // once, alongside sizeTable/sizeChartName, never touched by restore
+  // (which carries the OLD version's frozen value forward, same as the
+  // other two).
+  engine        String?
   // Machine-readable: "generate" | "adjust" | "graduate" | "conflict_fix" |
   // "restore". Never pt-BR prose -- the client resolves it through the
   // catalog, the wire-error-codes precedent.

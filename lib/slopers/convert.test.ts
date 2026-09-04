@@ -107,6 +107,19 @@ describe("sloperFromPattern / patternFromSloper", () => {
     expect(patternFromSloper(sloper, t).pattern.sizeChartName).toBeUndefined();
   });
 
+  // #267: same spread-if-present shape as sizeChartName above.
+  it("preserves engine when present and omits it when absent", () => {
+    const withEngine = drafted(BLOUSE);
+    withEngine.pattern = { ...withEngine.pattern, engine: "moldai" };
+    expect(sloperFromPattern(withEngine.pattern, "b").engine).toBe("moldai");
+
+    const without = drafted(BLOUSE);
+    without.pattern = { ...without.pattern, engine: undefined };
+    const sloper = sloperFromPattern(without.pattern, "b");
+    expect("engine" in sloper).toBe(false);
+    expect(patternFromSloper(sloper, t).pattern.engine).toBeUndefined();
+  });
+
   it("opens the chat with one ai turn naming the base", () => {
     const sloper = sloperFromPattern(drafted(BLOUSE).pattern, "base blusa");
     const next = patternFromSloper(sloper, t);

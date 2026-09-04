@@ -32,6 +32,7 @@ const ROW: PatternVersionRecord = {
   baseSize: "M",
   sizeTable: { M: { bust: 92 } as never },
   sizeChartName: "Feminino adulto",
+  engine: "moldai",
   reason: "generate",
   cost: 1,
   createdAt: "2026-08-17T12:00:00.000Z",

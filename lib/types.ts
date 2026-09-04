@@ -484,6 +484,8 @@ export interface SloperData {
   sizeTable: Record<string, Measurements>;
   /** Frozen like Pattern.sizeChartName; absent on none, never guessed. */
   sizeChartName?: string;
+  /** Frozen like Pattern.engine; absent means "moldai", never guessed. */
+  engine?: string;
 }
 
 /**

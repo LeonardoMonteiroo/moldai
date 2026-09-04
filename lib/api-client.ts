@@ -86,6 +86,7 @@ export interface PatternVersionEntry {
   baseSize: string;
   sizeTable: Record<string, Measurements>;
   sizeChartName: string | null;
+  engine: string | null;
   reason: PatternVersionReason;
   cost: number;
   createdAt: string;

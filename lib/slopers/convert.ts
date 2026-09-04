@@ -28,6 +28,9 @@ export function sloperFromPattern(pattern: Pattern, name: string): SloperData {
     ...(pattern.sizeChartName === undefined
       ? {}
       : { sizeChartName: pattern.sizeChartName }),
+    // #267: same spread-if-present shape -- a base freezes the engine it
+    // was drafted with, same reason as sizeChartName above.
+    ...(pattern.engine === undefined ? {} : { engine: pattern.engine }),
   };
 }
 
@@ -55,6 +58,9 @@ export function patternFromSloper(
     ...(sloper.sizeChartName === undefined
       ? {}
       : { sizeChartName: sloper.sizeChartName }),
+    // #267: must be set BEFORE applyGarmentSpec below, which reads
+    // state.pattern.engine to decide what to draft with.
+    ...(sloper.engine === undefined ? {} : { engine: sloper.engine }),
   };
   applyGarmentSpec(state, sloper.spec, t);
   bumpVersion(state);

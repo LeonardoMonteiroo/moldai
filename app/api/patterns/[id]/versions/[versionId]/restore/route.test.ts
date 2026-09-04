@@ -35,6 +35,7 @@ const VERSION: PatternVersionRecord = {
     } as never,
   },
   sizeChartName: "Feminino adulto",
+  engine: "moldai",
   reason: "adjust",
   cost: 1,
   createdAt: "2026-08-17T11:00:00.000Z",
@@ -142,6 +143,13 @@ describe("POST /api/patterns/[id]/versions/[versionId]/restore", () => {
     await POST(new Request("http://test"), ctx());
     expect(state.pattern.sizeTable).toEqual(VERSION.sizeTable);
     expect(state.pattern.sizeChartName).toBe(VERSION.sizeChartName);
+  });
+
+  // #267: restore carries the OLD version's frozen engine forward, the same
+  // "snapshotted once, never re-resolved" rule as sizeChartName above.
+  it("carries the restored version's frozen engine forward", async () => {
+    await POST(new Request("http://test"), ctx());
+    expect(state.pattern.engine).toBe(VERSION.engine);
   });
 
   it("looks the version up ownership-scoped before touching the drafter", async () => {

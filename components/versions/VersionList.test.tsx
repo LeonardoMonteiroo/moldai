@@ -29,6 +29,7 @@ function makeVersions(): PatternVersionEntry[] {
     baseSize: seeded.baseSize,
     sizeTable: seeded.sizeTable,
     sizeChartName: null,
+    engine: null,
   };
   return [
     {

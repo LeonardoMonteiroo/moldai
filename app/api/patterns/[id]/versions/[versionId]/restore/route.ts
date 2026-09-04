@@ -61,6 +61,11 @@ export async function POST(_request: Request, { params }: Ctx) {
           ...(version.sizeChartName === null
             ? {}
             : { sizeChartName: version.sizeChartName }),
+          // #267: same carry-the-OLD-version-forward rule as sizeChartName
+          // above -- applyGarmentSpec below reads this, so it must already
+          // be the version's own frozen engine before that call, not the
+          // pattern's current one.
+          ...(version.engine === null ? {} : { engine: version.engine }),
         };
         applyGarmentSpec(state, version.spec, t);
         bumpVersion(state);

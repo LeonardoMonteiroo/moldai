@@ -21,6 +21,10 @@ export interface PatternVersionRecord {
   baseSize: string;
   sizeTable: Record<string, Measurements>;
   sizeChartName: string | null;
+  // #267: which drafting engine this version was drafted with. Nullable
+  // like sizeChartName -- absent means "moldai" through engineFor
+  // (lib/draft/engine/capability.ts), never guessed here.
+  engine: string | null;
   reason: PatternVersionReason;
   cost: number;
   createdAt: string;
@@ -34,6 +38,7 @@ interface Row {
   baseSize: string;
   sizeTable: Prisma.JsonValue;
   sizeChartName: string | null;
+  engine: string | null;
   reason: string;
   cost: number;
   createdAt: Date;
@@ -53,6 +58,7 @@ function toRecord(row: Row): PatternVersionRecord {
     baseSize: row.baseSize,
     sizeTable: row.sizeTable as unknown as Record<string, Measurements>,
     sizeChartName: row.sizeChartName,
+    engine: row.engine,
     reason: row.reason as PatternVersionReason,
     cost: row.cost,
     createdAt: row.createdAt.toISOString(),
@@ -143,7 +149,13 @@ export async function recordVersion(
   userId: string,
   pattern: Pick<
     Pattern,
-    "version" | "spec" | "sizes" | "baseSize" | "sizeTable" | "sizeChartName"
+    | "version"
+    | "spec"
+    | "sizes"
+    | "baseSize"
+    | "sizeTable"
+    | "sizeChartName"
+    | "engine"
   >,
   reason: PatternVersionReason,
   cost: number,
@@ -159,6 +171,7 @@ export async function recordVersion(
       baseSize: pattern.baseSize,
       sizeTable: pattern.sizeTable as unknown as Prisma.InputJsonValue,
       sizeChartName: pattern.sizeChartName ?? null,
+      engine: pattern.engine ?? null,
       reason,
       cost,
     },

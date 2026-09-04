@@ -13,6 +13,9 @@ export const SloperDataSchema = z
     baseSize: z.string(),
     sizeTable: z.record(z.string(), MeasurementsSchema),
     sizeChartName: z.string().optional(),
+    // #267: plain string, not z.enum(ENGINE_IDS) -- same reason as
+    // PatternSchema's own engine field.
+    engine: z.string().optional(),
   })
   // Same failure mode issue #58 describes for Pattern: patternFromSloper
   // resolves baseSize against sizeTable, and an out-of-sync pair would
