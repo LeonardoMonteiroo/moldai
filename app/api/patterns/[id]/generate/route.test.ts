@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { seedPatternState } from "@/lib/editor/state";
 import { COSTS, MAX_CHAT_MESSAGE_LENGTH } from "@/lib/types";
-import { MEASUREMENT_RANGES } from "@/lib/measurements";
+import { MEASUREMENT_RANGES, SIZE_TABLE } from "@/lib/measurements";
 import {
   MAX_ATTACHMENT_BASE64_CHARS,
   MAX_ATTACHMENT_COUNT,
@@ -75,17 +75,7 @@ const CHART = {
     isSystem: true,
     sizes: ["PP", "P", "M", "G", "GG"],
     baseSizeIndex: 2,
-    baseMeasurements: {
-      bust: 92,
-      waist: 74,
-      hip: 100,
-      hipHeight: 20.6,
-      backLength: 41,
-      shoulder: 18.5,
-      skirtLength: 60,
-      shortSleeveLength: 18,
-      longSleeveLength: 58,
-    } as Record<string, number>,
+    baseMeasurements: { ...SIZE_TABLE.M } as Record<string, number>,
     progressionRule: {},
     overrides: {},
   },

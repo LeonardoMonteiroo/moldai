@@ -17,6 +17,7 @@
     "docker:prod": "docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.prod.yml up --build",
     "db:migrate": "dotenv -e .env.local -- prisma migrate dev",
     "cron:renew": "dotenv -e .env.local -- tsx scripts/cron-renew.ts",
+    "backfill:freesewing": "dotenv -e .env.local -- tsx scripts/backfill-freesewing-measurements.ts",
     "smoke": "node scripts/smoke-prod.mjs",
     "smoke:prod": "docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.prod.yml up -d --build && node scripts/smoke-prod.mjs",
     "postinstall": "prisma generate",
@@ -62,6 +63,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@freesewing/models": "4.10.1",
     "@tailwindcss/postcss": "^4",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^7.0.1",

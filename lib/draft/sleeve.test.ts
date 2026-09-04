@@ -113,9 +113,10 @@ describe("draftSleeve bell cap", () => {
     });
   });
 
-  // #132: m.bicep overrides BICEP_PROPORTION_OF_BUST when present, and
-  // reproduces it exactly when absent -- M (SIZE_TABLE.M) never carries the
-  // field, so every "without" draft below already exercises the fallback.
+  // #132/#269: m.bicep drives the sleeve width directly. Promoted to CORE
+  // (#269 -- a FreeSewing design requires it outright), so M (SIZE_TABLE.M)
+  // always carries a real value now and the bust-proportion fallback this
+  // used to have was removed from sleeve.ts entirely.
   describe("#132: bicep override", () => {
     const sleeveOpts: BlockOpts = {
       gender: "female",
@@ -140,24 +141,6 @@ describe("draftSleeve bell cap", () => {
         sleeveOpts,
       )!;
       expect(bbox(wide.outlineCm).w).toBeGreaterThan(bbox(narrow.outlineCm).w);
-    });
-
-    it("omitting bicep reproduces the BICEP_PROPORTION_OF_BUST fallback exactly", () => {
-      const withKey = draftSleeve(
-        { ...M, bicep: M.bust * 0.3 },
-        { sleeve: "short" },
-        39.3,
-        t,
-        sleeveOpts,
-      )!;
-      const withoutKey = draftSleeve(
-        M,
-        { sleeve: "short" },
-        39.3,
-        t,
-        sleeveOpts,
-      )!;
-      expect(withKey.outlineCm).toEqual(withoutKey.outlineCm);
     });
   });
 });

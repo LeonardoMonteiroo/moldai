@@ -145,10 +145,42 @@ export interface EngineCapability {
 // - skirt/trousers share waistband; skirt reads skirt/skirtLengthCm,
 //   trousers reads trouserLengthCm. Neither reads fit/stretch: skirt.ts's
 //   own SKIRT_WEARING_EASE_CM is a fixed constant, never style-driven.
+// #269: NOT simply CORE_MEASUREMENT_KEYS. That list grew to include 14 keys
+// (waistToArmpit, seat, inseam, ...) no moldai drafter reads at all -- only
+// FreeSewing designs need them (lib/draft/engine/freesewing/). Declaring
+// them here would violate the standing "never tell the model a range the
+// validator does not enforce" rule (docs/architecture/generation-flow.md):
+// lib/ai/prompt.ts's measurementLines renders every key in this list into
+// the prompt/tool schema verbatim, so an over-declared list would invite
+// the AI to set a measurementOverride moldai's own drafters silently
+// ignore. Ground truth, the same way styleFieldsByType below is: the
+// original nine CORE_MEASUREMENT_KEYS, plus the four #269 promoted that
+// body.ts/sleeve.ts genuinely read (bicep, bustPointHeight, neckGirth,
+// bustSpan) -- verified by grepping body.ts/sleeve.ts directly, not
+// assumed from the shared list. A chart's base row still needs every
+// CORE_MEASUREMENT_KEYS field present (assertResolvedMeasurements is
+// engine-agnostic), this constant only controls what the AI is TOLD is
+// relevant to ask about for a moldai-drafted garment.
+const MOLDAI_REQUIRED_MEASUREMENTS: readonly (keyof Measurements)[] = [
+  "bust",
+  "waist",
+  "hip",
+  "hipHeight",
+  "backLength",
+  "shoulder",
+  "skirtLength",
+  "shortSleeveLength",
+  "longSleeveLength",
+  "bicep",
+  "bustPointHeight",
+  "neckGirth",
+  "bustSpan",
+];
+
 export const MOLDAI_CAPABILITY: EngineCapability = {
   id: "moldai",
   measurements: {
-    required: CORE_MEASUREMENT_KEYS,
+    required: MOLDAI_REQUIRED_MEASUREMENTS,
     optional: EXTENDED_MEASUREMENT_KEYS,
   },
   types: TYPES,

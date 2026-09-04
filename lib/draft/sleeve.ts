@@ -22,16 +22,14 @@ const cm = (v: number) => `${formatCm(v)} cm`;
 // constant deliberately leaves for whoever unifies bicep ease with the
 // bodice's.
 //
-// #132: a chart can now carry a real bicep girth -- when it does, that
-// value is used directly (plus the same wearing ease below) instead of this
-// proportion. BICEP_PROPORTION_OF_BUST stays the fallback for a chart that
-// doesn't (approximated as a proportion of bust girth — a common
-// quick-draft rule, upper-arm circumference roughly 30% of bust — rather
-// than as a fraction of the armhole the way it used to be, which had no
-// relationship to arm size at all), and it's also what the two system
-// charts' own seeded `bicep` field reproduces exactly, so populating them
-// changed nothing about what a default account drafts.
-const BICEP_PROPORTION_OF_BUST = 0.3;
+// #132: a chart carries a real bicep girth, used directly (plus the same
+// wearing ease below). #269 promoted `bicep` to CORE (a FreeSewing design
+// requires it outright), so every base row is guaranteed to have one --
+// the proportion-of-bust approximation this used to fall back to
+// (upper-arm circumference roughly 30% of bust, a common quick-draft rule)
+// is unreachable now; lib/measurements.ts's SIZE_TABLE/SIZE_TABLE_MALE
+// still seed `bicep` with that exact figure (bust*0.3), so a default
+// account's drafted geometry is unchanged.
 const WEARING_EASE_CM = { knit: 1.5, wovenFemale: 4, wovenMale: 5 };
 // How much longer the cap's own arc is than the armhole it eases into —
 // standard set-in-sleeve practice; a knit needs less because the fabric
@@ -150,7 +148,7 @@ export function draftSleeve(
     : opts.gender === "male"
       ? WEARING_EASE_CM.wovenMale
       : WEARING_EASE_CM.wovenFemale;
-  const bicep = (m.bicep ?? m.bust * BICEP_PROPORTION_OF_BUST) + wearingEase;
+  const bicep = m.bicep + wearingEase;
   const capEase = opts.knit ? CAP_EASE_CM.knit : CAP_EASE_CM.woven;
   const targetCapArcCm = armholeLenCm + capEase;
   const capH = solveCapHeight(bicep, targetCapArcCm);

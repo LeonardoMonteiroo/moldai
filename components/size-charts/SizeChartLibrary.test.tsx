@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { renderWithIntl, ptBR, screen, within } from "@/components/test-utils";
 import type { SizeChartListEntry } from "@/lib/types";
+import { SIZE_TABLE } from "@/lib/measurements";
 import { useSizeChartsStore } from "@/lib/sizeChartsStore";
 import { SizeChartLibrary } from "./SizeChartLibrary";
 
@@ -15,17 +16,7 @@ function chart(overrides: Partial<SizeChartListEntry>): SizeChartListEntry {
     isActive: false,
     sizes: ["P", "M", "G"],
     baseSizeIndex: 1,
-    baseMeasurements: {
-      bust: 92,
-      waist: 74,
-      hip: 100,
-      hipHeight: 20.6,
-      backLength: 41,
-      shoulder: 18.5,
-      skirtLength: 60,
-      shortSleeveLength: 18,
-      longSleeveLength: 58,
-    },
+    baseMeasurements: { ...SIZE_TABLE.M },
     progressionRule: {},
     overrides: {},
     ...overrides,

@@ -431,11 +431,16 @@ describe("notches (#124)", () => {
   });
 });
 
-// #132: the four EXTENDED_MEASUREMENT_KEYS body.ts reads (neckGirth,
-// highBust, shoulderSlope, backWidth) each override a today-hardcoded
+// #132/#269: highBust/shoulderSlope/backWidth (the three body.ts still reads
+// that remain in EXTENDED_MEASUREMENT_KEYS) each override a today-hardcoded
 // proportion when present, and reproduce it exactly when absent -- M
-// (SIZE_TABLE.M) never carries these fields, so every "without" draft below
-// already exercises the fallback branch.
+// (SIZE_TABLE.M) never carries these three, so every "without" draft below
+// already exercises the fallback branch. neckGirth was promoted to CORE
+// (#269 -- a FreeSewing design requires it outright), so M now always
+// carries a real value and its own fallback formula (bust/14) was removed
+// from body.ts entirely; the "widens the neckline" comparison below still
+// holds (neckGirth still drives real geometry), there's just no longer an
+// "omitted" case to test.
 describe("#132: extended measurement overrides", () => {
   // Point order for a no-dart, non-dress panel (see bodice()'s push()
   // sequence): 0 = neckline centre (cf), 2 = left HPS (hpsL), 3 = left
@@ -446,26 +451,6 @@ describe("#132: extended measurement overrides", () => {
     const neckHalf = (d: typeof narrow) =>
       Math.abs(d.front.outlineCm[2][0] - d.front.outlineCm[0][0]);
     expect(neckHalf(wide)).toBeGreaterThan(neckHalf(narrow));
-  });
-
-  it("omitting neckGirth reproduces the bust/14 fallback exactly", () => {
-    // (bust*6)/14, then re-divided by 6 inside the drafter's neckGirth/6,
-    // isn't bit-for-bit bust/14 in IEEE 754 (division/multiplication by the
-    // same constant don't always invert exactly) -- toBeCloseTo per
-    // coordinate is the tolerance every other float geometry assertion in
-    // this file already uses, not a bit-exact toEqual.
-    const withKey = draftBody(
-      { ...M, neckGirth: (M.bust * 6) / 14 },
-      {},
-      t,
-      optsM,
-    );
-    const withoutKey = draftBody(M, {}, t, optsM);
-    withKey.front.outlineCm.forEach(([x, y], i) => {
-      const [ox, oy] = withoutKey.front.outlineCm[i];
-      expect(x).toBeCloseTo(ox, 9);
-      expect(y).toBeCloseTo(oy, 9);
-    });
   });
 
   it("highBust overrides the bust-derived armhole depth", () => {

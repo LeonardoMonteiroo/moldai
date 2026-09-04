@@ -4,7 +4,7 @@ import {
   buildSizeTable,
   pickSizeChartForGeneration,
 } from "./compute";
-import { MEASUREMENT_RANGES } from "@/lib/measurements";
+import { MEASUREMENT_RANGES, SIZE_TABLE } from "@/lib/measurements";
 import type { SizeChartData, SizeChartRecord } from "@/lib/types";
 
 function baseChart(overrides: Partial<SizeChartData> = {}): SizeChartData {
@@ -15,17 +15,7 @@ function baseChart(overrides: Partial<SizeChartData> = {}): SizeChartData {
     isSystem: false,
     sizes: ["PP", "P", "M", "G", "GG"],
     baseSizeIndex: 2,
-    baseMeasurements: {
-      bust: 92,
-      waist: 74,
-      hip: 100,
-      hipHeight: 20.6,
-      backLength: 41,
-      shoulder: 18.5,
-      skirtLength: 60,
-      shortSleeveLength: 18,
-      longSleeveLength: 58,
-    },
+    baseMeasurements: { ...SIZE_TABLE.M },
     progressionRule: { bust: 4, waist: 4, hip: 4, shoulder: 0.5 },
     overrides: {},
     ...overrides,

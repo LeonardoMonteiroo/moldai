@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { seedPatternState, applyGarmentSpec } from "@/lib/editor/state";
 import { seedWallet } from "@/lib/billing/wallet";
+import { SIZE_TABLE } from "@/lib/measurements";
 import { t } from "@/lib/i18n/test-translate";
 import type { PatternState } from "@/lib/types";
 import type { PatternVersionRecord } from "@/lib/db/patternVersion";
@@ -22,17 +23,7 @@ const VERSION: PatternVersionRecord = {
   sizes: ["PP", "P", "M", "G", "GG"],
   baseSize: "M",
   sizeTable: {
-    M: {
-      bust: 92,
-      waist: 74,
-      hip: 100,
-      hipHeight: 20.6,
-      backLength: 41,
-      shoulder: 18.5,
-      skirtLength: 60,
-      shortSleeveLength: 18,
-      longSleeveLength: 58,
-    } as never,
+    M: { ...SIZE_TABLE.M } as never,
   },
   sizeChartName: "Feminino adulto",
   engine: "moldai",

@@ -1004,6 +1004,16 @@ function roundNumbersDeep<T>(value: T): T {
 // one fixed style/ease. Omitting it from both `withoutExtended` and
 // `withFormula` here still exercises the true "chart has none of the new
 // keys" case this suite exists to prove -- backWidth is absent in both.
+// #269: neckGirth/bicep were promoted to CORE, so SIZE_TABLE/SIZE_TABLE_MALE
+// now carry real (rounded-to-1-decimal) values for both -- there is no more
+// "chart omits this key" case to construct for them, and re-deriving the
+// SAME formula unrounded (as this test used to) no longer reproduces the
+// table's own rounded value bit-for-bit, so both are excluded from
+// `withFormula` below the same way backWidth already was, for the same
+// reason: `base` already provides the real, current value directly.
+// highBust/shoulderSlope remain genuinely EXTENDED (optional, with a live
+// fallback in body.ts), so they're still meaningfully "omitted vs supplied"
+// here.
 describe("#132: drafting with no extended measurement keys is byte-identical to reconstructing today's formula explicitly", () => {
   for (const [name, spec] of DECORATION_CASES) {
     it(name, () => {
@@ -1013,10 +1023,8 @@ describe("#132: drafting with no extended measurement keys is byte-identical to 
 
       const withFormula: Measurements = {
         ...base,
-        neckGirth: (base.bust * 6) / 14,
         highBust: base.bust,
         shoulderSlope: male ? 4.5 : 4.0,
-        bicep: base.bust * 0.3,
       };
 
       const a = draftPiecesCm(DEFAULT_ENGINE_ID, spec, withoutExtended, t);

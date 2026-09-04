@@ -124,7 +124,7 @@ describe("resolveMeasurements", () => {
 
   it("leaves an EXTENDED field undefined when neither the base row nor the override sets it", () => {
     const r = resolveMeasurements(SIZE_TABLE.M, {});
-    expect(r.neckGirth).toBeUndefined();
+    expect(r.highBust).toBeUndefined();
   });
 
   // #132: an EXTENDED field IS present on the base row (e.g. from a size
@@ -149,7 +149,10 @@ describe("CORE_MEASUREMENT_KEYS / EXTENDED_MEASUREMENT_KEYS / MEASUREMENT_KEYS (
     expect(overlap).toEqual([]);
   });
 
-  it("CORE_MEASUREMENT_KEYS still has exactly the original nine keys", () => {
+  // #269: the original nine, plus four #132/bust-dart-shaping fields
+  // promoted out of EXTENDED (a FreeSewing design requires each outright),
+  // plus 14 genuinely new keys with no moldai-side fallback at all.
+  it("CORE_MEASUREMENT_KEYS has the original nine, the four promoted keys, and the 14 new freesewing-only keys", () => {
     expect(CORE_MEASUREMENT_KEYS).toEqual([
       "bust",
       "waist",
@@ -160,19 +163,33 @@ describe("CORE_MEASUREMENT_KEYS / EXTENDED_MEASUREMENT_KEYS / MEASUREMENT_KEYS (
       "skirtLength",
       "shortSleeveLength",
       "longSleeveLength",
+      "bicep",
+      "bustPointHeight",
+      "neckGirth",
+      "bustSpan",
+      "waistToArmpit",
+      "shoulderToWrist",
+      "wrist",
+      "underbust",
+      "bustPointToUnderbust",
+      "bustFront",
+      "waistToUnderbust",
+      "seat",
+      "waistToSeat",
+      "waistToKnee",
+      "waistToFloor",
+      "inseam",
+      "shoulderToElbow",
+      "head",
     ]);
   });
 
-  it("EXTENDED_MEASUREMENT_KEYS carries the six #132 additions plus bust-dart-shaping's two", () => {
+  it("EXTENDED_MEASUREMENT_KEYS carries only the four fields no registered FreeSewing design reads", () => {
     expect(EXTENDED_MEASUREMENT_KEYS).toEqual([
-      "neckGirth",
       "highBust",
       "shoulderSlope",
       "backWidth",
-      "bicep",
       "rise",
-      "bustPointHeight",
-      "bustSpan",
     ]);
   });
 

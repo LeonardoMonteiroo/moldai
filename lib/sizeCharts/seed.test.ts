@@ -13,33 +13,47 @@ import type { Translate } from "@/lib/i18n/translate";
 const SIZES = ["PP", "P", "M", "G", "GG"] as const;
 
 describe("buildSystemSizeChart", () => {
-  // #132: exact reproduction is only claimed for the original nine keys —
-  // SIZE_TABLE/SIZE_TABLE_MALE themselves carry only those nine (see their
-  // own comment in lib/measurements.ts for why the six new fields
-  // deliberately don't live there), so a straight `toEqual` against a
-  // SIZE_TABLE row would fail on the resolved table's extra keys alone.
-  it("female chart's resolved size table exactly reproduces SIZE_TABLE for the original nine keys", () => {
+  // #269: CORE_MEASUREMENT_KEYS now includes the four promoted
+  // (bicep/bustPointHeight/neckGirth/bustSpan) and 14 new keys alongside
+  // the original nine -- all of them live directly on SIZE_TABLE/
+  // SIZE_TABLE_MALE now (unlike the four still-EXTENDED keys below, which
+  // deliberately don't -- see lib/measurements.ts's own comment), so exact
+  // reproduction is claimed for the WHOLE CORE list, not just the original
+  // nine.
+  // toBeCloseTo(9), not toBe: buildSizeTable resolves a non-base size via
+  // baseMeasurements + progressionRule*step, and deriveProgressionRule's own
+  // "add an override" decision already uses a 1e-9 tolerance
+  // (Math.abs(ruleValue - actual) > 1e-9) -- asserting bit-exact equality
+  // here would depend on floating-point arithmetic happening to round-trip
+  // for these particular numbers (as it does for the original nine, by
+  // luck) rather than on anything the algorithm actually guarantees.
+  it("female chart's resolved size table exactly reproduces SIZE_TABLE for every CORE key", () => {
     const table = buildSizeTable(buildSystemSizeChart("female"));
     for (const size of SIZES) {
       for (const key of CORE_MEASUREMENT_KEYS) {
-        expect(table[size][key]).toBe(SIZE_TABLE[size][key]);
+        // CORE_MEASUREMENT_KEYS is typed as the wider (keyof Measurements)[],
+        // so TS can't narrow this to a guaranteed-present field on its own --
+        // every CORE key IS guaranteed present at runtime (assertResolved
+        // Measurements' own invariant).
+        expect(table[size][key]).toBeCloseTo(SIZE_TABLE[size][key]!, 9);
       }
     }
   });
 
-  it("male chart's resolved size table exactly reproduces SIZE_TABLE_MALE for the original nine keys", () => {
+  it("male chart's resolved size table exactly reproduces SIZE_TABLE_MALE for every CORE key", () => {
     const table = buildSizeTable(buildSystemSizeChart("male"));
     for (const size of SIZES) {
       for (const key of CORE_MEASUREMENT_KEYS) {
-        expect(table[size][key]).toBe(SIZE_TABLE_MALE[size][key]);
+        expect(table[size][key]).toBeCloseTo(SIZE_TABLE_MALE[size][key]!, 9);
       }
     }
   });
 
-  // #132: the six new fields aren't stored on SIZE_TABLE, but every seeded
-  // chart still resolves a finite, in-range value for every size — a chart
-  // this feature ships to every account, old and new, should never present
-  // a blank/undefined cell for one of its own headline fields.
+  // #132: the four remaining EXTENDED fields aren't stored on SIZE_TABLE,
+  // but every seeded chart still resolves a finite, in-range value for
+  // every size — a chart this feature ships to every account, old and new,
+  // should never present a blank/undefined cell for one of its own
+  // headline fields.
   it.each(["female", "male"] as const)(
     "#132: %s chart's resolved size table has every extended field, in range, at every size",
     (gender) => {
@@ -73,32 +87,36 @@ describe("buildSystemSizeChart", () => {
     expect("name" in buildSystemSizeChart("female")).toBe(false);
   });
 
+  // #269: bustPointHeight/bustSpan were promoted from EXTENDED to CORE, but
+  // stayed the flat, cited "typical range" constants they always were (AD-001,
+  // .specs/STATE.md) -- a frame/torso trait with no bust-proportional
+  // formula to grade, the same reasoning shoulderSlope's own exception
+  // (below) already uses. Every other CORE key, old and new, grades with
+  // size.
+  const SIZE_INVARIANT_CORE_KEYS = ["bustPointHeight", "bustSpan"];
   it.each(["female", "male"] as const)(
-    "#118: %s chart's progression rule grades every original CORE measurement key, none left at 0",
+    "#118: %s chart's progression rule grades every CORE measurement key except the size-invariant ones",
     (gender) => {
       const chart = buildSystemSizeChart(gender);
       for (const key of CORE_MEASUREMENT_KEYS) {
-        expect(chart.progressionRule[key]).not.toBe(0);
+        if (SIZE_INVARIANT_CORE_KEYS.includes(key)) {
+          expect(chart.progressionRule[key]).toBe(0);
+        } else {
+          expect(chart.progressionRule[key]).not.toBe(0);
+        }
       }
     },
   );
 
-  // #132: five of the six original EXTENDED keys are bust-derived
+  // #132: two of the four remaining EXTENDED keys are bust-derived
   // proportions, so they grade along with bust exactly like the CORE keys
   // above. shoulderSlope is the one deliberate exception -- body.ts's own
   // fallback is a flat per-gender constant, not a bust-scaled proportion, so
   // grading it here would fabricate a precision the underlying model doesn't
   // have. 0 is what a legitimately non-graded field's progression looks like
   // (the same "0 is a meaningful rule value" principle CLAUDE.md already
-  // applies to a user's own progression-rule edits). bust-dart-shaping's
-  // bustPointHeight/bustSpan join shoulderSlope in this exception per AD-001
-  // (.specs/STATE.md) -- frame/torso traits with no cited bust-proportional
-  // formula, so they seed a flat constant too.
-  const SIZE_INVARIANT_EXTENDED_KEYS = [
-    "shoulderSlope",
-    "bustPointHeight",
-    "bustSpan",
-  ];
+  // applies to a user's own progression-rule edits).
+  const SIZE_INVARIANT_EXTENDED_KEYS = ["shoulderSlope"];
   it.each(["female", "male"] as const)(
     "#132: %s chart grades every EXTENDED key except the size-invariant ones",
     (gender) => {
@@ -119,6 +137,12 @@ describe("buildSystemSizeChart", () => {
   // backWidth is deliberately excluded: it is NOT a fallback-reproducing
   // value (see extendedMeasurementsFor's own note) -- it seeds a realistic
   // across-back proportion instead, checked separately below.
+  //
+  // #269: neckGirth/bicep are promoted-to-CORE keys now, sourced straight
+  // from SIZE_TABLE/SIZE_TABLE_MALE (rounded to 1 decimal, like every other
+  // field in that table) rather than recomputed live -- toBeCloseTo(1),
+  // not the exact-to-9-decimals check highBust/shoulderSlope (still
+  // computed live in extendedMeasurementsFor) still get.
   it.each(["female", "male"] as const)(
     "%s chart's extended base values reproduce today's hardcoded proportions",
     (gender) => {
@@ -128,10 +152,10 @@ describe("buildSystemSizeChart", () => {
         chart.sizes[chart.baseSizeIndex],
       );
       const bust = base.bust;
-      expect(base.neckGirth).toBeCloseTo((bust * 3) / 7, 9);
+      expect(base.neckGirth).toBeCloseTo((bust * 3) / 7, 1);
       expect(base.highBust).toBe(bust);
       expect(base.shoulderSlope).toBe(gender === "male" ? 4.5 : 4.0);
-      expect(base.bicep).toBeCloseTo(bust * 0.3, 9);
+      expect(base.bicep).toBeCloseTo(bust * 0.3, 1);
     },
   );
 

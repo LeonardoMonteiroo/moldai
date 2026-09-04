@@ -5,7 +5,7 @@ import {
   screen,
   userEvent,
 } from "@/components/test-utils";
-import { MEASUREMENT_RANGES } from "@/lib/measurements";
+import { MEASUREMENT_RANGES, SIZE_TABLE } from "@/lib/measurements";
 import type { SizeChartData, SizeChartListEntry } from "@/lib/types";
 import { useSizeChartsStore } from "@/lib/sizeChartsStore";
 import { SizeChartTable } from "./SizeChartTable";
@@ -17,17 +17,7 @@ const BASE: SizeChartData = {
   isSystem: false,
   sizes: ["P", "M", "G"],
   baseSizeIndex: 1,
-  baseMeasurements: {
-    bust: 92,
-    waist: 74,
-    hip: 100,
-    hipHeight: 20.6,
-    backLength: 41,
-    shoulder: 18.5,
-    skirtLength: 60,
-    shortSleeveLength: 18,
-    longSleeveLength: 58,
-  },
+  baseMeasurements: { ...SIZE_TABLE.M },
   progressionRule: { bust: 4 },
   overrides: {},
 };
@@ -632,15 +622,18 @@ describe("SizeChartTable extended measurement rows (#132)", () => {
     ).toBeInTheDocument();
   });
 
-  // The fixture's baseMeasurements never set bicep -- resolveSizeChartSize
-  // resolves it as undefined, and the cell must show that as blank rather
-  // than crashing or substituting 0.
+  // The fixture's baseMeasurements (SIZE_TABLE.M) never sets highBust --
+  // it's one of the four fields #269 left genuinely EXTENDED (bicep,
+  // bustPointHeight, neckGirth and bustSpan were promoted to CORE, so
+  // SIZE_TABLE now always carries those four). resolveSizeChartSize
+  // resolves highBust as undefined, and the cell must show that as blank
+  // rather than crashing or substituting 0.
   it("shows a blank cell, not 0, for an extended field the chart never set", () => {
     seed();
     renderWithIntl(<SizeChartTable />);
 
     const cell = screen.getByRole("spinbutton", {
-      name: `${ptBR.SizeChartTable.measurement.bicep} · M`,
+      name: `${ptBR.SizeChartTable.measurement.highBust} · M`,
     }) as HTMLInputElement;
     expect(cell).toHaveValue(null);
   });

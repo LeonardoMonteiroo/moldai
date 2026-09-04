@@ -15,22 +15,36 @@ const FULL = {
   skirtLength: 60,
   shortSleeveLength: 18,
   longSleeveLength: 58,
+  bicep: 27.6,
+  bustPointHeight: 26.5,
   neckGirth: 39.4,
+  bustSpan: 18.5,
+  waistToArmpit: 16.9,
+  shoulderToWrist: 58.9,
+  wrist: 16.5,
+  underbust: 77.6,
+  bustPointToUnderbust: 10.0,
+  bustFront: 47.9,
+  waistToUnderbust: 8.0,
+  seat: 100.7,
+  waistToSeat: 24.9,
+  waistToKnee: 59.8,
+  waistToFloor: 104.8,
+  inseam: 76.4,
+  shoulderToElbow: 33.9,
+  head: 56.4,
   highBust: 92,
   shoulderSlope: 4.0,
   backWidth: 46,
-  bicep: 27.6,
   rise: 27,
-  bustPointHeight: 26.5,
-  bustSpan: 18.5,
 };
 
-describe("MeasurementsSchema (#132)", () => {
+describe("MeasurementsSchema (#132 / #269)", () => {
   it("accepts a row carrying every key", () => {
     expect(MeasurementsSchema.safeParse(FULL).success).toBe(true);
   });
 
-  it("accepts a row carrying only the nine CORE keys", () => {
+  it("accepts a row carrying only the CORE keys", () => {
     const core = Object.fromEntries(
       CORE_MEASUREMENT_KEYS.map((k) => [k, FULL[k as keyof typeof FULL]]),
     );
@@ -55,7 +69,19 @@ describe("MeasurementsSchema (#132)", () => {
 
   it("rejects a non-finite EXTENDED value the same way it would a CORE one", () => {
     expect(
-      MeasurementsSchema.safeParse({ ...FULL, bicep: Number.NaN }).success,
+      MeasurementsSchema.safeParse({ ...FULL, rise: Number.NaN }).success,
     ).toBe(false);
   });
+
+  // #269: bicep/bustPointHeight/neckGirth/bustSpan moved OUT of the optional
+  // mask when they were promoted to CORE -- a row missing any of them must
+  // now be rejected the same way a row missing `bust` already was, not
+  // silently accepted the way it was before the promotion.
+  it.each(["bicep", "bustPointHeight", "neckGirth", "bustSpan"] as const)(
+    "rejects a row missing the promoted-to-CORE key %s",
+    (key) => {
+      const { [key]: _omitted, ...rest } = FULL;
+      expect(MeasurementsSchema.safeParse(rest).success).toBe(false);
+    },
+  );
 });

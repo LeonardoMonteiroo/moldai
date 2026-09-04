@@ -10,6 +10,7 @@ import type {
   SizeChartListEntry,
   SizeChartRecord,
 } from "@/lib/types";
+import { SIZE_TABLE } from "@/lib/measurements";
 
 vi.mock("@/lib/api-client", async () => {
   const actual =
@@ -31,17 +32,7 @@ const BASE: SizeChartData = {
   isSystem: false,
   sizes: ["P", "M", "G"],
   baseSizeIndex: 1,
-  baseMeasurements: {
-    bust: 92,
-    waist: 74,
-    hip: 100,
-    hipHeight: 20.6,
-    backLength: 41,
-    shoulder: 18.5,
-    skirtLength: 60,
-    shortSleeveLength: 18,
-    longSleeveLength: 58,
-  },
+  baseMeasurements: { ...SIZE_TABLE.M },
   progressionRule: { bust: 4 },
   overrides: {},
 };

@@ -377,8 +377,12 @@ describe("prompt-cache byte stability", () => {
       staticSectionsFor(DEFAULT_ENGINE_ID) +
       JSON.stringify(toolFor(DEFAULT_ENGINE_ID));
     const hash = createHash("sha256").update(bytes).digest("hex");
+    // #269: regenerated -- MOLDAI_CAPABILITY.measurements.required grew by
+    // 18 keys (14 new, 4 promoted from EXTENDED), which changes toolFor's
+    // rendered JSON schema. A deliberate, expected byte change (see this
+    // describe block's own comment), not a bug.
     expect(hash).toBe(
-      "f72a9eac634a9102cbd0b77654d25919b75297a4960db5589fa572cd9f93b895",
+      "1eb410912ac9dda846ec02401af6eb7adf29de61b1a3ad2062ddc916912170b9",
     );
   });
 });

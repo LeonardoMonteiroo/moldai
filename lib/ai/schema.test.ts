@@ -16,6 +16,7 @@ import {
 } from "@/lib/draft/garment";
 import { MEASUREMENT_RANGES } from "@/lib/measurements";
 import { DEFAULT_ENGINE_ID } from "@/lib/draft/engine/capability";
+import { getEngine } from "@/lib/draft/engine/registry";
 
 interface Prop {
   enum?: string[];
@@ -41,9 +42,22 @@ describe("propose_garment tool schema", () => {
     }
   });
 
+  // #269: iterates the ACTIVE ENGINE's own declared measurement keys
+  // (required+optional), not the whole global MEASUREMENT_RANGES table --
+  // MOLDAI_CAPABILITY.measurements deliberately excludes 14 keys no moldai
+  // drafter reads (freesewing-only), so asserting against every
+  // MEASUREMENT_RANGES entry would fail for those, which is correct: the
+  // AI must not be told a moldai-drafted garment can override a field
+  // moldai silently ignores.
   it("bounds every measurement override with MEASUREMENT_RANGES", () => {
     const overrides = spec.measurementOverrides.properties!;
-    for (const [k, r] of Object.entries(MEASUREMENT_RANGES)) {
+    const capability = getEngine(DEFAULT_ENGINE_ID).capability;
+    const keys = [
+      ...capability.measurements.required,
+      ...capability.measurements.optional,
+    ];
+    for (const k of keys) {
+      const r = MEASUREMENT_RANGES[k];
       expect(overrides[k].minimum).toBe(r.min);
       expect(overrides[k].maximum).toBe(r.max);
     }

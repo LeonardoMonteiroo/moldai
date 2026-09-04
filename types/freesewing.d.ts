@@ -9,6 +9,16 @@
 // block per design package as the freesewing engine grows to cover more
 // archetypes (see docs/architecture/drafting.md).
 
+// scripts/backfill-freesewing-measurements.ts's only consumer -- a plain
+// { [sizeKey: string]: { chest: number, ...everything else: number } } bag
+// of reference bodies, indexed by an arbitrary size-code string (e.g. "38"),
+// never by our own SizeLabel. Not used by the shipped app itself.
+declare module "@freesewing/models" {
+  type ReferenceBody = Record<string, number>;
+  export const cisFemaleAdult: Record<string, ReferenceBody>;
+  export const cisMaleAdult: Record<string, ReferenceBody>;
+}
+
 declare module "@freesewing/teagan" {
   interface FreesewingPoint {
     x: number;

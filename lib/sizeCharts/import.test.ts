@@ -3,9 +3,30 @@ import { parseSizeChartFile, type ImportResult } from "./import";
 import { resolveSizeChartSize } from "@/lib/sizeCharts/compute";
 import { buildSystemSizeChart } from "@/lib/sizeCharts/seed";
 import {
+  CORE_MEASUREMENT_KEYS,
   EXTENDED_MEASUREMENT_KEYS,
   MEASUREMENT_RANGES,
 } from "@/lib/measurements";
+
+// The fixture below only maps the ORIGINAL nine CORE columns -- #269 added
+// 18 more (14 new, 4 promoted from EXTENDED), none of which this legacy-
+// shaped file has either, so every one of them legitimately falls back to
+// the system chart's own default with its own missing_measurement warning
+// too, the same as the four still-EXTENDED keys always did.
+const ORIGINAL_NINE_CORE_KEYS = [
+  "bust",
+  "waist",
+  "hip",
+  "hipHeight",
+  "backLength",
+  "shoulder",
+  "skirtLength",
+  "shortSleeveLength",
+  "longSleeveLength",
+];
+const NEWLY_REQUIRED_CORE_KEYS = CORE_MEASUREMENT_KEYS.filter(
+  (k) => !ORIGINAL_NINE_CORE_KEYS.includes(k),
+);
 
 // The same measurement table (sizes 38/40/42/44, base "40"), expressed three
 // ways: pt-BR semicolon+comma-decimal, comma+dot-decimal, and transposed
@@ -113,13 +134,15 @@ describe("parseSizeChartFile", () => {
     const { chart, warnings } = ok(
       parseSizeChartFile(SEMI_COMMA_CSV, "grade.csv", "female"),
     );
-    // #132: the fixture maps only the original nine columns, so each of the
-    // six new EXTENDED fields legitimately falls back to the system default
-    // with its own missing_measurement warning -- nothing else should be
-    // flagged, since every core column IS present and in range.
+    // #132/#269: the fixture maps only the original nine CORE columns, so
+    // every other MEASUREMENT_KEYS field -- the four still-EXTENDED keys,
+    // AND the 18 CORE keys #269 added -- legitimately falls back to the
+    // system default with its own missing_measurement warning. Nothing else
+    // should be flagged, since every one of the original nine IS present
+    // and in range.
     expect(warnings.every((w) => w.code === "missing_measurement")).toBe(true);
     expect(warnings.map((w) => w.detail).sort()).toEqual(
-      [...EXTENDED_MEASUREMENT_KEYS].sort(),
+      [...EXTENDED_MEASUREMENT_KEYS, ...NEWLY_REQUIRED_CORE_KEYS].sort(),
     );
     expect(chart.sizes).toEqual(["38", "40", "42", "44"]);
     expect(chart.baseSizeIndex).toBe(1);

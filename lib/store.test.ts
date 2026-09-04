@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { EditorState } from "./types";
+import { SIZE_TABLE } from "./measurements";
 
 // ApiError comes from the real module (the store narrows on it with
 // instanceof, so a stub class would not be the same constructor).
@@ -47,17 +48,7 @@ function emptyState(): EditorState {
       sizesApplied: [],
       sizesPending: [],
       sizeTable: {
-        M: {
-          bust: 92,
-          waist: 74,
-          hip: 100,
-          hipHeight: 20.6,
-          backLength: 41,
-          shoulder: 18.5,
-          skirtLength: 60,
-          shortSleeveLength: 18,
-          longSleeveLength: 58,
-        },
+        M: { ...SIZE_TABLE.M },
       },
       pieces: [],
     },

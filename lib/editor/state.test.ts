@@ -13,6 +13,7 @@ import {
 import { t } from "@/lib/i18n/test-translate";
 import type { SizeChartData } from "@/lib/types";
 import { DEFAULT_ENGINE_ID } from "@/lib/draft/engine/capability";
+import { SIZE_TABLE } from "@/lib/measurements";
 
 describe("seedPatternState", () => {
   it("takes the new-pattern name from the translator", () => {
@@ -210,17 +211,7 @@ describe("seedPatternSizeSnapshot", () => {
     isSystem: true,
     sizes: ["P", "M", "G"],
     baseSizeIndex: 1,
-    baseMeasurements: {
-      bust: 92,
-      waist: 74,
-      hip: 100,
-      hipHeight: 20.6,
-      backLength: 41,
-      shoulder: 18.5,
-      skirtLength: 60,
-      shortSleeveLength: 18,
-      longSleeveLength: 58,
-    },
+    baseMeasurements: { ...SIZE_TABLE.M },
     progressionRule: { bust: 4 },
     overrides: {},
   };

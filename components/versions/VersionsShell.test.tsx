@@ -14,6 +14,7 @@ import { screen, waitFor, userEvent } from "@/components/test-utils";
 // silently asserting against stale or missing keys.
 import messages from "../../messages/pt-BR.json";
 import type { PatternVersionEntry } from "@/lib/api-client";
+import { SIZE_TABLE } from "@/lib/measurements";
 import { VersionsShell } from "./VersionsShell";
 
 const ptBR = messages;
@@ -77,17 +78,7 @@ function makeRows(): PatternVersionEntry[] {
   // alongside the list) redrafts from this via draftGarment, which throws
   // on a non-finite/missing field.
   const sizeTable = {
-    M: {
-      bust: 92,
-      waist: 74,
-      hip: 100,
-      hipHeight: 20.6,
-      backLength: 41,
-      shoulder: 18.5,
-      skirtLength: 60,
-      shortSleeveLength: 18,
-      longSleeveLength: 58,
-    } as never,
+    M: { ...SIZE_TABLE.M } as never,
   };
   return [
     {

@@ -109,12 +109,11 @@ function bodice(
   const shoulderSlope = m.shoulderSlope ?? (opts.gender === "male" ? 4.5 : 4.0);
   // #132: neck opening half-width is a standard 1/6 of the neck
   // circumference (a common block-drafting ratio) plus the same small male
-  // ease this proportion already carried -- falls back to the old
-  // bust-derived approximation (bust/14) when the chart has no neckGirth.
-  const neckHalf =
-    m.neckGirth !== undefined
-      ? m.neckGirth / 6 + (opts.gender === "male" ? 0.8 : 0)
-      : m.bust / 14 + (opts.gender === "male" ? 0.8 : 0);
+  // ease this proportion already carried. #269 promoted neckGirth to CORE
+  // (a FreeSewing design requires it outright), so the old bust/14
+  // fallback for an absent neckGirth is unreachable now -- every base row
+  // has one, guaranteed by assertResolvedMeasurements.
+  const neckHalf = m.neckGirth / 6 + (opts.gender === "male" ? 0.8 : 0);
   const shoulderHalf = m.shoulder;
   const len = opts.lengthCm;
   const isDressHem = opts.dressHemHalfCm !== undefined;
@@ -345,15 +344,16 @@ function bodice(
     const extraDartHalfWidthCm = bustCupDeltaCm / 4;
     const dartHalfWidth =
       Math.max(0.9, dartsSuppression / 8) + extraDartHalfWidthCm;
-    // Bust-apex point, in this panel's own coordinate frame. bustSpan/
-    // bustPointHeight resolve to a real per-chart value when set, else the
-    // cited flat fallback (AD-001, .specs/STATE.md) -- see design.md's
-    // Research table for both citations. Clamped into the panel's own valid
-    // interior band so an extreme combination (a small chart paired with
-    // range-boundary bustSpan/bustPointHeight) can never place the apex
-    // outside the outline.
-    const bustSpanCm = m.bustSpan ?? 18.5;
-    const bustPointHeightCm = m.bustPointHeight ?? 26.5;
+    // Bust-apex point, in this panel's own coordinate frame. #269 promoted
+    // both to CORE (a FreeSewing design requires bustSpan outright), so
+    // every base row carries a real value -- either a real per-chart tape
+    // measurement, or the cited flat default (AD-001, .specs/STATE.md; see
+    // design.md's Research table for both citations) a size chart seeds it
+    // with. Clamped into the panel's own valid interior band so an extreme
+    // combination (a small chart paired with range-boundary bustSpan/
+    // bustPointHeight) can never place the apex outside the outline.
+    const bustSpanCm = m.bustSpan;
+    const bustPointHeightCm = m.bustPointHeight;
     const apexXOffsetCm = Math.min(
       Math.max(bustSpanCm / 2 + 0.5, 2),
       halfChest - 2,

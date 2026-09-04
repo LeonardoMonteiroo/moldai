@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { SizeChartListEntry } from "./types";
+import { SIZE_TABLE } from "./measurements";
 
 vi.mock("./api-client", async () => {
   const actual =
@@ -33,17 +34,7 @@ function entry(
     isSystem: true,
     sizes: ["PP", "P", "M", "G", "GG"],
     baseSizeIndex: 2,
-    baseMeasurements: {
-      bust: 92,
-      waist: 74,
-      hip: 100,
-      hipHeight: 20.6,
-      backLength: 41,
-      shoulder: 18.5,
-      skirtLength: 60,
-      shortSleeveLength: 18,
-      longSleeveLength: 58,
-    },
+    baseMeasurements: { ...SIZE_TABLE.M },
     progressionRule: {},
     overrides: {},
     isActive: false,
