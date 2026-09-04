@@ -7,8 +7,9 @@ description: Create, list, and resolve GitHub issues in this repo's backlog (Git
 
 This project's backlog lives in GitHub Issues, triaged with two label
 families: an existing type label (`bug` / `enhancement` / `documentation` /
-`question`) and a `priority: high|medium|low` label added specifically for
-this backlog. Every issue this skill creates carries exactly one of each —
+`question`) and a `priority: urgent|high|medium|low` label added
+specifically for this backlog. Every issue this skill creates carries
+exactly one of each —
 that pairing is what makes the backlog usable as a "what's next" list
 instead of an unsorted pile.
 
@@ -80,9 +81,13 @@ table above.
 Priority is required on every issue, even when the user didn't state one —
 an untriaged backlog is just a pile again. Infer it:
 
+- **urgent** — drop-everything, pull-this-next. Reserve it for what the
+  user explicitly names as the very next thing to work on, or an actively
+  broken production/money path — not a synonym for "high", or the tier
+  inflates and stops meaning anything.
 - **high** — blocks something else, breaks data/money paths (billing,
   auth, migrations), or the user's language signals urgency ("bloqueia",
-  "quebra", "urgente", "security").
+  "quebra", "security") without asking for the top tier specifically.
 - **low** — matches this repo's own "em breve" framing, pure polish, or an
   explicit someday/nice-to-have.
 - **medium** — the default for everything else: most bug fixes and scoped
@@ -135,14 +140,16 @@ for:
 
 ```bash
 gh issue list --state open --limit 50                          # everything open
-gh issue list --label "priority: high"                         # just the urgent tier
+gh issue list --label "priority: urgent"                       # just the drop-everything tier
+gh issue list --label "priority: high"                         # the do-next tier
 gh issue list --label bug --state open                         # open bugs only
 gh issue list --search "export" --state open                   # keyword match
 gh issue list --json number,title,labels,createdAt --state open # structured, for sorting/filtering yourself
 ```
 
 When presenting the list back, group or sort by the `priority: *` label
-(high → medium → low) rather than GitHub's default creation-date order —
+(urgent → high → medium → low) rather than GitHub's default creation-date
+order —
 that's what makes it read as a backlog instead of a chronological log. Call
 out any open issue carrying no `priority: *` label at all: it's untriaged
 and worth flagging rather than silently sorting it to the bottom.
