@@ -46,10 +46,6 @@ function toCm(p: { x: number; y: number }): Pt {
   return [p.x / MM_PER_CM, p.y / MM_PER_CM];
 }
 
-function distMm(a: { x: number; y: number }, b: { x: number; y: number }) {
-  return Math.hypot(a.x - b.x, a.y - b.y);
-}
-
 function bezierPointAt(p0: Pt, c1: Pt, c2: Pt, p3: Pt, u: number): Pt {
   const mt = 1 - u;
   const a = mt * mt * mt;
