@@ -2,7 +2,12 @@ import { describe, it, expect, beforeAll } from "vitest";
 import { writeFileSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { draftPiecesCm } from "./engine/facade";
-import { DEFAULT_ENGINE_ID } from "./engine/capability";
+import {
+  ENGINE_IDS,
+  checkEngineSupport,
+  type EngineId,
+} from "./engine/capability";
+import { getEngine } from "./engine/registry";
 import { bbox, catmullRomSegments, curveArcLengthCm } from "./core";
 import type { DraftedPiece, Pt } from "./core";
 import { SIZE_TABLE_MALE } from "@/lib/measurements";
@@ -16,6 +21,17 @@ import benchmark from "@/docs/reference/tshirt-benchmark/measurements.json";
 // this file gates on a delta being below any numeric bound -- the spec's
 // explicit decision is to report deltas, not pass/fail on them (see
 // spec.md's Assumptions & Out of Scope).
+//
+// #267: this is the harness docs/decisions/drafting.md names as "any
+// registered engine scored on one set of metrics" -- it loops ENGINE_IDS,
+// not a single hardcoded draftPiecesCm call. With one engine registered
+// this produces the exact same 16 rows as before; the loop is what makes a
+// future second engine's own numbers land in this same report rather than
+// a throwaway project outside the repo (the #266 spike's own limitation).
+// docs/decisions/drafting.md also records why the two representation-
+// dependent metrics below (rectilinearPerimeterCm/curvePerimeterCm split,
+// and the orientation-dependent widthCm/heightCm) are not comparable
+// ACROSS engines -- only perimeterCm/areaCm2 are.
 
 type PieceMetrics = {
   perimeterCm: number;
@@ -108,14 +124,24 @@ function measurePiece(piece: DraftedPiece): PieceMetrics {
 }
 
 const GRADE = ["P", "M", "G", "GG"] as const;
-const PIECE_IDS = {
-  back: "body-back",
-  front: "body-front",
-  sleeve: "sleeve",
-  collarBand: "collar",
-} as const;
-
-type BenchmarkPiece = keyof typeof PIECE_IDS;
+// Benchmark-piece-id mapping stays here, keyed per engine, rather than on
+// EngineCapability: this is test metadata (which of THIS benchmark's piece
+// names correspond to which of an engine's own piece ids), not a capability
+// the app itself needs to know. An engine with no entry here is reported as
+// unmapped rather than silently scored against zeroed rows.
+const PIECE_IDS_BY_ENGINE: Record<
+  EngineId,
+  Record<string, string> | undefined
+> = {
+  moldai: {
+    back: "body-back",
+    front: "body-front",
+    sleeve: "sleeve",
+    collarBand: "collar",
+  },
+};
+const BENCHMARK_PIECES = ["back", "front", "sleeve", "collarBand"] as const;
+type BenchmarkPiece = (typeof BENCHMARK_PIECES)[number];
 
 function tshirtSpec(): GarmentSpec {
   return {
@@ -127,13 +153,20 @@ function tshirtSpec(): GarmentSpec {
 }
 
 interface ReportRow {
+  engine: EngineId;
   piece: BenchmarkPiece;
   size: (typeof GRADE)[number];
   ours: PieceMetrics;
   benchmark: PieceMetrics;
 }
 
+interface SkippedEngine {
+  engine: EngineId;
+  reason: string;
+}
+
 let rows: ReportRow[] = [];
+let skipped: SkippedEngine[] = [];
 let reportPath: string;
 
 beforeAll(() => {
@@ -144,38 +177,73 @@ beforeAll(() => {
     ),
   );
   rows = [];
-  for (const size of GRADE) {
-    const pieces = draftPiecesCm(
-      DEFAULT_ENGINE_ID,
+  skipped = [];
+
+  for (const engineId of ENGINE_IDS) {
+    const pieceIds = PIECE_IDS_BY_ENGINE[engineId];
+    if (!pieceIds) {
+      skipped.push({
+        engine: engineId,
+        reason: "declares no benchmark piece mapping (PIECE_IDS_BY_ENGINE)",
+      });
+      continue;
+    }
+    const capability = getEngine(engineId).capability;
+    // #267: SIZE_TABLE_MALE may not satisfy a future engine's own required
+    // measurements -- reported and skipped, never a throw or a silent zero
+    // row. Checked once per engine against the M row; the tshirt archetype
+    // itself is also checked (an engine that doesn't draft tshirt at all
+    // gets the same treatment).
+    const gaps = checkEngineSupport(
+      capability,
       tshirtSpec(),
-      SIZE_TABLE_MALE[size],
-      t,
+      SIZE_TABLE_MALE.M,
     );
-    for (const [benchPiece, pieceId] of Object.entries(PIECE_IDS) as [
-      BenchmarkPiece,
-      string,
-    ][]) {
-      const piece = pieces.find((p) => p.id === pieceId);
-      // A missing piece (e.g. collar declined by a future default change)
-      // is reported as a zeroed row rather than silently dropped, so the
-      // report's row count stays a constant, checkable 16.
-      const ours = piece
-        ? measurePiece(piece)
-        : {
-            perimeterCm: 0,
-            areaCm2: 0,
-            rectilinearPerimeterCm: 0,
-            curvePerimeterCm: 0,
-            widthCm: 0,
-            heightCm: 0,
-          };
-      const benchmarkMetrics = (
-        benchmark.pieces as Record<
-          string,
-          { sizes: Record<string, PieceMetrics> }
-        >
-      )[benchPiece].sizes[size];
-      rows.push({ piece: benchPiece, size, ours, benchmark: benchmarkMetrics });
+    const blocking = gaps.find(
+      (g) => g.kind === "type" || g.kind === "measurements",
+    );
+    if (blocking) {
+      skipped.push({ engine: engineId, reason: JSON.stringify(blocking) });
+      continue;
+    }
+
+    for (const size of GRADE) {
+      const pieces = draftPiecesCm(
+        engineId,
+        tshirtSpec(),
+        SIZE_TABLE_MALE[size],
+        t,
+      );
+      for (const benchPiece of BENCHMARK_PIECES) {
+        const pieceId = pieceIds[benchPiece];
+        const piece = pieceId ? pieces.find((p) => p.id === pieceId) : null;
+        // A missing piece (e.g. collar declined by a future default change)
+        // is reported as a zeroed row rather than silently dropped, so the
+        // report's row count stays a constant, checkable number.
+        const ours = piece
+          ? measurePiece(piece)
+          : {
+              perimeterCm: 0,
+              areaCm2: 0,
+              rectilinearPerimeterCm: 0,
+              curvePerimeterCm: 0,
+              widthCm: 0,
+              heightCm: 0,
+            };
+        const benchmarkMetrics = (
+          benchmark.pieces as Record<
+            string,
+            { sizes: Record<string, PieceMetrics> }
+          >
+        )[benchPiece].sizes[size];
+        rows.push({
+          engine: engineId,
+          piece: benchPiece,
+          size,
+          ours,
+          benchmark: benchmarkMetrics,
+        });
+      }
     }
   }
 
@@ -186,14 +254,23 @@ beforeAll(() => {
     "test run, never hand-edited. No numeric delta here is a pass/fail gate; see",
     "the feature spec's Assumptions for why.",
     "",
+    "Scores every registered drafting engine (see `lib/draft/engine/registry.ts`)",
+    'on the same six metrics -- currently just "moldai". `perimeterCm`/`areaCm2`',
+    "are representation- and orientation-invariant and comparable across engines;",
+    "`rectilinearPerimeterCm`/`curvePerimeterCm` (how a curve/straight split is",
+    "represented) and `widthCm`/`heightCm` (bounding-box orientation) are not --",
+    "see docs/decisions/drafting.md. Our own drafter was fitted to this",
+    'benchmark; a future second engine was not, so an "ours is closer" reading',
+    "of any of these numbers is circular, not evidence of better fit.",
+    "",
     "Note on `collarBand` rows: this app drafts the band as a horizontal strip",
     "(widthCm = strip length, heightCm = band height); the benchmark's own export",
     "draws it rotated 90 degrees (widthCm = band height, heightCm = strip length).",
     "A rectangle's own orientation is arbitrary, so widthCm/heightCm read as swapped",
     "there -- compare perimeterCm/areaCm2 instead, which are orientation-invariant.",
     "",
-    "| Piece | Size | Metric | Ours | Benchmark | Delta |",
-    "| ----- | ---- | ------ | ---- | --------- | ----- |",
+    "| Engine | Piece | Size | Metric | Ours | Benchmark | Delta |",
+    "| ------ | ----- | ---- | ------ | ---- | --------- | ----- |",
   ];
   for (const row of rows) {
     for (const key of METRIC_KEYS) {
@@ -201,16 +278,28 @@ beforeAll(() => {
       const bench = row.benchmark[key];
       const delta = ours - bench;
       lines.push(
-        `| ${row.piece} | ${row.size} | ${key} | ${ours.toFixed(2)} | ${bench.toFixed(2)} | ${delta >= 0 ? "+" : ""}${delta.toFixed(2)} |`,
+        `| ${row.engine} | ${row.piece} | ${row.size} | ${key} | ${ours.toFixed(2)} | ${bench.toFixed(2)} | ${delta >= 0 ? "+" : ""}${delta.toFixed(2)} |`,
       );
     }
+  }
+  if (skipped.length > 0) {
+    lines.push(
+      "",
+      "## Engines not scored",
+      "",
+      "| Engine | Reason |",
+      "| ------ | ------ |",
+      ...skipped.map((s) => `| ${s.engine} | ${s.reason} |`),
+    );
   }
   writeFileSync(reportPath, lines.join("\n") + "\n");
 });
 
 describe("tshirt benchmark comparison", () => {
-  it("drafts and measures all 4 sizes x 4 pieces", () => {
-    expect(rows).toHaveLength(GRADE.length * Object.keys(PIECE_IDS).length);
+  it("drafts and measures every registered engine's 4 sizes x 4 pieces", () => {
+    expect(rows).toHaveLength(
+      ENGINE_IDS.length * GRADE.length * BENCHMARK_PIECES.length,
+    );
   });
 
   it("every row carries all 6 metrics for both ours and the benchmark", () => {
@@ -223,19 +312,32 @@ describe("tshirt benchmark comparison", () => {
     }
   });
 
-  it("writes a checked-in report covering every size x piece x metric row", () => {
+  // #267: an engine that can't be scored (no piece mapping, or a
+  // capability gap against the benchmark's own measurements) is reported
+  // with a stated reason, never silently absent from the report and never
+  // a thrown error that would fail every other engine's rows too.
+  it("reports a stated reason for any engine it could not score, never a silent skip", () => {
+    for (const s of skipped) {
+      expect(s.reason.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("writes a checked-in report covering every engine x size x piece x metric row", () => {
     const content = readReport();
     for (const row of rows) {
-      expect(content).toContain(`| ${row.piece} | ${row.size} |`);
+      expect(content).toContain(
+        `| ${row.engine} | ${row.piece} | ${row.size} |`,
+      );
     }
-    // 2 header/separator lines + 16 rows * 6 metrics
+    // 2 header/separator lines + one row per (engine x size x piece) * 6 metrics
     const tableLines = content
       .split("\n")
       .filter(
         (l) =>
           l.startsWith("| ") &&
-          !l.startsWith("| Piece") &&
-          !l.startsWith("| ---"),
+          !l.startsWith("| Engine |") &&
+          !l.startsWith("| ---") &&
+          !l.startsWith("| ------"),
       );
     expect(tableLines.length).toBe(rows.length * METRIC_KEYS.length);
   });
@@ -243,20 +345,19 @@ describe("tshirt benchmark comparison", () => {
   it("the report's 'ours' figures match what measurePiece independently computed for the same draft (round-trip, not a threshold)", () => {
     const content = readReport();
     const size = "M";
+    const engine = ENGINE_IDS[0];
+    const pieceIds = PIECE_IDS_BY_ENGINE[engine]!;
     const spec = tshirtSpec();
-    const pieces = draftPiecesCm(
-      DEFAULT_ENGINE_ID,
-      spec,
-      SIZE_TABLE_MALE[size],
-      t,
-    );
-    const front = pieces.find((p) => p.id === PIECE_IDS.front)!;
+    const pieces = draftPiecesCm(engine, spec, SIZE_TABLE_MALE[size], t);
+    const front = pieces.find((p) => p.id === pieceIds.front)!;
     const metrics = measurePiece(front);
     const line = content
       .split("\n")
-      .find((l) => l.startsWith(`| front | ${size} | perimeterCm |`));
+      .find((l) =>
+        l.startsWith(`| ${engine} | front | ${size} | perimeterCm |`),
+      );
     expect(line).toBeDefined();
-    const oursCell = line!.split("|")[4].trim();
+    const oursCell = line!.split("|")[5].trim();
     expect(Number(oursCell)).toBeCloseTo(metrics.perimeterCm, 1);
   });
 
