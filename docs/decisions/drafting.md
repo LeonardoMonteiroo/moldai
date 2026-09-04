@@ -246,3 +246,52 @@ for `tshirt`/`skirt`/`trousers` that no drafter reads for those types (`tshirt` 
 wearing ease is a fixed constant). `capability.test.ts` documents the three cases in a
 comment rather than "fixing" `NewPatternForm`'s rendered fields as a side effect of an
 unrelated issue.
+
+---
+
+## Registering GarmentCode as a second engine is declined for now, on every axis measured (#269)
+
+**Decided, evidence only — nothing built or registered.** Full numbers in
+`docs/reference/garmentcode-spike/README.md`, run against `pygarment==2.0.2` in a throwaway
+Docker container. Scope note, precise on purpose: this declines registering **GarmentCode**
+as a second engine **now**. It says nothing about FreeSewing, which is a separate, still-open
+question (#266) that the swappable-engine decision above did not resolve either — that entry
+declined a wholesale swap of our drafters, on cost, not the FreeSewing candidate itself.
+
+**Why the question came up at all.** #267 built the engine seam specifically so a candidate
+could be measured instead of argued about. GarmentCode (`maria-korosteleva/GarmentCode`,
+MIT, Python) is a different kind of candidate than FreeSewing: cross-language, so none of the
+"cheap because in-process" reasoning that made the FreeSewing spike affordable carries over.
+#269 asked for the cost to be measured before anyone proposed registering it.
+
+**What this cost, measured, and why it is worse on every axis than the FreeSewing question
+already declined.** Four independent findings, each sufficient on its own:
+
+1. **The engine seam can't host a subprocess/HTTP engine as written.** `DraftingEngine.draft`
+   is synchronous, and three `"use client"` components (`CanvasArea.tsx`, `VersionList.tsx`,
+   `VersionCompare.tsx`) call the facade inside `useMemo` during render. A cross-language
+   engine needs the seam changed twice — async, plus a client-redraw story — before an adapter
+   is even possible.
+2. **A GarmentCode draft has a measured ~2 s floor that does not amortize.** Median 1989.6 ms
+   warm, ~300x FreeSewing's measured 6.6 ms/draft, driven by `scipy.optimize.minimize` fitting
+   the sleeve cap — an iterative cost intrinsic to the design, not process-warmup noise. Against
+   `withPatternAndWallet`'s 30 s transaction budget (already spending 5–12 s on the Anthropic
+   call) and the facade's N+1-per-grade call pattern, a 4-size grade alone costs ~8 s of
+   GarmentCode time — a real risk of timing out the held Postgres lock.
+3. **The measurement-vocabulary gap is larger than FreeSewing's, and for a structural reason.**
+   ~15 new required inputs (vs. FreeSewing's ~7), because GarmentCode's body model is an
+   anthropometric/3D-pose vocabulary (line heights, inclination angles), not a tape-measure one.
+   `shoulder_incl` is confirmed degrees by source (`np.deg2rad`) against our cm-drop
+   `shoulderSlope` — the identical unit mismatch FreeSewing's `shoulderSlope` had, found
+   independently a second time.
+4. **The one scenario that could justify the cost doesn't hold.** GarmentCode has no coat,
+   jacket, lining, interfacing, or facing concept anywhere in its codebase (grep-confirmed,
+   zero matches) — it cannot cover the outerwear archetypes our drafters don't.
+
+**The honest close.** None of these four is close, and they are independent — even resolving
+the seam-sync problem leaves the other three standing. This is a firmer decline than the
+FreeSewing wholesale-swap question: that one turned on `SizeChartData` cost alone, against a
+candidate that was otherwise fast, in-process, and fit-competitive in places. GarmentCode is
+slow, cross-language, vocabulary-incompatible, and archetype-incapable at once. If any of
+these four facts changes — a faster fitting method ships upstream, or a coat/jacket body
+class is added — the question is worth re-measuring; nothing here forecloses that.
