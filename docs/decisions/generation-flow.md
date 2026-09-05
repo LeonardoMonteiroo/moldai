@@ -101,3 +101,63 @@ image where the dashboard form sends four). This reopens only if #252's eval har
 ships and gives us a way to actually test the unablated multiple-choice claim above.
 
 ---
+
+## `validateSpec`'s own substitutions get the same reporting channel `checkEngineSupport` already has (#250)
+
+**Decided and built.** `validateSpec` (`lib/draft/garment.ts`) is deliberately
+permissive — `pick()` swaps an unrecognized enum for a default, `clamp()` bounds
+every scalar — and until this issue, neither left any trace. `lib/ai/prompt.ts`
+already told the model to mention a clamp in its own `assistantMessage`, but that
+is honour-system: a model that hallucinated `collar: "peterPan"` would happily
+describe a Peter Pan collar in prose while `validateSpec` silently turned it into
+`"none"` and the drafter built no collar at all — charged at full price, and with
+nothing on screen to say so. `checkEngineSupport` (`lib/draft/engine/capability.ts`,
+#267) already solved the identical shape of problem for a different boundary —
+"an engine capability gap is reportable, never silently defaulted" — and the
+generate route already turns its `EngineGap[]` into `tone: "notice"` bubbles. This
+gives `validateSpec`'s own silent half the same channel.
+
+**Why a pure sibling, not a change to `validateSpec` itself.** The issue's own
+AC #4 required `validateSpec`'s signature and its three call sites
+(`lib/ai/decision.ts` ×2, `lib/ai/formSpec.ts`) to stay untouched — widening its
+return type would have forced every one of them (and every existing test) to
+handle a payload they don't need. `lib/draft/specAdjustments.ts`'s
+`describeSpecAdjustments(raw, validated)` is a pure, leaf-module diff instead —
+same discipline as `lib/draft/vocabulary.ts` and `capability.ts`: imports only
+types and the vocabulary catalogs, nothing from `garment.ts`.
+
+**Why the diff has to be computed inside `resolveDecision`, not the route.**
+`validateSpec` runs _inside_ `resolveDecision` — the route only ever sees
+`decision.spec`, the already-validated result. Both halves of the diff (the raw
+tool payload and the validated spec) exist together only at `resolveDecision`'s
+own return sites, so that's where `describeSpecAdjustments` is called; the result
+rides along as `AiDecision.adjustments`, optional and omitted when empty so every
+existing bare-object mock of `proposeGarment` in `route.test.ts` keeps typechecking
+unchanged.
+
+**Two scope calls, made deliberately narrow:**
+
+- **One notice bubble, not two.** A substitution and a clamp are structurally
+  distinct (`SpecAdjustment`'s own discriminated union keeps them apart), but both
+  say the same thing to the user — "this wasn't drafted exactly as asked" — so
+  they render as one `chat.specAdjusted` bubble listing every field, in the same
+  "one bubble per distinct kind of correction" shape the chart-substitution and
+  engine-gap notices already use.
+- **`measurementOverrides` stays out of this diff entirely.** `validateSpec` only
+  key/finite-filters an override (an unrecognized key or non-numeric value is
+  dropped, silently, same as before); the actual range clamp against
+  `MEASUREMENT_RANGES` happens one trust boundary later, in
+  `resolveMeasurements` (`lib/measurements.ts`) — folding that in here would mean
+  `specAdjustments.ts` re-deriving a boundary it does not own and reporting a
+  change `validateSpec` itself never made.
+
+**The route also has to filter, not just render.** `mergeFormSpec` re-applies the
+user's own explicit form choice over the model's inference, and the named chart's
+gender always wins over the model's — either can make the FINAL drafted spec no
+longer carry the value `validateSpec` substituted. Reporting a substitution that
+did not survive into the drafted geometry would be worse than the silence this
+issue closes: a stated correction the user cannot verify by looking at the
+result. The `apply` branch filters `decision.adjustments` against the
+post-merge, post-`chartGender` spec before rendering anything.
+
+---

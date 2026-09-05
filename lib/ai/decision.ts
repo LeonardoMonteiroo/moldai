@@ -1,5 +1,9 @@
 import type { GarmentSpec, ClarifyQuestion } from "@/lib/types";
 import { validateSpec, validateQuestions } from "@/lib/draft/garment";
+import {
+  describeSpecAdjustments,
+  type SpecAdjustment,
+} from "@/lib/draft/specAdjustments";
 import type { RawToolInput } from "./schema";
 
 export type Decision = "apply" | "decline" | "ask" | "explain";
@@ -15,6 +19,13 @@ export interface AiDecision {
   // doc (lib/ai/schema.ts) for why this needs to be a structured signal
   // rather than the route sniffing assistantMessage's text.
   assemblyOrder?: boolean;
+  // #250: every field validateSpec had to substitute a default for or
+  // clamp to a bound, computed here (the one place both the raw payload
+  // and the validated spec exist) via describeSpecAdjustments -- pure diff,
+  // validateSpec's own signature untouched. Optional and omitted entirely
+  // when empty, so a clean spec adds nothing to this object and every
+  // existing bare-literal AiDecision mock (route.test.ts) keeps typechecking.
+  adjustments?: SpecAdjustment[];
 }
 
 // Pure post-processing of the model's raw tool payload. Normalizes ask→apply
@@ -50,11 +61,14 @@ export function resolveDecision(
   if (input.decision === "ask" && !answering) {
     const questions = validateQuestions(input.questions);
     if (questions.length > 0) {
+      const spec = validateSpec(input.spec);
+      const adjustments = describeSpecAdjustments(input.spec, spec);
       return {
         decision: "ask",
-        spec: validateSpec(input.spec),
+        spec,
         questions,
         assistantMessage: message,
+        ...(adjustments.length > 0 ? { adjustments } : {}),
       };
     }
   }
@@ -73,9 +87,11 @@ export function resolveDecision(
   if (decision === "explain" && message.trim() === "") {
     throw new Error("decision=explain without an assistantMessage");
   }
+  const spec = validateSpec(input.spec);
+  const adjustments = describeSpecAdjustments(input.spec, spec);
   return {
     decision,
-    spec: validateSpec(input.spec),
+    spec,
     declineReason: input.declineReason,
     assistantMessage: message,
     // #138: only carried through for explain -- an apply/decline that
@@ -85,5 +101,6 @@ export function resolveDecision(
     ...(decision === "explain" && input.assemblyOrder === true
       ? { assemblyOrder: true }
       : {}),
+    ...(adjustments.length > 0 ? { adjustments } : {}),
   };
 }

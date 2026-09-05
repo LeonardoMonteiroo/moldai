@@ -967,6 +967,92 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(state.pattern.pieces.length).toBeGreaterThan(0);
   });
 
+  // #250: validateSpec (inside the real proposeGarment) already substituted
+  // a default for a field the model's raw payload could not honor;
+  // resolveDecision's own describeSpecAdjustments diff rides along on
+  // decision.adjustments. proposeGarment is mocked wholesale in this file,
+  // so these three cases construct that field directly, the same way the
+  // engine-gap tests above construct engineGaps' effects via the mocked spec.
+  it("adds a notice naming a field validateSpec substituted a default for", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: { collar: "none" },
+      },
+      assistantMessage: "Feito!",
+      adjustments: [
+        {
+          kind: "substituted",
+          field: "collar",
+          requested: "peterPan",
+          used: "none",
+        },
+      ],
+    });
+
+    const res = await POST(req({ message: "uma blusa" }), ctx());
+    expect(res.status).toBe(200);
+
+    const notice = state.chat.find((m) => m.tone === "notice");
+    expect(notice).toBeDefined();
+    expect(notice!.text).toBe("chat.specAdjusted");
+  });
+
+  it("adds no notice when the spec carried no adjustments", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Feito!",
+    });
+
+    await POST(req({ message: "uma blusa" }), ctx());
+
+    expect(state.chat.some((m) => m.tone === "notice")).toBe(false);
+  });
+
+  // The form's own explicit choice wins over the model's (PFORM-25) --
+  // reporting a substitution the drafted spec no longer actually carries
+  // would describe a correction that didn't survive.
+  it("suppresses the spec-adjustment notice when the form overrode the field", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: { collar: "none" },
+      },
+      assistantMessage: "Feito!",
+      adjustments: [
+        {
+          kind: "substituted",
+          field: "collar",
+          requested: "peterPan",
+          used: "none",
+        },
+      ],
+    });
+
+    await POST(
+      req({
+        message: "uma blusa",
+        formSpec: { type: "blouse", style: { collar: "shirt" } },
+      }),
+      ctx(),
+    );
+
+    expect(state.pattern.spec?.style.collar).toBe("shirt");
+    expect(state.chat.some((m) => m.tone === "notice")).toBe(false);
+  });
+
   // PFORM-28: a present-but-unusable formSpec is refused, never ignored.
   // validateSpec defaults an absent `type` to "blouse", so dropping the
   // field silently would merge that default over whatever garment the model
