@@ -650,6 +650,55 @@ describe("NewPatternForm — composed message", () => {
   });
 });
 
+// #269 Fase 5: the engine Select, and the type Select it gates.
+describe("NewPatternForm — engine selection", () => {
+  it("defaults to moldai and sends it alongside the rest of the submission", async () => {
+    const user = setup();
+    await submit(user);
+    expect(submitted!.engine).toBe("moldai");
+  });
+
+  it("disables a freesewing-only type under moldai, and enables it once freesewing is chosen", async () => {
+    const user = setup();
+    await user.click(screen.getByRole("combobox", { name: F.type }));
+    expect(
+      screen.getByRole("option", { name: tGarment("garmentType.coat") }),
+    ).toHaveAttribute("aria-disabled", "true");
+    await user.keyboard("{Escape}");
+
+    await choose(user, F.engine, tGarment("engine.freesewing"));
+    await user.click(screen.getByRole("combobox", { name: F.type }));
+    expect(
+      screen.getByRole("option", { name: tGarment("garmentType.coat") }),
+    ).not.toHaveAttribute("aria-disabled", "true");
+  });
+
+  it("never rewrites an already-chosen type when the engine changes -- it blocks submit and states the reason instead", async () => {
+    const user = setup();
+    await choose(user, F.engine, tGarment("engine.freesewing"));
+    await choose(user, F.type, tGarment("garmentType.coat"));
+
+    // Switching back to moldai (which does not draft "coat") must not
+    // silently revert the type field out from under the user.
+    await choose(user, F.engine, tGarment("engine.moldai"));
+
+    expect(screen.getByRole("combobox", { name: F.type })).toHaveTextContent(
+      tGarment("garmentType.coat"),
+    );
+    expect(
+      screen.getByText(ptBR.NewPatternForm.typeUnsupportedByEngine),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: t("submit") })).toBeDisabled();
+
+    // Switching back to a supporting engine clears the block.
+    await choose(user, F.engine, tGarment("engine.freesewing"));
+    expect(screen.getByRole("button", { name: t("submit") })).toBeEnabled();
+    await submit(user);
+    expect(submitted!.engine).toBe("freesewing");
+    expect(submitted!.formSpec.type).toBe("coat");
+  });
+});
+
 describe("NewPatternForm — submitting and failure", () => {
   // PFORM-07's form half.
   it("disables every control while the round trip is in flight", () => {

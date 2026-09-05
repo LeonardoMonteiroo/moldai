@@ -521,3 +521,42 @@ above the cuff) are a genuinely new construction concept this app has never mode
 own `draftPlacket` is a continuous-lap strip with no separate over/under pieces — and are
 deferred with an "em breve" note on the sleeve's own detail row, the same discipline every
 prior deferral (Hugo's pocket/neck-binding, Jett's lining) already establishes.
+
+## Fase 5: the engine becomes a real, user-facing choice, not just an internal registration (#269)
+
+With all seven `GarmentType`s wired, `freesewing` was still completely unreachable from the real
+app: `POST /api/patterns/[id]/generate` unconditionally froze every pattern's first draft on
+`DEFAULT_ENGINE_ID`. Fixing that touches more than the form — the AI call itself picks its tool
+schema/prompt section off `engineFor(state.pattern.engine)` (`lib/ai/index.ts`), and a fresh
+pattern has no frozen engine yet to read, so the choice has to be known _before_ `proposeGarment`
+runs, not only before the size-chart snapshot. Otherwise a first-time request for a
+freesewing-only type (e.g. "coat") would still get the moldai tool schema, whose type enum
+doesn't even include it.
+
+Shipped: `NewPatternForm` gained an engine `Select` (reading both `MOLDAI_CAPABILITY` and
+`FREESEWING_CAPABILITY` from the leaf `capability.ts`, never the heavy `registry.ts`), sent as
+`engine` on the pattern's first `generate` call. The route narrows it via `isEngineId` (rejecting
+a present-but-unrecognized value with `invalid_engine` before any lock/debit, the same
+discipline `formSpec`/`sizeChartId` already follow), then — on `isFirstDraft` — sets
+`state.pattern.engine` right there, before the AI call, so `proposeGarment` already sees it. The
+later size-chart snapshot (`seedPatternSizeSnapshot`) reads the same already-set value back
+(`engineFor(state.pattern.engine)`) rather than a second, independently-defaulted one.
+
+**A real, caught-before-shipping consequence**: this means `Pattern.engine` can now freeze a
+turn or more _before_ `sizeTable`/`sizeChartName` do — e.g. on an `ask` (clarify) turn, since
+`withPatternAndWallet`'s own `dirty` default persists `state` on every branch except the
+insufficient-credits early return. A migration-safety review confirmed this is harmless in
+practice (only `createFromForm` ever sends `engine`, and only on this pattern's first `generate`
+call, so the gate fires at most once per pattern regardless of which turn drafts first) and is
+now stated plainly in `Pattern.engine`'s own doc comment (`lib/types.ts`) rather than left to
+contradict the code. A regression test pins it: the engine freezes even on an `ask` turn, and a
+later turn on the same still-undrafted pattern — with no `engine` resent — keeps seeing it.
+
+**A UI judgment call, reviewed and settled**: switching the engine can leave the currently
+chosen garment type unsupported by the new one. The first draft auto-reset `type` back to
+"blouse" silently; a conventions review flagged this as fighting the repo's own "disabled +
+badged, never silently changed" precedent (`type` is a permanently-visible top-level `Select`,
+unlike the style fields `changeType` already silently drops, which simply disappear from the DOM
+when inapplicable). Changed to the more consistent shape: the type `Select` keeps whatever was
+chosen (still disabled+titled per option), and submit is blocked with the same on-screen reason
+until the type and engine agree again.

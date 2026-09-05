@@ -252,6 +252,7 @@ describe("dashboardStore.createFromForm", () => {
     },
     sizeChartId: "sc1",
     images: [{ mediaType: "image/jpeg", base64: "AAAA" }],
+    engine: "moldai",
   };
 
   beforeEach(() => {
@@ -286,6 +287,7 @@ describe("dashboardStore.createFromForm", () => {
         formSpec: input.formSpec,
         sizeChartId: "sc1",
         images: input.images,
+        engine: "moldai",
       },
     );
     expect(useDashboardStore.getState().actionError).toBeNull();

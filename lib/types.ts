@@ -405,10 +405,20 @@ export interface Pattern {
    */
   sizeChartName?: string;
   /**
-   * #267: which drafting engine this pattern was drafted with, frozen at
-   * the first generation alongside `sizeTable`/`sizeChartName` -- the same
-   * reason: switching the app's default engine must not silently redraw an
-   * existing pattern's geometry on its next regeneration.
+   * #267: which drafting engine this pattern was drafted with, frozen no
+   * later than the first generation alongside `sizeTable`/`sizeChartName`
+   * -- the same reason: switching the app's default engine must not
+   * silently redraw an existing pattern's geometry on its next
+   * regeneration.
+   *
+   * #269 Fase 5: the new-pattern form's own engine choice can freeze this
+   * a turn or more BEFORE that -- the generate route sets it as soon as
+   * it knows this is the pattern's first-ever `generate` call (so the AI
+   * call itself already sees the right engine's tool schema), which can
+   * land on an `ask`/`decline`/`explain` turn that drafts nothing yet.
+   * Either way it is set at most once per pattern and never changes again
+   * once `pieces.length > 0` -- `state.test.ts`'s own "never changes an
+   * already-frozen pattern.engine" contract still holds.
    *
    * Optional because patterns drafted before this existed simply do not
    * carry it (an additive blob key, so no reset migration) -- absent means

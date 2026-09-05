@@ -8,6 +8,7 @@ import type {
 } from "./api-client";
 import type { Credits, GarmentSpec, GarmentType } from "./types";
 import type { PreparedAttachment } from "./editor/attachment";
+import type { EngineId } from "./draft/engine/capability";
 
 export type TypeFilter = GarmentType | "all";
 
@@ -25,6 +26,8 @@ export interface NewPatternFormInput {
   /** Null when the chart list could not be loaded -- the account's active chart is then used. */
   sizeChartId: string | null;
   images: PreparedAttachment[];
+  /** #269 Fase 5: the form's own engine Select choice. */
+  engine: EngineId;
 }
 
 /**
@@ -146,6 +149,7 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
         // active chart", which is what a failed chart fetch falls back to.
         sizeChartId: input.sizeChartId ?? undefined,
         images: input.images,
+        engine: input.engine,
       });
       if (result.status === "insufficient_credits") {
         // pendingPatternId deliberately survives: buying credits and

@@ -435,7 +435,8 @@
     "chipSizeChart": "Grade usada",
     "chipEngine": "Motor de modelagem",
     "engine": {
-      "moldai": "MoldAI"
+      "moldai": "MoldAI",
+      "freesewing": "FreeSewing"
     },
     "dimensionsLabel": "Dimensões (larg × alt)",
     "noDetails": "Sem detalhes.",
@@ -1053,10 +1054,12 @@
     "chartLoading": "Carregando…",
     "chartLoadFailed": "Não foi possível carregar as tabelas de medidas. O molde vai usar a grade ativa da conta.",
     "chartGenderNote": "A tabela escolhida define se o molde é traçado no bloco feminino ou masculino.",
+    "engineNote": "Define quais tipos de peça o molde pode traçar. Fica fixo depois do primeiro molde gerado.",
     "typeUnsupportedByEngine": "O motor de modelagem atual ainda não traça este tipo de peça.",
     "buyCreditsLink": "Comprar créditos",
     "field": {
       "name": "Nome do molde",
+      "engine": "Motor de modelagem",
       "type": "Tipo de peça",
       "sizeChart": "Tabela de medidas",
       "neckline": "Decote",

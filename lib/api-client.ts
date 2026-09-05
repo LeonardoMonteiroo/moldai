@@ -20,6 +20,7 @@ import type { SharedErrorCode } from "./api/errors";
 import type { PreparedAttachment } from "./editor/attachment";
 import type { PaidPlanId } from "./billing/plans";
 import type { ExportPreset } from "./export/preset";
+import type { EngineId } from "./draft/engine/capability";
 
 export type GenerateResult =
   | {
@@ -287,6 +288,14 @@ export interface GenerateOptions {
   sizeChartId?: string;
   /** Client-computed metadata from a DXF import reconstruction (#238). */
   importContext?: string;
+  /**
+   * #269 Fase 5: the new-pattern form's own engine choice, honored only on
+   * this pattern's first-ever draft (the route silently ignores it once
+   * `Pattern.engine` is already frozen) -- an `EngineId`, not a plain
+   * `string`, since the form itself is the only caller and always sends a
+   * value from its own fixed engine Select.
+   */
+  engine?: EngineId;
 }
 
 export function generate(
@@ -318,6 +327,7 @@ export function generate(
       formSpec: opts?.formSpec,
       sizeChartId: opts?.sizeChartId,
       importContext: opts?.importContext,
+      engine: opts?.engine,
     },
     PAYWALL,
   );

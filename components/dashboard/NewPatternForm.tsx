@@ -20,12 +20,18 @@ import {
   STYLE_FIELDS_BY_TYPE,
   type FormStyleField,
 } from "@/lib/draft/formFields";
-// #267: MOLDAI_CAPABILITY directly, not lib/draft/engine/registry -- this
-// form always creates against DEFAULT_ENGINE_ID (a pattern has no frozen
-// engine yet to read), and the registry is a HEAVY module (it imports
-// moldai.ts -> garment.ts -> every drafter). capability.ts is the leaf
-// half specifically so a client bundle never has to pay for that.
-import { MOLDAI_CAPABILITY } from "@/lib/draft/engine/capability";
+// #267/#269 Fase 5: MOLDAI_CAPABILITY/FREESEWING_CAPABILITY directly, not
+// lib/draft/engine/registry -- this form reads BOTH capabilities to render
+// the engine Select and gate the type Select by whichever one is chosen,
+// and the registry is a HEAVY module (it imports moldai.ts -> garment.ts ->
+// every drafter, plus every freesewing design wrapper). capability.ts is
+// the leaf half specifically so a client bundle never has to pay for that.
+import {
+  MOLDAI_CAPABILITY,
+  FREESEWING_CAPABILITY,
+  ENGINE_IDS,
+  type EngineId,
+} from "@/lib/draft/engine/capability";
 import {
   prepareImage,
   MAX_ATTACHMENT_COUNT,
@@ -75,14 +81,25 @@ import {
  * dialog switches steps around this component instead of unmounting it.
  *
  * Three foreign namespaces, each a single-source reuse rather than a second
- * copy of the same display text: `TechSheetTab` owns the five garment-type
- * labels (the `PatternGrid` precedent), `AttachmentChips` owns the
+ * copy of the same display text: `TechSheetTab` owns the garment-type labels
+ * (the `PatternGrid` precedent) AND the per-engine labels (`engine.moldai`/
+ * `engine.freesewing`, the same catalog `TechSheetTab`'s own chipEngine row
+ * resolves through), `AttachmentChips` owns the
  * per-`AttachmentErrorCode` messages and the photo row's labels, and
  * `MessageInput` owns the credit-count plural.
  */
 
 /** Radix cannot hold an empty string as a select value, so "the user left this to the AI" needs a real sentinel. It is never sent. */
 const AUTO = "auto";
+
+// #269 Fase 5: keyed by EngineId, the same "which capability gates the
+// type Select" lookup lib/ai/schema.ts's/prompt.ts's own per-engine build
+// already establishes -- ENGINE_IDS itself, not a hand-picked pair, so a
+// third registered engine reaches this form for free.
+const CAPABILITY_BY_ENGINE = {
+  moldai: MOLDAI_CAPABILITY,
+  freesewing: FREESEWING_CAPABILITY,
+} as const satisfies Record<EngineId, typeof MOLDAI_CAPABILITY>;
 
 /**
  * The option list per style field, keyed off the same exported enums the
@@ -127,6 +144,7 @@ export function NewPatternForm({
   const tCredit = useTranslations("MessageInput");
 
   const [name, setName] = useState("");
+  const [engine, setEngine] = useState<EngineId>("moldai");
   const [type, setType] = useState<GarmentType>("blouse");
   const [style, setStyle] = useState<Partial<Record<FormStyleField, string>>>(
     {},
@@ -193,6 +211,10 @@ export function NewPatternForm({
     );
   }
 
+  function changeEngine(next: string) {
+    setEngine(next as EngineId);
+  }
+
   async function pickPhotos(files: FileList | null) {
     if (!files) return;
     setPhotoError(null);
@@ -247,12 +269,23 @@ export function NewPatternForm({
       formSpec,
       sizeChartId,
       images: photos,
+      engine,
     });
   }
 
   const errorMessage = errorCode
     ? t(`errors.${KNOWN_ERRORS.includes(errorCode) ? errorCode : "fallback"}`)
     : null;
+  // #269 Fase 5: switching the engine can leave the currently chosen type
+  // unsupported by the new one (e.g. "coat" was only reachable under
+  // freesewing). Rather than silently rewriting `type` out from under the
+  // user, the type Select keeps whatever was chosen (disabled+title on
+  // its own option, CLAUDE.md's "disabled+badged over hidden/silently
+  // changed") and submit is blocked with the SAME reason stated on screen,
+  // the same notice/disable-submit shape `errorMessage` above already
+  // uses for a failed server round trip.
+  const typeSupportedByEngine =
+    CAPABILITY_BY_ENGINE[engine].types.includes(type);
 
   return (
     <div className="flex flex-col gap-[18px]">
@@ -283,6 +316,37 @@ export function NewPatternForm({
         </Field>
 
         <Field>
+          <FieldLabel htmlFor="nm-engine">{t("field.engine")}</FieldLabel>
+          <FieldContent>
+            <Select
+              value={engine}
+              onValueChange={changeEngine}
+              disabled={submitting}
+            >
+              <SelectTrigger
+                id="nm-engine"
+                className="w-full"
+                aria-describedby="nm-engine-note"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {ENGINE_IDS.map((id) => (
+                    <SelectItem key={id} value={id}>
+                      {tGarment(`engine.${id}`)}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            <FieldDescription id="nm-engine-note">
+              {t("engineNote")}
+            </FieldDescription>
+          </FieldContent>
+        </Field>
+
+        <Field>
           <FieldLabel htmlFor="nm-type">{t("field.type")}</FieldLabel>
           <FieldContent>
             <Select
@@ -296,13 +360,12 @@ export function NewPatternForm({
               <SelectContent>
                 <SelectGroup>
                   {TYPES.map((gt) => {
-                    // #267: never hide an unsupported type -- CLAUDE.md's
+                    // #267/#269: never hide an unsupported type -- CLAUDE.md's
                     // "prefer showing an option disabled+badged over hiding
-                    // it." Unreachable today (the one registered engine
-                    // supports every TYPES member), but structural: a future
-                    // engine with a narrower capability disables here
-                    // without a second place to update.
-                    const supported = MOLDAI_CAPABILITY.types.includes(gt);
+                    // it." Gated by whichever engine is currently chosen
+                    // above, not a single hardcoded capability.
+                    const supported =
+                      CAPABILITY_BY_ENGINE[engine].types.includes(gt);
                     return (
                       <SelectItem
                         key={gt}
@@ -481,6 +544,17 @@ export function NewPatternForm({
         </Field>
       </div>
 
+      {!typeSupportedByEngine && (
+        // Same amber-notice shape as the server-error case below -- blocking
+        // submit is what keeps a real request from ever naming a type/engine
+        // combination the generate route would just refuse anyway, and the
+        // reason is the SAME catalog text the type Select's own disabled
+        // option already carries as its `title`.
+        <p role="alert" className="text-amber-text text-ui">
+          {t("typeUnsupportedByEngine")}
+        </p>
+      )}
+
       {errorMessage && (
         // Amber `notice`, not the red alert token: a failed mutation on a
         // screen that is otherwise fine. The link is what makes the store's
@@ -514,7 +588,11 @@ export function NewPatternForm({
         >
           {t("back")}
         </Button>
-        <Button size="sm" onClick={submit} disabled={submitting}>
+        <Button
+          size="sm"
+          onClick={submit}
+          disabled={submitting || !typeSupportedByEngine}
+        >
           {submitting ? t("submitting") : t("submit")}
         </Button>
       </div>

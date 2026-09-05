@@ -1445,4 +1445,140 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(res.status).toBe(503);
     expect((await res.json()).error).toBe("service_unavailable");
   });
+
+  // #269 Fase 5: the new-pattern form's own engine Select.
+  describe("engine selection", () => {
+    it("refuses a present, unrecognized engine before any lock or debit", async () => {
+      const balanceBefore = wallet.balance;
+      const res = await POST(
+        req({ message: "um casaco", engine: "photoshop" }),
+        ctx(),
+      );
+      expect(res.status).toBe(400);
+      expect((await res.json()).error).toBe("invalid_engine");
+      expect(mockPropose).not.toHaveBeenCalled();
+      expect(wallet.balance).toBe(balanceBefore);
+    });
+
+    it("freezes the chosen engine on this pattern's first draft, and the AI call already sees it", async () => {
+      let engineSeenByAi: string | undefined;
+      mockPropose.mockImplementation(async (s: PatternState) => {
+        engineSeenByAi = s.pattern.engine;
+        return {
+          decision: "apply",
+          spec: {
+            type: "coat",
+            gender: "female",
+            measurementOverrides: {},
+            style: {},
+          },
+          assistantMessage: "Pronto",
+        };
+      });
+
+      await POST(req({ message: "um casaco", engine: "freesewing" }), ctx());
+
+      // Set before proposeGarment ran, not only afterward by
+      // seedPatternSizeSnapshot -- a fresh freesewing-only request (e.g.
+      // "coat") needs the RIGHT tool schema, not the moldai default's.
+      expect(engineSeenByAi).toBe("freesewing");
+      expect(state.pattern.engine).toBe("freesewing");
+    });
+
+    it("defaults to moldai when no engine is sent, same as every other engineFor call site", async () => {
+      mockPropose.mockResolvedValue({
+        decision: "apply",
+        spec: {
+          type: "blouse",
+          gender: "female",
+          measurementOverrides: {},
+          style: {},
+        },
+        assistantMessage: "Pronto",
+      });
+
+      await POST(req({ message: "uma blusa" }), ctx());
+
+      expect(state.pattern.engine).toBe("moldai");
+    });
+
+    it("never changes an already-frozen engine, even if a later request sends a different one", async () => {
+      // Pre-drafted with a frozen engine, so pieces.length > 0 and
+      // state.pattern.engine is already set before this request's own apply.
+      state.pattern = {
+        ...state.pattern,
+        engine: "moldai",
+        pieces: [
+          {
+            id: "x",
+            name: "x",
+            qty: 1,
+            outline: { kind: "polygon", points: "0,0" },
+            label: { x: 0, y: 0 },
+            detailRows: [],
+          },
+        ],
+      };
+      mockPropose.mockResolvedValue({
+        decision: "apply",
+        spec: {
+          type: "blouse",
+          gender: "female",
+          measurementOverrides: {},
+          style: {},
+        },
+        assistantMessage: "Pronto",
+      });
+
+      await POST(
+        req({ message: "ajusta a cava", engine: "freesewing" }),
+        ctx(),
+      );
+
+      expect(state.pattern.engine).toBe("moldai");
+    });
+
+    // migration-safety review of this change: the isFirstDraft/engine
+    // mutation runs BEFORE proposeGarment, i.e. before the switch on
+    // decision.decision -- so it lands (and, via withPatternAndWallet's
+    // own `dirty` default, gets saved) on an "ask" turn too, not only on
+    // "apply". That is deliberate (only createFromForm ever sends
+    // `engine`, and it does so on this pattern's first-ever generate call
+    // regardless of what the model decides), but it does mean the engine
+    // can freeze a turn or more before sizeTable/sizeChartName do -- see
+    // lib/types.ts's own updated Pattern.engine doc comment.
+    it("freezes the chosen engine even on an 'ask' turn, before any piece is ever drafted", async () => {
+      mockPropose.mockResolvedValue({
+        decision: "ask",
+        spec: {
+          type: "coat",
+          gender: "female",
+          style: {},
+          measurementOverrides: {},
+        },
+        questions: [{ id: "q0", label: "Manga", options: ["curta", "longa"] }],
+        assistantMessage: "Me conta mais:",
+      });
+
+      await POST(req({ message: "um casaco", engine: "freesewing" }), ctx());
+
+      expect(state.pattern.engine).toBe("freesewing");
+      expect(state.pattern.pieces).toHaveLength(0);
+
+      // A later turn on the SAME (still-undrafted) pattern, with no engine
+      // sent this time, keeps seeing the value the first turn already set.
+      mockPropose.mockResolvedValue({
+        decision: "apply",
+        spec: {
+          type: "coat",
+          gender: "female",
+          style: {},
+          measurementOverrides: {},
+        },
+        assistantMessage: "Pronto",
+      });
+      await POST(req({ message: "manga longa" }), ctx());
+      expect(state.pattern.engine).toBe("freesewing");
+    });
+  });
 });

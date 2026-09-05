@@ -131,6 +131,11 @@ export const GenerateBodySchema = z.object({
   importContext: z.unknown().optional(),
   formSpec: z.unknown().optional(),
   sizeChartId: z.unknown().optional(),
+  // #269 Fase 5: the engine the NEW-PATTERN FORM's own Select chose, honored
+  // only on this pattern's first-ever draft (the route narrows it via
+  // isEngineId, the real trust boundary -- z.unknown() here for the same
+  // reason every other field above stays untyped at the schema layer).
+  engine: z.unknown().optional(),
 });
 
 // graduate: `sizes` is read with `Array.isArray(body.sizes) ? body.sizes :

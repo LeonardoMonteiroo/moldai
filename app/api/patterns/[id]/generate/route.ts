@@ -17,8 +17,8 @@ import {
 } from "@/lib/editor/state";
 import { debitWallet, refundWallet } from "@/lib/billing/wallet";
 import {
-  DEFAULT_ENGINE_ID,
   engineFor,
+  isEngineId,
   checkEngineSupport,
 } from "@/lib/draft/engine/capability";
 import { getEngine } from "@/lib/draft/engine/registry";
@@ -125,6 +125,22 @@ export async function POST(request: Request, { params }: Ctx) {
     typeof body.sizeChartId === "string" && body.sizeChartId
       ? body.sizeChartId
       : null;
+  // #269 Fase 5: the engine the new-pattern form's own Select chose. Read
+  // tolerantly when absent (undefined resolves through engineFor to the
+  // account's default engine, same as every other engineFor call site), but
+  // a PRESENT, unrecognized value is refused before any lock/debit -- the
+  // same discipline formSpec above already follows, rather than silently
+  // falling back to the default and drafting an engine the caller never
+  // asked for. Only actually applied inside the transaction below, and only
+  // on this pattern's first-ever draft: state.pattern.engine, once frozen,
+  // never changes again (seedPatternSizeSnapshot's own contract) -- a value
+  // sent on a later regenerate request is simply not read, the same
+  // "unreachable from the real UI" shape sizeChartId's own isFirstDraft gate
+  // already has.
+  if (body.engine !== undefined && !isEngineId(body.engine)) {
+    return apiError("invalid_engine", 400);
+  }
+  const requestedEngine = isEngineId(body.engine) ? body.engine : undefined;
   // The drafted gender comes from the chosen chart, never from a client
   // field: one source of truth, and it makes the chart/gender mismatch that
   // pickSizeChartForGeneration's substitution path exists to report
@@ -228,6 +244,22 @@ export async function POST(request: Request, { params }: Ctx) {
         // the AI call; only the chargeable branches (explain, apply) below
         // now debit at all -- no ledger rows are written for ask/decline.
         const entries: LedgerEntry[] = [];
+
+        // #16: pieces.length === 0 right here is "this is the pattern's
+        // first-ever draft" -- computed before the AI call (not just before
+        // applyGarmentSpec further down) because proposeGarment's own
+        // engineFor(state.pattern.engine) read (lib/ai/index.ts) has to see
+        // the CHOSEN engine already, or a fresh freesewing-only request
+        // (e.g. "coat") would get the moldai tool schema's narrower type
+        // enum. Set here, once, on first draft only -- state.pattern.engine,
+        // once frozen, never changes again (seedPatternSizeSnapshot's own
+        // contract) -- from the SAME requestedEngine value
+        // seedPatternSizeSnapshot below freezes with a few lines later: one
+        // source read twice, not two competing writes.
+        const isFirstDraft = state.pattern.pieces.length === 0;
+        if (isFirstDraft && requestedEngine) {
+          state.pattern = { ...state.pattern, engine: requestedEngine };
+        }
 
         try {
           const decision = await proposeGarment(state, {
@@ -346,11 +378,10 @@ export async function POST(request: Request, { params }: Ctx) {
               // be passed over, so it is the only moment there is a
               // substitution to report.
               let substitutedFrom: string | null = null;
-              // #16: pieces.length === 0 right here is also "this is the
-              // pattern's first-ever draft" -- captured before
-              // applyGarmentSpec mutates it, so the version snapshot below
-              // gets the right reason code.
-              const isFirstDraft = state.pattern.pieces.length === 0;
+              // isFirstDraft was already computed (and, if requestedEngine
+              // was sent, already applied to state.pattern.engine) before
+              // the AI call above -- reused here rather than recomputed,
+              // since nothing between there and here can add a piece.
               if (isFirstDraft) {
                 const { chart, rejectedActiveName } =
                   await getSizeChartForGeneration(
@@ -360,7 +391,15 @@ export async function POST(request: Request, { params }: Ctx) {
                     tCharts,
                     sizeChartId,
                   );
-                seedPatternSizeSnapshot(state, chart, DEFAULT_ENGINE_ID);
+                // engineFor(state.pattern.engine) resolves to whatever was
+                // just set above (requestedEngine) or the account default if
+                // none was sent -- the SAME value the AI call already used,
+                // never a second, independently-defaulted one.
+                seedPatternSizeSnapshot(
+                  state,
+                  chart,
+                  engineFor(state.pattern.engine),
+                );
                 substitutedFrom = rejectedActiveName;
               }
               // #267: checkEngineSupport narrows the already-validated spec
