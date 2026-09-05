@@ -51,7 +51,8 @@ Newest entry on top of its file.
 
 Only topic files that actually exist are listed here.
 
-| File                 | Covers                                                         |
-| -------------------- | -------------------------------------------------------------- |
-| [infra.md](infra.md) | Hooks, dev-stack, and tooling gotchas not documented elsewhere |
-| [INBOX.md](INBOX.md) | Learnings that don't map to a topic file yet                   |
+| File                       | Covers                                                         |
+| -------------------------- | -------------------------------------------------------------- |
+| [infra.md](infra.md)       | Hooks, dev-stack, and tooling gotchas not documented elsewhere |
+| [drafting.md](drafting.md) | `lib/draft/*`, FreeSewing engine/design-wrapper gotchas        |
+| [INBOX.md](INBOX.md)       | Learnings that don't map to a topic file yet                   |

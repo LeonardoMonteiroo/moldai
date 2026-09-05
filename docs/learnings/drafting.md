@@ -1,0 +1,37 @@
+# Drafting engine
+
+## 2026-09-05 — a design's own required-measurement list is a static property, don't guess it from the name overlap
+
+- **Symptom** — tempting to map a new FreeSewing design's measurements onto `Measurements` by eyeballing its `measurements.mjs`/option files and pattern-matching names, then hoping the union is complete.
+- **What's actually true** — every design class exposes `Design.patternConfig.measurements` (required, an array of upstream measurement names) and `Design.patternConfig.optionalMeasurements`, e.g. `Simon.patternConfig.measurements` — confirmed live in a scratch test (`JSON.stringify(Simon.patternConfig.measurements)`), not read from source.
+- **Do this instead** — dump `<Design>.patternConfig.measurements`/`.optionalMeasurements` from a real instantiated import before writing the `toXMeasurementsMm` mapping function. It is the ground truth `FREESEWING_REQUIRED_MEASUREMENTS`'s own doc comments in `lib/draft/engine/capability.ts` are built from, and it catches a design needing a key you didn't expect (or NOT needing one you assumed it would) before any code is written.
+
+## 2026-09-05 — a design's own `paths.seam` is sometimes a half-panel, sometimes already the whole piece — check the source, not the shape
+
+- **Symptom** — assuming every front/back-style part needs `mirrorFoldedPanel` (`lib/draft/engine/freesewing/geometry.ts`) because Teagan's/Diana's do.
+- **What's actually true** — a design can perform its OWN internal fold-mirror before ever setting `paths.seam`, via `macro('mirror', {...paths: [...], clone: true})` followed by `.join(mirroredX.reverse())` — Simon's `yoke.mjs` does exactly this. In that case `paths.seam` is already the full, closed, both-sides outline; running it through `mirrorFoldedPanel` again would double it.
+- **Do this instead** — read the actual part's `.mjs` source for a `macro('mirror'` or `flipPlugin`/`macro('flip')` call before assuming a part is a half. If the design already merges both sides into one `Path` object, just `flattenFreesewingSeam` it directly.
+
+## 2026-09-05 — a named point can be stale: correct value at path-build time, reassigned later by a different part sharing the same `points` object
+
+- **Symptom** — `locatePointIndex` throws "no outline vertex within tolerance" for a point that looks like the right name (e.g. `points.cbNeck`, `points.shoulder`) on a part whose outline was clearly built using that exact point.
+- **What's actually true** — FreeSewing parts inherited via `from:` (or drafted from a shared base like Brian) share ONE mutable `points` object across the whole pattern. A point used to build an EARLIER part's path can be silently REASSIGNED to a new coordinate by a LATER-drafted part in the same pattern — by the time you read `part.points.cbNeck` after `pattern.draft()` finishes, you may be looking at the later part's value, not the one the outline was actually built from. Confirmed on Jett's `back` part: `s3CollarSplit`/`s3ArmholeSplit`/`"shoulder"`/`"cbShoulder"` all resolved to coordinates that matched nothing on the live-drafted outline.
+- **Do this instead** — when a plausible-looking named point doesn't locate, don't assume the OUTLINE is wrong; dump the point's OWN coordinate right next to the outline's own vertex list and compare by eye. If they never match, declare the boundary a different way (sum an unsplit combined edge, as `jett.ts`'s `buildBack` does for `shoulderNeckline`) rather than force a split on an unverifiable point.
+
+## 2026-09-05 — a pitch/notch point is not a boundary point, even when its name suggests it is
+
+- **Symptom** — using `armholePitch`/`frontArmholePitch` as the shoulder-tip end of an armhole edge produces an armhole ~half the length the sleeve's own cap measures (a huge, implausible gap).
+- **What's actually true** — `armholePitch` is a construction NOTCH partway along the armhole curve (a sewing-alignment mark), not the true armhole-to-shoulder transition. The real boundary is `s3ArmholeSplit` (Jett) / the point matching Brian's own `shoulder` — verified by dumping every named point's resolved index in the relevant range and comparing coordinates directly against the flattened outline, not by trusting the name.
+- **Do this instead** — when an armhole/cap or similar pairing comes out implausible (way more than double, or half, the expected length), suspect a notch-vs-boundary mixup before suspecting the sleeve. Dump indices for every candidate point name in that neighborhood and pick by coordinate match, not by which name sounds right.
+
+## 2026-09-05 — two undeclared dependencies, and a `repository` field that doesn't resolve
+
+- **Symptom** — `import { Teagan } from "@freesewing/teagan"` (or any design package) throws `ERR_MODULE_NOT_FOUND` deep in FreeSewing's own internals, even though the design package itself installed fine.
+- **What's actually true** — every `@freesewing/*` design package has two REAL peer dependencies npm does not surface as install errors: `@freesewing/plugin-transform` and `@freesewing/config`. Missing either produces the `ERR_MODULE_NOT_FOUND` above, not a clear "missing peer dependency" warning. Separately, every FreeSewing package's own `package.json` sets `"repository": "codeberg:freesewing/freesewing"`, a shorthand `npm repo`/provenance tooling cannot resolve — harmless to the app itself, but confusing if you go looking for the source via `npm repo @freesewing/simon`.
+- **Do this instead** — when adding a new design package, always `npm install @freesewing/<design>@4.10.1 @freesewing/plugin-transform@4.10.1 @freesewing/config@4.10.1 --save-exact` (or confirm the first two are already pinned in `package.json` from an earlier design) rather than installing just the design package and debugging the import failure from scratch. Don't waste time chasing `npm repo`/provenance failures on these packages — expected, not a sign of a broken install.
+
+## 2026-09-05 — `expand` is a draft-time SETTING, not a per-part option, and defaults to `true`
+
+- **Symptom** — assuming a design part that looks "hidden by default" in FreeSewing's own web app (a pocket, a hood lining) won't appear in a live `pattern.draft()` call unless some option enables it.
+- **What's actually true** — `expand` is a top-level `Design` draft SETTING in the installed `@freesewing/core@4.10.1`, and it defaults to `true`. Every part is visible by default; a part is hidden only if the design explicitly sets `expand: false` or the part itself calls `hidePresets`/similar. Confirmed empirically across every design wrapped so far (Hugo, Jett, Simon) — no wrapper in this repo ever had to touch `expand`.
+- **Do this instead** — don't assume a part needs an option flip to appear; dump `Object.keys(pattern.parts[0])` and `part.paths.seam.ops.length` directly (the `_scratch.test.ts` pattern every design wrapper in this session used) to see what's actually drafted before writing any option-mapping code.
