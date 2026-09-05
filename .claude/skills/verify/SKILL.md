@@ -1,7 +1,6 @@
 ---
 name: verify
-description: Run this repo's full verification sequence — vitest, scoped eslint, and next build — and report the actual output of all three. User-invoked with /verify; run it before treating work as complete or ready to commit.
-disable-model-invocation: true
+description: Run this repo's full verification sequence — vitest, scoped eslint, and next build — and report the actual output of all three. Use at the end of any non-trivial task (a feature, a multi-file change, a bug fix spanning more than one file) before declaring the work done or ready to commit — also invocable with /verify. Do not use mid-task for a quick sanity check on a single file; scope vitest/eslint to that file instead.
 ---
 
 # Verify
