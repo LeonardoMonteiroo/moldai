@@ -19,3 +19,85 @@
 - Costs exactly `COSTS.adjust`, identical to a text-only message — one `propose_garment` call either way.
 
 ---
+
+## Design2GarmentCode mined for technique, not adopted; one gap it surfaced closed (#270 → #261)
+
+**Decided and built.** #270 asked whether Design2GarmentCode (CVPR 2025, Style3D,
+research code built on GarmentCode) — a published system solving the same shape of
+problem (LMM produces a structured parameter set, a deterministic drafter consumes it) —
+surfaces anything actionable for our prompt design, structured-output validation, or the
+attachment/vision path. Full evidence: [`docs/reference/design2garmentcode-spike/README.md`](../reference/design2garmentcode-spike/README.md).
+
+**Why the question came up at all.** `lib/ai/*` was built without reference to
+comparable published research using the same architecture. Design2GarmentCode is a rare
+case of a working system solving the identical problem shape, so it was worth checking
+before assuming our own choices were already optimal — this was never an integration
+spike (the adjacent question, registering GarmentCode itself as a drafting engine, was
+already asked and declined above in this file's sibling, `drafting.md`'s "#266 → #269"
+entry).
+
+**The headline finding, on our side of the ledger.** Their LMM layer has no structural
+output constraint — free-text GPT-4o output scraped by regex, checked post-hoc against a
+409-token/59-category flat list duplicated by hand across two files. Ours is a forced
+tool call against a JSON Schema whose every bound renders from one `EngineCapability`,
+so an invalid enum value is structurally impossible rather than caught after the fact.
+The trade: their vocabulary is ~10x wider (409 tokens vs. our 39, across 59 categories
+vs. our 11) — real expressiveness we don't have, not a validation-discipline gap.
+
+**A correction made mid-spike: much of this ground was already mined.** #250, #252,
+#257, #260, #261, #262, and #264 turned out to already be open, each carrying a `Source:`
+line citing a precise Design2GarmentCode or ChatGarment section (e.g. #260's `Source:
+Design2GarmentCode (arXiv:2412.08603v3) sections 3.2.1 and 3.2.2`) — a prior pass had
+already done a broader literature mining than this spike's own scope, encoding its
+findings directly as issues rather than as a `docs/reference/` write-up. This spike's
+independent read of the same source material (with direct code measurements this time,
+not a secondhand summary — see the 409/59 correction above) corroborates rather than
+discovers most of that ground, so nothing new was filed against #250/#252/#260/#262/#264:
+restating an already better-cited issue with a second, less precise citation would be
+noise, not signal. #257 got one addition worth recording here since it's a genuine
+second, independent source: it already cited ChatGarment section 5 for the
+"disclose what an edit changed" idea; this spike found the same idea, independently,
+in `design2garmentcode-impl`'s Task 5 prompt (`lmm_utils/core.py`) — two unrelated
+research systems landing on the same technique is a stronger signal than either citation
+alone, noted as a comment on #257 rather than a new issue.
+
+**Landed: two portable techniques, actually closing #261's own acceptance criteria.**
+
+1. **Vision framing** — no prior issue existed for this one, a genuinely new finding.
+   `# Attached images` (`lib/ai/prompt.ts`, cached static block) now states that a photo
+   may show a person wearing the garment and to describe only the clothing, never the
+   wearer — their own prompt spends three escalating repetitions on the same
+   instruction, read honestly as GPT-4o refusal-avoidance rather than an accuracy
+   technique. Cheap regardless of whether Claude ever actually needed it (not measured
+   either way — no eval harness exists, see below).
+2. **#261's repair retry, implemented against its own already-filed acceptance
+   criteria** — `proposeGarment` (`lib/ai/index.ts`) previously threw straight to the
+   route's catch (and a refund) on any of five malformed-payload shapes with zero repair
+   attempt. It now replays the failed attempt and feeds the specific defect back once,
+   capped at one retry (not #261's own quoted two, since our call shares a 30s
+   transaction budget Design2GarmentCode's never did) — `REPAIR_TIMEOUT_MS` (8s) keeps
+   both attempts' worst case at 28s, asserted directly in `index.test.ts`. #261's own AC
+   specifically required the truncation case to retry with a _larger_ `max_tokens` rather
+   than repeating the same ceiling — caught only by re-reading the issue's own text after
+   drafting the first version of this change, which had missed it; the repair path now
+   branches on `resp.stop_reason` and raises to `REPAIR_MAX_TOKENS_ON_TRUNCATION` (2048)
+   only for that specific failure.
+
+**Explicitly not implemented, and why.** Their prompt claims descriptive multiple-choice
+options beat numeric estimation for length-like fields — directly relevant to our five
+free scalars and to open issues #260/#262, both already filed and cited — but the paper
+presents no ablation for this or any other design choice, and we have no eval harness
+(#252, still open) to check it ourselves. Changing the schema on an unablated claim with
+no way to measure the result would be exactly the kind of decision this document exists
+to avoid making. Their fine-tuned parameter projector (bridging descriptive tokens into
+GarmentCode's much wider continuous space) is out of scope for a sharper reason than
+cost: it solves a problem we don't have — our spec is already the size its output would
+be, produced directly by forced tool-use.
+
+**The honest close.** Two follow-up spikes are filed as #270 itself asked for (#272
+ChatGarment, #273 Style3D). One genuinely new gap, unrelated to any pre-existing issue,
+was found while tracing the attachment path and filed as #274 (the editor chat sends one
+image where the dashboard form sends four). This reopens only if #252's eval harness
+ships and gives us a way to actually test the unablated multiple-choice claim above.
+
+---

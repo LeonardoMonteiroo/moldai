@@ -49,6 +49,15 @@ describe("buildSystem", () => {
     ).toContain("# Out-of-range values");
   });
 
+  // #270: Design2GarmentCode's own vision prompt exists to stop the model
+  // from refusing/hedging on a photo of a garment worn by a person -- our
+  // instruction states the same scope directly, in the cached static block
+  // so it applies to every request regardless of size.
+  it("scopes an attached photo to the garment, not any person wearing it", () => {
+    expect(STATIC_SECTIONS).toContain("# Attached images");
+    expect(STATIC_SECTIONS).toContain("never the person wearing it");
+  });
+
   it("blank pattern gets the from-scratch/underspecified rule", () => {
     const s = buildSystem(DEFAULT_ENGINE_ID, state(0), { answering: false });
     expect(s).toContain("BLANK pattern");
@@ -377,12 +386,12 @@ describe("prompt-cache byte stability", () => {
       staticSectionsFor(DEFAULT_ENGINE_ID) +
       JSON.stringify(toolFor(DEFAULT_ENGINE_ID));
     const hash = createHash("sha256").update(bytes).digest("hex");
-    // #269: regenerated -- MOLDAI_CAPABILITY.measurements.required grew by
-    // 18 keys (14 new, 4 promoted from EXTENDED), which changes toolFor's
-    // rendered JSON schema. A deliberate, expected byte change (see this
-    // describe block's own comment), not a bug.
+    // #270: regenerated -- the "# Attached images" section (buildStaticSections)
+    // gained the "describe only the clothing, never the person wearing it"
+    // sentence. A deliberate, expected byte change (see this describe block's
+    // own comment), not a bug.
     expect(hash).toBe(
-      "1eb410912ac9dda846ec02401af6eb7adf29de61b1a3ad2062ddc916912170b9",
+      "cf305fe6c57914ea3ab8464e535907a0be591e8a549a10720d2c80c11b9a0b4c",
     );
   });
 });

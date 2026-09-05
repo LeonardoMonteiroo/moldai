@@ -17,8 +17,10 @@ const create = new (
   }
 )().messages.create;
 
-function toolResp(input: unknown) {
-  return { content: [{ type: "tool_use", name: "propose_garment", input }] };
+function toolResp(input: unknown, id = "toolu_test") {
+  return {
+    content: [{ type: "tool_use", id, name: "propose_garment", input }],
+  };
 }
 
 const baseState = {
@@ -286,6 +288,120 @@ describe("proposeGarment", () => {
     await proposeGarment(baseState, { answering: false });
     expect(Anthropic).toHaveBeenCalledWith(ANTHROPIC_OPTIONS);
     expect(ANTHROPIC_OPTIONS.timeout).toBeLessThan(30_000);
+  });
+});
+
+// #261: one repair attempt on an unusable tool payload, mirroring
+// Design2GarmentCode's own validation-feedback retry
+// (docs/reference/design2garmentcode-spike) -- feed the specific defect back
+// and re-issue once, never twice.
+describe("proposeGarment: repair retry (#261)", () => {
+  beforeEach(() => create.mockReset());
+
+  it("repairs an unusable payload once and returns the corrected decision", async () => {
+    create
+      .mockResolvedValueOnce(toolResp({ decision: "banana" }, "toolu_bad"))
+      .mockResolvedValueOnce(
+        toolResp({ decision: "decline", assistantMessage: "corrected" }),
+      );
+
+    const d = await proposeGarment(baseState, { answering: false });
+
+    expect(d.decision).toBe("decline");
+    expect(d.assistantMessage).toBe("corrected");
+    expect(create).toHaveBeenCalledTimes(2);
+
+    const repairCall = create.mock.calls[1][0];
+    const repairMessages = repairCall.messages as Array<{
+      role: string;
+      content: unknown;
+    }>;
+    const last = repairMessages[repairMessages.length - 1];
+    expect(last.role).toBe("user");
+    expect(last.content).toEqual([
+      expect.objectContaining({
+        type: "tool_result",
+        tool_use_id: "toolu_bad",
+        is_error: true,
+        content: expect.stringContaining("unrecognized decision"),
+      }),
+    ]);
+    // the failed attempt's own assistant turn (the tool_use block) precedes
+    // the tool_result, so the conversation stays validly alternating.
+    const assistantTurn = repairMessages[repairMessages.length - 2];
+    expect(assistantTurn.role).toBe("assistant");
+  });
+
+  it("gives up after one repair attempt rather than retrying indefinitely", async () => {
+    create.mockResolvedValue(toolResp({ decision: "banana" }));
+
+    await expect(
+      proposeGarment(baseState, { answering: false }),
+    ).rejects.toThrow(/unrecognized decision/);
+    expect(create).toHaveBeenCalledTimes(2);
+  });
+
+  it("caps the repair call's own timeout so both attempts stay under the 30s transaction budget", async () => {
+    create
+      .mockResolvedValueOnce(toolResp({ decision: "banana" }))
+      .mockResolvedValueOnce(
+        toolResp({ decision: "decline", assistantMessage: "x" }),
+      );
+
+    await proposeGarment(baseState, { answering: false });
+
+    const repairOptions = create.mock.calls[1][1] as { timeout: number };
+    expect(repairOptions.timeout).toBeGreaterThan(0);
+    expect(ANTHROPIC_OPTIONS.timeout + repairOptions.timeout).toBeLessThan(
+      30_000,
+    );
+  });
+
+  it("does not repair a max_tokens truncation into a second attempt with the same failure silently swallowed", async () => {
+    create.mockResolvedValue({
+      ...toolResp({ decision: "apply", assistantMessage: "x" }),
+      stop_reason: "max_tokens",
+    });
+
+    await expect(
+      proposeGarment(baseState, { answering: false }),
+    ).rejects.toThrow(/max_tokens/);
+    expect(create).toHaveBeenCalledTimes(2);
+  });
+
+  // #261 AC: "the truncation case retries with a larger max_tokens" -- a
+  // repeat of the same 1024-token ceiling would routinely truncate
+  // identically a second time for a token-heavy explain answer.
+  it("raises max_tokens on the repair call specifically for a max_tokens truncation", async () => {
+    create
+      .mockResolvedValueOnce({
+        ...toolResp({ decision: "apply", assistantMessage: "x" }),
+        stop_reason: "max_tokens",
+      })
+      .mockResolvedValueOnce(
+        toolResp({ decision: "decline", assistantMessage: "ok" }),
+      );
+
+    const d = await proposeGarment(baseState, { answering: false });
+
+    expect(d.decision).toBe("decline");
+    const primaryParams = create.mock.calls[0][0];
+    const repairParams = create.mock.calls[1][0];
+    expect(repairParams.max_tokens).toBeGreaterThan(primaryParams.max_tokens);
+  });
+
+  it("keeps the default max_tokens on the repair call for a non-truncation failure", async () => {
+    create
+      .mockResolvedValueOnce(toolResp({ decision: "banana" }))
+      .mockResolvedValueOnce(
+        toolResp({ decision: "decline", assistantMessage: "ok" }),
+      );
+
+    await proposeGarment(baseState, { answering: false });
+
+    const primaryParams = create.mock.calls[0][0];
+    const repairParams = create.mock.calls[1][0];
+    expect(repairParams.max_tokens).toBe(primaryParams.max_tokens);
   });
 });
 
