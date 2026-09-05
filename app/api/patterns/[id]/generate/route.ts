@@ -301,6 +301,7 @@ export async function POST(request: Request, { params }: Ctx) {
                 author: "ai",
                 text: decision.assistantMessage || t("chat.askFallback"),
                 questions: decision.questions,
+                decision: "ask",
                 createdAt: Date.now(),
               });
               return {
@@ -319,6 +320,7 @@ export async function POST(request: Request, { params }: Ctx) {
                   decision.assistantMessage ||
                   decision.declineReason ||
                   t("chat.declineFallback"),
+                decision: "decline",
                 createdAt: Date.now(),
               });
               return {
@@ -346,6 +348,7 @@ export async function POST(request: Request, { params }: Ctx) {
                 // attach the catalog-sourced disclaimer -- see
                 // decision.assemblyOrder's own doc (lib/ai/decision.ts).
                 ...(decision.assemblyOrder ? { assembly: true } : {}),
+                decision: "explain",
                 createdAt: Date.now(),
               });
               return {
@@ -514,6 +517,8 @@ export async function POST(request: Request, { params }: Ctx) {
                   { label: t("chat.creditChip", { cost }), tone: "credit" },
                 ],
                 tone: conflict ? "conflict" : undefined,
+                decision: "apply",
+                draftVersion: state.pattern.version,
                 createdAt: Date.now(),
               });
               // Said out loud rather than left for the user to discover:

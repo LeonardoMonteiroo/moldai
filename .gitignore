@@ -70,6 +70,13 @@ next-env.d.ts
 /.claude/skills/playwright-skill/package-lock.json
 /.claude/skills/playwright-skill/.temp-execution-*.js
 
+# #269 — scripts/distill-training-data.ts's own output: synthetic
+# (prompt, GarmentSpec) pairs distilled from the catalog benchmark, spending
+# real Anthropic tokens each run. Local tooling output, not a repo asset --
+# same reasoning as /coverage above. Commit a sample deliberately if one is
+# ever needed for review; never by default.
+/data/training/
+
 # design-sync — staged converter scripts, generated bundle output and
 # machine-local verification state; .design-sync/config.json, NOTES.md,
 # conventions.md, previews/ and overrides/ ARE committed (see .design-sync/NOTES.md)

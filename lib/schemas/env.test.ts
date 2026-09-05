@@ -72,6 +72,26 @@ describe("parseServerEnv", () => {
     ).not.toThrow();
   });
 
+  // #269: all four LLM_* vars are optional -- production sets none of them
+  // today, and must keep parsing exactly as before.
+  it("accepts LLM_PROVIDER unset, and rejects an unrecognized value", () => {
+    expect(() => parseServerEnv(BASE_DEV_ENV)).not.toThrow();
+    expect(() =>
+      parseServerEnv({ ...BASE_DEV_ENV, LLM_PROVIDER: "openai" }),
+    ).toThrow(ServerEnvError);
+  });
+
+  it("accepts a local-provider environment", () => {
+    expect(() =>
+      parseServerEnv({
+        ...BASE_DEV_ENV,
+        LLM_PROVIDER: "local",
+        LLM_BASE_URL: "http://localhost:8000/v1",
+        LLM_MODEL: "qwen2.5-vl-7b-instruct",
+      }),
+    ).not.toThrow();
+  });
+
   it("includes every failing field in the thrown message, not just the first", () => {
     try {
       parseServerEnv({ SMTP_PORT: "smtp" });

@@ -18,6 +18,8 @@
     "db:migrate": "dotenv -e .env.local -- prisma migrate dev",
     "cron:renew": "dotenv -e .env.local -- tsx scripts/cron-renew.ts",
     "backfill:freesewing": "dotenv -e .env.local -- tsx scripts/backfill-freesewing-measurements.ts",
+    "eval:ai": "dotenv -e .env.local -- tsx scripts/ai-eval.ts",
+    "distill:ai": "dotenv -e .env.local -- tsx scripts/distill-training-data.ts",
     "smoke": "node scripts/smoke-prod.mjs",
     "smoke:prod": "docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.prod.yml up -d --build && node scripts/smoke-prod.mjs",
     "postinstall": "prisma generate",

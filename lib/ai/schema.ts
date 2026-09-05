@@ -1,4 +1,4 @@
-import type Anthropic from "@anthropic-ai/sdk";
+import type { LlmTool } from "./provider/types";
 import { GENDERS } from "@/lib/draft/garment";
 import { MEASUREMENT_RANGES } from "@/lib/measurements";
 import { ENGINE_IDS } from "@/lib/draft/engine/capability";
@@ -91,7 +91,7 @@ function styleEnumUnion(
 // declared capability (lib/draft/engine/capability.ts) — schema, prompt,
 // and validator cannot drift. #267: this used to read module-level
 // TYPES/STYLE_LIMITS constants directly; now scoped per engine.
-function buildTool(capability: EngineCapability): Anthropic.Tool {
+function buildTool(capability: EngineCapability): LlmTool {
   return {
     name: "propose_garment",
     description:
@@ -218,11 +218,10 @@ function buildTool(capability: EngineCapability): Anthropic.Tool {
 // lib/ai/prompt.ts's STATIC_SECTIONS_BY_ENGINE for the full reasoning
 // (byte-identity across requests is what the prompt cache needs; this eager
 // build is for provability and cost, not correctness).
-export const TOOL_BY_ENGINE: Record<EngineId, Anthropic.Tool> =
-  Object.fromEntries(
-    ENGINE_IDS.map((id) => [id, buildTool(getEngine(id).capability)]),
-  ) as Record<EngineId, Anthropic.Tool>;
+export const TOOL_BY_ENGINE: Record<EngineId, LlmTool> = Object.fromEntries(
+  ENGINE_IDS.map((id) => [id, buildTool(getEngine(id).capability)]),
+) as Record<EngineId, LlmTool>;
 
-export function toolFor(id: EngineId): Anthropic.Tool {
+export function toolFor(id: EngineId): LlmTool {
   return TOOL_BY_ENGINE[id];
 }

@@ -191,6 +191,9 @@ describe("POST /api/patterns/[id]/generate", () => {
     // #16: no bump means no snapshot -- a version is recorded on bumpVersion,
     // never on debit (which ask never does anyway).
     expect(recordVersion).not.toHaveBeenCalled();
+    // #269: a training exporter tells which decision produced a turn from
+    // this field, never from parsing assistantMessage's own prose.
+    expect(state.chat.at(-1)!.decision).toBe("ask");
   });
 
   it("apply debits, drafts, and versions", async () => {
@@ -223,6 +226,13 @@ describe("POST /api/patterns/[id]/generate", () => {
       "generate",
       COSTS.adjust,
     );
+    // #269: draftVersion is the join key a training exporter uses against
+    // PatternVersion's own (patternId, version) unique key -- it must be the
+    // SAME number recordVersion just persisted, not a second, independently
+    // computed one.
+    const answer = state.chat.at(-1)!;
+    expect(answer.decision).toBe("apply");
+    expect(answer.draftVersion).toBe(1);
   });
 
   it("a later apply (not the pattern's first draft) versions with reason 'adjust'", async () => {
@@ -290,6 +300,9 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(answer.chips?.[0].tone).toBe("credit");
     // #16: explain debits but never bumps the version -- it must not version.
     expect(recordVersion).not.toHaveBeenCalled();
+    // #269: explain never drafts, so it carries no draftVersion at all.
+    expect(answer.decision).toBe("explain");
+    expect(answer.draftVersion).toBeUndefined();
   });
 
   it("explain writes one debit and no refund", async () => {
@@ -382,6 +395,7 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(wallet.balance).toBe(balanceBefore);
     expect(lastEntries).toEqual([]);
     expect(recordVersion).not.toHaveBeenCalled();
+    expect(state.chat.at(-1)!.decision).toBe("decline");
   });
 
   // #53: a malformed tool_use payload (not an object, an unrecognized

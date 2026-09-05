@@ -5,7 +5,7 @@
 
 ### Generation flow (`POST /api/patterns/[id]/generate`)
 
-- Debits `COSTS.adjust` immediately, then `proposeGarment` (`lib/ai/`) asks `claude-sonnet-5`, via forced tool-use, for `{ decision: "apply" | "decline" | "ask" | "explain", spec, questions?, declineReason?, assistantMessage, assemblyOrder? }` — `assemblyOrder` is only ever meaningful alongside `decision: "explain"` (see Assembly / sewing order below).
+- Debits `COSTS.adjust` immediately, then `proposeGarment` (`lib/ai/`) asks the active provider (`claude-sonnet-5` via Anthropic by default — see `#269` below and [`ai-provider.md`](../architecture/ai-provider.md)), via forced tool-use, for `{ decision: "apply" | "decline" | "ask" | "explain", spec, questions?, declineReason?, assistantMessage, assemblyOrder? }` — `assemblyOrder` is only ever meaningful alongside `decision: "explain"` (see Assembly / sewing order below).
 - **`lib/ai/` is split by responsibility, all derived from one source of truth:** `prompt.ts` (sectioned system prompt), `schema.ts` (the `propose_garment` tool), `history.ts` (pure `buildHistory` — normalizes the persisted chat into Messages-API turns: serializes an ai turn's `questions` into its text, merges consecutive same-role turns, drops leading assistant turns), `decision.ts` (pure `resolveDecision` — ask/apply normalization + validation), `index.ts` (the API call; the only file importing the SDK). **The prompt's and schema's every enum and numeric bound render from `lib/draft/garment.ts`'s exported `TYPES`/`GENDERS`/`NECKLINES`/`SLEEVES`/`SKIRTS`/`STYLE_LIMITS` plus `MEASUREMENT_RANGES`** — the same constants `validateSpec` clamps with, so the model is never told a range the validator doesn't enforce. Add a style field in one place and all three follow; never hardcode a bound in the prompt or schema. The rule now covers prices and formats too: the prompt's `# Product facts` section renders its credit costs from `COSTS` and its format list from `EXPORT_FORMATS` (`lib/export/formats.ts` — a leaf module holding the array plus the `ExportFormat` type derived from it, so `prompt.ts` can name the formats without importing the export facade's serializers and `download.ts`'s DOM access; `lib/export/index.ts` re-exports both, so existing `@/lib/export` importers are unchanged).
 - A `decision: "apply"` carrying no usable `spec` object (missing, null, or an array) **throws** rather than letting `validateSpec` fabricate a default blouse — the route's existing catch refunds the credit.
 - **Trust boundary:** the returned `spec` is never trusted as-is — `validateSpec` (`lib/draft/garment.ts`) re-checks every enum and clamps every numeric field before use; `questions` go through `validateQuestions` the same way. The AI never emits SVG or pixel coordinates — only a `GarmentSpec`. **The same rule now covers the _user's_ size-chart patch** (`lib/sizeCharts/validate.ts`, see Size charts) — it was written for the AI's input and initially forgotten on the human's, which reaches the identical drafter.
@@ -161,3 +161,17 @@ result. The `apply` branch filters `decision.adjustments` against the
 post-merge, post-`chartGender` spec before rendering anything.
 
 ---
+
+## #269: `proposeGarment` no longer talks to Anthropic directly
+
+The request/repair loop this file's bullets describe above (the 20s/8s
+timeout budget, the one-repair-attempt rule, the two-block cached system
+prompt) used to live entirely in `lib/ai/index.ts`, which constructed the
+Anthropic SDK client itself. It now lives behind a provider facade
+(`lib/ai/provider/`) — every behavior described above is unchanged, but
+`index.ts` itself no longer imports the SDK, and the repair loop's exact
+wire protocol (Anthropic's `tool_result`, or an OpenAI-compatible `role:
+"tool"` message for the self-hosted alternative) is decided by whichever
+provider is active. Full rationale, including why this stayed a facade
+rather than a hard swap, and the eval harness (#252) this issue built as
+its own prerequisite: [`ai-provider.md`](ai-provider.md).
