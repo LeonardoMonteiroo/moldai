@@ -1,33 +1,30 @@
 ---
 name: verify
-description: Run this repo's full verification sequence — vitest, scoped eslint, and next build — and report the actual output of all three. Use at the end of any non-trivial task (a feature, a multi-file change, a bug fix spanning more than one file) before declaring the work done or ready to commit — also invocable with /verify. Do not use mid-task for a quick sanity check on a single file; scope vitest/eslint to that file instead.
+description: Run this repo's full verification sequence, mirroring every job in .github/workflows/ci.yml — prettier format check, scoped eslint, next build (typecheck), vitest with the coverage gate, and (when Prisma files changed) the migrations apply+drift check — and report the actual output of each. Use at the end of any non-trivial task (a feature, a multi-file change, a bug fix spanning more than one file) before declaring the work done or ready to commit — also invocable with /verify. Do not use mid-task for a quick sanity check on a single file; scope vitest/eslint to that file instead.
 ---
 
 # Verify
 
 ## Overview
 
-Evidence before assertions. Three commands, in this order, from the repo root. **Work is not complete until all three pass and you have reported their actual output.**
+Evidence before assertions. Four commands, in this order, from the repo root — cheapest/fastest check first, so a failure surfaces before you've paid for a slower one. Together they mirror `.github/workflows/ci.yml`'s `format`, `lint`, `build`, `test-node`, `test-dom`, and `coverage` jobs. **Work is not complete until all four pass and you have reported their actual output.**
 
 ```bash
-npx vitest run                    # 1. tests
-npx eslint app lib components     # 2. lint — scoped, never bare
-npm run build                     # 3. typecheck
+npm run format:check              # 1. format    — CI's `format` job
+npx eslint app lib components     # 2. lint       — CI's `lint` job, scoped, never bare
+npm run build                     # 3. typecheck  — CI's `build` job
+npx vitest run --coverage         # 4. tests + coverage gate — CI's test-node + test-dom + coverage jobs, merged
 ```
+
+Touched `prisma/schema.prisma` or added a migration? Run the **migrations apply+drift check** too (CI's `migrations` job) — see its own section below; it is not part of the default four because it mutates a real Postgres database and most tasks never touch Prisma.
 
 **Working in a nested git worktree (`.claude/worktrees/<name>/`) with a junctioned `node_modules`?** Swap step 3 for `npx next build --webpack` — see "In a worktree" below before you run any of this.
 
 ## The sequence, and why each is written this way
 
-### 1. `npx vitest run`
+### 1. `npm run format:check` — matches CI's `format` job verbatim
 
-Two projects, defined in `vitest.workspace.ts` (**not** `vitest.config.ts` — see the note below): `node` (`lib/**/*.test.{ts,tsx}` + `app/**/*.test.{ts,tsx}` + `.claude/hooks/**/*.test.mjs`, pure logic + `app/api/**/route.test.ts` handlers, no DOM) and `dom` (`components/**/*.test.{ts,tsx}`, jsdom + React Testing Library). Both are DB-free by design (repositories are mocked), so the suite runs without Postgres. Scope to one project with `npx vitest run --project node` or `npx vitest run --project dom`.
-
-Don't trust a spec-file or test count pasted into this doc — it will be stale by the time you read it, and a stale count is exactly what made this file need a rewrite (it once said "49 spec files"; the real number had grown more than threefold). Get the current one straight from a run: `npx vitest run` prints `Test Files N passed (N)` and `Tests N passed (N)` in its summary. If you only want a file count without running anything, `find lib app -name "*.test.ts" -o -name "*.test.tsx"` plus `.claude/hooks`'s own `*.test.mjs` count the `node` project, and `find components -name "*.test.ts" -o -name "*.test.tsx"` counts `dom` — `git ls-files` with a `**` pathspec undercounts here, since git's own glob magic doesn't expand it the way a shell or Vitest's `include` does.
-
-If far fewer files run than expected, you filtered by accident — re-run unfiltered before believing a green result.
-
-**`vitest.config.ts` exists** (added for the coverage thresholds), but it holds only the root-level `coverage` block — Vitest 2 requires that block to live outside any workspace project entry, or it's silently ignored. It defines no `include` and runs no tests by itself; the two projects and their `include` globs are entirely in `vitest.workspace.ts`. `npx vitest run --coverage` (or CI's `coverage` job) is what actually applies `vitest.config.ts`'s thresholds — a plain `npx vitest run` never touches it.
+`npm run format:check` is `prettier --check .`, the exact command CI's `format` job runs. `.husky/pre-commit`'s `lint-staged` only runs `prettier --write` on **staged** files, so anything written outside a commit — an edit made but not yet staged, a file a script touched — can be unformatted and still sail past every local hook. This step is what actually catches that before CI does. If it fails, `npm run format` (unscoped, writes in place) fixes it — don't hand-format individual files.
 
 ### 2. `npx eslint app lib components` — MUST be scoped
 
@@ -51,13 +48,46 @@ The build imports routes that instantiate `PrismaClient` and NextAuth at module 
 
 `npx next build --webpack` builds with webpack instead, which does not have this problem, and still runs the real TypeScript check (`Finished TypeScript in …` in its own output) — verified live: a clean pass across all routes in a junctioned worktree. Use this form as the typecheck step whenever `node_modules` is a junction; there is no equivalent workaround for plain `npm run build`/`npm run typecheck` short of giving the worktree its own real `npm install`.
 
+### 4. `npx vitest run --coverage` — replaces CI's three separate test/coverage jobs
+
+Two projects, defined in `vitest.workspace.ts` (**not** `vitest.config.ts` — see the note below): `node` (`lib/**/*.test.{ts,tsx}` + `app/**/*.test.{ts,tsx}` + `.claude/hooks/**/*.test.mjs`, pure logic + `app/api/**/route.test.ts` handlers, no DOM) and `dom` (`components/**/*.test.{ts,tsx}`, jsdom + React Testing Library). Both are DB-free by design (repositories are mocked), so the suite runs without Postgres. Scope to one project with `npx vitest run --project node` or `npx vitest run --project dom` — but drop `--coverage` when you do, since a single-project run legitimately misses everything the other project covers and would trip the whole-app thresholds for the wrong reason (this is exactly why CI's `test-node` and `test-dom` jobs run with `COVERAGE_GATE_OFF` and only the separate `coverage` job, which merges both, enforces the real numbers).
+
+CI splits this into three jobs (`test-node`, `test-dom`, `coverage`) purely for parallel wall-clock time across two runners. A single `npx vitest run --coverage` locally runs both projects in one process and applies `vitest.config.ts`'s thresholds to the combined result in one step — the same assertion CI's `coverage` job makes, just without the artifact-upload/merge machinery that only exists to move results between two separate CI runners.
+
+Don't trust a spec-file or test count pasted into this doc — it will be stale by the time you read it, and a stale count is exactly what made this file need a rewrite (it once said "49 spec files"; the real number had grown more than threefold). Get the current one straight from a run: `npx vitest run` prints `Test Files N passed (N)` and `Tests N passed (N)` in its summary. If you only want a file count without running anything, `find lib app -name "*.test.ts" -o -name "*.test.tsx"` plus `.claude/hooks`'s own `*.test.mjs` count the `node` project, and `find components -name "*.test.ts" -o -name "*.test.tsx"` counts `dom` — `git ls-files` with a `**` pathspec undercounts here, since git's own glob magic doesn't expand it the way a shell or Vitest's `include` does.
+
+If far fewer files run than expected, you filtered by accident — re-run unfiltered before believing a green result.
+
+**`vitest.config.ts` exists** (added for the coverage thresholds), but it holds only the root-level `coverage` block — Vitest 2 requires that block to live outside any workspace project entry, or it's silently ignored. It defines no `include` and runs no tests by itself; the two projects and their `include` globs are entirely in `vitest.workspace.ts`. `npx vitest run --coverage` is what actually applies those thresholds — a plain `npx vitest run` never touches them, so it is not a substitute for step 4, only a faster smoke check while iterating.
+
+### 5. Migrations apply+drift check — only when `prisma/schema.prisma` or `prisma/migrations/` changed
+
+CI's `migrations` job proves two things against a database that starts **empty**: every migration in `prisma/migrations` actually applies, in order (`prisma migrate deploy`), and `schema.prisma` matches what those migrations produce, with no drift (`prisma migrate diff --exit-code`). Neither check runs as part of `npx vitest run` or `npm run build` — nothing else in this sequence touches Postgres at all — so skipping this step is how a migration that doesn't apply cleanly, or a hand-edited `schema.prisma` that no migration actually produces, reaches a PR undetected until CI.
+
+Reproducing it locally without wiping your dev database: bring up the local Postgres (`npm run db:up`, host port 5433), then use the `db` container's own `psql` (there is no `psql` client on the host) to spin up a throwaway shadow database for the diff and drop it when done:
+
+```bash
+npm run db:up
+npx dotenv -e .env.local -- npx prisma migrate deploy   # same command CI runs, against your real dev DB — idempotent, only applies what's missing
+
+docker compose exec db psql -U moldai -d moldai -c "CREATE DATABASE moldai_shadow;"
+npx dotenv -e .env.local -- npx prisma migrate diff \
+  --from-migrations prisma/migrations \
+  --to-schema-datamodel prisma/schema.prisma \
+  --shadow-database-url postgresql://moldai:$POSTGRES_PASSWORD@localhost:5433/moldai_shadow?schema=public \
+  --exit-code
+docker compose exec db psql -U moldai -d moldai -c "DROP DATABASE moldai_shadow;"
+```
+
+`$POSTGRES_PASSWORD` must match `.env.local`'s value (the same password baked into `DATABASE_URL`) — export it in your shell first, or read it out of `.env.local` directly, since `dotenv -e` only injects it into the `prisma` process, not your own shell's variable expansion. Drop `moldai_shadow` afterwards; it is scratch, not a fixture. If either command exits non-zero, treat it exactly like a lint or test failure — fix the migration or `schema.prisma`, don't hand-wave it as "probably fine locally."
+
 ## Nothing local blocks a push on a failing build — CI is the backstop
 
 There is **no `.husky/pre-push` hook** in this repo. The only local git hook is `.husky/pre-commit`, which runs `npx lint-staged` — per-staged-file `eslint --fix` + `prettier --write` + `vitest related --run` for `*.{ts,tsx}`, plus `prettier --write` for `*.{js,mjs,cjs,json,css,md}`. None of that builds, and none of it runs the full unscoped suite.
 
-So a commit can go through cleanly and a push can still fail CI on a type error, a test outside the staged-file's `related` set, or anything `lint-staged`'s per-file scope doesn't reach. **Run all three steps yourself before pushing** — don't rely on any local hook to have covered them, and check CI after pushing (`gh run list` / `gh run view`) rather than assuming a quiet push meant a clean one.
+So a commit can go through cleanly and a push can still fail CI on a formatting diff outside the staged set, a type error, a test outside the staged-file's `related` set, or anything `lint-staged`'s per-file scope doesn't reach. **Run all four steps yourself before pushing** (plus the migrations check when Prisma changed) — don't rely on any local hook to have covered them, and check CI after pushing (`gh run list` / `gh run view`) rather than assuming a quiet push meant a clean one.
 
-CI (`.github/workflows/ci.yml`) runs seven independent jobs in parallel — `format` (`npm run format:check`), `lint` (`npx eslint app lib components`), `build` (`npm run build`, with the CI dummy envs), `migrations`, `test-node`, `test-dom`, and `coverage` (merges both test jobs' reports and enforces `vitest.config.ts`'s thresholds) — gated by one final `ci` job that fails if any of the seven did not succeed. `.husky/pre-commit`'s `lint-staged` normally keeps formatting clean, but if you wrote files outside a commit, run `npm run format` before pushing.
+CI (`.github/workflows/ci.yml`) runs seven independent jobs in parallel — `format` (`npm run format:check`), `lint` (`npx eslint app lib components`), `build` (`npm run build`, with the CI dummy envs), `migrations`, `test-node`, `test-dom`, and `coverage` (merges both test jobs' reports and enforces `vitest.config.ts`'s thresholds) — gated by one final `ci` job that fails if any of the seven did not succeed. This skill's four-step sequence collapses `test-node` + `test-dom` + `coverage` into one local `npx vitest run --coverage`, and treats `migrations` as conditional since most changes never touch Prisma; the other three map 1:1.
 
 ## When a step fails
 
@@ -74,27 +104,31 @@ npm run db:up        # docker compose up -d db
 npm run db:migrate   # dotenv -e .env.local -- prisma migrate dev
 ```
 
-Postgres is on **host port 5433** (`localhost:5433`); **inside** the Docker network it is `db:5432`. Using the wrong one is the usual "connection refused." See the `new-migration` skill before writing a migration.
+Postgres is on **host port 5433** (`localhost:5433`); **inside** the Docker network it is `db:5432`. Using the wrong one is the usual "connection refused." See the `new-migration` skill before writing a migration, and step 5 above for the CI-equivalent apply+drift check once the migration exists.
 
 ## Red flags — you are about to claim completion falsely
 
 - "The tests pass, so it's done" — the build has not run.
+- "It's formatted, prettier didn't complain in the editor" — the editor's formatter and `npm run format:check` are not the same check; run the command.
 - "`npm run lint` is reporting errors in files I didn't touch" — wrong command; scope it to `app lib components` (and note the guard hook will block the bare form outright).
 - "`tsc --noEmit` is faster" — it is invalid here; the `LayoutProps` error is spurious.
 - "The pre-commit hook passed" — `lint-staged` only touches staged files and never builds; there is no pre-push hook at all.
 - "`npm run build` panicked, so the build must be broken" — check whether `node_modules` is a junction (a worktree) first; if so, use `npx next build --webpack`.
-- Writing "all checks pass" without three actual command outputs behind it.
+- "`npx vitest run` was green" — without `--coverage`, the coverage gate never ran; that's a different, weaker claim.
+- "I touched `prisma/schema.prisma` but skipped the migrations check because the app still builds" — the build never connects to Postgres; drift and a migration that fails to apply are both invisible to it.
+- Writing "all checks pass" without four actual command outputs behind it (five when Prisma changed).
 
 ## Rationalizations
 
 | Excuse | Reality |
 |--------|---------|
 | "It's a one-line change" | One line changes types. The build is the typecheck. |
-| "Only docs/comments changed" | Then all three finish fast. Run them. |
+| "Only docs/comments changed" | Then all four finish fast. Run them. |
 | "CI will catch it" | CI catching it means you shipped a broken claim first. |
 | "The build takes too long" | Shorter than the round trip of a false completion claim. |
 | "I'll run the build after committing" | The claim of completeness comes before the commit. Order matters. |
 | "The failure is unrelated to my change" | Prove it with output, then say so explicitly — don't skip. |
+| "The migration applied on my machine before, it's fine" | CI applies it to a database that starts empty — a local DB that already has old migrations applied can't catch an ordering or drift bug the empty-DB check exists for. |
 
 ## Report the output, don't assert success
 
