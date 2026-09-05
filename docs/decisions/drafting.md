@@ -295,3 +295,87 @@ candidate that was otherwise fast, in-process, and fit-competitive in places. Ga
 slow, cross-language, vocabulary-incompatible, and archetype-incapable at once. If any of
 these four facts changes — a faster fitting method ships upstream, or a coat/jacket body
 class is added — the question is worth re-measuring; nothing here forecloses that.
+
+## Registering FreeSewing as a second engine: `tshirt`/`blouse`/`skirt`/`trousers`/`hoodie` shipped, `dress` declined (#269)
+
+The #266→#267 spike work above graduated: `"freesewing"` is registered in
+`lib/draft/engine/registry.ts` alongside `"moldai"`, each archetype backed by one pinned
+`@freesewing/*@4.10.1` design package under `lib/draft/engine/freesewing/designs/` (Teagan,
+Diana, Sandy, Titan, Hugo — the upstream codename confined to one aliased import line per
+file, never leaking into an identifier, error message, or catalog key). `MOLDAI_CAPABILITY`
+and `FREESEWING_CAPABILITY` (`lib/draft/engine/capability.ts`) each declare their own
+`types`/`styleEnumsByType`/`styleFieldsByType`/measurement keys independently — a type
+supported by one engine and not the other is an honest omission, never a stale or partial
+entry (`checkEngineSupport`'s own contract).
+
+**The measurement-vocabulary cost was real but one-time, and turned out cheap per archetype
+after the first round.** Registering `tshirt`/`blouse` first required 14 genuinely new
+`CORE_MEASUREMENT_KEYS` plus promoting 4 out of `EXTENDED_MEASUREMENT_KEYS` — a real
+migration-safety review, a real backfill script
+(`scripts/backfill-freesewing-measurements.ts`) run against every persisted
+`Pattern`/`SizeChart`/`Sloper`/`PatternVersion` row before the shared Zod schema
+(`lib/schemas/measurements.ts`) could be tightened. `trousers` (Titan) needed 6 MORE new keys
+(`crossSeam`/`crossSeamFront`/`knee`/`seatBack`/`waistBack`/`waistToUpperLeg`) — a fitted
+front/back-split trouser block needs measurements moldai's own straight-leg simplification
+never modeled — triggering a second migration-safety round and a second backfill. `hoodie`
+(Hugo) needed exactly ONE more key, `head` — already `CORE_MEASUREMENT_KEYS` since the very
+first round specifically because it was added anticipating this hoodie use case (see
+`lib/measurements.ts`'s own comment: "a hood's own sizing input"). Every one of Hugo's other
+12 required measurements mapped onto an existing key via the same alias convention Sandy's
+own `skirt.ts` established (`hip`→`hips`, `hipHeight`→`waistToHips`,
+`shoulder*2`→`shoulderToShoulder`) — verified against a live draft, not assumed from name
+overlap.
+
+**`hoodie` has no moldai equivalent, by design, not by oversight.** A raglan sleeve (no
+shoulder seam — a diagonal seam runs from underarm to neckline instead), a 3-piece hood
+(`hoodSide`×4 + `hoodCenter`×2, `@freesewing/library`'s own shared three-part-hood module) and
+ribbed cuffs/waistband are constructions `body.ts`/`sleeve.ts` have no equivalent for, and
+building a native moldai raglan/hood drafter from scratch was explicitly out of scope for this
+registration — `MOLDAI_CAPABILITY.types` deliberately omits `"hoodie"`, and `garment.ts`'s own
+`draftAll` throws (`no drafter wired for garment type "hoodie"`) rather than silently returning
+an empty pattern if a caller ever reaches it for that type on the `"moldai"` engine — a
+defensive backstop that became necessary the moment a real "engine-exclusive" `GarmentType`
+existed for the first time (every prior type was moldai-supported, so this failure mode was
+latent, never reachable).
+
+**Two real findings from building Hugo's own wrapper, recorded rather than silently
+"fixed":**
+
+- Hugo's own `waistband`/`cuff`/`neckBinding`/`hoodCenter` parts are each a plain rectangle,
+  but ALL FOUR are hidden by default behind an internal `expand` setting this app has no
+  reason to toggle (verified by reading each source file directly — `if (expand) {...} else
+{ ...; return part.hide() }`). Fighting that setting for zero geometric gain would have been
+  pointless: `lib/draft/engine/freesewing/designs/hoodie.ts` instead reuses
+  `lib/draft/subpieces.ts`'s own `draftCuff`/`draftWaistband` (already the same "measured
+  rectangle" shape) and a newly-exported `straightBand` primitive for `hoodCenter`, each sized
+  from THIS design's own measured edges — the same "measure what was actually drafted"
+  discipline `skirt.ts`/`trousers.ts` already follow, not a competing formula.
+- Front's/back's own raglan seam and the sleeve's own matching `raglanFront`/`raglanBack` edge
+  measure a genuine (if small, 0.3–0.6 cm at size M) gap in both directions — unlike Titan's
+  inseam/outseam (an internal fitting loop forces an exact match), Hugo's own
+  `front.mjs`/`back.mjs`/`sleeve.mjs` each draft their own portion of this seam independently,
+  with nothing enforcing agreement. Declared `easeCm: 0` (an honest small residual, not a
+  fudged zero), comfortably inside `SEAM_TOLERANCE_CM` (1 cm) at every size checked.
+
+**`dress` was evaluated and declined — not deferred, not silently dropped.** The only two
+FreeSewing candidates tagged for a dress shape are Sophie (a strapless slip dress with a
+built-in bra cup, no sleeve, no skirt-silhouette choice) and Sasha (a fully lined dress with an
+integrated pocket, 16 parts — far more complex than any archetype registered so far). Neither
+maps to moldai's own dress concept (a fitted bodice ending at the natural waist, joined to a
+skirt panel with a choice of 4 silhouettes) closely enough to make "dress" mean the same thing
+across engines. A third option — composing the already-registered `blouse`/`tshirt` bodice
+wrapper with the already-registered `skirt` wrapper, joined by a new bodice-hem-to-skirt-waist
+seam pair, mirroring how moldai's own `garment.ts` assembles ITS dress — was considered but
+not built: it would need verifying the two edges' lengths are actually compatible (Diana's own
+hem may be looser than Sandy's fitted waist) before committing, and was set aside rather than
+rushed. `FREESEWING_CAPABILITY.types` omits `"dress"`; revisit if a closer-fitting FreeSewing
+dress design ships upstream, or if the bodice+skirt composition is worth building out.
+
+**Not yet built, tracked separately, not silently claimed as done:** the three remaining new
+archetypes the original registration plan named (`coat`, `hoodie`, `shirt`) — `hoodie` shipped
+here; `coat`/`shirt` remain, each with construction complexity well beyond every archetype
+registered so far (`shirt`/Simone: 18 parts, collar+stand+cuff+sleeve-plackets;
+`coat`/Jaeger or Carlton: 23–26 parts, lining, welt pockets, a 2-part sleeve, collar+stand+
+under-collar) — genuinely new sub-piece-adapter engineering, not a repeat of the
+tshirt/blouse/skirt/trousers/hoodie pattern. Fase 5 (UI engine selection in `NewPatternForm`)
+and a final cross-archetype benchmark/docs pass remain open too.

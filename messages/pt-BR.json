@@ -171,7 +171,9 @@
       "waistband": "Cós",
       "buttonStand": "Carcela de botões",
       "collarStand": "Pé de gola",
-      "collarFall": "Viradinha da gola"
+      "collarFall": "Viradinha da gola",
+      "hoodSide": "Lateral do capuz",
+      "hoodCenter": "Centro do capuz"
     },
     "rows": {
       "seamAllowance": "Folga de costura (na linha de corte)",
@@ -198,7 +200,8 @@
       "overlap": "Sobreposição (fechamento)",
       "rise": "Gancho",
       "trouserLeg": "Modelagem da perna",
-      "trouserOtherLegs": "Outras modelagens (afunilada, pantalona, cargo)"
+      "trouserOtherLegs": "Outras modelagens (afunilada, pantalona, cargo)",
+      "hoodiePocket": "Bolso canguru e viés do decote"
     },
     "neckline": {
       "straight": "reto",
@@ -335,6 +338,26 @@
         "title": "Cós e cintura",
         "aLabel": "Cintura · calça",
         "bLabel": "Cós"
+      },
+      "hoodieRaglanFront": {
+        "title": "Costura raglan · frente",
+        "aLabel": "Raglan · corpo (frente)",
+        "bLabel": "Raglan · manga"
+      },
+      "hoodieRaglanBack": {
+        "title": "Costura raglan · costas",
+        "aLabel": "Raglan · corpo (costas)",
+        "bLabel": "Raglan · manga"
+      },
+      "waistbandWaistHoodie": {
+        "title": "Cós e barra",
+        "aLabel": "Barra · corpo",
+        "bLabel": "Cós"
+      },
+      "hoodCenterSeam": {
+        "title": "Capuz · centro",
+        "aLabel": "Lateral do capuz",
+        "bLabel": "Centro do capuz"
       }
     },
     "chat": {
@@ -421,7 +444,8 @@
       "dress": "Vestido",
       "skirt": "Saia",
       "tshirt": "Camiseta",
-      "trousers": "Calça"
+      "trousers": "Calça",
+      "hoodie": "Moletom com capuz"
     },
     "gender": {
       "male": "masculina",
@@ -553,7 +577,10 @@
     "title": "Prova 3D",
     "betaBadge": "Beta",
     "emptyState": "Gere um molde para ver a prova 3D.",
-    "notSupportedForTrousers": "A prova 3D ainda não cobre calças. Em breve.",
+    "notSupportedFor": {
+      "trousers": "A prova 3D ainda não cobre calças. Em breve.",
+      "hoodie": "A prova 3D ainda não cobre moletom com capuz. Em breve."
+    },
     "buildError": "Não foi possível gerar a prévia 3D deste molde.",
     "viewLabel": "Ângulo de visualização",
     "rotateLabel": "Girar a prova 3D: arraste ou use as setas do teclado",

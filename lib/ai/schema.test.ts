@@ -8,7 +8,6 @@ import {
   CUFFS,
   WAISTBANDS,
   FRONT_CLOSURES,
-  TYPES,
   GENDERS,
   STYLE_LIMITS,
   FIT_CLASSES,
@@ -63,8 +62,15 @@ describe("propose_garment tool schema", () => {
     }
   });
 
+  // #269: spec.type is the ACTIVE ENGINE's own declared `types`, not the
+  // whole app-wide TYPES vocabulary -- moldai's own capability deliberately
+  // excludes "hoodie" (no moldai drafter exists for it), so asserting
+  // against the full TYPES list would wrongly demand the AI be offered a
+  // type moldai can't draft. Same "engine capability, not app vocabulary"
+  // precedent the measurement-bounds test above already follows.
   it("enums match the validator's catalogs", () => {
-    expect(spec.type.enum).toEqual(TYPES);
+    const capability = getEngine(DEFAULT_ENGINE_ID).capability;
+    expect(spec.type.enum).toEqual(capability.types);
     expect(spec.gender.enum).toEqual(GENDERS);
     expect(style.neckline.enum).toEqual(NECKLINES);
     expect(style.sleeve.enum).toEqual(SLEEVES);

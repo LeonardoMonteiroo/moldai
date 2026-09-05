@@ -40,6 +40,7 @@
     "@freesewing/config": "4.10.1",
     "@freesewing/core": "4.10.1",
     "@freesewing/diana": "4.10.1",
+    "@freesewing/hugo": "4.10.1",
     "@freesewing/plugin-transform": "4.10.1",
     "@freesewing/sandy": "4.10.1",
     "@freesewing/teagan": "4.10.1",

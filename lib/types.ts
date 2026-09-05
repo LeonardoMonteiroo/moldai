@@ -28,7 +28,8 @@ export interface Measurement {
   b: Point;
 }
 
-export type GarmentType = "blouse" | "dress" | "skirt" | "tshirt" | "trousers";
+export type GarmentType =
+  "blouse" | "dress" | "skirt" | "tshirt" | "trousers" | "hoodie";
 export type Gender = "female" | "male";
 export type Neckline = "straight" | "V" | "round";
 export type SleeveLength = "none" | "short" | "long";

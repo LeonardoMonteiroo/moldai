@@ -70,6 +70,13 @@ export const STYLE_FIELDS_BY_TYPE: Record<
   tshirt: ["neckline", "sleeve", "cuff", "collar", "fit"],
   skirt: ["skirt", "waistband", "fit"],
   trousers: ["waistband", "fit"],
+  // #269: freesewing-only (see lib/draft/vocabulary.ts's own TYPES comment)
+  // -- Hugo's hood/cuff/waistband are all FIXED parts of the design, never
+  // optional sub-pieces the way moldai's own collar/cuff/waistband are, so
+  // only "sleeve" is a real, form-renderable choice (and even then only
+  // "long" is honestly supported -- see FREESEWING_CAPABILITY.styleEnumsByType
+  // .hoodie in lib/draft/engine/capability.ts).
+  hoodie: ["sleeve"],
 };
 
 /**

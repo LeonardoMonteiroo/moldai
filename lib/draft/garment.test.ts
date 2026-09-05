@@ -257,6 +257,28 @@ describe("validateSpec", () => {
   });
 });
 
+// #269: "hoodie" is a real app-level GarmentType (validateSpec/TYPES both
+// accept it -- lib/draft/vocabulary.ts) that moldai's own drafter has no
+// branch for at all (MOLDAI_CAPABILITY.types deliberately excludes it,
+// lib/draft/engine/capability.ts). A production caller is gated upstream
+// by checkEngineSupport's own "type" gap before ever reaching this far --
+// this test pins the defensive backstop for the case that gate is ever
+// skipped (a future bug, a new direct-call test): a loud failure, never a
+// silently empty `drafted: []`.
+describe("draftGarment throws for a type moldai has no drafter for", () => {
+  it("hoodie", () => {
+    const spec: GarmentSpec = {
+      type: "hoodie",
+      gender: "female",
+      measurementOverrides: {},
+      style: {},
+    };
+    expect(() =>
+      draftPiecesCm(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t),
+    ).toThrow(/no drafter wired/);
+  });
+});
+
 describe("draftGarment", () => {
   it("blouse generates front, back, and sleeve", () => {
     const { pieces } = draftGarment(

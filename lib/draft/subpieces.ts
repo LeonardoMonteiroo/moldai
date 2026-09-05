@@ -135,7 +135,15 @@ const PLACKET_WIDTH_CM = 3;
 // [0, 2] range across two collinear segments, the same "vertex at the
 // straight edge's own midpoint" idiom body.ts/skirt.ts already use for their
 // hem/waist centres -- it changes no rendered shape.
-function straightBand(
+//
+// #269: exported so lib/draft/engine/freesewing/designs/hoodie.ts can build
+// its own hood-center and neck-binding trim strips from the SAME rectangle
+// primitive -- @freesewing/hugo's own hoodCenter/neckBinding parts are both
+// plain rectangles too (verified by reading their source), just hidden by
+// default behind an "expand" setting this app never needs to toggle, so
+// reusing this primitive directly (with the wrapper's own id/name/detail
+// rows) is simpler than fighting that setting for no geometric gain.
+export function straightBand(
   wCm: number,
   hCm: number,
 ): { pts: Pt[]; seamEdge: [number, number] } {

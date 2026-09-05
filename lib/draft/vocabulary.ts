@@ -35,12 +35,22 @@ import {
 // importer (lib/ai's prompt/schema, validateSpec, TechSheetTab, the
 // dashboard/sloper components) needed its import path changed by this move.
 
+// #269: "hoodie" is drafted by the freesewing engine ONLY -- no moldai
+// drafter exists for it (a raglan sleeve, a 3-piece hood, ribbed cuffs/
+// waistband are all constructions moldai's own body.ts/sleeve.ts have no
+// equivalent for, and building one from scratch was explicitly out of
+// scope for this registration). MOLDAI_CAPABILITY.types (capability.ts)
+// deliberately does NOT include "hoodie" -- an honest, permanent gap, not
+// a "later phase" -- so it stays in this app-wide vocabulary (validateSpec
+// must still accept it as a legitimate request) while never being offered
+// to moldai's own draftAll (which throws if ever asked to draft it).
 export const TYPES: GarmentType[] = [
   "blouse",
   "dress",
   "skirt",
   "tshirt",
   "trousers",
+  "hoodie",
 ];
 export const GENDERS: Gender[] = ["female", "male"];
 export const NECKLINES: Neckline[] = ["straight", "V", "round"];

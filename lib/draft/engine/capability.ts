@@ -15,7 +15,6 @@ import type {
 import type { Measurements } from "@/lib/measurements";
 import { EXTENDED_MEASUREMENT_KEYS } from "@/lib/measurements";
 import {
-  TYPES,
   NECKLINES,
   SLEEVES,
   SKIRTS,
@@ -97,6 +96,24 @@ export interface StyleEnums {
   fit: readonly FitClass[];
   stretch: readonly StretchClass[];
 }
+
+// Declares NO style-enum support for any field -- the shape every engine's
+// "this type is not in `types`" entry uses (TypeScript's Record requires a
+// key for every GarmentType regardless), and also what a SUPPORTED type
+// uses when it reads no enum-valued style field at all (moldai's own
+// "hoodie" entry, since moldai's `types` doesn't include hoodie either --
+// same empty answer for two different reasons, one shared shape).
+const EMPTY_STYLE_ENUMS: StyleEnums = {
+  neckline: [],
+  sleeve: [],
+  skirt: [],
+  collar: [],
+  cuff: [],
+  waistband: [],
+  frontClosure: [],
+  fit: [],
+  stretch: [],
+};
 
 export interface EngineCapability {
   id: EngineId;
@@ -204,19 +221,37 @@ const MOLDAI_STYLE_ENUMS: StyleEnums = {
   stretch: STRETCH_CLASSES,
 };
 
+// #269: NOT simply `TYPES` -- that leaf array is the APP-WIDE vocabulary
+// (what a request may legitimately ask for), which now includes "hoodie"
+// (freesewing-only, no moldai drafter exists for it -- see vocabulary.ts's
+// own comment). `types: TYPES` would silently claim moldai drafts hoodie
+// too the moment TYPES ever grows past what moldai's own draftAll
+// actually handles -- exactly the gap this explicit list closes: a
+// request for `type: "hoodie"` on the default ("moldai") engine must
+// report a real `checkEngineSupport` "type" gap (so the generate route
+// declines it) rather than proceeding to a drafter with no branch for it.
+const MOLDAI_TYPES: readonly GarmentType[] = [
+  "blouse",
+  "dress",
+  "skirt",
+  "tshirt",
+  "trousers",
+];
+
 export const MOLDAI_CAPABILITY: EngineCapability = {
   id: "moldai",
   measurements: {
     required: MOLDAI_REQUIRED_MEASUREMENTS,
     optional: EXTENDED_MEASUREMENT_KEYS,
   },
-  types: TYPES,
+  types: MOLDAI_TYPES,
   styleEnumsByType: {
     blouse: MOLDAI_STYLE_ENUMS,
     dress: MOLDAI_STYLE_ENUMS,
     tshirt: MOLDAI_STYLE_ENUMS,
     skirt: MOLDAI_STYLE_ENUMS,
     trousers: MOLDAI_STYLE_ENUMS,
+    hoodie: EMPTY_STYLE_ENUMS,
   },
   styleLimits: STYLE_LIMITS,
   styleFieldsByType: {
@@ -257,6 +292,10 @@ export const MOLDAI_CAPABILITY: EngineCapability = {
     ],
     skirt: ["skirt", "skirtLengthCm", "waistband", "seamAllowanceCm"],
     trousers: ["trouserLengthCm", "waistband", "seamAllowanceCm"],
+    // #269: moldai drafts no hoodie at all (see MOLDAI_TYPES above) -- an
+    // honest empty entry, the same convention freesewing's own "dress"
+    // (also unsupported) uses below.
+    hoodie: [],
   },
 };
 
@@ -264,9 +303,13 @@ export const MOLDAI_CAPABILITY: EngineCapability = {
 // (lib/draft/engine/freesewing/designs/tshirt.ts, backed by
 // @freesewing/teagan), `blouse` (designs/blouse.ts, backed by
 // @freesewing/diana), `skirt` (designs/skirt.ts, backed by
-// @freesewing/sandy) and `trousers` (designs/trousers.ts, backed by
-// @freesewing/titan) are wired today -- dress is a later phase, tracked
-// in docs/decisions/drafting.md, not silently claimed here.
+// @freesewing/sandy), `trousers` (designs/trousers.ts, backed by
+// @freesewing/titan) and `hoodie` (designs/hoodie.ts, backed by
+// @freesewing/hugo) are wired today -- dress was evaluated (Sophie/Sasha)
+// and deliberately declined: neither maps to moldai's own bodice+skirt
+// dress concept (see docs/decisions/drafting.md). `hoodie` itself has NO
+// moldai equivalent at all -- see MOLDAI_CAPABILITY's own MOLDAI_TYPES
+// comment above.
 // Ground truth from reading each design wrapper's own conversion function
 // directly, the same "grep the drafter, don't assume" discipline
 // MOLDAI_CAPABILITY above follows:
@@ -318,6 +361,23 @@ export const MOLDAI_CAPABILITY: EngineCapability = {
 //   read" discipline skirt.ts's own skirt-silhouette entry follows), so a
 //   request to turn the waistband off via freesewing is a real, reportable
 //   styleField gap, not a silent no-op.
+// - hoodie (designs/hoodie.ts, Hugo) needs exactly ONE more key: "head" (a
+//   hood's own sizing input) -- already CORE_MEASUREMENT_KEYS since the
+//   very first #269 round (added anticipating precisely this), so this
+//   is a declaration-only change, no new backfill/migration-safety review.
+//   Every one of Hugo's other 12 required measurements (biceps/chest/
+//   hpsToBust/hpsToWaistBack/neck/shoulderToShoulder/shoulderSlope/
+//   waistToArmpit/waistToHips/hips/shoulderToWrist/wrist) already maps
+//   onto an existing key via the same aliases tshirt/blouse/skirt already
+//   use (hip->hips, hipHeight->waistToHips, shoulder*2->shoulderToShoulder)
+//   -- verified against a live draft before writing this list, not assumed
+//   from the name overlap alone. styleFieldsByType.hoodie lists ONLY
+//   "sleeve" -- Hugo's hood/cuff/waistband/ribbing are all FIXED parts of
+//   the design (never optional sub-pieces the way moldai's own collar/
+//   cuff/waistband are), and its own sleeveLengthBonus option (0%-10%,
+//   @freesewing/hugo's own options.mjs) never produces a true short
+//   sleeve, so styleEnumsByType.hoodie.sleeve is ["long"] only -- the
+//   same shape blouse's own Diana already has.
 const FREESEWING_REQUIRED_MEASUREMENTS: readonly (keyof Measurements)[] = [
   "bust",
   "waist",
@@ -344,19 +404,8 @@ const FREESEWING_REQUIRED_MEASUREMENTS: readonly (keyof Measurements)[] = [
   "knee",
   "seatBack",
   "waistBack",
+  "head",
 ];
-
-const FREESEWING_EMPTY_STYLE_ENUMS: StyleEnums = {
-  neckline: [],
-  sleeve: [],
-  skirt: [],
-  collar: [],
-  cuff: [],
-  waistband: [],
-  frontClosure: [],
-  fit: [],
-  stretch: [],
-};
 
 export const FREESEWING_CAPABILITY: EngineCapability = {
   id: "freesewing",
@@ -364,13 +413,14 @@ export const FREESEWING_CAPABILITY: EngineCapability = {
     required: FREESEWING_REQUIRED_MEASUREMENTS,
     optional: ["highBust", "shoulderSlope"],
   },
-  types: ["tshirt", "blouse", "skirt", "trousers"],
+  types: ["tshirt", "blouse", "skirt", "trousers", "hoodie"],
   styleEnumsByType: {
-    blouse: { ...FREESEWING_EMPTY_STYLE_ENUMS, sleeve: ["long"] },
-    dress: FREESEWING_EMPTY_STYLE_ENUMS,
-    tshirt: { ...FREESEWING_EMPTY_STYLE_ENUMS, sleeve: ["short", "long"] },
-    skirt: { ...FREESEWING_EMPTY_STYLE_ENUMS, skirt: ["circle"] },
-    trousers: FREESEWING_EMPTY_STYLE_ENUMS,
+    blouse: { ...EMPTY_STYLE_ENUMS, sleeve: ["long"] },
+    dress: EMPTY_STYLE_ENUMS,
+    tshirt: { ...EMPTY_STYLE_ENUMS, sleeve: ["short", "long"] },
+    skirt: { ...EMPTY_STYLE_ENUMS, skirt: ["circle"] },
+    trousers: EMPTY_STYLE_ENUMS,
+    hoodie: { ...EMPTY_STYLE_ENUMS, sleeve: ["long"] },
   },
   styleLimits: STYLE_LIMITS,
   styleFieldsByType: {
@@ -379,6 +429,7 @@ export const FREESEWING_CAPABILITY: EngineCapability = {
     tshirt: ["sleeve"],
     skirt: ["skirt", "skirtLengthCm"],
     trousers: ["trouserLengthCm"],
+    hoodie: ["sleeve"],
   },
 };
 

@@ -295,6 +295,21 @@ export function draftAll(
 
   const isBody =
     spec.type === "blouse" || spec.type === "dress" || spec.type === "tshirt";
+  // #269: "hoodie" is a real, app-level GarmentType (validateSpec accepts
+  // it) that this drafter has no branch for at all -- MOLDAI_CAPABILITY's
+  // own MOLDAI_TYPES deliberately excludes it (lib/draft/engine/
+  // capability.ts), so a properly-gated caller (checkEngineSupport, the
+  // generate route's own blockingGap check) never reaches this far for it
+  // on the "moldai" engine. This is the same defensive backstop
+  // lib/draft/engine/freesewing/index.ts's own dispatch throws for an
+  // unwired type -- without it, a caller that skipped the gate (a future
+  // test, a bug) would silently get back `drafted: []` instead of a loud
+  // failure, the exact "silent gap" CLAUDE.md's own non-negotiable forbids.
+  if (!isBody && spec.type !== "skirt" && spec.type !== "trousers") {
+    throw new Error(
+      `draftAll: no drafter wired for garment type "${spec.type}"`,
+    );
+  }
   if (isBody) {
     const knit = spec.type === "tshirt";
     const lengthCm =
