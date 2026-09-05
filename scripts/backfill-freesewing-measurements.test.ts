@@ -25,6 +25,12 @@ describe("backfillRow", () => {
       "bustPointHeight",
       "neckGirth",
       "bustSpan",
+      "crossSeam",
+      "crossSeamFront",
+      "knee",
+      "seatBack",
+      "waistBack",
+      "waistToUpperLeg",
     ]) {
       expect(typeof row[key]).toBe("number");
       expect(Number.isFinite(row[key])).toBe(true);

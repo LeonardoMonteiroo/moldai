@@ -63,6 +63,20 @@ export interface Measurements {
   inseam: number; // inner leg length, crotch → ankle (cm)
   shoulderToElbow: number; // shoulder tip → elbow (cm)
   head: number; // head circumference (cm) — a hood's own sizing input
+  // #269 (trousers/Titan follow-up): a fitted trouser block (Titan, and
+  // every other trouser design in the FreeSewing collection — this family
+  // isn't a Titan quirk) splits front and back at the waist/seat and needs
+  // the total crotch curve, not just moldai's own single flat `rise` —
+  // none of these six had a moldai-side proportion to fall back to, so
+  // (like the 14+4 above) they're required outright. See
+  // scripts/backfill-freesewing-measurements.ts for how every
+  // already-persisted row was filled before this became enforced.
+  crossSeam: number; // full crotch curve, waist to waist, front + back over the crotch (cm)
+  crossSeamFront: number; // crossSeam's own front half (cm)
+  knee: number; // knee circumference (cm)
+  seatBack: number; // back half of the seat circumference (cm) — a real body asymmetry moldai's own trousers.ts simplifies away
+  waistBack: number; // back half of the waist circumference (cm)
+  waistToUpperLeg: number; // waist → upper-thigh crease, vertical (cm)
 }
 
 // Every Measurements field, in the order the size-chart table renders its
@@ -111,6 +125,13 @@ export const CORE_MEASUREMENT_KEYS: (keyof Measurements)[] = [
   "inseam",
   "shoulderToElbow",
   "head",
+  // #269 (trousers/Titan follow-up): see the interface comment above.
+  "crossSeam",
+  "crossSeamFront",
+  "knee",
+  "seatBack",
+  "waistBack",
+  "waistToUpperLeg",
 ];
 
 export const EXTENDED_MEASUREMENT_KEYS: (keyof Measurements)[] = [
@@ -194,6 +215,12 @@ export const SIZE_TABLE: Record<SizeLabel, Measurements> = {
     inseam: 74.8,
     shoulderToElbow: 32.4,
     head: 54.7,
+    crossSeam: 69.9,
+    crossSeamFront: 35.0,
+    knee: 35.7,
+    seatBack: 49.1,
+    waistBack: 35.0,
+    waistToUpperLeg: 26.8,
   },
   P: {
     bust: 88,
@@ -223,6 +250,12 @@ export const SIZE_TABLE: Record<SizeLabel, Measurements> = {
     inseam: 75.6,
     shoulderToElbow: 33.2,
     head: 55.5,
+    crossSeam: 71.8,
+    crossSeamFront: 35.9,
+    knee: 36.8,
+    seatBack: 50.5,
+    waistBack: 36.4,
+    waistToUpperLeg: 27.6,
   },
   M: {
     bust: 92,
@@ -252,6 +285,12 @@ export const SIZE_TABLE: Record<SizeLabel, Measurements> = {
     inseam: 76.4,
     shoulderToElbow: 33.9,
     head: 56.4,
+    crossSeam: 73.8,
+    crossSeamFront: 36.9,
+    knee: 37.9,
+    seatBack: 51.8,
+    waistBack: 37.8,
+    waistToUpperLeg: 28.4,
   },
   G: {
     bust: 96,
@@ -281,6 +320,12 @@ export const SIZE_TABLE: Record<SizeLabel, Measurements> = {
     inseam: 77.2,
     shoulderToElbow: 34.6,
     head: 57.3,
+    crossSeam: 75.7,
+    crossSeamFront: 37.8,
+    knee: 39.0,
+    seatBack: 53.2,
+    waistBack: 39.2,
+    waistToUpperLeg: 29.2,
   },
   GG: {
     bust: 100,
@@ -310,6 +355,12 @@ export const SIZE_TABLE: Record<SizeLabel, Measurements> = {
     inseam: 78.1,
     shoulderToElbow: 35.4,
     head: 58.1,
+    crossSeam: 77.6,
+    crossSeamFront: 38.8,
+    knee: 40.0,
+    seatBack: 54.5,
+    waistBack: 40.6,
+    waistToUpperLeg: 30.0,
   },
 };
 
@@ -342,6 +393,12 @@ export const SIZE_TABLE_MALE: Record<SizeLabel, Measurements> = {
     inseam: 76.4,
     shoulderToElbow: 34.6,
     head: 57.3,
+    crossSeam: 82.8,
+    crossSeamFront: 39.0,
+    knee: 38.9,
+    seatBack: 53.3,
+    waistBack: 38.2,
+    waistToUpperLeg: 32.2,
   },
   P: {
     bust: 96,
@@ -371,6 +428,12 @@ export const SIZE_TABLE_MALE: Record<SizeLabel, Measurements> = {
     inseam: 77.2,
     shoulderToElbow: 35.3,
     head: 58.2,
+    crossSeam: 85.0,
+    crossSeamFront: 40.0,
+    knee: 39.9,
+    seatBack: 54.6,
+    waistBack: 39.6,
+    waistToUpperLeg: 33.1,
   },
   M: {
     bust: 100,
@@ -400,6 +463,12 @@ export const SIZE_TABLE_MALE: Record<SizeLabel, Measurements> = {
     inseam: 78.0,
     shoulderToElbow: 36.0,
     head: 59.0,
+    crossSeam: 87.0,
+    crossSeamFront: 41.0,
+    knee: 41.0,
+    seatBack: 56.0,
+    waistBack: 41.0,
+    waistToUpperLeg: 34.0,
   },
   G: {
     bust: 104,
@@ -429,6 +498,12 @@ export const SIZE_TABLE_MALE: Record<SizeLabel, Measurements> = {
     inseam: 78.8,
     shoulderToElbow: 36.7,
     head: 59.8,
+    crossSeam: 89.0,
+    crossSeamFront: 42.0,
+    knee: 42.1,
+    seatBack: 57.4,
+    waistBack: 42.4,
+    waistToUpperLeg: 34.9,
   },
   GG: {
     bust: 108,
@@ -458,6 +533,12 @@ export const SIZE_TABLE_MALE: Record<SizeLabel, Measurements> = {
     inseam: 79.6,
     shoulderToElbow: 37.4,
     head: 60.7,
+    crossSeam: 91.2,
+    crossSeamFront: 43.0,
+    knee: 43.1,
+    seatBack: 58.7,
+    waistBack: 43.8,
+    waistToUpperLeg: 35.8,
   },
 };
 
@@ -496,6 +577,12 @@ export const MEASUREMENT_RANGES: Record<
   inseam: { min: 65, max: 90 },
   shoulderToElbow: { min: 26, max: 44 },
   head: { min: 48, max: 66 },
+  crossSeam: { min: 60, max: 110 },
+  crossSeamFront: { min: 28, max: 52 },
+  knee: { min: 28, max: 50 },
+  seatBack: { min: 40, max: 70 },
+  waistBack: { min: 28, max: 52 },
+  waistToUpperLeg: { min: 20, max: 42 },
 };
 
 function clamp(v: number, min: number, max: number) {

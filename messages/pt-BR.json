@@ -1172,7 +1172,13 @@
       "waistToFloor": "Cintura ao chão",
       "inseam": "Entreperna",
       "shoulderToElbow": "Ombro ao cotovelo",
-      "head": "Circunferência da cabeça"
+      "head": "Circunferência da cabeça",
+      "crossSeam": "Gancho total (frente e costas)",
+      "crossSeamFront": "Gancho total (frente)",
+      "knee": "Circunferência do joelho",
+      "seatBack": "Circunferência do assento (costas)",
+      "waistBack": "Circunferência da cintura (costas)",
+      "waistToUpperLeg": "Cintura à coxa"
     },
     "bodyType": {
       "straight": "reto",
@@ -1216,7 +1222,13 @@
       "waistToFloor": "Meça verticalmente da cintura até o chão, pela lateral do corpo, sem sapatos.",
       "inseam": "Meça da virilha até o tornozelo, pela parte interna da perna.",
       "shoulderToElbow": "Meça da ponta do ombro até o cotovelo, com o braço levemente dobrado.",
-      "head": "Meça ao redor da cabeça, logo acima das sobrancelhas e das orelhas."
+      "head": "Meça ao redor da cabeça, logo acima das sobrancelhas e das orelhas.",
+      "crossSeam": "Sentada(o), meça da cintura na frente, passando entre as pernas, até a cintura nas costas.",
+      "crossSeamFront": "A mesma medida do gancho total, mas só a parte da frente até entre as pernas.",
+      "knee": "Meça ao redor do joelho, no meio da perna.",
+      "seatBack": "Meça, pelas costas, a metade da circunferência do assento (de lateral a lateral, passando pelo bumbum).",
+      "waistBack": "Meça, pelas costas, a metade da circunferência da cintura (de lateral a lateral).",
+      "waistToUpperLeg": "Meça verticalmente da cintura até a altura da virilha, pela lateral do corpo."
     },
     "baseSizeTag": "base"
   },

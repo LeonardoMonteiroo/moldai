@@ -52,6 +52,20 @@ const NEW_KEYS = [
   "bustPointHeight",
   "neckGirth",
   "bustSpan",
+  // #269 (trousers/Titan follow-up): 6 more genuinely new keys -- a fitted
+  // trouser block (Titan, and every other trouser design in the FreeSewing
+  // collection) splits front/back at waist and seat, which moldai's own
+  // flat `rise` never captured. Same treatment, same source, run again
+  // AFTER the first 18 keys were already backfilled -- re-running this
+  // whole script is still idempotent (backfillRow only fills a key that's
+  // currently missing/non-finite), so it's safe to append here and re-run
+  // rather than writing a second script.
+  "crossSeam",
+  "crossSeamFront",
+  "knee",
+  "seatBack",
+  "waistBack",
+  "waistToUpperLeg",
 ] as const satisfies readonly (keyof Measurements)[];
 
 // Our own key name -> @freesewing/models' key name, wherever they differ.

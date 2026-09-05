@@ -151,8 +151,10 @@ describe("CORE_MEASUREMENT_KEYS / EXTENDED_MEASUREMENT_KEYS / MEASUREMENT_KEYS (
 
   // #269: the original nine, plus four #132/bust-dart-shaping fields
   // promoted out of EXTENDED (a FreeSewing design requires each outright),
-  // plus 14 genuinely new keys with no moldai-side fallback at all.
-  it("CORE_MEASUREMENT_KEYS has the original nine, the four promoted keys, and the 14 new freesewing-only keys", () => {
+  // plus 14 genuinely new keys with no moldai-side fallback at all, plus 6
+  // more added for the trousers/Titan follow-up (a fitted front/back-split
+  // trouser block moldai's own straight-leg simplification never needed).
+  it("CORE_MEASUREMENT_KEYS has the original nine, the four promoted keys, the 14 freesewing-only keys, and the 6 trouser-family keys", () => {
     expect(CORE_MEASUREMENT_KEYS).toEqual([
       "bust",
       "waist",
@@ -181,6 +183,12 @@ describe("CORE_MEASUREMENT_KEYS / EXTENDED_MEASUREMENT_KEYS / MEASUREMENT_KEYS (
       "inseam",
       "shoulderToElbow",
       "head",
+      "crossSeam",
+      "crossSeamFront",
+      "knee",
+      "seatBack",
+      "waistBack",
+      "waistToUpperLeg",
     ]);
   });
 

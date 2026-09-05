@@ -263,9 +263,10 @@ export const MOLDAI_CAPABILITY: EngineCapability = {
 // #269: the freesewing engine's declared capability. `tshirt`
 // (lib/draft/engine/freesewing/designs/tshirt.ts, backed by
 // @freesewing/teagan), `blouse` (designs/blouse.ts, backed by
-// @freesewing/diana) and `skirt` (designs/skirt.ts, backed by
-// @freesewing/sandy) are wired today -- dress/trousers are a later phase,
-// tracked in docs/decisions/drafting.md, not silently claimed here.
+// @freesewing/diana), `skirt` (designs/skirt.ts, backed by
+// @freesewing/sandy) and `trousers` (designs/trousers.ts, backed by
+// @freesewing/titan) are wired today -- dress is a later phase, tracked
+// in docs/decisions/drafting.md, not silently claimed here.
 // Ground truth from reading each design wrapper's own conversion function
 // directly, the same "grep the drafter, don't assume" discipline
 // MOLDAI_CAPABILITY above follows:
@@ -304,6 +305,19 @@ export const MOLDAI_CAPABILITY: EngineCapability = {
 //   real, reportable gap, not a silent near-long approximation.
 //   styleEnumsByType.skirt.skirt is ["circle"] only -- Sandy cannot draft
 //   straight/a-line/gore/half-circle.
+// - trousers (designs/trousers.ts, Titan) needs 9 more keys no other wired
+//   design reads: seat/waistToSeat/waistToKnee/waistToUpperLeg (its own
+//   waist/waistToFloor/hipHeight-as-waistToHips overlap what's already
+//   listed) plus crossSeam/crossSeamFront/knee/seatBack/waistBack -- the
+//   6 genuinely new #269-follow-up CORE keys a fitted front/back-split
+//   trouser block needs that moldai's own straight-leg simplification
+//   never did (see lib/measurements.ts's own comment on these).
+//   styleFieldsByType.trousers lists ONLY "trouserLengthCm" -- the wrapper
+//   always attaches a waistband regardless of spec.style.waistband (never
+//   branches on it, the same "declared support only for what's actually
+//   read" discipline skirt.ts's own skirt-silhouette entry follows), so a
+//   request to turn the waistband off via freesewing is a real, reportable
+//   styleField gap, not a silent no-op.
 const FREESEWING_REQUIRED_MEASUREMENTS: readonly (keyof Measurements)[] = [
   "bust",
   "waist",
@@ -321,6 +335,15 @@ const FREESEWING_REQUIRED_MEASUREMENTS: readonly (keyof Measurements)[] = [
   "longSleeveLength",
   "waistToFloor",
   "skirtLength",
+  "seat",
+  "waistToSeat",
+  "waistToKnee",
+  "waistToUpperLeg",
+  "crossSeam",
+  "crossSeamFront",
+  "knee",
+  "seatBack",
+  "waistBack",
 ];
 
 const FREESEWING_EMPTY_STYLE_ENUMS: StyleEnums = {
@@ -341,7 +364,7 @@ export const FREESEWING_CAPABILITY: EngineCapability = {
     required: FREESEWING_REQUIRED_MEASUREMENTS,
     optional: ["highBust", "shoulderSlope"],
   },
-  types: ["tshirt", "blouse", "skirt"],
+  types: ["tshirt", "blouse", "skirt", "trousers"],
   styleEnumsByType: {
     blouse: { ...FREESEWING_EMPTY_STYLE_ENUMS, sleeve: ["long"] },
     dress: FREESEWING_EMPTY_STYLE_ENUMS,
@@ -355,7 +378,7 @@ export const FREESEWING_CAPABILITY: EngineCapability = {
     dress: [],
     tshirt: ["sleeve"],
     skirt: ["skirt", "skirtLengthCm"],
-    trousers: [],
+    trousers: ["trouserLengthCm"],
   },
 };
 
