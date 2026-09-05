@@ -27,9 +27,16 @@ const ORIGINAL_DSN = process.env.NEXT_PUBLIC_SENTRY_DSN;
 // forwardToSentry is a synchronous fire-and-forget function (matches
 // reportError's own void signature) -- its actual Sentry work happens
 // inside an un-awaited internal async function, gated behind a dynamic
-// import(). This flushes the microtask queue so that work has a chance to
-// finish before an assertion runs.
-const flushMicrotasks = () => new Promise((resolve) => setTimeout(resolve, 0));
+// import(). A fixed-delay flush (e.g. one setTimeout(0)) is not reliable
+// here: vite-node's dynamic import() can take more than one tick the first
+// time a specifier resolves, so a test can finish -- and vi.clearAllMocks()
+// in the next test's beforeEach can run -- before the PREVIOUS test's
+// forward() has actually called into the mock, leaking a stale
+// mockImplementationOnce/call into whichever test happens to be running
+// when it finally lands. vi.waitFor polls the given assertion instead of
+// guessing a delay, so each test only completes once its own async work
+// genuinely has.
+const waitForSentryCall = (assertion: () => void) => vi.waitFor(assertion);
 
 describe("sentryOptions / initSentry", () => {
   afterEach(() => {
@@ -119,27 +126,31 @@ describe("forwardToSentry", () => {
     }
   });
 
-  it("never imports/calls the SDK when no DSN is configured", async () => {
+  it("never imports/calls the SDK when no DSN is configured", () => {
+    // No dynamic import is even started in this branch (the early return
+    // in forwardToSentry happens before `void forward()`), so there is no
+    // async work to wait for -- the assertion is safe synchronously.
     delete process.env.NEXT_PUBLIC_SENTRY_DSN;
     forwardToSentry("generate", new Error("boom"));
-    await flushMicrotasks();
     expect(Sentry.withScope).not.toHaveBeenCalled();
   });
 
   it("captures an Error via captureException, tagged with scope", async () => {
     const err = new Error("boom");
     forwardToSentry("generate", err, { patternId: "p1" });
-    await flushMicrotasks();
-    expect(Sentry.captureException).toHaveBeenCalledWith(err);
+    await waitForSentryCall(() =>
+      expect(Sentry.captureException).toHaveBeenCalledWith(err),
+    );
     expect(Sentry.captureMessage).not.toHaveBeenCalled();
   });
 
   // lib/db/users.ts's deleteUser() passes a plain string, not an Error.
   it("captures a non-Error value via captureMessage instead of captureException", async () => {
     forwardToSentry("account.delete", "account deleted", { userId: "u1" });
-    await flushMicrotasks();
-    expect(Sentry.captureMessage).toHaveBeenCalledWith(
-      "[account.delete] account deleted",
+    await waitForSentryCall(() =>
+      expect(Sentry.captureMessage).toHaveBeenCalledWith(
+        "[account.delete] account deleted",
+      ),
     );
     expect(Sentry.captureException).not.toHaveBeenCalled();
   });
@@ -165,15 +176,17 @@ describe("forwardToSentry", () => {
     forwardToSentry("password-reset-request", new Error("smtp down"), {
       email: "user@example.com",
     });
-    await flushMicrotasks();
-    expect(captured).toEqual({ email: "[redacted]" });
+    await waitForSentryCall(() =>
+      expect(captured).toEqual({ email: "[redacted]" }),
+    );
   });
 
   it("works with no context at all", async () => {
     expect(() =>
       forwardToSentry("draft.engine.unknown", new Error("x")),
     ).not.toThrow();
-    await flushMicrotasks();
-    expect(Sentry.captureException).toHaveBeenCalled();
+    await waitForSentryCall(() =>
+      expect(Sentry.captureException).toHaveBeenCalled(),
+    );
   });
 });
