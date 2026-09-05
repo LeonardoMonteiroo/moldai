@@ -2,7 +2,10 @@ import { pathToFileURL } from "node:url";
 import { PrismaClient, Prisma } from "@prisma/client";
 import { cisFemaleAdult, cisMaleAdult } from "@freesewing/models";
 import { reportError } from "../lib/observability/report";
-import type { Measurements } from "../lib/measurements";
+import {
+  FRONT_BACK_LENGTH_DELTA_CM,
+  type Measurements,
+} from "../lib/measurements";
 
 // #269: registering FreeSewing as a second drafting engine added 14 keys
 // directly to lib/measurements.ts's CORE_MEASUREMENT_KEYS (not the optional
@@ -66,6 +69,11 @@ const NEW_KEYS = [
   "seatBack",
   "waistBack",
   "waistToUpperLeg",
+  // #269 (coat/Jett follow-up): a placket-front coat needs the front
+  // bodice length independently of backLength -- see lib/measurements.ts's
+  // own comment. Same idempotent re-run story as the trousers follow-up,
+  // but NOT sourced via `interpolate` below -- see DERIVED_FROM_BACK_LENGTH.
+  "hpsToWaistFront",
 ] as const satisfies readonly (keyof Measurements)[];
 
 // Our own key name -> @freesewing/models' key name, wherever they differ.
@@ -74,6 +82,20 @@ const FS_KEY: Partial<Record<(typeof NEW_KEYS)[number], string>> = {
   bustPointHeight: "hpsToBust",
   neckGirth: "neck",
 };
+
+// #269 (coat/Jett follow-up, migration-safety catch): @freesewing/models'
+// own `hpsToWaistFront` is flagged by its own upstream maintainers as a
+// rough placeholder (neckstimate.mjs: `hpsToWaistFront: [400, 460], //
+// FIXME: Estimate`), and interpolating it independently of `backLength`
+// produced a front/back relationship that flipped sign across the female
+// size range -- caught before this script ever ran with --apply. Derived
+// from the row's OWN already-present `backLength` instead (a flat,
+// per-gender delta -- see lib/measurements.ts's own
+// FRONT_BACK_LENGTH_DELTA_CM), which is monotonic by construction and
+// never touches the flagged-as-estimate upstream figure at all.
+const DERIVED_FROM_BACK_LENGTH = new Set<(typeof NEW_KEYS)[number]>([
+  "hpsToWaistFront",
+]);
 
 type FsModel = Record<string, Record<string, number>>;
 
@@ -110,7 +132,7 @@ function interpolate(
  * `assertResolvedMeasurements` to report honestly.
  */
 export function backfillRow(
-  row: Record<string, unknown> & { bust?: unknown },
+  row: Record<string, unknown> & { bust?: unknown; backLength?: unknown },
   gender: "female" | "male",
 ): boolean {
   if (typeof row.bust !== "number" || !Number.isFinite(row.bust)) return false;
@@ -119,6 +141,23 @@ export function backfillRow(
   for (const key of NEW_KEYS) {
     const existing = row[key];
     if (typeof existing === "number" && Number.isFinite(existing)) continue;
+    if (DERIVED_FROM_BACK_LENGTH.has(key)) {
+      // backLength is one of the original nine CORE keys -- present on
+      // every row that ever passed assertResolvedMeasurements, even the
+      // oldest legacy ones. Still guarded (never fabricate from nothing),
+      // matching the same discipline the `bust` check above already uses.
+      if (
+        typeof row.backLength !== "number" ||
+        !Number.isFinite(row.backLength)
+      ) {
+        continue;
+      }
+      row[key] =
+        Math.round((row.backLength + FRONT_BACK_LENGTH_DELTA_CM[gender]) * 10) /
+        10;
+      changed = true;
+      continue;
+    }
     const mm = interpolate(model, row.bust * 10, FS_KEY[key] ?? key);
     row[key] = Math.round((mm / 10) * 10) / 10; // cm, 0.1 precision
     changed = true;

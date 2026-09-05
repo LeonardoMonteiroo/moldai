@@ -154,7 +154,7 @@ describe("CORE_MEASUREMENT_KEYS / EXTENDED_MEASUREMENT_KEYS / MEASUREMENT_KEYS (
   // plus 14 genuinely new keys with no moldai-side fallback at all, plus 6
   // more added for the trousers/Titan follow-up (a fitted front/back-split
   // trouser block moldai's own straight-leg simplification never needed).
-  it("CORE_MEASUREMENT_KEYS has the original nine, the four promoted keys, the 14 freesewing-only keys, and the 6 trouser-family keys", () => {
+  it("CORE_MEASUREMENT_KEYS has the original nine, the four promoted keys, the 14 freesewing-only keys, the 6 trouser-family keys, and hpsToWaistFront", () => {
     expect(CORE_MEASUREMENT_KEYS).toEqual([
       "bust",
       "waist",
@@ -189,6 +189,7 @@ describe("CORE_MEASUREMENT_KEYS / EXTENDED_MEASUREMENT_KEYS / MEASUREMENT_KEYS (
       "seatBack",
       "waistBack",
       "waistToUpperLeg",
+      "hpsToWaistFront",
     ]);
   });
 

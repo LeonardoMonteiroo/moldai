@@ -1,4 +1,4 @@
-import { SizeLabel } from "./types";
+import { Gender, SizeLabel } from "./types";
 
 export interface Measurements {
   bust: number; // bust circumference (cm)
@@ -77,7 +77,42 @@ export interface Measurements {
   seatBack: number; // back half of the seat circumference (cm) — a real body asymmetry moldai's own trousers.ts simplifies away
   waistBack: number; // back half of the waist circumference (cm)
   waistToUpperLeg: number; // waist → upper-thigh crease, vertical (cm)
+  // #269 (coat/Jett follow-up): a placket-front coat needs the FRONT
+  // bodice length independently of `backLength` (nape → waist, via the
+  // back) — a real body asymmetry (the front torso is a different length
+  // than the back) moldai's own body.ts has never needed to distinguish,
+  // since every archetype it drafts derives front panel length from the
+  // SAME backLength figure. No moldai-side proportion to fall back to, so
+  // required outright, same footing as the trousers-follow-up six above.
+  //
+  // A migration-safety review caught a real data-quality bug in this
+  // field's first version: seeded by interpolating @freesewing/models'
+  // own `hpsToWaistFront` at each row's bust girth (the same sourcing the
+  // trousers-follow-up keys used successfully), it turned out NOT to
+  // track backLength consistently — the female table's own front-minus-
+  // back delta drifted from -2.4cm (PP) to +0.1cm (GG), flipping sign
+  // partway through the size run, which no real body does. Traced to the
+  // upstream source itself: @freesewing/models' own neckstimate.mjs
+  // literally comments `hpsToWaistFront: [400, 460], // FIXME: Estimate`
+  // — flagged as rough by FreeSewing's own maintainers, unlike every
+  // other key this repo has sourced from that package. Every SIZE_TABLE/
+  // SIZE_TABLE_MALE value below is instead `backLength +
+  // FRONT_BACK_LENGTH_DELTA_CM` (a flat, per-gender constant, the same
+  // "flat, not bust-scaled" footing bustPointHeight/bustSpan/shoulderSlope
+  // already use) -- monotonic by construction, since it grows in exact
+  // lockstep with backLength's own per-size grading.
+  hpsToWaistFront: number; // shoulder seam → waist, vertical, over the front (cm)
 }
+
+// A typical bust-curvature allowance: shoulder-to-waist measured over the
+// front (across the bust) runs longer than the same measurement over the
+// back, more so for a female figure than a male one. Flat per gender, not
+// scaled by bust circumference — see hpsToWaistFront's own interface
+// comment for why a scaled/interpolated version was rejected.
+export const FRONT_BACK_LENGTH_DELTA_CM: Record<Gender, number> = {
+  female: 3.0,
+  male: 1.0,
+};
 
 // Every Measurements field, in the order the size-chart table renders its
 // rows. Exported so the table, the validator and any future consumer
@@ -132,6 +167,8 @@ export const CORE_MEASUREMENT_KEYS: (keyof Measurements)[] = [
   "seatBack",
   "waistBack",
   "waistToUpperLeg",
+  // #269 (coat/Jett follow-up): see the interface comment above.
+  "hpsToWaistFront",
 ];
 
 export const EXTENDED_MEASUREMENT_KEYS: (keyof Measurements)[] = [
@@ -221,6 +258,7 @@ export const SIZE_TABLE: Record<SizeLabel, Measurements> = {
     seatBack: 49.1,
     waistBack: 35.0,
     waistToUpperLeg: 26.8,
+    hpsToWaistFront: 43.0,
   },
   P: {
     bust: 88,
@@ -256,6 +294,7 @@ export const SIZE_TABLE: Record<SizeLabel, Measurements> = {
     seatBack: 50.5,
     waistBack: 36.4,
     waistToUpperLeg: 27.6,
+    hpsToWaistFront: 43.5,
   },
   M: {
     bust: 92,
@@ -291,6 +330,7 @@ export const SIZE_TABLE: Record<SizeLabel, Measurements> = {
     seatBack: 51.8,
     waistBack: 37.8,
     waistToUpperLeg: 28.4,
+    hpsToWaistFront: 44.0,
   },
   G: {
     bust: 96,
@@ -326,6 +366,7 @@ export const SIZE_TABLE: Record<SizeLabel, Measurements> = {
     seatBack: 53.2,
     waistBack: 39.2,
     waistToUpperLeg: 29.2,
+    hpsToWaistFront: 44.5,
   },
   GG: {
     bust: 100,
@@ -361,6 +402,7 @@ export const SIZE_TABLE: Record<SizeLabel, Measurements> = {
     seatBack: 54.5,
     waistBack: 40.6,
     waistToUpperLeg: 30.0,
+    hpsToWaistFront: 45.0,
   },
 };
 
@@ -399,6 +441,7 @@ export const SIZE_TABLE_MALE: Record<SizeLabel, Measurements> = {
     seatBack: 53.3,
     waistBack: 38.2,
     waistToUpperLeg: 32.2,
+    hpsToWaistFront: 44.0,
   },
   P: {
     bust: 96,
@@ -434,6 +477,7 @@ export const SIZE_TABLE_MALE: Record<SizeLabel, Measurements> = {
     seatBack: 54.6,
     waistBack: 39.6,
     waistToUpperLeg: 33.1,
+    hpsToWaistFront: 44.5,
   },
   M: {
     bust: 100,
@@ -469,6 +513,7 @@ export const SIZE_TABLE_MALE: Record<SizeLabel, Measurements> = {
     seatBack: 56.0,
     waistBack: 41.0,
     waistToUpperLeg: 34.0,
+    hpsToWaistFront: 45.0,
   },
   G: {
     bust: 104,
@@ -504,6 +549,7 @@ export const SIZE_TABLE_MALE: Record<SizeLabel, Measurements> = {
     seatBack: 57.4,
     waistBack: 42.4,
     waistToUpperLeg: 34.9,
+    hpsToWaistFront: 45.5,
   },
   GG: {
     bust: 108,
@@ -539,6 +585,7 @@ export const SIZE_TABLE_MALE: Record<SizeLabel, Measurements> = {
     seatBack: 58.7,
     waistBack: 43.8,
     waistToUpperLeg: 35.8,
+    hpsToWaistFront: 46.0,
   },
 };
 
@@ -583,6 +630,7 @@ export const MEASUREMENT_RANGES: Record<
   seatBack: { min: 40, max: 70 },
   waistBack: { min: 28, max: 52 },
   waistToUpperLeg: { min: 20, max: 42 },
+  hpsToWaistFront: { min: 32, max: 55 },
 };
 
 function clamp(v: number, min: number, max: number) {

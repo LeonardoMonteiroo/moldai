@@ -223,13 +223,14 @@ const MOLDAI_STYLE_ENUMS: StyleEnums = {
 
 // #269: NOT simply `TYPES` -- that leaf array is the APP-WIDE vocabulary
 // (what a request may legitimately ask for), which now includes "hoodie"
-// (freesewing-only, no moldai drafter exists for it -- see vocabulary.ts's
-// own comment). `types: TYPES` would silently claim moldai drafts hoodie
-// too the moment TYPES ever grows past what moldai's own draftAll
-// actually handles -- exactly the gap this explicit list closes: a
-// request for `type: "hoodie"` on the default ("moldai") engine must
-// report a real `checkEngineSupport` "type" gap (so the generate route
-// declines it) rather than proceeding to a drafter with no branch for it.
+// and "coat" (both freesewing-only, no moldai drafter exists for either --
+// see vocabulary.ts's own comment). `types: TYPES` would silently claim
+// moldai drafts them too the moment TYPES ever grows past what moldai's
+// own draftAll actually handles -- exactly the gap this explicit list
+// closes: a request for `type: "hoodie"`/`"coat"` on the default
+// ("moldai") engine must report a real `checkEngineSupport` "type" gap
+// (so the generate route declines it) rather than proceeding to a
+// drafter with no branch for it.
 const MOLDAI_TYPES: readonly GarmentType[] = [
   "blouse",
   "dress",
@@ -252,6 +253,7 @@ export const MOLDAI_CAPABILITY: EngineCapability = {
     skirt: MOLDAI_STYLE_ENUMS,
     trousers: MOLDAI_STYLE_ENUMS,
     hoodie: EMPTY_STYLE_ENUMS,
+    coat: EMPTY_STYLE_ENUMS,
   },
   styleLimits: STYLE_LIMITS,
   styleFieldsByType: {
@@ -292,10 +294,11 @@ export const MOLDAI_CAPABILITY: EngineCapability = {
     ],
     skirt: ["skirt", "skirtLengthCm", "waistband", "seamAllowanceCm"],
     trousers: ["trouserLengthCm", "waistband", "seamAllowanceCm"],
-    // #269: moldai drafts no hoodie at all (see MOLDAI_TYPES above) -- an
-    // honest empty entry, the same convention freesewing's own "dress"
-    // (also unsupported) uses below.
+    // #269: moldai drafts neither hoodie nor coat at all (see MOLDAI_TYPES
+    // above) -- an honest empty entry, the same convention freesewing's
+    // own "dress" (also unsupported) uses below.
     hoodie: [],
+    coat: [],
   },
 };
 
@@ -304,10 +307,11 @@ export const MOLDAI_CAPABILITY: EngineCapability = {
 // @freesewing/teagan), `blouse` (designs/blouse.ts, backed by
 // @freesewing/diana), `skirt` (designs/skirt.ts, backed by
 // @freesewing/sandy), `trousers` (designs/trousers.ts, backed by
-// @freesewing/titan) and `hoodie` (designs/hoodie.ts, backed by
-// @freesewing/hugo) are wired today -- dress was evaluated (Sophie/Sasha)
+// @freesewing/titan), `hoodie` (designs/hoodie.ts, backed by
+// @freesewing/hugo) and `coat` (designs/jett.ts, backed by
+// @freesewing/jett) are wired today -- dress was evaluated (Sophie/Sasha)
 // and deliberately declined: neither maps to moldai's own bodice+skirt
-// dress concept (see docs/decisions/drafting.md). `hoodie` itself has NO
+// dress concept (see docs/decisions/drafting.md). `hoodie`/`coat` have NO
 // moldai equivalent at all -- see MOLDAI_CAPABILITY's own MOLDAI_TYPES
 // comment above.
 // Ground truth from reading each design wrapper's own conversion function
@@ -378,6 +382,21 @@ export const MOLDAI_CAPABILITY: EngineCapability = {
 //   @freesewing/hugo's own options.mjs) never produces a true short
 //   sleeve, so styleEnumsByType.hoodie.sleeve is ["long"] only -- the
 //   same shape blouse's own Diana already has.
+// - coat (designs/jett.ts, Jett) needs TWO more keys: "shoulderToElbow"
+//   (already CORE, needed by other body-with-elbow-length archetypes
+//   too) and "hpsToWaistFront" (a genuinely new key -- see
+//   lib/measurements.ts's own comment, including the migration-safety
+//   catch on its first, bust-interpolated version). Every one of Jett's
+//   other 15 required measurements already maps onto an existing key via
+//   the same alias convention (chest->bust, hips->hip,
+//   waistToHips->hipHeight, shoulderToShoulder->shoulder*2).
+//   styleFieldsByType.coat lists ONLY "sleeve" -- Jett's own collar/cuff/
+//   waistband/pocket are all FIXED parts of the design, never optional
+//   sub-pieces. Unlike Hugo's narrow raglan range, Jett's own
+//   sleeveLengthBonus option (-60%..+20% of full arm length,
+//   @freesewing/jett's own sleeve.mjs) CAN produce a genuine short
+//   sleeve, so styleEnumsByType.coat.sleeve is ["short","long"] -- the
+//   same shape tshirt's own Teagan already has.
 const FREESEWING_REQUIRED_MEASUREMENTS: readonly (keyof Measurements)[] = [
   "bust",
   "waist",
@@ -405,6 +424,8 @@ const FREESEWING_REQUIRED_MEASUREMENTS: readonly (keyof Measurements)[] = [
   "seatBack",
   "waistBack",
   "head",
+  "shoulderToElbow",
+  "hpsToWaistFront",
 ];
 
 export const FREESEWING_CAPABILITY: EngineCapability = {
@@ -413,7 +434,12 @@ export const FREESEWING_CAPABILITY: EngineCapability = {
     required: FREESEWING_REQUIRED_MEASUREMENTS,
     optional: ["highBust", "shoulderSlope"],
   },
-  types: ["tshirt", "blouse", "skirt", "trousers", "hoodie"],
+  // #269: "coat" (designs/jett.ts, backed by @freesewing/jett) is now
+  // wired -- a placket-front lined jacket: front/back/sleeve/waistband/
+  // collar/cuff. Its own full lining and welt pocket are deliberately NOT
+  // drafted (see jett.ts's own top comment) -- a real, honest subset, not
+  // a stale/partial capability entry.
+  types: ["tshirt", "blouse", "skirt", "trousers", "hoodie", "coat"],
   styleEnumsByType: {
     blouse: { ...EMPTY_STYLE_ENUMS, sleeve: ["long"] },
     dress: EMPTY_STYLE_ENUMS,
@@ -421,6 +447,7 @@ export const FREESEWING_CAPABILITY: EngineCapability = {
     skirt: { ...EMPTY_STYLE_ENUMS, skirt: ["circle"] },
     trousers: EMPTY_STYLE_ENUMS,
     hoodie: { ...EMPTY_STYLE_ENUMS, sleeve: ["long"] },
+    coat: { ...EMPTY_STYLE_ENUMS, sleeve: ["short", "long"] },
   },
   styleLimits: STYLE_LIMITS,
   styleFieldsByType: {
@@ -430,6 +457,7 @@ export const FREESEWING_CAPABILITY: EngineCapability = {
     skirt: ["skirt", "skirtLengthCm"],
     trousers: ["trouserLengthCm"],
     hoodie: ["sleeve"],
+    coat: ["sleeve"],
   },
 };
 

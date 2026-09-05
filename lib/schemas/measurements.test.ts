@@ -39,6 +39,7 @@ const FULL = {
   seatBack: 51.8,
   waistBack: 37.8,
   waistToUpperLeg: 28.4,
+  hpsToWaistFront: 44.0,
   highBust: 92,
   shoulderSlope: 4.0,
   backWidth: 46,

@@ -77,6 +77,12 @@ export const STYLE_FIELDS_BY_TYPE: Record<
   // "long" is honestly supported -- see FREESEWING_CAPABILITY.styleEnumsByType
   // .hoodie in lib/draft/engine/capability.ts).
   hoodie: ["sleeve"],
+  // #269: freesewing-only (see lib/draft/vocabulary.ts's own TYPES
+  // comment). Jett's own sleeveLengthBonus option (-60%..+20% of full
+  // arm length, @freesewing/jett's own sleeve.mjs) can produce a genuine
+  // short sleeve, unlike Hugo's narrow raglan range -- "sleeve" is a
+  // real, honestly-supported form field here.
+  coat: ["sleeve"],
 };
 
 /**

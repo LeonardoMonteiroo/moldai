@@ -257,18 +257,18 @@ describe("validateSpec", () => {
   });
 });
 
-// #269: "hoodie" is a real app-level GarmentType (validateSpec/TYPES both
-// accept it -- lib/draft/vocabulary.ts) that moldai's own drafter has no
-// branch for at all (MOLDAI_CAPABILITY.types deliberately excludes it,
-// lib/draft/engine/capability.ts). A production caller is gated upstream
-// by checkEngineSupport's own "type" gap before ever reaching this far --
-// this test pins the defensive backstop for the case that gate is ever
-// skipped (a future bug, a new direct-call test): a loud failure, never a
-// silently empty `drafted: []`.
+// #269: "hoodie"/"coat" are real app-level GarmentTypes (validateSpec/TYPES
+// both accept them -- lib/draft/vocabulary.ts) that moldai's own drafter
+// has no branch for at all (MOLDAI_CAPABILITY.types deliberately excludes
+// both, lib/draft/engine/capability.ts). A production caller is gated
+// upstream by checkEngineSupport's own "type" gap before ever reaching
+// this far -- this test pins the defensive backstop for the case that
+// gate is ever skipped (a future bug, a new direct-call test): a loud
+// failure, never a silently empty `drafted: []`.
 describe("draftGarment throws for a type moldai has no drafter for", () => {
-  it("hoodie", () => {
+  it.each(["hoodie", "coat"] as const)("%s", (type) => {
     const spec: GarmentSpec = {
-      type: "hoodie",
+      type,
       gender: "female",
       measurementOverrides: {},
       style: {},

@@ -373,9 +373,82 @@ dress design ships upstream, or if the bodice+skirt composition is worth buildin
 
 **Not yet built, tracked separately, not silently claimed as done:** the three remaining new
 archetypes the original registration plan named (`coat`, `hoodie`, `shirt`) — `hoodie` shipped
-here; `coat`/`shirt` remain, each with construction complexity well beyond every archetype
-registered so far (`shirt`/Simone: 18 parts, collar+stand+cuff+sleeve-plackets;
-`coat`/Jaeger or Carlton: 23–26 parts, lining, welt pockets, a 2-part sleeve, collar+stand+
-under-collar) — genuinely new sub-piece-adapter engineering, not a repeat of the
-tshirt/blouse/skirt/trousers/hoodie pattern. Fase 5 (UI engine selection in `NewPatternForm`)
-and a final cross-archetype benchmark/docs pass remain open too.
+here; `shirt` remains untouched. `coat` is in progress (measurement vocabulary landed, the
+design wrapper itself does not exist yet as of this entry) — see the follow-up entry below for
+which upstream design was picked and why. Fase 5 (UI engine selection in `NewPatternForm`) and
+a final cross-archetype benchmark/docs pass remain open too.
+
+## `coat` shipped on Jett, picked over 5 siblings, with a real data-quality catch on `hpsToWaistFront` (#269)
+
+All 6 FreeSewing designs tagged for a coat/jacket shape were drafted live before picking one.
+Lunetius is dramatically cheaper (1 part, 8 required measurements, all already CORE) but is a
+sleeveless Roman-style cloak — the same kind of semantic mismatch that ruled out Sophie/Sasha
+for `dress`, not a genuine modern coat. The other five are all real lined/tailored outerwear:
+**Jett** (17 parts: a lined bomber-style jacket with a ribbed waistband/collar/cuff and a welt
+pocket) is the cheapest; Devon (23), Jaeger (25), Carlton (26) and Carlita (30) are full
+tailored overcoats, each with proportionally more lining/pocket/collar construction. Jett was
+picked as the cheapest design that still means "a real coat."
+
+Jett's own required measurements need exactly one genuinely new key: `hpsToWaistFront` (front
+bodice length — shoulder to waist over the front, distinct from the existing `backLength`,
+which is nape to waist over the _back_). Every one of Jett's other 17 required measurements
+already maps onto an existing key, the same alias discipline `skirt.ts`/`hoodie.ts` already
+established.
+
+**The first version of `hpsToWaistFront` had a real data-quality bug, caught by a
+migration-safety review before the backfill ever ran with `--apply`.** Seeded the same way the
+trousers-follow-up keys were (interpolated from `@freesewing/models` at each row's own bust
+girth), it turned out NOT to track `backLength` consistently: the female table's own
+front-minus-back delta drifted from -2.4cm (PP) to +0.1cm (GG) — flipping sign partway through
+the size run, which no real body does. Traced to the source itself:
+`@freesewing/models`'s own `neckstimate.mjs` comments `hpsToWaistFront: [400, 460], // FIXME:
+Estimate` — flagged as rough by FreeSewing's own maintainers, unlike every other key this repo
+has sourced from that package so far. Fixed by deriving `hpsToWaistFront` as `backLength +
+FRONT_BACK_LENGTH_DELTA_CM` (a flat, per-gender constant — female +3.0cm, male +1.0cm,
+reflecting a typical bust-curvature allowance) instead: monotonic by construction, since it
+grows in exact lockstep with `backLength`'s own per-size grading, and never touches the
+flagged-as-estimate upstream figure at all. `scripts/backfill-freesewing-measurements.ts`'s own
+`backfillRow` was updated the same way, deriving from each row's own already-present
+`backLength` rather than interpolating — the one key in `NEW_KEYS` that isn't bust-derived.
+
+**`jett.ts` shipped drafting six pieces**: `body-front`/`body-back` (qty 2, no fold — a real
+center-front placket and a real center-back seam, unlike every knit-adjacent archetype
+registered so far), `sleeve`, `cuff`, `collarRibbing` (folded), `waistband`. The lining
+(front/back/sleeve) and the welt pocket (welt + bag) were investigated and deliberately
+deferred, not silently dropped: unlike Hugo's hood/pocket deferrals (simple "hidden by default"
+rectangles), Jett's lining pieces genuinely change op count/arrangement across measurement
+sets — a structural instability, not just missing effort, so declaring their geometry with
+confidence would need more verification than this round did.
+
+Two real boundary bugs were caught by live-draft verification across two measurement sets
+(female M and a very different male row) before trusting any edge declaration:
+
+- **`armholePitch`/`frontArmholePitch` is a pitch NOTCH, not the armhole-to-shoulder corner.**
+  Using it as `shoulderTip` made front+back's armhole sum ~23cm short of the sleeve's own cap —
+  an implausible gap. `s3ArmholeSplit` is the actual merged-curve endpoint; switching to it
+  dropped the gap to a stable ~11.5cm (kept as real, measured ease — see below).
+- **Back's shoulder/neckline split has no reliable named point at all.** Every candidate
+  (`s3CollarSplit`, `s3ArmholeSplit`, `"shoulder"`, `"cbShoulder"`) is stale — snapshotted at
+  path-build time, then reassigned by a later-drafted part sharing the same `points` object, so
+  its current value no longer matches the frozen path. Declared the whole remaining span as one
+  combined `shoulderNeckline` edge instead of force-splitting it.
+
+**`easeCm` on the armhole-cap and shoulder pairs is a real measured value, not an assumed 0** —
+Jett is a woven tailored jacket, the first archetype registered where "sew these two edges
+exactly to length" isn't the right model. Computed dynamically from the drafted geometry
+(`capCm - (frontArmholeCm + backArmholeCm)`, the same "measured, not assumed" discipline
+`skirt.ts`'s circle-skirt waist ease already established) and cross-checked for stability across
+genders (~11.4–11.6cm for armhole-cap, ~±0.1–0.3cm for shoulder, both times) rather than
+asserting the raw lengths match — that assertion is tautological once the pair's own ease is
+subtracted, so cross-gender stability is what actually stands in for a correctness check here.
+
+**The collar-to-neckline seam pair was written, then removed.** Front's neckline alone
+(~11–12cm) against the collar's own doubled neckline-attach edge (~54–58cm) was 4–5x too large
+to be plausible ease, unlike the armhole-cap/shoulder gaps above. `collarRibbing` still ships —
+its own geometry is correct — but this round doesn't claim to cross-validate it against the
+neckline it will eventually attach to.
+
+The full slice (measurement vocabulary, backfill, GarmentType plumbing, `jett.ts`) landed
+together once the backfill ran with `--apply` against the dev database and confirmed idempotent
+on a second run, per this repo's standing rule of never tightening `CORE_MEASUREMENT_KEYS`
+without the backfill having already run against real data.

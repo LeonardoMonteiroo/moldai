@@ -173,7 +173,8 @@
       "collarStand": "Pé de gola",
       "collarFall": "Viradinha da gola",
       "hoodSide": "Lateral do capuz",
-      "hoodCenter": "Centro do capuz"
+      "hoodCenter": "Centro do capuz",
+      "collarRibbing": "Gola de ribana"
     },
     "rows": {
       "seamAllowance": "Folga de costura (na linha de corte)",
@@ -201,7 +202,8 @@
       "rise": "Gancho",
       "trouserLeg": "Modelagem da perna",
       "trouserOtherLegs": "Outras modelagens (afunilada, pantalona, cargo)",
-      "hoodiePocket": "Bolso canguru e viés do decote"
+      "hoodiePocket": "Bolso canguru e viés do decote",
+      "coatLining": "Forro completo (frente, costas e manga)"
     },
     "neckline": {
       "straight": "reto",
@@ -358,6 +360,16 @@
         "title": "Capuz · centro",
         "aLabel": "Lateral do capuz",
         "bLabel": "Centro do capuz"
+      },
+      "coatCenterBack": {
+        "title": "Costura central (costas)",
+        "aLabel": "Costas · lado esquerdo",
+        "bLabel": "Costas · lado direito"
+      },
+      "waistbandWaistCoat": {
+        "title": "Cós e barra",
+        "aLabel": "Barra · corpo",
+        "bLabel": "Cós"
       }
     },
     "chat": {
@@ -445,7 +457,8 @@
       "skirt": "Saia",
       "tshirt": "Camiseta",
       "trousers": "Calça",
-      "hoodie": "Moletom com capuz"
+      "hoodie": "Moletom com capuz",
+      "coat": "Casaco"
     },
     "gender": {
       "male": "masculina",
@@ -579,7 +592,8 @@
     "emptyState": "Gere um molde para ver a prova 3D.",
     "notSupportedFor": {
       "trousers": "A prova 3D ainda não cobre calças. Em breve.",
-      "hoodie": "A prova 3D ainda não cobre moletom com capuz. Em breve."
+      "hoodie": "A prova 3D ainda não cobre moletom com capuz. Em breve.",
+      "coat": "A prova 3D ainda não cobre casacos. Em breve."
     },
     "buildError": "Não foi possível gerar a prévia 3D deste molde.",
     "viewLabel": "Ângulo de visualização",
@@ -1205,7 +1219,8 @@
       "knee": "Circunferência do joelho",
       "seatBack": "Circunferência do assento (costas)",
       "waistBack": "Circunferência da cintura (costas)",
-      "waistToUpperLeg": "Cintura à coxa"
+      "waistToUpperLeg": "Cintura à coxa",
+      "hpsToWaistFront": "Ombro à cintura (frente)"
     },
     "bodyType": {
       "straight": "reto",
@@ -1255,7 +1270,8 @@
       "knee": "Meça ao redor do joelho, no meio da perna.",
       "seatBack": "Meça, pelas costas, a metade da circunferência do assento (de lateral a lateral, passando pelo bumbum).",
       "waistBack": "Meça, pelas costas, a metade da circunferência da cintura (de lateral a lateral).",
-      "waistToUpperLeg": "Meça verticalmente da cintura até a altura da virilha, pela lateral do corpo."
+      "waistToUpperLeg": "Meça verticalmente da cintura até a altura da virilha, pela lateral do corpo.",
+      "hpsToWaistFront": "Meça da costura do ombro até a cintura, passando pela frente do corpo, sobre o busto."
     },
     "baseSizeTag": "base"
   },

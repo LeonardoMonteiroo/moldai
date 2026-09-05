@@ -81,14 +81,16 @@ export function Proof3DTab() {
   // them, so it would silently return a bare mannequin with zero garment
   // shells instead of failing. Rather than let that render as an unlabeled
   // empty preview (indistinguishable from a real bug), this tab treats
-  // trousers/hoodie as an honest, named gap -- the same "surface the
+  // trousers/hoodie/coat as an honest, named gap -- the same "surface the
   // limitation where the user meets it" rule the DXF import screen's own
   // createDisabledNote and this tab's existing beta badge already follow.
   // A catalog lookup (t(`notSupportedFor.${type}`)) keyed by the real
   // GarmentType, never a hand-written label map -- the same convention
   // `garmentType.<type>` already uses elsewhere.
   const unsupportedGarmentType =
-    pattern?.spec?.type === "trousers" || pattern?.spec?.type === "hoodie"
+    pattern?.spec?.type === "trousers" ||
+    pattern?.spec?.type === "hoodie" ||
+    pattern?.spec?.type === "coat"
       ? pattern.spec.type
       : undefined;
   const unsupportedType = unsupportedGarmentType !== undefined;
