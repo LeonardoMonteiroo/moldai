@@ -14,6 +14,18 @@ services:
         # same way POSTGRES_PASSWORD below is -- a service's own `env_file:`
         # is a runtime concern and does not reach a build arg.
         APP_URL: ${APP_URL:?set APP_URL in .env.local}
+        # #275: optional (":-", not ":?") -- NEXT_PUBLIC_SENTRY_DSN is
+        # inlined at build time (see the Dockerfile), so unlike every other
+        # Sentry var it can't just live in `environment:` below. Empty
+        # default keeps `docker compose up` working for a deploy that never
+        # sets it. SENTRY_AUTH_TOKEN/ORG/PROJECT are build-time-only too
+        # (next.config.ts's source-map upload), so they ride along here
+        # rather than in `environment:` even though nothing reads them at
+        # runtime.
+        NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
+        SENTRY_AUTH_TOKEN: ${SENTRY_AUTH_TOKEN:-}
+        SENTRY_ORG: ${SENTRY_ORG:-}
+        SENTRY_PROJECT: ${SENTRY_PROJECT:-}
     restart: unless-stopped
     volumes: !reset []
     environment:
@@ -37,6 +49,14 @@ services:
       # value itself is inert here.
       args:
         APP_URL: ${APP_URL:?set APP_URL in .env.local}
+        # Mirrors `app`'s above -- same reasoning, and both MUST match so
+        # the build args stay identical between the two services (the
+        # comment above already explains why: a differing arg forks the
+        # layer cache into two near-identical images).
+        NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
+        SENTRY_AUTH_TOKEN: ${SENTRY_AUTH_TOKEN:-}
+        SENTRY_ORG: ${SENTRY_ORG:-}
+        SENTRY_PROJECT: ${SENTRY_PROJECT:-}
     restart: unless-stopped
     volumes: !reset []
     entrypoint: ["docker-entrypoint-cron.sh"]

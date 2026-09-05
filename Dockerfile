@@ -62,6 +62,24 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # treats as unset: the empty-string case exists for exactly this reason.
 ARG APP_URL
 ENV APP_URL=${APP_URL}
+# #275: NEXT_PUBLIC_* vars are inlined into the client bundle at BUILD time,
+# same reasoning as APP_URL above -- env_file at runtime is not enough to
+# reach instrumentation-client.ts's browser SDK. Optional: absent, this
+# becomes ENV NEXT_PUBLIC_SENTRY_DSN= , which lib/observability/sentry.ts's
+# sentryOptions() treats as unset (no-op), matching every other environment
+# without a DSN configured.
+ARG NEXT_PUBLIC_SENTRY_DSN
+ENV NEXT_PUBLIC_SENTRY_DSN=${NEXT_PUBLIC_SENTRY_DSN}
+# #275: only present when a real deploy sets SENTRY_AUTH_TOKEN -- see
+# next.config.ts's conditional withSentryConfig wrap. Not a secret at rest
+# in the final image (build args aren't copied into any layer that
+# persists past this stage), but scoped here to match the wrap's own gate.
+ARG SENTRY_AUTH_TOKEN
+ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
+ARG SENTRY_ORG
+ENV SENTRY_ORG=${SENTRY_ORG}
+ARG SENTRY_PROJECT
+ENV SENTRY_PROJECT=${SENTRY_PROJECT}
 RUN npm run build
 
 # ---- runner: production (next start + toolchain for migrate/seed) ----

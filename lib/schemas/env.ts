@@ -25,6 +25,15 @@ const serverEnvSchema = z
     LLM_MODEL: z.string().min(1).optional(),
     LLM_API_KEY: z.string().min(1).optional(),
     REDIS_URL: z.string().url().optional(),
+    // #275: optional, no superRefine entry -- unset stays legal in every
+    // environment including production, same as REDIS_URL/LLM_BASE_URL
+    // above. This is the repo's first NEXT_PUBLIC_* var: it has to carry
+    // that prefix because instrumentation-client.ts (the browser SDK) needs
+    // it, which is also why the value is baked in at Docker BUILD time (see
+    // the Dockerfile's ARG NEXT_PUBLIC_SENTRY_DSN) rather than only read at
+    // runtime like every other var here. One var serves both the server and
+    // browser SDKs on purpose -- see lib/observability/sentry.ts.
+    NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional(),
     APP_URL: z.string().url().optional(),
     SMTP_HOST: z.string().min(1).optional(),
     SMTP_PORT: z.coerce.number().int().min(1).max(65535).default(587),

@@ -3,6 +3,14 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { reportError } from "./report";
 
+// #275: reportError forwards to Sentry through ./sentry.ts's
+// forwardToSentry -- mocked here (the specifier report.ts actually
+// imports, per CLAUDE.md's vi.mock rule) so this file keeps testing the
+// stdout contract in isolation, and lib/observability/sentry.test.ts owns
+// forwardToSentry's own behaviour (redaction, Error-vs-string branching).
+vi.mock("./sentry", () => ({ forwardToSentry: vi.fn() }));
+import { forwardToSentry } from "./sentry";
+
 describe("reportError", () => {
   afterEach(() => {
     vi.restoreAllMocks();
@@ -20,6 +28,22 @@ describe("reportError", () => {
     const err = new Error("boom");
     reportError("generate", err, { patternId: "p1" });
     expect(spy).toHaveBeenCalledWith("[generate]", err, { patternId: "p1" });
+  });
+
+  it("forwards scope, err and context to Sentry unchanged", () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const err = new Error("boom");
+    reportError("generate", err, { patternId: "p1" });
+    expect(forwardToSentry).toHaveBeenCalledWith("generate", err, {
+      patternId: "p1",
+    });
+  });
+
+  it("still forwards when no context is given", () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const err = new Error("boom");
+    reportError("cron-renew", err);
+    expect(forwardToSentry).toHaveBeenCalledWith("cron-renew", err, undefined);
   });
 });
 
