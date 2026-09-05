@@ -170,7 +170,90 @@ the recommended pivot (a combinatorial generator enumerating
 generated example is in-scope by construction, rather than filtering a
 corpus built for a broader capability) is in
 [`../reference/lora-training/README.md`](../reference/lora-training/README.md).
-Not built in this pass — a real design task of its own.
+Built in the pass documented immediately below.
+
+**Decision: the combinatorial generator, built as a second, parallel
+tool.** `lib/ai/training/{combinations,phrasings,verify,batch}.ts` plus
+`scripts/generate-training-data.ts` (`npm run generate:training`) —
+`scripts/distill-training-data.ts` and everything else from the #269 Fase
+1-4 pass are untouched. The core framing: a (combination, phrase) pair IS a
+`lib/ai/eval/fixtures.ts` `GenerationCase` — enumerate thousands of them from
+`MOLDAI_CAPABILITY` itself, run each through the same `proposeGarment`
+facade the app uses, and keep a pair only when the model's own returned spec
+agrees with the fields the phrase actually named. This reuses
+`lib/ai/eval/score.ts`'s scoring shape rather than inventing a second one.
+
+**Decision: phrasing is authored, verification is paid — and that split is
+deliberate, not a cost-cutting shortcut.** A batched Anthropic call for
+phrasing was considered and costed (~5% of total spend, since verification —
+one `proposeGarment` call per phrase — dominates at Sonnet 5 pricing) but
+rejected in favor of a committed, hand-composed pt-BR corpus
+(`lib/ai/training/phrasings.ts`): free, diffable, reviewable by a pt-BR
+native in a PR, and deterministic across re-runs, with an opt-in
+`--fill-gaps` API path (a plain phrasing-only completion, never routed
+through `proposeGarment`) reserved for scaling past what the composer's own
+fragment/template/use-case combinatorics can produce distinctly. The
+composer deliberately isn't a rigid template grammar: 2-4 alternative
+fragments per (field, value), at least one of them phrased WITHOUT
+`lib/ai/prompt.ts`'s own `# Vocabulary mapping` synonyms, rotated in
+mechanically rather than authored as a separate adversarial track.
+
+**Decision: negatives are derived from the same enumeration, not
+hand-listed, except where there is genuinely nothing to derive from.** `ask`
+comes from low-arity (1-2 named fields) combinations — real requests vary in
+richness, and a thin one is exactly what the prompt's own blank-pattern rule
+already pushes toward `ask`, so whichever decision the model actually
+returns for a thin combination is kept as real signal rather than forced to
+one expected answer. `decline` is the capability's own complement (a
+`GarmentType` outside `MOLDAI_CAPABILITY.types`, or a shape `lib/ai/prompt.ts`
+itself names as unbuilt — Peter Pan collar, tapered/flare/skinny/wide
+trouser leg, elastic waistband, a lined/lapelled jacket) — a fixed, small,
+hand-authored list, since there is no capability to enumerate a GAP from.
+`explain` is fully hand-written modeling-knowledge questions, the same
+footing as `lib/ai/eval/fixtures.ts`'s own single `explain` case, just more
+of them.
+
+**A correction made mid-implementation: `armholeDeepenCm` needed its own
+verification rule, not `lib/ai/eval/score.ts`'s `draftSucceeds`.** That
+field's own documented behavior (`lib/ai/prompt.ts`'s own line) is to deepen
+the body's armhole WITHOUT touching the sleeve cap — BY DESIGN a real,
+user-resolvable "armhole-cap" `seamCheck` conflict, since `sleeveRefit` (the
+field that would pre-empt it) is internal-only. The first version of this
+generator's own test caught every one of its `armholeDeepenCm` combinations
+failing `draftSucceeds`'s "fully empty seamCheck" bar — not a drafting bug,
+a verification bar that was wrong for this one field. Fixed with a shared
+`lib/ai/training/verify.ts#draftsCleanly` that allows exactly the
+"armhole-cap" conflict through when `expectsArmholeCapConflict` says the
+combination expects it, used by both the test and the generator script so
+neither can drift from the other's definition of "drafts cleanly".
+
+**Two real bugs, both found by live-testing the tool against the real API
+before committing to the full run, not by inspection.** (1) The Batch API
+caps `custom_id` at 64 characters — well under this generator's own
+descriptive task ids (a combo key alone can exceed that) — fixed by sending
+a short hash on the wire while keeping the full descriptive id in the output
+JSONL. (2) The batch sidecar (`data/training/combinatorial.batch.json`,
+written so a resumed run doesn't re-submit an in-flight batch) was never
+deleted after a batch's results were fully collected — a second invocation
+would have "resumed" an already-finished batch instead of submitting fresh
+work for whatever was still pending. Both confirmed fixed by re-running a
+small real batch afterward. A third, narrower gap — a crash between
+collecting a batch's results and clearing its sidecar could re-append
+already-written examples on the next resume — is closed with an `already`-id
+dedup guard rather than left as a known risk.
+
+**Measured, not asserted: a small live smoke run.** 131 `apply` combinations
+enumerated from `MOLDAI_CAPABILITY` (blouse 36, dress 42, tshirt 26,
+skirt 16, trousers 11), zero dropped by the offline pre-filter, zero
+under-covered `(type, field, value)` triples at the shipped seed, 825 total
+tasks (786 apply + 24 decline + 15 explain) at the ~1,000-phrase budget. A
+53-call live smoke (`--transport=live`) kept 40/53 (~75%) — arity-1
+combinations returned `ask` 11/12 times (consistent with the baseline
+`docs/reference/ai-eval/report.md` already measured: the blank-pattern rule
+genuinely biases a thin request toward `ask`), arity-3/4 combinations never
+returned `ask` in this sample. Full accounting of what these numbers do and
+don't prove — a small sample, not a statistically powered measurement — and
+the LoRA gate itself, are unchanged from the sections above.
 
 **Decision: the LoRA training scaffold is built, reviewed, and explicitly
 unexecuted.** `scripts/lora/{prepare_dataset.py,train_lora.py,
