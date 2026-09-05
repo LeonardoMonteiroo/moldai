@@ -37,6 +37,10 @@ const ChatMessageSchema = z.object({
   imageCount: z.number().int().nonnegative().optional(),
   hasImage: z.boolean().optional(),
   assembly: z.boolean().optional(),
+  // #269: same "must be named here or z.object strips it" trap the comment
+  // above already documents for hasImage/assembly.
+  decision: z.enum(["apply", "decline", "ask", "explain"]).optional(),
+  draftVersion: z.number().int().nonnegative().optional(),
 });
 
 const ConflictInfoSchema = z.object({

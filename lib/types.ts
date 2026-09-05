@@ -282,6 +282,23 @@ export interface ChatMessage {
   // not verified construction advice" disclaimer without parsing the
   // model's own prose. Additive/optional, like hasImage.
   assembly?: boolean;
+  // #269: set on the PRIMARY "ai" bubble of each proposeGarment call (never
+  // on a secondary notice like the chart-substitution or spec-adjustment
+  // follow-ups) to the decision the model actually made -- "apply" |
+  // "decline" | "ask" | "explain", written out here rather than imported
+  // from lib/ai/decision.ts's own Decision type, since lib/ai already
+  // depends on lib/types and this file stays framework/dependency-free.
+  // Exists so a training-data exporter can tell which decision produced a
+  // given turn without re-deriving it from prose. Additive/optional, like
+  // hasImage/assembly.
+  decision?: "apply" | "decline" | "ask" | "explain";
+  // #269: only ever set alongside decision="apply" -- the pattern's own
+  // `version` number (Pattern.version, post-bump) this turn produced,
+  // letting an exporter join this ChatMessage to its PatternVersion row via
+  // (patternId, draftVersion) without a fabricated foreign key. A version
+  // number, not a versionId string, because PatternVersion's own unique key
+  // is already (patternId, version) -- the same value, not a duplicate one.
+  draftVersion?: number;
 }
 
 export type PlanId = "free" | "atelier" | "studio" | "factory";

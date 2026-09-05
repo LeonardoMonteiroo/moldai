@@ -13,6 +13,17 @@ const serverEnvSchema = z
     DATABASE_URL: z.string().min(1),
     AUTH_SECRET: z.string().min(32),
     ANTHROPIC_API_KEY: z.string().min(1),
+    // #269 provider facade: all four optional, all default-free in CI (the
+    // "build" job injects only a dummy ANTHROPIC_API_KEY,
+    // .github/workflows/ci.yml) -- Anthropic stays the one provider every
+    // environment can run with zero extra config. Unset or unrecognized ->
+    // lib/ai/provider/registry.ts's getProvider() falls back to "anthropic"
+    // rather than throwing; these are read here only so a typo'd value
+    // fails loudly at boot instead of silently talking to the wrong host.
+    LLM_PROVIDER: z.enum(["anthropic", "local"]).optional(),
+    LLM_BASE_URL: z.string().url().optional(),
+    LLM_MODEL: z.string().min(1).optional(),
+    LLM_API_KEY: z.string().min(1).optional(),
     REDIS_URL: z.string().url().optional(),
     APP_URL: z.string().url().optional(),
     SMTP_HOST: z.string().min(1).optional(),

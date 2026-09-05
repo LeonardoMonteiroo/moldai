@@ -1,0 +1,10 @@
+# #269 Fase 5 -- installs on the GPU TRAINING host, never in this Node
+# project's own environment. Pinned to versions known to work together as
+# of this writing; bump deliberately, not by `pip install -U` across the board.
+torch>=2.3.0
+transformers>=4.44.0
+peft>=0.12.0
+trl>=0.9.6
+bitsandbytes>=0.43.1
+datasets>=2.20.0
+accelerate>=0.33.0

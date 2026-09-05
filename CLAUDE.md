@@ -35,6 +35,7 @@ Read the matching file before touching the area in its trigger column. This tabl
 | [`docs/architecture/billing.md`](docs/architecture/billing.md)                       | `lib/billing/*`, `Wallet`, `Transaction`, Stripe, any purchase/plan flow     |
 | [`docs/architecture/api-routes.md`](docs/architecture/api-routes.md)                 | Any file under `app/api/*`                                                   |
 | [`docs/architecture/generation-flow.md`](docs/architecture/generation-flow.md)       | `lib/ai/*`, `POST /api/patterns/[id]/generate`                               |
+| [`docs/architecture/ai-provider.md`](docs/architecture/ai-provider.md)               | `lib/ai/provider/*`, `lib/ai/eval/*`, `scripts/ai-eval.ts`, `LLM_PROVIDER`   |
 | [`docs/architecture/seams-and-assembly.md`](docs/architecture/seams-and-assembly.md) | `lib/draft/seams.ts`, `lib/draft/assembly.ts`, seam-conflict UI              |
 | [`docs/architecture/drafting.md`](docs/architecture/drafting.md)                     | `lib/draft/*` (drafters, engine, vocabulary, measurements)                   |
 | [`docs/architecture/size-charts.md`](docs/architecture/size-charts.md)               | `lib/sizeCharts/*`, `/size-charts`                                           |

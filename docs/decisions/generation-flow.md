@@ -5,7 +5,7 @@
 
 ### Generation flow (`POST /api/patterns/[id]/generate`)
 
-- Debits `COSTS.adjust` immediately, then `proposeGarment` (`lib/ai/`) asks `claude-sonnet-5`, via forced tool-use, for `{ decision: "apply" | "decline" | "ask" | "explain", spec, questions?, declineReason?, assistantMessage, assemblyOrder? }` — `assemblyOrder` is only ever meaningful alongside `decision: "explain"` (see Assembly / sewing order below).
+- Debits `COSTS.adjust` immediately, then `proposeGarment` (`lib/ai/`) asks the active provider (`claude-sonnet-5` via Anthropic by default — see `#269` below and [`ai-provider.md`](../architecture/ai-provider.md)), via forced tool-use, for `{ decision: "apply" | "decline" | "ask" | "explain", spec, questions?, declineReason?, assistantMessage, assemblyOrder? }` — `assemblyOrder` is only ever meaningful alongside `decision: "explain"` (see Assembly / sewing order below).
 - **`lib/ai/` is split by responsibility, all derived from one source of truth:** `prompt.ts` (sectioned system prompt), `schema.ts` (the `propose_garment` tool), `history.ts` (pure `buildHistory` — normalizes the persisted chat into Messages-API turns: serializes an ai turn's `questions` into its text, merges consecutive same-role turns, drops leading assistant turns), `decision.ts` (pure `resolveDecision` — ask/apply normalization + validation), `index.ts` (the API call; the only file importing the SDK). **The prompt's and schema's every enum and numeric bound render from `lib/draft/garment.ts`'s exported `TYPES`/`GENDERS`/`NECKLINES`/`SLEEVES`/`SKIRTS`/`STYLE_LIMITS` plus `MEASUREMENT_RANGES`** — the same constants `validateSpec` clamps with, so the model is never told a range the validator doesn't enforce. Add a style field in one place and all three follow; never hardcode a bound in the prompt or schema. The rule now covers prices and formats too: the prompt's `# Product facts` section renders its credit costs from `COSTS` and its format list from `EXPORT_FORMATS` (`lib/export/formats.ts` — a leaf module holding the array plus the `ExportFormat` type derived from it, so `prompt.ts` can name the formats without importing the export facade's serializers and `download.ts`'s DOM access; `lib/export/index.ts` re-exports both, so existing `@/lib/export` importers are unchanged).
 - A `decision: "apply"` carrying no usable `spec` object (missing, null, or an array) **throws** rather than letting `validateSpec` fabricate a default blouse — the route's existing catch refunds the credit.
 - **Trust boundary:** the returned `spec` is never trusted as-is — `validateSpec` (`lib/draft/garment.ts`) re-checks every enum and clamps every numeric field before use; `questions` go through `validateQuestions` the same way. The AI never emits SVG or pixel coordinates — only a `GarmentSpec`. **The same rule now covers the _user's_ size-chart patch** (`lib/sizeCharts/validate.ts`, see Size charts) — it was written for the AI's input and initially forgotten on the human's, which reaches the identical drafter.
@@ -101,3 +101,77 @@ image where the dashboard form sends four). This reopens only if #252's eval har
 ships and gives us a way to actually test the unablated multiple-choice claim above.
 
 ---
+
+## `validateSpec`'s own substitutions get the same reporting channel `checkEngineSupport` already has (#250)
+
+**Decided and built.** `validateSpec` (`lib/draft/garment.ts`) is deliberately
+permissive — `pick()` swaps an unrecognized enum for a default, `clamp()` bounds
+every scalar — and until this issue, neither left any trace. `lib/ai/prompt.ts`
+already told the model to mention a clamp in its own `assistantMessage`, but that
+is honour-system: a model that hallucinated `collar: "peterPan"` would happily
+describe a Peter Pan collar in prose while `validateSpec` silently turned it into
+`"none"` and the drafter built no collar at all — charged at full price, and with
+nothing on screen to say so. `checkEngineSupport` (`lib/draft/engine/capability.ts`,
+#267) already solved the identical shape of problem for a different boundary —
+"an engine capability gap is reportable, never silently defaulted" — and the
+generate route already turns its `EngineGap[]` into `tone: "notice"` bubbles. This
+gives `validateSpec`'s own silent half the same channel.
+
+**Why a pure sibling, not a change to `validateSpec` itself.** The issue's own
+AC #4 required `validateSpec`'s signature and its three call sites
+(`lib/ai/decision.ts` ×2, `lib/ai/formSpec.ts`) to stay untouched — widening its
+return type would have forced every one of them (and every existing test) to
+handle a payload they don't need. `lib/draft/specAdjustments.ts`'s
+`describeSpecAdjustments(raw, validated)` is a pure, leaf-module diff instead —
+same discipline as `lib/draft/vocabulary.ts` and `capability.ts`: imports only
+types and the vocabulary catalogs, nothing from `garment.ts`.
+
+**Why the diff has to be computed inside `resolveDecision`, not the route.**
+`validateSpec` runs _inside_ `resolveDecision` — the route only ever sees
+`decision.spec`, the already-validated result. Both halves of the diff (the raw
+tool payload and the validated spec) exist together only at `resolveDecision`'s
+own return sites, so that's where `describeSpecAdjustments` is called; the result
+rides along as `AiDecision.adjustments`, optional and omitted when empty so every
+existing bare-object mock of `proposeGarment` in `route.test.ts` keeps typechecking
+unchanged.
+
+**Two scope calls, made deliberately narrow:**
+
+- **One notice bubble, not two.** A substitution and a clamp are structurally
+  distinct (`SpecAdjustment`'s own discriminated union keeps them apart), but both
+  say the same thing to the user — "this wasn't drafted exactly as asked" — so
+  they render as one `chat.specAdjusted` bubble listing every field, in the same
+  "one bubble per distinct kind of correction" shape the chart-substitution and
+  engine-gap notices already use.
+- **`measurementOverrides` stays out of this diff entirely.** `validateSpec` only
+  key/finite-filters an override (an unrecognized key or non-numeric value is
+  dropped, silently, same as before); the actual range clamp against
+  `MEASUREMENT_RANGES` happens one trust boundary later, in
+  `resolveMeasurements` (`lib/measurements.ts`) — folding that in here would mean
+  `specAdjustments.ts` re-deriving a boundary it does not own and reporting a
+  change `validateSpec` itself never made.
+
+**The route also has to filter, not just render.** `mergeFormSpec` re-applies the
+user's own explicit form choice over the model's inference, and the named chart's
+gender always wins over the model's — either can make the FINAL drafted spec no
+longer carry the value `validateSpec` substituted. Reporting a substitution that
+did not survive into the drafted geometry would be worse than the silence this
+issue closes: a stated correction the user cannot verify by looking at the
+result. The `apply` branch filters `decision.adjustments` against the
+post-merge, post-`chartGender` spec before rendering anything.
+
+---
+
+## #269: `proposeGarment` no longer talks to Anthropic directly
+
+The request/repair loop this file's bullets describe above (the 20s/8s
+timeout budget, the one-repair-attempt rule, the two-block cached system
+prompt) used to live entirely in `lib/ai/index.ts`, which constructed the
+Anthropic SDK client itself. It now lives behind a provider facade
+(`lib/ai/provider/`) — every behavior described above is unchanged, but
+`index.ts` itself no longer imports the SDK, and the repair loop's exact
+wire protocol (Anthropic's `tool_result`, or an OpenAI-compatible `role:
+"tool"` message for the self-hosted alternative) is decided by whichever
+provider is active. Full rationale, including why this stayed a facade
+rather than a hard swap, and the eval harness (#252) this issue built as
+its own prerequisite: [`ai-provider.md`](ai-provider.md).

@@ -1,0 +1,74 @@
+# #269: an OPTIONAL overlay, never in npm run docker:up/docker:prod's own
+# file list -- production stays on Anthropic (docker-compose.prod.yml is
+# unchanged by this file's existence). Add it explicitly when you want the
+# self-hosted provider available locally:
+#
+#   docker compose --env-file .env.local -f docker-compose.yml \
+#     -f docker-compose.override.yml -f docker-compose.gpu.yml up --build
+#
+# Requires the NVIDIA Container Toolkit on the host (a GPU host, per
+# docs/architecture/ai-provider.md -- this repo's own dev/prod stack has
+# neither, see docker-compose.prod.yml). Then set in .env.local:
+#   LLM_PROVIDER=local
+#   LLM_BASE_URL=http://localhost:8010/v1   # from the HOST
+# and inside the `app` container (this file already sets it for you):
+#   LLM_BASE_URL=http://vllm:8000/v1        # from the Docker network
+#
+# VLLM_MODEL defaults to the VLM candidate (serves both text and the
+# attachment/vision path from one model, sized for <=12GB VRAM per
+# docs/decisions/ai-provider.md's own VRAM cut). Override it to compare the
+# text-only candidate:
+#   VLLM_MODEL=Qwen/Qwen3-8B-AWQ docker compose ... up vllm
+services:
+  vllm:
+    image: vllm/vllm-openai:latest
+    container_name: moldai-vllm
+    restart: unless-stopped
+    environment:
+      HUGGING_FACE_HUB_TOKEN: ${HUGGING_FACE_HUB_TOKEN:-}
+    command: >-
+      --model ${VLLM_MODEL:-Qwen/Qwen2.5-VL-7B-Instruct-AWQ}
+      --max-model-len 16384
+      --enable-prefix-caching
+      --guided-decoding-backend xgrammar
+      --enable-auto-tool-choice
+      --tool-call-parser hermes
+    ports:
+      # Dev-only host publication, same "not 8000 to dodge a collision"
+      # reasoning as db/redis's own non-default ports.
+      - "8010:8000"
+    volumes:
+      # Model weights persist across restarts -- a 7-8B AWQ checkout is
+      # several GB and re-downloading it on every `up` would be its own kind
+      # of footgun.
+      - moldai-vllm-cache:/root/.cache/huggingface
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python3",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 120s # a 7-8B checkout can take a while to load
+
+  app:
+    environment:
+      LLM_PROVIDER: local
+      LLM_BASE_URL: http://vllm:8000/v1
+    depends_on:
+      vllm:
+        condition: service_healthy
+
+volumes:
+  moldai-vllm-cache:

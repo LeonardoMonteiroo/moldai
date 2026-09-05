@@ -191,6 +191,9 @@ describe("POST /api/patterns/[id]/generate", () => {
     // #16: no bump means no snapshot -- a version is recorded on bumpVersion,
     // never on debit (which ask never does anyway).
     expect(recordVersion).not.toHaveBeenCalled();
+    // #269: a training exporter tells which decision produced a turn from
+    // this field, never from parsing assistantMessage's own prose.
+    expect(state.chat.at(-1)!.decision).toBe("ask");
   });
 
   it("apply debits, drafts, and versions", async () => {
@@ -223,6 +226,13 @@ describe("POST /api/patterns/[id]/generate", () => {
       "generate",
       COSTS.adjust,
     );
+    // #269: draftVersion is the join key a training exporter uses against
+    // PatternVersion's own (patternId, version) unique key -- it must be the
+    // SAME number recordVersion just persisted, not a second, independently
+    // computed one.
+    const answer = state.chat.at(-1)!;
+    expect(answer.decision).toBe("apply");
+    expect(answer.draftVersion).toBe(1);
   });
 
   it("a later apply (not the pattern's first draft) versions with reason 'adjust'", async () => {
@@ -290,6 +300,9 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(answer.chips?.[0].tone).toBe("credit");
     // #16: explain debits but never bumps the version -- it must not version.
     expect(recordVersion).not.toHaveBeenCalled();
+    // #269: explain never drafts, so it carries no draftVersion at all.
+    expect(answer.decision).toBe("explain");
+    expect(answer.draftVersion).toBeUndefined();
   });
 
   it("explain writes one debit and no refund", async () => {
@@ -382,6 +395,7 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(wallet.balance).toBe(balanceBefore);
     expect(lastEntries).toEqual([]);
     expect(recordVersion).not.toHaveBeenCalled();
+    expect(state.chat.at(-1)!.decision).toBe("decline");
   });
 
   // #53: a malformed tool_use payload (not an object, an unrecognized
@@ -965,6 +979,92 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(notice).toBeDefined();
     expect(notice!.text).toBe("chat.engineStyleUnsupported");
     expect(state.pattern.pieces.length).toBeGreaterThan(0);
+  });
+
+  // #250: validateSpec (inside the real proposeGarment) already substituted
+  // a default for a field the model's raw payload could not honor;
+  // resolveDecision's own describeSpecAdjustments diff rides along on
+  // decision.adjustments. proposeGarment is mocked wholesale in this file,
+  // so these three cases construct that field directly, the same way the
+  // engine-gap tests above construct engineGaps' effects via the mocked spec.
+  it("adds a notice naming a field validateSpec substituted a default for", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: { collar: "none" },
+      },
+      assistantMessage: "Feito!",
+      adjustments: [
+        {
+          kind: "substituted",
+          field: "collar",
+          requested: "peterPan",
+          used: "none",
+        },
+      ],
+    });
+
+    const res = await POST(req({ message: "uma blusa" }), ctx());
+    expect(res.status).toBe(200);
+
+    const notice = state.chat.find((m) => m.tone === "notice");
+    expect(notice).toBeDefined();
+    expect(notice!.text).toBe("chat.specAdjusted");
+  });
+
+  it("adds no notice when the spec carried no adjustments", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Feito!",
+    });
+
+    await POST(req({ message: "uma blusa" }), ctx());
+
+    expect(state.chat.some((m) => m.tone === "notice")).toBe(false);
+  });
+
+  // The form's own explicit choice wins over the model's (PFORM-25) --
+  // reporting a substitution the drafted spec no longer actually carries
+  // would describe a correction that didn't survive.
+  it("suppresses the spec-adjustment notice when the form overrode the field", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: { collar: "none" },
+      },
+      assistantMessage: "Feito!",
+      adjustments: [
+        {
+          kind: "substituted",
+          field: "collar",
+          requested: "peterPan",
+          used: "none",
+        },
+      ],
+    });
+
+    await POST(
+      req({
+        message: "uma blusa",
+        formSpec: { type: "blouse", style: { collar: "shirt" } },
+      }),
+      ctx(),
+    );
+
+    expect(state.pattern.spec?.style.collar).toBe("shirt");
+    expect(state.chat.some((m) => m.tone === "notice")).toBe(false);
   });
 
   // PFORM-28: a present-but-unusable formSpec is refused, never ignored.

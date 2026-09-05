@@ -205,6 +205,10 @@ describe("withPattern", () => {
     { key: "imageCount" as const, value: 3 },
     { key: "hasImage" as const, value: true },
     { key: "assembly" as const, value: true },
+    // #269: same trap, same fix -- decision/draftVersion are how a training
+    // exporter tells an AI turn's actual decision apart from its prose.
+    { key: "decision" as const, value: "apply" as const },
+    { key: "draftVersion" as const, value: 2 },
   ];
 
   for (const { key, value } of FLAG_CASES) {

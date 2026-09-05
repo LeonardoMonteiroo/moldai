@@ -188,4 +188,57 @@ describe("resolveDecision", () => {
     );
     expect(d.assistantMessage).toBe("");
   });
+
+  // #250: describeSpecAdjustments runs here, the one place both the raw
+  // tool payload and validateSpec's own return value exist.
+  describe("adjustments", () => {
+    it("reports a field validateSpec had to substitute a default for", () => {
+      const d = resolveDecision(
+        {
+          decision: "apply",
+          assistantMessage: "ok",
+          spec: { ...SPEC, style: { collar: "peterPan" } },
+        },
+        false,
+      );
+      expect(d.spec.style.collar).toBe("none");
+      expect(d.adjustments).toEqual([
+        {
+          kind: "substituted",
+          field: "collar",
+          requested: "peterPan",
+          used: "none",
+        },
+      ]);
+    });
+
+    it("omits adjustments entirely for a clean spec", () => {
+      const d = resolveDecision(
+        { decision: "apply", assistantMessage: "ok", spec: SPEC },
+        false,
+      );
+      expect(d.adjustments).toBeUndefined();
+    });
+
+    it("reports adjustments on ask too, ahead of any answer", () => {
+      const d = resolveDecision(
+        {
+          decision: "ask",
+          assistantMessage: "Tell me:",
+          questions: [{ label: "Neckline", options: ["round", "V"] }],
+          spec: { ...SPEC, style: { cuff: "gnorf" } },
+        },
+        false,
+      );
+      expect(d.decision).toBe("ask");
+      expect(d.adjustments).toEqual([
+        {
+          kind: "substituted",
+          field: "cuff",
+          requested: "gnorf",
+          used: "none",
+        },
+      ]);
+    });
+  });
 });

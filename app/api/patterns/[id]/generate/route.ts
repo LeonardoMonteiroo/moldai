@@ -22,6 +22,7 @@ import {
   checkEngineSupport,
 } from "@/lib/draft/engine/capability";
 import { getEngine } from "@/lib/draft/engine/registry";
+import type { SpecAdjustment } from "@/lib/draft/specAdjustments";
 import type { LedgerEntry } from "@/lib/billing/wallet";
 import { composeEditorState } from "@/lib/api/compose";
 import { apiError } from "@/lib/api/errors";
@@ -300,6 +301,7 @@ export async function POST(request: Request, { params }: Ctx) {
                 author: "ai",
                 text: decision.assistantMessage || t("chat.askFallback"),
                 questions: decision.questions,
+                decision: "ask",
                 createdAt: Date.now(),
               });
               return {
@@ -318,6 +320,7 @@ export async function POST(request: Request, { params }: Ctx) {
                   decision.assistantMessage ||
                   decision.declineReason ||
                   t("chat.declineFallback"),
+                decision: "decline",
                 createdAt: Date.now(),
               });
               return {
@@ -345,6 +348,7 @@ export async function POST(request: Request, { params }: Ctx) {
                 // attach the catalog-sourced disclaimer -- see
                 // decision.assemblyOrder's own doc (lib/ai/decision.ts).
                 ...(decision.assemblyOrder ? { assembly: true } : {}),
+                decision: "explain",
                 createdAt: Date.now(),
               });
               return {
@@ -373,6 +377,31 @@ export async function POST(request: Request, { params }: Ctx) {
               const spec = chartGender
                 ? { ...merged, gender: chartGender }
                 : merged;
+              // #250: validateSpec (inside proposeGarment/resolveDecision)
+              // already substituted a default or clamped a bound for
+              // whatever the model's raw payload could not honor;
+              // decision.adjustments is that diff. Filtered here against
+              // the FINAL spec (after the form-spec merge and the chart's
+              // own gender override above): a field the form explicitly
+              // corrected, or that chartGender overrode, no longer holds
+              // the value validateSpec defaulted to, so reporting it here
+              // would describe a substitution that didn't actually survive
+              // into the drafted geometry.
+              const finalOf = (a: SpecAdjustment): unknown =>
+                a.field === "type"
+                  ? spec.type
+                  : a.field === "gender"
+                    ? spec.gender
+                    : spec.style[a.field as keyof GarmentSpec["style"]];
+              const specAdjustments = (decision.adjustments ?? []).filter(
+                (a) => {
+                  const current = finalOf(a);
+                  if (a.kind === "clamped") return current === a.used;
+                  return a.used === undefined
+                    ? current === undefined
+                    : String(current) === a.used;
+                },
+              );
               // The size chart is snapshotted once, at the first generation.
               // That is also the only moment the account's active chart can
               // be passed over, so it is the only moment there is a
@@ -488,6 +517,8 @@ export async function POST(request: Request, { params }: Ctx) {
                   { label: t("chat.creditChip", { cost }), tone: "credit" },
                 ],
                 tone: conflict ? "conflict" : undefined,
+                decision: "apply",
+                draftVersion: state.pattern.version,
                 createdAt: Date.now(),
               });
               // Said out loud rather than left for the user to discover:
@@ -501,6 +532,37 @@ export async function POST(request: Request, { params }: Ctx) {
                     rejected: substitutedFrom,
                     used: state.pattern.sizeChartName ?? "",
                   }),
+                  tone: "notice",
+                  createdAt: Date.now(),
+                });
+              }
+              // Said out loud rather than left for the user to discover:
+              // the model's own free-text reply may describe the requested
+              // value (e.g. "gola Peter Pan") while the drafter built
+              // whatever validateSpec substituted instead.
+              if (specAdjustments.length > 0) {
+                const fieldLabel = (field: SpecAdjustment["field"]) =>
+                  field === "type" || field === "gender"
+                    ? t(`specField.${field}`)
+                    : t(`styleField.${field}`);
+                const items = specAdjustments.map((a) =>
+                  a.kind === "clamped"
+                    ? t("chat.specAdjustmentClamped", {
+                        field: fieldLabel(a.field),
+                        requested: a.requested,
+                        min: a.range.min,
+                        max: a.range.max,
+                        used: a.used,
+                      })
+                    : t("chat.specAdjustmentSubstituted", {
+                        field: fieldLabel(a.field),
+                        requested: a.requested,
+                      }),
+                );
+                addMessage(state, {
+                  id: `msg-${Date.now()}-spec`,
+                  author: "ai",
+                  text: t("chat.specAdjusted", { items: items.join("; ") }),
                   tone: "notice",
                   createdAt: Date.now(),
                 });
