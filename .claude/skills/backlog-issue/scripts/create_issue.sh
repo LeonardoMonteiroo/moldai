@@ -13,7 +13,7 @@ Required:
   --type TYPE          feat|fix|refactor|chore|docs|test|ci|style
   --scope SCOPE         short module name, e.g. export, size-charts, a11y
   --summary TEXT        the part after "type(scope): " — imperative, lowercase start
-  --priority PRIORITY   high|medium|low
+  --priority PRIORITY   urgent|high|medium|low
   --body-file FILE      path to the issue body (Context/Why/Acceptance criteria)
 
 Options:
@@ -63,9 +63,9 @@ case "$type" in
 esac
 
 case "$priority" in
-  high|medium|low) ;;
+  urgent|high|medium|low) ;;
   *)
-    echo "Invalid --priority '$priority' — must be one of: high medium low" >&2
+    echo "Invalid --priority '$priority' — must be one of: urgent high medium low" >&2
     exit 1
     ;;
 esac
@@ -113,6 +113,7 @@ declare_label_meta() {
     enhancement) echo "a2eeef|New feature or request" ;;
     documentation) echo "0075ca|Improvements or additions to documentation" ;;
     question) echo "d876e3|Further information is requested" ;;
+    "priority: urgent") echo "b60205|Drop everything, pull this next" ;;
     "priority: high") echo "d93f0b|Do next" ;;
     "priority: medium") echo "fbca04|Worth doing, not urgent" ;;
     "priority: low") echo "c2e0c6|Nice to have, someday" ;;
