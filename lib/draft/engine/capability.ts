@@ -254,6 +254,7 @@ export const MOLDAI_CAPABILITY: EngineCapability = {
     trousers: MOLDAI_STYLE_ENUMS,
     hoodie: EMPTY_STYLE_ENUMS,
     coat: EMPTY_STYLE_ENUMS,
+    shirt: EMPTY_STYLE_ENUMS,
   },
   styleLimits: STYLE_LIMITS,
   styleFieldsByType: {
@@ -294,11 +295,12 @@ export const MOLDAI_CAPABILITY: EngineCapability = {
     ],
     skirt: ["skirt", "skirtLengthCm", "waistband", "seamAllowanceCm"],
     trousers: ["trouserLengthCm", "waistband", "seamAllowanceCm"],
-    // #269: moldai drafts neither hoodie nor coat at all (see MOLDAI_TYPES
-    // above) -- an honest empty entry, the same convention freesewing's
-    // own "dress" (also unsupported) uses below.
+    // #269: moldai drafts neither hoodie nor coat nor shirt at all (see
+    // MOLDAI_TYPES above) -- an honest empty entry, the same convention
+    // freesewing's own "dress" (also unsupported) uses below.
     hoodie: [],
     coat: [],
+    shirt: [],
   },
 };
 
@@ -397,6 +399,17 @@ export const MOLDAI_CAPABILITY: EngineCapability = {
 //   @freesewing/jett's own sleeve.mjs) CAN produce a genuine short
 //   sleeve, so styleEnumsByType.coat.sleeve is ["short","long"] -- the
 //   same shape tshirt's own Teagan already has.
+// - shirt (designs/shirt.ts, Simon) needs exactly ZERO new keys -- all 13
+//   of Simon.patternConfig.measurements (verified directly, not assumed)
+//   already map onto an existing CORE key via the same aliases hoodie/coat
+//   use. styleFieldsByType.shirt lists ONLY "sleeve" -- Simon's own
+//   collar/cuff/yoke/placket are all FIXED parts of the design (this
+//   wrapper fixes one construction variant of each per the user's own
+//   "proceed now, one variant of each" decision), and its own sleeveStyle
+//   option is a real short/long branch (short skips the cuff for a folded
+//   hem, verified against sleeve.mjs directly), so
+//   styleEnumsByType.shirt.sleeve is ["short","long"] -- the same shape
+//   tshirt's/coat's own sleeve declarations already use.
 const FREESEWING_REQUIRED_MEASUREMENTS: readonly (keyof Measurements)[] = [
   "bust",
   "waist",
@@ -434,12 +447,15 @@ export const FREESEWING_CAPABILITY: EngineCapability = {
     required: FREESEWING_REQUIRED_MEASUREMENTS,
     optional: ["highBust", "shoulderSlope"],
   },
-  // #269: "coat" (designs/jett.ts, backed by @freesewing/jett) is now
-  // wired -- a placket-front lined jacket: front/back/sleeve/waistband/
-  // collar/cuff. Its own full lining and welt pocket are deliberately NOT
-  // drafted (see jett.ts's own top comment) -- a real, honest subset, not
-  // a stale/partial capability entry.
-  types: ["tshirt", "blouse", "skirt", "trousers", "hoodie", "coat"],
+  // #269: "coat" (designs/jett.ts, backed by @freesewing/jett) and "shirt"
+  // (designs/shirt.ts, backed by @freesewing/simon) are now wired. Coat is
+  // a placket-front lined jacket: front/back/sleeve/waistband/collar/cuff
+  // (full lining and welt pocket deliberately NOT drafted, see jett.ts's
+  // own top comment). Shirt is a yoked button-front shirt:
+  // back/yoke/front-right/front-left/sleeve/cuff/collar(stand+fall)
+  // (sleeve plackets deliberately NOT drafted, see shirt.ts's own sleeve
+  // comment) -- both real, honest subsets, not stale/partial entries.
+  types: ["tshirt", "blouse", "skirt", "trousers", "hoodie", "coat", "shirt"],
   styleEnumsByType: {
     blouse: { ...EMPTY_STYLE_ENUMS, sleeve: ["long"] },
     dress: EMPTY_STYLE_ENUMS,
@@ -448,6 +464,7 @@ export const FREESEWING_CAPABILITY: EngineCapability = {
     trousers: EMPTY_STYLE_ENUMS,
     hoodie: { ...EMPTY_STYLE_ENUMS, sleeve: ["long"] },
     coat: { ...EMPTY_STYLE_ENUMS, sleeve: ["short", "long"] },
+    shirt: { ...EMPTY_STYLE_ENUMS, sleeve: ["short", "long"] },
   },
   styleLimits: STYLE_LIMITS,
   styleFieldsByType: {
@@ -458,6 +475,7 @@ export const FREESEWING_CAPABILITY: EngineCapability = {
     trousers: ["trouserLengthCm"],
     hoodie: ["sleeve"],
     coat: ["sleeve"],
+    shirt: ["sleeve"],
   },
 };
 

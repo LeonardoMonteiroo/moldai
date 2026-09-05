@@ -44,6 +44,7 @@
     "@freesewing/jett": "4.10.1",
     "@freesewing/plugin-transform": "4.10.1",
     "@freesewing/sandy": "4.10.1",
+    "@freesewing/simon": "4.10.1",
     "@freesewing/teagan": "4.10.1",
     "@freesewing/titan": "4.10.1",
     "@prisma/client": "^6.19.3",

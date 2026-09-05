@@ -83,6 +83,12 @@ export const STYLE_FIELDS_BY_TYPE: Record<
   // short sleeve, unlike Hugo's narrow raglan range -- "sleeve" is a
   // real, honestly-supported form field here.
   coat: ["sleeve"],
+  // #269: freesewing-only (see lib/draft/vocabulary.ts's own TYPES
+  // comment). Simon's own sleeveStyle option is a real short/long branch
+  // (short skips the cuff entirely for a folded hem, verified live) --
+  // "sleeve" is a real, honestly-supported form field here, the same
+  // footing as coat's own entry above.
+  shirt: ["sleeve"],
 };
 
 /**

@@ -29,7 +29,14 @@ export interface Measurement {
 }
 
 export type GarmentType =
-  "blouse" | "dress" | "skirt" | "tshirt" | "trousers" | "hoodie" | "coat";
+  | "blouse"
+  | "dress"
+  | "skirt"
+  | "tshirt"
+  | "trousers"
+  | "hoodie"
+  | "coat"
+  | "shirt";
 export type Gender = "female" | "male";
 export type Neckline = "straight" | "V" | "round";
 export type SleeveLength = "none" | "short" | "long";

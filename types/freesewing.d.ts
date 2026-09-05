@@ -81,3 +81,7 @@ declare module "@freesewing/hugo" {
 declare module "@freesewing/jett" {
   export class Jett extends FreesewingDesignClass {}
 }
+
+declare module "@freesewing/simon" {
+  export class Simon extends FreesewingDesignClass {}
+}

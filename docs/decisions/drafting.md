@@ -452,3 +452,72 @@ The full slice (measurement vocabulary, backfill, GarmentType plumbing, `jett.ts
 together once the backfill ran with `--apply` against the dev database and confirmed idempotent
 on a second run, per this repo's standing rule of never tightening `CORE_MEASUREMENT_KEYS`
 without the backfill having already run against real data.
+
+## `shirt` shipped on Simon, zero new measurement keys, and a full yoke/two-front construction (#269)
+
+Simon (a classic button-front shirt, 12 real parts) was the only candidate seriously considered
+for `shirt` — its sibling Simone is the same block with an FBA/bust-dart variant, and this repo
+has never branched a design by gender (every other archetype registered so far uses one design
+for both `spec.gender` values), so Simon was picked without a multi-candidate bake-off. Verified
+directly against `Simon.patternConfig.measurements`: **zero new measurement keys** — all 13
+required measurements already map onto existing CORE keys via the same alias convention every
+prior archetype established (`chest`→`bust`, `hips`→`hip`, `waistToHips`→`hipHeight`,
+`shoulderToShoulder`→`shoulder*2`, etc.) — the cheapest registration of any archetype so far on
+that axis.
+
+Simon exposes real construction variants FreeSewing's own design didn't force a single answer
+on — 6 named `cuffStyle`s, separate-vs-cut-on plackets on both the button and buttonhole side.
+Surfaced to the user via `AskUserQuestion` before writing any code; the answer ("proceed now,
+fixing one simple variant of each") is why `shirt.ts` fixes every one of these at its simplest
+value: `cuffStyle: "straightBarrelCuff"` (the one of the six that reduces to a plain rectangle,
+matching the shape `draftCuff` actually draws — the other five are all shaped/curved),
+`separateButtonPlacket`/`separateButtonholePlacket` left at their own `false` default (already
+the simplest, cut-on placket), `buttonPlacketStyle`/`buttonholePlacketStyle` left at their own
+`"classic"` default.
+
+**`shirt.ts` ships six-to-eight pieces depending on sleeve length**: `body-back` (cut on fold,
+cut off at the yoke seam — verified live: `@freesewing/brian`'s own `back.mjs` sets
+`cutlist.addCut({cut:1, onFold:true})`, which Simon inherits unchanged), `yoke` (cut ×2 per
+Simon's own cutlist — self + lining, verified via its own `store.cutlist.setCut({cut:2, ...})`),
+`body-front-right`/`body-front-left` (two genuinely different pieces, not a mirrored panel —
+verified live: `frontRight`'s own draft calls `macro('flip')` first, `frontLeft`'s does not, and
+each appends a differently-shaped placket edge; both cut ×1, not on fold, since Simon's own
+`front.mjs` explicitly sets `cutlist.setCut({cut:1, from:'fabric'})` with no fold flag), `sleeve`
+(cut ×2, structurally identical whether short or long — both branches share the same named
+boundary points), and — only for the "long" sleeve style — `cuff`. Simon's own `sleeveStyle`
+option is a real short/long branch (verified against `sleeve.mjs` directly): short skips the
+cuff construction entirely for a folded hem, so `shirt.ts` doesn't draft a cuff piece nor declare
+a cuff-wrist seam pair in that branch — a real conditional piece list, not a cosmetic option.
+
+**The collar reuses moldai's own generic `draftShirtCollar` (stand+fall) from
+`lib/draft/subpieces.ts`, not FreeSewing's own `collar.mjs`/`collarstand.mjs` geometry.** Both
+model the exact same "a fitted band plus a fold-over fall" shape that drafter was already built
+for (it backs the moldai engine's own `style.collar === "shirt"` option), sized off the REAL
+measured neckline this design actually drafted (front-right + front-left + the yoke's own
+back-neckline curve, never a proportion of the bust) — the same "a cuff/waistband is just a
+band, reuse the generic drafter" precedent `jett.ts`'s own cuff/waistband already established.
+This sidesteps a real risk the coat's own collar ran into: Jett's `collarRibbing`-to-neckline
+pairing had to be abandoned entirely (a 4–5x implausible measured gap). Reusing
+`draftShirtCollar` instead means the neckline-attach pairing (`easeCm: BUTTON_STAND_WIDTH_CM`,
+the same constant `garment.ts`'s own moldai-side shirt-collar caller uses) and the
+stand-to-fall pairing (`easeCm: 0`, since the fall is sized off the stand's own measured seam)
+both come pre-verified by that drafter's own existing tests, rather than needing a fresh
+FreeSewing-geometry investigation the way Jett's collar did.
+
+**Two body-side seam pairs are declared per side (right AND left), not one canonical side the
+way every prior archetype's single mirrored front/back panel allowed.** Since `body-front-right`
+and `body-front-left` are genuinely two separate `DraftedPiece`s (not one panel's own mirror
+image), `side`/`shoulder`/`armhole-cap` are each declared twice (`shirt-side-right`/
+`shirt-side-left`, etc.) rather than trusting the two fronts are equal by shared construction
+without measuring both — a deliberately more thorough check than tshirt.ts's/jett.ts's own single
+declared side, since here both sides are independently locatable and independently worth
+verifying. All of them measured exact (0 diff) on a live draft: unlike Jett's woven-jacket
+armhole, which carries a real ~11cm sleeve-cap ease, Simon's own set-in sleeve fits the
+combined front+back+yoke armhole exactly, with no built-in cap ease — plausible for a shirt
+sleeve, and confirmed by measuring rather than assumed.
+
+Sleeve plackets (a separate overlap/underlap strip binding the sleeve's own vertical opening
+above the cuff) are a genuinely new construction concept this app has never modelled — moldai's
+own `draftPlacket` is a continuous-lap strip with no separate over/under pieces — and are
+deferred with an "em breve" note on the sleeve's own detail row, the same discipline every
+prior deferral (Hugo's pocket/neck-binding, Jett's lining) already establishes.

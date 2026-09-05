@@ -174,7 +174,10 @@
       "collarFall": "Viradinha da gola",
       "hoodSide": "Lateral do capuz",
       "hoodCenter": "Centro do capuz",
-      "collarRibbing": "Gola de ribana"
+      "collarRibbing": "Gola de ribana",
+      "yoke": "Canesa",
+      "frontRight": "Frente direita (carcela de botão)",
+      "frontLeft": "Frente esquerda (casa de botão)"
     },
     "rows": {
       "seamAllowance": "Folga de costura (na linha de corte)",
@@ -203,7 +206,8 @@
       "trouserLeg": "Modelagem da perna",
       "trouserOtherLegs": "Outras modelagens (afunilada, pantalona, cargo)",
       "hoodiePocket": "Bolso canguru e viés do decote",
-      "coatLining": "Forro completo (frente, costas e manga)"
+      "coatLining": "Forro completo (frente, costas e manga)",
+      "sleevePlacket": "Abertura do punho (carcela)"
     },
     "neckline": {
       "straight": "reto",
@@ -370,6 +374,11 @@
         "title": "Cós e barra",
         "aLabel": "Barra · corpo",
         "bLabel": "Cós"
+      },
+      "yokeBackSeam": {
+        "title": "Canesa e costas",
+        "aLabel": "Canesa",
+        "bLabel": "Costas"
       }
     },
     "chat": {
@@ -458,7 +467,8 @@
       "tshirt": "Camiseta",
       "trousers": "Calça",
       "hoodie": "Moletom com capuz",
-      "coat": "Casaco"
+      "coat": "Casaco",
+      "shirt": "Camisa"
     },
     "gender": {
       "male": "masculina",
@@ -593,7 +603,8 @@
     "notSupportedFor": {
       "trousers": "A prova 3D ainda não cobre calças. Em breve.",
       "hoodie": "A prova 3D ainda não cobre moletom com capuz. Em breve.",
-      "coat": "A prova 3D ainda não cobre casacos. Em breve."
+      "coat": "A prova 3D ainda não cobre casacos. Em breve.",
+      "shirt": "A prova 3D ainda não cobre camisas. Em breve."
     },
     "buildError": "Não foi possível gerar a prévia 3D deste molde.",
     "viewLabel": "Ângulo de visualização",
