@@ -62,7 +62,16 @@ function withImages(
   ];
 }
 
-function buildRequestParams(
+// #269 Fase 5 (dataset): exported so scripts/lib/ai/training/batch.ts can
+// submit the SAME request shape (model, cache_control'd static block, tool,
+// forced tool_choice) to the Batch API instead of a live `messages.create`
+// call -- a faithful reuse of this facade's own request-building, never a
+// second, hand-rolled copy of it (the "never a second copy of a fact that
+// already has an owner" rule, applied to a request shape instead of a
+// database column). Only the transport differs; parsing the result still
+// goes through parseRawToolInput/resolveDecision exactly as a live call
+// does.
+export function buildRequestParams(
   opts: LlmCallOptions,
   messages: Anthropic.MessageParam[],
   maxTokens: number,

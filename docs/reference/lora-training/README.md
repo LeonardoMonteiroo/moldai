@@ -1,14 +1,22 @@
 # LoRA training runbook (#269 Fase 5)
 
-> Status: **tooling built, not yet run.** No GPU exists in the environment
-> that wrote these scripts. Everything below has been typechecked
-> (TypeScript half) and read carefully (Python half), but the Python
-> training script itself has never executed. Treat the commands as a
-> reviewed starting point, not a proven one.
+> Status: **Steps 1-2 (get a dataset) are built and have run for real** — see
+> Step 2 below for the combinatorial generator that replaced the
+> catalog-distillation attempt, and `docs/decisions/ai-provider.md` for the
+> measured smoke-run numbers. **Steps 3-5 (train, serve, gate) remain
+> tooling built, not yet run.** No GPU exists in the environment that wrote
+> `train_lora.py` — that script has been read carefully (it's Python, this
+> environment can't execute it) but never run. Treat ITS commands as a
+> reviewed starting point, not a proven one; `prepare_dataset.py` is a
+> different, weaker claim than `train_lora.py` (its logic has been read and
+> the JSONL it consumes is real, inspected output) but it too has never
+> actually executed in this environment — no Python interpreter is
+> available here either.
 >
 > See [`../../decisions/ai-provider.md`](../../decisions/ai-provider.md) for
 > why this is a facade-and-measure approach rather than a hard swap, and for
-> the empirical finding below that currently blocks step 2.
+> the empirical finding below that first blocked step 2 and how it was
+> resolved.
 
 ## The pipeline
 
@@ -60,24 +68,46 @@ training data for today's capability**, however good it is as a
 description→archetype reference (its original, already-documented purpose).
 
 Running the full ~172-entry batch would almost certainly cost real tokens
-for a similarly small yield. **Do not do that without first either:**
+for a similarly small yield, and was never run. The combinatorial generator
+described below is the alternative this finding recommended — built,
+run as a small live smoke test, and measured (see
+`docs/decisions/ai-provider.md`'s own entry for the full accounting,
+including two real bugs the smoke test caught).
 
-- narrowing the catalog to entries whose `descriptionEn` names no feature
-  outside `styleFieldsByType` (a filter this script does not implement
-  today), or
-- switching to a **combinatorial generator over `MOLDAI_CAPABILITY` itself**
-  — enumerate supported `(type, styleField combination)` tuples directly
-  (the same source `lib/ai/eval/fixtures.ts`'s 33 hand-written cases already
-  draw from) and have a cheap first pass phrase each as natural pt-BR, the
-  way `lib/ai/prompt.ts`'s own `# Vocabulary mapping` section already lists
-  real synonyms. This guarantees every generated example is in-scope by
-  construction, rather than filtering a corpus built for a different,
-  broader capability. **Not built in this pass** — a real design task of
-  its own, not a follow-on script.
+### Step 2, alternative — the combinatorial generator
+
+`lib/ai/training/{combinations,phrasings,verify,batch}.ts` plus
+`scripts/generate-training-data.ts` enumerate supported
+`(type, styleField combination)` tuples directly from `MOLDAI_CAPABILITY`
+itself (the same source `lib/ai/eval/fixtures.ts`'s hand-written cases draw
+from), phrase each combination in varied pt-BR (a committed, hand-authored
+corpus — `lib/ai/training/phrasings.ts` — never a runtime LLM call for
+phrasing itself), and verify every phrase through the real `proposeGarment`
+facade, keeping a pair only when the model's own returned spec agrees with
+what the phrase named. This guarantees every generated example is in-scope
+by construction, rather than filtering a corpus built for a different,
+broader capability — this script is a NEW, parallel tool;
+`scripts/distill-training-data.ts` above is untouched.
+
+```bash
+npm run generate:training -- --dry-run                       # zero API calls: coverage report + cost estimate
+npm run generate:training -- --transport=live --limit=50      # a real, small smoke run (~US$0.50)
+npm run generate:training -- --transport=batch                # the full ~1,000-phrase run, batch pricing (~US$5)
+```
+
+Output: `data/training/combinatorial.jsonl`, gitignored like `distilled.jsonl`
+above, in the SAME shape `prepare_dataset.py` reads (a strict superset —
+`source`, `comboKey`, `arity`, and, for `ask`/`decline`/`explain` examples,
+the real `decision`/`questions`/`declineReason`/`assemblyOrder` fields
+`resolveDecision` (`lib/ai/decision.ts`) produces). `prepare_dataset.py`
+itself needed one change to read a non-`apply` `decision` correctly — see
+its own top comment.
 
 Real captured user chats (`ChatMessage.decision`/`draftVersion`, landed in
-this same pass — see `docs/architecture/ai-provider.md`) are a second future
-source, once a retention/consent decision is made; not used here.
+the #269 provider-facade pass — see `docs/architecture/ai-provider.md`) are
+a second future source, once a retention/consent decision is made; not used
+here. A future `prepare_dataset.py` run can mix both `source` values from
+one directory of JSONL files without a third loader.
 
 ## Step 3 — prepare the dataset (on the training host, no Node needed)
 
@@ -85,10 +115,14 @@ source, once a retention/consent decision is made; not used here.
 cd scripts/lora
 pip install -r requirements.txt   # only needed for step 4, prepare_dataset.py is stdlib-only
 python prepare_dataset.py \
-  --input ../../data/training/distilled.jsonl \
+  --input ../../data/training/combinatorial.jsonl \
   --output dataset.jsonl \
   --val-split 0.1
 ```
+
+(`distilled.jsonl` is the catalog-distillation path's own output — empty at
+today's yield, per Step 2's measured finding above. Use `combinatorial.jsonl`
+unless a future catalog-distillation run actually keeps entries.)
 
 ## Step 4 — train
 

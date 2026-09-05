@@ -38,13 +38,31 @@ import sys
 
 
 def build_example(entry: dict) -> dict:
+    # #269 Fase 5 (dataset): scripts/generate-training-data.ts (the
+    # combinatorial generator, a NEW tool parallel to
+    # scripts/distill-training-data.ts) writes real ask/decline/explain
+    # examples alongside apply ones -- entry["decision"] defaults to
+    # "apply" only for backwards compatibility with an
+    # already-distilled.jsonl written before this field existed (that
+    # script only ever kept decision=apply pairs). questions/declineReason/
+    # assemblyOrder are the same optional AiDecision fields
+    # lib/ai/decision.ts's own resolveDecision produces -- included only
+    # when the entry actually carries them, so an apply-only entry's tool
+    # call is unchanged from before this fix.
+    arguments = {
+        "decision": entry.get("decision", "apply"),
+        "spec": entry["spec"],
+        "assistantMessage": entry["assistantMessage"],
+    }
+    if entry.get("questions") is not None:
+        arguments["questions"] = entry["questions"]
+    if entry.get("declineReason") is not None:
+        arguments["declineReason"] = entry["declineReason"]
+    if entry.get("assemblyOrder"):
+        arguments["assemblyOrder"] = entry["assemblyOrder"]
     tool_call = {
         "name": "propose_garment",
-        "arguments": {
-            "decision": "apply",
-            "spec": entry["spec"],
-            "assistantMessage": entry["assistantMessage"],
-        },
+        "arguments": arguments,
     }
     assistant_content = (
         "<tool_call>\n" + json.dumps(tool_call, ensure_ascii=False) + "\n</tool_call>"

@@ -1,7 +1,6 @@
 ---
 name: new-migration
-description: Create a Prisma migration in this repo — the naming checklist, the identifier-rename vs JSON-blob-shape decision, and the db:up / db:migrate mechanics. User-invoked with /new-migration, since it writes to the database.
-disable-model-invocation: true
+description: Create a Prisma migration in this repo — the naming checklist, the identifier-rename vs JSON-blob-shape decision, and the db:up / db:migrate mechanics. Use whenever prisma/schema.prisma needs a new model/column/enum, a pt-BR design term is about to become a Prisma identifier, or a persisted JSON shape (PatternState/EditorState/SizeChartData/Measurements) is changing — also invocable with /new-migration. Do not use to just inspect or read the schema.
 ---
 
 # New migration
