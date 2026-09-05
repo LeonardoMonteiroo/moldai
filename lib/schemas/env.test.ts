@@ -92,6 +92,24 @@ describe("parseServerEnv", () => {
     ).not.toThrow();
   });
 
+  // #275: NEXT_PUBLIC_SENTRY_DSN is optional in every environment -- unset
+  // means reportError() stays console-only (lib/observability/sentry.ts).
+  it("accepts NEXT_PUBLIC_SENTRY_DSN unset, and rejects a non-URL value", () => {
+    expect(() => parseServerEnv(BASE_DEV_ENV)).not.toThrow();
+    expect(() =>
+      parseServerEnv({ ...BASE_DEV_ENV, NEXT_PUBLIC_SENTRY_DSN: "not-a-url" }),
+    ).toThrow(ServerEnvError);
+  });
+
+  it("accepts a valid NEXT_PUBLIC_SENTRY_DSN", () => {
+    expect(() =>
+      parseServerEnv({
+        ...BASE_DEV_ENV,
+        NEXT_PUBLIC_SENTRY_DSN: "https://key@o1.ingest.sentry.io/1",
+      }),
+    ).not.toThrow();
+  });
+
   it("includes every failing field in the thrown message, not just the first", () => {
     try {
       parseServerEnv({ SMTP_PORT: "smtp" });

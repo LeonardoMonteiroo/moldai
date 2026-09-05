@@ -1,8 +1,10 @@
 import { pathToFileURL } from "node:url";
+import * as Sentry from "@sentry/nextjs";
 import { PrismaClient } from "@prisma/client";
 import { withWallet } from "../lib/db/wallet";
 import { renewWallet, isRenewalDue } from "../lib/billing/wallet";
 import { reportError } from "../lib/observability/report";
+import { initSentry } from "../lib/observability/sentry";
 
 const prisma = new PrismaClient();
 
@@ -52,11 +54,25 @@ export async function main() {
 // unguarded top-level call would kill the test runner's own process the
 // instant this module is imported.
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
+  // #275: this script runs under `tsx` in its own `cron` compose service,
+  // outside Next entirely -- instrumentation.ts's register() never fires
+  // here, so without this reportError()'s forward to Sentry would be a
+  // silent no-op every time. Awaited (top-level await -- this module is
+  // ESM) before main() starts, same reasoning as instrumentation.ts: a
+  // failure in main() must be reportable, which needs Sentry.init to have
+  // actually run first. A no-op when NEXT_PUBLIC_SENTRY_DSN is unset.
+  await initSentry("node");
   main()
     .then(() => process.exit(0))
     .catch((e) => {
       reportError("cron-renew", e);
       process.exit(1);
     })
-    .finally(() => prisma.$disconnect());
+    .finally(async () => {
+      // The process is about to exit right after this -- without the
+      // flush, a reported error can be dropped before Sentry's transport
+      // has sent it.
+      await Sentry.flush(2000);
+      await prisma.$disconnect();
+    });
 }
