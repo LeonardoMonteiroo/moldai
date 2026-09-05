@@ -8,11 +8,17 @@ NOT meant to run on the 12GB card docker-compose.gpu.yml serves inference
 from -- docs/decisions/ai-provider.md's own VRAM accounting is why serving
 and training are split across two different machines in this design.
 
-Base model defaults to the SAME model docker-compose.gpu.yml serves
-(Qwen2.5-VL-7B-Instruct's un-quantized checkpoint -- train against the full
-model, not the AWQ-quantized serving copy, then let vLLM quantize/serve the
-merged result or the adapter separately). Override with --base-model to
-train the text-only Qwen3-8B candidate instead.
+Base model defaults to Qwen3-8B, text-only -- NOT the VL (vision-language)
+model docker-compose.gpu.yml serves. A first real run against
+Qwen2.5-VL-7B-Instruct failed outright: its config class
+(Qwen2_5_VLConfig) is not one AutoModelForCausalLM recognizes, since it is
+a genuinely different model family (multimodal, its own auto class),
+and this script's pipeline (a plain chat-template SFTTrainer run over
+text-only messages, no image content blocks) was never built to load or
+train it. Training the serving model directly is future work requiring a
+different pipeline (image processing, a vision-aware trainer), not a
+--base-model swap; see docs/decisions/ai-provider.md for that gap being
+found and this default being corrected as a result.
 
 Usage (single GPU):
     pip install -r requirements.txt
@@ -20,10 +26,14 @@ Usage (single GPU):
         --train dataset.jsonl --val dataset.jsonl.val.jsonl \
         --output-dir ./lora-out
 
-This script has NOT been run -- there is no GPU in the environment that
-built it. Treat it as a reviewed, ready-to-run starting point, not a proven
-one; watch the first real run's loss curve and eval numbers closely rather
-than trusting the defaults blindly.
+This script had NOT been run when first written -- there was no GPU in the
+environment that wrote it. It has since been run for real on a rented A100
+(see docs/decisions/ai-provider.md): the base-model default above and two
+trl API-drift fixes (SFTConfig's max_seq_length -> max_length, SFTTrainer's
+tokenizer -> processing_class -- trl 1.12.0 installed vs. the >=0.9.6 this
+was pinned against) were found and corrected against a REAL run, not by
+inspection. Watch the first run after any future dependency bump just as
+closely -- trl's SFT API has already moved once.
 """
 import argparse
 import json
@@ -39,7 +49,7 @@ from transformers import (
 )
 from trl import SFTConfig, SFTTrainer
 
-DEFAULT_BASE_MODEL = "Qwen/Qwen2.5-VL-7B-Instruct"
+DEFAULT_BASE_MODEL = "Qwen/Qwen3-8B"
 
 # Qwen's own attention/MLP projection names -- the standard QLoRA target set
 # for this architecture family (also correct for Qwen3-8B, which shares the
@@ -120,7 +130,11 @@ def main() -> None:
         per_device_train_batch_size=args.per_device_batch_size,
         gradient_accumulation_steps=args.gradient_accumulation_steps,
         learning_rate=args.learning_rate,
-        max_seq_length=args.max_seq_length,
+        # trl 1.12.0 renamed SFTConfig's max_seq_length to max_length --
+        # found by running this script for real, not by inspection (see
+        # this file's own top comment). The CLI flag name (--max-seq-length)
+        # is left unchanged since it's the user-facing, documented name.
+        max_length=args.max_seq_length,
         logging_steps=10,
         save_strategy="epoch",
         eval_strategy="epoch" if args.val else "no",
@@ -134,7 +148,11 @@ def main() -> None:
         args=sft_config,
         train_dataset=dataset["train"],
         eval_dataset=dataset.get("validation"),
-        tokenizer=tokenizer,
+        # trl 1.12.0 renamed SFTTrainer's tokenizer= kwarg to
+        # processing_class= (the same tokenizer/processor unification
+        # transformers' own Trainer already went through) -- also found by
+        # running this script for real.
+        processing_class=tokenizer,
     )
     trainer.train()
     trainer.save_model(args.output_dir)
