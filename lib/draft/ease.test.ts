@@ -4,7 +4,7 @@ import {
   STRETCH_CLASSES,
   FIT_EASE_CM,
   STRETCH_EASE_PCT,
-  TSHIRT_BASE_EASE_CM,
+  TSHIRT_BASE_EASE_PCT,
   wearingEaseCm,
   classifyGirthFit,
 } from "./ease";
@@ -34,12 +34,26 @@ describe("FIT_EASE_CM / STRETCH_EASE_PCT defaults", () => {
   });
 });
 
+// #282: TSHIRT_BASE_EASE_PCT's own literal value pinned so a future
+// recalibration has to be a deliberate edit, never a silent drift -- sourced
+// from FreeSewing's Teagan design at published defaults, which holds ease
+// flat at 18.0% of bust across all four graded sizes (see
+// docs/reference/freesewing-spike/README.md § "The real finding").
+describe("TSHIRT_BASE_EASE_PCT", () => {
+  it("is exactly 18 -- FreeSewing Teagan's flat relaxed-tee ease ratio", () => {
+    expect(TSHIRT_BASE_EASE_PCT).toBe(18);
+  });
+});
+
 describe("wearingEaseCm", () => {
   it("defaults to the fitted band for a woven garment with no fit set", () => {
     expect(wearingEaseCm({}, false, 92)).toBe(8);
   });
   it("defaults to the positive tshirt base ease for a knit garment with no stretch set", () => {
-    expect(wearingEaseCm({}, true, 92)).toBe(TSHIRT_BASE_EASE_CM);
+    expect(wearingEaseCm({}, true, 92)).toBeCloseTo(
+      (92 * TSHIRT_BASE_EASE_PCT) / 100,
+      5,
+    );
   });
   it("resolves each fit class to its table's bust value for a woven garment", () => {
     for (const fit of FIT_CLASSES) {
@@ -48,17 +62,42 @@ describe("wearingEaseCm", () => {
   });
   it("a stretchy knit reduces relative to the base ease, scaled by the body bust", () => {
     expect(wearingEaseCm({ stretch: "high" }, true, 100)).toBeCloseTo(
-      TSHIRT_BASE_EASE_CM - 12,
+      (100 * (TSHIRT_BASE_EASE_PCT - 12)) / 100,
       5,
     );
   });
   it("a woven garment never reads style.stretch, and a knit never reads style.fit", () => {
     expect(wearingEaseCm({ fit: "loose", stretch: "none" }, true, 100)).toBe(
-      TSHIRT_BASE_EASE_CM,
+      18,
     );
     expect(wearingEaseCm({ fit: "fitted", stretch: "high" }, false, 100)).toBe(
       8,
     );
+  });
+  // #282: the property a flat-cm constant could not hold -- the reference
+  // (FreeSewing Teagan) grades at a CONSTANT ease percentage while the
+  // absolute cm figure grows with the body, across the same four graded
+  // sizes the spike measured (P/M/G/GG at body chest 96/100/104/108).
+  it("grades the same ease percentage across sizes while the absolute cm figure grows with the body", () => {
+    const bodyChests = [96, 100, 104, 108];
+    const expectedCm = [17.28, 18.0, 18.72, 19.44];
+    for (let i = 0; i < bodyChests.length; i++) {
+      const eased = wearingEaseCm({}, true, bodyChests[i]);
+      expect(eased).toBeCloseTo(expectedCm[i], 2);
+      expect((eased / bodyChests[i]) * 100).toBeCloseTo(
+        TSHIRT_BASE_EASE_PCT,
+        5,
+      );
+    }
+  });
+  // #282: a real bound, not a restatement of the constant -- the default
+  // knit ease at a 100cm bust must land inside the ~15-20cm relaxed-tee
+  // range cited in ease.ts's own comment, the range the old 55.9cm constant
+  // was triple the size of.
+  it("the default knit ease at a 100cm bust lands inside the 15-20cm relaxed-tee range", () => {
+    const eased = wearingEaseCm({}, true, 100);
+    expect(eased).toBeGreaterThanOrEqual(15);
+    expect(eased).toBeLessThanOrEqual(20);
   });
 });
 

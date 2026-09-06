@@ -148,23 +148,29 @@ right outcome is to close #267 rather than build a seam nobody crosses — and t
 sentence is in the issue too. What is settled is the direction and the reasoning; the
 build is not a foregone conclusion.
 
-**Not part of this decision, and tracked separately: the spike found a shipped fit
-defect in our own `tshirt` archetype.** Our size-M `body-back` is a whole mirrored panel
-78.0 cm wide, so two of them make a 156 cm finished chest on a 100 cm body — 56% wearing
-ease, where Freesewing's Teagan at published defaults holds 18.0% flat across the same
-four sizes. The cause is `TSHIRT_BASE_EASE_CM = 55.9` (`lib/draft/ease.ts`), solved
+**Not part of this decision: the spike found a shipped fit defect in our own `tshirt`
+archetype, resolved by #282.** Our size-M `body-back` was a whole mirrored panel 78.0 cm
+wide, so two of them made a 156 cm finished chest on a 100 cm body — 56% wearing ease,
+where Freesewing's Teagan at published defaults holds 18.0% flat across the same four
+sizes. The cause was `TSHIRT_BASE_EASE_CM = 55.9` (`lib/draft/ease.ts`), solved
 _backwards_ from the benchmark's size-M panel width with the arithmetic in its own
-comment. That figure cannot bear the weight: `docs/reference/tshirt-benchmark/`'s own
+comment. That figure could not bear the weight: `docs/reference/tshirt-benchmark/`'s own
 `segment-measurements.md` reads the same panel span as 49.09 cm rather than 79.99 and
 already flags the discrepancy, and our collar band — sized from the _measured_ neckline
 arc, independent of `halfChest` — lands within 0.08 cm of the benchmark at M, which says
-the reference's "M" really is a ~100 cm-chest garment. Relatedly, #242's −17.52 cm back
-armhole gap is constant to 0.06 cm across all four sizes, which is the signature of a
-fixed-length curve rather than a graded armhole error, and points at the back
-**neckline**. **A corollary for anyone reading `comparison-report.md`: our drafter was
-fitted to that benchmark and Freesewing was not, so its "ours is closer" deltas are
-circular, and its two representation-dependent metrics (the curve/straight perimeter
-split, and the orientation-dependent bounding box) are not comparable across engines at
+the reference's "M" really is a ~100 cm-chest garment, not a 155.9 cm one. **#282's fix:**
+the constant is now `TSHIRT_BASE_EASE_PCT = 18` — a percentage of bust, not a flat cm
+figure, because that is the shape the resolved reference (Teagan, flat 18.0% across
+P/M/G/GG) actually has; a flat cm constant cannot hold a flat ease _ratio_ across a
+graded run the way the reference does. Relatedly, #242's −17.52 cm back armhole gap is
+constant to 0.06 cm across all four sizes, which is the signature of a fixed-length curve
+rather than a graded armhole error, and points at the back **neckline** — a separate,
+still-open defect. **A corollary for anyone reading `comparison-report.md`: before #282,
+our drafter was fitted to that benchmark and Freesewing was not, so its "ours is closer"
+deltas were circular for width/perimeter; after #282 the `moldai` tshirt rows should read
+farther from the benchmark's contested `widthCm`, not closer, and that is the correct
+direction. Its two representation-dependent metrics (the curve/straight perimeter split,
+and the orientation-dependent bounding box) remain not comparable across engines at
 all.**
 
 ### Build-time decisions the design above didn't settle in advance
