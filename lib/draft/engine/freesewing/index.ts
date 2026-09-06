@@ -11,10 +11,12 @@ import { draftShirt } from "./designs/shirt";
 // #269: the freesewing DraftingEngine -- registered in
 // lib/draft/engine/registry.ts alongside moldai. Dispatches by
 // `spec.type` (our own GarmentType vocabulary, never an upstream design's
-// own codename); tshirt/blouse/skirt/trousers are wired today (each
-// design wrapper's own file explains why the upstream name stays confined
-// to one import line there), matching FREESEWING_CAPABILITY.types --
-// dress is a later phase, not silently claimed here. A caller reaching
+// own codename); tshirt/blouse/skirt/trousers/hoodie/coat/shirt are wired
+// today (each design wrapper's own file explains why the upstream name
+// stays confined to one import line there), matching
+// FREESEWING_CAPABILITY.types -- dress was evaluated and declined (Sophie,
+// Sasha; neither maps to moldai's own bodice+skirt dress concept, see
+// docs/decisions/drafting.md), not deferred. A caller reaching
 // this for an unsupported type is a bug in the caller,
 // not user input -- checkEngineSupport (lib/draft/engine/capability.ts)
 // is the actual gate a route/store checks BEFORE ever calling draft(),

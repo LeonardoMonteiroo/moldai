@@ -257,6 +257,9 @@ Docker container. Scope note, precise on purpose: this declines registering **Ga
 as a second engine **now**. It says nothing about FreeSewing, which is a separate, still-open
 question (#266) that the swappable-engine decision above did not resolve either — that entry
 declined a wholesale swap of our drafters, on cost, not the FreeSewing candidate itself.
+**Since written, that question was answered the other way:** the entry below registers
+FreeSewing as a second engine for seven garment types. The contrast is the point — the seam
+#267 built was crossed by one candidate and not the other, which is what a seam is for.
 
 **Why the question came up at all.** #267 built the engine seam specifically so a candidate
 could be measured instead of argued about. GarmentCode (`maria-korosteleva/GarmentCode`,
