@@ -62,23 +62,34 @@ export const STRETCH_EASE_PCT: Record<StretchClass, number> = {
 // a close-fitting rib -- so the knit branch's BASE ease is a genuinely
 // positive cm figure (a boxy tee has real ease over the body, despite being
 // knit), with `stretch` still narrowing it for a clingier fabric on top.
-// Solved against a real graded crew-neck tee reference
-// (docs/reference/tshirt-benchmark/measurements.json): that reference's
-// size-M front/back panel bounding widths average ~77.96cm, and
-// halfChest = bust/4 + ease/4 with SIZE_TABLE_MALE.M's bust held at its
-// existing value (100, not a newly-invented body measurement) gives
-// ease = (77.96/2 - 100/4) * 4 = 55.9.
 //
-// FLAG (estimate, not a verified industry figure -- see design.md's Risks
-// table): this is far outside the ~15-20cm "loose tee" range found in
-// hand-sewing pattern-drafting references during research. Two readings are
-// both plausible and neither is verifiable from the data available: (1) the
-// reference tee is a deliberately oversized/streetwear-fit garment, whose
-// ease genuinely exceeds classic drafting conventions, or (2)
-// SIZE_TABLE_MALE.M's bust=100 doesn't match whatever chest size the
-// reference's "M" actually targets. Treat this constant as a calibration
-// figure this app's own comparison tool solved for, not a citation.
-export const TSHIRT_BASE_EASE_CM = 55.9;
+// #282: this used to be 55.9, solved BACKWARDS from
+// docs/reference/tshirt-benchmark/measurements.json's size-M panel width
+// (~77.96cm avg) against SIZE_TABLE_MALE.M's bust -- 56% wearing ease, ~3x a
+// relaxed tee's conventional band, and the file's own FLAG comment already
+// said so. That benchmark figure cannot bear the weight: the same
+// benchmark's segment-measurements.md reads that panel's actual top/bottom
+// span as 49.09cm, not 79.99, and already flags the discrepancy -- and this
+// app's own collar band (sized from the MEASURED neckline arc via neckGirth,
+// never from halfChest -- see body.ts's neckHalf) lands within 0.08cm of the
+// benchmark at M, which says the reference's "M" really is a ~100cm-chest
+// garment, not the ~156cm the bad width figure implied.
+//
+// 18 is a real, converging figure instead: it sits inside the ~15-20cm
+// "loose tee" range from hand-sewing pattern-drafting references (the same
+// range the old FLAG cited but didn't land in --
+// .specs/features/tshirt-fit-calibration/design.md's Risks table), and it is
+// exactly what FreeSewing's Teagan design (@freesewing/teagan@4.10.1) holds
+// FLAT at 18.0% across P/M/G/GG at published defaults on that same ~100cm-M
+// body (docs/reference/freesewing-spike/README.md) -- Teagan is given no
+// ease override (lib/draft/engine/freesewing/designs/tshirt.ts passes only
+// `{ sleeveLength }`), so 18.0% is its own default, not something tuned to
+// match. A flat cm figure means the resulting percentage drifts slightly by
+// size (18.8% at the smallest grade down to 16.7% at the largest) rather
+// than holding exactly flat like Teagan's own percentage-based ease does --
+// ordinary hand-drafting behaviour, and it stays inside the cited band at
+// both ends.
+export const TSHIRT_BASE_EASE_CM = 18;
 
 // The one ease knob bodice() has ever had (today: `opts.knit ? 0 : 2` per
 // quarter), now sourced from the tables above instead of an inline constant.

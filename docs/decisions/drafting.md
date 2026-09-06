@@ -167,6 +167,19 @@ circular, and its two representation-dependent metrics (the curve/straight perim
 split, and the orientation-dependent bounding box) are not comparable across engines at
 all.**
 
+**Resolved by #282.** `TSHIRT_BASE_EASE_CM` is now `18` (cm), converging from two named
+sources instead of the backwards benchmark derivation: the ~15–20 cm hand-drafting "loose
+tee" band, and FreeSewing's own Teagan holding 18.0% flat on the ~100 cm-chest body this
+benchmark's "M" really is. A male-M tshirt now drafts a 118.0 cm finished bust girth,
+matching Teagan, not 155.9 cm. The corollary above now applies to **height only** — our
+back panel's `widthCm` at M (59.00) lands on the same figure Freesewing's does, so width is
+no longer a self-fulfilling comparison, but `TSHIRT_HEM_DROP_CM` (`garment.ts`) still
+carries the identical backwards-from-benchmark provenance for panel height, unresolved by
+this issue. `areaCm2`, freed of the width calibration, moved **away** from the benchmark
+(our own back panel is now the larger delta of the two engines) — the correct direction,
+since the old "closer" reading was the circularity this issue removed, not a real fit
+signal.
+
 ### Build-time decisions the design above didn't settle in advance
 
 **Two verbs, one rule, for what happens to a value that doesn't fit.** `validateSpec`

@@ -86,7 +86,14 @@ describe("buildEaseReport", () => {
   // tshirt-fit-calibration: a knit's base ease is now TSHIRT_BASE_EASE_CM,
   // not 0 -- even the highest stretch band only narrows relative to that
   // base, it no longer drives a tshirt's ease negative.
-  it("reports the reduced (but still positive) ease for a stretchy knit, classified loose", () => {
+  //
+  // #282: TSHIRT_BASE_EASE_CM dropped from 55.9 to 18 (a real, sourced
+  // figure -- see lib/draft/ease.ts). At SIZE_TABLE.M's 92cm bust, the
+  // highest stretch band (12%) now narrows 18cm down to 18 - 92*0.12 =
+  // 6.96cm, which lands in "fitted" (the fitted/semiFitted midpoint is
+  // 9.5cm), not "loose" -- the old 55.9cm figure survived a 12% cut with
+  // room to spare (44.86cm), this one genuinely doesn't.
+  it("reports the reduced (but still positive) ease for a stretchy knit, classified fitted", () => {
     const spec: GarmentSpec = {
       type: "tshirt",
       gender: "female",
@@ -99,7 +106,7 @@ describe("buildEaseReport", () => {
       TSHIRT_BASE_EASE_CM - SIZE_TABLE.M.bust * 0.12,
       1,
     );
-    expect(bustEntry.fitClass).toBe("loose");
+    expect(bustEntry.fitClass).toBe("fitted");
   });
 
   it("reports cap ease from the same seam graph seamCheck reads, absent for a sleeveless spec", () => {
