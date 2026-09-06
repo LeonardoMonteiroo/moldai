@@ -326,7 +326,7 @@ describe("buildSystem: the fields-already-decided section", () => {
       answering: false,
       formSpec,
     });
-    const blankRule = s.indexOf("use decision=ask before drafting");
+    const blankRule = s.indexOf("Only decision=ask when the request names");
     const section = s.indexOf(HEADING);
     expect(blankRule).toBeGreaterThan(-1);
     expect(section).toBeGreaterThan(blankRule);
@@ -386,12 +386,16 @@ describe("prompt-cache byte stability", () => {
       staticSectionsFor(DEFAULT_ENGINE_ID) +
       JSON.stringify(toolFor(DEFAULT_ENGINE_ID));
     const hash = createHash("sha256").update(bytes).digest("hex");
-    // #270: regenerated -- the "# Attached images" section (buildStaticSections)
-    // gained the "describe only the clothing, never the person wearing it"
-    // sentence. A deliberate, expected byte change (see this describe block's
-    // own comment), not a bug.
+    // #252-follow-up: regenerated -- the "# Decision policy" ask bullet
+    // (buildStaticSections) was rewritten so the model stops treating
+    // neckline/sleeve/fit/length/size as always-required detail (every one
+    // of those already has a drafter-side default) and reserves ask for a
+    // request that names nothing beyond the garment type. A deliberate,
+    // expected byte change (see this describe block's own comment), not a
+    // bug -- the eval harness (npm run eval:ai) is what proves it's better,
+    // not this hash.
     expect(hash).toBe(
-      "cf305fe6c57914ea3ab8464e535907a0be591e8a549a10720d2c80c11b9a0b4c",
+      "7d53077811b8b242ab3856e1cdc3dd6de51fe978262a0e96cad5ed099772d7bc",
     );
   });
 });
