@@ -8,6 +8,7 @@ import {
   Pattern,
   Piece,
 } from "@/lib/types";
+import { diffSpec as diffSpecFields } from "@/lib/draft/specDiff";
 import { seamCheck } from "@/lib/draft/garment";
 import type { SeamMeasurement } from "@/lib/draft/garment";
 import { draftGarment, measureSeamGraph } from "@/lib/draft/engine/facade";
@@ -376,6 +377,65 @@ export function applyGarmentSpec(
     state.pattern.sizes,
     t,
   );
+}
+
+// #257: ChatGarment's headline editing limitation is collateral change —
+// their own training template says "while keeping other parts unchanged"
+// precisely because full-JSON re-emission drifts. applyGarmentSpec takes the
+// model's complete returned spec and overwrites state.pattern.spec wholesale
+// with no detector for exactly that drift. diffSpec is that detector: a
+// pure, DB-free comparison of the pattern's PREVIOUS validated spec against
+// the one an "apply" decision is about to draft, returning one field path
+// per changed field — "type", "gender", "style.<key>",
+// "measurementOverrides.<key>" — in a stable order.
+//
+// A thin adapter over lib/draft/specDiff.ts's own diffSpec (#252's eval
+// harness), NOT a second, independently-maintained field-by-field
+// comparison — that module already owns "which fields differ between two
+// already-validated GarmentSpecs" (its own STYLE_FIELDS list, kept in sync
+// with GarmentStyle in exactly one place), and duplicating it here would
+// mean a future style field added there and forgotten here goes silently
+// unreported. This only reshapes that module's SpecFieldChange[] into the
+// chat-facing string-path/measurement-per-key shape #257 wants: `type`/
+// `gender` pass through as-is, `measurementOverrides` (one aggregate entry
+// there, since the eval harness's fixtures name whole fields) is exploded
+// into one `measurementOverrides.<key>` path per key that actually
+// differs, and `sleeveRefit` is dropped -- the one style field the AI can
+// never set (validateSpec discards it; only refitSleeve below writes it),
+// the same explicit skip describeSpecAdjustments (specAdjustments.ts)
+// already makes, and there is no catalog label for it since a user never
+// chose it.
+//
+// Deliberately dumb: this does not know what the user asked for, only what
+// moved. A field neither spec set is not a change; a field only one of them
+// set (added or dropped) IS one, since that is itself a form of drift the
+// user is owed visibility into (the same "surface feature limitations
+// on-screen, never silently" reasoning CLAUDE.md states for everything
+// else). Never mutates either argument.
+export function diffSpec(prev: GarmentSpec, next: GarmentSpec): string[] {
+  const out: string[] = [];
+  for (const change of diffSpecFields(prev, next)) {
+    if (change.field === "sleeveRefit") continue;
+    if (change.field === "type" || change.field === "gender") {
+      out.push(change.field);
+      continue;
+    }
+    if (change.field === "measurementOverrides") {
+      const prevOverrides = change.before as Record<string, number>;
+      const nextOverrides = change.after as Record<string, number>;
+      const overrideKeys = Array.from(
+        new Set([...Object.keys(prevOverrides), ...Object.keys(nextOverrides)]),
+      ).sort();
+      for (const key of overrideKeys) {
+        if (prevOverrides[key] !== nextOverrides[key]) {
+          out.push(`measurementOverrides.${key}`);
+        }
+      }
+      continue;
+    }
+    out.push(`style.${change.field}`);
+  }
+  return out;
 }
 
 // "Corrigir manga" (sleeve fix): sets sleeveRefit and re-drafts — the cap now

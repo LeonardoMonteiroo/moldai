@@ -9,7 +9,7 @@ import {
 } from "@/lib/editor/attachment";
 import { seedWallet } from "@/lib/billing/wallet";
 import { t } from "@/lib/i18n/test-translate";
-import type { PatternState } from "@/lib/types";
+import type { GarmentSpec, PatternState } from "@/lib/types";
 import type { Wallet, LedgerEntry } from "@/lib/billing/wallet";
 
 const NOW = new Date("2026-08-17T12:00:00.000Z");
@@ -233,6 +233,11 @@ describe("POST /api/patterns/[id]/generate", () => {
     const answer = state.chat.at(-1)!;
     expect(answer.decision).toBe("apply");
     expect(answer.draftVersion).toBe(1);
+    // #257: the pattern's first-ever draft has no real previous spec to
+    // diff against -- diffSpec is never even called, so this must be
+    // absent, never an empty array (which would still round-trip as
+    // "changed nothing" but is a different, less honest signal).
+    expect(answer.changedFields).toBeUndefined();
   });
 
   it("a later apply (not the pattern's first draft) versions with reason 'adjust'", async () => {
@@ -269,6 +274,105 @@ describe("POST /api/patterns/[id]/generate", () => {
       "adjust",
       COSTS.adjust,
     );
+  });
+
+  // #257: diffSpec's own wiring into the route -- surfaces the exact
+  // "collateral change" ChatGarment's own training template warns a
+  // full-JSON re-emission can silently introduce.
+  describe("changedFields", () => {
+    function preDraft(spec: GarmentSpec) {
+      state.pattern = {
+        ...state.pattern,
+        pieces: [
+          {
+            id: "x",
+            name: "x",
+            qty: 1,
+            outline: { kind: "polygon", points: "0,0" },
+            label: { x: 0, y: 0 },
+            detailRows: [],
+          },
+        ],
+        spec,
+      };
+    }
+
+    it("records the field paths that changed against the pattern's previous spec", async () => {
+      // #131/#134: "dress" is the one moldai type whose own
+      // styleFieldsByType (lib/draft/engine/capability.ts) lists BOTH
+      // collar and skirtLengthCm as genuinely supported -- picked so this
+      // test exercises diffSpec alone, with no engine-unsupported-field
+      // notice appended after the primary bubble to shift chat.at(-1).
+      preDraft({
+        type: "dress",
+        gender: "female",
+        style: { collar: "none", skirtLengthCm: 60 },
+        measurementOverrides: {},
+      });
+      mockPropose.mockResolvedValue({
+        decision: "apply",
+        spec: {
+          type: "dress",
+          gender: "female",
+          style: { collar: "band", skirtLengthCm: 60 },
+          measurementOverrides: {},
+        },
+        assistantMessage: "Pronto",
+      });
+      await POST(req({ message: "muda a gola" }), ctx());
+      const answer = state.chat.at(-1)!;
+      expect(answer.changedFields).toEqual(["style.collar"]);
+    });
+
+    it("is absent (no key at all) when nothing changed", async () => {
+      preDraft({
+        type: "dress",
+        gender: "female",
+        style: { collar: "band" },
+        measurementOverrides: {},
+      });
+      mockPropose.mockResolvedValue({
+        decision: "apply",
+        spec: {
+          type: "dress",
+          gender: "female",
+          style: { collar: "band" },
+          measurementOverrides: {},
+        },
+        assistantMessage: "Pronto",
+      });
+      await POST(req({ message: "sem mudanças" }), ctx());
+      const answer = state.chat.at(-1)!;
+      expect(answer.changedFields).toBeUndefined();
+    });
+
+    it("reports a field the user did not ask to change alongside the one it did", async () => {
+      preDraft({
+        type: "dress",
+        gender: "female",
+        style: { skirtLengthCm: 60 },
+        measurementOverrides: {},
+      });
+      mockPropose.mockResolvedValue({
+        decision: "apply",
+        spec: {
+          type: "dress",
+          gender: "female",
+          // The model was asked to shorten the skirt but ALSO flipped the
+          // collar -- the exact ChatGarment-style collateral change #257
+          // exists to surface.
+          style: { skirtLengthCm: 40, collar: "band" },
+          measurementOverrides: {},
+        },
+        assistantMessage: "Pronto",
+      });
+      await POST(req({ message: "encurta a saia" }), ctx());
+      const answer = state.chat.at(-1)!;
+      expect(answer.changedFields).toEqual([
+        "style.skirtLengthCm",
+        "style.collar",
+      ]);
+    });
   });
 
   it("explain answers, keeps the debit, and neither drafts nor versions", async () => {

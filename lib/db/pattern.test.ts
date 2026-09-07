@@ -209,6 +209,12 @@ describe("withPattern", () => {
     // exporter tells an AI turn's actual decision apart from its prose.
     { key: "decision" as const, value: "apply" as const },
     { key: "draftVersion" as const, value: 2 },
+    // #257: same trap, same fix -- changedFields is diffSpec's own output,
+    // the collateral-change detector this issue adds. THIS EXACT BUG
+    // (an additive ChatMessage field unnamed in ChatMessageSchema, silently
+    // stripped on the very next mutating turn) already independently bit
+    // four sibling units in this batch before this one.
+    { key: "changedFields" as const, value: ["style.collar"] },
   ];
 
   for (const { key, value } of FLAG_CASES) {
@@ -237,7 +243,11 @@ describe("withPattern", () => {
       };
       const persisted = saved.chat.find((m) => m.id === "c1");
       expect(persisted).toBeDefined();
-      expect(persisted![key]).toBe(value);
+      // #257: toEqual, not toBe -- changedFields is an array, and a JSON
+      // round trip never preserves reference identity (only value equality)
+      // even though every other flag here is a primitive, which toEqual
+      // checks identically to toBe.
+      expect(persisted![key]).toEqual(value);
     });
   }
 
