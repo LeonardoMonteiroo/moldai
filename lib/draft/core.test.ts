@@ -11,6 +11,10 @@ import {
   pointAndTangentAtCm,
   notchAtArcLengthCm,
   NOTCH_DEPTH_CM,
+  signedAreaCm,
+  isCanonicalWinding,
+  canonicalTangent,
+  normalizeWinding,
 } from "./core";
 
 const rect = (id: string, w: number, h: number): DraftedPiece => ({
@@ -247,23 +251,24 @@ describe("core drafting", () => {
   });
 });
 
-// #124: notch geometry primitives.
+// #124/#263: notch geometry primitives.
 describe("notch geometry", () => {
-  it("notchAt points the inner end toward insideRef, at NOTCH_DEPTH_CM[type]", () => {
-    // horizontal edge, interior below (larger y) -- e.g. a hem edge.
-    const n = notchAt([5, 10], [1, 0], [5, 20], "single");
+  it("notchAt orients the inner end perpendicular to tangent, at NOTCH_DEPTH_CM[type]", () => {
+    // notchAt's fixed formula -- inward is (-ty, tx) -- so a tangent of
+    // (1, 0) always points the inner end toward larger y.
+    const n = notchAt([5, 10], [1, 0], "single");
     expect(n.outerCm).toEqual([5, 10]);
     expect(n.innerCm[0]).toBeCloseTo(5, 5); // no horizontal drift
-    expect(n.innerCm[1]).toBeGreaterThan(10); // moved toward insideRef (larger y)
+    expect(n.innerCm[1]).toBeGreaterThan(10); // (-ty, tx) for tangent (1,0) is (0,1)
     expect(Math.hypot(n.innerCm[0] - 5, n.innerCm[1] - 10)).toBeCloseTo(
       NOTCH_DEPTH_CM.single,
       6,
     );
   });
 
-  it("notchAt flips the normal when insideRef is on the other side", () => {
-    const below = notchAt([5, 10], [1, 0], [5, 20], "double");
-    const above = notchAt([5, 10], [1, 0], [5, 0], "double");
+  it("notchAt flips the inner end when the tangent is reversed", () => {
+    const below = notchAt([5, 10], [1, 0], "double");
+    const above = notchAt([5, 10], [-1, 0], "double");
     expect(below.innerCm[1]).toBeGreaterThan(10);
     expect(above.innerCm[1]).toBeLessThan(10);
     // same depth either way
@@ -275,7 +280,7 @@ describe("notch geometry", () => {
 
   it("depth is exactly NOTCH_DEPTH_CM for every type", () => {
     for (const type of ["single", "double", "triple"] as const) {
-      const n = notchAt([0, 0], [1, 0], [0, 1], type);
+      const n = notchAt([0, 0], [1, 0], type);
       expect(Math.hypot(...n.innerCm)).toBeCloseTo(NOTCH_DEPTH_CM[type], 6);
     }
   });
@@ -283,15 +288,38 @@ describe("notch geometry", () => {
   it("notchAtVertex derives the tangent from the vertex's own neighbours", () => {
     // a straight horizontal run: neighbours are collinear, so the tangent
     // is exactly (2,0) and the notch sits exactly at the middle vertex.
+    // This outline (a canonical, positive-area quad) needs no tangent flip.
     const pts: [number, number][] = [
       [0, 0],
       [5, 0],
       [10, 0],
       [10, 10],
     ];
-    const n = notchAtVertex(pts, 1, [5, 20], "single");
+    expect(isCanonicalWinding(pts)).toBe(true);
+    const n = notchAtVertex(pts, 1, "single");
     expect(n.outerCm).toEqual([5, 0]);
-    expect(n.innerCm[1]).toBeGreaterThan(0); // toward insideRef
+    expect(n.innerCm[1]).toBeGreaterThan(0);
+  });
+
+  it("notchAtVertex lands the same physical inner point regardless of which winding the outline is given in", () => {
+    // the same quad, listed in the opposite vertex order (signedAreaCm
+    // flips sign) -- canonicalTangent flips the derived tangent right back,
+    // so the notch still points into the SAME physical interior either way.
+    const ccw: [number, number][] = [
+      [0, 0],
+      [5, 0],
+      [10, 0],
+      [10, 10],
+    ];
+    const cw = [...ccw].reverse() as [number, number][];
+    expect(isCanonicalWinding(ccw)).toBe(true);
+    expect(isCanonicalWinding(cw)).toBe(false);
+    const nCcw = notchAtVertex(ccw, 1, "single"); // [5, 0] in ccw
+    const cwIdx = cw.findIndex(([x, y]) => x === 5 && y === 0);
+    const nCw = notchAtVertex(cw, cwIdx, "single");
+    expect(nCw.innerCm[0]).toBeCloseTo(nCcw.innerCm[0], 6);
+    expect(nCw.innerCm[1]).toBeCloseTo(nCcw.innerCm[1], 6);
+    expect(nCcw.innerCm[1]).toBeGreaterThan(0);
   });
 
   it("pointAndTangentAtCm walks a straight edge to the requested distance", () => {
@@ -332,13 +360,95 @@ describe("notch geometry", () => {
       [10, 10],
       [0, 10],
     ];
-    const n = notchAtArcLengthCm(pts, [], 0, 1, 3, [5, 5], "triple");
+    expect(isCanonicalWinding(pts)).toBe(true);
+    const n = notchAtArcLengthCm(pts, [], 0, 1, 3, "triple");
     expect(n.outerCm[0]).toBeCloseTo(3, 5);
     expect(n.outerCm[1]).toBeCloseTo(0, 5);
-    expect(n.innerCm[1]).toBeGreaterThan(0); // biased toward insideRef (below)
+    expect(n.innerCm[1]).toBeGreaterThan(0); // (-ty, tx) for this canonical outline's tangent (10,0)
     expect(
       Math.hypot(n.innerCm[0] - n.outerCm[0], n.innerCm[1] - n.outerCm[1]),
     ).toBeCloseTo(NOTCH_DEPTH_CM.triple, 6);
+  });
+});
+
+// #263: canonical-winding normalization primitives.
+describe("winding normalization", () => {
+  const SQUARE: [number, number][] = [
+    [0, 0],
+    [10, 0],
+    [10, 10],
+    [0, 10],
+  ];
+
+  it("signedAreaCm/isCanonicalWinding agree on sign", () => {
+    expect(signedAreaCm(SQUARE)).toBeCloseTo(100, 6);
+    expect(isCanonicalWinding(SQUARE)).toBe(true);
+    const reversed = [...SQUARE].reverse() as [number, number][];
+    expect(signedAreaCm(reversed)).toBeCloseTo(-100, 6);
+    expect(isCanonicalWinding(reversed)).toBe(false);
+  });
+
+  it("canonicalTangent passes a canonical outline's tangent through unchanged", () => {
+    expect(canonicalTangent(SQUARE, [1, 0])).toEqual([1, 0]);
+  });
+
+  it("canonicalTangent negates the tangent for a non-canonical outline", () => {
+    const reversed = [...SQUARE].reverse() as [number, number][];
+    const [x, y] = canonicalTangent(reversed, [1, 0]);
+    expect(x).toBe(-1);
+    expect(y === 0).toBe(true); // avoid Object.is(-0, 0) === false
+  });
+
+  it("normalizeWinding is a no-op on an already-canonical piece", () => {
+    const dp: DraftedPiece = {
+      ...rect("p", 10, 10),
+      curvedSpans: [[0, 2]],
+      foldEdge: [0, 2],
+      seamEdges: { hem: [2, 3] },
+    };
+    expect(normalizeWinding(dp)).toBe(dp);
+  });
+
+  it("normalizeWinding reverses a non-canonical outline and remaps curvedSpans/foldEdge/seamEdges consistently", () => {
+    // The same square, listed clockwise (negative area) -- 4 vertices, n=4.
+    const cw: DraftedPiece = {
+      id: "p",
+      name: "p",
+      qty: 1,
+      outlineCm: [...SQUARE].reverse(), // [[0,10],[10,10],[10,0],[0,0]]
+      curvedSpans: [[0, 2]], // touches the fixed vertex (0) as `from`
+      foldEdge: [1, 3],
+      seamEdges: { hem: [2, 4] }, // `to` uses the outlineCm.length wrap alias
+      detailRows: [],
+    };
+    expect(isCanonicalWinding(cw.outlineCm)).toBe(false);
+    const norm = normalizeWinding(cw);
+    expect(isCanonicalWinding(norm.outlineCm)).toBe(true);
+    // vertex 0 stays fixed; every other vertex mirrors around it.
+    expect(norm.outlineCm).toEqual([
+      [0, 10],
+      [0, 0],
+      [10, 0],
+      [10, 10],
+    ]);
+    // [a, b] -> [n - b, n - a], n = 4.
+    expect(norm.curvedSpans).toEqual([[2, 4]]);
+    // foldEdge remaps each lone vertex index (i === 0 ? 0 : n - i).
+    expect(norm.foldEdge).toEqual([3, 1]);
+    expect(norm.seamEdges).toEqual({ hem: [0, 2] });
+  });
+
+  it("normalizeWinding doesn't touch notches (absolute cm points, not indices)", () => {
+    const cw: DraftedPiece = {
+      id: "p",
+      name: "p",
+      qty: 1,
+      outlineCm: [...SQUARE].reverse(),
+      notches: [{ type: "single", outerCm: [5, 0], innerCm: [5, 0.3] }],
+      detailRows: [],
+    };
+    const norm = normalizeWinding(cw);
+    expect(norm.notches).toEqual(cw.notches);
   });
 });
 

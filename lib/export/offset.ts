@@ -1,4 +1,8 @@
-import { catmullRomSegments, type Pt } from "@/lib/draft/core";
+import {
+  catmullRomSegments,
+  isCanonicalWinding,
+  type Pt,
+} from "@/lib/draft/core";
 import { flattenCubic, TOL_CM } from "./bezier";
 
 // #123: turns the seam-allowance annotation (`GarmentStyle.seamAllowanceCm`,
@@ -45,7 +49,19 @@ export function offsetOutlineCm(
   tolCm: number = TOL_CM,
 ): { x: number; y: number }[] {
   const segs = toFineSegments(ptsCm, curvedSpans, foldEdge, distanceCm, tolCm);
-  return removeSelfCrossingLoops(miterOffset(segs));
+  // #263: outward direction used to be self-calibrated by building BOTH
+  // candidate offset polygons and keeping the larger-area one, because
+  // nothing upstream guaranteed a fixed winding. lib/draft/core.ts's
+  // normalizeWinding now normalizes every DraftedPiece the moldai engine
+  // hands off to one canonical (signedAreaCm >= 0) winding, and
+  // isCanonicalWinding here reads the SAME sign directly off `ptsCm` --
+  // cheaper than computing the full offset twice and comparing areas, and
+  // still correct for an outline this repo hasn't normalized (a future
+  // engine, a hand-built test fixture): sign +1 is outward for a
+  // canonically-wound outline (see joinOffsetLines/offsetLineFor below), -1
+  // for the other winding.
+  const sign = isCanonicalWinding(ptsCm) ? 1 : -1;
+  return removeSelfCrossingLoops(joinOffsetLines(segs, sign));
 }
 
 interface FineSeg {
@@ -100,17 +116,6 @@ function toFineSegments(
   return segs;
 }
 
-function shoelace(pts: { x: number; y: number }[]): number {
-  let a = 0;
-  const n = pts.length;
-  for (let i = 0; i < n; i++) {
-    const p = pts[i],
-      q = pts[(i + 1) % n];
-    a += p.x * q.y - q.x * p.y;
-  }
-  return a / 2;
-}
-
 function lineLine(
   a1: { x: number; y: number },
   a2: { x: number; y: number },
@@ -156,21 +161,6 @@ function joinOffsetLines(
     out.push(lineLine(prev[0], prev[1], cur[0], cur[1]) ?? cur[0]);
   }
   return out;
-}
-
-// Which of +1/-1 is "outward" depends on the input polygon's winding, which
-// this repo doesn't fix (some drafters walk clockwise, some counter --
-// nothing upstream needs it fixed, since SVG/canvas rendering doesn't care).
-// Rather than assume one, it builds the *actual* candidate result for both
-// signs and keeps whichever has the larger enclosed area -- the genuinely
-// outward offset, by construction, always grows the shape; the other one
-// shrinks it. Comparing the two real candidates directly (rather than a
-// cheaper per-vertex heuristic) is what makes this correct even when a fold
-// edge's own zero distance makes the growth asymmetric.
-function miterOffset(segs: FineSeg[]): { x: number; y: number }[] {
-  const plus = joinOffsetLines(segs, 1);
-  const minus = joinOffsetLines(segs, -1);
-  return Math.abs(shoelace(plus)) >= Math.abs(shoelace(minus)) ? plus : minus;
 }
 
 function crossSign(

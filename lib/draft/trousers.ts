@@ -1,7 +1,7 @@
 import { Measurements } from "@/lib/measurements";
 import { DetailRow, Gender, GarmentStyle } from "@/lib/types";
 import {
-  bbox,
+  canonicalTangent,
   dartInternals,
   DraftedPiece,
   notchAt,
@@ -92,9 +92,6 @@ function trouserPanel(
   const hemOuter = push([hipQuarterCm, totalLengthCm]); // hem edge
   const waistOuter = push([hipQuarterCm, 0]); // outseam: plumb vertical
 
-  const b = bbox(pts);
-  const insideRef: Pt = [b.minX + b.w / 2, b.minY + b.h / 2];
-
   // #127: one waist dart per panel, touching the waist seam -- the same
   // single-ended (apex-to-seam-midpoint) shape body.ts's own isDressHem dart
   // uses, since this edge (like a dress's hem/waist join) has nothing below
@@ -129,12 +126,23 @@ function trouserPanel(
   // it's there for symmetry with body.ts's dress-hem/skirt outer-corner
   // convention, which always marks that pairing regardless of whether the
   // opposite piece carries a reciprocal notch.
+  // #263: notchAt derives the inward tick from the given tangent's own
+  // orientation relative to `pts`' winding (canonicalTangent) -- no more
+  // caller-supplied interior reference. Each literal tangent below matches
+  // this outline's own ACTUAL local boundary-walking direction at that
+  // point -- (0,1) at the crotch curve (walked upward toward the hem,
+  // waistCF -> crotchPt -> hemInner), (-1,0) along the waist edge (walked
+  // waistOuter -> waistCF, i.e. decreasing x -- the outline's own closing
+  // edge) -- so canonicalTangent's fixed formula resolves the same inward
+  // side canonicalTangent(pts, ...) is trusted to resolve everywhere else;
+  // a tangent with the WRONG sign relative to the outline's real walking
+  // direction is not fixed by canonicalTangent, it's doubly wrong.
   const pitchType = isFront ? "single" : "double";
   const notches: NotchCm[] = [
-    notchAt(pts[crotchPt], [0, 1], insideRef, pitchType),
-    notchAt(dartLegL, [1, 0], insideRef, "single"),
-    notchAt(dartLegR, [1, 0], insideRef, "single"),
-    notchAt(pts[waistOuter], [1, 0], insideRef, "double"),
+    notchAt(pts[crotchPt], canonicalTangent(pts, [0, 1]), pitchType),
+    notchAt(dartLegL, canonicalTangent(pts, [-1, 0]), "single"),
+    notchAt(dartLegR, canonicalTangent(pts, [-1, 0]), "single"),
+    notchAt(pts[waistOuter], canonicalTangent(pts, [-1, 0]), "double"),
   ];
 
   // Inside the leg's own rectangle (y in [riseCm, totalLengthCm], x in

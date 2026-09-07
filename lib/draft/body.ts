@@ -1,6 +1,7 @@
 import { Measurements } from "@/lib/measurements";
 import { DetailRow, GarmentStyle, Gender, NotchType } from "@/lib/types";
 import {
+  canonicalTangent,
   curveArcLengthCm,
   dartInternals,
   DraftedPiece,
@@ -430,16 +431,9 @@ function bodice(
     [cx, len - 3],
   ];
 
-  // #124: a generic interior reference for every notch this panel places --
-  // safely below the shoulders and above the hem, and safely between the
-  // left/right armholes, for every drafted proportion.
-  // #223: on a front-closure half-panel, [cx, len/2] sits exactly on the
-  // new center-front boundary edge -- degenerate for notch orientation
-  // (notchAt needs a reference strictly inside the piece). Shifted toward
-  // the shoulder side, the same "-" direction every vertex on this half uses.
-  const insideRef: Pt = frontClosure
-    ? [cx - shoulderHalf * 0.3, len / 2]
-    : [cx, len / 2];
+  // #263: notchAt/notchAtVertex/notchAtArcLengthCm all derive their inward
+  // tick from `pts`' own winding now (canonicalTangent) -- no more
+  // caller-supplied interior reference point.
   const pitchType: NotchType = frontish ? "single" : "double";
   const notches: NotchCm[] = [
     // front/back pitch notches, walked from the SAME underarm-relative
@@ -451,7 +445,6 @@ function bodice(
       shL,
       uaL,
       armholeEdgeLenCm - pitchNotchCm,
-      insideRef,
       pitchType,
     ),
   ];
@@ -460,17 +453,9 @@ function bodice(
   // armhole, no fold at center front).
   if (!frontClosure) {
     notches.push(
-      notchAtArcLengthCm(
-        pts,
-        spans,
-        uaR!,
-        shR!,
-        pitchNotchCm,
-        insideRef,
-        pitchType,
-      ),
+      notchAtArcLengthCm(pts, spans, uaR!, shR!, pitchNotchCm, pitchType),
       // hem-fold notch: centre front/back at the hem, to line up the fabric fold.
-      notchAtVertex(pts, hemCenter, insideRef, "single"),
+      notchAtVertex(pts, hemCenter, "single"),
     );
   }
   if (isDressHem) {
@@ -481,8 +466,8 @@ function bodice(
     // and frontClosure excludes dress (see its own doc above) -- so hemR is
     // always defined on this branch.
     notches.push(
-      notchAtVertex(pts, hemL, insideRef, "double"),
-      notchAtVertex(pts, hemR!, insideRef, "double"),
+      notchAtVertex(pts, hemL, "double"),
+      notchAtVertex(pts, hemR!, "double"),
     );
     // #124: dart-leg notches, where each dart's legs meet the waist/hem
     // seam -- only reachable here, since the fisheye (double-ended) dart a
@@ -490,8 +475,8 @@ function bodice(
     for (const dart of dartsStruct ?? []) {
       const [legL, , legR] = dart.ptsCm;
       notches.push(
-        notchAt(legL, [1, 0], insideRef, "single"),
-        notchAt(legR, [1, 0], insideRef, "single"),
+        notchAt(legL, canonicalTangent(pts, [1, 0]), "single"),
+        notchAt(legR, canonicalTangent(pts, [1, 0]), "single"),
       );
     }
   }

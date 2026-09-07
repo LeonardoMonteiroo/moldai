@@ -10,7 +10,7 @@ import {
   Gender,
   PieceOutline,
 } from "@/lib/types";
-import { curveArcLengthCm, DraftedPiece } from "./core";
+import { curveArcLengthCm, DraftedPiece, normalizeWinding } from "./core";
 import { BlockOpts, draftBody } from "./body";
 import { draftSleeve, CAP_EASE_CM, WRIST_EASE_CM } from "./sleeve";
 import { draftSkirt, dressWaistHalfCm } from "./skirt";
@@ -365,8 +365,12 @@ export function draftAll(
       pitchNotchCm,
       basePitchNotchCm,
     } = draftBody(measurements, style, t, opts);
-    front = f;
-    back = c;
+    // #263: normalized before ANYTHING below reads .seamEdges into a
+    // seamPairs entry -- normalizeWinding is safe to apply here (and
+    // nowhere later) precisely because nothing has captured a stale copy of
+    // these indices yet.
+    front = normalizeWinding(f);
+    back = normalizeWinding(c);
     armholeLenCm = a;
     drafted.push(front, back);
     // #134: the shoulder and side seams -- front vs back. Equal by
@@ -405,7 +409,7 @@ export function draftAll(
     const sleevePitchNotchCm = style.sleeveRefit
       ? pitchNotchCm
       : basePitchNotchCm;
-    const sleeve = draftSleeve(
+    const rawSleeve = draftSleeve(
       measurements,
       style,
       sleeveArmhole,
@@ -413,6 +417,9 @@ export function draftAll(
       opts,
       sleevePitchNotchCm,
     );
+    // #263: normalized before its own seamEdges are read into a seamPairs
+    // entry below.
+    const sleeve = rawSleeve ? normalizeWinding(rawSleeve) : null;
     if (sleeve) {
       drafted.push(sleeve);
       // The armhole the drafted cap actually fits, measured from its own
@@ -467,8 +474,9 @@ export function draftAll(
           ...sleeve.seamEdges.hem,
         );
         const wristEase = opts.knit ? WRIST_EASE_CM.knit : WRIST_EASE_CM.woven;
-        const cuff = draftCuff(hemArcCm + wristEase, t);
-        const placket = draftPlacket(t);
+        // #263: normalized before cuff.seamEdges is read below.
+        const cuff = normalizeWinding(draftCuff(hemArcCm + wristEase, t));
+        const placket = normalizeWinding(draftPlacket(t));
         drafted.push(cuff, placket);
         if (cuff.seamEdges) {
           seamPairs.push({
@@ -551,7 +559,13 @@ export function draftAll(
         edgeRef(back.id, back.seamEdges.necklineRight),
       ];
       if (style.collar === "shirt") {
-        const { stand, fall } = draftShirtCollar(necklineArcCm, t);
+        const { stand: rawStand, fall: rawFall } = draftShirtCollar(
+          necklineArcCm,
+          t,
+        );
+        // #263: normalized before either's own seamEdges are read below.
+        const stand = normalizeWinding(rawStand);
+        const fall = normalizeWinding(rawFall);
         drafted.push(stand, fall);
         if (stand.seamEdges?.neckline) {
           seamPairs.push({
@@ -581,9 +595,12 @@ export function draftAll(
         }
       } else {
         const isBand = style.collar === "band";
-        const collar = isBand
-          ? draftBandCollar(necklineArcCm, t)
-          : draftCollar(necklineArcCm, t);
+        // #263: normalized before collar.seamEdges is read below.
+        const collar = normalizeWinding(
+          isBand
+            ? draftBandCollar(necklineArcCm, t)
+            : draftCollar(necklineArcCm, t),
+        );
         drafted.push(collar);
         if (collar.seamEdges) {
           seamPairs.push({
@@ -607,7 +624,8 @@ export function draftAll(
         front.curvedSpans ?? [],
         ...front.seamEdges.centerFront,
       );
-      const stand = draftButtonStand(centerFrontLenCm, t);
+      // #263: normalized before stand.seamEdges is read below.
+      const stand = normalizeWinding(draftButtonStand(centerFrontLenCm, t));
       drafted.push(stand);
       if (stand.seamEdges) {
         seamPairs.push({
@@ -622,11 +640,9 @@ export function draftAll(
     }
   }
   if (spec.type === "skirt" || spec.type === "dress") {
-    const skirtPiece = draftSkirt(
-      measurements,
-      spec.style,
-      t,
-      spec.type === "dress",
+    // #263: normalized before skirtPiece.seamEdges is read below.
+    const skirtPiece = normalizeWinding(
+      draftSkirt(measurements, spec.style, t, spec.type === "dress"),
     );
     drafted.push(skirtPiece);
     // #234: the skirt panel's own length -- the same formula draftSkirt
@@ -709,7 +725,8 @@ export function draftAll(
           skirtPiece.curvedSpans ?? [],
           ...skirtPiece.seamEdges.waist,
         ) * skirtPiece.qty;
-      const waistband = draftWaistband(waistLenCm, t);
+      // #263: normalized before waistband.seamEdges is read below.
+      const waistband = normalizeWinding(draftWaistband(waistLenCm, t));
       drafted.push(waistband);
       if (waistband.seamEdges) {
         const waistRefs = Array.from({ length: skirtPiece.qty }, () =>
@@ -744,12 +761,15 @@ export function draftAll(
     // #234: the same waist-to-hem formula draftTrousers resolves internally.
     garmentLengthCm =
       spec.style.trouserLengthCm ?? TROUSER_DEFAULT_LENGTH_CM[gender];
-    const { front: tf, back: tb } = draftTrousers(
+    const { front: rawTf, back: rawTb } = draftTrousers(
       measurements,
       spec.style,
       gender,
       t,
     );
+    // #263: normalized before either's own seamEdges are read below.
+    const tf = normalizeWinding(rawTf);
+    const tb = normalizeWinding(rawTb);
     drafted.push(tf, tb);
     if (tf.seamEdges) {
       seamPairs.push({
@@ -809,7 +829,8 @@ export function draftAll(
           ...tb.seamEdges.waist,
         ) *
           tb.qty;
-      const waistband = draftWaistband(waistLenCm, t);
+      // #263: normalized before waistband.seamEdges is read below.
+      const waistband = normalizeWinding(draftWaistband(waistLenCm, t));
       drafted.push(waistband);
       if (waistband.seamEdges) {
         const waistRefs = [
