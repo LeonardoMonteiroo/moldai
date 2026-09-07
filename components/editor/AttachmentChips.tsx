@@ -60,11 +60,17 @@ export function AttachmentChips({
   // picking the same file twice fires onChange again.
   async function pick(e: React.ChangeEvent<HTMLInputElement>) {
     const files = e.target.files;
-    e.target.value = "";
+    // Snapshot into a plain array BEFORE clearing the input: `files` is the
+    // same live FileList as `e.target.files`, so clearing `e.target.value`
+    // empties it in place -- reading `files.length` (or `files` at all)
+    // after that point always sees 0, turning every pick into a silent
+    // no-op. `e.target.value` is still cleared right after, same as before,
+    // so picking the same file twice still fires onChange again.
     if (!files || files.length === 0) return;
+    const picked = Array.from(files);
+    e.target.value = "";
     setErrorCode(null);
     const room = MAX_ATTACHMENT_COUNT - attachments.length;
-    const picked = Array.from(files);
     // CLAUDE.md: a limitation is surfaced on-screen, never silently -- the
     // dropped tail otherwise vanished with no trace, indistinguishable from
     // the browser only offering that many files in the first place.
