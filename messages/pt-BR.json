@@ -847,7 +847,7 @@
     "nameLabel": "Nome",
     "emailLabel": "Email",
     "passwordLabel": "Senha",
-    "passwordHint": "Mínimo de 8 caracteres.",
+    "passwordHint": "Mínimo de 8 caracteres, com letras e números.",
     "confirmLabel": "Confirmar senha",
     "mismatchError": "As senhas não conferem.",
     "orDivider": "ou",
@@ -866,7 +866,7 @@
     "errors": {
       "invalid_name": "Informe o seu nome.",
       "invalid_email": "Email inválido.",
-      "weak_password": "A senha deve ter pelo menos 8 caracteres.",
+      "weak_password": "A senha deve ter pelo menos 8 caracteres, com letras e números.",
       "email_taken": "Este email já está cadastrado.",
       "bad_body": "Não foi possível criar a conta. Tente novamente.",
       "rate_limited": "Muitas tentativas de cadastro. Aguarde alguns minutos.",
@@ -885,11 +885,20 @@
     "successBody": "Tudo certo. Agora é só entrar com sua senha.",
     "loginLink": "Ir para o login",
     "backToLoginLink": "Voltar para login",
+    "emailLabel": "Email",
+    "passwordLabel": "Senha",
+    "resendButton": "Reenviar link de confirmação",
+    "resendButtonLoading": "Reenviando…",
+    "resendDone": "Link reenviado. Confira seu email.",
     "errors": {
-      "invalid_token": "Este link não é válido. Peça um novo na tela de login.",
-      "expired_token": "Este link expirou. Peça um novo na tela de login.",
+      "invalid_token": "Este link não é válido. Informe seu email e senha para receber um novo.",
+      "expired_token": "Este link expirou. Informe seu email e senha para receber um novo.",
       "bad_body": "Não foi possível confirmar. Tente novamente.",
-      "rate_limited": "Muitas tentativas. Aguarde alguns minutos e tente de novo."
+      "rate_limited": "Muitas tentativas. Aguarde alguns minutos e tente de novo.",
+      "invalid_credentials": "Email ou senha inválidos.",
+      "already_verified": "Este email já está confirmado. Tente entrar novamente.",
+      "cooldown": "Aguarde um minuto antes de pedir outro link.",
+      "mail_unavailable": "Não conseguimos enviar o email agora. Tente de novo em instantes."
     },
     "missingToken": "Link incompleto. Abra o endereço exatamente como ele chegou no seu email."
   },
@@ -964,6 +973,10 @@
     "requestButtonLoading": "Enviando…",
     "requestSentHeading": "Verifique seu email",
     "requestSentBody": "Se este email estiver cadastrado, você vai receber um link para redefinir sua senha.",
+    "requestSentHint": "Não chegou? Verifique o spam ou reenvie.",
+    "resendButton": "Reenviar",
+    "resendButtonLoading": "Reenviando…",
+    "resendDone": "Link reenviado.",
     "backToLogin": "Voltar para login",
     "confirmHeading": "Nova senha",
     "confirmIntro": "Escolha uma nova senha para sua conta.",
@@ -980,7 +993,7 @@
       "rate_limited": "Muitas tentativas. Aguarde alguns minutos e tente de novo.",
       "invalid_token": "Este link não é válido. Peça um novo.",
       "expired_token": "Este link expirou. Peça um novo.",
-      "weak_password": "A senha deve ter pelo menos 8 caracteres."
+      "weak_password": "A senha deve ter pelo menos 8 caracteres, com letras e números."
     }
   },
   "PasswordResetEmail": {
@@ -1439,10 +1452,10 @@
     "newLabel": "Nova senha",
     "confirmLabel": "Confirmar nova senha",
     "submitButton": "Alterar senha",
-    "hintNote": "Mínimo de 8 caracteres.",
+    "hintNote": "Mínimo de 8 caracteres, com letras e números.",
     "deviceNote": "Você continuará conectado(a) neste dispositivo.",
     "mismatchError": "As senhas não conferem.",
-    "tooShortError": "A nova senha deve ter pelo menos 8 caracteres.",
+    "tooShortError": "A nova senha deve ter pelo menos 8 caracteres, com letras e números.",
     "successMessage": "Senha alterada com sucesso.",
     "setHeading": "Definir senha",
     "setNote": "Sua conta usa login com Google. Defina uma senha para também poder entrar com email e senha.",
@@ -1452,7 +1465,7 @@
       "bad_body": "Não foi possível alterar a senha. Tente novamente.",
       "account_not_found": "Não foi possível alterar a senha. Tente novamente.",
       "wrong_password": "Senha atual incorreta.",
-      "weak_password": "A nova senha deve ter pelo menos 8 caracteres.",
+      "weak_password": "A nova senha deve ter pelo menos 8 caracteres, com letras e números.",
       "unauthorized": "Sua sessão expirou. Faça login novamente para alterar a senha."
     }
   },
