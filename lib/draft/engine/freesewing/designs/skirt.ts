@@ -13,6 +13,13 @@ import type { SeamPairDecl } from "../../../seams";
 import type { EngineDraft } from "../../types";
 import { flattenFreesewingSeam, mirrorFoldedPanel } from "../geometry";
 import { edgeRef } from "../seamHelpers";
+// #249: the SAME fraction-of-reference-row math the moldai engine's skirt
+// drafter uses (lib/draft/skirt.ts) -- an explicit style.skirtLengthCm has
+// no engine-specific meaning, so both engines normalize it against the
+// pattern's actual base-size row identically. Reused, not re-derived: a
+// second copy of this formula drifting from the first is exactly the kind
+// of duplicated fact CLAUDE.md already lists two real incidents of.
+import { gradedSkirtLengthCm } from "../../../skirt";
 
 const cm = (v: number) => `${formatCm(v)} cm`;
 const MM_PER_CM = 10;
@@ -60,8 +67,19 @@ export function draftSkirt(
   spec: GarmentSpec,
   base: Measurements,
   t: Translate,
+  // #249: the pattern's actual base-size row -- defaults to `base` itself,
+  // so a caller drafting the base size (or predating #249) sees
+  // byte-identical output (gradedSkirtLengthCm collapses to the explicit
+  // value unchanged when both rows are the same one). Only
+  // lib/draft/engine/freesewing/index.ts's own `draft()` passes a
+  // genuinely different row, for a graded (non-base) size.
+  referenceMeasurements: Measurements = base,
 ): EngineDraft {
-  const targetLengthCm = spec.style.skirtLengthCm ?? base.skirtLength;
+  const targetLengthCm = gradedSkirtLengthCm(
+    spec.style.skirtLengthCm,
+    base.skirtLength,
+    referenceMeasurements.skirtLength,
+  );
   const measurements = toSkirtMeasurementsMm(base);
   const pattern = new SkirtDesign({
     measurements,

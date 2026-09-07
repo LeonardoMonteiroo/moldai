@@ -802,6 +802,43 @@ describe("draftGradedOverlays", () => {
       ),
     ).toEqual([]);
   });
+
+  // #249: draftPiecesCm's own graded call inside draftGradedOverlays now
+  // passes the base row through as the reference, the same wiring
+  // buildExportModel uses -- a direct draftPiecesCm comparison (bypassing
+  // autoLayout/canvas translation, unlike the overlay's own `outline`) is
+  // what actually proves the hem itself grades, not just that SOMETHING
+  // differs (a graded row's real waist/hip already changes the outline's
+  // WIDTH regardless of this fix).
+  it("grades an explicit skirtLengthCm in the base row's own ratio, not identically to the base (#249)", () => {
+    const skirtSpec = {
+      type: "skirt" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { skirt: "straight" as const, skirtLengthCm: 70 },
+    };
+    const [basePiece] = draftPiecesCm(
+      DEFAULT_ENGINE_ID,
+      skirtSpec,
+      SIZE_TABLE.M,
+      t,
+      SIZE_TABLE.M,
+    );
+    const [gradedPiece] = draftPiecesCm(
+      DEFAULT_ENGINE_ID,
+      skirtSpec,
+      SIZE_TABLE.GG,
+      t,
+      SIZE_TABLE.M,
+    );
+    const baseHeight = bbox(basePiece.outlineCm).h;
+    const gradedHeight = bbox(gradedPiece.outlineCm).h;
+    expect(gradedHeight).not.toBeCloseTo(baseHeight, 1);
+    expect(gradedHeight / baseHeight).toBeCloseTo(
+      SIZE_TABLE.GG.skirtLength / SIZE_TABLE.M.skirtLength,
+      2,
+    );
+  });
 });
 
 describe("validateQuestions", () => {

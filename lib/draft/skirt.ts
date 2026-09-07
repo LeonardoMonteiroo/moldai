@@ -17,6 +17,38 @@ const cm = (v: number) => `${formatCm(v)} cm`;
 // takes no BlockOpts, so a plain module constant is enough.
 const SKIRT_WEARING_EASE_CM = 2;
 
+// #249: `style.skirtLengthCm ?? m.skirtLength` used to read the explicit
+// length as one absolute number for EVERY graded size, while the fallback
+// path (`m.skirtLength`, straight off the chart) already grades +2.0cm/size
+// (see lib/measurements.ts's #118 note) -- so the moment a request set an
+// explicit length, every graded size printed the exact same hem, invisible
+// until two sizes are compared side by side (a graded layered PDF export,
+// #249's own reported bug).
+//
+// The fix resolves the chosen length ONCE as a FRACTION of the reference
+// row's own skirtLength, then re-expands that same fraction against THIS
+// row's own skirtLength -- so an explicit length grades in exactly the same
+// ratio the chart's own skirtLength already does, without persisting
+// anything new (the fraction is recomputed at draft time, every time).
+// `rowSkirtLengthCm`/`referenceSkirtLengthCm` are two DIFFERENT rows' own
+// `skirtLength` only when a caller is drafting a size OTHER than the
+// pattern's frozen base size (facade.ts's draftGradedOverlays,
+// buildExportModel exporting a graded size) -- every other call site passes
+// the SAME row for both (draftSkirt's own default below), which collapses
+// the fraction back to `explicitCm / rowSkirtLengthCm * rowSkirtLengthCm ===
+// explicitCm`, byte-identical to the pre-#249 behavior.
+export function gradedSkirtLengthCm(
+  explicitCm: number | undefined,
+  rowSkirtLengthCm: number,
+  referenceSkirtLengthCm: number,
+): number {
+  if (explicitCm === undefined) return rowSkirtLengthCm;
+  if (!Number.isFinite(referenceSkirtLengthCm) || referenceSkirtLengthCm <= 0) {
+    return explicitCm;
+  }
+  return (explicitCm / referenceSkirtLengthCm) * rowSkirtLengthCm;
+}
+
 // Standalone skirt only (#177 left this untouched): a skirt with no bodice
 // to join sizes its own straight/a-line waist panel off the hip, same as
 // always.
@@ -117,10 +149,21 @@ export function draftSkirt(
   // `spec.type === "dress"`, and only then do the waist-edge corners get the
   // "waist join" notches that mirror body.ts's own isDressHem ones.
   isDressWaist = false,
+  // #249: the reference row an explicit style.skirtLengthCm is normalized
+  // against before being re-expanded for `m`'s own skirtLength -- defaults
+  // to `m` itself, so every call site that doesn't grade across sizes (every
+  // one before #249) sees byte-identical behavior. garment.ts threads the
+  // pattern's actual base-size row through here only when `m` is a
+  // DIFFERENT size's row (see gradedSkirtLengthCm's own doc above).
+  baseRow: Measurements = m,
 ): DraftedPiece {
   const silhueta: SkirtSilhouette = style.skirt ?? "straight";
   const ease = style.seamAllowanceCm ?? 1;
-  const length = style.skirtLengthCm ?? m.skirtLength;
+  const length = gradedSkirtLengthCm(
+    style.skirtLengthCm,
+    m.skirtLength,
+    baseRow.skirtLength,
+  );
   const detailRows: DetailRow[] = [
     { label: t("rows.silhouette"), value: t("skirtSilhouette." + silhueta) },
     { label: t("rows.length"), value: cm(length) },

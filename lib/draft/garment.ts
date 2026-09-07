@@ -13,7 +13,7 @@ import {
 import { curveArcLengthCm, DraftedPiece } from "./core";
 import { BlockOpts, draftBody } from "./body";
 import { draftSleeve, CAP_EASE_CM, WRIST_EASE_CM } from "./sleeve";
-import { draftSkirt, dressWaistHalfCm } from "./skirt";
+import { draftSkirt, dressWaistHalfCm, gradedSkirtLengthCm } from "./skirt";
 import { draftTrousers, TROUSER_DEFAULT_LENGTH_CM } from "./trousers";
 import {
   draftCollar,
@@ -259,6 +259,16 @@ export function draftAll(
   spec: GarmentSpec,
   baseMeasurements: Measurements,
   t: Translate,
+  // #249: the pattern's own frozen base-size row -- read ONLY to normalize
+  // an explicit style.skirtLengthCm into a fraction of ITS skirtLength
+  // before re-expanding that fraction against `baseMeasurements`'s own
+  // skirtLength (see lib/draft/skirt.ts's gradedSkirtLengthCm). Optional,
+  // defaulting to `baseMeasurements` itself: every call site drafting the
+  // pattern's own base size (or that predates #249) sees byte-identical
+  // output. Only a caller drafting a GRADED size (facade.ts's
+  // draftGradedOverlays, lib/export/model.ts's buildExportModel exporting a
+  // non-base size) passes the actual base row here.
+  referenceMeasurements: Measurements = baseMeasurements,
 ): {
   drafted: DraftedPiece[];
   measurements: Measurements;
@@ -272,6 +282,14 @@ export function draftAll(
     baseMeasurements,
     spec.measurementOverrides,
   );
+  // #249: the SAME override transform applied to the reference row -- a
+  // chat-driven measurementOverrides.skirtLength (rare, but valid: it's a
+  // CORE key) has to move both rows together, or the fraction below would
+  // compare an overridden row against an un-overridden one.
+  const referenceRow: Measurements =
+    referenceMeasurements === baseMeasurements
+      ? measurements
+      : resolveMeasurements(referenceMeasurements, spec.measurementOverrides);
   const drafted: DraftedPiece[] = [];
   let armholeLenCm: number | undefined;
   let sleeveArmholeCm: number | undefined;
@@ -627,14 +645,20 @@ export function draftAll(
       spec.style,
       t,
       spec.type === "dress",
+      referenceRow,
     );
     drafted.push(skirtPiece);
     // #234: the skirt panel's own length -- the same formula draftSkirt
-    // itself resolves internally (style.skirtLengthCm, falling back to the
-    // chart's own skirtLength) but doesn't expose on the piece. A dress adds
-    // this on top of its bodice-to-waist length (set above); a standalone
-    // skirt has no bodice, so this IS the whole garment length.
-    const skirtLenCm = spec.style.skirtLengthCm ?? measurements.skirtLength;
+    // itself resolves internally (#249: gradedSkirtLengthCm, normalizing an
+    // explicit style.skirtLengthCm against referenceRow's own skirtLength
+    // before re-expanding it for THIS row) but doesn't expose on the piece.
+    // A dress adds this on top of its bodice-to-waist length (set above); a
+    // standalone skirt has no bodice, so this IS the whole garment length.
+    const skirtLenCm = gradedSkirtLengthCm(
+      spec.style.skirtLengthCm,
+      measurements.skirtLength,
+      referenceRow.skirtLength,
+    );
     garmentLengthCm =
       spec.type === "dress" ? (garmentLengthCm ?? 0) + skirtLenCm : skirtLenCm;
     // #134: the dress bodice's hem/waist-join edge vs the skirt panel's own

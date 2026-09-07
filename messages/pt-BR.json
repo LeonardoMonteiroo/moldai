@@ -205,6 +205,7 @@
       "rise": "Gancho",
       "trouserLeg": "Modelagem da perna",
       "trouserOtherLegs": "Outras modelagens (afunilada, pantalona, cargo)",
+      "trouserLengthGrading": "Comprimento por tamanho",
       "hoodiePocket": "Bolso canguru e viés do decote",
       "coatLining": "Forro completo (frente, costas e manga)",
       "sleevePlacket": "Abertura do punho (carcela)"
@@ -254,6 +255,7 @@
     "grainValue": "reto",
     "foldLabel": "dobra",
     "comingSoonBadge": "em breve",
+    "trouserLengthFixedNote": "mesmo em todos os tamanhos (ainda não há medida de perna por tamanho)",
     "conflict": {
       "title": "Cava e manga não batem",
       "description": "A cava do corpo ficou {diffCm, number, ::.0} cm {direction, select, larger {maior} smaller {menor} other {}} que a copa da manga, então as costuras não vão fechar.",

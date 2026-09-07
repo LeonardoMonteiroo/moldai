@@ -63,7 +63,21 @@ export interface EngineDraft {
 export interface DraftingEngine {
   id: EngineId;
   capability: EngineCapability;
-  draft(spec: GarmentSpec, base: Measurements, t: Translate): EngineDraft;
+  // #249: `referenceMeasurements` is OPTIONAL and additive -- a caller
+  // drafting the pattern's own base size (or written before #249) omits it
+  // entirely, and every existing engine implementation keeps compiling
+  // unchanged (a function with fewer declared parameters is still a valid
+  // implementer of a type with a trailing optional one). Only the "moldai"
+  // engine reads it today (lib/draft/garment.ts's draftAll, to normalize an
+  // explicit style.skirtLengthCm against the pattern's actual base-size row
+  // rather than the row currently being drafted -- see
+  // lib/draft/skirt.ts's gradedSkirtLengthCm).
+  draft(
+    spec: GarmentSpec,
+    base: Measurements,
+    t: Translate,
+    referenceMeasurements?: Measurements,
+  ): EngineDraft;
 }
 
 // Re-exported so a consumer importing only ./types still sees the shape

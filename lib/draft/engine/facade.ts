@@ -33,8 +33,19 @@ export function draftPiecesCm(
   spec: GarmentSpec,
   baseMeasurements: Measurements,
   t: Translate,
+  // #249: optional, additive -- the pattern's actual base-size row, passed
+  // only by a caller drafting a size OTHER than that base (buildExportModel
+  // exporting a graded size, draftGradedOverlays below). Omitted, every
+  // existing call site sees byte-identical output (see
+  // DraftingEngine.draft's own doc, lib/draft/engine/types.ts).
+  referenceMeasurements?: Measurements,
 ): DraftedPiece[] {
-  return getEngine(engine).draft(spec, baseMeasurements, t).drafted;
+  return getEngine(engine).draft(
+    spec,
+    baseMeasurements,
+    t,
+    referenceMeasurements,
+  ).drafted;
 }
 
 // The pair of seam lengths seamCheck compares, without the pieces or the
@@ -110,7 +121,18 @@ export function draftGradedOverlays(
   for (const size of sizes) {
     const measurements = sizeTable[size];
     if (!measurements) continue;
-    const graded = draftPiecesCm(engine, spec, measurements, t);
+    // #249: the base row is passed as the reference so an explicit
+    // style.skirtLengthCm grades the overlay's own hem the same way the
+    // export path does (lib/export/model.ts's buildExportModel) -- without
+    // it, the overlay would keep showing every graded size at one identical
+    // hem, misleading the user before they even export.
+    const graded = draftPiecesCm(
+      engine,
+      spec,
+      measurements,
+      t,
+      baseMeasurements,
+    );
     graded.forEach((dp, i) => {
       const base = baseDrafted[i];
       const placed = pieces[i];
