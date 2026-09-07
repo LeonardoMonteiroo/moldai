@@ -68,7 +68,24 @@ function EntryRows({
   showHeading: boolean;
   t: ReturnType<typeof useTranslations>;
 }) {
-  if (!measurement) {
+  // #241: absent for a base-origin entry (surfaced exactly as before) and
+  // for anything predating this issue -- present only for a pair invisible
+  // at the base size, naming the graded size(s) it was actually caught at
+  // (CLAUDE.md: surface a limitation on-screen, never silently).
+  const isSizeOnly = !!entry.sizes?.length;
+  const sizesLine = isSizeOnly ? (
+    <span className="text-muted-2 text-meta">
+      {t("entrySizesLabel", { sizes: entry.sizes!.join(", ") })}
+    </span>
+  ) : null;
+  // #241: `measurement` (from the caller's `seamGraph`) is always measured
+  // at the BASE size -- for a size-only entry that pair does NOT diverge at
+  // base, so its base lengths would render as a closing (or near-closing)
+  // pair right next to a label saying it diverges elsewhere. Falling back
+  // to the bare diff line (already the graded size's own real diffCm, set
+  // by lib/editor/state.ts's detectConflict) keeps the card honest instead
+  // of showing two numbers that contradict the sizes line beside them.
+  if (!measurement || isSizeOnly) {
     return (
       <div className="flex flex-col gap-[3px]">
         {showHeading && (
@@ -79,6 +96,7 @@ function EntryRows({
         <span className="text-alert text-ui">
           {t("entryDiffLabel", { diff: cm(entry.diffCm) })}
         </span>
+        {sizesLine}
       </div>
     );
   }
@@ -111,6 +129,7 @@ function EntryRows({
           diff: cm(entry.diffCm),
         })}
       </span>
+      {sizesLine}
     </div>
   );
 }

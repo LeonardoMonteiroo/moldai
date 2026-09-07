@@ -83,6 +83,80 @@ insufficient. It is left unresolved here — the harness's job is to make
 this measurable and comparable across commits, not to force today's number
 to look better by loosening the fixtures.
 
+## Follow-up: the ~70% decision accuracy was a prompt defect, not a model limit
+
+**Issue #252 was reopened at the wrong milestone.** The eval harness itself
+(fixtures, scoring, report, `npm run eval:ai`) was complete and correct —
+every one of #252's acceptance criteria is satisfied by the code above. But
+the commit that built it also claimed to "close out issue #252" and the
+issue stayed open, which conflated "the harness exists" with "the harness's
+own finding is resolved." It wasn't: the baseline's ~70% decision accuracy
+sat unresolved for a day of in-repo time. This entry closes that finding
+out, separately from the harness that surfaced it.
+
+**Root cause, found with `--verbose`, not guessed.** `scripts/ai-eval.ts`
+gained an `--only <ids>` + `--verbose` flag pair (never writes the committed
+report — only a full run does) specifically to see the model's own
+`assistantMessage`/`questions` on a mismatch instead of just its pass/fail
+verdict. Read against the ten failing fixtures, the pattern was not "blank
+patterns are genuinely underspecified" (this file's own prior paragraph's
+hypothesis) — it was that the model asked about fields that already have a
+safe drafter-side default. `blouse-v-long` ("decote em V e manga longa")
+still got asked for `fit`; `skirt-aline` ("saia evasê") got asked for
+length, fit, _and_ waistband. `lib/draft/garment.ts:107`'s `validateSpec`
+and the drafters themselves (`lib/draft/body.ts:295`, `lib/draft/ease.ts:98`,
+`lib/draft/garment.ts:331-333`) already fall back to a concrete default —
+`"straight"` neckline, `"none"` sleeve, `"fitted"` fit — for every style
+field the AI leaves unset. Nothing about the drafting engine required the
+model to collect them first; the prompt's own `# Decision policy` bullet
+just named `neckline, sleeve, fit, length, size` as generic "relevant
+detail," which read to the model as a checklist to fill rather than a list
+of things that already have an answer.
+
+**The fix: rewrite what "underspecified" means, not just the blank-pattern
+example.** Two spots, both in `lib/ai/prompt.ts`: the static `# Decision
+policy` ask bullet (touches the cached prefix — a deliberate, expected
+sha256 regeneration in `prompt.test.ts`, not a silent one) now says ask is
+for a request naming NOTHING beyond the garment type, and that naming even
+one silhouette/feature/adjective is enough to apply since every other field
+already has a default; and `buildDynamicSection`'s blank-pattern paragraph
+(the per-request, uncached half) was reworded to match and point back at
+it, rather than repeating its own, narrower field list.
+
+**Negative controls came before the prompt edit, not after.** Before
+touching `prompt.ts`, `lib/ai/eval/fixtures.ts` gained five more non-`apply`
+cases — `ask-blouse-bare`, `ask-trousers-bare` (genuinely bare requests that
+must still `ask`), `decline-trouser-silhouette` (a second `decline`, a
+flare/bootcut leg — the policy's own named out-of-scope silhouette), and
+`explain-armhole` (a second `explain`). Loosening an ask-vs-apply policy is
+unmeasurable in the direction it can hurt without something that can
+actually regress; a single `ask-underspecified` fixture would have let an
+over-eager rewrite score as pure improvement.
+
+**Measured, not asserted, again.** Full `npm run eval:ai` after the rewrite:
+decision accuracy **100%** (37 generation cases, up from 33), field accuracy
+98.6% (one single-run miss on `tshirt-low-stretch`'s `stretch` field that
+re-ran clean in isolation — sampling noise on a non-zero-temperature model,
+not a regression this fix introduced), draft-success 100%, editing 100%
+with zero collateral. Every widened negative control (`ask-blouse-bare`,
+`ask-trousers-bare`, `decline-trouser-silhouette`, `explain-armhole`, plus
+the original `ask-underspecified`/`decline-jacket`/`explain-dart`) passed —
+the harness did not just get better at the ten it was built to fix, it held
+the line on the cases meant to catch the fix going too far.
+
+**A small provider-facade gap fixed in passing, because this work depended
+on trusting it.** `scripts/ai-eval.ts`'s report header hardcoded
+`MODEL = "claude-sonnet-5"` / `PROVIDER = "anthropic"` as a second copy of
+the literal that now lives at `lib/ai/provider/anthropic.ts`'s `MODEL`
+const — CLAUDE.md's "never a second copy of a fact that already has an
+owner," and one that would have silently mislabeled a `LLM_PROVIDER=local`
+report as an Anthropic one. `LlmProvider` gained a `model(): string` method
+(a function, not a static field, since `openaiCompatProvider` resolves
+`LLM_MODEL` from the environment at call time, the same reason
+`getProvider()` itself reads `LLM_PROVIDER` at call time rather than once at
+module load) and the runner now reads `getProvider().id`/`.model()` instead
+of its own literals.
+
 **Decision: 12GB VRAM buys one model, not two.** With the static+dynamic
 prompt alone near 8.4k tokens before any attachment, and up to four
 attachments adding several thousand more, a 7-8B model in 4-bit already

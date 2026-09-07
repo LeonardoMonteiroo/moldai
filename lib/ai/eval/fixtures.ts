@@ -236,9 +236,27 @@ export const GENERATION_CASES: GenerationCase[] = [
   },
 
   // --- non-apply decisions ---
+  // Negative controls for the ask/apply prompt rewrite (#252 follow-up): the
+  // rewrite makes the model apply far more readily -- these are cases that
+  // must STILL come back as ask/decline/explain, so a looser ask policy is
+  // measured against something that can actually regress, not only checked
+  // against cases it was supposed to fix. Each names literally nothing
+  // beyond the garment type (or is out of scope for a different reason),
+  // unlike the fixed cases above, which all name at least one silhouette,
+  // feature, or adjective.
   {
     id: "ask-underspecified",
     prompt: "Quero um vestido.",
+    expectedDecision: "ask",
+  },
+  {
+    id: "ask-blouse-bare",
+    prompt: "Faz uma blusa.",
+    expectedDecision: "ask",
+  },
+  {
+    id: "ask-trousers-bare",
+    prompt: "Preciso de uma calça.",
     expectedDecision: "ask",
   },
   {
@@ -248,8 +266,21 @@ export const GENERATION_CASES: GenerationCase[] = [
     expectedDecision: "decline",
   },
   {
+    id: "decline-trouser-silhouette",
+    // prompt.ts's decision policy names "a trouser silhouette other than
+    // straight-leg" as out of scope -- flare/bootcut is exactly that, not a
+    // vague or underspecified request.
+    prompt: "Quero uma calça flare, bem larga a partir do joelho.",
+    expectedDecision: "decline",
+  },
+  {
     id: "explain-dart",
     prompt: "O que é uma pence?",
+    expectedDecision: "explain",
+  },
+  {
+    id: "explain-armhole",
+    prompt: "O que é a cava de uma blusa?",
     expectedDecision: "explain",
   },
 ];

@@ -148,24 +148,43 @@ right outcome is to close #267 rather than build a seam nobody crosses — and t
 sentence is in the issue too. What is settled is the direction and the reasoning; the
 build is not a foregone conclusion.
 
-**Not part of this decision, and tracked separately: the spike found a shipped fit
-defect in our own `tshirt` archetype.** Our size-M `body-back` is a whole mirrored panel
-78.0 cm wide, so two of them make a 156 cm finished chest on a 100 cm body — 56% wearing
-ease, where Freesewing's Teagan at published defaults holds 18.0% flat across the same
-four sizes. The cause is `TSHIRT_BASE_EASE_CM = 55.9` (`lib/draft/ease.ts`), solved
+**Not part of this decision: the spike found a shipped fit defect in our own `tshirt`
+archetype, resolved by #282.** Our size-M `body-back` was a whole mirrored panel 78.0 cm
+wide, so two of them made a 156 cm finished chest on a 100 cm body — 56% wearing ease,
+where Freesewing's Teagan at published defaults holds 18.0% flat across the same four
+sizes. The cause was `TSHIRT_BASE_EASE_CM = 55.9` (`lib/draft/ease.ts`), solved
 _backwards_ from the benchmark's size-M panel width with the arithmetic in its own
-comment. That figure cannot bear the weight: `docs/reference/tshirt-benchmark/`'s own
+comment. That figure could not bear the weight: `docs/reference/tshirt-benchmark/`'s own
 `segment-measurements.md` reads the same panel span as 49.09 cm rather than 79.99 and
 already flags the discrepancy, and our collar band — sized from the _measured_ neckline
 arc, independent of `halfChest` — lands within 0.08 cm of the benchmark at M, which says
-the reference's "M" really is a ~100 cm-chest garment. Relatedly, #242's −17.52 cm back
-armhole gap is constant to 0.06 cm across all four sizes, which is the signature of a
-fixed-length curve rather than a graded armhole error, and points at the back
-**neckline**. **A corollary for anyone reading `comparison-report.md`: our drafter was
-fitted to that benchmark and Freesewing was not, so its "ours is closer" deltas are
-circular, and its two representation-dependent metrics (the curve/straight perimeter
-split, and the orientation-dependent bounding box) are not comparable across engines at
+the reference's "M" really is a ~100 cm-chest garment, not a 155.9 cm one. **#282's fix:**
+the constant is now `TSHIRT_BASE_EASE_PCT = 18` — a percentage of bust, not a flat cm
+figure, because that is the shape the resolved reference (Teagan, flat 18.0% across
+P/M/G/GG) actually has; a flat cm constant cannot hold a flat ease _ratio_ across a
+graded run the way the reference does. Relatedly, #242's −17.52 cm back armhole gap is
+constant to 0.06 cm across all four sizes, which is the signature of a fixed-length curve
+rather than a graded armhole error, and points at the back **neckline** — a separate,
+still-open defect. **A corollary for anyone reading `comparison-report.md`: before #282,
+our drafter was fitted to that benchmark and Freesewing was not, so its "ours is closer"
+deltas were circular for width/perimeter; after #282 the `moldai` tshirt rows should read
+farther from the benchmark's contested `widthCm`, not closer, and that is the correct
+direction. Its two representation-dependent metrics (the curve/straight perimeter split,
+and the orientation-dependent bounding box) remain not comparable across engines at
 all.**
+
+**Resolved by #282.** `TSHIRT_BASE_EASE_CM` is now `18` (cm), converging from two named
+sources instead of the backwards benchmark derivation: the ~15–20 cm hand-drafting "loose
+tee" band, and FreeSewing's own Teagan holding 18.0% flat on the ~100 cm-chest body this
+benchmark's "M" really is. A male-M tshirt now drafts a 118.0 cm finished bust girth,
+matching Teagan, not 155.9 cm. The corollary above now applies to **height only** — our
+back panel's `widthCm` at M (59.00) lands on the same figure Freesewing's does, so width is
+no longer a self-fulfilling comparison, but `TSHIRT_HEM_DROP_CM` (`garment.ts`) still
+carries the identical backwards-from-benchmark provenance for panel height, unresolved by
+this issue. `areaCm2`, freed of the width calibration, moved **away** from the benchmark
+(our own back panel is now the larger delta of the two engines) — the correct direction,
+since the old "closer" reading was the circularity this issue removed, not a real fit
+signal.
 
 ### Build-time decisions the design above didn't settle in advance
 
@@ -563,3 +582,137 @@ unlike the style fields `changeType` already silently drops, which simply disapp
 when inapplicable). Changed to the more consistent shape: the type `Select` keeps whatever was
 chosen (still disabled+titled per option), and submit is blocked with the same on-screen reason
 until the type and engine agree again.
+
+---
+
+## Replacing `GarmentSpec`'s flat style enums with a compositional/hierarchical layer is declined; two narrow, additive fixes are picked instead (#245)
+
+**Decided — proposal only, nothing built.** #245 asked whether the flat closed enums on
+`GarmentStyle` (`lib/types.ts`) should be replaced by a wider, hierarchical, component-oriented
+spec layer, on the model of GarmentCode/ChatGarment (arXiv:2412.17811). Read literally, "replace"
+does not survive contact with what these enums actually gate — see below — so what follows is a
+mapping of today's surface, a check of which concretely-named garment features such a layer would
+newly reach, and a narrower pair of adoptions that came out of reading `garment.ts`/`capability.ts`
+directly while investigating the question, not out of the literature.
+
+### Today's surface, mapped exhaustively
+
+Every `GarmentStyle` field (`lib/types.ts`) lives flat on one shared object, regardless of which
+`GarmentType` reads it — cross-type applicability is enforced entirely by convention/comments and
+by `capability.ts`'s `styleFieldsByType` map, not by the type system:
+
+| Field                                           | Values today                                                                       | Read by                                                    |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `neckline`                                      | `straight \| V \| round` (+ `necklineDepthCm` 0–15cm)                              | blouse/dress/tshirt                                        |
+| `sleeve`                                        | `none \| short \| long`                                                            | blouse/dress/tshirt                                        |
+| `cuff`                                          | `none \| straight`                                                                 | blouse/dress/tshirt, only meaningful with `sleeve: "long"` |
+| `collar`                                        | `none \| convertible \| band \| shirt`                                             | blouse/dress/tshirt                                        |
+| `frontClosure`                                  | `none \| buttonStand`                                                              | blouse only                                                |
+| `skirt`                                         | `straight \| a-line \| gore \| half-circle \| circle` (+ `skirtLengthCm` 25–120cm) | skirt, dress                                               |
+| `waistband`                                     | `none \| straight`                                                                 | skirt, trousers                                            |
+| `fit`                                           | `close \| fitted \| semiFitted \| loose`                                           | blouse/dress (woven)                                       |
+| `stretch`                                       | `none \| low \| medium \| high`                                                    | tshirt (knit)                                              |
+| `trouserLengthCm`                               | 60–115cm                                                                           | trousers                                                   |
+| `armholeDeepenCm` / `seamAllowanceCm` / `darts` | scalars/boolean                                                                    | body archetypes                                            |
+
+Eleven catalogs total (`vocabulary.ts`'s own count, quoted in `generation-flow.md`'s Design2GarmentCode
+entry). Each is independently clamped by `validateSpec`; combinability across fields is
+**already** effectively free where the fields are orthogonal (any `neckline` × any `collar`, since
+`draftAll` sizes the collar off the measured neckline arc regardless of shape; any `skirt` ×
+`waistband`) — flat enums on one shared object do not, by themselves, prevent combinatorial reach
+when the underlying drafters treat the fields independently, which is most of them.
+
+### What a compositional layer would actually need to unlock, checked against our own drafters
+
+The issue's own acceptance criteria demand _specific, reachable_ silhouettes, not an abstract
+capability claim, so each candidate below was checked against what `body.ts`/`sleeve.ts`/
+`skirt.ts`/`trousers.ts`/`subpieces.ts` can actually draft — not against what a wider enum _value_
+could name:
+
+- **Raglan sleeve** (diagonal underarm-to-neckline seam, no shoulder seam) — not reachable by
+  widening `sleeve`'s enum. `body.ts`'s panels have a fixed shoulder-seam topology; a raglan needs
+  a different panel shape entirely. Notably, this exact construction **already exists in this
+  repo** — `lib/draft/engine/freesewing/designs/hoodie.ts` (Hugo) drafts a real raglan — but only
+  for `hoodie`, on the `"freesewing"` engine, never as a `blouse`/`tshirt` style option.
+- **Princess seams** (vertical bust-to-hem seams replacing waist darts) — needs a different panel
+  count/split in `body.ts`; no enum value on today's single front/back panel shape reaches it.
+- **Gathered/dirndl skirt, puffed/bishop sleeve** — both need a _fullness ratio_ (fabric width at
+  the seam exceeding the body measurement it's gathered onto) and a gathering/shirring
+  construction; `skirt.ts`'s five silhouettes and `sleeve.ts`'s cap are all flat-paneled with no
+  fullness parameter anywhere in the geometry.
+- **Yoke construction** (a seam changing grain direction across shoulder or hip) — no drafter
+  models a yoke split at all today (the freesewing `shirt`/Simon wrapper has one, engine-side, not
+  exposed to `GarmentSpec`).
+- **Asymmetric necklines/hemlines** (one-shoulder, handkerchief hem) — every moldai drafter assumes
+  bilateral symmetry (`qty: 2` mirrored, or `frontClosure`'s centre split); nothing permits an
+  independent left/right shape.
+- **Peter Pan / notched / shawl collar, knife/box/inverted pleats** — named "em breve" gaps
+  already (`subpieces.ts`'s own comments; `core.ts`'s `InternalCm` union even reserves a `pleat`
+  kind no drafter populates yet) — each needs new construction geometry, not a fourth/fifth enum
+  value on `collar`.
+
+**None of these is reachable by restructuring the spec alone.** Every one needs new drafter
+geometry regardless of how the request is shaped — which is the same conclusion this repo already
+reached from the other direction: ChatGarment's own abstract states it "refine[d]... GarmentCode"
+(wider **engine**) and "simplif[ied] its structure for... VLM fine-tuning" (the DSL followed the
+engine, not the other way round), and the issue's own text records that the stronger claim — a
+compositional DSL makes novelty _combinatorial_ rather than merely additive — was already put to
+adversarial verification here and refuted 0-3. Checking it a second time against this repo's own
+code confirms the same result: our reachable design space is bounded by `garment.ts`'s drafters,
+not by `GarmentStyle`'s shape, and this repo already has a working, cheaper mechanism for reaching
+a genuinely new construction — register it as (or on) a new engine with its own
+`EngineCapability`-declared, checkEngineSupport-gapped surface, exactly as `"freesewing"` did for
+raglan sleeves, yokes and full-lined coats across seven archetypes (#266→#269, above). That
+mechanism is strictly more honest than one universal hierarchical spec claiming a construction no
+registered engine actually implements — it already reports a gap instead of silently drafting
+something else, which is precisely the property #250 and #267's `checkEngineSupport` were built
+for.
+
+### Two real, narrow gaps found by reading the code, worth adopting on their own
+
+Investigating #245 surfaced one genuine, previously-unreported defect and one genuine,
+bounded design-space limitation — both concrete, both fixable without a spec rewrite:
+
+1. **A silent no-op `checkEngineSupport` cannot catch, because it can only gate a field by
+   `GarmentType`, never by another field's value.** `capability.ts`'s
+   `MOLDAI_CAPABILITY.styleFieldsByType.blouse` lists `"cuff"` unconditionally; `draftAll`
+   (`garment.ts`) only drafts a cuff when `style.sleeve === "long" && style.cuff === "straight"`
+   (see the cuff+placket block). A request for `{ type: "blouse", style: { sleeve: "short", cuff: "straight" } }`
+   produces **zero** `EngineGap`s today — `cuff` is a supported field for blouse, and `"straight"`
+   is a valid `CuffType` — yet the cuff is silently never drawn, charged at full price, with
+   nothing on-screen to say so. This is the exact class of silent gap #250's `describeSpecAdjustments`
+   closed for garbage-value substitution, but it survives here because it's a _cross-field_
+   invalidity, which a flat map keyed only by type structurally cannot express. Nesting `cuff`
+   under `sleeve` (present only when `sleeve.length === "long"`) — a small, genuinely hierarchical
+   change, not a wholesale one — would make the invalid combination unrepresentable at the schema
+   level instead of silently accepted. **Worth its own follow-up issue.**
+2. **`STYLE_LIMITS.necklineDepthCm` is one flat 0–15cm range for all three neckline shapes.** A
+   `V` neckline plausibly has room for a deeper plunge before its own construction breaks down than
+   a `round` or `straight` (bateau) neckline does — today one shared range must be conservative
+   enough for the shallowest shape. Making the limit a per-`neckline`-family range (the same shape
+   `styleEnumsByType` already uses per-type in `capability.ts`) is a real, bounded design-space
+   widening reachable by extending today's flat model, not replacing it — though the actual safe
+   `V`-specific maximum would need verifying against `body.ts`'s own construction before shipping a
+   number, which this proposal does not attempt. **Worth its own follow-up issue.**
+
+### Decision: decline the compositional replacement; file the two narrow fixes separately
+
+**Declined.** No concretely-named garment feature this issue or its own cited sources call for is
+reachable by restructuring `GarmentSpec` into a hierarchical layer without also writing new
+drafter geometry — and this repo already has a cheaper, more honest mechanism for exactly that
+case (register a new engine). Replacing the flat enums wholesale would cost real, expensive
+changes (`lib/schemas/garment.ts`'s persisted-blob schema, every `validateSpec`/`checkEngineSupport`
+call site, `lib/ai/prompt.ts`/`schema.ts`'s rendering) for a return this investigation could not
+find, on top of the return already being adversarially refuted once. This is not a default-to-decline:
+the two narrow items above **are** adopted, precisely because they were found to be real,
+concrete, and cheap relative to the wholesale swap — matching the shape of every prior decision in
+this file (decline the big swap, adopt the cheap, measured piece: #266's declined wholesale
+FreeSewing swap vs. #269's shipped per-archetype registration).
+
+**Documentation-location discrepancy, noted per this issue's own acceptance criteria:** #245's
+issue text says to record the decision in `docs/decisions.md`. That file does not exist — this
+repo replaced a single `docs/decisions.md` with one per-topic file under `docs/decisions/` (see
+this directory's own `README.md`). This entry is filed in `drafting.md` rather than
+`generation-flow.md` because #245 is about `GarmentSpec`/`GarmentStyle`'s own shape
+(`lib/draft/garment.ts`, `lib/types.ts`) and the drafters that read it, not about the AI
+request/response flow `generation-flow.md` covers.
