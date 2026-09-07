@@ -6,6 +6,7 @@ import {
 } from "@/lib/measurements";
 import { draftBody, BlockOpts } from "./body";
 import { bbox, dartsOf, Pt, DRILL_HOLE_SETBACK_CM } from "./core";
+import { pitchNotchDistanceCm } from "./seams";
 import {
   FIT_CLASSES,
   FIT_EASE_CM,
@@ -800,5 +801,39 @@ describe("bust-apex dart shaping (bust-dart-shaping feature)", () => {
     // past the waist, never at or above the shoulder line.
     expect(apexTop[1]).toBeGreaterThanOrEqual(shoulderSlope + 4);
     expect(apexTop[1]).toBeLessThanOrEqual(waistY - 4);
+  });
+});
+
+// #253: the two independently-clamped pitch-notch fractions (0.7 of a
+// panel's own single-side armhole length here, 0.35 of the cap's own full
+// arc in sleeve.ts) are gone -- both sides now derive ONE shared distance
+// off the PAIR's own combined total (lib/draft/seams.ts's
+// pitchNotchDistanceCm), computed once in draftBody and handed to both
+// bodice() calls verbatim.
+describe("draftBody pitch-notch distance (#253)", () => {
+  it("matches pitchNotchDistanceCm(armholeLenCm) exactly -- derived from the TOTAL, not either panel's own length", () => {
+    const { armholeLenCm, armholeBaseLenCm, pitchNotchCm, basePitchNotchCm } =
+      draftBody(M, { sleeve: "short", darts: true }, t, optsM);
+    expect(pitchNotchCm).toBeCloseTo(pitchNotchDistanceCm(armholeLenCm), 9);
+    expect(basePitchNotchCm).toBeCloseTo(
+      pitchNotchDistanceCm(armholeBaseLenCm),
+      9,
+    );
+  });
+
+  it("stays derived from the shared total even when backWidth makes front and back genuinely different lengths", () => {
+    const diverged: Measurements = { ...M, backWidth: 30 };
+    const { front, back, armholeLenCm, pitchNotchCm } = draftBody(
+      diverged,
+      { sleeve: "short", darts: true },
+      t,
+      optsM,
+    );
+    // Sanity check: this backWidth genuinely produces a front/back armhole
+    // divergence -- otherwise the rest of this test would be vacuous.
+    expect(front.armholeLenCm).not.toBeCloseTo(back.armholeLenCm!, 1);
+    // Even so, the ONE shared distance is still exactly derived from the
+    // PAIR's own combined total (front + back), not either side alone.
+    expect(pitchNotchCm).toBeCloseTo(pitchNotchDistanceCm(armholeLenCm), 9);
   });
 });

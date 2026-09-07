@@ -1518,6 +1518,68 @@ describe("seam graph (#134)", () => {
     expect(conflicts).toEqual([]);
   });
 
+  // #253: "a sleeve cap whose total matches but whose front/back split is
+  // wrong measures as a perfect seam" -- a real backWidth divergence widens
+  // (or narrows) only the BACK armhole, so the front+back TOTAL still
+  // matches the cap's own target arc exactly (diffCm stays 0), but the
+  // split between them no longer projects onto the cap's own symmetric
+  // (50/50) apex -- subSegmentDiffCm is what catches that.
+  it("flags a real front/back split divergence via subSegmentDiffCm even though the total (diffCm) still agrees, and reports it as NOT fixable", () => {
+    const spec: GarmentSpec = {
+      type: "blouse",
+      gender: "female",
+      measurementOverrides: { backWidth: 30 },
+      style: { sleeve: "short" },
+    };
+    const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
+    const armholeCap = graph.find((m) => m.key === "armhole-cap")!;
+    expect(armholeCap.diffCm).toBeLessThanOrEqual(1);
+    expect(armholeCap.subSegmentDiffCm).toBeGreaterThan(1);
+
+    const conflicts = seamCheck(graph);
+    const flagged = conflicts.find((m) => m.key === "armhole-cap");
+    expect(flagged).toBeDefined();
+    // refitSleeve can't correct a front/back split imbalance (it only
+    // changes which TOTAL the cap solves against), so this must NOT claim
+    // to be fixable even though the pair itself declares fixable: true.
+    expect(flagged!.fixable).toBe(false);
+  });
+
+  // #253 (code-review fix): a pair diverging on BOTH axes at once -- a real
+  // backWidth split AND an un-refit armholeDeepenCm total mismatch -- must
+  // still report NOT fixable. refitSleeve only ever closes the TOTAL
+  // (diffCm); it does nothing for the split (subSegmentDiffCm), so if it
+  // stayed `fixable: true` here (because diffCm alone exceeded tolerance),
+  // the seam would still be broken after "Corrigir manga" ran.
+  it("reports NOT fixable when diffCm AND subSegmentDiffCm both exceed tolerance at once", () => {
+    const spec: GarmentSpec = {
+      type: "blouse",
+      gender: "female",
+      measurementOverrides: { backWidth: 28 },
+      style: { sleeve: "short", armholeDeepenCm: 2 },
+    };
+    const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
+    const armholeCap = graph.find((m) => m.key === "armhole-cap")!;
+    expect(armholeCap.diffCm).toBeGreaterThan(1);
+    expect(armholeCap.subSegmentDiffCm).toBeGreaterThan(1);
+
+    const flagged = seamCheck(graph).find((m) => m.key === "armhole-cap");
+    expect(flagged).toBeDefined();
+    expect(flagged!.fixable).toBe(false);
+  });
+
+  it("measurementOverrides.backWidth is not applied AT ALL when absent -- front and back stay equal by construction, subSegmentDiffCm 0", () => {
+    const spec: GarmentSpec = {
+      type: "blouse",
+      gender: "female",
+      measurementOverrides: {},
+      style: { sleeve: "short" },
+    };
+    const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
+    const armholeCap = graph.find((m) => m.key === "armhole-cap")!;
+    expect(armholeCap.subSegmentDiffCm).toBe(0);
+  });
+
   // #177 (owner decision, superseding the #134 finding this test used to
   // document, refined by a follow-up review -- see #185, closed by folding
   // its fix into #177's own PR): the dress bodice hem no longer reads

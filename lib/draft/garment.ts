@@ -231,10 +231,30 @@ export function validateQuestions(raw: unknown): ClarifyQuestion[] {
 // whose actual gap misses their own intended ease by more than
 // SEAM_TOLERANCE_CM -- i.e. the real conflicts, in the same shape #138's own
 // sewing-order graph will consume (every pair, divergent or not).
+//
+// #253: also flags a pair whose TOTAL agrees (diffCm within tolerance) but
+// whose sub-segment distribution doesn't -- "a sleeve cap whose total
+// matches but whose front/back split is wrong measures as a perfect seam"
+// otherwise. ANY pair whose subSegmentDiffCm itself exceeds tolerance has
+// its own `fixable` downgraded to false, even when the pair declares
+// `fixable: true` and even when diffCm ALSO exceeds tolerance: refitSleeve
+// only ever changes which TOTAL the cap solves against (base vs. deepened
+// armhole), it cannot correct a front/back split imbalance, so a pair
+// diverging on both axes at once would still reappear as a conflict after
+// refitSleeve closes diffCm -- offering "Corrigir manga" as if it fully
+// resolves such a pair would be a fix button that silently leaves the real
+// (split) problem in place (see docs/architecture/seams-and-assembly.md).
 export function seamCheck(graph: SeamMeasurement[]): SeamMeasurement[] {
-  // diffCm is already a magnitude (lib/draft/seams.ts's walkSeamPairs) --
-  // no second Math.abs needed here.
-  return graph.filter((m) => m.diffCm > SEAM_TOLERANCE_CM);
+  // diffCm/subSegmentDiffCm are already magnitudes (lib/draft/seams.ts's
+  // walkSeamPairs) -- no second Math.abs needed here.
+  return graph
+    .filter(
+      (m) =>
+        m.diffCm > SEAM_TOLERANCE_CM || m.subSegmentDiffCm > SEAM_TOLERANCE_CM,
+    )
+    .map((m) =>
+      m.subSegmentDiffCm > SEAM_TOLERANCE_CM ? { ...m, fixable: false } : m,
+    );
 }
 
 const edgeRef = (
@@ -437,6 +457,12 @@ export function draftAll(
           b: [edgeRef(sleeve.id, sleeve.seamEdges.cap)],
           easeCm: opts.knit ? CAP_EASE_CM.knit : CAP_EASE_CM.woven,
           fixable: true,
+          // #253: front+back armhole are drafted to be an EQUAL split of
+          // the cap's own total, unless a real backWidth divergence widens
+          // one side -- the only pair today drafted with that expectation
+          // (see lib/draft/seams.ts's own doc on why this isn't a blanket
+          // default).
+          expectEqualSplit: true,
         });
         // #134: the sleeve's own two side seams (underarm), sewn to each
         // other when the piece is folded into a tube -- equal by

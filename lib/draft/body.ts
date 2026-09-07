@@ -12,6 +12,7 @@ import {
   Pt,
 } from "./core";
 import { wearingEaseCm } from "./ease";
+import { pitchNotchDistanceCm } from "./seams";
 import { formatCm } from "@/lib/format";
 import type { Translate } from "@/lib/i18n/translate";
 import {
@@ -64,6 +65,18 @@ function bodice(
   id: string,
   name: string,
   frontish: boolean,
+  // #253: when supplied, these REPLACE this panel's own independently-
+  // computed pitch-notch distance -- draftBody below drafts each panel
+  // TWICE, first without an override (purely to learn each side's own
+  // armhole edge length), then again with the PAIR's own shared distance
+  // (lib/draft/seams.ts's pitchNotchDistanceCm, off front+back's combined
+  // total) so both panels' notches -- and the sleeve cap's, in sleeve.ts --
+  // are "generated as pairs from the same computation" (#124) even when a
+  // real backWidth divergence makes front's and back's own armhole lengths
+  // genuinely unequal. Absent (the first pass) falls back to this panel's
+  // OWN length, which only ever feeds a value that's discarded.
+  pitchNotchOverrideCm?: number,
+  basePitchNotchOverrideCm?: number,
 ): {
   piece: DraftedPiece;
   armholeEdgeLenCm: number;
@@ -262,22 +275,24 @@ function bodice(
     2,
   );
 
-  // #124: pitch notches sit a fixed rise above the underarm on both the
+  // #124/#253: pitch notches sit a fixed rise above the underarm on both the
   // front/back armhole curves and the sleeve cap (single = front, double =
-  // back, the standard pattern-making convention) -- clamped so a very
-  // short armhole never places one past its own shoulder point. Both
-  // pitchNotchCm (off the actual, possibly-deepened curve) and
-  // basePitchNotchCm (off the un-deepened one) are exposed so garment.ts
-  // can hand the sleeve whichever one matches the armhole IT was actually
-  // drafted against (refit or not) -- the same actual/base choice it
-  // already makes for sleeveArmhole, keeping the two "generated as pairs
-  // from the same computation" per #124's acceptance criteria.
-  const PITCH_NOTCH_RISE_CM = 8;
-  const pitchNotchCm = Math.min(PITCH_NOTCH_RISE_CM, armholeEdgeLenCm * 0.7);
-  const basePitchNotchCm = Math.min(
-    PITCH_NOTCH_RISE_CM,
-    armholeEdgeBaseLenCm * 0.7,
-  );
+  // back, the standard pattern-making convention). Both pitchNotchCm (off
+  // the actual, possibly-deepened curve) and basePitchNotchCm (off the
+  // un-deepened one) are exposed so garment.ts can hand the sleeve whichever
+  // one matches the armhole IT was actually drafted against (refit or not)
+  // -- the same actual/base choice it already makes for sleeveArmhole,
+  // keeping the two "generated as pairs from the same computation" per
+  // #124's acceptance criteria. #253: when draftBody supplies an override
+  // (the pair's own shared distance, off front+back's COMBINED total -- see
+  // lib/draft/seams.ts's pitchNotchDistanceCm), that value is used verbatim
+  // instead of this panel independently clamping to a fraction of its own
+  // single-side length -- the fallback below only ever feeds draftBody's own
+  // first (discarded-notch) pass.
+  const pitchNotchCm =
+    pitchNotchOverrideCm ?? pitchNotchDistanceCm(armholeEdgeLenCm);
+  const basePitchNotchCm =
+    basePitchNotchOverrideCm ?? pitchNotchDistanceCm(armholeEdgeBaseLenCm);
 
   const detailRows: DetailRow[] = [
     { label: t("rows.seamAllowance"), value: cm(seamAllowanceCm) },
@@ -560,7 +575,16 @@ export function draftBody(
   t: Translate,
   opts: BlockOpts = defaultOpts(m),
 ) {
-  const f = bodice(
+  // #253: first (discarded-notch) pass -- armholeEdgeLenCm/
+  // armholeEdgeBaseLenCm don't depend on the pitch-notch distance at all
+  // (only where a notch lands on an already-fixed curve does), so this pass
+  // exists purely to learn each panel's OWN armhole edge length before the
+  // PAIR's shared distance can be computed. A chart whose backWidth
+  // genuinely differs from the shoulder/underarm interpolation (a real
+  // narrower/wider back) drafts a back armhole a different length than the
+  // front's -- this is exactly the case the shared distance below has to
+  // stay correct for.
+  const f0 = bodice(
     m,
     style,
     opts,
@@ -569,7 +593,51 @@ export function draftBody(
     t("pieceNames.front"),
     true,
   );
-  const c = bodice(m, style, opts, t, "body-back", t("pieceNames.back"), false);
+  const c0 = bodice(
+    m,
+    style,
+    opts,
+    t,
+    "body-back",
+    t("pieceNames.back"),
+    false,
+  );
+  // #253: ONE pitch-notch distance for the whole pair, off front+back's own
+  // COMBINED total -- not each side independently clamping to a fraction of
+  // its own single-side length (the two-independent-clamps bug this issue
+  // closes: 0.7-of-one-side in this file, 0.35-of-the-cap's-own-arc in
+  // sleeve.ts, consistent only when front and back happen to be equal).
+  // See lib/draft/seams.ts's pitchNotchDistanceCm.
+  const pitchNotchCm = pitchNotchDistanceCm(
+    f0.armholeEdgeLenCm + c0.armholeEdgeLenCm,
+  );
+  const basePitchNotchCm = pitchNotchDistanceCm(
+    f0.armholeEdgeBaseLenCm + c0.armholeEdgeBaseLenCm,
+  );
+  // Second pass, with the shared distance now known -- this is the one
+  // whose pieces/notches are actually returned.
+  const f = bodice(
+    m,
+    style,
+    opts,
+    t,
+    "body-front",
+    t("pieceNames.front"),
+    true,
+    pitchNotchCm,
+    basePitchNotchCm,
+  );
+  const c = bodice(
+    m,
+    style,
+    opts,
+    t,
+    "body-back",
+    t("pieceNames.back"),
+    false,
+    pitchNotchCm,
+    basePitchNotchCm,
+  );
   // The full armhole circumference is the front edge plus the back edge —
   // #139: a single edge had been published and consumed by the sleeve as if
   // it were the whole armhole, drafting every sleeve at roughly half size.
@@ -582,28 +650,18 @@ export function draftBody(
     // `frontish`), so either's value is the garment's actual bust
     // quarter-width; total bust girth is 4× this.
     halfChestCm: f.halfChestCm,
-    // #124: front and back draft an identical armhole curve (only the
-    // neckline differs by `frontish`), so f.pitchNotchCm === c.pitchNotchCm
-    // by construction -- either's value is the garment's one pitch-notch
-    // distance, which garment.ts hands to draftSleeve unchanged.
-    //
-    // #132: that construction assumes front and back draft an identical
-    // armCtrlX, which is no longer forced -- a chart whose backWidth
-    // genuinely differs from the shoulder/underarm interpolation (a real
-    // narrower/wider back, the whole point of the field) drafts a back
-    // armhole a different length than the front's, so f.pitchNotchCm and
-    // c.pitchNotchCm can now legitimately diverge (halfChest/the underarm
-    // itself is untouched -- see bodice()'s own note -- so this is strictly
-    // narrower than an earlier version of this comment described). Each
-    // panel already places its OWN notch from its OWN local pitch distance
-    // (computed inside bodice(), not from this return value), so that stays
-    // correct either way; what's no longer exact is the sleeve's
-    // single/double notch, which still shares ONE distance (garment.ts
-    // hands it whichever of f/c matches the armhole the cap was actually
-    // drafted against) for both sides. A sleeve notch a few millimetres off
-    // a diverged back's own notch is a labelled-cosmetic precision gap, not
-    // a fit defect -- the seams it marks still sew together at the lengths
-    // seamCheck actually verifies.
+    // #253: front and back are now handed the exact SAME pitchNotchCm/
+    // basePitchNotchCm above (not each independently re-deriving one from
+    // its own length), so f.pitchNotchCm === c.pitchNotchCm by construction
+    // -- literally the same number, not merely "equal because the formulas
+    // happen to agree" -- regardless of a real backWidth divergence between
+    // the two panels' own armhole lengths. This is what removes the
+    // "sleeve notch a few millimetres off a diverged back's own notch"
+    // precision gap #132 introduced: the sleeve's own single/double notch
+    // (sleeve.ts, unchanged distance-taking logic) now truly matches both
+    // panels' notches, generated as a triple "from the same computation"
+    // (#124), not a pair of independent guesses that happened to agree in
+    // the common case.
     pitchNotchCm: f.pitchNotchCm,
     basePitchNotchCm: f.basePitchNotchCm,
   };

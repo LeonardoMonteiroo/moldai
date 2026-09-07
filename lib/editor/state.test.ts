@@ -160,6 +160,32 @@ describe("applyGarmentSpec / conflict / refit / engine freeze", () => {
     expect(round.pattern.viewBox).toEqual(s.pattern.viewBox);
     expect(round).toEqual(s); // no field lost (no Date/undefined/NaN/Map/Set)
   });
+  // #253: a real backWidth divergence flags armhole-cap purely via
+  // subSegmentDiffCm (the TOTAL still closes, diffCm stays <= 1cm) --
+  // detectConflict must cite that real magnitude, not the near-zero diffCm,
+  // and must NOT offer the "Corrigir manga" fix (refitSleeve cannot correct
+  // a front/back split imbalance).
+  it("a backWidth-only divergence attaches a conflict with a real (non-near-zero) diffCm and no sleeve-fix suggestion", () => {
+    const s = seedPatternState(t);
+    applyGarmentSpec(
+      s,
+      {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: { backWidth: 30 },
+        style: { sleeve: "short" },
+      },
+      t,
+    );
+    expect(s.conflict).not.toBeNull();
+    expect(s.conflict!.diffCm).toBeGreaterThan(1);
+    expect(s.conflict!.suggestion).toBe("conflict.suggestionGeneric");
+    const entry = s.conflict!.entries?.find((e) => e.key === "armhole-cap");
+    expect(entry).toBeDefined();
+    expect(entry!.fixable).toBe(false);
+    expect(entry!.diffCm).toBeGreaterThan(1);
+  });
+
   it("refitSleeve remakes the cap and clears the conflict", () => {
     const s = seedPatternState(t);
     applyGarmentSpec(

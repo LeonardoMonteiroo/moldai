@@ -163,6 +163,10 @@ describe("ConflictInfoCard with entries (#134)", () => {
             diffCm: 3.1,
             fixable: true,
             easeCm: 2.5,
+            aEdges: [],
+            bEdges: [],
+            subSegmentDiffCm: 0,
+            gatherRatio: 1,
           },
           {
             key: "waist-join-front",
@@ -174,6 +178,10 @@ describe("ConflictInfoCard with entries (#134)", () => {
             diffCm: 4.2,
             fixable: false,
             easeCm: 0,
+            aEdges: [],
+            bEdges: [],
+            subSegmentDiffCm: 0,
+            gatherRatio: 1,
           },
         ]}
       />,
@@ -241,6 +249,10 @@ describe("ConflictInfoCard with entries (#134)", () => {
             diffCm: 3.1,
             fixable: true,
             easeCm: 2.5,
+            aEdges: [],
+            bEdges: [],
+            subSegmentDiffCm: 0,
+            gatherRatio: 1,
           },
         ]}
       />,
@@ -278,6 +290,10 @@ describe("ConflictInfoCard with entries (#134)", () => {
             diffCm: 1.5,
             fixable: true,
             easeCm: 2.5,
+            aEdges: [],
+            bEdges: [],
+            subSegmentDiffCm: 0,
+            gatherRatio: 1,
           },
         ]}
       />,
