@@ -4,10 +4,7 @@
 > For the architecture, see [`../architecture/ai-provider.md`](../architecture/ai-provider.md).
 > For the why, see [`../decisions/ai-provider.md`](../decisions/ai-provider.md).
 
-## 2026-09-07 — RunPod's `ssh.runpod.io` proxy has no scp/sftp; only an
-
-interactive PTY shell works, and the base64-over-pty transfer trick that
-replaces it
+## 2026-09-07 — RunPod's `ssh.runpod.io` proxy has no scp/sftp; only an interactive PTY shell works
 
 - **Symptom** — `scp file.txt pod@ssh.runpod.io:/workspace/` (both the
   modern sftp-based protocol and `scp -O`, the legacy one) failed with
@@ -53,9 +50,7 @@ EOF` (upload) or a `printf '\n%s\n' MARKER; base64 file; printf
   copy anything you need off the pod the moment it's produced, never
   "finish the job, then copy."
 
-## 2026-09-07 — vLLM 0.28.0 removed `--guided-decoding-backend`; check
-
-`vllm serve --help=all` before trusting a flag from an older doc/compose file
+## 2026-09-07 — vLLM 0.28.0 removed `--guided-decoding-backend`; check `vllm serve --help=all` first
 
 - **Symptom** — `vllm serve ... --guided-decoding-backend xgrammar ...`
   (the exact flag `docker-compose.gpu.yml`'s own `vllm` service command
