@@ -29,4 +29,11 @@ export interface ProposeOptions {
   // user" section; the structural guarantee is the merge the route applies
   // afterwards, not this.
   formSpec?: GarmentSpec;
+  // #276: true only for scripts/ai-eval.ts's own calls. Read solely to tag
+  // this call's Langfuse trace (lib/observability/langfuse.ts) so eval-
+  // harness traffic is distinguishable from the generate route's real
+  // production traffic -- never read for any other purpose. Defaults to
+  // false (production) when omitted, so every existing ProposeOptions call
+  // site keeps typechecking unchanged.
+  evalRun?: boolean;
 }

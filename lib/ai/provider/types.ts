@@ -49,12 +49,72 @@ export interface LlmCallOptions {
   maxTokens: number;
 }
 
+export interface LlmUsage {
+  inputTokens?: number;
+  outputTokens?: number;
+}
+
 export interface LlmCallResult {
   /** The propose_garment tool call's raw input -- still untrusted. */
   toolInput: unknown;
+  // #276: token usage for whichever call(s) actually happened -- summed
+  // across the first attempt and the repair attempt when one fired, since
+  // both are real, billed API calls. Optional so every existing bare-object
+  // provider mock/test (index.test.ts, anthropic.test.ts, openaiCompat.test.ts)
+  // keeps typechecking without also having to fabricate a usage figure.
+  usage?: LlmUsage;
+  // #276/#261: whether the one-repair-retry fired for this call. Optional
+  // for the same reason as usage above; lib/ai/index.ts treats an absent
+  // value as false when it builds the Langfuse trace.
+  repaired?: boolean;
 }
 
 export interface LlmProvider {
   id: string;
+  // #276: the underlying model identifier this provider is currently
+  // configured to call -- a function, not a static field, so
+  // openaiCompatProvider can resolve it from LLM_MODEL at call time (the
+  // same reason getProvider() itself reads LLM_PROVIDER at call time rather
+  // than a snapshot taken at module load). Read by lib/ai/index.ts to label
+  // the Langfuse trace with the model that actually answered the call.
+  model(): string;
   propose(opts: LlmCallOptions): Promise<LlmCallResult>;
+}
+
+// #276: both providers sum first-attempt + repair-attempt token usage
+// identically (both are real, billed calls) -- shared here instead of
+// duplicated in anthropic.ts and openaiCompat.ts, so a future change to the
+// summing rule can't drift between them unnoticed.
+export function sumUsage(
+  a: LlmUsage | undefined,
+  b: LlmUsage | undefined,
+): LlmUsage | undefined {
+  if (!a && !b) return undefined;
+  return {
+    inputTokens: (a?.inputTokens ?? 0) + (b?.inputTokens ?? 0),
+    outputTokens: (a?.outputTokens ?? 0) + (b?.outputTokens ?? 0),
+  };
+}
+
+// #276: thrown instead of a plain Error when the ONE repair attempt (#261)
+// itself also fails to yield a usable tool call -- both attempts are still
+// real, billed API calls, so their usage must not be silently lost just
+// because propose() ends up throwing rather than returning. lib/ai/index.ts's
+// catch block reads `usage`/`repaired` off this type (when present) to keep
+// the Langfuse trace honest on this failure path; every other thrown error
+// (e.g. a network failure before any response came back) carries no usage,
+// exactly as before.
+export class LlmProposeError extends Error {
+  usage?: LlmUsage;
+  repaired: boolean;
+
+  constructor(
+    message: string,
+    opts?: { usage?: LlmUsage; repaired?: boolean },
+  ) {
+    super(message);
+    this.name = "LlmProposeError";
+    this.usage = opts?.usage;
+    this.repaired = opts?.repaired ?? false;
+  }
 }

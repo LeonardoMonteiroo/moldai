@@ -5,7 +5,9 @@ import type {
   LlmCallResult,
   LlmTurn,
   LlmImage,
+  LlmUsage,
 } from "./types";
+import { sumUsage, LlmProposeError } from "./types";
 
 // The ONE file in the repo that imports the Anthropic SDK as a value (a
 // second file, lib/ai/schema.ts, used to import its Tool type only -- that
@@ -35,6 +37,12 @@ const REPAIR_TIMEOUT_MS = 8_000;
 // request would routinely truncate identically a second time for a
 // token-heavy Portuguese `explain` answer.
 const REPAIR_MAX_TOKENS_ON_TRUNCATION = 2048;
+
+// #276: the one literal, read by buildRequestParams below AND by the
+// provider's own model() -- so a caller (lib/ai/index.ts's Langfuse trace,
+// scripts/ai-eval.ts's report header) reads this instead of a second,
+// hand-copied "claude-sonnet-5" string.
+const MODEL = "claude-sonnet-5" as const;
 
 function withImages(
   turns: LlmTurn[],
@@ -77,7 +85,7 @@ export function buildRequestParams(
   maxTokens: number,
 ) {
   return {
-    model: "claude-sonnet-5" as const,
+    model: MODEL,
     max_tokens: maxTokens,
     // A 1h TTL trades a slightly pricier cache write for staying warm
     // across the app's full request volume rather than expiring every 5
@@ -153,6 +161,19 @@ function buildRepairMessages(
   ];
 }
 
+// #276: reads whatever the SDK actually returned, tolerant of a mock
+// response that omits `usage` entirely (every existing anthropic.test.ts
+// fixture does) -- undefined in, undefined out, never a fabricated 0.
+function toUsage(
+  usage: Anthropic.Message["usage"] | undefined,
+): LlmUsage | undefined {
+  if (!usage) return undefined;
+  return {
+    inputTokens: usage.input_tokens ?? undefined,
+    outputTokens: usage.output_tokens,
+  };
+}
+
 async function propose(opts: LlmCallOptions): Promise<LlmCallResult> {
   const client = new Anthropic(ANTHROPIC_OPTIONS);
   const messages = withImages(opts.messages, opts.images);
@@ -163,7 +184,11 @@ async function propose(opts: LlmCallOptions): Promise<LlmCallResult> {
 
   try {
     const block = extractToolUse(resp);
-    return { toolInput: block.input };
+    return {
+      toolInput: block.input,
+      usage: toUsage(resp.usage),
+      repaired: false,
+    };
   } catch (err) {
     // #261: one repair attempt, never a second -- a repeat failure
     // propagates to the caller (index.ts), whose caller (the generate
@@ -174,16 +199,52 @@ async function propose(opts: LlmCallOptions): Promise<LlmCallResult> {
       resp.stop_reason === "max_tokens"
         ? REPAIR_MAX_TOKENS_ON_TRUNCATION
         : opts.maxTokens;
-    const repairResp = await client.messages.create(
-      buildRequestParams(opts, repairMessages, repairMaxTokens),
-      { timeout: REPAIR_TIMEOUT_MS },
-    );
-    const repairBlock = extractToolUse(repairResp);
-    return { toolInput: repairBlock.input };
+    let repairResp: Anthropic.Message;
+    try {
+      repairResp = await client.messages.create(
+        buildRequestParams(opts, repairMessages, repairMaxTokens),
+        { timeout: REPAIR_TIMEOUT_MS },
+      );
+    } catch (repairErr) {
+      // #276: the repair call itself failed (e.g. a network/timeout error)
+      // before any repair response came back -- only the first attempt's
+      // usage is known, but that attempt was still a real, billed call, so
+      // it travels on the thrown error rather than being silently lost.
+      throw new LlmProposeError(
+        repairErr instanceof Error ? repairErr.message : String(repairErr),
+        { usage: toUsage(resp.usage), repaired: true },
+      );
+    }
+    try {
+      const repairBlock = extractToolUse(repairResp);
+      return {
+        toolInput: repairBlock.input,
+        // #276: both attempts are real, billed calls -- the repair's own
+        // usage alone would understate what this propose() call actually
+        // cost.
+        usage: sumUsage(toUsage(resp.usage), toUsage(repairResp.usage)),
+        repaired: true,
+      };
+    } catch (extractErr) {
+      // #261/#276: the repair attempt ALSO failed to yield a usable tool
+      // call -- propagates to the caller exactly as before (one repair
+      // attempt, never a second), but both attempts were still real, billed
+      // calls, so their combined usage travels on the thrown error instead
+      // of the Langfuse trace silently recording usage: undefined for two
+      // charged requests.
+      throw new LlmProposeError(
+        extractErr instanceof Error ? extractErr.message : String(extractErr),
+        {
+          usage: sumUsage(toUsage(resp.usage), toUsage(repairResp.usage)),
+          repaired: true,
+        },
+      );
+    }
   }
 }
 
 export const anthropicProvider: LlmProvider = {
   id: "anthropic",
+  model: () => MODEL,
   propose,
 };

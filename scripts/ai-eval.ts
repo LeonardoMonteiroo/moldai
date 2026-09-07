@@ -29,16 +29,10 @@ import {
   type EditingResult,
 } from "../lib/ai/eval/score";
 import { renderReport } from "../lib/ai/eval/report";
+import { getProvider } from "../lib/ai/provider/registry";
 import type { PatternState, GarmentSpec } from "../lib/types";
 
 const REPORT_PATH = resolve(__dirname, "../docs/reference/ai-eval/report.md");
-
-// The literal in lib/ai/index.ts -- there is no exported constant for it
-// (deliberately: a hardcoded model string with no override, see
-// docs/architecture/ai-provider.md once the provider facade lands). Named
-// here only for the report header.
-const MODEL = "claude-sonnet-5";
-const PROVIDER = "anthropic";
 
 function seedSizeTable(state: PatternState, gender: "male" | "female") {
   const table = gender === "male" ? SIZE_TABLE_MALE : SIZE_TABLE;
@@ -68,7 +62,12 @@ async function runGeneration(): Promise<GenerationResult[]> {
     });
     process.stdout.write(`generation: ${testCase.id}... `);
     try {
-      const decision = await proposeGarment(state, { answering: false });
+      // #276: tags this call's Langfuse trace as eval-harness traffic, not
+      // production -- see lib/observability/langfuse.ts.
+      const decision = await proposeGarment(state, {
+        answering: false,
+        evalRun: true,
+      });
       const result = scoreGeneration(testCase, decision, (spec: GarmentSpec) =>
         draftSucceeds(
           DEFAULT_ENGINE_ID,
@@ -112,7 +111,12 @@ async function runEditing(): Promise<EditingResult[]> {
     });
     process.stdout.write(`editing: ${testCase.id}... `);
     try {
-      const decision = await proposeGarment(state, { answering: false });
+      // #276: tags this call's Langfuse trace as eval-harness traffic, not
+      // production -- see lib/observability/langfuse.ts.
+      const decision = await proposeGarment(state, {
+        answering: false,
+        evalRun: true,
+      });
       const result = scoreEditing(testCase, decision.spec);
       results.push(result);
       console.log(result.changedAsExpected ? "ok" : "MISSING CHANGE");
@@ -131,15 +135,29 @@ async function runEditing(): Promise<EditingResult[]> {
 }
 
 async function main() {
+  // #276: reads the actually-active provider/model (LLM_PROVIDER-aware)
+  // instead of a hardcoded "claude-sonnet-5"/"anthropic" -- the report
+  // header now stays honest when this harness runs against
+  // LLM_PROVIDER=local, matching what each Langfuse trace tags the call
+  // with (lib/observability/langfuse.ts).
+  const provider = getProvider();
+  // #276: named after whichever provider is actually active (LLM_PROVIDER-
+  // aware) -- this used to hardcode "Anthropic" even when run against
+  // LLM_PROVIDER=local, contradicting the report header a few lines below,
+  // which already reads provider.id/provider.model() honestly.
   console.log(
-    `Spending real Anthropic tokens: ${GENERATION_CASES.length + EDITING_CASES.length} calls, each with up to one repair retry.\n`,
+    `Spending real tokens against provider "${provider.id}" (${provider.model()}): ${GENERATION_CASES.length + EDITING_CASES.length} calls, each with up to one repair retry.\n`,
   );
 
   const generationResults = await runGeneration();
   const editingResults = await runEditing();
 
   const report = renderReport(
-    { model: MODEL, provider: PROVIDER, generatedAt: new Date().toISOString() },
+    {
+      model: provider.model(),
+      provider: provider.id,
+      generatedAt: new Date().toISOString(),
+    },
     generationResults,
     editingResults,
   );

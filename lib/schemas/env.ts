@@ -34,6 +34,20 @@ const serverEnvSchema = z
     // runtime like every other var here. One var serves both the server and
     // browser SDKs on purpose -- see lib/observability/sentry.ts.
     NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional(),
+    // #276: all four optional, unset in every environment by default -- the
+    // same shape LLM_*/NEXT_PUBLIC_SENTRY_DSN already have above. Production
+    // must keep working unchanged if Langfuse tracing is never configured.
+    // lib/observability/langfuse.ts treats "SECRET_KEY and PUBLIC_KEY both
+    // present" as "tracing is on"; BASE_URL only overrides the SDK's own
+    // Langfuse Cloud default, never required. TRACE_CONTENT is the LGPD
+    // opt-in: prompt/response bodies (chat text) are only ever attached to a
+    // trace when this is exactly "true" -- every other value, including
+    // unset, keeps them off. Attached reference photos are never sent to a
+    // trace regardless of this flag.
+    LANGFUSE_SECRET_KEY: z.string().min(1).optional(),
+    LANGFUSE_PUBLIC_KEY: z.string().min(1).optional(),
+    LANGFUSE_BASE_URL: z.string().url().optional(),
+    LANGFUSE_TRACE_CONTENT: z.enum(["true", "false"]).optional(),
     APP_URL: z.string().url().optional(),
     SMTP_HOST: z.string().min(1).optional(),
     SMTP_PORT: z.coerce.number().int().min(1).max(65535).default(587),
