@@ -10,7 +10,7 @@ import type { DraftingEngine, EngineDraft } from "./types";
 export const moldaiEngine: DraftingEngine = {
   id: "moldai",
   capability: MOLDAI_CAPABILITY,
-  draft(spec, base, t): EngineDraft {
+  draft(spec, base, t, referenceMeasurements): EngineDraft {
     const {
       drafted,
       measurements,
@@ -18,7 +18,7 @@ export const moldaiEngine: DraftingEngine = {
       sleeveArmholeCm,
       garmentLengthCm,
       seamPairs,
-    } = draftAll(spec, base, t);
+    } = draftAll(spec, base, t, referenceMeasurements);
     return {
       drafted,
       measurements,
