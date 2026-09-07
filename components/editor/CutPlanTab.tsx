@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import { useTranslations } from "next-intl";
 import { Pattern } from "@/lib/types";
 import {
@@ -121,8 +121,8 @@ export function CutPlanTab({ pattern }: { pattern: Pattern }) {
           <>
             <div className="flex flex-wrap gap-4">
               {/* seletor de largura de tecido */}
-              <div className="flex flex-col gap-[6px]">
-                <span className="text-muted text-meta tracking-eyebrow font-semibold uppercase">
+              <div className="flex flex-col gap-2">
+                <span className="text-muted text-tick tracking-eyebrow font-semibold uppercase">
                   {t("fabricWidthLabel")}
                 </span>
                 <ToggleGroup
@@ -143,8 +143,8 @@ export function CutPlanTab({ pattern }: { pattern: Pattern }) {
               </div>
 
               {/* seletor de modo de encaixe */}
-              <div className="flex flex-col gap-[6px]">
-                <span className="text-muted text-meta tracking-eyebrow font-semibold uppercase">
+              <div className="flex flex-col gap-2">
+                <span className="text-muted text-tick tracking-eyebrow font-semibold uppercase">
                   {t("modeLabel")}
                 </span>
                 <ToggleGroup
@@ -221,8 +221,30 @@ export function CutPlanTab({ pattern }: { pattern: Pattern }) {
               {announcement}
             </span>
 
+            {/* legenda das cores do plano -- Editor.dc.html's own three swatches
+                (Fundo / Tecido / Peça do molde), reusing the exact tokens the
+                preview below paints with. */}
+            <div className="flex flex-wrap items-center gap-4">
+              <LegendItem
+                swatchClassName="border-border bg-surface"
+                label={t("legendBackground")}
+              />
+              <LegendItem
+                swatchStyle={{
+                  background:
+                    "repeating-linear-gradient(45deg, var(--color-surface), var(--color-surface) 2px, var(--color-border) 2px, var(--color-border) 2.6px)",
+                }}
+                swatchClassName="border-border"
+                label={t("legendFabric")}
+              />
+              <LegendItem
+                swatchClassName="border-olive bg-olive-tint"
+                label={t("legendPiece")}
+              />
+            </div>
+
             {/* nesting preview */}
-            <div className="border-border rounded-card bg-surface-alt overflow-auto border p-3">
+            <div className="border-border rounded-card bg-surface overflow-auto border p-[18px]">
               <CutPlanPreview
                 plan={plan}
                 fabricWidthCm={fabricWidthCm}
@@ -247,5 +269,30 @@ export function CutPlanTab({ pattern }: { pattern: Pattern }) {
         )}
       </div>
     </ScrollArea>
+  );
+}
+
+// A small color-key row item -- the preview's fill/stroke choices spelled
+// out for the person reading the plan, not a new capability. `swatchStyle`
+// exists only for the "Tecido" swatch's diagonal weave, which isn't
+// expressible as a utility class; every other swatch is plain tokens.
+function LegendItem({
+  label,
+  swatchClassName,
+  swatchStyle,
+}: {
+  label: string;
+  swatchClassName: string;
+  swatchStyle?: CSSProperties;
+}) {
+  return (
+    <div className="flex items-center gap-[6px]">
+      <span
+        aria-hidden="true"
+        className={`size-[14px] shrink-0 rounded-[3px] border ${swatchClassName}`}
+        style={swatchStyle}
+      />
+      <span className="text-muted text-tick">{label}</span>
+    </div>
   );
 }

@@ -511,6 +511,9 @@
     "metricPieceCountHint": "cópias (peça × quantidade)",
     "overflowWarning": "Alguma peça é mais larga que o tecido. Use um tecido mais largo ou reduza a peça.",
     "overlapWarning": "Há cópias sobrepostas: o consumo e o aproveitamento não valem enquanto isso.",
+    "legendBackground": "Fundo",
+    "legendFabric": "Tecido",
+    "legendPiece": "Peça do molde",
     "modeLabel": "Encaixe",
     "mode": {
       "auto": "Automático",

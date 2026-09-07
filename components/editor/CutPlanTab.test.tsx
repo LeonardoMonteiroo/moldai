@@ -71,6 +71,15 @@ describe("CutPlanTab", () => {
     ).toBeInTheDocument();
   });
 
+  it("renders the plan's color legend from the catalog", () => {
+    renderWithIntl(<CutPlanTab pattern={tshirtPattern()} />);
+    expect(
+      screen.getByText(ptBR.CutPlanTab.legendBackground),
+    ).toBeInTheDocument();
+    expect(screen.getByText(ptBR.CutPlanTab.legendFabric)).toBeInTheDocument();
+    expect(screen.getByText(ptBR.CutPlanTab.legendPiece)).toBeInTheDocument();
+  });
+
   it("a seeded overlapping manual placement renders the overlap warning inside role=alert", () => {
     useEditorStore.setState({
       nestingMode: "manual",

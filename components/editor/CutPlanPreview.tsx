@@ -137,14 +137,45 @@ export function CutPlanPreview({
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
     >
+      {/* Fabric-weave texture behind the pieces -- matches the design
+          reference's legend row (Fundo / Tecido / Peça do molde), which
+          pairs a plain background swatch with a second, textured "Tecido"
+          swatch. Purely decorative: a diagonal hairline pattern over the
+          same surface color, no effect on the real geometry below. */}
+      <defs>
+        <pattern
+          id="cutPlanFabricWeave"
+          width={3.2}
+          height={3.2}
+          patternUnits="userSpaceOnUse"
+          patternTransform="rotate(45)"
+        >
+          <line
+            x1={0}
+            y1={0}
+            x2={0}
+            y2={3.2}
+            stroke="var(--color-border)"
+            strokeWidth={0.35}
+            opacity={0.55}
+          />
+        </pattern>
+      </defs>
       <rect
         x={0}
         y={0}
         width={fabricWidthCm}
         height={plan.lengthCm}
         fill="var(--color-surface)"
-        stroke="var(--color-pattern-guide)"
+        stroke="var(--color-border)"
         strokeWidth={0.6}
+      />
+      <rect
+        x={0}
+        y={0}
+        width={fabricWidthCm}
+        height={plan.lengthCm}
+        fill="url(#cutPlanFabricWeave)"
       />
       {plan.instances.map((it) => {
         const overlapping = overlapIds.includes(it.id);
@@ -171,7 +202,7 @@ export function CutPlanPreview({
                   ? "var(--color-amber-bg)"
                   : "var(--color-olive-tint)"
               }
-              stroke={overlapping ? "var(--color-alert)" : "var(--color-ink)"}
+              stroke={overlapping ? "var(--color-alert)" : "var(--color-olive)"}
               strokeWidth={1}
               vectorEffect="non-scaling-stroke"
             />
