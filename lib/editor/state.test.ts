@@ -9,9 +9,10 @@ import {
   getSpec,
   applySizes,
   seedPatternSizeSnapshot,
+  diffSpec,
 } from "./state";
 import { t } from "@/lib/i18n/test-translate";
-import type { SizeChartData } from "@/lib/types";
+import type { GarmentSpec, SizeChartData } from "@/lib/types";
 import { DEFAULT_ENGINE_ID } from "@/lib/draft/engine/capability";
 import { SIZE_TABLE } from "@/lib/measurements";
 
@@ -313,5 +314,99 @@ describe("seedPatternSizeSnapshot", () => {
     const s = seedPatternState(t);
     seedPatternSizeSnapshot(s, chart, DEFAULT_ENGINE_ID);
     expect(s.pattern.engine).toBe("moldai");
+  });
+});
+
+// #257: pure sibling of applyGarmentSpec that detects the exact "collateral
+// change" ChatGarment's own training template warns about -- a full-JSON
+// re-emission drifting a field nobody asked to change.
+describe("diffSpec", () => {
+  const base: GarmentSpec = {
+    type: "blouse",
+    gender: "female",
+    measurementOverrides: {},
+    style: {},
+  };
+
+  it("returns no paths for two identical specs", () => {
+    expect(diffSpec(base, { ...base })).toEqual([]);
+  });
+
+  it("reports a changed type", () => {
+    expect(diffSpec(base, { ...base, type: "dress" })).toEqual(["type"]);
+  });
+
+  it("reports a changed gender", () => {
+    expect(diffSpec(base, { ...base, gender: "male" })).toEqual(["gender"]);
+  });
+
+  it("reports a single changed style field, prefixed with style.", () => {
+    const next: GarmentSpec = { ...base, style: { collar: "band" } };
+    expect(diffSpec(base, next)).toEqual(["style.collar"]);
+  });
+
+  it("reports a style field that was dropped, not just one that was added", () => {
+    const prev: GarmentSpec = { ...base, style: { collar: "band" } };
+    expect(diffSpec(prev, base)).toEqual(["style.collar"]);
+  });
+
+  it("does not report a field neither spec ever set", () => {
+    expect(diffSpec(base, { ...base })).not.toContain("style.collar");
+  });
+
+  it("orders multiple style-field paths by GarmentStyle's own declaration order, not object insertion order", () => {
+    const prev: GarmentSpec = {
+      ...base,
+      style: { collar: "none", neckline: "round" },
+    };
+    // Insertion order here (skirt, then neckline, then collar) deliberately
+    // differs from GarmentStyle's declared order (neckline, ..., collar).
+    const next: GarmentSpec = {
+      ...base,
+      style: { skirt: "a-line", neckline: "V", collar: "band" },
+    };
+    expect(diffSpec(prev, next)).toEqual([
+      "style.neckline",
+      "style.skirt",
+      "style.collar",
+    ]);
+  });
+
+  it("ignores sleeveRefit -- internal-only, never a real user-facing change", () => {
+    const prev: GarmentSpec = { ...base, style: { sleeveRefit: false } };
+    const next: GarmentSpec = { ...base, style: { sleeveRefit: true } };
+    expect(diffSpec(prev, next)).toEqual([]);
+  });
+
+  it("reports an added measurementOverrides key, sorted alphabetically", () => {
+    const next: GarmentSpec = {
+      ...base,
+      measurementOverrides: { waist: 70, bust: 90 },
+    };
+    expect(diffSpec(base, next)).toEqual([
+      "measurementOverrides.bust",
+      "measurementOverrides.waist",
+    ]);
+  });
+
+  it("reports a measurementOverrides key that was removed", () => {
+    const prev: GarmentSpec = { ...base, measurementOverrides: { bust: 90 } };
+    expect(diffSpec(prev, base)).toEqual(["measurementOverrides.bust"]);
+  });
+
+  it("does not report an unchanged measurementOverrides value", () => {
+    const prev: GarmentSpec = { ...base, measurementOverrides: { bust: 90 } };
+    const next: GarmentSpec = { ...base, measurementOverrides: { bust: 90 } };
+    expect(diffSpec(prev, next)).toEqual([]);
+  });
+
+  it("never mutates either argument", () => {
+    const prev: GarmentSpec = { ...base, style: { collar: "none" } };
+    const next: GarmentSpec = { ...base, style: { collar: "band" } };
+    const prevCopy = JSON.parse(JSON.stringify(prev));
+    const nextCopy = JSON.parse(JSON.stringify(next));
+    diffSpec(prev, next);
+    expect(prev).toEqual(prevCopy);
+    expect(next).toEqual(nextCopy);
   });
 });

@@ -51,7 +51,8 @@
   "ChatBubble": {
     "questionsAnswered": "Perguntas respondidas.",
     "imagesAttached": "{count, plural, one {imagem enviada} other {# imagens enviadas}}",
-    "assemblyDisclaimer": "Ordem de montagem gerada por IA a partir da modelagem; não substitui a verificação de um(a) costureiro(a)."
+    "assemblyDisclaimer": "Ordem de montagem gerada por IA a partir da modelagem; não substitui a verificação de um(a) costureiro(a).",
+    "changedFieldsLabel": "Também mudou: {fields}."
   },
   "MessageInput": {
     "placeholder": "Descreva o ajuste…",

@@ -299,6 +299,20 @@ export interface ChatMessage {
   // number, not a versionId string, because PatternVersion's own unique key
   // is already (patternId, version) -- the same value, not a duplicate one.
   draftVersion?: number;
+  // #257: set on the PRIMARY "ai" bubble of an "apply" decision that was NOT
+  // this pattern's first-ever draft -- the field paths lib/editor/state.ts's
+  // diffSpec(previousSpec, spec) found changed, "type" | "gender" |
+  // "style.<key>" | "measurementOverrides.<key>". Surfaces ChatGarment's own
+  // headline editing limitation (collateral change from a full-JSON
+  // re-emission) the same way ConflictInfo.entries makes divergent seams
+  // visible, rather than leaving the user to discover elsewhere that
+  // shortening a skirt also quietly flipped the collar. Absent (never an
+  // empty array) on the first-ever generation -- there is no "previous
+  // spec" to diff against yet, and every field would otherwise render as
+  // "changed". Additive/optional, like hasImage/assembly/decision --
+  // ChatMessageSchema (lib/schemas/pattern.ts) MUST name this field too, or
+  // z.object strips it and the next mutating turn deletes it from the row.
+  changedFields?: string[];
 }
 
 export type PlanId = "free" | "atelier" | "studio" | "factory";

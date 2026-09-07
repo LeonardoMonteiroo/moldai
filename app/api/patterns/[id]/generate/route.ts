@@ -13,6 +13,8 @@ import {
   addMessage,
   applyGarmentSpec,
   bumpVersion,
+  diffSpec,
+  getSpec,
   seedPatternSizeSnapshot,
 } from "@/lib/editor/state";
 import { debitWallet, refundWallet } from "@/lib/billing/wallet";
@@ -491,6 +493,17 @@ export async function POST(request: Request, { params }: Ctx) {
                     g.kind === "styleLimit",
                 )
                 .map((g) => t(`styleField.${g.field}`));
+              // #257: diffed against the pattern's OWN previous spec, read
+              // here (before applyGarmentSpec below overwrites
+              // state.pattern.spec) -- the exact drift a full-JSON
+              // re-emission can introduce that nothing else in this route
+              // detects. Empty on the pattern's first-ever draft: there is
+              // no real previous spec to diff against yet (getSpec's own
+              // blank-blouse fallback), and every field would otherwise
+              // read as "changed".
+              const changedFields = isFirstDraft
+                ? []
+                : diffSpec(getSpec(state), spec);
               applyGarmentSpec(state, spec, t);
               bumpVersion(state);
               // #16: recorded in the SAME transaction as the debit and the
@@ -519,6 +532,7 @@ export async function POST(request: Request, { params }: Ctx) {
                 tone: conflict ? "conflict" : undefined,
                 decision: "apply",
                 draftVersion: state.pattern.version,
+                ...(changedFields.length > 0 ? { changedFields } : {}),
                 createdAt: Date.now(),
               });
               // Said out loud rather than left for the user to discover:
