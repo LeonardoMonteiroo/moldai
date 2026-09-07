@@ -229,19 +229,25 @@ function scanWidthAtY(outlineCm: Pt[], yCm: number): number {
   return maxX > minX ? maxX - minX : 0;
 }
 
-// #254: the midpoint height (y) of a named seamEdges range, in the piece's
-// OWN local coordinate frame -- reading a public seamEdges entry rather than
-// assuming any particular engine's coordinate convention (a moldai panel's
-// own waist sits at local y=0; a freesewing/Titan panel's does not). `to`
-// may equal outlineCm.length (wraps to index 0), the same convention every
-// drafter's own seamEdges already uses.
-function edgeMidYCm(
+// #254: the deepest (largest-y, furthest-below-the-waist) point of a named
+// seamEdges range, in the piece's OWN local coordinate frame -- reading a
+// public seamEdges entry rather than assuming any particular engine's
+// coordinate convention (a moldai panel's own waist sits at local y=0; a
+// freesewing/Titan panel's does not). `to` may equal outlineCm.length (wraps
+// to index 0), the same convention every drafter's own seamEdges already
+// uses. `waist`/`hem` are each a horizontal edge (both endpoints share one
+// y), so "deepest" and "midpoint" agree there -- but `rise` is the DIAGONAL
+// front/back rise curve, spanning from the waist height down to the crotch,
+// so its deepest endpoint IS the crotch depth (code-review finding: an
+// earlier version averaged the rise edge's two endpoints instead, landing
+// the "rise" ring at HALF the true crotch depth rather than AT the crotch).
+function edgeDeepYCm(
   outlineCm: Pt[],
   edge: [number, number] | undefined,
 ): number | undefined {
   if (!edge) return undefined;
   const n = outlineCm.length;
-  return (outlineCm[edge[0] % n][1] + outlineCm[edge[1] % n][1]) / 2;
+  return Math.max(outlineCm[edge[0] % n][1], outlineCm[edge[1] % n][1]);
 }
 
 // The outline vertex farthest from the piece's own centre line within
@@ -513,13 +519,13 @@ export function buildProofMesh(pattern: Pattern, t: Translate): ProofMesh {
     // falling back to front's own bbox only if seamEdges is ever absent
     // (never true for a real drafter, defensive only).
     const waistYCmLocal =
-      edgeMidYCm(trouserFront.outlineCm, trouserFront.seamEdges?.waist) ??
+      edgeDeepYCm(trouserFront.outlineCm, trouserFront.seamEdges?.waist) ??
       bF.minY;
     const riseYCmLocal =
-      edgeMidYCm(trouserFront.outlineCm, trouserFront.seamEdges?.rise) ??
+      edgeDeepYCm(trouserFront.outlineCm, trouserFront.seamEdges?.rise) ??
       bF.maxY;
     const hemYCmLocal =
-      edgeMidYCm(trouserFront.outlineCm, trouserFront.seamEdges?.hem) ??
+      edgeDeepYCm(trouserFront.outlineCm, trouserFront.seamEdges?.hem) ??
       bF.maxY;
 
     const legGirthAt = (yCm: number) =>
