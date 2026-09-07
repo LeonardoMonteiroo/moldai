@@ -585,6 +585,154 @@ until the type and engine agree again.
 
 ---
 
+## Learned geometry as a proposer behind the seam graph: declined for now, the evidence is entirely negative (#246)
+
+**Decided, nothing built.** This is a discussion issue, not scoped work — the point is to
+have a written answer the next time "should the model draft geometry instead of the seam
+graph checking it" comes up, so it doesn't get re-argued from priors each time.
+
+**The three headline numbers were checked directly against source, not taken from the issue
+text.** AutoSew (Rios-Navarro et al., WACV 2026 — a GNN-plus-optimal-transport method for
+predicting stitch correspondence from 2D pattern contours, developed with Adobe) reports "96%
+F1-score" and "successfully assembles 73.3% of test garments without error" on its own project
+page and paper abstract (`mslab.es/projects/autosew/`); the paper's own PDF, which would carry
+the more precise 96.2% the issue cites, returned HTTP 403 in this pass, so that one extra digit
+is not independently re-derived here, but the two-decimal figure is consistent with the rounded
+one two independent pages both state. Berthouzoz et al. (SIGGRAPH/TOG 2013, "Parsing Sewing
+Patterns into 3D Garments") reports 87% F1 on automatic stitching and 68% fully-correctly-sewn
+garments (GSP) across its 50-garment dataset — confirmed via the paper's own history page and
+independent summaries. NeuralTailor (Korosteleva & Lee, TOG 2022) reports 83.6% panel-count
+accuracy on garment types unseen during training — not found in NeuralTailor's own abstract
+(which states only "generalizes... to unseen types" without the number), but confirmed via
+Panelformer (WACV 2024)'s own comparison table, which cites 83.6% as NeuralTailor's baseline
+before reporting its own fine-tuned improvement on top of it. All three numbers check out.
+
+**The structural claim — an edge/stitch-correspondence metric in the 90s with a
+whole-garment success rate 20+ points lower — held on every source checked, and is not an
+artifact of any one paper's dataset.** AutoSew: 96% edge F1 vs. 73.3% zero-error assembly (a
+22.7-point gap). Berthouzoz: 87% F1 vs. 68% GSP (a 19-point gap). Two independent teams, twelve
+years apart, on different geometry representations (2D pattern contours vs. panels extracted
+from PDF patterns), land on the same shape of result: near-perfect per-edge accuracy does not
+compound into anywhere near per-edge-accuracy^whole-garment success, because one wrong edge in
+a 10-30-edge garment is enough to break assembly, and the paper-level metric hides exactly that.
+Nothing in either paper's own text, nor in NeuralTailor's, reports a sewability, grading,
+notch, grainline, or DXF-export metric — searched specifically for this and found none; the
+literature these three represent evaluates topology/correspondence accuracy, never any of the
+downstream guarantees this repo's own seam graph (`lib/draft/seams.ts`) already provides
+deterministically. A 96% (or 96.2%) F1 score is not a claim that 96% of exported files are
+sewable, gradable, or notch-correct — it's a claim about a different, narrower quantity, and no
+published benchmark in this space would currently detect the loss of any of the four guarantees
+named above even if a learned proposer silently dropped them.
+
+**The positive case — a checker-plus-proposer pipeline measurably beating an unchecked
+proposer — is not re-litigated here; the issue records it as already refuted 0-3 in a prior
+verification pass**, and nothing surfaced in this research pass reopens it: none of the three
+papers checked pairs its generative/predictive component with a deterministic geometric
+checker of the seam-graph's kind, so there is still no published comparison of "proposer alone"
+vs. "proposer plus hard reject" to weigh against the seam graph's own zero-defect guarantee on
+every pattern this app has ever exported.
+
+**Decision: decline for now, on the same "no reason to build" grounds as GarmentCode above,
+for the opposite reason FreeSewing was accepted.** FreeSewing crossed the engine seam because
+its geometry was measurably competitive (0.42–1.71mm on the armhole/sleeve pair) and its
+failure mode was still deterministic — a wrong Bézier control point, not a missing stitch.
+Learned geometry's failure mode is structurally different: a ~20-27% chance per garment that
+the model gets a stitch topologically wrong, with no benchmark anywhere in this literature that
+would catch it before it reached a customer's fabric. **If this is ever revisited, the
+acceptance bar from the issue stands as written: the model proposes, the deterministic seam
+graph (`lib/draft/seams.ts`) rejects — never the reverse.** That is not a hedge to be softened
+later; it is the one shape in which a 96% F1 topology predictor could plug into this pipeline
+at all, since the seam graph is what would have to catch the other ~4% (or the other ~27%, at
+the whole-garment level) before it ever reached a downloadable file.
+
+---
+
+## Design novelty as a market-valued axis: still zero verified claims either way, and the vendor evidence found is marketing, not fact (#247)
+
+**Not decided — the honest outcome the issue's own acceptance criteria allows for.** This
+research pass re-ran the two prior deep-research passes' searches (vendor capability, buyer
+behavior, practitioner trust) and did not surface anything that resolves the underlying
+question — whether design novelty is a purchasing axis at all. That absence is itself the
+finding, and it's recorded rather than papered over with a confident-sounding guess.
+
+**Vendor capability, split by source quality — the legacy CAD tier is asserted, not just
+inferred.** Lectra/Gerber AccuMark/Optitex are, on every source found (an independent CAD
+comparison blog and several 2026 buyer's-guide posts), production-management layers over
+patterns that already exist — grading, marker-making/nesting, digitization — not tools that
+generate a garment's geometry from a description or sketch; one source states this plainly:
+"Gerber AccuMark... does not generate patterns from brand archives; it manages patterns once
+they exist." None of these three vendors' own sites were found claiming a generative-from-
+description capability. The 3D-simulation tier (CLO, Browzwear, Style3D) is where "generative"
+marketing language actually appears — Style3D's own blog describes "iDesigner" as producing a
+"prompt-to-3D" workflow and claims "AI adoption in apparel design has surged 40% year-over-year"
+citing "McKinsey reports from 2025." **That citation could not be traced to an actual McKinsey
+publication in this pass** — it appears only inside Style3D's own marketing blog, with no link
+or report name, the exact shape of an unverifiable vendor-marketing statistic the issue asked
+this research to distinguish from independent evidence. It is recorded here as flagged, not
+trusted, and every other "X% adoption"/"Y% time saved" figure surfaced in this pass (aims360,
+stytrix, fashioninsta.ai — all SEO-shaped buyer's-guide content, several visibly written to
+promote their own product) is the same shape of claim and is given the same distrust. No
+independent (non-vendor, non-SEO-content-farm) source confirming or denying any vendor's
+generative-geometry claim was found.
+
+**The two "weak signals" from the issue both re-confirmed directly against source.** ASTM
+D6673 (withdrawn 2019, but still the reference point CLO/AAMA-compatible DXF export claims
+target) states in its own scope, verbatim: "This standard is not intended to represent the
+relationships between pattern pieces or the correspondence between 2D or 3D sewn product
+pattern piece geometries" (confirmed via the standard's own catalog listing). CLO's own support
+documentation confirms its DXF export drops stitching information by design: "the existing DXF
+export in CLO3D only exports the 2D pattern without the stitching information... DXF is kept to
+the international fashion CAD standard." **The subcommittee (ASTM D13.67) and its open work
+item (WK98960) are confirmed to exist and to target fabric physics rather than generative
+capability** — ASTM's own press release names D13.67 "3D Digital Fabrics" and quotes its chair
+on validating "3D fabric physics"; WK98960 itself is titled a new test method for "3D drape
+validation." The registration page for WK98960 returned HTTP 403 in this pass, so the specific
+30 Sept 2025 open date named in the issue was not independently re-confirmed, but everything
+else about the standard's subject matter (physics/interoperability, not generative geometry)
+checks out against ASTM's own announcement. Taken together, all three signals still point the
+same direction the issue named them for: the standards body closest to this problem is
+standardizing physical/interoperability correctness, not novel-geometry generation — but three
+consistent weak signals are still not the practitioner or purchasing evidence the acceptance
+criteria actually asks for.
+
+**Practitioner trust and correction effort: gathered, and its scarcity is the finding, exactly
+as the acceptance criteria allows.** No systematic survey of pattern makers' trust in automated
+output was found. What surfaced instead: a handful of unrelated academic papers on ML-assisted
+pattern _correction_ (not generation) noting that "CAD systems do not have the capability to
+make fine adjustments at the same quality level as manual pattern correction" (a generic,
+undated claim from a paper about a different problem); scattered G2/forum complaints that
+CLO/Browzwear's 2D pattern windows need more manual correction tooling; and no case study,
+survey, or interview-based research quantifying correction effort for any of the named vendors'
+generative or assistive features specifically. This is an honest gap, not a null result dressed
+up as one.
+
+**A correction to the issue's own framing, found while checking #248 in parallel and worth
+recording here too:** the claim that no research exists on inferring grading rules is not quite
+right — a 2022 Emerald/Seoul National University paper, "Automatic generation of parametric
+patterns from grading patterns using artificial intelligence," describes exactly that (a neural
+network learning the relationship between body size and pattern geometry from existing graded
+patterns). It doesn't move the novelty question either way — it's assistive automation on
+top of an existing pattern, not generative design of a new one — but the earlier "zero verified
+claims" framing was itself an artifact of two research passes not finding a paper that exists,
+which is worth flagging as a pattern for future spikes in this vein.
+
+**Recommendation: do not widen the generative design space on a novelty bet, but not because
+the bet has been refuted — because nothing found in two research passes plus this one supports
+either side of it.** The only evidence with any real weight is negative-by-omission: the
+vendors closest to production CAD (Lectra/Gerber/Optitex) don't market generative geometry at
+all, and the standards body actively investing in new work (ASTM D13.67) is investing in fabric
+physics and interoperability, not generative capability. That is consistent with — but far
+short of proof of — buyers weighting fit/grading/interoperability over novel garment classes.
+Verification and interoperability work (DXF/AAMA fidelity, the seam graph, grading correctness)
+stays the safer bet on the evidence actually in hand; widening `GarmentType` coverage for its
+own sake is not supported by anything found, but neither is stopping it. Revisit if a real
+market-research source (an industry survey, a vendor's audited case study, a practitioner
+interview study) surfaces — the two prior passes and this one all failed to find one, which at
+this point is itself worth taking as a signal that this specific question may not be answerable
+from public sources at all.
+
+---
+
 ## Replacing `GarmentSpec`'s flat style enums with a compositional/hierarchical layer is declined; two narrow, additive fixes are picked instead (#245)
 
 **Decided — proposal only, nothing built.** #245 asked whether the flat closed enums on
