@@ -401,6 +401,22 @@ export async function toPdf(
           dashArray: [1, 1.5],
         });
       }
+      // #244: a pleat's own placement/stitch line -- its own dash pattern,
+      // distinct from the dart fold line's above, so the two read apart.
+      for (const pleat of pc.pleats ?? []) {
+        if (pleat.length < 2) continue;
+        for (let i = 0; i < pleat.length - 1; i++) {
+          const a = P(pleat[i].x, pleat[i].y);
+          const b = P(pleat[i + 1].x, pleat[i + 1].y);
+          page.drawLine({
+            start: a,
+            end: b,
+            thickness: 0.25,
+            color: OLIVE,
+            dashArray: [2, 2],
+          });
+        }
+      }
       // #127: a drill hole -- a small open circle, 1.0-1.5cm short of the
       // dart apex it marks.
       for (const hole of pc.drillHoles ?? []) {

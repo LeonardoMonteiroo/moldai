@@ -155,6 +155,17 @@ export function toPlt(model: ExportModel, opts: PltOptions = {}): string {
       for (const [a, b] of piece.internalFoldLines ?? []) {
         emitLine(PLT_PENS.dart, a, b);
       }
+      // #244: a pleat's own placement/stitch line, on the dart's own pen --
+      // both are internal construction marks, same footing as
+      // internalFoldLines above.
+      for (const pleat of piece.pleats ?? []) {
+        if (pleat.length < 2) continue;
+        lines.push(`SP${PLT_PENS.dart};`);
+        lines.push(`PU${X(pleat[0].x)},${Y(pleat[0].y)};`);
+        for (let i = 1; i < pleat.length; i++) {
+          lines.push(`PD${X(pleat[i].x)},${Y(pleat[i].y)};`);
+        }
+      }
       // #127: a drill hole -- HPGL/2's native CI (circle) command, centred
       // by a PU move first; radius in plotter units like everything else
       // here.

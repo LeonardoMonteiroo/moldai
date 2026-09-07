@@ -285,6 +285,27 @@ export function toDxfAama(model: ExportModel): string {
       p(21, Y(b.y));
     }
 
+    // #244: a pleat's own placement/stitch line -> open POLYLINE on layer
+    // 8, the same "internal, not cut" semantics as the dart/fold line above.
+    for (const pleat of piece.pleats ?? []) {
+      if (pleat.length < 2) continue;
+      p(0, "POLYLINE");
+      p(8, "8");
+      p(66, 1);
+      p(10, 0); // dummy point, see the cut-line POLYLINE above
+      p(20, 0);
+      p(30, 0);
+      p(70, 0);
+      for (const pt of pleat) {
+        p(0, "VERTEX");
+        p(8, "8");
+        p(10, X(pt.x));
+        p(20, Y(pt.y));
+      }
+      p(0, "SEQEND");
+      p(8, "8");
+    }
+
     // #127: a drill hole -> CIRCLE on layer 13, D6673's reserved semantics
     // for it — closes the drill-hole half of issue #2.
     for (const hole of piece.drillHoles ?? []) {

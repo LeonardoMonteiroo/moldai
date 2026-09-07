@@ -253,6 +253,9 @@ describe("withPattern", () => {
     { key: "waistband" as const, value: "straight" as const },
     { key: "frontClosure" as const, value: "buttonStand" as const },
     { key: "trouserLengthCm" as const, value: 95 },
+    // #244: pleats found missing here too, before merge -- same class as
+    // the five above, caught in review this time.
+    { key: "pleats" as const, value: "box" as const },
   ];
 
   for (const { key, value } of STYLE_FLAG_CASES) {

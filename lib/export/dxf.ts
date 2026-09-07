@@ -184,6 +184,20 @@ export function toDxf(model: ExportModel): string {
       p(21, Y(b.y));
     }
 
+    // #244: a pleat's own placement/stitch line -- INTERNO, the same
+    // "internal, not cut" layer every other construction mark here uses.
+    for (const pleat of piece.pleats ?? []) {
+      if (pleat.length < 2) continue;
+      p(0, "LWPOLYLINE");
+      p(8, "INTERNO");
+      p(90, pleat.length);
+      p(70, 0);
+      for (const pt of pleat) {
+        p(10, X(pt.x));
+        p(20, Y(pt.y));
+      }
+    }
+
     // #127: a drill hole -- both a POINT (exact centre, machine-readable)
     // and a CIRCLE (radius, for visual reference), same layer.
     for (const hole of piece.drillHoles ?? []) {

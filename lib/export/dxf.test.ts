@@ -323,6 +323,30 @@ describe("toDxf", () => {
     expect(noInternals).not.toContain("\nCIRCLE\n");
   });
 
+  // #244: a pleat's own placement/stitch line -> an open LWPOLYLINE on
+  // INTERNO, same "internal, not cut" layer as the dart/fold line above.
+  it("a pleat's placement line comes out as an OPEN LWPOLYLINE on INTERNO", () => {
+    const pleatModel: ExportModel = {
+      ...squareModel,
+      pieces: [
+        {
+          ...squareModel.pieces[0],
+          pleats: [
+            [
+              { x: 4, y: 2 },
+              { x: 4, y: 6 },
+            ],
+          ],
+        },
+      ],
+    };
+    const dxf = toDxf(pleatModel);
+    expect(dxf.match(/\nLWPOLYLINE\n/g)?.length).toBe(3); // cut + net + pleat
+    expect(dxf).toMatch(/LWPOLYLINE\n8\nINTERNO\n90\n2\n70\n0\n/);
+    const noPleats = toDxf(squareModel);
+    expect(noPleats.match(/\nLWPOLYLINE\n/g)?.length).toBe(2); // cut + net only
+  });
+
   it("1:1 scale: CONTORNO is the 12cm cut line, COSTURA the 10cm net line (mm)", () => {
     const dxf = toDxf(squareModel);
     const cutXs = lwVerticesOnLayer(dxf, "CONTORNO").map((v) => v.x);

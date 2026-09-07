@@ -311,6 +311,57 @@ describe("buildExportModel", () => {
     });
   });
 
+  // #244: the reserved "pleat" InternalCm kind's first real emitter --
+  // proves its own placement/stitch line reaches the export model (not just
+  // the reused foldLine channel, already covered above).
+  describe("pleats (#244)", () => {
+    function pleatedSkirtPattern(): Pattern {
+      return {
+        id: "p1",
+        name: "Teste",
+        version: 1,
+        baseSize: "M",
+        unit: "cm",
+        sizes: ["M"],
+        sizesApplied: [],
+        sizesPending: [],
+        sizeTable: { M: SIZE_TABLE.M },
+        pieces: [],
+        spec: {
+          type: "skirt",
+          gender: "female",
+          measurementOverrides: {},
+          style: { skirt: "straight", pleats: "box" },
+        },
+      };
+    }
+
+    it("carries the pleat's own placement lines into local outline coordinates, alongside its press fold", () => {
+      const model = buildExportModel(pleatedSkirtPattern(), t);
+      const skirt = model.pieces.find((p) => p.id === "skirt")!;
+      expect(skirt.pleats?.length).toBe(2); // one per side
+      expect(skirt.internalFoldLines?.length).toBe(2); // the press fold, reused
+      for (const line of skirt.pleats!) {
+        expect(line.length).toBeGreaterThanOrEqual(2);
+        for (const pt of line) {
+          expect(pt.x).toBeGreaterThanOrEqual(-1e-6);
+          expect(pt.x).toBeLessThanOrEqual(skirt.widthCm + 1e-6);
+          expect(pt.y).toBeGreaterThanOrEqual(-1e-6);
+          expect(pt.y).toBeLessThanOrEqual(skirt.heightCm + 1e-6);
+        }
+      }
+    });
+
+    it("an unpleated skirt carries neither pleats nor internalFoldLines", () => {
+      const p = pleatedSkirtPattern();
+      p.spec!.style.pleats = "none";
+      const model = buildExportModel(p, t);
+      const skirt = model.pieces.find((p) => p.id === "skirt")!;
+      expect(skirt.pleats).toBeUndefined();
+      expect(skirt.internalFoldLines).toBeUndefined();
+    });
+  });
+
   // #123: turns the seam-allowance annotation into a real cut-line outline,
   // offset outward from the net `outline` -- verified against the actual
   // drafting matrix (lib/draft/fixtures.ts's DECORATION_CASES, the same set

@@ -1,9 +1,14 @@
 import { describe, it, expect } from "vitest";
 import { SIZE_TABLE } from "@/lib/measurements";
 import { curveArcLengthCm } from "./core";
-import { draftSkirt, dressWaistHalfCm } from "./skirt";
+import {
+  draftSkirt,
+  dressWaistHalfCm,
+  PLEAT_INTAKE_PER_SIDE_CM,
+} from "./skirt";
 import { bbox } from "./core";
 import { t } from "@/lib/i18n/test-translate";
+import type { InternalCm } from "./core";
 
 const M = SIZE_TABLE.M;
 
@@ -166,6 +171,127 @@ describe("dressWaistHalfCm (#177)", () => {
         );
         expect(arc).toBeCloseTo(expectedWidthCm, 1);
       }
+    },
+  );
+});
+
+// #244: the reserved InternalCm "pleat" variant's first real emitter.
+describe("pleats (#244)", () => {
+  function waistWidth(dp: ReturnType<typeof draftSkirt>): number {
+    return curveArcLengthCm(dp.outlineCm, dp.curvedSpans ?? [], 0, 2);
+  }
+  function hemWidth(dp: ReturnType<typeof draftSkirt>): number {
+    return curveArcLengthCm(dp.outlineCm, dp.curvedSpans ?? [], 3, 5);
+  }
+
+  it.each(["box", "inverted-box"] as const)(
+    "%s widens both the waist and hem edges by exactly 2x the per-side intake, on a straight skirt",
+    (pleats) => {
+      const plain = draftSkirt(M, { skirt: "straight" }, t);
+      const pleated = draftSkirt(M, { skirt: "straight", pleats }, t);
+      expect(waistWidth(pleated) - waistWidth(plain)).toBeCloseTo(
+        2 * PLEAT_INTAKE_PER_SIDE_CM,
+        5,
+      );
+      expect(hemWidth(pleated) - hemWidth(plain)).toBeCloseTo(
+        2 * PLEAT_INTAKE_PER_SIDE_CM,
+        5,
+      );
+    },
+  );
+
+  it("style.pleats: 'none' (or unset) drafts byte-identical geometry to no pleats at all", () => {
+    const unset = draftSkirt(M, { skirt: "straight" }, t);
+    const none = draftSkirt(M, { skirt: "straight", pleats: "none" }, t);
+    expect(none.outlineCm).toEqual(unset.outlineCm);
+    expect(none.internalsCm).toBeUndefined();
+    expect(unset.internalsCm).toBeUndefined();
+  });
+
+  it("a dress-mode panel never reads pleats -- the waist edge stays dressWaistHalfCm(waist)*2 wide regardless", () => {
+    const withoutPleats = draftSkirt(M, { skirt: "straight" }, t, true);
+    const withPleats = draftSkirt(
+      M,
+      { skirt: "straight", pleats: "box" },
+      t,
+      true,
+    );
+    expect(withPleats.outlineCm).toEqual(withoutPleats.outlineCm);
+    expect(withPleats.internalsCm).toBeUndefined();
+  });
+
+  it("emits real 'pleat' and 'foldLine' internals, two of each (one pair per side)", () => {
+    const dp = draftSkirt(M, { skirt: "straight", pleats: "box" }, t);
+    const kinds = (dp.internalsCm ?? []).map((e) => e.kind);
+    expect(kinds).toEqual(["foldLine", "pleat", "foldLine", "pleat"]);
+  });
+
+  it("box vs inverted-box: the fold line sits at a genuinely different position for the same side (fold direction is expressible)", () => {
+    const box = draftSkirt(M, { skirt: "straight", pleats: "box" }, t);
+    const inv = draftSkirt(M, { skirt: "straight", pleats: "inverted-box" }, t);
+    const isFoldLine = (
+      e: InternalCm,
+    ): e is Extract<InternalCm, { kind: "foldLine" }> => e.kind === "foldLine";
+    const boxFold = box.internalsCm!.find(isFoldLine)!;
+    const invFold = inv.internalsCm!.find(isFoldLine)!;
+    expect(boxFold.aCm[0]).not.toBeCloseTo(invFold.aCm[0], 3);
+  });
+
+  it("the waistPanel detail row reflects the REAL (pleat-widened) waist width, not the pre-pleat one", () => {
+    const plain = draftSkirt(M, { skirt: "straight" }, t);
+    const pleated = draftSkirt(M, { skirt: "straight", pleats: "box" }, t);
+    const row = (dp: typeof plain) =>
+      parseFloat(
+        dp.detailRows
+          .find((r) => r.label === "rows.waistPanel")!
+          .value.replace(",", ".")
+          .replace(" cm", ""),
+      );
+    expect(row(pleated) - row(plain)).toBeCloseTo(
+      2 * PLEAT_INTAKE_PER_SIDE_CM,
+      1,
+    );
+  });
+
+  it("adds a pleats detail row naming the pleat type, only when pleated", () => {
+    const plain = draftSkirt(M, { skirt: "straight" }, t);
+    const pleated = draftSkirt(
+      M,
+      { skirt: "straight", pleats: "inverted-box" },
+      t,
+    );
+    expect(
+      plain.detailRows.find((r) => r.label === "rows.pleats"),
+    ).toBeUndefined();
+    const row = pleated.detailRows.find((r) => r.label === "rows.pleats");
+    expect(row?.value).toBe("pleatType.inverted-box");
+  });
+
+  it("every pleat internal point stays inside the widened panel's own outline", () => {
+    const dp = draftSkirt(M, { skirt: "a-line", pleats: "inverted-box" }, t);
+    const b = bbox(dp.outlineCm);
+    for (const entry of dp.internalsCm ?? []) {
+      const pts: [number, number][] =
+        entry.kind === "foldLine"
+          ? [entry.aCm, entry.bCm]
+          : entry.kind === "pleat"
+            ? (entry.ptsCm as [number, number][])
+            : [];
+      for (const [x, y] of pts) {
+        expect(x).toBeGreaterThanOrEqual(b.minX);
+        expect(x).toBeLessThanOrEqual(b.maxX);
+        expect(y).toBeGreaterThanOrEqual(b.minY);
+        expect(y).toBeLessThanOrEqual(b.maxY);
+      }
+    }
+  });
+
+  it.each(["circle", "gore", "half-circle"] as const)(
+    "%s (radial): pleats is simply unread -- outline unchanged with pleats set",
+    (skirt) => {
+      const plain = draftSkirt(M, { skirt }, t);
+      const withPleats = draftSkirt(M, { skirt, pleats: "box" }, t);
+      expect(withPleats.outlineCm).toEqual(plain.outlineCm);
     },
   );
 });

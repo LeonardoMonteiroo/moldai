@@ -268,6 +268,30 @@ describe("toDxfAama", () => {
     expect(noInternals).not.toContain("\nCIRCLE\n");
   });
 
+  // #244: a pleat's own placement/stitch line -> open POLYLINE on layer 8,
+  // same "internal, not cut" semantics as the dart above.
+  it("a pleat's placement line comes out as an open POLYLINE on layer 8", () => {
+    const pleatModel: ExportModel = {
+      ...squareModel,
+      pieces: [
+        {
+          ...squareModel.pieces[0],
+          pleats: [
+            [
+              { x: 4, y: 2 },
+              { x: 4, y: 6 },
+            ],
+          ],
+        },
+      ],
+    };
+    const withPleat = toDxfAama(pleatModel);
+    expect(withPleat.match(/\nPOLYLINE\n/g)?.length).toBe(3); // cut + net + pleat
+    expect(withPleat).toMatch(
+      /POLYLINE\n8\n8\n66\n1\n10\n0\n20\n0\n30\n0\n70\n0/,
+    );
+  });
+
   it("one BLOCK and one INSERT per piece in multi-piece models", () => {
     const multi: ExportModel = {
       ...squareModel,

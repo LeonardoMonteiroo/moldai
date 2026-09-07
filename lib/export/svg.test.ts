@@ -262,6 +262,30 @@ describe("toSvg", () => {
     expect(noInternals).not.toContain("<circle ");
   });
 
+  // #244: a pleat's own placement/stitch line renders as its own open path,
+  // with a dash pattern distinct from the fold line's above so the two
+  // read apart.
+  it("a pleat's placement line renders as an open path with its own dash pattern", () => {
+    const pleatModel: ExportModel = {
+      ...model,
+      pieces: [
+        {
+          ...model.pieces[0],
+          pleats: [
+            [
+              { x: 4, y: 0 },
+              { x: 5, y: 10 },
+            ],
+          ],
+        },
+      ],
+    };
+    const svg = toSvg(pleatModel);
+    expect(svg).toContain('stroke-dasharray="2 2"');
+    const noPleats = toSvg(model);
+    expect(noPleats).not.toContain('stroke-dasharray="2 2"');
+  });
+
   // #126: rendered as a dashed <line> (distinct dasharray from the
   // grainline's) plus the pt-BR foldLabel text at its midpoint; absent when
   // the piece has no fold.
