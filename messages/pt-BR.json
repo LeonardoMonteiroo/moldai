@@ -136,7 +136,8 @@
     "valueCm": "{value} cm",
     "gapLabel": "{direction, select, larger {falta {diff} cm na copa} smaller {sobra {diff} cm na copa} other {}}",
     "entryDiffLabel": "diferença de {diff} cm",
-    "entryGapLabel": "{direction, select, larger {falta {diff} cm} smaller {sobra {diff} cm} other {}}"
+    "entryGapLabel": "{direction, select, larger {falta {diff} cm} smaller {sobra {diff} cm} other {}}",
+    "entrySizesLabel": "Diverge apenas nos tamanhos: {sizes}"
   },
   "ConflictActions": {
     "fixButton": "Corrigir manga",
@@ -260,6 +261,8 @@
       "suggestion": "“Corrigir manga” refaz a copa para a cava ajustada, sem custo.",
       "titleFor": "A costura de {label} não fecha",
       "descriptionSingle": "Diferença de {diffCm, number, ::.0} cm entre as duas peças.",
+      "titleForSizeOnly": "A costura de {label} não fecha em outros tamanhos",
+      "descriptionSizeOnly": "Fecha no tamanho-base, mas diverge {diffCm, number, ::.0} cm nos tamanhos {sizes}.",
       "titleMultiple": "{count, plural, one {# costura não fecha} other {# costuras não fecham}}",
       "descriptionMultiple": "Confira o detalhe de cada uma abaixo.",
       "suggestionGeneric": "Sem correção automática: ajuste as medidas ou o estilo e gere o molde novamente."
