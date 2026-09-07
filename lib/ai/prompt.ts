@@ -168,13 +168,13 @@ If the user asks for a value outside its valid range, set the nearest bound in t
 # Decision policy
 
 - apply: enough detail to draft now. Fill in the COMPLETE, UPDATED spec — never just the delta.
-- ask: relevant detail is missing (neckline, sleeve, fit, length, size…). Ask 1 to 4 objective single-choice questions with options from the catalogs above; don't invent measurements or draft. Only use apply once you have enough.
+- ask: relevant detail is missing (neckline, sleeve, fit, length, size…). Ask 1 to 4 objective single-choice questions; don't invent measurements or draft. Only use apply once you have enough. For a question about neckline/sleeve/skirt/collar/cuff/waistband, set \`field\` to that name and give \`options\` as the EXACT catalog tokens above (e.g. "round"/"V"/"straight" for neckline) rather than translating them — the client renders each token's own localized label, and a token that isn't a real catalog value is dropped. Leave \`field\` unset for anything with no catalog (a measurement, a free-length choice).
 - explain: the user asked a question instead of requesting a garment or an adjustment — about pattern-making (see Modeling knowledge) or about how MoldAI works (see Product facts). Answer it in assistantMessage; don't draft, don't fill in spec. If one message both asks something and requests a change, prefer apply/ask and answer inside assistantMessage.
 - decline: neither a garment this spec can represent (jackets, accessories, a trouser silhouette other than straight-leg) nor a question you may answer under Modeling knowledge or Product facts. Also use this (or ask, if a workable substitute exists) when a request names a specific collar/cuff/waistband shape, or trouser leg silhouette, MoldAI doesn't draft — never silently apply "convertible"/"straight" as if it were what was asked for. Explain gently in assistantMessage; don't fill in spec.
 
 # Language
 
-Write assistantMessage, and any question labels/options, in the natural language of the user's most recent message — mirror it exactly, never default to a fixed language.`;
+Write assistantMessage, and any question labels/options, in the natural language of the user's most recent message — mirror it exactly, never default to a fixed language. The one exception is a question's own \`options\` when \`field\` is set: those stay the catalog's own English tokens (see the ask policy above), never translated — the client localizes them, not you.`;
 }
 
 // #267: built EAGERLY, once per registered engine, at module load -- never

@@ -183,4 +183,72 @@ describe("ClarifyCard", () => {
     await user.click(generateButton());
     expect(sendMessage).toHaveBeenCalledWith("", { answering: true });
   });
+
+  // #262: a question carrying `field` has options that are EN catalog
+  // tokens (validateQuestions already checked them against that field's
+  // real catalog) -- the card must never show the raw token, and the
+  // composed phrase must carry the same localized text the user clicked,
+  // not the internal EN value.
+  describe("a question carrying `field` (#262)", () => {
+    const FIELD_QUESTIONS: ClarifyQuestion[] = [
+      {
+        id: "neckline",
+        label: "Decote",
+        field: "neckline",
+        options: ["round", "V"],
+        allowOther: true,
+      },
+    ];
+
+    it("renders each option's catalog label, not the raw EN token", () => {
+      renderCard(FIELD_QUESTIONS);
+
+      expect(
+        screen.getByRole("radio", {
+          name: ptBR.NewPatternForm.value.neckline.round,
+        }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("radio", {
+          name: ptBR.NewPatternForm.value.neckline.V,
+        }),
+      ).toBeInTheDocument();
+      expect(screen.queryByRole("radio", { name: "round" })).toBeNull();
+    });
+
+    it("sends the catalog's localized label, not the internal EN token", async () => {
+      renderCard(FIELD_QUESTIONS);
+      const user = userEvent.setup();
+
+      await user.click(
+        screen.getByRole("radio", {
+          name: ptBR.NewPatternForm.value.neckline.round,
+        }),
+      );
+      await user.click(generateButton());
+
+      expect(sendMessage).toHaveBeenCalledWith(
+        `Decote: ${ptBR.NewPatternForm.value.neckline.round}`,
+        { answering: true },
+      );
+    });
+
+    it("sends the raw free-text 'outro' answer unchanged, never through the catalog lookup", async () => {
+      renderCard(FIELD_QUESTIONS);
+      const user = userEvent.setup();
+
+      await user.click(
+        screen.getByRole("radio", { name: ptBR.ClarifyCard.otherOption }),
+      );
+      await user.type(
+        screen.getByPlaceholderText(ptBR.ClarifyCard.otherPlaceholder),
+        "gola personalizada",
+      );
+      await user.click(generateButton());
+
+      expect(sendMessage).toHaveBeenCalledWith("Decote: gola personalizada", {
+        answering: true,
+      });
+    });
+  });
 });

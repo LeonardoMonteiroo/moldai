@@ -4,6 +4,8 @@ import {
   validateQuestions,
   seamCheck,
   STYLE_LIMITS,
+  NECKLINES,
+  COLLARS,
 } from "./garment";
 import {
   draftGarment,
@@ -846,6 +848,69 @@ describe("validateQuestions", () => {
   it("allowOther defaults to false when missing/invalid", () => {
     const qs = validateQuestions([{ label: "P", options: ["a", "b"] }]);
     expect(qs[0].allowOther).toBe(false);
+  });
+
+  // #262: a question naming a real style field gets every option checked
+  // against that field's own catalog -- "every offered option is draftable"
+  // becomes structural instead of merely instructed in the prompt.
+  describe("field-scoped options (#262)", () => {
+    it("keeps a field question whose options are all real catalog values, and carries the field through", () => {
+      const qs = validateQuestions([
+        { label: "Neckline", field: "neckline", options: NECKLINES },
+      ]);
+      expect(qs).toHaveLength(1);
+      expect(qs[0].field).toBe("neckline");
+      expect(qs[0].options).toEqual(NECKLINES);
+    });
+
+    it("drops an option that is not a real value of the named field's catalog", () => {
+      const qs = validateQuestions([
+        {
+          label: "Neckline",
+          field: "neckline",
+          // "boat" is not a value of NECKLINES; "round"/"V" are.
+          options: ["round", "boat", "V"],
+        },
+      ]);
+      expect(qs[0].options).toEqual(["round", "V"]);
+    });
+
+    it("drops the whole question when fewer than 2 catalog options survive", () => {
+      const qs = validateQuestions([
+        { label: "Neckline", field: "neckline", options: ["round", "boat"] },
+      ]);
+      expect(qs).toEqual([]);
+    });
+
+    it("uses the catalog belonging to the named field, not some other one", () => {
+      // "round" is a real NECKLINES value but not a COLLARS value.
+      const qs = validateQuestions([
+        { label: "Collar", field: "collar", options: ["round", "band"] },
+      ]);
+      expect(qs).toEqual([]);
+      expect(COLLARS).not.toContain("round");
+      expect(COLLARS).toContain("band");
+    });
+
+    it("treats an unrecognized field string as no field at all -- free-text options, unfiltered", () => {
+      const qs = validateQuestions([
+        {
+          label: "Something",
+          field: "notARealField",
+          options: ["anything goes", "no catalog here"],
+        },
+      ]);
+      expect(qs[0].field).toBeUndefined();
+      expect(qs[0].options).toEqual(["anything goes", "no catalog here"]);
+    });
+
+    it("ignores a non-string field the same way", () => {
+      const qs = validateQuestions([
+        { label: "Something", field: 42, options: ["a", "b"] },
+      ]);
+      expect(qs[0].field).toBeUndefined();
+      expect(qs[0].options).toEqual(["a", "b"]);
+    });
   });
 });
 

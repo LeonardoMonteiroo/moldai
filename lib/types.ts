@@ -80,11 +80,38 @@ export type WaistbandType = "none" | "straight";
 // surfaced by lib/ai/prompt.ts's guidance rather than a silent substitute.
 export type FrontClosureType = "none" | "buttonStand";
 
+// #262: the style fields a clarifying question's options can be checked
+// against a real catalog -- exactly the app-wide enums with a small closed
+// vocabulary (NECKLINES/SLEEVES/SKIRTS/COLLARS/CUFFS/WAISTBANDS, all in
+// lib/draft/vocabulary.ts). validateQuestions (lib/draft/garment.ts) is the
+// one place that maps each of these to its actual catalog array -- never a
+// second, hand-rolled copy of that mapping. A question about anything else
+// (a measurement, a free-length numeric field) has no catalog to check
+// against and stays free-text, the same as before this field existed --
+// see ClarifyQuestion.field's own doc below.
+export const CLARIFY_QUESTION_FIELDS = [
+  "neckline",
+  "sleeve",
+  "skirt",
+  "collar",
+  "cuff",
+  "waistband",
+] as const;
+export type ClarifyQuestionField = (typeof CLARIFY_QUESTION_FIELDS)[number];
+
 export interface ClarifyQuestion {
   id: string;
   label: string;
   options: string[];
   allowOther: boolean;
+  // #262: optional -- when present, every option was already checked against
+  // this field's own catalog by validateQuestions (dropped otherwise), and
+  // the UI resolves each option's display label through the same
+  // NewPatternForm.value.<field>.<value> catalog lookup a style-field Select
+  // already uses instead of rendering the raw string. Absent for a question
+  // with no catalog to check against (a measurement, a free-length field),
+  // which behaves exactly as before this issue: free text, rendered as-is.
+  field?: ClarifyQuestionField;
 }
 
 export interface GarmentStyle {

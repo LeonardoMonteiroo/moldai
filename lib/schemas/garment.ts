@@ -12,6 +12,7 @@ import {
   FIT_CLASSES,
   STRETCH_CLASSES,
 } from "@/lib/draft/garment";
+import { CLARIFY_QUESTION_FIELDS } from "@/lib/types";
 
 // Reuses the same exported enum arrays lib/ai's prompt/schema and
 // validateSpec already read, per CLAUDE.md's one-exported-source rule --
@@ -59,4 +60,9 @@ export const ClarifyQuestionSchema = z.object({
   label: z.string(),
   options: z.array(z.string()),
   allowOther: z.boolean(),
+  // #262: must be named here or z.object strips it -- the same
+  // hasImage/assembly/collar trap lib/schemas/pattern.ts's own
+  // ChatMessageSchema comment documents, applied to a field added after
+  // ClarifyQuestion first shipped.
+  field: z.enum(CLARIFY_QUESTION_FIELDS).optional(),
 });

@@ -386,12 +386,15 @@ describe("prompt-cache byte stability", () => {
       staticSectionsFor(DEFAULT_ENGINE_ID) +
       JSON.stringify(toolFor(DEFAULT_ENGINE_ID));
     const hash = createHash("sha256").update(bytes).digest("hex");
-    // #270: regenerated -- the "# Attached images" section (buildStaticSections)
-    // gained the "describe only the clothing, never the person wearing it"
-    // sentence. A deliberate, expected byte change (see this describe block's
-    // own comment), not a bug.
+    // #262: regenerated -- the "# Decision policy" ask bullet and "#
+    // Language" section (buildStaticSections) now tell the model to set
+    // `field` + EXACT catalog tokens for a style-catalog question, and the
+    // propose_garment tool's own `questions.items` gained a `field` enum
+    // property (lib/ai/schema.ts) so that request is structurally valid. A
+    // deliberate, expected byte change (see this describe block's own
+    // comment), not a bug.
     expect(hash).toBe(
-      "cf305fe6c57914ea3ab8464e535907a0be591e8a549a10720d2c80c11b9a0b4c",
+      "d3bbd5650f018844b873c77a5845683dec2818e3813ea5456cefb71771eaec4d",
     );
   });
 });
