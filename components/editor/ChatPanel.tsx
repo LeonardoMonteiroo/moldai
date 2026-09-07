@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useEditorStore, GENERATION_STEP_COUNT } from "@/lib/store";
+import type { PreparedAttachment } from "@/lib/editor/attachment";
 import { ChatBubble } from "./ChatBubble";
-import { type AttachmentSelection } from "./AttachmentChips";
 import { MessageInput } from "./MessageInput";
 import { ConflictActions } from "./ConflictActions";
 import { COSTS } from "@/lib/types";
@@ -23,9 +23,7 @@ export function ChatPanel() {
   const sendMessage = useEditorStore((s) => s.sendMessage);
   const cancelGeneration = useEditorStore((s) => s.cancelGeneration);
   const resolveConflict = useEditorStore((s) => s.resolveConflict);
-  const [attachment, setAttachment] = useState<AttachmentSelection | null>(
-    null,
-  );
+  const [attachments, setAttachments] = useState<PreparedAttachment[]>([]);
   const listRef = useRef<HTMLDivElement>(null);
   // Was the reader already at the bottom? If they scrolled up to re-read an
   // earlier turn, a generation finishing must not yank them back down.
@@ -161,18 +159,17 @@ export function ChatPanel() {
           </div>
         ) : (
           <MessageInput
-            disabled={isGenerating || attachment?.status === "preparing"}
-            attachment={attachment}
-            onAttachmentChange={setAttachment}
+            disabled={isGenerating}
+            attachments={attachments}
+            onAttachmentsChange={setAttachments}
             onSend={(message) => {
-              const prepared =
-                attachment?.status === "ready" ? attachment.prepared : null;
               sendMessage(message, {
-                // One at most: the composer's own cap, unchanged by the
-                // wire moving to a list.
-                images: prepared ? [prepared] : undefined,
+                // #274: up to MAX_ATTACHMENT_COUNT now, matching the
+                // dashboard form's own photo row -- the wire and the store
+                // already accepted a list either way.
+                images: attachments.length ? attachments : undefined,
               });
-              setAttachment(null);
+              setAttachments([]);
             }}
           />
         )}

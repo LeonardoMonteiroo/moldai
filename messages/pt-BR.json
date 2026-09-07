@@ -60,6 +60,7 @@
   },
   "AttachmentChips": {
     "photo": "Anexar foto",
+    "photoLimitReached": "Limite de {max, plural, one {# foto} other {# fotos}} atingido",
     "dxfComingSoonTitle": "Anexar molde .dxf chega em breve",
     "preparing": "Preparando imagem…",
     "removeAttachment": "Remover anexo",

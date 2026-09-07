@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { COSTS, MAX_CHAT_MESSAGE_LENGTH } from "@/lib/types";
+import type { PreparedAttachment } from "@/lib/editor/attachment";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { AttachmentChips, type AttachmentSelection } from "./AttachmentChips";
+import { AttachmentChips } from "./AttachmentChips";
 
 /**
  * Editor.dc.html:203-218: ONE bordered card holding the textarea and, on its
@@ -19,21 +20,27 @@ import { AttachmentChips, type AttachmentSelection } from "./AttachmentChips";
  */
 export function MessageInput({
   disabled,
-  attachment,
-  onAttachmentChange,
+  attachments,
+  onAttachmentsChange,
   onSend,
 }: {
   disabled: boolean;
-  attachment: AttachmentSelection | null;
-  onAttachmentChange: (next: AttachmentSelection | null) => void;
+  attachments: PreparedAttachment[];
+  onAttachmentsChange: (next: PreparedAttachment[]) => void;
   onSend: (message: string) => void;
 }) {
   const t = useTranslations("MessageInput");
   const [value, setValue] = useState("");
+  // #274: a pick is genuinely async (prepareImage decodes/downscales on a
+  // real canvas) -- without this, Enter/Gerar during that window sent the
+  // message with the attachment still missing, and the pick's own completion
+  // then re-attached it to whatever was sent NEXT instead.
+  const [preparingAttachment, setPreparingAttachment] = useState(false);
+  const busy = disabled || preparingAttachment;
 
   function submit() {
     const message = value.trim();
-    if (disabled || !message) return;
+    if (busy || !message) return;
     onSend(message);
     setValue("");
   }
@@ -47,7 +54,7 @@ export function MessageInput({
           chat above it. */}
       <Textarea
         value={value}
-        disabled={disabled}
+        disabled={busy}
         onChange={(event) => setValue(event.target.value)}
         onKeyDown={(event) => {
           // Enter sends; Shift+Enter is how you get a newline now that there
@@ -64,8 +71,9 @@ export function MessageInput({
       />
       <div className="mt-[10px] flex items-center gap-[6px]">
         <AttachmentChips
-          attachment={attachment}
-          onChange={onAttachmentChange}
+          attachments={attachments}
+          onChange={onAttachmentsChange}
+          onPreparingChange={setPreparingAttachment}
         />
         <div className="flex-1" />
         <span className="text-muted text-meta whitespace-nowrap">
@@ -74,7 +82,7 @@ export function MessageInput({
         <Button
           size="chrome"
           onClick={submit}
-          disabled={disabled || !value.trim()}
+          disabled={busy || !value.trim()}
           className="h-8"
         >
           {t("generateButton")}
