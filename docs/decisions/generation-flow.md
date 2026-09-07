@@ -224,3 +224,93 @@ while tracing an adjacent path" pattern #270 used for #274.
 **The honest close.** No code changed; #272 (ChatGarment) was still open when this spike
 was written, so no overlap with its findings could be checked — only the structural
 observation that three independent systems now converge on the same pipeline shape.
+
+---
+
+## ChatGarment mined for technique, second spike in the pair #270 asked for; nothing new landed here (#272)
+
+**Decided and not built — a docs-only unit.** #272 asked whether ChatGarment
+(CVPR 2025, Bian et al., a second independent published system solving the
+same shape of problem as Design2GarmentCode: an LMM produces a structured
+garment parameter set, a deterministic GarmentCode-family drafter consumes
+it) surfaces anything the Design2GarmentCode spike missed, and where the two
+diverge, which one is more likely right. Full evidence:
+[`docs/reference/chatgarment-spike/README.md`](../reference/chatgarment-spike/README.md).
+
+**A correction made before anything else could be trusted.** The batch this
+issue shipped in described #258/#259/#262/#265 as already-merged PRs
+(#303/#300/#306/#293 respectively). Checked directly against
+`origin/main` rather than assumed: none of the five sibling PRs in this
+batch (`#300`, `#303`, `#304`, `#306`, `#293`) had merged as of this spike.
+Each is real, correctly-cited implementation work against its own issue —
+nothing below re-proposes any of it — but the spike's own write-up is
+careful to say "implemented in an open PR," not "landed," throughout.
+
+**The headline: a genuine third architecture for structured output, not a
+restatement of the Design2GarmentCode-vs-ours comparison.** ChatGarment
+fine-tunes an open VLM (LLaVA-1.5-7B) to emit categorical fields as
+ordinary text tokens — Design2GarmentCode's own shape — but routes every
+continuous numeric field through a masked placeholder token and a
+separately-trained regression head (a small MLP, its own L1 loss) instead
+of generating it as text at all. Its raw output is still unconstrained free
+text repaired post-hoc (no schema enforcement), so our forced-tool-use
+`propose_garment` call remains the only one of the three architectures that
+makes an invalid enum or a missing field structurally impossible rather
+than merely less likely — the Design2GarmentCode spike's headline finding
+holds up against a second independent system, not just the first.
+
+**The divergence this spike's own acceptance criteria asked to investigate,
+found and not silently dropped.** Design2GarmentCode's "multiple-choice
+beats numeric estimation" claim (source of #260, now implemented as the
+still-open #304) had no ablation behind it. ChatGarment's own Section 4.1
+does run the analogous ablation: a baseline that generates continuous
+values as plain text (no regression head) scores markedly worse (5.29 vs.
+3.12 Chamfer Distance on Dress4D) than its shipped design. Read carefully,
+this corroborates the **diagnosis** both systems share (LLMs are unreliable
+at emitting precise continuous numbers as text tokens) but not the **cure**
+#260/#304 already chose (categorical substitution) — ChatGarment's own fix
+is a different, heavier technique (a fine-tuned regression channel) that
+requires an ML investment neither system's predecessor spike found
+justified for us. Two independent systems agreeing on the problem, for the
+first time with real ablation evidence, is still a stronger signal than
+one — it just isn't the same as agreeing on the fix, and this document says
+so explicitly rather than force-fitting a clean convergence.
+
+**A second real ablation, this one strengthening ground already covered.**
+Appendix S2 ablates training without part-level image descriptions and
+shows it measurably hurts reconstruction accuracy — direct, measured
+support for the "describe the garment part-by-part before inferring the
+spec" technique #258/#303 (open, unmerged) already implements as
+`garmentReading`. The spike also traced #303's design against ChatGarment's
+actual inference-time mechanism (a single combined-description call,
+confirmed from the paper's own Table S8 example) rather than the
+implementation's separate, per-part-isolated GPT-4o calls found in its
+source — the latter is a dataset-construction-only detail, never part of
+ChatGarment's own runtime path, so #303 already matches the right one.
+
+**One genuinely new, portable idea, not implemented (docs-only unit).**
+ChatGarment's per-part dataset-labeling prompts each carry an explicit
+negative instruction — naming the _other_ parts not to attribute a feature
+to (e.g., describing a collar: "strictly avoid mentioning sleeves, shirt
+torsos"). #303's single combined description has no equivalent guard
+against one part's feature bleeding into another's in the same pass.
+Recorded in the spike as a candidate one-sentence addition to
+`garmentReading`'s own prompt instruction — not built here, and not urgent
+enough to justify reopening or re-scoping #258 for it alone.
+
+**Confirmed, not changed: #265's own acceptance criteria already exceed
+ChatGarment's own training-data design.** The spike found the actual
+runtime prompt-augmentation code behind #265's cited "keep other parts
+unchanged" instruction (five paraphrased template variants, all sharing
+the same invariant) — real corroborating evidence, left as a comment on
+#265 rather than a change to its AC, since #265 already scopes by a live
+piece id rather than ChatGarment's fixed string vocabulary.
+
+**The honest close.** No code changed in this unit by design — see
+[`docs/reference/chatgarment-spike/README.md`](../reference/chatgarment-spike/README.md)'s
+own Validity section for what a same-paper ablation on a fine-tuned 7B
+LLaVA backbone does and does not tell us about Claude's own forced-tool-use
+numeric reliability. Reopens only if the eval harness (#252, closed since
+the Design2GarmentCode spike, code now on `main`) is ever run against the
+specific claim either #260/#304 or this document's numeric-prediction
+finding rests on.
