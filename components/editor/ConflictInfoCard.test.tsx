@@ -313,4 +313,56 @@ describe("ConflictInfoCard with entries (#134)", () => {
       screen.queryByText("Cintura · corpo (frente)"),
     ).not.toBeInTheDocument();
   });
+
+  // #241: a pair that closes at the base size still surfaces once it misses
+  // tolerance only at a graded size -- ConflictEntry.sizes names which.
+  it("names the affected sizes and falls back to the bare diff line, even when the base seamGraph has a (non-diverging) measurement for the key", () => {
+    const entries: ConflictInfo["entries"] = [
+      {
+        key: "armhole-cap",
+        label: "Cava e manga",
+        aLabel: "Cava · frente",
+        bLabel: "Cava · copa",
+        aPieceId: "body-front",
+        bPieceId: "sleeve",
+        diffCm: 1.1,
+        fixable: true,
+        markers: [],
+        sizes: ["GG-extremo"],
+      },
+    ];
+    renderWithIntl(
+      <ConflictInfoCard
+        conflict={entryConflict(entries, {
+          title: "A costura de Cava e manga não fecha em outros tamanhos",
+        })}
+        // The base size's own measurement -- doesn't diverge (a < 1cm gap),
+        // which is exactly why this entry is size-only in the first place.
+        seamGraph={[
+          {
+            key: "armhole-cap",
+            labelKey: "armholeCap",
+            aPieceId: "body-front",
+            bPieceId: "sleeve",
+            aLenCm: 20.0,
+            bLenCm: 20.4,
+            diffCm: 0.4,
+            fixable: true,
+            easeCm: 2.5,
+          },
+        ]}
+      />,
+    );
+    expect(
+      screen.getByText(t("entrySizesLabel", { sizes: "GG-extremo" })),
+    ).toBeInTheDocument();
+    // The bare diff line (the graded size's own real diffCm), not the base
+    // measurement's closing pair of lengths.
+    expect(
+      screen.getByText(t("entryDiffLabel", { diff: "1,1" })),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(t("valueCm", { value: "20,0" })),
+    ).not.toBeInTheDocument();
+  });
 });

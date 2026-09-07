@@ -79,6 +79,68 @@ describe("PasswordResetCard", () => {
       ).toHaveAttribute("href", "/login");
     });
 
+    // #239: the sent state kept no way to re-issue the link at all -- the
+    // resend button has to reuse the address already typed above, without
+    // asking the visitor to retype it.
+    describe("the sent state's resend button", () => {
+      async function requestThenSend(user: ReturnType<typeof userEvent.setup>) {
+        vi.mocked(requestPasswordReset).mockResolvedValue({ status: "ok" });
+        renderWithIntl(<PasswordResetCard token="" />);
+        await user.type(
+          screen.getByLabelText(ptBR.PasswordReset.emailLabel),
+          EMAIL,
+        );
+        await user.click(
+          screen.getByRole("button", {
+            name: ptBR.PasswordReset.requestButton,
+          }),
+        );
+        return screen.findByRole("button", {
+          name: ptBR.PasswordReset.resendButton,
+        });
+      }
+
+      it("shows the muted hint above a full-width outline resend button", async () => {
+        const user = userEvent.setup();
+        const button = await requestThenSend(user);
+        expect(
+          screen.getByText(ptBR.PasswordReset.requestSentHint),
+        ).toBeVisible();
+        expect(button).toBeVisible();
+      });
+
+      it("resends for the address the card kept in state", async () => {
+        const user = userEvent.setup();
+        const button = await requestThenSend(user);
+        await user.click(button);
+
+        // Called twice with the same address: once for the original
+        // request, once for the resend -- no form is left to read it from.
+        expect(requestPasswordReset).toHaveBeenNthCalledWith(2, EMAIL);
+        await waitFor(() =>
+          expect(screen.getByText(ptBR.PasswordReset.resendDone)).toBeVisible(),
+        );
+      });
+
+      it("renders a resend domain code from the catalog", async () => {
+        const user = userEvent.setup();
+        const button = await requestThenSend(user);
+        vi.mocked(requestPasswordReset).mockResolvedValue({
+          status: "error",
+          error: "rate_limited",
+        });
+        await user.click(button);
+
+        await waitFor(() =>
+          expect(
+            screen.getByText(ptBR.PasswordReset.errors.rate_limited),
+          ).toBeVisible(),
+        );
+        expect(screen.queryByText(ptBR.PasswordReset.resendDone)).toBeNull();
+        expect(button).toBeEnabled();
+      });
+    });
+
     // The account-enumeration property, checked by comparison rather than by
     // reading the copy: the route answers 200 either way, so the two renders
     // must be byte-identical.
@@ -211,6 +273,16 @@ describe("PasswordResetCard", () => {
           password: "a".repeat(MIN_PASSWORD_LENGTH - 1),
           confirm: "a".repeat(MIN_PASSWORD_LENGTH - 1),
         },
+      ],
+      // #238: the button must not enable for a password the server will
+      // reject as weak_password anyway -- length alone is no longer enough.
+      [
+        "the password has digits but no letters",
+        { password: "12345678", confirm: "12345678" },
+      ],
+      [
+        "the password has letters but no digits",
+        { password: "apenasletras", confirm: "apenasletras" },
       ],
     ])("keeps submit disabled while %s", async (_label, overrides) => {
       renderWithIntl(<PasswordResetCard token={TOKEN} />);

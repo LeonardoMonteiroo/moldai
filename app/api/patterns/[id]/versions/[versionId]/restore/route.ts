@@ -69,6 +69,27 @@ export async function POST(_request: Request, { params }: Ctx) {
         };
         applyGarmentSpec(state, version.spec, t);
         bumpVersion(state);
+        // #281: PatternVersion doesn't snapshot chat, but both sides carry a
+        // timestamp -- addMessage's own Date.now() and this row's own
+        // `createdAt DateTime @default(now())` -- so restoring drops every
+        // chat message that can only belong to a LATER turn (the one that
+        // produced v(n+1) and onward) by cutting at the restored version's
+        // own createdAt, rather than snapshotting chat per version (which
+        // would change PatternVersion's persisted shape). This is an
+        // approximation, not an exact turn boundary: recordVersion's DB
+        // insert always lands strictly before the addMessage() call for
+        // that SAME turn's own AI reply (see the generate route -- the
+        // reply is written after the version row, with its own fresh
+        // Date.now()), so that reply (and any trailing notice messages for
+        // this very turn) gets cut alongside the later turns' messages.
+        // Accepted deliberately: the one thing this must never do is leave
+        // behind a message that only makes sense for a version this restore
+        // just discarded, and this cutoff guarantees that in every case, at
+        // the cost of also losing this turn's own trailing reply -- the
+        // chat.restored notice added right below is what tells the user a
+        // restore happened.
+        const chatCutoff = new Date(version.createdAt).getTime();
+        state.chat = state.chat.filter((m) => m.createdAt <= chatCutoff);
         addMessage(state, {
           id: `msg-${Date.now()}-ai`,
           author: "ai",
