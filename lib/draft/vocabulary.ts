@@ -102,4 +102,15 @@ export const STYLE_LIMITS = {
   // #128: total waist-to-hem trouser length -- shorts/capri at the low end
   // up to a full-length ankle trouser at the high end.
   trouserLengthCm: { min: 60, max: 115 },
+  // #259: a waist-RISE STYLE offset, never a body measurement -- see
+  // lib/measurements.ts's own `rise` (waist-to-crotch, EXTENDED_MEASUREMENT_
+  // KEYS) for the body dimension this is deliberately kept separate from.
+  // Signed, centered on 0 = "drafted at the resolved body rise/natural
+  // waist, unchanged": positive raises the waistline above that ("cintura
+  // alta"/high-waisted -- more fabric between crotch and waistband for
+  // trousers, a taller panel for a skirt), negative lowers it ("gancho
+  // baixo"/low-rise). Applied as an OFFSET on top of whatever the body
+  // measurement/natural waist already resolves to (lib/draft/trousers.ts,
+  // lib/draft/skirt.ts) -- never a replacement for either.
+  riseCm: { min: -10, max: 15 },
 } as const;

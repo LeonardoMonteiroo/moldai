@@ -84,6 +84,87 @@ describe("draftSkirt", () => {
   });
 });
 
+// #259: riseCm raises/lowers the panel's own waist edge -- an offset on top
+// of the natural waist, never touching the body waist/hip measurements the
+// panel's WIDTH derives from.
+describe("draftSkirt riseCm (#259)", () => {
+  it("straight: a positive riseCm makes the panel taller (waist edge moves up, hem stays put)", () => {
+    const flat = draftSkirt(M, { skirt: "straight", skirtLengthCm: 60 }, t);
+    const risen = draftSkirt(
+      M,
+      { skirt: "straight", skirtLengthCm: 60, riseCm: 8 },
+      t,
+    );
+    expect(bbox(risen.outlineCm).h).toBeCloseTo(bbox(flat.outlineCm).h + 8, 5);
+    // waist edge (indices 0/2) moved up by exactly 8cm; hem (indices 3/5)
+    // unchanged.
+    expect(risen.outlineCm[0][1]).toBeCloseTo(flat.outlineCm[0][1] - 8, 5);
+    expect(risen.outlineCm[3][1]).toBeCloseTo(flat.outlineCm[3][1], 5);
+  });
+
+  it("straight: the waist panel's own WIDTH is unaffected by riseCm -- only the waist edge's height moves", () => {
+    const flat = draftSkirt(M, { skirt: "straight", skirtLengthCm: 60 }, t);
+    const risen = draftSkirt(
+      M,
+      { skirt: "straight", skirtLengthCm: 60, riseCm: 8 },
+      t,
+    );
+    expect(bbox(risen.outlineCm).w).toBeCloseTo(bbox(flat.outlineCm).w, 5);
+  });
+
+  it("circle: a positive riseCm shrinks the drafted waist radius (taller cone toward its own apex), never the hem", () => {
+    const flat = draftSkirt(M, { skirt: "circle", skirtLengthCm: 60 }, t);
+    const risen = draftSkirt(
+      M,
+      { skirt: "circle", skirtLengthCm: 60, riseCm: 8 },
+      t,
+    );
+    const radiusOf = (dp: typeof flat) =>
+      parseFloat(
+        dp.detailRows
+          .find((r) => r.label === "rows.waistRadius")!
+          .value.replace(",", "."),
+      );
+    expect(radiusOf(risen)).toBeCloseTo(radiusOf(flat) - 8, 1);
+    // the hem stays the same overall size regardless of rise.
+    expect(bbox(risen.outlineCm).w).toBeCloseTo(bbox(flat.outlineCm).w, 0);
+  });
+
+  it("a dress waist panel ignores riseCm -- it always joins the bodice at the natural waist", () => {
+    const withRise = draftSkirt(
+      M,
+      { skirt: "straight", skirtLengthCm: 60, riseCm: 8 },
+      t,
+      true,
+    );
+    const withoutRise = draftSkirt(
+      M,
+      { skirt: "straight", skirtLengthCm: 60 },
+      t,
+      true,
+    );
+    expect(withRise.outlineCm).toEqual(withoutRise.outlineCm);
+  });
+
+  it("low-rise (negative riseCm) still keeps every notch/grainline point inside the drafted outline", () => {
+    // #259: the tightest containment corner -- a negative riseCm shrinks the
+    // panel from the top; garment.test.ts's own DECORATION_CASES matrix
+    // covers this end-to-end (draftAll), this is the direct unit check.
+    const dp = draftSkirt(
+      M,
+      { skirt: "circle", skirtLengthCm: 60, riseCm: -10 },
+      t,
+    );
+    const b = bbox(dp.outlineCm);
+    for (const [gx, gy] of dp.grainlineCm ?? []) {
+      expect(gx).toBeGreaterThanOrEqual(b.minX);
+      expect(gx).toBeLessThanOrEqual(b.maxX);
+      expect(gy).toBeGreaterThanOrEqual(b.minY);
+      expect(gy).toBeLessThanOrEqual(b.maxY);
+    }
+  });
+});
+
 // #124: notches by convention.
 describe("notches (#124)", () => {
   it.each(["straight", "a-line", "circle", "gore", "half-circle"] as const)(

@@ -99,8 +99,18 @@ function trouserPanel(
   // single-ended (apex-to-seam-midpoint) shape body.ts's own isDressHem dart
   // uses, since this edge (like a dress's hem/waist join) has nothing below
   // it for a second, double-ended apex to open onto.
+  // #259: the apex depth is DART_DEPTH_CM under a typical rise, but scales
+  // DOWN (never up) for a shallow riseCm -- riseCm is a style.riseCm-driven
+  // OFFSET now (draftTrousers above), so a legitimate "gancho baixo" request
+  // combined with a small body rise can bring the crotch curve well under
+  // DART_DEPTH_CM; capping the apex at 60% of the rise (rather than flooring
+  // riseCm itself, which review found silently attenuates the user's actual
+  // request) keeps the dart clear of the crotch line at every riseCm this
+  // drafter can produce, adapting an internal derived value instead of the
+  // spec's own style field.
+  const dartDepthCm = Math.min(DART_DEPTH_CM, riseCm * 0.6);
   const dartLegL: Pt = [dartCenterX - dartHalfWidth, 0];
-  const dartApex: Pt = [dartCenterX, DART_DEPTH_CM];
+  const dartApex: Pt = [dartCenterX, dartDepthCm];
   const dartLegR: Pt = [dartCenterX + dartHalfWidth, 0];
   const dartSeamMid: Pt = [dartCenterX, 0];
   const internalsCm = dartInternals(
@@ -208,7 +218,34 @@ export function draftTrousers(
   // engine section). Both seeded system charts already set a real,
   // per-size-graded `rise`, so this fallback is a robustness path for a
   // custom chart that doesn't, not the common case.
-  const riseCm = m.rise ?? m.hip / 4 + 4;
+  const bodyRiseCm = m.rise ?? m.hip / 4 + 4;
+  // #259: style.riseCm is a signed waist-RISE STYLE OFFSET (STYLE_LIMITS.
+  // riseCm, lib/draft/vocabulary.ts) applied on top of the resolved BODY
+  // rise above -- never a replacement for it, the exact style/measurement
+  // conflation CLAUDE.md forbids for `fit`. Increasing the crotch-curve
+  // depth (moving the crotch point further from the waist top at y=0) is
+  // physically "more rise" -- a higher waistline relative to the crotch,
+  // i.e. "cintura alta"/high-waisted; decreasing it is "gancho baixo"/
+  // low-rise, the waist sitting closer to the crotch/hip level. `waist`
+  // (the panel's own top edge, a plumb horizontal from waistCF to
+  // waistOuter) never moves horizontally with this offset, so the
+  // waistband -- sized from that edge's own measured length -- still
+  // closes regardless of riseCm; `totalLengthCm` (the waist-to-hem length)
+  // is untouched too, so a rise change trades leg length for rise length,
+  // never the garment's own total.
+  //
+  // A previous cut of this floored the SUM well above DART_DEPTH_CM to keep
+  // the waist dart clear of the crotch curve -- found (by review) to
+  // silently attenuate a fully in-range, legitimate style.riseCm request
+  // (e.g. bodyRiseCm=20 + riseCm=-10 floored to 15, delivering only -5 with
+  // no adjustment reported anywhere) for any chart whose body rise sits
+  // near STYLE_LIMITS.riseCm's own span, the exact silent-substitution
+  // CLAUDE.md forbids. The floor here instead only rules out a literal
+  // non-positive crotch depth (a pathological custom chart, never a real
+  // in-range request) -- trouserPanel's own dart depth adapts to whatever
+  // rise room is ACTUALLY available (see its own comment) instead of the
+  // rise being bent to fit a fixed dart.
+  const riseCm = Math.max(1, bodyRiseCm + (style.riseCm ?? 0));
   const totalLengthCm =
     style.trouserLengthCm ?? TROUSER_DEFAULT_LENGTH_CM[gender];
 

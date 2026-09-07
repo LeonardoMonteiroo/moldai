@@ -37,6 +37,7 @@ const STYLE_FIELDS: (keyof GarmentStyle)[] = [
   "waistband",
   "frontClosure",
   "trouserLengthCm",
+  "riseCm",
 ];
 
 function overridesEqual(

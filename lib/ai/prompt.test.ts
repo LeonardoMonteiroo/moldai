@@ -386,12 +386,12 @@ describe("prompt-cache byte stability", () => {
       staticSectionsFor(DEFAULT_ENGINE_ID) +
       JSON.stringify(toolFor(DEFAULT_ENGINE_ID));
     const hash = createHash("sha256").update(bytes).digest("hex");
-    // #270: regenerated -- the "# Attached images" section (buildStaticSections)
-    // gained the "describe only the clothing, never the person wearing it"
-    // sentence. A deliberate, expected byte change (see this describe block's
-    // own comment), not a bug.
+    // #259: regenerated -- the style-fields section gained the riseCm bound
+    // line and the vocabulary-mapping section gained the "cintura alta"/
+    // "gancho baixo" mapping. A deliberate, expected byte change (see this
+    // describe block's own comment), not a bug.
     expect(hash).toBe(
-      "cf305fe6c57914ea3ab8464e535907a0be591e8a549a10720d2c80c11b9a0b4c",
+      "5b4fcfa0ffe7891ec684de26dd841791b399411b19d2a26f2c8a2562c084597d",
     );
   });
 });

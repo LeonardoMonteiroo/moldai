@@ -185,6 +185,31 @@ export const DECORATION_CASES: [string, GarmentSpec][] = [
     },
   ],
   [
+    // #259: exercises the radial branch's own waist-rise offset (shrinks the
+    // drafted waist radius, taller panel above the hem) across the same
+    // matrix every other style field already gets exercised in.
+    "skirt circle high-rise",
+    {
+      type: "skirt",
+      gender: "female",
+      measurementOverrides: {},
+      style: { skirt: "circle", riseCm: STYLE_LIMITS.riseCm.max },
+    },
+  ],
+  [
+    // #259: the straight/a-line branch's own low-rise offset -- shrinks the
+    // panel from the top, the tightest containment corner for the moved
+    // waist edge/grainline (a negative riseCm brings the waist edge closer
+    // to the hem instead of extending past it).
+    "skirt straight low-rise",
+    {
+      type: "skirt",
+      gender: "female",
+      measurementOverrides: {},
+      style: { skirt: "straight", riseCm: STYLE_LIMITS.riseCm.min },
+    },
+  ],
+  [
     "trousers straight",
     {
       type: "trousers",
@@ -202,6 +227,17 @@ export const DECORATION_CASES: [string, GarmentSpec][] = [
       // #128: exercises the AI/user-settable trouserLengthCm across the same
       // matrix every other style field already gets exercised in.
       style: { trouserLengthCm: STYLE_LIMITS.trouserLengthCm.min },
+    },
+  ],
+  [
+    // #259: exercises the trouser block's own waist-rise offset -- an
+    // OFFSET on top of the resolved body rise, never a replacement for it.
+    "trousers high-rise",
+    {
+      type: "trousers",
+      gender: "male",
+      measurementOverrides: {},
+      style: { riseCm: STYLE_LIMITS.riseCm.max },
     },
   ],
 ];

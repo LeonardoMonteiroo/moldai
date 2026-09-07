@@ -170,6 +170,7 @@ function buildTool(capability: EngineCapability): LlmTool {
                 trouserLengthCm: bounded(
                   capability.styleLimits.trouserLengthCm,
                 ),
+                riseCm: bounded(capability.styleLimits.riseCm),
               },
             },
           },

@@ -190,6 +190,17 @@ export function validateSpec(raw: unknown): GarmentSpec {
             STYLE_LIMITS.trouserLengthCm.max,
           )
         : undefined,
+    // #259: a signed waist-rise OFFSET (see vocabulary.ts's STYLE_LIMITS.
+    // riseCm doc) -- num()'s own default (0) is the "no offset" value, same
+    // shape darts/armholeDeepenCm already use for their own zero-default.
+    riseCm:
+      style.riseCm !== undefined
+        ? clamp(
+            num(style.riseCm, 0),
+            STYLE_LIMITS.riseCm.min,
+            STYLE_LIMITS.riseCm.max,
+          )
+        : undefined,
   };
   return {
     type: pick(r.type, TYPES, "blouse"),
@@ -634,7 +645,17 @@ export function draftAll(
     // chart's own skirtLength) but doesn't expose on the piece. A dress adds
     // this on top of its bodice-to-waist length (set above); a standalone
     // skirt has no bodice, so this IS the whole garment length.
-    const skirtLenCm = spec.style.skirtLengthCm ?? measurements.skirtLength;
+    // #259: a standalone skirt's own riseCm extends/retracts the panel's
+    // drafted height by exactly that amount (draftSkirt's own waistY/hemY
+    // split above) -- unlike trousers.ts's own riseCm (an offset traded
+    // against leg length, total held fixed), a skirt has no second "length"
+    // field to trade against, so the reported garment length has to grow
+    // with it or this figure would silently stop matching the drafted
+    // piece. A dress's own skirt panel always resolves riseCm to 0
+    // (isDressWaist, draftSkirt) so this is a true no-op there.
+    const skirtRiseCm = spec.type === "dress" ? 0 : (spec.style.riseCm ?? 0);
+    const skirtLenCm =
+      (spec.style.skirtLengthCm ?? measurements.skirtLength) + skirtRiseCm;
     garmentLengthCm =
       spec.type === "dress" ? (garmentLengthCm ?? 0) + skirtLenCm : skirtLenCm;
     // #134: the dress bodice's hem/waist-join edge vs the skirt panel's own

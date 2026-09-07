@@ -206,6 +206,7 @@ export function describeSpecAdjustments(
     rawStyle.trouserLengthCm,
     validated.style.trouserLengthCm,
   );
+  checkScalar("riseCm", rawStyle.riseCm, validated.style.riseCm);
 
   return out;
 }

@@ -45,6 +45,7 @@ export const GarmentStyleSchema = z.object({
   waistband: z.enum(WAISTBANDS).optional(),
   frontClosure: z.enum(FRONT_CLOSURES).optional(),
   trouserLengthCm: z.number().optional(),
+  riseCm: z.number().optional(),
 });
 
 export const GarmentSpecSchema = z.object({

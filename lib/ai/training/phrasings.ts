@@ -192,7 +192,8 @@ type NumericField =
   | "skirtLengthCm"
   | "seamAllowanceCm"
   | "armholeDeepenCm"
-  | "trouserLengthCm";
+  | "trouserLengthCm"
+  | "riseCm";
 
 // Numeric fields have no fixed value set to bank fragments against -- a
 // small function per field instead, indexed by `variant` so the composer
@@ -234,6 +235,24 @@ function numericFragment(
           `bem na altura de ${value}cm de comprimento`,
           `${value}cm do cós até a barra, mais ou menos`,
         ];
+      case "riseCm": {
+        // #259: signed -- a positive value reads as "cintura alta" (raised
+        // waist), a negative one as "gancho baixo"/low-rise. `value` itself
+        // may be negative, so the phrase names the MAGNITUDE and picks its
+        // own direction word rather than interpolating a raw "-6cm".
+        const abs = Math.abs(value);
+        return value >= 0
+          ? [
+              `cintura bem alta, sobe uns ${abs}cm`,
+              `cós mais alto, uns ${abs}cm acima do normal`,
+              `modelagem cintura alta, ${abs}cm a mais no cós`,
+            ]
+          : [
+              `gancho baixo, desce uns ${abs}cm`,
+              `cós mais baixo, uns ${abs}cm abaixo do normal`,
+              `cintura baixa, ${abs}cm a menos no cós`,
+            ];
+      }
     }
   })();
   return variants[variant % variants.length];
@@ -245,6 +264,7 @@ const NUMERIC_FIELDS = new Set<string>([
   "seamAllowanceCm",
   "armholeDeepenCm",
   "trouserLengthCm",
+  "riseCm",
 ]);
 
 function pickFragment(

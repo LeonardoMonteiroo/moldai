@@ -150,6 +150,20 @@ export interface GarmentStyle {
   // type, the same "type-mismatched style field is a no-op" precedent
   // skirtLengthCm/waistband already follow.
   trouserLengthCm?: number;
+  // #259: a waist-RISE STYLE offset -- deliberately NOT the body measurement
+  // `rise` (lib/measurements.ts's EXTENDED_MEASUREMENT_KEYS, waist-to-crotch
+  // depth): conflating a design choice with a recorded body dimension is the
+  // exact category error CLAUDE.md already calls out for `fit`. AI/user-
+  // settable, clamped to STYLE_LIMITS.riseCm (lib/draft/vocabulary.ts),
+  // signed and centered on 0 = "unchanged from the resolved body rise/
+  // natural waist". Applies to skirt (raises/lowers the panel's own waist
+  // edge, lib/draft/skirt.ts) and trousers (offsets the COMPUTED rise depth,
+  // never replaces the graded `rise` measurement, lib/draft/trousers.ts).
+  // Simply unread for any other garment type or dress's own skirt panel
+  // (joined directly to the bodice at the natural waist), the same
+  // "type-mismatched style field is a no-op" precedent trouserLengthCm/
+  // skirtLengthCm/waistband already follow.
+  riseCm?: number;
 }
 
 export interface GarmentSpec {

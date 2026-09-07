@@ -253,6 +253,7 @@ describe("withPattern", () => {
     { key: "waistband" as const, value: "straight" as const },
     { key: "frontClosure" as const, value: "buttonStand" as const },
     { key: "trouserLengthCm" as const, value: 95 },
+    { key: "riseCm" as const, value: 8 },
   ];
 
   for (const { key, value } of STYLE_FLAG_CASES) {
