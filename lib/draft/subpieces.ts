@@ -1,9 +1,24 @@
 import { DetailRow } from "@/lib/types";
-import { curveArcLengthCm, DraftedPiece, InternalCm, Pt } from "./core";
+import {
+  curveArcLengthCm,
+  DraftedPiece,
+  InternalCm,
+  NO_PLACEMENT_TRANSFORM,
+  Pt,
+} from "./core";
 import { formatCm } from "@/lib/format";
 import type { Translate } from "@/lib/i18n/translate";
 
 const cm = (v: number) => `${formatCm(v)} cm`;
+
+// #254: none of these sub-pieces has a 3D shell of its own in
+// lib/proof3d/mesh.ts yet -- an honest, narrower gap than the trousers one
+// this issue closes (see core.ts's Proof3DRole doc), not a silent one. One
+// shared constant rather than six identical literals drifting apart.
+const ACCESSORY_PLACEMENT_CM = {
+  role: "accessory" as const,
+  ...NO_PLACEMENT_TRANSFORM,
+};
 
 // #129/#130/#131 (Wave 2/W4): three small, single-purpose drafters, grouped
 // in one file the way the three issues were shipped as one unit -- each
@@ -117,6 +132,7 @@ export function draftCollar(necklineArcCm: number, t: Translate): DraftedPiece {
     foldEdge: shape.foldEdge,
     detailRows,
     seamEdges: { neckline: shape.seamEdge },
+    placementCm: ACCESSORY_PLACEMENT_CM,
   };
 }
 
@@ -194,6 +210,7 @@ export function draftCuff(sewLenCm: number, t: Translate): DraftedPiece {
     grainlineCm,
     detailRows,
     seamEdges: { hem: seamEdge },
+    placementCm: ACCESSORY_PLACEMENT_CM,
   };
 }
 
@@ -267,6 +284,7 @@ export function draftPlacket(t: Translate): DraftedPiece {
     grainlineCm,
     internalsCm,
     detailRows,
+    placementCm: ACCESSORY_PLACEMENT_CM,
   };
 }
 
@@ -311,6 +329,7 @@ export function draftWaistband(waistLenCm: number, t: Translate): DraftedPiece {
     grainlineCm,
     detailRows,
     seamEdges: { waist: seamEdge },
+    placementCm: ACCESSORY_PLACEMENT_CM,
   };
 }
 
@@ -385,6 +404,7 @@ export function draftBandCollar(
     grainlineCm,
     detailRows,
     seamEdges: { neckline: seamEdge },
+    placementCm: ACCESSORY_PLACEMENT_CM,
   };
 }
 
@@ -431,6 +451,7 @@ export function draftButtonStand(
     grainlineCm,
     detailRows,
     seamEdges: { centerFront: seamEdge },
+    placementCm: ACCESSORY_PLACEMENT_CM,
   };
 }
 
@@ -552,6 +573,7 @@ function draftShirtFall(fallSeamLenCm: number, t: Translate): DraftedPiece {
     foldEdge: shape.foldEdge,
     detailRows,
     seamEdges: { neckline: shape.seamEdge },
+    placementCm: ACCESSORY_PLACEMENT_CM,
   };
 }
 
@@ -592,6 +614,7 @@ export function draftShirtCollar(
       neckline: shape.neckSeamEdge,
       fallSeam: shape.fallSeamEdge,
     },
+    placementCm: ACCESSORY_PLACEMENT_CM,
   };
   const fall = draftShirtFall(fallSeamLenCm, t);
   return { stand, fall };

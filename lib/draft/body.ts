@@ -5,6 +5,7 @@ import {
   dartInternals,
   DraftedPiece,
   InternalCm,
+  NO_PLACEMENT_TRANSFORM,
   notchAt,
   notchAtArcLengthCm,
   notchAtVertex,
@@ -545,6 +546,13 @@ function bodice(
       // so a bbox-midpoint (lib/proof3d/mesh.ts's pieceCx) can't find its
       // true axis -- cx is the same local variable that placed cf/hemCenter.
       centerXCm: frontClosure ? cx : undefined,
+      // #254: this panel's own Prova 3D role -- `frontish` is the same flag
+      // that already picks the neckline depth, so front vs back can never
+      // disagree between the two.
+      placementCm: {
+        role: frontish ? "torso-front" : "torso-back",
+        ...NO_PLACEMENT_TRANSFORM,
+      },
     },
     armholeEdgeLenCm,
     armholeEdgeBaseLenCm,

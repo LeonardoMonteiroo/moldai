@@ -7,6 +7,7 @@ import {
   catmullRomSegments,
   dartsOf,
   DraftedPiece,
+  Proof3DRole,
   Pt,
 } from "@/lib/draft/core";
 import type { Translate } from "@/lib/i18n/translate";
@@ -23,6 +24,13 @@ import type { Translate } from "@/lib/i18n/translate";
 // lib/draft/body.ts, sleeve.ts or skirt.ts directly, only the already-public
 // draftPiecesCm/DraftedPiece surface every other consumer (lib/export,
 // TechSheetTab, CutPlanTab) already uses.
+//
+// #254: which drafted piece feeds which shell is found via each piece's own
+// declared `placementCm.role` (lib/draft/core.ts), never a hardcoded literal
+// piece id -- so this module never has to know that the moldai engine
+// happens to call its torso pieces "body-front"/"body-back"; a future
+// drafter (a second engine, a new archetype) only has to declare the right
+// role, not teach this file a new id string.
 
 // One cross-section of a shell, in the shell's own local (x, z) frame,
 // centred on 0 -- `project.ts` positions it in the mesh's world space
@@ -33,7 +41,7 @@ export interface Ring {
   points: [number, number][];
 }
 
-export type ShellId = "form" | "body" | "sleeve" | "skirt";
+export type ShellId = "form" | "body" | "sleeve" | "skirt" | "trousers";
 
 export interface Shell {
   id: ShellId;
@@ -188,6 +196,54 @@ function scanHalfWidthAtY(outlineCm: Pt[], cx: number, yCm: number): number {
   return max;
 }
 
+// #254: the full horizontal extent (max x minus min x, never relative to an
+// assumed centre) of a piece's own boundary at height yCm -- unlike
+// scanHalfWidthAtY, this needs no `cx` at all, so it works for a panel drawn
+// anywhere in its own engine's coordinate frame (a moldai panel always drawn
+// with x>=0 from its own seam axis; a freesewing/Titan panel drawn in
+// whatever absolute coordinates that draft session happened to use). Used
+// only for a panel that is NOT mirrored about its own centre line (a
+// trousers leg quarter-panel), where "distance from an assumed axis" has no
+// meaning -- every other scan in this module keeps using scanHalfWidthAtY.
+function scanWidthAtY(outlineCm: Pt[], yCm: number): number {
+  const EPS = 1e-6;
+  let minX = Infinity;
+  let maxX = -Infinity;
+  const consider = (x: number) => {
+    minX = Math.min(minX, x);
+    maxX = Math.max(maxX, x);
+  };
+  for (const [x, y] of outlineCm) {
+    if (Math.abs(y - yCm) < EPS) consider(x);
+  }
+  const n = outlineCm.length;
+  for (let i = 0; i < n; i++) {
+    const [x1, y1] = outlineCm[i];
+    const [x2, y2] = outlineCm[(i + 1) % n];
+    if (Math.abs(y1 - yCm) < EPS || Math.abs(y2 - yCm) < EPS) continue;
+    if ((y1 < yCm && y2 > yCm) || (y2 < yCm && y1 > yCm)) {
+      const u = (yCm - y1) / (y2 - y1);
+      consider(x1 + (x2 - x1) * u);
+    }
+  }
+  return maxX > minX ? maxX - minX : 0;
+}
+
+// #254: the midpoint height (y) of a named seamEdges range, in the piece's
+// OWN local coordinate frame -- reading a public seamEdges entry rather than
+// assuming any particular engine's coordinate convention (a moldai panel's
+// own waist sits at local y=0; a freesewing/Titan panel's does not). `to`
+// may equal outlineCm.length (wraps to index 0), the same convention every
+// drafter's own seamEdges already uses.
+function edgeMidYCm(
+  outlineCm: Pt[],
+  edge: [number, number] | undefined,
+): number | undefined {
+  if (!edge) return undefined;
+  const n = outlineCm.length;
+  return (outlineCm[edge[0] % n][1] + outlineCm[edge[1] % n][1]) / 2;
+}
+
 // The outline vertex farthest from the piece's own centre line within
 // [yMin, yMax] -- locates the underarm (body) or bicep (sleeve) level
 // without assuming its height, since it is always a real vertex (only the
@@ -209,11 +265,13 @@ function widestVertexInRange(
   return best;
 }
 
-function findPiece(
+// #254: finds the drafted piece playing a given Prova 3D role, whatever id
+// the engine that drafted it happened to give it.
+function findByRole(
   pieces: DraftedPiece[],
-  id: string,
+  role: Proof3DRole,
 ): DraftedPiece | undefined {
-  return pieces.find((p) => p.id === id);
+  return pieces.find((p) => p.placementCm?.role === role);
 }
 
 // Mirrors buildExportModel (lib/export/model.ts:93-97) / planCutLayout: it
@@ -237,10 +295,12 @@ export function buildProofMesh(pattern: Pattern, t: Translate): ProofMesh {
     t,
   );
 
-  const front = findPiece(pieces, "body-front");
-  const back = findPiece(pieces, "body-back");
-  const sleevePiece = findPiece(pieces, "sleeve");
-  const skirtPiece = findPiece(pieces, "skirt");
+  const front = findByRole(pieces, "torso-front");
+  const back = findByRole(pieces, "torso-back");
+  const sleevePiece = findByRole(pieces, "sleeve");
+  const skirtPiece = findByRole(pieces, "skirt");
+  const trouserFront = findByRole(pieces, "trouser-front");
+  const trouserBack = findByRole(pieces, "trouser-back");
 
   const fit: ProofFitRow[] = [];
   const garment: Shell[] = [];
@@ -420,6 +480,83 @@ export function buildProofMesh(pattern: Pattern, t: Translate): ProofMesh {
         ],
       });
     }
+  }
+
+  // #254: a straight-leg trousers shell -- two mirrored legs, each stacked
+  // from its own front+back panel exactly like the body shell above stacks
+  // from body-front+body-back, just without that shell's own "double the
+  // half-width" step: a trouser panel is NOT mirrored about its own centre
+  // line the way a bodice panel is (lib/draft/trousers.ts's own doc), so its
+  // own full scanned width (scanWidthAtY, engine-agnostic -- see its own
+  // doc) already IS this leg's whole front (or back) contribution -- no
+  // further doubling. Heights (waist/rise/hem) are read off each panel's own
+  // public seamEdges, never assumed from a fixed coordinate convention like
+  // "the waist sits at local y=0" -- true for lib/draft/trousers.ts's own
+  // moldai panel, but NOT for the freesewing engine's own Titan-based panel,
+  // which starts its path at a different point (#254 code-review finding:
+  // the earlier y=0/centerXCm-bbox-fallback version produced a silently
+  // zero-girth freesewing trousers shell instead of a real one).
+  if (trouserFront && trouserBack) {
+    const ptsF = flattenOutline(
+      trouserFront.outlineCm,
+      trouserFront.curvedSpans ?? [],
+    );
+    const ptsB = flattenOutline(
+      trouserBack.outlineCm,
+      trouserBack.curvedSpans ?? [],
+    );
+    const bF = bbox(ptsF);
+
+    // Front's own seamEdges anchor every ring height (back is scanned at
+    // these SAME absolute heights, the same shared-anchor precedent the
+    // body shell above already uses for its own front+back scans) --
+    // falling back to front's own bbox only if seamEdges is ever absent
+    // (never true for a real drafter, defensive only).
+    const waistYCmLocal =
+      edgeMidYCm(trouserFront.outlineCm, trouserFront.seamEdges?.waist) ??
+      bF.minY;
+    const riseYCmLocal =
+      edgeMidYCm(trouserFront.outlineCm, trouserFront.seamEdges?.rise) ??
+      bF.maxY;
+    const hemYCmLocal =
+      edgeMidYCm(trouserFront.outlineCm, trouserFront.seamEdges?.hem) ??
+      bF.maxY;
+
+    const legGirthAt = (yCm: number) =>
+      scanWidthAtY(ptsF, yCm) + scanWidthAtY(ptsB, yCm);
+    const waistGirthCmLeg = legGirthAt(waistYCmLocal);
+    const riseGirthCmLeg = legGirthAt(riseYCmLocal);
+    const hemGirthCmLeg = legGirthAt(hemYCmLocal);
+
+    // A rough, purely-visual lateral separation between the two legs -- no
+    // per-leg measurement exists to derive this from (unlike the sleeve's
+    // own bustGirthCm-derived offset above), so a quarter-hip figure is used
+    // the same way the dress form's own shoulder/neck rings below are a
+    // fixed proportion "purely for the drawing".
+    const legOffsetCm = resolved.hip / 4;
+    const riseOffsetCm = riseYCmLocal - waistYCmLocal;
+    const hemOffsetCm = hemYCmLocal - waistYCmLocal;
+    for (const side of [-1, 1] as const) {
+      const rings: Ring[] = [ring(waistYCm, waistGirthCmLeg)];
+      if (riseOffsetCm > 0.01) {
+        rings.push(ring(waistYCm + riseOffsetCm, riseGirthCmLeg));
+      }
+      if (hemOffsetCm > riseOffsetCm + 0.01) {
+        rings.push(ring(waistYCm + hemOffsetCm, hemGirthCmLeg));
+      }
+      garment.push({ id: "trousers", centerXCm: side * legOffsetCm, rings });
+    }
+
+    // Both legs together, at the panels' own waist edge -- the garment's
+    // real "hip" comparison, the same standalone-skirt precedent above
+    // (skirtWaistHalfCm/hip), since trousers have no bodice to read a waist
+    // fit from instead.
+    fit.push({
+      key: "hip",
+      garmentCm: waistGirthCmLeg * 2,
+      bodyCm: resolved.hip,
+      easeCm: waistGirthCmLeg * 2 - resolved.hip,
+    });
   }
 
   // The dress form: HPS to hip, built only from the resolved Measurements

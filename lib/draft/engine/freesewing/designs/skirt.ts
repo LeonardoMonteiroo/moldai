@@ -8,7 +8,7 @@ import type { GarmentSpec } from "@/lib/types";
 import type { Translate } from "@/lib/i18n/translate";
 import { formatCm } from "@/lib/format";
 import type { DraftedPiece } from "../../../core";
-import { curveArcLengthCm } from "../../../core";
+import { curveArcLengthCm, NO_PLACEMENT_TRANSFORM } from "../../../core";
 import type { SeamPairDecl } from "../../../seams";
 import type { EngineDraft } from "../../types";
 import { flattenFreesewingSeam, mirrorFoldedPanel } from "../geometry";
@@ -116,6 +116,7 @@ export function draftSkirt(
     foldEdge: mirrored.foldEdge,
     seamEdges: { waist: waistEdge },
     detailRows: [{ label: t("rows.length"), value: cm(targetLengthCm) }],
+    placementCm: { role: "skirt", ...NO_PLACEMENT_TRANSFORM },
   };
 
   // Sandy's own waistband is a plain rectangle, cut flat (no fold) --
@@ -131,6 +132,7 @@ export function draftSkirt(
     curvedSpans: waistbandHalf.curvedSpans,
     seamEdges: { waist: [0, waistbandHalf.outlineCm.length] },
     detailRows: [],
+    placementCm: { role: "accessory", ...NO_PLACEMENT_TRANSFORM },
   };
   const waistbandLenCm = curveArcLengthCm(
     waistbandHalf.outlineCm,

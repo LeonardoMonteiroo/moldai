@@ -3,6 +3,7 @@ import { DetailRow, GarmentStyle } from "@/lib/types";
 import {
   curveArcLengthCm,
   DraftedPiece,
+  NO_PLACEMENT_TRANSFORM,
   notchAtArcLengthCm,
   notchAtVertex,
   NotchCm,
@@ -241,5 +242,11 @@ export function draftSleeve(
       // seam edge is measured and mated against.
       hem: [5, 6],
     },
+    // #254: one drafted sleeve piece stands for BOTH physical sleeves
+    // (qty: 2, flipping the fabric) -- lib/proof3d/mesh.ts still derives
+    // each sleeve shell's own left/right lateral offset from the drafted
+    // bust girth at build time (a real, measured quantity, not a
+    // proportion), so this channel only needs to say "this is the sleeve".
+    placementCm: { role: "sleeve", ...NO_PLACEMENT_TRANSFORM },
   };
 }

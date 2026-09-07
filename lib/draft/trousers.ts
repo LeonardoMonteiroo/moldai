@@ -4,6 +4,7 @@ import {
   bbox,
   dartInternals,
   DraftedPiece,
+  NO_PLACEMENT_TRANSFORM,
   notchAt,
   NotchCm,
   Pt,
@@ -186,6 +187,10 @@ function trouserPanel(
       outseam: [hemOuter, waistOuter],
       waist: [waistOuter, pts.length],
       hem: [hemInner, hemOuter],
+    },
+    placementCm: {
+      role: isFront ? "trouser-front" : "trouser-back",
+      ...NO_PLACEMENT_TRANSFORM,
     },
   };
 }

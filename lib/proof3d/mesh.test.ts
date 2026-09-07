@@ -4,8 +4,13 @@ import { SIZE_TABLE, SIZE_TABLE_MALE } from "@/lib/measurements";
 import { t } from "@/lib/i18n/test-translate";
 import { buildProofMesh, flattenOutline, RING_SAMPLES } from "./mesh";
 import { TSHIRT_BASE_EASE_CM } from "@/lib/draft/ease";
+import { DECORATION_CASES } from "@/lib/draft/fixtures";
 
-function pattern(spec: GarmentSpec, baseMeasurements = SIZE_TABLE.M): Pattern {
+function pattern(
+  spec: GarmentSpec,
+  baseMeasurements = SIZE_TABLE.M,
+  engine?: string,
+): Pattern {
   return {
     id: "p1",
     name: "Blusa",
@@ -18,6 +23,7 @@ function pattern(spec: GarmentSpec, baseMeasurements = SIZE_TABLE.M): Pattern {
     sizeTable: { M: baseMeasurements },
     pieces: [],
     spec,
+    engine,
   };
 }
 
@@ -311,5 +317,165 @@ describe("flattenOutline", () => {
     const flatStraight = flattenOutline(outline, []);
     expect(flatStraight).toEqual(outline);
     expect(flatCurved).not.toEqual(flatStraight);
+  });
+});
+
+// #254: trousers declares a real placementCm (lib/draft/trousers.ts) instead
+// of matching nothing (the pre-#254 gap Proof3DTab.notSupportedForTrousers
+// used to name) -- both DECORATION_CASES trousers rows produce a non-empty
+// ProofMesh (two leg shells, no body/skirt/sleeve).
+describe("buildProofMesh -- trousers (#254)", () => {
+  const trouserCases = DECORATION_CASES.filter(
+    ([, spec]) => spec.type === "trousers",
+  );
+
+  it("has at least the two DECORATION_CASES trousers rows", () => {
+    expect(trouserCases.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it.each(trouserCases)(
+    "produces two non-empty leg shells and no body/skirt/sleeve shell — %s",
+    (_name, spec) => {
+      const base = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
+      const mesh = buildProofMesh(pattern(spec, base), t);
+      const legShells = mesh.garment.filter((s) => s.id === "trousers");
+      expect(legShells).toHaveLength(2);
+      for (const shell of legShells) {
+        expect(shell.rings.length).toBeGreaterThanOrEqual(2);
+        for (const ring of shell.rings) {
+          expect(ring.girthCm).toBeGreaterThan(0);
+        }
+      }
+      // The two legs sit on opposite sides of the centre line.
+      expect(legShells[0].centerXCm).toBeCloseTo(-legShells[1].centerXCm, 5);
+      expect(mesh.garment.some((s) => s.id === "body")).toBe(false);
+      expect(mesh.garment.some((s) => s.id === "skirt")).toBe(false);
+      expect(mesh.garment.some((s) => s.id === "sleeve")).toBe(false);
+    },
+  );
+
+  it.each(trouserCases)(
+    "no NaN/Infinity anywhere in a trousers mesh, and every ring's sampled perimeter matches girthCm — %s",
+    (_name, spec) => {
+      const base = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
+      const mesh = buildProofMesh(pattern(spec, base), t);
+      const shells = [mesh.form, ...mesh.garment];
+      for (const shell of shells) {
+        expect(Number.isFinite(shell.centerXCm)).toBe(true);
+        for (const ring of shell.rings) {
+          expect(Number.isFinite(ring.yCm)).toBe(true);
+          expect(Number.isFinite(ring.girthCm)).toBe(true);
+          let perim = 0;
+          for (let i = 0; i < ring.points.length; i++) {
+            const [x1, z1] = ring.points[i];
+            const [x2, z2] = ring.points[(i + 1) % ring.points.length];
+            perim += Math.hypot(x2 - x1, z2 - z1);
+            expect(Number.isFinite(x1)).toBe(true);
+            expect(Number.isFinite(z1)).toBe(true);
+          }
+          expect(Math.abs(perim - ring.girthCm)).toBeLessThan(0.05);
+        }
+      }
+      for (const row of mesh.fit) {
+        expect(Number.isFinite(row.garmentCm)).toBe(true);
+        expect(Number.isFinite(row.bodyCm)).toBe(true);
+        expect(Number.isFinite(row.easeCm)).toBe(true);
+      }
+    },
+  );
+
+  it("emits a hip fit row (no bodice to read waist/bust from)", () => {
+    const mesh = buildProofMesh(pattern(trouserCases[0][1], SIZE_TABLE.M), t);
+    expect(mesh.fit).toHaveLength(1);
+    expect(mesh.fit[0].key).toBe("hip");
+  });
+});
+
+// #254 (code-review finding): findByRole reads placementCm.role, which only
+// the moldai drafters set at first -- the freesewing engine's own design
+// wrappers (lib/draft/engine/freesewing/designs/*.ts) happen to reuse the
+// EXACT SAME piece ids ("body-front"/"body-back"/"sleeve"/"skirt"/
+// "trouser-front"/"trouser-back") moldai's own drafters do, which is
+// precisely what made the OLD literal-id findPiece lookup work for a
+// freesewing-drafted pattern too, by coincidence rather than by declaration.
+// Switching to role-only matching without also updating those wrappers would
+// have silently regressed every freesewing-drafted tshirt/blouse/skirt/
+// trousers preview back to a bare, garment-less mannequin -- exactly the
+// "silently empty" failure #128/#254 exist to prevent. This suite proves the
+// freesewing engine's own pieces now declare the same roles.
+describe("buildProofMesh -- freesewing engine (#254 code-review finding)", () => {
+  const engine = "freesewing";
+
+  it("tshirt: a real body+sleeve shell, not an empty mannequin", () => {
+    const mesh = buildProofMesh(
+      pattern(
+        { type: "tshirt", gender: "male", measurementOverrides: {}, style: {} },
+        SIZE_TABLE_MALE.M,
+        engine,
+      ),
+      t,
+    );
+    expect(mesh.garment.some((s) => s.id === "body")).toBe(true);
+    expect(mesh.garment.some((s) => s.id === "sleeve")).toBe(true);
+    expect(mesh.fit.some((r) => r.key === "bust")).toBe(true);
+  });
+
+  it("blouse: a real body+sleeve shell, not an empty mannequin", () => {
+    const mesh = buildProofMesh(
+      pattern(
+        {
+          type: "blouse",
+          gender: "female",
+          measurementOverrides: {},
+          style: { neckline: "round", sleeve: "long" },
+        },
+        SIZE_TABLE.M,
+        engine,
+      ),
+      t,
+    );
+    expect(mesh.garment.some((s) => s.id === "body")).toBe(true);
+    expect(mesh.garment.some((s) => s.id === "sleeve")).toBe(true);
+  });
+
+  it("skirt: a real skirt shell, not an empty mannequin", () => {
+    const mesh = buildProofMesh(
+      pattern(
+        {
+          type: "skirt",
+          gender: "female",
+          measurementOverrides: {},
+          style: {},
+        },
+        SIZE_TABLE.M,
+        engine,
+      ),
+      t,
+    );
+    expect(mesh.garment.some((s) => s.id === "skirt")).toBe(true);
+  });
+
+  it("trousers: two real leg shells, not an empty mannequin", () => {
+    const mesh = buildProofMesh(
+      pattern(
+        {
+          type: "trousers",
+          gender: "female",
+          measurementOverrides: {},
+          style: {},
+        },
+        SIZE_TABLE.M,
+        engine,
+      ),
+      t,
+    );
+    const legShells = mesh.garment.filter((s) => s.id === "trousers");
+    expect(legShells).toHaveLength(2);
+    for (const shell of legShells) {
+      for (const ring of shell.rings) {
+        expect(Number.isFinite(ring.girthCm)).toBe(true);
+        expect(ring.girthCm).toBeGreaterThan(0);
+      }
+    }
   });
 });
