@@ -186,6 +186,80 @@ describe("applyGarmentSpec / conflict / refit / engine freeze", () => {
     expect(entry!.diffCm).toBeGreaterThan(1);
   });
 
+  // #241: a pair whose gap closes at the base size can still miss tolerance
+  // only at a graded size (Islam et al., Tekstilec 63(3):166-184 -- a
+  // diagonal seam's length isn't a linear function of independent X/Y
+  // grading increments). armholeDeepenCm=0.55 with SIZE_TABLE.M as the base
+  // row measures 1.0cm on the armhole/cap pair (not > SEAM_TOLERANCE_CM,
+  // so no conflict); the exact same spec against a much broader shoulder
+  // measures 1.1cm (over tolerance) -- empirically found via
+  // measureSeamGraph, not derived from a closed-form formula.
+  it("a spec that closes at the base size still surfaces a conflict once a graded size diverges", () => {
+    const spec = {
+      type: "blouse" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { sleeve: "short" as const, armholeDeepenCm: 0.55 },
+    };
+
+    // Control: with ONLY the base row in sizeTable, this spec closes clean.
+    const baseOnly = seedPatternState(t);
+    baseOnly.pattern.baseSize = "M";
+    baseOnly.pattern.sizeTable = { M: SIZE_TABLE.M };
+    applyGarmentSpec(baseOnly, spec, t);
+    expect(baseOnly.conflict).toBeNull();
+
+    // Same spec, same base row -- but sizeTable also carries a graded size
+    // whose broader shoulder measurement pushes the SAME pair over tolerance.
+    const s = seedPatternState(t);
+    s.pattern.baseSize = "M";
+    s.pattern.sizeTable = {
+      M: SIZE_TABLE.M,
+      "GG-extremo": { ...SIZE_TABLE.M, shoulder: 26 },
+    };
+    applyGarmentSpec(s, spec, t);
+
+    expect(s.conflict).not.toBeNull();
+    const entry = s.conflict!.entries?.find((e) => e.key === "armhole-cap");
+    expect(entry).toBeDefined();
+    expect(entry!.sizes).toEqual(["GG-extremo"]);
+    // The base-size behaviour (apply-with-warning, tone: conflict) is
+    // unchanged -- the pattern still drafted and the conflict still uses
+    // the same "Corrigir manga" chrome, since armhole-cap is fixable.
+    expect(s.pattern.pieces.length).toBeGreaterThan(0);
+    expect(s.conflict!.suggestion).toBe("conflict.suggestion");
+    // The single divergence is size-only (invisible at base), so it gets
+    // its own title/description catalog keys naming the sizes -- never the
+    // legacy armhole/cap copy, which would describe the (non-diverging)
+    // base numbers.
+    expect(s.conflict!.title).toBe("conflict.titleForSizeOnly");
+    expect(s.conflict!.description).toBe("conflict.descriptionSizeOnly");
+  });
+
+  // #241: entry.sizes reads in the chart's own declared small-to-large
+  // order, not alphabetically -- "PP" before "GG" even though "GG" sorts
+  // first lexicographically.
+  it("names multiple affected sizes in the chart's declared order, not alphabetically", () => {
+    const spec = {
+      type: "blouse" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { sleeve: "short" as const, armholeDeepenCm: 0.55 },
+    };
+    const s = seedPatternState(t);
+    s.pattern.baseSize = "M";
+    s.pattern.sizes = ["PP", "P", "M", "G", "GG"];
+    s.pattern.sizeTable = {
+      M: SIZE_TABLE.M,
+      GG: { ...SIZE_TABLE.M, shoulder: 26 },
+      PP: { ...SIZE_TABLE.M, shoulder: 26 },
+    };
+    applyGarmentSpec(s, spec, t);
+
+    const entry = s.conflict!.entries?.find((e) => e.key === "armhole-cap");
+    expect(entry!.sizes).toEqual(["PP", "GG"]);
+  });
+
   it("refitSleeve remakes the cap and clears the conflict", () => {
     const s = seedPatternState(t);
     applyGarmentSpec(

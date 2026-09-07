@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   SIZE_TABLE,
+  SIZE_TABLE_MALE,
   Measurements,
   MEASUREMENT_RANGES,
 } from "@/lib/measurements";
@@ -10,7 +11,7 @@ import { pitchNotchDistanceCm } from "./seams";
 import {
   FIT_CLASSES,
   FIT_EASE_CM,
-  TSHIRT_BASE_EASE_CM,
+  TSHIRT_BASE_EASE_PCT,
   wearingEaseCm,
 } from "./ease";
 import type { FitClass } from "@/lib/types";
@@ -269,10 +270,10 @@ describe("fit class / fabric stretch ease (#125)", () => {
     },
   );
 
-  // tshirt-fit-calibration: a knit garment now starts from a positive base
-  // ease (TSHIRT_BASE_EASE_CM), not 0 -- the highest stretch band still
-  // reduces relative to that base, it no longer drops the drafted girth
-  // below the body measurement outright.
+  // #282: a knit garment starts from a positive base ease PERCENTAGE
+  // (TSHIRT_BASE_EASE_PCT), not 0 -- the highest stretch band still reduces
+  // relative to that base, it no longer drops the drafted girth below the
+  // body measurement outright.
   it("a knit at the highest stretch band drafts base ease minus the stretch reduction, not below the body measurement", () => {
     const opts: BlockOpts = {
       ...optsM,
@@ -282,10 +283,29 @@ describe("fit class / fabric stretch ease (#125)", () => {
     const { halfChestCm } = draftBody(M, { stretch: "high" }, t, opts);
     const bustGirth = halfChestCm * 4;
     expect(bustGirth).toBeCloseTo(
-      M.bust + TSHIRT_BASE_EASE_CM - M.bust * 0.12,
+      M.bust + (M.bust * (TSHIRT_BASE_EASE_PCT - 12)) / 100,
       1,
     );
     expect(bustGirth).toBeGreaterThan(M.bust);
+  });
+
+  // #282: the assertion that actually catches a regression in the DRAFTED
+  // garment, not just in the ease table -- a male-M t-shirt (no stretch, the
+  // default) should draft to the same 118.0cm finished bust girth FreeSewing's
+  // Teagan produces at published defaults on the identical body
+  // (docs/reference/freesewing-spike/README.md), not the 155.9cm the old
+  // TSHIRT_BASE_EASE_CM=55.9 produced.
+  it("a male-M knit tshirt (no stretch) drafts a 118.0cm finished bust girth, matching Teagan", () => {
+    const maleM = SIZE_TABLE_MALE.M;
+    const opts: BlockOpts = {
+      gender: "male",
+      knit: true,
+      lengthCm: maleM.backLength + maleM.hipHeight + 5,
+      wearingEaseCm: wearingEaseCm({}, true, maleM.bust),
+    };
+    const { halfChestCm } = draftBody(maleM, {}, t, opts);
+    const bustGirth = halfChestCm * 4;
+    expect(bustGirth).toBeCloseTo(118.0, 1);
   });
 
   it("ease is invariant across a graded run -- same fit class, same absolute ease in cm at PP and GG", () => {
