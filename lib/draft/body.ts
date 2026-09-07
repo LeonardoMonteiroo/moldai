@@ -9,7 +9,9 @@ import {
   notchAtArcLengthCm,
   notchAtVertex,
   NotchCm,
+  OutlineAnchors,
   Pt,
+  WRAP,
 } from "./core";
 import { wearingEaseCm } from "./ease";
 import { formatCm } from "@/lib/format";
@@ -198,26 +200,31 @@ function bodice(
   const pts: Pt[] = [];
   const spans: [number, number][] = [];
   const push = (p: Pt) => (pts.push(p), pts.length - 1);
+  // #251: named handles onto the vertices this panel's own seamEdges
+  // reference -- see core.ts's OutlineAnchors doc for why a NAME survives
+  // where the raw indices below (still used directly for spans/notches,
+  // unchanged) would go stale the moment a vertex is inserted between them.
+  const anchors = new OutlineAnchors();
 
-  const cf = push([cx, neckDrop]); // neckline center
+  const cf = anchors.set("cf", push([cx, neckDrop])); // neckline center
   push([cx - neckHalf * 0.6, neckDrop * 0.55]); // left neckline ctrl
-  const hpsL = push([cx - neckHalf, shoulderNeckDropCm]); // left HPS
+  const hpsL = anchors.set("hpsL", push([cx - neckHalf, shoulderNeckDropCm])); // left HPS
   spans.push([cf, hpsL]); // left neckline (curved)
-  const shL = push([cx - shoulderHalf, shoulderSlope]); // left shoulder (straight hpsL->shL)
+  const shL = anchors.set("shL", push([cx - shoulderHalf, shoulderSlope])); // left shoulder (straight hpsL->shL)
   push([cx - armCtrlX, midArmY]); // left armhole ctrl
-  const uaL = push([cx - halfChest, armholeDepth]); // left underarm
+  const uaL = anchors.set("uaL", push([cx - halfChest, armholeDepth])); // left underarm
   spans.push([shL, uaL]); // left armhole (curved)
   // #79: for a dress, waistY === len (the hem IS the waist seam) -- pushing
   // both would land two extra vertices exactly on top of the hem's own,
   // retracing that edge and leaving the boundary non-simple.
   if (fitted && !isDressHem) push([cx - waistHalf, waistY]); // left waist
-  const hemL = push([cx - hemHalf, len]); // left hem
+  const hemL = anchors.set("hemL", push([cx - hemHalf, len])); // left hem
   // #126: exactly on the straight hem edge (collinear with left/right hem,
   // same y) -- subdivides that edge into two collinear segments rather than
   // changing the piece's rendered shape, giving the fold line's bottom
   // endpoint a real vertex to reference. The top endpoint is `cf`, the
   // neckline-center point already pushed at index 0.
-  const hemCenter = push([cx, len]); // hem center (fold bottom)
+  const hemCenter = anchors.set("hemCenter", push([cx, len])); // hem center (fold bottom)
 
   // #223: a front-closure half-panel stops here -- the polygon closes
   // directly from hemCenter back to cf (index 0), which IS the vertical
@@ -229,13 +236,13 @@ function bodice(
   let shR: number | undefined;
   let hpsR: number | undefined;
   if (!frontClosure) {
-    hemR = push([cx + hemHalf, len]); // right hem (straight = hem)
+    hemR = anchors.set("hemR", push([cx + hemHalf, len])); // right hem (straight = hem)
     if (fitted && !isDressHem) push([cx + waistHalf, waistY]); // right waist
-    uaR = push([cx + halfChest, armholeDepth]); // right underarm
+    uaR = anchors.set("uaR", push([cx + halfChest, armholeDepth])); // right underarm
     push([cx + armCtrlX, midArmY]); // right armhole ctrl
-    shR = push([cx + shoulderHalf, shoulderSlope]); // right shoulder
+    shR = anchors.set("shR", push([cx + shoulderHalf, shoulderSlope])); // right shoulder
     spans.push([uaR, shR]); // right armhole (curved)
-    hpsR = push([cx + neckHalf, shoulderNeckDropCm]); // right HPS (straight shR->hpsR)
+    hpsR = anchors.set("hpsR", push([cx + neckHalf, shoulderNeckDropCm])); // right HPS (straight shR->hpsR)
     push([cx + neckHalf * 0.6, neckDrop * 0.55]); // right neckline ctrl
     spans.push([hpsR, pts.length]); // right neckline + closing (curved)
   }
@@ -507,21 +514,27 @@ function bodice(
   // index pair the neckline curvedSpans above already use. garment.ts sums
   // both, off front AND back, into the total arc a collar's own neckline
   // seam is sized from.
+  // #251: built from `anchors` by NAME rather than by picking among raw
+  // indices with a hand-written ternary/`pts.length` sentinel -- the
+  // frontClosure branch used to re-derive `hem`/`centerFront`/
+  // `necklineRight` that way; OutlineAnchors.edge() centralizes the
+  // "wraps to vertex 0" convention (the `WRAP` sentinel) and throws on a
+  // typo'd name instead of trusting a `hemR!`/`hpsR!` non-null assertion.
   const seamEdges: Record<string, [number, number]> = {
-    shoulder: [hpsL, shL],
-    side: [uaL, hemL],
-    armhole: [shL, uaL],
+    shoulder: anchors.edge("hpsL", "shL", pts.length),
+    side: anchors.edge("uaL", "hemL", pts.length),
+    armhole: anchors.edge("shL", "uaL", pts.length),
     // #223: a front-closure half-panel's own hem edge is only [hemL,
     // hemCenter] (half the width) -- there is no hemR to name.
-    hem: [hemL, frontClosure ? hemCenter : hemR!],
-    necklineLeft: [cf, hpsL],
+    hem: anchors.edge("hemL", frontClosure ? "hemCenter" : "hemR", pts.length),
+    necklineLeft: anchors.edge("cf", "hpsL", pts.length),
   };
   if (frontClosure) {
     // #223: the polygon's own closing edge (hemCenter wraps back to cf,
     // index 0) -- the new center-front boundary, the button stand's mate.
-    seamEdges.centerFront = [hemCenter, pts.length];
+    seamEdges.centerFront = anchors.edge("hemCenter", WRAP, pts.length);
   } else {
-    seamEdges.necklineRight = [hpsR!, pts.length];
+    seamEdges.necklineRight = anchors.edge("hpsR", WRAP, pts.length);
   }
 
   return {
