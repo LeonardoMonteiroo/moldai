@@ -296,6 +296,26 @@ export function buildDynamicSection(
       opts.importContext,
     );
   }
+  // #265: ChatGarment's own editing data is trained on explicitly
+  // part-addressed instructions ("modify PART-1 to DESC-1 while keeping
+  // other parts unchanged") over a fixed part vocabulary -- this is the same
+  // scoping in prose, keyed to whichever piece the user had selected on
+  // screen. opts.partScope is already the piece's own resolved display name
+  // (the route's trust boundary, never free text) -- absent whenever no
+  // piece was selected, or the selected id didn't resolve against this
+  // pattern's own pieces, in which case this section is simply omitted and
+  // the turn reads exactly as it did before this existed. Emitted before the
+  // form-spec section (not after) since it is advisory, not a structural
+  // override the model has to obey no matter what -- an explicit form field
+  // still wins over a stale scope hint.
+  if (opts.partScope) {
+    lines.push(
+      "",
+      "# Scoped part",
+      "",
+      `The user had the "${opts.partScope}" piece selected in the editor when they sent this message. If their instruction is about a specific feature or measurement, treat it as targeting only the field(s) that affect that piece — return every other field in "Current pattern spec" above exactly as given, unchanged. If the instruction plainly applies to the whole garment, or to a different part than the one selected, follow the instruction as given and ignore this scope.`,
+    );
+  }
   // Emitted last, so it is the model's most recent instruction -- see
   // FORM_SPEC_INSTRUCTION on which earlier rule it has to override.
   if (opts.formSpec) {

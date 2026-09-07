@@ -259,6 +259,39 @@ describe("buildSystem", () => {
   });
 });
 
+// #265: the piece the user had selected in the editor, threaded through as
+// an optional scope. ProposeOptions.partScope is ALREADY the resolved
+// display name by the time buildDynamicSection sees it (the generate
+// route's own trust-boundary lookup); this file only has to prove the
+// section renders when present and stays silent when absent.
+describe("buildSystem: the scoped-part section", () => {
+  const HEADING = "# Scoped part";
+
+  it("omits the section entirely when no partScope is given", () => {
+    const s = buildSystem(DEFAULT_ENGINE_ID, state(0), { answering: false });
+    expect(s).not.toContain(HEADING);
+  });
+
+  it("names the scoped piece and instructs the model to leave other fields unchanged", () => {
+    const s = buildSystem(DEFAULT_ENGINE_ID, state(0), {
+      answering: false,
+      partScope: "Manga",
+    });
+    expect(s).toContain(HEADING);
+    expect(s).toContain('"Manga"');
+    expect(s).toContain("unchanged");
+  });
+
+  it("lives in the dynamic block, leaving STATIC_SECTIONS untouched", () => {
+    expect(STATIC_SECTIONS).not.toContain(HEADING);
+    const dynamic = buildDynamicSection(state(0), {
+      answering: false,
+      partScope: "Gola",
+    });
+    expect(dynamic).toContain(HEADING);
+  });
+});
+
 // The form's explicit choices reach the model as an instruction, so its own
 // reply text stays coherent and it does not ask about an answered field.
 // The structural guarantee is the merge the route applies afterwards; this

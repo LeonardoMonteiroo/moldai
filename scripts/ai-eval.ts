@@ -95,7 +95,15 @@ async function runGeneration(): Promise<GenerationResult[]> {
   return results;
 }
 
-async function runEditing(): Promise<EditingResult[]> {
+// #265: `scoped` re-runs the SAME cases/instructions with a resolved
+// `partScope` (the eval-harness equivalent of the generate route's own
+// selectedPieceId -> pattern.pieces lookup, by id -- here looked up by the
+// case's own `scopedPieceKey` instead, since the harness has no client id to
+// start from). This is what lets the report compare collateral drift
+// scoped vs unscoped on identical instructions, per issue 265's own
+// acceptance criteria: the section is kept or dropped on this number, not
+// on inspection.
+async function runEditing(scoped: boolean): Promise<EditingResult[]> {
   const results: EditingResult[] = [];
   for (const testCase of EDITING_CASES) {
     const state = seedPatternState(t);
@@ -104,15 +112,32 @@ async function runEditing(): Promise<EditingResult[]> {
       testCase.baseSpec.gender === "male" ? "male" : "female",
     );
     applyGarmentSpec(state, testCase.baseSpec, t);
+    // Under the harness's identity Translate (lib/i18n/test-translate.ts), a
+    // drafted piece's own `name` IS the literal `pieceNames.<key>` string --
+    // no separate lookup table to keep in sync with messages/pt-BR.json.
+    // Absent scopedPieceKey, or no matching piece among what baseSpec
+    // actually drafted (e.g. a collar that doesn't exist until the edit
+    // adds one), silently resolves to no partScope -- the same
+    // "unresolved id behaves as unscoped" contract the real route follows.
+    const partScope = scoped
+      ? state.pattern.pieces.find(
+          (p) => p.name === `pieceNames.${testCase.scopedPieceKey}`,
+        )?.name
+      : undefined;
     addMessage(state, {
       id: `msg-${testCase.id}`,
       author: "user",
       text: testCase.instruction,
       createdAt: Date.now(),
     });
-    process.stdout.write(`editing: ${testCase.id}... `);
+    process.stdout.write(
+      `editing${scoped ? " (scoped)" : ""}: ${testCase.id}... `,
+    );
     try {
-      const decision = await proposeGarment(state, { answering: false });
+      const decision = await proposeGarment(state, {
+        answering: false,
+        ...(partScope ? { partScope } : {}),
+      });
       const result = scoreEditing(testCase, decision.spec);
       results.push(result);
       console.log(result.changedAsExpected ? "ok" : "MISSING CHANGE");
@@ -132,16 +157,21 @@ async function runEditing(): Promise<EditingResult[]> {
 
 async function main() {
   console.log(
-    `Spending real Anthropic tokens: ${GENERATION_CASES.length + EDITING_CASES.length} calls, each with up to one repair retry.\n`,
+    // #265: editing cases now run twice -- once unscoped, once with a
+    // resolved partScope -- to produce the scoped-vs-unscoped comparison
+    // renderReport's new section prints.
+    `Spending real Anthropic tokens: ${GENERATION_CASES.length + EDITING_CASES.length * 2} calls, each with up to one repair retry.\n`,
   );
 
   const generationResults = await runGeneration();
-  const editingResults = await runEditing();
+  const editingResults = await runEditing(false);
+  const scopedEditingResults = await runEditing(true);
 
   const report = renderReport(
     { model: MODEL, provider: PROVIDER, generatedAt: new Date().toISOString() },
     generationResults,
     editingResults,
+    scopedEditingResults,
   );
 
   mkdirSync(dirname(REPORT_PATH), { recursive: true });

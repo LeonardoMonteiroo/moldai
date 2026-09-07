@@ -140,6 +140,13 @@ export const GenerateBodySchema = z.object({
   // isEngineId, the real trust boundary -- z.unknown() here for the same
   // reason every other field above stays untyped at the schema layer).
   engine: z.unknown().optional(),
+  // #265: the piece the editor had selected when this turn was sent. The
+  // route reads it tolerantly (only a string is looked at) and resolves it
+  // against THIS pattern's own `pieces` list, by id -- an unrecognized or
+  // stale id simply drops the scope rather than refusing the request, so
+  // z.unknown() here is not standing in for a stricter check elsewhere the
+  // way sizeChartId's is; there genuinely is no reject path for this field.
+  selectedPieceId: z.unknown().optional(),
 });
 
 // graduate: `sizes` is read with `Array.isArray(body.sizes) ? body.sizes :

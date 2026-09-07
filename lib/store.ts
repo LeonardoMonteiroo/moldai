@@ -302,6 +302,16 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         // Spread rather than assigned, so a text-only send carries no
         // `images` key at all -- the route refuses an empty list.
         ...(opts?.images?.length ? { images: opts.images } : {}),
+        // #265: whichever piece was selected at send time -- a UX
+        // affordance only, re-resolved server-side against the pattern's
+        // own pieces. Read fresh here (not from `opts`) since the selection
+        // can change independently of the message being composed. Spread
+        // rather than assigned, same reason as `images` above: omitting the
+        // key entirely when nothing is selected (the common case) rather
+        // than sending an explicit `null`.
+        ...(get().selectedPieceId
+          ? { selectedPieceId: get().selectedPieceId }
+          : {}),
       });
     } catch {
       clearTimeout(stepTimer);
