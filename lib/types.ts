@@ -372,6 +372,17 @@ export interface ConflictEntry {
   diffCm: number;
   fixable: boolean;
   markers: { cx: number; cy: number; r: number }[];
+  // #241: graded sizes (never the base) where THIS pair's own gap also
+  // misses SEAM_TOLERANCE_CM -- a conventional X/Y-increment grading's
+  // diagonal seams don't move linearly with the increments, so a pair can
+  // close at the base size and still diverge only away from it (Islam et
+  // al., Tekstilec 63(3):166-184). Populated ONLY for an entry that
+  // wouldn't otherwise be visible (the base row itself already conflicts,
+  // or nowhere does); absent for every entry that predates this issue and
+  // for a base-origin entry, so nothing about the existing single-pair
+  // shape changes. Names, doesn't measure — the two lengths behind it stay
+  // derived at render time exactly like every other entry's.
+  sizes?: SizeLabel[];
 }
 
 export interface ConflictInfo {
