@@ -397,7 +397,8 @@
       "engineStyleUnsupported": "O motor de modelagem atual ignorou estas opções, que não se aplicam a esta peça: {fields}.",
       "specAdjusted": "Ajustei o pedido para o que a MoldAI consegue traçar: {items}.",
       "specAdjustmentSubstituted": "{field} “{requested}” não existe, usei o padrão",
-      "specAdjustmentClamped": "{field} {requested} está fora do intervalo ({min}–{max}), usei {used}"
+      "specAdjustmentClamped": "{field} {requested} está fora do intervalo ({min}–{max}), usei {used}",
+      "referenceMismatch": "Ao comparar com a referência enviada, notei uma divergência: {note}"
     },
     "specField": {
       "type": "tipo de peça",
