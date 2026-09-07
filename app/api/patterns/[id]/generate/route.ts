@@ -13,13 +13,16 @@ import {
   addMessage,
   applyGarmentSpec,
   bumpVersion,
+  getSpec,
   seedPatternSizeSnapshot,
 } from "@/lib/editor/state";
+import { diffSpec } from "@/lib/draft/specDiff";
 import { debitWallet, refundWallet } from "@/lib/billing/wallet";
 import {
   engineFor,
   isEngineId,
   checkEngineSupport,
+  type EngineGap,
 } from "@/lib/draft/engine/capability";
 import { getEngine } from "@/lib/draft/engine/registry";
 import type { SpecAdjustment } from "@/lib/draft/specAdjustments";
@@ -377,6 +380,33 @@ export async function POST(request: Request, { params }: Ctx) {
               const spec = chartGender
                 ? { ...merged, gender: chartGender }
                 : merged;
+              // #279: state.pattern.spec as it stood before this turn
+              // touches it (applyGarmentSpec below hasn't run yet), so
+              // diffing it against the final `spec` tells apart a field the
+              // engine gap below is ABOUT TO report because it genuinely
+              // changed/was newly set this turn from one that's simply been
+              // sitting there, unsupported, since an earlier turn -- the
+              // model is prompted to always echo the ENTIRE updated spec
+              // back (lib/ai/prompt.ts), so a style field the active engine
+              // never reads keeps reappearing, byte-identical, in every
+              // later turn's spec forever (nothing ever corrects it).
+              //
+              // chat.specAdjusted (right below) does NOT need this same
+              // treatment: describeSpecAdjustments is recomputed from the
+              // model's live RAW payload on every call, and the "Current
+              // pattern spec" the prompt shows the model each turn
+              // (lib/ai/prompt.ts) is the CORRECTED value (e.g. collar
+              // "none", never the rejected "peterPan") -- so an unrelated
+              // later turn that echoes it back re-validates clean and never
+              // re-enters this list on its own. Filtering it the same way
+              // would instead risk suppressing a genuinely new substitution
+              // whose corrected value happens to coincide with the last
+              // one's (e.g. two different unsupported collars both default
+              // to "none").
+              const previousSpec = getSpec(state);
+              const turnChangedFields = new Set(
+                diffSpec(previousSpec, spec).map((c) => c.field),
+              );
               // #250: validateSpec (inside proposeGarment/resolveDecision)
               // already substituted a default or clamped a bound for
               // whatever the model's raw payload could not honor;
@@ -483,13 +513,20 @@ export async function POST(request: Request, { params }: Ctx) {
               // field dropped (today's silent behavior) -- but says so,
               // rather than leaving the user to notice the field simply
               // didn't apply.
+              const isStyleGap = (
+                g: EngineGap,
+              ): g is Extract<
+                EngineGap,
+                { kind: "styleField" | "styleValue" | "styleLimit" }
+              > =>
+                g.kind === "styleField" ||
+                g.kind === "styleValue" ||
+                g.kind === "styleLimit";
               const droppedStyleFields = engineGaps
-                .filter(
-                  (g) =>
-                    g.kind === "styleField" ||
-                    g.kind === "styleValue" ||
-                    g.kind === "styleLimit",
-                )
+                .filter(isStyleGap)
+                // #279: only a field that changed/was newly set THIS turn --
+                // see the comment above `turnChangedFields`.
+                .filter((g) => turnChangedFields.has(g.field))
                 .map((g) => t(`styleField.${g.field}`));
               applyGarmentSpec(state, spec, t);
               bumpVersion(state);

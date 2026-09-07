@@ -981,6 +981,50 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(state.pattern.pieces.length).toBeGreaterThan(0);
   });
 
+  // #279: the model is prompted to always echo the ENTIRE updated spec back
+  // (lib/ai/prompt.ts), so an unsupported field set once (turn 1) reappears,
+  // unchanged, in every later turn's spec even though the later message has
+  // nothing to do with it. The notice is about THIS turn's request, so it
+  // must fire once (turn 1) and go quiet once the field stops changing --
+  // never repeat verbatim on an unrelated follow-up for the rest of the
+  // session.
+  it("does not repeat chat.engineStyleUnsupported on a later, unrelated turn", async () => {
+    mockPropose.mockResolvedValueOnce({
+      decision: "apply",
+      spec: {
+        type: "trousers",
+        gender: "female",
+        measurementOverrides: {},
+        style: { collar: "band" },
+      },
+      assistantMessage: "Feito!",
+    });
+    await POST(req({ message: "uma calça com gola" }), ctx());
+    const firstNotice = state.chat.find((m) => m.tone === "notice");
+    expect(firstNotice).toBeDefined();
+    expect(firstNotice!.text).toBe("chat.engineStyleUnsupported");
+
+    // Turn 2: an unrelated adjustment. The model echoes `collar: "band"`
+    // forward unchanged (per the prompt's own "return the ENTIRE UPDATED
+    // spec" instruction) and additionally sets `trouserLengthCm`, a field
+    // trousers DOES support -- the only thing that actually changed.
+    mockPropose.mockResolvedValueOnce({
+      decision: "apply",
+      spec: {
+        type: "trousers",
+        gender: "female",
+        measurementOverrides: {},
+        style: { collar: "band", trouserLengthCm: 90 },
+      },
+      assistantMessage: "Comprimento ajustado.",
+    });
+    const chatLengthBeforeTurn2 = state.chat.length;
+    await POST(req({ message: "diminui o comprimento" }), ctx());
+
+    const turn2Messages = state.chat.slice(chatLengthBeforeTurn2);
+    expect(turn2Messages.some((m) => m.tone === "notice")).toBe(false);
+  });
+
   // #250: validateSpec (inside the real proposeGarment) already substituted
   // a default for a field the model's raw payload could not honor;
   // resolveDecision's own describeSpecAdjustments diff rides along on
@@ -1013,6 +1057,75 @@ describe("POST /api/patterns/[id]/generate", () => {
     const notice = state.chat.find((m) => m.tone === "notice");
     expect(notice).toBeDefined();
     expect(notice!.text).toBe("chat.specAdjusted");
+  });
+
+  // #279 investigated whether chat.specAdjusted shares
+  // chat.engineStyleUnsupported's repeat defect and found it does NOT:
+  // describeSpecAdjustments is recomputed from the model's live RAW payload
+  // on every call, and the "Current pattern spec" the prompt shows the model
+  // each turn (lib/ai/prompt.ts) is always the CORRECTED value ("none"),
+  // never the originally-rejected one ("peterPan") -- so a model that
+  // faithfully echoes the current spec forward on an unrelated turn
+  // re-validates clean and this list stays empty on its own, with no
+  // turn-scoping needed at the route level. Unlike the engine-gap case, a
+  // decision.adjustments entry reappearing here reflects the model's raw
+  // payload genuinely naming the unsupported value again on THIS call, which
+  // is exactly the "changed/newly set in the current turn's request" signal
+  // the notice is supposed to report -- so it is deliberately NOT suppressed
+  // just because an identical adjustment also fired on an earlier turn.
+  it("still reports chat.specAdjusted on a later turn when the model's raw payload names the same unsupported value again", async () => {
+    mockPropose.mockResolvedValueOnce({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: { collar: "none" },
+      },
+      assistantMessage: "Feito!",
+      adjustments: [
+        {
+          kind: "substituted",
+          field: "collar",
+          requested: "peterPan",
+          used: "none",
+        },
+      ],
+    });
+    await POST(req({ message: "uma blusa com gola peter pan" }), ctx());
+    const firstNotice = state.chat.find((m) => m.tone === "notice");
+    expect(firstNotice).toBeDefined();
+    expect(firstNotice!.text).toBe("chat.specAdjusted");
+
+    // Turn 2: the user asks for the SAME unsupported collar again (its own
+    // real request this turn, not a stale echo) -- resolveDecision's own
+    // describeSpecAdjustments would produce this same entry from the raw
+    // payload, so the route must not withhold it.
+    mockPropose.mockResolvedValueOnce({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: { collar: "none" },
+      },
+      assistantMessage: "Feito!",
+      adjustments: [
+        {
+          kind: "substituted",
+          field: "collar",
+          requested: "peterPan",
+          used: "none",
+        },
+      ],
+    });
+    const chatLengthBeforeTurn2 = state.chat.length;
+    await POST(req({ message: "quero gola peter pan de novo" }), ctx());
+
+    const turn2Messages = state.chat.slice(chatLengthBeforeTurn2);
+    const secondNotice = turn2Messages.find((m) => m.tone === "notice");
+    expect(secondNotice).toBeDefined();
+    expect(secondNotice!.text).toBe("chat.specAdjusted");
   });
 
   it("adds no notice when the spec carried no adjustments", async () => {
