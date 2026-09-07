@@ -34,25 +34,43 @@ describe("validateName", () => {
 });
 
 describe("validateNewPassword", () => {
-  it("accepts passwords with 8+ characters", () => {
-    expect(validateNewPassword("12345678")).toBe(true);
+  it("accepts an 8+ character password with both letters and digits", () => {
+    expect(validateNewPassword("senha123")).toBe(true);
   });
   it("rejects passwords under 8 characters", () => {
-    expect(validateNewPassword("1234567")).toBe(false);
+    expect(validateNewPassword("a123456")).toBe(false);
   });
   it("rejects non-string input", () => {
     expect(validateNewPassword(12345678)).toBe(false);
     expect(validateNewPassword(undefined)).toBe(false);
   });
 
+  // #238: length alone used to be the whole rule -- a password with only
+  // letters, or only digits, must now fail even though it clears the length
+  // bound on its own.
+  it("rejects a letters-only password", () => {
+    expect(validateNewPassword("apenasletras")).toBe(false);
+  });
+  it("rejects a digits-only password", () => {
+    expect(validateNewPassword("12345678")).toBe(false);
+  });
+  it("accepts a valid mixed password", () => {
+    expect(validateNewPassword("senha-forte1")).toBe(true);
+  });
+  // A pt-BR product's "letras" has to include accented letters, or the
+  // catalog hint's own claim would be false for half the alphabet.
+  it("accepts accented pt-BR letters as letters", () => {
+    expect(validateNewPassword("senha-válida1")).toBe(true);
+  });
+
   // #30: bcryptjs silently truncates at 72 bytes, so a password longer than
   // that is rejected outright instead of being silently reduced to a
   // shorter effective secret (see the MAX_PASSWORD_LENGTH comment).
-  it("accepts a password exactly at the 72-character cap", () => {
-    expect(validateNewPassword("a".repeat(72))).toBe(true);
+  it("accepts a mixed password exactly at the 72-character cap", () => {
+    expect(validateNewPassword("a".repeat(71) + "1")).toBe(true);
   });
   it("rejects a password over the 72-character cap", () => {
-    expect(validateNewPassword("a".repeat(73))).toBe(false);
+    expect(validateNewPassword("a".repeat(72) + "1")).toBe(false);
   });
 });
 

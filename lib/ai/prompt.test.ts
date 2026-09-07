@@ -326,7 +326,7 @@ describe("buildSystem: the fields-already-decided section", () => {
       answering: false,
       formSpec,
     });
-    const blankRule = s.indexOf("use decision=ask before drafting");
+    const blankRule = s.indexOf("Only decision=ask when the request names");
     const section = s.indexOf(HEADING);
     expect(blankRule).toBeGreaterThan(-1);
     expect(section).toBeGreaterThan(blankRule);
@@ -386,15 +386,21 @@ describe("prompt-cache byte stability", () => {
       staticSectionsFor(DEFAULT_ENGINE_ID) +
       JSON.stringify(toolFor(DEFAULT_ENGINE_ID));
     const hash = createHash("sha256").update(bytes).digest("hex");
-    // #262: regenerated -- the "# Decision policy" ask bullet and "#
-    // Language" section (buildStaticSections) now tell the model to set
-    // `field` + EXACT catalog tokens for a style-catalog question, and the
-    // propose_garment tool's own `questions.items` gained a `field` enum
-    // property (lib/ai/schema.ts) so that request is structurally valid. A
-    // deliberate, expected byte change (see this describe block's own
-    // comment), not a bug.
+    // #262 + #252-follow-up: regenerated -- the "# Decision policy" ask
+    // bullet (buildStaticSections) was rewritten so the model stops treating
+    // neckline/sleeve/fit/length/size as always-required detail (every one
+    // of those already has a drafter-side default) and reserves ask for a
+    // request that names nothing beyond the garment type (#252-follow-up),
+    // AND, within that same bullet plus the "# Language" section, now tells
+    // the model to set `field` + EXACT catalog tokens for a style-catalog
+    // question (#262); the propose_garment tool's own `questions.items`
+    // gained a `field` enum property (lib/ai/schema.ts) so that request is
+    // structurally valid. A deliberate, expected byte change (see this
+    // describe block's own comment), not a bug -- the eval harness
+    // (npm run eval:ai) is what proves the #252-follow-up half is better,
+    // not this hash.
     expect(hash).toBe(
-      "d3bbd5650f018844b873c77a5845683dec2818e3813ea5456cefb71771eaec4d",
+      "a1a7b09d5a4b406d556d150edd460ccdf2c00bb86816d6ec7218743ad0771dc5",
     );
   });
 });

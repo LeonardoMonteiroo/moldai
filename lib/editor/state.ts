@@ -10,12 +10,13 @@ import {
 } from "@/lib/types";
 import { seamCheck } from "@/lib/draft/garment";
 import type { SeamMeasurement } from "@/lib/draft/garment";
-import { draftGarment } from "@/lib/draft/engine/facade";
+import { draftGarment, measureSeamGraph } from "@/lib/draft/engine/facade";
 import { engineFor } from "@/lib/draft/engine/capability";
 import type { EngineId } from "@/lib/draft/engine/capability";
 import { buildSizeTable } from "@/lib/sizeCharts/compute";
 import { buildSystemSizeChart } from "@/lib/sizeCharts/seed";
 import type { Translate } from "@/lib/i18n/translate";
+import type { Measurements } from "@/lib/measurements";
 
 // Marker (dashed circle) over a piece's own right-edge region, from the bbox
 // of its vertices in px. Illustrative — points near the conflicting seam on
@@ -62,6 +63,52 @@ function buildEntry(
   };
 }
 
+// #241: one divergent pair's own worst offender, plus every OTHER (never
+// base) size where it also missed SEAM_TOLERANCE_CM -- the return shape
+// measureGradedDivergences below builds up, keyed by the pair's own stable
+// `key` the same way every other seam-pair lookup in this codebase is.
+interface GradedDivergence {
+  sizes: string[];
+  measurement: SeamMeasurement;
+}
+
+// #241: measures the FULL seam graph at every size in the pattern's own
+// frozen sizeTable EXCEPT the base row (already covered by seamGraph/
+// seamCheck at the call site) and narrows each to its own divergent pairs.
+// A 2020 measurement study (Islam et al., Tekstilec 63(3):166-184) found
+// conventional X/Y-increment grading with diagonal points of measure drives
+// a mated pair's own gap from +0.51cm at one extreme size to -0.51cm at the
+// other against a stated tolerance -- zero only at the base size, because a
+// diagonal's length isn't a linear function of independent X/Y increments.
+// Redrafting per size (rather than interpolating) is the same "measure the
+// real geometry" rule seamCheck's own base-size check already follows.
+// Keeps the WORST (largest diffCm) SeamMeasurement per key so a caller has
+// one representative pair of lengths to render, and every size (not just
+// the worst one) that missed tolerance for that key.
+function measureGradedDivergences(
+  engine: EngineId,
+  spec: GarmentSpec,
+  sizeTable: Record<string, Measurements>,
+  baseSize: string,
+  t: Translate,
+): Map<string, GradedDivergence> {
+  const out = new Map<string, GradedDivergence>();
+  for (const [size, measurements] of Object.entries(sizeTable)) {
+    if (size === baseSize) continue;
+    const graph = measureSeamGraph(engine, spec, measurements, t);
+    for (const m of seamCheck(graph)) {
+      const existing = out.get(m.key);
+      if (!existing) {
+        out.set(m.key, { sizes: [size], measurement: m });
+      } else {
+        existing.sizes.push(size);
+        if (m.diffCm > existing.measurement.diffCm) existing.measurement = m;
+      }
+    }
+  }
+  return out;
+}
+
 // #134: walks the FULL seam graph (every mated pair this garment declared)
 // down to the pairs that actually diverge (seamCheck) and builds the
 // ConflictInfo the same way the original armhole-cap-only version did, but
@@ -77,22 +124,62 @@ function buildEntry(
 // already-ease-adjusted armholeLenCm/sleeveArmholeCm); any other shape (a
 // different pair alone, or more than one divergence) gets the new generic
 // copy instead.
+//
+// #241: `gradedDivergences` adds entries for a pair whose gap misses
+// tolerance ONLY at a size other than base -- invisible to the base-only
+// check above. These never fold into the legacy singular-field branch
+// (armholeLenCm/sleeveArmholeCm describe the BASE draft, which this pair
+// does NOT diverge at) and never touch a base-origin entry's own fields --
+// the existing base-size behaviour stays byte-identical. Each such entry
+// carries its own `sizes`, naming exactly which graded size(s) it was
+// caught at, per CLAUDE.md's "surface feature limitations on-screen, never
+// silently."
 function detectConflict(
   pieces: Piece[],
   armholeLenCm: number | undefined,
   sleeveArmholeCm: number | undefined,
   seamGraph: SeamMeasurement[],
+  gradedDivergences: Map<string, GradedDivergence>,
+  // #241: the chart's own declared order (Pattern.sizes) -- a plain
+  // alphabetical sort would read "GG, PP" for a chart ordered small to
+  // large, backwards from how every other size list in this app (the size
+  // picker, sizesApplied/sizesPending) already reads.
+  sizeOrder: string[],
   t: Translate,
 ): ConflictInfo | null {
-  const conflicts = seamCheck(seamGraph);
-  if (conflicts.length === 0) return null;
-  const entries = conflicts.map((m) => buildEntry(pieces, m, t));
-  const armholeCap = conflicts.find((c) => c.key === "armhole-cap");
-  const primary = armholeCap ?? conflicts[0];
+  const baseConflicts = seamCheck(seamGraph);
+  const baseKeys = new Set(baseConflicts.map((m) => m.key));
+  const sizeOnly = Array.from(gradedDivergences.entries()).filter(
+    ([key]) => !baseKeys.has(key),
+  );
+  if (baseConflicts.length === 0 && sizeOnly.length === 0) return null;
+
+  const bySizeOrder = (a: string, b: string) => {
+    const ia = sizeOrder.indexOf(a);
+    const ib = sizeOrder.indexOf(b);
+    if (ia === -1 || ib === -1) return a.localeCompare(b);
+    return ia - ib;
+  };
+  const sizeOnlySizes = new Map(sizeOnly.map(([key, g]) => [key, g.sizes]));
+  const conflicts = [
+    ...baseConflicts,
+    ...sizeOnly.map(([, g]) => g.measurement),
+  ];
+  const entries = [
+    ...baseConflicts.map((m) => buildEntry(pieces, m, t)),
+    ...sizeOnly.map(([, g]) => ({
+      ...buildEntry(pieces, g.measurement, t),
+      sizes: [...g.sizes].sort(bySizeOrder),
+    })),
+  ];
+  const baseArmholeCap = baseConflicts.find((c) => c.key === "armhole-cap");
+  const primary = baseArmholeCap ?? conflicts[0];
   const primaryEntry = entries.find((e) => e.key === primary.key)!;
+  const primarySizes = sizeOnlySizes.get(primary.key);
   const isLegacySingle =
     conflicts.length === 1 &&
     primary.key === "armhole-cap" &&
+    baseArmholeCap != null &&
     armholeLenCm != null &&
     sleeveArmholeCm != null;
 
@@ -104,6 +191,12 @@ function detectConflict(
     description = t("conflict.description", {
       diffCm: primary.diffCm,
       direction: maior ? "larger" : "smaller",
+    });
+  } else if (conflicts.length === 1 && primarySizes) {
+    title = t("conflict.titleForSizeOnly", { label: primaryEntry.label });
+    description = t("conflict.descriptionSizeOnly", {
+      diffCm: primary.diffCm,
+      sizes: primarySizes.join(", "),
     });
   } else if (conflicts.length === 1) {
     title = t("conflict.titleFor", { label: primaryEntry.label });
@@ -265,11 +358,22 @@ export function applyGarmentSpec(
     spec,
     baseMeasurements: measurements,
   };
+  // #241: every OTHER size this pattern's own frozen sizeTable already
+  // carries -- not just the base row seamGraph above measured.
+  const gradedDivergences = measureGradedDivergences(
+    engine,
+    spec,
+    state.pattern.sizeTable,
+    state.pattern.baseSize,
+    t,
+  );
   state.conflict = detectConflict(
     pieces,
     armholeLenCm,
     sleeveArmholeCm,
     seamGraph,
+    gradedDivergences,
+    state.pattern.sizes,
     t,
   );
 }
