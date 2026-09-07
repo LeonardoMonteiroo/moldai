@@ -45,16 +45,26 @@ function patternFromSpec(spec: GarmentSpec): Pattern {
 
 // #8 AC: "strictly better on at least one real garment" -- measured across
 // the full DECORATION_CASES x FABRIC_WIDTHS_CM grid against this codebase's
-// current drafters, the male t-shirt at 160cm is where skyline's advantage
-// is largest (two body panels + two sleeves, shelf stacks the sleeves under
-// the bodies; skyline tucks one sleeve into the gap beside them instead):
-// shelf 117.65cm -> skyline 80.81cm, a ~31% reduction.
-function tshirtMalePattern(): Pattern {
+// current drafters.
+//
+// #282: this used to be the male t-shirt, where skyline's advantage was
+// largest (shelf 117.65cm -> skyline 80.81cm, a ~31% reduction, from
+// stacking two sleeves under two wide body panels vs. tucking one sleeve
+// into the gap beside them). Fixing the t-shirt's ~56% wearing ease
+// (TSHIRT_BASE_EASE_CM, see lib/draft/ease.ts) narrowed its body panels from
+// ~78cm to ~59cm each, so two now fit side by side on a 160cm roll under
+// shelf packing too -- the gap skyline used to exploit is gone, and the
+// re-measured improvement there is a rounding-noise 0.14%, not a real one
+// any more. Re-ran the same grid search this comment originally describes;
+// "dress a-line" at 160cm is now where skyline's advantage is largest
+// (a bodice + an a-line skirt panel, the same shape mismatch that made the
+// t-shirt case work before): shelf 149.37cm -> skyline 136.32cm, ~8.7%.
+function dressALinePattern(): Pattern {
   return patternFromSpec({
-    type: "tshirt",
-    gender: "male",
+    type: "dress",
+    gender: "female",
     measurementOverrides: {},
-    style: {},
+    style: { neckline: "round", sleeve: "short", darts: true, skirt: "a-line" },
   });
 }
 
@@ -253,15 +263,15 @@ describe("planCutLayout", () => {
     }
   });
 
-  it("auto mode is strictly smaller than shelf-only for a real garment (male t-shirt at 160cm)", () => {
-    const pat = tshirtMalePattern();
+  it("auto mode is strictly smaller than shelf-only for a real garment (dress a-line at 160cm)", () => {
+    const pat = dressALinePattern();
     const model = buildExportModel(pat, t);
     const raw = rawInstancesFor(model);
     const shelfLen = layoutLenOf(packShelf(raw, 160).placed);
     const autoLen = planCutLayout(pat, 160, t, { mode: "auto" }).lengthCm;
     expect(autoLen).toBeLessThan(shelfLen - 1e-6);
-    // a meaningful improvement, not a rounding artifact -- measured ~31%
-    expect(autoLen).toBeLessThan(shelfLen * 0.85);
+    // a meaningful improvement, not a rounding artifact -- measured ~8.7%
+    expect(autoLen).toBeLessThan(shelfLen * 0.93);
   });
 
   it("width-monotonicity also holds for auto mode", () => {

@@ -10,12 +10,21 @@ on the same six metrics -- `moldai` and `freesewing` today.
 comparable across engines; `rectilinearPerimeterCm`/`curvePerimeterCm`
 (how a curve/straight split is represented) and `widthCm`/`heightCm`
 (bounding-box orientation) are not -- see docs/decisions/drafting.md.
-Our own drafter was fitted to this benchmark; freesewing's was not, so
-an "ours is closer" reading of any curve/straight-split or bounding-box
-number here is circular, not evidence of better fit -- but `areaCm2`
-is a fair comparison, and freesewing's own tshirt panel comes out much
-closer to the benchmark's real garment there (see docs/decisions/
-drafting.md's own note on the ease this exposes in moldai's tshirt).
+
+#282: our tshirt panel's WIDTH is no longer fitted to this benchmark --
+TSHIRT_BASE_EASE_CM (lib/draft/ease.ts) used to be solved backwards from
+this file's own widthCm figure (a ~56% wearing ease); it is now a real,
+sourced 18cm instead, and our back widthCm at M (59.00) lands on exactly
+the same figure freesewing's does. Its HEIGHT still carries the same
+calibration TSHIRT_BASE_EASE_CM used to (TSHIRT_HEM_DROP_CM, garment.ts,
+solved from this benchmark's heightCm) -- so an "ours is closer" reading
+of heightCm, or of any curve/straight-split or bounding-box number, is
+still circular, not evidence of better fit. `areaCm2` is a fair
+comparison and is NO LONGER close: our own back panel's area delta
+widened once the width calibration was removed (see docs/decisions/
+drafting.md's own note on the ease this exposed in moldai's tshirt) --
+that is the correct direction, not a regression, since the old
+"closer" reading was the self-fulfilling calibration in the first place.
 
 Note on `collarBand` rows: this app drafts the band as a horizontal strip
 (widthCm = strip length, heightCm = band height); the benchmark's own export
@@ -28,96 +37,96 @@ own tshirt.collar is empty), so there is no piece here to measure.
 
 | Engine | Piece | Size | Metric | Ours | Benchmark | Delta |
 | ------ | ----- | ---- | ------ | ---- | --------- | ----- |
-| moldai | back | P | perimeterCm | 248.64 | 258.94 | -10.30 |
-| moldai | back | P | areaCm2 | 4134.18 | 3902.40 | +231.78 |
-| moldai | back | P | rectilinearPerimeterCm | 183.78 | 176.57 | +7.22 |
-| moldai | back | P | curvePerimeterCm | 64.86 | 82.37 | -17.52 |
-| moldai | back | P | widthCm | 75.95 | 77.59 | -1.64 |
+| moldai | back | P | perimeterCm | 219.55 | 258.94 | -39.39 |
+| moldai | back | P | areaCm2 | 3225.19 | 3902.40 | -677.21 |
+| moldai | back | P | rectilinearPerimeterCm | 164.83 | 176.57 | -11.73 |
+| moldai | back | P | curvePerimeterCm | 54.71 | 82.37 | -27.66 |
+| moldai | back | P | widthCm | 57.00 | 77.59 | -20.59 |
 | moldai | back | P | heightCm | 61.50 | 55.61 | +5.89 |
-| moldai | front | P | perimeterCm | 260.19 | 257.65 | +2.53 |
-| moldai | front | P | areaCm2 | 4049.97 | 3594.24 | +455.73 |
-| moldai | front | P | rectilinearPerimeterCm | 183.78 | 176.57 | +7.21 |
-| moldai | front | P | curvePerimeterCm | 76.40 | 81.08 | -4.68 |
-| moldai | front | P | widthCm | 75.95 | 73.52 | +2.43 |
+| moldai | front | P | perimeterCm | 231.09 | 257.65 | -26.56 |
+| moldai | front | P | areaCm2 | 3140.98 | 3594.24 | -453.26 |
+| moldai | front | P | rectilinearPerimeterCm | 164.83 | 176.57 | -11.74 |
+| moldai | front | P | curvePerimeterCm | 66.26 | 81.08 | -14.82 |
+| moldai | front | P | widthCm | 57.00 | 73.52 | -16.52 |
 | moldai | front | P | heightCm | 61.50 | 55.61 | +5.89 |
-| moldai | sleeve | P | perimeterCm | 120.51 | 124.45 | -3.93 |
-| moldai | sleeve | P | areaCm2 | 1000.52 | 906.22 | +94.30 |
+| moldai | sleeve | P | perimeterCm | 110.37 | 124.45 | -14.07 |
+| moldai | sleeve | P | areaCm2 | 859.85 | 906.22 | -46.37 |
 | moldai | sleeve | P | rectilinearPerimeterCm | 70.38 | 70.17 | +0.21 |
-| moldai | sleeve | P | curvePerimeterCm | 50.14 | 54.28 | -4.14 |
+| moldai | sleeve | P | curvePerimeterCm | 40.00 | 54.28 | -14.28 |
 | moldai | sleeve | P | widthCm | 30.30 | 26.18 | +4.12 |
-| moldai | sleeve | P | heightCm | 39.71 | 45.93 | -6.22 |
+| moldai | sleeve | P | heightCm | 33.00 | 45.93 | -12.93 |
 | moldai | collarBand | P | perimeterCm | 102.97 | 104.31 | -1.33 |
 | moldai | collarBand | P | areaCm2 | 232.43 | 235.76 | -3.33 |
 | moldai | collarBand | P | rectilinearPerimeterCm | 102.97 | 104.31 | -1.33 |
 | moldai | collarBand | P | curvePerimeterCm | 0.00 | 0.00 | +0.00 |
 | moldai | collarBand | P | widthCm | 46.49 | 5.00 | +41.49 |
 | moldai | collarBand | P | heightCm | 5.00 | 47.15 | -42.15 |
-| moldai | back | M | perimeterCm | 253.02 | 267.89 | -14.87 |
-| moldai | back | M | areaCm2 | 4271.69 | 4196.82 | +74.87 |
-| moldai | back | M | rectilinearPerimeterCm | 186.17 | 183.53 | +2.63 |
-| moldai | back | M | curvePerimeterCm | 66.85 | 84.35 | -17.50 |
-| moldai | back | M | widthCm | 77.95 | 79.99 | -2.04 |
+| moldai | back | M | perimeterCm | 223.81 | 267.89 | -44.08 |
+| moldai | back | M | areaCm2 | 3358.24 | 4196.82 | -838.58 |
+| moldai | back | M | rectilinearPerimeterCm | 167.22 | 183.53 | -16.32 |
+| moldai | back | M | curvePerimeterCm | 56.60 | 84.35 | -27.76 |
+| moldai | back | M | widthCm | 59.00 | 79.99 | -20.99 |
 | moldai | back | M | heightCm | 62.00 | 58.01 | +3.99 |
-| moldai | front | M | perimeterCm | 264.83 | 266.67 | -1.84 |
-| moldai | front | M | areaCm2 | 4181.37 | 3877.52 | +303.85 |
-| moldai | front | M | rectilinearPerimeterCm | 186.17 | 183.54 | +2.63 |
-| moldai | front | M | curvePerimeterCm | 78.66 | 83.13 | -4.47 |
-| moldai | front | M | widthCm | 77.95 | 75.92 | +2.03 |
+| moldai | front | M | perimeterCm | 235.62 | 266.67 | -31.05 |
+| moldai | front | M | areaCm2 | 3267.92 | 3877.52 | -609.60 |
+| moldai | front | M | rectilinearPerimeterCm | 167.22 | 183.54 | -16.32 |
+| moldai | front | M | curvePerimeterCm | 68.40 | 83.13 | -14.73 |
+| moldai | front | M | widthCm | 59.00 | 75.92 | -16.92 |
 | moldai | front | M | heightCm | 62.00 | 58.01 | +3.99 |
-| moldai | sleeve | M | perimeterCm | 124.01 | 128.30 | -4.29 |
-| moldai | sleeve | M | areaCm2 | 1063.06 | 965.85 | +97.21 |
+| moldai | sleeve | M | perimeterCm | 113.75 | 128.30 | -14.55 |
+| moldai | sleeve | M | areaCm2 | 914.21 | 965.85 | -51.64 |
 | moldai | sleeve | M | rectilinearPerimeterCm | 72.46 | 72.37 | +0.09 |
-| moldai | sleeve | M | curvePerimeterCm | 51.55 | 55.93 | -4.38 |
+| moldai | sleeve | M | curvePerimeterCm | 41.29 | 55.93 | -14.64 |
 | moldai | sleeve | M | widthCm | 31.50 | 27.06 | +4.44 |
-| moldai | sleeve | M | heightCm | 40.58 | 47.33 | -6.75 |
+| moldai | sleeve | M | heightCm | 33.75 | 47.33 | -13.58 |
 | moldai | collarBand | M | perimeterCm | 105.83 | 105.84 | -0.01 |
 | moldai | collarBand | M | areaCm2 | 239.58 | 239.60 | -0.02 |
 | moldai | collarBand | M | rectilinearPerimeterCm | 105.83 | 105.84 | -0.01 |
 | moldai | collarBand | M | curvePerimeterCm | 0.00 | 0.00 | +0.00 |
 | moldai | collarBand | M | widthCm | 47.92 | 5.00 | +42.92 |
 | moldai | collarBand | M | heightCm | 5.00 | 47.92 | -42.92 |
-| moldai | back | G | perimeterCm | 257.40 | 276.85 | -19.45 |
-| moldai | back | G | areaCm2 | 4410.63 | 4501.65 | -91.02 |
-| moldai | back | G | rectilinearPerimeterCm | 188.58 | 190.50 | -1.92 |
-| moldai | back | G | curvePerimeterCm | 68.82 | 86.34 | -17.53 |
-| moldai | back | G | widthCm | 79.95 | 82.39 | -2.44 |
+| moldai | back | G | perimeterCm | 228.09 | 276.85 | -48.76 |
+| moldai | back | G | areaCm2 | 3492.72 | 4501.65 | -1008.93 |
+| moldai | back | G | rectilinearPerimeterCm | 169.63 | 190.50 | -20.87 |
+| moldai | back | G | curvePerimeterCm | 58.45 | 86.34 | -27.89 |
+| moldai | back | G | widthCm | 61.00 | 82.39 | -21.39 |
 | moldai | back | G | heightCm | 62.50 | 60.41 | +2.09 |
-| moldai | front | G | perimeterCm | 269.46 | 275.69 | -6.24 |
-| moldai | front | G | areaCm2 | 4314.34 | 4171.30 | +143.04 |
-| moldai | front | G | rectilinearPerimeterCm | 188.58 | 190.51 | -1.93 |
-| moldai | front | G | curvePerimeterCm | 80.87 | 85.19 | -4.31 |
-| moldai | front | G | widthCm | 79.95 | 78.32 | +1.63 |
+| moldai | front | G | perimeterCm | 240.14 | 275.69 | -35.55 |
+| moldai | front | G | areaCm2 | 3396.44 | 4171.30 | -774.87 |
+| moldai | front | G | rectilinearPerimeterCm | 169.63 | 190.51 | -20.88 |
+| moldai | front | G | curvePerimeterCm | 70.51 | 85.19 | -14.68 |
+| moldai | front | G | widthCm | 61.00 | 78.32 | -17.32 |
 | moldai | front | G | heightCm | 62.50 | 60.41 | +2.09 |
-| moldai | sleeve | G | perimeterCm | 127.51 | 132.16 | -4.65 |
-| moldai | sleeve | G | areaCm2 | 1127.31 | 1027.42 | +99.89 |
+| moldai | sleeve | G | perimeterCm | 117.14 | 132.16 | -15.01 |
+| moldai | sleeve | G | areaCm2 | 970.21 | 1027.42 | -57.21 |
 | moldai | sleeve | G | rectilinearPerimeterCm | 74.55 | 74.57 | -0.02 |
-| moldai | sleeve | G | curvePerimeterCm | 52.96 | 57.59 | -4.63 |
+| moldai | sleeve | G | curvePerimeterCm | 42.60 | 57.59 | -14.99 |
 | moldai | sleeve | G | widthCm | 32.70 | 27.95 | +4.75 |
-| moldai | sleeve | G | heightCm | 41.44 | 48.73 | -7.29 |
+| moldai | sleeve | G | heightCm | 34.49 | 48.73 | -14.24 |
 | moldai | collarBand | G | perimeterCm | 108.54 | 107.38 | +1.16 |
 | moldai | collarBand | G | areaCm2 | 246.34 | 243.44 | +2.90 |
 | moldai | collarBand | G | rectilinearPerimeterCm | 108.54 | 107.38 | +1.16 |
 | moldai | collarBand | G | curvePerimeterCm | 0.00 | 0.00 | +0.00 |
 | moldai | collarBand | G | widthCm | 49.27 | 5.00 | +44.27 |
 | moldai | collarBand | G | heightCm | 5.00 | 48.69 | -43.69 |
-| moldai | back | GG | perimeterCm | 261.78 | 285.81 | -24.03 |
-| moldai | back | GG | areaCm2 | 4551.04 | 4817.17 | -266.12 |
-| moldai | back | GG | rectilinearPerimeterCm | 191.00 | 197.48 | -6.48 |
-| moldai | back | GG | curvePerimeterCm | 70.78 | 88.34 | -17.56 |
-| moldai | back | GG | widthCm | 81.95 | 84.79 | -2.84 |
+| moldai | back | GG | perimeterCm | 232.37 | 285.81 | -53.45 |
+| moldai | back | GG | areaCm2 | 3628.68 | 4817.17 | -1188.49 |
+| moldai | back | GG | rectilinearPerimeterCm | 172.05 | 197.48 | -25.43 |
+| moldai | back | GG | curvePerimeterCm | 60.32 | 88.34 | -28.02 |
+| moldai | back | GG | widthCm | 63.00 | 84.79 | -21.79 |
 | moldai | back | GG | heightCm | 63.00 | 62.81 | +0.19 |
-| moldai | front | GG | perimeterCm | 274.08 | 284.73 | -10.65 |
-| moldai | front | GG | areaCm2 | 4448.60 | 4475.57 | -26.97 |
-| moldai | front | GG | rectilinearPerimeterCm | 191.00 | 197.48 | -6.48 |
-| moldai | front | GG | curvePerimeterCm | 83.08 | 87.25 | -4.16 |
-| moldai | front | GG | widthCm | 81.95 | 80.72 | +1.23 |
+| moldai | front | GG | perimeterCm | 244.67 | 284.73 | -40.06 |
+| moldai | front | GG | areaCm2 | 3526.23 | 4475.57 | -949.34 |
+| moldai | front | GG | rectilinearPerimeterCm | 172.05 | 197.48 | -25.43 |
+| moldai | front | GG | curvePerimeterCm | 72.62 | 87.25 | -14.63 |
+| moldai | front | GG | widthCm | 63.00 | 80.72 | -17.72 |
 | moldai | front | GG | heightCm | 63.00 | 62.81 | +0.19 |
-| moldai | sleeve | GG | perimeterCm | 131.01 | 136.02 | -5.01 |
-| moldai | sleeve | GG | areaCm2 | 1193.26 | 1090.89 | +102.37 |
+| moldai | sleeve | GG | perimeterCm | 120.54 | 136.02 | -15.48 |
+| moldai | sleeve | GG | areaCm2 | 1027.86 | 1090.89 | -63.03 |
 | moldai | sleeve | GG | rectilinearPerimeterCm | 76.63 | 76.77 | -0.14 |
-| moldai | sleeve | GG | curvePerimeterCm | 54.37 | 59.24 | -4.87 |
+| moldai | sleeve | GG | curvePerimeterCm | 43.91 | 59.24 | -15.34 |
 | moldai | sleeve | GG | widthCm | 33.90 | 28.83 | +5.07 |
-| moldai | sleeve | GG | heightCm | 42.30 | 50.13 | -7.83 |
+| moldai | sleeve | GG | heightCm | 35.25 | 50.13 | -14.88 |
 | moldai | collarBand | GG | perimeterCm | 111.24 | 108.91 | +2.33 |
 | moldai | collarBand | GG | areaCm2 | 253.11 | 247.28 | +5.83 |
 | moldai | collarBand | GG | rectilinearPerimeterCm | 111.24 | 108.91 | +2.33 |
