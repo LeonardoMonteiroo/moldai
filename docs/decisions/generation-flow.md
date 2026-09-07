@@ -175,3 +175,52 @@ wire protocol (Anthropic's `tool_result`, or an OpenAI-compatible `role:
 provider is active. Full rationale, including why this stayed a facade
 rather than a hard swap, and the eval harness (#252) this issue built as
 its own prerequisite: [`ai-provider.md`](ai-provider.md).
+
+---
+
+## Style3D's broader output mined; still the same pipeline shape, still mostly out of scope (#273)
+
+**Decided.** #273 asked the same #270 mining method be applied to Style3D's public
+research beyond the one paper #270 already covered. Full evidence:
+[`docs/reference/style3d-spike/README.md`](../reference/style3d-spike/README.md).
+
+**What's out there.** Style3D's GitHub org lists six repositories beyond
+`design2garmentcode-impl`; a 2026 press release names six more SIGGRAPH 2024 papers with
+no public repo. All but one are cloth simulation, 3D reconstruction, rendering, or
+texture/style-transfer work with no analog anywhere in this codebase — MoldAI has no
+simulation, no 3D reconstruction, and no rendering layer for any of it to attach to. The
+one exception is **GarmageNet** (SIGGRAPH Asia 2025, arXiv:2504.01483) — a third
+independent research system (after Design2GarmentCode and, per the concurrent #272 spike,
+plausibly ChatGarment) landing on the identical "multi-modal input → structured
+parameters → deterministic construction" shape `lib/ai/*` → `validateSpec` →
+`lib/draft/*` already implements.
+
+**Still mostly a mismatched problem, on the same grounds #270 already established for
+Design2GarmentCode's projector.** GarmageNet's actual hard problem — a trained diffusion
+transformer synthesizing novel panel geometry, plus a second trained network
+(GarmageJigsaw) discovering which panel edges sew together — doesn't exist for us: a
+validated `GarmentSpec` already fully determines both the panel geometry
+(`lib/draft/*`'s drafters compute it directly) and the seam graph (`lib/draft/seams.ts`
+declares `seamEdges` per drafter and pairs them deterministically — nothing to discover).
+Training either module is real ML investment with no MoldAI-shaped corpus to point it at.
+GarmageNet's own annotation taxonomy (108 tokens across 9 design dimensions — neckline
+alone at 28 options, wider than our entire 39-token style-enum surface) is a third
+corroborating data point for #270's "we're behind on raw expressiveness" finding — not
+filed as a new issue, since #260/#262 already cite this exact conclusion against
+Design2GarmentCode/ChatGarment and a third citation would be noise, not signal.
+
+**One genuinely new, portable UX gap, filed as new work.** GarmageNet's progressive-
+editing loop compares each regenerated panel against its predecessor by 2D
+dimensions/3D bounding box, marking unchanged panels for retention and changed ones for
+modification — their reason (avoiding an expensive diffusion resample) doesn't apply to
+our instant, deterministic drafter, but the same comparison is a free computation we
+already have the inputs for: `VersionCompare.tsx`'s overlay drafts both compared
+versions' full piece sets but never signals which pieces actually differ, only three
+aggregate numbers (Cava, Comprimento, Consumo). Checked against the backlog first
+(#234/#257/#265 all cover adjacent but distinct ground) and filed as
+[#308](https://github.com/LeonardoMonteiroo/moldai/issues/308), the same "new gap found
+while tracing an adjacent path" pattern #270 used for #274.
+
+**The honest close.** No code changed; #272 (ChatGarment) was still open when this spike
+was written, so no overlap with its findings could be checked — only the structural
+observation that three independent systems now converge on the same pipeline shape.
