@@ -10,7 +10,7 @@ import { bbox, dartsOf, Pt, DRILL_HOLE_SETBACK_CM } from "./core";
 import {
   FIT_CLASSES,
   FIT_EASE_CM,
-  TSHIRT_BASE_EASE_CM,
+  TSHIRT_BASE_EASE_PCT,
   wearingEaseCm,
 } from "./ease";
 import type { FitClass } from "@/lib/types";
@@ -269,10 +269,10 @@ describe("fit class / fabric stretch ease (#125)", () => {
     },
   );
 
-  // tshirt-fit-calibration: a knit garment now starts from a positive base
-  // ease (TSHIRT_BASE_EASE_CM), not 0 -- the highest stretch band still
-  // reduces relative to that base, it no longer drops the drafted girth
-  // below the body measurement outright.
+  // #282: a knit garment starts from a positive base ease PERCENTAGE
+  // (TSHIRT_BASE_EASE_PCT), not 0 -- the highest stretch band still reduces
+  // relative to that base, it no longer drops the drafted girth below the
+  // body measurement outright.
   it("a knit at the highest stretch band drafts base ease minus the stretch reduction, not below the body measurement", () => {
     const opts: BlockOpts = {
       ...optsM,
@@ -282,7 +282,7 @@ describe("fit class / fabric stretch ease (#125)", () => {
     const { halfChestCm } = draftBody(M, { stretch: "high" }, t, opts);
     const bustGirth = halfChestCm * 4;
     expect(bustGirth).toBeCloseTo(
-      M.bust + TSHIRT_BASE_EASE_CM - M.bust * 0.12,
+      M.bust + (M.bust * (TSHIRT_BASE_EASE_PCT - 12)) / 100,
       1,
     );
     expect(bustGirth).toBeGreaterThan(M.bust);
