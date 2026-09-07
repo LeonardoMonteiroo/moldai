@@ -33,6 +33,21 @@ function pathD(start: ExPt, segs: ExSeg[], ox: number, oy: number): string {
   );
 }
 
+// #123/#243: a solid cut-line path + a dashed net-line path -- the piece's
+// own outer boundary and every internal loop (#243) draw this identical
+// pair, just centered on a different { outline, cutOutline }.
+function outlinePairPaths(
+  outline: { start: ExPt; segs: ExSeg[] },
+  cutOutline: { start: ExPt; segs: ExSeg[] },
+  ox: number,
+  oy: number,
+): string[] {
+  return [
+    `<path d="${pathD(cutOutline.start, cutOutline.segs, ox, oy)}" fill="none" stroke="#000" stroke-width="0.3"/>`,
+    `<path d="${pathD(outline.start, outline.segs, ox, oy)}" fill="none" stroke="#666" stroke-width="0.2" stroke-dasharray="3 2"/>`,
+  ];
+}
+
 export function toSvg(model: ExportModel): string {
   const w = model.sheetWidthCm * MM;
   const h = model.sheetHeightCm * MM;
@@ -48,12 +63,12 @@ export function toSvg(model: ExportModel): string {
     // boundary now; the net stitch line is a secondary dashed path, its own
     // dash pattern distinct from the grainline's (6 4) and the fold's (8 2 2
     // 2) so all three read apart on screen.
-    parts.push(
-      `<path d="${pathD(p.cutOutline.start, p.cutOutline.segs, ox, oy)}" fill="none" stroke="#000" stroke-width="0.3"/>`,
-    );
-    parts.push(
-      `<path d="${pathD(p.outline.start, p.outline.segs, ox, oy)}" fill="none" stroke="#666" stroke-width="0.2" stroke-dasharray="3 2"/>`,
-    );
+    parts.push(...outlinePairPaths(p.outline, p.cutOutline, ox, oy));
+    // #243: an internal loop (hole) draws exactly like the piece's own
+    // outer boundary above -- solid cut line first, dashed net line on top.
+    for (const loop of p.internalLoops ?? []) {
+      parts.push(...outlinePairPaths(loop.outline, loop.cutOutline, ox, oy));
+    }
     if (p.grainline) {
       const [a, b] = p.grainline;
       parts.push(

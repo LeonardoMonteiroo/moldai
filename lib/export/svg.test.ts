@@ -293,4 +293,59 @@ describe("toSvg", () => {
     const noNotchSvg = toSvg(noNotchModel);
     expect(noNotchSvg).not.toContain('x1="20" y1="70"');
   });
+
+  // #243: an internal loop (hole) draws exactly like the piece's own outer
+  // boundary -- one more solid cut path + one more dashed net path.
+  describe("internal loops (#243)", () => {
+    const loopModel: ExportModel = {
+      ...model,
+      pieces: [
+        {
+          ...model.pieces[0],
+          internalLoops: [
+            {
+              outline: {
+                start: { x: 3, y: 3 },
+                segs: [
+                  { kind: "line", to: { x: 7, y: 3 } },
+                  { kind: "line", to: { x: 7, y: 7 } },
+                  { kind: "line", to: { x: 3, y: 7 } },
+                  { kind: "line", to: { x: 3, y: 3 } },
+                ],
+              },
+              cutOutline: {
+                start: { x: 4, y: 4 },
+                segs: [
+                  { kind: "line", to: { x: 6, y: 4 } },
+                  { kind: "line", to: { x: 6, y: 6 } },
+                  { kind: "line", to: { x: 4, y: 6 } },
+                  { kind: "line", to: { x: 4, y: 4 } },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    it("adds one solid cut path and one dashed net path per loop", () => {
+      const noLoop = toSvg(model);
+      const withLoop = toSvg(loopModel);
+      expect(withLoop.match(/<path /g)?.length).toBe(
+        (noLoop.match(/<path /g)?.length ?? 0) + 2,
+      );
+    });
+
+    it("the loop's cut line is smaller than its own net line -- it shrinks, not grows", () => {
+      const svg = toSvg(loopModel);
+      // net loop: (3,3)-(7,7)cm -> mm at origin (2,2)cm: M50 50 (=(2+3)*10)
+      expect(svg).toContain("M50 50");
+      // cut loop: (4,4)-(6,6)cm -> M60 60
+      expect(svg).toContain("M60 60");
+    });
+
+    it("stays well-formed with an internal loop present", () => {
+      assertWellFormedSvg(toSvg(loopModel));
+    });
+  });
 });
