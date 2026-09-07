@@ -20,6 +20,13 @@ describe("FIT_EASE_CM / STRETCH_EASE_PCT defaults", () => {
   it("none is exactly 0% -- no reduction off the knit base ease", () => {
     expect(STRETCH_EASE_PCT.none).toBe(0);
   });
+  // #282: was 55.9, solved backwards from a contested benchmark dimension.
+  // 18 converges from two named sources instead -- the ~15-20cm hand-drafting
+  // "loose tee" band, and FreeSewing's Teagan holding 18.0% flat at published
+  // defaults on the same ~100cm-chest body (see ease.ts's own comment).
+  it("TSHIRT_BASE_EASE_PCT is exactly 18 -- hand-drafting range + Teagan's 18.0%", () => {
+    expect(TSHIRT_BASE_EASE_PCT).toBe(18);
+  });
   it("bust ease increases monotonically close < fitted < semiFitted < loose", () => {
     const order = FIT_CLASSES.map((c) => FIT_EASE_CM[c].bust);
     for (let i = 1; i < order.length; i++) {

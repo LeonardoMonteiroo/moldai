@@ -56,5 +56,14 @@ export interface LlmCallResult {
 
 export interface LlmProvider {
   id: string;
+  /**
+   * The underlying model identifier this provider is currently configured to
+   * call. A function, not a static field: openaiCompatProvider resolves it
+   * from LLM_MODEL at call time (mirrors getProvider() itself reading
+   * LLM_PROVIDER at call time), so a snapshot taken at module load could go
+   * stale. #252's eval harness report header reads this instead of a second,
+   * hand-copied literal.
+   */
+  model(): string;
   propose(opts: LlmCallOptions): Promise<LlmCallResult>;
 }

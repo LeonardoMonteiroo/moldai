@@ -36,6 +36,11 @@ const REPAIR_TIMEOUT_MS = 8_000;
 // token-heavy Portuguese `explain` answer.
 const REPAIR_MAX_TOKENS_ON_TRUNCATION = 2048;
 
+// The one literal, read by buildRequestParams below AND by the provider's
+// own model() -- so a report header (scripts/ai-eval.ts) reads this instead
+// of a second, hand-copied "claude-sonnet-5" string.
+const MODEL = "claude-sonnet-5" as const;
+
 function withImages(
   turns: LlmTurn[],
   images: LlmImage[] | undefined,
@@ -77,7 +82,7 @@ export function buildRequestParams(
   maxTokens: number,
 ) {
   return {
-    model: "claude-sonnet-5" as const,
+    model: MODEL,
     max_tokens: maxTokens,
     // A 1h TTL trades a slightly pricier cache write for staying warm
     // across the app's full request volume rather than expiring every 5
@@ -185,5 +190,6 @@ async function propose(opts: LlmCallOptions): Promise<LlmCallResult> {
 
 export const anthropicProvider: LlmProvider = {
   id: "anthropic",
+  model: () => MODEL,
   propose,
 };
