@@ -36,6 +36,18 @@ export function ChatBubble({
               </span>
             </div>
           )}
+          {message.garmentReading && (
+            // #258: the model's own part-by-part read of the attached
+            // image, so a misread is something the user can see and correct
+            // instead of a silent jump straight to the drafted spec. The
+            // label is catalog chrome (the reading itself is raw model
+            // prose, same as assistantMessage/text above); rendered right
+            // under the attachment chip, on the same user turn.
+            <p className="text-primary-foreground/85 text-meta mt-[9px]">
+              <span className="font-medium">{t("garmentReadingLabel")}</span>{" "}
+              {message.garmentReading}
+            </p>
+          )}
         </BubbleContent>
       </Bubble>
     );

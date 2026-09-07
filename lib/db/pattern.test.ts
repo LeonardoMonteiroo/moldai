@@ -209,6 +209,10 @@ describe("withPattern", () => {
     // exporter tells an AI turn's actual decision apart from its prose.
     { key: "decision" as const, value: "apply" as const },
     { key: "draftVersion" as const, value: 2 },
+    // #258: same trap, same fix -- the model's part-by-part read of an
+    // attached image, patched onto the user turn once proposeGarment
+    // resolves (setGarmentReading, lib/editor/state.ts).
+    { key: "garmentReading" as const, value: "Gola V, manga curta." },
   ];
 
   for (const { key, value } of FLAG_CASES) {

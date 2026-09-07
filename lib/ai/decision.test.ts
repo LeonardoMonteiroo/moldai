@@ -189,6 +189,86 @@ describe("resolveDecision", () => {
     expect(d.assistantMessage).toBe("");
   });
 
+  // #258: the model's own part-by-part read of an attached image -- carried
+  // through for every decision (an image can arrive alongside ask/decline
+  // too, not just apply), and never fatal when absent (no image on the
+  // turn, or an image turn the model simply skipped it on).
+  describe("garmentReading", () => {
+    it("carries garmentReading through on apply", () => {
+      const d = resolveDecision(
+        {
+          decision: "apply",
+          assistantMessage: "ok",
+          spec: SPEC,
+          garmentReading: "Gola V, manga curta.",
+        },
+        false,
+      );
+      expect(d.garmentReading).toBe("Gola V, manga curta.");
+    });
+
+    it("carries garmentReading through on ask", () => {
+      const d = resolveDecision(
+        {
+          decision: "ask",
+          assistantMessage: "Tell me:",
+          questions: [{ label: "Neckline", options: ["round", "V"] }],
+          garmentReading: "Vestido sem manga.",
+        },
+        false,
+      );
+      expect(d.decision).toBe("ask");
+      expect(d.garmentReading).toBe("Vestido sem manga.");
+    });
+
+    it("carries garmentReading through on decline", () => {
+      const d = resolveDecision(
+        {
+          decision: "decline",
+          declineReason: "pants",
+          assistantMessage: "no",
+          garmentReading: "Calça jeans.",
+        },
+        false,
+      );
+      expect(d.garmentReading).toBe("Calça jeans.");
+    });
+
+    it("omits garmentReading entirely when the model didn't set it -- never fatal", () => {
+      const d = resolveDecision(
+        { decision: "apply", assistantMessage: "ok", spec: SPEC },
+        false,
+      );
+      expect(d.garmentReading).toBeUndefined();
+    });
+
+    it("coerces a non-string garmentReading instead of passing it through", () => {
+      const d = resolveDecision(
+        {
+          decision: "apply",
+          assistantMessage: "ok",
+          spec: SPEC,
+          garmentReading: 12345 as unknown as string,
+        },
+        false,
+      );
+      expect(d.garmentReading).toBeUndefined();
+    });
+
+    it("treats a blank/whitespace-only garmentReading as absent", () => {
+      const d = resolveDecision(
+        {
+          decision: "apply",
+          assistantMessage: "ok",
+          spec: SPEC,
+          garmentReading: "   ",
+        },
+        false,
+      );
+      expect(d.garmentReading).toBeUndefined();
+    });
+  });
+
   // #250: describeSpecAdjustments runs here, the one place both the raw
   // tool payload and validateSpec's own return value exist.
   describe("adjustments", () => {

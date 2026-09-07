@@ -276,6 +276,17 @@ export interface ChatMessage {
   // shape Piece.darts and ConflictInfo.entries already use, and the reason
   // no blob migration or reset is needed. Still never the bytes.
   imageCount?: number;
+  // #258: the model's own part-by-part read of an attached image
+  // (ChatGarment's own two-stage chain of thought, image -> text description
+  // -> spec) -- set on the SAME user turn hasImage/imageCount describe (the
+  // route patches it in once proposeGarment resolves, since the reading is
+  // only known after the call the user turn was already persisted before).
+  // Additive/optional, like hasImage -- absent when the turn carried no
+  // image, or when the model skipped it on one that did (never fatal, see
+  // lib/ai/decision.ts). CRITICAL: must stay named in ChatMessageSchema or
+  // z.object strips it on the next mutating turn -- the hasImage/assembly
+  // trap.
+  garmentReading?: string;
   // #138: set on an "ai" turn that answered a sewing/assembly-order
   // question (decision=explain + assemblyOrder=true, see lib/ai/decision.ts)
   // -- lets ChatBubble attach the catalog-sourced "AI-generated guidance,

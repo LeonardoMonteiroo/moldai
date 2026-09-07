@@ -10,10 +10,15 @@ import {
 import type { GarmentSpec, PatternState } from "@/lib/types";
 import {
   STYLE_LIMITS,
+  NECKLINES,
+  SLEEVES,
+  SKIRTS,
   COLLARS,
   CUFFS,
   WAISTBANDS,
   FRONT_CLOSURES,
+  FIT_CLASSES,
+  STRETCH_CLASSES,
 } from "@/lib/draft/garment";
 import { MEASUREMENT_RANGES, SIZE_TABLE } from "@/lib/measurements";
 import { COSTS } from "@/lib/types";
@@ -56,6 +61,33 @@ describe("buildSystem", () => {
   it("scopes an attached photo to the garment, not any person wearing it", () => {
     expect(STATIC_SECTIONS).toContain("# Attached images");
     expect(STATIC_SECTIONS).toContain("never the person wearing it");
+  });
+
+  // #258: the garmentReading checklist has to name the SAME part vocabulary
+  // validateSpec/checkEngineSupport clamp against, not a second hand-typed
+  // list that could silently drift from it -- asserted here against the
+  // real catalogs (lib/draft/garment.ts's own re-exports), never a pasted
+  // literal.
+  it("tells the model to fill garmentReading, checking the real style catalogs part by part", () => {
+    const section = STATIC_SECTIONS.slice(
+      STATIC_SECTIONS.indexOf("# Attached images"),
+    );
+    expect(section).toContain("garmentReading");
+    for (const catalog of [
+      NECKLINES,
+      SLEEVES,
+      SKIRTS,
+      COLLARS,
+      CUFFS,
+      WAISTBANDS,
+      FRONT_CLOSURES,
+      FIT_CLASSES,
+      STRETCH_CLASSES,
+    ]) {
+      for (const value of catalog) {
+        expect(section).toContain(value);
+      }
+    }
   });
 
   it("blank pattern gets the from-scratch/underspecified rule", () => {
@@ -386,12 +418,13 @@ describe("prompt-cache byte stability", () => {
       staticSectionsFor(DEFAULT_ENGINE_ID) +
       JSON.stringify(toolFor(DEFAULT_ENGINE_ID));
     const hash = createHash("sha256").update(bytes).digest("hex");
-    // #270: regenerated -- the "# Attached images" section (buildStaticSections)
-    // gained the "describe only the clothing, never the person wearing it"
-    // sentence. A deliberate, expected byte change (see this describe block's
-    // own comment), not a bug.
+    // #258: regenerated again -- the "# Attached images" section
+    // (buildStaticSections) now instructs the model to fill garmentReading
+    // part-by-part before inferring the GarmentSpec (ChatGarment's own
+    // two-stage chain of thought). A deliberate, expected byte change (see
+    // this describe block's own comment), not a bug.
     expect(hash).toBe(
-      "cf305fe6c57914ea3ab8464e535907a0be591e8a549a10720d2c80c11b9a0b4c",
+      "e7995425500b385048b99db2423828aa4b3e0c163192aa423b82990a21606f82",
     );
   });
 });

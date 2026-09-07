@@ -40,6 +40,11 @@ const ChatMessageSchema = z.object({
   // #269: same "must be named here or z.object strips it" trap the comment
   // above already documents for hasImage/assembly.
   decision: z.enum(["apply", "decline", "ask", "explain"]).optional(),
+  // #258: same trap again, one more field later -- the model's part-by-part
+  // read of an attached image, patched onto the user turn once
+  // proposeGarment resolves (see setGarmentReading, lib/editor/state.ts).
+  // Round-tripped by lib/db/pattern.test.ts alongside the three above.
+  garmentReading: z.string().optional(),
   draftVersion: z.number().int().nonnegative().optional(),
 });
 
