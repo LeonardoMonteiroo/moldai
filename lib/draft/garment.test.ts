@@ -704,6 +704,38 @@ describe("measureSeams", () => {
     );
     expect(garmentLengthCm).toBeCloseTo(95, 5);
   });
+
+  // #249: measureSeams gained the same optional referenceMeasurements
+  // param draftPiecesCm already had -- without it, a caller measuring a
+  // graded (non-base) size's skirt would silently re-freeze an explicit
+  // style.skirtLengthCm's garmentLengthCm at the base-size value again.
+  it("grades garmentLengthCm for an explicit skirtLengthCm the same way draftPiecesCm does, given a reference row", () => {
+    const spec = {
+      type: "skirt" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { skirt: "straight" as const, skirtLengthCm: 70 },
+    };
+    const base = measureSeams(
+      DEFAULT_ENGINE_ID,
+      spec,
+      SIZE_TABLE.M,
+      t,
+      SIZE_TABLE.M,
+    );
+    const graded = measureSeams(
+      DEFAULT_ENGINE_ID,
+      spec,
+      SIZE_TABLE.GG,
+      t,
+      SIZE_TABLE.M,
+    );
+    expect(graded.garmentLengthCm).not.toBeCloseTo(base.garmentLengthCm!, 1);
+    expect(graded.garmentLengthCm! / base.garmentLengthCm!).toBeCloseTo(
+      SIZE_TABLE.GG.skirtLength / SIZE_TABLE.M.skirtLength,
+      5,
+    );
+  });
 });
 
 // #59: grading used to charge 6 credits for state-flag bookkeeping that
@@ -837,6 +869,44 @@ describe("draftGradedOverlays", () => {
     expect(gradedHeight / baseHeight).toBeCloseTo(
       SIZE_TABLE.GG.skirtLength / SIZE_TABLE.M.skirtLength,
       2,
+    );
+  });
+
+  // #249: an explicit style.skirtLengthCm grades per-size ONLY when it's
+  // graded against the chart's own (un-overridden) skirtLength. Overriding
+  // skirtLength via measurementOverrides (a CORE key) applies the SAME
+  // absolute number to every row resolveMeasurements touches -- the base
+  // row AND the reference row alike -- which collapses gradedSkirtLengthCm's
+  // fraction back to 1, printing the explicit length flat across every
+  // graded size again. Documented as deliberate (see draftAll's own
+  // referenceRow comment): an overridden measurement is this wearer's own
+  // chosen number, not a size-chart proportion, so it stays flat across
+  // sizes exactly like overriding waist/hip/bust already does -- not a gap
+  // this fix left open.
+  it("a skirtLength override collapses the grading back to flat, consistent with every other overridden measurement (#249)", () => {
+    const skirtSpec = {
+      type: "skirt" as const,
+      gender: "female" as const,
+      measurementOverrides: { skirtLength: 65 },
+      style: { skirt: "straight" as const, skirtLengthCm: 70 },
+    };
+    const [basePiece] = draftPiecesCm(
+      DEFAULT_ENGINE_ID,
+      skirtSpec,
+      SIZE_TABLE.M,
+      t,
+      SIZE_TABLE.M,
+    );
+    const [gradedPiece] = draftPiecesCm(
+      DEFAULT_ENGINE_ID,
+      skirtSpec,
+      SIZE_TABLE.GG,
+      t,
+      SIZE_TABLE.M,
+    );
+    expect(bbox(gradedPiece.outlineCm).h).toBeCloseTo(
+      bbox(basePiece.outlineCm).h,
+      5,
     );
   });
 });

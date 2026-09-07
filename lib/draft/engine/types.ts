@@ -71,7 +71,7 @@ export interface DraftingEngine {
   // engine reads it today (lib/draft/garment.ts's draftAll, to normalize an
   // explicit style.skirtLengthCm against the pattern's actual base-size row
   // rather than the row currently being drafted -- see
-  // lib/draft/skirt.ts's gradedSkirtLengthCm).
+  // lib/draft/core.ts's gradedSkirtLengthCm).
   draft(
     spec: GarmentSpec,
     base: Measurements,

@@ -8,18 +8,20 @@ import type { GarmentSpec } from "@/lib/types";
 import type { Translate } from "@/lib/i18n/translate";
 import { formatCm } from "@/lib/format";
 import type { DraftedPiece } from "../../../core";
-import { curveArcLengthCm } from "../../../core";
-import type { SeamPairDecl } from "../../../seams";
-import type { EngineDraft } from "../../types";
-import { flattenFreesewingSeam, mirrorFoldedPanel } from "../geometry";
-import { edgeRef } from "../seamHelpers";
 // #249: the SAME fraction-of-reference-row math the moldai engine's skirt
 // drafter uses (lib/draft/skirt.ts) -- an explicit style.skirtLengthCm has
 // no engine-specific meaning, so both engines normalize it against the
 // pattern's actual base-size row identically. Reused, not re-derived: a
 // second copy of this formula drifting from the first is exactly the kind
-// of duplicated fact CLAUDE.md already lists two real incidents of.
-import { gradedSkirtLengthCm } from "../../../skirt";
+// of duplicated fact CLAUDE.md already lists two real incidents of. Lives
+// in ./core (shared, engine-agnostic infrastructure both engines already
+// depend on), never in lib/draft/skirt.ts, so "freesewing" never has to
+// import moldai's own drafter module to get it -- see core.ts's own doc.
+import { curveArcLengthCm, gradedSkirtLengthCm } from "../../../core";
+import type { SeamPairDecl } from "../../../seams";
+import type { EngineDraft } from "../../types";
+import { flattenFreesewingSeam, mirrorFoldedPanel } from "../geometry";
+import { edgeRef } from "../seamHelpers";
 
 const cm = (v: number) => `${formatCm(v)} cm`;
 const MM_PER_CM = 10;

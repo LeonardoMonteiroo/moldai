@@ -13,7 +13,7 @@ import {
 import { curveArcLengthCm, DraftedPiece } from "./core";
 import { BlockOpts, draftBody } from "./body";
 import { draftSleeve, CAP_EASE_CM, WRIST_EASE_CM } from "./sleeve";
-import { draftSkirt, dressWaistHalfCm, gradedSkirtLengthCm } from "./skirt";
+import { draftSkirt, dressWaistHalfCm } from "./skirt";
 import { draftTrousers, TROUSER_DEFAULT_LENGTH_CM } from "./trousers";
 import {
   draftCollar,
@@ -262,7 +262,7 @@ export function draftAll(
   // #249: the pattern's own frozen base-size row -- read ONLY to normalize
   // an explicit style.skirtLengthCm into a fraction of ITS skirtLength
   // before re-expanding that fraction against `baseMeasurements`'s own
-  // skirtLength (see lib/draft/skirt.ts's gradedSkirtLengthCm). Optional,
+  // skirtLength (see lib/draft/core.ts's gradedSkirtLengthCm). Optional,
   // defaulting to `baseMeasurements` itself: every call site drafting the
   // pattern's own base size (or that predates #249) sees byte-identical
   // output. Only a caller drafting a GRADED size (facade.ts's
@@ -285,7 +285,19 @@ export function draftAll(
   // #249: the SAME override transform applied to the reference row -- a
   // chat-driven measurementOverrides.skirtLength (rare, but valid: it's a
   // CORE key) has to move both rows together, or the fraction below would
-  // compare an overridden row against an un-overridden one.
+  // compare an overridden row against an un-overridden one. Applying the
+  // SAME override value to both rows means `measurements.skirtLength ===
+  // referenceRow.skirtLength` whenever skirtLength is overridden, which
+  // collapses gradedSkirtLengthCm's fraction back to 1 -- so an explicit
+  // style.skirtLengthCm prints flat across every graded size again in that
+  // one combination. This is deliberate, not a gap #249 left open:
+  // resolveMeasurements (lib/measurements.ts) already applies every
+  // override as one absolute, un-graded number to whichever row it's given
+  // (overriding waist/hip/bust already produces the identical flat-across-
+  // sizes shape) -- an overridden skirtLength is this wearer's own chosen
+  // number, not a size-chart proportion, so treating it as authoritative
+  // over the chart's own per-size progression is consistent with every
+  // other override, not a regression specific to this fix.
   const referenceRow: Measurements =
     referenceMeasurements === baseMeasurements
       ? measurements
@@ -648,17 +660,18 @@ export function draftAll(
       referenceRow,
     );
     drafted.push(skirtPiece);
-    // #234: the skirt panel's own length -- the same formula draftSkirt
-    // itself resolves internally (#249: gradedSkirtLengthCm, normalizing an
-    // explicit style.skirtLengthCm against referenceRow's own skirtLength
-    // before re-expanding it for THIS row) but doesn't expose on the piece.
-    // A dress adds this on top of its bodice-to-waist length (set above); a
-    // standalone skirt has no bodice, so this IS the whole garment length.
-    const skirtLenCm = gradedSkirtLengthCm(
-      spec.style.skirtLengthCm,
-      measurements.skirtLength,
-      referenceRow.skirtLength,
-    );
+    // #234/#249: the skirt panel's own length -- draftSkirt already resolved
+    // this via gradedSkirtLengthCm (normalizing an explicit
+    // style.skirtLengthCm against referenceRow's own skirtLength before
+    // re-expanding it for THIS row) and exposes it as resolvedLengthCm
+    // (core.ts's own doc), so it's read off the piece rather than
+    // re-derived with a second call whose three arguments could silently
+    // drift from draftSkirt's own -- the non-null assertion is safe because
+    // draftSkirt (unlike every other drafter) always sets this field, on
+    // both of its own return paths. A dress adds this on top of its
+    // bodice-to-waist length (set above); a standalone skirt has no bodice,
+    // so this IS the whole garment length.
+    const skirtLenCm = skirtPiece.resolvedLengthCm!;
     garmentLengthCm =
       spec.type === "dress" ? (garmentLengthCm ?? 0) + skirtLenCm : skirtLenCm;
     // #134: the dress bodice's hem/waist-join edge vs the skirt panel's own

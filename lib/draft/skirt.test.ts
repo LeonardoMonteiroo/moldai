@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { SIZE_TABLE } from "@/lib/measurements";
-import { curveArcLengthCm } from "./core";
-import { draftSkirt, dressWaistHalfCm, gradedSkirtLengthCm } from "./skirt";
+import { curveArcLengthCm, gradedSkirtLengthCm } from "./core";
+import { draftSkirt, dressWaistHalfCm } from "./skirt";
 import { bbox } from "./core";
 import { t } from "@/lib/i18n/test-translate";
 
@@ -178,6 +178,31 @@ describe("gradedSkirtLengthCm / draftSkirt's baseRow (#249)", () => {
       t,
     );
     expect(bbox(dp.outlineCm).h).toBeCloseTo(70, 5);
+  });
+
+  // #249: garment.ts reads resolvedLengthCm off the piece instead of calling
+  // gradedSkirtLengthCm a second time -- this pins the field to the SAME
+  // value the outline itself was drafted at, for both silhouette branches
+  // (straight/a-line here; circle below covers the other `return` site).
+  it("exposes the resolved length as resolvedLengthCm, matching the drafted outline", () => {
+    const baseRow = SIZE_TABLE.M;
+    const dp = draftSkirt(
+      SIZE_TABLE.GG,
+      { skirt: "straight", skirtLengthCm: 70 },
+      t,
+      false,
+      baseRow,
+    );
+    expect(dp.resolvedLengthCm).toBeCloseTo(bbox(dp.outlineCm).h, 5);
+    expect(dp.resolvedLengthCm).toBeCloseTo(
+      (70 / baseRow.skirtLength) * SIZE_TABLE.GG.skirtLength,
+      5,
+    );
+  });
+
+  it("exposes resolvedLengthCm for a circle silhouette too (the OTHER draftSkirt return site)", () => {
+    const dp = draftSkirt(SIZE_TABLE.M, { skirt: "circle" }, t);
+    expect(dp.resolvedLengthCm).toBeCloseTo(SIZE_TABLE.M.skirtLength, 5);
   });
 });
 
