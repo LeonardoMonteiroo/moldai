@@ -103,3 +103,111 @@ export const STYLE_LIMITS = {
   // up to a full-length ankle trouser at the high end.
   trouserLengthCm: { min: 60, max: 115 },
 } as const;
+
+// #260: Design2GarmentCode found the multimodal agent "performed
+// significantly better on multiple-choice questions compared to numerical
+// estimation questions" and replaced free numeric-estimate fields with
+// descriptive multiple-choice tokens projected through a deterministic
+// table. Same idea, in reverse, for the five free numeric style scalars
+// above: each gets a parallel descriptive-token catalog, belonging here
+// (not garment.ts) for the exact reason every other AI-facing catalog in
+// this file does -- lib/ai/prompt.ts and lib/ai/schema.ts render from these
+// exports (never a hardcoded duplicate list), and lib/draft/specAdjustments.ts
+// (a leaf with no dependency on garment.ts) needs to recognize a token field
+// too, to tell a deliberate token choice apart from an unrecognized one --
+// see its own checkScalarToken. Every value below must fall inside this
+// field's own STYLE_LIMITS range -- asserted by garment.test.ts's own sweep
+// over these tables.
+export const NECKLINE_DEPTH_TOKENS = {
+  shallow: 3,
+  medium: 7,
+  deep: 12,
+} as const;
+
+export const SKIRT_LENGTH_TOKENS = {
+  mini: 40,
+  knee: 60,
+  midi: 90,
+  maxi: 115,
+} as const;
+
+export const SEAM_ALLOWANCE_TOKENS = {
+  narrow: 0.6,
+  standard: 1,
+  wide: 1.5,
+} as const;
+
+export const ARMHOLE_DEEPEN_TOKENS = {
+  none: 0,
+  slight: 2,
+  deep: 4.5,
+} as const;
+
+export const TROUSER_LENGTH_TOKENS = {
+  cropped: 75,
+  ankle: 95,
+  full: 110,
+} as const;
+
+// One entry per free numeric style scalar, pairing its token field name
+// with its projection table -- the SINGLE source both validateSpec
+// (garment.ts's resolveScalarField) and describeSpecAdjustments
+// (specAdjustments.ts's checkScalarToken) key off of, so a token field can
+// never be recognized as valid by one and silently invisible to the other.
+// Deliberately not five separate (cmKey, tokenKey, table) argument lists at
+// each call site, which would let a copy-paste mistake pair the wrong table
+// with the wrong field with nothing to catch it.
+export const SCALAR_TOKEN_FIELDS = {
+  necklineDepthCm: { tokenKey: "necklineDepth", table: NECKLINE_DEPTH_TOKENS },
+  skirtLengthCm: { tokenKey: "skirtLength", table: SKIRT_LENGTH_TOKENS },
+  seamAllowanceCm: {
+    tokenKey: "seamAllowance",
+    table: SEAM_ALLOWANCE_TOKENS,
+  },
+  armholeDeepenCm: {
+    tokenKey: "armholeDeepen",
+    table: ARMHOLE_DEEPEN_TOKENS,
+  },
+  trouserLengthCm: {
+    tokenKey: "trouserLength",
+    table: TROUSER_LENGTH_TOKENS,
+  },
+} as const;
+
+// #260 code-review: validateSpec (garment.ts's resolveScalarField) and
+// describeSpecAdjustments (specAdjustments.ts's checkScalar/
+// checkScalarToken) each independently re-implementing "was this raw value
+// actually sent" and "does this token resolve" is exactly what let their
+// null-handling drift apart once already (a `null` *Cm value alongside a
+// valid token produced a fabricated "clamped" adjustment; a `null` token
+// value produced a fabricated "substituted" adjustment) -- both real bugs
+// caught only because a second review pass ran the two functions against
+// the same input and compared results. These two predicates are now the
+// SINGLE definition of both questions, used by every one of those call
+// sites, so the two modules cannot silently desync again.
+
+// Some providers (see lib/ai/provider/openaiCompat.ts) fill every optional
+// schema property with `null` rather than omitting it -- `null` must be
+// treated identically to "the property was never sent" everywhere a raw
+// *Cm value or a raw descriptive-token value is read from untrusted AI/user
+// input.
+export function isValueSent(v: unknown): boolean {
+  return v !== undefined && v !== null;
+}
+
+// Projects a raw token value through one of the tables above, or
+// `undefined` when the value isn't a recognized key of that table --
+// including when it wasn't really sent at all (not a string, or `null`/
+// `undefined`; see isValueSent). Deliberately does not distinguish
+// "wasn't sent" from "was sent but invalid" -- a caller that needs that
+// distinction (describeSpecAdjustments's checkScalarToken) checks
+// isValueSent on the raw token itself first.
+export function resolveScalarToken(
+  table: Record<string, number>,
+  tokenRaw: unknown,
+): number | undefined {
+  if (typeof tokenRaw !== "string") return undefined;
+  return Object.prototype.hasOwnProperty.call(table, tokenRaw)
+    ? table[tokenRaw]
+    : undefined;
+}

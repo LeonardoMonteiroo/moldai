@@ -386,12 +386,15 @@ describe("prompt-cache byte stability", () => {
       staticSectionsFor(DEFAULT_ENGINE_ID) +
       JSON.stringify(toolFor(DEFAULT_ENGINE_ID));
     const hash = createHash("sha256").update(bytes).digest("hex");
-    // #270: regenerated -- the "# Attached images" section (buildStaticSections)
-    // gained the "describe only the clothing, never the person wearing it"
-    // sentence. A deliberate, expected byte change (see this describe block's
-    // own comment), not a bug.
+    // #260: regenerated -- added the five descriptive-length-token style
+    // properties (necklineDepth/skirtLength/seamAllowance/armholeDeepen/
+    // trouserLength) to the tool schema plus the "# Descriptive length
+    // tokens" prompt section instructing the model to prefer them over a
+    // free numeric estimate. A deliberate, expected byte change (see this
+    // describe block's own comment), not a bug -- the eval harness
+    // (npm run eval:ai) is what proves it's better, not this hash.
     expect(hash).toBe(
-      "cf305fe6c57914ea3ab8464e535907a0be591e8a549a10720d2c80c11b9a0b4c",
+      "8c42961014bda435e7a4018289fd59f0a5f5570fa3810e81b945502bd2c7b67e",
     );
   });
 });

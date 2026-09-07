@@ -12,6 +12,11 @@ import {
   STYLE_LIMITS,
   FIT_CLASSES,
   STRETCH_CLASSES,
+  NECKLINE_DEPTH_TOKENS,
+  SKIRT_LENGTH_TOKENS,
+  SEAM_ALLOWANCE_TOKENS,
+  ARMHOLE_DEEPEN_TOKENS,
+  TROUSER_LENGTH_TOKENS,
 } from "@/lib/draft/garment";
 import { MEASUREMENT_RANGES } from "@/lib/measurements";
 import { DEFAULT_ENGINE_ID } from "@/lib/draft/engine/capability";
@@ -84,6 +89,25 @@ describe("propose_garment tool schema", () => {
     expect(style.cuff.enum).toEqual(CUFFS);
     expect(style.waistband.enum).toEqual(WAISTBANDS);
     expect(style.frontClosure.enum).toEqual(FRONT_CLOSURES);
+  });
+
+  // #260: the descriptive-token twin of each free numeric style scalar is
+  // rendered as a string enum from the SAME exported table validateSpec
+  // projects a chosen token through -- never a second, hand-duplicated list.
+  it("renders each descriptive-length-token field as a string enum of its table's keys", () => {
+    expect(style.necklineDepth.enum).toEqual(
+      Object.keys(NECKLINE_DEPTH_TOKENS),
+    );
+    expect(style.skirtLength.enum).toEqual(Object.keys(SKIRT_LENGTH_TOKENS));
+    expect(style.seamAllowance.enum).toEqual(
+      Object.keys(SEAM_ALLOWANCE_TOKENS),
+    );
+    expect(style.armholeDeepen.enum).toEqual(
+      Object.keys(ARMHOLE_DEEPEN_TOKENS),
+    );
+    expect(style.trouserLength.enum).toEqual(
+      Object.keys(TROUSER_LENGTH_TOKENS),
+    );
   });
 
   it("offers all four decisions", () => {

@@ -52,6 +52,14 @@ import {
   FIT_EASE_CM,
   STRETCH_EASE_PCT,
   wearingEaseCm,
+  NECKLINE_DEPTH_TOKENS,
+  SKIRT_LENGTH_TOKENS,
+  SEAM_ALLOWANCE_TOKENS,
+  ARMHOLE_DEEPEN_TOKENS,
+  TROUSER_LENGTH_TOKENS,
+  SCALAR_TOKEN_FIELDS,
+  isValueSent,
+  resolveScalarToken,
 } from "./vocabulary";
 import {
   SeamEdgeRef,
@@ -79,6 +87,11 @@ export {
   FIT_EASE_CM,
   STRETCH_EASE_PCT,
   wearingEaseCm,
+  NECKLINE_DEPTH_TOKENS,
+  SKIRT_LENGTH_TOKENS,
+  SEAM_ALLOWANCE_TOKENS,
+  ARMHOLE_DEEPEN_TOKENS,
+  TROUSER_LENGTH_TOKENS,
 };
 
 // tshirt-fit-calibration: a men's crew-neck tee's own hem drop below the
@@ -95,6 +108,27 @@ export {
 // a second table here.
 const TSHIRT_HEM_DROP_CM = 18.5;
 
+// #260: Design2GarmentCode found the multimodal agent "performed
+// significantly better on multiple-choice questions compared to numerical
+// estimation questions" and replaced free numeric-estimate fields with
+// descriptive multiple-choice tokens projected through a deterministic
+// table. Same idea, in reverse, for the five free numeric style scalars
+// below: each gets a parallel descriptive-token catalog (NECKLINE_DEPTH_
+// TOKENS etc., ./vocabulary -- moved there, not defined here, so
+// lib/draft/specAdjustments.ts, a leaf with no dependency on this file, can
+// recognize a token field too; see its own checkScalarToken), rendered into
+// both lib/ai/prompt.ts and lib/ai/schema.ts from that one exported table
+// per field (never a hardcoded duplicate list). validateSpec projects a
+// token to its cm value BEFORE clamping — moving the common case off "the
+// model guessed a plausible-looking number" onto the choice type the paper
+// measured as more reliable. An explicit *Cm value still wins outright (see
+// validateSpec below) and is still clamped exactly as before this existed;
+// the token is only consulted when no raw cm value was sent. Every value in
+// each table must fall inside this field's own STYLE_LIMITS range —
+// asserted by garment.test.ts's own sweep over these tables. The persisted
+// GarmentStyle shape (lib/types.ts) is unchanged: only the *Cm fields are
+// ever stored, so no migration is needed.
+
 const clamp = (v: number, min: number, max: number) =>
   Math.min(max, Math.max(min, v));
 const pick = <T>(v: unknown, allowed: T[], def: T): T =>
@@ -103,6 +137,68 @@ const num = (v: unknown, def: number) => {
   const n = Number(v);
   return Number.isFinite(n) ? n : def;
 };
+
+// #260: the *only* fallback used when a *Cm field itself was sent but is
+// garbage (non-numeric) -- the exact literal each field's pre-#260
+// validateSpec branch already used (`num(style.necklineDepthCm, 0)`, etc.),
+// kept local to this file since it's purely about "garbage cm input", never
+// about "no cm/token was sent at all" (that case returns `undefined` below,
+// deferring to each drafter's own context-aware default -- see
+// resolveScalarField's own comment for why this distinction matters).
+const SCALAR_CM_FALLBACKS: Record<keyof typeof SCALAR_TOKEN_FIELDS, number> = {
+  necklineDepthCm: 0,
+  skirtLengthCm: 60,
+  seamAllowanceCm: 1,
+  armholeDeepenCm: 0,
+  trouserLengthCm: 100,
+};
+
+// A free numeric style scalar's raw wire value can arrive as an explicit cm
+// number (`raw[cmKey]`) OR as a descriptive token (`raw[<its tokenKey>]`,
+// looked up in `<its table>` -- both named by SCALAR_TOKEN_FIELDS[cmKey],
+// ./vocabulary) — the cm value always wins when both are present (an
+// explicit measurement is the user's own stated intent, never second-guessed
+// by a default token). Whether a raw value counts as "sent" (isValueSent)
+// and whether a raw token resolves (resolveScalarToken) are BOTH imported
+// from ./vocabulary rather than reimplemented here -- describeSpecAdjustments
+// (specAdjustments.ts) must answer both questions identically, and having
+// two independent implementations is exactly what let them drift apart
+// once already (a `null` *Cm value or a `null` token value each produced a
+// fabricated adjustment report, caught only by a second review pass).
+//
+// A *Cm value that IS sent but is garbage is clamped after falling back to
+// SCALAR_CM_FALLBACKS, exactly like every numeric style field always has
+// been. An unrecognized token, by contrast, resolves to `undefined` — NOT a
+// fallback default — because unlike the cm fallback (which mirrors this
+// field's own pre-#260 behavior), no single number here can stand in for
+// every drafter's own real "field absent" default: e.g. body.ts falls back
+// to 6cm for necklineDepthCm on a V-neck, skirt.ts falls back to the active
+// size chart's own skirtLength measurement, trousers.ts falls back to
+// TROUSER_DEFAULT_LENGTH_CM[gender] (100 female / 104 male) -- none of which
+// this function can see or duplicate correctly. Leaving the field genuinely
+// undefined lets each of those real defaults apply, instead of silently
+// locking in a wrong number. describeSpecAdjustments is what surfaces an
+// unrecognized token to the user, via its own checkScalarToken.
+function resolveScalarField(
+  raw: Record<string, unknown>,
+  cmKey: keyof typeof SCALAR_TOKEN_FIELDS,
+): number | undefined {
+  const { tokenKey, table } = SCALAR_TOKEN_FIELDS[cmKey];
+  const limits = STYLE_LIMITS[cmKey];
+  const cmRaw = raw[cmKey];
+  if (isValueSent(cmRaw)) {
+    return clamp(
+      num(cmRaw, SCALAR_CM_FALLBACKS[cmKey]),
+      limits.min,
+      limits.max,
+    );
+  }
+  const projected = resolveScalarToken(table, raw[tokenKey]);
+  if (projected !== undefined) {
+    return clamp(projected, limits.min, limits.max);
+  }
+  return undefined;
+}
 
 export function validateSpec(raw: unknown): GarmentSpec {
   const r = (raw ?? {}) as Record<string, unknown>;
@@ -126,30 +222,12 @@ export function validateSpec(raw: unknown): GarmentSpec {
       style.skirt !== undefined
         ? pick(style.skirt, SKIRTS, "straight")
         : undefined,
-    necklineDepthCm:
-      style.necklineDepthCm !== undefined
-        ? clamp(
-            num(style.necklineDepthCm, 0),
-            STYLE_LIMITS.necklineDepthCm.min,
-            STYLE_LIMITS.necklineDepthCm.max,
-          )
-        : undefined,
-    skirtLengthCm:
-      style.skirtLengthCm !== undefined
-        ? clamp(
-            num(style.skirtLengthCm, 60),
-            STYLE_LIMITS.skirtLengthCm.min,
-            STYLE_LIMITS.skirtLengthCm.max,
-          )
-        : undefined,
-    seamAllowanceCm:
-      style.seamAllowanceCm !== undefined
-        ? clamp(
-            num(style.seamAllowanceCm, 1),
-            STYLE_LIMITS.seamAllowanceCm.min,
-            STYLE_LIMITS.seamAllowanceCm.max,
-          )
-        : undefined,
+    // #260: the token field (necklineDepth/skirtLength/...) is consulted
+    // only when the *Cm field was not sent -- see resolveScalarField's own
+    // doc comment.
+    necklineDepthCm: resolveScalarField(style, "necklineDepthCm"),
+    skirtLengthCm: resolveScalarField(style, "skirtLengthCm"),
+    seamAllowanceCm: resolveScalarField(style, "seamAllowanceCm"),
     darts: typeof style.darts === "boolean" ? style.darts : undefined,
     fit:
       style.fit !== undefined
@@ -159,14 +237,7 @@ export function validateSpec(raw: unknown): GarmentSpec {
       style.stretch !== undefined
         ? pick(style.stretch, STRETCH_CLASSES, "none")
         : undefined,
-    armholeDeepenCm:
-      style.armholeDeepenCm !== undefined
-        ? clamp(
-            num(style.armholeDeepenCm, 0),
-            STYLE_LIMITS.armholeDeepenCm.min,
-            STYLE_LIMITS.armholeDeepenCm.max,
-          )
-        : undefined,
+    armholeDeepenCm: resolveScalarField(style, "armholeDeepenCm"),
     // sleeveRefit is internal (only the conflict resolver sets it); never comes from the AI.
     collar:
       style.collar !== undefined
@@ -182,14 +253,7 @@ export function validateSpec(raw: unknown): GarmentSpec {
       style.frontClosure !== undefined
         ? pick(style.frontClosure, FRONT_CLOSURES, "none")
         : undefined,
-    trouserLengthCm:
-      style.trouserLengthCm !== undefined
-        ? clamp(
-            num(style.trouserLengthCm, 100),
-            STYLE_LIMITS.trouserLengthCm.min,
-            STYLE_LIMITS.trouserLengthCm.max,
-          )
-        : undefined,
+    trouserLengthCm: resolveScalarField(style, "trouserLengthCm"),
   };
   return {
     type: pick(r.type, TYPES, "blouse"),

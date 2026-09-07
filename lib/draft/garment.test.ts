@@ -4,6 +4,11 @@ import {
   validateQuestions,
   seamCheck,
   STYLE_LIMITS,
+  NECKLINE_DEPTH_TOKENS,
+  SKIRT_LENGTH_TOKENS,
+  SEAM_ALLOWANCE_TOKENS,
+  ARMHOLE_DEEPEN_TOKENS,
+  TROUSER_LENGTH_TOKENS,
 } from "./garment";
 import {
   draftGarment,
@@ -254,6 +259,101 @@ describe("validateSpec", () => {
       measurementOverrides: {},
     });
     expect(s.style.frontClosure).toBeUndefined();
+  });
+});
+
+// #260: descriptive length tokens -- a token is the AI's preferred way to
+// express one of these five free numeric scalars (see prompt.ts's own
+// "Descriptive length tokens" section); an explicit *Cm value still wins
+// outright when both are sent, and every projected value is asserted to
+// land inside the field's own STYLE_LIMITS range.
+describe("validateSpec: descriptive length tokens", () => {
+  const TOKEN_TABLES = [
+    ["necklineDepth", "necklineDepthCm", NECKLINE_DEPTH_TOKENS] as const,
+    ["skirtLength", "skirtLengthCm", SKIRT_LENGTH_TOKENS] as const,
+    ["seamAllowance", "seamAllowanceCm", SEAM_ALLOWANCE_TOKENS] as const,
+    ["armholeDeepen", "armholeDeepenCm", ARMHOLE_DEEPEN_TOKENS] as const,
+    ["trouserLength", "trouserLengthCm", TROUSER_LENGTH_TOKENS] as const,
+  ];
+
+  it("every token in every table projects inside that field's own STYLE_LIMITS range", () => {
+    for (const [, cmField, table] of TOKEN_TABLES) {
+      const limits = STYLE_LIMITS[cmField];
+      for (const [token, cm] of Object.entries(table)) {
+        expect(cm, `${cmField}.${token}`).toBeGreaterThanOrEqual(limits.min);
+        expect(cm, `${cmField}.${token}`).toBeLessThanOrEqual(limits.max);
+      }
+    }
+  });
+
+  it("resolves every valid token to its table's projected cm value", () => {
+    for (const [tokenField, cmField, table] of TOKEN_TABLES) {
+      for (const [token, cm] of Object.entries(table)) {
+        const s = validateSpec({
+          type: "trousers",
+          style: { [tokenField]: token },
+          measurementOverrides: {},
+        });
+        expect(s.style[cmField], `${cmField} from token ${token}`).toBe(cm);
+      }
+    }
+  });
+
+  it("an explicit cm value still wins over a token sent alongside it", () => {
+    const s = validateSpec({
+      type: "skirt",
+      style: { skirtLength: "maxi", skirtLengthCm: 30 },
+      measurementOverrides: {},
+    });
+    expect(s.style.skirtLengthCm).toBe(30);
+  });
+
+  // #260 code-review: an unrecognized token must NOT lock in a hardcoded
+  // fallback number -- trousers' own real "field absent" default is
+  // gender-dependent (TROUSER_DEFAULT_LENGTH_CM: 100 female / 104 male,
+  // lib/draft/trousers.ts), which validateSpec has no way to compute
+  // correctly here (gender defaulting happens later, in draftGarment).
+  // Leaving the field undefined is what lets that real default apply,
+  // instead of a wrong number silently winning for every male trousers
+  // request that happens to send a garbled token.
+  it("leaves the cm field undefined (deferring to the drafter's own default) on an unrecognized token, rather than a hardcoded fallback", () => {
+    const s = validateSpec({
+      type: "trousers",
+      style: { trouserLength: "bogus" },
+      measurementOverrides: {},
+    });
+    expect(s.style.trouserLengthCm).toBeUndefined();
+  });
+
+  it("an unrecognized token is ignored even when it is not a string at all", () => {
+    const s = validateSpec({
+      type: "skirt",
+      style: { skirtLength: 999 },
+      measurementOverrides: {},
+    });
+    expect(s.style.skirtLengthCm).toBeUndefined();
+  });
+
+  it("treats a null *Cm value as not sent, so a token alongside it still resolves", () => {
+    const s = validateSpec({
+      type: "blouse",
+      style: { necklineDepthCm: null, necklineDepth: "deep" },
+      measurementOverrides: {},
+    });
+    expect(s.style.necklineDepthCm).toBe(NECKLINE_DEPTH_TOKENS.deep);
+  });
+
+  it("leaves the cm field undefined when neither the cm field nor the token is sent", () => {
+    const s = validateSpec({
+      type: "blouse",
+      style: {},
+      measurementOverrides: {},
+    });
+    expect(s.style.necklineDepthCm).toBeUndefined();
+    expect(s.style.skirtLengthCm).toBeUndefined();
+    expect(s.style.seamAllowanceCm).toBeUndefined();
+    expect(s.style.armholeDeepenCm).toBeUndefined();
+    expect(s.style.trouserLengthCm).toBeUndefined();
   });
 });
 
