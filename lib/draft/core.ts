@@ -36,6 +36,17 @@ export interface DraftedPiece {
   notches?: NotchCm[];
   detailRows: DetailRow[];
   armholeLenCm?: number;
+  // #249: the skirt panel's own resolved length (after gradedSkirtLengthCm
+  // normalizes an explicit style.skirtLengthCm against the reference row) --
+  // set ONLY by lib/draft/skirt.ts's draftSkirt, the same "drafter exposes a
+  // number it already computed so the caller reads it instead of
+  // re-deriving it" precedent armholeLenCm above already follows (there,
+  // body.ts's own armhole edge length; here, skirt.ts's own length variable
+  // feeding both its `rows.length` detail row and its outline). garment.ts's
+  // draftAll reads this off the returned piece rather than calling
+  // gradedSkirtLengthCm a second time with the same three arguments, so the
+  // two numbers cannot independently drift apart.
+  resolvedLengthCm?: number;
   // #134: named edge-index ranges (into this piece's OWN outlineCm, using
   // the same [from, to] convention curveArcLengthCm/curvedSpans already use
   // -- `to` may equal outlineCm.length to mean "wraps back to index 0", the
@@ -592,4 +603,43 @@ export function autoLayout(
       h: Math.round(cursorY + rowH + pad),
     },
   };
+}
+
+// #249: `style.skirtLengthCm ?? m.skirtLength` used to read the explicit
+// length as one absolute number for EVERY graded size, while the fallback
+// path (`m.skirtLength`, straight off the chart) already grades +2.0cm/size
+// (see lib/measurements.ts's #118 note) -- so the moment a request set an
+// explicit length, every graded size printed the exact same hem, invisible
+// until two sizes are compared side by side (a graded layered PDF export,
+// #249's own reported bug).
+//
+// The fix resolves the chosen length ONCE as a FRACTION of the reference
+// row's own skirtLength, then re-expands that same fraction against THIS
+// row's own skirtLength -- so an explicit length grades in exactly the same
+// ratio the chart's own skirtLength already does, without persisting
+// anything new (the fraction is recomputed at draft time, every time).
+// `rowSkirtLengthCm`/`referenceSkirtLengthCm` are two DIFFERENT rows' own
+// `skirtLength` only when a caller is drafting a size OTHER than the
+// pattern's frozen base size (facade.ts's draftGradedOverlays,
+// buildExportModel exporting a graded size) -- every other call site passes
+// the SAME row for both (draftSkirt's own default below), which collapses
+// the fraction back to `explicitCm / rowSkirtLengthCm * rowSkirtLengthCm ===
+// explicitCm`, byte-identical to the pre-#249 behavior.
+//
+// Lives here, not in lib/draft/skirt.ts, because lib/draft/engine/freesewing/
+// designs/skirt.ts (a DIFFERENT, independently-scored engine -- see
+// docs/architecture/drafting.md's "swappable choice, not the only code
+// path") needs the identical formula and must not import moldai's own
+// drafter module to get it -- core.ts is the shared, engine-agnostic
+// infrastructure both engines already depend on (this function included).
+export function gradedSkirtLengthCm(
+  explicitCm: number | undefined,
+  rowSkirtLengthCm: number,
+  referenceSkirtLengthCm: number,
+): number {
+  if (explicitCm === undefined) return rowSkirtLengthCm;
+  if (!Number.isFinite(referenceSkirtLengthCm) || referenceSkirtLengthCm <= 0) {
+    return explicitCm;
+  }
+  return (explicitCm / referenceSkirtLengthCm) * rowSkirtLengthCm;
 }

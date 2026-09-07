@@ -329,20 +329,78 @@ returned `ask` in this sample. Full accounting of what these numbers do and
 don't prove — a small sample, not a statistically powered measurement — and
 the LoRA gate itself, are unchanged from the sections above.
 
-**Decision: the LoRA training scaffold is built, reviewed, and explicitly
-unexecuted.** `scripts/lora/{prepare_dataset.py,train_lora.py,
-requirements.txt}` plus the runbook above give a complete, dependency-clean
-(no Node on the training host) QLoRA pipeline: rank-16 LoRA over Qwen's
-standard attention+MLP projections, Hermes-style `<tool_call>` targets
-matching `docker-compose.gpu.yml`'s own `--tool-call-parser hermes`, a
-held-out validation split fixed before training. **None of it has run** —
-no GPU exists in the environment that wrote it, and the dataset it would
-train on is currently empty (the finding immediately above). Calling this
-"done" would be exactly the overclaiming this document's own honesty
-standard exists to prevent; it is reviewed, ready code, not a proven
-result. The gate from the top of this section stands unchanged: a LoRA
-ships only once it beats the un-adapted base model on `npm run eval:ai`,
-scored on a split held out before training.
+**Decision: the LoRA training scaffold is built and reviewed.**
+`scripts/lora/{prepare_dataset.py,train_lora.py,requirements.txt}` plus the
+runbook above give a complete, dependency-clean (no Node on the training
+host) QLoRA pipeline: rank-16 LoRA over Qwen's standard attention+MLP
+projections, Hermes-style `<tool_call>` targets matching
+`docker-compose.gpu.yml`'s own `--tool-call-parser hermes`, a held-out
+validation split fixed before training. It has since been run for real (see
+the entry immediately below) — the gate from the top of this section stands
+unchanged regardless: a LoRA ships only once it beats the un-adapted base
+model on `npm run eval:ai`, scored on a split held out before training.
+
+## 2026-09-07: a real training run, and the LoRA did not clear the gate
+
+**What ran.** A rented RunPod A100-80GB (`moldai-lora-training`) trained
+`train_lora.py`'s defaults (rank 16, 3 epochs, Qwen3-8B base) on the 595/66
+train/val split the combinatorial generator had already produced
+(`scripts/lora/dataset.jsonl` + `.val.jsonl`, committed nowhere — gitignored
+local data). Training completed cleanly: loss fell from 1.55 (step 1) to
+0.033 (final), eval loss ended at 0.031 with 99.2% mean token accuracy on
+the held-out split, no sign of overfitting collapse between epoch 2 and 3.
+Two real bugs surfaced by this first actual run, both fixed in `3f78fc7`
+(base model default corrected from the VL/multimodal candidate to text-only
+Qwen3-8B; two `trl` 1.12.0 API renames) — see that commit and
+`train_lora.py`'s own top comment.
+
+**The gate check: served via vLLM (`--enable-lora`, `--tool-call-parser
+hermes`, `--enable-auto-tool-choice`) on the same rented pod, `npm run
+eval:ai` run twice against it — once with `LLM_MODEL=Qwen/Qwen3-8B` (the
+un-adapted base), once with `LLM_MODEL=moldai-v1` (the trained adapter) —
+same held-out fixtures both times.** Result was a genuine split, not a clean
+win:
+
+| Metric                                  | Base Qwen3-8B | LoRA (moldai-v1) |
+| --------------------------------------- | ------------- | ---------------- |
+| Decision accuracy (37 cases)            | 94.6%         | 91.9%            |
+| Field accuracy (73 fields, apply cases) | 98.6%         | 90.4%            |
+| Draft-success rate                      | 100.0%        | 100.0%           |
+| Editing change accuracy (8 cases)       | 87.5%         | 100.0%           |
+| Editing collateral-change rate          | 50.0%         | 37.5%            |
+
+The LoRA measurably improved editing (fixed every one of the base model's
+4 collateral/missed-change failures) but regressed generation: it now
+misreads **all three** `ask` fixtures as `apply` (the base model still
+missed 2 of 3, but not all), and field accuracy on `apply` cases dropped
+8.2 points — new misses on dress/skirt/tshirt fields the base model got
+right unaided. Generation is 37 of the 45 scored cases; a regression there
+is not offset by an improvement on the smaller editing set.
+
+**Decision: does not ship.** Per this document's own gate ("a LoRA only
+ships if it beats the un-adapted base model"), a mixed result where the
+larger, more central task (generation) got worse is read as a fail, not a
+partial pass — the same standard that keeps a prompt/schema change from
+shipping on inspection alone applies here to a fine-tune. Leading
+hypothesis, not yet verified: the combinatorial dataset's `apply`-vs-`ask`
+mix (arity-1 combinations biased toward `ask`, see the smoke-run entry
+above) may be under-representing the decision boundary relative to how
+much of the corpus teaches editing-style behavior, pushing the fine-tuned
+model toward "always apply." Not investigated further in this pass — next
+attempt should look at the trained example's decision-label distribution
+before changing rank/epochs/learning-rate.
+
+**Both full eval reports, and the training/eval run logs, are kept as local
+scratch files (`scripts/lora/eval-{base,lora}-report.md`,
+`scripts/lora/eval-{base,lora}-run.log`, gitignored, not committed) — the
+committed `docs/reference/ai-eval/report.md` baseline (Anthropic) was
+restored via `git checkout` immediately after both experimental runs, never
+overwritten by this pass.** The trained checkpoints themselves
+(`scripts/lora/lora-checkpoints/checkpoint-{38,76}/`,
+`scripts/lora/lora-out-final/`) are kept locally, also gitignored, in case a
+future session wants to resume from them (e.g., retrain from the same base
+with a rebalanced dataset) rather than paying for a second full run from
+scratch.
 
 ## Related, prior decisions this one builds on
 
