@@ -97,10 +97,10 @@ interface EditorStore {
   clearError: () => void;
   /**
    * `images` is a list because the wire is (`POST .../generate` takes
-   * `images[]`), not because the composer sends more than one -- it still
-   * attaches at most one photo per turn, deliberately: a mid-conversation
-   * adjustment is one thought, and the multi-photo surface is the creation
-   * form's opening brief.
+   * `images[]`) -- #274 raised ChatPanel's own composer to the same
+   * MAX_ATTACHMENT_COUNT cap as NewPatternForm's opening-brief photo row, so
+   * a mid-conversation adjustment can carry more than one reference image
+   * too (front/back, a detail, a sketch), not just the creation form.
    */
   sendMessage: (
     message: string,
