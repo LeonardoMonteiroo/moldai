@@ -3,28 +3,30 @@
 import { useMemo, useState, type CSSProperties } from "react";
 import { useTranslations } from "next-intl";
 import { Pattern } from "@/lib/types";
-import {
-  planCutLayout,
-  FABRIC_WIDTHS_CM,
-  NESTING_MODES,
-} from "@/lib/export/cutplan";
+import { planCutLayout } from "@/lib/export/cutplan";
 import { useEditorStore } from "@/lib/store";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { CutPlanPreview } from "./CutPlanPreview";
 import { CutPlanSizePanel } from "./CutPlanSizePanel";
-import { Metric } from "./Metric";
+import { FLOAT_CHROME } from "./floatChrome";
 
 export const meters = (cm: number) =>
   (cm / 100).toFixed(2).replace(".", ",") + " m";
 const cmFmt = (cm: number) => cm.toFixed(1).replace(".", ",");
 
+// #280: rebuilt against docs/design/screens/Editor.dc.html:336-436 --
+// legend row, then a two-column area (the preview card scrolls on its own;
+// the 250px CutPlanSizePanel sits beside it, not below a shared scroller),
+// then the mockup's own bottom-left "N peças · consumo estimado X m" pill.
+// The 3 metric cards (Consumo/Aproveitamento/Peças no corte) and the
+// repeated "Plano de corte" title this tab used to render are gone: the
+// design has neither -- the tab bar already names the tab, and its own
+// summary is that one pill, which folds consumption and piece count
+// together but has no analog for efficiency %.
 export function CutPlanTab({ pattern }: { pattern: Pattern }) {
   const t = useTranslations("CutPlanTab");
   const tData = useTranslations("PatternData");
   const fabricWidthCm = useEditorStore((s) => s.cutFabricWidthCm);
-  const setFabricWidthCm = useEditorStore((s) => s.setCutFabricWidth);
   const nestingMode = useEditorStore((s) => s.nestingMode);
   const setNestingMode = useEditorStore((s) => s.setNestingMode);
   const cutPlacements = useEditorStore((s) => s.cutPlacements);
@@ -120,202 +122,110 @@ export function CutPlanTab({ pattern }: { pattern: Pattern }) {
   // #280: `plan` is non-null but has zero instances whenever cutQuantities
   // is DEFINED and every size in it is 0 -- an explicit "nest nothing",
   // distinct from `!plan` (no drafted pieces at all, checked below). The
-  // fabric-width/mode toggles and the size panel stay visible either way
-  // (the user needs them to bring a quantity back up); only the
-  // metrics/preview swap for the same empty-state card style as `!plan`.
+  // legend and the size panel stay visible either way (the user needs the
+  // panel to bring a quantity back up); only the preview card's content
+  // swaps for the same empty-state message style as `!plan`.
   const hasInstances = !!plan && plan.instances.length > 0;
 
+  if (!plan) {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col gap-[10px] p-[22px]">
+        <div className="border-pattern-guide rounded-card bg-surface-alt flex min-h-[200px] flex-1 items-center justify-center border border-dashed">
+          <span className="text-muted text-ui">{t("emptyState")}</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    // #280: the size/quantity panel docks as a sibling column, not inside
-    // the scroll area -- it has its own fixed 250px width and stays put
-    // while the nesting preview scrolls, matching design-system.md's "a new
-    // sidebar-bearing screen sets its own width" convention.
-    <div className="flex min-h-0 flex-1">
-      {/* `fill` + `min-h-full`: the empty state below is `flex-1`, so the
-          column has to keep the region's height for it to fill the tab. */}
-      <ScrollArea fill className="min-h-0 flex-1">
-        <div className="flex min-h-full flex-col gap-4 p-[22px]">
-          <div className="flex items-baseline gap-2">
-            <span className="font-display text-title font-semibold">
-              {t("title")}
+    <div className="flex min-h-0 flex-1 flex-col gap-[10px] p-[22px]">
+      {/* legenda das cores do plano -- Editor.dc.html's own three swatches
+        (Fundo / Tecido / Peça do molde), reusing the exact tokens the
+        preview below paints with. */}
+      <div className="flex flex-none flex-wrap items-center gap-4">
+        <LegendItem
+          swatchClassName="border-border bg-surface"
+          label={t("legendBackground")}
+        />
+        <LegendItem
+          swatchStyle={{
+            background:
+              "repeating-linear-gradient(45deg, var(--color-surface), var(--color-surface) 2px, var(--color-border) 2px, var(--color-border) 2.6px)",
+          }}
+          swatchClassName="border-border"
+          label={t("legendFabric")}
+        />
+        <LegendItem
+          swatchClassName="border-olive bg-olive-tint"
+          label={t("legendPiece")}
+        />
+      </div>
+
+      <div className="flex min-h-0 flex-1 gap-[14px]">
+        <div className="border-border rounded-card bg-surface relative flex min-w-0 flex-1 flex-col gap-2 overflow-auto border p-[18px]">
+          {plan.overflow && (
+            <span
+              role="alert"
+              className="text-alert bg-amber-bg border-amber-border rounded-item text-meta w-fit shrink-0 border px-[10px] py-[6px]"
+            >
+              {t("overflowWarning")}
             </span>
-            <span className="text-muted text-ui">{pattern.name}</span>
-          </div>
+          )}
 
-          {!plan ? (
-            <div className="border-pattern-guide rounded-card bg-surface-alt flex min-h-[200px] flex-1 items-center justify-center border border-dashed">
-              <span className="text-muted text-ui">{t("emptyState")}</span>
-            </div>
+          {plan.overlaps.length > 0 && (
+            <span
+              role="alert"
+              className="text-alert bg-amber-bg border-amber-border rounded-item text-meta w-fit shrink-0 border px-[10px] py-[6px]"
+            >
+              {t("overlapWarning")}
+            </span>
+          )}
+
+          {/* live region: keyboard nudges only -- a drag must not feed it,
+            or it fires every frame. */}
+          <span role="status" className="sr-only">
+            {announcement}
+          </span>
+
+          {hasInstances ? (
+            <CutPlanPreview
+              plan={plan}
+              fabricWidthCm={fabricWidthCm}
+              manual={nestingMode === "manual"}
+              overlapIds={plan.overlaps}
+              onMove={handleMove}
+              onNudgeAnnounce={handleNudgeAnnounce}
+              labelFor={labelFor}
+            />
           ) : (
-            <>
-              <div className="flex flex-wrap gap-4">
-                {/* seletor de largura de tecido */}
-                <div className="flex flex-col gap-2">
-                  <span className="text-muted text-tick tracking-eyebrow font-semibold uppercase">
-                    {t("fabricWidthLabel")}
-                  </span>
-                  <ToggleGroup
-                    type="single"
-                    variant="outline"
-                    value={String(fabricWidthCm)}
-                    aria-label={t("fabricWidthLabel")}
-                    onValueChange={(value) => {
-                      if (value) setFabricWidthCm(Number(value));
-                    }}
-                  >
-                    {FABRIC_WIDTHS_CM.map((w) => (
-                      <ToggleGroupItem key={w} value={String(w)}>
-                        {meters(w)}
-                      </ToggleGroupItem>
-                    ))}
-                  </ToggleGroup>
-                </div>
-
-                {/* seletor de modo de encaixe */}
-                <div className="flex flex-col gap-2">
-                  <span className="text-muted text-tick tracking-eyebrow font-semibold uppercase">
-                    {t("modeLabel")}
-                  </span>
-                  <ToggleGroup
-                    type="single"
-                    variant="outline"
-                    value={nestingMode}
-                    aria-label={t("modeLabel")}
-                    onValueChange={handleModeChange}
-                  >
-                    {NESTING_MODES.map((m) => (
-                      <ToggleGroupItem key={m} value={m}>
-                        {t(`mode.${m}`)}
-                      </ToggleGroupItem>
-                    ))}
-                  </ToggleGroup>
-                </div>
-              </div>
-
-              {!hasInstances ? (
-                <div className="border-pattern-guide rounded-card bg-surface-alt flex min-h-[200px] flex-1 items-center justify-center border border-dashed">
-                  <span className="text-muted text-ui">
-                    {t("emptyQuantitiesState")}
-                  </span>
-                </div>
-              ) : (
-                <>
-                  {/* metrics */}
-                  <div className="flex flex-wrap gap-3">
-                    <Metric
-                      label={t("metricConsumptionLabel")}
-                      value={meters(plan.lengthCm)}
-                      hint={t("metricConsumptionHint")}
-                    />
-                    <Metric
-                      label={t("metricEfficiencyLabel")}
-                      value={`${Math.round(plan.efficiency * 100)}%`}
-                      hint={t("metricEfficiencyHint")}
-                    />
-                    <Metric
-                      label={t("metricPieceCountLabel")}
-                      value={String(plan.instances.length)}
-                      hint={t("metricPieceCountHint")}
-                    />
-                  </div>
-
-                  {plan.overflow && (
-                    <span
-                      role="alert"
-                      className="text-alert bg-amber-bg border-amber-border rounded-item text-meta border px-[10px] py-[6px]"
-                    >
-                      {t("overflowWarning")}
-                    </span>
-                  )}
-
-                  {plan.overlaps.length > 0 && (
-                    <span
-                      role="alert"
-                      className="text-alert bg-amber-bg border-amber-border rounded-item text-meta border px-[10px] py-[6px]"
-                    >
-                      {t("overlapWarning")}
-                    </span>
-                  )}
-
-                  {nestingMode === "manual" && (
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-muted text-tick leading-snug">
-                        {t("manualHint")}
-                      </p>
-                      <Button
-                        variant="outline"
-                        size="chrome"
-                        onClick={handleResetManual}
-                      >
-                        {t("resetManual")}
-                      </Button>
-                    </div>
-                  )}
-
-                  {/* live region: keyboard nudges only -- a drag must not feed
-                    it, or it fires every frame. */}
-                  <span role="status" className="sr-only">
-                    {announcement}
-                  </span>
-
-                  {/* legenda das cores do plano -- Editor.dc.html's own three
-                    swatches (Fundo / Tecido / Peça do molde), reusing the
-                    exact tokens the preview below paints with. */}
-                  <div className="flex flex-wrap items-center gap-4">
-                    <LegendItem
-                      swatchClassName="border-border bg-surface"
-                      label={t("legendBackground")}
-                    />
-                    <LegendItem
-                      swatchStyle={{
-                        background:
-                          "repeating-linear-gradient(45deg, var(--color-surface), var(--color-surface) 2px, var(--color-border) 2px, var(--color-border) 2.6px)",
-                      }}
-                      swatchClassName="border-border"
-                      label={t("legendFabric")}
-                    />
-                    <LegendItem
-                      swatchClassName="border-olive bg-olive-tint"
-                      label={t("legendPiece")}
-                    />
-                  </div>
-
-                  {/* nesting preview */}
-                  <div className="border-border rounded-card bg-surface overflow-auto border p-[18px]">
-                    <CutPlanPreview
-                      plan={plan}
-                      fabricWidthCm={fabricWidthCm}
-                      manual={nestingMode === "manual"}
-                      overlapIds={plan.overlaps}
-                      onMove={handleMove}
-                      onNudgeAnnounce={handleNudgeAnnounce}
-                      labelFor={labelFor}
-                    />
-                  </div>
-
-                  <p className="text-muted text-tick leading-snug">
-                    {nestingMode === "manual"
-                      ? t.rich("layoutNoteManual", {
-                          em: (chunks) => (
-                            <span className="text-olive font-semibold">
-                              {chunks}
-                            </span>
-                          ),
-                        })
-                      : t("layoutNoteAuto")}
-                  </p>
-                </>
-              )}
-            </>
+            <div className="border-pattern-guide rounded-card bg-surface-alt flex min-h-[200px] flex-1 items-center justify-center border border-dashed">
+              <span className="text-muted text-ui">
+                {t("emptyQuantitiesState")}
+              </span>
+            </div>
           )}
         </div>
-      </ScrollArea>
-      {plan && (
+
         <CutPlanSizePanel
           pattern={pattern}
-          totalInstances={plan.instances.length}
-          totalLengthCm={plan.lengthCm}
+          nestingMode={nestingMode}
+          onModeChange={handleModeChange}
+          onResetManual={handleResetManual}
         />
+      </div>
+
+      {hasInstances && (
+        <div
+          className={cn(
+            FLOAT_CHROME,
+            "rounded-pill text-meta text-muted flex h-[30px] w-fit flex-none items-center gap-2 px-3",
+          )}
+        >
+          {t("summaryLine", {
+            count: plan.instances.length,
+            length: meters(plan.lengthCm),
+          })}
+        </div>
       )}
     </div>
   );

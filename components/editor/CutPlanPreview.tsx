@@ -8,6 +8,16 @@ import { clampOriginCm, type CutPlan } from "@/lib/export/cutplan";
 const NUDGE_CM = 1;
 const COARSE_NUDGE_CM = 5;
 
+// #280: a real, fixed px-per-cm scale -- Editor.dc.html's own `corteScale`
+// (docs/design/screens/Editor.dc.html:1026) -- instead of the `w-full
+// h-auto` + `maxHeight` this used to render at. That combination scaled the
+// WHOLE drawing down to keep fitting inside the cap as more sizes/quantities
+// nested taller, so a big plan just got smaller and smaller rather than the
+// card scrolling to it. A fixed scale keeps every piece legible at a
+// constant real-world size regardless of how tall the plan gets; the
+// wrapping card's own `overflow-auto` (CutPlanTab.tsx) is what scrolls.
+const SCALE_PX_PER_CM = 3.2;
+
 /**
  * #8: the cut-plan nesting preview, extracted out of CutPlanTab so it can
  * carry drag/keyboard interaction for manual mode without bloating the tab.
@@ -130,9 +140,10 @@ export function CutPlanPreview({
     <svg
       ref={svgRef}
       viewBox={`0 0 ${fabricWidthCm} ${plan.lengthCm}`}
-      className="h-auto w-full"
-      style={{ maxHeight: 460 }}
-      preserveAspectRatio="xMidYMin meet"
+      style={{
+        width: fabricWidthCm * SCALE_PX_PER_CM,
+        height: plan.lengthCm * SCALE_PX_PER_CM,
+      }}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}

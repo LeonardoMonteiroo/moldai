@@ -24,6 +24,7 @@ import type { Pattern } from "@/lib/types";
 import { SIZE_TABLE_MALE } from "@/lib/measurements";
 
 const mockUpdate = updateCutQuantities as unknown as ReturnType<typeof vi.fn>;
+const noop = () => {};
 
 function tshirtPattern(overrides: Partial<Pattern> = {}): Pattern {
   return {
@@ -58,15 +59,17 @@ function tshirtPattern(overrides: Partial<Pattern> = {}): Pattern {
 
 beforeEach(() => {
   mockUpdate.mockClear();
+  useEditorStore.setState({ cutFabricWidthCm: 150 });
 });
 
 describe("CutPlanSizePanel", () => {
-  it("renders one row per baseSize + sizesApplied", () => {
+  it("renders one grid cell per baseSize + sizesApplied", () => {
     renderWithIntl(
       <CutPlanSizePanel
         pattern={tshirtPattern()}
-        totalInstances={3}
-        totalLengthCm={120}
+        nestingMode="auto"
+        onModeChange={noop}
+        onResetManual={noop}
       />,
     );
     expect(screen.getByText("M")).toBeInTheDocument();
@@ -77,8 +80,9 @@ describe("CutPlanSizePanel", () => {
     renderWithIntl(
       <CutPlanSizePanel
         pattern={tshirtPattern()}
-        totalInstances={3}
-        totalLengthCm={120}
+        nestingMode="auto"
+        onModeChange={noop}
+        onResetManual={noop}
       />,
     );
     expect(
@@ -93,12 +97,13 @@ describe("CutPlanSizePanel", () => {
     ).toHaveValue(0);
   });
 
-  it("increase/decrease buttons carry both aria-label and title, resolved per size", () => {
+  it("increase/decrease quantity buttons carry both aria-label and title, resolved per size", () => {
     renderWithIntl(
       <CutPlanSizePanel
         pattern={tshirtPattern()}
-        totalInstances={3}
-        totalLengthCm={120}
+        nestingMode="auto"
+        onModeChange={noop}
+        onResetManual={noop}
       />,
     );
     const increaseM = screen.getByRole("button", {
@@ -120,8 +125,9 @@ describe("CutPlanSizePanel", () => {
     renderWithIntl(
       <CutPlanSizePanel
         pattern={pattern}
-        totalInstances={3}
-        totalLengthCm={120}
+        nestingMode="auto"
+        onModeChange={noop}
+        onResetManual={noop}
       />,
     );
     await user.click(
@@ -135,12 +141,13 @@ describe("CutPlanSizePanel", () => {
     });
   });
 
-  it("the − button is disabled at quantity 0", () => {
+  it("the quantity − button is disabled at quantity 0", () => {
     renderWithIntl(
       <CutPlanSizePanel
         pattern={tshirtPattern()}
-        totalInstances={3}
-        totalLengthCm={120}
+        nestingMode="auto"
+        onModeChange={noop}
+        onResetManual={noop}
       />,
     );
     expect(
@@ -150,21 +157,90 @@ describe("CutPlanSizePanel", () => {
     ).toBeDisabled();
   });
 
-  it("renders the total pieces and fabric consumption labels", () => {
+  // #280: the sidebar's own total is garments produced (sum of quantities),
+  // distinct from the bottom pill's total CUT PIECES (garments × pieces per
+  // garment) that CutPlanTab renders -- Editor.dc.html's "1 peça produzida"
+  // caption under the quantity grid.
+  it("renders the garments-produced caption, pluralized off the summed quantities", () => {
     renderWithIntl(
       <CutPlanSizePanel
         pattern={tshirtPattern()}
-        totalInstances={7}
-        totalLengthCm={250}
+        nestingMode="auto"
+        onModeChange={noop}
+        onResetManual={noop}
+      />,
+    );
+    // untouched cutQuantities -> baseSize defaults to 1, so total = 1,
+    // resolving the catalog's ICU "one" branch: "1 peça produzida".
+    expect(screen.getByText("1 peça produzida")).toBeInTheDocument();
+  });
+
+  it("renders the fabric width presets and a real −/+ stepper", async () => {
+    const user = userEvent.setup();
+    renderWithIntl(
+      <CutPlanSizePanel
+        pattern={tshirtPattern()}
+        nestingMode="auto"
+        onModeChange={noop}
+        onResetManual={noop}
       />,
     );
     expect(
-      screen.getByText(ptBR.CutPlanTab.quantityTotalPiecesLabel),
+      screen.getByText(
+        ptBR.CutPlanTab.fabricWidthStepLabel.replace("{cm}", "150"),
+      ),
     ).toBeInTheDocument();
-    expect(screen.getByText("7")).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", {
+        name: ptBR.CutPlanTab.increaseFabricWidthAriaLabel,
+      }),
+    );
+    expect(useEditorStore.getState().cutFabricWidthCm).toBe(155);
+  });
+
+  it("renders the auto/manual mode toggle and calls onModeChange", async () => {
+    const user = userEvent.setup();
+    const onModeChange = vi.fn();
+    renderWithIntl(
+      <CutPlanSizePanel
+        pattern={tshirtPattern()}
+        nestingMode="auto"
+        onModeChange={onModeChange}
+        onResetManual={noop}
+      />,
+    );
+    await user.click(
+      screen.getByRole("radio", { name: ptBR.CutPlanTab.mode.manual }),
+    );
+    expect(onModeChange).toHaveBeenCalledWith("manual");
+  });
+
+  it("hides the manual hint and reset button in auto mode", () => {
+    renderWithIntl(
+      <CutPlanSizePanel
+        pattern={tshirtPattern()}
+        nestingMode="auto"
+        onModeChange={noop}
+        onResetManual={noop}
+      />,
+    );
     expect(
-      screen.getByText(ptBR.CutPlanTab.quantityTotalFabricLabel),
+      screen.queryByText(ptBR.CutPlanTab.manualHint),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows the manual hint and reset button in manual mode", () => {
+    renderWithIntl(
+      <CutPlanSizePanel
+        pattern={tshirtPattern()}
+        nestingMode="manual"
+        onModeChange={noop}
+        onResetManual={noop}
+      />,
+    );
+    expect(screen.getByText(ptBR.CutPlanTab.manualHint)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: ptBR.CutPlanTab.resetManual }),
     ).toBeInTheDocument();
-    expect(screen.getByText("2,50 m")).toBeInTheDocument();
   });
 });
