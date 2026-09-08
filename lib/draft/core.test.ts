@@ -11,7 +11,16 @@ import {
   pointAndTangentAtCm,
   notchAtArcLengthCm,
   NOTCH_DEPTH_CM,
+  insertVertexAt,
+  OutlineAnchors,
+  WRAP,
+  curveArcLengthCm,
 } from "./core";
+import { getEngine } from "./engine/registry";
+import { walkSeamPairs, SeamEdgeRef } from "./seams";
+import { DECORATION_CASES } from "./fixtures";
+import { SIZE_TABLE } from "@/lib/measurements";
+import { t } from "@/lib/i18n/test-translate";
 
 const rect = (id: string, w: number, h: number): DraftedPiece => ({
   id,
@@ -368,6 +377,206 @@ describe("autoLayout carries notches into px space", () => {
     expect(Math.hypot(n.x2 - n.x1, n.y2 - n.y1)).toBeCloseTo(
       NOTCH_DEPTH_CM.single * SCALE,
       1,
+    );
+  });
+});
+
+// #251: OutlineAnchors -- the name-addressed handle a drafter uses instead
+// of scattering raw outline indices across seamEdges/curvedSpans.
+describe("OutlineAnchors (#251)", () => {
+  it("set() returns the index unchanged and at() round-trips it", () => {
+    const anchors = new OutlineAnchors();
+    expect(anchors.set("a", 3)).toBe(3);
+    expect(anchors.at("a")).toBe(3);
+  });
+
+  it("at() throws on an unknown name instead of silently returning undefined", () => {
+    const anchors = new OutlineAnchors();
+    expect(() => anchors.at("nope")).toThrow(/nope/);
+  });
+
+  it("edge() builds a [from, to] range from two named anchors", () => {
+    const anchors = new OutlineAnchors();
+    anchors.set("cf", 0);
+    anchors.set("hpsL", 2);
+    expect(anchors.edge("cf", "hpsL", 10)).toEqual([0, 2]);
+  });
+
+  it("edge() resolves the WRAP sentinel to the outline's own length, not a named anchor", () => {
+    const anchors = new OutlineAnchors();
+    anchors.set("hemCenter", 7);
+    expect(anchors.edge("hemCenter", WRAP, 8)).toEqual([7, 8]);
+  });
+
+  it('a real anchor literally named "wrap" is not swallowed by the WRAP sentinel', () => {
+    const anchors = new OutlineAnchors();
+    anchors.set("cf", 0);
+    anchors.set("wrap", 3); // a legitimate anchor name that collides with the old string sentinel
+    expect(anchors.edge("cf", "wrap", 8)).toEqual([0, 3]); // resolves the NAME, not WRAP's outlineLength
+  });
+
+  it("shiftFrom() bumps every anchor at or after the given index", () => {
+    const anchors = new OutlineAnchors();
+    anchors.set("before", 2);
+    anchors.set("atCut", 5);
+    anchors.set("after", 9);
+    anchors.shiftFrom(5);
+    expect(anchors.at("before")).toBe(2); // untouched -- strictly before
+    expect(anchors.at("atCut")).toBe(6); // at the cut -- shifted
+    expect(anchors.at("after")).toBe(10); // after the cut -- shifted
+  });
+});
+
+// #251: insertVertexAt -- the sibling mechanism for a vertex inserted into
+// an already-drafted piece (a future pocket/placket/style-line cut), which
+// remaps seamEdges/foldEdge/curvedSpans in one place.
+describe("insertVertexAt (#251)", () => {
+  const piece: DraftedPiece = {
+    id: "p",
+    name: "p",
+    qty: 1,
+    detailRows: [],
+    outlineCm: [
+      [0, 0],
+      [10, 0],
+      [10, 10],
+      [0, 10],
+    ],
+    curvedSpans: [[2, 3]], // covers edge 2->3
+    foldEdge: [0, 3],
+    seamEdges: {
+      before: [0, 1], // both endpoints at or before the insertion point
+      immediatelyAfter: [2, 3], // both endpoints after it
+      spanning: [1, 3], // straddles it
+      closing: [3, 4], // uses the "wraps to vertex 0" sentinel (length 4)
+    },
+  };
+
+  it("inserts the new point right after `afterIdx`", () => {
+    const patched = insertVertexAt(piece, 1, [5, 0]);
+    expect(patched.outlineCm).toEqual([
+      [0, 0],
+      [10, 0],
+      [5, 0],
+      [10, 10],
+      [0, 10],
+    ]);
+  });
+
+  it("leaves a range whose `to` lands exactly ON the cut untouched", () => {
+    const patched = insertVertexAt(piece, 1, [5, 0]);
+    expect(patched.seamEdges!.before).toEqual([0, 1]);
+  });
+
+  it("shifts a range that starts strictly after the cut, both ends", () => {
+    const patched = insertVertexAt(piece, 1, [5, 0]);
+    expect(patched.seamEdges!.immediatelyAfter).toEqual([3, 4]);
+  });
+
+  it("shifts a range straddling the cut by growing its `to`", () => {
+    const patched = insertVertexAt(piece, 1, [5, 0]);
+    expect(patched.seamEdges!.spanning).toEqual([1, 4]);
+  });
+
+  it("shifts the closing 'wraps to vertex 0' sentinel to the new length", () => {
+    const patched = insertVertexAt(piece, 1, [5, 0]);
+    expect(patched.seamEdges!.closing).toEqual([4, 5]);
+  });
+
+  it("shifts foldEdge and curvedSpans the same way", () => {
+    const patched = insertVertexAt(piece, 1, [5, 0]);
+    expect(patched.foldEdge).toEqual([0, 4]);
+    expect(patched.curvedSpans).toEqual([[3, 4]]);
+  });
+
+  it("does not mutate the original piece", () => {
+    insertVertexAt(piece, 1, [5, 0]);
+    expect(piece.outlineCm).toHaveLength(4);
+    expect(piece.seamEdges!.spanning).toEqual([1, 3]);
+  });
+
+  // #251's own acceptance criterion: inserting a vertex mid-edge on a real
+  // drafted DECORATION_CASES piece must not perturb any declared seam pair's
+  // measured length -- the exact failure mode raw index tables invite (an
+  // insertion the developer forgot to thread through every other table
+  // silently measures the wrong arc, which walkSeamPairs would report as a
+  // false "closes as designed"/false conflict).
+  //
+  // Note on what's re-declared vs. reused: `seamPairs` (garment.ts's
+  // SeamPairDecl list) is itself a SNAPSHOT of each piece's seamEdges at the
+  // moment draftAll ran, captured as raw `{from, to}` numbers with no name
+  // attached -- by design, garment.ts only ever reads seamEdges once, after
+  // every piece is FULLY drafted (including any insertion a drafter makes
+  // while building it), so a real caller never has a stale snapshot to
+  // begin with. This test's own insertion happens AFTER that snapshot (it's
+  // simulating a future edit to an already-generated piece, e.g. a
+  // pocket/placket cut), so it re-declares each pair's refs from the
+  // PATCHED piece's own CURRENT seamEdges -- keyed by matching the pair's
+  // original {from, to} back to the seamEdges name it came from -- rather
+  // than asserting on the now-stale snapshot itself.
+  it("leaves every declared seam pair's measured length unchanged after a collinear mid-edge insertion", () => {
+    const [, spec] = DECORATION_CASES.find(
+      ([label]) => label === "blouse straight sleeveless",
+    )!;
+    const baseRow = SIZE_TABLE.M;
+    const { drafted, seamPairs } = getEngine("moldai").draft(spec, baseRow, t);
+    expect(seamPairs.length).toBeGreaterThan(0);
+
+    const front = drafted.find((p) => p.id === "body-front");
+    if (!front?.seamEdges) throw new Error("expected a body-front piece");
+    const [from, to] = front.seamEdges.side;
+    // The side seam is always a straight run (never inside a curvedSpan),
+    // so its first segment's own midpoint is collinear with both
+    // neighbours -- the outline's drawn shape is unchanged by inserting it.
+    const [x1, y1] = front.outlineCm[from];
+    const [x2, y2] = front.outlineCm[from + 1 <= to ? from + 1 : to];
+    const midpoint: [number, number] = [(x1 + x2) / 2, (y1 + y2) / 2];
+    const patchedFront = insertVertexAt(front, from, midpoint);
+
+    // Every one of this piece's own named seamEdges ranges -- not just the
+    // one we inserted into -- still measures the SAME arc length.
+    for (const key of Object.keys(front.seamEdges)) {
+      const beforeLen = curveArcLengthCm(
+        front.outlineCm,
+        front.curvedSpans ?? [],
+        ...front.seamEdges[key],
+      );
+      const afterLen = curveArcLengthCm(
+        patchedFront.outlineCm,
+        patchedFront.curvedSpans ?? [],
+        ...patchedFront.seamEdges![key],
+      );
+      expect(afterLen).toBeCloseTo(beforeLen, 2); // within 0.005cm
+    }
+
+    // Re-declare the whole-garment seam graph against the patched piece
+    // (matching each ref back to the seamEdges name it snapshotted from,
+    // then reading that name's CURRENT range) and confirm the graph a real
+    // consumer would see is measured identically to the original.
+    const patchedDrafted = drafted.map((p) =>
+      p.id === front.id ? patchedFront : p,
+    );
+    const nameForRef = (ref: SeamEdgeRef): string | undefined =>
+      ref.pieceId === front.id
+        ? Object.entries(front.seamEdges!).find(
+            ([, [a, b]]) => a === ref.from && b === ref.to,
+          )?.[0]
+        : undefined;
+    const rebase = (refs: SeamEdgeRef[]): SeamEdgeRef[] =>
+      refs.map((ref) => {
+        const name = nameForRef(ref);
+        if (!name) return ref;
+        const [rebasedFrom, rebasedTo] = patchedFront.seamEdges![name];
+        return { ...ref, from: rebasedFrom, to: rebasedTo };
+      });
+    const freshPairs = seamPairs.map((pair) => ({
+      ...pair,
+      a: rebase(pair.a),
+      b: rebase(pair.b),
+    }));
+
+    expect(walkSeamPairs(patchedDrafted, freshPairs)).toEqual(
+      walkSeamPairs(drafted, seamPairs),
     );
   });
 });

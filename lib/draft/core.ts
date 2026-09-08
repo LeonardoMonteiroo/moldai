@@ -243,6 +243,121 @@ export type InternalCm =
 export const DRILL_HOLE_SETBACK_CM = 1.25;
 export const DRILL_HOLE_RADIUS_CM = 0.15;
 
+// #251: a stable, NAME-addressed handle onto a vertex pushed while a
+// drafter builds its own outline -- the fix for lib/draft/body.ts's own
+// motivating case, where the frontClosure branch picked among two
+// ALREADY-KNOWN raw indices (`hemR!` vs. `hemCenter`, plus a bare
+// `pts.length` "wraps to vertex 0" sentinel) with a hand-written ternary
+// instead of asking a piece "where is the edge from X to Y right now".
+// `set()` returns the index unchanged so an existing `const x = push(...)`
+// call site only needs wrapping (`const x = anchors.set("x", push(...))`),
+// not restructuring. `shiftFrom` is what makes a NAME-based handle "stable"
+// where a raw number wouldn't be: if a future drafter ever splices an extra
+// vertex in mid-build (a pocket/placket/style-line cut), one `shiftFrom`
+// call keeps every already-issued anchor correct, rather than a caller
+// re-deriving each one by hand. See also `insertVertexAt` below, the sibling
+// mechanism for a vertex inserted into an ALREADY-drafted piece (this class
+// is for while a piece is still being built).
+// #251: the sentinel `edge()` accepts in place of a real anchor name to mean
+// "this outline's own current length" (the existing "closes back to vertex
+// 0" convention curveArcLengthCm/curvedSpans already use for a wrapping
+// edge). A `unique symbol`, not the string `"wrap"`, specifically so a
+// drafter is free to name a real anchor "wrap" without it being silently
+// swallowed by this sentinel -- `edge()` checks `to === WRAP` by reference,
+// which a string literal can never satisfy.
+export const WRAP: unique symbol = Symbol("OutlineAnchors.WRAP");
+
+export class OutlineAnchors {
+  private readonly byName = new Map<string, number>();
+
+  // Records outline vertex `idx` as addressable by `name`.
+  set(name: string, idx: number): number {
+    this.byName.set(name, idx);
+    return idx;
+  }
+
+  // The raw index for a previously-set name -- throws on an unknown name
+  // rather than letting a typo silently produce `undefined` deep inside a
+  // seamEdges range.
+  at(name: string): number {
+    const idx = this.byName.get(name);
+    if (idx === undefined) {
+      throw new Error(`OutlineAnchors: no anchor named "${name}"`);
+    }
+    return idx;
+  }
+
+  // Builds a seamEdges/curvedSpans-style [from, to] range from two anchor
+  // names. `to` may be the `WRAP` sentinel (see above) to mean "this
+  // outline's own current length", spelled out here instead of a caller
+  // having to remember to pass the bare number itself.
+  edge(
+    from: string,
+    to: string | typeof WRAP,
+    outlineLength: number,
+  ): [number, number] {
+    return [this.at(from), to === WRAP ? outlineLength : this.at(to)];
+  }
+
+  // Shifts every already-recorded anchor at or after `at` by `by` (default
+  // +1) -- the one place a mid-build vertex insertion updates every
+  // already-issued name at once.
+  shiftFrom(at: number, by = 1): void {
+    for (const [name, idx] of this.byName) {
+      if (idx >= at) this.byName.set(name, idx + by);
+    }
+  }
+}
+
+// #251: inserts a new vertex into an ALREADY-DRAFTED piece's own outline,
+// remapping every OTHER index-bearing field -- `seamEdges`, `foldEdge` and
+// `curvedSpans` -- in the one place that knows how, instead of a caller
+// hand-auditing the parallel index tables `DraftedPiece.seamEdges`'s own doc
+// comment warns are scattered across a piece (this issue's motivating
+// example: adding a pocket/placket/style-line cut to an existing panel).
+// `notches` needs no entry here: a `NotchCm` carries its own outerCm/innerCm
+// cm coordinates (see `notchAt` above), never an outline index, so it stays
+// correct no matter where a later vertex lands.
+//
+// `afterIdx` is the outline index the new vertex lands AFTER (so its own new
+// index is `afterIdx + 1`); every index STRICTLY greater than `afterIdx` --
+// including the `outlineCm.length` "wraps to vertex 0" sentinel every
+// closing edge already uses -- shifts up by one; everything at or before
+// `afterIdx` is untouched. A caller that wants the drafted SHAPE unchanged
+// (as this issue's own regression test does) inserts a point collinear with
+// its two new neighbours, on a straight (non-curved) edge -- inserting into
+// a curved span's own control-point run would change the curve it draws,
+// which is a real geometry edit this function does not try to prevent.
+export function insertVertexAt(
+  piece: DraftedPiece,
+  afterIdx: number,
+  point: Pt,
+): DraftedPiece {
+  const shift = (idx: number) => (idx > afterIdx ? idx + 1 : idx);
+  const shiftPair = ([a, b]: [number, number]): [number, number] => [
+    shift(a),
+    shift(b),
+  ];
+  return {
+    ...piece,
+    outlineCm: [
+      ...piece.outlineCm.slice(0, afterIdx + 1),
+      point,
+      ...piece.outlineCm.slice(afterIdx + 1),
+    ],
+    seamEdges: piece.seamEdges
+      ? Object.fromEntries(
+          Object.entries(piece.seamEdges).map(([key, range]) => [
+            key,
+            shiftPair(range),
+          ]),
+        )
+      : piece.seamEdges,
+    foldEdge: piece.foldEdge ? shiftPair(piece.foldEdge) : piece.foldEdge,
+    curvedSpans: piece.curvedSpans?.map(shiftPair),
+  };
+}
+
 const ptEq = (a: Pt, b: Pt) => a[0] === b[0] && a[1] === b[1];
 
 // A drill hole set back from `apexCm`, walking toward `towardCm` along the
