@@ -117,6 +117,14 @@ export function CutPlanTab({ pattern }: { pattern: Pattern }) {
     );
   }
 
+  // #280: `plan` is non-null but has zero instances whenever cutQuantities
+  // is DEFINED and every size in it is 0 -- an explicit "nest nothing",
+  // distinct from `!plan` (no drafted pieces at all, checked below). The
+  // fabric-width/mode toggles and the size panel stay visible either way
+  // (the user needs them to bring a quantity back up); only the
+  // metrics/preview swap for the same empty-state card style as `!plan`.
+  const hasInstances = !!plan && plan.instances.length > 0;
+
   return (
     // #280: the size/quantity panel docks as a sibling column, not inside
     // the scroll area -- it has its own fixed 250px width and stays put
@@ -184,110 +192,120 @@ export function CutPlanTab({ pattern }: { pattern: Pattern }) {
                 </div>
               </div>
 
-              {/* metrics */}
-              <div className="flex flex-wrap gap-3">
-                <Metric
-                  label={t("metricConsumptionLabel")}
-                  value={meters(plan.lengthCm)}
-                  hint={t("metricConsumptionHint")}
-                />
-                <Metric
-                  label={t("metricEfficiencyLabel")}
-                  value={`${Math.round(plan.efficiency * 100)}%`}
-                  hint={t("metricEfficiencyHint")}
-                />
-                <Metric
-                  label={t("metricPieceCountLabel")}
-                  value={String(plan.instances.length)}
-                  hint={t("metricPieceCountHint")}
-                />
-              </div>
-
-              {plan.overflow && (
-                <span
-                  role="alert"
-                  className="text-alert bg-amber-bg border-amber-border rounded-item text-meta border px-[10px] py-[6px]"
-                >
-                  {t("overflowWarning")}
-                </span>
-              )}
-
-              {plan.overlaps.length > 0 && (
-                <span
-                  role="alert"
-                  className="text-alert bg-amber-bg border-amber-border rounded-item text-meta border px-[10px] py-[6px]"
-                >
-                  {t("overlapWarning")}
-                </span>
-              )}
-
-              {nestingMode === "manual" && (
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-muted text-tick leading-snug">
-                    {t("manualHint")}
-                  </p>
-                  <Button
-                    variant="outline"
-                    size="chrome"
-                    onClick={handleResetManual}
-                  >
-                    {t("resetManual")}
-                  </Button>
+              {!hasInstances ? (
+                <div className="border-pattern-guide rounded-card bg-surface-alt flex min-h-[200px] flex-1 items-center justify-center border border-dashed">
+                  <span className="text-muted text-ui">
+                    {t("emptyQuantitiesState")}
+                  </span>
                 </div>
+              ) : (
+                <>
+                  {/* metrics */}
+                  <div className="flex flex-wrap gap-3">
+                    <Metric
+                      label={t("metricConsumptionLabel")}
+                      value={meters(plan.lengthCm)}
+                      hint={t("metricConsumptionHint")}
+                    />
+                    <Metric
+                      label={t("metricEfficiencyLabel")}
+                      value={`${Math.round(plan.efficiency * 100)}%`}
+                      hint={t("metricEfficiencyHint")}
+                    />
+                    <Metric
+                      label={t("metricPieceCountLabel")}
+                      value={String(plan.instances.length)}
+                      hint={t("metricPieceCountHint")}
+                    />
+                  </div>
+
+                  {plan.overflow && (
+                    <span
+                      role="alert"
+                      className="text-alert bg-amber-bg border-amber-border rounded-item text-meta border px-[10px] py-[6px]"
+                    >
+                      {t("overflowWarning")}
+                    </span>
+                  )}
+
+                  {plan.overlaps.length > 0 && (
+                    <span
+                      role="alert"
+                      className="text-alert bg-amber-bg border-amber-border rounded-item text-meta border px-[10px] py-[6px]"
+                    >
+                      {t("overlapWarning")}
+                    </span>
+                  )}
+
+                  {nestingMode === "manual" && (
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-muted text-tick leading-snug">
+                        {t("manualHint")}
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="chrome"
+                        onClick={handleResetManual}
+                      >
+                        {t("resetManual")}
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* live region: keyboard nudges only -- a drag must not feed
+                    it, or it fires every frame. */}
+                  <span role="status" className="sr-only">
+                    {announcement}
+                  </span>
+
+                  {/* legenda das cores do plano -- Editor.dc.html's own three
+                    swatches (Fundo / Tecido / Peça do molde), reusing the
+                    exact tokens the preview below paints with. */}
+                  <div className="flex flex-wrap items-center gap-4">
+                    <LegendItem
+                      swatchClassName="border-border bg-surface"
+                      label={t("legendBackground")}
+                    />
+                    <LegendItem
+                      swatchStyle={{
+                        background:
+                          "repeating-linear-gradient(45deg, var(--color-surface), var(--color-surface) 2px, var(--color-border) 2px, var(--color-border) 2.6px)",
+                      }}
+                      swatchClassName="border-border"
+                      label={t("legendFabric")}
+                    />
+                    <LegendItem
+                      swatchClassName="border-olive bg-olive-tint"
+                      label={t("legendPiece")}
+                    />
+                  </div>
+
+                  {/* nesting preview */}
+                  <div className="border-border rounded-card bg-surface overflow-auto border p-[18px]">
+                    <CutPlanPreview
+                      plan={plan}
+                      fabricWidthCm={fabricWidthCm}
+                      manual={nestingMode === "manual"}
+                      overlapIds={plan.overlaps}
+                      onMove={handleMove}
+                      onNudgeAnnounce={handleNudgeAnnounce}
+                      labelFor={labelFor}
+                    />
+                  </div>
+
+                  <p className="text-muted text-tick leading-snug">
+                    {nestingMode === "manual"
+                      ? t.rich("layoutNoteManual", {
+                          em: (chunks) => (
+                            <span className="text-olive font-semibold">
+                              {chunks}
+                            </span>
+                          ),
+                        })
+                      : t("layoutNoteAuto")}
+                  </p>
+                </>
               )}
-
-              {/* live region: keyboard nudges only -- a drag must not feed it,
-                or it fires every frame. */}
-              <span role="status" className="sr-only">
-                {announcement}
-              </span>
-
-              {/* legenda das cores do plano -- Editor.dc.html's own three swatches
-                (Fundo / Tecido / Peça do molde), reusing the exact tokens the
-                preview below paints with. */}
-              <div className="flex flex-wrap items-center gap-4">
-                <LegendItem
-                  swatchClassName="border-border bg-surface"
-                  label={t("legendBackground")}
-                />
-                <LegendItem
-                  swatchStyle={{
-                    background:
-                      "repeating-linear-gradient(45deg, var(--color-surface), var(--color-surface) 2px, var(--color-border) 2px, var(--color-border) 2.6px)",
-                  }}
-                  swatchClassName="border-border"
-                  label={t("legendFabric")}
-                />
-                <LegendItem
-                  swatchClassName="border-olive bg-olive-tint"
-                  label={t("legendPiece")}
-                />
-              </div>
-
-              {/* nesting preview */}
-              <div className="border-border rounded-card bg-surface overflow-auto border p-[18px]">
-                <CutPlanPreview
-                  plan={plan}
-                  fabricWidthCm={fabricWidthCm}
-                  manual={nestingMode === "manual"}
-                  overlapIds={plan.overlaps}
-                  onMove={handleMove}
-                  onNudgeAnnounce={handleNudgeAnnounce}
-                  labelFor={labelFor}
-                />
-              </div>
-
-              <p className="text-muted text-tick leading-snug">
-                {nestingMode === "manual"
-                  ? t.rich("layoutNoteManual", {
-                      em: (chunks) => (
-                        <span className="text-olive font-semibold">
-                          {chunks}
-                        </span>
-                      ),
-                    })
-                  : t("layoutNoteAuto")}
-              </p>
             </>
           )}
         </div>

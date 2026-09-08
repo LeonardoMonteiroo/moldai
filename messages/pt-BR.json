@@ -502,6 +502,7 @@
   "CutPlanTab": {
     "title": "Plano de corte",
     "emptyState": "Gere um molde para ver o plano de corte.",
+    "emptyQuantitiesState": "Defina a quantidade de pelo menos um tamanho para ver o encaixe.",
     "fabricWidthLabel": "Largura do tecido",
     "metricConsumptionLabel": "Consumo",
     "metricConsumptionHint": "comprimento no tecido",

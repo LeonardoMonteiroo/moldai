@@ -81,6 +81,32 @@ describe("CutPlanTab", () => {
     ).toBeInTheDocument();
   });
 
+  // #280: cutQuantities DEFINED but every size at 0 (the user explicitly
+  // zeroed every stepper) must not fall back to the pre-#280 default nest --
+  // planCutLayout returns a real, empty plan, and the tab has to show the
+  // same empty-state card style as "no pieces drafted at all" rather than a
+  // blank preview with live (but degenerate) metrics.
+  it("an explicit all-zero cutQuantities map shows the empty-quantities message, not a blank preview", () => {
+    renderWithIntl(
+      <CutPlanTab pattern={{ ...tshirtPattern(), cutQuantities: {} }} />,
+    );
+    expect(
+      screen.getByText(ptBR.CutPlanTab.emptyQuantitiesState),
+    ).toBeInTheDocument();
+    // metricEfficiencyLabel is unique to the metrics cards (unlike
+    // "Peças no corte", which the always-visible size panel's own total row
+    // also uses) -- its absence confirms the metrics/preview block itself
+    // didn't render, not just that some particular string is missing.
+    expect(
+      screen.queryByText(ptBR.CutPlanTab.metricEfficiencyLabel),
+    ).not.toBeInTheDocument();
+    // The toggles stay usable -- the user still needs them to bring a
+    // quantity back up.
+    expect(
+      screen.getByRole("radio", { name: ptBR.CutPlanTab.mode.auto }),
+    ).toBeInTheDocument();
+  });
+
   it("renders the plan's color legend from the catalog", () => {
     renderWithIntl(<CutPlanTab pattern={tshirtPattern()} />);
     expect(
