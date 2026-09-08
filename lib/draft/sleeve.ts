@@ -178,24 +178,32 @@ export function draftSleeve(
     [cxTop, capH + len - 3],
   ];
 
-  // #124: single notch walked from the left underarm (index 0), double from
-  // the right (index 4) -- an arbitrary but consistent convention, since
-  // this cap is bilaterally symmetric and either physical arm can be cut
-  // from the same flat piece by flipping the fabric. Clamped the same way
-  // body.ts clamps its own pitch distance, so a very short cap never places
-  // one past its own apex. The cap apex notch marks where the shoulder seam
-  // meets the cap; it has no single body-side counterpart to pair with (the
-  // shoulder point exists on both the front AND back panels), so it's
-  // excluded from the mated-pair cross-check in garment.test.ts.
+  // #124/#253: single notch walked from the left underarm (index 0), double
+  // from the right (index 4) -- an arbitrary but consistent convention,
+  // since this cap is bilaterally symmetric and either physical arm can be
+  // cut from the same flat piece by flipping the fabric. `pitchNotchCm` is
+  // used verbatim, with no clamp of this file's own: it already comes in
+  // pre-derived (garment.ts, via body.ts's draftBody -- see
+  // lib/draft/seams.ts's pitchNotchDistanceCm) off the PAIR's own combined
+  // total, which this file has no way to recompute more correctly on its
+  // own -- an independent second clamp here (this used to be
+  // measuredCapArcCm * 0.35) is exactly the two-clamps-that-can-disagree bug
+  // #253 closes. pointAndTangentAtCm's own per-segment bounding (never lands
+  // before `from` or past `to`) is what keeps a genuinely pathological
+  // direct call (a unit test, a tiny bicep) from placing a notch out of
+  // bounds -- it just degrades to landing at the segment's own end instead
+  // of crashing. The cap apex notch marks where the shoulder seam meets the
+  // cap; it has no single body-side counterpart to pair with (the shoulder
+  // point exists on both the front AND back panels), so it's excluded from
+  // the mated-pair cross-check in garment.test.ts.
   const insideRef: Pt = [cxTop, capH + len / 2];
-  const clampedPitchCm = Math.min(pitchNotchCm, measuredCapArcCm * 0.35);
   const notches: NotchCm[] = [
     notchAtArcLengthCm(
       capPts,
       curvedSpans,
       0,
       4,
-      clampedPitchCm,
+      pitchNotchCm,
       insideRef,
       "single",
     ),
@@ -204,7 +212,7 @@ export function draftSleeve(
       curvedSpans,
       0,
       4,
-      measuredCapArcCm - clampedPitchCm,
+      measuredCapArcCm - pitchNotchCm,
       insideRef,
       "double",
     ),

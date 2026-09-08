@@ -11,6 +11,7 @@ import {
 import { diffSpec as diffSpecFields } from "@/lib/draft/specDiff";
 import { seamCheck } from "@/lib/draft/garment";
 import type { SeamMeasurement } from "@/lib/draft/garment";
+import { SEAM_TOLERANCE_CM } from "@/lib/draft/seams";
 import { draftGarment, measureSeamGraph } from "@/lib/draft/engine/facade";
 import { engineFor } from "@/lib/draft/engine/capability";
 import type { EngineId } from "@/lib/draft/engine/capability";
@@ -36,6 +37,17 @@ function pieceMarker(
   return { cx: maxX - 6, cy: minY + (maxY - minY) * 0.28, r: 14 };
 }
 
+// #253: a pair can be flagged by seamCheck purely on subSegmentDiffCm (the
+// front/back split projects onto the wrong point of the mate's arc) while
+// its own diffCm (the two sides' summed totals) stays near 0 -- reporting
+// THAT near-0 number as "the divergence" would show a real, unfixable
+// conflict as if it were barely there. Whichever of the two actually
+// crossed SEAM_TOLERANCE_CM (or the larger, if somehow both did) is what a
+// user-facing number should cite.
+function displayDiffCm(m: SeamMeasurement): number {
+  return Math.max(m.diffCm, m.subSegmentDiffCm);
+}
+
 // Builds one ConflictEntry from a divergent SeamMeasurement, resolving its
 // pre-baked pt-BR label/aLabel/bLabel from the `seamPairs.<labelKey>`
 // catalog entries (PatternData namespace) — the same draft-time locale
@@ -58,7 +70,7 @@ function buildEntry(
     bLabel: t(`seamPairs.${m.labelKey}.bLabel`),
     aPieceId: m.aPieceId,
     bPieceId: m.bPieceId,
-    diffCm: m.diffCm,
+    diffCm: displayDiffCm(m),
     fixable: m.fixable,
     markers,
   };
@@ -177,10 +189,18 @@ function detectConflict(
   const primary = baseArmholeCap ?? conflicts[0];
   const primaryEntry = entries.find((e) => e.key === primary.key)!;
   const primarySizes = sizeOnlySizes.get(primary.key);
+  // #253: the legacy armhole/cap phrasing below asserts "the cap is N cm
+  // larger/smaller than the armhole" -- true only when the TOTAL (diffCm)
+  // is what's actually wrong. A pair flagged purely on subSegmentDiffCm
+  // (the total closes fine; only the front/back split is off) would make
+  // that sentence describe a divergence that isn't there, so it's excluded
+  // from the legacy path and falls through to the generic (still-accurate,
+  // magnitude-only) copy below.
   const isLegacySingle =
     conflicts.length === 1 &&
     primary.key === "armhole-cap" &&
     baseArmholeCap != null &&
+    primary.diffCm > SEAM_TOLERANCE_CM &&
     armholeLenCm != null &&
     sleeveArmholeCm != null;
 
@@ -201,7 +221,9 @@ function detectConflict(
     });
   } else if (conflicts.length === 1) {
     title = t("conflict.titleFor", { label: primaryEntry.label });
-    description = t("conflict.descriptionSingle", { diffCm: primary.diffCm });
+    description = t("conflict.descriptionSingle", {
+      diffCm: primaryEntry.diffCm,
+    });
   } else {
     title = t("conflict.titleMultiple", { count: conflicts.length });
     description = t("conflict.descriptionMultiple");
@@ -219,7 +241,7 @@ function detectConflict(
     id: `conf-${Date.now()}`,
     title,
     description,
-    diffCm: primary.diffCm,
+    diffCm: primaryEntry.diffCm,
     suggestion,
     pieceAId: primary.aPieceId,
     pieceBId: primary.bPieceId,
