@@ -1,4 +1,4 @@
-import type { Pattern } from "@/lib/types";
+import type { Pattern, SizeLabel } from "@/lib/types";
 import {
   buildExportModel,
   type ExportModel,
@@ -372,6 +372,14 @@ export interface PlanCutLayoutOptions {
   // keeps its auto placement (a copy that appeared after a regeneration); an
   // id present here that matches no instance is ignored.
   placements?: Record<string, { x: number; y: number }>;
+  // #280: how many garments to nest per size, keyed by SizeLabel -- the cut
+  // plan's "Quantidade por tamanho" panel. `undefined` (a pattern that has
+  // never touched the panel) means the pre-existing default: baseSize only,
+  // at each piece's own drafted `qty`. Once DEFINED -- even `{}`, or every
+  // entry 0 -- it is an explicit spec: a size missing from it, or at 0,
+  // nests nothing for that size, including baseSize. See
+  // cutInstancesForQuantities below.
+  cutQuantities?: Partial<Record<SizeLabel, number>>;
 }
 
 // Real nesting. Reuses buildExportModel's exact cm geometry (re-drafts via
@@ -410,6 +418,43 @@ export function cutInstancesFromModel(model: ExportModel): CutInstance[] {
   });
 }
 
+// #280: expands cutQuantities into the full instance set to nest -- one
+// buildExportModel/cutInstancesFromModel pass per size with a quantity > 0,
+// each pass's instances repeated `qty` times with size- and copy-suffixed
+// ids so they stay unique once concatenated (cutInstancesFromModel alone
+// only guarantees uniqueness within a single size/piece). Falls back to
+// today's exact pre-#280 behavior -- one buildExportModel(pattern, t) call
+// at the pattern's own baseSize, no repetition beyond each piece's drafted
+// `qty` -- ONLY when cutQuantities is `undefined` (a pattern that has never
+// touched the size panel), so it nests identically to before this option
+// existed. A defined-but-empty or all-zero object is a real (if degenerate)
+// spec -- it returns no instances at all, not the default -- since setting
+// every size to 0 through the panel is an explicit "nest nothing", not "I
+// haven't decided".
+function cutInstancesForQuantities(
+  pattern: Pattern,
+  t: Translate,
+  cutQuantities: Partial<Record<SizeLabel, number>> | undefined,
+): CutInstance[] {
+  if (cutQuantities === undefined) {
+    return cutInstancesFromModel(buildExportModel(pattern, t));
+  }
+  const entries = Object.entries(cutQuantities).filter(
+    ([, qty]) => (qty ?? 0) > 0,
+  );
+  return entries.flatMap(([size, qty]) => {
+    const perGarment = cutInstancesFromModel(
+      buildExportModel(pattern, t, size),
+    );
+    return Array.from({ length: qty ?? 0 }, (_, copy) =>
+      perGarment.map((it) => ({
+        ...it,
+        id: `${size}:${it.id}:${copy + 1}`,
+      })),
+    ).flat();
+  });
+}
+
 export function planCutLayout(
   pattern: Pattern,
   fabricWidthCm: number,
@@ -417,8 +462,11 @@ export function planCutLayout(
   opts: PlanCutLayoutOptions = {},
 ): CutPlan {
   const mode = opts.mode ?? "auto";
-  const model = buildExportModel(pattern, t);
-  const rawInstances = cutInstancesFromModel(model);
+  const rawInstances = cutInstancesForQuantities(
+    pattern,
+    t,
+    opts.cutQuantities,
+  );
 
   const { placed: autoPlaced, overflow } = packAuto(
     rawInstances,

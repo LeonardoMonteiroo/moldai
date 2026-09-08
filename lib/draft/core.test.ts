@@ -17,7 +17,7 @@ import {
   curveArcLengthCm,
 } from "./core";
 import { getEngine } from "./engine/registry";
-import { walkSeamPairs, SeamEdgeRef } from "./seams";
+import { walkSeamPairs, SeamEdgeRef, SeamMeasurement } from "./seams";
 import { DECORATION_CASES } from "./fixtures";
 import { SIZE_TABLE } from "@/lib/measurements";
 import { t } from "@/lib/i18n/test-translate";
@@ -575,8 +575,24 @@ describe("insertVertexAt (#251)", () => {
       b: rebase(pair.b),
     }));
 
-    expect(walkSeamPairs(patchedDrafted, freshPairs)).toEqual(
-      walkSeamPairs(drafted, seamPairs),
-    );
+    // #251/#298: `aEdges`/`bEdges` carry the outline's own raw vertex
+    // indices, and the ONE edge the insertion lands inside (here, "side")
+    // legitimately shifts its own `to` by one -- exactly the "shifts a range
+    // straddling the cut by growing its `to`" behavior insertVertexAt's own
+    // dedicated test above already pins. That is correct index bookkeeping
+    // (a real vertex now sits between the old endpoints), not a
+    // perturbation. What this test actually guarantees, per its own name, is
+    // that every pair's MEASURED length/diff/ease/gatherRatio is unchanged,
+    // so the comparison strips each edge's raw from/to before asserting.
+    const withoutEdgeIndices = (measurements: SeamMeasurement[]) =>
+      measurements.map(({ aEdges, bEdges, ...rest }) => ({
+        ...rest,
+        aEdges: aEdges.map(({ from: _from, to: _to, ...edge }) => edge),
+        bEdges: bEdges.map(({ from: _from, to: _to, ...edge }) => edge),
+      }));
+
+    expect(
+      withoutEdgeIndices(walkSeamPairs(patchedDrafted, freshPairs)),
+    ).toEqual(withoutEdgeIndices(walkSeamPairs(drafted, seamPairs)));
   });
 });

@@ -206,6 +206,20 @@ export async function renamePattern(
   return renamed !== null;
 }
 
+// #280: same shape as renamePattern -- `cutQuantities` is already validated
+// (validateCutQuantities) by the caller against this pattern's own gradeable
+// sizes, so this is a plain overwrite, not a merge.
+export async function updatePatternCutQuantities(
+  patternId: string,
+  userId: string,
+  cutQuantities: Record<string, number>,
+): Promise<boolean> {
+  const updated = await withPattern(patternId, userId, (state) => {
+    state.pattern = { ...state.pattern, cutQuantities };
+  });
+  return updated !== null;
+}
+
 export async function deletePattern(
   patternId: string,
   userId: string,

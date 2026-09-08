@@ -507,17 +507,18 @@
     }
   },
   "CutPlanTab": {
-    "title": "Plano de corte",
     "emptyState": "Gere um molde para ver o plano de corte.",
+    "emptyQuantitiesState": "Defina a quantidade de pelo menos um tamanho para ver o encaixe.",
     "fabricWidthLabel": "Largura do tecido",
-    "metricConsumptionLabel": "Consumo",
-    "metricConsumptionHint": "comprimento no tecido",
-    "metricEfficiencyLabel": "Aproveitamento",
-    "metricEfficiencyHint": "área útil / área do tecido",
-    "metricPieceCountLabel": "Peças no corte",
-    "metricPieceCountHint": "cópias (peça × quantidade)",
+    "fabricSectionLabel": "Tecido",
+    "fabricWidthStepLabel": "{cm} cm largura",
+    "decreaseFabricWidthAriaLabel": "Diminuir largura",
+    "increaseFabricWidthAriaLabel": "Aumentar largura",
     "overflowWarning": "Alguma peça é mais larga que o tecido. Use um tecido mais largo ou reduza a peça.",
-    "overlapWarning": "Há cópias sobrepostas: o consumo e o aproveitamento não valem enquanto isso.",
+    "overlapWarning": "Há cópias sobrepostas: o consumo não vale enquanto isso.",
+    "legendBackground": "Fundo",
+    "legendFabric": "Tecido",
+    "legendPiece": "Peça do molde",
     "modeLabel": "Encaixe",
     "mode": {
       "auto": "Automático",
@@ -528,7 +529,13 @@
     "instanceLabel": "{name} · {x} cm × {y} cm",
     "movedAnnouncement": "{name} em {x} cm × {y} cm",
     "layoutNoteAuto": "Melhor de dois encaixes automáticos (prateleiras e skyline) · encaixa a caixa delimitadora de cada peça, não o contorno · fio travado, sem rotação das peças · cada peça repetida pela quantidade a cortar · linha de corte, já com a margem de costura.",
-    "layoutNoteManual": "Arraste ou use o teclado para reposicionar cada cópia · fio travado, sem rotação das peças · linha de corte, já com a margem de costura. Salvar o encaixe manual entre sessões <em>em breve</em>."
+    "layoutNoteManual": "Arraste ou use o teclado para reposicionar cada cópia · fio travado, sem rotação das peças · linha de corte, já com a margem de costura. Salvar o encaixe manual entre sessões <em>em breve</em>.",
+    "quantityPanelTitle": "Quantidade por tamanho",
+    "quantityForSizeAriaLabel": "Quantidade a cortar do tamanho {size}",
+    "decreaseQuantityAriaLabel": "Diminuir quantidade do tamanho {size}",
+    "increaseQuantityAriaLabel": "Aumentar quantidade do tamanho {size}",
+    "garmentsProducedLabel": "{count, plural, one {# peça produzida} other {# peças produzidas}}",
+    "summaryLine": "{count} peças · consumo estimado {length}"
   },
   "Export": {
     "title": "Exportar",
