@@ -92,6 +92,7 @@ import {
   countPatternsForUser,
   countPatternsCreatedSince,
   renamePattern,
+  updatePatternCutQuantities,
   deletePattern,
   patternNotFound,
   savePattern,
@@ -300,6 +301,28 @@ describe("withPattern", () => {
       pattern: { engine?: string };
     };
     expect(saved.pattern.engine).toBe("moldai");
+  });
+
+  // #280: same trap as pattern.engine above -- cutQuantities must be named
+  // in PatternSchema or it is stripped on the very next mutating turn.
+  it("keeps pattern.cutQuantities across a read-modify-write round trip", async () => {
+    const seeded = seedPatternState(t);
+    seeded.pattern = { ...seeded.pattern, cutQuantities: { M: 2, G: 1 } };
+    rows = [
+      {
+        id: "m1",
+        userId: "u1",
+        data: JSON.parse(JSON.stringify(seeded)),
+        updatedAt: new Date(),
+      },
+    ];
+
+    await withPattern("m1", "u1", (state) => bumpVersion(state));
+
+    const saved = rows.find((r) => r.id === "m1")!.data as {
+      pattern: { cutQuantities?: Record<string, number> };
+    };
+    expect(saved.pattern.cutQuantities).toEqual({ M: 2, G: 1 });
   });
 
   // #72: every current caller only reaches savePattern after lockPattern has
@@ -594,6 +617,42 @@ describe("renamePattern", () => {
     expect((row.data as { pattern: { name: string } }).pattern.name).toBe(
       "newPatternName",
     );
+  });
+});
+
+describe("updatePatternCutQuantities", () => {
+  beforeEach(() => {
+    rows = [
+      {
+        id: "m1",
+        userId: "u1",
+        data: seedPatternState(t),
+        updatedAt: new Date(),
+      },
+    ];
+    tx.$queryRaw.mockReset();
+    tx.$executeRaw.mockReset();
+    wireTx();
+  });
+
+  it("writes cutQuantities when owned by the user and returns true", async () => {
+    const ok = await updatePatternCutQuantities("m1", "u1", { M: 2, G: 1 });
+    expect(ok).toBe(true);
+    const row = rows.find((r) => r.id === "m1")!;
+    expect(
+      (row.data as { pattern: { cutQuantities?: Record<string, number> } })
+        .pattern.cutQuantities,
+    ).toEqual({ M: 2, G: 1 });
+  });
+
+  it("returns false and does not write when owned by someone else", async () => {
+    const ok = await updatePatternCutQuantities("m1", "u2", { M: 5 });
+    expect(ok).toBe(false);
+    const row = rows.find((r) => r.id === "m1")!;
+    expect(
+      (row.data as { pattern: { cutQuantities?: Record<string, number> } })
+        .pattern.cutQuantities,
+    ).toBeUndefined();
   });
 });
 

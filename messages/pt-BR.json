@@ -524,7 +524,13 @@
     "instanceLabel": "{name} · {x} cm × {y} cm",
     "movedAnnouncement": "{name} em {x} cm × {y} cm",
     "layoutNoteAuto": "Melhor de dois encaixes automáticos (prateleiras e skyline) · encaixa a caixa delimitadora de cada peça, não o contorno · fio travado, sem rotação das peças · cada peça repetida pela quantidade a cortar · linha de corte, já com a margem de costura.",
-    "layoutNoteManual": "Arraste ou use o teclado para reposicionar cada cópia · fio travado, sem rotação das peças · linha de corte, já com a margem de costura. Salvar o encaixe manual entre sessões <em>em breve</em>."
+    "layoutNoteManual": "Arraste ou use o teclado para reposicionar cada cópia · fio travado, sem rotação das peças · linha de corte, já com a margem de costura. Salvar o encaixe manual entre sessões <em>em breve</em>.",
+    "quantityPanelTitle": "Quantidade por tamanho",
+    "quantityTotalPiecesLabel": "Peças no corte",
+    "quantityTotalFabricLabel": "Consumo de tecido",
+    "quantityForSizeAriaLabel": "Quantidade a cortar do tamanho {size}",
+    "decreaseQuantityAriaLabel": "Diminuir quantidade do tamanho {size}",
+    "increaseQuantityAriaLabel": "Aumentar quantidade do tamanho {size}"
   },
   "Export": {
     "title": "Exportar",

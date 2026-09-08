@@ -126,6 +126,10 @@ interface EditorStore {
   setCutPlacement: (id: string, originCm: { x: number; y: number }) => void;
   seedCutPlacements: (record: Record<string, { x: number; y: number }>) => void;
   resetCutPlacements: () => void;
+  // #280: unlike the four actions above, this one persists -- see
+  // setCutQuantity's own comment below for why there's no separate store
+  // field for the quantities themselves.
+  setCutQuantity: (size: string, qty: number) => Promise<void>;
 }
 
 function applyState(
@@ -557,6 +561,32 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set((s) => ({ cutPlacements: { ...s.cutPlacements, [id]: originCm } })),
   seedCutPlacements: (record) => set({ cutPlacements: record }),
   resetCutPlacements: () => set({ cutPlacements: {} }),
+
+  // #280: no separate `cutQuantities` store field, unlike
+  // cutFabricWidthCm/cutPlacements above -- those are session-only UI state
+  // with nothing to read them from, while cutQuantities is now a real
+  // Pattern field that already flows through `pattern` via applyState, so a
+  // second copy here would just be one more place for the two to drift.
+  // Optimistic update + rollback on failure, the same shape as
+  // resolveConflict/graduateSizes's own try/catch.
+  setCutQuantity: async (size, qty) => {
+    const patternId = get().patternId;
+    const pattern = get().pattern;
+    if (!patternId || !pattern) return;
+    const previous = pattern.cutQuantities ?? {};
+    const next = { ...previous, [size]: qty };
+    set({ pattern: { ...pattern, cutQuantities: next } });
+    try {
+      await api.updateCutQuantities(patternId, next);
+    } catch (err) {
+      if (get().patternId !== patternId) return;
+      const current = get().pattern;
+      set({
+        error: errorCode(err),
+        pattern: current ? { ...current, cutQuantities: previous } : current,
+      });
+    }
+  },
 }));
 
 export { GENERATION_STEP_COUNT };

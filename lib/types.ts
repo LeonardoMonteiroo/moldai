@@ -450,6 +450,19 @@ export interface Pattern {
   spec?: GarmentSpec;
   viewBox?: { w: number; h: number };
   baseMeasurements?: Measurements;
+  /**
+   * #280: how many garments to cut per graded size, keyed by SizeLabel --
+   * the cut plan's own "Quantidade por tamanho" panel. Optional and additive
+   * (patterns saved before this existed simply have none, same precedent as
+   * `sizeChartName`/`engine`). Absent, or every entry zero, means the cut
+   * plan falls back to its pre-existing behavior (`baseSize` only, at each
+   * piece's own drafted `qty`) -- `planCutLayout` (lib/export/cutplan.ts) is
+   * where that fallback and the multi-size expansion both live.
+   * `lib/export/cutQuantities.ts`'s validateCutQuantities is the real trust
+   * boundary -- this is a plain Record, not narrowed to `sizesApplied`,
+   * since a size can be un-graduated after quantities were set for it.
+   */
+  cutQuantities?: Record<SizeLabel, number>;
 }
 
 // Wire shape: the persisted Pattern blob plus the row's own `updatedAt`
@@ -576,6 +589,29 @@ export const MAX_PATTERNS_LISTED = 500;
  * server has to.
  */
 export const MAX_CHAT_MESSAGE_LENGTH = 2000;
+
+/**
+ * #280: cap on a single size's `cutQuantities` entry -- the cut plan's
+ * nesting packers (lib/export/cutplan.ts) are an O(n^2) overlap/skyline
+ * scan over every cut instance, so an unbounded user-entered quantity could
+ * make a single request pathologically expensive. 50 garments of one size
+ * in a single plan is already far past what anyone cuts by hand from one
+ * layout; validateCutQuantities (lib/export/cutQuantities.ts) is what
+ * actually enforces this against untrusted input.
+ */
+export const MAX_CUT_QUANTITY_PER_SIZE = 50;
+
+/**
+ * #280: cap on the SUM of every size's `cutQuantities` entry in one request
+ * -- MAX_CUT_QUANTITY_PER_SIZE alone bounds one size, but a pattern graded
+ * into many sizes could still request MAX_CUT_QUANTITY_PER_SIZE for each of
+ * them, and the packer's cost scales with the total instance count (every
+ * piece × every size's quantity), not any single size's. 200 total garments
+ * in one cut plan is already generous; validateCutQuantities
+ * (lib/export/cutQuantities.ts) enforces it by clamping later sizes (in
+ * object key order) once the running total would exceed it.
+ */
+export const MAX_TOTAL_CUT_QUANTITY = 200;
 
 // #108: `generate` and `cuttingPlan` used to exist here too, but nothing
 // ever debited them — the first draft of a pattern debits `adjust` like

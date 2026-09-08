@@ -326,6 +326,64 @@ describe("planCutLayout", () => {
       expect(plan.overlaps).toEqual([]);
     });
   });
+
+  // #280: the "Quantidade por tamanho" panel's own engine-level contract --
+  // `undefined` is the untouched-pattern default, a defined (even all-zero)
+  // map is a real, standalone spec.
+  describe("cutQuantities", () => {
+    function twoSizePattern(): Pattern {
+      const pat = fakePattern();
+      pat.sizeTable = { M: SIZE_TABLE_MALE.M, G: SIZE_TABLE_MALE.G };
+      pat.sizesApplied = ["G"];
+      return pat;
+    }
+
+    it("undefined matches the pre-#280 default (baseSize, each piece's own qty)", () => {
+      const pat = fakePattern();
+      const withoutOption = planCutLayout(pat, 150, t);
+      const explicitUndefined = planCutLayout(pat, 150, t, {
+        cutQuantities: undefined,
+      });
+      expect(explicitUndefined.instances.length).toBe(
+        withoutOption.instances.length,
+      );
+      expect(explicitUndefined.lengthCm).toBeCloseTo(withoutOption.lengthCm);
+    });
+
+    it("a defined but all-zero map nests nothing, unlike undefined", () => {
+      const pat = fakePattern();
+      const plan = planCutLayout(pat, 150, t, { cutQuantities: {} });
+      expect(plan.instances).toEqual([]);
+      expect(plan.lengthCm).toBe(0);
+    });
+
+    it("a size at quantity 0 in an otherwise-defined map is excluded", () => {
+      const pat = twoSizePattern();
+      const plan = planCutLayout(pat, 150, t, {
+        cutQuantities: { M: 0, G: 2 },
+      });
+      const gModel = buildExportModel(pat, t, "G");
+      const perGarment = cutInstancesFromModel(gModel).length;
+      expect(plan.instances.length).toBe(perGarment * 2);
+    });
+
+    it("multiple sizes nest together, each repeated by its own quantity, with unique ids", () => {
+      const pat = twoSizePattern();
+      const mPerGarment = cutInstancesFromModel(
+        buildExportModel(pat, t, "M"),
+      ).length;
+      const gPerGarment = cutInstancesFromModel(
+        buildExportModel(pat, t, "G"),
+      ).length;
+      const plan = planCutLayout(pat, 150, t, {
+        cutQuantities: { M: 2, G: 3 },
+      });
+      expect(plan.instances.length).toBe(mPerGarment * 2 + gPerGarment * 3);
+      const ids = plan.instances.map((it) => it.id);
+      expect(new Set(ids).size).toBe(ids.length);
+      expect(plan.overlaps).toEqual([]); // auto mode: no overlap by construction
+    });
+  });
 });
 
 describe("packSkyline", () => {

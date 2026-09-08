@@ -71,6 +71,16 @@ describe("CutPlanTab", () => {
     ).toBeInTheDocument();
   });
 
+  // #280: the size/quantity panel docks alongside the preview whenever a
+  // plan exists -- a basic smoke test that CutPlanTab actually renders it,
+  // not just that CutPlanSizePanel works standalone (its own test file).
+  it("docks the size/quantity panel next to the preview", () => {
+    renderWithIntl(<CutPlanTab pattern={tshirtPattern()} />);
+    expect(
+      screen.getByText(ptBR.CutPlanTab.quantityPanelTitle),
+    ).toBeInTheDocument();
+  });
+
   it("renders the plan's color legend from the catalog", () => {
     renderWithIntl(<CutPlanTab pattern={tshirtPattern()} />);
     expect(
