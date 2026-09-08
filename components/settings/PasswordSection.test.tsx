@@ -17,17 +17,47 @@ describe("PasswordSection", () => {
   // ProfileSection.test.tsx / UsageSection.test.tsx (#44/#33).
   afterEach(() => vi.mocked(changePassword).mockReset());
 
-  it("shows the accurate length hint and the stay-logged-in device note", () => {
+  it("shows the accurate password requirement and the stay-logged-in device note", () => {
     renderWithIntl(<PasswordSection hasPassword={true} />);
 
     expect(screen.getByText(ptBR.PasswordSection.hintNote)).toBeInTheDocument();
     expect(
       screen.getByText(ptBR.PasswordSection.deviceNote),
     ).toBeInTheDocument();
-    // The hint must not claim a rule validateNewPassword doesn't enforce --
-    // only length is checked, no digit requirement.
-    expect(ptBR.PasswordSection.hintNote).not.toMatch(/número/);
+    // #238: the hint must state the rule validateNewPassword actually
+    // enforces -- letters and digits, not length alone.
+    expect(ptBR.PasswordSection.hintNote).toMatch(/número/);
   });
+
+  // #238: the button must not enable for a password the server will reject
+  // as weak_password anyway -- length alone is no longer enough.
+  it.each([
+    ["digits but no letters", "12345678"],
+    ["letters but no digits", "apenasletras"],
+  ])(
+    "keeps submit disabled while the new password has %s",
+    async (_label, weakPassword) => {
+      renderWithIntl(<PasswordSection hasPassword={true} />);
+      const user = userEvent.setup();
+      await user.type(
+        screen.getByLabelText(ptBR.PasswordSection.currentLabel),
+        "old-password",
+      );
+      await user.type(
+        screen.getByLabelText(ptBR.PasswordSection.newLabel),
+        weakPassword,
+      );
+      await user.type(
+        screen.getByLabelText(ptBR.PasswordSection.confirmLabel),
+        weakPassword,
+      );
+
+      expect(
+        screen.getByRole("button", { name: ptBR.PasswordSection.submitButton }),
+      ).toBeDisabled();
+      expect(changePassword).not.toHaveBeenCalled();
+    },
+  );
 
   it("renders the catalog text for a wrong_password code", async () => {
     vi.mocked(changePassword).mockResolvedValue({

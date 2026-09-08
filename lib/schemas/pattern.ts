@@ -41,6 +41,10 @@ const ChatMessageSchema = z.object({
   // above already documents for hasImage/assembly.
   decision: z.enum(["apply", "decline", "ask", "explain"]).optional(),
   draftVersion: z.number().int().nonnegative().optional(),
+  // #257: same "must be named here or z.object strips it" trap as every
+  // field above -- the field paths diffSpec (lib/editor/state.ts) found
+  // changed against the pattern's previous spec.
+  changedFields: z.array(z.string()).optional(),
 });
 
 const ConflictInfoSchema = z.object({

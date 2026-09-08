@@ -43,12 +43,15 @@ function patternFromSpec(spec: GarmentSpec): Pattern {
   };
 }
 
-// #8 AC: "strictly better on at least one real garment" -- measured across
-// the full DECORATION_CASES x FABRIC_WIDTHS_CM grid against this codebase's
-// current drafters, the male t-shirt at 160cm is where skyline's advantage
-// is largest (two body panels + two sleeves, shelf stacks the sleeves under
-// the bodies; skyline tucks one sleeve into the gap beside them instead):
-// shelf 117.65cm -> skyline 80.81cm, a ~31% reduction.
+// #8 AC: "strictly better on at least one real garment" -- the male t-shirt
+// is where skyline's advantage shows up (two body panels + two sleeves,
+// shelf stacks the sleeves under the bodies; skyline tucks one sleeve into
+// the gap beside them instead). #282 narrowed the tshirt panels
+// (TSHIRT_BASE_EASE_PCT replacing the old, ~3x-too-wide TSHIRT_BASE_EASE_CM),
+// which closed most of that gap at 160cm fabric width specifically -- two of
+// the now-narrower body panels fit a shelf row almost as tightly as skyline
+// packs them. Re-measured at 170cm, where the gap is still real: shelf
+// 110.94cm -> skyline 82.49cm, a ~26% reduction.
 function tshirtMalePattern(): Pattern {
   return patternFromSpec({
     type: "tshirt",
@@ -253,14 +256,14 @@ describe("planCutLayout", () => {
     }
   });
 
-  it("auto mode is strictly smaller than shelf-only for a real garment (male t-shirt at 160cm)", () => {
+  it("auto mode is strictly smaller than shelf-only for a real garment (male t-shirt at 170cm)", () => {
     const pat = tshirtMalePattern();
     const model = buildExportModel(pat, t);
     const raw = rawInstancesFor(model);
-    const shelfLen = layoutLenOf(packShelf(raw, 160).placed);
-    const autoLen = planCutLayout(pat, 160, t, { mode: "auto" }).lengthCm;
+    const shelfLen = layoutLenOf(packShelf(raw, 170).placed);
+    const autoLen = planCutLayout(pat, 170, t, { mode: "auto" }).lengthCm;
     expect(autoLen).toBeLessThan(shelfLen - 1e-6);
-    // a meaningful improvement, not a rounding artifact -- measured ~31%
+    // a meaningful improvement, not a rounding artifact -- measured ~26%
     expect(autoLen).toBeLessThan(shelfLen * 0.85);
   });
 
