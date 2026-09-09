@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { SIZE_TABLE } from "@/lib/measurements";
-import { curveArcLengthCm } from "./core";
+import { curveArcLengthCm, gradedSkirtLengthCm } from "./core";
 import {
   draftSkirt,
   dressWaistHalfCm,
@@ -118,6 +118,96 @@ describe("notches (#124)", () => {
     expect(waistL.outerCm[1]).toBeCloseTo(b.minY, 5);
     expect(waistR.outerCm[1]).toBeCloseTo(b.minY, 5);
     expect(waistL.outerCm[0]).not.toBeCloseTo(waistR.outerCm[0], 1);
+  });
+});
+
+// #249: an explicit style.skirtLengthCm used to be read as one absolute
+// number for EVERY graded size, freezing the hem identical across a graded
+// layered PDF export while the fallback path (m.skirtLength) already grades
+// +2.0cm/size. gradedSkirtLengthCm/draftSkirt's own `baseRow` param fix
+// that -- these are the acceptance-criteria regression tests: hem-length
+// inequality across two sizes, for BOTH an explicit and a fallback length.
+describe("gradedSkirtLengthCm / draftSkirt's baseRow (#249)", () => {
+  it("resolves an explicit length as a fraction of the reference row, re-expanded for the target row", () => {
+    // base (M) skirtLength=60, explicit=70 -> fraction 7/6.
+    expect(gradedSkirtLengthCm(70, SIZE_TABLE.P.skirtLength, 60)).toBeCloseTo(
+      (70 / 60) * SIZE_TABLE.P.skirtLength,
+      5,
+    );
+  });
+
+  it("falls back to the row's own skirtLength when no explicit length is set", () => {
+    expect(gradedSkirtLengthCm(undefined, SIZE_TABLE.GG.skirtLength, 60)).toBe(
+      SIZE_TABLE.GG.skirtLength,
+    );
+  });
+
+  it("collapses to the explicit value unchanged when the reference row IS the target row (every pre-#249 call site)", () => {
+    expect(
+      gradedSkirtLengthCm(
+        70,
+        SIZE_TABLE.GG.skirtLength,
+        SIZE_TABLE.GG.skirtLength,
+      ),
+    ).toBeCloseTo(70, 5);
+  });
+
+  it("an explicit skirtLengthCm grades two sizes in the SAME ratio the chart's own skirtLength grades", () => {
+    const baseRow = SIZE_TABLE.M; // skirtLength 60
+    const rowP = SIZE_TABLE.P; // skirtLength 58
+    const rowGG = SIZE_TABLE.GG; // skirtLength 64
+    const style = { skirt: "straight" as const, skirtLengthCm: 70 };
+    const p = draftSkirt(rowP, style, t, false, baseRow);
+    const gg = draftSkirt(rowGG, style, t, false, baseRow);
+    const lenP = bbox(p.outlineCm).h;
+    const lenGG = bbox(gg.outlineCm).h;
+    expect(lenP).not.toBeCloseTo(lenGG, 1);
+    expect(lenP / lenGG).toBeCloseTo(rowP.skirtLength / rowGG.skirtLength, 5);
+  });
+
+  it("a fallback (no explicit) length still differs across two sizes, matching the chart directly", () => {
+    const style = { skirt: "straight" as const };
+    const p = draftSkirt(SIZE_TABLE.P, style, t);
+    const gg = draftSkirt(SIZE_TABLE.GG, style, t);
+    expect(bbox(p.outlineCm).h).not.toBeCloseTo(bbox(gg.outlineCm).h, 1);
+    expect(bbox(gg.outlineCm).h - bbox(p.outlineCm).h).toBeCloseTo(
+      SIZE_TABLE.GG.skirtLength - SIZE_TABLE.P.skirtLength,
+      1,
+    );
+  });
+
+  it("without a distinct baseRow (every call site that predates #249), an explicit length is used exactly as before", () => {
+    const dp = draftSkirt(
+      SIZE_TABLE.GG,
+      { skirt: "straight", skirtLengthCm: 70 },
+      t,
+    );
+    expect(bbox(dp.outlineCm).h).toBeCloseTo(70, 5);
+  });
+
+  // #249: garment.ts reads resolvedLengthCm off the piece instead of calling
+  // gradedSkirtLengthCm a second time -- this pins the field to the SAME
+  // value the outline itself was drafted at, for both silhouette branches
+  // (straight/a-line here; circle below covers the other `return` site).
+  it("exposes the resolved length as resolvedLengthCm, matching the drafted outline", () => {
+    const baseRow = SIZE_TABLE.M;
+    const dp = draftSkirt(
+      SIZE_TABLE.GG,
+      { skirt: "straight", skirtLengthCm: 70 },
+      t,
+      false,
+      baseRow,
+    );
+    expect(dp.resolvedLengthCm).toBeCloseTo(bbox(dp.outlineCm).h, 5);
+    expect(dp.resolvedLengthCm).toBeCloseTo(
+      (70 / baseRow.skirtLength) * SIZE_TABLE.GG.skirtLength,
+      5,
+    );
+  });
+
+  it("exposes resolvedLengthCm for a circle silhouette too (the OTHER draftSkirt return site)", () => {
+    const dp = draftSkirt(SIZE_TABLE.M, { skirt: "circle" }, t);
+    expect(dp.resolvedLengthCm).toBeCloseTo(SIZE_TABLE.M.skirtLength, 5);
   });
 });
 

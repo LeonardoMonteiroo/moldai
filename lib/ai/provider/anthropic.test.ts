@@ -41,6 +41,16 @@ function baseOpts(overrides: Partial<LlmCallOptions> = {}): LlmCallOptions {
   };
 }
 
+describe("anthropicProvider.model", () => {
+  it("returns the fixed model literal, matching buildRequestParams' own", async () => {
+    create.mockReset();
+    create.mockResolvedValue(toolResp({ decision: "decline" }));
+    await anthropicProvider.propose(baseOpts());
+    const sentModel = create.mock.calls[0][0].model;
+    expect(anthropicProvider.model()).toBe(sentModel);
+  });
+});
+
 describe("anthropicProvider.propose", () => {
   beforeEach(() => create.mockReset());
 

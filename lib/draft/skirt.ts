@@ -12,6 +12,7 @@ import {
   notchAtVertex,
   NotchCm,
   Pt,
+  gradedSkirtLengthCm,
 } from "./core";
 import { formatCm } from "@/lib/format";
 import type { Translate } from "@/lib/i18n/translate";
@@ -95,6 +96,12 @@ export function pleatFoldPlacement(
 // design. Mirrors body.ts's own wearingEase constant; the skirt drafter
 // takes no BlockOpts, so a plain module constant is enough.
 const SKIRT_WEARING_EASE_CM = 2;
+
+// #249: `gradedSkirtLengthCm` (the explicit-length-vs-graded-sizes fix) now
+// lives in ./core, not here -- lib/draft/engine/freesewing/designs/skirt.ts
+// (a different, independently-scored engine) needs the identical formula
+// and must not import moldai's own drafter module to get it. Re-used below
+// unchanged; see core.ts's own doc comment for the fix's rationale.
 
 // Standalone skirt only (#177 left this untouched): a skirt with no bodice
 // to join sizes its own straight/a-line waist panel off the hip, same as
@@ -196,10 +203,21 @@ export function draftSkirt(
   // `spec.type === "dress"`, and only then do the waist-edge corners get the
   // "waist join" notches that mirror body.ts's own isDressHem ones.
   isDressWaist = false,
+  // #249: the reference row an explicit style.skirtLengthCm is normalized
+  // against before being re-expanded for `m`'s own skirtLength -- defaults
+  // to `m` itself, so every call site that doesn't grade across sizes (every
+  // one before #249) sees byte-identical behavior. garment.ts threads the
+  // pattern's actual base-size row through here only when `m` is a
+  // DIFFERENT size's row (see gradedSkirtLengthCm's own doc above).
+  baseRow: Measurements = m,
 ): DraftedPiece {
   const silhueta: SkirtSilhouette = style.skirt ?? "straight";
   const ease = style.seamAllowanceCm ?? 1;
-  const length = style.skirtLengthCm ?? m.skirtLength;
+  const length = gradedSkirtLengthCm(
+    style.skirtLengthCm,
+    m.skirtLength,
+    baseRow.skirtLength,
+  );
   const detailRows: DetailRow[] = [
     { label: t("rows.silhouette"), value: t("skirtSilhouette." + silhueta) },
     { label: t("rows.length"), value: cm(length) },
@@ -297,6 +315,9 @@ export function draftSkirt(
       // when isDressWaist (paired against a bodice hem by garment.ts), but
       // exposed unconditionally like body.ts's own `hem` edge.
       seamEdges,
+      // #249: garment.ts reads this instead of re-deriving it via a second
+      // gradedSkirtLengthCm call -- see core.ts's own doc on this field.
+      resolvedLengthCm: length,
     };
   }
 
@@ -406,6 +427,9 @@ export function draftSkirt(
     notches,
     detailRows,
     ...(internalsCm ? { internalsCm } : {}),
+    // #249: garment.ts reads this instead of re-deriving it via a second
+    // gradedSkirtLengthCm call -- see core.ts's own doc on this field.
+    resolvedLengthCm: length,
     // #134: the waist edge (index 0 to 2, straight -- see the outline
     // comment above), matching body.ts's own `hem` edge when this is a
     // dress's skirt panel. #188: `hem` (index 3 to 5, straight through the

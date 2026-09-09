@@ -704,6 +704,38 @@ describe("measureSeams", () => {
     );
     expect(garmentLengthCm).toBeCloseTo(95, 5);
   });
+
+  // #249: measureSeams gained the same optional referenceMeasurements
+  // param draftPiecesCm already had -- without it, a caller measuring a
+  // graded (non-base) size's skirt would silently re-freeze an explicit
+  // style.skirtLengthCm's garmentLengthCm at the base-size value again.
+  it("grades garmentLengthCm for an explicit skirtLengthCm the same way draftPiecesCm does, given a reference row", () => {
+    const spec = {
+      type: "skirt" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { skirt: "straight" as const, skirtLengthCm: 70 },
+    };
+    const base = measureSeams(
+      DEFAULT_ENGINE_ID,
+      spec,
+      SIZE_TABLE.M,
+      t,
+      SIZE_TABLE.M,
+    );
+    const graded = measureSeams(
+      DEFAULT_ENGINE_ID,
+      spec,
+      SIZE_TABLE.GG,
+      t,
+      SIZE_TABLE.M,
+    );
+    expect(graded.garmentLengthCm).not.toBeCloseTo(base.garmentLengthCm!, 1);
+    expect(graded.garmentLengthCm! / base.garmentLengthCm!).toBeCloseTo(
+      SIZE_TABLE.GG.skirtLength / SIZE_TABLE.M.skirtLength,
+      5,
+    );
+  });
 });
 
 // #59: grading used to charge 6 credits for state-flag bookkeeping that
@@ -801,6 +833,81 @@ describe("draftGradedOverlays", () => {
         t,
       ),
     ).toEqual([]);
+  });
+
+  // #249: draftPiecesCm's own graded call inside draftGradedOverlays now
+  // passes the base row through as the reference, the same wiring
+  // buildExportModel uses -- a direct draftPiecesCm comparison (bypassing
+  // autoLayout/canvas translation, unlike the overlay's own `outline`) is
+  // what actually proves the hem itself grades, not just that SOMETHING
+  // differs (a graded row's real waist/hip already changes the outline's
+  // WIDTH regardless of this fix).
+  it("grades an explicit skirtLengthCm in the base row's own ratio, not identically to the base (#249)", () => {
+    const skirtSpec = {
+      type: "skirt" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { skirt: "straight" as const, skirtLengthCm: 70 },
+    };
+    const [basePiece] = draftPiecesCm(
+      DEFAULT_ENGINE_ID,
+      skirtSpec,
+      SIZE_TABLE.M,
+      t,
+      SIZE_TABLE.M,
+    );
+    const [gradedPiece] = draftPiecesCm(
+      DEFAULT_ENGINE_ID,
+      skirtSpec,
+      SIZE_TABLE.GG,
+      t,
+      SIZE_TABLE.M,
+    );
+    const baseHeight = bbox(basePiece.outlineCm).h;
+    const gradedHeight = bbox(gradedPiece.outlineCm).h;
+    expect(gradedHeight).not.toBeCloseTo(baseHeight, 1);
+    expect(gradedHeight / baseHeight).toBeCloseTo(
+      SIZE_TABLE.GG.skirtLength / SIZE_TABLE.M.skirtLength,
+      2,
+    );
+  });
+
+  // #249: an explicit style.skirtLengthCm grades per-size ONLY when it's
+  // graded against the chart's own (un-overridden) skirtLength. Overriding
+  // skirtLength via measurementOverrides (a CORE key) applies the SAME
+  // absolute number to every row resolveMeasurements touches -- the base
+  // row AND the reference row alike -- which collapses gradedSkirtLengthCm's
+  // fraction back to 1, printing the explicit length flat across every
+  // graded size again. Documented as deliberate (see draftAll's own
+  // referenceRow comment): an overridden measurement is this wearer's own
+  // chosen number, not a size-chart proportion, so it stays flat across
+  // sizes exactly like overriding waist/hip/bust already does -- not a gap
+  // this fix left open.
+  it("a skirtLength override collapses the grading back to flat, consistent with every other overridden measurement (#249)", () => {
+    const skirtSpec = {
+      type: "skirt" as const,
+      gender: "female" as const,
+      measurementOverrides: { skirtLength: 65 },
+      style: { skirt: "straight" as const, skirtLengthCm: 70 },
+    };
+    const [basePiece] = draftPiecesCm(
+      DEFAULT_ENGINE_ID,
+      skirtSpec,
+      SIZE_TABLE.M,
+      t,
+      SIZE_TABLE.M,
+    );
+    const [gradedPiece] = draftPiecesCm(
+      DEFAULT_ENGINE_ID,
+      skirtSpec,
+      SIZE_TABLE.GG,
+      t,
+      SIZE_TABLE.M,
+    );
+    expect(bbox(gradedPiece.outlineCm).h).toBeCloseTo(
+      bbox(basePiece.outlineCm).h,
+      5,
+    );
   });
 });
 
@@ -1516,6 +1623,68 @@ describe("seam graph (#134)", () => {
       measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t),
     );
     expect(conflicts).toEqual([]);
+  });
+
+  // #253: "a sleeve cap whose total matches but whose front/back split is
+  // wrong measures as a perfect seam" -- a real backWidth divergence widens
+  // (or narrows) only the BACK armhole, so the front+back TOTAL still
+  // matches the cap's own target arc exactly (diffCm stays 0), but the
+  // split between them no longer projects onto the cap's own symmetric
+  // (50/50) apex -- subSegmentDiffCm is what catches that.
+  it("flags a real front/back split divergence via subSegmentDiffCm even though the total (diffCm) still agrees, and reports it as NOT fixable", () => {
+    const spec: GarmentSpec = {
+      type: "blouse",
+      gender: "female",
+      measurementOverrides: { backWidth: 30 },
+      style: { sleeve: "short" },
+    };
+    const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
+    const armholeCap = graph.find((m) => m.key === "armhole-cap")!;
+    expect(armholeCap.diffCm).toBeLessThanOrEqual(1);
+    expect(armholeCap.subSegmentDiffCm).toBeGreaterThan(1);
+
+    const conflicts = seamCheck(graph);
+    const flagged = conflicts.find((m) => m.key === "armhole-cap");
+    expect(flagged).toBeDefined();
+    // refitSleeve can't correct a front/back split imbalance (it only
+    // changes which TOTAL the cap solves against), so this must NOT claim
+    // to be fixable even though the pair itself declares fixable: true.
+    expect(flagged!.fixable).toBe(false);
+  });
+
+  // #253 (code-review fix): a pair diverging on BOTH axes at once -- a real
+  // backWidth split AND an un-refit armholeDeepenCm total mismatch -- must
+  // still report NOT fixable. refitSleeve only ever closes the TOTAL
+  // (diffCm); it does nothing for the split (subSegmentDiffCm), so if it
+  // stayed `fixable: true` here (because diffCm alone exceeded tolerance),
+  // the seam would still be broken after "Corrigir manga" ran.
+  it("reports NOT fixable when diffCm AND subSegmentDiffCm both exceed tolerance at once", () => {
+    const spec: GarmentSpec = {
+      type: "blouse",
+      gender: "female",
+      measurementOverrides: { backWidth: 28 },
+      style: { sleeve: "short", armholeDeepenCm: 2 },
+    };
+    const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
+    const armholeCap = graph.find((m) => m.key === "armhole-cap")!;
+    expect(armholeCap.diffCm).toBeGreaterThan(1);
+    expect(armholeCap.subSegmentDiffCm).toBeGreaterThan(1);
+
+    const flagged = seamCheck(graph).find((m) => m.key === "armhole-cap");
+    expect(flagged).toBeDefined();
+    expect(flagged!.fixable).toBe(false);
+  });
+
+  it("measurementOverrides.backWidth is not applied AT ALL when absent -- front and back stay equal by construction, subSegmentDiffCm 0", () => {
+    const spec: GarmentSpec = {
+      type: "blouse",
+      gender: "female",
+      measurementOverrides: {},
+      style: { sleeve: "short" },
+    };
+    const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
+    const armholeCap = graph.find((m) => m.key === "armhole-cap")!;
+    expect(armholeCap.subSegmentDiffCm).toBe(0);
   });
 
   // #177 (owner decision, superseding the #134 finding this test used to

@@ -328,7 +328,7 @@ describe("buildSystem: the fields-already-decided section", () => {
       answering: false,
       formSpec,
     });
-    const blankRule = s.indexOf("use decision=ask before drafting");
+    const blankRule = s.indexOf("Only decision=ask when the request names");
     const section = s.indexOf(HEADING);
     expect(blankRule).toBeGreaterThan(-1);
     expect(section).toBeGreaterThan(blankRule);
@@ -388,8 +388,13 @@ describe("prompt-cache byte stability", () => {
       staticSectionsFor(DEFAULT_ENGINE_ID) +
       JSON.stringify(toolFor(DEFAULT_ENGINE_ID));
     const hash = createHash("sha256").update(bytes).digest("hex");
-    // #244: regenerated -- a new style field (pleats: box/inverted-box on a
-    // standalone straight/a-line skirt) was added to the GarmentSpec
+    // #252-follow-up: regenerated -- the "# Decision policy" ask bullet
+    // (buildStaticSections) was rewritten so the model stops treating
+    // neckline/sleeve/fit/length/size as always-required detail (every one
+    // of those already has a drafter-side default) and reserves ask for a
+    // request that names nothing beyond the garment type.
+    // #244: regenerated again -- a new style field (pleats: box/inverted-box
+    // on a standalone straight/a-line skirt) was added to the GarmentSpec
     // section, the "# Vocabulary mapping" prose, and the tool schema; the
     // "# Assembly / sewing order" section also gained a "pleat" step
     // description alongside "dart"/"seam"/"hem". A deliberate, expected
@@ -397,7 +402,7 @@ describe("prompt-cache byte stability", () => {
     // the eval harness (npm run eval:ai) is what proves it's better, not
     // this hash.
     expect(hash).toBe(
-      "fb7eb73817bef77f5a45b5cf49ab9267471437f6db40448b3422c70830f93575",
+      "96e552fc347d104bb274ae7a7cc38c899ca813737b50609902a16c9c71436468",
     );
   });
 });

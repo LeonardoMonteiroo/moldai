@@ -31,7 +31,7 @@ function deps(over: Partial<SignupDeps> = {}): SignupDeps {
 const VALID = {
   name: "Leonardo",
   email: "novo@moldai.local",
-  password: "senha-forte",
+  password: "senha-forte1",
 };
 
 describe("normalizeEmail", () => {
@@ -56,13 +56,13 @@ describe("createAccount", () => {
       user: {
         id: "new",
         email: "novo@moldai.local",
-        passwordHash: "hashed:senha-forte",
+        passwordHash: "hashed:senha-forte1",
         name: "Leonardo",
         emailVerified: null,
         createdAt: new Date("2026-01-01T00:00:00Z"),
       },
     });
-    expect(vi.mocked(d.hash)).toHaveBeenCalledWith("senha-forte");
+    expect(vi.mocked(d.hash)).toHaveBeenCalledWith("senha-forte1");
   });
 
   it("stores the email normalized, so authorizeUser's lookup can find it", async () => {
@@ -112,22 +112,41 @@ describe("createAccount", () => {
     expect(vi.mocked(d.createUser)).not.toHaveBeenCalled();
   });
 
+  // #238: validateNewPassword now requires at least one letter AND one
+  // digit -- length alone is no longer enough.
+  it("rejects a letters-only password", async () => {
+    const d = deps();
+    expect(
+      await createAccount(d, { ...VALID, password: "apenasletras" }),
+    ).toEqual({ ok: false, error: "weak_password" });
+    expect(vi.mocked(d.hash)).not.toHaveBeenCalled();
+  });
+
+  it("rejects a digits-only password", async () => {
+    const d = deps();
+    expect(await createAccount(d, { ...VALID, password: "12345678" })).toEqual({
+      ok: false,
+      error: "weak_password",
+    });
+    expect(vi.mocked(d.hash)).not.toHaveBeenCalled();
+  });
+
   // #30: bcryptjs silently truncates at 72 bytes -- a longer password must be
   // rejected here rather than hashed down to a shorter effective secret.
   it("rejects a password over the 72-character cap, without hashing", async () => {
     const d = deps();
     expect(
-      await createAccount(d, { ...VALID, password: "a".repeat(73) }),
+      await createAccount(d, { ...VALID, password: "a".repeat(72) + "1" }),
     ).toEqual({ ok: false, error: "weak_password" });
     expect(vi.mocked(d.hash)).not.toHaveBeenCalled();
     expect(vi.mocked(d.createUser)).not.toHaveBeenCalled();
   });
 
-  it("accepts a password exactly at the 72-character cap", async () => {
+  it("accepts a mixed password exactly at the 72-character cap", async () => {
     const d = deps();
     const result = await createAccount(d, {
       ...VALID,
-      password: "a".repeat(72),
+      password: "a".repeat(71) + "1",
     });
     expect(result.ok).toBe(true);
   });

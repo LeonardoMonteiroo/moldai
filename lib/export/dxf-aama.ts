@@ -1,4 +1,4 @@
-import type { ExportModel, ExportPiece } from "./model";
+import type { ExPt, ExSeg, ExportModel, ExportPiece } from "./model";
 import { flattenOutlineCm, TOL_CM } from "./dxf";
 
 // "AAMA/ASTM D6673-compatible" DXF (subset). Unlike the generic DXF
@@ -142,49 +142,59 @@ export function toDxfAama(model: ExportModel): string {
     const X = (x: number) => f(x * MM);
     const Y = (y: number) => f((h - y) * MM); // +Y up inside the block
 
-    // #123: layer 1 is the cut line (the real piece boundary) -- closed
-    // POLYLINE, same flattening helper the generic DXF uses.
-    const cutVerts = flattenOutlineCm(piece.cutOutline, TOL_CM);
-    p(0, "POLYLINE");
-    p(8, "1");
-    p(66, 1);
-    p(10, 0); // dummy point (always 0,0,0) — classic POLYLINE's own vertices are the VERTEX entities below
-    p(20, 0);
-    p(30, 0);
-    p(70, 1); // 70=1 closed
-    for (const v of cutVerts) {
-      p(0, "VERTEX");
-      p(8, "1");
-      p(10, X(v.x));
-      p(20, Y(v.y));
-    }
-    p(0, "SEQEND");
-    p(8, "1");
-
-    // #123: layer 14 is the net sew line, D6673's reserved slot for it.
-    // #2: emitted ONLY when the allowance actually separates the two lines.
-    // At seamAllowanceCm = 0 -- a value STYLE_LIMITS genuinely allows -- the
-    // cut line IS the net line, and emitting both would hand the importer two
-    // coincident closed polylines on different layers: a reader that honours
-    // layer 14 would draw a sew line exactly on the cut line, and a cutter
-    // reading layer 1 would see a duplicate boundary.
-    if ((model.seamAllowanceCm ?? 0) > 0) {
-      const netVerts = flattenOutlineCm(piece.outline, TOL_CM);
+    // #123/#243: layer 1 is the cut line (the real boundary), layer 14 the
+    // net sew line, D6673's reserved slot for it -- the piece's own outer
+    // boundary and every internal loop (#243, a genuine cut boundary too,
+    // not layer 8) draw this identical closed-POLYLINE pair. #2: the net
+    // polyline is emitted ONLY when the allowance actually separates the two
+    // lines -- at seamAllowanceCm = 0 (a value STYLE_LIMITS genuinely
+    // allows) the cut line IS the net line, and emitting both would hand the
+    // importer two coincident closed polylines on different layers: a reader
+    // that honours layer 14 would draw a sew line exactly on the cut line,
+    // and a cutter reading layer 1 would see a duplicate boundary.
+    const emitOutlinePair = (
+      outline: { start: ExPt; segs: ExSeg[] },
+      cutOutline: { start: ExPt; segs: ExSeg[] },
+    ) => {
+      const cutVerts = flattenOutlineCm(cutOutline, TOL_CM);
       p(0, "POLYLINE");
-      p(8, "14");
+      p(8, "1");
       p(66, 1);
-      p(10, 0); // dummy point, see the cut-line POLYLINE above
+      p(10, 0); // dummy point (always 0,0,0) — classic POLYLINE's own vertices are the VERTEX entities below
       p(20, 0);
       p(30, 0);
       p(70, 1); // 70=1 closed
-      for (const v of netVerts) {
+      for (const v of cutVerts) {
         p(0, "VERTEX");
-        p(8, "14");
+        p(8, "1");
         p(10, X(v.x));
         p(20, Y(v.y));
       }
       p(0, "SEQEND");
-      p(8, "14");
+      p(8, "1");
+
+      if ((model.seamAllowanceCm ?? 0) > 0) {
+        const netVerts = flattenOutlineCm(outline, TOL_CM);
+        p(0, "POLYLINE");
+        p(8, "14");
+        p(66, 1);
+        p(10, 0); // dummy point, see the cut-line POLYLINE above
+        p(20, 0);
+        p(30, 0);
+        p(70, 1); // 70=1 closed
+        for (const v of netVerts) {
+          p(0, "VERTEX");
+          p(8, "14");
+          p(10, X(v.x));
+          p(20, Y(v.y));
+        }
+        p(0, "SEQEND");
+        p(8, "14");
+      }
+    };
+    emitOutlinePair(piece.outline, piece.cutOutline);
+    for (const loop of piece.internalLoops ?? []) {
+      emitOutlinePair(loop.outline, loop.cutOutline);
     }
 
     // #2: the piece's system text, on layer 1. Structured into one labelled
