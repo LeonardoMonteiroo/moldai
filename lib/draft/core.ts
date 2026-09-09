@@ -63,6 +63,19 @@ export interface DraftedPiece {
   // (every piece today except that one); lib/proof3d/mesh.ts reads it
   // instead of computing a bbox-based center when present.
   centerXCm?: number;
+  // #254: this piece's own declared 3D placement -- which structural role
+  // it plays in a Prova 3D dress-form proof, plus a reserved 6D (translation
+  // + rotation) transform. lib/proof3d/mesh.ts groups drafted pieces by
+  // `role` instead of matching a hardcoded literal piece id
+  // ("body-front"/"sleeve"/"skirt"), so the correspondence between a 2D
+  // piece and its 3D shell lives in the layer that actually knows the
+  // garment's own topology (body.ts/sleeve.ts/skirt.ts/trousers.ts/
+  // subpieces.ts) rather than a consumer pattern-matching on ids -- the same
+  // reason GarmentCode gives every panel its own translation/rotation
+  // instead of a viewer inferring placement from a panel's name. Absent on a
+  // sub-piece with no 3D shell of its own yet (collar/cuff/waistband/
+  // placket/button-stand) -- see Proof3DRole's own doc.
+  placementCm?: PlacementCm;
   // #243: zero or more internal loops (holes) inside this piece's own outer
   // boundary -- a buttonhole, an eyelet, a lining vent, anything the
   // simplified single-closed-outline `outlineCm` above cannot represent on
@@ -86,6 +99,48 @@ export interface InternalLoopCm {
   outlineCm: Pt[];
   curvedSpans?: [number, number][];
 }
+
+// #254: which structural role a drafted piece plays in Prova 3D's dress-form
+// proof (lib/proof3d/mesh.ts). "accessory" covers every sub-piece drafted in
+// lib/draft/subpieces.ts (collar/cuff/waistband/placket/button-stand): each
+// one declares a real PlacementCm (so every drafter this issue names really
+// does set the field), but mesh.ts builds no 3D shell for any of them yet --
+// an honest, narrower gap than the trousers one this issue closes, not a
+// silent one, since Proof3DTab's own approximation note already says shells
+// are a simplified proxy, not every drafted piece rendered.
+export type Proof3DRole =
+  | "torso-front"
+  | "torso-back"
+  | "sleeve"
+  | "skirt"
+  | "trouser-front"
+  | "trouser-back"
+  | "accessory";
+
+export interface PlacementCm {
+  role: Proof3DRole;
+  // Translation of this piece's own local origin, cm, in the mesh's world
+  // frame (x lateral, y vertical, z depth -- z reserved, always 0 today).
+  // Every drafter emits (0,0,0): mesh.ts still derives the REAL stack
+  // position (girth-scanned ring heights, a sleeve/trouser-leg's own
+  // left/right offset) from the drafted geometry at build time, per
+  // CLAUDE.md's derive-don't-store rule -- this channel exists so a future
+  // drafter (a piece with a real, non-proportional starting offset) can
+  // declare one instead of mesh.ts guessing it from the piece id.
+  translationCm: [number, number, number];
+  // Rotation in degrees about (x, y, z) -- reserved, (0,0,0) for every
+  // archetype today (no drafter yet needs to angle its own shell, e.g. a
+  // flared trouser leg or a raglan sleeve).
+  rotationDeg: [number, number, number];
+}
+
+// #254: every drafter that declares a real 3D role emits the identical,
+// no-op transform today -- one shared constant instead of six copies of the
+// same two zero-triples drifting apart.
+export const NO_PLACEMENT_TRANSFORM: Pick<
+  PlacementCm,
+  "translationCm" | "rotationDeg"
+> = { translationCm: [0, 0, 0], rotationDeg: [0, 0, 0] };
 
 // #124: depth is the only thing that tells the three NotchTypes apart --
 // see lib/types.ts's PieceNotch doc for why that's also the AC's own

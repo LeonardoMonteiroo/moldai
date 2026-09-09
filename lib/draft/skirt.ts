@@ -8,11 +8,12 @@ import {
 import {
   bbox,
   DraftedPiece,
+  gradedSkirtLengthCm,
   InternalCm,
+  NO_PLACEMENT_TRANSFORM,
   notchAtVertex,
   NotchCm,
   Pt,
-  gradedSkirtLengthCm,
 } from "./core";
 import { formatCm } from "@/lib/format";
 import type { Translate } from "@/lib/i18n/translate";
@@ -315,6 +316,7 @@ export function draftSkirt(
       // when isDressWaist (paired against a bodice hem by garment.ts), but
       // exposed unconditionally like body.ts's own `hem` edge.
       seamEdges,
+      placementCm: { role: "skirt", ...NO_PLACEMENT_TRANSFORM },
       // #249: garment.ts reads this instead of re-deriving it via a second
       // gradedSkirtLengthCm call -- see core.ts's own doc on this field.
       resolvedLengthCm: length,
@@ -439,5 +441,6 @@ export function draftSkirt(
     // (a skirt's own bottom is never sewn to anything), so it always
     // reports a real "hem" step regardless of silhouette or waistband.
     seamEdges: { waist: [0, 2], hem: [3, 5] },
+    placementCm: { role: "skirt", ...NO_PLACEMENT_TRANSFORM },
   };
 }
