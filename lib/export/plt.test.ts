@@ -119,6 +119,23 @@ describe("toPlt", () => {
     expect(PLT_PENS.drillHole).not.toBe(PLT_PENS.notch);
   });
 
+  // #244: a pleat's own placement/stitch line draws on the dart's own pen --
+  // both are internal construction marks.
+  it("draws a pleat's placement line on the dart pen", () => {
+    const pat = patternFor({
+      type: "skirt",
+      gender: "female",
+      measurementOverrides: {},
+      style: { skirt: "straight", pleats: "box" },
+    });
+    const model = buildExportModel(pat, t);
+    const skirt = model.pieces.find((p) => p.id === "skirt")!;
+    expect(skirt.pleats?.length).toBeGreaterThan(0);
+    const out = toPlt(model);
+    const dartPenIdx = out.indexOf(`SP${PLT_PENS.dart};`);
+    expect(dartPenIdx).toBeGreaterThanOrEqual(0);
+  });
+
   it("piece name label is present (LB) and quantity annotated", () => {
     const pat = patternFor({
       type: "tshirt",

@@ -379,6 +379,28 @@ describe("toPdf", () => {
     );
   });
 
+  // #244: a pleat's own placement/stitch line draws its own dash pattern,
+  // distinct from the dart fold line's [1 1.5] above.
+  it("a pleat's placement line draws its own dash pattern", async () => {
+    const base = modelOf(20, 30);
+    const model: ExportModel = {
+      ...base,
+      pieces: [
+        {
+          ...base.pieces[0],
+          pleats: [
+            [
+              { x: 4, y: 0 },
+              { x: 5, y: 10 },
+            ],
+          ],
+        },
+      ],
+    };
+    const withPleatsContent = inflatedContent(await toPdf(model, "single", t));
+    expect(withPleatsContent).toMatch(/\[2 2\] 0 d/);
+  });
+
   // #126: fold is drawn gray-dashed (reusing the usable-area rectangle's
   // GRAY) with the pt-BR "dobra" label at its midpoint; absent when the
   // piece has no fold.

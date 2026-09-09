@@ -46,6 +46,7 @@ import {
   CUFFS,
   WAISTBANDS,
   FRONT_CLOSURES,
+  PLEATS,
   STYLE_LIMITS,
   FIT_CLASSES,
   STRETCH_CLASSES,
@@ -73,6 +74,7 @@ export {
   CUFFS,
   WAISTBANDS,
   FRONT_CLOSURES,
+  PLEATS,
   STYLE_LIMITS,
   FIT_CLASSES,
   STRETCH_CLASSES,
@@ -189,6 +191,10 @@ export function validateSpec(raw: unknown): GarmentSpec {
             STYLE_LIMITS.trouserLengthCm.min,
             STYLE_LIMITS.trouserLengthCm.max,
           )
+        : undefined,
+    pleats:
+      style.pleats !== undefined
+        ? pick(style.pleats, PLEATS, "none")
         : undefined,
   };
   return {

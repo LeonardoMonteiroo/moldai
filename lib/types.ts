@@ -79,6 +79,18 @@ export type WaistbandType = "none" | "straight";
 // only front-closure shape MoldAI drafts; anything else is "em breve",
 // surfaced by lib/ai/prompt.ts's guidance rather than a silent substitute.
 export type FrontClosureType = "none" | "buttonStand";
+// #244: closed enum, same footing as the four above. "box"/"inverted-box"
+// are two genuinely different fold constructions, not a label swap: a box
+// pleat's two folds face AWAY from each other (opening outward, away from
+// the panel's own centre); an inverted box pleat's two folds face TOWARD
+// each other (hidden underneath, meeting at centre) -- see
+// lib/draft/skirt.ts's own pleatFoldPlacement for the geometry that
+// distinguishes them. A single lopsided "knife" fold is deliberately not
+// offered here: it would draft an ASYMMETRIC insert on a panel whose own
+// foldEdge below still claims a true axis of symmetry through its centre,
+// falsifying that contract -- both shapes this enum offers stay symmetric
+// about the panel's own centre instead.
+export type PleatType = "none" | "box" | "inverted-box";
 
 export interface ClarifyQuestion {
   id: string;
@@ -150,6 +162,18 @@ export interface GarmentStyle {
   // type, the same "type-mismatched style field is a no-op" precedent
   // skirtLengthCm/waistband already follow.
   trouserLengthCm?: number;
+  // #244: a box/inverted-box pleat drafted on a STANDALONE straight or
+  // a-line skirt panel only (lib/draft/skirt.ts's own draftSkirt) -- a
+  // dress's skirt panel is joined directly to the bodice hem at the
+  // natural waist instead (the waist-join pairs above), and widening that
+  // panel's own waist edge without ALSO widening the bodice hem it's mated
+  // to would reopen the #134/#177 waist-mismatch class of bug, so this
+  // field is simply unread there, the same "type-mismatched style field is
+  // a no-op" precedent waistband/frontClosure already follow. A radial
+  // silhouette (circle/gore/half-circle) never reads it either -- there is
+  // no natural insertion point on a polar-coordinate panel. Undefined
+  // defaults to "none" (unchanged, unpleated panel).
+  pleats?: PleatType;
 }
 
 export interface GarmentSpec {
@@ -198,10 +222,12 @@ export interface PieceNotch {
 // for a single-ended one -- distinct from the piece's own cut-on-fold axis,
 // `foldEdge`/`Piece.grainline`'s sibling below), and `drillHole` (1.0-1.5cm
 // short of a dart apex, see lib/draft/core.ts's DRILL_HOLE_SETBACK_CM).
-// `pleat`/`styleLine`/`placementMark` exist so a future pocket/buttonhole/
-// pleat/style-line drafter can attach to this same channel without a second
-// one, but no drafter emits any of the three yet -- #127 decision, settled,
-// not reopened here.
+// #244: `pleat` now ships too -- a pleat's own placement/stitch line, drawn
+// by lib/draft/skirt.ts's own pleatFoldPlacement (its press fold reuses
+// `foldLine` above instead of a second kind). `styleLine`/`placementMark`
+// exist so a future style-line/buttonhole drafter can attach to this same
+// channel without a second one, but no drafter emits either yet -- #127
+// decision, settled, not reopened here.
 export type InternalKind =
   "dart" | "foldLine" | "drillHole" | "pleat" | "styleLine" | "placementMark";
 
@@ -209,7 +235,7 @@ export type PieceInternal =
   | { kind: "dart"; d: string }
   | { kind: "foldLine"; x1: number; y1: number; x2: number; y2: number }
   | { kind: "drillHole"; x: number; y: number; r: number }
-  | { kind: "pleat"; d: string } // reserved -- no drafter emits one yet
+  | { kind: "pleat"; d: string }
   | { kind: "styleLine"; d: string } // reserved -- no drafter emits one yet
   | { kind: "placementMark"; x: number; y: number }; // reserved -- no drafter emits one yet
 

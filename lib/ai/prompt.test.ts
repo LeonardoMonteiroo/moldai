@@ -14,6 +14,7 @@ import {
   CUFFS,
   WAISTBANDS,
   FRONT_CLOSURES,
+  PLEATS,
 } from "@/lib/draft/garment";
 import { MEASUREMENT_RANGES, SIZE_TABLE } from "@/lib/measurements";
 import { COSTS } from "@/lib/types";
@@ -195,12 +196,13 @@ describe("buildSystem", () => {
   // #129/#130/#131: the sub-piece catalogs render from the same exported
   // constants the schema/validator use, and the model is told not to
   // silently substitute an unsupported shape.
-  it("quotes the collar/cuff/waistband/frontClosure catalogs and tells the model not to silently substitute", () => {
+  it("quotes the collar/cuff/waistband/frontClosure/pleats catalogs and tells the model not to silently substitute", () => {
     const s = buildSystem(DEFAULT_ENGINE_ID, state(0), { answering: false });
     for (const v of COLLARS) expect(s).toContain(v);
     for (const v of CUFFS) expect(s).toContain(v);
     for (const v of WAISTBANDS) expect(s).toContain(v);
     for (const v of FRONT_CLOSURES) expect(s).toContain(v);
+    for (const v of PLEATS) expect(s).toContain(v);
     expect(s).toContain("don't silently substitute");
   });
 
@@ -390,12 +392,17 @@ describe("prompt-cache byte stability", () => {
     // (buildStaticSections) was rewritten so the model stops treating
     // neckline/sleeve/fit/length/size as always-required detail (every one
     // of those already has a drafter-side default) and reserves ask for a
-    // request that names nothing beyond the garment type. A deliberate,
-    // expected byte change (see this describe block's own comment), not a
-    // bug -- the eval harness (npm run eval:ai) is what proves it's better,
-    // not this hash.
+    // request that names nothing beyond the garment type.
+    // #244: regenerated again -- a new style field (pleats: box/inverted-box
+    // on a standalone straight/a-line skirt) was added to the GarmentSpec
+    // section, the "# Vocabulary mapping" prose, and the tool schema; the
+    // "# Assembly / sewing order" section also gained a "pleat" step
+    // description alongside "dart"/"seam"/"hem". A deliberate, expected
+    // byte change (see this describe block's own comment), not a bug --
+    // the eval harness (npm run eval:ai) is what proves it's better, not
+    // this hash.
     expect(hash).toBe(
-      "7d53077811b8b242ab3856e1cdc3dd6de51fe978262a0e96cad5ed099772d7bc",
+      "96e552fc347d104bb274ae7a7cc38c899ca813737b50609902a16c9c71436468",
     );
   });
 });

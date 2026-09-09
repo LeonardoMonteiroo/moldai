@@ -211,7 +211,8 @@
       "trouserLengthGrading": "Comprimento por tamanho",
       "hoodiePocket": "Bolso canguru e viés do decote",
       "coatLining": "Forro completo (frente, costas e manga)",
-      "sleevePlacket": "Abertura do punho (carcela)"
+      "sleevePlacket": "Abertura do punho (carcela)",
+      "pleats": "Prega"
     },
     "neckline": {
       "straight": "reto",
@@ -242,6 +243,10 @@
     },
     "waistbandType": {
       "straight": "reto, com sobreposição"
+    },
+    "pleatType": {
+      "box": "prega caixa (dobras abrindo para fora)",
+      "inverted-box": "prega caixa invertida (dobras voltadas para dentro)"
     },
     "fit": {
       "close": "justo",
@@ -501,6 +506,7 @@
       "pieceLine": "{name} · {qty}x · {width} × {height} cm",
       "assemblyHeading": "Instruções de montagem",
       "stepDart": "Costure {count, plural, one {a pence} other {as # pences}} em {piece}.",
+      "stepPleat": "Dobre e passe {count, plural, one {a prega} other {as # pregas}} em {piece}.",
       "stepSeam": "Una {a} com {b}.",
       "stepHem": "Faça a bainha de {piece} ({length} cm).",
       "assemblyConflictNote": "Uma ou mais costuras acima têm um conflito ativo — confira antes de cortar."

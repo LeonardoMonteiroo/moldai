@@ -245,16 +245,20 @@ export function notchAtArcLengthCm(
 }
 
 // #127: cm-space internal-geometry entry a drafter attaches to a
-// DraftedPiece's `internalsCm`, alongside notches/grainline. Three kinds
-// ship geometry today (dart, foldLine, drillHole, via dartInternals()
-// below); pleat/styleLine/placementMark are reserved for a future
-// pocket/buttonhole/pleat/style-line drafter to attach to this same channel
-// without a second one -- #127 decision, settled, not reopened here.
+// DraftedPiece's `internalsCm`, alongside notches/grainline. Four kinds ship
+// geometry today (dart, foldLine, drillHole via dartInternals() below; pleat
+// via lib/draft/skirt.ts's own pleatFoldPlacement, #244); styleLine/
+// placementMark are still reserved for a future style-line/buttonhole
+// drafter to attach to this same channel without a second one -- #127
+// decision, settled, not reopened here.
 export type InternalCm =
   | { kind: "dart"; ptsCm: Pt[] }
   | { kind: "foldLine"; aCm: Pt; bCm: Pt }
   | { kind: "drillHole"; atCm: Pt; rCm: number }
-  | { kind: "pleat"; ptsCm: Pt[] } // reserved -- no drafter emits one yet
+  // #244: a pleat's own placement/stitch line -- lib/draft/skirt.ts's
+  // pleatFoldPlacement is the first real emitter; its own press fold reuses
+  // "foldLine" above instead of a second kind.
+  | { kind: "pleat"; ptsCm: Pt[] }
   | { kind: "styleLine"; ptsCm: Pt[] } // reserved -- no drafter emits one yet
   | { kind: "placementMark"; atCm: Pt }; // reserved -- no drafter emits one yet
 
@@ -431,6 +435,18 @@ export function dartsOf(internalsCm?: InternalCm[]): Pt[][] {
   return (internalsCm ?? [])
     .filter(
       (e): e is Extract<InternalCm, { kind: "dart" }> => e.kind === "dart",
+    )
+    .map((e) => e.ptsCm);
+}
+
+// #244: the same extraction for a pleat's own placement/stitch line(s) --
+// used by lib/draft/assembly.ts to derive a real "fold and press the pleat"
+// construction step, the same "InternalCm's discriminant lives in
+// core.ts" rule dartsOf above follows.
+export function pleatsOf(internalsCm?: InternalCm[]): Pt[][] {
+  return (internalsCm ?? [])
+    .filter(
+      (e): e is Extract<InternalCm, { kind: "pleat" }> => e.kind === "pleat",
     )
     .map((e) => e.ptsCm);
 }

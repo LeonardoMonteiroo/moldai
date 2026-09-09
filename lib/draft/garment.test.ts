@@ -2148,6 +2148,46 @@ describe("seam graph (#134)", () => {
     }
   });
 
+  // #244: proves the widened panel isn't "free" fabric -- the waistband is
+  // DERIVED from the panel's own real (pleat-widened) waist edge
+  // (garment.ts's curveArcLengthCm call, unchanged by this feature), so it
+  // grows to match automatically and the seam graph stays closed exactly
+  // like the unpleated case just above.
+  it.each(["box", "inverted-box"] as const)(
+    "#244: a %s pleat still matches its own waistband within 0.3cm, and the band grows to hold the extra fabric",
+    (pleats) => {
+      const plainSpec = {
+        type: "skirt" as const,
+        gender: "female" as const,
+        measurementOverrides: {},
+        style: { skirt: "straight" as const },
+      };
+      const pleatedSpec = {
+        ...plainSpec,
+        style: { ...plainSpec.style, pleats },
+      };
+      const plainGraph = measureSeamGraph(
+        DEFAULT_ENGINE_ID,
+        plainSpec,
+        SIZE_TABLE.M,
+        t,
+      );
+      const pleatedGraph = measureSeamGraph(
+        DEFAULT_ENGINE_ID,
+        pleatedSpec,
+        SIZE_TABLE.M,
+        t,
+      );
+      const plainPair = plainGraph.find((m) => m.key === "waistband-waist")!;
+      const pleatedPair = pleatedGraph.find(
+        (m) => m.key === "waistband-waist",
+      )!;
+      expect(pleatedPair.diffCm).toBeLessThan(0.3);
+      expect(seamCheck(pleatedGraph)).toEqual([]);
+      expect(pleatedPair.aLenCm).toBeGreaterThan(plainPair.aLenCm);
+    },
+  );
+
   it("#131: a dress's skirt panel gets no waistband -- it joins the bodice at the natural waist instead", () => {
     const spec = {
       type: "dress" as const,

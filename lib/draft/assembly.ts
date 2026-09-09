@@ -3,7 +3,7 @@ import { seamCheck } from "./garment";
 import { draftPiecesCm, measureSeamGraph } from "./engine/facade";
 import { engineFor } from "./engine/capability";
 import type { SeamMeasurement } from "./seams";
-import { DraftedPiece, dartsOf, curveArcLengthCm } from "./core";
+import { DraftedPiece, dartsOf, pleatsOf, curveArcLengthCm } from "./core";
 import type { Translate } from "@/lib/i18n/translate";
 
 // #138: sewing-order / assembly instructions -- derived, never persisted,
@@ -97,6 +97,16 @@ export interface AssemblyDartStep {
   count: number;
 }
 
+// #244: a pleat's own fold-and-press step -- same footing as a dart, sewn
+// (folded/pressed, in this case) before any seam that joins the piece to
+// another one.
+export interface AssemblyPleatStep {
+  kind: "pleat";
+  pieceId: string;
+  pieceName: string;
+  count: number;
+}
+
 export interface AssemblySeamStep {
   kind: "seam";
   // The pair's own stable identifier (e.g. "armhole-cap", "waist-join-front")
@@ -150,7 +160,7 @@ export interface AssemblyHemStep {
 }
 
 export type AssemblyStep =
-  AssemblyDartStep | AssemblySeamStep | AssemblyHemStep;
+  AssemblyDartStep | AssemblyPleatStep | AssemblySeamStep | AssemblyHemStep;
 
 export interface AssemblyOrder {
   steps: AssemblyStep[];
@@ -237,6 +247,22 @@ export function buildAssemblyOrder(
         pieceId: piece.id,
         pieceName: pieceDisplayName(pattern, piece.id),
         count: darts.length,
+      });
+    }
+  }
+
+  // #244: a pleat's own fold-and-press step, same "shapes the piece before
+  // any seam" priority as darts above -- a separate loop (not merged into
+  // the one above) so a piece with both darts and a pleat still gets one
+  // step per kind, never a single step conflating the two counts.
+  for (const piece of pieces) {
+    const pleats = pleatsOf(piece.internalsCm);
+    if (pleats.length > 0) {
+      steps.push({
+        kind: "pleat",
+        pieceId: piece.id,
+        pieceName: pieceDisplayName(pattern, piece.id),
+        count: pleats.length,
       });
     }
   }

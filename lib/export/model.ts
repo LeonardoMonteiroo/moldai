@@ -49,6 +49,15 @@ export interface ExportPiece {
   // lib/draft/core.ts's DRILL_HOLE_SETBACK_CM) so the mark hides inside the
   // sewn dart.
   drillHoles?: { at: ExPt; rCm: number }[];
+  // #244: one entry per pleat's own placement/stitch line -- where the
+  // folded edge lays down once pressed, the same open-point-list shape
+  // `darts` above uses (lib/draft/skirt.ts's pleatFoldPlacement always
+  // emits a 2-point line, but this stays a list for the same "not assumed
+  // exactly N points" reason darts does). Distinct from `internalFoldLines`
+  // above: a pleat's own PRESS fold reuses that channel already (it is a
+  // press line, same concept a dart's fold line already is); this is the
+  // one new mark the reserved "pleat" InternalCm kind actually adds.
+  pleats?: ExPt[][];
   // #126: the piece's cut-on-fold line, both endpoints already real outline
   // vertices (see DraftedPiece.foldEdge) -- absent on a piece with no fold
   // (e.g. a sleeve) or drafted before this existed.
@@ -133,6 +142,15 @@ function drillHoleEntries(
     (e): e is Extract<InternalCm, { kind: "drillHole" }> =>
       e.kind === "drillHole",
   );
+}
+// #244: a pleat's own placement/stitch line(s) -- the reserved "pleat"
+// InternalCm kind's first real emitter (lib/draft/skirt.ts).
+function pleatEntries(internalsCm?: InternalCm[]): Pt[][] {
+  return (internalsCm ?? [])
+    .filter(
+      (e): e is Extract<InternalCm, { kind: "pleat" }> => e.kind === "pleat",
+    )
+    .map((e) => e.ptsCm);
 }
 
 // Builds the `d` attribute of a closed outline (start + segs) applying the
@@ -303,6 +321,11 @@ export function buildExportModel(
       rCm: h.rCm,
     }));
     if (drillHoles.length) ep.drillHoles = drillHoles;
+    const pleats = pleatEntries(dp.internalsCm).filter(
+      (pts) => pts.length >= 2,
+    );
+    if (pleats.length)
+      ep.pleats = pleats.map((pts) => pts.map((pt) => P(shift(pt))));
     if (dp.foldEdge) {
       const [a, b2] = dp.foldEdge;
       ep.fold = [P(shift(dp.outlineCm[a])), P(shift(dp.outlineCm[b2]))];

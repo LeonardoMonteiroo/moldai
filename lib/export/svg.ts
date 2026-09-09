@@ -98,6 +98,19 @@ export function toSvg(model: ExportModel): string {
         `<line x1="${X(a.x)}" y1="${Y(a.y)}" x2="${X(b.x)}" y2="${Y(b.y)}" stroke="#4a5a3a" stroke-width="0.15" stroke-dasharray="1 1.5"/>`,
       );
     }
+    // #244: a pleat's own placement/stitch line -- where the folded edge
+    // lays down once pressed, distinct from its own press fold (already
+    // drawn above via internalFoldLines): a dash pattern of its own so the
+    // two read apart.
+    for (const pleat of p.pleats ?? []) {
+      if (pleat.length < 2) continue;
+      const dd = pleat
+        .map((pt, i) => `${i === 0 ? "M" : "L"}${X(pt.x)} ${Y(pt.y)}`)
+        .join(" ");
+      parts.push(
+        `<path d="${dd}" fill="none" stroke="#4a5a3a" stroke-width="0.2" stroke-dasharray="2 2"/>`,
+      );
+    }
     // #127: a drill hole -- a small open circle, 1.0-1.5cm short of the
     // dart apex it marks (lib/draft/core.ts's DRILL_HOLE_SETBACK_CM).
     for (const hole of p.drillHoles ?? []) {

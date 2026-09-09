@@ -19,6 +19,7 @@ import {
   CUFFS,
   WAISTBANDS,
   FRONT_CLOSURES,
+  PLEATS,
   FIT_CLASSES,
   STRETCH_CLASSES,
   STYLE_LIMITS,
@@ -92,6 +93,7 @@ describe("every registered engine's capability is a subset of the app-level voca
           frontClosure: FRONT_CLOSURES,
           fit: FIT_CLASSES,
           stretch: STRETCH_CLASSES,
+          pleats: PLEATS,
         };
         for (const type of cap.types) {
           const enums = cap.styleEnumsByType[type];
