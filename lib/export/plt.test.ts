@@ -155,4 +155,59 @@ describe("toPlt", () => {
       expect(Math.abs(gotYcm - expectedYcm)).toBeLessThanOrEqual(0.02);
     }
   });
+
+  // #243: an internal loop (hole) is a genuine cut boundary too -- the same
+  // two pens (cut/net) as the piece's own outer boundary, one more emission
+  // of each per loop.
+  it("an internal loop adds one more cut-pen and one more net-pen polyline", () => {
+    const pat = patternFor({
+      type: "tshirt",
+      gender: "male",
+      measurementOverrides: {},
+      style: {},
+    });
+    const base = buildExportModel(pat, t);
+    const cutSelections = (s: string) =>
+      (s.match(new RegExp(`SP${PLT_PENS.cut};`, "g")) ?? []).length;
+    const netSelections = (s: string) =>
+      (s.match(new RegExp(`SP${PLT_PENS.net};`, "g")) ?? []).length;
+
+    const withLoop = {
+      ...base,
+      pieces: base.pieces.map((p, i) =>
+        i === 0
+          ? {
+              ...p,
+              internalLoops: [
+                {
+                  outline: {
+                    start: { x: 3, y: 3 },
+                    segs: [
+                      { kind: "line" as const, to: { x: 7, y: 3 } },
+                      { kind: "line" as const, to: { x: 7, y: 7 } },
+                      { kind: "line" as const, to: { x: 3, y: 7 } },
+                      { kind: "line" as const, to: { x: 3, y: 3 } },
+                    ],
+                  },
+                  cutOutline: {
+                    start: { x: 4, y: 4 },
+                    segs: [
+                      { kind: "line" as const, to: { x: 6, y: 4 } },
+                      { kind: "line" as const, to: { x: 6, y: 6 } },
+                      { kind: "line" as const, to: { x: 4, y: 6 } },
+                      { kind: "line" as const, to: { x: 4, y: 4 } },
+                    ],
+                  },
+                },
+              ],
+            }
+          : p,
+      ),
+    };
+
+    const baseOut = toPlt(base);
+    const withLoopOut = toPlt(withLoop);
+    expect(cutSelections(withLoopOut)).toBe(cutSelections(baseOut) + 1);
+    expect(netSelections(withLoopOut)).toBe(netSelections(baseOut) + 1);
+  });
 });

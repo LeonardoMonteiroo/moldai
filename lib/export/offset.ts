@@ -37,15 +37,39 @@ import { flattenCubic, TOL_CM } from "./bezier";
 // (reflex) corner's offset lines cross before reaching it, so the
 // intersection lands this side of it, discarding the little self-crossing
 // loop a naive per-vertex translate would otherwise leave behind (a trim).
+// #243: `direction` distinguishes the outer boundary's own offset from an
+// internal loop's (a hole). "outward" (the default, every pre-#243 call
+// site's unchanged behavior) grows the piece -- a cut line that extends
+// AWAY from the outline's own interior. "inward" is for a
+// `DraftedPiece.internalLoopsCm` entry: a hole's seam allowance is fabric
+// that must fold UNDER, into the opening, so its cut line has to SHRINK the
+// loop -- the opposite of the outer boundary's own growth. See
+// miterOffset's own `preferLarger` below for how the same two-candidate
+// construction serves both directions without a second implementation.
+//
+// Known limitation, inherited from the SAME repair `removeSelfCrossingLoops`
+// already accepts for "outward" (see its own comment below): that repair's
+// "keep the larger split fragment" heuristic was validated against a shape
+// GROWING (a piece's own outer boundary, where the real result is always the
+// bigger candidate). Nothing here re-validates it for a loop SHRINKING past
+// the point where its own opposite edges' offset lines cross each other
+// (`distanceCm` at or beyond roughly half the loop's own narrowest span) --
+// a hole drafted much smaller than the pattern's seam allowance. No drafter
+// emits a loop-bearing piece yet (#243's own acceptance criteria scopes that
+// to future work), so this hasn't been exercised against a real garment's
+// buttonhole/eyelet proportions; a future drafter adding one should keep its
+// loops comfortably larger than 2x the seam allowance until this is verified
+// against a tighter case.
 export function offsetOutlineCm(
   ptsCm: Pt[],
   curvedSpans: [number, number][],
   foldEdge: [number, number] | undefined,
   distanceCm: number,
   tolCm: number = TOL_CM,
+  direction: "outward" | "inward" = "outward",
 ): { x: number; y: number }[] {
   const segs = toFineSegments(ptsCm, curvedSpans, foldEdge, distanceCm, tolCm);
-  return removeSelfCrossingLoops(miterOffset(segs));
+  return removeSelfCrossingLoops(miterOffset(segs, direction === "outward"));
 }
 
 interface FineSeg {
@@ -162,15 +186,27 @@ function joinOffsetLines(
 // this repo doesn't fix (some drafters walk clockwise, some counter --
 // nothing upstream needs it fixed, since SVG/canvas rendering doesn't care).
 // Rather than assume one, it builds the *actual* candidate result for both
-// signs and keeps whichever has the larger enclosed area -- the genuinely
-// outward offset, by construction, always grows the shape; the other one
-// shrinks it. Comparing the two real candidates directly (rather than a
-// cheaper per-vertex heuristic) is what makes this correct even when a fold
-// edge's own zero distance makes the growth asymmetric.
-function miterOffset(segs: FineSeg[]): { x: number; y: number }[] {
+// signs and keeps whichever has the larger enclosed area when
+// `preferLarger` (the outer-boundary case) -- the genuinely outward offset,
+// by construction, always grows the shape; the other one shrinks it.
+// Comparing the two real candidates directly (rather than a cheaper
+// per-vertex heuristic) is what makes this correct even when a fold edge's
+// own zero distance makes the growth asymmetric.
+//
+// #243: `!preferLarger` (an internal loop/hole) keeps the SMALLER-area
+// candidate instead -- the same two real candidates, just the other pick.
+// A hole's cut line must shrink the opening (the extra fabric folds under,
+// into the loop), the mirror image of the outer boundary's own growth; there
+// is no third formula to write, only which of the two already-computed
+// candidates is correct for the caller's own geometry.
+function miterOffset(
+  segs: FineSeg[],
+  preferLarger = true,
+): { x: number; y: number }[] {
   const plus = joinOffsetLines(segs, 1);
   const minus = joinOffsetLines(segs, -1);
-  return Math.abs(shoelace(plus)) >= Math.abs(shoelace(minus)) ? plus : minus;
+  const plusBigger = Math.abs(shoelace(plus)) >= Math.abs(shoelace(minus));
+  return plusBigger === preferLarger ? plus : minus;
 }
 
 function crossSign(

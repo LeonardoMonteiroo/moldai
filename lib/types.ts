@@ -245,6 +245,14 @@ export interface Piece {
   // #124: absent on a piece drafted before this existed, or one no
   // convention places a mark on.
   notches?: PieceNotch[];
+  // #243: zero or more internal loops (holes) inside this piece's own outer
+  // `outline` -- a buttonhole, an eyelet, a lining vent. Each entry is a full
+  // closed `PieceOutline` in the same px/canvas-local space as `outline`
+  // itself (lib/draft/core.ts's `place()` builds these from
+  // DraftedPiece.internalLoopsCm the same way it builds `outline`). Absent
+  // on every piece today (no drafter emits one yet) and on any piece drafted
+  // before this existed -- purely additive, nothing reads it as a fallback.
+  internalLoops?: PieceOutline[];
   detailRows: DetailRow[];
 }
 

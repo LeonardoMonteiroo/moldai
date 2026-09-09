@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { outlineSegments, buildExportModel, type ExPt } from "./model";
+import {
+  outlineSegments,
+  buildExportModel,
+  buildInternalLoop,
+  type ExPt,
+} from "./model";
 import { flattenOutlineCm, TOL_CM } from "./dxf";
 import { outlinePath, SCALE, type Pt } from "@/lib/draft/core";
 import type { Pattern } from "@/lib/types";
@@ -550,5 +555,101 @@ describe("buildExportModel", () => {
         expect(closest.x).toBeCloseTo(foldPt.x, 2);
       }
     });
+  });
+});
+
+// #243: an internal loop's own net+cut pair, built the same way a piece's
+// outer boundary is -- except its cut line has to SHRINK (offsetOutlineCm's
+// `direction: "inward"`), the mirror of the outer boundary's own outward
+// growth. buildExportModel itself always redrafts through a real registered
+// engine (none of which emits a loop-bearing piece yet -- future work, not
+// this issue's job, per #243's own acceptance criteria), so this exercises
+// buildInternalLoop directly against a hand-built loop rather than routing
+// a synthetic DraftedPiece through the whole drafting pipeline.
+describe("buildInternalLoop (#243)", () => {
+  const identityShift = (pt: Pt): Pt => pt;
+
+  it("shrinks a square hole's cut line by the allowance, unlike the outer boundary's growth", () => {
+    const loop = buildInternalLoop(
+      {
+        outlineCm: [
+          [0, 0],
+          [10, 0],
+          [10, 10],
+          [0, 10],
+        ],
+      },
+      identityShift,
+      1,
+    );
+    const cut = flattenOutlineCm(loop.cutOutline, TOL_CM);
+    const xs = cut.map((p) => p.x);
+    const ys = cut.map((p) => p.y);
+    // shrunk inward by 1cm on every side -- an 8x8 square, not a 12x12 one.
+    expect(Math.min(...xs)).toBeCloseTo(1, 6);
+    expect(Math.max(...xs)).toBeCloseTo(9, 6);
+    expect(Math.min(...ys)).toBeCloseTo(1, 6);
+    expect(Math.max(...ys)).toBeCloseTo(9, 6);
+  });
+
+  it("the net outline is untouched -- only the cut line moves", () => {
+    const loop = buildInternalLoop(
+      {
+        outlineCm: [
+          [0, 0],
+          [10, 0],
+          [10, 10],
+          [0, 10],
+        ],
+      },
+      identityShift,
+      1,
+    );
+    const net = flattenOutlineCm(loop.outline, TOL_CM);
+    expect(net).toEqual([
+      { x: 0, y: 0 },
+      { x: 10, y: 0 },
+      { x: 10, y: 10 },
+      { x: 0, y: 10 },
+    ]);
+  });
+
+  it("applies the SAME shift as the piece's own outer outline (a non-identity origin)", () => {
+    const shift = (pt: Pt): Pt => [pt[0] - 5, pt[1] - 5];
+    const loop = buildInternalLoop(
+      {
+        outlineCm: [
+          [5, 5],
+          [15, 5],
+          [15, 15],
+          [5, 15],
+        ],
+      },
+      shift,
+      1,
+    );
+    const net = flattenOutlineCm(loop.outline, TOL_CM);
+    expect(net).toEqual([
+      { x: 0, y: 0 },
+      { x: 10, y: 0 },
+      { x: 10, y: 10 },
+      { x: 0, y: 10 },
+    ]);
+  });
+
+  it("honours the loop's own curvedSpans, independent of the outer piece's", () => {
+    const loop = buildInternalLoop(
+      {
+        outlineCm: [
+          [10, 0],
+          [0, 10],
+          [0, 0],
+        ],
+        curvedSpans: [[0, 1]],
+      },
+      identityShift,
+      0,
+    );
+    expect(loop.outline.segs.some((s) => s.kind === "cubic")).toBe(true);
   });
 });

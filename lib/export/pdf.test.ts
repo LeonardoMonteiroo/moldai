@@ -446,6 +446,58 @@ describe("toPdf", () => {
     expect(withNotchCount).toBe(baseCount + 1);
   });
 
+  // #243: an internal loop (hole) draws exactly like the piece's own outer
+  // boundary -- one more solid INK cut segment + one more dashed-gray net
+  // segment loop per edge, using the identical colors/dash pattern already
+  // asserted above for the outer boundary.
+  it("an internal loop adds cut (INK) and net (its own gray) segments, same as the outer boundary", async () => {
+    const base = modelOf(20, 30);
+    const inkCount = (content: string) =>
+      (content.match(/0 0 0 RG/g) ?? []).length;
+    const netCount = (content: string) =>
+      (content.match(/0\.4 0\.4 0\.4 RG/g) ?? []).length;
+
+    const baseBytes = await toPdf(base, "single", t);
+    const baseContent = inflatedContent(baseBytes);
+
+    const withLoop: ExportModel = {
+      ...base,
+      pieces: [
+        {
+          ...base.pieces[0],
+          internalLoops: [
+            {
+              outline: {
+                start: { x: 3, y: 3 },
+                segs: [
+                  { kind: "line", to: { x: 7, y: 3 } },
+                  { kind: "line", to: { x: 7, y: 7 } },
+                  { kind: "line", to: { x: 3, y: 7 } },
+                  { kind: "line", to: { x: 3, y: 3 } },
+                ],
+              },
+              cutOutline: {
+                start: { x: 4, y: 4 },
+                segs: [
+                  { kind: "line", to: { x: 6, y: 4 } },
+                  { kind: "line", to: { x: 6, y: 6 } },
+                  { kind: "line", to: { x: 4, y: 6 } },
+                  { kind: "line", to: { x: 4, y: 4 } },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    };
+    const withLoopBytes = await toPdf(withLoop, "single", t);
+    const withLoopContent = inflatedContent(withLoopBytes);
+
+    // 4 edges each for the loop's own cut and net outlines.
+    expect(inkCount(withLoopContent)).toBe(inkCount(baseContent) + 4);
+    expect(netCount(withLoopContent)).toBe(netCount(baseContent) + 4);
+  });
+
   // #84: the per-piece draw loop used to iterate every piece unconditionally
   // on every remaining page, relying on the page's own bounds to discard
   // off-page geometry -- so a piece confined to one tile still got fully
@@ -750,5 +802,54 @@ describe("toPdfLayered", () => {
     expect(doc.getPageCount()).toBe(1);
     const content = inflatedContent(bytes);
     expect((content.match(/\/Type\s*\/OCG\b/g) ?? []).length).toBe(1);
+  });
+
+  // #243: the comparison's whole point is comparing real cut geometry across
+  // sizes, and an internal loop is real cut geometry -- its own cut line
+  // draws in the same per-size color as the piece's own outer cut line.
+  it("draws an internal loop's own cut line in the size's own color", async () => {
+    const base = modelOf(20, 30);
+    const withLoop: ExportModel = {
+      ...base,
+      pieces: [
+        {
+          ...base.pieces[0],
+          internalLoops: [
+            {
+              outline: {
+                start: { x: 3, y: 3 },
+                segs: [
+                  { kind: "line", to: { x: 7, y: 3 } },
+                  { kind: "line", to: { x: 7, y: 7 } },
+                  { kind: "line", to: { x: 3, y: 7 } },
+                  { kind: "line", to: { x: 3, y: 3 } },
+                ],
+              },
+              cutOutline: {
+                start: { x: 4, y: 4 },
+                segs: [
+                  { kind: "line", to: { x: 6, y: 4 } },
+                  { kind: "line", to: { x: 6, y: 6 } },
+                  { kind: "line", to: { x: 4, y: 6 } },
+                  { kind: "line", to: { x: 4, y: 4 } },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    };
+    const baseBytes = await toPdfLayered([{ size: "M", model: base }], t);
+    const withLoopBytes = await toPdfLayered(
+      [{ size: "M", model: withLoop }],
+      t,
+    );
+    const baseCount = (inflatedContent(baseBytes).match(/0 0 0 RG/g) ?? [])
+      .length;
+    const withLoopCount = (
+      inflatedContent(withLoopBytes).match(/0 0 0 RG/g) ?? []
+    ).length;
+    // 4 more edges drawn in the base/first size's own color (plain ink).
+    expect(withLoopCount).toBe(baseCount + 4);
   });
 });

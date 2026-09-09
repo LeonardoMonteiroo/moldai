@@ -337,4 +337,62 @@ describe("toDxfAama", () => {
       });
     }
   });
+
+  // #243: an internal loop (hole) is a genuine cut boundary too -- it shares
+  // layers 1 (cut) and 14 (net) with the piece's own outer boundary, not
+  // layer 8 (internal, not cut).
+  describe("internal loops (#243)", () => {
+    const loopModel: ExportModel = {
+      ...squareModel,
+      pieces: [
+        {
+          ...squareModel.pieces[0],
+          internalLoops: [
+            {
+              outline: {
+                start: { x: 3, y: 3 },
+                segs: [
+                  { kind: "line", to: { x: 7, y: 3 } },
+                  { kind: "line", to: { x: 7, y: 7 } },
+                  { kind: "line", to: { x: 3, y: 7 } },
+                  { kind: "line", to: { x: 3, y: 3 } },
+                ],
+              },
+              cutOutline: {
+                start: { x: 4, y: 4 },
+                segs: [
+                  { kind: "line", to: { x: 6, y: 4 } },
+                  { kind: "line", to: { x: 6, y: 6 } },
+                  { kind: "line", to: { x: 4, y: 6 } },
+                  { kind: "line", to: { x: 4, y: 4 } },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    it("adds one more POLYLINE on layer 1 (cut) and one more on layer 14 (net)", () => {
+      const withLoop = toDxfAama(loopModel);
+      const withoutLoop = toDxfAama(squareModel);
+      expect(withLoop.match(/\nPOLYLINE\n8\n1\n/g)?.length).toBe(
+        (withoutLoop.match(/\nPOLYLINE\n8\n1\n/g)?.length ?? 0) + 1,
+      );
+      expect(withLoop.match(/\nPOLYLINE\n8\n14\n/g)?.length).toBe(
+        (withoutLoop.match(/\nPOLYLINE\n8\n14\n/g)?.length ?? 0) + 1,
+      );
+      // never lands on layer 8 -- that layer stays reserved for marks that
+      // are never actually cut (darts, their fold lines).
+      expect(withLoop.match(/\nPOLYLINE\n8\n8\n/g)).toBeNull();
+    });
+
+    it("omits the loop's own net polyline at zero seam allowance, same as the outer boundary", () => {
+      const flat: ExportModel = { ...loopModel, seamAllowanceCm: 0 };
+      const dxf = toDxfAama(flat);
+      // only the loop's own cut polyline remains on layer 1; no layer-14
+      // polyline for it (nor for the outer boundary) at 0cm allowance.
+      expect(dxf.match(/\nPOLYLINE\n8\n14\n/g)).toBeNull();
+    });
+  });
 });

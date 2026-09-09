@@ -63,6 +63,28 @@ export interface DraftedPiece {
   // (every piece today except that one); lib/proof3d/mesh.ts reads it
   // instead of computing a bbox-based center when present.
   centerXCm?: number;
+  // #243: zero or more internal loops (holes) inside this piece's own outer
+  // boundary -- a buttonhole, an eyelet, a lining vent, anything the
+  // simplified single-closed-outline `outlineCm` above cannot represent on
+  // its own (GarmentCode's own stated limitation). Each loop is its OWN
+  // closed `Pt[]` list in the same cm space as `outlineCm`, with its own
+  // optional `curvedSpans` (same [from,to] edge-index convention, scoped to
+  // the loop's own point list, not outlineCm's). Absent on every piece today
+  // (no drafter emits one yet) -- completely inert for curveArcLengthCm, the
+  // seam graph, and every other outer-boundary computation, which all read
+  // `outlineCm`/`curvedSpans` only and never look at this field.
+  // lib/export/offset.ts's `offsetOutlineCm` is what a loop's own cut line
+  // must be run through with `direction: "inward"` (a hole's seam allowance
+  // encroaches INTO the opening, the opposite of the outer boundary's own
+  // outward growth) -- see lib/export/model.ts's buildExportModel.
+  internalLoopsCm?: InternalLoopCm[];
+}
+
+// #243: one internal loop (hole) in a piece's own cm space -- see
+// DraftedPiece.internalLoopsCm above.
+export interface InternalLoopCm {
+  outlineCm: Pt[];
+  curvedSpans?: [number, number][];
 }
 
 // #124: depth is the only thing that tells the three NotchTypes apart --
@@ -663,6 +685,18 @@ function place(dp: DraftedPiece, dxPx: number, dyPx: number): Piece {
     }
   }
   if (internals.length) piece.internals = internals;
+  // #243: each internal loop's own outline, translated the same way the
+  // piece's own outer outline is above -- straight (polygon) when it has no
+  // curvedSpans of its own, Catmull-Rom/Bézier otherwise.
+  if (dp.internalLoopsCm?.length) {
+    piece.internalLoops = dp.internalLoopsCm.map((loop) => {
+      const loopSpans = loop.curvedSpans ?? [];
+      const loopOutline = loopSpans.length
+        ? outlinePath(loop.outlineCm, loopSpans)
+        : polyPath(loop.outlineCm);
+      return translateOutline(loopOutline, dxPx, dyPx);
+    });
+  }
   return piece;
 }
 

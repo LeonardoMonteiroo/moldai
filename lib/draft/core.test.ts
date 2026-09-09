@@ -11,6 +11,7 @@ import {
   pointAndTangentAtCm,
   notchAtArcLengthCm,
   NOTCH_DEPTH_CM,
+  PX,
   insertVertexAt,
   OutlineAnchors,
   WRAP,
@@ -239,6 +240,69 @@ describe("core drafting", () => {
     expect(dart.d).not.toMatch(/Z$/);
     // exactly 3 dart points -> 1 M + 2 L commands
     expect(dart.d.match(/[ML]/g)).toHaveLength(3);
+  });
+
+  // #243: a piece can carry one or more internal loops (holes) distinct from
+  // its own outer boundary -- place() translates each one the same way it
+  // translates the outer outline itself.
+  it("autoLayout translates an internal loop's own outline into the piece's placed px position", () => {
+    const withHole: DraftedPiece = {
+      ...rect("front", 20, 20),
+      internalLoopsCm: [
+        {
+          outlineCm: [
+            [5, 5],
+            [10, 5],
+            [10, 10],
+            [5, 10],
+          ],
+        },
+      ],
+    };
+    const { pieces } = autoLayout([withHole], 5);
+    const piece = pieces[0];
+    expect(piece.internalLoops).toHaveLength(1);
+    const loop = piece.internalLoops![0];
+    expect(loop.kind).toBe("polygon");
+    if (loop.kind !== "polygon") throw new Error("expected a polygon loop");
+    // translated by the same (dx,dy) as the outer outline -- both piece
+    // shapes share one placed frame.
+    const outerFirst = (piece.outline as { points: string }).points
+      .split(" ")[0]
+      .split(",")
+      .map(Number);
+    const [dx, dy] = [outerFirst[0] - PX(0), outerFirst[1] - PX(0)];
+    const [lx, ly] = loop.points.split(" ")[0].split(",").map(Number);
+    expect(lx).toBeCloseTo(PX(5) + dx, 1);
+    expect(ly).toBeCloseTo(PX(5) + dy, 1);
+  });
+
+  it("a piece with no internal loop carries no `internalLoops` at all", () => {
+    const { pieces } = autoLayout([rect("plain", 10, 10)], 5);
+    expect(pieces[0].internalLoops).toBeUndefined();
+  });
+
+  it("autoLayout curves an internal loop's own edges when it declares curvedSpans", () => {
+    const withCurvedHole: DraftedPiece = {
+      ...rect("front", 20, 20),
+      internalLoopsCm: [
+        {
+          outlineCm: [
+            [5, 5],
+            [10, 5],
+            [10, 10],
+            [5, 10],
+          ],
+          curvedSpans: [[0, 1]],
+        },
+      ],
+    };
+    const { pieces } = autoLayout([withCurvedHole], 5);
+    const loop = pieces[0].internalLoops![0];
+    expect(loop.kind).toBe("path");
+    if (loop.kind !== "path") throw new Error("expected a path loop");
+    expect(loop.d).toMatch(/C/);
+    expect(loop.d).toMatch(/Z$/);
   });
 
   it("autoLayout attaches vertices aligned to the outline's corners", () => {
