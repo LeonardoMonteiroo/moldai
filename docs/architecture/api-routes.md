@@ -19,6 +19,7 @@ All pattern-mutating routes live under `/api/patterns/[id]/*`, scoped to one pat
 - `POST /api/patterns/[id]/generate` — the core AI flow (see [`generation-flow.md`](generation-flow.md)). Debit-then-mutate; insufficient balance → **402, no debit, no AI call**.
 - `POST /api/patterns/[id]/graduate` — same shape. **Its precondition is `pieces.length === 0` → `pattern_not_drafted`, not the size list.**
 - `POST /api/patterns/[id]/conflict/resolve` — free, no debit (see [`seams-and-assembly.md`](seams-and-assembly.md)).
+- `PATCH /api/patterns/[id]/cut-plan` — free, no debit; writes `Pattern.cutQuantities` (the cut plan's per-size quantity map), re-validated against the pattern's own `baseSize`/`sizesApplied` by `validateCutQuantities` (see [`export.md`](export.md)).
 - `GET /api/patterns/[id]/versions` and `.../[versionId]/restore` — see [`screens.md`](screens.md).
 - `GET /api/account/summary` — account-level: `{credits, recentUsage}` backing the dashboard cards. Also `/api/account/ledger`, `PATCH /api/account/profile`, `POST /api/account/password`, `DELETE /api/account`, `POST /api/account/onboarding`, `GET`/`PUT /api/account/export-preset`.
 - `/api/size-charts/*` (including `[id]/activate` and `[id]/duplicate`) and `/api/slopers/*` — see their own files. `POST /api/slopers` alone can tell 404 from 400 (`invalid_name`, `pattern_not_drafted`, `pattern_has_conflict`).

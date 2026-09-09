@@ -15,11 +15,27 @@ export function validateName(name: unknown): string | null {
   return trimmed;
 }
 
+// \p{L} (any Unicode letter, "u" flag required), not [a-zA-Z]: this is a
+// pt-BR product, and "letras" in the catalog hint has to include accented
+// letters (á, ç, õ...) -- an ASCII-only class would reject a password like
+// "senha-válida1" as if it had no letters at all.
+const HAS_LETTER = /\p{L}/u;
+const HAS_DIGIT = /[0-9]/;
+
+// #238: length alone let "12345678" and "aaaaaaaa" through -- neither
+// resists a dictionary/brute-force attempt as well as a mixed password of
+// the same length. Requiring one letter AND one digit is the same rule the
+// design (Autenticacao.dc.html) always claimed but this validator never
+// enforced. Governs passwords being SET only (signup, reset confirm,
+// settings change) -- an existing account's older, weaker password still
+// authenticates; authorizeUser never calls this.
 export function validateNewPassword(password: unknown): password is string {
   return (
     typeof password === "string" &&
     password.length >= MIN_PASSWORD_LENGTH &&
-    password.length <= MAX_PASSWORD_LENGTH
+    password.length <= MAX_PASSWORD_LENGTH &&
+    HAS_LETTER.test(password) &&
+    HAS_DIGIT.test(password)
   );
 }
 

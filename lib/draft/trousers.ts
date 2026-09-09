@@ -150,6 +150,20 @@ function trouserPanel(
     { label: t("rows.seamAllowance"), value: cm(seamAllowanceCm) },
     { label: t("rows.rise"), value: cm(riseCm) },
     { label: t("rows.length"), value: cm(totalLengthCm) },
+    // #249: unlike skirtLengthCm (which now grades in the same ratio the
+    // chart's own skirtLength does -- see lib/draft/skirt.ts's
+    // gradedSkirtLengthCm), `trouserLengthCm` has no per-size measurement to
+    // grade against at all (no drafter-facing "leg length" field exists yet
+    // in lib/measurements.ts's Measurements -- see TROUSER_DEFAULT_LENGTH_CM's
+    // own doc above), so every graded size is drafted at this SAME length,
+    // on purpose. Restated here, on the piece itself, rather than left
+    // silently sharing #249's own bug shape with no acknowledgment --
+    // the same "surface the limitation where the user meets it" rule
+    // `rows.trouserOtherLegs` right below already follows.
+    {
+      label: t("rows.trouserLengthGrading"),
+      value: t("trouserLengthFixedNote"),
+    },
     { label: t("rows.waistPanel"), value: cm(waistQuarterRawCm * 2) },
     { label: t("rows.dart"), value: cm(dartHalfWidth * 2) },
     { label: t("rows.grain"), value: t("grainValue") },

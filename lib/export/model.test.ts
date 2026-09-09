@@ -206,6 +206,42 @@ describe("buildExportModel", () => {
     });
   });
 
+  // #249: an explicit style.skirtLengthCm used to freeze every graded size
+  // at one identical hem -- buildExportModel is the "graded layered PDF"
+  // money path #249's own issue reported (toPdfLayered redrafts one
+  // ExportModel per size). Fixed via lib/draft/skirt.ts's
+  // gradedSkirtLengthCm, threaded through here as buildExportModel's own
+  // `referenceMeasurements` (the pattern's frozen base-size row).
+  describe("skirt length grading across sizes (#249)", () => {
+    function skirtPattern(): Pattern {
+      const base = fakePattern();
+      return {
+        ...base,
+        sizeTable: { M: SIZE_TABLE.M, GG: SIZE_TABLE.GG },
+        sizes: ["M", "GG"],
+        sizesApplied: ["GG"],
+        spec: {
+          type: "skirt",
+          gender: "female",
+          measurementOverrides: {},
+          style: { skirt: "straight", skirtLengthCm: 70 },
+        },
+      };
+    }
+
+    it("redrafts a graded size's skirt hem in the same ratio the chart's own skirtLength grades, not identical to the base", () => {
+      const base = buildExportModel(skirtPattern(), t, "M");
+      const graded = buildExportModel(skirtPattern(), t, "GG");
+      const baseSkirt = base.pieces.find((p) => p.id === "skirt")!;
+      const gradedSkirt = graded.pieces.find((p) => p.id === "skirt")!;
+      expect(gradedSkirt.heightCm).not.toBeCloseTo(baseSkirt.heightCm, 1);
+      expect(gradedSkirt.heightCm / baseSkirt.heightCm).toBeCloseTo(
+        SIZE_TABLE.GG.skirtLength / SIZE_TABLE.M.skirtLength,
+        2,
+      );
+    });
+  });
+
   // #126: the fold edge, resolved from DraftedPiece.foldEdge through the same
   // local (bbox-shifted) coordinates as grainline/dart.
   describe("fold edge (#126)", () => {
