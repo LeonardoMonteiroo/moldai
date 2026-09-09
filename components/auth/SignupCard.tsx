@@ -17,6 +17,7 @@ import { signUp, resendVerification } from "@/lib/api-client";
 import {
   MIN_PASSWORD_LENGTH,
   MAX_PASSWORD_LENGTH,
+  validateNewPassword,
 } from "@/lib/account/settings";
 import { GoogleIcon } from "@/components/auth/GoogleIcon";
 
@@ -40,10 +41,14 @@ export default function SignupCard() {
   // the server never receives the confirm field.
   const mismatch =
     password.length > 0 && confirm.length > 0 && password !== confirm;
+  // #238: validateNewPassword is the server's own rule (length + letters +
+  // digits) -- gating on it here means a click can only ever fail server-side
+  // for a reason this form couldn't have caught (email_taken, rate_limited),
+  // never for the same weak_password the button should have already blocked.
   const canSubmit =
     name.trim().length > 0 &&
     email.length > 0 &&
-    password.length >= MIN_PASSWORD_LENGTH &&
+    validateNewPassword(password) &&
     password === confirm;
 
   async function onSubmit(e: React.FormEvent) {

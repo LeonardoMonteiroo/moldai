@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { renderWithIntl, screen, translatorFor } from "@/components/test-utils";
 import type { ConflictInfo } from "@/lib/types";
+import type { SeamMeasurement } from "@/lib/draft/garment";
 import { ConflictInfoCard } from "./ConflictInfoCard";
 
 // Resolves the catalog's own ICU strings (gapLabel is a select; valueCm
@@ -25,6 +26,35 @@ function conflict(overrides: Partial<ConflictInfo> = {}): ConflictInfo {
       { cx: 10, cy: 10, r: 14 },
       { cx: 50, cy: 50, r: 14 },
     ],
+    ...overrides,
+  };
+}
+
+// #253: SeamMeasurement gained aEdges/bEdges/subSegmentDiffCm/gatherRatio --
+// every fixture below only cares about the pre-#253 fields (key/labelKey/
+// pieceIds/lengths/diffCm/fixable/easeCm), so this factory fills the rest
+// with the "no sub-segment check, no ratio" defaults once, rather than each
+// call site repeating four fields it never actually exercises.
+function seamMeasurement(
+  overrides: Partial<SeamMeasurement> &
+    Pick<
+      SeamMeasurement,
+      | "key"
+      | "labelKey"
+      | "aPieceId"
+      | "bPieceId"
+      | "aLenCm"
+      | "bLenCm"
+      | "diffCm"
+      | "fixable"
+      | "easeCm"
+    >,
+): SeamMeasurement {
+  return {
+    aEdges: [],
+    bEdges: [],
+    subSegmentDiffCm: 0,
+    gatherRatio: 1,
     ...overrides,
   };
 }
@@ -153,7 +183,7 @@ describe("ConflictInfoCard with entries (#134)", () => {
       <ConflictInfoCard
         conflict={entryConflict(entries)}
         seamGraph={[
-          {
+          seamMeasurement({
             key: "armhole-cap",
             labelKey: "armholeCap",
             aPieceId: "body-front",
@@ -163,8 +193,8 @@ describe("ConflictInfoCard with entries (#134)", () => {
             diffCm: 3.1,
             fixable: true,
             easeCm: 2.5,
-          },
-          {
+          }),
+          seamMeasurement({
             key: "waist-join-front",
             labelKey: "waistJoinFront",
             aPieceId: "body-front",
@@ -174,7 +204,7 @@ describe("ConflictInfoCard with entries (#134)", () => {
             diffCm: 4.2,
             fixable: false,
             easeCm: 0,
-          },
+          }),
         ]}
       />,
     );
@@ -231,7 +261,7 @@ describe("ConflictInfoCard with entries (#134)", () => {
       <ConflictInfoCard
         conflict={entryConflict(entries, { title: "Cava e manga não batem" })}
         seamGraph={[
-          {
+          seamMeasurement({
             key: "armhole-cap",
             labelKey: "armholeCap",
             aPieceId: "body-front",
@@ -241,7 +271,7 @@ describe("ConflictInfoCard with entries (#134)", () => {
             diffCm: 3.1,
             fixable: true,
             easeCm: 2.5,
-          },
+          }),
         ]}
       />,
     );
@@ -268,7 +298,7 @@ describe("ConflictInfoCard with entries (#134)", () => {
       <ConflictInfoCard
         conflict={entryConflict(entries)}
         seamGraph={[
-          {
+          seamMeasurement({
             key: "armhole-cap",
             labelKey: "armholeCap",
             aPieceId: "body-front",
@@ -278,7 +308,7 @@ describe("ConflictInfoCard with entries (#134)", () => {
             diffCm: 1.5,
             fixable: true,
             easeCm: 2.5,
-          },
+          }),
         ]}
       />,
     );
@@ -311,6 +341,58 @@ describe("ConflictInfoCard with entries (#134)", () => {
     ).toBeInTheDocument();
     expect(
       screen.queryByText("Cintura · corpo (frente)"),
+    ).not.toBeInTheDocument();
+  });
+
+  // #241: a pair that closes at the base size still surfaces once it misses
+  // tolerance only at a graded size -- ConflictEntry.sizes names which.
+  it("names the affected sizes and falls back to the bare diff line, even when the base seamGraph has a (non-diverging) measurement for the key", () => {
+    const entries: ConflictInfo["entries"] = [
+      {
+        key: "armhole-cap",
+        label: "Cava e manga",
+        aLabel: "Cava · frente",
+        bLabel: "Cava · copa",
+        aPieceId: "body-front",
+        bPieceId: "sleeve",
+        diffCm: 1.1,
+        fixable: true,
+        markers: [],
+        sizes: ["GG-extremo"],
+      },
+    ];
+    renderWithIntl(
+      <ConflictInfoCard
+        conflict={entryConflict(entries, {
+          title: "A costura de Cava e manga não fecha em outros tamanhos",
+        })}
+        // The base size's own measurement -- doesn't diverge (a < 1cm gap),
+        // which is exactly why this entry is size-only in the first place.
+        seamGraph={[
+          seamMeasurement({
+            key: "armhole-cap",
+            labelKey: "armholeCap",
+            aPieceId: "body-front",
+            bPieceId: "sleeve",
+            aLenCm: 20.0,
+            bLenCm: 20.4,
+            diffCm: 0.4,
+            fixable: true,
+            easeCm: 2.5,
+          }),
+        ]}
+      />,
+    );
+    expect(
+      screen.getByText(t("entrySizesLabel", { sizes: "GG-extremo" })),
+    ).toBeInTheDocument();
+    // The bare diff line (the graded size's own real diffCm), not the base
+    // measurement's closing pair of lengths.
+    expect(
+      screen.getByText(t("entryDiffLabel", { diff: "1,1" })),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(t("valueCm", { value: "20,0" })),
     ).not.toBeInTheDocument();
   });
 });

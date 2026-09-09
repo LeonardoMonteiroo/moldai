@@ -188,27 +188,35 @@ type BenchmarkPiece = (typeof BENCHMARK_PIECES)[number];
 //   formula bug).
 // - SLEEVE_CAP_HEIGHT_TOLERANCE_PCT (sleeve heightCm, i.e. cap height +
 //   hem): one tier looser than panel height, since this figure is a
-//   compound of the cap curve AND the knit-ease/bicep formulas #282/#284
-//   (see below) is actively revising -- 20% is wide enough to hold today's
-//   known gap without being so wide it stops catching a materially larger
-//   regression.
+//   compound of the cap curve AND the knit-ease/bicep formulas.
 // - BACK_ARMHOLE_CURVE_TOLERANCE_PCT (back panel curvePerimeterCm, i.e.
 //   the armhole + neckline curve length): the loosest tier. docs/
 //   decisions/drafting.md's own analysis already names this delta's shape
 //   precisely -- "constant to 0.06cm across all four sizes... the
 //   signature of a fixed-length curve rather than a graded armhole error,
 //   and points at the back neckline" -- a known, separately-tracked root
-//   cause, not something this test can or should fix. 25% keeps the gate
-//   meaningfully tighter than a doubling of that known gap while not
-//   re-litigating the neckline fix itself.
+//   cause, not something this test can or should fix.
 //
-// IMPORTANT: #282/#284 (an open PR, not part of this change) changes
-// TSHIRT_BASE_EASE_CM, the ease constant the sleeve/back deltas above
-// measure against. Re-run `npx vitest run lib/draft/tshirtBenchmark.test.ts`
-// and re-check all three tolerances once that lands.
+// #282 landed since these were first chosen: TSHIRT_BASE_EASE_CM (a flat
+// cm figure solved backwards from this same benchmark, per docs/decisions/
+// drafting.md) is now TSHIRT_BASE_EASE_PCT = 18, a percentage of bust
+// converging from FreeSewing's own Teagan and the hand-drafting "loose
+// tee" band instead. A male-M tshirt now drafts a 118 cm finished bust,
+// not 155.9 cm -- correct per that same doc's "our drafter should read
+// FARTHER from the benchmark's contested widthCm, not closer" corollary,
+// but it also shrinks the armhole depth and cap height the sleeve/back
+// deltas measure against, widening both relative to the benchmark's own
+// (uncalibrated) figure. Re-derived against the real post-#282 deltas
+// (`comparison-report.md`, worst graded size in parens): back
+// curvePerimeterCm 31.4%-33.7% (P) and sleeve heightCm 28.3%-29.2% (GG).
+// Panel height is unaffected (bust ease has no bearing on panel height)
+// and stays comfortably inside its original 15%, so only these two moved.
+// Both keep ~19% headroom above today's worst size, same margin the
+// original picks held, and the same relative tiering (panel height <
+// sleeve cap height < back armhole curve) by corroboration confidence.
 const PANEL_HEIGHT_TOLERANCE_PCT = 0.15;
-const SLEEVE_CAP_HEIGHT_TOLERANCE_PCT = 0.2;
-const BACK_ARMHOLE_CURVE_TOLERANCE_PCT = 0.25;
+const SLEEVE_CAP_HEIGHT_TOLERANCE_PCT = 0.35;
+const BACK_ARMHOLE_CURVE_TOLERANCE_PCT = 0.4;
 
 function relativeDelta(ours: number, bench: number): number {
   return Math.abs(ours - bench) / bench;
@@ -331,12 +339,16 @@ beforeAll(() => {
     "comparable across engines; `rectilinearPerimeterCm`/`curvePerimeterCm`",
     "(how a curve/straight split is represented) and `widthCm`/`heightCm`",
     "(bounding-box orientation) are not -- see docs/decisions/drafting.md.",
-    "Our own drafter was fitted to this benchmark; freesewing's was not, so",
-    'an "ours is closer" reading of any curve/straight-split or bounding-box',
-    "number here is circular, not evidence of better fit -- but `areaCm2`",
-    "is a fair comparison, and freesewing's own tshirt panel comes out much",
-    "closer to the benchmark's real garment there (see docs/decisions/",
-    "drafting.md's own note on the ease this exposes in moldai's tshirt).",
+    "Before #282, this app's own tshirt ease constant was solved backwards",
+    "from this benchmark's own contested `widthCm` figure, which made an",
+    '"ours is closer" reading of `widthCm`/`perimeterCm`/`areaCm2` circular.',
+    "#282 replaced that calibration (see docs/decisions/drafting.md), so",
+    "those readings are no longer circular here -- but",
+    "`rectilinearPerimeterCm`/`curvePerimeterCm` and `widthCm`/`heightCm`",
+    "still aren't comparable across engines for the representation/",
+    "orientation reasons above, independent of calibration. `areaCm2` is the",
+    "fair comparison, and freesewing's own tshirt panel reads closer to the",
+    "benchmark's real garment there than moldai's now does.",
     "",
     "Note on `collarBand` rows: this app drafts the band as a horizontal strip",
     "(widthCm = strip length, heightCm = band height); the benchmark's own export",

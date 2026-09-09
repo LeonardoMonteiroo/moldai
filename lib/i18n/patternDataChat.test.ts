@@ -154,4 +154,36 @@ describe("PatternData", () => {
       );
     });
   });
+
+  // #241: a pair that closes at the base size but misses tolerance only at
+  // a graded size gets its own copy naming the affected size(s) -- never
+  // folded into conflict.description above, which describes the (here,
+  // non-diverging) base numbers.
+  describe("conflict.titleForSizeOnly / descriptionSizeOnly", () => {
+    it("names the label in the title", () => {
+      expect(t("conflict.titleForSizeOnly", { label: "Cava e manga" })).toBe(
+        "A costura de Cava e manga não fecha em outros tamanhos",
+      );
+    });
+
+    it("names the affected size(s) with a pt-BR comma in the diff", () => {
+      expect(
+        t("conflict.descriptionSizeOnly", {
+          diffCm: 1.1,
+          sizes: "GG-extremo",
+        }),
+      ).toBe(
+        "Fecha no tamanho-base, mas diverge 1,1 cm nos tamanhos GG-extremo.",
+      );
+    });
+
+    it("joins multiple affected sizes as a plain interpolated string", () => {
+      expect(
+        t("conflict.descriptionSizeOnly", {
+          diffCm: 1.1,
+          sizes: "PP, GG",
+        }),
+      ).toContain("PP, GG");
+    });
+  });
 });

@@ -188,6 +188,15 @@ export function buildExportModel(
   if (!spec) throw new Error("buildExportModel: pattern has no spec");
   const resolvedSize = pattern.sizeTable[size] ? size : pattern.baseSize;
   const baseMeasurements = pattern.sizeTable[resolvedSize];
+  // #249: the pattern's own frozen base-size row, so an explicit
+  // style.skirtLengthCm grades across sizes the same ratio the chart's own
+  // skirtLength already does instead of printing every graded size at one
+  // identical hem (lib/draft/core.ts's gradedSkirtLengthCm) -- this is the
+  // "graded layered PDF" money path #249 reported. Falls back to
+  // baseMeasurements itself (ratio 1, current behavior) if the pattern's own
+  // baseSize has somehow drifted out of its own sizeTable.
+  const referenceMeasurements =
+    pattern.sizeTable[pattern.baseSize] ?? baseMeasurements;
   // #267: the pattern's own FROZEN engine, never a fresh default -- see
   // lib/draft/easeReport.ts's identical comment.
   const drafted: DraftedPiece[] = draftPiecesCm(
@@ -195,6 +204,7 @@ export function buildExportModel(
     spec,
     baseMeasurements,
     t,
+    referenceMeasurements,
   );
   const allowanceCm = spec.style.seamAllowanceCm ?? 1;
 

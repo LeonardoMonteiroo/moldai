@@ -30,8 +30,23 @@ describe("resetPassword", () => {
     expect(r).toEqual({ ok: false, error: "weak_password" });
   });
 
-  it("accepts a password exactly at the 72-character cap", async () => {
-    const r = await resetPassword({ hash }, "a".repeat(72));
+  it("accepts a mixed password exactly at the 72-character cap", async () => {
+    const r = await resetPassword({ hash }, "a".repeat(71) + "1");
     expect(r.ok).toBe(true);
+  });
+
+  // #238: letters-only and digits-only new passwords are rejected here too --
+  // this is the same validateNewPassword shared with signup and settings.
+  it("rejects a letters-only password", async () => {
+    const r = await resetPassword({ hash }, "apenasletras");
+    expect(r).toEqual({ ok: false, error: "weak_password" });
+  });
+  it("rejects a digits-only password", async () => {
+    const r = await resetPassword({ hash }, "12345678");
+    expect(r).toEqual({ ok: false, error: "weak_password" });
+  });
+  it("accepts a valid mixed password", async () => {
+    const r = await resetPassword({ hash }, "senha-forte1");
+    expect(r).toEqual({ ok: true, newHash: "HASHED(senha-forte1)" });
   });
 });

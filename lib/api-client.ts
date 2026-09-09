@@ -254,6 +254,15 @@ export async function deletePattern(patternId: string): Promise<void> {
   await sendJson(`/api/patterns/${patternId}`, "DELETE");
 }
 
+export async function updateCutQuantities(
+  patternId: string,
+  cutQuantities: Record<string, number>,
+): Promise<void> {
+  await sendJson(`/api/patterns/${patternId}/cut-plan`, "PATCH", {
+    cutQuantities,
+  });
+}
+
 export function listVersions(
   patternId: string,
 ): Promise<PatternVersionEntry[]> {

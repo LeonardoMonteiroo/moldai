@@ -9,9 +9,12 @@ import {
   notchAtArcLengthCm,
   notchAtVertex,
   NotchCm,
+  OutlineAnchors,
   Pt,
+  WRAP,
 } from "./core";
 import { wearingEaseCm } from "./ease";
+import { pitchNotchDistanceCm } from "./seams";
 import { formatCm } from "@/lib/format";
 import type { Translate } from "@/lib/i18n/translate";
 import {
@@ -64,6 +67,18 @@ function bodice(
   id: string,
   name: string,
   frontish: boolean,
+  // #253: when supplied, these REPLACE this panel's own independently-
+  // computed pitch-notch distance -- draftBody below drafts each panel
+  // TWICE, first without an override (purely to learn each side's own
+  // armhole edge length), then again with the PAIR's own shared distance
+  // (lib/draft/seams.ts's pitchNotchDistanceCm, off front+back's combined
+  // total) so both panels' notches -- and the sleeve cap's, in sleeve.ts --
+  // are "generated as pairs from the same computation" (#124) even when a
+  // real backWidth divergence makes front's and back's own armhole lengths
+  // genuinely unequal. Absent (the first pass) falls back to this panel's
+  // OWN length, which only ever feeds a value that's discarded.
+  pitchNotchOverrideCm?: number,
+  basePitchNotchOverrideCm?: number,
 ): {
   piece: DraftedPiece;
   armholeEdgeLenCm: number;
@@ -198,26 +213,31 @@ function bodice(
   const pts: Pt[] = [];
   const spans: [number, number][] = [];
   const push = (p: Pt) => (pts.push(p), pts.length - 1);
+  // #251: named handles onto the vertices this panel's own seamEdges
+  // reference -- see core.ts's OutlineAnchors doc for why a NAME survives
+  // where the raw indices below (still used directly for spans/notches,
+  // unchanged) would go stale the moment a vertex is inserted between them.
+  const anchors = new OutlineAnchors();
 
-  const cf = push([cx, neckDrop]); // neckline center
+  const cf = anchors.set("cf", push([cx, neckDrop])); // neckline center
   push([cx - neckHalf * 0.6, neckDrop * 0.55]); // left neckline ctrl
-  const hpsL = push([cx - neckHalf, shoulderNeckDropCm]); // left HPS
+  const hpsL = anchors.set("hpsL", push([cx - neckHalf, shoulderNeckDropCm])); // left HPS
   spans.push([cf, hpsL]); // left neckline (curved)
-  const shL = push([cx - shoulderHalf, shoulderSlope]); // left shoulder (straight hpsL->shL)
+  const shL = anchors.set("shL", push([cx - shoulderHalf, shoulderSlope])); // left shoulder (straight hpsL->shL)
   push([cx - armCtrlX, midArmY]); // left armhole ctrl
-  const uaL = push([cx - halfChest, armholeDepth]); // left underarm
+  const uaL = anchors.set("uaL", push([cx - halfChest, armholeDepth])); // left underarm
   spans.push([shL, uaL]); // left armhole (curved)
   // #79: for a dress, waistY === len (the hem IS the waist seam) -- pushing
   // both would land two extra vertices exactly on top of the hem's own,
   // retracing that edge and leaving the boundary non-simple.
   if (fitted && !isDressHem) push([cx - waistHalf, waistY]); // left waist
-  const hemL = push([cx - hemHalf, len]); // left hem
+  const hemL = anchors.set("hemL", push([cx - hemHalf, len])); // left hem
   // #126: exactly on the straight hem edge (collinear with left/right hem,
   // same y) -- subdivides that edge into two collinear segments rather than
   // changing the piece's rendered shape, giving the fold line's bottom
   // endpoint a real vertex to reference. The top endpoint is `cf`, the
   // neckline-center point already pushed at index 0.
-  const hemCenter = push([cx, len]); // hem center (fold bottom)
+  const hemCenter = anchors.set("hemCenter", push([cx, len])); // hem center (fold bottom)
 
   // #223: a front-closure half-panel stops here -- the polygon closes
   // directly from hemCenter back to cf (index 0), which IS the vertical
@@ -229,13 +249,13 @@ function bodice(
   let shR: number | undefined;
   let hpsR: number | undefined;
   if (!frontClosure) {
-    hemR = push([cx + hemHalf, len]); // right hem (straight = hem)
+    hemR = anchors.set("hemR", push([cx + hemHalf, len])); // right hem (straight = hem)
     if (fitted && !isDressHem) push([cx + waistHalf, waistY]); // right waist
-    uaR = push([cx + halfChest, armholeDepth]); // right underarm
+    uaR = anchors.set("uaR", push([cx + halfChest, armholeDepth])); // right underarm
     push([cx + armCtrlX, midArmY]); // right armhole ctrl
-    shR = push([cx + shoulderHalf, shoulderSlope]); // right shoulder
+    shR = anchors.set("shR", push([cx + shoulderHalf, shoulderSlope])); // right shoulder
     spans.push([uaR, shR]); // right armhole (curved)
-    hpsR = push([cx + neckHalf, shoulderNeckDropCm]); // right HPS (straight shR->hpsR)
+    hpsR = anchors.set("hpsR", push([cx + neckHalf, shoulderNeckDropCm])); // right HPS (straight shR->hpsR)
     push([cx + neckHalf * 0.6, neckDrop * 0.55]); // right neckline ctrl
     spans.push([hpsR, pts.length]); // right neckline + closing (curved)
   }
@@ -262,22 +282,24 @@ function bodice(
     2,
   );
 
-  // #124: pitch notches sit a fixed rise above the underarm on both the
+  // #124/#253: pitch notches sit a fixed rise above the underarm on both the
   // front/back armhole curves and the sleeve cap (single = front, double =
-  // back, the standard pattern-making convention) -- clamped so a very
-  // short armhole never places one past its own shoulder point. Both
-  // pitchNotchCm (off the actual, possibly-deepened curve) and
-  // basePitchNotchCm (off the un-deepened one) are exposed so garment.ts
-  // can hand the sleeve whichever one matches the armhole IT was actually
-  // drafted against (refit or not) -- the same actual/base choice it
-  // already makes for sleeveArmhole, keeping the two "generated as pairs
-  // from the same computation" per #124's acceptance criteria.
-  const PITCH_NOTCH_RISE_CM = 8;
-  const pitchNotchCm = Math.min(PITCH_NOTCH_RISE_CM, armholeEdgeLenCm * 0.7);
-  const basePitchNotchCm = Math.min(
-    PITCH_NOTCH_RISE_CM,
-    armholeEdgeBaseLenCm * 0.7,
-  );
+  // back, the standard pattern-making convention). Both pitchNotchCm (off
+  // the actual, possibly-deepened curve) and basePitchNotchCm (off the
+  // un-deepened one) are exposed so garment.ts can hand the sleeve whichever
+  // one matches the armhole IT was actually drafted against (refit or not)
+  // -- the same actual/base choice it already makes for sleeveArmhole,
+  // keeping the two "generated as pairs from the same computation" per
+  // #124's acceptance criteria. #253: when draftBody supplies an override
+  // (the pair's own shared distance, off front+back's COMBINED total -- see
+  // lib/draft/seams.ts's pitchNotchDistanceCm), that value is used verbatim
+  // instead of this panel independently clamping to a fraction of its own
+  // single-side length -- the fallback below only ever feeds draftBody's own
+  // first (discarded-notch) pass.
+  const pitchNotchCm =
+    pitchNotchOverrideCm ?? pitchNotchDistanceCm(armholeEdgeLenCm);
+  const basePitchNotchCm =
+    basePitchNotchOverrideCm ?? pitchNotchDistanceCm(armholeEdgeBaseLenCm);
 
   const detailRows: DetailRow[] = [
     { label: t("rows.seamAllowance"), value: cm(seamAllowanceCm) },
@@ -507,21 +529,27 @@ function bodice(
   // index pair the neckline curvedSpans above already use. garment.ts sums
   // both, off front AND back, into the total arc a collar's own neckline
   // seam is sized from.
+  // #251: built from `anchors` by NAME rather than by picking among raw
+  // indices with a hand-written ternary/`pts.length` sentinel -- the
+  // frontClosure branch used to re-derive `hem`/`centerFront`/
+  // `necklineRight` that way; OutlineAnchors.edge() centralizes the
+  // "wraps to vertex 0" convention (the `WRAP` sentinel) and throws on a
+  // typo'd name instead of trusting a `hemR!`/`hpsR!` non-null assertion.
   const seamEdges: Record<string, [number, number]> = {
-    shoulder: [hpsL, shL],
-    side: [uaL, hemL],
-    armhole: [shL, uaL],
+    shoulder: anchors.edge("hpsL", "shL", pts.length),
+    side: anchors.edge("uaL", "hemL", pts.length),
+    armhole: anchors.edge("shL", "uaL", pts.length),
     // #223: a front-closure half-panel's own hem edge is only [hemL,
     // hemCenter] (half the width) -- there is no hemR to name.
-    hem: [hemL, frontClosure ? hemCenter : hemR!],
-    necklineLeft: [cf, hpsL],
+    hem: anchors.edge("hemL", frontClosure ? "hemCenter" : "hemR", pts.length),
+    necklineLeft: anchors.edge("cf", "hpsL", pts.length),
   };
   if (frontClosure) {
     // #223: the polygon's own closing edge (hemCenter wraps back to cf,
     // index 0) -- the new center-front boundary, the button stand's mate.
-    seamEdges.centerFront = [hemCenter, pts.length];
+    seamEdges.centerFront = anchors.edge("hemCenter", WRAP, pts.length);
   } else {
-    seamEdges.necklineRight = [hpsR!, pts.length];
+    seamEdges.necklineRight = anchors.edge("hpsR", WRAP, pts.length);
   }
 
   return {
@@ -560,7 +588,16 @@ export function draftBody(
   t: Translate,
   opts: BlockOpts = defaultOpts(m),
 ) {
-  const f = bodice(
+  // #253: first (discarded-notch) pass -- armholeEdgeLenCm/
+  // armholeEdgeBaseLenCm don't depend on the pitch-notch distance at all
+  // (only where a notch lands on an already-fixed curve does), so this pass
+  // exists purely to learn each panel's OWN armhole edge length before the
+  // PAIR's shared distance can be computed. A chart whose backWidth
+  // genuinely differs from the shoulder/underarm interpolation (a real
+  // narrower/wider back) drafts a back armhole a different length than the
+  // front's -- this is exactly the case the shared distance below has to
+  // stay correct for.
+  const f0 = bodice(
     m,
     style,
     opts,
@@ -569,7 +606,51 @@ export function draftBody(
     t("pieceNames.front"),
     true,
   );
-  const c = bodice(m, style, opts, t, "body-back", t("pieceNames.back"), false);
+  const c0 = bodice(
+    m,
+    style,
+    opts,
+    t,
+    "body-back",
+    t("pieceNames.back"),
+    false,
+  );
+  // #253: ONE pitch-notch distance for the whole pair, off front+back's own
+  // COMBINED total -- not each side independently clamping to a fraction of
+  // its own single-side length (the two-independent-clamps bug this issue
+  // closes: 0.7-of-one-side in this file, 0.35-of-the-cap's-own-arc in
+  // sleeve.ts, consistent only when front and back happen to be equal).
+  // See lib/draft/seams.ts's pitchNotchDistanceCm.
+  const pitchNotchCm = pitchNotchDistanceCm(
+    f0.armholeEdgeLenCm + c0.armholeEdgeLenCm,
+  );
+  const basePitchNotchCm = pitchNotchDistanceCm(
+    f0.armholeEdgeBaseLenCm + c0.armholeEdgeBaseLenCm,
+  );
+  // Second pass, with the shared distance now known -- this is the one
+  // whose pieces/notches are actually returned.
+  const f = bodice(
+    m,
+    style,
+    opts,
+    t,
+    "body-front",
+    t("pieceNames.front"),
+    true,
+    pitchNotchCm,
+    basePitchNotchCm,
+  );
+  const c = bodice(
+    m,
+    style,
+    opts,
+    t,
+    "body-back",
+    t("pieceNames.back"),
+    false,
+    pitchNotchCm,
+    basePitchNotchCm,
+  );
   // The full armhole circumference is the front edge plus the back edge —
   // #139: a single edge had been published and consumed by the sleeve as if
   // it were the whole armhole, drafting every sleeve at roughly half size.
@@ -582,28 +663,18 @@ export function draftBody(
     // `frontish`), so either's value is the garment's actual bust
     // quarter-width; total bust girth is 4× this.
     halfChestCm: f.halfChestCm,
-    // #124: front and back draft an identical armhole curve (only the
-    // neckline differs by `frontish`), so f.pitchNotchCm === c.pitchNotchCm
-    // by construction -- either's value is the garment's one pitch-notch
-    // distance, which garment.ts hands to draftSleeve unchanged.
-    //
-    // #132: that construction assumes front and back draft an identical
-    // armCtrlX, which is no longer forced -- a chart whose backWidth
-    // genuinely differs from the shoulder/underarm interpolation (a real
-    // narrower/wider back, the whole point of the field) drafts a back
-    // armhole a different length than the front's, so f.pitchNotchCm and
-    // c.pitchNotchCm can now legitimately diverge (halfChest/the underarm
-    // itself is untouched -- see bodice()'s own note -- so this is strictly
-    // narrower than an earlier version of this comment described). Each
-    // panel already places its OWN notch from its OWN local pitch distance
-    // (computed inside bodice(), not from this return value), so that stays
-    // correct either way; what's no longer exact is the sleeve's
-    // single/double notch, which still shares ONE distance (garment.ts
-    // hands it whichever of f/c matches the armhole the cap was actually
-    // drafted against) for both sides. A sleeve notch a few millimetres off
-    // a diverged back's own notch is a labelled-cosmetic precision gap, not
-    // a fit defect -- the seams it marks still sew together at the lengths
-    // seamCheck actually verifies.
+    // #253: front and back are now handed the exact SAME pitchNotchCm/
+    // basePitchNotchCm above (not each independently re-deriving one from
+    // its own length), so f.pitchNotchCm === c.pitchNotchCm by construction
+    // -- literally the same number, not merely "equal because the formulas
+    // happen to agree" -- regardless of a real backWidth divergence between
+    // the two panels' own armhole lengths. This is what removes the
+    // "sleeve notch a few millimetres off a diverged back's own notch"
+    // precision gap #132 introduced: the sleeve's own single/double notch
+    // (sleeve.ts, unchanged distance-taking logic) now truly matches both
+    // panels' notches, generated as a triple "from the same computation"
+    // (#124), not a pair of independent guesses that happened to agree in
+    // the common case.
     pitchNotchCm: f.pitchNotchCm,
     basePitchNotchCm: f.basePitchNotchCm,
   };
