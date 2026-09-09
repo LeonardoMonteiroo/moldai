@@ -119,6 +119,23 @@ describe("toPlt", () => {
     expect(PLT_PENS.drillHole).not.toBe(PLT_PENS.notch);
   });
 
+  // #244: a pleat's own placement/stitch line draws on the dart's own pen --
+  // both are internal construction marks.
+  it("draws a pleat's placement line on the dart pen", () => {
+    const pat = patternFor({
+      type: "skirt",
+      gender: "female",
+      measurementOverrides: {},
+      style: { skirt: "straight", pleats: "box" },
+    });
+    const model = buildExportModel(pat, t);
+    const skirt = model.pieces.find((p) => p.id === "skirt")!;
+    expect(skirt.pleats?.length).toBeGreaterThan(0);
+    const out = toPlt(model);
+    const dartPenIdx = out.indexOf(`SP${PLT_PENS.dart};`);
+    expect(dartPenIdx).toBeGreaterThanOrEqual(0);
+  });
+
   it("piece name label is present (LB) and quantity annotated", () => {
     const pat = patternFor({
       type: "tshirt",
@@ -154,5 +171,60 @@ describe("toPlt", () => {
       expect(Math.abs(gotXcm - expectedXcm)).toBeLessThanOrEqual(0.02);
       expect(Math.abs(gotYcm - expectedYcm)).toBeLessThanOrEqual(0.02);
     }
+  });
+
+  // #243: an internal loop (hole) is a genuine cut boundary too -- the same
+  // two pens (cut/net) as the piece's own outer boundary, one more emission
+  // of each per loop.
+  it("an internal loop adds one more cut-pen and one more net-pen polyline", () => {
+    const pat = patternFor({
+      type: "tshirt",
+      gender: "male",
+      measurementOverrides: {},
+      style: {},
+    });
+    const base = buildExportModel(pat, t);
+    const cutSelections = (s: string) =>
+      (s.match(new RegExp(`SP${PLT_PENS.cut};`, "g")) ?? []).length;
+    const netSelections = (s: string) =>
+      (s.match(new RegExp(`SP${PLT_PENS.net};`, "g")) ?? []).length;
+
+    const withLoop = {
+      ...base,
+      pieces: base.pieces.map((p, i) =>
+        i === 0
+          ? {
+              ...p,
+              internalLoops: [
+                {
+                  outline: {
+                    start: { x: 3, y: 3 },
+                    segs: [
+                      { kind: "line" as const, to: { x: 7, y: 3 } },
+                      { kind: "line" as const, to: { x: 7, y: 7 } },
+                      { kind: "line" as const, to: { x: 3, y: 7 } },
+                      { kind: "line" as const, to: { x: 3, y: 3 } },
+                    ],
+                  },
+                  cutOutline: {
+                    start: { x: 4, y: 4 },
+                    segs: [
+                      { kind: "line" as const, to: { x: 6, y: 4 } },
+                      { kind: "line" as const, to: { x: 6, y: 6 } },
+                      { kind: "line" as const, to: { x: 4, y: 6 } },
+                      { kind: "line" as const, to: { x: 4, y: 4 } },
+                    ],
+                  },
+                },
+              ],
+            }
+          : p,
+      ),
+    };
+
+    const baseOut = toPlt(base);
+    const withLoopOut = toPlt(withLoop);
+    expect(cutSelections(withLoopOut)).toBe(cutSelections(baseOut) + 1);
+    expect(netSelections(withLoopOut)).toBe(netSelections(baseOut) + 1);
   });
 });

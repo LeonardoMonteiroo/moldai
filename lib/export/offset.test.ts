@@ -120,4 +120,70 @@ describe("offsetOutlineCm", () => {
     const exact = 2 * d * (10 + 10) + 4 * d * d;
     expect(grown).toBeCloseTo(exact, 6);
   });
+
+  // #243: an internal loop (hole) must offset the OPPOSITE way from the
+  // outer boundary above -- its cut line has to SHRINK the opening (the
+  // extra seam-allowance fabric folds under, into the hole), not grow it.
+  describe("direction: 'inward' (#243, an internal loop/hole)", () => {
+    it("shrinks a square hole by exactly d on every side, the mirror of the outward case", () => {
+      const out = offsetOutlineCm(
+        SQUARE,
+        [],
+        undefined,
+        1,
+        undefined,
+        "inward",
+      );
+      const xs = out.map((p) => p.x);
+      const ys = out.map((p) => p.y);
+      expect(Math.min(...xs)).toBeCloseTo(1, 6);
+      expect(Math.max(...xs)).toBeCloseTo(9, 6);
+      expect(Math.min(...ys)).toBeCloseTo(1, 6);
+      expect(Math.max(...ys)).toBeCloseTo(9, 6);
+      expect(shoelaceArea(out)).toBeCloseTo(64, 3); // an 8x8 square
+    });
+
+    it("a zero distance returns the outline unchanged regardless of direction", () => {
+      const out = offsetOutlineCm(
+        SQUARE,
+        [],
+        undefined,
+        0,
+        undefined,
+        "inward",
+      );
+      for (let i = 0; i < SQUARE.length; i++) {
+        expect(out[i].x).toBeCloseTo(SQUARE[i][0], 6);
+        expect(out[i].y).toBeCloseTo(SQUARE[i][1], 6);
+      }
+    });
+
+    it("the exact rectangle identity mirrors the outward one -- area SHRINKS by 2d(w+h) - 4d^2", () => {
+      const d = 1.2;
+      const out = offsetOutlineCm(
+        SQUARE,
+        [],
+        undefined,
+        d,
+        undefined,
+        "inward",
+      );
+      const shrunk = 100 - shoelaceArea(out); // SQUARE is 10x10 = 100
+      const exact = 2 * d * (10 + 10) - 4 * d * d;
+      expect(shrunk).toBeCloseTo(exact, 6);
+    });
+
+    it("'outward' and 'inward' pick the two DIFFERENT real candidates, never the same one", () => {
+      const grown = offsetOutlineCm(SQUARE, [], undefined, 1);
+      const shrunk = offsetOutlineCm(
+        SQUARE,
+        [],
+        undefined,
+        1,
+        undefined,
+        "inward",
+      );
+      expect(shoelaceArea(grown)).toBeGreaterThan(shoelaceArea(shrunk));
+    });
+  });
 });

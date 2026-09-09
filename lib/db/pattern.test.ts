@@ -92,6 +92,7 @@ import {
   countPatternsForUser,
   countPatternsCreatedSince,
   renamePattern,
+  updatePatternCutQuantities,
   deletePattern,
   patternNotFound,
   savePattern,
@@ -209,6 +210,12 @@ describe("withPattern", () => {
     // exporter tells an AI turn's actual decision apart from its prose.
     { key: "decision" as const, value: "apply" as const },
     { key: "draftVersion" as const, value: 2 },
+    // #257: same trap, same fix -- changedFields is diffSpec's own output,
+    // the collateral-change detector this issue adds. THIS EXACT BUG
+    // (an additive ChatMessage field unnamed in ChatMessageSchema, silently
+    // stripped on the very next mutating turn) already independently bit
+    // four sibling units in this batch before this one.
+    { key: "changedFields" as const, value: ["style.collar"] },
   ];
 
   for (const { key, value } of FLAG_CASES) {
@@ -237,7 +244,11 @@ describe("withPattern", () => {
       };
       const persisted = saved.chat.find((m) => m.id === "c1");
       expect(persisted).toBeDefined();
-      expect(persisted![key]).toBe(value);
+      // #257: toEqual, not toBe -- changedFields is an array, and a JSON
+      // round trip never preserves reference identity (only value equality)
+      // even though every other flag here is a primitive, which toEqual
+      // checks identically to toBe.
+      expect(persisted![key]).toEqual(value);
     });
   }
 
@@ -253,6 +264,9 @@ describe("withPattern", () => {
     { key: "waistband" as const, value: "straight" as const },
     { key: "frontClosure" as const, value: "buttonStand" as const },
     { key: "trouserLengthCm" as const, value: 95 },
+    // #244: pleats found missing here too, before merge -- same class as
+    // the five above, caught in review this time.
+    { key: "pleats" as const, value: "box" as const },
   ];
 
   for (const { key, value } of STYLE_FLAG_CASES) {
@@ -300,6 +314,28 @@ describe("withPattern", () => {
       pattern: { engine?: string };
     };
     expect(saved.pattern.engine).toBe("moldai");
+  });
+
+  // #280: same trap as pattern.engine above -- cutQuantities must be named
+  // in PatternSchema or it is stripped on the very next mutating turn.
+  it("keeps pattern.cutQuantities across a read-modify-write round trip", async () => {
+    const seeded = seedPatternState(t);
+    seeded.pattern = { ...seeded.pattern, cutQuantities: { M: 2, G: 1 } };
+    rows = [
+      {
+        id: "m1",
+        userId: "u1",
+        data: JSON.parse(JSON.stringify(seeded)),
+        updatedAt: new Date(),
+      },
+    ];
+
+    await withPattern("m1", "u1", (state) => bumpVersion(state));
+
+    const saved = rows.find((r) => r.id === "m1")!.data as {
+      pattern: { cutQuantities?: Record<string, number> };
+    };
+    expect(saved.pattern.cutQuantities).toEqual({ M: 2, G: 1 });
   });
 
   // #72: every current caller only reaches savePattern after lockPattern has
@@ -594,6 +630,42 @@ describe("renamePattern", () => {
     expect((row.data as { pattern: { name: string } }).pattern.name).toBe(
       "newPatternName",
     );
+  });
+});
+
+describe("updatePatternCutQuantities", () => {
+  beforeEach(() => {
+    rows = [
+      {
+        id: "m1",
+        userId: "u1",
+        data: seedPatternState(t),
+        updatedAt: new Date(),
+      },
+    ];
+    tx.$queryRaw.mockReset();
+    tx.$executeRaw.mockReset();
+    wireTx();
+  });
+
+  it("writes cutQuantities when owned by the user and returns true", async () => {
+    const ok = await updatePatternCutQuantities("m1", "u1", { M: 2, G: 1 });
+    expect(ok).toBe(true);
+    const row = rows.find((r) => r.id === "m1")!;
+    expect(
+      (row.data as { pattern: { cutQuantities?: Record<string, number> } })
+        .pattern.cutQuantities,
+    ).toEqual({ M: 2, G: 1 });
+  });
+
+  it("returns false and does not write when owned by someone else", async () => {
+    const ok = await updatePatternCutQuantities("m1", "u2", { M: 5 });
+    expect(ok).toBe(false);
+    const row = rows.find((r) => r.id === "m1")!;
+    expect(
+      (row.data as { pattern: { cutQuantities?: Record<string, number> } })
+        .pattern.cutQuantities,
+    ).toBeUndefined();
   });
 });
 

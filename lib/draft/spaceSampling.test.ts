@@ -144,6 +144,9 @@ function sampleStyle(rng: () => number, type: GarmentType): GarmentStyle {
       case "trouserLengthCm":
         style.trouserLengthCm = randRange(rng, STYLE_LIMITS.trouserLengthCm);
         break;
+      case "pleats":
+        style.pleats = pickFrom(rng, enums.pleats);
+        break;
       default: {
         // Exhaustiveness guard: CapabilityStyleField gains a member only
         // when GarmentStyle itself does, and this switch must be extended

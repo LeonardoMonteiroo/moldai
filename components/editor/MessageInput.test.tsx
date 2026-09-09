@@ -4,6 +4,7 @@ import {
   ptBR,
   screen,
   userEvent,
+  waitFor,
   translatorFor,
 } from "@/components/test-utils";
 import { MessageInput } from "./MessageInput";
@@ -17,6 +18,14 @@ vi.mock("@/lib/types", async (importOriginal) => {
   return { ...actual, COSTS: { ...actual.COSTS } };
 });
 
+vi.mock("@/lib/editor/attachment", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@/lib/editor/attachment")>();
+  return { ...actual, prepareImage: vi.fn() };
+});
+import { prepareImage } from "@/lib/editor/attachment";
+const mockPrepare = prepareImage as unknown as ReturnType<typeof vi.fn>;
+
 describe("MessageInput", () => {
   // The app's primary interaction is describing a garment; a single-line
   // <input> scrolled a long description sideways with no way to see it.
@@ -24,8 +33,8 @@ describe("MessageInput", () => {
     renderWithIntl(
       <MessageInput
         disabled={false}
-        attachment={null}
-        onAttachmentChange={() => {}}
+        attachments={[]}
+        onAttachmentsChange={() => {}}
         onSend={vi.fn()}
       />,
     );
@@ -39,8 +48,8 @@ describe("MessageInput", () => {
     renderWithIntl(
       <MessageInput
         disabled={false}
-        attachment={null}
-        onAttachmentChange={() => {}}
+        attachments={[]}
+        onAttachmentsChange={() => {}}
         onSend={onSend}
       />,
     );
@@ -57,8 +66,8 @@ describe("MessageInput", () => {
     renderWithIntl(
       <MessageInput
         disabled={false}
-        attachment={null}
-        onAttachmentChange={() => {}}
+        attachments={[]}
+        onAttachmentsChange={() => {}}
         onSend={onSend}
       />,
     );
@@ -75,8 +84,8 @@ describe("MessageInput", () => {
     renderWithIntl(
       <MessageInput
         disabled={false}
-        attachment={null}
-        onAttachmentChange={() => {}}
+        attachments={[]}
+        onAttachmentsChange={() => {}}
         onSend={onSend}
       />,
     );
@@ -94,8 +103,8 @@ describe("MessageInput", () => {
     renderWithIntl(
       <MessageInput
         disabled={false}
-        attachment={null}
-        onAttachmentChange={() => {}}
+        attachments={[]}
+        onAttachmentsChange={() => {}}
         onSend={onSend}
       />,
     );
@@ -116,8 +125,8 @@ describe("MessageInput", () => {
     renderWithIntl(
       <MessageInput
         disabled={false}
-        attachment={null}
-        onAttachmentChange={() => {}}
+        attachments={[]}
+        onAttachmentsChange={() => {}}
         onSend={vi.fn()}
       />,
     );
@@ -131,8 +140,8 @@ describe("MessageInput", () => {
     renderWithIntl(
       <MessageInput
         disabled
-        attachment={null}
-        onAttachmentChange={() => {}}
+        attachments={[]}
+        onAttachmentsChange={() => {}}
         onSend={onSend}
       />,
     );
@@ -141,6 +150,42 @@ describe("MessageInput", () => {
     expect(field).toBeDisabled();
     await userEvent.type(field, "uma blusa{Enter}");
     expect(onSend).not.toHaveBeenCalled();
+  });
+
+  // #274: a picked image is genuinely async to prepare (prepareImage decodes
+  // on a real canvas). Enter/Gerar firing before that resolves used to send
+  // the message with the attachment silently missing, and the pick's own
+  // completion then attached it to whatever was sent NEXT instead.
+  it("blocks Enter while a just-picked attachment is still preparing", async () => {
+    let resolvePrepare!: (value: {
+      mediaType: "image/jpeg";
+      base64: string;
+    }) => void;
+    mockPrepare.mockReturnValue(
+      new Promise((resolve) => {
+        resolvePrepare = resolve;
+      }),
+    );
+    const onSend = vi.fn();
+    const { container } = renderWithIntl(
+      <MessageInput
+        disabled={false}
+        attachments={[]}
+        onAttachmentsChange={() => {}}
+        onSend={onSend}
+      />,
+    );
+    const [photoInput] = container.querySelectorAll('input[type="file"]');
+    const file = new File(["x"], "foto.jpg", { type: "image/jpeg" });
+    await userEvent.upload(photoInput as HTMLInputElement, file);
+
+    const field = screen.getByPlaceholderText(ptBR.MessageInput.placeholder);
+    await userEvent.type(field, "uma blusa{Enter}");
+    expect(onSend).not.toHaveBeenCalled();
+    expect(field).toBeDisabled();
+
+    resolvePrepare({ mediaType: "image/jpeg", base64: "abc" });
+    await waitFor(() => expect(field).toBeEnabled());
   });
 
   // #106: "{cost} crédito" was hardcoded singular -- it read "2 crédito" (or
@@ -158,8 +203,8 @@ describe("MessageInput", () => {
         const { unmount } = renderWithIntl(
           <MessageInput
             disabled={false}
-            attachment={null}
-            onAttachmentChange={() => {}}
+            attachments={[]}
+            onAttachmentsChange={() => {}}
             onSend={vi.fn()}
           />,
         );

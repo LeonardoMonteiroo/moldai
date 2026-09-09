@@ -4,6 +4,7 @@ import {
   catmullRomSegments,
   type DraftedPiece,
   type InternalCm,
+  type InternalLoopCm,
   type Pt,
 } from "@/lib/draft/core";
 import { draftPiecesCm } from "@/lib/draft/engine/facade";
@@ -48,6 +49,15 @@ export interface ExportPiece {
   // lib/draft/core.ts's DRILL_HOLE_SETBACK_CM) so the mark hides inside the
   // sewn dart.
   drillHoles?: { at: ExPt; rCm: number }[];
+  // #244: one entry per pleat's own placement/stitch line -- where the
+  // folded edge lays down once pressed, the same open-point-list shape
+  // `darts` above uses (lib/draft/skirt.ts's pleatFoldPlacement always
+  // emits a 2-point line, but this stays a list for the same "not assumed
+  // exactly N points" reason darts does). Distinct from `internalFoldLines`
+  // above: a pleat's own PRESS fold reuses that channel already (it is a
+  // press line, same concept a dart's fold line already is); this is the
+  // one new mark the reserved "pleat" InternalCm kind actually adds.
+  pleats?: ExPt[][];
   // #126: the piece's cut-on-fold line, both endpoints already real outline
   // vertices (see DraftedPiece.foldEdge) -- absent on a piece with no fold
   // (e.g. a sleeve) or drafted before this existed.
@@ -56,6 +66,12 @@ export interface ExportPiece {
   // toward the piece interior). Absent on a piece drafted before this
   // existed, or one no convention places a mark on.
   notches?: ExportNotch[];
+  // #243: zero or more internal loops (holes) inside this piece's own outer
+  // boundary, both outlines already in the SAME local (shifted-to-net-bbox)
+  // frame as `outline`/`cutOutline` above -- a serializer draws a loop
+  // exactly the way it already draws the outer boundary, just once per
+  // entry here instead of once per piece.
+  internalLoops?: ExportInternalLoop[];
   originCm: ExPt;
 }
 
@@ -65,6 +81,15 @@ export interface ExportNotch {
   type: NotchType;
   outer: ExPt;
   inner: ExPt;
+}
+
+// #243: one internal loop (hole), redrafted the same two-outline way as the
+// piece itself -- `outline` is the net/finished edge, `cutOutline` is it
+// offset via offsetOutlineCm's `direction: "inward"` (the loop SHRINKS, the
+// opposite of the outer boundary's own outward growth -- see offset.ts).
+export interface ExportInternalLoop {
+  outline: { start: ExPt; segs: ExSeg[] };
+  cutOutline: { start: ExPt; segs: ExSeg[] };
 }
 
 export interface ExportModel {
@@ -117,6 +142,15 @@ function drillHoleEntries(
     (e): e is Extract<InternalCm, { kind: "drillHole" }> =>
       e.kind === "drillHole",
   );
+}
+// #244: a pleat's own placement/stitch line(s) -- the reserved "pleat"
+// InternalCm kind's first real emitter (lib/draft/skirt.ts).
+function pleatEntries(internalsCm?: InternalCm[]): Pt[][] {
+  return (internalsCm ?? [])
+    .filter(
+      (e): e is Extract<InternalCm, { kind: "pleat" }> => e.kind === "pleat",
+    )
+    .map((e) => e.ptsCm);
 }
 
 // Builds the `d` attribute of a closed outline (start + segs) applying the
@@ -174,6 +208,34 @@ function flatLoopToSegments(pts: ExPt[]): { start: ExPt; segs: ExSeg[] } {
   return { start: at(0), segs };
 }
 
+// #243: one internal loop (hole), redrafted into the same net/cut pair as
+// the piece it lives inside -- `shift` is the SAME (minX,minY) translation
+// buildExportModel already applied to the piece's own outer outline, so a
+// loop lands in the identical local frame. Its cut line goes through
+// offsetOutlineCm's `direction: "inward"` -- a hole's seam allowance folds
+// INTO the opening, the opposite of the outer boundary's own outward
+// growth just below this call in buildExportModel.
+export function buildInternalLoop(
+  loop: InternalLoopCm,
+  shift: (pt: Pt) => Pt,
+  allowanceCm: number,
+): ExportInternalLoop {
+  const spans = loop.curvedSpans ?? [];
+  const local = loop.outlineCm.map(shift);
+  const cutPts = offsetOutlineCm(
+    loop.outlineCm,
+    spans,
+    undefined,
+    allowanceCm,
+    undefined,
+    "inward",
+  ).map((pt) => P(shift([pt.x, pt.y])));
+  return {
+    outline: outlineSegments(local, spans),
+    cutOutline: flatLoopToSegments(cutPts),
+  };
+}
+
 // #59: `size` defaults to the base size (unchanged behavior for a pattern
 // with nothing graded); passing an applied size re-drafts the export in that
 // size's own measurements instead of always the base. There is no separate
@@ -188,6 +250,15 @@ export function buildExportModel(
   if (!spec) throw new Error("buildExportModel: pattern has no spec");
   const resolvedSize = pattern.sizeTable[size] ? size : pattern.baseSize;
   const baseMeasurements = pattern.sizeTable[resolvedSize];
+  // #249: the pattern's own frozen base-size row, so an explicit
+  // style.skirtLengthCm grades across sizes the same ratio the chart's own
+  // skirtLength already does instead of printing every graded size at one
+  // identical hem (lib/draft/core.ts's gradedSkirtLengthCm) -- this is the
+  // "graded layered PDF" money path #249 reported. Falls back to
+  // baseMeasurements itself (ratio 1, current behavior) if the pattern's own
+  // baseSize has somehow drifted out of its own sizeTable.
+  const referenceMeasurements =
+    pattern.sizeTable[pattern.baseSize] ?? baseMeasurements;
   // #267: the pattern's own FROZEN engine, never a fresh default -- see
   // lib/draft/easeReport.ts's identical comment.
   const drafted: DraftedPiece[] = draftPiecesCm(
@@ -195,6 +266,7 @@ export function buildExportModel(
     spec,
     baseMeasurements,
     t,
+    referenceMeasurements,
   );
   const allowanceCm = spec.style.seamAllowanceCm ?? 1;
 
@@ -249,6 +321,11 @@ export function buildExportModel(
       rCm: h.rCm,
     }));
     if (drillHoles.length) ep.drillHoles = drillHoles;
+    const pleats = pleatEntries(dp.internalsCm).filter(
+      (pts) => pts.length >= 2,
+    );
+    if (pleats.length)
+      ep.pleats = pleats.map((pts) => pts.map((pt) => P(shift(pt))));
     if (dp.foldEdge) {
       const [a, b2] = dp.foldEdge;
       ep.fold = [P(shift(dp.outlineCm[a])), P(shift(dp.outlineCm[b2]))];
@@ -259,6 +336,15 @@ export function buildExportModel(
         outer: P(shift(n.outerCm)),
         inner: P(shift(n.innerCm)),
       }));
+    }
+    // #243: each internal loop (hole), through the same shifted local frame
+    // as everything else above -- its own cut line is offset "inward" (see
+    // offset.ts's own comment), the mirror of the outer boundary's outward
+    // growth just below.
+    if (dp.internalLoopsCm?.length) {
+      ep.internalLoops = dp.internalLoopsCm.map((loop) =>
+        buildInternalLoop(loop, shift, allowanceCm),
+      );
     }
     // #123: how far the cut line's own bbox reaches past the net outline's
     // on each side -- a mitred convex corner can grow further than a plain

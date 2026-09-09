@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { outlineSegments, buildExportModel, type ExPt } from "./model";
+import {
+  outlineSegments,
+  buildExportModel,
+  buildInternalLoop,
+  type ExPt,
+} from "./model";
 import { flattenOutlineCm, TOL_CM } from "./dxf";
 import { outlinePath, SCALE, type Pt } from "@/lib/draft/core";
 import type { Pattern } from "@/lib/types";
@@ -201,6 +206,42 @@ describe("buildExportModel", () => {
     });
   });
 
+  // #249: an explicit style.skirtLengthCm used to freeze every graded size
+  // at one identical hem -- buildExportModel is the "graded layered PDF"
+  // money path #249's own issue reported (toPdfLayered redrafts one
+  // ExportModel per size). Fixed via lib/draft/skirt.ts's
+  // gradedSkirtLengthCm, threaded through here as buildExportModel's own
+  // `referenceMeasurements` (the pattern's frozen base-size row).
+  describe("skirt length grading across sizes (#249)", () => {
+    function skirtPattern(): Pattern {
+      const base = fakePattern();
+      return {
+        ...base,
+        sizeTable: { M: SIZE_TABLE.M, GG: SIZE_TABLE.GG },
+        sizes: ["M", "GG"],
+        sizesApplied: ["GG"],
+        spec: {
+          type: "skirt",
+          gender: "female",
+          measurementOverrides: {},
+          style: { skirt: "straight", skirtLengthCm: 70 },
+        },
+      };
+    }
+
+    it("redrafts a graded size's skirt hem in the same ratio the chart's own skirtLength grades, not identical to the base", () => {
+      const base = buildExportModel(skirtPattern(), t, "M");
+      const graded = buildExportModel(skirtPattern(), t, "GG");
+      const baseSkirt = base.pieces.find((p) => p.id === "skirt")!;
+      const gradedSkirt = graded.pieces.find((p) => p.id === "skirt")!;
+      expect(gradedSkirt.heightCm).not.toBeCloseTo(baseSkirt.heightCm, 1);
+      expect(gradedSkirt.heightCm / baseSkirt.heightCm).toBeCloseTo(
+        SIZE_TABLE.GG.skirtLength / SIZE_TABLE.M.skirtLength,
+        2,
+      );
+    });
+  });
+
   // #126: the fold edge, resolved from DraftedPiece.foldEdge through the same
   // local (bbox-shifted) coordinates as grainline/dart.
   describe("fold edge (#126)", () => {
@@ -308,6 +349,57 @@ describe("buildExportModel", () => {
         expect(piece.internalFoldLines).toBeUndefined();
         expect(piece.drillHoles).toBeUndefined();
       }
+    });
+  });
+
+  // #244: the reserved "pleat" InternalCm kind's first real emitter --
+  // proves its own placement/stitch line reaches the export model (not just
+  // the reused foldLine channel, already covered above).
+  describe("pleats (#244)", () => {
+    function pleatedSkirtPattern(): Pattern {
+      return {
+        id: "p1",
+        name: "Teste",
+        version: 1,
+        baseSize: "M",
+        unit: "cm",
+        sizes: ["M"],
+        sizesApplied: [],
+        sizesPending: [],
+        sizeTable: { M: SIZE_TABLE.M },
+        pieces: [],
+        spec: {
+          type: "skirt",
+          gender: "female",
+          measurementOverrides: {},
+          style: { skirt: "straight", pleats: "box" },
+        },
+      };
+    }
+
+    it("carries the pleat's own placement lines into local outline coordinates, alongside its press fold", () => {
+      const model = buildExportModel(pleatedSkirtPattern(), t);
+      const skirt = model.pieces.find((p) => p.id === "skirt")!;
+      expect(skirt.pleats?.length).toBe(2); // one per side
+      expect(skirt.internalFoldLines?.length).toBe(2); // the press fold, reused
+      for (const line of skirt.pleats!) {
+        expect(line.length).toBeGreaterThanOrEqual(2);
+        for (const pt of line) {
+          expect(pt.x).toBeGreaterThanOrEqual(-1e-6);
+          expect(pt.x).toBeLessThanOrEqual(skirt.widthCm + 1e-6);
+          expect(pt.y).toBeGreaterThanOrEqual(-1e-6);
+          expect(pt.y).toBeLessThanOrEqual(skirt.heightCm + 1e-6);
+        }
+      }
+    });
+
+    it("an unpleated skirt carries neither pleats nor internalFoldLines", () => {
+      const p = pleatedSkirtPattern();
+      p.spec!.style.pleats = "none";
+      const model = buildExportModel(p, t);
+      const skirt = model.pieces.find((p) => p.id === "skirt")!;
+      expect(skirt.pleats).toBeUndefined();
+      expect(skirt.internalFoldLines).toBeUndefined();
     });
   });
 
@@ -514,5 +606,101 @@ describe("buildExportModel", () => {
         expect(closest.x).toBeCloseTo(foldPt.x, 2);
       }
     });
+  });
+});
+
+// #243: an internal loop's own net+cut pair, built the same way a piece's
+// outer boundary is -- except its cut line has to SHRINK (offsetOutlineCm's
+// `direction: "inward"`), the mirror of the outer boundary's own outward
+// growth. buildExportModel itself always redrafts through a real registered
+// engine (none of which emits a loop-bearing piece yet -- future work, not
+// this issue's job, per #243's own acceptance criteria), so this exercises
+// buildInternalLoop directly against a hand-built loop rather than routing
+// a synthetic DraftedPiece through the whole drafting pipeline.
+describe("buildInternalLoop (#243)", () => {
+  const identityShift = (pt: Pt): Pt => pt;
+
+  it("shrinks a square hole's cut line by the allowance, unlike the outer boundary's growth", () => {
+    const loop = buildInternalLoop(
+      {
+        outlineCm: [
+          [0, 0],
+          [10, 0],
+          [10, 10],
+          [0, 10],
+        ],
+      },
+      identityShift,
+      1,
+    );
+    const cut = flattenOutlineCm(loop.cutOutline, TOL_CM);
+    const xs = cut.map((p) => p.x);
+    const ys = cut.map((p) => p.y);
+    // shrunk inward by 1cm on every side -- an 8x8 square, not a 12x12 one.
+    expect(Math.min(...xs)).toBeCloseTo(1, 6);
+    expect(Math.max(...xs)).toBeCloseTo(9, 6);
+    expect(Math.min(...ys)).toBeCloseTo(1, 6);
+    expect(Math.max(...ys)).toBeCloseTo(9, 6);
+  });
+
+  it("the net outline is untouched -- only the cut line moves", () => {
+    const loop = buildInternalLoop(
+      {
+        outlineCm: [
+          [0, 0],
+          [10, 0],
+          [10, 10],
+          [0, 10],
+        ],
+      },
+      identityShift,
+      1,
+    );
+    const net = flattenOutlineCm(loop.outline, TOL_CM);
+    expect(net).toEqual([
+      { x: 0, y: 0 },
+      { x: 10, y: 0 },
+      { x: 10, y: 10 },
+      { x: 0, y: 10 },
+    ]);
+  });
+
+  it("applies the SAME shift as the piece's own outer outline (a non-identity origin)", () => {
+    const shift = (pt: Pt): Pt => [pt[0] - 5, pt[1] - 5];
+    const loop = buildInternalLoop(
+      {
+        outlineCm: [
+          [5, 5],
+          [15, 5],
+          [15, 15],
+          [5, 15],
+        ],
+      },
+      shift,
+      1,
+    );
+    const net = flattenOutlineCm(loop.outline, TOL_CM);
+    expect(net).toEqual([
+      { x: 0, y: 0 },
+      { x: 10, y: 0 },
+      { x: 10, y: 10 },
+      { x: 0, y: 10 },
+    ]);
+  });
+
+  it("honours the loop's own curvedSpans, independent of the outer piece's", () => {
+    const loop = buildInternalLoop(
+      {
+        outlineCm: [
+          [10, 0],
+          [0, 10],
+          [0, 0],
+        ],
+        curvedSpans: [[0, 1]],
+      },
+      identityShift,
+      0,
+    );
+    expect(loop.outline.segs.some((s) => s.kind === "cubic")).toBe(true);
   });
 });

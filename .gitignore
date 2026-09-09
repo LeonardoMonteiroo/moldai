@@ -84,6 +84,19 @@ next-env.d.ts
 /scripts/lora/dataset.jsonl
 /scripts/lora/dataset.jsonl.val.jsonl
 
+# #269 Fase 5 — a real training/eval-gate run's own local artifacts: trained
+# adapter weights (large, rented-GPU output), and the experimental eval
+# reports/run logs a gate check produces. Never the committed
+# docs/reference/ai-eval/report.md baseline, which a gate run always
+# restores via `git checkout` when it's done comparing.
+/scripts/lora/lora-checkpoints/
+/scripts/lora/lora-out-final/
+/scripts/lora/eval-base-report.md
+/scripts/lora/eval-lora-report.md
+/scripts/lora/eval-base-run.log
+/scripts/lora/eval-lora-run.log
+/scripts/lora/report-anthropic-baseline.md
+
 # design-sync — staged converter scripts, generated bundle output and
 # machine-local verification state; .design-sync/config.json, NOTES.md,
 # conventions.md, previews/ and overrides/ ARE committed (see .design-sync/NOTES.md)
