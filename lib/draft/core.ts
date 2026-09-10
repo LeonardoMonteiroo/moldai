@@ -662,6 +662,59 @@ export function translateOutline(
   return { kind: "path", d: d.trim() };
 }
 
+function outlineKey(o: PieceOutline): string {
+  return o.kind === "polygon" ? o.points : o.d;
+}
+
+// #308: a placed Piece's own outline is already shifted by autoLayout's
+// shelf packing, which repositions every piece in the set whenever the
+// TOTAL set's sizes change -- so two versions' pieces can't be compared by
+// their outline strings directly, even when a given piece's own geometry is
+// identical. Re-origins the outline to its own bbox (via `vertices`, the
+// same anchor points `outline` was built from) before taking the key, so
+// only a real shape difference changes the result.
+function normalizedOutlineKey(piece: Piece): string {
+  const verts = piece.vertices ?? [];
+  if (verts.length === 0) return outlineKey(piece.outline);
+  const minX = Math.min(...verts.map((v) => v.x));
+  const minY = Math.min(...verts.map((v) => v.y));
+  return outlineKey(translateOutline(piece.outline, -minX, -minY));
+}
+
+export type PieceChangeStatus = "unchanged" | "changed" | "added" | "removed";
+
+// #308: matches two drafted-and-placed piece sets by their own stable id
+// (front/back/sleeve/collar/... assigned by the drafters) and classifies
+// each: "added"/"removed" when the id exists on only one side, "changed"
+// when both sides have it but the re-origined outline differs, "unchanged"
+// otherwise. Purely derived from the two already-drafted piece sets -- no
+// new field, no new API call.
+export function diffDraftedPieces(
+  fromPieces: Piece[],
+  toPieces: Piece[],
+): Map<string, PieceChangeStatus> {
+  const fromById = new Map(fromPieces.map((p) => [p.id, p]));
+  const toById = new Map(toPieces.map((p) => [p.id, p]));
+  const status = new Map<string, PieceChangeStatus>();
+  for (const id of fromById.keys()) {
+    if (!toById.has(id)) status.set(id, "removed");
+  }
+  for (const [id, toPiece] of toById) {
+    const fromPiece = fromById.get(id);
+    if (!fromPiece) {
+      status.set(id, "added");
+      continue;
+    }
+    status.set(
+      id,
+      normalizedOutlineKey(fromPiece) === normalizedOutlineKey(toPiece)
+        ? "unchanged"
+        : "changed",
+    );
+  }
+  return status;
+}
+
 // Builds the final Piece by applying outline/guide/grainline/dart with an (dx,dy) offset in px.
 function place(dp: DraftedPiece, dxPx: number, dyPx: number): Piece {
   const spans = dp.curvedSpans ?? [];

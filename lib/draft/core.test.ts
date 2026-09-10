@@ -6,6 +6,7 @@ import {
   outlinePath,
   catmullRomSegments,
   DraftedPiece,
+  diffDraftedPieces,
   notchAt,
   notchAtVertex,
   pointAndTangentAtCm,
@@ -90,6 +91,35 @@ describe("core drafting", () => {
       a.maxY <= b.minY + 1e-6 ||
       b.maxY <= a.minY + 1e-6;
     expect(disjoint).toBe(true);
+  });
+
+  describe("diffDraftedPieces", () => {
+    it("marks a piece unchanged when its geometry is identical, even though autoLayout repositions it differently across two piece sets", () => {
+      // "a" is identical in both sets, but "b" only appears in the second
+      // set, so autoLayout packs "a" at a different (dx, dy) offset each
+      // time -- a raw outline-string compare would wrongly call "a" changed.
+      const from = autoLayout([rect("a", 10, 20)], 5).pieces;
+      const to = autoLayout([rect("a", 10, 20), rect("b", 30, 40)], 5).pieces;
+      const status = diffDraftedPieces(from, to);
+      expect(status.get("a")).toBe("unchanged");
+      expect(status.get("b")).toBe("added");
+    });
+
+    it("marks a piece changed when its own shape differs between the two sets", () => {
+      const from = autoLayout([rect("a", 10, 20)], 5).pieces;
+      const to = autoLayout([rect("a", 10, 25)], 5).pieces;
+      const status = diffDraftedPieces(from, to);
+      expect(status.get("a")).toBe("changed");
+    });
+
+    it("marks a piece id present in only one set as added or removed, distinct from changed", () => {
+      const from = autoLayout([rect("a", 10, 20), rect("c", 5, 5)], 5).pieces;
+      const to = autoLayout([rect("a", 10, 20), rect("b", 30, 40)], 5).pieces;
+      const status = diffDraftedPieces(from, to);
+      expect(status.get("c")).toBe("removed");
+      expect(status.get("b")).toBe("added");
+      expect(status.get("a")).toBe("unchanged");
+    });
   });
 
   describe("outlinePath", () => {
