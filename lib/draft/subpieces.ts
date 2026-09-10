@@ -3,6 +3,7 @@ import {
   curveArcLengthCm,
   DraftedPiece,
   InternalCm,
+  InternalLoopCm,
   NO_PLACEMENT_TRANSFORM,
   Pt,
 } from "./core";
@@ -418,12 +419,82 @@ export function draftBandCollar(
 // the same footing as WAISTBAND_OVERLAP_CM above.
 export const BUTTON_STAND_WIDTH_CM = 4;
 
+// #315: a real cut buttonhole, closing the gap #223's own "em breve"
+// buttonStandMark note left open, using the #243 internalLoopsCm mechanism
+// (lib/draft/core.ts) instead of a single placementMark point -- an actual
+// hole is what a pattern-cutting user needs, not a dot. BUTTON_DIAMETER_CM
+// is a common medium shirt-button size; "hole length = button diameter plus
+// a small ease allowance for the button's own thickness" is the standard
+// tailoring sizing rule -- the same "no single citable industry figure, a
+// deliberate constant" footing BUTTON_STAND_WIDTH_CM above and
+// DRILL_HOLE_SETBACK_CM (core.ts) already document.
+export const BUTTON_DIAMETER_CM = 1.1;
+export const BUTTONHOLE_EASE_CM = 0.3;
+export const BUTTONHOLE_LENGTH_CM = BUTTON_DIAMETER_CM + BUTTONHOLE_EASE_CM;
+// The slit's own SHORT axis, along the stand's length -- narrow enough to
+// leave a wide margin to either of the stand's own long edges regardless of
+// BUTTON_STAND_WIDTH_CM.
+export const BUTTONHOLE_WIDTH_CM = 0.3;
+// How far the first/last buttonhole sits in from each end of the stand
+// (clamped per-stand below so a short stand never places one outside its
+// own length), and the target center-to-center spacing filling the space
+// between them -- both deliberate constants, same footing as
+// BUTTON_STAND_WIDTH_CM's own doc above.
+export const BUTTONHOLE_END_INSET_CM = 3;
+export const BUTTONHOLE_TARGET_SPACING_CM = 9;
+
+// Buttonhole centers, evenly spaced along the stand's own MEASURED length --
+// at least 2 (one near each end), more as the stand grows past
+// BUTTONHOLE_TARGET_SPACING_CM per additional hole.
+export function buttonholeCentersCm(standLenCm: number): number[] {
+  const inset = Math.min(BUTTONHOLE_END_INSET_CM, standLenCm / 4);
+  const span = Math.max(0, standLenCm - inset * 2);
+  const count = Math.max(
+    2,
+    Math.round(span / BUTTONHOLE_TARGET_SPACING_CM) + 1,
+  );
+  const spacing = span / (count - 1);
+  return Array.from({ length: count }, (_, i) => inset + i * spacing);
+}
+
+// A single buttonhole's own closed rectangle, centered on the stand's own
+// vertical midline (heightCm / 2) at horizontal position xCm -- oriented
+// with its LONG axis (BUTTONHOLE_LENGTH_CM) running across the stand's
+// width, i.e. horizontal/perpendicular to the vertical center-front line
+// the stand is mated to. Standard construction: fastening tension pulls
+// along center front (vertical), and a hole oriented perpendicular to that
+// pull resists gaping far better than one drafted parallel to it.
+function buttonholeLoopCm(xCm: number, heightCm: number): InternalLoopCm {
+  const halfLen = BUTTONHOLE_LENGTH_CM / 2;
+  const halfW = BUTTONHOLE_WIDTH_CM / 2;
+  const midY = heightCm / 2;
+  return {
+    outlineCm: [
+      [xCm - halfW, midY - halfLen],
+      [xCm + halfW, midY - halfLen],
+      [xCm + halfW, midY + halfLen],
+      [xCm - halfW, midY + halfLen],
+    ],
+  };
+}
+
 // centerFrontLenCm is the front bodice half-panel's own MEASURED
 // center-front edge (lib/draft/body.ts's frontClosure mode) -- the button
 // stand is a separate piece mated to that edge via the seam graph, never a
 // distortion of the front panel's own outline, so center front stays the
 // fixed button-placement line the issue's source describes. Reuses
 // straightBand exactly like draftCuff/draftWaistband above.
+//
+// #315: both qty:2 copies (one per front half) get the IDENTICAL drafted
+// buttonholes -- a real garment cuts holes into only the overlap side and
+// leaves the underlap side plain (marked, not cut), but this app has no
+// left/right handedness concept for a front-closure piece today, the same
+// "one shape, cut twice" simplification draftCuff/draftWaistband already
+// make with no per-side distinction of their own. A stated, narrower gap,
+// not a silent one -- CLAUDE.md's own "surface limitations, never
+// silently" rule, applied here as a comment rather than a UI badge because
+// nothing else in this file surfaces THAT specific class of simplification
+// on-screen either.
 export function draftButtonStand(
   centerFrontLenCm: number,
   t: Translate,
@@ -436,12 +507,17 @@ export function draftButtonStand(
     [centerFrontLenCm * 0.1, BUTTON_STAND_WIDTH_CM / 2],
     [centerFrontLenCm * 0.9, BUTTON_STAND_WIDTH_CM / 2],
   ];
+  const centersCm = buttonholeCentersCm(centerFrontLenCm);
+  const internalLoopsCm: InternalLoopCm[] = centersCm.map((x) =>
+    buttonholeLoopCm(x, BUTTON_STAND_WIDTH_CM),
+  );
   const detailRows: DetailRow[] = [
     { label: t("rows.length"), value: cm(centerFrontLenCm) },
     { label: t("rows.grain"), value: t("grainValue") },
-    // #223 AC: the button/buttonhole placement mark is missing -- surfaced
-    // "em breve" on the piece's own card, the waistbandClosureMark precedent.
-    { label: t("rows.buttonStandMark"), value: t("comingSoonBadge") },
+    {
+      label: t("rows.buttonholes"),
+      value: `${centersCm.length} × ${cm(BUTTONHOLE_LENGTH_CM)}`,
+    },
   ];
   return {
     id: "button-stand",
@@ -449,6 +525,7 @@ export function draftButtonStand(
     qty: 2, // one per front half
     outlineCm: pts,
     grainlineCm,
+    internalLoopsCm,
     detailRows,
     seamEdges: { centerFront: seamEdge },
     placementCm: ACCESSORY_PLACEMENT_CM,

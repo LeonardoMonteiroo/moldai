@@ -208,6 +208,28 @@ function flatLoopToSegments(pts: ExPt[]): { start: ExPt; segs: ExSeg[] } {
   return { start: at(0), segs };
 }
 
+// #315: offset.ts's own module comment warns that shrinking a loop past
+// roughly half its own narrowest span makes its two opposite offset edges
+// cross BEFORE removeSelfCrossingLoops runs, which keeps the wrong (larger,
+// inverted) split -- "a hole drafted much smaller than the pattern's seam
+// allowance," exactly what a real, functional-size buttonhole (~0.3cm wide)
+// is against the seamAllowanceCm range (0-4cm) a user can pick. Clamping the
+// inward distance to a safe fraction of the loop's own bbox half-extent
+// keeps every loop's cut line a real, non-degenerate shrink regardless of
+// the piece's chosen seam allowance -- the verification offset.ts's comment
+// says hasn't happened yet for a "tighter case" than its own outer-boundary
+// callers ever hit.
+const INTERNAL_LOOP_MAX_SHRINK_FRACTION = 0.5;
+
+function loopSafeInwardDistanceCm(ptsCm: Pt[], requestedCm: number): number {
+  const b = bbox(ptsCm);
+  const halfExtentCm = Math.min(b.w, b.h) / 2;
+  return Math.min(
+    requestedCm,
+    halfExtentCm * INTERNAL_LOOP_MAX_SHRINK_FRACTION,
+  );
+}
+
 // #243: one internal loop (hole), redrafted into the same net/cut pair as
 // the piece it lives inside -- `shift` is the SAME (minX,minY) translation
 // buildExportModel already applied to the piece's own outer outline, so a
@@ -222,11 +244,12 @@ export function buildInternalLoop(
 ): ExportInternalLoop {
   const spans = loop.curvedSpans ?? [];
   const local = loop.outlineCm.map(shift);
+  const distanceCm = loopSafeInwardDistanceCm(loop.outlineCm, allowanceCm);
   const cutPts = offsetOutlineCm(
     loop.outlineCm,
     spans,
     undefined,
-    allowanceCm,
+    distanceCm,
     undefined,
     "inward",
   ).map((pt) => P(shift([pt.x, pt.y])));

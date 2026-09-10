@@ -588,6 +588,29 @@ describe("buildExportModel", () => {
       }
     });
 
+    // #315: draftButtonStand (lib/draft/subpieces.ts) is the first real
+    // internalLoopsCm emitter -- verifies the loop is reachable end-to-end
+    // (drafted -> buildExportModel) off the real "blouse buttonstand"
+    // DECORATION_CASES spec, not a hand-built fixture (unlike svg.test.ts's
+    // own #243 fixture case, which only exercises the rendering mechanism).
+    it("the button stand carries real buttonhole loops, and each loop's cut line shrinks inward", () => {
+      const spec = DECORATION_CASES.find(
+        ([name]) => name === "blouse buttonstand",
+      )![1];
+      const model = buildExportModel(patternFor(spec), t);
+      const stand = model.pieces.find((p) => p.id === "button-stand")!;
+      expect(stand.internalLoops?.length).toBeGreaterThan(0);
+      for (const loop of stand.internalLoops!) {
+        const net = flattenOutlineCm(loop.outline, TOL_CM);
+        const cut = flattenOutlineCm(loop.cutOutline, TOL_CM);
+        expect(hasSelfIntersection(cut)).toBe(false);
+        // A hole's own cut line shrinks INTO the opening (#243's "inward"
+        // direction) -- the opposite of the outer boundary's own outward
+        // growth asserted above.
+        expect(shoelaceArea(cut)).toBeLessThan(shoelaceArea(net));
+      }
+    });
+
     // A fold ENDPOINT is a real outline vertex sitting exactly on the
     // piece's own axis of symmetry; by that symmetry, the curve's tangent
     // there is forced perpendicular to the fold, so its outward normal

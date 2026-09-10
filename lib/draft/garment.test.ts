@@ -31,6 +31,9 @@ import {
   PLACKET_FOLD_OVERLAP_CM,
   PLACKET_FOLD_UNDERLAP_CM,
   BUTTON_STAND_WIDTH_CM,
+  buttonholeCentersCm,
+  BUTTONHOLE_END_INSET_CM,
+  BUTTONHOLE_TARGET_SPACING_CM,
 } from "./subpieces";
 import { buildAssemblyOrder } from "./assembly";
 import type { GarmentSpec, Pattern } from "@/lib/types";
@@ -1072,6 +1075,21 @@ function assertDecorationsContained(pieces: ReturnType<typeof draftPiecesCm>) {
       ).toBeGreaterThanOrEqual(span.top);
       expect(y).toBeLessThanOrEqual(span.bottom);
     }
+
+    // #315: an internal loop (hole) -- every vertex of every loop stays
+    // inside the piece's own outer boundary, the same check every other
+    // decoration kind above already gets, so a loop that escapes its own
+    // panel is caught exactly like a grainline or drill hole that would.
+    for (const loop of piece.internalLoopsCm ?? []) {
+      for (const [x, y] of loop.outlineCm) {
+        const span = verticalSpanAt(piece.outlineCm, x);
+        expect(
+          y,
+          `${piece.id} internal loop point (${x.toFixed(1)}, ${y.toFixed(1)}) vs outline y-range [${span.top.toFixed(1)}, ${span.bottom.toFixed(1)}]`,
+        ).toBeGreaterThanOrEqual(span.top);
+        expect(y).toBeLessThanOrEqual(span.bottom);
+      }
+    }
   }
 }
 
@@ -2048,6 +2066,80 @@ describe("seam graph (#134)", () => {
     // identical shape of assertion.
     const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
     expect(pieces.map((p) => p.id)).not.toContain("button-stand");
+  });
+
+  // #315: buttonholeCentersCm is the pure spacing computation draftButtonStand
+  // relies on -- pinned directly, independent of the full drafting pipeline.
+  describe("buttonholeCentersCm", () => {
+    it("returns at least 2 centers, both inset from the ends, for a typical stand length", () => {
+      const centers = buttonholeCentersCm(40);
+      expect(centers.length).toBeGreaterThanOrEqual(2);
+      expect(centers[0]).toBeCloseTo(BUTTONHOLE_END_INSET_CM, 5);
+      expect(centers[centers.length - 1]).toBeCloseTo(
+        40 - BUTTONHOLE_END_INSET_CM,
+        5,
+      );
+    });
+
+    it("spaces centers evenly, close to the target spacing, for a long stand", () => {
+      const len = 100;
+      const centers = buttonholeCentersCm(len);
+      const gaps = centers.slice(1).map((c, i) => c - centers[i]);
+      for (const gap of gaps) {
+        expect(gap).toBeGreaterThan(0);
+        expect(gap).toBeCloseTo(gaps[0], 5); // every gap is the SAME size
+      }
+      // rounding to a whole number of intervals can land the common gap up
+      // to half an interval either side of the target.
+      expect(Math.abs(gaps[0] - BUTTONHOLE_TARGET_SPACING_CM)).toBeLessThan(
+        BUTTONHOLE_TARGET_SPACING_CM / 2,
+      );
+    });
+
+    it("never places a center outside [0, standLenCm], even for a very short stand", () => {
+      const centers = buttonholeCentersCm(2);
+      expect(centers.length).toBeGreaterThanOrEqual(2);
+      for (const c of centers) {
+        expect(c).toBeGreaterThanOrEqual(0);
+        expect(c).toBeLessThanOrEqual(2);
+      }
+    });
+  });
+
+  // #315: the button stand is the first real internalLoopsCm emitter -- at
+  // least two buttonholes, each a genuinely closed 4-point rectangle sized
+  // from BUTTONHOLE_LENGTH_CM/BUTTONHOLE_WIDTH_CM (lib/draft/subpieces.ts),
+  // drafted off the front's own MEASURED center-front edge, not a
+  // hand-built fixture.
+  it("#315: the button stand carries real buttonhole loops, at least two, sized from the measured stand length", () => {
+    const spec = {
+      type: "blouse" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { frontClosure: "buttonStand" as const },
+    };
+    const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
+    const stand = pieces.find((p) => p.id === "button-stand")!;
+    expect(stand).toBeDefined();
+    expect(stand.internalLoopsCm?.length ?? 0).toBeGreaterThanOrEqual(2);
+    const standWidthCm = bbox(stand.outlineCm).w;
+    for (const loop of stand.internalLoopsCm!) {
+      expect(loop.outlineCm).toHaveLength(4);
+      const xs = loop.outlineCm.map(([x]) => x);
+      // every loop lands strictly inside the stand's own length, never at
+      // (or past) either end.
+      expect(Math.min(...xs)).toBeGreaterThan(0);
+      expect(Math.max(...xs)).toBeLessThan(standWidthCm);
+    }
+    // no two loops sit at the same position (a degenerate, overlapping
+    // spacing computation).
+    const centers = stand.internalLoopsCm!.map(
+      (loop) =>
+        (Math.min(...loop.outlineCm.map(([x]) => x)) +
+          Math.max(...loop.outlineCm.map(([x]) => x))) /
+        2,
+    );
+    expect(new Set(centers.map((c) => c.toFixed(3))).size).toBe(centers.length);
   });
 
   it("#223: a collar drafted together with a button stand still matches the front+back neckline arc (front counted from ONE half, doubled)", () => {
