@@ -174,6 +174,7 @@ function buildTool(capability: EngineCapability): LlmTool {
                   type: "string",
                   enum: styleEnumUnion(capability, "pleats"),
                 },
+                riseCm: bounded(capability.styleLimits.riseCm),
               },
             },
           },

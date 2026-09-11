@@ -171,6 +171,23 @@ describe("validateSpec", () => {
     expect(s.style.armholeDeepenCm).toBe(STYLE_LIMITS.armholeDeepenCm.max);
   });
 
+  // #259: riseCm is SIGNED (unlike every other clamped numeric field above,
+  // which is non-negative) -- both bounds need their own case.
+  it("clamps riseCm to STYLE_LIMITS.riseCm's own signed bounds", () => {
+    const high = validateSpec({
+      type: "skirt",
+      measurementOverrides: {},
+      style: { riseCm: 999 },
+    });
+    expect(high.style.riseCm).toBe(STYLE_LIMITS.riseCm.max);
+    const low = validateSpec({
+      type: "trousers",
+      measurementOverrides: {},
+      style: { riseCm: -999 },
+    });
+    expect(low.style.riseCm).toBe(STYLE_LIMITS.riseCm.min);
+  });
+
   // #129/#130/#131: collar/cuff/waistband are closed enums (no numeric
   // range) -- an invalid value falls back to a fixed default the same way
   // neckline/sleeve/skirt already do, and collar/cuff default "none" while
@@ -692,6 +709,50 @@ describe("measureSeams", () => {
       t,
     );
     expect(garmentLengthCm).toBeCloseTo(SIZE_TABLE.M.skirtLength, 5);
+  });
+  // #259: a standalone skirt's riseCm extends the drafted panel's own
+  // height (draftSkirt's waistY/hemY split) -- the reported garment length
+  // has to grow with it or this figure would silently stop matching the
+  // actual drafted piece, unlike trousers' own riseCm (traded against leg
+  // length, total held fixed -- see the "riseCm lengthens..." test above).
+  it("a standalone skirt's reported length grows with riseCm", () => {
+    const { garmentLengthCm } = measureSeams(
+      DEFAULT_ENGINE_ID,
+      {
+        type: "skirt",
+        gender: "female",
+        measurementOverrides: {},
+        style: { riseCm: 8 },
+      },
+      SIZE_TABLE.M,
+      t,
+    );
+    expect(garmentLengthCm).toBeCloseTo(SIZE_TABLE.M.skirtLength + 8, 5);
+  });
+  // #259: a dress's own skirt panel always resolves riseCm to 0 (draftSkirt's
+  // isDressWaist branch) -- the reported garment length must stay a true
+  // no-op for it too, the same "type-mismatched style field is a no-op"
+  // precedent the panel geometry itself already follows.
+  it("a dress's own garment length ignores riseCm on its skirt panel", () => {
+    const spec = {
+      type: "dress" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: {},
+    };
+    const { garmentLengthCm: base } = measureSeams(
+      DEFAULT_ENGINE_ID,
+      spec,
+      SIZE_TABLE.M,
+      t,
+    );
+    const { garmentLengthCm: risen } = measureSeams(
+      DEFAULT_ENGINE_ID,
+      { ...spec, style: { riseCm: 8 } },
+      SIZE_TABLE.M,
+      t,
+    );
+    expect(risen).toBeCloseTo(base!, 5);
   });
   it("reports the trouser's own waist-to-hem length, style override included", () => {
     const { garmentLengthCm } = measureSeams(
@@ -2295,6 +2356,33 @@ describe("seam graph (#134)", () => {
     },
   );
 
+  // #259: the waistband is sized off whatever the waist edge is ACTUALLY
+  // measured at (curveArcLengthCm on the drafted geometry), never off
+  // `m.waist` directly -- so a moved (raised/lowered) waist edge still
+  // closes against its own waistband, for both the straight-edge and the
+  // radial (radius-based) branch.
+  it("#259: the waistband's own seam still matches the MOVED waist edge within 0.3cm, with a non-zero riseCm", () => {
+    for (const silhouette of ["straight", "circle"] as const) {
+      for (const riseCm of [STYLE_LIMITS.riseCm.min, STYLE_LIMITS.riseCm.max]) {
+        const spec = {
+          type: "skirt" as const,
+          gender: "female" as const,
+          measurementOverrides: {},
+          style: { skirt: silhouette, riseCm },
+        };
+        const graph = measureSeamGraph(
+          DEFAULT_ENGINE_ID,
+          spec,
+          SIZE_TABLE.M,
+          t,
+        );
+        const pair = graph.find((m) => m.key === "waistband-waist");
+        expect(pair, `${silhouette}/${riseCm}`).toBeDefined();
+        expect(pair!.diffCm, `${silhouette}/${riseCm}`).toBeLessThan(0.3);
+      }
+    }
+  });
+
   it("#131: a dress's skirt panel gets no waistband -- it joins the bodice at the natural waist instead", () => {
     const spec = {
       type: "dress" as const,
@@ -2354,6 +2442,57 @@ describe("seam graph (#134)", () => {
     expect(pieces.map((p) => p.id)).not.toContain("waistband");
   });
 
+  // #259: a waist-rise STYLE offset -- an OFFSET on top of the resolved body
+  // `rise` measurement, never a replacement for it (the exact style/
+  // measurement conflation CLAUDE.md forbids for `fit`). Positive lengthens
+  // the drafted rise curve ("cintura alta"); the waistband, sized off the
+  // panel's own MEASURED waist edge (unaffected by rise -- only the crotch
+  // curve moves), still closes; the garment's own total waist-to-hem length
+  // (trouserLengthCm) is untouched by a rise change, proving the two fields
+  // stay genuinely independent.
+  it("#259: riseCm lengthens the drafted rise curve without touching trouserLengthCm or the waistband seam", () => {
+    const base = {
+      type: "trousers" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: {},
+    };
+    const risen = { ...base, style: { riseCm: 8 } };
+    const basePieces = draftPiecesCm(DEFAULT_ENGINE_ID, base, SIZE_TABLE.M, t);
+    const risenPieces = draftPiecesCm(
+      DEFAULT_ENGINE_ID,
+      risen,
+      SIZE_TABLE.M,
+      t,
+    );
+    const front = basePieces.find((p) => p.id === "trouser-front")!;
+    const frontRisen = risenPieces.find((p) => p.id === "trouser-front")!;
+    const riseArcCm = (p: typeof front) =>
+      curveArcLengthCm(p.outlineCm, p.curvedSpans ?? [], ...p.seamEdges!.rise);
+    expect(riseArcCm(frontRisen)).toBeGreaterThan(riseArcCm(front));
+
+    const { garmentLengthCm } = measureSeams(
+      DEFAULT_ENGINE_ID,
+      risen,
+      SIZE_TABLE.M,
+      t,
+    );
+    const { garmentLengthCm: baseLengthCm } = measureSeams(
+      DEFAULT_ENGINE_ID,
+      base,
+      SIZE_TABLE.M,
+      t,
+    );
+    expect(garmentLengthCm).toBeCloseTo(baseLengthCm!, 5);
+
+    const graph = measureSeamGraph(DEFAULT_ENGINE_ID, risen, SIZE_TABLE.M, t);
+    const waistbandPair = graph.find(
+      (m) => m.key === "trouser-waistband-waist",
+    );
+    expect(waistbandPair).toBeDefined();
+    expect(waistbandPair!.diffCm).toBeLessThan(0.3);
+  });
+
   // The shared MEASUREMENT_CORNERS matrix above only perturbs
   // bust/backLength/shoulder -- none of which the trousers block reads.
   // hip/waist/rise are what actually drive its geometry, so they get their
@@ -2403,6 +2542,74 @@ describe("seam graph (#134)", () => {
         assertDecorationsContained(pieces);
       });
     }
+  });
+
+  // #259: the review that found the riseCm floor bug (fixed above -- see
+  // trousers.ts's own comment) also flagged the WORST-CASE margin between
+  // the drafted rise and a short trouserLengthCm: max hip (no explicit
+  // `rise`, so the hip-derived fallback applies, which can exceed
+  // MEASUREMENT_RANGES.rise's own max) + max positive style.riseCm + min
+  // style.trouserLengthCm leaves only a few cm of actual leg below the
+  // crotch. Not broken today, but tight enough that a future range widening
+  // could invert it silently -- pinning full containment here so that
+  // regresses loudly instead.
+  it("#259: worst-case hip + max riseCm + min trouserLengthCm still closes and stays contained", () => {
+    const spec = {
+      type: "trousers" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: {
+        riseCm: STYLE_LIMITS.riseCm.max,
+        trouserLengthCm: STYLE_LIMITS.trouserLengthCm.min,
+      },
+    };
+    const m: Measurements = {
+      ...SIZE_TABLE.M,
+      hip: MEASUREMENT_RANGES.hip.max,
+      rise: undefined,
+    };
+    const conflicts = seamCheck(
+      measureSeamGraph(DEFAULT_ENGINE_ID, spec, m, t),
+    );
+    expect(conflicts, JSON.stringify(conflicts)).toEqual([]);
+    const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, m, t);
+    assertPositiveGeometry(pieces);
+    assertDecorationsContained(pieces);
+  });
+
+  // #259: the flip side -- max NEGATIVE style.riseCm against a body rise
+  // near the low end must deliver the FULL requested offset, not a
+  // silently-attenuated one (the exact bug review caught: a fixed floor of
+  // DART_DEPTH_CM+5 used to clamp this to less than half the requested
+  // change with nothing reported). trouserPanel's own dart depth adapts
+  // instead, so the drafted rise must equal bodyRise+riseCm exactly.
+  it("#259: a full-magnitude negative riseCm is applied exactly, never attenuated", () => {
+    const spec = {
+      type: "trousers" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { riseCm: STYLE_LIMITS.riseCm.min },
+    };
+    const m: Measurements = { ...SIZE_TABLE.M, rise: 20 };
+    const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, m, t);
+    const front = pieces.find((p) => p.id === "trouser-front")!;
+    // #263: read the rise edge the way every production consumer already
+    // does (lib/proof3d/mesh.ts's edgeDeepYCm) -- the DEEPER of its two
+    // endpoints, each taken mod n. normalizeWinding reverses a
+    // non-canonical outline, which both swaps which endpoint of a seamEdges
+    // range is which AND can leave a `to === n` wraparound alias, so
+    // "the second endpoint, indexed directly" is not a thing a caller may
+    // assume. The crotch is the deeper of the two either way; waistCF sits
+    // at y = 0.
+    const n = front.outlineCm.length;
+    const [a, b] = front.seamEdges!.rise;
+    const crotchY = Math.max(
+      front.outlineCm[a % n][1],
+      front.outlineCm[b % n][1],
+    );
+    expect(crotchY).toBeCloseTo(20 + STYLE_LIMITS.riseCm.min, 5);
+    assertPositiveGeometry(pieces);
+    assertDecorationsContained(pieces);
   });
 });
 

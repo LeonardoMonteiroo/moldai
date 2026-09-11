@@ -397,12 +397,15 @@ describe("prompt-cache byte stability", () => {
     // on a standalone straight/a-line skirt) was added to the GarmentSpec
     // section, the "# Vocabulary mapping" prose, and the tool schema; the
     // "# Assembly / sewing order" section also gained a "pleat" step
-    // description alongside "dart"/"seam"/"hem". A deliberate, expected
-    // byte change (see this describe block's own comment), not a bug --
-    // the eval harness (npm run eval:ai) is what proves it's better, not
-    // this hash.
+    // description alongside "dart"/"seam"/"hem".
+    // #259: regenerated once more -- riseCm joined the same three places
+    // (style-field list, vocabulary mapping, tool schema) as a signed
+    // waist-rise offset for skirts and trousers. All deliberate, expected
+    // byte changes (see this describe block's own comment), not a bug --
+    // the eval harness (npm run eval:ai) is what proves the behaviour is
+    // better, not this hash.
     expect(hash).toBe(
-      "96e552fc347d104bb274ae7a7cc38c899ca813737b50609902a16c9c71436468",
+      "6f5e112a08c53bb732b9e594bc58fefcd02c5cb1bef347465d91d625e81e579e",
     );
   });
 });
