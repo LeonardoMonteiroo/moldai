@@ -231,6 +231,63 @@ describe("VersionCompare", () => {
     expect(deltaCell).not.toHaveClass("text-olive-dark");
   });
 
+  it("dims a piece's outline in the overlay when both versions drafted it identically", () => {
+    const [older] = makeVersions();
+    // Same spec on both sides -- every drafted piece is geometrically
+    // identical, so every outline in both svg layers must render dimmed.
+    const sameSpecTwin: PatternVersionEntry = {
+      ...older,
+      id: "pv1b",
+      version: 3,
+      createdAt: "2026-08-17T13:00:00.000Z",
+    };
+    const { container } = renderWithIntl(
+      <VersionCompare
+        versions={[sameSpecTwin, older]}
+        fromVersion={1}
+        toVersion={3}
+        restoring={false}
+        onRestore={vi.fn()}
+      />,
+    );
+
+    const outlines = container.querySelectorAll(
+      '[data-slot="version-compare-overlay"] svg [class*="stroke-"]',
+    );
+    expect(outlines.length).toBeGreaterThan(0);
+    for (const el of outlines) {
+      expect(el).toHaveClass("opacity-30");
+    }
+  });
+
+  it("does not dim a piece whose geometry actually changed between versions", () => {
+    const [older, newer] = makeVersions();
+    renderWithIntl(
+      <VersionCompare
+        versions={[newer, older]}
+        fromVersion={1}
+        toVersion={2}
+        restoring={false}
+        onRestore={vi.fn()}
+      />,
+    );
+
+    // The solid (newer/"to") layer's outlines: at least one piece's own
+    // shape moved (armholeDeepenCm differs), so at least one outline in the
+    // labelled layer keeps full emphasis rather than every piece dimming.
+    const toLayer = screen.getByRole("img", {
+      name: ptBR.VersionCompare.overlayAriaLabel
+        .replace("{from}", "1")
+        .replace("{to}", "2"),
+    });
+    const toOutlines = toLayer.querySelectorAll('[class*="stroke-"]');
+    expect(toOutlines.length).toBeGreaterThan(0);
+    const someUndimmed = Array.from(toOutlines).some(
+      (el) => !el.classList.contains("opacity-30"),
+    );
+    expect(someUndimmed).toBe(true);
+  });
+
   it("derives the compare canvas caption from the real drafted piece names", () => {
     const [older, newer] = makeVersions();
     renderWithIntl(

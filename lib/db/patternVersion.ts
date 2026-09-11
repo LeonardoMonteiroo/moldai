@@ -174,6 +174,17 @@ export async function recordVersion(
       engine: pattern.engine ?? null,
       reason,
       cost,
+      // #281: stamped from the app's own clock rather than left to the
+      // column's `@default(now())` (a Postgres-generated timestamp) --
+      // POST .../restore compares this value against ChatMessage.createdAt
+      // (also Date.now(), lib/editor/state.ts's addMessage) to truncate
+      // chat to what existed at the restored version. Comparing a
+      // DB-generated timestamp against an app-generated one would make that
+      // cutoff depend on the app and DB server clocks staying in sync;
+      // stamping both sides from the same clock removes that dependency
+      // entirely, and is a value-only change -- the column keeps its
+      // default for any other writer, so no migration is needed.
+      createdAt: new Date(),
     },
   });
 }

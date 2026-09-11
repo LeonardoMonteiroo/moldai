@@ -7,6 +7,7 @@ import type {
   CuffType,
   WaistbandType,
   FrontClosureType,
+  PleatType,
   Gender,
 } from "@/lib/types";
 import {
@@ -76,6 +77,10 @@ export const WAISTBANDS: WaistbandType[] = ["none", "straight"];
 // #223: same footing as the three above -- the AI-facing catalog, rendered
 // into the prompt/schema from this one export, never a hardcoded duplicate.
 export const FRONT_CLOSURES: FrontClosureType[] = ["none", "buttonStand"];
+// #244: same footing again -- rendered into the prompt/schema from this one
+// export, never a hardcoded duplicate. See lib/types.ts's own PleatType doc
+// for why there is no third, asymmetric "knife" value.
+export const PLEATS: PleatType[] = ["none", "box", "inverted-box"];
 
 // #125: FIT_CLASSES/STRETCH_CLASSES/FIT_EASE_CM/STRETCH_EASE_PCT/wearingEaseCm
 // live in ./ease, a leaf module with no dependency on this file or on

@@ -11,6 +11,7 @@ import {
   CUFFS,
   WAISTBANDS,
   FRONT_CLOSURES,
+  PLEATS,
   STYLE_LIMITS,
   FIT_CLASSES,
   STRETCH_CLASSES,
@@ -36,6 +37,7 @@ describe("vocabulary re-exported by garment.ts", () => {
     expect(g.CUFFS).toEqual(CUFFS);
     expect(g.WAISTBANDS).toEqual(WAISTBANDS);
     expect(g.FRONT_CLOSURES).toEqual(FRONT_CLOSURES);
+    expect(g.PLEATS).toEqual(PLEATS);
     expect(g.STYLE_LIMITS).toEqual(STYLE_LIMITS);
     expect(g.FIT_CLASSES).toEqual(FIT_CLASSES);
     expect(g.STRETCH_CLASSES).toEqual(STRETCH_CLASSES);

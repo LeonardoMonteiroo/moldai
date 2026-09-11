@@ -35,6 +35,7 @@ import {
   restoreVersion,
   saveExportPreset,
   signUp,
+  updateCutQuantities,
   updateProfile,
   updateSizeChart,
   verifyEmail,
@@ -146,6 +147,13 @@ const SHAPE_CASES: ShapeCase[] = [
     url: "/api/patterns/p1",
     method: "DELETE",
     // No body key: sendJson passes an undefined body straight through.
+  },
+  {
+    name: "updateCutQuantities",
+    call: () => updateCutQuantities("p1", { M: 2, G: 1 }),
+    url: "/api/patterns/p1/cut-plan",
+    method: "PATCH",
+    body: { cutQuantities: { M: 2, G: 1 } },
   },
   {
     name: "listVersions",
@@ -613,6 +621,7 @@ describe("api-client failure contracts", () => {
   // return nothing, so "it resolved" is the only signal the caller has.
   it.each([
     ["renamePattern", () => renamePattern("gone", "x")],
+    ["updateCutQuantities", () => updateCutQuantities("gone", { M: 1 })],
     ["deletePattern", () => deletePattern("gone")],
     ["fetchPattern", () => fetchPattern("gone")],
     ["listVersions", () => listVersions("gone")],

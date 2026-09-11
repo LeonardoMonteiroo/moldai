@@ -32,3 +32,16 @@ delta with no fixed pass/fail bar), never pixel/vertex equality.
 high-confidence ground truth. `segment-measurements.md`'s figures were read off a rendered
 drawing with no extractable text layer and are lower confidence — one value there is flagged as
 a likely misread and should be treated as unverified until double-checked.
+
+**Contested figure — do not calibrate a formula against `back`/`front` `widthCm` at size M.**
+`measurements.json`'s exported `widthCm` (79.994 back / 75.920 front) is a **bounding-box**
+width, not a garment-construction dimension — `segment-measurements.md`'s independent read of
+the same panel's top/bottom edge span gives 49.09 cm, and its own note already flags the
+mismatch. #282 confirmed the reference "M" is really a ~100 cm-chest garment (this app's collar
+band, sized from the measured neckline arc rather than from bust, lands within 0.08 cm of the
+benchmark at M), not the ~156 cm the bbox `widthCm` implies — see `docs/decisions/drafting.md`'s
+#282 note and `docs/reference/freesewing-spike/README.md`. `TSHIRT_BASE_EASE_CM` was originally
+solved from this exact figure and had to be replaced for it. The raw export is left unedited
+here (it is the exact machine-readable source), but treat `widthCm` at any size as unusable for
+deriving an ease/chest formula — `perimeterCm`/`areaCm2` remain the comparable, non-orientation-
+dependent metrics for that purpose.

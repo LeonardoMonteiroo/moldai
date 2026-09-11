@@ -8,6 +8,7 @@ import {
   CUFFS,
   WAISTBANDS,
   FRONT_CLOSURES,
+  PLEATS,
   GENDERS,
   STYLE_LIMITS,
   FIT_CLASSES,
@@ -89,6 +90,7 @@ describe("propose_garment tool schema", () => {
     expect(style.cuff.enum).toEqual(CUFFS);
     expect(style.waistband.enum).toEqual(WAISTBANDS);
     expect(style.frontClosure.enum).toEqual(FRONT_CLOSURES);
+    expect(style.pleats.enum).toEqual(PLEATS);
   });
 
   // #260: the descriptive-token twin of each free numeric style scalar is

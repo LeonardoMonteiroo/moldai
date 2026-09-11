@@ -45,5 +45,11 @@ export const PieceSchema = z.object({
   vertices: z.array(PointSchema).optional(),
   foldEdge: z.tuple([z.number(), z.number()]).optional(),
   notches: z.array(PieceNotchSchema).optional(),
+  // #243: zero or more internal loops (holes) -- same PieceOutlineSchema
+  // shape as the piece's own `outline` above, since round-tripping through
+  // this schema (lockPattern/loadPattern -> PatternStateSchema.safeParse)
+  // would otherwise silently strip the field the moment a drafter starts
+  // emitting it (z.object's default mode drops unrecognised keys).
+  internalLoops: z.array(PieceOutlineSchema).optional(),
   detailRows: z.array(DetailRowSchema),
 });

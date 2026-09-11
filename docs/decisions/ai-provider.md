@@ -83,6 +83,80 @@ insufficient. It is left unresolved here — the harness's job is to make
 this measurable and comparable across commits, not to force today's number
 to look better by loosening the fixtures.
 
+## Follow-up: the ~70% decision accuracy was a prompt defect, not a model limit
+
+**Issue #252 was reopened at the wrong milestone.** The eval harness itself
+(fixtures, scoring, report, `npm run eval:ai`) was complete and correct —
+every one of #252's acceptance criteria is satisfied by the code above. But
+the commit that built it also claimed to "close out issue #252" and the
+issue stayed open, which conflated "the harness exists" with "the harness's
+own finding is resolved." It wasn't: the baseline's ~70% decision accuracy
+sat unresolved for a day of in-repo time. This entry closes that finding
+out, separately from the harness that surfaced it.
+
+**Root cause, found with `--verbose`, not guessed.** `scripts/ai-eval.ts`
+gained an `--only <ids>` + `--verbose` flag pair (never writes the committed
+report — only a full run does) specifically to see the model's own
+`assistantMessage`/`questions` on a mismatch instead of just its pass/fail
+verdict. Read against the ten failing fixtures, the pattern was not "blank
+patterns are genuinely underspecified" (this file's own prior paragraph's
+hypothesis) — it was that the model asked about fields that already have a
+safe drafter-side default. `blouse-v-long` ("decote em V e manga longa")
+still got asked for `fit`; `skirt-aline` ("saia evasê") got asked for
+length, fit, _and_ waistband. `lib/draft/garment.ts:107`'s `validateSpec`
+and the drafters themselves (`lib/draft/body.ts:295`, `lib/draft/ease.ts:98`,
+`lib/draft/garment.ts:331-333`) already fall back to a concrete default —
+`"straight"` neckline, `"none"` sleeve, `"fitted"` fit — for every style
+field the AI leaves unset. Nothing about the drafting engine required the
+model to collect them first; the prompt's own `# Decision policy` bullet
+just named `neckline, sleeve, fit, length, size` as generic "relevant
+detail," which read to the model as a checklist to fill rather than a list
+of things that already have an answer.
+
+**The fix: rewrite what "underspecified" means, not just the blank-pattern
+example.** Two spots, both in `lib/ai/prompt.ts`: the static `# Decision
+policy` ask bullet (touches the cached prefix — a deliberate, expected
+sha256 regeneration in `prompt.test.ts`, not a silent one) now says ask is
+for a request naming NOTHING beyond the garment type, and that naming even
+one silhouette/feature/adjective is enough to apply since every other field
+already has a default; and `buildDynamicSection`'s blank-pattern paragraph
+(the per-request, uncached half) was reworded to match and point back at
+it, rather than repeating its own, narrower field list.
+
+**Negative controls came before the prompt edit, not after.** Before
+touching `prompt.ts`, `lib/ai/eval/fixtures.ts` gained five more non-`apply`
+cases — `ask-blouse-bare`, `ask-trousers-bare` (genuinely bare requests that
+must still `ask`), `decline-trouser-silhouette` (a second `decline`, a
+flare/bootcut leg — the policy's own named out-of-scope silhouette), and
+`explain-armhole` (a second `explain`). Loosening an ask-vs-apply policy is
+unmeasurable in the direction it can hurt without something that can
+actually regress; a single `ask-underspecified` fixture would have let an
+over-eager rewrite score as pure improvement.
+
+**Measured, not asserted, again.** Full `npm run eval:ai` after the rewrite:
+decision accuracy **100%** (37 generation cases, up from 33), field accuracy
+98.6% (one single-run miss on `tshirt-low-stretch`'s `stretch` field that
+re-ran clean in isolation — sampling noise on a non-zero-temperature model,
+not a regression this fix introduced), draft-success 100%, editing 100%
+with zero collateral. Every widened negative control (`ask-blouse-bare`,
+`ask-trousers-bare`, `decline-trouser-silhouette`, `explain-armhole`, plus
+the original `ask-underspecified`/`decline-jacket`/`explain-dart`) passed —
+the harness did not just get better at the ten it was built to fix, it held
+the line on the cases meant to catch the fix going too far.
+
+**A small provider-facade gap fixed in passing, because this work depended
+on trusting it.** `scripts/ai-eval.ts`'s report header hardcoded
+`MODEL = "claude-sonnet-5"` / `PROVIDER = "anthropic"` as a second copy of
+the literal that now lives at `lib/ai/provider/anthropic.ts`'s `MODEL`
+const — CLAUDE.md's "never a second copy of a fact that already has an
+owner," and one that would have silently mislabeled a `LLM_PROVIDER=local`
+report as an Anthropic one. `LlmProvider` gained a `model(): string` method
+(a function, not a static field, since `openaiCompatProvider` resolves
+`LLM_MODEL` from the environment at call time, the same reason
+`getProvider()` itself reads `LLM_PROVIDER` at call time rather than once at
+module load) and the runner now reads `getProvider().id`/`.model()` instead
+of its own literals.
+
 **Decision: 12GB VRAM buys one model, not two.** With the static+dynamic
 prompt alone near 8.4k tokens before any attachment, and up to four
 attachments adding several thousand more, a 7-8B model in 4-bit already
@@ -255,20 +329,78 @@ returned `ask` in this sample. Full accounting of what these numbers do and
 don't prove — a small sample, not a statistically powered measurement — and
 the LoRA gate itself, are unchanged from the sections above.
 
-**Decision: the LoRA training scaffold is built, reviewed, and explicitly
-unexecuted.** `scripts/lora/{prepare_dataset.py,train_lora.py,
-requirements.txt}` plus the runbook above give a complete, dependency-clean
-(no Node on the training host) QLoRA pipeline: rank-16 LoRA over Qwen's
-standard attention+MLP projections, Hermes-style `<tool_call>` targets
-matching `docker-compose.gpu.yml`'s own `--tool-call-parser hermes`, a
-held-out validation split fixed before training. **None of it has run** —
-no GPU exists in the environment that wrote it, and the dataset it would
-train on is currently empty (the finding immediately above). Calling this
-"done" would be exactly the overclaiming this document's own honesty
-standard exists to prevent; it is reviewed, ready code, not a proven
-result. The gate from the top of this section stands unchanged: a LoRA
-ships only once it beats the un-adapted base model on `npm run eval:ai`,
-scored on a split held out before training.
+**Decision: the LoRA training scaffold is built and reviewed.**
+`scripts/lora/{prepare_dataset.py,train_lora.py,requirements.txt}` plus the
+runbook above give a complete, dependency-clean (no Node on the training
+host) QLoRA pipeline: rank-16 LoRA over Qwen's standard attention+MLP
+projections, Hermes-style `<tool_call>` targets matching
+`docker-compose.gpu.yml`'s own `--tool-call-parser hermes`, a held-out
+validation split fixed before training. It has since been run for real (see
+the entry immediately below) — the gate from the top of this section stands
+unchanged regardless: a LoRA ships only once it beats the un-adapted base
+model on `npm run eval:ai`, scored on a split held out before training.
+
+## 2026-09-07: a real training run, and the LoRA did not clear the gate
+
+**What ran.** A rented RunPod A100-80GB (`moldai-lora-training`) trained
+`train_lora.py`'s defaults (rank 16, 3 epochs, Qwen3-8B base) on the 595/66
+train/val split the combinatorial generator had already produced
+(`scripts/lora/dataset.jsonl` + `.val.jsonl`, committed nowhere — gitignored
+local data). Training completed cleanly: loss fell from 1.55 (step 1) to
+0.033 (final), eval loss ended at 0.031 with 99.2% mean token accuracy on
+the held-out split, no sign of overfitting collapse between epoch 2 and 3.
+Two real bugs surfaced by this first actual run, both fixed in `3f78fc7`
+(base model default corrected from the VL/multimodal candidate to text-only
+Qwen3-8B; two `trl` 1.12.0 API renames) — see that commit and
+`train_lora.py`'s own top comment.
+
+**The gate check: served via vLLM (`--enable-lora`, `--tool-call-parser
+hermes`, `--enable-auto-tool-choice`) on the same rented pod, `npm run
+eval:ai` run twice against it — once with `LLM_MODEL=Qwen/Qwen3-8B` (the
+un-adapted base), once with `LLM_MODEL=moldai-v1` (the trained adapter) —
+same held-out fixtures both times.** Result was a genuine split, not a clean
+win:
+
+| Metric                                  | Base Qwen3-8B | LoRA (moldai-v1) |
+| --------------------------------------- | ------------- | ---------------- |
+| Decision accuracy (37 cases)            | 94.6%         | 91.9%            |
+| Field accuracy (73 fields, apply cases) | 98.6%         | 90.4%            |
+| Draft-success rate                      | 100.0%        | 100.0%           |
+| Editing change accuracy (8 cases)       | 87.5%         | 100.0%           |
+| Editing collateral-change rate          | 50.0%         | 37.5%            |
+
+The LoRA measurably improved editing (fixed every one of the base model's
+4 collateral/missed-change failures) but regressed generation: it now
+misreads **all three** `ask` fixtures as `apply` (the base model still
+missed 2 of 3, but not all), and field accuracy on `apply` cases dropped
+8.2 points — new misses on dress/skirt/tshirt fields the base model got
+right unaided. Generation is 37 of the 45 scored cases; a regression there
+is not offset by an improvement on the smaller editing set.
+
+**Decision: does not ship.** Per this document's own gate ("a LoRA only
+ships if it beats the un-adapted base model"), a mixed result where the
+larger, more central task (generation) got worse is read as a fail, not a
+partial pass — the same standard that keeps a prompt/schema change from
+shipping on inspection alone applies here to a fine-tune. Leading
+hypothesis, not yet verified: the combinatorial dataset's `apply`-vs-`ask`
+mix (arity-1 combinations biased toward `ask`, see the smoke-run entry
+above) may be under-representing the decision boundary relative to how
+much of the corpus teaches editing-style behavior, pushing the fine-tuned
+model toward "always apply." Not investigated further in this pass — next
+attempt should look at the trained example's decision-label distribution
+before changing rank/epochs/learning-rate.
+
+**Both full eval reports, and the training/eval run logs, are kept as local
+scratch files (`scripts/lora/eval-{base,lora}-report.md`,
+`scripts/lora/eval-{base,lora}-run.log`, gitignored, not committed) — the
+committed `docs/reference/ai-eval/report.md` baseline (Anthropic) was
+restored via `git checkout` immediately after both experimental runs, never
+overwritten by this pass.** The trained checkpoints themselves
+(`scripts/lora/lora-checkpoints/checkpoint-{38,76}/`,
+`scripts/lora/lora-out-final/`) are kept locally, also gitignored, in case a
+future session wants to resume from them (e.g., retrain from the same base
+with a rebalanced dataset) rather than paying for a second full run from
+scratch.
 
 ## Related, prior decisions this one builds on
 

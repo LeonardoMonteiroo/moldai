@@ -36,6 +36,9 @@ import {
   PLACKET_FOLD_OVERLAP_CM,
   PLACKET_FOLD_UNDERLAP_CM,
   BUTTON_STAND_WIDTH_CM,
+  buttonholeCentersCm,
+  BUTTONHOLE_END_INSET_CM,
+  BUTTONHOLE_TARGET_SPACING_CM,
 } from "./subpieces";
 import { buildAssemblyOrder } from "./assembly";
 import type { GarmentSpec, Pattern } from "@/lib/types";
@@ -804,6 +807,38 @@ describe("measureSeams", () => {
     );
     expect(garmentLengthCm).toBeCloseTo(95, 5);
   });
+
+  // #249: measureSeams gained the same optional referenceMeasurements
+  // param draftPiecesCm already had -- without it, a caller measuring a
+  // graded (non-base) size's skirt would silently re-freeze an explicit
+  // style.skirtLengthCm's garmentLengthCm at the base-size value again.
+  it("grades garmentLengthCm for an explicit skirtLengthCm the same way draftPiecesCm does, given a reference row", () => {
+    const spec = {
+      type: "skirt" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { skirt: "straight" as const, skirtLengthCm: 70 },
+    };
+    const base = measureSeams(
+      DEFAULT_ENGINE_ID,
+      spec,
+      SIZE_TABLE.M,
+      t,
+      SIZE_TABLE.M,
+    );
+    const graded = measureSeams(
+      DEFAULT_ENGINE_ID,
+      spec,
+      SIZE_TABLE.GG,
+      t,
+      SIZE_TABLE.M,
+    );
+    expect(graded.garmentLengthCm).not.toBeCloseTo(base.garmentLengthCm!, 1);
+    expect(graded.garmentLengthCm! / base.garmentLengthCm!).toBeCloseTo(
+      SIZE_TABLE.GG.skirtLength / SIZE_TABLE.M.skirtLength,
+      5,
+    );
+  });
 });
 
 // #59: grading used to charge 6 credits for state-flag bookkeeping that
@@ -901,6 +936,81 @@ describe("draftGradedOverlays", () => {
         t,
       ),
     ).toEqual([]);
+  });
+
+  // #249: draftPiecesCm's own graded call inside draftGradedOverlays now
+  // passes the base row through as the reference, the same wiring
+  // buildExportModel uses -- a direct draftPiecesCm comparison (bypassing
+  // autoLayout/canvas translation, unlike the overlay's own `outline`) is
+  // what actually proves the hem itself grades, not just that SOMETHING
+  // differs (a graded row's real waist/hip already changes the outline's
+  // WIDTH regardless of this fix).
+  it("grades an explicit skirtLengthCm in the base row's own ratio, not identically to the base (#249)", () => {
+    const skirtSpec = {
+      type: "skirt" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { skirt: "straight" as const, skirtLengthCm: 70 },
+    };
+    const [basePiece] = draftPiecesCm(
+      DEFAULT_ENGINE_ID,
+      skirtSpec,
+      SIZE_TABLE.M,
+      t,
+      SIZE_TABLE.M,
+    );
+    const [gradedPiece] = draftPiecesCm(
+      DEFAULT_ENGINE_ID,
+      skirtSpec,
+      SIZE_TABLE.GG,
+      t,
+      SIZE_TABLE.M,
+    );
+    const baseHeight = bbox(basePiece.outlineCm).h;
+    const gradedHeight = bbox(gradedPiece.outlineCm).h;
+    expect(gradedHeight).not.toBeCloseTo(baseHeight, 1);
+    expect(gradedHeight / baseHeight).toBeCloseTo(
+      SIZE_TABLE.GG.skirtLength / SIZE_TABLE.M.skirtLength,
+      2,
+    );
+  });
+
+  // #249: an explicit style.skirtLengthCm grades per-size ONLY when it's
+  // graded against the chart's own (un-overridden) skirtLength. Overriding
+  // skirtLength via measurementOverrides (a CORE key) applies the SAME
+  // absolute number to every row resolveMeasurements touches -- the base
+  // row AND the reference row alike -- which collapses gradedSkirtLengthCm's
+  // fraction back to 1, printing the explicit length flat across every
+  // graded size again. Documented as deliberate (see draftAll's own
+  // referenceRow comment): an overridden measurement is this wearer's own
+  // chosen number, not a size-chart proportion, so it stays flat across
+  // sizes exactly like overriding waist/hip/bust already does -- not a gap
+  // this fix left open.
+  it("a skirtLength override collapses the grading back to flat, consistent with every other overridden measurement (#249)", () => {
+    const skirtSpec = {
+      type: "skirt" as const,
+      gender: "female" as const,
+      measurementOverrides: { skirtLength: 65 },
+      style: { skirt: "straight" as const, skirtLengthCm: 70 },
+    };
+    const [basePiece] = draftPiecesCm(
+      DEFAULT_ENGINE_ID,
+      skirtSpec,
+      SIZE_TABLE.M,
+      t,
+      SIZE_TABLE.M,
+    );
+    const [gradedPiece] = draftPiecesCm(
+      DEFAULT_ENGINE_ID,
+      skirtSpec,
+      SIZE_TABLE.GG,
+      t,
+      SIZE_TABLE.M,
+    );
+    expect(bbox(gradedPiece.outlineCm).h).toBeCloseTo(
+      bbox(basePiece.outlineCm).h,
+      5,
+    );
   });
 });
 
@@ -1064,6 +1174,21 @@ function assertDecorationsContained(pieces: ReturnType<typeof draftPiecesCm>) {
         `${piece.id} point (${x.toFixed(1)}, ${y.toFixed(1)}) vs outline y-range [${span.top.toFixed(1)}, ${span.bottom.toFixed(1)}]`,
       ).toBeGreaterThanOrEqual(span.top);
       expect(y).toBeLessThanOrEqual(span.bottom);
+    }
+
+    // #315: an internal loop (hole) -- every vertex of every loop stays
+    // inside the piece's own outer boundary, the same check every other
+    // decoration kind above already gets, so a loop that escapes its own
+    // panel is caught exactly like a grainline or drill hole that would.
+    for (const loop of piece.internalLoopsCm ?? []) {
+      for (const [x, y] of loop.outlineCm) {
+        const span = verticalSpanAt(piece.outlineCm, x);
+        expect(
+          y,
+          `${piece.id} internal loop point (${x.toFixed(1)}, ${y.toFixed(1)}) vs outline y-range [${span.top.toFixed(1)}, ${span.bottom.toFixed(1)}]`,
+        ).toBeGreaterThanOrEqual(span.top);
+        expect(y).toBeLessThanOrEqual(span.bottom);
+      }
     }
   }
 }
@@ -1618,6 +1743,68 @@ describe("seam graph (#134)", () => {
     expect(conflicts).toEqual([]);
   });
 
+  // #253: "a sleeve cap whose total matches but whose front/back split is
+  // wrong measures as a perfect seam" -- a real backWidth divergence widens
+  // (or narrows) only the BACK armhole, so the front+back TOTAL still
+  // matches the cap's own target arc exactly (diffCm stays 0), but the
+  // split between them no longer projects onto the cap's own symmetric
+  // (50/50) apex -- subSegmentDiffCm is what catches that.
+  it("flags a real front/back split divergence via subSegmentDiffCm even though the total (diffCm) still agrees, and reports it as NOT fixable", () => {
+    const spec: GarmentSpec = {
+      type: "blouse",
+      gender: "female",
+      measurementOverrides: { backWidth: 30 },
+      style: { sleeve: "short" },
+    };
+    const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
+    const armholeCap = graph.find((m) => m.key === "armhole-cap")!;
+    expect(armholeCap.diffCm).toBeLessThanOrEqual(1);
+    expect(armholeCap.subSegmentDiffCm).toBeGreaterThan(1);
+
+    const conflicts = seamCheck(graph);
+    const flagged = conflicts.find((m) => m.key === "armhole-cap");
+    expect(flagged).toBeDefined();
+    // refitSleeve can't correct a front/back split imbalance (it only
+    // changes which TOTAL the cap solves against), so this must NOT claim
+    // to be fixable even though the pair itself declares fixable: true.
+    expect(flagged!.fixable).toBe(false);
+  });
+
+  // #253 (code-review fix): a pair diverging on BOTH axes at once -- a real
+  // backWidth split AND an un-refit armholeDeepenCm total mismatch -- must
+  // still report NOT fixable. refitSleeve only ever closes the TOTAL
+  // (diffCm); it does nothing for the split (subSegmentDiffCm), so if it
+  // stayed `fixable: true` here (because diffCm alone exceeded tolerance),
+  // the seam would still be broken after "Corrigir manga" ran.
+  it("reports NOT fixable when diffCm AND subSegmentDiffCm both exceed tolerance at once", () => {
+    const spec: GarmentSpec = {
+      type: "blouse",
+      gender: "female",
+      measurementOverrides: { backWidth: 28 },
+      style: { sleeve: "short", armholeDeepenCm: 2 },
+    };
+    const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
+    const armholeCap = graph.find((m) => m.key === "armhole-cap")!;
+    expect(armholeCap.diffCm).toBeGreaterThan(1);
+    expect(armholeCap.subSegmentDiffCm).toBeGreaterThan(1);
+
+    const flagged = seamCheck(graph).find((m) => m.key === "armhole-cap");
+    expect(flagged).toBeDefined();
+    expect(flagged!.fixable).toBe(false);
+  });
+
+  it("measurementOverrides.backWidth is not applied AT ALL when absent -- front and back stay equal by construction, subSegmentDiffCm 0", () => {
+    const spec: GarmentSpec = {
+      type: "blouse",
+      gender: "female",
+      measurementOverrides: {},
+      style: { sleeve: "short" },
+    };
+    const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
+    const armholeCap = graph.find((m) => m.key === "armhole-cap")!;
+    expect(armholeCap.subSegmentDiffCm).toBe(0);
+  });
+
   // #177 (owner decision, superseding the #134 finding this test used to
   // document, refined by a follow-up review -- see #185, closed by folding
   // its fix into #177's own PR): the dress bodice hem no longer reads
@@ -1981,6 +2168,80 @@ describe("seam graph (#134)", () => {
     expect(pieces.map((p) => p.id)).not.toContain("button-stand");
   });
 
+  // #315: buttonholeCentersCm is the pure spacing computation draftButtonStand
+  // relies on -- pinned directly, independent of the full drafting pipeline.
+  describe("buttonholeCentersCm", () => {
+    it("returns at least 2 centers, both inset from the ends, for a typical stand length", () => {
+      const centers = buttonholeCentersCm(40);
+      expect(centers.length).toBeGreaterThanOrEqual(2);
+      expect(centers[0]).toBeCloseTo(BUTTONHOLE_END_INSET_CM, 5);
+      expect(centers[centers.length - 1]).toBeCloseTo(
+        40 - BUTTONHOLE_END_INSET_CM,
+        5,
+      );
+    });
+
+    it("spaces centers evenly, close to the target spacing, for a long stand", () => {
+      const len = 100;
+      const centers = buttonholeCentersCm(len);
+      const gaps = centers.slice(1).map((c, i) => c - centers[i]);
+      for (const gap of gaps) {
+        expect(gap).toBeGreaterThan(0);
+        expect(gap).toBeCloseTo(gaps[0], 5); // every gap is the SAME size
+      }
+      // rounding to a whole number of intervals can land the common gap up
+      // to half an interval either side of the target.
+      expect(Math.abs(gaps[0] - BUTTONHOLE_TARGET_SPACING_CM)).toBeLessThan(
+        BUTTONHOLE_TARGET_SPACING_CM / 2,
+      );
+    });
+
+    it("never places a center outside [0, standLenCm], even for a very short stand", () => {
+      const centers = buttonholeCentersCm(2);
+      expect(centers.length).toBeGreaterThanOrEqual(2);
+      for (const c of centers) {
+        expect(c).toBeGreaterThanOrEqual(0);
+        expect(c).toBeLessThanOrEqual(2);
+      }
+    });
+  });
+
+  // #315: the button stand is the first real internalLoopsCm emitter -- at
+  // least two buttonholes, each a genuinely closed 4-point rectangle sized
+  // from BUTTONHOLE_LENGTH_CM/BUTTONHOLE_WIDTH_CM (lib/draft/subpieces.ts),
+  // drafted off the front's own MEASURED center-front edge, not a
+  // hand-built fixture.
+  it("#315: the button stand carries real buttonhole loops, at least two, sized from the measured stand length", () => {
+    const spec = {
+      type: "blouse" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { frontClosure: "buttonStand" as const },
+    };
+    const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
+    const stand = pieces.find((p) => p.id === "button-stand")!;
+    expect(stand).toBeDefined();
+    expect(stand.internalLoopsCm?.length ?? 0).toBeGreaterThanOrEqual(2);
+    const standWidthCm = bbox(stand.outlineCm).w;
+    for (const loop of stand.internalLoopsCm!) {
+      expect(loop.outlineCm).toHaveLength(4);
+      const xs = loop.outlineCm.map(([x]) => x);
+      // every loop lands strictly inside the stand's own length, never at
+      // (or past) either end.
+      expect(Math.min(...xs)).toBeGreaterThan(0);
+      expect(Math.max(...xs)).toBeLessThan(standWidthCm);
+    }
+    // no two loops sit at the same position (a degenerate, overlapping
+    // spacing computation).
+    const centers = stand.internalLoopsCm!.map(
+      (loop) =>
+        (Math.min(...loop.outlineCm.map(([x]) => x)) +
+          Math.max(...loop.outlineCm.map(([x]) => x))) /
+        2,
+    );
+    expect(new Set(centers.map((c) => c.toFixed(3))).size).toBe(centers.length);
+  });
+
   it("#223: a collar drafted together with a button stand still matches the front+back neckline arc (front counted from ONE half, doubled)", () => {
     const spec = {
       type: "blouse" as const,
@@ -2078,6 +2339,46 @@ describe("seam graph (#134)", () => {
       expect(pair!.diffCm, silhouette).toBeLessThan(0.3);
     }
   });
+
+  // #244: proves the widened panel isn't "free" fabric -- the waistband is
+  // DERIVED from the panel's own real (pleat-widened) waist edge
+  // (garment.ts's curveArcLengthCm call, unchanged by this feature), so it
+  // grows to match automatically and the seam graph stays closed exactly
+  // like the unpleated case just above.
+  it.each(["box", "inverted-box"] as const)(
+    "#244: a %s pleat still matches its own waistband within 0.3cm, and the band grows to hold the extra fabric",
+    (pleats) => {
+      const plainSpec = {
+        type: "skirt" as const,
+        gender: "female" as const,
+        measurementOverrides: {},
+        style: { skirt: "straight" as const },
+      };
+      const pleatedSpec = {
+        ...plainSpec,
+        style: { ...plainSpec.style, pleats },
+      };
+      const plainGraph = measureSeamGraph(
+        DEFAULT_ENGINE_ID,
+        plainSpec,
+        SIZE_TABLE.M,
+        t,
+      );
+      const pleatedGraph = measureSeamGraph(
+        DEFAULT_ENGINE_ID,
+        pleatedSpec,
+        SIZE_TABLE.M,
+        t,
+      );
+      const plainPair = plainGraph.find((m) => m.key === "waistband-waist")!;
+      const pleatedPair = pleatedGraph.find(
+        (m) => m.key === "waistband-waist",
+      )!;
+      expect(pleatedPair.diffCm).toBeLessThan(0.3);
+      expect(seamCheck(pleatedGraph)).toEqual([]);
+      expect(pleatedPair.aLenCm).toBeGreaterThan(plainPair.aLenCm);
+    },
+  );
 
   it("#131: a dress's skirt panel gets no waistband -- it joins the bodice at the natural waist instead", () => {
     const spec = {
