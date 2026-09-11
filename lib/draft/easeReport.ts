@@ -192,13 +192,24 @@ export function buildEaseReport(
   // for trousers (generalised to any bust-less garment), that's reported as
   // "not applicable", never a misleading zero.
   if (front && back && front.seamEdges?.armhole && back.seamEdges?.armhole) {
-    // The underarm height -- the "to" vertex of each panel's own armhole
-    // edge -- is where the bodice is widest at chest level, front and back
-    // alike (lib/draft/body.ts: armholeDepth doesn't depend on `frontish`).
-    // Read off each piece's own geometry rather than recomputed, so this
-    // never needs to know body.ts's own armhole-depth formula.
-    const frontY = front.outlineCm[front.seamEdges.armhole[1]][1];
-    const backY = back.outlineCm[back.seamEdges.armhole[1]][1];
+    // The underarm height -- one end of each panel's own armhole edge -- is
+    // where the bodice is widest at chest level, front and back alike
+    // (lib/draft/body.ts: armholeDepth doesn't depend on `frontish`). Read
+    // off each piece's own geometry rather than recomputed, so this never
+    // needs to know body.ts's own armhole-depth formula. #263: the underarm
+    // is always the DEEPER (larger-y) of the two endpoints -- shoulder sits
+    // near the neckline, well above it -- which is order-agnostic against
+    // which specific index (`armhole[0]` vs `armhole[1]`) core.ts's
+    // normalizeWinding happened to remap it to, unlike reading a fixed
+    // position in the pair.
+    const frontY = Math.max(
+      front.outlineCm[front.seamEdges.armhole[0]][1],
+      front.outlineCm[front.seamEdges.armhole[1]][1],
+    );
+    const backY = Math.max(
+      back.outlineCm[back.seamEdges.armhole[0]][1],
+      back.outlineCm[back.seamEdges.armhole[1]][1],
+    );
     const bustCm =
       widthAtCm(front, frontY) * front.qty + widthAtCm(back, backY) * back.qty;
     record("bust", bustCm, bodyRow.bust);

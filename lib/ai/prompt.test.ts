@@ -398,16 +398,19 @@ describe("prompt-cache byte stability", () => {
     // section, the "# Vocabulary mapping" prose, and the tool schema; the
     // "# Assembly / sewing order" section also gained a "pleat" step
     // description alongside "dart"/"seam"/"hem".
-    // #260: regenerated once more -- the five descriptive-length-token style
-    // properties (necklineDepth/skirtLength/seamAllowance/armholeDeepen/
-    // trouserLength) joined the tool schema, the trouserLengthCm bullet now
-    // points at its token twin, and the "# Descriptive length tokens"
-    // section instructs the model to prefer a token over a free numeric
-    // estimate. All deliberate, expected byte changes (see this describe
-    // block's own comment), not a bug -- the eval harness (npm run eval:ai)
-    // is what proves the behaviour is better, not this hash.
+    // #259: regenerated once more -- riseCm joined the same three places
+    // (style-field list, vocabulary mapping, tool schema) as a signed
+    // waist-rise offset for skirts and trousers.
+    // #260: and again -- the five descriptive-length-token style properties
+    // (necklineDepth/skirtLength/seamAllowance/armholeDeepen/trouserLength)
+    // joined the tool schema, the trouserLengthCm bullet now points at its
+    // token twin, and the "# Descriptive length tokens" section instructs
+    // the model to prefer a token over a free numeric estimate. All
+    // deliberate, expected byte changes (see this describe block's own
+    // comment), not a bug -- the eval harness (npm run eval:ai) is what
+    // proves the behaviour is better, not this hash.
     expect(hash).toBe(
-      "3a9c5cb30f545e98aac2c8d796a045292cf9ce8e8dce0155584f434f502d977e",
+      "db61813d7e4c1953b419bc9f3130587d3b74e7639ca61fd51f47140887ed929d",
     );
   });
 });

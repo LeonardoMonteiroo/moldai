@@ -259,6 +259,9 @@ export function describeSpecAdjustments(
     validated.style.trouserLengthCm,
   );
   checkScalarToken("trouserLengthCm");
+  // #259's riseCm has no descriptive-token twin of its own (SCALAR_TOKEN_FIELDS
+  // names the five #260 shipped), so it reports through the plain scalar check.
+  checkScalar("riseCm", rawStyle.riseCm, validated.style.riseCm);
 
   return out;
 }
