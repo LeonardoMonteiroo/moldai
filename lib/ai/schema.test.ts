@@ -13,16 +13,23 @@ import {
   STYLE_LIMITS,
   FIT_CLASSES,
   STRETCH_CLASSES,
+  NECKLINE_DEPTH_TOKENS,
+  SKIRT_LENGTH_TOKENS,
+  SEAM_ALLOWANCE_TOKENS,
+  ARMHOLE_DEEPEN_TOKENS,
+  TROUSER_LENGTH_TOKENS,
 } from "@/lib/draft/garment";
 import { MEASUREMENT_RANGES } from "@/lib/measurements";
 import { DEFAULT_ENGINE_ID } from "@/lib/draft/engine/capability";
 import { getEngine } from "@/lib/draft/engine/registry";
+import { CLARIFY_QUESTION_FIELDS } from "@/lib/types";
 
 interface Prop {
   enum?: string[];
   minimum?: number;
   maximum?: number;
   properties?: Record<string, Prop>;
+  items?: Prop;
 }
 
 const TOOL = toolFor(DEFAULT_ENGINE_ID);
@@ -88,6 +95,25 @@ describe("propose_garment tool schema", () => {
     expect(style.pleats.enum).toEqual(PLEATS);
   });
 
+  // #260: the descriptive-token twin of each free numeric style scalar is
+  // rendered as a string enum from the SAME exported table validateSpec
+  // projects a chosen token through -- never a second, hand-duplicated list.
+  it("renders each descriptive-length-token field as a string enum of its table's keys", () => {
+    expect(style.necklineDepth.enum).toEqual(
+      Object.keys(NECKLINE_DEPTH_TOKENS),
+    );
+    expect(style.skirtLength.enum).toEqual(Object.keys(SKIRT_LENGTH_TOKENS));
+    expect(style.seamAllowance.enum).toEqual(
+      Object.keys(SEAM_ALLOWANCE_TOKENS),
+    );
+    expect(style.armholeDeepen.enum).toEqual(
+      Object.keys(ARMHOLE_DEEPEN_TOKENS),
+    );
+    expect(style.trouserLength.enum).toEqual(
+      Object.keys(TROUSER_LENGTH_TOKENS),
+    );
+  });
+
   it("offers all four decisions", () => {
     expect(input.properties.decision.enum).toEqual([
       "apply",
@@ -105,5 +131,16 @@ describe("propose_garment tool schema", () => {
     const order = Object.keys(input.properties);
     expect(order.indexOf("garmentReading")).toBeGreaterThanOrEqual(0);
     expect(order.indexOf("garmentReading")).toBeLessThan(order.indexOf("spec"));
+  });
+
+  // #262: a clarifying question's `field` is a shape-level enum of style
+  // FIELD NAMES (never the field's own catalog VALUES -- JSON Schema can't
+  // express "options must match whichever field is named", so that real
+  // enforcement is validateQuestions' job, downstream). CLARIFY_QUESTION_FIELDS
+  // is the one exported source for both this tool schema and
+  // ClarifyQuestionSchema (lib/schemas/garment.ts).
+  it("declares `field` on a question item as CLARIFY_QUESTION_FIELDS", () => {
+    const questionItem = input.properties.questions.items!.properties!;
+    expect(questionItem.field.enum).toEqual(CLARIFY_QUESTION_FIELDS);
   });
 });

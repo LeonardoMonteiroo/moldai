@@ -420,8 +420,8 @@ describe("prompt-cache byte stability", () => {
       staticSectionsFor(DEFAULT_ENGINE_ID) +
       JSON.stringify(toolFor(DEFAULT_ENGINE_ID));
     const hash = createHash("sha256").update(bytes).digest("hex");
-    // #252-follow-up: regenerated -- the "# Decision policy" ask bullet
-    // (buildStaticSections) was rewritten so the model stops treating
+    // #262 + #252-follow-up: regenerated -- the "# Decision policy" ask
+    // bullet (buildStaticSections) was rewritten so the model stops treating
     // neckline/sleeve/fit/length/size as always-required detail (every one
     // of those already has a drafter-side default) and reserves ask for a
     // request that names nothing beyond the garment type.
@@ -430,15 +430,28 @@ describe("prompt-cache byte stability", () => {
     // section, the "# Vocabulary mapping" prose, and the tool schema; the
     // "# Assembly / sewing order" section also gained a "pleat" step
     // description alongside "dart"/"seam"/"hem".
-    // #258: regenerated once more -- the "# Attached images" section
-    // (buildStaticSections) now instructs the model to fill garmentReading
-    // part-by-part before inferring the GarmentSpec (ChatGarment's own
-    // two-stage chain of thought). All deliberate, expected byte changes
-    // (see this describe block's own comment), not a bug -- the eval
-    // harness (npm run eval:ai) is what proves the behaviour is better,
-    // not this hash.
+    // #259: regenerated once more -- riseCm joined the same three places
+    // (style-field list, vocabulary mapping, tool schema) as a signed
+    // waist-rise offset for skirts and trousers.
+    // #260: and again -- the five descriptive-length-token style properties
+    // joined the tool schema, the trouserLengthCm bullet now points at its
+    // token twin, and the "# Descriptive length tokens" section instructs
+    // the model to prefer a token over a free numeric estimate.
+    // #262: and once more -- the "# Decision policy" ask bullet plus the
+    // "# Language" section now tell the model to set `field` + EXACT catalog
+    // tokens for a style-catalog question, and propose_garment's own
+    // questions.items gained a `field` enum property (lib/ai/schema.ts) so
+    // that request is structurally valid.
+    // #258: and finally -- the "# Attached images" section now instructs the
+    // model to fill garmentReading part-by-part before inferring the
+    // GarmentSpec (ChatGarment's own two-stage chain of thought), and
+    // "# Language" names garmentReading among the fields written in the
+    // user's own language. All deliberate, expected byte changes (see this
+    // describe block's own comment), not a bug -- the eval harness
+    // (npm run eval:ai) is what proves the behaviour is better, not this
+    // hash.
     expect(hash).toBe(
-      "9d38efbafc06d8d53793cfa28b61ee180ca68b4cc806df691600556462efb700",
+      "1a576065185f177c0f2bbd6685027cd32888e4ab484248ff3d63b3a27851d985",
     );
   });
 });

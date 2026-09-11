@@ -271,6 +271,7 @@ describe("withPattern", () => {
     // #244: pleats found missing here too, before merge -- same class as
     // the five above, caught in review this time.
     { key: "pleats" as const, value: "box" as const },
+    { key: "riseCm" as const, value: 8 },
   ];
 
   for (const { key, value } of STYLE_FLAG_CASES) {

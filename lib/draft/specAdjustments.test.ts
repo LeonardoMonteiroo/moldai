@@ -131,4 +131,80 @@ describe("describeSpecAdjustments", () => {
     );
     expect(kinds).toEqual(["type", "necklineDepthCm", "collar"]);
   });
+
+  // #260 code-review: an unrecognized descriptive-length token resolves to
+  // `undefined` inside validateSpec (garment.ts's resolveScalarField), the
+  // same silent-drop shape every other checkScalar/checkEnum case already
+  // exists to surface -- these pin that the token's OWN sibling field
+  // (necklineDepth, skirtLength, ...) is diffed too, not just its *Cm twin.
+  it("reports an unrecognized descriptive-length token as substituted on the *Cm field, dropped to undefined", () => {
+    const raw = { type: "trousers", style: { trouserLength: "bogus" } };
+    const validated = validateSpec(raw);
+    expect(validated.style.trouserLengthCm).toBeUndefined();
+    const [entry] = describeSpecAdjustments(raw, validated);
+    expect(entry).toEqual({
+      kind: "substituted",
+      field: "trouserLengthCm",
+      requested: "bogus",
+    });
+    expect("used" in entry).toBe(false);
+  });
+
+  it("never reports a valid descriptive-length token -- it's a deliberate choice, not a substitution", () => {
+    const raw = { type: "skirt", style: { skirtLength: "maxi" } };
+    expect(describeSpecAdjustments(raw, validateSpec(raw))).toEqual([]);
+  });
+
+  it("does not double-report the token when an explicit *Cm value was also sent (the cm value alone determines the outcome)", () => {
+    const raw = {
+      type: "skirt",
+      style: { skirtLength: "bogus", skirtLengthCm: 45 },
+    };
+    const validated = validateSpec(raw);
+    expect(validated.style.skirtLengthCm).toBe(45);
+    expect(describeSpecAdjustments(raw, validated)).toEqual([]);
+  });
+
+  it("treats a null *Cm value as not sent, so an unrecognized token alongside it is still reported", () => {
+    const raw = {
+      type: "blouse",
+      style: { necklineDepthCm: null, necklineDepth: "bogus" },
+    };
+    const validated = validateSpec(raw);
+    expect(validated.style.necklineDepthCm).toBeUndefined();
+    const [entry] = describeSpecAdjustments(raw, validated);
+    expect(entry).toEqual({
+      kind: "substituted",
+      field: "necklineDepthCm",
+      requested: "bogus",
+    });
+  });
+
+  // #260 second code-review pass: checkScalar used to treat `null` as "sent"
+  // (`Number(null)` is 0, a below-range value), even after resolveScalarField
+  // (garment.ts) started treating `null` as "not sent" -- the two functions
+  // silently disagreeing produced a fabricated "clamped" report for a value
+  // the user never sent, while validateSpec itself correctly resolved the
+  // valid token alongside it.
+  it("never reports a null *Cm value as clamped when a valid token resolves it instead", () => {
+    const raw = {
+      type: "trousers",
+      style: { trouserLengthCm: null, trouserLength: "ankle" },
+    };
+    const validated = validateSpec(raw);
+    expect(validated.style.trouserLengthCm).toBe(95);
+    expect(describeSpecAdjustments(raw, validated)).toEqual([]);
+  });
+
+  // Same drift, the other direction: checkScalarToken used to only skip a
+  // `tokenRaw === undefined` token, not a `null` one, so a provider that
+  // null-fills an unset optional token property (see
+  // lib/ai/provider/openaiCompat.ts) produced a fabricated "substituted"
+  // report claiming the user requested the literal token "null".
+  it("never reports a null descriptive-length token as substituted -- null counts as not sent", () => {
+    const raw = { type: "skirt", style: { skirtLength: null } };
+    const validated = validateSpec(raw);
+    expect(validated.style.skirtLengthCm).toBeUndefined();
+    expect(describeSpecAdjustments(raw, validated)).toEqual([]);
+  });
 });

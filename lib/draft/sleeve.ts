@@ -197,27 +197,19 @@ export function draftSleeve(
   // cap; it has no single body-side counterpart to pair with (the shoulder
   // point exists on both the front AND back panels), so it's excluded from
   // the mated-pair cross-check in garment.test.ts.
-  const insideRef: Pt = [cxTop, capH + len / 2];
+  // #263: no more caller-supplied interior reference -- notchAtArcLengthCm/
+  // notchAtVertex derive the inward tick from capPts' own winding.
   const notches: NotchCm[] = [
-    notchAtArcLengthCm(
-      capPts,
-      curvedSpans,
-      0,
-      4,
-      pitchNotchCm,
-      insideRef,
-      "single",
-    ),
+    notchAtArcLengthCm(capPts, curvedSpans, 0, 4, pitchNotchCm, "single"),
     notchAtArcLengthCm(
       capPts,
       curvedSpans,
       0,
       4,
       measuredCapArcCm - pitchNotchCm,
-      insideRef,
       "double",
     ),
-    notchAtVertex(capPts, 2, insideRef, "single"),
+    notchAtVertex(capPts, 2, "single"),
   ];
 
   const detailRows: DetailRow[] = [
