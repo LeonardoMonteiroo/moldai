@@ -29,4 +29,15 @@ export interface ProposeOptions {
   // user" section; the structural guarantee is the merge the route applies
   // afterwards, not this.
   formSpec?: GarmentSpec;
+  // #265: the display name of the piece the user had selected in the editor
+  // when they sent this turn -- ALREADY resolved server-side (the generate
+  // route looks the client's piece id up against this pattern's own
+  // `pieces`, by id) before this options object is ever built. Never a raw
+  // id, and never accepted here as free text: an unrecognized or stale id
+  // resolves to undefined at that lookup, so this field is simply absent and
+  // the turn behaves exactly as unscoped -- there is no validation branch to
+  // add on this side of the boundary. Presence emits buildDynamicSection's
+  // "# Scoped part" instruction, the same "presence turns on a prompt
+  // section" shape formSpec above already uses.
+  partScope?: string;
 }
