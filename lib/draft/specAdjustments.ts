@@ -12,6 +12,9 @@ import {
   FIT_CLASSES,
   STRETCH_CLASSES,
   STYLE_LIMITS,
+  SCALAR_TOKEN_FIELDS,
+  isValueSent,
+  resolveScalarToken,
 } from "./vocabulary";
 
 // #250: validateSpec (garment.ts) is deliberately permissive -- pick()
@@ -112,12 +115,20 @@ export function describeSpecAdjustments(
     });
   };
 
+  // #260: `rawValue` is only ever one of the five *Cm fields paired with a
+  // descriptive token (see checkScalarToken below) -- isValueSent (not a
+  // bare `=== undefined` check) so a `null` value is treated identically
+  // to "not sent" here, matching garment.ts's own resolveScalarField. Before
+  // this, a `null` *Cm value sent alongside a valid token produced a
+  // fabricated "clamped" report (`Number(null)` is 0, a below-range value),
+  // even though validateSpec itself correctly resolved the token and never
+  // saw the null as a real request.
   const checkScalar = (
     field: AdjustedField,
     rawValue: unknown,
     validatedValue: number | undefined,
   ) => {
-    if (rawValue === undefined) return;
+    if (!isValueSent(rawValue)) return;
     const n = Number(rawValue);
     if (!Number.isFinite(n)) {
       out.push({
@@ -143,6 +154,43 @@ export function describeSpecAdjustments(
         range,
       });
     }
+  };
+
+  // #260: a free numeric style scalar's raw payload can name a descriptive
+  // token (e.g. `trouserLength: "bogus"`) instead of/alongside its *Cm
+  // twin -- garment.ts's resolveScalarField silently resolves an
+  // unrecognized token to `undefined` (deferring to the drafter's own
+  // context-aware default) rather than surfacing that the requested token
+  // didn't exist. Without this check, that substitution would be invisible
+  // to describeSpecAdjustments (and so to the user), the exact silent-
+  // substitution failure mode this whole module exists to catch. Only
+  // fires when the *Cm field itself wasn't sent (isValueSent, so `null`
+  // counts as "not sent", same as resolveScalarField) -- when a *Cm value
+  // IS present, it alone determines the outcome and checkScalar above
+  // already reports on it, so the token (never even consulted by
+  // validateSpec in that case) is not a "substitution" to report a second
+  // time. Reuses resolveScalarToken (./vocabulary) rather than
+  // reimplementing "does this token resolve" a second time -- see that
+  // export's own doc comment for why a shared definition matters here.
+  //
+  // No `used` field: whenever this push is reached, validateSpec's own
+  // resolveScalarField (garment.ts) has, by construction, resolved this
+  // exact field to `undefined` (the *Cm field wasn't sent, and the token
+  // didn't resolve) -- there is no validated value to report.
+  const checkScalarToken = (cmField: keyof typeof SCALAR_TOKEN_FIELDS) => {
+    const cmRaw = rawStyle[cmField];
+    if (isValueSent(cmRaw)) return;
+    const { tokenKey, table } = SCALAR_TOKEN_FIELDS[cmField];
+    const tokenRaw = rawStyle[tokenKey];
+    if (!isValueSent(tokenRaw)) return;
+    if (resolveScalarToken(table, tokenRaw) !== undefined) {
+      return; // a valid token is a deliberate choice, not a substitution
+    }
+    out.push({
+      kind: "substituted",
+      field: cmField,
+      requested: String(tokenRaw),
+    });
   };
 
   const checkBoolean = (
@@ -172,16 +220,19 @@ export function describeSpecAdjustments(
     rawStyle.necklineDepthCm,
     validated.style.necklineDepthCm,
   );
+  checkScalarToken("necklineDepthCm");
   checkScalar(
     "skirtLengthCm",
     rawStyle.skirtLengthCm,
     validated.style.skirtLengthCm,
   );
+  checkScalarToken("skirtLengthCm");
   checkScalar(
     "seamAllowanceCm",
     rawStyle.seamAllowanceCm,
     validated.style.seamAllowanceCm,
   );
+  checkScalarToken("seamAllowanceCm");
   checkBoolean("darts", rawStyle.darts, validated.style.darts);
   checkEnum("fit", rawStyle.fit, validated.style.fit);
   checkEnum("stretch", rawStyle.stretch, validated.style.stretch);
@@ -190,6 +241,7 @@ export function describeSpecAdjustments(
     rawStyle.armholeDeepenCm,
     validated.style.armholeDeepenCm,
   );
+  checkScalarToken("armholeDeepenCm");
   // sleeveRefit deliberately skipped: internal-only (validateSpec discards
   // it; only "Corrigir manga" sets it), never a value the AI/user supplies
   // -- the same explicit skip checkEngineSupport makes (capability.ts).
@@ -206,6 +258,9 @@ export function describeSpecAdjustments(
     rawStyle.trouserLengthCm,
     validated.style.trouserLengthCm,
   );
+  checkScalarToken("trouserLengthCm");
+  // #259's riseCm has no descriptive-token twin of its own (SCALAR_TOKEN_FIELDS
+  // names the five #260 shipped), so it reports through the plain scalar check.
   checkScalar("riseCm", rawStyle.riseCm, validated.style.riseCm);
 
   return out;
