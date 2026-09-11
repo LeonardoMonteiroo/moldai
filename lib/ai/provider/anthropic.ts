@@ -38,9 +38,9 @@ const REPAIR_TIMEOUT_MS = 8_000;
 // token-heavy Portuguese `explain` answer.
 const REPAIR_MAX_TOKENS_ON_TRUNCATION = 2048;
 
-// #276: the one literal, read by buildRequestParams below AND by the
-// provider's own model() -- so a caller (lib/ai/index.ts's Langfuse trace,
-// scripts/ai-eval.ts's report header) reads this instead of a second,
+// The one literal, read by buildRequestParams below AND by the provider's
+// own model() -- so a caller (scripts/ai-eval.ts's report header,
+// lib/ai/index.ts's Langfuse trace) reads this instead of a second,
 // hand-copied "claude-sonnet-5" string.
 const MODEL = "claude-sonnet-5" as const;
 

@@ -71,12 +71,15 @@ export interface LlmCallResult {
 
 export interface LlmProvider {
   id: string;
-  // #276: the underlying model identifier this provider is currently
-  // configured to call -- a function, not a static field, so
-  // openaiCompatProvider can resolve it from LLM_MODEL at call time (the
-  // same reason getProvider() itself reads LLM_PROVIDER at call time rather
-  // than a snapshot taken at module load). Read by lib/ai/index.ts to label
-  // the Langfuse trace with the model that actually answered the call.
+  /**
+   * The underlying model identifier this provider is currently configured to
+   * call. A function, not a static field: openaiCompatProvider resolves it
+   * from LLM_MODEL at call time (mirrors getProvider() itself reading
+   * LLM_PROVIDER at call time), so a snapshot taken at module load could go
+   * stale. #252's eval harness report header reads this instead of a second,
+   * hand-copied literal, and lib/ai/index.ts (#276) reads it to label the
+   * Langfuse trace with the model that actually answered the call.
+   */
   model(): string;
   propose(opts: LlmCallOptions): Promise<LlmCallResult>;
 }

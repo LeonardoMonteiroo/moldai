@@ -45,7 +45,7 @@ function baseOpts(overrides: Partial<LlmCallOptions> = {}): LlmCallOptions {
 // #276: lib/ai/index.ts's Langfuse trace reads this to label the model that
 // actually answered the call.
 describe("anthropicProvider.model", () => {
-  it("returns the fixed model literal, matching what the request itself sends", async () => {
+  it("returns the fixed model literal, matching buildRequestParams' own", async () => {
     create.mockReset();
     create.mockResolvedValue(toolResp({ decision: "decline" }));
     await anthropicProvider.propose(baseOpts());

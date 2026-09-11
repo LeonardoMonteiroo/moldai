@@ -11,7 +11,7 @@ import type { GarmentSpec } from "@/lib/types";
 import type { Translate } from "@/lib/i18n/translate";
 import { formatCm } from "@/lib/format";
 import type { DraftedPiece } from "../../../core";
-import { curveArcLengthCm } from "../../../core";
+import { curveArcLengthCm, NO_PLACEMENT_TRANSFORM } from "../../../core";
 import type { SeamPairDecl } from "../../../seams";
 import type { EngineDraft } from "../../types";
 import type { FreesewingPath } from "../geometry";
@@ -148,6 +148,14 @@ function buildBodyPanel(
     seamEdges,
     detailRows: [{ label: t("rows.armhole"), value: cm(armholeLenCm) }],
     armholeLenCm,
+    // #254: `id` is always exactly "body-front"/"body-back" at both call
+    // sites below -- the same Proof3DRole a moldai-drafted body panel
+    // declares, so lib/proof3d/mesh.ts's findByRole finds this engine's own
+    // torso panels too, regardless of which engine drafted the pattern.
+    placementCm: {
+      role: id === "body-front" ? "torso-front" : "torso-back",
+      ...NO_PLACEMENT_TRANSFORM,
+    },
   };
   return { piece, seamEdges };
 }
@@ -188,6 +196,7 @@ function buildSleeve(
     curvedSpans: flat.curvedSpans,
     seamEdges,
     detailRows: [{ label: t("rows.armhole"), value: cm(capLenCm) }],
+    placementCm: { role: "sleeve", ...NO_PLACEMENT_TRANSFORM },
   };
   return { piece, seamEdges, capLenCm };
 }

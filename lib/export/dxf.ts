@@ -101,26 +101,37 @@ export function toDxf(model: ExportModel): string {
     // Y flipped: DXF has +Y up; ExportModel has +Y down.
     const Y = (y: number) => f((model.sheetHeightCm - (oy + y)) * MM);
 
-    // #123: CONTORNO is the cut line (the real boundary); COSTURA is the
-    // net stitch line, unchanged from before this existed.
-    const cutVerts = flattenOutlineCm(piece.cutOutline, TOL_CM);
-    p(0, "LWPOLYLINE");
-    p(8, "CONTORNO");
-    p(90, cutVerts.length);
-    p(70, 1);
-    for (const v of cutVerts) {
-      p(10, X(v.x));
-      p(20, Y(v.y));
-    }
+    // #123/#243: CONTORNO is the cut line (the real boundary); COSTURA is
+    // the net stitch line -- the piece's own outer boundary and every
+    // internal loop (#243, a genuine cut boundary too, not INTERNO) draw
+    // this identical LWPOLYLINE pair.
+    const emitOutlinePair = (
+      outline: { start: ExPt; segs: ExSeg[] },
+      cutOutline: { start: ExPt; segs: ExSeg[] },
+    ) => {
+      const cutVerts = flattenOutlineCm(cutOutline, TOL_CM);
+      p(0, "LWPOLYLINE");
+      p(8, "CONTORNO");
+      p(90, cutVerts.length);
+      p(70, 1);
+      for (const v of cutVerts) {
+        p(10, X(v.x));
+        p(20, Y(v.y));
+      }
 
-    const netVerts = flattenOutlineCm(piece.outline, TOL_CM);
-    p(0, "LWPOLYLINE");
-    p(8, "COSTURA");
-    p(90, netVerts.length);
-    p(70, 1);
-    for (const v of netVerts) {
-      p(10, X(v.x));
-      p(20, Y(v.y));
+      const netVerts = flattenOutlineCm(outline, TOL_CM);
+      p(0, "LWPOLYLINE");
+      p(8, "COSTURA");
+      p(90, netVerts.length);
+      p(70, 1);
+      for (const v of netVerts) {
+        p(10, X(v.x));
+        p(20, Y(v.y));
+      }
+    };
+    emitOutlinePair(piece.outline, piece.cutOutline);
+    for (const loop of piece.internalLoops ?? []) {
+      emitOutlinePair(loop.outline, loop.cutOutline);
     }
 
     if (piece.grainline) {
@@ -182,6 +193,20 @@ export function toDxf(model: ExportModel): string {
       p(20, Y(a.y));
       p(11, X(b.x));
       p(21, Y(b.y));
+    }
+
+    // #244: a pleat's own placement/stitch line -- INTERNO, the same
+    // "internal, not cut" layer every other construction mark here uses.
+    for (const pleat of piece.pleats ?? []) {
+      if (pleat.length < 2) continue;
+      p(0, "LWPOLYLINE");
+      p(8, "INTERNO");
+      p(90, pleat.length);
+      p(70, 0);
+      for (const pt of pleat) {
+        p(10, X(pt.x));
+        p(20, Y(pt.y));
+      }
     }
 
     // #127: a drill hole -- both a POINT (exact centre, machine-readable)

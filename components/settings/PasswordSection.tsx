@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import {
   MIN_PASSWORD_LENGTH,
   MAX_PASSWORD_LENGTH,
+  validateNewPassword,
 } from "@/lib/account/settings";
 
 export function PasswordSection({ hasPassword }: { hasPassword: boolean }) {
@@ -27,9 +28,12 @@ export function PasswordSection({ hasPassword }: { hasPassword: boolean }) {
   const [error, setError] = useState<string | null>(null);
 
   const mismatch = next.length > 0 && confirm.length > 0 && next !== confirm;
+  // #238: validateNewPassword mirrors the server's own rule (length +
+  // letters + digits) rather than length alone, so this button can't stay
+  // enabled for a password the server will reject as weak_password anyway.
   const canSubmit =
     (hasPassword ? current.length > 0 : true) &&
-    next.length >= MIN_PASSWORD_LENGTH &&
+    validateNewPassword(next) &&
     next === confirm;
 
   async function submit() {

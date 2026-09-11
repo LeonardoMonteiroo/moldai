@@ -8,14 +8,17 @@ import {
   Pattern,
   Piece,
 } from "@/lib/types";
+import { diffSpec as diffSpecFields } from "@/lib/draft/specDiff";
 import { seamCheck } from "@/lib/draft/garment";
 import type { SeamMeasurement } from "@/lib/draft/garment";
-import { draftGarment } from "@/lib/draft/engine/facade";
+import { SEAM_TOLERANCE_CM } from "@/lib/draft/seams";
+import { draftGarment, measureSeamGraph } from "@/lib/draft/engine/facade";
 import { engineFor } from "@/lib/draft/engine/capability";
 import type { EngineId } from "@/lib/draft/engine/capability";
 import { buildSizeTable } from "@/lib/sizeCharts/compute";
 import { buildSystemSizeChart } from "@/lib/sizeCharts/seed";
 import type { Translate } from "@/lib/i18n/translate";
+import type { Measurements } from "@/lib/measurements";
 
 // Marker (dashed circle) over a piece's own right-edge region, from the bbox
 // of its vertices in px. Illustrative — points near the conflicting seam on
@@ -32,6 +35,17 @@ function pieceMarker(
   const minY = Math.min(...ys),
     maxY = Math.max(...ys);
   return { cx: maxX - 6, cy: minY + (maxY - minY) * 0.28, r: 14 };
+}
+
+// #253: a pair can be flagged by seamCheck purely on subSegmentDiffCm (the
+// front/back split projects onto the wrong point of the mate's arc) while
+// its own diffCm (the two sides' summed totals) stays near 0 -- reporting
+// THAT near-0 number as "the divergence" would show a real, unfixable
+// conflict as if it were barely there. Whichever of the two actually
+// crossed SEAM_TOLERANCE_CM (or the larger, if somehow both did) is what a
+// user-facing number should cite.
+function displayDiffCm(m: SeamMeasurement): number {
+  return Math.max(m.diffCm, m.subSegmentDiffCm);
 }
 
 // Builds one ConflictEntry from a divergent SeamMeasurement, resolving its
@@ -56,10 +70,56 @@ function buildEntry(
     bLabel: t(`seamPairs.${m.labelKey}.bLabel`),
     aPieceId: m.aPieceId,
     bPieceId: m.bPieceId,
-    diffCm: m.diffCm,
+    diffCm: displayDiffCm(m),
     fixable: m.fixable,
     markers,
   };
+}
+
+// #241: one divergent pair's own worst offender, plus every OTHER (never
+// base) size where it also missed SEAM_TOLERANCE_CM -- the return shape
+// measureGradedDivergences below builds up, keyed by the pair's own stable
+// `key` the same way every other seam-pair lookup in this codebase is.
+interface GradedDivergence {
+  sizes: string[];
+  measurement: SeamMeasurement;
+}
+
+// #241: measures the FULL seam graph at every size in the pattern's own
+// frozen sizeTable EXCEPT the base row (already covered by seamGraph/
+// seamCheck at the call site) and narrows each to its own divergent pairs.
+// A 2020 measurement study (Islam et al., Tekstilec 63(3):166-184) found
+// conventional X/Y-increment grading with diagonal points of measure drives
+// a mated pair's own gap from +0.51cm at one extreme size to -0.51cm at the
+// other against a stated tolerance -- zero only at the base size, because a
+// diagonal's length isn't a linear function of independent X/Y increments.
+// Redrafting per size (rather than interpolating) is the same "measure the
+// real geometry" rule seamCheck's own base-size check already follows.
+// Keeps the WORST (largest diffCm) SeamMeasurement per key so a caller has
+// one representative pair of lengths to render, and every size (not just
+// the worst one) that missed tolerance for that key.
+function measureGradedDivergences(
+  engine: EngineId,
+  spec: GarmentSpec,
+  sizeTable: Record<string, Measurements>,
+  baseSize: string,
+  t: Translate,
+): Map<string, GradedDivergence> {
+  const out = new Map<string, GradedDivergence>();
+  for (const [size, measurements] of Object.entries(sizeTable)) {
+    if (size === baseSize) continue;
+    const graph = measureSeamGraph(engine, spec, measurements, t);
+    for (const m of seamCheck(graph)) {
+      const existing = out.get(m.key);
+      if (!existing) {
+        out.set(m.key, { sizes: [size], measurement: m });
+      } else {
+        existing.sizes.push(size);
+        if (m.diffCm > existing.measurement.diffCm) existing.measurement = m;
+      }
+    }
+  }
+  return out;
 }
 
 // #134: walks the FULL seam graph (every mated pair this garment declared)
@@ -77,22 +137,70 @@ function buildEntry(
 // already-ease-adjusted armholeLenCm/sleeveArmholeCm); any other shape (a
 // different pair alone, or more than one divergence) gets the new generic
 // copy instead.
+//
+// #241: `gradedDivergences` adds entries for a pair whose gap misses
+// tolerance ONLY at a size other than base -- invisible to the base-only
+// check above. These never fold into the legacy singular-field branch
+// (armholeLenCm/sleeveArmholeCm describe the BASE draft, which this pair
+// does NOT diverge at) and never touch a base-origin entry's own fields --
+// the existing base-size behaviour stays byte-identical. Each such entry
+// carries its own `sizes`, naming exactly which graded size(s) it was
+// caught at, per CLAUDE.md's "surface feature limitations on-screen, never
+// silently."
 function detectConflict(
   pieces: Piece[],
   armholeLenCm: number | undefined,
   sleeveArmholeCm: number | undefined,
   seamGraph: SeamMeasurement[],
+  gradedDivergences: Map<string, GradedDivergence>,
+  // #241: the chart's own declared order (Pattern.sizes) -- a plain
+  // alphabetical sort would read "GG, PP" for a chart ordered small to
+  // large, backwards from how every other size list in this app (the size
+  // picker, sizesApplied/sizesPending) already reads.
+  sizeOrder: string[],
   t: Translate,
 ): ConflictInfo | null {
-  const conflicts = seamCheck(seamGraph);
-  if (conflicts.length === 0) return null;
-  const entries = conflicts.map((m) => buildEntry(pieces, m, t));
-  const armholeCap = conflicts.find((c) => c.key === "armhole-cap");
-  const primary = armholeCap ?? conflicts[0];
+  const baseConflicts = seamCheck(seamGraph);
+  const baseKeys = new Set(baseConflicts.map((m) => m.key));
+  const sizeOnly = Array.from(gradedDivergences.entries()).filter(
+    ([key]) => !baseKeys.has(key),
+  );
+  if (baseConflicts.length === 0 && sizeOnly.length === 0) return null;
+
+  const bySizeOrder = (a: string, b: string) => {
+    const ia = sizeOrder.indexOf(a);
+    const ib = sizeOrder.indexOf(b);
+    if (ia === -1 || ib === -1) return a.localeCompare(b);
+    return ia - ib;
+  };
+  const sizeOnlySizes = new Map(sizeOnly.map(([key, g]) => [key, g.sizes]));
+  const conflicts = [
+    ...baseConflicts,
+    ...sizeOnly.map(([, g]) => g.measurement),
+  ];
+  const entries = [
+    ...baseConflicts.map((m) => buildEntry(pieces, m, t)),
+    ...sizeOnly.map(([, g]) => ({
+      ...buildEntry(pieces, g.measurement, t),
+      sizes: [...g.sizes].sort(bySizeOrder),
+    })),
+  ];
+  const baseArmholeCap = baseConflicts.find((c) => c.key === "armhole-cap");
+  const primary = baseArmholeCap ?? conflicts[0];
   const primaryEntry = entries.find((e) => e.key === primary.key)!;
+  const primarySizes = sizeOnlySizes.get(primary.key);
+  // #253: the legacy armhole/cap phrasing below asserts "the cap is N cm
+  // larger/smaller than the armhole" -- true only when the TOTAL (diffCm)
+  // is what's actually wrong. A pair flagged purely on subSegmentDiffCm
+  // (the total closes fine; only the front/back split is off) would make
+  // that sentence describe a divergence that isn't there, so it's excluded
+  // from the legacy path and falls through to the generic (still-accurate,
+  // magnitude-only) copy below.
   const isLegacySingle =
     conflicts.length === 1 &&
     primary.key === "armhole-cap" &&
+    baseArmholeCap != null &&
+    primary.diffCm > SEAM_TOLERANCE_CM &&
     armholeLenCm != null &&
     sleeveArmholeCm != null;
 
@@ -105,9 +213,17 @@ function detectConflict(
       diffCm: primary.diffCm,
       direction: maior ? "larger" : "smaller",
     });
+  } else if (conflicts.length === 1 && primarySizes) {
+    title = t("conflict.titleForSizeOnly", { label: primaryEntry.label });
+    description = t("conflict.descriptionSizeOnly", {
+      diffCm: primary.diffCm,
+      sizes: primarySizes.join(", "),
+    });
   } else if (conflicts.length === 1) {
     title = t("conflict.titleFor", { label: primaryEntry.label });
-    description = t("conflict.descriptionSingle", { diffCm: primary.diffCm });
+    description = t("conflict.descriptionSingle", {
+      diffCm: primaryEntry.diffCm,
+    });
   } else {
     title = t("conflict.titleMultiple", { count: conflicts.length });
     description = t("conflict.descriptionMultiple");
@@ -125,7 +241,7 @@ function detectConflict(
     id: `conf-${Date.now()}`,
     title,
     description,
-    diffCm: primary.diffCm,
+    diffCm: primaryEntry.diffCm,
     suggestion,
     pieceAId: primary.aPieceId,
     pieceBId: primary.bPieceId,
@@ -265,13 +381,83 @@ export function applyGarmentSpec(
     spec,
     baseMeasurements: measurements,
   };
+  // #241: every OTHER size this pattern's own frozen sizeTable already
+  // carries -- not just the base row seamGraph above measured.
+  const gradedDivergences = measureGradedDivergences(
+    engine,
+    spec,
+    state.pattern.sizeTable,
+    state.pattern.baseSize,
+    t,
+  );
   state.conflict = detectConflict(
     pieces,
     armholeLenCm,
     sleeveArmholeCm,
     seamGraph,
+    gradedDivergences,
+    state.pattern.sizes,
     t,
   );
+}
+
+// #257: ChatGarment's headline editing limitation is collateral change —
+// their own training template says "while keeping other parts unchanged"
+// precisely because full-JSON re-emission drifts. applyGarmentSpec takes the
+// model's complete returned spec and overwrites state.pattern.spec wholesale
+// with no detector for exactly that drift. diffSpec is that detector: a
+// pure, DB-free comparison of the pattern's PREVIOUS validated spec against
+// the one an "apply" decision is about to draft, returning one field path
+// per changed field — "type", "gender", "style.<key>",
+// "measurementOverrides.<key>" — in a stable order.
+//
+// A thin adapter over lib/draft/specDiff.ts's own diffSpec (#252's eval
+// harness), NOT a second, independently-maintained field-by-field
+// comparison — that module already owns "which fields differ between two
+// already-validated GarmentSpecs" (its own STYLE_FIELDS list, kept in sync
+// with GarmentStyle in exactly one place), and duplicating it here would
+// mean a future style field added there and forgotten here goes silently
+// unreported. This only reshapes that module's SpecFieldChange[] into the
+// chat-facing string-path/measurement-per-key shape #257 wants: `type`/
+// `gender` pass through as-is, `measurementOverrides` (one aggregate entry
+// there, since the eval harness's fixtures name whole fields) is exploded
+// into one `measurementOverrides.<key>` path per key that actually
+// differs, and `sleeveRefit` is dropped -- the one style field the AI can
+// never set (validateSpec discards it; only refitSleeve below writes it),
+// the same explicit skip describeSpecAdjustments (specAdjustments.ts)
+// already makes, and there is no catalog label for it since a user never
+// chose it.
+//
+// Deliberately dumb: this does not know what the user asked for, only what
+// moved. A field neither spec set is not a change; a field only one of them
+// set (added or dropped) IS one, since that is itself a form of drift the
+// user is owed visibility into (the same "surface feature limitations
+// on-screen, never silently" reasoning CLAUDE.md states for everything
+// else). Never mutates either argument.
+export function diffSpec(prev: GarmentSpec, next: GarmentSpec): string[] {
+  const out: string[] = [];
+  for (const change of diffSpecFields(prev, next)) {
+    if (change.field === "sleeveRefit") continue;
+    if (change.field === "type" || change.field === "gender") {
+      out.push(change.field);
+      continue;
+    }
+    if (change.field === "measurementOverrides") {
+      const prevOverrides = change.before as Record<string, number>;
+      const nextOverrides = change.after as Record<string, number>;
+      const overrideKeys = Array.from(
+        new Set([...Object.keys(prevOverrides), ...Object.keys(nextOverrides)]),
+      ).sort();
+      for (const key of overrideKeys) {
+        if (prevOverrides[key] !== nextOverrides[key]) {
+          out.push(`measurementOverrides.${key}`);
+        }
+      }
+      continue;
+    }
+    out.push(`style.${change.field}`);
+  }
+  return out;
 }
 
 // "Corrigir manga" (sleeve fix): sets sleeveRefit and re-drafts — the cap now

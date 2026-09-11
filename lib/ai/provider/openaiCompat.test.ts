@@ -166,6 +166,12 @@ describe("openaiCompatProvider.propose", () => {
     expect(headers.authorization).toBe("Bearer not-needed");
     const body = JSON.parse(init?.body as string);
     expect(body.model).toBe("local-model");
+    expect(openaiCompatProvider.model()).toBe("local-model");
+  });
+
+  it("model() reflects LLM_MODEL when set", () => {
+    process.env.LLM_MODEL = "qwen-test";
+    expect(openaiCompatProvider.model()).toBe("qwen-test");
   });
 
   it("forces tool_choice to the requested function name", async () => {
