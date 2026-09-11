@@ -41,12 +41,36 @@ import { flattenCubic, TOL_CM } from "./bezier";
 // (reflex) corner's offset lines cross before reaching it, so the
 // intersection lands this side of it, discarding the little self-crossing
 // loop a naive per-vertex translate would otherwise leave behind (a trim).
+// #243: `direction` distinguishes the outer boundary's own offset from an
+// internal loop's (a hole). "outward" (the default, every pre-#243 call
+// site's unchanged behavior) grows the piece -- a cut line that extends
+// AWAY from the outline's own interior. "inward" is for a
+// `DraftedPiece.internalLoopsCm` entry: a hole's seam allowance is fabric
+// that must fold UNDER, into the opening, so its cut line has to SHRINK the
+// loop -- the opposite of the outer boundary's own growth. Since #263 that
+// is one negated sign off the winding-derived outward direction (see
+// offsetOutlineCm's body), not a second implementation.
+//
+// Known limitation, inherited from the SAME repair `removeSelfCrossingLoops`
+// already accepts for "outward" (see its own comment below): that repair's
+// "keep the larger split fragment" heuristic was validated against a shape
+// GROWING (a piece's own outer boundary, where the real result is always the
+// bigger candidate). Nothing here re-validates it for a loop SHRINKING past
+// the point where its own opposite edges' offset lines cross each other
+// (`distanceCm` at or beyond roughly half the loop's own narrowest span) --
+// a hole drafted much smaller than the pattern's seam allowance. No drafter
+// emits a loop-bearing piece yet (#243's own acceptance criteria scopes that
+// to future work), so this hasn't been exercised against a real garment's
+// buttonhole/eyelet proportions; a future drafter adding one should keep its
+// loops comfortably larger than 2x the seam allowance until this is verified
+// against a tighter case.
 export function offsetOutlineCm(
   ptsCm: Pt[],
   curvedSpans: [number, number][],
   foldEdge: [number, number] | undefined,
   distanceCm: number,
   tolCm: number = TOL_CM,
+  direction: "outward" | "inward" = "outward",
 ): { x: number; y: number }[] {
   const segs = toFineSegments(ptsCm, curvedSpans, foldEdge, distanceCm, tolCm);
   // #263: outward direction used to be self-calibrated by building BOTH
@@ -59,8 +83,12 @@ export function offsetOutlineCm(
   // still correct for an outline this repo hasn't normalized (a future
   // engine, a hand-built test fixture): sign +1 is outward for a
   // canonically-wound outline (see joinOffsetLines/offsetLineFor below), -1
-  // for the other winding.
-  const sign = isCanonicalWinding(ptsCm) ? 1 : -1;
+  // for the other winding. `isCanonicalWinding` reads whichever outline it
+  // is handed, so an internal loop (#243) needs no normalization of its own
+  // -- negating the sign shrinks it whichever way it happens to wind, which
+  // is exactly the candidate #243's smaller-area pick used to select.
+  const outwardSign = isCanonicalWinding(ptsCm) ? 1 : -1;
+  const sign = direction === "outward" ? outwardSign : -outwardSign;
   return removeSelfCrossingLoops(joinOffsetLines(segs, sign));
 }
 

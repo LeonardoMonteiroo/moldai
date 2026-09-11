@@ -51,7 +51,8 @@
   "ChatBubble": {
     "questionsAnswered": "Perguntas respondidas.",
     "imagesAttached": "{count, plural, one {imagem enviada} other {# imagens enviadas}}",
-    "assemblyDisclaimer": "Ordem de montagem gerada por IA a partir da modelagem; não substitui a verificação de um(a) costureiro(a)."
+    "assemblyDisclaimer": "Ordem de montagem gerada por IA a partir da modelagem; não substitui a verificação de um(a) costureiro(a).",
+    "changedFieldsLabel": "Também mudou: {fields}."
   },
   "MessageInput": {
     "placeholder": "Descreva o ajuste…",
@@ -60,6 +61,7 @@
   },
   "AttachmentChips": {
     "photo": "Anexar foto",
+    "photoLimitReached": "Limite de {max, plural, one {# foto} other {# fotos}} atingido",
     "dxfComingSoonTitle": "Anexar molde .dxf chega em breve",
     "preparing": "Preparando imagem…",
     "removeAttachment": "Remover anexo",
@@ -201,14 +203,16 @@
       "placketFoldUnderlap": "Dobra interna",
       "waistbandType": "Tipo de cós",
       "waistbandClosureMark": "Marca de fechamento (botão/zíper)",
-      "buttonStandMark": "Marca de botão/casa",
+      "buttonholes": "Casas de botão",
       "overlap": "Sobreposição (fechamento)",
       "rise": "Gancho",
       "trouserLeg": "Modelagem da perna",
       "trouserOtherLegs": "Outras modelagens (afunilada, pantalona, cargo)",
+      "trouserLengthGrading": "Comprimento por tamanho",
       "hoodiePocket": "Bolso canguru e viés do decote",
       "coatLining": "Forro completo (frente, costas e manga)",
-      "sleevePlacket": "Abertura do punho (carcela)"
+      "sleevePlacket": "Abertura do punho (carcela)",
+      "pleats": "Prega"
     },
     "neckline": {
       "straight": "reto",
@@ -240,6 +244,10 @@
     "waistbandType": {
       "straight": "reto, com sobreposição"
     },
+    "pleatType": {
+      "box": "prega caixa (dobras abrindo para fora)",
+      "inverted-box": "prega caixa invertida (dobras voltadas para dentro)"
+    },
     "fit": {
       "close": "justo",
       "fitted": "ajustado",
@@ -255,6 +263,7 @@
     "grainValue": "reto",
     "foldLabel": "dobra",
     "comingSoonBadge": "em breve",
+    "trouserLengthFixedNote": "mesmo em todos os tamanhos (ainda não há medida de perna por tamanho)",
     "conflict": {
       "title": "Cava e manga não batem",
       "description": "A cava do corpo ficou {diffCm, number, ::.0} cm {direction, select, larger {maior} smaller {menor} other {}} que a copa da manga, então as costuras não vão fechar.",
@@ -497,23 +506,25 @@
       "pieceLine": "{name} · {qty}x · {width} × {height} cm",
       "assemblyHeading": "Instruções de montagem",
       "stepDart": "Costure {count, plural, one {a pence} other {as # pences}} em {piece}.",
+      "stepPleat": "Dobre e passe {count, plural, one {a prega} other {as # pregas}} em {piece}.",
       "stepSeam": "Una {a} com {b}.",
       "stepHem": "Faça a bainha de {piece} ({length} cm).",
       "assemblyConflictNote": "Uma ou mais costuras acima têm um conflito ativo — confira antes de cortar."
     }
   },
   "CutPlanTab": {
-    "title": "Plano de corte",
     "emptyState": "Gere um molde para ver o plano de corte.",
+    "emptyQuantitiesState": "Defina a quantidade de pelo menos um tamanho para ver o encaixe.",
     "fabricWidthLabel": "Largura do tecido",
-    "metricConsumptionLabel": "Consumo",
-    "metricConsumptionHint": "comprimento no tecido",
-    "metricEfficiencyLabel": "Aproveitamento",
-    "metricEfficiencyHint": "área útil / área do tecido",
-    "metricPieceCountLabel": "Peças no corte",
-    "metricPieceCountHint": "cópias (peça × quantidade)",
+    "fabricSectionLabel": "Tecido",
+    "fabricWidthStepLabel": "{cm} cm largura",
+    "decreaseFabricWidthAriaLabel": "Diminuir largura",
+    "increaseFabricWidthAriaLabel": "Aumentar largura",
     "overflowWarning": "Alguma peça é mais larga que o tecido. Use um tecido mais largo ou reduza a peça.",
-    "overlapWarning": "Há cópias sobrepostas: o consumo e o aproveitamento não valem enquanto isso.",
+    "overlapWarning": "Há cópias sobrepostas: o consumo não vale enquanto isso.",
+    "legendBackground": "Fundo",
+    "legendFabric": "Tecido",
+    "legendPiece": "Peça do molde",
     "modeLabel": "Encaixe",
     "mode": {
       "auto": "Automático",
@@ -524,7 +535,13 @@
     "instanceLabel": "{name} · {x} cm × {y} cm",
     "movedAnnouncement": "{name} em {x} cm × {y} cm",
     "layoutNoteAuto": "Melhor de dois encaixes automáticos (prateleiras e skyline) · encaixa a caixa delimitadora de cada peça, não o contorno · fio travado, sem rotação das peças · cada peça repetida pela quantidade a cortar · linha de corte, já com a margem de costura.",
-    "layoutNoteManual": "Arraste ou use o teclado para reposicionar cada cópia · fio travado, sem rotação das peças · linha de corte, já com a margem de costura. Salvar o encaixe manual entre sessões <em>em breve</em>."
+    "layoutNoteManual": "Arraste ou use o teclado para reposicionar cada cópia · fio travado, sem rotação das peças · linha de corte, já com a margem de costura. Salvar o encaixe manual entre sessões <em>em breve</em>.",
+    "quantityPanelTitle": "Quantidade por tamanho",
+    "quantityForSizeAriaLabel": "Quantidade a cortar do tamanho {size}",
+    "decreaseQuantityAriaLabel": "Diminuir quantidade do tamanho {size}",
+    "increaseQuantityAriaLabel": "Aumentar quantidade do tamanho {size}",
+    "garmentsProducedLabel": "{count, plural, one {# peça produzida} other {# peças produzidas}}",
+    "summaryLine": "{count} peças · consumo estimado {length}"
   },
   "Export": {
     "title": "Exportar",
@@ -612,7 +629,6 @@
     "betaBadge": "Beta",
     "emptyState": "Gere um molde para ver a prova 3D.",
     "notSupportedFor": {
-      "trousers": "A prova 3D ainda não cobre calças. Em breve.",
       "hoodie": "A prova 3D ainda não cobre moletom com capuz. Em breve.",
       "coat": "A prova 3D ainda não cobre casacos. Em breve.",
       "shirt": "A prova 3D ainda não cobre camisas. Em breve."

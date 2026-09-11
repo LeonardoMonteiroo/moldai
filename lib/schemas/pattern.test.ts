@@ -72,4 +72,39 @@ describe("PatternStateSchema", () => {
   it("rejects a non-object blob (e.g. a Prisma JsonNull turned literal null)", () => {
     expect(PatternStateSchema.safeParse(null).success).toBe(false);
   });
+
+  // #243: a piece's internalLoops must round-trip, not be silently stripped
+  // by z.object's default "drop unrecognised keys" mode -- the exact trap
+  // that already destroyed hasImage/assembly/decision in production once.
+  it("round-trips a piece's internalLoops rather than stripping them", () => {
+    const state = seedPatternState(t);
+    applyGarmentSpec(
+      state,
+      { type: "blouse", gender: "female", measurementOverrides: {}, style: {} },
+      t,
+    );
+    const withLoop = {
+      ...state,
+      pattern: {
+        ...state.pattern,
+        pieces: state.pattern.pieces.map((piece, i) =>
+          i === 0
+            ? {
+                ...piece,
+                internalLoops: [
+                  { kind: "polygon" as const, points: "0,0 10,0 10,10 0,10" },
+                ],
+              }
+            : piece,
+        ),
+      },
+    };
+    const result = PatternStateSchema.safeParse(withLoop);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.pattern.pieces[0].internalLoops).toEqual([
+        { kind: "polygon", points: "0,0 10,0 10,10 0,10" },
+      ]);
+    }
+  });
 });

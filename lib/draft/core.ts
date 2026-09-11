@@ -36,6 +36,17 @@ export interface DraftedPiece {
   notches?: NotchCm[];
   detailRows: DetailRow[];
   armholeLenCm?: number;
+  // #249: the skirt panel's own resolved length (after gradedSkirtLengthCm
+  // normalizes an explicit style.skirtLengthCm against the reference row) --
+  // set ONLY by lib/draft/skirt.ts's draftSkirt, the same "drafter exposes a
+  // number it already computed so the caller reads it instead of
+  // re-deriving it" precedent armholeLenCm above already follows (there,
+  // body.ts's own armhole edge length; here, skirt.ts's own length variable
+  // feeding both its `rows.length` detail row and its outline). garment.ts's
+  // draftAll reads this off the returned piece rather than calling
+  // gradedSkirtLengthCm a second time with the same three arguments, so the
+  // two numbers cannot independently drift apart.
+  resolvedLengthCm?: number;
   // #134: named edge-index ranges (into this piece's OWN outlineCm, using
   // the same [from, to] convention curveArcLengthCm/curvedSpans already use
   // -- `to` may equal outlineCm.length to mean "wraps back to index 0", the
@@ -52,7 +63,84 @@ export interface DraftedPiece {
   // (every piece today except that one); lib/proof3d/mesh.ts reads it
   // instead of computing a bbox-based center when present.
   centerXCm?: number;
+  // #254: this piece's own declared 3D placement -- which structural role
+  // it plays in a Prova 3D dress-form proof, plus a reserved 6D (translation
+  // + rotation) transform. lib/proof3d/mesh.ts groups drafted pieces by
+  // `role` instead of matching a hardcoded literal piece id
+  // ("body-front"/"sleeve"/"skirt"), so the correspondence between a 2D
+  // piece and its 3D shell lives in the layer that actually knows the
+  // garment's own topology (body.ts/sleeve.ts/skirt.ts/trousers.ts/
+  // subpieces.ts) rather than a consumer pattern-matching on ids -- the same
+  // reason GarmentCode gives every panel its own translation/rotation
+  // instead of a viewer inferring placement from a panel's name. Absent on a
+  // sub-piece with no 3D shell of its own yet (collar/cuff/waistband/
+  // placket/button-stand) -- see Proof3DRole's own doc.
+  placementCm?: PlacementCm;
+  // #243: zero or more internal loops (holes) inside this piece's own outer
+  // boundary -- a buttonhole, an eyelet, a lining vent, anything the
+  // simplified single-closed-outline `outlineCm` above cannot represent on
+  // its own (GarmentCode's own stated limitation). Each loop is its OWN
+  // closed `Pt[]` list in the same cm space as `outlineCm`, with its own
+  // optional `curvedSpans` (same [from,to] edge-index convention, scoped to
+  // the loop's own point list, not outlineCm's). Absent on every piece today
+  // (no drafter emits one yet) -- completely inert for curveArcLengthCm, the
+  // seam graph, and every other outer-boundary computation, which all read
+  // `outlineCm`/`curvedSpans` only and never look at this field.
+  // lib/export/offset.ts's `offsetOutlineCm` is what a loop's own cut line
+  // must be run through with `direction: "inward"` (a hole's seam allowance
+  // encroaches INTO the opening, the opposite of the outer boundary's own
+  // outward growth) -- see lib/export/model.ts's buildExportModel.
+  internalLoopsCm?: InternalLoopCm[];
 }
+
+// #243: one internal loop (hole) in a piece's own cm space -- see
+// DraftedPiece.internalLoopsCm above.
+export interface InternalLoopCm {
+  outlineCm: Pt[];
+  curvedSpans?: [number, number][];
+}
+
+// #254: which structural role a drafted piece plays in Prova 3D's dress-form
+// proof (lib/proof3d/mesh.ts). "accessory" covers every sub-piece drafted in
+// lib/draft/subpieces.ts (collar/cuff/waistband/placket/button-stand): each
+// one declares a real PlacementCm (so every drafter this issue names really
+// does set the field), but mesh.ts builds no 3D shell for any of them yet --
+// an honest, narrower gap than the trousers one this issue closes, not a
+// silent one, since Proof3DTab's own approximation note already says shells
+// are a simplified proxy, not every drafted piece rendered.
+export type Proof3DRole =
+  | "torso-front"
+  | "torso-back"
+  | "sleeve"
+  | "skirt"
+  | "trouser-front"
+  | "trouser-back"
+  | "accessory";
+
+export interface PlacementCm {
+  role: Proof3DRole;
+  // Translation of this piece's own local origin, cm, in the mesh's world
+  // frame (x lateral, y vertical, z depth -- z reserved, always 0 today).
+  // Every drafter emits (0,0,0): mesh.ts still derives the REAL stack
+  // position (girth-scanned ring heights, a sleeve/trouser-leg's own
+  // left/right offset) from the drafted geometry at build time, per
+  // CLAUDE.md's derive-don't-store rule -- this channel exists so a future
+  // drafter (a piece with a real, non-proportional starting offset) can
+  // declare one instead of mesh.ts guessing it from the piece id.
+  translationCm: [number, number, number];
+  // Rotation in degrees about (x, y, z) -- reserved, (0,0,0) for every
+  // archetype today (no drafter yet needs to angle its own shell, e.g. a
+  // flared trouser leg or a raglan sleeve).
+  rotationDeg: [number, number, number];
+}
+
+// #254: every drafter that declares a real 3D role emits the identical,
+// no-op transform today -- one shared constant instead of six copies of the
+// same two zero-triples drifting apart.
+export const NO_PLACEMENT_TRANSFORM: Pick<
+  PlacementCm,
+  "translationCm" | "rotationDeg"
+> = { translationCm: [0, 0, 0], rotationDeg: [0, 0, 0] };
 
 // #124: depth is the only thing that tells the three NotchTypes apart --
 // see lib/types.ts's PieceNotch doc for why that's also the AC's own
@@ -286,16 +374,20 @@ export function normalizeWinding(dp: DraftedPiece): DraftedPiece {
 }
 
 // #127: cm-space internal-geometry entry a drafter attaches to a
-// DraftedPiece's `internalsCm`, alongside notches/grainline. Three kinds
-// ship geometry today (dart, foldLine, drillHole, via dartInternals()
-// below); pleat/styleLine/placementMark are reserved for a future
-// pocket/buttonhole/pleat/style-line drafter to attach to this same channel
-// without a second one -- #127 decision, settled, not reopened here.
+// DraftedPiece's `internalsCm`, alongside notches/grainline. Four kinds ship
+// geometry today (dart, foldLine, drillHole via dartInternals() below; pleat
+// via lib/draft/skirt.ts's own pleatFoldPlacement, #244); styleLine/
+// placementMark are still reserved for a future style-line/buttonhole
+// drafter to attach to this same channel without a second one -- #127
+// decision, settled, not reopened here.
 export type InternalCm =
   | { kind: "dart"; ptsCm: Pt[] }
   | { kind: "foldLine"; aCm: Pt; bCm: Pt }
   | { kind: "drillHole"; atCm: Pt; rCm: number }
-  | { kind: "pleat"; ptsCm: Pt[] } // reserved -- no drafter emits one yet
+  // #244: a pleat's own placement/stitch line -- lib/draft/skirt.ts's
+  // pleatFoldPlacement is the first real emitter; its own press fold reuses
+  // "foldLine" above instead of a second kind.
+  | { kind: "pleat"; ptsCm: Pt[] }
   | { kind: "styleLine"; ptsCm: Pt[] } // reserved -- no drafter emits one yet
   | { kind: "placementMark"; atCm: Pt }; // reserved -- no drafter emits one yet
 
@@ -305,6 +397,121 @@ export type InternalCm =
 // norm.
 export const DRILL_HOLE_SETBACK_CM = 1.25;
 export const DRILL_HOLE_RADIUS_CM = 0.15;
+
+// #251: a stable, NAME-addressed handle onto a vertex pushed while a
+// drafter builds its own outline -- the fix for lib/draft/body.ts's own
+// motivating case, where the frontClosure branch picked among two
+// ALREADY-KNOWN raw indices (`hemR!` vs. `hemCenter`, plus a bare
+// `pts.length` "wraps to vertex 0" sentinel) with a hand-written ternary
+// instead of asking a piece "where is the edge from X to Y right now".
+// `set()` returns the index unchanged so an existing `const x = push(...)`
+// call site only needs wrapping (`const x = anchors.set("x", push(...))`),
+// not restructuring. `shiftFrom` is what makes a NAME-based handle "stable"
+// where a raw number wouldn't be: if a future drafter ever splices an extra
+// vertex in mid-build (a pocket/placket/style-line cut), one `shiftFrom`
+// call keeps every already-issued anchor correct, rather than a caller
+// re-deriving each one by hand. See also `insertVertexAt` below, the sibling
+// mechanism for a vertex inserted into an ALREADY-drafted piece (this class
+// is for while a piece is still being built).
+// #251: the sentinel `edge()` accepts in place of a real anchor name to mean
+// "this outline's own current length" (the existing "closes back to vertex
+// 0" convention curveArcLengthCm/curvedSpans already use for a wrapping
+// edge). A `unique symbol`, not the string `"wrap"`, specifically so a
+// drafter is free to name a real anchor "wrap" without it being silently
+// swallowed by this sentinel -- `edge()` checks `to === WRAP` by reference,
+// which a string literal can never satisfy.
+export const WRAP: unique symbol = Symbol("OutlineAnchors.WRAP");
+
+export class OutlineAnchors {
+  private readonly byName = new Map<string, number>();
+
+  // Records outline vertex `idx` as addressable by `name`.
+  set(name: string, idx: number): number {
+    this.byName.set(name, idx);
+    return idx;
+  }
+
+  // The raw index for a previously-set name -- throws on an unknown name
+  // rather than letting a typo silently produce `undefined` deep inside a
+  // seamEdges range.
+  at(name: string): number {
+    const idx = this.byName.get(name);
+    if (idx === undefined) {
+      throw new Error(`OutlineAnchors: no anchor named "${name}"`);
+    }
+    return idx;
+  }
+
+  // Builds a seamEdges/curvedSpans-style [from, to] range from two anchor
+  // names. `to` may be the `WRAP` sentinel (see above) to mean "this
+  // outline's own current length", spelled out here instead of a caller
+  // having to remember to pass the bare number itself.
+  edge(
+    from: string,
+    to: string | typeof WRAP,
+    outlineLength: number,
+  ): [number, number] {
+    return [this.at(from), to === WRAP ? outlineLength : this.at(to)];
+  }
+
+  // Shifts every already-recorded anchor at or after `at` by `by` (default
+  // +1) -- the one place a mid-build vertex insertion updates every
+  // already-issued name at once.
+  shiftFrom(at: number, by = 1): void {
+    for (const [name, idx] of this.byName) {
+      if (idx >= at) this.byName.set(name, idx + by);
+    }
+  }
+}
+
+// #251: inserts a new vertex into an ALREADY-DRAFTED piece's own outline,
+// remapping every OTHER index-bearing field -- `seamEdges`, `foldEdge` and
+// `curvedSpans` -- in the one place that knows how, instead of a caller
+// hand-auditing the parallel index tables `DraftedPiece.seamEdges`'s own doc
+// comment warns are scattered across a piece (this issue's motivating
+// example: adding a pocket/placket/style-line cut to an existing panel).
+// `notches` needs no entry here: a `NotchCm` carries its own outerCm/innerCm
+// cm coordinates (see `notchAt` above), never an outline index, so it stays
+// correct no matter where a later vertex lands.
+//
+// `afterIdx` is the outline index the new vertex lands AFTER (so its own new
+// index is `afterIdx + 1`); every index STRICTLY greater than `afterIdx` --
+// including the `outlineCm.length` "wraps to vertex 0" sentinel every
+// closing edge already uses -- shifts up by one; everything at or before
+// `afterIdx` is untouched. A caller that wants the drafted SHAPE unchanged
+// (as this issue's own regression test does) inserts a point collinear with
+// its two new neighbours, on a straight (non-curved) edge -- inserting into
+// a curved span's own control-point run would change the curve it draws,
+// which is a real geometry edit this function does not try to prevent.
+export function insertVertexAt(
+  piece: DraftedPiece,
+  afterIdx: number,
+  point: Pt,
+): DraftedPiece {
+  const shift = (idx: number) => (idx > afterIdx ? idx + 1 : idx);
+  const shiftPair = ([a, b]: [number, number]): [number, number] => [
+    shift(a),
+    shift(b),
+  ];
+  return {
+    ...piece,
+    outlineCm: [
+      ...piece.outlineCm.slice(0, afterIdx + 1),
+      point,
+      ...piece.outlineCm.slice(afterIdx + 1),
+    ],
+    seamEdges: piece.seamEdges
+      ? Object.fromEntries(
+          Object.entries(piece.seamEdges).map(([key, range]) => [
+            key,
+            shiftPair(range),
+          ]),
+        )
+      : piece.seamEdges,
+    foldEdge: piece.foldEdge ? shiftPair(piece.foldEdge) : piece.foldEdge,
+    curvedSpans: piece.curvedSpans?.map(shiftPair),
+  };
+}
 
 const ptEq = (a: Pt, b: Pt) => a[0] === b[0] && a[1] === b[1];
 
@@ -357,6 +564,18 @@ export function dartsOf(internalsCm?: InternalCm[]): Pt[][] {
   return (internalsCm ?? [])
     .filter(
       (e): e is Extract<InternalCm, { kind: "dart" }> => e.kind === "dart",
+    )
+    .map((e) => e.ptsCm);
+}
+
+// #244: the same extraction for a pleat's own placement/stitch line(s) --
+// used by lib/draft/assembly.ts to derive a real "fold and press the pleat"
+// construction step, the same "InternalCm's discriminant lives in
+// core.ts" rule dartsOf above follows.
+export function pleatsOf(internalsCm?: InternalCm[]): Pt[][] {
+  return (internalsCm ?? [])
+    .filter(
+      (e): e is Extract<InternalCm, { kind: "pleat" }> => e.kind === "pleat",
     )
     .map((e) => e.ptsCm);
 }
@@ -517,6 +736,59 @@ export function translateOutline(
   return { kind: "path", d: d.trim() };
 }
 
+function outlineKey(o: PieceOutline): string {
+  return o.kind === "polygon" ? o.points : o.d;
+}
+
+// #308: a placed Piece's own outline is already shifted by autoLayout's
+// shelf packing, which repositions every piece in the set whenever the
+// TOTAL set's sizes change -- so two versions' pieces can't be compared by
+// their outline strings directly, even when a given piece's own geometry is
+// identical. Re-origins the outline to its own bbox (via `vertices`, the
+// same anchor points `outline` was built from) before taking the key, so
+// only a real shape difference changes the result.
+function normalizedOutlineKey(piece: Piece): string {
+  const verts = piece.vertices ?? [];
+  if (verts.length === 0) return outlineKey(piece.outline);
+  const minX = Math.min(...verts.map((v) => v.x));
+  const minY = Math.min(...verts.map((v) => v.y));
+  return outlineKey(translateOutline(piece.outline, -minX, -minY));
+}
+
+export type PieceChangeStatus = "unchanged" | "changed" | "added" | "removed";
+
+// #308: matches two drafted-and-placed piece sets by their own stable id
+// (front/back/sleeve/collar/... assigned by the drafters) and classifies
+// each: "added"/"removed" when the id exists on only one side, "changed"
+// when both sides have it but the re-origined outline differs, "unchanged"
+// otherwise. Purely derived from the two already-drafted piece sets -- no
+// new field, no new API call.
+export function diffDraftedPieces(
+  fromPieces: Piece[],
+  toPieces: Piece[],
+): Map<string, PieceChangeStatus> {
+  const fromById = new Map(fromPieces.map((p) => [p.id, p]));
+  const toById = new Map(toPieces.map((p) => [p.id, p]));
+  const status = new Map<string, PieceChangeStatus>();
+  for (const id of fromById.keys()) {
+    if (!toById.has(id)) status.set(id, "removed");
+  }
+  for (const [id, toPiece] of toById) {
+    const fromPiece = fromById.get(id);
+    if (!fromPiece) {
+      status.set(id, "added");
+      continue;
+    }
+    status.set(
+      id,
+      normalizedOutlineKey(fromPiece) === normalizedOutlineKey(toPiece)
+        ? "unchanged"
+        : "changed",
+    );
+  }
+  return status;
+}
+
 // Builds the final Piece by applying outline/guide/grainline/dart with an (dx,dy) offset in px.
 function place(dp: DraftedPiece, dxPx: number, dyPx: number): Piece {
   const spans = dp.curvedSpans ?? [];
@@ -611,6 +883,18 @@ function place(dp: DraftedPiece, dxPx: number, dyPx: number): Piece {
     }
   }
   if (internals.length) piece.internals = internals;
+  // #243: each internal loop's own outline, translated the same way the
+  // piece's own outer outline is above -- straight (polygon) when it has no
+  // curvedSpans of its own, Catmull-Rom/Bézier otherwise.
+  if (dp.internalLoopsCm?.length) {
+    piece.internalLoops = dp.internalLoopsCm.map((loop) => {
+      const loopSpans = loop.curvedSpans ?? [];
+      const loopOutline = loopSpans.length
+        ? outlinePath(loop.outlineCm, loopSpans)
+        : polyPath(loop.outlineCm);
+      return translateOutline(loopOutline, dxPx, dyPx);
+    });
+  }
   return piece;
 }
 
@@ -666,4 +950,43 @@ export function autoLayout(
       h: Math.round(cursorY + rowH + pad),
     },
   };
+}
+
+// #249: `style.skirtLengthCm ?? m.skirtLength` used to read the explicit
+// length as one absolute number for EVERY graded size, while the fallback
+// path (`m.skirtLength`, straight off the chart) already grades +2.0cm/size
+// (see lib/measurements.ts's #118 note) -- so the moment a request set an
+// explicit length, every graded size printed the exact same hem, invisible
+// until two sizes are compared side by side (a graded layered PDF export,
+// #249's own reported bug).
+//
+// The fix resolves the chosen length ONCE as a FRACTION of the reference
+// row's own skirtLength, then re-expands that same fraction against THIS
+// row's own skirtLength -- so an explicit length grades in exactly the same
+// ratio the chart's own skirtLength already does, without persisting
+// anything new (the fraction is recomputed at draft time, every time).
+// `rowSkirtLengthCm`/`referenceSkirtLengthCm` are two DIFFERENT rows' own
+// `skirtLength` only when a caller is drafting a size OTHER than the
+// pattern's frozen base size (facade.ts's draftGradedOverlays,
+// buildExportModel exporting a graded size) -- every other call site passes
+// the SAME row for both (draftSkirt's own default below), which collapses
+// the fraction back to `explicitCm / rowSkirtLengthCm * rowSkirtLengthCm ===
+// explicitCm`, byte-identical to the pre-#249 behavior.
+//
+// Lives here, not in lib/draft/skirt.ts, because lib/draft/engine/freesewing/
+// designs/skirt.ts (a DIFFERENT, independently-scored engine -- see
+// docs/architecture/drafting.md's "swappable choice, not the only code
+// path") needs the identical formula and must not import moldai's own
+// drafter module to get it -- core.ts is the shared, engine-agnostic
+// infrastructure both engines already depend on (this function included).
+export function gradedSkirtLengthCm(
+  explicitCm: number | undefined,
+  rowSkirtLengthCm: number,
+  referenceSkirtLengthCm: number,
+): number {
+  if (explicitCm === undefined) return rowSkirtLengthCm;
+  if (!Number.isFinite(referenceSkirtLengthCm) || referenceSkirtLengthCm <= 0) {
+    return explicitCm;
+  }
+  return (explicitCm / referenceSkirtLengthCm) * rowSkirtLengthCm;
 }

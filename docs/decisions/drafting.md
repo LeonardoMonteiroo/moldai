@@ -41,7 +41,9 @@
   - **Export:** no export-format code changed — every format already draws whatever `ExportModel`/`Piece` it's handed, so the four new pieces flow into every DXF/PDF/SVG/PLT format and `CutPlanTab`'s nesting automatically, the same way #8/#135/#136 already made that true for any new piece. `model.test.ts`'s "cut-line area growth is within 5% of perimeter x allowance" invariant (#123) needed a small fixed floor added to its tolerance (`6 * allowance²`) once these small, mostly-rectangular band pieces existed: a mitred uniform offset legitimately grows a shape's area by `perimeter × allowance` **plus** a real per-corner correction (exactly `allowance²` per 90° corner for a plain rectangle) that a flat 5% relative bound has no room for once a piece's perimeter is short enough for that correction to matter — a large, curve-heavy body panel never noticed it; a ~5 cm-tall band does. This is the offset math behaving correctly, not a defect the fix is papering over.
 - **#128 (Wave 2/W5): a fifth archetype, `trousers` — a straight-leg block only (the issue's own scope decision; tapered/wide/flared/cargo are follow-ups), front + back panels plus a waistband, all in `lib/draft/trousers.ts`.** Unlike a bodice/skirt panel, a trouser leg's front and back are each a genuinely asymmetric single-leg shape (the inseam and outseam are different edges, not mirror halves of one centre line) — so neither declares a `foldEdge`; both are cut `qty: 2` (one leg mirrors the other by flipping the fabric, not by folding it). Front and back deliberately share the same rise depth, total length and hip quarter-width (an equal front/back split, the same simplification `skirt.ts`'s own `hip/4` panel already makes) — only the crotch curve's own extension differs (the back's own seat curve reaches further out than the front's), which is what keeps the inseam and outseam an _identical_ length front vs back by construction (both are plumb verticals sharing the same dy, independent of the crotch extension that tells them apart). Each panel gets one waist dart, the same single-ended (apex-to-seam-midpoint) shape `body.ts`'s own dress-hem dart already uses. **Total length has no per-size measurement to fall back to** — #132 added only `rise` (crotch depth), not a leg-length field — so `style.trouserLengthCm` (AI/user-settable, `STYLE_LIMITS`-clamped like `skirtLengthCm`) defaults to a flat per-gender constant (`TROUSER_DEFAULT_LENGTH_CM`, same at every graded size until a future measurement-vocabulary issue adds a real one), the same "not graded across sizes" shape `shoulderSlope`'s own flat per-gender constant already uses for a different field. **`rise` is read when the chart has it, falling back to `hip/4 + 4`** (a documented crotch-depth proportion) when it doesn't — both seeded system charts already carry a real, per-size-graded `rise` (see the measurement-vocabulary section above), so the fallback is a robustness path, not the common case.
   - **Seam graph:** five pairs, all `fixable: false`. `trouser-front-rise`/`trouser-back-rise` are **self-pairs** — each panel's own centre-front/back edge (the fly seam, the back rise seam) sewn to the mirrored copy of itself, the same self-pair shape `sleeve.ts`'s own two underarm edges already use for its own left/right mirror seam — trivially exact (comparing a curve to itself). `trouser-inseam`/`trouser-outseam` pair front vs back, exact by construction (see above). `trouser-waistband-waist` reuses `draftWaistband` **verbatim, not forked** (`lib/draft/subpieces.ts`, #131's own "reused by the trousers block" acceptance criterion) — summed across both panels' own measured waist edges (each times its own `qty`), the same "closed circumference, not one panel's share of it" rule the skirt's own waistband pairing already follows; verified within 0.3 cm in `garment.test.ts`'s "seam graph (#134)" suite, the same bound #129/#130/#131's own pairs are held to.
-  - **Prova 3D (`/pattern/[id]`'s 3D fitting preview) does not cover trousers.** `lib/proof3d/mesh.ts`'s `buildProofMesh` only recognizes the body/sleeve/skirt piece ids — a trousers pattern's pieces (`trouser-front`/`trouser-back`) match none of them, so without this fix it would silently return a bare mannequin with zero garment shells instead of failing or saying so. `Proof3DTab` now treats `spec.type === "trousers"` as an explicit, named gap (`notSupportedForTrousers`, its own catalog string, distinct from the ordinary "generate a pattern first" empty state) rather than rendering an unlabeled/empty preview indistinguishable from a bug — the same "surface the limitation where the user meets it" rule this tab's own beta badge already follows. Extending the mesh builder to trousers is out of scope here.
+  - **Prova 3D (`/pattern/[id]`'s 3D fitting preview) did not cover trousers, until #254.** `lib/proof3d/mesh.ts`'s `buildProofMesh` used to only recognize the body/sleeve/skirt piece ids — a trousers pattern's pieces (`trouser-front`/`trouser-back`) matched none of them, so it silently returned a bare mannequin with zero garment shells instead of failing or saying so. `Proof3DTab` treated `spec.type === "trousers"` as an explicit, named gap (`notSupportedForTrousers`) rather than rendering an unlabeled/empty preview indistinguishable from a bug — the same "surface the limitation where the user meets it" rule this tab's own beta badge already follows — but extending the mesh builder to trousers was explicitly out of scope for that issue.
+  - **#254: closes that gap by moving the 2D-to-3D correspondence into the drafters themselves.** `DraftedPiece` gained an optional `placementCm` (`lib/draft/core.ts`'s `PlacementCm`: a `Proof3DRole` tag — `"torso-front"`/`"torso-back"`/`"sleeve"`/`"skirt"`/`"trouser-front"`/`"trouser-back"`/`"accessory"` — plus a reserved 6D translation/rotation transform, GarmentCode's own "every panel carries 6D placement parameters" precedent the issue cites), set by `body.ts`/`sleeve.ts`/`skirt.ts`/`trousers.ts`/`subpieces.ts`. Every archetype's own transform is the identical no-op today (`NO_PLACEMENT_TRANSFORM`/`ACCESSORY_PLACEMENT_CM`) — `mesh.ts` still derives the REAL stack position (girth-scanned ring heights, a sleeve/trouser-leg's own left/right lateral offset) from the drafted geometry at build time, per CLAUDE.md's derive-don't-store rule; the channel exists so a future drafter with a genuinely non-zero placement doesn't have to fight it. `mesh.ts`'s `buildProofMesh` now finds pieces via a role-keyed `findByRole` instead of `findPiece(pieces, "body-front")`-style literal id matches, and gains a trousers branch: two mirrored leg shells, each stacked from its own front+back panel's scanned width (no further doubling, since a trouser panel — unlike a bodice/skirt panel — is NOT mirrored about its own centre line). Heights (waist/rise/hem) are read off each panel's own public `seamEdges` vertices (`edgeDeepYCm` — the deepest of a named edge's two endpoints, not their midpoint, since the `rise` edge is a diagonal from the waist down to the crotch, not a horizontal one like `waist`/`hem`), and the width scan itself (`scanWidthAtY`, max‑x minus min‑x at a given height) needs no assumed centre axis at all — both deliberately engine-agnostic, never assuming a fixed coordinate convention like "the waist sits at local y=0" (true for `lib/draft/trousers.ts`'s own moldai panel, false for the `freesewing` engine's own Titan-based one). `Proof3DTab.notSupportedForTrousers` is removed (trousers now produces a real, non-empty `ProofMesh`); the remaining `notSupportedFor.{hoodie,coat,shirt}` gap stays, since those three archetypes are drafted ONLY by the `"freesewing"` engine's own designs, which declare no `placementCm` role (unlike its tshirt/blouse/skirt/trousers designs, see below). Every `subpieces.ts` sub-piece (collar/cuff/waistband/placket/button-stand) declares `placementCm` too (`role: "accessory"`), satisfying the "every drafter sets it" shape the issue asked for, but `mesh.ts` builds no 3D shell for any of them — an honest, narrower gap, not a silent one.
+  - **#254 code-review finding, fixed in the same PR: `findByRole` alone would have silently regressed every freesewing-drafted tshirt/blouse/skirt/trousers preview.** The `freesewing` engine's own design wrappers (`lib/draft/engine/freesewing/designs/{tshirt,blouse,skirt,trousers}.ts`) happen to reuse the EXACT SAME piece ids moldai's own drafters do (`"body-front"`/`"body-back"`/`"sleeve"`/`"skirt"`/`"trouser-front"`/`"trouser-back"`) — which is precisely what made the OLD literal-id `findPiece` lookup work for a freesewing-drafted pattern too, by id-naming coincidence, never by declaration. Switching to role-only matching without teaching those same four wrapper files to declare `placementCm` (mirroring the exact role each `id` already implied) would have gone from "a bare mannequin only for trousers" to "a bare mannequin for every freesewing-drafted archetype this preview used to render" — the review caught it before it shipped. `lib/proof3d/mesh.test.ts`'s own "freesewing engine (#254 code-review finding)" suite drafts a real pattern through `draftGarment(engine: "freesewing", …)` and asserts a non-empty shell for each of the four types, closing the exact gap no earlier test (`mesh.test.ts` or otherwise) exercised.
   - **`components/dashboard/PatternGrid.tsx` had its own hardcoded `GARMENT_TYPES` array**, independent of `lib/draft/garment.ts`'s `TYPES` — the exact "duplicated fact" mistake this file's own convention section warns about (`Wallet.planLabel`, `FREE_PLAN_CREDITS`, `FORMAT_KEYS`, `PLAN_IDS`). Left alone, the dashboard's garment-type filter would have simply never offered "Calça" for a real, drafted archetype. Now imports `TYPES` directly.
 - **#137: the drafted-ease report — `lib/draft/easeReport.ts`'s `buildEaseReport(pattern, t)` — is the second geometric fit answer in the app, alongside `seamCheck`'s armhole/cap comparison.** It states how much ease the FINISHED garment actually has at bust/waist/hip, deliberately distinct from `wearingEaseCm` (the ease the drafter was merely _asked_ for): a style adjustment, a dart, or a silhouette can make the two diverge. Pure, DB-free, redrafts via the same `draftPiecesCm`/`measureSeamGraph` (#134) `buildExportModel` already uses — no new blob key, so it works unchanged on a pattern drafted before this issue. Per girth: a scanline (`polygonSpanAt`, the `lib/canvas/pieceLabel.ts`'s `horizontalSpanAt` precedent — curved spans read as their chord) reads the piece's real width at a height derived from public data only (a `seamEdges` vertex, or a raw `Measurements` field like `backLength`/`hipHeight` — never an internal per-drafter formula), then subtracts whatever any `internalsCm` dart removes at that same height (its own leg polygon, scanned identically, gives exactly the fabric its fold takes up — full width at the seam end, tapering to zero at the apex). That single mechanism handles every drafter's dart shape generically (`body.ts`'s fisheye AND dress-hem darts, `trousers.ts`'s waist dart) without this module knowing any of their suppression formulas. **Bust:** front+back at the armhole's own underarm height, only for a bodice (blouse/dress/tshirt) — a skirt or trousers has none. **Waist:** front+back at `backLength` for a bodice (coincides with the hem for a dress, #79); the trousers panels' own top edge WITH dart subtraction (the true, sewn waist); a standalone skirt's real `seamEdges.waist` arc length (silhouette-agnostic, no dart to subtract, the same edge the waistband sizing already measures). **Hip:** a skirt panel (standalone or a dress's) at `hipHeight` below its own waist — but ONLY for the straight/a-line silhouette; a circle/gore/half-circle panel is drafted from polar coordinates, where a horizontal scanline reads a meaningless width, so hip is reported `unavailable` (`unsupportedSilhouette`) rather than a wrong number. A skirt-less bodice reads hip at `backLength + hipHeight`, still inside the same panel. Trousers read the panel's own top edge again, this time WITHOUT dart subtraction (`includeDarts: false`) — a waist dart shapes the waist, it doesn't remove hip fabric, and the block happens to draft both at the identical height, so subtracting there would collapse hip into waist. A girth with no matching panel is `unavailable` (`noPanel`) — trousers' missing bust is the issue's own named example, generalised to any bust-less garment. **Cap ease** ("cap arc minus full armhole arc") is read straight off the existing seam graph's own `"armhole-cap"` entry (`aLenCm`/`bLenCm`), not a bespoke number. **Fit class** comes from `lib/draft/ease.ts`'s new `classifyGirthFit(girth, easeCm)` — band boundaries are the MIDPOINTS between consecutive `FIT_CLASSES`' own `FIT_EASE_CM` figures (never a second, competing scale), so a measured ease and `wearingEaseCm`'s requested one are judged on the one table `lib/ai/prompt.ts` already renders `FIT_CLASSES` from. Negative ease (a knit) classifies as `close`, not an error. `TechSheetTab` renders the report as its own card (bust/waist/hip rows: finished cm, body cm, diff cm/%, fit class — reusing the existing `PatternData.fit.*` catalog lookup — plus cap-ease chips), replacing the old single bust-only `chipEase` chip that showed _requested_ ease under the same word "folga" a measured number now owns unambiguously; an `unavailable` girth renders as a stated reason, never a silent gap. `lib/ai/prompt.ts`'s `buildSystem` also embeds the report as JSON (a no-op identity `Translate`, since the whole prompt is deliberately English/i18n-free) so an `explain` answer about fit can cite the real numbers instead of guessing from the spec alone.
 
@@ -582,6 +584,154 @@ unlike the style fields `changeType` already silently drops, which simply disapp
 when inapplicable). Changed to the more consistent shape: the type `Select` keeps whatever was
 chosen (still disabled+titled per option), and submit is blocked with the same on-screen reason
 until the type and engine agree again.
+
+---
+
+## Learned geometry as a proposer behind the seam graph: declined for now, the evidence is entirely negative (#246)
+
+**Decided, nothing built.** This is a discussion issue, not scoped work — the point is to
+have a written answer the next time "should the model draft geometry instead of the seam
+graph checking it" comes up, so it doesn't get re-argued from priors each time.
+
+**The three headline numbers were checked directly against source, not taken from the issue
+text.** AutoSew (Rios-Navarro et al., WACV 2026 — a GNN-plus-optimal-transport method for
+predicting stitch correspondence from 2D pattern contours, developed with Adobe) reports "96%
+F1-score" and "successfully assembles 73.3% of test garments without error" on its own project
+page and paper abstract (`mslab.es/projects/autosew/`); the paper's own PDF, which would carry
+the more precise 96.2% the issue cites, returned HTTP 403 in this pass, so that one extra digit
+is not independently re-derived here, but the two-decimal figure is consistent with the rounded
+one two independent pages both state. Berthouzoz et al. (SIGGRAPH/TOG 2013, "Parsing Sewing
+Patterns into 3D Garments") reports 87% F1 on automatic stitching and 68% fully-correctly-sewn
+garments (GSP) across its 50-garment dataset — confirmed via the paper's own history page and
+independent summaries. NeuralTailor (Korosteleva & Lee, TOG 2022) reports 83.6% panel-count
+accuracy on garment types unseen during training — not found in NeuralTailor's own abstract
+(which states only "generalizes... to unseen types" without the number), but confirmed via
+Panelformer (WACV 2024)'s own comparison table, which cites 83.6% as NeuralTailor's baseline
+before reporting its own fine-tuned improvement on top of it. All three numbers check out.
+
+**The structural claim — an edge/stitch-correspondence metric in the 90s with a
+whole-garment success rate 20+ points lower — held on every source checked, and is not an
+artifact of any one paper's dataset.** AutoSew: 96% edge F1 vs. 73.3% zero-error assembly (a
+22.7-point gap). Berthouzoz: 87% F1 vs. 68% GSP (a 19-point gap). Two independent teams, twelve
+years apart, on different geometry representations (2D pattern contours vs. panels extracted
+from PDF patterns), land on the same shape of result: near-perfect per-edge accuracy does not
+compound into anywhere near per-edge-accuracy^whole-garment success, because one wrong edge in
+a 10-30-edge garment is enough to break assembly, and the paper-level metric hides exactly that.
+Nothing in either paper's own text, nor in NeuralTailor's, reports a sewability, grading,
+notch, grainline, or DXF-export metric — searched specifically for this and found none; the
+literature these three represent evaluates topology/correspondence accuracy, never any of the
+downstream guarantees this repo's own seam graph (`lib/draft/seams.ts`) already provides
+deterministically. A 96% (or 96.2%) F1 score is not a claim that 96% of exported files are
+sewable, gradable, or notch-correct — it's a claim about a different, narrower quantity, and no
+published benchmark in this space would currently detect the loss of any of the four guarantees
+named above even if a learned proposer silently dropped them.
+
+**The positive case — a checker-plus-proposer pipeline measurably beating an unchecked
+proposer — is not re-litigated here; the issue records it as already refuted 0-3 in a prior
+verification pass**, and nothing surfaced in this research pass reopens it: none of the three
+papers checked pairs its generative/predictive component with a deterministic geometric
+checker of the seam-graph's kind, so there is still no published comparison of "proposer alone"
+vs. "proposer plus hard reject" to weigh against the seam graph's own zero-defect guarantee on
+every pattern this app has ever exported.
+
+**Decision: decline for now, on the same "no reason to build" grounds as GarmentCode above,
+for the opposite reason FreeSewing was accepted.** FreeSewing crossed the engine seam because
+its geometry was measurably competitive (0.42–1.71mm on the armhole/sleeve pair) and its
+failure mode was still deterministic — a wrong Bézier control point, not a missing stitch.
+Learned geometry's failure mode is structurally different: a ~20-27% chance per garment that
+the model gets a stitch topologically wrong, with no benchmark anywhere in this literature that
+would catch it before it reached a customer's fabric. **If this is ever revisited, the
+acceptance bar from the issue stands as written: the model proposes, the deterministic seam
+graph (`lib/draft/seams.ts`) rejects — never the reverse.** That is not a hedge to be softened
+later; it is the one shape in which a 96% F1 topology predictor could plug into this pipeline
+at all, since the seam graph is what would have to catch the other ~4% (or the other ~27%, at
+the whole-garment level) before it ever reached a downloadable file.
+
+---
+
+## Design novelty as a market-valued axis: still zero verified claims either way, and the vendor evidence found is marketing, not fact (#247)
+
+**Not decided — the honest outcome the issue's own acceptance criteria allows for.** This
+research pass re-ran the two prior deep-research passes' searches (vendor capability, buyer
+behavior, practitioner trust) and did not surface anything that resolves the underlying
+question — whether design novelty is a purchasing axis at all. That absence is itself the
+finding, and it's recorded rather than papered over with a confident-sounding guess.
+
+**Vendor capability, split by source quality — the legacy CAD tier is asserted, not just
+inferred.** Lectra/Gerber AccuMark/Optitex are, on every source found (an independent CAD
+comparison blog and several 2026 buyer's-guide posts), production-management layers over
+patterns that already exist — grading, marker-making/nesting, digitization — not tools that
+generate a garment's geometry from a description or sketch; one source states this plainly:
+"Gerber AccuMark... does not generate patterns from brand archives; it manages patterns once
+they exist." None of these three vendors' own sites were found claiming a generative-from-
+description capability. The 3D-simulation tier (CLO, Browzwear, Style3D) is where "generative"
+marketing language actually appears — Style3D's own blog describes "iDesigner" as producing a
+"prompt-to-3D" workflow and claims "AI adoption in apparel design has surged 40% year-over-year"
+citing "McKinsey reports from 2025." **That citation could not be traced to an actual McKinsey
+publication in this pass** — it appears only inside Style3D's own marketing blog, with no link
+or report name, the exact shape of an unverifiable vendor-marketing statistic the issue asked
+this research to distinguish from independent evidence. It is recorded here as flagged, not
+trusted, and every other "X% adoption"/"Y% time saved" figure surfaced in this pass (aims360,
+stytrix, fashioninsta.ai — all SEO-shaped buyer's-guide content, several visibly written to
+promote their own product) is the same shape of claim and is given the same distrust. No
+independent (non-vendor, non-SEO-content-farm) source confirming or denying any vendor's
+generative-geometry claim was found.
+
+**The two "weak signals" from the issue both re-confirmed directly against source.** ASTM
+D6673 (withdrawn 2019, but still the reference point CLO/AAMA-compatible DXF export claims
+target) states in its own scope, verbatim: "This standard is not intended to represent the
+relationships between pattern pieces or the correspondence between 2D or 3D sewn product
+pattern piece geometries" (confirmed via the standard's own catalog listing). CLO's own support
+documentation confirms its DXF export drops stitching information by design: "the existing DXF
+export in CLO3D only exports the 2D pattern without the stitching information... DXF is kept to
+the international fashion CAD standard." **The subcommittee (ASTM D13.67) and its open work
+item (WK98960) are confirmed to exist and to target fabric physics rather than generative
+capability** — ASTM's own press release names D13.67 "3D Digital Fabrics" and quotes its chair
+on validating "3D fabric physics"; WK98960 itself is titled a new test method for "3D drape
+validation." The registration page for WK98960 returned HTTP 403 in this pass, so the specific
+30 Sept 2025 open date named in the issue was not independently re-confirmed, but everything
+else about the standard's subject matter (physics/interoperability, not generative geometry)
+checks out against ASTM's own announcement. Taken together, all three signals still point the
+same direction the issue named them for: the standards body closest to this problem is
+standardizing physical/interoperability correctness, not novel-geometry generation — but three
+consistent weak signals are still not the practitioner or purchasing evidence the acceptance
+criteria actually asks for.
+
+**Practitioner trust and correction effort: gathered, and its scarcity is the finding, exactly
+as the acceptance criteria allows.** No systematic survey of pattern makers' trust in automated
+output was found. What surfaced instead: a handful of unrelated academic papers on ML-assisted
+pattern _correction_ (not generation) noting that "CAD systems do not have the capability to
+make fine adjustments at the same quality level as manual pattern correction" (a generic,
+undated claim from a paper about a different problem); scattered G2/forum complaints that
+CLO/Browzwear's 2D pattern windows need more manual correction tooling; and no case study,
+survey, or interview-based research quantifying correction effort for any of the named vendors'
+generative or assistive features specifically. This is an honest gap, not a null result dressed
+up as one.
+
+**A correction to the issue's own framing, found while checking #248 in parallel and worth
+recording here too:** the claim that no research exists on inferring grading rules is not quite
+right — a 2022 Emerald/Seoul National University paper, "Automatic generation of parametric
+patterns from grading patterns using artificial intelligence," describes exactly that (a neural
+network learning the relationship between body size and pattern geometry from existing graded
+patterns). It doesn't move the novelty question either way — it's assistive automation on
+top of an existing pattern, not generative design of a new one — but the earlier "zero verified
+claims" framing was itself an artifact of two research passes not finding a paper that exists,
+which is worth flagging as a pattern for future spikes in this vein.
+
+**Recommendation: do not widen the generative design space on a novelty bet, but not because
+the bet has been refuted — because nothing found in two research passes plus this one supports
+either side of it.** The only evidence with any real weight is negative-by-omission: the
+vendors closest to production CAD (Lectra/Gerber/Optitex) don't market generative geometry at
+all, and the standards body actively investing in new work (ASTM D13.67) is investing in fabric
+physics and interoperability, not generative capability. That is consistent with — but far
+short of proof of — buyers weighting fit/grading/interoperability over novel garment classes.
+Verification and interoperability work (DXF/AAMA fidelity, the seam graph, grading correctness)
+stays the safer bet on the evidence actually in hand; widening `GarmentType` coverage for its
+own sake is not supported by anything found, but neither is stopping it. Revisit if a real
+market-research source (an industry survey, a vendor's audited case study, a practitioner
+interview study) surfaces — the two prior passes and this one all failed to find one, which at
+this point is itself worth taking as a signal that this specific question may not be answerable
+from public sources at all.
 
 ---
 
