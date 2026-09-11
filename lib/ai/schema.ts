@@ -1,5 +1,12 @@
 import type { LlmTool } from "./provider/types";
-import { GENDERS } from "@/lib/draft/garment";
+import {
+  GENDERS,
+  NECKLINE_DEPTH_TOKENS,
+  SKIRT_LENGTH_TOKENS,
+  SEAM_ALLOWANCE_TOKENS,
+  ARMHOLE_DEEPEN_TOKENS,
+  TROUSER_LENGTH_TOKENS,
+} from "@/lib/draft/garment";
 import { MEASUREMENT_RANGES } from "@/lib/measurements";
 import { CLARIFY_QUESTION_FIELDS } from "@/lib/types";
 import { ENGINE_IDS } from "@/lib/draft/engine/capability";
@@ -51,6 +58,15 @@ const bounded = (r: { min: number; max: number }) => ({
   type: "number" as const,
   minimum: r.min,
   maximum: r.max,
+});
+
+// #260: a descriptive-token alternative to a free numeric style scalar,
+// rendered from the same exported table lib/draft/garment.ts's
+// validateSpec projects through -- never a second, hand-duplicated enum
+// list. See garment.ts's own top-of-file comment on these five tables.
+const tokenEnum = (table: Record<string, number>) => ({
+  type: "string" as const,
+  enum: Object.keys(table),
 });
 
 // #267: MEASUREMENT_RANGES stays app-level -- see lib/ai/prompt.ts's own
@@ -128,6 +144,10 @@ function buildTool(capability: EngineCapability): LlmTool {
                 necklineDepthCm: bounded(
                   capability.styleLimits.necklineDepthCm,
                 ),
+                // #260: prefer this descriptive token over necklineDepthCm
+                // unless the user stated an exact cm value -- see the
+                // system prompt's own "Descriptive length tokens" section.
+                necklineDepth: tokenEnum(NECKLINE_DEPTH_TOKENS),
                 sleeve: {
                   type: "string",
                   enum: styleEnumUnion(capability, "sleeve"),
@@ -137,10 +157,12 @@ function buildTool(capability: EngineCapability): LlmTool {
                   enum: styleEnumUnion(capability, "skirt"),
                 },
                 skirtLengthCm: bounded(capability.styleLimits.skirtLengthCm),
+                skirtLength: tokenEnum(SKIRT_LENGTH_TOKENS),
                 darts: { type: "boolean" },
                 seamAllowanceCm: bounded(
                   capability.styleLimits.seamAllowanceCm,
                 ),
+                seamAllowance: tokenEnum(SEAM_ALLOWANCE_TOKENS),
                 fit: {
                   type: "string",
                   enum: styleEnumUnion(capability, "fit"),
@@ -152,6 +174,7 @@ function buildTool(capability: EngineCapability): LlmTool {
                 armholeDeepenCm: bounded(
                   capability.styleLimits.armholeDeepenCm,
                 ),
+                armholeDeepen: tokenEnum(ARMHOLE_DEEPEN_TOKENS),
                 collar: {
                   type: "string",
                   enum: styleEnumUnion(capability, "collar"),
@@ -171,10 +194,12 @@ function buildTool(capability: EngineCapability): LlmTool {
                 trouserLengthCm: bounded(
                   capability.styleLimits.trouserLengthCm,
                 ),
+                trouserLength: tokenEnum(TROUSER_LENGTH_TOKENS),
                 pleats: {
                   type: "string",
                   enum: styleEnumUnion(capability, "pleats"),
                 },
+                riseCm: bounded(capability.styleLimits.riseCm),
               },
             },
           },

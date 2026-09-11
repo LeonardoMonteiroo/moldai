@@ -392,22 +392,23 @@ describe("prompt-cache byte stability", () => {
     // bullet (buildStaticSections) was rewritten so the model stops treating
     // neckline/sleeve/fit/length/size as always-required detail (every one
     // of those already has a drafter-side default) and reserves ask for a
-    // request that names nothing beyond the garment type (#252-follow-up),
-    // AND, within that same bullet plus the "# Language" section, now tells
-    // the model to set `field` + EXACT catalog tokens for a style-catalog
-    // question (#262); the propose_garment tool's own `questions.items`
-    // gained a `field` enum property (lib/ai/schema.ts) so that request is
-    // structurally valid. Regenerated once more on the merge with main,
-    // which had meanwhile added #244's pleats style field (box/inverted-box
-    // on a standalone straight/a-line skirt) to the GarmentSpec section, the
-    // "# Vocabulary mapping" prose and the tool schema, plus a "pleat" step
-    // description in "# Assembly / sewing order" alongside
-    // "dart"/"seam"/"hem". All deliberate, expected byte changes (see this
-    // describe block's own comment), not a bug -- the eval harness
-    // (npm run eval:ai) is what proves the behaviour is better, not this
-    // hash.
+    // #259: regenerated once more -- riseCm joined the same three places
+    // (style-field list, vocabulary mapping, tool schema) as a signed
+    // waist-rise offset for skirts and trousers.
+    // #260: and again -- the five descriptive-length-token style properties
+    // joined the tool schema, the trouserLengthCm bullet now points at its
+    // token twin, and the "# Descriptive length tokens" section instructs
+    // the model to prefer a token over a free numeric estimate.
+    // #262: and once more -- the "# Decision policy" ask bullet plus the
+    // "# Language" section now tell the model to set `field` + EXACT catalog
+    // tokens for a style-catalog question, and propose_garment's own
+    // questions.items gained a `field` enum property (lib/ai/schema.ts) so
+    // that request is structurally valid. All deliberate, expected byte
+    // changes (see this describe block's own comment), not a bug -- the eval
+    // harness (npm run eval:ai) is what proves the behaviour is better, not
+    // this hash.
     expect(hash).toBe(
-      "d858812f1ade9f1b7953c15046d2f0a6514c848803de767457a4e9ed9147909e",
+      "ddf7482c1cd6641dcdf9aca97c3fbb44b39ad32ff94e342144fc02660b55bc93",
     );
   });
 });

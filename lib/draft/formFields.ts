@@ -28,12 +28,13 @@ type OptionalGarmentStyleField = NonNullable<
 // stable order without a second ordering table.
 //
 // The numeric style fields (necklineDepthCm, skirtLengthCm, trouserLengthCm,
-// seamAllowanceCm, armholeDeepenCm), `darts` and `stretch` are deliberately
-// absent: a cm value with a STYLE_LIMITS range is not something a select can
-// express honestly, and stretch is a fabric property the user picks after
-// the molde exists. The details textarea reaches all of them through the
-// model. `sleeveRefit` is absent because it is internal -- validateSpec
-// discards it, and a form must never be able to fake a sleeve refit.
+// seamAllowanceCm, armholeDeepenCm, riseCm), `darts` and `stretch` are
+// deliberately absent: a cm value with a STYLE_LIMITS range is not something
+// a select can express honestly, and stretch is a fabric property the user
+// picks after the molde exists. The details textarea reaches all of them
+// through the model. `sleeveRefit` is absent because it is internal --
+// validateSpec discards it, and a form must never be able to fake a sleeve
+// refit.
 export const FORM_STYLE_FIELDS = [
   "neckline",
   "sleeve",

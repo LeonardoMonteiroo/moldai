@@ -50,6 +50,7 @@ export const GarmentStyleSchema = z.object({
   frontClosure: z.enum(FRONT_CLOSURES).optional(),
   trouserLengthCm: z.number().optional(),
   pleats: z.enum(PLEATS).optional(),
+  riseCm: z.number().optional(),
 });
 
 export const GarmentSpecSchema = z.object({

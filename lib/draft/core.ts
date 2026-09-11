@@ -160,27 +160,53 @@ export interface NotchCm {
   innerCm: Pt;
 }
 
-// A notch tick at `point`, oriented perpendicular to `tangent` and biased
-// toward `insideRef` -- a point the caller knows lies inside the piece --
-// so the tick always points into the fabric regardless of which winding
-// direction that particular outline happens to walk (drafters mix clockwise
-// and counter-clockwise; see lib/export/offset.ts's own self-calibration
-// for the same underlying problem on a whole outline rather than one point).
-export function notchAt(
-  point: Pt,
-  tangent: Pt,
-  insideRef: Pt,
-  type: NotchType,
-): NotchCm {
-  const len = Math.hypot(tangent[0], tangent[1]) || 1;
-  let nx = -tangent[1] / len;
-  let ny = tangent[0] / len;
-  const dx = insideRef[0] - point[0];
-  const dy = insideRef[1] - point[1];
-  if (nx * dx + ny * dy < 0) {
-    nx = -nx;
-    ny = -ny;
+// #263: the signed area of a closed cm-space outline (shoelace formula) --
+// positive when it winds one way, negative the other. Canonical winding
+// (isCanonicalWinding below) is "signed area >= 0"; normalizeWinding forces
+// every DraftedPiece the moldai engine hands off to it, so notchAt's
+// inward-normal formula and lib/export/offset.ts's offsetOutlineCm can both
+// derive "which way is inward/outward" directly from an outline's own sign
+// instead of each independently working around a mixed-winding input (this
+// used to be a caller-supplied `insideRef` point here, and a
+// build-both-candidates-keep-the-larger-area comparison there).
+export function signedAreaCm(ptsCm: Pt[]): number {
+  let a = 0;
+  const n = ptsCm.length;
+  for (let i = 0; i < n; i++) {
+    const [x1, y1] = ptsCm[i];
+    const [x2, y2] = ptsCm[(i + 1) % n];
+    a += x1 * y2 - x2 * y1;
   }
+  return a / 2;
+}
+
+export function isCanonicalWinding(ptsCm: Pt[]): boolean {
+  return signedAreaCm(ptsCm) >= 0;
+}
+
+// notchAt's inward-normal formula ((-ty, tx), see below) is only correct
+// against a canonically-wound outline. Every notchAt-family call site
+// already has the enclosing outline (`ptsCm`) in scope -- a drafter builds
+// its own `pts` before it ever computes a notch on it -- so this is what
+// they use to flip their own tangent first when THIS piece's outline isn't
+// canonical yet (drafters run before normalizeWinding: it only normalizes
+// the finished DraftedPiece, once, in garment.ts). Negating the tangent fed
+// into the same fixed formula produces exactly the other winding's own
+// inward normal, so no caller needs to reverse `ptsCm` itself just to place
+// a notch on it.
+export function canonicalTangent(ptsCm: Pt[], tangent: Pt): Pt {
+  return isCanonicalWinding(ptsCm) ? tangent : [-tangent[0], -tangent[1]];
+}
+
+// A notch tick at `point`, oriented perpendicular to `tangent` -- inward,
+// ASSUMING `tangent` already points the way a canonically-wound outline
+// walks at `point` (every caller either derives `tangent` from a
+// canonically-wound `ptsCm` already, or runs it through canonicalTangent
+// first; see notchAtVertex/notchAtArcLengthCm below).
+export function notchAt(point: Pt, tangent: Pt, type: NotchType): NotchCm {
+  const len = Math.hypot(tangent[0], tangent[1]) || 1;
+  const nx = -tangent[1] / len;
+  const ny = tangent[0] / len;
   const depth = NOTCH_DEPTH_CM[type];
   return {
     type,
@@ -198,18 +224,16 @@ export function notchAt(
 export function notchAtVertex(
   ptsCm: Pt[],
   idx: number,
-  insideRef: Pt,
   type: NotchType,
 ): NotchCm {
   const n = ptsCm.length;
   const prev = ptsCm[(idx - 1 + n) % n];
   const next = ptsCm[(idx + 1) % n];
-  return notchAt(
-    ptsCm[idx],
-    [next[0] - prev[0], next[1] - prev[1]],
-    insideRef,
-    type,
-  );
+  const tangent = canonicalTangent(ptsCm, [
+    next[0] - prev[0],
+    next[1] - prev[1],
+  ]);
+  return notchAt(ptsCm[idx], tangent, type);
 }
 
 // Point + local tangent walking `distCm` from vertex `from` toward `to`
@@ -286,7 +310,6 @@ export function notchAtArcLengthCm(
   from: number,
   to: number,
   distCm: number,
-  insideRef: Pt,
   type: NotchType,
 ): NotchCm {
   const { point, tangent } = pointAndTangentAtCm(
@@ -296,7 +319,58 @@ export function notchAtArcLengthCm(
     to,
     distCm,
   );
-  return notchAt(point, tangent, insideRef, type);
+  return notchAt(point, canonicalTangent(ptsCm, tangent), type);
+}
+
+// #263: reverses outlineCm's own winding direction (flips signedAreaCm's
+// sign) and remaps every index-based field alongside it, so the reversed
+// piece still names the same physical vertices/edges. A no-op when
+// `dp.outlineCm` is already canonical.
+//
+// The reversal keeps vertex 0 fixed and mirrors every other vertex around
+// it (`[pts[0], ...pts.slice(1).reverse()]`) rather than a plain full
+// reverse, which is what makes the remap a single closed-form formula with
+// no wraparound special-casing: for an outline of length n, a lone vertex
+// index i remaps to `i === 0 ? 0 : n - i`, and a [from, to] edge-walk range
+// (curvedSpans/seamEdges' own convention -- `to` may equal n, meaning
+// "wraps back to vertex 0", per DraftedPiece's own doc) remaps to
+// `[n - to, n - from]` -- verified against every wraparound case
+// core.test.ts's own winding-reversal suite exercises, including a span
+// that touches vertex 0 as its `from` or as the `to === n` alias.
+// `foldEdge` is a plain pair of vertex positions (a chord), not a walk, so
+// each of its two indices remaps with the lone-index formula instead.
+//
+// Notches are untouched: a NotchCm is an absolute cm point pair, never an
+// outlineCm index, so reversing vertex ORDER doesn't move it -- the winding
+// a notch was placed against is already baked into its own outerCm/innerCm
+// by the time this runs (notchAt/notchAtVertex/notchAtArcLengthCm above
+// derive that from whatever winding `ptsCm` had when the drafter called
+// them, via canonicalTangent, not from this later pass).
+export function normalizeWinding(dp: DraftedPiece): DraftedPiece {
+  if (isCanonicalWinding(dp.outlineCm)) return dp;
+  const n = dp.outlineCm.length;
+  const outlineCm = [dp.outlineCm[0], ...dp.outlineCm.slice(1).reverse()];
+  const remapIndex = (i: number) => (i === 0 ? 0 : n - i);
+  const remapRange = ([a, b]: [number, number]): [number, number] => [
+    n - b,
+    n - a,
+  ];
+  return {
+    ...dp,
+    outlineCm,
+    curvedSpans: dp.curvedSpans?.map(remapRange),
+    foldEdge: dp.foldEdge
+      ? ([remapIndex(dp.foldEdge[0]), remapIndex(dp.foldEdge[1])] as [
+          number,
+          number,
+        ])
+      : undefined,
+    seamEdges: dp.seamEdges
+      ? Object.fromEntries(
+          Object.entries(dp.seamEdges).map(([k, v]) => [k, remapRange(v)]),
+        )
+      : undefined,
+  };
 }
 
 // #127: cm-space internal-geometry entry a drafter attaches to a
