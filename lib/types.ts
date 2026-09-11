@@ -79,6 +79,18 @@ export type WaistbandType = "none" | "straight";
 // only front-closure shape MoldAI drafts; anything else is "em breve",
 // surfaced by lib/ai/prompt.ts's guidance rather than a silent substitute.
 export type FrontClosureType = "none" | "buttonStand";
+// #244: closed enum, same footing as the four above. "box"/"inverted-box"
+// are two genuinely different fold constructions, not a label swap: a box
+// pleat's two folds face AWAY from each other (opening outward, away from
+// the panel's own centre); an inverted box pleat's two folds face TOWARD
+// each other (hidden underneath, meeting at centre) -- see
+// lib/draft/skirt.ts's own pleatFoldPlacement for the geometry that
+// distinguishes them. A single lopsided "knife" fold is deliberately not
+// offered here: it would draft an ASYMMETRIC insert on a panel whose own
+// foldEdge below still claims a true axis of symmetry through its centre,
+// falsifying that contract -- both shapes this enum offers stay symmetric
+// about the panel's own centre instead.
+export type PleatType = "none" | "box" | "inverted-box";
 
 export interface ClarifyQuestion {
   id: string;
@@ -150,6 +162,18 @@ export interface GarmentStyle {
   // type, the same "type-mismatched style field is a no-op" precedent
   // skirtLengthCm/waistband already follow.
   trouserLengthCm?: number;
+  // #244: a box/inverted-box pleat drafted on a STANDALONE straight or
+  // a-line skirt panel only (lib/draft/skirt.ts's own draftSkirt) -- a
+  // dress's skirt panel is joined directly to the bodice hem at the
+  // natural waist instead (the waist-join pairs above), and widening that
+  // panel's own waist edge without ALSO widening the bodice hem it's mated
+  // to would reopen the #134/#177 waist-mismatch class of bug, so this
+  // field is simply unread there, the same "type-mismatched style field is
+  // a no-op" precedent waistband/frontClosure already follow. A radial
+  // silhouette (circle/gore/half-circle) never reads it either -- there is
+  // no natural insertion point on a polar-coordinate panel. Undefined
+  // defaults to "none" (unchanged, unpleated panel).
+  pleats?: PleatType;
 }
 
 export interface GarmentSpec {
@@ -198,10 +222,12 @@ export interface PieceNotch {
 // for a single-ended one -- distinct from the piece's own cut-on-fold axis,
 // `foldEdge`/`Piece.grainline`'s sibling below), and `drillHole` (1.0-1.5cm
 // short of a dart apex, see lib/draft/core.ts's DRILL_HOLE_SETBACK_CM).
-// `pleat`/`styleLine`/`placementMark` exist so a future pocket/buttonhole/
-// pleat/style-line drafter can attach to this same channel without a second
-// one, but no drafter emits any of the three yet -- #127 decision, settled,
-// not reopened here.
+// #244: `pleat` now ships too -- a pleat's own placement/stitch line, drawn
+// by lib/draft/skirt.ts's own pleatFoldPlacement (its press fold reuses
+// `foldLine` above instead of a second kind). `styleLine`/`placementMark`
+// exist so a future style-line/buttonhole drafter can attach to this same
+// channel without a second one, but no drafter emits either yet -- #127
+// decision, settled, not reopened here.
 export type InternalKind =
   "dart" | "foldLine" | "drillHole" | "pleat" | "styleLine" | "placementMark";
 
@@ -209,7 +235,7 @@ export type PieceInternal =
   | { kind: "dart"; d: string }
   | { kind: "foldLine"; x1: number; y1: number; x2: number; y2: number }
   | { kind: "drillHole"; x: number; y: number; r: number }
-  | { kind: "pleat"; d: string } // reserved -- no drafter emits one yet
+  | { kind: "pleat"; d: string }
   | { kind: "styleLine"; d: string } // reserved -- no drafter emits one yet
   | { kind: "placementMark"; x: number; y: number }; // reserved -- no drafter emits one yet
 
@@ -245,6 +271,14 @@ export interface Piece {
   // #124: absent on a piece drafted before this existed, or one no
   // convention places a mark on.
   notches?: PieceNotch[];
+  // #243: zero or more internal loops (holes) inside this piece's own outer
+  // `outline` -- a buttonhole, an eyelet, a lining vent. Each entry is a full
+  // closed `PieceOutline` in the same px/canvas-local space as `outline`
+  // itself (lib/draft/core.ts's `place()` builds these from
+  // DraftedPiece.internalLoopsCm the same way it builds `outline`). Absent
+  // on every piece today (no drafter emits one yet) and on any piece drafted
+  // before this existed -- purely additive, nothing reads it as a fallback.
+  internalLoops?: PieceOutline[];
   detailRows: DetailRow[];
 }
 
@@ -310,6 +344,20 @@ export interface ChatMessage {
   // number, not a versionId string, because PatternVersion's own unique key
   // is already (patternId, version) -- the same value, not a duplicate one.
   draftVersion?: number;
+  // #257: set on the PRIMARY "ai" bubble of an "apply" decision that was NOT
+  // this pattern's first-ever draft -- the field paths lib/editor/state.ts's
+  // diffSpec(previousSpec, spec) found changed, "type" | "gender" |
+  // "style.<key>" | "measurementOverrides.<key>". Surfaces ChatGarment's own
+  // headline editing limitation (collateral change from a full-JSON
+  // re-emission) the same way ConflictInfo.entries makes divergent seams
+  // visible, rather than leaving the user to discover elsewhere that
+  // shortening a skirt also quietly flipped the collar. Absent (never an
+  // empty array) on the first-ever generation -- there is no "previous
+  // spec" to diff against yet, and every field would otherwise render as
+  // "changed". Additive/optional, like hasImage/assembly/decision --
+  // ChatMessageSchema (lib/schemas/pattern.ts) MUST name this field too, or
+  // z.object strips it and the next mutating turn deletes it from the row.
+  changedFields?: string[];
 }
 
 export type PlanId = "free" | "atelier" | "studio" | "factory";
@@ -383,6 +431,17 @@ export interface ConflictEntry {
   diffCm: number;
   fixable: boolean;
   markers: { cx: number; cy: number; r: number }[];
+  // #241: graded sizes (never the base) where THIS pair's own gap also
+  // misses SEAM_TOLERANCE_CM -- a conventional X/Y-increment grading's
+  // diagonal seams don't move linearly with the increments, so a pair can
+  // close at the base size and still diverge only away from it (Islam et
+  // al., Tekstilec 63(3):166-184). Populated ONLY for an entry that
+  // wouldn't otherwise be visible (the base row itself already conflicts,
+  // or nowhere does); absent for every entry that predates this issue and
+  // for a base-origin entry, so nothing about the existing single-pair
+  // shape changes. Names, doesn't measure — the two lengths behind it stay
+  // derived at render time exactly like every other entry's.
+  sizes?: SizeLabel[];
 }
 
 export interface ConflictInfo {
@@ -461,6 +520,19 @@ export interface Pattern {
   spec?: GarmentSpec;
   viewBox?: { w: number; h: number };
   baseMeasurements?: Measurements;
+  /**
+   * #280: how many garments to cut per graded size, keyed by SizeLabel --
+   * the cut plan's own "Quantidade por tamanho" panel. Optional and additive
+   * (patterns saved before this existed simply have none, same precedent as
+   * `sizeChartName`/`engine`). Absent, or every entry zero, means the cut
+   * plan falls back to its pre-existing behavior (`baseSize` only, at each
+   * piece's own drafted `qty`) -- `planCutLayout` (lib/export/cutplan.ts) is
+   * where that fallback and the multi-size expansion both live.
+   * `lib/export/cutQuantities.ts`'s validateCutQuantities is the real trust
+   * boundary -- this is a plain Record, not narrowed to `sizesApplied`,
+   * since a size can be un-graduated after quantities were set for it.
+   */
+  cutQuantities?: Record<SizeLabel, number>;
 }
 
 // Wire shape: the persisted Pattern blob plus the row's own `updatedAt`
@@ -587,6 +659,29 @@ export const MAX_PATTERNS_LISTED = 500;
  * server has to.
  */
 export const MAX_CHAT_MESSAGE_LENGTH = 2000;
+
+/**
+ * #280: cap on a single size's `cutQuantities` entry -- the cut plan's
+ * nesting packers (lib/export/cutplan.ts) are an O(n^2) overlap/skyline
+ * scan over every cut instance, so an unbounded user-entered quantity could
+ * make a single request pathologically expensive. 50 garments of one size
+ * in a single plan is already far past what anyone cuts by hand from one
+ * layout; validateCutQuantities (lib/export/cutQuantities.ts) is what
+ * actually enforces this against untrusted input.
+ */
+export const MAX_CUT_QUANTITY_PER_SIZE = 50;
+
+/**
+ * #280: cap on the SUM of every size's `cutQuantities` entry in one request
+ * -- MAX_CUT_QUANTITY_PER_SIZE alone bounds one size, but a pattern graded
+ * into many sizes could still request MAX_CUT_QUANTITY_PER_SIZE for each of
+ * them, and the packer's cost scales with the total instance count (every
+ * piece × every size's quantity), not any single size's. 200 total garments
+ * in one cut plan is already generous; validateCutQuantities
+ * (lib/export/cutQuantities.ts) enforces it by clamping later sizes (in
+ * object key order) once the running total would exceed it.
+ */
+export const MAX_TOTAL_CUT_QUANTITY = 200;
 
 // #108: `generate` and `cuttingPlan` used to exist here too, but nothing
 // ever debited them — the first draft of a pattern debits `adjust` like

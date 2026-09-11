@@ -18,6 +18,7 @@ import {
   WAISTBANDS,
   FRONT_CLOSURES,
   FIT_CLASSES,
+  PLEATS,
   STRETCH_CLASSES,
 } from "@/lib/draft/garment";
 import { MEASUREMENT_RANGES, SIZE_TABLE } from "@/lib/measurements";
@@ -227,12 +228,13 @@ describe("buildSystem", () => {
   // #129/#130/#131: the sub-piece catalogs render from the same exported
   // constants the schema/validator use, and the model is told not to
   // silently substitute an unsupported shape.
-  it("quotes the collar/cuff/waistband/frontClosure catalogs and tells the model not to silently substitute", () => {
+  it("quotes the collar/cuff/waistband/frontClosure/pleats catalogs and tells the model not to silently substitute", () => {
     const s = buildSystem(DEFAULT_ENGINE_ID, state(0), { answering: false });
     for (const v of COLLARS) expect(s).toContain(v);
     for (const v of CUFFS) expect(s).toContain(v);
     for (const v of WAISTBANDS) expect(s).toContain(v);
     for (const v of FRONT_CLOSURES) expect(s).toContain(v);
+    for (const v of PLEATS) expect(s).toContain(v);
     expect(s).toContain("don't silently substitute");
   });
 
@@ -358,7 +360,7 @@ describe("buildSystem: the fields-already-decided section", () => {
       answering: false,
       formSpec,
     });
-    const blankRule = s.indexOf("use decision=ask before drafting");
+    const blankRule = s.indexOf("Only decision=ask when the request names");
     const section = s.indexOf(HEADING);
     expect(blankRule).toBeGreaterThan(-1);
     expect(section).toBeGreaterThan(blankRule);
@@ -418,13 +420,25 @@ describe("prompt-cache byte stability", () => {
       staticSectionsFor(DEFAULT_ENGINE_ID) +
       JSON.stringify(toolFor(DEFAULT_ENGINE_ID));
     const hash = createHash("sha256").update(bytes).digest("hex");
-    // #258: regenerated again -- the "# Attached images" section
+    // #252-follow-up: regenerated -- the "# Decision policy" ask bullet
+    // (buildStaticSections) was rewritten so the model stops treating
+    // neckline/sleeve/fit/length/size as always-required detail (every one
+    // of those already has a drafter-side default) and reserves ask for a
+    // request that names nothing beyond the garment type.
+    // #244: regenerated again -- a new style field (pleats: box/inverted-box
+    // on a standalone straight/a-line skirt) was added to the GarmentSpec
+    // section, the "# Vocabulary mapping" prose, and the tool schema; the
+    // "# Assembly / sewing order" section also gained a "pleat" step
+    // description alongside "dart"/"seam"/"hem".
+    // #258: regenerated once more -- the "# Attached images" section
     // (buildStaticSections) now instructs the model to fill garmentReading
     // part-by-part before inferring the GarmentSpec (ChatGarment's own
-    // two-stage chain of thought). A deliberate, expected byte change (see
-    // this describe block's own comment), not a bug.
+    // two-stage chain of thought). All deliberate, expected byte changes
+    // (see this describe block's own comment), not a bug -- the eval
+    // harness (npm run eval:ai) is what proves the behaviour is better,
+    // not this hash.
     expect(hash).toBe(
-      "e7995425500b385048b99db2423828aa4b3e0c163192aa423b82990a21606f82",
+      "9d38efbafc06d8d53793cfa28b61ee180ca68b4cc806df691600556462efb700",
     );
   });
 });

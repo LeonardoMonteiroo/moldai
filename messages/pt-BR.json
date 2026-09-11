@@ -52,7 +52,8 @@
     "questionsAnswered": "Perguntas respondidas.",
     "imagesAttached": "{count, plural, one {imagem enviada} other {# imagens enviadas}}",
     "garmentReadingLabel": "Leitura da imagem:",
-    "assemblyDisclaimer": "Ordem de montagem gerada por IA a partir da modelagem; não substitui a verificação de um(a) costureiro(a)."
+    "assemblyDisclaimer": "Ordem de montagem gerada por IA a partir da modelagem; não substitui a verificação de um(a) costureiro(a).",
+    "changedFieldsLabel": "Também mudou: {fields}."
   },
   "MessageInput": {
     "placeholder": "Descreva o ajuste…",
@@ -61,6 +62,7 @@
   },
   "AttachmentChips": {
     "photo": "Anexar foto",
+    "photoLimitReached": "Limite de {max, plural, one {# foto} other {# fotos}} atingido",
     "dxfComingSoonTitle": "Anexar molde .dxf chega em breve",
     "preparing": "Preparando imagem…",
     "removeAttachment": "Remover anexo",
@@ -137,7 +139,8 @@
     "valueCm": "{value} cm",
     "gapLabel": "{direction, select, larger {falta {diff} cm na copa} smaller {sobra {diff} cm na copa} other {}}",
     "entryDiffLabel": "diferença de {diff} cm",
-    "entryGapLabel": "{direction, select, larger {falta {diff} cm} smaller {sobra {diff} cm} other {}}"
+    "entryGapLabel": "{direction, select, larger {falta {diff} cm} smaller {sobra {diff} cm} other {}}",
+    "entrySizesLabel": "Diverge apenas nos tamanhos: {sizes}"
   },
   "ConflictActions": {
     "fixButton": "Corrigir manga",
@@ -201,14 +204,16 @@
       "placketFoldUnderlap": "Dobra interna",
       "waistbandType": "Tipo de cós",
       "waistbandClosureMark": "Marca de fechamento (botão/zíper)",
-      "buttonStandMark": "Marca de botão/casa",
+      "buttonholes": "Casas de botão",
       "overlap": "Sobreposição (fechamento)",
       "rise": "Gancho",
       "trouserLeg": "Modelagem da perna",
       "trouserOtherLegs": "Outras modelagens (afunilada, pantalona, cargo)",
+      "trouserLengthGrading": "Comprimento por tamanho",
       "hoodiePocket": "Bolso canguru e viés do decote",
       "coatLining": "Forro completo (frente, costas e manga)",
-      "sleevePlacket": "Abertura do punho (carcela)"
+      "sleevePlacket": "Abertura do punho (carcela)",
+      "pleats": "Prega"
     },
     "neckline": {
       "straight": "reto",
@@ -240,6 +245,10 @@
     "waistbandType": {
       "straight": "reto, com sobreposição"
     },
+    "pleatType": {
+      "box": "prega caixa (dobras abrindo para fora)",
+      "inverted-box": "prega caixa invertida (dobras voltadas para dentro)"
+    },
     "fit": {
       "close": "justo",
       "fitted": "ajustado",
@@ -255,12 +264,15 @@
     "grainValue": "reto",
     "foldLabel": "dobra",
     "comingSoonBadge": "em breve",
+    "trouserLengthFixedNote": "mesmo em todos os tamanhos (ainda não há medida de perna por tamanho)",
     "conflict": {
       "title": "Cava e manga não batem",
       "description": "A cava do corpo ficou {diffCm, number, ::.0} cm {direction, select, larger {maior} smaller {menor} other {}} que a copa da manga, então as costuras não vão fechar.",
       "suggestion": "“Corrigir manga” refaz a copa para a cava ajustada, sem custo.",
       "titleFor": "A costura de {label} não fecha",
       "descriptionSingle": "Diferença de {diffCm, number, ::.0} cm entre as duas peças.",
+      "titleForSizeOnly": "A costura de {label} não fecha em outros tamanhos",
+      "descriptionSizeOnly": "Fecha no tamanho-base, mas diverge {diffCm, number, ::.0} cm nos tamanhos {sizes}.",
       "titleMultiple": "{count, plural, one {# costura não fecha} other {# costuras não fecham}}",
       "descriptionMultiple": "Confira o detalhe de cada uma abaixo.",
       "suggestionGeneric": "Sem correção automática: ajuste as medidas ou o estilo e gere o molde novamente."
@@ -495,23 +507,25 @@
       "pieceLine": "{name} · {qty}x · {width} × {height} cm",
       "assemblyHeading": "Instruções de montagem",
       "stepDart": "Costure {count, plural, one {a pence} other {as # pences}} em {piece}.",
+      "stepPleat": "Dobre e passe {count, plural, one {a prega} other {as # pregas}} em {piece}.",
       "stepSeam": "Una {a} com {b}.",
       "stepHem": "Faça a bainha de {piece} ({length} cm).",
       "assemblyConflictNote": "Uma ou mais costuras acima têm um conflito ativo — confira antes de cortar."
     }
   },
   "CutPlanTab": {
-    "title": "Plano de corte",
     "emptyState": "Gere um molde para ver o plano de corte.",
+    "emptyQuantitiesState": "Defina a quantidade de pelo menos um tamanho para ver o encaixe.",
     "fabricWidthLabel": "Largura do tecido",
-    "metricConsumptionLabel": "Consumo",
-    "metricConsumptionHint": "comprimento no tecido",
-    "metricEfficiencyLabel": "Aproveitamento",
-    "metricEfficiencyHint": "área útil / área do tecido",
-    "metricPieceCountLabel": "Peças no corte",
-    "metricPieceCountHint": "cópias (peça × quantidade)",
+    "fabricSectionLabel": "Tecido",
+    "fabricWidthStepLabel": "{cm} cm largura",
+    "decreaseFabricWidthAriaLabel": "Diminuir largura",
+    "increaseFabricWidthAriaLabel": "Aumentar largura",
     "overflowWarning": "Alguma peça é mais larga que o tecido. Use um tecido mais largo ou reduza a peça.",
-    "overlapWarning": "Há cópias sobrepostas: o consumo e o aproveitamento não valem enquanto isso.",
+    "overlapWarning": "Há cópias sobrepostas: o consumo não vale enquanto isso.",
+    "legendBackground": "Fundo",
+    "legendFabric": "Tecido",
+    "legendPiece": "Peça do molde",
     "modeLabel": "Encaixe",
     "mode": {
       "auto": "Automático",
@@ -522,7 +536,13 @@
     "instanceLabel": "{name} · {x} cm × {y} cm",
     "movedAnnouncement": "{name} em {x} cm × {y} cm",
     "layoutNoteAuto": "Melhor de dois encaixes automáticos (prateleiras e skyline) · encaixa a caixa delimitadora de cada peça, não o contorno · fio travado, sem rotação das peças · cada peça repetida pela quantidade a cortar · linha de corte, já com a margem de costura.",
-    "layoutNoteManual": "Arraste ou use o teclado para reposicionar cada cópia · fio travado, sem rotação das peças · linha de corte, já com a margem de costura. Salvar o encaixe manual entre sessões <em>em breve</em>."
+    "layoutNoteManual": "Arraste ou use o teclado para reposicionar cada cópia · fio travado, sem rotação das peças · linha de corte, já com a margem de costura. Salvar o encaixe manual entre sessões <em>em breve</em>.",
+    "quantityPanelTitle": "Quantidade por tamanho",
+    "quantityForSizeAriaLabel": "Quantidade a cortar do tamanho {size}",
+    "decreaseQuantityAriaLabel": "Diminuir quantidade do tamanho {size}",
+    "increaseQuantityAriaLabel": "Aumentar quantidade do tamanho {size}",
+    "garmentsProducedLabel": "{count, plural, one {# peça produzida} other {# peças produzidas}}",
+    "summaryLine": "{count} peças · consumo estimado {length}"
   },
   "Export": {
     "title": "Exportar",
@@ -610,7 +630,6 @@
     "betaBadge": "Beta",
     "emptyState": "Gere um molde para ver a prova 3D.",
     "notSupportedFor": {
-      "trousers": "A prova 3D ainda não cobre calças. Em breve.",
       "hoodie": "A prova 3D ainda não cobre moletom com capuz. Em breve.",
       "coat": "A prova 3D ainda não cobre casacos. Em breve.",
       "shirt": "A prova 3D ainda não cobre camisas. Em breve."
@@ -848,7 +867,7 @@
     "nameLabel": "Nome",
     "emailLabel": "Email",
     "passwordLabel": "Senha",
-    "passwordHint": "Mínimo de 8 caracteres.",
+    "passwordHint": "Mínimo de 8 caracteres, com letras e números.",
     "confirmLabel": "Confirmar senha",
     "mismatchError": "As senhas não conferem.",
     "orDivider": "ou",
@@ -867,7 +886,7 @@
     "errors": {
       "invalid_name": "Informe o seu nome.",
       "invalid_email": "Email inválido.",
-      "weak_password": "A senha deve ter pelo menos 8 caracteres.",
+      "weak_password": "A senha deve ter pelo menos 8 caracteres, com letras e números.",
       "email_taken": "Este email já está cadastrado.",
       "bad_body": "Não foi possível criar a conta. Tente novamente.",
       "rate_limited": "Muitas tentativas de cadastro. Aguarde alguns minutos.",
@@ -886,11 +905,20 @@
     "successBody": "Tudo certo. Agora é só entrar com sua senha.",
     "loginLink": "Ir para o login",
     "backToLoginLink": "Voltar para login",
+    "emailLabel": "Email",
+    "passwordLabel": "Senha",
+    "resendButton": "Reenviar link de confirmação",
+    "resendButtonLoading": "Reenviando…",
+    "resendDone": "Link reenviado. Confira seu email.",
     "errors": {
-      "invalid_token": "Este link não é válido. Peça um novo na tela de login.",
-      "expired_token": "Este link expirou. Peça um novo na tela de login.",
+      "invalid_token": "Este link não é válido. Informe seu email e senha para receber um novo.",
+      "expired_token": "Este link expirou. Informe seu email e senha para receber um novo.",
       "bad_body": "Não foi possível confirmar. Tente novamente.",
-      "rate_limited": "Muitas tentativas. Aguarde alguns minutos e tente de novo."
+      "rate_limited": "Muitas tentativas. Aguarde alguns minutos e tente de novo.",
+      "invalid_credentials": "Email ou senha inválidos.",
+      "already_verified": "Este email já está confirmado. Tente entrar novamente.",
+      "cooldown": "Aguarde um minuto antes de pedir outro link.",
+      "mail_unavailable": "Não conseguimos enviar o email agora. Tente de novo em instantes."
     },
     "missingToken": "Link incompleto. Abra o endereço exatamente como ele chegou no seu email."
   },
@@ -965,6 +993,10 @@
     "requestButtonLoading": "Enviando…",
     "requestSentHeading": "Verifique seu email",
     "requestSentBody": "Se este email estiver cadastrado, você vai receber um link para redefinir sua senha.",
+    "requestSentHint": "Não chegou? Verifique o spam ou reenvie.",
+    "resendButton": "Reenviar",
+    "resendButtonLoading": "Reenviando…",
+    "resendDone": "Link reenviado.",
     "backToLogin": "Voltar para login",
     "confirmHeading": "Nova senha",
     "confirmIntro": "Escolha uma nova senha para sua conta.",
@@ -981,7 +1013,7 @@
       "rate_limited": "Muitas tentativas. Aguarde alguns minutos e tente de novo.",
       "invalid_token": "Este link não é válido. Peça um novo.",
       "expired_token": "Este link expirou. Peça um novo.",
-      "weak_password": "A senha deve ter pelo menos 8 caracteres."
+      "weak_password": "A senha deve ter pelo menos 8 caracteres, com letras e números."
     }
   },
   "PasswordResetEmail": {
@@ -1440,10 +1472,10 @@
     "newLabel": "Nova senha",
     "confirmLabel": "Confirmar nova senha",
     "submitButton": "Alterar senha",
-    "hintNote": "Mínimo de 8 caracteres.",
+    "hintNote": "Mínimo de 8 caracteres, com letras e números.",
     "deviceNote": "Você continuará conectado(a) neste dispositivo.",
     "mismatchError": "As senhas não conferem.",
-    "tooShortError": "A nova senha deve ter pelo menos 8 caracteres.",
+    "tooShortError": "A nova senha deve ter pelo menos 8 caracteres, com letras e números.",
     "successMessage": "Senha alterada com sucesso.",
     "setHeading": "Definir senha",
     "setNote": "Sua conta usa login com Google. Defina uma senha para também poder entrar com email e senha.",
@@ -1453,7 +1485,7 @@
       "bad_body": "Não foi possível alterar a senha. Tente novamente.",
       "account_not_found": "Não foi possível alterar a senha. Tente novamente.",
       "wrong_password": "Senha atual incorreta.",
-      "weak_password": "A nova senha deve ter pelo menos 8 caracteres.",
+      "weak_password": "A nova senha deve ter pelo menos 8 caracteres, com letras e números.",
       "unauthorized": "Sua sessão expirou. Faça login novamente para alterar a senha."
     }
   },

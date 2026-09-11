@@ -4,6 +4,29 @@ import { Bubble, BubbleContent, BubbleGroup } from "@/components/ui/bubble";
 import { Marker, MarkerContent } from "@/components/ui/marker";
 import { ClarifyCard } from "./ClarifyCard";
 
+// #257: resolves one diffSpec field path ("type", "gender", "style.<key>",
+// "measurementOverrides.<key>") to its pt-BR label -- three catalog lookups,
+// never a hand-written label map, reusing the SAME catalogs the generate
+// route (specField/styleField) and the size-chart table (measurement)
+// already resolve these exact field names through, so a label can never
+// drift between the two call sites.
+function changedFieldLabel(
+  path: string,
+  tData: (key: string) => string,
+  tMeasurement: (key: string) => string,
+): string {
+  if (path === "type" || path === "gender") return tData(`specField.${path}`);
+  if (path.startsWith("style.")) {
+    return tData(`styleField.${path.slice("style.".length)}`);
+  }
+  if (path.startsWith("measurementOverrides.")) {
+    return tMeasurement(
+      `measurement.${path.slice("measurementOverrides.".length)}`,
+    );
+  }
+  return path;
+}
+
 export function ChatBubble({
   message,
   active = false,
@@ -12,6 +35,8 @@ export function ChatBubble({
   active?: boolean;
 }) {
   const t = useTranslations("ChatBubble");
+  const tData = useTranslations("PatternData");
+  const tMeasurement = useTranslations("SizeChartTable");
 
   if (message.author === "user") {
     return (
@@ -98,6 +123,19 @@ export function ChatBubble({
               </span>
             ))}
           </div>
+        )}
+        {message.changedFields && message.changedFields.length > 0 && (
+          // #257: absent (never an empty array) on the first-ever
+          // generation -- see diffSpec's own doc (lib/editor/state.ts) --
+          // so this never renders "changed" for every field on a blank
+          // pattern's first draft.
+          <p className="text-muted text-meta mt-[9px]">
+            {t("changedFieldsLabel", {
+              fields: message.changedFields
+                .map((path) => changedFieldLabel(path, tData, tMeasurement))
+                .join(", "),
+            })}
+          </p>
         )}
         {message.assembly && (
           // #138: the disclaimer is catalog chrome, not model prose (the
