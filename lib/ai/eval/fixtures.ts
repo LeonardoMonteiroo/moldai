@@ -109,10 +109,14 @@ export const GENERATION_CASES: GenerationCase[] = [
   // --- skirt ---
   {
     id: "skirt-straight",
+    // #260: "na altura do joelho" (knee height) names a length in words,
+    // no exact cm -- exercises the new skirtLength descriptive token
+    // (lib/draft/garment.ts's SKIRT_LENGTH_TOKENS.knee = 60), the
+    // preferred path over a free-guessed skirtLengthCm number.
     prompt: "Saia reta na altura do joelho.",
     expectedDecision: "apply",
     expectedType: "skirt",
-    expectedStyle: { skirt: "straight" },
+    expectedStyle: { skirt: "straight", skirtLengthCm: 60 },
   },
   {
     id: "skirt-aline",
@@ -300,6 +304,7 @@ export const EDITING_CASES: EditingCase[] = [
     instruction: "Aumenta a profundidade do decote para 8cm.",
     expectedChanged: ["necklineDepthCm"],
     expectedUnchanged: ["type", "gender", "neckline", "sleeve", "collar"],
+    scopedPieceKey: "front",
   },
   {
     id: "edit-dress-skirt-length",
@@ -312,6 +317,7 @@ export const EDITING_CASES: EditingCase[] = [
     instruction: "Diminui o comprimento da saia para 70cm.",
     expectedChanged: ["skirtLengthCm"],
     expectedUnchanged: ["type", "gender", "skirt", "neckline"],
+    scopedPieceKey: "skirt",
   },
   {
     id: "edit-skirt-seam-allowance",
@@ -324,6 +330,7 @@ export const EDITING_CASES: EditingCase[] = [
     instruction: "Aumenta a margem de costura para 2cm.",
     expectedChanged: ["seamAllowanceCm"],
     expectedUnchanged: ["type", "gender", "skirt", "waistband"],
+    scopedPieceKey: "skirt",
   },
   {
     id: "edit-tshirt-sleeve",
@@ -336,6 +343,7 @@ export const EDITING_CASES: EditingCase[] = [
     instruction: "Deixa a manga comprida.",
     expectedChanged: ["sleeve"],
     expectedUnchanged: ["type", "gender", "stretch"],
+    scopedPieceKey: "sleeve",
   },
   {
     id: "edit-trousers-length",
@@ -348,6 +356,7 @@ export const EDITING_CASES: EditingCase[] = [
     instruction: "Deixa a calça mais curta, tipo cropped, uns 75cm.",
     expectedChanged: ["trouserLengthCm"],
     expectedUnchanged: ["type", "gender", "waistband"],
+    scopedPieceKey: "front",
   },
   {
     id: "edit-blouse-armhole",
@@ -361,6 +370,7 @@ export const EDITING_CASES: EditingCase[] = [
       "Aumenta a cava em 3cm, deixa mais folgada na altura do braço.",
     expectedChanged: ["armholeDeepenCm"],
     expectedUnchanged: ["type", "gender", "sleeve", "neckline"],
+    scopedPieceKey: "front",
   },
   {
     id: "edit-dress-fit-loose",
@@ -373,6 +383,7 @@ export const EDITING_CASES: EditingCase[] = [
     instruction: "Deixa o vestido bem folgado, largo.",
     expectedChanged: ["fit"],
     expectedUnchanged: ["type", "gender", "skirt"],
+    scopedPieceKey: "front",
   },
   {
     id: "edit-blouse-collar",
@@ -385,5 +396,12 @@ export const EDITING_CASES: EditingCase[] = [
     instruction: "Adiciona uma gola chinesa.",
     expectedChanged: ["collar"],
     expectedUnchanged: ["type", "gender", "sleeve"],
+    // #265: baseSpec has collar:"none", so no collar piece exists yet to
+    // select -- "front" here deliberately tests the risky case: a user
+    // adding a NEW feature while a plausible-but-unrelated piece is selected.
+    // If the scoped section ever makes the model over-restrict (refuse to
+    // add the collar because "front" was scoped), this case is what would
+    // show it as a missed expected change, not a silent regression.
+    scopedPieceKey: "front",
   },
 ];

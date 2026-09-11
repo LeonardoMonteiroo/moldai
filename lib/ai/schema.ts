@@ -1,6 +1,14 @@
 import type { LlmTool } from "./provider/types";
-import { GENDERS } from "@/lib/draft/garment";
+import {
+  GENDERS,
+  NECKLINE_DEPTH_TOKENS,
+  SKIRT_LENGTH_TOKENS,
+  SEAM_ALLOWANCE_TOKENS,
+  ARMHOLE_DEEPEN_TOKENS,
+  TROUSER_LENGTH_TOKENS,
+} from "@/lib/draft/garment";
 import { MEASUREMENT_RANGES } from "@/lib/measurements";
+import { CLARIFY_QUESTION_FIELDS } from "@/lib/types";
 import { ENGINE_IDS } from "@/lib/draft/engine/capability";
 import type {
   EngineId,
@@ -13,6 +21,15 @@ import { getEngine } from "@/lib/draft/engine/registry";
 // `spec` here is untrusted/unknown-shaped input, not yet a GarmentSpec.
 export interface RawToolInput {
   decision: "apply" | "decline" | "ask" | "explain";
+  // #258: the model's own part-by-part read of an attached image, filled
+  // BEFORE it decides on spec (see prompt.ts's "Attached images" section) --
+  // ChatGarment's own two-stage chain of thought (image -> text description
+  // -> spec) rather than jumping straight from pixels to a GarmentSpec. Only
+  // meaningful on a turn that actually carried an image; absent otherwise,
+  // and never treated as required -- a model that skips it on an image turn
+  // still gets a spec, just without the intermediate read (see
+  // resolveDecision, lib/ai/decision.ts).
+  garmentReading?: string;
   spec?: unknown;
   questions?: unknown;
   declineReason?: string;
@@ -50,6 +67,15 @@ const bounded = (r: { min: number; max: number }) => ({
   type: "number" as const,
   minimum: r.min,
   maximum: r.max,
+});
+
+// #260: a descriptive-token alternative to a free numeric style scalar,
+// rendered from the same exported table lib/draft/garment.ts's
+// validateSpec projects through -- never a second, hand-duplicated enum
+// list. See garment.ts's own top-of-file comment on these five tables.
+const tokenEnum = (table: Record<string, number>) => ({
+  type: "string" as const,
+  enum: Object.keys(table),
 });
 
 // #267: MEASUREMENT_RANGES stays app-level -- see lib/ai/prompt.ts's own
@@ -103,6 +129,15 @@ function buildTool(capability: EngineCapability): LlmTool {
           type: "string",
           enum: ["apply", "decline", "ask", "explain"],
         },
+        // #258: declared BEFORE spec, matching the order the model should
+        // actually reason in on an image turn -- read the photo part-by-part
+        // first, decide on spec second. See prompt.ts's "Attached images"
+        // section for the part vocabulary this asks the model to check.
+        garmentReading: {
+          type: "string",
+          description:
+            "Required whenever the message carries an attached image: a short, part-by-part description of what the photo/sketch actually shows, in the user's own language. Omit entirely on a turn with no attached image.",
+        },
         spec: {
           type: "object",
           description:
@@ -127,6 +162,10 @@ function buildTool(capability: EngineCapability): LlmTool {
                 necklineDepthCm: bounded(
                   capability.styleLimits.necklineDepthCm,
                 ),
+                // #260: prefer this descriptive token over necklineDepthCm
+                // unless the user stated an exact cm value -- see the
+                // system prompt's own "Descriptive length tokens" section.
+                necklineDepth: tokenEnum(NECKLINE_DEPTH_TOKENS),
                 sleeve: {
                   type: "string",
                   enum: styleEnumUnion(capability, "sleeve"),
@@ -136,10 +175,12 @@ function buildTool(capability: EngineCapability): LlmTool {
                   enum: styleEnumUnion(capability, "skirt"),
                 },
                 skirtLengthCm: bounded(capability.styleLimits.skirtLengthCm),
+                skirtLength: tokenEnum(SKIRT_LENGTH_TOKENS),
                 darts: { type: "boolean" },
                 seamAllowanceCm: bounded(
                   capability.styleLimits.seamAllowanceCm,
                 ),
+                seamAllowance: tokenEnum(SEAM_ALLOWANCE_TOKENS),
                 fit: {
                   type: "string",
                   enum: styleEnumUnion(capability, "fit"),
@@ -151,6 +192,7 @@ function buildTool(capability: EngineCapability): LlmTool {
                 armholeDeepenCm: bounded(
                   capability.styleLimits.armholeDeepenCm,
                 ),
+                armholeDeepen: tokenEnum(ARMHOLE_DEEPEN_TOKENS),
                 collar: {
                   type: "string",
                   enum: styleEnumUnion(capability, "collar"),
@@ -170,10 +212,12 @@ function buildTool(capability: EngineCapability): LlmTool {
                 trouserLengthCm: bounded(
                   capability.styleLimits.trouserLengthCm,
                 ),
+                trouserLength: tokenEnum(TROUSER_LENGTH_TOKENS),
                 pleats: {
                   type: "string",
                   enum: styleEnumUnion(capability, "pleats"),
                 },
+                riseCm: bounded(capability.styleLimits.riseCm),
               },
             },
           },
@@ -182,11 +226,15 @@ function buildTool(capability: EngineCapability): LlmTool {
         questions: {
           type: "array",
           description:
-            "Only when decision=ask: 1 to 4 objective single-choice questions.",
+            'Only when decision=ask: 1 to 4 objective single-choice questions. Set `field` when the question is about one of the style catalogs in GarmentSpec above (neckline/sleeve/skirt/collar/cuff/waistband) and give `options` as the EXACT catalog tokens for that field (e.g. "round"/"V"/"straight" for neckline) — the client renders each token\'s own localized label rather than your literal text, and any token that isn\'t a real value of that catalog is dropped. Leave `field` unset, and write plain option text in the user\'s own language, for anything with no catalog (a measurement, a free-length choice).',
           items: {
             type: "object",
             properties: {
               label: { type: "string" },
+              field: {
+                type: "string",
+                enum: [...CLARIFY_QUESTION_FIELDS],
+              },
               options: {
                 type: "array",
                 items: { type: "string" },

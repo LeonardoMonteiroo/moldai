@@ -92,11 +92,38 @@ export type FrontClosureType = "none" | "buttonStand";
 // about the panel's own centre instead.
 export type PleatType = "none" | "box" | "inverted-box";
 
+// #262: the style fields a clarifying question's options can be checked
+// against a real catalog -- exactly the app-wide enums with a small closed
+// vocabulary (NECKLINES/SLEEVES/SKIRTS/COLLARS/CUFFS/WAISTBANDS, all in
+// lib/draft/vocabulary.ts). validateQuestions (lib/draft/garment.ts) is the
+// one place that maps each of these to its actual catalog array -- never a
+// second, hand-rolled copy of that mapping. A question about anything else
+// (a measurement, a free-length numeric field) has no catalog to check
+// against and stays free-text, the same as before this field existed --
+// see ClarifyQuestion.field's own doc below.
+export const CLARIFY_QUESTION_FIELDS = [
+  "neckline",
+  "sleeve",
+  "skirt",
+  "collar",
+  "cuff",
+  "waistband",
+] as const;
+export type ClarifyQuestionField = (typeof CLARIFY_QUESTION_FIELDS)[number];
+
 export interface ClarifyQuestion {
   id: string;
   label: string;
   options: string[];
   allowOther: boolean;
+  // #262: optional -- when present, every option was already checked against
+  // this field's own catalog by validateQuestions (dropped otherwise), and
+  // the UI resolves each option's display label through the same
+  // NewPatternForm.value.<field>.<value> catalog lookup a style-field Select
+  // already uses instead of rendering the raw string. Absent for a question
+  // with no catalog to check against (a measurement, a free-length field),
+  // which behaves exactly as before this issue: free text, rendered as-is.
+  field?: ClarifyQuestionField;
 }
 
 export interface GarmentStyle {
@@ -174,6 +201,21 @@ export interface GarmentStyle {
   // no natural insertion point on a polar-coordinate panel. Undefined
   // defaults to "none" (unchanged, unpleated panel).
   pleats?: PleatType;
+
+  // #259: a waist-RISE STYLE offset -- deliberately NOT the body measurement
+  // `rise` (lib/measurements.ts's EXTENDED_MEASUREMENT_KEYS, waist-to-crotch
+  // depth): conflating a design choice with a recorded body dimension is the
+  // exact category error CLAUDE.md already calls out for `fit`. AI/user-
+  // settable, clamped to STYLE_LIMITS.riseCm (lib/draft/vocabulary.ts),
+  // signed and centered on 0 = "unchanged from the resolved body rise/
+  // natural waist". Applies to skirt (raises/lowers the panel's own waist
+  // edge, lib/draft/skirt.ts) and trousers (offsets the COMPUTED rise depth,
+  // never replaces the graded `rise` measurement, lib/draft/trousers.ts).
+  // Simply unread for any other garment type or dress's own skirt panel
+  // (joined directly to the bodice at the natural waist), the same
+  // "type-mismatched style field is a no-op" precedent trouserLengthCm/
+  // skirtLengthCm/waistband already follow.
+  riseCm?: number;
 }
 
 export interface GarmentSpec {
@@ -310,6 +352,17 @@ export interface ChatMessage {
   // shape Piece.darts and ConflictInfo.entries already use, and the reason
   // no blob migration or reset is needed. Still never the bytes.
   imageCount?: number;
+  // #258: the model's own part-by-part read of an attached image
+  // (ChatGarment's own two-stage chain of thought, image -> text description
+  // -> spec) -- set on the SAME user turn hasImage/imageCount describe (the
+  // route patches it in once proposeGarment resolves, since the reading is
+  // only known after the call the user turn was already persisted before).
+  // Additive/optional, like hasImage -- absent when the turn carried no
+  // image, or when the model skipped it on one that did (never fatal, see
+  // lib/ai/decision.ts). CRITICAL: must stay named in ChatMessageSchema or
+  // z.object strips it on the next mutating turn -- the hasImage/assembly
+  // trap.
+  garmentReading?: string;
   // #138: set on an "ai" turn that answered a sewing/assembly-order
   // question (decision=explain + assemblyOrder=true, see lib/ai/decision.ts)
   // -- lets ChatBubble attach the catalog-sourced "AI-generated guidance,

@@ -16,6 +16,7 @@ import {
   diffSpec as diffSpecSummary,
   getSpec,
   seedPatternSizeSnapshot,
+  setGarmentReading,
 } from "@/lib/editor/state";
 import { diffSpec } from "@/lib/draft/specDiff";
 import { debitWallet, refundWallet } from "@/lib/billing/wallet";
@@ -197,6 +198,16 @@ export async function POST(request: Request, { params }: Ctx) {
     typeof body.importContext === "string"
       ? body.importContext.slice(0, MAX_IMPORT_CONTEXT_CHARS)
       : undefined;
+  // #265: the piece the editor had selected when this turn was sent. Read
+  // tolerantly (only a string is looked at) because there is no reject path
+  // for this field -- the real trust boundary is the lookup against this
+  // pattern's OWN `pieces`, by id, done below once `state` is in scope. An
+  // id that doesn't resolve there (a renamed/deleted piece, a stale
+  // selection left over from before a regenerate, or simply none selected)
+  // must drop the scope silently rather than 400 -- see
+  // lib/ai/options.ts's ProposeOptions.partScope doc.
+  const selectedPieceId =
+    typeof body.selectedPieceId === "string" ? body.selectedPieceId : null;
   const cost = COSTS.adjust;
   const t = await getTranslations("PatternData");
   // #3: getSizeChartForGeneration -> listSizeChartsForUser now needs its own
@@ -250,8 +261,9 @@ export async function POST(request: Request, { params }: Ctx) {
           };
         }
 
+        const userMessageId = `msg-${Date.now()}-u`;
         addMessage(state, {
-          id: `msg-${Date.now()}-u`,
+          id: userMessageId,
           author: "user",
           text: trimmed,
           createdAt: Date.now(),
@@ -294,6 +306,13 @@ export async function POST(request: Request, { params }: Ctx) {
         // reusing this one (see the capturedSpec comment above for why it
         // cannot run in here).
         const preparedImages = images ? toProposeImages(images) : undefined;
+        // #265: the trust-boundary lookup -- resolved against THIS
+        // pattern's own `pieces`, by id, never accepted as free text. An
+        // unrecognized or stale id (undefined here) simply omits the scope
+        // below, so the turn behaves exactly as an unscoped one.
+        const partScope = selectedPieceId
+          ? state.pattern.pieces.find((p) => p.id === selectedPieceId)?.name
+          : undefined;
 
         try {
           const decision = await proposeGarment(state, {
@@ -307,7 +326,19 @@ export async function POST(request: Request, { params }: Ctx) {
             // every measurement regardless of what the model claims
             // prompted the value.
             ...(formSpec ? { formSpec } : {}),
+            ...(partScope ? { partScope } : {}),
           });
+
+          // #258: patched onto the user turn the reading describes (the
+          // SAME turn hasImage/imageCount above are on), not the ai turn
+          // added by whichever branch runs below -- and unconditionally,
+          // before the decision switch, since an image can arrive alongside
+          // any of ask/decline/explain/apply, not just apply. Absent
+          // whenever the model omitted it; never fatal (see
+          // resolveDecision, lib/ai/decision.ts).
+          if (decision.garmentReading) {
+            setGarmentReading(state, userMessageId, decision.garmentReading);
+          }
 
           // #99: this used to be three positive `if`s (ask/decline/explain)
           // with an implicit else that applied — so any decision value the

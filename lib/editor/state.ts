@@ -329,6 +329,23 @@ export function addMessage(state: PatternState, message: ChatMessage): void {
   state.chat = [...state.chat, message];
 }
 
+// #258: patches garmentReading onto an already-persisted message, because
+// the reading is only known once proposeGarment resolves -- strictly after
+// the user turn it describes was already appended (buildHistory reads
+// state.chat, so that turn has to exist before the AI call, not after). A
+// second immutable pass over state.chat rather than a direct mutation of the
+// object addMessage already pushed, matching every other state.ts writer's
+// "always return a new value" shape.
+export function setGarmentReading(
+  state: PatternState,
+  messageId: string,
+  reading: string,
+): void {
+  state.chat = state.chat.map((m) =>
+    m.id === messageId ? { ...m, garmentReading: reading } : m,
+  );
+}
+
 export function bumpVersion(state: PatternState): void {
   state.pattern = {
     ...state.pattern,

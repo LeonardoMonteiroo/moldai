@@ -4,6 +4,13 @@ import {
   validateQuestions,
   seamCheck,
   STYLE_LIMITS,
+  NECKLINES,
+  COLLARS,
+  NECKLINE_DEPTH_TOKENS,
+  SKIRT_LENGTH_TOKENS,
+  SEAM_ALLOWANCE_TOKENS,
+  ARMHOLE_DEEPEN_TOKENS,
+  TROUSER_LENGTH_TOKENS,
 } from "./garment";
 import {
   draftGarment,
@@ -171,6 +178,23 @@ describe("validateSpec", () => {
     expect(s.style.armholeDeepenCm).toBe(STYLE_LIMITS.armholeDeepenCm.max);
   });
 
+  // #259: riseCm is SIGNED (unlike every other clamped numeric field above,
+  // which is non-negative) -- both bounds need their own case.
+  it("clamps riseCm to STYLE_LIMITS.riseCm's own signed bounds", () => {
+    const high = validateSpec({
+      type: "skirt",
+      measurementOverrides: {},
+      style: { riseCm: 999 },
+    });
+    expect(high.style.riseCm).toBe(STYLE_LIMITS.riseCm.max);
+    const low = validateSpec({
+      type: "trousers",
+      measurementOverrides: {},
+      style: { riseCm: -999 },
+    });
+    expect(low.style.riseCm).toBe(STYLE_LIMITS.riseCm.min);
+  });
+
   // #129/#130/#131: collar/cuff/waistband are closed enums (no numeric
   // range) -- an invalid value falls back to a fixed default the same way
   // neckline/sleeve/skirt already do, and collar/cuff default "none" while
@@ -257,6 +281,101 @@ describe("validateSpec", () => {
       measurementOverrides: {},
     });
     expect(s.style.frontClosure).toBeUndefined();
+  });
+});
+
+// #260: descriptive length tokens -- a token is the AI's preferred way to
+// express one of these five free numeric scalars (see prompt.ts's own
+// "Descriptive length tokens" section); an explicit *Cm value still wins
+// outright when both are sent, and every projected value is asserted to
+// land inside the field's own STYLE_LIMITS range.
+describe("validateSpec: descriptive length tokens", () => {
+  const TOKEN_TABLES = [
+    ["necklineDepth", "necklineDepthCm", NECKLINE_DEPTH_TOKENS] as const,
+    ["skirtLength", "skirtLengthCm", SKIRT_LENGTH_TOKENS] as const,
+    ["seamAllowance", "seamAllowanceCm", SEAM_ALLOWANCE_TOKENS] as const,
+    ["armholeDeepen", "armholeDeepenCm", ARMHOLE_DEEPEN_TOKENS] as const,
+    ["trouserLength", "trouserLengthCm", TROUSER_LENGTH_TOKENS] as const,
+  ];
+
+  it("every token in every table projects inside that field's own STYLE_LIMITS range", () => {
+    for (const [, cmField, table] of TOKEN_TABLES) {
+      const limits = STYLE_LIMITS[cmField];
+      for (const [token, cm] of Object.entries(table)) {
+        expect(cm, `${cmField}.${token}`).toBeGreaterThanOrEqual(limits.min);
+        expect(cm, `${cmField}.${token}`).toBeLessThanOrEqual(limits.max);
+      }
+    }
+  });
+
+  it("resolves every valid token to its table's projected cm value", () => {
+    for (const [tokenField, cmField, table] of TOKEN_TABLES) {
+      for (const [token, cm] of Object.entries(table)) {
+        const s = validateSpec({
+          type: "trousers",
+          style: { [tokenField]: token },
+          measurementOverrides: {},
+        });
+        expect(s.style[cmField], `${cmField} from token ${token}`).toBe(cm);
+      }
+    }
+  });
+
+  it("an explicit cm value still wins over a token sent alongside it", () => {
+    const s = validateSpec({
+      type: "skirt",
+      style: { skirtLength: "maxi", skirtLengthCm: 30 },
+      measurementOverrides: {},
+    });
+    expect(s.style.skirtLengthCm).toBe(30);
+  });
+
+  // #260 code-review: an unrecognized token must NOT lock in a hardcoded
+  // fallback number -- trousers' own real "field absent" default is
+  // gender-dependent (TROUSER_DEFAULT_LENGTH_CM: 100 female / 104 male,
+  // lib/draft/trousers.ts), which validateSpec has no way to compute
+  // correctly here (gender defaulting happens later, in draftGarment).
+  // Leaving the field undefined is what lets that real default apply,
+  // instead of a wrong number silently winning for every male trousers
+  // request that happens to send a garbled token.
+  it("leaves the cm field undefined (deferring to the drafter's own default) on an unrecognized token, rather than a hardcoded fallback", () => {
+    const s = validateSpec({
+      type: "trousers",
+      style: { trouserLength: "bogus" },
+      measurementOverrides: {},
+    });
+    expect(s.style.trouserLengthCm).toBeUndefined();
+  });
+
+  it("an unrecognized token is ignored even when it is not a string at all", () => {
+    const s = validateSpec({
+      type: "skirt",
+      style: { skirtLength: 999 },
+      measurementOverrides: {},
+    });
+    expect(s.style.skirtLengthCm).toBeUndefined();
+  });
+
+  it("treats a null *Cm value as not sent, so a token alongside it still resolves", () => {
+    const s = validateSpec({
+      type: "blouse",
+      style: { necklineDepthCm: null, necklineDepth: "deep" },
+      measurementOverrides: {},
+    });
+    expect(s.style.necklineDepthCm).toBe(NECKLINE_DEPTH_TOKENS.deep);
+  });
+
+  it("leaves the cm field undefined when neither the cm field nor the token is sent", () => {
+    const s = validateSpec({
+      type: "blouse",
+      style: {},
+      measurementOverrides: {},
+    });
+    expect(s.style.necklineDepthCm).toBeUndefined();
+    expect(s.style.skirtLengthCm).toBeUndefined();
+    expect(s.style.seamAllowanceCm).toBeUndefined();
+    expect(s.style.armholeDeepenCm).toBeUndefined();
+    expect(s.style.trouserLengthCm).toBeUndefined();
   });
 });
 
@@ -693,6 +812,50 @@ describe("measureSeams", () => {
     );
     expect(garmentLengthCm).toBeCloseTo(SIZE_TABLE.M.skirtLength, 5);
   });
+  // #259: a standalone skirt's riseCm extends the drafted panel's own
+  // height (draftSkirt's waistY/hemY split) -- the reported garment length
+  // has to grow with it or this figure would silently stop matching the
+  // actual drafted piece, unlike trousers' own riseCm (traded against leg
+  // length, total held fixed -- see the "riseCm lengthens..." test above).
+  it("a standalone skirt's reported length grows with riseCm", () => {
+    const { garmentLengthCm } = measureSeams(
+      DEFAULT_ENGINE_ID,
+      {
+        type: "skirt",
+        gender: "female",
+        measurementOverrides: {},
+        style: { riseCm: 8 },
+      },
+      SIZE_TABLE.M,
+      t,
+    );
+    expect(garmentLengthCm).toBeCloseTo(SIZE_TABLE.M.skirtLength + 8, 5);
+  });
+  // #259: a dress's own skirt panel always resolves riseCm to 0 (draftSkirt's
+  // isDressWaist branch) -- the reported garment length must stay a true
+  // no-op for it too, the same "type-mismatched style field is a no-op"
+  // precedent the panel geometry itself already follows.
+  it("a dress's own garment length ignores riseCm on its skirt panel", () => {
+    const spec = {
+      type: "dress" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: {},
+    };
+    const { garmentLengthCm: base } = measureSeams(
+      DEFAULT_ENGINE_ID,
+      spec,
+      SIZE_TABLE.M,
+      t,
+    );
+    const { garmentLengthCm: risen } = measureSeams(
+      DEFAULT_ENGINE_ID,
+      { ...spec, style: { riseCm: 8 } },
+      SIZE_TABLE.M,
+      t,
+    );
+    expect(risen).toBeCloseTo(base!, 5);
+  });
   it("reports the trouser's own waist-to-hem length, style override included", () => {
     const { garmentLengthCm } = measureSeams(
       DEFAULT_ENGINE_ID,
@@ -957,6 +1120,69 @@ describe("validateQuestions", () => {
     const qs = validateQuestions([{ label: "P", options: ["a", "b"] }]);
     expect(qs[0].allowOther).toBe(false);
   });
+
+  // #262: a question naming a real style field gets every option checked
+  // against that field's own catalog -- "every offered option is draftable"
+  // becomes structural instead of merely instructed in the prompt.
+  describe("field-scoped options (#262)", () => {
+    it("keeps a field question whose options are all real catalog values, and carries the field through", () => {
+      const qs = validateQuestions([
+        { label: "Neckline", field: "neckline", options: NECKLINES },
+      ]);
+      expect(qs).toHaveLength(1);
+      expect(qs[0].field).toBe("neckline");
+      expect(qs[0].options).toEqual(NECKLINES);
+    });
+
+    it("drops an option that is not a real value of the named field's catalog", () => {
+      const qs = validateQuestions([
+        {
+          label: "Neckline",
+          field: "neckline",
+          // "boat" is not a value of NECKLINES; "round"/"V" are.
+          options: ["round", "boat", "V"],
+        },
+      ]);
+      expect(qs[0].options).toEqual(["round", "V"]);
+    });
+
+    it("drops the whole question when fewer than 2 catalog options survive", () => {
+      const qs = validateQuestions([
+        { label: "Neckline", field: "neckline", options: ["round", "boat"] },
+      ]);
+      expect(qs).toEqual([]);
+    });
+
+    it("uses the catalog belonging to the named field, not some other one", () => {
+      // "round" is a real NECKLINES value but not a COLLARS value.
+      const qs = validateQuestions([
+        { label: "Collar", field: "collar", options: ["round", "band"] },
+      ]);
+      expect(qs).toEqual([]);
+      expect(COLLARS).not.toContain("round");
+      expect(COLLARS).toContain("band");
+    });
+
+    it("treats an unrecognized field string as no field at all -- free-text options, unfiltered", () => {
+      const qs = validateQuestions([
+        {
+          label: "Something",
+          field: "notARealField",
+          options: ["anything goes", "no catalog here"],
+        },
+      ]);
+      expect(qs[0].field).toBeUndefined();
+      expect(qs[0].options).toEqual(["anything goes", "no catalog here"]);
+    });
+
+    it("ignores a non-string field the same way", () => {
+      const qs = validateQuestions([
+        { label: "Something", field: 42, options: ["a", "b"] },
+      ]);
+      expect(qs[0].field).toBeUndefined();
+      expect(qs[0].options).toEqual(["a", "b"]);
+    });
+  });
 });
 
 // Every drafter decoration (grainline, dart) is a line drawn *inside* the
@@ -1049,11 +1275,13 @@ function assertDecorationsContained(pieces: ReturnType<typeof draftPiecesCm>) {
     }
     // #2: a notch's inward tip is decoration placed off the boundary just
     // like a grainline or a drill hole, and it was the one kind this sweep
-    // never checked -- notchAt() picks its inward normal by biasing toward a
-    // caller-supplied interior point, so a wrong reference point on a scooped
-    // or tapered edge sends the tip straight out of the piece. The outer
-    // point is asserted to sit ON the boundary elsewhere; here we only need
-    // the tip, and the check below is boundary-inclusive anyway.
+    // never checked. #263: notchAt() derives its inward normal purely from
+    // the outline's own winding now (core.ts's canonicalTangent), not a
+    // caller-supplied interior reference point -- but a drafter that got its
+    // own winding wrong on a scooped or tapered edge could still send the
+    // tip straight out of the piece, so this sweep keeps checking it. The
+    // outer point is asserted to sit ON the boundary elsewhere; here we only
+    // need the tip, and the check below is boundary-inclusive anyway.
     if (piece.notches?.length) {
       const dense = densifiedOutline(piece.outlineCm, piece.curvedSpans);
       for (const notch of piece.notches) {
@@ -1399,6 +1627,19 @@ function foldEndpointChangesNothing(
 describe("#124: sleeve pitch notches match the body's, generated from the same computation", () => {
   const dist = (a: [number, number], b: [number, number]) =>
     Math.hypot(a[0] - b[0], a[1] - b[1]);
+  // #263: the underarm is always the DEEPER (larger-y) end of the panel's
+  // own armhole edge -- order-agnostic against which specific index
+  // (`armhole[0]` vs `armhole[1]`) core.ts's normalizeWinding happened to
+  // remap it to, unlike reading a fixed position (e.g. `curvedSpans[1][1]`).
+  const underarmVertex = (piece: {
+    outlineCm: [number, number][];
+    seamEdges?: Record<string, [number, number]>;
+  }): [number, number] => {
+    const [a, b] = piece.seamEdges!.armhole;
+    const pa = piece.outlineCm[a];
+    const pb = piece.outlineCm[b];
+    return pa[1] >= pb[1] ? pa : pb;
+  };
 
   for (const [name, spec] of DECORATION_CASES) {
     if (!spec.style.sleeve || spec.style.sleeve === "none") continue;
@@ -1421,8 +1662,8 @@ describe("#124: sleeve pitch notches match the body's, generated from the same c
       const [backPitchL] = back.notches!;
       expect(frontPitchL.type).toBe("single");
       expect(backPitchL.type).toBe("double");
-      const frontUaL = front.outlineCm[front.curvedSpans![1][1]];
-      const backUaL = back.outlineCm[back.curvedSpans![1][1]];
+      const frontUaL = underarmVertex(front);
+      const backUaL = underarmVertex(back);
       const frontDistCm = dist(frontUaL, frontPitchL.outerCm);
       const backDistCm = dist(backUaL, backPitchL.outerCm);
 
@@ -1462,7 +1703,7 @@ describe("#124: sleeve pitch notches match the body's, generated from the same c
     const [slSingle] = sleeve.notches!;
     const [frontPitchL] = front.notches!;
     const sleeveSingleDistCm = dist(sleeve.outlineCm[0], slSingle.outerCm);
-    const frontUaL = front.outlineCm[front.curvedSpans![1][1]];
+    const frontUaL = underarmVertex(front);
     const frontDistCm = dist(frontUaL, frontPitchL.outerCm);
     expect(Math.abs(sleeveSingleDistCm - frontDistCm)).toBeLessThan(0.2);
   });
@@ -2280,6 +2521,33 @@ describe("seam graph (#134)", () => {
     },
   );
 
+  // #259: the waistband is sized off whatever the waist edge is ACTUALLY
+  // measured at (curveArcLengthCm on the drafted geometry), never off
+  // `m.waist` directly -- so a moved (raised/lowered) waist edge still
+  // closes against its own waistband, for both the straight-edge and the
+  // radial (radius-based) branch.
+  it("#259: the waistband's own seam still matches the MOVED waist edge within 0.3cm, with a non-zero riseCm", () => {
+    for (const silhouette of ["straight", "circle"] as const) {
+      for (const riseCm of [STYLE_LIMITS.riseCm.min, STYLE_LIMITS.riseCm.max]) {
+        const spec = {
+          type: "skirt" as const,
+          gender: "female" as const,
+          measurementOverrides: {},
+          style: { skirt: silhouette, riseCm },
+        };
+        const graph = measureSeamGraph(
+          DEFAULT_ENGINE_ID,
+          spec,
+          SIZE_TABLE.M,
+          t,
+        );
+        const pair = graph.find((m) => m.key === "waistband-waist");
+        expect(pair, `${silhouette}/${riseCm}`).toBeDefined();
+        expect(pair!.diffCm, `${silhouette}/${riseCm}`).toBeLessThan(0.3);
+      }
+    }
+  });
+
   it("#131: a dress's skirt panel gets no waistband -- it joins the bodice at the natural waist instead", () => {
     const spec = {
       type: "dress" as const,
@@ -2339,6 +2607,57 @@ describe("seam graph (#134)", () => {
     expect(pieces.map((p) => p.id)).not.toContain("waistband");
   });
 
+  // #259: a waist-rise STYLE offset -- an OFFSET on top of the resolved body
+  // `rise` measurement, never a replacement for it (the exact style/
+  // measurement conflation CLAUDE.md forbids for `fit`). Positive lengthens
+  // the drafted rise curve ("cintura alta"); the waistband, sized off the
+  // panel's own MEASURED waist edge (unaffected by rise -- only the crotch
+  // curve moves), still closes; the garment's own total waist-to-hem length
+  // (trouserLengthCm) is untouched by a rise change, proving the two fields
+  // stay genuinely independent.
+  it("#259: riseCm lengthens the drafted rise curve without touching trouserLengthCm or the waistband seam", () => {
+    const base = {
+      type: "trousers" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: {},
+    };
+    const risen = { ...base, style: { riseCm: 8 } };
+    const basePieces = draftPiecesCm(DEFAULT_ENGINE_ID, base, SIZE_TABLE.M, t);
+    const risenPieces = draftPiecesCm(
+      DEFAULT_ENGINE_ID,
+      risen,
+      SIZE_TABLE.M,
+      t,
+    );
+    const front = basePieces.find((p) => p.id === "trouser-front")!;
+    const frontRisen = risenPieces.find((p) => p.id === "trouser-front")!;
+    const riseArcCm = (p: typeof front) =>
+      curveArcLengthCm(p.outlineCm, p.curvedSpans ?? [], ...p.seamEdges!.rise);
+    expect(riseArcCm(frontRisen)).toBeGreaterThan(riseArcCm(front));
+
+    const { garmentLengthCm } = measureSeams(
+      DEFAULT_ENGINE_ID,
+      risen,
+      SIZE_TABLE.M,
+      t,
+    );
+    const { garmentLengthCm: baseLengthCm } = measureSeams(
+      DEFAULT_ENGINE_ID,
+      base,
+      SIZE_TABLE.M,
+      t,
+    );
+    expect(garmentLengthCm).toBeCloseTo(baseLengthCm!, 5);
+
+    const graph = measureSeamGraph(DEFAULT_ENGINE_ID, risen, SIZE_TABLE.M, t);
+    const waistbandPair = graph.find(
+      (m) => m.key === "trouser-waistband-waist",
+    );
+    expect(waistbandPair).toBeDefined();
+    expect(waistbandPair!.diffCm).toBeLessThan(0.3);
+  });
+
   // The shared MEASUREMENT_CORNERS matrix above only perturbs
   // bust/backLength/shoulder -- none of which the trousers block reads.
   // hip/waist/rise are what actually drive its geometry, so they get their
@@ -2388,6 +2707,74 @@ describe("seam graph (#134)", () => {
         assertDecorationsContained(pieces);
       });
     }
+  });
+
+  // #259: the review that found the riseCm floor bug (fixed above -- see
+  // trousers.ts's own comment) also flagged the WORST-CASE margin between
+  // the drafted rise and a short trouserLengthCm: max hip (no explicit
+  // `rise`, so the hip-derived fallback applies, which can exceed
+  // MEASUREMENT_RANGES.rise's own max) + max positive style.riseCm + min
+  // style.trouserLengthCm leaves only a few cm of actual leg below the
+  // crotch. Not broken today, but tight enough that a future range widening
+  // could invert it silently -- pinning full containment here so that
+  // regresses loudly instead.
+  it("#259: worst-case hip + max riseCm + min trouserLengthCm still closes and stays contained", () => {
+    const spec = {
+      type: "trousers" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: {
+        riseCm: STYLE_LIMITS.riseCm.max,
+        trouserLengthCm: STYLE_LIMITS.trouserLengthCm.min,
+      },
+    };
+    const m: Measurements = {
+      ...SIZE_TABLE.M,
+      hip: MEASUREMENT_RANGES.hip.max,
+      rise: undefined,
+    };
+    const conflicts = seamCheck(
+      measureSeamGraph(DEFAULT_ENGINE_ID, spec, m, t),
+    );
+    expect(conflicts, JSON.stringify(conflicts)).toEqual([]);
+    const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, m, t);
+    assertPositiveGeometry(pieces);
+    assertDecorationsContained(pieces);
+  });
+
+  // #259: the flip side -- max NEGATIVE style.riseCm against a body rise
+  // near the low end must deliver the FULL requested offset, not a
+  // silently-attenuated one (the exact bug review caught: a fixed floor of
+  // DART_DEPTH_CM+5 used to clamp this to less than half the requested
+  // change with nothing reported). trouserPanel's own dart depth adapts
+  // instead, so the drafted rise must equal bodyRise+riseCm exactly.
+  it("#259: a full-magnitude negative riseCm is applied exactly, never attenuated", () => {
+    const spec = {
+      type: "trousers" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { riseCm: STYLE_LIMITS.riseCm.min },
+    };
+    const m: Measurements = { ...SIZE_TABLE.M, rise: 20 };
+    const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, m, t);
+    const front = pieces.find((p) => p.id === "trouser-front")!;
+    // #263: read the rise edge the way every production consumer already
+    // does (lib/proof3d/mesh.ts's edgeDeepYCm) -- the DEEPER of its two
+    // endpoints, each taken mod n. normalizeWinding reverses a
+    // non-canonical outline, which both swaps which endpoint of a seamEdges
+    // range is which AND can leave a `to === n` wraparound alias, so
+    // "the second endpoint, indexed directly" is not a thing a caller may
+    // assume. The crotch is the deeper of the two either way; waistCF sits
+    // at y = 0.
+    const n = front.outlineCm.length;
+    const [a, b] = front.seamEdges!.rise;
+    const crotchY = Math.max(
+      front.outlineCm[a % n][1],
+      front.outlineCm[b % n][1],
+    );
+    expect(crotchY).toBeCloseTo(20 + STYLE_LIMITS.riseCm.min, 5);
+    assertPositiveGeometry(pieces);
+    assertDecorationsContained(pieces);
   });
 });
 

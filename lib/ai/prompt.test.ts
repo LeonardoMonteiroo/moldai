@@ -10,11 +10,16 @@ import {
 import type { GarmentSpec, PatternState } from "@/lib/types";
 import {
   STYLE_LIMITS,
+  NECKLINES,
+  SLEEVES,
+  SKIRTS,
   COLLARS,
   CUFFS,
   WAISTBANDS,
   FRONT_CLOSURES,
+  FIT_CLASSES,
   PLEATS,
+  STRETCH_CLASSES,
 } from "@/lib/draft/garment";
 import { MEASUREMENT_RANGES, SIZE_TABLE } from "@/lib/measurements";
 import { COSTS } from "@/lib/types";
@@ -57,6 +62,33 @@ describe("buildSystem", () => {
   it("scopes an attached photo to the garment, not any person wearing it", () => {
     expect(STATIC_SECTIONS).toContain("# Attached images");
     expect(STATIC_SECTIONS).toContain("never the person wearing it");
+  });
+
+  // #258: the garmentReading checklist has to name the SAME part vocabulary
+  // validateSpec/checkEngineSupport clamp against, not a second hand-typed
+  // list that could silently drift from it -- asserted here against the
+  // real catalogs (lib/draft/garment.ts's own re-exports), never a pasted
+  // literal.
+  it("tells the model to fill garmentReading, checking the real style catalogs part by part", () => {
+    const section = STATIC_SECTIONS.slice(
+      STATIC_SECTIONS.indexOf("# Attached images"),
+    );
+    expect(section).toContain("garmentReading");
+    for (const catalog of [
+      NECKLINES,
+      SLEEVES,
+      SKIRTS,
+      COLLARS,
+      CUFFS,
+      WAISTBANDS,
+      FRONT_CLOSURES,
+      FIT_CLASSES,
+      STRETCH_CLASSES,
+    ]) {
+      for (const value of catalog) {
+        expect(section).toContain(value);
+      }
+    }
   });
 
   it("blank pattern gets the from-scratch/underspecified rule", () => {
@@ -261,6 +293,39 @@ describe("buildSystem", () => {
   });
 });
 
+// #265: the piece the user had selected in the editor, threaded through as
+// an optional scope. ProposeOptions.partScope is ALREADY the resolved
+// display name by the time buildDynamicSection sees it (the generate
+// route's own trust-boundary lookup); this file only has to prove the
+// section renders when present and stays silent when absent.
+describe("buildSystem: the scoped-part section", () => {
+  const HEADING = "# Scoped part";
+
+  it("omits the section entirely when no partScope is given", () => {
+    const s = buildSystem(DEFAULT_ENGINE_ID, state(0), { answering: false });
+    expect(s).not.toContain(HEADING);
+  });
+
+  it("names the scoped piece and instructs the model to leave other fields unchanged", () => {
+    const s = buildSystem(DEFAULT_ENGINE_ID, state(0), {
+      answering: false,
+      partScope: "Manga",
+    });
+    expect(s).toContain(HEADING);
+    expect(s).toContain('"Manga"');
+    expect(s).toContain("unchanged");
+  });
+
+  it("lives in the dynamic block, leaving STATIC_SECTIONS untouched", () => {
+    expect(STATIC_SECTIONS).not.toContain(HEADING);
+    const dynamic = buildDynamicSection(state(0), {
+      answering: false,
+      partScope: "Gola",
+    });
+    expect(dynamic).toContain(HEADING);
+  });
+});
+
 // The form's explicit choices reach the model as an instruction, so its own
 // reply text stays coherent and it does not ask about an answered field.
 // The structural guarantee is the merge the route applies afterwards; this
@@ -388,8 +453,8 @@ describe("prompt-cache byte stability", () => {
       staticSectionsFor(DEFAULT_ENGINE_ID) +
       JSON.stringify(toolFor(DEFAULT_ENGINE_ID));
     const hash = createHash("sha256").update(bytes).digest("hex");
-    // #252-follow-up: regenerated -- the "# Decision policy" ask bullet
-    // (buildStaticSections) was rewritten so the model stops treating
+    // #262 + #252-follow-up: regenerated -- the "# Decision policy" ask
+    // bullet (buildStaticSections) was rewritten so the model stops treating
     // neckline/sleeve/fit/length/size as always-required detail (every one
     // of those already has a drafter-side default) and reserves ask for a
     // request that names nothing beyond the garment type.
@@ -397,12 +462,29 @@ describe("prompt-cache byte stability", () => {
     // on a standalone straight/a-line skirt) was added to the GarmentSpec
     // section, the "# Vocabulary mapping" prose, and the tool schema; the
     // "# Assembly / sewing order" section also gained a "pleat" step
-    // description alongside "dart"/"seam"/"hem". A deliberate, expected
-    // byte change (see this describe block's own comment), not a bug --
-    // the eval harness (npm run eval:ai) is what proves it's better, not
-    // this hash.
+    // description alongside "dart"/"seam"/"hem".
+    // #259: regenerated once more -- riseCm joined the same three places
+    // (style-field list, vocabulary mapping, tool schema) as a signed
+    // waist-rise offset for skirts and trousers.
+    // #260: and again -- the five descriptive-length-token style properties
+    // joined the tool schema, the trouserLengthCm bullet now points at its
+    // token twin, and the "# Descriptive length tokens" section instructs
+    // the model to prefer a token over a free numeric estimate.
+    // #262: and once more -- the "# Decision policy" ask bullet plus the
+    // "# Language" section now tell the model to set `field` + EXACT catalog
+    // tokens for a style-catalog question, and propose_garment's own
+    // questions.items gained a `field` enum property (lib/ai/schema.ts) so
+    // that request is structurally valid.
+    // #258: and finally -- the "# Attached images" section now instructs the
+    // model to fill garmentReading part-by-part before inferring the
+    // GarmentSpec (ChatGarment's own two-stage chain of thought), and
+    // "# Language" names garmentReading among the fields written in the
+    // user's own language. All deliberate, expected byte changes (see this
+    // describe block's own comment), not a bug -- the eval harness
+    // (npm run eval:ai) is what proves the behaviour is better, not this
+    // hash.
     expect(hash).toBe(
-      "96e552fc347d104bb274ae7a7cc38c899ca813737b50609902a16c9c71436468",
+      "1a576065185f177c0f2bbd6685027cd32888e4ab484248ff3d63b3a27851d985",
     );
   });
 });

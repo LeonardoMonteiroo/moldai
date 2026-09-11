@@ -98,6 +98,29 @@ describe("store.sendMessage", () => {
     expect(last.questions).toHaveLength(1);
   });
 
+  // #265: forwarded as a UX affordance only -- the route re-resolves it
+  // against the pattern's own pieces, never trusting this value directly.
+  it("forwards the currently selected piece id to api.generate", async () => {
+    genMock.mockResolvedValue({ status: "clarify", state: emptyState() });
+    useEditorStore.setState({ selectedPieceId: "piece-1" });
+    await useEditorStore.getState().sendMessage("deixa mais larga");
+
+    expect(genMock).toHaveBeenCalledWith("m1", "deixa mais larga", {
+      answering: undefined,
+      selectedPieceId: "piece-1",
+    });
+  });
+
+  // Matches the existing "forwards patternId, message, and answering"
+  // assertion's exact-match shape: nothing selected must not add the key at
+  // all, not send an explicit null.
+  it("sends no selectedPieceId key when nothing is selected", async () => {
+    genMock.mockResolvedValue({ status: "clarify", state: emptyState() });
+    await useEditorStore.getState().sendMessage("deixa mais larga");
+
+    expect(genMock.mock.calls[0][2]).not.toHaveProperty("selectedPieceId");
+  });
+
   // A text-only send must not carry an `images` key at all: the route
   // refuses `images: []` outright (a caller that meant to attach something
   // and sent nothing), so an always-present key would 400 every plain

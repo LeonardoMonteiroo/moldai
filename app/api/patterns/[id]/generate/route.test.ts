@@ -798,6 +798,55 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(JSON.stringify(state)).not.toContain(data);
   });
 
+  // #258: patched onto the SAME user turn hasImage/imageCount describe,
+  // regardless of decision (this one is "apply") -- setGarmentReading
+  // (lib/editor/state.ts) is what does the patching, called unconditionally
+  // right after proposeGarment resolves.
+  it("persists the model's garmentReading on the user turn", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+      garmentReading: "Gola V, manga curta, barra reta.",
+    });
+
+    await POST(
+      req({
+        message: "uma blusa como nessa foto",
+        images: [{ mediaType: "image/jpeg", data: "ZmFrZS1iYXNlNjQ=" }],
+      }),
+      ctx(),
+    );
+
+    const userTurn = state.chat.find((m) => m.author === "user")!;
+    expect(userTurn.garmentReading).toBe("Gola V, manga curta, barra reta.");
+  });
+
+  // A missing garmentReading (no image on the turn, or an image turn the
+  // model simply skipped) must never invent one on the persisted message.
+  it("leaves garmentReading unset when the model didn't return one", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+
+    await POST(req({ message: "uma blusa" }), ctx());
+
+    const userTurn = state.chat.find((m) => m.author === "user")!;
+    expect(userTurn.garmentReading).toBeUndefined();
+  });
+
   // A text-only request omits the key entirely, and must behave exactly as
   // it did before the wire carried a list at all.
   it("an omitted images key sends no attachments and marks the turn with neither field", async () => {
@@ -2146,6 +2195,101 @@ describe("POST /api/patterns/[id]/generate", () => {
         "withPatternAndWallet",
         "findReferenceDisagreement",
       ]);
+    });
+  });
+
+  // #265: selectedPieceId -> proposeGarment's partScope. The trust boundary
+  // is the lookup against THIS pattern's own `pieces`, by id -- never the
+  // client's own name/label for it.
+  describe("selectedPieceId -> partScope", () => {
+    function withOnePiece() {
+      state.pattern = {
+        ...state.pattern,
+        pieces: [
+          {
+            id: "p1",
+            name: "Manga",
+            qty: 1,
+            outline: { kind: "polygon", points: "0,0" },
+            label: { x: 0, y: 0 },
+            detailRows: [],
+          },
+        ],
+      };
+    }
+
+    it("resolves a selected piece id against the pattern's own pieces and forwards its name", async () => {
+      withOnePiece();
+      mockPropose.mockResolvedValue({
+        decision: "apply",
+        spec: {
+          type: "blouse",
+          gender: "female",
+          measurementOverrides: {},
+          style: {},
+        },
+        assistantMessage: "Pronto",
+      });
+
+      await POST(
+        req({ message: "deixa mais larga", selectedPieceId: "p1" }),
+        ctx(),
+      );
+
+      expect(mockPropose.mock.calls[0][1].partScope).toBe("Manga");
+    });
+
+    // The acceptance criteria's own words: an unrecognized or stale id is
+    // dropped SILENTLY, and the turn behaves exactly as an unscoped one --
+    // never a 400 that would lose the user's message.
+    it("drops an unrecognized or stale piece id silently, never a 400", async () => {
+      withOnePiece();
+      mockPropose.mockResolvedValue({
+        decision: "apply",
+        spec: {
+          type: "blouse",
+          gender: "female",
+          measurementOverrides: {},
+          style: {},
+        },
+        assistantMessage: "Pronto",
+      });
+
+      const res = await POST(
+        req({
+          message: "deixa mais larga",
+          selectedPieceId: "not-a-real-piece",
+        }),
+        ctx(),
+      );
+
+      expect(res.status).toBe(200);
+      expect(mockPropose.mock.calls[0][1].partScope).toBeUndefined();
+      // The message itself still landed -- nothing was lost over a stale
+      // selection.
+      expect(
+        state.chat.some(
+          (m) => m.author === "user" && m.text === "deixa mais larga",
+        ),
+      ).toBe(true);
+    });
+
+    it("sends no partScope when no piece is selected", async () => {
+      withOnePiece();
+      mockPropose.mockResolvedValue({
+        decision: "apply",
+        spec: {
+          type: "blouse",
+          gender: "female",
+          measurementOverrides: {},
+          style: {},
+        },
+        assistantMessage: "Pronto",
+      });
+
+      await POST(req({ message: "deixa mais larga" }), ctx());
+
+      expect(mockPropose.mock.calls[0][1].partScope).toBeUndefined();
     });
   });
 });
