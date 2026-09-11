@@ -2593,12 +2593,21 @@ describe("seam graph (#134)", () => {
     const m: Measurements = { ...SIZE_TABLE.M, rise: 20 };
     const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, m, t);
     const front = pieces.find((p) => p.id === "trouser-front")!;
-    const [, crotchPt] = front.seamEdges!.rise;
-    // the crotch point's own y IS the drafted riseCm (waistCF sits at y=0).
-    expect(front.outlineCm[crotchPt][1]).toBeCloseTo(
-      20 + STYLE_LIMITS.riseCm.min,
-      5,
+    // #263: read the rise edge the way every production consumer already
+    // does (lib/proof3d/mesh.ts's edgeDeepYCm) -- the DEEPER of its two
+    // endpoints, each taken mod n. normalizeWinding reverses a
+    // non-canonical outline, which both swaps which endpoint of a seamEdges
+    // range is which AND can leave a `to === n` wraparound alias, so
+    // "the second endpoint, indexed directly" is not a thing a caller may
+    // assume. The crotch is the deeper of the two either way; waistCF sits
+    // at y = 0.
+    const n = front.outlineCm.length;
+    const [a, b] = front.seamEdges!.rise;
+    const crotchY = Math.max(
+      front.outlineCm[a % n][1],
+      front.outlineCm[b % n][1],
     );
+    expect(crotchY).toBeCloseTo(20 + STYLE_LIMITS.riseCm.min, 5);
     assertPositiveGeometry(pieces);
     assertDecorationsContained(pieces);
   });
