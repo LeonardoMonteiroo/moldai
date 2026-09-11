@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { LlmCallOptions } from "./types";
+import { LlmProposeError } from "./types";
 
 vi.mock("@anthropic-ai/sdk", () => {
   const create = vi.fn();
@@ -41,6 +42,8 @@ function baseOpts(overrides: Partial<LlmCallOptions> = {}): LlmCallOptions {
   };
 }
 
+// #276: lib/ai/index.ts's Langfuse trace reads this to label the model that
+// actually answered the call.
 describe("anthropicProvider.model", () => {
   it("returns the fixed model literal, matching buildRequestParams' own", async () => {
     create.mockReset();
@@ -58,6 +61,24 @@ describe("anthropicProvider.propose", () => {
     create.mockResolvedValue(toolResp({ decision: "decline" }));
     const result = await anthropicProvider.propose(baseOpts());
     expect(result.toolInput).toEqual({ decision: "decline" });
+  });
+
+  // #276: token usage/repair status feed the Langfuse trace
+  // (lib/observability/langfuse.ts) via lib/ai/index.ts.
+  it("returns token usage and repaired=false for a clean first attempt", async () => {
+    create.mockResolvedValue({
+      ...toolResp({ decision: "decline" }),
+      usage: { input_tokens: 500, output_tokens: 80 },
+    });
+    const result = await anthropicProvider.propose(baseOpts());
+    expect(result.usage).toEqual({ inputTokens: 500, outputTokens: 80 });
+    expect(result.repaired).toBe(false);
+  });
+
+  it("tolerates a mock response with no usage field", async () => {
+    create.mockResolvedValue(toolResp({ decision: "decline" }));
+    const result = await anthropicProvider.propose(baseOpts());
+    expect(result.usage).toBeUndefined();
   });
 
   it("rejects a max_tokens-truncated response instead of resolving its partial payload", async () => {
@@ -199,13 +220,21 @@ describe("anthropicProvider.propose: repair retry (#261)", () => {
       .mockResolvedValueOnce({
         ...toolResp({ decision: "apply" }, "toolu_bad"),
         stop_reason: "max_tokens",
+        usage: { input_tokens: 300, output_tokens: 50 },
       })
-      .mockResolvedValueOnce(toolResp({ decision: "decline" }));
+      .mockResolvedValueOnce({
+        ...toolResp({ decision: "decline" }),
+        usage: { input_tokens: 350, output_tokens: 10 },
+      });
 
     const result = await anthropicProvider.propose(baseOpts());
 
     expect(result.toolInput).toEqual({ decision: "decline" });
     expect(create).toHaveBeenCalledTimes(2);
+    // #276: both the truncated first attempt and the repair are real,
+    // billed calls -- their usage is summed, not just the repair's own.
+    expect(result.repaired).toBe(true);
+    expect(result.usage).toEqual({ inputTokens: 650, outputTokens: 60 });
 
     const repairCall = create.mock.calls[1][0];
     const repairMessages = repairCall.messages as Array<{
@@ -297,5 +326,56 @@ describe("anthropicProvider.propose: repair retry (#261)", () => {
     const last = repairMessages[repairMessages.length - 1];
     expect(typeof last.content).toBe("string");
     expect(last.content).toContain("did not return a tool_use block");
+  });
+
+  // #276: both the first attempt and the repair are real, billed calls --
+  // when the repair ALSO fails, propose() still throws (one repair attempt,
+  // never a second), but their combined usage must not be silently lost.
+  // lib/ai/index.ts reads it off this thrown error to keep the Langfuse
+  // trace honest even on this failure path.
+  it("carries both attempts' summed usage on the thrown error when the repair also fails", async () => {
+    create
+      .mockResolvedValueOnce({
+        ...toolResp({ decision: "apply" }, "toolu_bad"),
+        stop_reason: "max_tokens",
+        usage: { input_tokens: 300, output_tokens: 50 },
+      })
+      .mockResolvedValueOnce({
+        ...toolResp({ decision: "apply" }, "toolu_bad_2"),
+        stop_reason: "max_tokens",
+        usage: { input_tokens: 400, output_tokens: 60 },
+      });
+
+    const err = await anthropicProvider
+      .propose(baseOpts())
+      .catch((e: unknown) => e);
+
+    expect(err).toBeInstanceOf(LlmProposeError);
+    const proposeErr = err as LlmProposeError;
+    expect(proposeErr.message).toMatch(/max_tokens/);
+    expect(proposeErr.repaired).toBe(true);
+    expect(proposeErr.usage).toEqual({ inputTokens: 700, outputTokens: 110 });
+  });
+
+  // #276: the repair call's own network/timeout failure (never even reaching
+  // a repair response) still leaves the first attempt's usage known.
+  it("carries only the first attempt's usage on the thrown error when the repair call itself fails", async () => {
+    create
+      .mockResolvedValueOnce({
+        ...toolResp({ decision: "apply" }, "toolu_bad"),
+        stop_reason: "max_tokens",
+        usage: { input_tokens: 300, output_tokens: 50 },
+      })
+      .mockRejectedValueOnce(new Error("network down"));
+
+    const err = await anthropicProvider
+      .propose(baseOpts())
+      .catch((e: unknown) => e);
+
+    expect(err).toBeInstanceOf(LlmProposeError);
+    const proposeErr = err as LlmProposeError;
+    expect(proposeErr.message).toBe("network down");
+    expect(proposeErr.repaired).toBe(true);
+    expect(proposeErr.usage).toEqual({ inputTokens: 300, outputTokens: 50 });
   });
 });

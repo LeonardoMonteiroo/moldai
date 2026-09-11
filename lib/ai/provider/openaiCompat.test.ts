@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { LlmCallOptions } from "./types";
+import { LlmProposeError } from "./types";
 import { openaiCompatProvider } from "./openaiCompat";
 
 const ORIGINAL_ENV = {
@@ -64,6 +65,21 @@ function baseOpts(overrides: Partial<LlmCallOptions> = {}): LlmCallOptions {
   };
 }
 
+// #276: lib/ai/index.ts's Langfuse trace reads this to label the model that
+// actually answered the call.
+describe("openaiCompatProvider.model", () => {
+  // Restored by the file-level afterEach above -- no second copy needed.
+  it("reflects LLM_MODEL when set", () => {
+    process.env.LLM_MODEL = "qwen-test";
+    expect(openaiCompatProvider.model()).toBe("qwen-test");
+  });
+
+  it("defaults to 'local-model' when unset", () => {
+    delete process.env.LLM_MODEL;
+    expect(openaiCompatProvider.model()).toBe("local-model");
+  });
+});
+
 describe("openaiCompatProvider.propose", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn());
@@ -82,6 +98,40 @@ describe("openaiCompatProvider.propose", () => {
     );
     const result = await openaiCompatProvider.propose(baseOpts());
     expect(result.toolInput).toEqual({ decision: "decline" });
+  });
+
+  // #276: token usage/repair status feed the Langfuse trace
+  // (lib/observability/langfuse.ts) via lib/ai/index.ts.
+  it("returns token usage and repaired=false for a clean first attempt", async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      jsonResponse({
+        ...chatResp([
+          {
+            name: "propose_garment",
+            arguments: JSON.stringify({ decision: "decline" }),
+          },
+        ]),
+        usage: { prompt_tokens: 400, completion_tokens: 60 },
+      }),
+    );
+    const result = await openaiCompatProvider.propose(baseOpts());
+    expect(result.usage).toEqual({ inputTokens: 400, outputTokens: 60 });
+    expect(result.repaired).toBe(false);
+  });
+
+  it("tolerates a mock response with no usage field", async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      jsonResponse(
+        chatResp([
+          {
+            name: "propose_garment",
+            arguments: JSON.stringify({ decision: "decline" }),
+          },
+        ]),
+      ),
+    );
+    const result = await openaiCompatProvider.propose(baseOpts());
+    expect(result.usage).toBeUndefined();
   });
 
   it("posts to LLM_BASE_URL's /chat/completions with a bearer auth header", async () => {
@@ -222,8 +272,8 @@ describe("openaiCompatProvider.propose", () => {
   it("rejects a response truncated at max_tokens and repairs with a larger budget", async () => {
     vi.mocked(fetch)
       .mockResolvedValueOnce(
-        jsonResponse(
-          chatResp(
+        jsonResponse({
+          ...chatResp(
             [
               {
                 name: "propose_garment",
@@ -232,22 +282,28 @@ describe("openaiCompatProvider.propose", () => {
             ],
             { finish_reason: "length" },
           ),
-        ),
+          usage: { prompt_tokens: 200, completion_tokens: 30 },
+        }),
       )
       .mockResolvedValueOnce(
-        jsonResponse(
-          chatResp([
+        jsonResponse({
+          ...chatResp([
             {
               name: "propose_garment",
               arguments: JSON.stringify({ decision: "decline" }),
             },
           ]),
-        ),
+          usage: { prompt_tokens: 250, completion_tokens: 5 },
+        }),
       );
 
     const result = await openaiCompatProvider.propose(baseOpts());
     expect(result.toolInput).toEqual({ decision: "decline" });
     expect(fetch).toHaveBeenCalledTimes(2);
+    // #276: both the truncated first attempt and the repair are real calls
+    // -- their usage is summed, not just the repair's own.
+    expect(result.repaired).toBe(true);
+    expect(result.usage).toEqual({ inputTokens: 450, outputTokens: 35 });
 
     const [, repairInit] = vi.mocked(fetch).mock.calls[1];
     const repairBody = JSON.parse(repairInit?.body as string);
@@ -272,6 +328,84 @@ describe("openaiCompatProvider.propose", () => {
       /truncated/,
     );
     expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  // #276: both attempts are real calls -- when the repair ALSO fails,
+  // propose() still throws (one repair attempt, never a second), but their
+  // combined usage must not be silently lost. lib/ai/index.ts reads it off
+  // this thrown error to keep the Langfuse trace honest on this path.
+  it("carries both attempts' summed usage on the thrown error when the repair also fails", async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(
+        jsonResponse({
+          ...chatResp(
+            [
+              {
+                name: "propose_garment",
+                arguments: JSON.stringify({ decision: "apply" }),
+              },
+            ],
+            { finish_reason: "length" },
+          ),
+          usage: { prompt_tokens: 200, completion_tokens: 30 },
+        }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({
+          ...chatResp(
+            [
+              {
+                name: "propose_garment",
+                arguments: JSON.stringify({ decision: "apply" }),
+              },
+            ],
+            { finish_reason: "length" },
+          ),
+          usage: { prompt_tokens: 250, completion_tokens: 40 },
+        }),
+      );
+
+    const err = await openaiCompatProvider
+      .propose(baseOpts())
+      .catch((e: unknown) => e);
+
+    expect(err).toBeInstanceOf(LlmProposeError);
+    const proposeErr = err as LlmProposeError;
+    expect(proposeErr.message).toMatch(/truncated/);
+    expect(proposeErr.repaired).toBe(true);
+    expect(proposeErr.usage).toEqual({ inputTokens: 450, outputTokens: 70 });
+  });
+
+  // #276: the repair call's own network/transport failure (never even
+  // reaching a repair response) still leaves the first attempt's usage
+  // known.
+  it("carries only the first attempt's usage on the thrown error when the repair call itself fails", async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(
+        jsonResponse({
+          ...chatResp(
+            [
+              {
+                name: "propose_garment",
+                arguments: JSON.stringify({ decision: "apply" }),
+              },
+            ],
+            { finish_reason: "length" },
+          ),
+          usage: { prompt_tokens: 200, completion_tokens: 30 },
+        }),
+      )
+      .mockResolvedValueOnce(jsonResponse({ error: "boom" }, false, 500));
+
+    const err = await openaiCompatProvider
+      .propose(baseOpts())
+      .catch((e: unknown) => e);
+
+    expect(err).toBeInstanceOf(LlmProposeError);
+    const proposeErr = err as LlmProposeError;
+    expect(proposeErr.message).toMatch(/local LLM endpoint returned 500/);
+    expect(proposeErr.repaired).toBe(true);
+    expect(proposeErr.usage).toEqual({ inputTokens: 200, outputTokens: 30 });
   });
 
   it("repairs a call with no tool_calls using a plain tool-role feedback message", async () => {

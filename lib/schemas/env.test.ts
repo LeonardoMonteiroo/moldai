@@ -110,6 +110,36 @@ describe("parseServerEnv", () => {
     ).not.toThrow();
   });
 
+  // #276: all four LANGFUSE_* vars are optional -- unset must keep parsing
+  // exactly as before, in every environment including production.
+  it("accepts LANGFUSE_* unset", () => {
+    expect(() => parseServerEnv(BASE_DEV_ENV)).not.toThrow();
+  });
+
+  it("rejects a non-URL LANGFUSE_BASE_URL", () => {
+    expect(() =>
+      parseServerEnv({ ...BASE_DEV_ENV, LANGFUSE_BASE_URL: "not-a-url" }),
+    ).toThrow(ServerEnvError);
+  });
+
+  it("rejects a LANGFUSE_TRACE_CONTENT value other than 'true'/'false'", () => {
+    expect(() =>
+      parseServerEnv({ ...BASE_DEV_ENV, LANGFUSE_TRACE_CONTENT: "yes" }),
+    ).toThrow(ServerEnvError);
+  });
+
+  it("accepts a full Langfuse tracing environment", () => {
+    expect(() =>
+      parseServerEnv({
+        ...BASE_DEV_ENV,
+        LANGFUSE_SECRET_KEY: "sk-lf-test",
+        LANGFUSE_PUBLIC_KEY: "pk-lf-test",
+        LANGFUSE_BASE_URL: "https://langfuse.example.com",
+        LANGFUSE_TRACE_CONTENT: "true",
+      }),
+    ).not.toThrow();
+  });
+
   it("includes every failing field in the thrown message, not just the first", () => {
     try {
       parseServerEnv({ SMTP_PORT: "smtp" });

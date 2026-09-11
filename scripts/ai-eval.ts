@@ -100,7 +100,12 @@ async function runGeneration(): Promise<GenerationResult[]> {
     });
     process.stdout.write(`generation: ${testCase.id}... `);
     try {
-      const decision = await proposeGarment(state, { answering: false });
+      // #276: tags this call's Langfuse trace as eval-harness traffic, not
+      // production -- see lib/observability/langfuse.ts.
+      const decision = await proposeGarment(state, {
+        answering: false,
+        evalRun: true,
+      });
       const result = scoreGeneration(testCase, decision, (spec: GarmentSpec) =>
         draftSucceeds(
           DEFAULT_ENGINE_ID,
@@ -170,8 +175,11 @@ async function runEditing(scoped: boolean): Promise<EditingResult[]> {
       `editing${scoped ? " (scoped)" : ""}: ${testCase.id}... `,
     );
     try {
+      // #276: tags this call's Langfuse trace as eval-harness traffic, not
+      // production -- see lib/observability/langfuse.ts.
       const decision = await proposeGarment(state, {
         answering: false,
+        evalRun: true,
         ...(partScope ? { partScope } : {}),
       });
       const result = scoreEditing(testCase, decision.spec);
@@ -195,6 +203,11 @@ async function runEditing(scoped: boolean): Promise<EditingResult[]> {
 }
 
 async function main() {
+  // #276: reads the actually-active provider/model (LLM_PROVIDER-aware)
+  // instead of a hardcoded "claude-sonnet-5"/"anthropic" -- the report
+  // header now stays honest when this harness runs against
+  // LLM_PROVIDER=local, matching what each Langfuse trace tags the call
+  // with (lib/observability/langfuse.ts).
   const provider = getProvider();
   // #265: editing cases now run twice -- once unscoped, once with a resolved
   // partScope -- to produce the scoped-vs-unscoped comparison renderReport's
@@ -207,7 +220,7 @@ async function main() {
     : EDITING_CASES.length;
   const caseCount = generationCount + editingCount * 2;
   console.log(
-    `Spending real Anthropic tokens: ${caseCount} calls, each with up to one repair retry.\n`,
+    `Spending real tokens against provider "${provider.id}" (${provider.model()}): ${caseCount} calls, each with up to one repair retry.\n`,
   );
 
   const generationResults = await runGeneration();
