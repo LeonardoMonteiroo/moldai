@@ -8,7 +8,20 @@ import type { GarmentSpec } from "@/lib/types";
 import type { Translate } from "@/lib/i18n/translate";
 import { formatCm } from "@/lib/format";
 import type { DraftedPiece } from "../../../core";
-import { curveArcLengthCm } from "../../../core";
+// #249: the SAME fraction-of-reference-row math the moldai engine's skirt
+// drafter uses (lib/draft/skirt.ts) -- an explicit style.skirtLengthCm has
+// no engine-specific meaning, so both engines normalize it against the
+// pattern's actual base-size row identically. Reused, not re-derived: a
+// second copy of this formula drifting from the first is exactly the kind
+// of duplicated fact CLAUDE.md already lists two real incidents of. Lives
+// in ./core (shared, engine-agnostic infrastructure both engines already
+// depend on), never in lib/draft/skirt.ts, so "freesewing" never has to
+// import moldai's own drafter module to get it -- see core.ts's own doc.
+import {
+  curveArcLengthCm,
+  gradedSkirtLengthCm,
+  NO_PLACEMENT_TRANSFORM,
+} from "../../../core";
 import type { SeamPairDecl } from "../../../seams";
 import type { EngineDraft } from "../../types";
 import { flattenFreesewingSeam, mirrorFoldedPanel } from "../geometry";
@@ -60,8 +73,19 @@ export function draftSkirt(
   spec: GarmentSpec,
   base: Measurements,
   t: Translate,
+  // #249: the pattern's actual base-size row -- defaults to `base` itself,
+  // so a caller drafting the base size (or predating #249) sees
+  // byte-identical output (gradedSkirtLengthCm collapses to the explicit
+  // value unchanged when both rows are the same one). Only
+  // lib/draft/engine/freesewing/index.ts's own `draft()` passes a
+  // genuinely different row, for a graded (non-base) size.
+  referenceMeasurements: Measurements = base,
 ): EngineDraft {
-  const targetLengthCm = spec.style.skirtLengthCm ?? base.skirtLength;
+  const targetLengthCm = gradedSkirtLengthCm(
+    spec.style.skirtLengthCm,
+    base.skirtLength,
+    referenceMeasurements.skirtLength,
+  );
   const measurements = toSkirtMeasurementsMm(base);
   const pattern = new SkirtDesign({
     measurements,
@@ -116,6 +140,7 @@ export function draftSkirt(
     foldEdge: mirrored.foldEdge,
     seamEdges: { waist: waistEdge },
     detailRows: [{ label: t("rows.length"), value: cm(targetLengthCm) }],
+    placementCm: { role: "skirt", ...NO_PLACEMENT_TRANSFORM },
   };
 
   // Sandy's own waistband is a plain rectangle, cut flat (no fold) --
@@ -131,6 +156,7 @@ export function draftSkirt(
     curvedSpans: waistbandHalf.curvedSpans,
     seamEdges: { waist: [0, waistbandHalf.outlineCm.length] },
     detailRows: [],
+    placementCm: { role: "accessory", ...NO_PLACEMENT_TRANSFORM },
   };
   const waistbandLenCm = curveArcLengthCm(
     waistbandHalf.outlineCm,

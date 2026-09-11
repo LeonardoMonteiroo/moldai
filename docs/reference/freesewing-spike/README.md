@@ -32,6 +32,12 @@ fitted to the target and the other was not. Every "ours is closer" cell below is
 
 ## The real finding: our `tshirt` archetype has ~56% wearing ease
 
+**Resolved by #282**, filed from this section: `TSHIRT_BASE_EASE_CM` is now 18 (cm), one of
+the two converging figures this section itself measures below (Teagan's own 18.0%). A
+male-M tshirt now drafts a 118.0 cm finished bust girth, matching Teagan's row exactly. Left
+as originally written below — this section is the evidence the fix was built from, not a
+running log.
+
 Independent of freesewing, the spike surfaced a shipped fit defect.
 
 | size | body chest | our finished chest | our ease         | freesewing finished | freesewing ease  |

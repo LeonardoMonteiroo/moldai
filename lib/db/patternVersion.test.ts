@@ -259,6 +259,10 @@ describe("lib/db/patternVersion", () => {
           engine: null,
           reason: "adjust",
           cost: 1,
+          // #281: stamped from the app clock (not the column's DB-side
+          // default) so it shares a clock with ChatMessage.createdAt --
+          // see the restore route's own chat-truncation comment.
+          createdAt: expect.any(Date),
         },
       });
     });

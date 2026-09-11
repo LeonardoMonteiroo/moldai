@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import type { PatternVersionEntry } from "@/lib/api-client";
 import type { Pattern } from "@/lib/types";
 import { draftGarment, measureSeams } from "@/lib/draft/engine/facade";
+import { diffDraftedPieces, type PieceChangeStatus } from "@/lib/draft/core";
 import { engineFor } from "@/lib/draft/engine/capability";
 import { planCutLayout, FABRIC_WIDTHS_CM } from "@/lib/export/cutplan";
 import { formatCm } from "@/lib/format";
@@ -36,6 +37,22 @@ type DiffRow = {
   delta: string;
   unchanged: boolean;
 };
+
+// #308: the full stroke className for one overlay piece, by change status.
+// `unchanged` dims the overlay's own base color instead of drawing every
+// piece at the same emphasis; `added`/`removed` (a piece id present on only
+// one side -- an added/dropped collar, say) switches to one shared accent
+// color so it reads as a structural difference, distinct from a piece that
+// merely changed shape (which keeps the overlay's plain default look).
+function pieceOverlayClass(
+  status: PieceChangeStatus | undefined,
+  baseStroke: string,
+): string {
+  if (status === "unchanged") return `${baseStroke} fill-none opacity-30`;
+  if (status === "added" || status === "removed")
+    return "stroke-olive-dark fill-none";
+  return `${baseStroke} fill-none`;
+}
 
 function diffRow(
   label: string,
@@ -126,6 +143,14 @@ export function VersionCompare({
     // tData is a stable translator instance for the component's lifetime.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [from, to]);
+
+  const pieceStatus = useMemo(
+    () =>
+      drafted
+        ? diffDraftedPieces(drafted.from.pieces, drafted.to.pieces)
+        : null,
+    [drafted],
+  );
 
   const deltas = useMemo(() => {
     if (!from || !to) return null;
@@ -259,7 +284,10 @@ export function VersionCompare({
                   <OutlineShape
                     key={piece.id}
                     outline={piece.outline}
-                    className="stroke-pattern-guide fill-none"
+                    className={pieceOverlayClass(
+                      pieceStatus?.get(piece.id),
+                      "stroke-pattern-guide",
+                    )}
                     style={{ strokeWidth: 1.1, strokeDasharray: "5 4" }}
                   />
                 ))}
@@ -278,7 +306,10 @@ export function VersionCompare({
                 <OutlineShape
                   key={piece.id}
                   outline={piece.outline}
-                  className="stroke-ink fill-none"
+                  className={pieceOverlayClass(
+                    pieceStatus?.get(piece.id),
+                    "stroke-ink",
+                  )}
                   style={{ strokeWidth: 1.4 }}
                 />
               ))}

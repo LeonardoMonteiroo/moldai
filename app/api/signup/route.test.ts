@@ -37,7 +37,7 @@ function req(body: unknown) {
 const VALID = {
   name: "Leonardo",
   email: "novo@moldai.local",
-  password: "senha-forte",
+  password: "senha-forte1",
 };
 
 describe("POST /api/signup", () => {

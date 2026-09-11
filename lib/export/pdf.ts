@@ -338,31 +338,45 @@ export async function toPdf(
       const P = (lx: number, ly: number) =>
         map(pc.originCm.x + lx, pc.originCm.y + ly);
 
-      // #123: the cut line (with seam allowance) is the primary solid
-      // boundary -- what the a4 tiling/glue overlap is measured against.
-      for (let i = 0; i < cutPts.length; i++) {
-        const a = P(cutPts[i].x, cutPts[i].y);
-        const b = P(
-          cutPts[(i + 1) % cutPts.length].x,
-          cutPts[(i + 1) % cutPts.length].y,
+      // #123/#243: a closed loop's own solid cut line + dashed net line --
+      // the piece's own outer boundary and every internal loop (#243) draw
+      // this identical pair, just over a different pair of flattened points.
+      const strokeOutlinePair = (cutPtsLocal: ExPt[], netPtsLocal: ExPt[]) => {
+        // #123: the cut line (with seam allowance) is the primary solid
+        // boundary -- what the a4 tiling/glue overlap is measured against.
+        for (let i = 0; i < cutPtsLocal.length; i++) {
+          const a = P(cutPtsLocal[i].x, cutPtsLocal[i].y);
+          const b = P(
+            cutPtsLocal[(i + 1) % cutPtsLocal.length].x,
+            cutPtsLocal[(i + 1) % cutPtsLocal.length].y,
+          );
+          page.drawLine({ start: a, end: b, thickness: 0.75, color: INK });
+        }
+        // the net stitch line, dashed in its own gray so it doesn't blend
+        // into the fold's own GRAY dashing.
+        for (let i = 0; i < netPtsLocal.length; i++) {
+          const a = P(netPtsLocal[i].x, netPtsLocal[i].y);
+          const b = P(
+            netPtsLocal[(i + 1) % netPtsLocal.length].x,
+            netPtsLocal[(i + 1) % netPtsLocal.length].y,
+          );
+          page.drawLine({
+            start: a,
+            end: b,
+            thickness: 0.4,
+            color: NET,
+            dashArray: [3, 2],
+          });
+        }
+      };
+      strokeOutlinePair(cutPts, netPts);
+      // #243: an internal loop (hole) draws exactly like the piece's own
+      // outer boundary above.
+      for (const loop of pc.internalLoops ?? []) {
+        strokeOutlinePair(
+          flattenOutlineCm(loop.cutOutline, TOL_CM),
+          flattenOutlineCm(loop.outline, TOL_CM),
         );
-        page.drawLine({ start: a, end: b, thickness: 0.75, color: INK });
-      }
-      // the net stitch line, dashed in its own gray so it doesn't blend
-      // into the fold's own GRAY dashing.
-      for (let i = 0; i < netPts.length; i++) {
-        const a = P(netPts[i].x, netPts[i].y);
-        const b = P(
-          netPts[(i + 1) % netPts.length].x,
-          netPts[(i + 1) % netPts.length].y,
-        );
-        page.drawLine({
-          start: a,
-          end: b,
-          thickness: 0.4,
-          color: NET,
-          dashArray: [3, 2],
-        });
       }
       // grainline (dashed)
       if (pc.grainline) {
@@ -400,6 +414,22 @@ export async function toPdf(
           color: OLIVE,
           dashArray: [1, 1.5],
         });
+      }
+      // #244: a pleat's own placement/stitch line -- its own dash pattern,
+      // distinct from the dart fold line's above, so the two read apart.
+      for (const pleat of pc.pleats ?? []) {
+        if (pleat.length < 2) continue;
+        for (let i = 0; i < pleat.length - 1; i++) {
+          const a = P(pleat[i].x, pleat[i].y);
+          const b = P(pleat[i + 1].x, pleat[i + 1].y);
+          page.drawLine({
+            start: a,
+            end: b,
+            thickness: 0.25,
+            color: OLIVE,
+            dashArray: [2, 2],
+          });
+        }
       }
       // #127: a drill hole -- a small open circle, 1.0-1.5cm short of the
       // dart apex it marks.
@@ -650,14 +680,23 @@ export async function toPdfLayered(
     for (const pc of model.pieces) {
       const P = (lx: number, ly: number) =>
         map(pc.originCm.x + lx, pc.originCm.y + ly);
-      const cutPts = flattenOutlineCm(pc.cutOutline, TOL_CM);
-      for (let k = 0; k < cutPts.length; k++) {
-        const a = P(cutPts[k].x, cutPts[k].y);
-        const bpt = P(
-          cutPts[(k + 1) % cutPts.length].x,
-          cutPts[(k + 1) % cutPts.length].y,
-        );
-        page.drawLine({ start: a, end: bpt, thickness: 0.6, color });
+      const strokeCutLoop = (pts: ExPt[]) => {
+        for (let k = 0; k < pts.length; k++) {
+          const a = P(pts[k].x, pts[k].y);
+          const bpt = P(
+            pts[(k + 1) % pts.length].x,
+            pts[(k + 1) % pts.length].y,
+          );
+          page.drawLine({ start: a, end: bpt, thickness: 0.6, color });
+        }
+      };
+      strokeCutLoop(flattenOutlineCm(pc.cutOutline, TOL_CM));
+      // #243: an internal loop's own cut line, same per-size color as the
+      // piece's own cut line above -- the layered comparison's whole point
+      // is comparing real cut geometry across sizes, and a hole is real cut
+      // geometry.
+      for (const loop of pc.internalLoops ?? []) {
+        strokeCutLoop(flattenOutlineCm(loop.cutOutline, TOL_CM));
       }
       if (pc.grainline) {
         const [g1, g2] = pc.grainline;

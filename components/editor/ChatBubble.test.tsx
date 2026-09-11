@@ -111,4 +111,94 @@ describe("ChatBubble", () => {
       ).not.toBeInTheDocument();
     });
   });
+
+  // #257: labels resolve through the SAME PatternData/SizeChartTable
+  // catalog keys the generate route (specField/styleField) and the
+  // size-chart table (measurement) already resolve these exact field names
+  // through -- never a hand-written label map of its own.
+  describe("changed fields", () => {
+    const t = translatorFor("ChatBubble");
+    const tData = translatorFor("PatternData");
+    const tMeasurement = translatorFor("SizeChartTable");
+
+    it("lists a changed style field, resolved through the styleField catalog", () => {
+      renderWithIntl(
+        <ChatBubble message={message({ changedFields: ["style.collar"] })} />,
+      );
+      expect(
+        screen.getByText(
+          t("changedFieldsLabel", {
+            fields: tData("styleField.collar"),
+          }),
+        ),
+      ).toBeInTheDocument();
+    });
+
+    it("lists a changed top-level field, resolved through the specField catalog", () => {
+      renderWithIntl(
+        <ChatBubble message={message({ changedFields: ["type"] })} />,
+      );
+      expect(
+        screen.getByText(
+          t("changedFieldsLabel", { fields: tData("specField.type") }),
+        ),
+      ).toBeInTheDocument();
+    });
+
+    it("lists a changed measurement override, resolved through the measurement catalog", () => {
+      renderWithIntl(
+        <ChatBubble
+          message={message({
+            changedFields: ["measurementOverrides.bust"],
+          })}
+        />,
+      );
+      expect(
+        screen.getByText(
+          t("changedFieldsLabel", {
+            fields: tMeasurement("measurement.bust"),
+          }),
+        ),
+      ).toBeInTheDocument();
+    });
+
+    it("joins several changed fields in order", () => {
+      renderWithIntl(
+        <ChatBubble
+          message={message({
+            changedFields: ["style.skirtLengthCm", "style.collar"],
+          })}
+        />,
+      );
+      expect(
+        screen.getByText(
+          t("changedFieldsLabel", {
+            fields: [
+              tData("styleField.skirtLengthCm"),
+              tData("styleField.collar"),
+            ].join(", "),
+          }),
+        ),
+      ).toBeInTheDocument();
+    });
+
+    it("renders nothing when changedFields is absent", () => {
+      renderWithIntl(<ChatBubble message={message()} />);
+      expect(
+        screen.queryByText(
+          t("changedFieldsLabel", { fields: tData("specField.type") }),
+        ),
+      ).not.toBeInTheDocument();
+    });
+
+    it("renders nothing when changedFields is an empty array", () => {
+      renderWithIntl(<ChatBubble message={message({ changedFields: [] })} />);
+      // Derived from the catalog's own template rather than a pasted pt-BR
+      // literal: the static text preceding the "{fields}" placeholder.
+      const prefix = ptBR.ChatBubble.changedFieldsLabel.split("{fields}")[0];
+      expect(
+        screen.queryByText((content) => content.includes(prefix)),
+      ).not.toBeInTheDocument();
+    });
+  });
 });

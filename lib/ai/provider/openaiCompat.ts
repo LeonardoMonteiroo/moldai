@@ -231,5 +231,6 @@ async function propose(opts: LlmCallOptions): Promise<LlmCallResult> {
 
 export const openaiCompatProvider: LlmProvider = {
   id: "local",
+  model,
   propose,
 };

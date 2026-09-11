@@ -60,16 +60,15 @@ describe("SignupCard", () => {
     vi.mocked(resendVerification).mockReset();
   });
 
-  // Redesign reference (Autenticacao.dc.html:75) shows a password
-  // requirement hint under the field -- its exact wording claims a
-  // letters+numbers rule this app never enforces (lib/account/settings.ts
-  // has no complexity check, only MIN_PASSWORD_LENGTH), so the catalog copy
-  // states only the real, enforced rule rather than the design's literal text.
-  it("shows the real password requirement, not an unenforced complexity claim", () => {
+  // #238: the redesign reference (Autenticacao.dc.html:75) shows a
+  // letters+numbers hint under the password field -- validateNewPassword
+  // (lib/account/settings.ts) now enforces exactly that rule, so the catalog
+  // copy states it truthfully instead of hiding it.
+  it("shows the real, enforced password requirement", () => {
     renderWithIntl(<SignupCard />);
     expect(screen.getByText(ptBR.Signup.passwordHint)).toBeInTheDocument();
     expect(ptBR.Signup.passwordHint).toContain(String(MIN_PASSWORD_LENGTH));
-    expect(ptBR.Signup.passwordHint).not.toMatch(/letras e números/);
+    expect(ptBR.Signup.passwordHint).toMatch(/letras e números/);
   });
 
   it("creates the account with the typed fields and never sends the confirm field", async () => {
@@ -114,6 +113,16 @@ describe("SignupCard", () => {
         password: "a".repeat(MIN_PASSWORD_LENGTH - 1),
         confirm: "a".repeat(MIN_PASSWORD_LENGTH - 1),
       },
+    ],
+    // #238: the button must not enable for a password the server will
+    // reject as weak_password anyway -- length alone is no longer enough.
+    [
+      "the password has digits but no letters",
+      { password: "12345678", confirm: "12345678" },
+    ],
+    [
+      "the password has letters but no digits",
+      { password: "apenasletras", confirm: "apenasletras" },
     ],
   ])("keeps submit disabled while %s", async (_label, overrides) => {
     renderWithIntl(<SignupCard />);

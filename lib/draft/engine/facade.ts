@@ -33,8 +33,19 @@ export function draftPiecesCm(
   spec: GarmentSpec,
   baseMeasurements: Measurements,
   t: Translate,
+  // #249: optional, additive -- the pattern's actual base-size row, passed
+  // only by a caller drafting a size OTHER than that base (buildExportModel
+  // exporting a graded size, draftGradedOverlays below). Omitted, every
+  // existing call site sees byte-identical output (see
+  // DraftingEngine.draft's own doc, lib/draft/engine/types.ts).
+  referenceMeasurements?: Measurements,
 ): DraftedPiece[] {
-  return getEngine(engine).draft(spec, baseMeasurements, t).drafted;
+  return getEngine(engine).draft(
+    spec,
+    baseMeasurements,
+    t,
+    referenceMeasurements,
+  ).drafted;
 }
 
 // The pair of seam lengths seamCheck compares, without the pieces or the
@@ -50,6 +61,15 @@ export function measureSeams(
   spec: GarmentSpec,
   baseMeasurements: Measurements,
   t: Translate,
+  // #249: optional, additive, same contract as draftPiecesCm's own param
+  // above -- every current caller (CanvasArea) only ever measures the
+  // pattern's own base size, so this stays unused today, but omitting it
+  // from this entry point while draftPiecesCm/draftGradedOverlays already
+  // thread it through would leave a caller that DOES measure a graded size
+  // silently re-freezing an explicit style.skirtLengthCm's garmentLengthCm
+  // at the base-size value -- exactly #249's own bug, through a facade
+  // entry point this fix would otherwise have missed.
+  referenceMeasurements?: Measurements,
 ): {
   armholeLenCm?: number;
   sleeveArmholeCm?: number;
@@ -57,7 +77,7 @@ export function measureSeams(
 } {
   const { armholeLenCm, sleeveArmholeCm, garmentLengthCm } = getEngine(
     engine,
-  ).draft(spec, baseMeasurements, t);
+  ).draft(spec, baseMeasurements, t, referenceMeasurements);
   return { armholeLenCm, sleeveArmholeCm, garmentLengthCm };
 }
 
@@ -73,11 +93,14 @@ export function measureSeamGraph(
   spec: GarmentSpec,
   baseMeasurements: Measurements,
   t: Translate,
+  // #249: same optional, additive contract as measureSeams's own param above.
+  referenceMeasurements?: Measurements,
 ): SeamMeasurement[] {
   const { drafted, seamPairs } = getEngine(engine).draft(
     spec,
     baseMeasurements,
     t,
+    referenceMeasurements,
   );
   return walkSeamPairs(drafted, seamPairs);
 }
@@ -110,7 +133,18 @@ export function draftGradedOverlays(
   for (const size of sizes) {
     const measurements = sizeTable[size];
     if (!measurements) continue;
-    const graded = draftPiecesCm(engine, spec, measurements, t);
+    // #249: the base row is passed as the reference so an explicit
+    // style.skirtLengthCm grades the overlay's own hem the same way the
+    // export path does (lib/export/model.ts's buildExportModel) -- without
+    // it, the overlay would keep showing every graded size at one identical
+    // hem, misleading the user before they even export.
+    const graded = draftPiecesCm(
+      engine,
+      spec,
+      measurements,
+      t,
+      baseMeasurements,
+    );
     graded.forEach((dp, i) => {
       const base = baseDrafted[i];
       const placed = pieces[i];
