@@ -16,6 +16,7 @@ import {
   diffSpec as diffSpecSummary,
   getSpec,
   seedPatternSizeSnapshot,
+  setGarmentReading,
 } from "@/lib/editor/state";
 import { diffSpec } from "@/lib/draft/specDiff";
 import { debitWallet, refundWallet } from "@/lib/billing/wallet";
@@ -238,8 +239,9 @@ export async function POST(request: Request, { params }: Ctx) {
           };
         }
 
+        const userMessageId = `msg-${Date.now()}-u`;
         addMessage(state, {
-          id: `msg-${Date.now()}-u`,
+          id: userMessageId,
           author: "user",
           text: trimmed,
           createdAt: Date.now(),
@@ -308,6 +310,17 @@ export async function POST(request: Request, { params }: Ctx) {
             ...(formSpec ? { formSpec } : {}),
             ...(partScope ? { partScope } : {}),
           });
+
+          // #258: patched onto the user turn the reading describes (the
+          // SAME turn hasImage/imageCount above are on), not the ai turn
+          // added by whichever branch runs below -- and unconditionally,
+          // before the decision switch, since an image can arrive alongside
+          // any of ask/decline/explain/apply, not just apply. Absent
+          // whenever the model omitted it; never fatal (see
+          // resolveDecision, lib/ai/decision.ts).
+          if (decision.garmentReading) {
+            setGarmentReading(state, userMessageId, decision.garmentReading);
+          }
 
           // #99: this used to be three positive `if`s (ask/decline/explain)
           // with an implicit else that applied — so any decision value the

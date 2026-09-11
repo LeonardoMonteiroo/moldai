@@ -144,7 +144,8 @@ export interface EngineCapability {
     | "skirtLengthCm"
     | "seamAllowanceCm"
     | "armholeDeepenCm"
-    | "trouserLengthCm",
+    | "trouserLengthCm"
+    | "riseCm",
     Range
   >;
   // Which style fields each supported GarmentType's drafters actually read.
@@ -304,8 +305,19 @@ export const MOLDAI_CAPABILITY: EngineCapability = {
       "collar",
       "cuff",
     ],
-    skirt: ["skirt", "skirtLengthCm", "waistband", "seamAllowanceCm", "pleats"],
-    trousers: ["trouserLengthCm", "waistband", "seamAllowanceCm"],
+    // #259: riseCm is a moldai-only capability today -- neither wired
+    // freesewing design (Sandy/Titan) reads it, so it stays absent from
+    // FREESEWING_CAPABILITY's own entries below (a real, reportable
+    // styleField gap there, not a silent no-op).
+    skirt: [
+      "skirt",
+      "skirtLengthCm",
+      "waistband",
+      "seamAllowanceCm",
+      "pleats",
+      "riseCm",
+    ],
+    trousers: ["trouserLengthCm", "waistband", "seamAllowanceCm", "riseCm"],
     // #269: moldai drafts neither hoodie nor coat nor shirt at all (see
     // MOLDAI_TYPES above) -- an honest empty entry, the same convention
     // freesewing's own "dress" (also unsupported) uses below.
@@ -497,7 +509,10 @@ export type EngineGap =
   | { kind: "styleValue"; field: CapabilityStyleField; value: string }
   | { kind: "styleLimit"; field: CapabilityStyleField; range: Range };
 
-const STYLE_ENUM_FIELDS = [
+// #258: exported so lib/ai/prompt.ts's garmentReading instruction can name
+// the same part vocabulary checkEngineSupport enumerates here, rather than a
+// second hand-typed list that could silently drift from this one.
+export const STYLE_ENUM_FIELDS = [
   "neckline",
   "sleeve",
   "skirt",
@@ -516,6 +531,7 @@ const STYLE_LIMIT_FIELDS = [
   "seamAllowanceCm",
   "armholeDeepenCm",
   "trouserLengthCm",
+  "riseCm",
 ] as const satisfies readonly CapabilityStyleField[];
 
 /**

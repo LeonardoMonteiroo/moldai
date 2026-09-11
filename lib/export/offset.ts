@@ -1,4 +1,8 @@
-import { catmullRomSegments, type Pt } from "@/lib/draft/core";
+import {
+  catmullRomSegments,
+  isCanonicalWinding,
+  type Pt,
+} from "@/lib/draft/core";
 import { flattenCubic, TOL_CM } from "./bezier";
 
 // #123: turns the seam-allowance annotation (`GarmentStyle.seamAllowanceCm`,
@@ -43,9 +47,9 @@ import { flattenCubic, TOL_CM } from "./bezier";
 // AWAY from the outline's own interior. "inward" is for a
 // `DraftedPiece.internalLoopsCm` entry: a hole's seam allowance is fabric
 // that must fold UNDER, into the opening, so its cut line has to SHRINK the
-// loop -- the opposite of the outer boundary's own growth. See
-// miterOffset's own `preferLarger` below for how the same two-candidate
-// construction serves both directions without a second implementation.
+// loop -- the opposite of the outer boundary's own growth. Since #263 that
+// is one negated sign off the winding-derived outward direction (see
+// offsetOutlineCm's body), not a second implementation.
 //
 // Known limitation, inherited from the SAME repair `removeSelfCrossingLoops`
 // already accepts for "outward" (see its own comment below): that repair's
@@ -69,7 +73,24 @@ export function offsetOutlineCm(
   direction: "outward" | "inward" = "outward",
 ): { x: number; y: number }[] {
   const segs = toFineSegments(ptsCm, curvedSpans, foldEdge, distanceCm, tolCm);
-  return removeSelfCrossingLoops(miterOffset(segs, direction === "outward"));
+  // #263: outward direction used to be self-calibrated by building BOTH
+  // candidate offset polygons and keeping the larger-area one, because
+  // nothing upstream guaranteed a fixed winding. lib/draft/core.ts's
+  // normalizeWinding now normalizes every DraftedPiece the moldai engine
+  // hands off to one canonical (signedAreaCm >= 0) winding, and
+  // isCanonicalWinding here reads the SAME sign directly off `ptsCm` --
+  // cheaper than computing the full offset twice and comparing areas, and
+  // still correct for an outline this repo hasn't normalized (a future
+  // engine, a hand-built test fixture): sign +1 is outward for a
+  // canonically-wound outline (see joinOffsetLines/offsetLineFor below), -1
+  // for the other winding. `isCanonicalWinding` reads whichever outline it
+  // is handed, so an internal loop (#243) needs no normalization of its own
+  // -- negating the sign shrinks it whichever way it happens to wind, which
+  // is exactly the candidate #243's smaller-area pick used to select.
+  // +1 exactly when the outline's own winding and the requested direction
+  // agree; either one being reversed flips it (and both reversed cancel).
+  const sign = isCanonicalWinding(ptsCm) === (direction === "outward") ? 1 : -1;
+  return removeSelfCrossingLoops(joinOffsetLines(segs, sign));
 }
 
 interface FineSeg {
@@ -124,17 +145,6 @@ function toFineSegments(
   return segs;
 }
 
-function shoelace(pts: { x: number; y: number }[]): number {
-  let a = 0;
-  const n = pts.length;
-  for (let i = 0; i < n; i++) {
-    const p = pts[i],
-      q = pts[(i + 1) % n];
-    a += p.x * q.y - q.x * p.y;
-  }
-  return a / 2;
-}
-
 function lineLine(
   a1: { x: number; y: number },
   a2: { x: number; y: number },
@@ -180,33 +190,6 @@ function joinOffsetLines(
     out.push(lineLine(prev[0], prev[1], cur[0], cur[1]) ?? cur[0]);
   }
   return out;
-}
-
-// Which of +1/-1 is "outward" depends on the input polygon's winding, which
-// this repo doesn't fix (some drafters walk clockwise, some counter --
-// nothing upstream needs it fixed, since SVG/canvas rendering doesn't care).
-// Rather than assume one, it builds the *actual* candidate result for both
-// signs and keeps whichever has the larger enclosed area when
-// `preferLarger` (the outer-boundary case) -- the genuinely outward offset,
-// by construction, always grows the shape; the other one shrinks it.
-// Comparing the two real candidates directly (rather than a cheaper
-// per-vertex heuristic) is what makes this correct even when a fold edge's
-// own zero distance makes the growth asymmetric.
-//
-// #243: `!preferLarger` (an internal loop/hole) keeps the SMALLER-area
-// candidate instead -- the same two real candidates, just the other pick.
-// A hole's cut line must shrink the opening (the extra fabric folds under,
-// into the loop), the mirror image of the outer boundary's own growth; there
-// is no third formula to write, only which of the two already-computed
-// candidates is correct for the caller's own geometry.
-function miterOffset(
-  segs: FineSeg[],
-  preferLarger = true,
-): { x: number; y: number }[] {
-  const plus = joinOffsetLines(segs, 1);
-  const minus = joinOffsetLines(segs, -1);
-  const plusBigger = Math.abs(shoelace(plus)) >= Math.abs(shoelace(minus));
-  return plusBigger === preferLarger ? plus : minus;
 }
 
 function crossSign(

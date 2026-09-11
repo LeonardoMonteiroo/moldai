@@ -109,10 +109,14 @@ export const GENERATION_CASES: GenerationCase[] = [
   // --- skirt ---
   {
     id: "skirt-straight",
+    // #260: "na altura do joelho" (knee height) names a length in words,
+    // no exact cm -- exercises the new skirtLength descriptive token
+    // (lib/draft/garment.ts's SKIRT_LENGTH_TOKENS.knee = 60), the
+    // preferred path over a free-guessed skirtLengthCm number.
     prompt: "Saia reta na altura do joelho.",
     expectedDecision: "apply",
     expectedType: "skirt",
-    expectedStyle: { skirt: "straight" },
+    expectedStyle: { skirt: "straight", skirtLengthCm: 60 },
   },
   {
     id: "skirt-aline",
