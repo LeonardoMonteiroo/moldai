@@ -87,8 +87,9 @@ export function offsetOutlineCm(
   // is handed, so an internal loop (#243) needs no normalization of its own
   // -- negating the sign shrinks it whichever way it happens to wind, which
   // is exactly the candidate #243's smaller-area pick used to select.
-  const outwardSign = isCanonicalWinding(ptsCm) ? 1 : -1;
-  const sign = direction === "outward" ? outwardSign : -outwardSign;
+  // +1 exactly when the outline's own winding and the requested direction
+  // agree; either one being reversed flips it (and both reversed cancel).
+  const sign = isCanonicalWinding(ptsCm) === (direction === "outward") ? 1 : -1;
   return removeSelfCrossingLoops(joinOffsetLines(segs, sign));
 }
 
