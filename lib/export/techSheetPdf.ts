@@ -199,6 +199,11 @@ function assemblyStepLine(step: AssemblyStep, t: Translate): string {
         piece: step.pieceName,
         count: step.count,
       });
+    case "pleat":
+      return t("techSheetPdf.stepPleat", {
+        piece: step.pieceName,
+        count: step.count,
+      });
     case "seam":
       return t("techSheetPdf.stepSeam", {
         a: step.aPieceName,

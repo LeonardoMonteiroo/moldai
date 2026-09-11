@@ -1,46 +1,46 @@
 # AI eval report
 
-Baseline: **anthropic:claude-sonnet-5** — generated 2026-09-05T16:36:18.695Z
+Baseline: **anthropic:claude-sonnet-5** — generated 2026-09-06T22:14:21.888Z
 
 This is a measurement, not a gate — see docs/decisions/generation-flow.md's
 own note that a prompt/schema change ships on inspection alone today. Compare
 this file's numbers against the previous commit's before trusting a change
 made things better.
 
-## Generation (33 cases)
+## Generation (37 cases)
 
-- Decision accuracy: **69.7%**
-- Field accuracy (apply cases only): **100.0%** (48 fields checked)
-- Draft-success rate (applies, drafts, seamCheck empty): **100.0%** (20 applicable)
+- Decision accuracy: **100.0%**
+- Field accuracy (apply cases only): **98.6%** (73 fields checked)
+- Draft-success rate (applies, drafts, seamCheck empty): **100.0%** (30 applicable)
 
 ### Decision confusion (rows = expected, columns = actual)
 
 | expected \ actual | apply | ask | decline | explain |
 | ----------------- | ----- | --- | ------- | ------- |
-| apply             | 20    | 10  | 0       | 0       |
-| ask               | 0     | 1   | 0       | 0       |
-| decline           | 0     | 0   | 1       | 0       |
-| explain           | 0     | 0   | 0       | 1       |
+| apply             | 30    | 0   | 0       | 0       |
+| ask               | 0     | 3   | 0       | 0       |
+| decline           | 0     | 0   | 2       | 0       |
+| explain           | 0     | 0   | 0       | 2       |
 
 ### Per-case detail
 
 | case                               | expected | actual  | pass | failed fields | draft ok |
 | ---------------------------------- | -------- | ------- | ---- | ------------- | -------- |
-| blouse-v-long                      | apply    | ask     | ❌   | —             | —        |
+| blouse-v-long                      | apply    | apply   | ✅   | —             | ✅       |
 | blouse-band-collar                 | apply    | apply   | ✅   | —             | ✅       |
 | blouse-shirt-collar-buttons        | apply    | apply   | ✅   | —             | ✅       |
 | blouse-round-sleeveless-loose      | apply    | apply   | ✅   | —             | ✅       |
-| blouse-darts-convertible           | apply    | ask     | ❌   | —             | —        |
+| blouse-darts-convertible           | apply    | apply   | ✅   | —             | ✅       |
 | blouse-close-fit                   | apply    | apply   | ✅   | —             | ✅       |
-| dress-aline-v                      | apply    | ask     | ❌   | —             | —        |
-| dress-gore                         | apply    | ask     | ❌   | —             | —        |
-| dress-circle                       | apply    | ask     | ❌   | —             | —        |
-| dress-half-circle-length           | apply    | ask     | ❌   | —             | —        |
+| dress-aline-v                      | apply    | apply   | ✅   | —             | ✅       |
+| dress-gore                         | apply    | apply   | ✅   | —             | ✅       |
+| dress-circle                       | apply    | apply   | ✅   | —             | ✅       |
+| dress-half-circle-length           | apply    | apply   | ✅   | —             | ✅       |
 | dress-close-sleeveless             | apply    | apply   | ✅   | —             | ✅       |
-| dress-darts-short-sleeve           | apply    | ask     | ❌   | —             | —        |
+| dress-darts-short-sleeve           | apply    | apply   | ✅   | —             | ✅       |
 | skirt-straight                     | apply    | apply   | ✅   | —             | ✅       |
-| skirt-aline                        | apply    | ask     | ❌   | —             | —        |
-| skirt-gore                         | apply    | ask     | ❌   | —             | —        |
+| skirt-aline                        | apply    | apply   | ✅   | —             | ✅       |
+| skirt-gore                         | apply    | apply   | ✅   | —             | ✅       |
 | skirt-circle                       | apply    | apply   | ✅   | —             | ✅       |
 | skirt-half-circle-short            | apply    | apply   | ✅   | —             | ✅       |
 | skirt-seam-allowance               | apply    | apply   | ✅   | —             | ✅       |
@@ -48,7 +48,7 @@ made things better.
 | tshirt-long-sleeve                 | apply    | apply   | ✅   | —             | ✅       |
 | tshirt-high-stretch                | apply    | apply   | ✅   | —             | ✅       |
 | tshirt-sleeveless                  | apply    | apply   | ✅   | —             | ✅       |
-| tshirt-low-stretch                 | apply    | ask     | ❌   | —             | —        |
+| tshirt-low-stretch                 | apply    | apply   | ✅   | 1             | ✅       |
 | tshirt-medium-stretch-short-sleeve | apply    | apply   | ✅   | —             | ✅       |
 | trousers-female-straight           | apply    | apply   | ✅   | —             | ✅       |
 | trousers-male-cropped              | apply    | apply   | ✅   | —             | ✅       |
@@ -57,8 +57,12 @@ made things better.
 | trousers-full-length               | apply    | apply   | ✅   | —             | ✅       |
 | trousers-cropped-short             | apply    | apply   | ✅   | —             | ✅       |
 | ask-underspecified                 | ask      | ask     | ✅   | —             | —        |
+| ask-blouse-bare                    | ask      | ask     | ✅   | —             | —        |
+| ask-trousers-bare                  | ask      | ask     | ✅   | —             | —        |
 | decline-jacket                     | decline  | decline | ✅   | —             | —        |
+| decline-trouser-silhouette         | decline  | decline | ✅   | —             | —        |
 | explain-dart                       | explain  | explain | ✅   | —             | —        |
+| explain-armhole                    | explain  | explain | ✅   | —             | —        |
 
 ## Editing (8 cases)
 

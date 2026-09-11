@@ -127,6 +127,13 @@ export function toPlt(model: ExportModel, opts: PltOptions = {}): string {
       emitPolyline(PLT_PENS.cut, flattenOutlineCm(piece.cutOutline, TOL_CM));
       emitPolyline(PLT_PENS.net, flattenOutlineCm(piece.outline, TOL_CM));
 
+      // #243: an internal loop (hole) is a genuine cut boundary too -- the
+      // same two pens (cut/net) as the piece's own outer boundary above.
+      for (const loop of piece.internalLoops ?? []) {
+        emitPolyline(PLT_PENS.cut, flattenOutlineCm(loop.cutOutline, TOL_CM));
+        emitPolyline(PLT_PENS.net, flattenOutlineCm(loop.outline, TOL_CM));
+      }
+
       if (piece.grainline) {
         const [a, b] = piece.grainline;
         emitLine(PLT_PENS.grainline, a, b);
@@ -154,6 +161,17 @@ export function toPlt(model: ExportModel, opts: PltOptions = {}): string {
       // dart's own construction marks.
       for (const [a, b] of piece.internalFoldLines ?? []) {
         emitLine(PLT_PENS.dart, a, b);
+      }
+      // #244: a pleat's own placement/stitch line, on the dart's own pen --
+      // both are internal construction marks, same footing as
+      // internalFoldLines above.
+      for (const pleat of piece.pleats ?? []) {
+        if (pleat.length < 2) continue;
+        lines.push(`SP${PLT_PENS.dart};`);
+        lines.push(`PU${X(pleat[0].x)},${Y(pleat[0].y)};`);
+        for (let i = 1; i < pleat.length; i++) {
+          lines.push(`PD${X(pleat[i].x)},${Y(pleat[i].y)};`);
+        }
       }
       // #127: a drill hole -- HPGL/2's native CI (circle) command, centred
       // by a PU move first; radius in plotter units like everything else

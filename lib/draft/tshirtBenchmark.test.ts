@@ -17,10 +17,13 @@ import benchmark from "@/docs/reference/tshirt-benchmark/measurements.json";
 
 // tshirt-fit-calibration (TSHIRT-06/07): drafts the tshirt archetype across
 // the benchmark's own graded sizes and reports each piece's real geometry
-// against docs/reference/tshirt-benchmark/measurements.json. No assertion in
-// this file gates on a delta being below any numeric bound -- the spec's
-// explicit decision is to report deltas, not pass/fail on them (see
-// spec.md's Assumptions & Out of Scope).
+// against docs/reference/tshirt-benchmark/measurements.json. The original
+// spec's explicit decision was to report every delta, never pass/fail on
+// one (see spec.md's Assumptions & Out of Scope). #242 narrows that for
+// three specific, well-understood moldai deltas only -- see the "gated
+// deltas (#242)" describe block below for the tolerances and their
+// rationale. Every other delta, and every freesewing delta, still only
+// reports, unchanged from the original decision.
 //
 // #267: this is the harness docs/decisions/drafting.md names as "any
 // registered engine scored on one set of metrics" -- it loops ENGINE_IDS,
@@ -154,6 +157,71 @@ const PIECE_IDS_BY_ENGINE: Record<
 const BENCHMARK_PIECES = ["back", "front", "sleeve", "collarBand"] as const;
 type BenchmarkPiece = (typeof BENCHMARK_PIECES)[number];
 
+// #242: gate three of the deltas above -- the ones docs/decisions/
+// drafting.md and .specs/features/tshirt-fit-calibration/spec.md already
+// document as a real, understood shape (not measurement noise) -- so a
+// FURTHER regression on top of the already-known gap gets caught, without
+// this test asserting the known gap itself is correct (fixing it is
+// explicitly out of scope here; see docs/decisions/drafting.md's own
+// "not part of this decision, tracked separately" note on TSHIRT_BASE_
+// EASE_CM). Gated against "moldai" only -- freesewing's own heightCm/
+// curvePerimeterCm are already documented above and in docs/decisions/
+// drafting.md as representation-dependent and not comparable across
+// engines, so gating them here would assert a property this same file's
+// own report explicitly disclaims.
+//
+// Tolerances are round percentages of the benchmark's own figure, tiered
+// by how well-corroborated that figure is, not derived from today's
+// specific delta:
+//
+// - PANEL_HEIGHT_TOLERANCE_PCT (front/back heightCm): the tightest tier.
+//   segment-measurements.md's own cross-check table independently
+//   confirms this exact figure at size M (58.01cm read off the drawing
+//   vs. 58.007cm in measurements.json) to within 0.003cm -- the single
+//   most trustworthy dimension in the whole reference alongside the
+//   sleeve cap curve below. 15% leaves headroom for the body-measurement-
+//   basis uncertainty the feature spec's own Assumptions table already
+//   flagged as open ("nothing in the benchmark states the original
+//   drafter's assumed input body measurements" -- spec.md), which this
+//   delta partly reflects (it shrinks from P to GG, the signature of a
+//   per-size grading-rate mismatch against SIZE_TABLE_MALE, not a fixed
+//   formula bug).
+// - SLEEVE_CAP_HEIGHT_TOLERANCE_PCT (sleeve heightCm, i.e. cap height +
+//   hem): one tier looser than panel height, since this figure is a
+//   compound of the cap curve AND the knit-ease/bicep formulas.
+// - BACK_ARMHOLE_CURVE_TOLERANCE_PCT (back panel curvePerimeterCm, i.e.
+//   the armhole + neckline curve length): the loosest tier. docs/
+//   decisions/drafting.md's own analysis already names this delta's shape
+//   precisely -- "constant to 0.06cm across all four sizes... the
+//   signature of a fixed-length curve rather than a graded armhole error,
+//   and points at the back neckline" -- a known, separately-tracked root
+//   cause, not something this test can or should fix.
+//
+// #282 landed since these were first chosen: TSHIRT_BASE_EASE_CM (a flat
+// cm figure solved backwards from this same benchmark, per docs/decisions/
+// drafting.md) is now TSHIRT_BASE_EASE_PCT = 18, a percentage of bust
+// converging from FreeSewing's own Teagan and the hand-drafting "loose
+// tee" band instead. A male-M tshirt now drafts a 118 cm finished bust,
+// not 155.9 cm -- correct per that same doc's "our drafter should read
+// FARTHER from the benchmark's contested widthCm, not closer" corollary,
+// but it also shrinks the armhole depth and cap height the sleeve/back
+// deltas measure against, widening both relative to the benchmark's own
+// (uncalibrated) figure. Re-derived against the real post-#282 deltas
+// (`comparison-report.md`, worst graded size in parens): back
+// curvePerimeterCm 31.4%-33.7% (P) and sleeve heightCm 28.3%-29.2% (GG).
+// Panel height is unaffected (bust ease has no bearing on panel height)
+// and stays comfortably inside its original 15%, so only these two moved.
+// Both keep ~19% headroom above today's worst size, same margin the
+// original picks held, and the same relative tiering (panel height <
+// sleeve cap height < back armhole curve) by corroboration confidence.
+const PANEL_HEIGHT_TOLERANCE_PCT = 0.15;
+const SLEEVE_CAP_HEIGHT_TOLERANCE_PCT = 0.35;
+const BACK_ARMHOLE_CURVE_TOLERANCE_PCT = 0.4;
+
+function relativeDelta(ours: number, bench: number): number {
+  return Math.abs(ours - bench) / bench;
+}
+
 function tshirtSpec(): GarmentSpec {
   return {
     type: "tshirt",
@@ -271,12 +339,16 @@ beforeAll(() => {
     "comparable across engines; `rectilinearPerimeterCm`/`curvePerimeterCm`",
     "(how a curve/straight split is represented) and `widthCm`/`heightCm`",
     "(bounding-box orientation) are not -- see docs/decisions/drafting.md.",
-    "Our own drafter was fitted to this benchmark; freesewing's was not, so",
-    'an "ours is closer" reading of any curve/straight-split or bounding-box',
-    "number here is circular, not evidence of better fit -- but `areaCm2`",
-    "is a fair comparison, and freesewing's own tshirt panel comes out much",
-    "closer to the benchmark's real garment there (see docs/decisions/",
-    "drafting.md's own note on the ease this exposes in moldai's tshirt).",
+    "Before #282, this app's own tshirt ease constant was solved backwards",
+    "from this benchmark's own contested `widthCm` figure, which made an",
+    '"ours is closer" reading of `widthCm`/`perimeterCm`/`areaCm2` circular.',
+    "#282 replaced that calibration (see docs/decisions/drafting.md), so",
+    "those readings are no longer circular here -- but",
+    "`rectilinearPerimeterCm`/`curvePerimeterCm` and `widthCm`/`heightCm`",
+    "still aren't comparable across engines for the representation/",
+    "orientation reasons above, independent of calibration. `areaCm2` is the",
+    "fair comparison, and freesewing's own tshirt panel reads closer to the",
+    "benchmark's real garment there than moldai's now does.",
     "",
     "Note on `collarBand` rows: this app drafts the band as a horizontal strip",
     "(widthCm = strip length, heightCm = band height); the benchmark's own export",
@@ -382,4 +454,55 @@ describe("tshirt benchmark comparison", () => {
   function readReport(): string {
     return readFileSync(reportPath, "utf8");
   }
+});
+
+// Table-driven so a future fourth gate (or a tolerance re-check after
+// #282/#284 lands, per the note above) is one row, not a copy-pasted
+// `it` block.
+const GATES: {
+  label: string;
+  pieces: BenchmarkPiece[];
+  metric: keyof PieceMetrics;
+  tolerancePct: number;
+}[] = [
+  {
+    label: "back panel's armhole/neckline curve length (curvePerimeterCm)",
+    pieces: ["back"],
+    metric: "curvePerimeterCm",
+    tolerancePct: BACK_ARMHOLE_CURVE_TOLERANCE_PCT,
+  },
+  {
+    label: "sleeve cap height (heightCm)",
+    pieces: ["sleeve"],
+    metric: "heightCm",
+    tolerancePct: SLEEVE_CAP_HEIGHT_TOLERANCE_PCT,
+  },
+  {
+    label: "front/back panel height (heightCm)",
+    pieces: ["front", "back"],
+    metric: "heightCm",
+    tolerancePct: PANEL_HEIGHT_TOLERANCE_PCT,
+  },
+];
+
+describe("gated deltas (#242): moldai's armhole/cap curve length and panel height must not drift further than the already-documented gap", () => {
+  it.each(GATES)(
+    "$label stays within tolerance of the benchmark at every graded size",
+    ({ pieces, metric, tolerancePct }) => {
+      const matched = rows.filter(
+        (r) => r.engine === "moldai" && pieces.includes(r.piece),
+      );
+      // Guards against a future change making moldai skipped/unmapped here
+      // silently turning this into a vacuous pass (see PIECE_IDS_BY_ENGINE
+      // and the skip path in beforeAll above).
+      expect(matched.length).toBe(GRADE.length * pieces.length);
+      for (const row of matched) {
+        const pct = relativeDelta(row.ours[metric], row.benchmark[metric]);
+        expect(
+          pct,
+          `${row.piece} ${metric} at size ${row.size}: ours=${row.ours[metric]} benchmark=${row.benchmark[metric]}`,
+        ).toBeLessThanOrEqual(tolerancePct);
+      }
+    },
+  );
 });

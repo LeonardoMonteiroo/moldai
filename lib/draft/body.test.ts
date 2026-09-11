@@ -1,15 +1,17 @@
 import { describe, it, expect } from "vitest";
 import {
   SIZE_TABLE,
+  SIZE_TABLE_MALE,
   Measurements,
   MEASUREMENT_RANGES,
 } from "@/lib/measurements";
 import { draftBody, BlockOpts } from "./body";
 import { bbox, dartsOf, Pt, DRILL_HOLE_SETBACK_CM } from "./core";
+import { pitchNotchDistanceCm } from "./seams";
 import {
   FIT_CLASSES,
   FIT_EASE_CM,
-  TSHIRT_BASE_EASE_CM,
+  TSHIRT_BASE_EASE_PCT,
   wearingEaseCm,
 } from "./ease";
 import type { FitClass } from "@/lib/types";
@@ -268,10 +270,10 @@ describe("fit class / fabric stretch ease (#125)", () => {
     },
   );
 
-  // tshirt-fit-calibration: a knit garment now starts from a positive base
-  // ease (TSHIRT_BASE_EASE_CM), not 0 -- the highest stretch band still
-  // reduces relative to that base, it no longer drops the drafted girth
-  // below the body measurement outright.
+  // #282: a knit garment starts from a positive base ease PERCENTAGE
+  // (TSHIRT_BASE_EASE_PCT), not 0 -- the highest stretch band still reduces
+  // relative to that base, it no longer drops the drafted girth below the
+  // body measurement outright.
   it("a knit at the highest stretch band drafts base ease minus the stretch reduction, not below the body measurement", () => {
     const opts: BlockOpts = {
       ...optsM,
@@ -281,10 +283,29 @@ describe("fit class / fabric stretch ease (#125)", () => {
     const { halfChestCm } = draftBody(M, { stretch: "high" }, t, opts);
     const bustGirth = halfChestCm * 4;
     expect(bustGirth).toBeCloseTo(
-      M.bust + TSHIRT_BASE_EASE_CM - M.bust * 0.12,
+      M.bust + (M.bust * (TSHIRT_BASE_EASE_PCT - 12)) / 100,
       1,
     );
     expect(bustGirth).toBeGreaterThan(M.bust);
+  });
+
+  // #282: the assertion that actually catches a regression in the DRAFTED
+  // garment, not just in the ease table -- a male-M t-shirt (no stretch, the
+  // default) should draft to the same 118.0cm finished bust girth FreeSewing's
+  // Teagan produces at published defaults on the identical body
+  // (docs/reference/freesewing-spike/README.md), not the 155.9cm the old
+  // TSHIRT_BASE_EASE_CM=55.9 produced.
+  it("a male-M knit tshirt (no stretch) drafts a 118.0cm finished bust girth, matching Teagan", () => {
+    const maleM = SIZE_TABLE_MALE.M;
+    const opts: BlockOpts = {
+      gender: "male",
+      knit: true,
+      lengthCm: maleM.backLength + maleM.hipHeight + 5,
+      wearingEaseCm: wearingEaseCm({}, true, maleM.bust),
+    };
+    const { halfChestCm } = draftBody(maleM, {}, t, opts);
+    const bustGirth = halfChestCm * 4;
+    expect(bustGirth).toBeCloseTo(118.0, 1);
   });
 
   it("ease is invariant across a graded run -- same fit class, same absolute ease in cm at PP and GG", () => {
@@ -800,5 +821,39 @@ describe("bust-apex dart shaping (bust-dart-shaping feature)", () => {
     // past the waist, never at or above the shoulder line.
     expect(apexTop[1]).toBeGreaterThanOrEqual(shoulderSlope + 4);
     expect(apexTop[1]).toBeLessThanOrEqual(waistY - 4);
+  });
+});
+
+// #253: the two independently-clamped pitch-notch fractions (0.7 of a
+// panel's own single-side armhole length here, 0.35 of the cap's own full
+// arc in sleeve.ts) are gone -- both sides now derive ONE shared distance
+// off the PAIR's own combined total (lib/draft/seams.ts's
+// pitchNotchDistanceCm), computed once in draftBody and handed to both
+// bodice() calls verbatim.
+describe("draftBody pitch-notch distance (#253)", () => {
+  it("matches pitchNotchDistanceCm(armholeLenCm) exactly -- derived from the TOTAL, not either panel's own length", () => {
+    const { armholeLenCm, armholeBaseLenCm, pitchNotchCm, basePitchNotchCm } =
+      draftBody(M, { sleeve: "short", darts: true }, t, optsM);
+    expect(pitchNotchCm).toBeCloseTo(pitchNotchDistanceCm(armholeLenCm), 9);
+    expect(basePitchNotchCm).toBeCloseTo(
+      pitchNotchDistanceCm(armholeBaseLenCm),
+      9,
+    );
+  });
+
+  it("stays derived from the shared total even when backWidth makes front and back genuinely different lengths", () => {
+    const diverged: Measurements = { ...M, backWidth: 30 };
+    const { front, back, armholeLenCm, pitchNotchCm } = draftBody(
+      diverged,
+      { sleeve: "short", darts: true },
+      t,
+      optsM,
+    );
+    // Sanity check: this backWidth genuinely produces a front/back armhole
+    // divergence -- otherwise the rest of this test would be vacuous.
+    expect(front.armholeLenCm).not.toBeCloseTo(back.armholeLenCm!, 1);
+    // Even so, the ONE shared distance is still exactly derived from the
+    // PAIR's own combined total (front + back), not either side alone.
+    expect(pitchNotchCm).toBeCloseTo(pitchNotchDistanceCm(armholeLenCm), 9);
   });
 });

@@ -66,6 +66,24 @@ describe("diffSpec", () => {
     ]);
   });
 
+  // #244: STYLE_FIELDS is a manual keyof-GarmentStyle allowlist -- the same
+  // shape that let #267 silently drop collar/cuff/waistband/frontClosure/
+  // trouserLengthCm from this diff before they were added here too. Pins
+  // that `pleats` was not missed the same way.
+  it("reports a pleats style field change", () => {
+    const before = validateSpec({
+      type: "skirt",
+      style: { skirt: "straight", pleats: "none" },
+    });
+    const after = validateSpec({
+      type: "skirt",
+      style: { skirt: "straight", pleats: "box" },
+    });
+    expect(diffSpec(before, after)).toEqual([
+      { field: "pleats", before: "none", after: "box" },
+    ]);
+  });
+
   it("can report several changed fields at once, in field order", () => {
     const before = validateSpec({ style: { neckline: "V", collar: "none" } });
     const after = validateSpec({

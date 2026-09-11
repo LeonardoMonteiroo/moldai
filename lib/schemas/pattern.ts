@@ -41,6 +41,10 @@ const ChatMessageSchema = z.object({
   // above already documents for hasImage/assembly.
   decision: z.enum(["apply", "decline", "ask", "explain"]).optional(),
   draftVersion: z.number().int().nonnegative().optional(),
+  // #257: same "must be named here or z.object strips it" trap as every
+  // field above -- the field paths diffSpec (lib/editor/state.ts) found
+  // changed against the pattern's previous spec.
+  changedFields: z.array(z.string()).optional(),
 });
 
 const ConflictInfoSchema = z.object({
@@ -79,6 +83,12 @@ const PatternSchema = z
     spec: GarmentSpecSchema.optional(),
     viewBox: z.object({ w: z.number(), h: z.number() }).optional(),
     baseMeasurements: MeasurementsSchema.optional(),
+    // #280: the cut plan's per-size quantity map. Loose z.number() (not
+    // clamped/int here) for the same reason sizeChartName/engine stay loose
+    // -- validateCutQuantities (lib/export/cutQuantities.ts) is the real
+    // trust boundary for a freshly-written value; this only has to survive
+    // reading a value IT already wrote back.
+    cutQuantities: z.record(z.string(), z.number()).optional(),
   })
   // #58: the exact failure this issue reports -- a sizeTable that no longer
   // has a row under baseSize reads as `undefined` at
@@ -167,4 +177,12 @@ export const GraduateBodySchema = z.object({
 // for all three cases.
 export const ConflictResolveBodySchema = z.object({
   action: z.enum(["fix", "ignore"]),
+});
+
+// cut-plan: `cutQuantities` stays z.unknown().optional() -- same reason as
+// GenerateBodySchema/GraduateBodySchema's own fields -- validateCutQuantities
+// (lib/export/cutQuantities.ts) is the real trust boundary, and it needs the
+// raw value to drop/clamp per-key rather than fail the whole body.
+export const CutQuantitiesBodySchema = z.object({
+  cutQuantities: z.unknown().optional(),
 });

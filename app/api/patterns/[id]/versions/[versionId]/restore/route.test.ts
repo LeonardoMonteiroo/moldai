@@ -177,6 +177,111 @@ describe("POST /api/patterns/[id]/versions/[versionId]/restore", () => {
     expect(res.status).toBe(401);
   });
 
+  // #281: generate v1 -> adjust to v2 (new chat messages) -> restore v1 ->
+  // the v2-only messages must not survive. Message ordering mirrors the
+  // real generate route (app/api/patterns/[id]/generate/route.ts): the
+  // user's own turn is written BEFORE recordVersion runs, and that same
+  // turn's AI reply is written AFTER it -- so v1's own reply (msg-1-ai)
+  // lands AFTER v1's createdAt, exactly like it would in production, and is
+  // cut alongside v2's messages. That's the documented trade-off: this
+  // cutoff guarantees no later-version message survives, at the cost of
+  // also losing the restored version's own trailing reply.
+  it("truncates chat to what existed at the restored version, dropping later-version-only messages", async () => {
+    const v1CreatedAtMs = new Date("2026-08-17T09:00:00.000Z").getTime();
+    state.chat = [
+      {
+        id: "msg-1-u",
+        author: "user",
+        text: "quero uma blusa com decote V",
+        createdAt: v1CreatedAtMs - 1000, // before v1 is recorded
+      },
+      {
+        id: "msg-1-ai",
+        author: "ai",
+        text: "aqui está a v1",
+        decision: "apply",
+        draftVersion: 1,
+        createdAt: v1CreatedAtMs + 500, // after v1 is recorded
+      },
+      {
+        id: "msg-2-u",
+        author: "user",
+        text: "ajusta a manga",
+        createdAt: v1CreatedAtMs + 1000,
+      },
+      {
+        id: "msg-2-ai",
+        author: "ai",
+        text: "aqui está a v2",
+        decision: "apply",
+        draftVersion: 2,
+        createdAt: v1CreatedAtMs + 2000,
+      },
+    ];
+    getVersionResult = {
+      ...VERSION,
+      version: 1,
+      createdAt: "2026-08-17T09:00:00.000Z",
+    };
+    await POST(new Request("http://test"), ctx());
+    const texts = state.chat.map((m) => m.text);
+    expect(texts).not.toContain("ajusta a manga");
+    expect(texts).not.toContain("aqui está a v2");
+    // The documented trade-off: v1's own trailing reply is cut too, since
+    // its createdAt lands after v1's own PatternVersion row was recorded.
+    expect(texts).not.toContain("aqui está a v1");
+    expect(texts).toContain("quero uma blusa com decote V");
+  });
+
+  // The `<=` boundary itself: a message stamped exactly at the restored
+  // version's own createdAt is kept, one stamped a tick later is dropped.
+  it("keeps a message exactly at the cutoff, drops one just after it", async () => {
+    const v1CreatedAtMs = new Date("2026-08-17T09:00:00.000Z").getTime();
+    state.chat = [
+      {
+        id: "msg-at-cutoff",
+        author: "user",
+        text: "no exato momento",
+        createdAt: v1CreatedAtMs,
+      },
+      {
+        id: "msg-after-cutoff",
+        author: "ai",
+        text: "logo depois",
+        createdAt: v1CreatedAtMs + 1,
+      },
+    ];
+    getVersionResult = {
+      ...VERSION,
+      version: 1,
+      createdAt: "2026-08-17T09:00:00.000Z",
+    };
+    await POST(new Request("http://test"), ctx());
+    const texts = state.chat.map((m) => m.text);
+    expect(texts).toContain("no exato momento");
+    expect(texts).not.toContain("logo depois");
+  });
+
+  it("still appends the chat.restored notice after truncating", async () => {
+    const v1CreatedAtMs = new Date("2026-08-17T09:00:00.000Z").getTime();
+    state.chat = [
+      {
+        id: "msg-1-u",
+        author: "user",
+        text: "quero uma blusa",
+        createdAt: v1CreatedAtMs - 1000,
+      },
+    ];
+    getVersionResult = {
+      ...VERSION,
+      version: 1,
+      createdAt: "2026-08-17T09:00:00.000Z",
+    };
+    await POST(new Request("http://test"), ctx());
+    const last = state.chat[state.chat.length - 1];
+    expect(last.text).toBe("chat.restored");
+  });
+
   it("maps a withPatternVersioned failure to a coded 503 instead of a bare 500", async () => {
     vi.mocked(withPatternVersioned).mockRejectedValueOnce(
       new Error("Transaction already closed"),
