@@ -13,6 +13,12 @@ const OTHER = "__other__";
 
 export function ClarifyCard({ questions }: { questions: ClarifyQuestion[] }) {
   const t = useTranslations("ClarifyCard");
+  // #262: the same catalog lookup NewPatternForm's own style-field Select
+  // already resolves an EN enum token through (`value.<field>.<value>`) --
+  // never a second, hand-written label map. Only reached for a question
+  // carrying `field`, whose every option validateQuestions already checked
+  // against that field's real catalog (lib/draft/garment.ts).
+  const tCatalog = useTranslations("NewPatternForm");
   const sendMessage = useEditorStore((s) => s.sendMessage);
   const [choice, setChoice] = useState<Record<string, string>>({});
   const [other, setOther] = useState<Record<string, string>>({});
@@ -27,11 +33,28 @@ export function ClarifyCard({ questions }: { questions: ClarifyQuestion[] }) {
     return c;
   };
 
+  // The label a catalog option displays as, and the text the composed
+  // "label: answer" phrase carries for it -- the model still gets an
+  // EN token for a free question with no field (unchanged), but a
+  // catalog option round-trips through the SAME localized label the user
+  // actually clicked, not the internal EN value never shown on screen.
+  const optionLabel = (q: ClarifyQuestion, opt: string): string =>
+    q.field ? tCatalog(`value.${q.field}.${opt}`) : opt;
+
+  const displayAnswerFor = (q: ClarifyQuestion): string | null => {
+    const answer = answerFor(q);
+    if (answer === null) return null;
+    // The "outro" free-text answer is never a catalog token, even for a
+    // field-carrying question -- it must never be run through the lookup.
+    if (q.field && choice[q.id] !== OTHER) return optionLabel(q, answer);
+    return answer;
+  };
+
   const allAnswered = questions.every((q) => answerFor(q) !== null);
 
   const gerar = () => {
     const frase = questions
-      .map((q) => `${q.label}: ${answerFor(q)}`)
+      .map((q) => `${q.label}: ${displayAnswerFor(q)}`)
       .join(", ");
     void sendMessage(frase, { answering: true });
   };
@@ -66,7 +89,7 @@ export function ClarifyCard({ questions }: { questions: ClarifyQuestion[] }) {
             >
               {q.options.map((opt) => (
                 <ToggleGroupItem key={opt} value={opt}>
-                  {opt}
+                  {optionLabel(q, opt)}
                 </ToggleGroupItem>
               ))}
               {q.allowOther && (

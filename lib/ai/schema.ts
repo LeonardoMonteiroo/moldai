@@ -8,6 +8,7 @@ import {
   TROUSER_LENGTH_TOKENS,
 } from "@/lib/draft/garment";
 import { MEASUREMENT_RANGES } from "@/lib/measurements";
+import { CLARIFY_QUESTION_FIELDS } from "@/lib/types";
 import { ENGINE_IDS } from "@/lib/draft/engine/capability";
 import type {
   EngineId,
@@ -207,11 +208,15 @@ function buildTool(capability: EngineCapability): LlmTool {
         questions: {
           type: "array",
           description:
-            "Only when decision=ask: 1 to 4 objective single-choice questions.",
+            'Only when decision=ask: 1 to 4 objective single-choice questions. Set `field` when the question is about one of the style catalogs in GarmentSpec above (neckline/sleeve/skirt/collar/cuff/waistband) and give `options` as the EXACT catalog tokens for that field (e.g. "round"/"V"/"straight" for neckline) — the client renders each token\'s own localized label rather than your literal text, and any token that isn\'t a real value of that catalog is dropped. Leave `field` unset, and write plain option text in the user\'s own language, for anything with no catalog (a measurement, a free-length choice).',
           items: {
             type: "object",
             properties: {
               label: { type: "string" },
+              field: {
+                type: "string",
+                enum: [...CLARIFY_QUESTION_FIELDS],
+              },
               options: {
                 type: "array",
                 items: { type: "string" },

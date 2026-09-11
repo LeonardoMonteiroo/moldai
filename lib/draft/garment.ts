@@ -5,6 +5,7 @@ import {
 } from "@/lib/measurements";
 import {
   ClarifyQuestion,
+  ClarifyQuestionField,
   GarmentSpec,
   GarmentStyle,
   Gender,
@@ -280,6 +281,25 @@ export function validateSpec(raw: unknown): GarmentSpec {
   };
 }
 
+// #262: every catalog a clarifying question's `field` can name, mapped to
+// the SAME exported arrays lib/ai/schema.ts's own styleEnumUnion ultimately
+// renders from (both read NECKLINES/SLEEVES/SKIRTS/COLLARS/CUFFS/WAISTBANDS,
+// re-exported above from ./vocabulary) -- never a second, hand-rolled list
+// of what "neckline" or "collar" may offer. Deliberately the flat, app-wide
+// catalog (the same level validateSpec's own `pick()` calls above read),
+// not one engine's narrower capability -- checkEngineSupport is the only
+// gate allowed to narrow further per-engine/per-type, same as it does for
+// an applied spec.
+const QUESTION_FIELD_CATALOGS: Record<ClarifyQuestionField, readonly string[]> =
+  {
+    neckline: NECKLINES,
+    sleeve: SLEEVES,
+    skirt: SKIRTS,
+    collar: COLLARS,
+    cuff: CUFFS,
+    waistband: WAISTBANDS,
+  };
+
 export function validateQuestions(raw: unknown): ClarifyQuestion[] {
   if (!Array.isArray(raw)) return [];
   const out: ClarifyQuestion[] = [];
@@ -287,11 +307,26 @@ export function validateQuestions(raw: unknown): ClarifyQuestion[] {
     const q = (item ?? {}) as Record<string, unknown>;
     const label = typeof q.label === "string" ? q.label.trim() : "";
     if (!label) continue;
+    // #262: a question naming a field gets every option checked against that
+    // field's own catalog below -- an unrecognized `field` string is treated
+    // the same as no field at all (free-text options, unchanged behavior),
+    // never silently mapped to the wrong catalog.
+    const field =
+      typeof q.field === "string" &&
+      Object.prototype.hasOwnProperty.call(QUESTION_FIELD_CATALOGS, q.field)
+        ? (q.field as ClarifyQuestionField)
+        : undefined;
+    const catalog = field ? QUESTION_FIELD_CATALOGS[field] : undefined;
     const optsRaw = Array.isArray(q.options) ? q.options : [];
     const options: string[] = [];
     for (const o of optsRaw) {
       const s = typeof o === "string" ? o.trim() : "";
-      if (s && !options.includes(s)) options.push(s);
+      if (!s || options.includes(s)) continue;
+      // #262: the whole point -- an option the model offered that isn't a
+      // real value of the named field's catalog is dropped here, structurally,
+      // rather than relying on the prompt's instruction alone.
+      if (catalog && !catalog.includes(s)) continue;
+      options.push(s);
       if (options.length === 6) break;
     }
     if (options.length < 2) continue;
@@ -300,6 +335,7 @@ export function validateQuestions(raw: unknown): ClarifyQuestion[] {
       label,
       options,
       allowOther: q.allowOther === true,
+      ...(field ? { field } : {}),
     });
   }
   return out;

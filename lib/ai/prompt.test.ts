@@ -388,29 +388,27 @@ describe("prompt-cache byte stability", () => {
       staticSectionsFor(DEFAULT_ENGINE_ID) +
       JSON.stringify(toolFor(DEFAULT_ENGINE_ID));
     const hash = createHash("sha256").update(bytes).digest("hex");
-    // #252-follow-up: regenerated -- the "# Decision policy" ask bullet
-    // (buildStaticSections) was rewritten so the model stops treating
+    // #262 + #252-follow-up: regenerated -- the "# Decision policy" ask
+    // bullet (buildStaticSections) was rewritten so the model stops treating
     // neckline/sleeve/fit/length/size as always-required detail (every one
     // of those already has a drafter-side default) and reserves ask for a
-    // request that names nothing beyond the garment type.
-    // #244: regenerated again -- a new style field (pleats: box/inverted-box
-    // on a standalone straight/a-line skirt) was added to the GarmentSpec
-    // section, the "# Vocabulary mapping" prose, and the tool schema; the
-    // "# Assembly / sewing order" section also gained a "pleat" step
-    // description alongside "dart"/"seam"/"hem".
     // #259: regenerated once more -- riseCm joined the same three places
     // (style-field list, vocabulary mapping, tool schema) as a signed
     // waist-rise offset for skirts and trousers.
     // #260: and again -- the five descriptive-length-token style properties
-    // (necklineDepth/skirtLength/seamAllowance/armholeDeepen/trouserLength)
     // joined the tool schema, the trouserLengthCm bullet now points at its
     // token twin, and the "# Descriptive length tokens" section instructs
-    // the model to prefer a token over a free numeric estimate. All
-    // deliberate, expected byte changes (see this describe block's own
-    // comment), not a bug -- the eval harness (npm run eval:ai) is what
-    // proves the behaviour is better, not this hash.
+    // the model to prefer a token over a free numeric estimate.
+    // #262: and once more -- the "# Decision policy" ask bullet plus the
+    // "# Language" section now tell the model to set `field` + EXACT catalog
+    // tokens for a style-catalog question, and propose_garment's own
+    // questions.items gained a `field` enum property (lib/ai/schema.ts) so
+    // that request is structurally valid. All deliberate, expected byte
+    // changes (see this describe block's own comment), not a bug -- the eval
+    // harness (npm run eval:ai) is what proves the behaviour is better, not
+    // this hash.
     expect(hash).toBe(
-      "db61813d7e4c1953b419bc9f3130587d3b74e7639ca61fd51f47140887ed929d",
+      "ddf7482c1cd6641dcdf9aca97c3fbb44b39ad32ff94e342144fc02660b55bc93",
     );
   });
 });

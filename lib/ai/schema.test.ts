@@ -22,12 +22,14 @@ import {
 import { MEASUREMENT_RANGES } from "@/lib/measurements";
 import { DEFAULT_ENGINE_ID } from "@/lib/draft/engine/capability";
 import { getEngine } from "@/lib/draft/engine/registry";
+import { CLARIFY_QUESTION_FIELDS } from "@/lib/types";
 
 interface Prop {
   enum?: string[];
   minimum?: number;
   maximum?: number;
   properties?: Record<string, Prop>;
+  items?: Prop;
 }
 
 const TOOL = toolFor(DEFAULT_ENGINE_ID);
@@ -119,5 +121,16 @@ describe("propose_garment tool schema", () => {
       "ask",
       "explain",
     ]);
+  });
+
+  // #262: a clarifying question's `field` is a shape-level enum of style
+  // FIELD NAMES (never the field's own catalog VALUES -- JSON Schema can't
+  // express "options must match whichever field is named", so that real
+  // enforcement is validateQuestions' job, downstream). CLARIFY_QUESTION_FIELDS
+  // is the one exported source for both this tool schema and
+  // ClarifyQuestionSchema (lib/schemas/garment.ts).
+  it("declares `field` on a question item as CLARIFY_QUESTION_FIELDS", () => {
+    const questionItem = input.properties.questions.items!.properties!;
+    expect(questionItem.field.enum).toEqual(CLARIFY_QUESTION_FIELDS);
   });
 });
