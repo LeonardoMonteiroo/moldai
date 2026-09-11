@@ -10,11 +10,16 @@ import {
 import type { GarmentSpec, PatternState } from "@/lib/types";
 import {
   STYLE_LIMITS,
+  NECKLINES,
+  SLEEVES,
+  SKIRTS,
   COLLARS,
   CUFFS,
   WAISTBANDS,
   FRONT_CLOSURES,
+  FIT_CLASSES,
   PLEATS,
+  STRETCH_CLASSES,
 } from "@/lib/draft/garment";
 import { MEASUREMENT_RANGES, SIZE_TABLE } from "@/lib/measurements";
 import { COSTS } from "@/lib/types";
@@ -57,6 +62,33 @@ describe("buildSystem", () => {
   it("scopes an attached photo to the garment, not any person wearing it", () => {
     expect(STATIC_SECTIONS).toContain("# Attached images");
     expect(STATIC_SECTIONS).toContain("never the person wearing it");
+  });
+
+  // #258: the garmentReading checklist has to name the SAME part vocabulary
+  // validateSpec/checkEngineSupport clamp against, not a second hand-typed
+  // list that could silently drift from it -- asserted here against the
+  // real catalogs (lib/draft/garment.ts's own re-exports), never a pasted
+  // literal.
+  it("tells the model to fill garmentReading, checking the real style catalogs part by part", () => {
+    const section = STATIC_SECTIONS.slice(
+      STATIC_SECTIONS.indexOf("# Attached images"),
+    );
+    expect(section).toContain("garmentReading");
+    for (const catalog of [
+      NECKLINES,
+      SLEEVES,
+      SKIRTS,
+      COLLARS,
+      CUFFS,
+      WAISTBANDS,
+      FRONT_CLOSURES,
+      FIT_CLASSES,
+      STRETCH_CLASSES,
+    ]) {
+      for (const value of catalog) {
+        expect(section).toContain(value);
+      }
+    }
   });
 
   it("blank pattern gets the from-scratch/underspecified rule", () => {
@@ -392,6 +424,12 @@ describe("prompt-cache byte stability", () => {
     // bullet (buildStaticSections) was rewritten so the model stops treating
     // neckline/sleeve/fit/length/size as always-required detail (every one
     // of those already has a drafter-side default) and reserves ask for a
+    // request that names nothing beyond the garment type.
+    // #244: regenerated again -- a new style field (pleats: box/inverted-box
+    // on a standalone straight/a-line skirt) was added to the GarmentSpec
+    // section, the "# Vocabulary mapping" prose, and the tool schema; the
+    // "# Assembly / sewing order" section also gained a "pleat" step
+    // description alongside "dart"/"seam"/"hem".
     // #259: regenerated once more -- riseCm joined the same three places
     // (style-field list, vocabulary mapping, tool schema) as a signed
     // waist-rise offset for skirts and trousers.
@@ -403,12 +441,17 @@ describe("prompt-cache byte stability", () => {
     // "# Language" section now tell the model to set `field` + EXACT catalog
     // tokens for a style-catalog question, and propose_garment's own
     // questions.items gained a `field` enum property (lib/ai/schema.ts) so
-    // that request is structurally valid. All deliberate, expected byte
-    // changes (see this describe block's own comment), not a bug -- the eval
-    // harness (npm run eval:ai) is what proves the behaviour is better, not
-    // this hash.
+    // that request is structurally valid.
+    // #258: and finally -- the "# Attached images" section now instructs the
+    // model to fill garmentReading part-by-part before inferring the
+    // GarmentSpec (ChatGarment's own two-stage chain of thought), and
+    // "# Language" names garmentReading among the fields written in the
+    // user's own language. All deliberate, expected byte changes (see this
+    // describe block's own comment), not a bug -- the eval harness
+    // (npm run eval:ai) is what proves the behaviour is better, not this
+    // hash.
     expect(hash).toBe(
-      "ddf7482c1cd6641dcdf9aca97c3fbb44b39ad32ff94e342144fc02660b55bc93",
+      "1a576065185f177c0f2bbd6685027cd32888e4ab484248ff3d63b3a27851d985",
     );
   });
 });

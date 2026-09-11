@@ -211,11 +211,15 @@ describe("withPattern", () => {
     { key: "decision" as const, value: "apply" as const },
     { key: "draftVersion" as const, value: 2 },
     // #257: same trap, same fix -- changedFields is diffSpec's own output,
-    // the collateral-change detector this issue adds. THIS EXACT BUG
+    // the collateral-change detector that issue added. THIS EXACT BUG
     // (an additive ChatMessage field unnamed in ChatMessageSchema, silently
     // stripped on the very next mutating turn) already independently bit
     // four sibling units in this batch before this one.
     { key: "changedFields" as const, value: ["style.collar"] },
+    // #258: same trap, same fix -- the model's part-by-part read of an
+    // attached image, patched onto the user turn once proposeGarment
+    // resolves (setGarmentReading, lib/editor/state.ts).
+    { key: "garmentReading" as const, value: "Gola V, manga curta." },
   ];
 
   for (const { key, value } of FLAG_CASES) {

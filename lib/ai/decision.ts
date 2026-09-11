@@ -15,6 +15,13 @@ export interface AiDecision {
   questions?: ClarifyQuestion[];
   declineReason?: string;
   assistantMessage: string;
+  // #258: the model's own part-by-part read of an attached image, carried
+  // through for every decision (not just apply) -- an image can arrive
+  // alongside a clarifying question or a decline too. Absent whenever the
+  // model omitted it (no image on the turn, or an image turn where the model
+  // simply skipped it) -- never fatal, never a refund; see
+  // RawToolInput.garmentReading's own doc (lib/ai/schema.ts).
+  garmentReading?: string;
   // #138: only ever true for decision="explain" -- see RawToolInput's own
   // doc (lib/ai/schema.ts) for why this needs to be a structured signal
   // rather than the route sniffing assistantMessage's text.
@@ -58,6 +65,15 @@ export function resolveDecision(
   // return the unchecked `input.assistantMessage` instead of this).
   const message =
     typeof input.assistantMessage === "string" ? input.assistantMessage : "";
+  // #258: same "asserted, never checked" gap as assistantMessage/decision
+  // above -- a missing or non-string garmentReading (no image on the turn,
+  // or an image turn the model simply didn't read) is never fatal, so this
+  // just normalizes to undefined rather than throwing or defaulting to "".
+  const garmentReading =
+    typeof input.garmentReading === "string" &&
+    input.garmentReading.trim() !== ""
+      ? input.garmentReading.trim()
+      : undefined;
   if (input.decision === "ask" && !answering) {
     const questions = validateQuestions(input.questions);
     if (questions.length > 0) {
@@ -68,6 +84,7 @@ export function resolveDecision(
         spec,
         questions,
         assistantMessage: message,
+        ...(garmentReading ? { garmentReading } : {}),
         ...(adjustments.length > 0 ? { adjustments } : {}),
       };
     }
@@ -94,6 +111,7 @@ export function resolveDecision(
     spec,
     declineReason: input.declineReason,
     assistantMessage: message,
+    ...(garmentReading ? { garmentReading } : {}),
     // #138: only carried through for explain -- an apply/decline that
     // happened to echo the flag (a model quirk, not a valid combination per
     // the prompt's own instruction) must not tag an applied draft's chat

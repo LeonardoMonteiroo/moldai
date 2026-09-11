@@ -755,6 +755,55 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(JSON.stringify(state)).not.toContain(data);
   });
 
+  // #258: patched onto the SAME user turn hasImage/imageCount describe,
+  // regardless of decision (this one is "apply") -- setGarmentReading
+  // (lib/editor/state.ts) is what does the patching, called unconditionally
+  // right after proposeGarment resolves.
+  it("persists the model's garmentReading on the user turn", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+      garmentReading: "Gola V, manga curta, barra reta.",
+    });
+
+    await POST(
+      req({
+        message: "uma blusa como nessa foto",
+        images: [{ mediaType: "image/jpeg", data: "ZmFrZS1iYXNlNjQ=" }],
+      }),
+      ctx(),
+    );
+
+    const userTurn = state.chat.find((m) => m.author === "user")!;
+    expect(userTurn.garmentReading).toBe("Gola V, manga curta, barra reta.");
+  });
+
+  // A missing garmentReading (no image on the turn, or an image turn the
+  // model simply skipped) must never invent one on the persisted message.
+  it("leaves garmentReading unset when the model didn't return one", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+
+    await POST(req({ message: "uma blusa" }), ctx());
+
+    const userTurn = state.chat.find((m) => m.author === "user")!;
+    expect(userTurn.garmentReading).toBeUndefined();
+  });
+
   // A text-only request omits the key entirely, and must behave exactly as
   // it did before the wire carried a list at all.
   it("an omitted images key sends no attachments and marks the turn with neither field", async () => {

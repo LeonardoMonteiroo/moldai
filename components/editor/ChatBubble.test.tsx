@@ -201,4 +201,42 @@ describe("ChatBubble", () => {
       ).not.toBeInTheDocument();
     });
   });
+
+  // #258: the model's own part-by-part read of the attached image, rendered
+  // right under the chip that already says how many images the turn
+  // carried -- something the user can see and correct, not a silent misread.
+  describe("garmentReading", () => {
+    function userMessage(overrides: Partial<ChatMessage> = {}): ChatMessage {
+      return message({
+        author: "user",
+        text: "como nessa foto",
+        hasImage: true,
+        imageCount: 1,
+        ...overrides,
+      });
+    }
+
+    it("renders the reading under the attachment chip", () => {
+      renderWithIntl(
+        <ChatBubble
+          message={userMessage({
+            garmentReading: "Gola V, manga curta, barra reta.",
+          })}
+        />,
+      );
+      expect(
+        screen.getByText("Gola V, manga curta, barra reta."),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(ptBR.ChatBubble.garmentReadingLabel),
+      ).toBeInTheDocument();
+    });
+
+    it("shows nothing when the turn has no reading", () => {
+      renderWithIntl(<ChatBubble message={userMessage()} />);
+      expect(
+        screen.queryByText(ptBR.ChatBubble.garmentReadingLabel),
+      ).not.toBeInTheDocument();
+    });
+  });
 });

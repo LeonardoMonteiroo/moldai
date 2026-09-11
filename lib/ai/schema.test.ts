@@ -123,6 +123,16 @@ describe("propose_garment tool schema", () => {
     ]);
   });
 
+  // #258: garmentReading has to be declared BEFORE spec -- property order in
+  // a JSON Schema object is the order the model is nudged to reason in
+  // (read the photo part-by-part first, decide on spec second), matching
+  // the "# Attached images" prompt section's own instruction.
+  it("declares garmentReading before spec, in property order", () => {
+    const order = Object.keys(input.properties);
+    expect(order.indexOf("garmentReading")).toBeGreaterThanOrEqual(0);
+    expect(order.indexOf("garmentReading")).toBeLessThan(order.indexOf("spec"));
+  });
+
   // #262: a clarifying question's `field` is a shape-level enum of style
   // FIELD NAMES (never the field's own catalog VALUES -- JSON Schema can't
   // express "options must match whichever field is named", so that real

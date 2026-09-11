@@ -509,7 +509,10 @@ export type EngineGap =
   | { kind: "styleValue"; field: CapabilityStyleField; value: string }
   | { kind: "styleLimit"; field: CapabilityStyleField; range: Range };
 
-const STYLE_ENUM_FIELDS = [
+// #258: exported so lib/ai/prompt.ts's garmentReading instruction can name
+// the same part vocabulary checkEngineSupport enumerates here, rather than a
+// second hand-typed list that could silently drift from this one.
+export const STYLE_ENUM_FIELDS = [
   "neckline",
   "sleeve",
   "skirt",

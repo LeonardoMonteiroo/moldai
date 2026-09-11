@@ -21,6 +21,15 @@ import { getEngine } from "@/lib/draft/engine/registry";
 // `spec` here is untrusted/unknown-shaped input, not yet a GarmentSpec.
 export interface RawToolInput {
   decision: "apply" | "decline" | "ask" | "explain";
+  // #258: the model's own part-by-part read of an attached image, filled
+  // BEFORE it decides on spec (see prompt.ts's "Attached images" section) --
+  // ChatGarment's own two-stage chain of thought (image -> text description
+  // -> spec) rather than jumping straight from pixels to a GarmentSpec. Only
+  // meaningful on a turn that actually carried an image; absent otherwise,
+  // and never treated as required -- a model that skips it on an image turn
+  // still gets a spec, just without the intermediate read (see
+  // resolveDecision, lib/ai/decision.ts).
+  garmentReading?: string;
   spec?: unknown;
   questions?: unknown;
   declineReason?: string;
@@ -119,6 +128,15 @@ function buildTool(capability: EngineCapability): LlmTool {
         decision: {
           type: "string",
           enum: ["apply", "decline", "ask", "explain"],
+        },
+        // #258: declared BEFORE spec, matching the order the model should
+        // actually reason in on an image turn -- read the photo part-by-part
+        // first, decide on spec second. See prompt.ts's "Attached images"
+        // section for the part vocabulary this asks the model to check.
+        garmentReading: {
+          type: "string",
+          description:
+            "Required whenever the message carries an attached image: a short, part-by-part description of what the photo/sketch actually shows, in the user's own language. Omit entirely on a turn with no attached image.",
         },
         spec: {
           type: "object",
