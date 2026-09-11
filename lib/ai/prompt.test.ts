@@ -14,6 +14,7 @@ import {
   CUFFS,
   WAISTBANDS,
   FRONT_CLOSURES,
+  PLEATS,
 } from "@/lib/draft/garment";
 import { MEASUREMENT_RANGES, SIZE_TABLE } from "@/lib/measurements";
 import { COSTS } from "@/lib/types";
@@ -195,12 +196,13 @@ describe("buildSystem", () => {
   // #129/#130/#131: the sub-piece catalogs render from the same exported
   // constants the schema/validator use, and the model is told not to
   // silently substitute an unsupported shape.
-  it("quotes the collar/cuff/waistband/frontClosure catalogs and tells the model not to silently substitute", () => {
+  it("quotes the collar/cuff/waistband/frontClosure/pleats catalogs and tells the model not to silently substitute", () => {
     const s = buildSystem(DEFAULT_ENGINE_ID, state(0), { answering: false });
     for (const v of COLLARS) expect(s).toContain(v);
     for (const v of CUFFS) expect(s).toContain(v);
     for (const v of WAISTBANDS) expect(s).toContain(v);
     for (const v of FRONT_CLOSURES) expect(s).toContain(v);
+    for (const v of PLEATS) expect(s).toContain(v);
     expect(s).toContain("don't silently substitute");
   });
 
@@ -395,12 +397,17 @@ describe("prompt-cache byte stability", () => {
     // the model to set `field` + EXACT catalog tokens for a style-catalog
     // question (#262); the propose_garment tool's own `questions.items`
     // gained a `field` enum property (lib/ai/schema.ts) so that request is
-    // structurally valid. A deliberate, expected byte change (see this
+    // structurally valid. Regenerated once more on the merge with main,
+    // which had meanwhile added #244's pleats style field (box/inverted-box
+    // on a standalone straight/a-line skirt) to the GarmentSpec section, the
+    // "# Vocabulary mapping" prose and the tool schema, plus a "pleat" step
+    // description in "# Assembly / sewing order" alongside
+    // "dart"/"seam"/"hem". All deliberate, expected byte changes (see this
     // describe block's own comment), not a bug -- the eval harness
-    // (npm run eval:ai) is what proves the #252-follow-up half is better,
-    // not this hash.
+    // (npm run eval:ai) is what proves the behaviour is better, not this
+    // hash.
     expect(hash).toBe(
-      "a1a7b09d5a4b406d556d150edd460ccdf2c00bb86816d6ec7218743ad0771dc5",
+      "d858812f1ade9f1b7953c15046d2f0a6514c848803de767457a4e9ed9147909e",
     );
   });
 });

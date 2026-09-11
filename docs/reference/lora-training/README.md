@@ -1,17 +1,16 @@
 # LoRA training runbook (#269 Fase 5)
 
-> Status: **Steps 1-2 (get a dataset) are built and have run for real** — see
-> Step 2 below for the combinatorial generator that replaced the
-> catalog-distillation attempt, and `docs/decisions/ai-provider.md` for the
-> measured smoke-run numbers. **Steps 3-5 (train, serve, gate) remain
-> tooling built, not yet run.** No GPU exists in the environment that wrote
-> `train_lora.py` — that script has been read carefully (it's Python, this
-> environment can't execute it) but never run. Treat ITS commands as a
-> reviewed starting point, not a proven one; `prepare_dataset.py` is a
-> different, weaker claim than `train_lora.py` (its logic has been read and
-> the JSONL it consumes is real, inspected output) but it too has never
-> actually executed in this environment — no Python interpreter is
-> available here either.
+> Status: **All five steps have now run for real, at least once**, on a
+> rented RunPod A100-80GB (2026-09-07). Training completed cleanly (loss
+> 1.55 → 0.033, eval loss 0.031, 99.2% mean token accuracy on the held-out
+> split) and the trained adapter was served via vLLM and gate-checked
+> against the un-adapted base model with `npm run eval:ai`. **The LoRA did
+> NOT clear the gate** — it improved editing but regressed generation
+> (decision + field accuracy both dropped). See
+> [`../../decisions/ai-provider.md`](../../decisions/ai-provider.md)'s
+> 2026-09-07 entry for the full numbers and the leading hypothesis (a
+> generation-vs-editing imbalance in the training data). A retrain with a
+> rebalanced dataset is the natural next step, not yet attempted.
 >
 > See [`../../decisions/ai-provider.md`](../../decisions/ai-provider.md) for
 > why this is a facade-and-measure approach rather than a hard swap, and for
@@ -133,9 +132,12 @@ python train_lora.py \
 ```
 
 Defaults: rank 16 / alpha 32 QLoRA over Qwen's standard attention+MLP
-projections, 3 epochs, bf16 compute. `--base-model` switches to
-`Qwen/Qwen3-8B` for the text-only candidate `docker-compose.gpu.yml`'s own
-comment names as the harness-decided alternative.
+projections, 3 epochs, bf16 compute, base model `Qwen/Qwen3-8B` (text-only —
+switched from the VL/multimodal candidate after a real run found
+`Qwen2.5-VL-7B-Instruct`'s config class isn't one `AutoModelForCausalLM`
+recognizes; see `train_lora.py`'s own top comment and the 2026-09-07 entry
+in `docs/decisions/ai-provider.md`). On a rented A100-80GB this step took
+about 75 minutes wall-clock for the 595-example seed dataset.
 
 ## Step 5 — serve and gate
 
@@ -151,4 +153,15 @@ LLM_PROVIDER=local LLM_MODEL=moldai-v1 npm run eval:ai
 ships if it beats the un-adapted base model on `npm run eval:ai`'s own
 report, on a split held out before training (`--val-split` above).** No
 inspection-only judgment call — the same rule that made building the eval
-harness Phase 1 in the first place.
+harness Phase 1 in the first place. Run it twice against the same vLLM
+instance — once with `LLM_MODEL=Qwen/Qwen3-8B` (no LoRA), once with
+`LLM_MODEL=moldai-v1` — and diff the two reports; `npm run eval:ai` writes
+to the committed `docs/reference/ai-eval/report.md`, so save each run's
+report elsewhere (e.g. `cp` to an untracked file) before running the other,
+and `git checkout -- docs/reference/ai-eval/report.md` once both are
+captured, or the committed Anthropic baseline gets silently overwritten.
+
+**First real run of this step (2026-09-07): did not clear the gate.** See
+`docs/decisions/ai-provider.md`'s dated entry for the numbers — editing
+improved, generation regressed, net result read as a fail per this gate's
+own standard.

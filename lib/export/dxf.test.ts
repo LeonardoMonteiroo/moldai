@@ -323,6 +323,30 @@ describe("toDxf", () => {
     expect(noInternals).not.toContain("\nCIRCLE\n");
   });
 
+  // #244: a pleat's own placement/stitch line -> an open LWPOLYLINE on
+  // INTERNO, same "internal, not cut" layer as the dart/fold line above.
+  it("a pleat's placement line comes out as an OPEN LWPOLYLINE on INTERNO", () => {
+    const pleatModel: ExportModel = {
+      ...squareModel,
+      pieces: [
+        {
+          ...squareModel.pieces[0],
+          pleats: [
+            [
+              { x: 4, y: 2 },
+              { x: 4, y: 6 },
+            ],
+          ],
+        },
+      ],
+    };
+    const dxf = toDxf(pleatModel);
+    expect(dxf.match(/\nLWPOLYLINE\n/g)?.length).toBe(3); // cut + net + pleat
+    expect(dxf).toMatch(/LWPOLYLINE\n8\nINTERNO\n90\n2\n70\n0\n/);
+    const noPleats = toDxf(squareModel);
+    expect(noPleats.match(/\nLWPOLYLINE\n/g)?.length).toBe(2); // cut + net only
+  });
+
   it("1:1 scale: CONTORNO is the 12cm cut line, COSTURA the 10cm net line (mm)", () => {
     const dxf = toDxf(squareModel);
     const cutXs = lwVerticesOnLayer(dxf, "CONTORNO").map((v) => v.x);
@@ -341,6 +365,65 @@ describe("toDxf", () => {
     expect(dxf).toContain(
       "folga 0cm (CONTORNO = linha de corte, COSTURA = linha de costura líquida)",
     );
+  });
+
+  // #243: an internal loop (hole) is a genuine cut boundary too -- it shares
+  // CONTORNO/COSTURA with the piece's own outer boundary, not INTERNO (which
+  // is reserved for marks that are never actually cut).
+  describe("internal loops (#243)", () => {
+    function allLwPolylineLayers(dxf: string): string[] {
+      const lines = dxf.split("\n");
+      const layers: string[] = [];
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i] === "LWPOLYLINE") layers.push(lines[i + 2]);
+      }
+      return layers;
+    }
+
+    const loopModel: ExportModel = {
+      ...squareModel,
+      pieces: [
+        {
+          ...squareModel.pieces[0],
+          internalLoops: [
+            {
+              outline: {
+                start: { x: 3, y: 3 },
+                segs: [
+                  { kind: "line", to: { x: 7, y: 3 } },
+                  { kind: "line", to: { x: 7, y: 7 } },
+                  { kind: "line", to: { x: 3, y: 7 } },
+                  { kind: "line", to: { x: 3, y: 3 } },
+                ],
+              },
+              cutOutline: {
+                start: { x: 4, y: 4 },
+                segs: [
+                  { kind: "line", to: { x: 6, y: 4 } },
+                  { kind: "line", to: { x: 6, y: 6 } },
+                  { kind: "line", to: { x: 4, y: 6 } },
+                  { kind: "line", to: { x: 4, y: 4 } },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    it("adds one more CONTORNO and one more COSTURA LWPOLYLINE, not a third layer", () => {
+      const layers = allLwPolylineLayers(toDxf(loopModel));
+      expect(layers.filter((l) => l === "CONTORNO")).toHaveLength(2);
+      expect(layers.filter((l) => l === "COSTURA")).toHaveLength(2);
+      expect(layers).toHaveLength(4); // no loop vertices land on INTERNO
+    });
+
+    it("the loop's own cut vertices are present in the emitted geometry", () => {
+      const dxf = toDxf(loopModel);
+      // loop cutOutline point (4,4)cm, origin (2,2)cm, sheetHeightCm=30:
+      // X=(2+4)*10=60, Y=(30-(2+4))*10=240
+      expect(dxf).toContain("10\n60\n20\n240");
+    });
   });
 });
 

@@ -101,7 +101,11 @@ describe("draftSleeve bell cap", () => {
       expect(dist(double.outerCm, ua4)).toBeLessThan(dist(double.outerCm, ua0));
     });
 
-    it("respects the pitchNotchCm passed in, clamped to a fraction of the cap arc", () => {
+    // #253: sleeve.ts no longer re-clamps pitchNotchCm against its own cap
+    // arc -- it's used verbatim (already pre-derived upstream, off the
+    // mated pair's own combined total). A caller passing a farther distance
+    // still places the notch farther, which is all this test asserts.
+    it("respects the pitchNotchCm passed in", () => {
       const near = draftSleeve(M, { sleeve: "short" }, 39.3, t, undefined, 2)!;
       const far = draftSleeve(M, { sleeve: "short" }, 39.3, t, undefined, 8)!;
       const [ua0] = near.outlineCm;

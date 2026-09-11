@@ -76,19 +76,22 @@ export function Proof3DTab() {
   // by simple degree difference, but visually neither).
   const namedView = VIEWS.find((v) => VIEW_YAW_DEG[v] === yawDeg);
 
-  // #128: buildProofMesh only knows the body/sleeve/skirt piece ids -- a
-  // trousers pattern's pieces ("trouser-front"/"trouser-back") match none of
-  // them, so it would silently return a bare mannequin with zero garment
-  // shells instead of failing. Rather than let that render as an unlabeled
-  // empty preview (indistinguishable from a real bug), this tab treats
-  // trousers/hoodie/coat/shirt as an honest, named gap -- the same "surface the
-  // limitation where the user meets it" rule the DXF import screen's own
-  // createDisabledNote and this tab's existing beta badge already follow.
-  // A catalog lookup (t(`notSupportedFor.${type}`)) keyed by the real
-  // GarmentType, never a hand-written label map -- the same convention
-  // `garmentType.<type>` already uses elsewhere.
+  // #254: trousers now declares a real placementCm on its front/back panels
+  // (lib/draft/trousers.ts), so buildProofMesh finds them by role and builds
+  // a real two-leg shell -- #128's own gap is closed. hoodie/coat/shirt stay
+  // an honest, named gap: those three are drafted ONLY by the "freesewing"
+  // engine (lib/draft/engine/capability.ts's MOLDAI_CAPABILITY excludes all
+  // three), whose own piece wrappers don't declare a placementCm role at
+  // all, so mesh.ts would still return a bare mannequin with zero garment
+  // shells for them. Rather than let that render as an unlabeled empty
+  // preview (indistinguishable from a real bug), this tab treats those three
+  // as a named gap -- the same "surface the limitation where the user meets
+  // it" rule the DXF import screen's own createDisabledNote and this tab's
+  // existing beta badge already follow. A catalog lookup
+  // (t(`notSupportedFor.${type}`)) keyed by the real GarmentType, never a
+  // hand-written label map -- the same convention `garmentType.<type>`
+  // already uses elsewhere.
   const unsupportedGarmentType =
-    pattern?.spec?.type === "trousers" ||
     pattern?.spec?.type === "hoodie" ||
     pattern?.spec?.type === "coat" ||
     pattern?.spec?.type === "shirt"

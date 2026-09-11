@@ -171,6 +171,10 @@ function buildTool(capability: EngineCapability): LlmTool {
                 trouserLengthCm: bounded(
                   capability.styleLimits.trouserLengthCm,
                 ),
+                pleats: {
+                  type: "string",
+                  enum: styleEnumUnion(capability, "pleats"),
+                },
               },
             },
           },

@@ -6,9 +6,17 @@ import type { GarmentSpec, GarmentStyle } from "@/lib/types";
 // describeSpecAdjustments: that one diffs a raw (untrusted) tool payload
 // against what validateSpec did to it (substituted/clamped, one spec). This
 // diffs two already-validated GarmentSpecs against each other (before an
-// edit vs. after), which is a different comparison and has no other owner
-// in the repo. A leaf module, like specAdjustments.ts and vocabulary.ts: no
-// import from garment.ts, no drafting logic.
+// edit vs. after), which is a different comparison. A leaf module, like
+// specAdjustments.ts and vocabulary.ts: no import from garment.ts, no
+// drafting logic.
+//
+// #257: this IS the field-by-field comparison lib/editor/state.ts's own
+// diffSpec(prev, next): string[] wraps -- that one reshapes SpecFieldChange[]
+// into the chat-facing "type" | "gender" | "style.<key>" |
+// "measurementOverrides.<key>" path strings ChatBubble resolves through the
+// pt-BR catalog. STYLE_FIELDS below is the one place a new GarmentStyle
+// field must be added for BOTH consumers to see it change -- do not add a
+// second copy of this list anywhere else.
 
 export type SpecField =
   "type" | "gender" | keyof GarmentStyle | "measurementOverrides";
@@ -20,24 +28,33 @@ export interface SpecFieldChange {
   after: unknown;
 }
 
-const STYLE_FIELDS: (keyof GarmentStyle)[] = [
-  "neckline",
-  "necklineDepthCm",
-  "sleeve",
-  "skirt",
-  "skirtLengthCm",
-  "darts",
-  "seamAllowanceCm",
-  "fit",
-  "stretch",
-  "armholeDeepenCm",
-  "sleeveRefit",
-  "collar",
-  "cuff",
-  "waistband",
-  "frontClosure",
-  "trouserLengthCm",
-];
+// #279: route.ts's engineStyleUnsupported/specAdjusted turn-scoping now
+// depends on this list actually covering every GarmentStyle key -- a
+// forgotten one would silently and permanently suppress both notices for
+// that field. `STYLE_FIELD_MAP`'s mapped type requires (and forbids extra)
+// every GarmentStyle key, so a field added to GarmentStyle without being
+// added here is a compile error here, not a silent gap; the display/diff
+// order (unaffected by this) is still the object literal's own key order.
+const STYLE_FIELD_MAP: Record<keyof GarmentStyle, true> = {
+  neckline: true,
+  necklineDepthCm: true,
+  sleeve: true,
+  skirt: true,
+  skirtLengthCm: true,
+  darts: true,
+  seamAllowanceCm: true,
+  fit: true,
+  stretch: true,
+  armholeDeepenCm: true,
+  sleeveRefit: true,
+  collar: true,
+  cuff: true,
+  waistband: true,
+  frontClosure: true,
+  trouserLengthCm: true,
+  pleats: true,
+};
+const STYLE_FIELDS = Object.keys(STYLE_FIELD_MAP) as (keyof GarmentStyle)[];
 
 function overridesEqual(
   a: Record<string, number>,
