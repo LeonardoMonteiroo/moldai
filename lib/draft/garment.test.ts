@@ -1049,11 +1049,13 @@ function assertDecorationsContained(pieces: ReturnType<typeof draftPiecesCm>) {
     }
     // #2: a notch's inward tip is decoration placed off the boundary just
     // like a grainline or a drill hole, and it was the one kind this sweep
-    // never checked -- notchAt() picks its inward normal by biasing toward a
-    // caller-supplied interior point, so a wrong reference point on a scooped
-    // or tapered edge sends the tip straight out of the piece. The outer
-    // point is asserted to sit ON the boundary elsewhere; here we only need
-    // the tip, and the check below is boundary-inclusive anyway.
+    // never checked. #263: notchAt() derives its inward normal purely from
+    // the outline's own winding now (core.ts's canonicalTangent), not a
+    // caller-supplied interior reference point -- but a drafter that got its
+    // own winding wrong on a scooped or tapered edge could still send the
+    // tip straight out of the piece, so this sweep keeps checking it. The
+    // outer point is asserted to sit ON the boundary elsewhere; here we only
+    // need the tip, and the check below is boundary-inclusive anyway.
     if (piece.notches?.length) {
       const dense = densifiedOutline(piece.outlineCm, piece.curvedSpans);
       for (const notch of piece.notches) {
@@ -1399,6 +1401,19 @@ function foldEndpointChangesNothing(
 describe("#124: sleeve pitch notches match the body's, generated from the same computation", () => {
   const dist = (a: [number, number], b: [number, number]) =>
     Math.hypot(a[0] - b[0], a[1] - b[1]);
+  // #263: the underarm is always the DEEPER (larger-y) end of the panel's
+  // own armhole edge -- order-agnostic against which specific index
+  // (`armhole[0]` vs `armhole[1]`) core.ts's normalizeWinding happened to
+  // remap it to, unlike reading a fixed position (e.g. `curvedSpans[1][1]`).
+  const underarmVertex = (piece: {
+    outlineCm: [number, number][];
+    seamEdges?: Record<string, [number, number]>;
+  }): [number, number] => {
+    const [a, b] = piece.seamEdges!.armhole;
+    const pa = piece.outlineCm[a];
+    const pb = piece.outlineCm[b];
+    return pa[1] >= pb[1] ? pa : pb;
+  };
 
   for (const [name, spec] of DECORATION_CASES) {
     if (!spec.style.sleeve || spec.style.sleeve === "none") continue;
@@ -1421,8 +1436,8 @@ describe("#124: sleeve pitch notches match the body's, generated from the same c
       const [backPitchL] = back.notches!;
       expect(frontPitchL.type).toBe("single");
       expect(backPitchL.type).toBe("double");
-      const frontUaL = front.outlineCm[front.curvedSpans![1][1]];
-      const backUaL = back.outlineCm[back.curvedSpans![1][1]];
+      const frontUaL = underarmVertex(front);
+      const backUaL = underarmVertex(back);
       const frontDistCm = dist(frontUaL, frontPitchL.outerCm);
       const backDistCm = dist(backUaL, backPitchL.outerCm);
 
@@ -1462,7 +1477,7 @@ describe("#124: sleeve pitch notches match the body's, generated from the same c
     const [slSingle] = sleeve.notches!;
     const [frontPitchL] = front.notches!;
     const sleeveSingleDistCm = dist(sleeve.outlineCm[0], slSingle.outerCm);
-    const frontUaL = front.outlineCm[front.curvedSpans![1][1]];
+    const frontUaL = underarmVertex(front);
     const frontDistCm = dist(frontUaL, frontPitchL.outerCm);
     expect(Math.abs(sleeveSingleDistCm - frontDistCm)).toBeLessThan(0.2);
   });
