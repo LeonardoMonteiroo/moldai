@@ -15,6 +15,11 @@ import {
   STYLE_LIMITS,
   FIT_CLASSES,
   STRETCH_CLASSES,
+  NECKLINE_DEPTH_TOKENS,
+  SKIRT_LENGTH_TOKENS,
+  SEAM_ALLOWANCE_TOKENS,
+  ARMHOLE_DEEPEN_TOKENS,
+  TROUSER_LENGTH_TOKENS,
 } from "./vocabulary";
 
 // #267: garment.ts re-exports every one of these verbatim -- this pins the
@@ -36,6 +41,11 @@ describe("vocabulary re-exported by garment.ts", () => {
     expect(g.STYLE_LIMITS).toEqual(STYLE_LIMITS);
     expect(g.FIT_CLASSES).toEqual(FIT_CLASSES);
     expect(g.STRETCH_CLASSES).toEqual(STRETCH_CLASSES);
+    expect(g.NECKLINE_DEPTH_TOKENS).toEqual(NECKLINE_DEPTH_TOKENS);
+    expect(g.SKIRT_LENGTH_TOKENS).toEqual(SKIRT_LENGTH_TOKENS);
+    expect(g.SEAM_ALLOWANCE_TOKENS).toEqual(SEAM_ALLOWANCE_TOKENS);
+    expect(g.ARMHOLE_DEEPEN_TOKENS).toEqual(ARMHOLE_DEEPEN_TOKENS);
+    expect(g.TROUSER_LENGTH_TOKENS).toEqual(TROUSER_LENGTH_TOKENS);
   });
 });
 

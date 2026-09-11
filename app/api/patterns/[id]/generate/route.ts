@@ -3,7 +3,7 @@ import { parseBody, hasNulByte } from "@/lib/api/body";
 import { GenerateBodySchema } from "@/lib/schemas/pattern";
 import { getTranslations } from "next-intl/server";
 import { withPatternAndWallet } from "@/lib/db/pattern-wallet";
-import { patternNotFound } from "@/lib/db/pattern";
+import { patternNotFound, withPattern } from "@/lib/db/pattern";
 import {
   getSizeChartForGeneration,
   getSizeChartGenderForUser,
@@ -16,6 +16,7 @@ import {
   diffSpec as diffSpecSummary,
   getSpec,
   seedPatternSizeSnapshot,
+  setGarmentReading,
 } from "@/lib/editor/state";
 import { diffSpec } from "@/lib/draft/specDiff";
 import { debitWallet, refundWallet } from "@/lib/billing/wallet";
@@ -33,10 +34,12 @@ import { apiError } from "@/lib/api/errors";
 import {
   COSTS,
   MAX_CHAT_MESSAGE_LENGTH,
+  type EditorState,
   type GarmentSpec,
   type Gender,
 } from "@/lib/types";
-import { proposeGarment } from "@/lib/ai";
+import { proposeGarment, type ProposeImage } from "@/lib/ai";
+import { findReferenceDisagreement } from "@/lib/ai/compareToReference";
 import { validateFormSpec, mergeFormSpec } from "@/lib/ai/formSpec";
 import {
   validateAttachmentInputs,
@@ -60,6 +63,17 @@ type Ctx = { params: Promise<{ id: string }> };
 // have allowed, and it would refuse it as the generic bad_body, before the
 // attachment validator could say what was actually wrong.
 const MAX_GENERATE_BODY_BYTES = MAX_ATTACHMENTS_TOTAL_BASE64_CHARS + 16 * 1024;
+
+// The wire's `data` becomes the provider block's `base64` -- one rename at
+// the one seam between the two shapes, in the order received (the order the
+// model reads them in). Shared by the primary proposeGarment call (still
+// run inside withPatternAndWallet's transaction) and the #264
+// reference-comparison follow-up (run AFTER that transaction commits) so
+// the mapping itself has exactly one definition, even though the two calls
+// can no longer share one prepared array's reference.
+function toProposeImages(attachments: WireAttachment[]): ProposeImage[] {
+  return attachments.map((a) => ({ mediaType: a.mediaType, base64: a.data }));
+}
 
 export async function POST(request: Request, { params }: Ctx) {
   const gate = await requireUser();
@@ -184,6 +198,16 @@ export async function POST(request: Request, { params }: Ctx) {
     typeof body.importContext === "string"
       ? body.importContext.slice(0, MAX_IMPORT_CONTEXT_CHARS)
       : undefined;
+  // #265: the piece the editor had selected when this turn was sent. Read
+  // tolerantly (only a string is looked at) because there is no reject path
+  // for this field -- the real trust boundary is the lookup against this
+  // pattern's OWN `pieces`, by id, done below once `state` is in scope. An
+  // id that doesn't resolve there (a renamed/deleted piece, a stale
+  // selection left over from before a regenerate, or simply none selected)
+  // must drop the scope silently rather than 400 -- see
+  // lib/ai/options.ts's ProposeOptions.partScope doc.
+  const selectedPieceId =
+    typeof body.selectedPieceId === "string" ? body.selectedPieceId : null;
   const cost = COSTS.adjust;
   const t = await getTranslations("PatternData");
   // #3: getSizeChartForGeneration -> listSizeChartsForUser now needs its own
@@ -198,6 +222,15 @@ export async function POST(request: Request, { params }: Ctx) {
   // resolves it through -- never a second, driftable label map.
   const tGarment = await getTranslations("TechSheetTab");
   const now = new Date();
+
+  // #264: set only on a genuine, successfully-applied "apply" (after
+  // applyGarmentSpec/bumpVersion/recordVersion, never on the engine's own
+  // "declined" early-out further down) -- read AFTER withPatternAndWallet
+  // has committed, to decide whether the reference-comparison follow-up
+  // below runs at all. A plain captured value, not a call: the comparison
+  // itself must never run inside this transaction (see the comment at its
+  // call site for why).
+  let capturedSpec: GarmentSpec | undefined;
 
   let result;
   try {
@@ -228,8 +261,9 @@ export async function POST(request: Request, { params }: Ctx) {
           };
         }
 
+        const userMessageId = `msg-${Date.now()}-u`;
         addMessage(state, {
-          id: `msg-${Date.now()}-u`,
+          id: userMessageId,
           author: "user",
           text: trimmed,
           createdAt: Date.now(),
@@ -266,20 +300,24 @@ export async function POST(request: Request, { params }: Ctx) {
           state.pattern = { ...state.pattern, engine: requestedEngine };
         }
 
+        // Only feeds the primary proposeGarment call below -- the #264
+        // reference comparison re-derives its own copy (toProposeImages,
+        // above) from `images` AFTER this transaction commits, rather than
+        // reusing this one (see the capturedSpec comment above for why it
+        // cannot run in here).
+        const preparedImages = images ? toProposeImages(images) : undefined;
+        // #265: the trust-boundary lookup -- resolved against THIS
+        // pattern's own `pieces`, by id, never accepted as free text. An
+        // unrecognized or stale id (undefined here) simply omits the scope
+        // below, so the turn behaves exactly as an unscoped one.
+        const partScope = selectedPieceId
+          ? state.pattern.pieces.find((p) => p.id === selectedPieceId)?.name
+          : undefined;
+
         try {
           const decision = await proposeGarment(state, {
             answering,
-            // The wire's `data` becomes the prepared block's `base64` --
-            // one rename at the one seam between the two shapes, in the
-            // order received, which is the order the model reads them in.
-            ...(images
-              ? {
-                  images: images.map((a) => ({
-                    mediaType: a.mediaType,
-                    base64: a.data,
-                  })),
-                }
-              : {}),
+            ...(preparedImages ? { images: preparedImages } : {}),
             importContext,
             // Told to the model so its own reply text stays coherent and it
             // does not ask about an already-answered field. That is
@@ -288,7 +326,19 @@ export async function POST(request: Request, { params }: Ctx) {
             // every measurement regardless of what the model claims
             // prompted the value.
             ...(formSpec ? { formSpec } : {}),
+            ...(partScope ? { partScope } : {}),
           });
+
+          // #258: patched onto the user turn the reading describes (the
+          // SAME turn hasImage/imageCount above are on), not the ai turn
+          // added by whichever branch runs below -- and unconditionally,
+          // before the decision switch, since an image can arrive alongside
+          // any of ask/decline/explain/apply, not just apply. Absent
+          // whenever the model omitted it; never fatal (see
+          // resolveDecision, lib/ai/decision.ts).
+          if (decision.garmentReading) {
+            setGarmentReading(state, userMessageId, decision.garmentReading);
+          }
 
           // #99: this used to be three positive `if`s (ask/decline/explain)
           // with an implicit else that applied — so any decision value the
@@ -628,6 +678,22 @@ export async function POST(request: Request, { params }: Ctx) {
                   createdAt: Date.now(),
                 });
               }
+              // #264: an apply that came with a reference photo/sketch is
+              // exactly where a wrong type/neckline/silhouette is both most
+              // likely and most invisible -- the user gets a plausible
+              // pattern of the wrong garment. Only CAPTURED here -- the
+              // actual comparison call runs after this transaction commits
+              // (see the follow-up below withPatternAndWallet), never in
+              // here: proposeGarment's own worst case already spends close
+              // to the full 30s TX_OPTS budget this transaction holds the
+              // Pattern+Wallet locks for (20s + 8s repair -- see
+              // lib/ai/provider/anthropic.ts), and this comparison's own
+              // 8s ceiling on top of that could blow the transaction's
+              // timeout and roll back an apply that had already succeeded --
+              // exactly the failure #264 must never cause.
+              if (images) {
+                capturedSpec = spec;
+              }
               return {
                 result: NextResponse.json({
                   status: conflict ? "conflict" : "ok",
@@ -674,5 +740,74 @@ export async function POST(request: Request, { params }: Ctx) {
     console.error("[generate] withPatternAndWallet failed:", err);
     return apiError("service_unavailable", 503);
   }
-  return result ?? patternNotFound();
+  if (!result) return patternNotFound();
+
+  // #264: runs AFTER the primary transaction above has already committed --
+  // spec, version and pieces are already saved, and the credit already
+  // spent, before this ever starts. `images` (re-mapped to the provider's
+  // block shape, same rename as the primary call's own preparedImages)
+  // stays in scope here since it was validated at the top of this function,
+  // outside withPatternAndWallet entirely.
+  //
+  // A disagreement is persisted through a SEPARATE, Pattern-only lock
+  // (withPattern -- no Wallet, so the credit this apply already correctly
+  // spent is never at risk of this call's own timeout) rather than folded
+  // back into the transaction above. addMessage is the only state write --
+  // never a second version, never a re-drafted spec.
+  //
+  // Wrapped in its own try/catch: a thrown error here (a network failure, a
+  // rejected provider call, a failed follow-up lock) must never turn an
+  // already-successful apply into anything the caller sees as a failure --
+  // it is only ever logged via reportError and otherwise swallowed.
+  if (capturedSpec && images) {
+    try {
+      const disagreement = await findReferenceDisagreement(
+        capturedSpec,
+        toProposeImages(images),
+      );
+      if (disagreement) {
+        const updated = await withPattern(id, gate.id, (followState) => {
+          addMessage(followState, {
+            id: `msg-${Date.now()}-refcheck`,
+            author: "ai",
+            text: t("chat.referenceMismatch", { note: disagreement }),
+            tone: "notice",
+            createdAt: Date.now(),
+          });
+          return followState;
+        });
+        // Folded into the SAME response the client already received the
+        // successful apply in, rather than left for a future refetch to
+        // surface -- `credits` is carried over unchanged from the original
+        // body (this follow-up never touches the wallet) while every other
+        // field comes from the freshly-saved state. Mirrors
+        // composeEditorState's own `pattern.updatedAt` merge
+        // (lib/api/compose.ts) rather than calling it directly: there is no
+        // `Wallet` in scope this far past the primary transaction, and
+        // `credits` has to be carried over rather than rebuilt from one.
+        if (updated) {
+          const original = (await result.clone().json()) as {
+            status: string;
+            state?: EditorState;
+          };
+          if (original.state) {
+            result = NextResponse.json({
+              ...original,
+              state: {
+                ...updated,
+                pattern: {
+                  ...updated.pattern,
+                  updatedAt: new Date().toISOString(),
+                },
+                credits: original.state.credits,
+              },
+            });
+          }
+        }
+      }
+    } catch (err) {
+      reportError("generate-compare", err, { patternId: id, userId: gate.id });
+    }
+  }
+  return result;
 }

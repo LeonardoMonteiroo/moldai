@@ -133,7 +133,15 @@ async function runGeneration(): Promise<GenerationResult[]> {
   return results;
 }
 
-async function runEditing(): Promise<EditingResult[]> {
+// #265: `scoped` re-runs the SAME cases/instructions with a resolved
+// `partScope` (the eval-harness equivalent of the generate route's own
+// selectedPieceId -> pattern.pieces lookup, by id -- here looked up by the
+// case's own `scopedPieceKey` instead, since the harness has no client id to
+// start from). This is what lets the report compare collateral drift
+// scoped vs unscoped on identical instructions, per issue 265's own
+// acceptance criteria: the section is kept or dropped on this number, not
+// on inspection.
+async function runEditing(scoped: boolean): Promise<EditingResult[]> {
   const cases = ARGS.only
     ? EDITING_CASES.filter((c) => ARGS.only!.has(c.id))
     : EDITING_CASES;
@@ -145,19 +153,34 @@ async function runEditing(): Promise<EditingResult[]> {
       testCase.baseSpec.gender === "male" ? "male" : "female",
     );
     applyGarmentSpec(state, testCase.baseSpec, t);
+    // Under the harness's identity Translate (lib/i18n/test-translate.ts), a
+    // drafted piece's own `name` IS the literal `pieceNames.<key>` string --
+    // no separate lookup table to keep in sync with messages/pt-BR.json.
+    // Absent scopedPieceKey, or no matching piece among what baseSpec
+    // actually drafted (e.g. a collar that doesn't exist until the edit
+    // adds one), silently resolves to no partScope -- the same
+    // "unresolved id behaves as unscoped" contract the real route follows.
+    const partScope = scoped
+      ? state.pattern.pieces.find(
+          (p) => p.name === `pieceNames.${testCase.scopedPieceKey}`,
+        )?.name
+      : undefined;
     addMessage(state, {
       id: `msg-${testCase.id}`,
       author: "user",
       text: testCase.instruction,
       createdAt: Date.now(),
     });
-    process.stdout.write(`editing: ${testCase.id}... `);
+    process.stdout.write(
+      `editing${scoped ? " (scoped)" : ""}: ${testCase.id}... `,
+    );
     try {
       // #276: tags this call's Langfuse trace as eval-harness traffic, not
       // production -- see lib/observability/langfuse.ts.
       const decision = await proposeGarment(state, {
         answering: false,
         evalRun: true,
+        ...(partScope ? { partScope } : {}),
       });
       const result = scoreEditing(testCase, decision.spec);
       results.push(result);
@@ -186,17 +209,23 @@ async function main() {
   // LLM_PROVIDER=local, matching what each Langfuse trace tags the call
   // with (lib/observability/langfuse.ts).
   const provider = getProvider();
-  const caseCount = ARGS.only
-    ? [...GENERATION_CASES, ...EDITING_CASES].filter((c) =>
-        ARGS.only!.has(c.id),
-      ).length
-    : GENERATION_CASES.length + EDITING_CASES.length;
+  // #265: editing cases now run twice -- once unscoped, once with a resolved
+  // partScope -- to produce the scoped-vs-unscoped comparison renderReport's
+  // new section prints, so they count double against the token budget.
+  const generationCount = ARGS.only
+    ? GENERATION_CASES.filter((c) => ARGS.only!.has(c.id)).length
+    : GENERATION_CASES.length;
+  const editingCount = ARGS.only
+    ? EDITING_CASES.filter((c) => ARGS.only!.has(c.id)).length
+    : EDITING_CASES.length;
+  const caseCount = generationCount + editingCount * 2;
   console.log(
     `Spending real tokens against provider "${provider.id}" (${provider.model()}): ${caseCount} calls, each with up to one repair retry.\n`,
   );
 
   const generationResults = await runGeneration();
-  const editingResults = await runEditing();
+  const editingResults = await runEditing(false);
+  const scopedEditingResults = await runEditing(true);
 
   const report = renderReport(
     {
@@ -206,6 +235,7 @@ async function main() {
     },
     generationResults,
     editingResults,
+    scopedEditingResults,
   );
 
   // #252: a --only run must never overwrite the committed baseline with a

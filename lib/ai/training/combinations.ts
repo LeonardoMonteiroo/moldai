@@ -112,6 +112,10 @@ const NUMERIC_SAMPLE_VALUES: Record<
   seamAllowanceCm: [1, 2, 3],
   armholeDeepenCm: [2, 4],
   trouserLengthCm: [70, 90, 100, 110],
+  // #259: signed -- both a "cintura alta" (positive) and a "gancho baixo"
+  // (negative) sample, plus a small positive value, inside STYLE_LIMITS.
+  // riseCm's own [-10, 15] range.
+  riseCm: [-6, 5, 10],
 };
 
 interface FieldSpec {

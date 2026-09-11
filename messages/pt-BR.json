@@ -51,6 +51,7 @@
   "ChatBubble": {
     "questionsAnswered": "Perguntas respondidas.",
     "imagesAttached": "{count, plural, one {imagem enviada} other {# imagens enviadas}}",
+    "garmentReadingLabel": "Leitura da imagem:",
     "assemblyDisclaimer": "Ordem de montagem gerada por IA a partir da modelagem; não substitui a verificação de um(a) costureiro(a).",
     "changedFieldsLabel": "Também mudou: {fields}."
   },
@@ -409,7 +410,8 @@
       "engineStyleUnsupported": "O motor de modelagem atual ignorou estas opções, que não se aplicam a esta peça: {fields}.",
       "specAdjusted": "Ajustei o pedido para o que a MoldAI consegue traçar: {items}.",
       "specAdjustmentSubstituted": "{field} “{requested}” não existe, usei o padrão",
-      "specAdjustmentClamped": "{field} {requested} está fora do intervalo ({min}–{max}), usei {used}"
+      "specAdjustmentClamped": "{field} {requested} está fora do intervalo ({min}–{max}), usei {used}",
+      "referenceMismatch": "Ao comparar com a referência enviada, notei uma divergência: {note}"
     },
     "specField": {
       "type": "tipo de peça",

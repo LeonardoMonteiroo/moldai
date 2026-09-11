@@ -29,6 +29,15 @@ let lastDirty: boolean | undefined;
 const FAKE_TX = {};
 
 vi.mock("@/lib/ai", () => ({ proposeGarment: vi.fn() }));
+// #264: every "apply" test below that also sends `images` would otherwise
+// hit the REAL findReferenceDisagreement -- a live provider/network call --
+// since the route now calls it whenever a turn carrying attachments resolves
+// to apply. Defaults to "no disagreement" so every pre-existing test's
+// happy path is unaffected; the #264-specific tests further down override
+// this per case.
+vi.mock("@/lib/ai/compareToReference", () => ({
+  findReferenceDisagreement: vi.fn(async () => null),
+}));
 vi.mock("next-intl/server", () => ({
   getTranslations: vi.fn(async () => (key: string) => key),
 }));
@@ -67,6 +76,31 @@ vi.mock("@/lib/db/pattern-wallet", () => ({
   ),
 }));
 vi.mock("@/lib/db/patternVersion", () => ({ recordVersion: vi.fn() }));
+// #264: the reference-comparison follow-up (run AFTER withPatternAndWallet's
+// own transaction has committed -- see the route's own comment for why it
+// cannot run inside it) persists a disagreement through withPattern, a
+// SEPARATE Pattern-only lock. Mocked here the same way as
+// withPatternAndWallet above -- against the SAME shared `state` -- so a test
+// that drives a disagreement sees it land in the one `state.chat` array
+// every other assertion in this file already reads. patternNotFound stays
+// REAL (importOriginal): it is pure (just builds an apiError response) and
+// several pre-existing tests below rely on the actual implementation.
+vi.mock("@/lib/db/pattern", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/db/pattern")>();
+  return {
+    ...actual,
+    withPattern: vi.fn(
+      async (
+        patternId: string,
+        _userId: string,
+        fn: (s: PatternState) => PatternState | Promise<PatternState>,
+      ) => {
+        if (patternId !== ownedPatternId) return null;
+        return await fn(state);
+      },
+    ),
+  };
+});
 const CHART = {
   chart: {
     name: "Feminino adulto · ABNT",
@@ -109,9 +143,11 @@ vi.mock("@/lib/observability/report", () => ({ reportError: vi.fn() }));
 
 import { POST } from "./route";
 import { proposeGarment } from "@/lib/ai";
+import { findReferenceDisagreement } from "@/lib/ai/compareToReference";
 import { requireUser } from "@/lib/auth/guard";
 import { unauthorized } from "@/lib/auth/session";
 import { withPatternAndWallet } from "@/lib/db/pattern-wallet";
+import { withPattern } from "@/lib/db/pattern";
 import { reportError } from "@/lib/observability/report";
 import {
   getSizeChartForGeneration,
@@ -121,6 +157,10 @@ import {
 import { recordVersion } from "@/lib/db/patternVersion";
 
 const mockPropose = proposeGarment as unknown as ReturnType<typeof vi.fn>;
+const mockCompare = findReferenceDisagreement as unknown as ReturnType<
+  typeof vi.fn
+>;
+const mockWithPattern = withPattern as unknown as ReturnType<typeof vi.fn>;
 
 function req(body: unknown) {
   return new Request("http://test/api/patterns/m1/generate", {
@@ -141,6 +181,9 @@ describe("POST /api/patterns/[id]/generate", () => {
     lastEntries = [];
     lastDirty = undefined;
     mockPropose.mockReset();
+    mockCompare.mockReset();
+    mockCompare.mockResolvedValue(null);
+    mockWithPattern.mockClear();
     vi.mocked(reportError).mockReset();
     vi.mocked(recordVersion).mockReset();
     vi.mocked(getSizeChartForGeneration).mockClear();
@@ -753,6 +796,55 @@ describe("POST /api/patterns/[id]/generate", () => {
     expect(userTurn.hasImage).toBe(true);
     expect(userTurn.imageCount).toBe(3);
     expect(JSON.stringify(state)).not.toContain(data);
+  });
+
+  // #258: patched onto the SAME user turn hasImage/imageCount describe,
+  // regardless of decision (this one is "apply") -- setGarmentReading
+  // (lib/editor/state.ts) is what does the patching, called unconditionally
+  // right after proposeGarment resolves.
+  it("persists the model's garmentReading on the user turn", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+      garmentReading: "Gola V, manga curta, barra reta.",
+    });
+
+    await POST(
+      req({
+        message: "uma blusa como nessa foto",
+        images: [{ mediaType: "image/jpeg", data: "ZmFrZS1iYXNlNjQ=" }],
+      }),
+      ctx(),
+    );
+
+    const userTurn = state.chat.find((m) => m.author === "user")!;
+    expect(userTurn.garmentReading).toBe("Gola V, manga curta, barra reta.");
+  });
+
+  // A missing garmentReading (no image on the turn, or an image turn the
+  // model simply skipped) must never invent one on the persisted message.
+  it("leaves garmentReading unset when the model didn't return one", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Pronto",
+    });
+
+    await POST(req({ message: "uma blusa" }), ctx());
+
+    const userTurn = state.chat.find((m) => m.author === "user")!;
+    expect(userTurn.garmentReading).toBeUndefined();
   });
 
   // A text-only request omits the key entirely, and must behave exactly as
@@ -1896,6 +1988,308 @@ describe("POST /api/patterns/[id]/generate", () => {
       });
       await POST(req({ message: "manga longa" }), ctx());
       expect(state.pattern.engine).toBe("freesewing");
+    });
+  });
+
+  // #264: comparing the drafted result against an attached reference image.
+  describe("reference comparison (#264)", () => {
+    const applyWithImage = () =>
+      req({
+        message: "uma blusa como nessa foto",
+        images: [{ mediaType: "image/jpeg", data: "ZmFrZS1iYXNlNjQ=" }],
+      });
+
+    it("runs only when the turn carried an attachment and resolved to apply", async () => {
+      mockPropose.mockResolvedValue({
+        decision: "apply",
+        spec: {
+          type: "blouse",
+          gender: "female",
+          measurementOverrides: {},
+          style: {},
+        },
+        assistantMessage: "Pronto",
+      });
+
+      await POST(req({ message: "uma blusa" }), ctx());
+      expect(mockCompare).not.toHaveBeenCalled();
+
+      await POST(applyWithImage(), ctx());
+      expect(mockCompare).toHaveBeenCalledTimes(1);
+    });
+
+    it.each(["ask", "decline", "explain"] as const)(
+      "never runs on a %s decision even when the turn carried an attachment",
+      async (decision) => {
+        mockPropose.mockResolvedValue({
+          decision,
+          spec: {
+            type: "blouse",
+            gender: "female",
+            measurementOverrides: {},
+            style: {},
+          },
+          questions:
+            decision === "ask"
+              ? [{ id: "q0", label: "Gola", options: ["redonda"] }]
+              : undefined,
+          declineReason: "fora do escopo",
+          assistantMessage: "…",
+        });
+
+        await POST(applyWithImage(), ctx());
+
+        expect(mockCompare).not.toHaveBeenCalled();
+      },
+    );
+
+    it("adds a tone:notice bubble, distinct from the primary apply bubble, when the model disagrees", async () => {
+      mockPropose.mockResolvedValue({
+        decision: "apply",
+        spec: {
+          type: "blouse",
+          gender: "female",
+          measurementOverrides: {},
+          style: {},
+        },
+        assistantMessage: "Pronto",
+      });
+      mockCompare.mockResolvedValue(
+        "a imagem mostra um vestido, mas o traçado é uma blusa",
+      );
+
+      const res = await POST(applyWithImage(), ctx());
+      const json = await res.json();
+
+      expect(json.status).toBe("ok");
+      // Persisted through the SEPARATE, Pattern-only withPattern lock (run
+      // after withPatternAndWallet's own transaction already committed),
+      // never as a second write inside the primary transaction.
+      expect(mockWithPattern).toHaveBeenCalledTimes(1);
+      const notices = state.chat.filter((m) => m.tone === "notice");
+      expect(notices).toHaveLength(1);
+      expect(notices[0].text).toBe("chat.referenceMismatch");
+      // A separate bubble from the primary apply message, which keeps its
+      // own decision/draftVersion/chips untouched.
+      const primary = state.chat.find((m) => m.decision === "apply")!;
+      expect(primary.tone).toBeUndefined();
+      expect(primary).not.toBe(notices[0]);
+      // Folded into the SAME response the client already received the
+      // successful apply in -- not left for a future refetch to surface.
+      expect(
+        json.state.chat.some((m: { tone?: string }) => m.tone === "notice"),
+      ).toBe(true);
+    });
+
+    it("adds no extra bubble when the model agrees (the default mock)", async () => {
+      mockPropose.mockResolvedValue({
+        decision: "apply",
+        spec: {
+          type: "blouse",
+          gender: "female",
+          measurementOverrides: {},
+          style: {},
+        },
+        assistantMessage: "Pronto",
+      });
+
+      await POST(applyWithImage(), ctx());
+
+      expect(state.chat.some((m) => m.tone === "notice")).toBe(false);
+      expect(mockWithPattern).not.toHaveBeenCalled();
+    });
+
+    it("costs no additional credit and does not touch spec/version/pieces", async () => {
+      const balanceBefore = wallet.balance;
+      mockPropose.mockResolvedValue({
+        decision: "apply",
+        spec: {
+          type: "blouse",
+          gender: "female",
+          measurementOverrides: {},
+          style: {},
+        },
+        assistantMessage: "Pronto",
+      });
+      mockCompare.mockResolvedValue("divergência qualquer");
+
+      const res = await POST(applyWithImage(), ctx());
+      const json = await res.json();
+
+      // Exactly the one debit the apply itself already charges (COSTS.adjust)
+      // -- the comparison call above never calls debitWallet.
+      expect(lastEntries.map((e) => e.type)).toEqual(["debit"]);
+      expect(json.state.credits.balance).toBe(balanceBefore - COSTS.adjust);
+      expect(state.pattern.version).toBe(1);
+      expect(state.pattern.spec?.type).toBe("blouse");
+    });
+
+    it("swallows a comparison failure via reportError and still returns the successful apply", async () => {
+      mockPropose.mockResolvedValue({
+        decision: "apply",
+        spec: {
+          type: "blouse",
+          gender: "female",
+          measurementOverrides: {},
+          style: {},
+        },
+        assistantMessage: "Pronto",
+      });
+      const thrown = new Error("provider timed out");
+      mockCompare.mockRejectedValue(thrown);
+
+      const res = await POST(applyWithImage(), ctx());
+      const json = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(json.status).toBe("ok");
+      expect(state.chat.some((m) => m.tone === "notice")).toBe(false);
+      expect(reportError).toHaveBeenCalledWith("generate-compare", thrown, {
+        patternId: "m1",
+        userId: "u1",
+      });
+      // Never refunded: the apply itself succeeded, only the best-effort
+      // follow-up check failed.
+      expect(lastEntries.map((e) => e.type)).toEqual(["debit"]);
+    });
+
+    it("calls the comparison AFTER withPatternAndWallet's own transaction has already resolved", async () => {
+      // #264: proposeGarment's own worst case already spends close to the
+      // full 30s TX_OPTS budget that transaction holds the Pattern+Wallet
+      // locks for -- this comparison call must never run inside it (see the
+      // route's own comment). Proven here by ordering: withPatternAndWallet
+      // must have already returned to the mock's own resolver by the time
+      // findReferenceDisagreement is invoked.
+      mockPropose.mockResolvedValue({
+        decision: "apply",
+        spec: {
+          type: "blouse",
+          gender: "female",
+          measurementOverrides: {},
+          style: {},
+        },
+        assistantMessage: "Pronto",
+      });
+      const order: string[] = [];
+      vi.mocked(withPatternAndWallet).mockImplementationOnce(
+        async (_patternId, _userId, fn) => {
+          // FAKE_TX stands in for the real Prisma.TransactionClient the same
+          // way it does in the shared mock factory above -- recordVersion
+          // and getSizeChartForGeneration are mocked wholesale, so nothing
+          // here actually dereferences it.
+          const outcome = await fn(state, wallet, FAKE_TX as never);
+          order.push("withPatternAndWallet");
+          lastEntries = outcome.entries;
+          lastDirty = outcome.dirty;
+          return outcome.result;
+        },
+      );
+      mockCompare.mockImplementationOnce(async () => {
+        order.push("findReferenceDisagreement");
+        return null;
+      });
+
+      await POST(applyWithImage(), ctx());
+
+      expect(order).toEqual([
+        "withPatternAndWallet",
+        "findReferenceDisagreement",
+      ]);
+    });
+  });
+
+  // #265: selectedPieceId -> proposeGarment's partScope. The trust boundary
+  // is the lookup against THIS pattern's own `pieces`, by id -- never the
+  // client's own name/label for it.
+  describe("selectedPieceId -> partScope", () => {
+    function withOnePiece() {
+      state.pattern = {
+        ...state.pattern,
+        pieces: [
+          {
+            id: "p1",
+            name: "Manga",
+            qty: 1,
+            outline: { kind: "polygon", points: "0,0" },
+            label: { x: 0, y: 0 },
+            detailRows: [],
+          },
+        ],
+      };
+    }
+
+    it("resolves a selected piece id against the pattern's own pieces and forwards its name", async () => {
+      withOnePiece();
+      mockPropose.mockResolvedValue({
+        decision: "apply",
+        spec: {
+          type: "blouse",
+          gender: "female",
+          measurementOverrides: {},
+          style: {},
+        },
+        assistantMessage: "Pronto",
+      });
+
+      await POST(
+        req({ message: "deixa mais larga", selectedPieceId: "p1" }),
+        ctx(),
+      );
+
+      expect(mockPropose.mock.calls[0][1].partScope).toBe("Manga");
+    });
+
+    // The acceptance criteria's own words: an unrecognized or stale id is
+    // dropped SILENTLY, and the turn behaves exactly as an unscoped one --
+    // never a 400 that would lose the user's message.
+    it("drops an unrecognized or stale piece id silently, never a 400", async () => {
+      withOnePiece();
+      mockPropose.mockResolvedValue({
+        decision: "apply",
+        spec: {
+          type: "blouse",
+          gender: "female",
+          measurementOverrides: {},
+          style: {},
+        },
+        assistantMessage: "Pronto",
+      });
+
+      const res = await POST(
+        req({
+          message: "deixa mais larga",
+          selectedPieceId: "not-a-real-piece",
+        }),
+        ctx(),
+      );
+
+      expect(res.status).toBe(200);
+      expect(mockPropose.mock.calls[0][1].partScope).toBeUndefined();
+      // The message itself still landed -- nothing was lost over a stale
+      // selection.
+      expect(
+        state.chat.some(
+          (m) => m.author === "user" && m.text === "deixa mais larga",
+        ),
+      ).toBe(true);
+    });
+
+    it("sends no partScope when no piece is selected", async () => {
+      withOnePiece();
+      mockPropose.mockResolvedValue({
+        decision: "apply",
+        spec: {
+          type: "blouse",
+          gender: "female",
+          measurementOverrides: {},
+          style: {},
+        },
+        assistantMessage: "Pronto",
+      });
+
+      await POST(req({ message: "deixa mais larga" }), ctx());
+
+      expect(mockPropose.mock.calls[0][1].partScope).toBeUndefined();
     });
   });
 });
