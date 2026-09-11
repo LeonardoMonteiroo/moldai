@@ -51,4 +51,54 @@ describe("renderReport", () => {
     expect(out).toContain("edit-blouse-collar");
     expect(out).toContain("| ask | 1 | 0 | 0 | 0 |");
   });
+
+  // #265: the scoped-vs-unscoped comparison is opt-in via a 4th argument --
+  // absent, the report stays byte-for-byte what it was before this existed.
+  it("omits the part-scoping section entirely when no scoped results are given", () => {
+    const out = renderReport(
+      {
+        model: "claude-sonnet-5",
+        provider: "anthropic",
+        generatedAt: "2026-09-05T00:00:00.000Z",
+      },
+      [],
+      [],
+    );
+    expect(out).not.toContain("Part scoping");
+  });
+
+  it("renders the scoped-vs-unscoped collateral comparison when given", () => {
+    const editing: EditingResult[] = [
+      {
+        id: "a",
+        missingChanges: [],
+        collateralChanges: ["collar"],
+        changedAsExpected: true,
+        hasCollateral: true,
+      },
+    ];
+    const scopedEditing: EditingResult[] = [
+      {
+        id: "a",
+        missingChanges: [],
+        collateralChanges: [],
+        changedAsExpected: true,
+        hasCollateral: false,
+      },
+    ];
+
+    const out = renderReport(
+      {
+        model: "claude-sonnet-5",
+        provider: "anthropic",
+        generatedAt: "2026-09-05T00:00:00.000Z",
+      },
+      [],
+      editing,
+      scopedEditing,
+    );
+
+    expect(out).toContain("Part scoping");
+    expect(out).toContain("| Collateral-change rate | 100.0% | 0.0% |");
+  });
 });

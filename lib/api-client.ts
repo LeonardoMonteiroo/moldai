@@ -254,6 +254,15 @@ export async function deletePattern(patternId: string): Promise<void> {
   await sendJson(`/api/patterns/${patternId}`, "DELETE");
 }
 
+export async function updateCutQuantities(
+  patternId: string,
+  cutQuantities: Record<string, number>,
+): Promise<void> {
+  await sendJson(`/api/patterns/${patternId}/cut-plan`, "PATCH", {
+    cutQuantities,
+  });
+}
+
 export function listVersions(
   patternId: string,
 ): Promise<PatternVersionEntry[]> {
@@ -296,6 +305,15 @@ export interface GenerateOptions {
    * value from its own fixed engine Select.
    */
   engine?: EngineId;
+  /**
+   * #265: the editor's own `selectedPieceId` at send time, forwarded as-is --
+   * this is a UX affordance, not the trust boundary. The route re-resolves
+   * it against the pattern's own `pieces`, by id, and drops it silently if
+   * it doesn't resolve (a stale/renamed/deleted piece), so an unscoped call
+   * is never a valid reason to omit this: sending `null` (nothing selected)
+   * is the common case, not an error.
+   */
+  selectedPieceId?: string | null;
 }
 
 export function generate(
@@ -328,6 +346,10 @@ export function generate(
       sizeChartId: opts?.sizeChartId,
       importContext: opts?.importContext,
       engine: opts?.engine,
+      // null (nothing selected) and undefined both drop the key --
+      // JSON.stringify strips undefined, and the route treats an absent or
+      // non-string value identically (see GenerateBodySchema's own comment).
+      selectedPieceId: opts?.selectedPieceId ?? undefined,
     },
     PAYWALL,
   );

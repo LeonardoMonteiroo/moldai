@@ -19,9 +19,19 @@ export function renderReport(
   meta: EvalMeta,
   generationResults: GenerationResult[],
   editingResults: EditingResult[],
+  // #265: the same EDITING_CASES that have a `scopedPieceKey`, re-run WITH a
+  // resolved `partScope` -- optional so every existing caller (this report's
+  // own test, and any older report) keeps rendering unchanged. Compared
+  // against `edit` above (the identical cases, unscoped) rather than against
+  // the full unscoped suite, so this is an apples-to-apples A/B on the same
+  // instructions, not a full-suite-vs-subset mismatch.
+  scopedEditingResults?: EditingResult[],
 ): string {
   const gen = aggregateGeneration(generationResults);
   const edit = aggregateEditing(editingResults);
+  const editScoped = scopedEditingResults
+    ? aggregateEditing(scopedEditingResults)
+    : null;
 
   const decisions = ["apply", "ask", "decline", "explain"] as const;
   const confusionRows = decisions
@@ -41,6 +51,29 @@ export function renderReport(
     (r) =>
       `| ${r.id} | ${r.changedAsExpected ? "✅" : "❌ " + r.missingChanges.join(", ")} | ${r.hasCollateral ? "⚠️ " + r.collateralChanges.join(", ") : "—"} |`,
   );
+
+  // #265: rendered only when the runner actually did the scoped re-run
+  // (scripts/ai-eval.ts's own runEditing(true)) -- absent, this whole
+  // subsection is omitted rather than printed with misleading zeros.
+  const scopedSection = editScoped
+    ? `
+
+## Part scoping (issue 265): collateral drift, unscoped vs scoped
+
+Same editing cases, same instructions -- the only difference is a resolved
+\`partScope\` (the selected piece's own name) on the scoped run. This is the
+number the honest caveat in issue 265's PR asks for: ChatGarment's
+part-addressed training data is a training-data property, not yet a
+demonstrated inference-time prompt effect for THIS prompt -- keep the
+"# Scoped part" section only if the scoped row below actually beats the
+unscoped one.
+
+| | unscoped | scoped |
+| --- | --- | --- |
+| Change accuracy | ${pct(edit.changeAccuracy)} | ${pct(editScoped.changeAccuracy)} |
+| Collateral-change rate | ${pct(edit.collateralRate)} | ${pct(editScoped.collateralRate)} |
+`
+    : "";
 
   return `# AI eval report
 
@@ -79,5 +112,5 @@ ${genRows.join("\n")}
 | case | changed as expected | collateral |
 | --- | --- | --- |
 ${editRows.join("\n")}
-`;
+${scopedSection}`;
 }

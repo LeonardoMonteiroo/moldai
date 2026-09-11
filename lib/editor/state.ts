@@ -8,8 +8,10 @@ import {
   Pattern,
   Piece,
 } from "@/lib/types";
+import { diffSpec as diffSpecFields } from "@/lib/draft/specDiff";
 import { seamCheck } from "@/lib/draft/garment";
 import type { SeamMeasurement } from "@/lib/draft/garment";
+import { SEAM_TOLERANCE_CM } from "@/lib/draft/seams";
 import { draftGarment, measureSeamGraph } from "@/lib/draft/engine/facade";
 import { engineFor } from "@/lib/draft/engine/capability";
 import type { EngineId } from "@/lib/draft/engine/capability";
@@ -35,6 +37,17 @@ function pieceMarker(
   return { cx: maxX - 6, cy: minY + (maxY - minY) * 0.28, r: 14 };
 }
 
+// #253: a pair can be flagged by seamCheck purely on subSegmentDiffCm (the
+// front/back split projects onto the wrong point of the mate's arc) while
+// its own diffCm (the two sides' summed totals) stays near 0 -- reporting
+// THAT near-0 number as "the divergence" would show a real, unfixable
+// conflict as if it were barely there. Whichever of the two actually
+// crossed SEAM_TOLERANCE_CM (or the larger, if somehow both did) is what a
+// user-facing number should cite.
+function displayDiffCm(m: SeamMeasurement): number {
+  return Math.max(m.diffCm, m.subSegmentDiffCm);
+}
+
 // Builds one ConflictEntry from a divergent SeamMeasurement, resolving its
 // pre-baked pt-BR label/aLabel/bLabel from the `seamPairs.<labelKey>`
 // catalog entries (PatternData namespace) — the same draft-time locale
@@ -57,7 +70,7 @@ function buildEntry(
     bLabel: t(`seamPairs.${m.labelKey}.bLabel`),
     aPieceId: m.aPieceId,
     bPieceId: m.bPieceId,
-    diffCm: m.diffCm,
+    diffCm: displayDiffCm(m),
     fixable: m.fixable,
     markers,
   };
@@ -176,10 +189,18 @@ function detectConflict(
   const primary = baseArmholeCap ?? conflicts[0];
   const primaryEntry = entries.find((e) => e.key === primary.key)!;
   const primarySizes = sizeOnlySizes.get(primary.key);
+  // #253: the legacy armhole/cap phrasing below asserts "the cap is N cm
+  // larger/smaller than the armhole" -- true only when the TOTAL (diffCm)
+  // is what's actually wrong. A pair flagged purely on subSegmentDiffCm
+  // (the total closes fine; only the front/back split is off) would make
+  // that sentence describe a divergence that isn't there, so it's excluded
+  // from the legacy path and falls through to the generic (still-accurate,
+  // magnitude-only) copy below.
   const isLegacySingle =
     conflicts.length === 1 &&
     primary.key === "armhole-cap" &&
     baseArmholeCap != null &&
+    primary.diffCm > SEAM_TOLERANCE_CM &&
     armholeLenCm != null &&
     sleeveArmholeCm != null;
 
@@ -200,7 +221,9 @@ function detectConflict(
     });
   } else if (conflicts.length === 1) {
     title = t("conflict.titleFor", { label: primaryEntry.label });
-    description = t("conflict.descriptionSingle", { diffCm: primary.diffCm });
+    description = t("conflict.descriptionSingle", {
+      diffCm: primaryEntry.diffCm,
+    });
   } else {
     title = t("conflict.titleMultiple", { count: conflicts.length });
     description = t("conflict.descriptionMultiple");
@@ -218,7 +241,7 @@ function detectConflict(
     id: `conf-${Date.now()}`,
     title,
     description,
-    diffCm: primary.diffCm,
+    diffCm: primaryEntry.diffCm,
     suggestion,
     pieceAId: primary.aPieceId,
     pieceBId: primary.bPieceId,
@@ -306,6 +329,23 @@ export function addMessage(state: PatternState, message: ChatMessage): void {
   state.chat = [...state.chat, message];
 }
 
+// #258: patches garmentReading onto an already-persisted message, because
+// the reading is only known once proposeGarment resolves -- strictly after
+// the user turn it describes was already appended (buildHistory reads
+// state.chat, so that turn has to exist before the AI call, not after). A
+// second immutable pass over state.chat rather than a direct mutation of the
+// object addMessage already pushed, matching every other state.ts writer's
+// "always return a new value" shape.
+export function setGarmentReading(
+  state: PatternState,
+  messageId: string,
+  reading: string,
+): void {
+  state.chat = state.chat.map((m) =>
+    m.id === messageId ? { ...m, garmentReading: reading } : m,
+  );
+}
+
 export function bumpVersion(state: PatternState): void {
   state.pattern = {
     ...state.pattern,
@@ -376,6 +416,65 @@ export function applyGarmentSpec(
     state.pattern.sizes,
     t,
   );
+}
+
+// #257: ChatGarment's headline editing limitation is collateral change —
+// their own training template says "while keeping other parts unchanged"
+// precisely because full-JSON re-emission drifts. applyGarmentSpec takes the
+// model's complete returned spec and overwrites state.pattern.spec wholesale
+// with no detector for exactly that drift. diffSpec is that detector: a
+// pure, DB-free comparison of the pattern's PREVIOUS validated spec against
+// the one an "apply" decision is about to draft, returning one field path
+// per changed field — "type", "gender", "style.<key>",
+// "measurementOverrides.<key>" — in a stable order.
+//
+// A thin adapter over lib/draft/specDiff.ts's own diffSpec (#252's eval
+// harness), NOT a second, independently-maintained field-by-field
+// comparison — that module already owns "which fields differ between two
+// already-validated GarmentSpecs" (its own STYLE_FIELDS list, kept in sync
+// with GarmentStyle in exactly one place), and duplicating it here would
+// mean a future style field added there and forgotten here goes silently
+// unreported. This only reshapes that module's SpecFieldChange[] into the
+// chat-facing string-path/measurement-per-key shape #257 wants: `type`/
+// `gender` pass through as-is, `measurementOverrides` (one aggregate entry
+// there, since the eval harness's fixtures name whole fields) is exploded
+// into one `measurementOverrides.<key>` path per key that actually
+// differs, and `sleeveRefit` is dropped -- the one style field the AI can
+// never set (validateSpec discards it; only refitSleeve below writes it),
+// the same explicit skip describeSpecAdjustments (specAdjustments.ts)
+// already makes, and there is no catalog label for it since a user never
+// chose it.
+//
+// Deliberately dumb: this does not know what the user asked for, only what
+// moved. A field neither spec set is not a change; a field only one of them
+// set (added or dropped) IS one, since that is itself a form of drift the
+// user is owed visibility into (the same "surface feature limitations
+// on-screen, never silently" reasoning CLAUDE.md states for everything
+// else). Never mutates either argument.
+export function diffSpec(prev: GarmentSpec, next: GarmentSpec): string[] {
+  const out: string[] = [];
+  for (const change of diffSpecFields(prev, next)) {
+    if (change.field === "sleeveRefit") continue;
+    if (change.field === "type" || change.field === "gender") {
+      out.push(change.field);
+      continue;
+    }
+    if (change.field === "measurementOverrides") {
+      const prevOverrides = change.before as Record<string, number>;
+      const nextOverrides = change.after as Record<string, number>;
+      const overrideKeys = Array.from(
+        new Set([...Object.keys(prevOverrides), ...Object.keys(nextOverrides)]),
+      ).sort();
+      for (const key of overrideKeys) {
+        if (prevOverrides[key] !== nextOverrides[key]) {
+          out.push(`measurementOverrides.${key}`);
+        }
+      }
+      continue;
+    }
+    out.push(`style.${change.field}`);
+  }
+  return out;
 }
 
 // "Corrigir manga" (sleeve fix): sets sleeveRefit and re-drafts — the cap now

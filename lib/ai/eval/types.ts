@@ -36,4 +36,18 @@ export interface EditingCase {
   instruction: string;
   expectedChanged: SpecField[];
   expectedUnchanged: SpecField[];
+  /**
+   * #265: which `pieceNames.<key>` (lib/draft's own catalog, e.g. "sleeve",
+   * "collar", "front") the user would plausibly have selected on screen
+   * before sending `instruction` -- the piece the scoped run (scripts/ai-eval
+   * .ts's own `runEditing(true)`) resolves against this case's OWN drafted
+   * `baseSpec` pieces to build a real `partScope`, the same lookup the
+   * generate route performs against a real pattern's `pieces` by id. Absent
+   * cases are simply skipped in the scoped run (never invent an id), so a
+   * new case doesn't need this to keep passing the unscoped suite. Under the
+   * eval harness's identity `Translate` (lib/i18n/test-translate.ts), a
+   * drafted piece's own `name` IS the literal key `pieceNames.<key>` -- no
+   * separate lookup table to keep in sync with messages/pt-BR.json.
+   */
+  scopedPieceKey?: string;
 }

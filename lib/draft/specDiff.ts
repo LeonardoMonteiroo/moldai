@@ -6,9 +6,17 @@ import type { GarmentSpec, GarmentStyle } from "@/lib/types";
 // describeSpecAdjustments: that one diffs a raw (untrusted) tool payload
 // against what validateSpec did to it (substituted/clamped, one spec). This
 // diffs two already-validated GarmentSpecs against each other (before an
-// edit vs. after), which is a different comparison and has no other owner
-// in the repo. A leaf module, like specAdjustments.ts and vocabulary.ts: no
-// import from garment.ts, no drafting logic.
+// edit vs. after), which is a different comparison. A leaf module, like
+// specAdjustments.ts and vocabulary.ts: no import from garment.ts, no
+// drafting logic.
+//
+// #257: this IS the field-by-field comparison lib/editor/state.ts's own
+// diffSpec(prev, next): string[] wraps -- that one reshapes SpecFieldChange[]
+// into the chat-facing "type" | "gender" | "style.<key>" |
+// "measurementOverrides.<key>" path strings ChatBubble resolves through the
+// pt-BR catalog. STYLE_FIELDS below is the one place a new GarmentStyle
+// field must be added for BOTH consumers to see it change -- do not add a
+// second copy of this list anywhere else.
 
 export type SpecField =
   "type" | "gender" | keyof GarmentStyle | "measurementOverrides";
@@ -44,6 +52,8 @@ const STYLE_FIELD_MAP: Record<keyof GarmentStyle, true> = {
   waistband: true,
   frontClosure: true,
   trouserLengthCm: true,
+  pleats: true,
+  riseCm: true,
 };
 const STYLE_FIELDS = Object.keys(STYLE_FIELD_MAP) as (keyof GarmentStyle)[];
 

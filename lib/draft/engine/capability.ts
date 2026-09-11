@@ -9,6 +9,7 @@ import type {
   CuffType,
   WaistbandType,
   FrontClosureType,
+  PleatType,
   FitClass,
   StretchClass,
 } from "@/lib/types";
@@ -22,6 +23,7 @@ import {
   CUFFS,
   WAISTBANDS,
   FRONT_CLOSURES,
+  PLEATS,
   FIT_CLASSES,
   STRETCH_CLASSES,
   STYLE_LIMITS,
@@ -95,6 +97,7 @@ export interface StyleEnums {
   frontClosure: readonly FrontClosureType[];
   fit: readonly FitClass[];
   stretch: readonly StretchClass[];
+  pleats: readonly PleatType[];
 }
 
 // Declares NO style-enum support for any field -- the shape every engine's
@@ -113,6 +116,7 @@ const EMPTY_STYLE_ENUMS: StyleEnums = {
   frontClosure: [],
   fit: [],
   stretch: [],
+  pleats: [],
 };
 
 export interface EngineCapability {
@@ -140,7 +144,8 @@ export interface EngineCapability {
     | "skirtLengthCm"
     | "seamAllowanceCm"
     | "armholeDeepenCm"
-    | "trouserLengthCm",
+    | "trouserLengthCm"
+    | "riseCm",
     Range
   >;
   // Which style fields each supported GarmentType's drafters actually read.
@@ -173,6 +178,12 @@ export interface EngineCapability {
 // - skirt/trousers share waistband; skirt reads skirt/skirtLengthCm,
 //   trousers reads trouserLengthCm. Neither reads fit/stretch: skirt.ts's
 //   own SKIRT_WEARING_EASE_CM is a fixed constant, never style-driven.
+// - #244: pleats is SKIRT ONLY, not dress -- draftSkirt reads it only when
+//   isDressWaist is false (a dress's own skirt panel is joined directly to
+//   the bodice hem at the natural waist, and widening that panel's waist
+//   edge without widening the mated bodice hem too would reopen the
+//   #134/#177 waist-mismatch class of bug). Also unread for both radial
+//   silhouettes and by trousers (no equivalent insertion point).
 // #269: NOT simply CORE_MEASUREMENT_KEYS. That list grew to include 14 keys
 // (waistToArmpit, seat, inseam, ...) no moldai drafter reads at all -- only
 // FreeSewing designs need them (lib/draft/engine/freesewing/). Declaring
@@ -219,6 +230,7 @@ const MOLDAI_STYLE_ENUMS: StyleEnums = {
   frontClosure: FRONT_CLOSURES,
   fit: FIT_CLASSES,
   stretch: STRETCH_CLASSES,
+  pleats: PLEATS,
 };
 
 // #269: NOT simply `TYPES` -- that leaf array is the APP-WIDE vocabulary
@@ -293,8 +305,19 @@ export const MOLDAI_CAPABILITY: EngineCapability = {
       "collar",
       "cuff",
     ],
-    skirt: ["skirt", "skirtLengthCm", "waistband", "seamAllowanceCm"],
-    trousers: ["trouserLengthCm", "waistband", "seamAllowanceCm"],
+    // #259: riseCm is a moldai-only capability today -- neither wired
+    // freesewing design (Sandy/Titan) reads it, so it stays absent from
+    // FREESEWING_CAPABILITY's own entries below (a real, reportable
+    // styleField gap there, not a silent no-op).
+    skirt: [
+      "skirt",
+      "skirtLengthCm",
+      "waistband",
+      "seamAllowanceCm",
+      "pleats",
+      "riseCm",
+    ],
+    trousers: ["trouserLengthCm", "waistband", "seamAllowanceCm", "riseCm"],
     // #269: moldai drafts neither hoodie nor coat nor shirt at all (see
     // MOLDAI_TYPES above) -- an honest empty entry, the same convention
     // freesewing's own "dress" (also unsupported) uses below.
@@ -486,7 +509,10 @@ export type EngineGap =
   | { kind: "styleValue"; field: CapabilityStyleField; value: string }
   | { kind: "styleLimit"; field: CapabilityStyleField; range: Range };
 
-const STYLE_ENUM_FIELDS = [
+// #258: exported so lib/ai/prompt.ts's garmentReading instruction can name
+// the same part vocabulary checkEngineSupport enumerates here, rather than a
+// second hand-typed list that could silently drift from this one.
+export const STYLE_ENUM_FIELDS = [
   "neckline",
   "sleeve",
   "skirt",
@@ -496,6 +522,7 @@ const STYLE_ENUM_FIELDS = [
   "frontClosure",
   "fit",
   "stretch",
+  "pleats",
 ] as const satisfies readonly CapabilityStyleField[];
 
 const STYLE_LIMIT_FIELDS = [
@@ -504,6 +531,7 @@ const STYLE_LIMIT_FIELDS = [
   "seamAllowanceCm",
   "armholeDeepenCm",
   "trouserLengthCm",
+  "riseCm",
 ] as const satisfies readonly CapabilityStyleField[];
 
 /**

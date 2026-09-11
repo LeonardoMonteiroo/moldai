@@ -143,6 +143,33 @@ describe("buildAssemblyOrder", () => {
     ]);
   });
 
+  // #244: a standalone skirt's own pleat gets a real "pleat" step, ordered
+  // before its waistband seam and its own hem -- the same "shapes the piece
+  // before any seam" priority a dart already gets.
+  it.each(["box", "inverted-box"] as const)(
+    "a standalone %s-pleated skirt gets a 'pleat' step naming the skirt piece, before its waistband seam and hem",
+    (pleats) => {
+      const spec: GarmentSpec = {
+        type: "skirt",
+        gender: "female",
+        measurementOverrides: {},
+        style: { skirt: "straight", pleats },
+      };
+      const p = fakePattern(spec);
+      const order = buildAssemblyOrder(p, t)!;
+      const kinds = order.steps.map((s) =>
+        s.kind === "seam" ? s.key : s.kind,
+      );
+      expect(kinds).toEqual(["pleat", "waistband-waist", "hem"]);
+      const pleatStep = order.steps[0] as Extract<
+        AssemblyStep,
+        { kind: "pleat" }
+      >;
+      expect(pleatStep.pieceId).toBe("skirt");
+      expect(pleatStep.count).toBe(2); // one per side (#244)
+    },
+  );
+
   it("a dress's bodice hem is NOT a free hem step -- it is consumed by the waist-join pair", () => {
     const spec: GarmentSpec = {
       type: "dress",

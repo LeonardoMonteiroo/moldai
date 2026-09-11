@@ -40,7 +40,16 @@ const ChatMessageSchema = z.object({
   // #269: same "must be named here or z.object strips it" trap the comment
   // above already documents for hasImage/assembly.
   decision: z.enum(["apply", "decline", "ask", "explain"]).optional(),
+  // #258: same trap again, one more field later -- the model's part-by-part
+  // read of an attached image, patched onto the user turn once
+  // proposeGarment resolves (see setGarmentReading, lib/editor/state.ts).
+  // Round-tripped by lib/db/pattern.test.ts alongside the three above.
+  garmentReading: z.string().optional(),
   draftVersion: z.number().int().nonnegative().optional(),
+  // #257: same "must be named here or z.object strips it" trap as every
+  // field above -- the field paths diffSpec (lib/editor/state.ts) found
+  // changed against the pattern's previous spec.
+  changedFields: z.array(z.string()).optional(),
 });
 
 const ConflictInfoSchema = z.object({
@@ -79,6 +88,12 @@ const PatternSchema = z
     spec: GarmentSpecSchema.optional(),
     viewBox: z.object({ w: z.number(), h: z.number() }).optional(),
     baseMeasurements: MeasurementsSchema.optional(),
+    // #280: the cut plan's per-size quantity map. Loose z.number() (not
+    // clamped/int here) for the same reason sizeChartName/engine stay loose
+    // -- validateCutQuantities (lib/export/cutQuantities.ts) is the real
+    // trust boundary for a freshly-written value; this only has to survive
+    // reading a value IT already wrote back.
+    cutQuantities: z.record(z.string(), z.number()).optional(),
   })
   // #58: the exact failure this issue reports -- a sizeTable that no longer
   // has a row under baseSize reads as `undefined` at
@@ -140,6 +155,13 @@ export const GenerateBodySchema = z.object({
   // isEngineId, the real trust boundary -- z.unknown() here for the same
   // reason every other field above stays untyped at the schema layer).
   engine: z.unknown().optional(),
+  // #265: the piece the editor had selected when this turn was sent. The
+  // route reads it tolerantly (only a string is looked at) and resolves it
+  // against THIS pattern's own `pieces` list, by id -- an unrecognized or
+  // stale id simply drops the scope rather than refusing the request, so
+  // z.unknown() here is not standing in for a stricter check elsewhere the
+  // way sizeChartId's is; there genuinely is no reject path for this field.
+  selectedPieceId: z.unknown().optional(),
 });
 
 // graduate: `sizes` is read with `Array.isArray(body.sizes) ? body.sizes :
@@ -160,4 +182,12 @@ export const GraduateBodySchema = z.object({
 // for all three cases.
 export const ConflictResolveBodySchema = z.object({
   action: z.enum(["fix", "ignore"]),
+});
+
+// cut-plan: `cutQuantities` stays z.unknown().optional() -- same reason as
+// GenerateBodySchema/GraduateBodySchema's own fields -- validateCutQuantities
+// (lib/export/cutQuantities.ts) is the real trust boundary, and it needs the
+// raw value to drop/clamp per-key rather than fail the whole body.
+export const CutQuantitiesBodySchema = z.object({
+  cutQuantities: z.unknown().optional(),
 });

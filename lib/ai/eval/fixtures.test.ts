@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { GENERATION_CASES, EDITING_CASES } from "./fixtures";
+import ptBR from "@/messages/pt-BR.json";
 
 // #252: fixtures.ts is a plain data literal (its own doc comment: "a fixture
 // stays a plain, diffable data literal") -- these are structural invariants
@@ -80,6 +81,21 @@ describe("EDITING_CASES", () => {
     for (const c of EDITING_CASES) {
       expect(c.expectedUnchanged).toContain("type");
       expect(c.expectedUnchanged).toContain("gender");
+    }
+  });
+
+  // #265: a made-up scopedPieceKey would silently never resolve to a real
+  // drafted piece (scripts/ai-eval.ts's own runEditing(true) matches it
+  // against `pieceNames.<key>`) -- the scoped run would then look
+  // unscoped for that case with no signal why. Pinned against the real
+  // catalog (messages/pt-BR.json's own PatternData.pieceNames) rather than
+  // a hand-copied key list, per CLAUDE.md's own rule for these tests.
+  it("every scopedPieceKey names a real piece in the pieceNames catalog", () => {
+    const knownKeys = new Set(Object.keys(ptBR.PatternData.pieceNames));
+    for (const c of EDITING_CASES) {
+      if (c.scopedPieceKey !== undefined) {
+        expect(knownKeys.has(c.scopedPieceKey)).toBe(true);
+      }
     }
   });
 });

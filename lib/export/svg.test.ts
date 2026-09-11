@@ -262,6 +262,30 @@ describe("toSvg", () => {
     expect(noInternals).not.toContain("<circle ");
   });
 
+  // #244: a pleat's own placement/stitch line renders as its own open path,
+  // with a dash pattern distinct from the fold line's above so the two
+  // read apart.
+  it("a pleat's placement line renders as an open path with its own dash pattern", () => {
+    const pleatModel: ExportModel = {
+      ...model,
+      pieces: [
+        {
+          ...model.pieces[0],
+          pleats: [
+            [
+              { x: 4, y: 0 },
+              { x: 5, y: 10 },
+            ],
+          ],
+        },
+      ],
+    };
+    const svg = toSvg(pleatModel);
+    expect(svg).toContain('stroke-dasharray="2 2"');
+    const noPleats = toSvg(model);
+    expect(noPleats).not.toContain('stroke-dasharray="2 2"');
+  });
+
   // #126: rendered as a dashed <line> (distinct dasharray from the
   // grainline's) plus the pt-BR foldLabel text at its midpoint; absent when
   // the piece has no fold.
@@ -292,5 +316,60 @@ describe("toSvg", () => {
     };
     const noNotchSvg = toSvg(noNotchModel);
     expect(noNotchSvg).not.toContain('x1="20" y1="70"');
+  });
+
+  // #243: an internal loop (hole) draws exactly like the piece's own outer
+  // boundary -- one more solid cut path + one more dashed net path.
+  describe("internal loops (#243)", () => {
+    const loopModel: ExportModel = {
+      ...model,
+      pieces: [
+        {
+          ...model.pieces[0],
+          internalLoops: [
+            {
+              outline: {
+                start: { x: 3, y: 3 },
+                segs: [
+                  { kind: "line", to: { x: 7, y: 3 } },
+                  { kind: "line", to: { x: 7, y: 7 } },
+                  { kind: "line", to: { x: 3, y: 7 } },
+                  { kind: "line", to: { x: 3, y: 3 } },
+                ],
+              },
+              cutOutline: {
+                start: { x: 4, y: 4 },
+                segs: [
+                  { kind: "line", to: { x: 6, y: 4 } },
+                  { kind: "line", to: { x: 6, y: 6 } },
+                  { kind: "line", to: { x: 4, y: 6 } },
+                  { kind: "line", to: { x: 4, y: 4 } },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    it("adds one solid cut path and one dashed net path per loop", () => {
+      const noLoop = toSvg(model);
+      const withLoop = toSvg(loopModel);
+      expect(withLoop.match(/<path /g)?.length).toBe(
+        (noLoop.match(/<path /g)?.length ?? 0) + 2,
+      );
+    });
+
+    it("the loop's cut line is smaller than its own net line -- it shrinks, not grows", () => {
+      const svg = toSvg(loopModel);
+      // net loop: (3,3)-(7,7)cm -> mm at origin (2,2)cm: M50 50 (=(2+3)*10)
+      expect(svg).toContain("M50 50");
+      // cut loop: (4,4)-(6,6)cm -> M60 60
+      expect(svg).toContain("M60 60");
+    });
+
+    it("stays well-formed with an internal loop present", () => {
+      assertWellFormedSvg(toSvg(loopModel));
+    });
   });
 });

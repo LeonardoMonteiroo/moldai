@@ -4,7 +4,9 @@ import type {
   LlmCallResult,
   LlmTurn,
   LlmImage,
+  LlmUsage,
 } from "./types";
+import { sumUsage, LlmProposeError } from "./types";
 
 // The self-hosted path: talks to any OpenAI Chat Completions-compatible
 // server (vLLM's own `--enable-prefix-caching`, or a wider gateway) over
@@ -45,6 +47,10 @@ interface ChatCompletionResponse {
     finish_reason: string;
     message: ChatMessage;
   }[];
+  // #276: OpenAI Chat Completions' own usage shape -- optional because a
+  // fixture (openaiCompat.test.ts) that predates this field must keep
+  // typechecking and parsing without one.
+  usage?: { prompt_tokens: number; completion_tokens: number };
 }
 
 function imageDataUri(image: LlmImage): string {
@@ -195,6 +201,16 @@ const DEFAULT_TIMEOUT_MS = 60_000; // a local model is expected to be slower
 const REPAIR_TIMEOUT_MS = 20_000;
 const REPAIR_MAX_TOKENS_ON_TRUNCATION = 2048;
 
+// #276: tolerant of a mock response with no `usage` field (every existing
+// openaiCompat.test.ts fixture) -- undefined in, undefined out.
+function toUsage(usage: ChatCompletionResponse["usage"]): LlmUsage | undefined {
+  if (!usage) return undefined;
+  return {
+    inputTokens: usage.prompt_tokens,
+    outputTokens: usage.completion_tokens,
+  };
+}
+
 async function propose(opts: LlmCallOptions): Promise<LlmCallResult> {
   const messages = withImages(opts.messages, opts.images);
   const resp = await chatCompletion(
@@ -206,7 +222,11 @@ async function propose(opts: LlmCallOptions): Promise<LlmCallResult> {
 
   try {
     const call = extractToolCall(resp);
-    return { toolInput: parseArguments(call) };
+    return {
+      toolInput: parseArguments(call),
+      usage: toUsage(resp.usage),
+      repaired: false,
+    };
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
     const repairMessages = buildRepairMessages(
@@ -218,14 +238,48 @@ async function propose(opts: LlmCallOptions): Promise<LlmCallResult> {
       resp.choices[0].finish_reason === "length"
         ? REPAIR_MAX_TOKENS_ON_TRUNCATION
         : opts.maxTokens;
-    const repairResp = await chatCompletion(
-      repairMessages,
-      opts,
-      repairMaxTokens,
-      REPAIR_TIMEOUT_MS,
-    );
-    const repairCall = extractToolCall(repairResp);
-    return { toolInput: parseArguments(repairCall) };
+    let repairResp: ChatCompletionResponse;
+    try {
+      repairResp = await chatCompletion(
+        repairMessages,
+        opts,
+        repairMaxTokens,
+        REPAIR_TIMEOUT_MS,
+      );
+    } catch (repairErr) {
+      // #276: the repair call itself failed (e.g. a network/timeout error)
+      // before any repair response came back -- only the first attempt's
+      // usage is known, but that attempt was still a real, billed call, so
+      // it travels on the thrown error rather than being silently lost.
+      throw new LlmProposeError(
+        repairErr instanceof Error ? repairErr.message : String(repairErr),
+        { usage: toUsage(resp.usage), repaired: true },
+      );
+    }
+    try {
+      const repairCall = extractToolCall(repairResp);
+      return {
+        toolInput: parseArguments(repairCall),
+        // #276: both attempts are real calls -- summed the same way the
+        // Anthropic provider sums its own first-attempt + repair usage.
+        usage: sumUsage(toUsage(resp.usage), toUsage(repairResp.usage)),
+        repaired: true,
+      };
+    } catch (extractErr) {
+      // #261/#276: the repair attempt ALSO failed to yield a usable tool
+      // call -- propagates to the caller exactly as before (one repair
+      // attempt, never a second), but both attempts were still real calls,
+      // so their combined usage travels on the thrown error instead of the
+      // Langfuse trace silently recording usage: undefined for two charged
+      // requests.
+      throw new LlmProposeError(
+        extractErr instanceof Error ? extractErr.message : String(extractErr),
+        {
+          usage: sumUsage(toUsage(resp.usage), toUsage(repairResp.usage)),
+          repaired: true,
+        },
+      );
+    }
   }
 }
 
