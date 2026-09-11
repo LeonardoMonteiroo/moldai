@@ -185,6 +185,19 @@ const FIELD_FRAGMENTS: Partial<
       "sem nenhuma pinça, liso na frente",
     ],
   },
+  pleats: {
+    none: ["sem prega", "sem nenhuma prega, painel liso"],
+    box: [
+      "com prega tipo caixa",
+      "com uma prega caixa na frente",
+      "com duas dobras que abrem pros lados, tipo prega de caixa",
+    ],
+    "inverted-box": [
+      "com prega caixa invertida",
+      "com uma prega invertida atrás, escondendo a dobra por baixo",
+      "com aquela prega que esconde a dobra no meio, tipo caixa ao contrário",
+    ],
+  },
 };
 
 type NumericField =

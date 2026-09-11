@@ -9,6 +9,7 @@ import {
   CUFFS,
   WAISTBANDS,
   FRONT_CLOSURES,
+  PLEATS,
   FIT_CLASSES,
   STRETCH_CLASSES,
 } from "@/lib/draft/garment";
@@ -27,7 +28,9 @@ import {
 // stand or non-default trouser length was silently erased from every
 // pattern (and every PatternVersion.spec recorded after it) the first time
 // the chat turn round-tripped through this schema. Pinned by
-// lib/db/pattern.test.ts's style-field round-trip cases.
+// lib/db/pattern.test.ts's style-field round-trip cases. #244's own
+// `pleats` field is added here too, for the identical reason -- caught in
+// review before it repeated the #267 class rather than after.
 export const GarmentStyleSchema = z.object({
   neckline: z.enum(NECKLINES).optional(),
   necklineDepthCm: z.number().optional(),
@@ -45,6 +48,7 @@ export const GarmentStyleSchema = z.object({
   waistband: z.enum(WAISTBANDS).optional(),
   frontClosure: z.enum(FRONT_CLOSURES).optional(),
   trouserLengthCm: z.number().optional(),
+  pleats: z.enum(PLEATS).optional(),
   riseCm: z.number().optional(),
 });
 

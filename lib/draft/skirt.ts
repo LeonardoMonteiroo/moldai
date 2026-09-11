@@ -1,10 +1,98 @@
 import { Measurements } from "@/lib/measurements";
-import { DetailRow, GarmentStyle, SkirtSilhouette } from "@/lib/types";
-import { bbox, DraftedPiece, notchAtVertex, NotchCm, Pt } from "./core";
+import {
+  DetailRow,
+  GarmentStyle,
+  PleatType,
+  SkirtSilhouette,
+} from "@/lib/types";
+import {
+  bbox,
+  DraftedPiece,
+  gradedSkirtLengthCm,
+  InternalCm,
+  NO_PLACEMENT_TRANSFORM,
+  notchAtVertex,
+  NotchCm,
+  Pt,
+} from "./core";
 import { formatCm } from "@/lib/format";
 import type { Translate } from "@/lib/i18n/translate";
 
 const cm = (v: number) => `${formatCm(v)} cm`;
+
+// #244: the reserved InternalCm "pleat" variant's first real emitter -- a
+// standalone straight/a-line skirt panel only (see draftSkirt's own
+// isDressWaist gate below, and lib/types.ts's GarmentStyle.pleats doc for
+// why a dress/radial-silhouette panel never reads this field at all).
+//
+// PLEAT_FOLD_DEPTH_CM is the finished, visible fold depth per side -- a
+// deliberate, reasonable constant; no verified industry-standard figure
+// exists to cite, the same footing BUTTON_STAND_WIDTH_CM/
+// WAISTBAND_OVERLAP_CM (lib/draft/subpieces.ts) already stand on. A single
+// fold needs 2x its own depth of flat fabric (it doubles back on itself),
+// so PLEAT_INTAKE_PER_SIDE_CM is what actually widens the panel.
+//
+// The intake is added to BOTH the waist and hem edges, on BOTH sides,
+// symmetric about the panel's own foldEdge axis (x = hemHalf): #244
+// deliberately never drafts a single lopsided "knife" fold on this shared
+// front/back panel, since an asymmetric insert would falsify the piece's
+// own declared foldEdge/axis-of-symmetry contract (core.ts's
+// DraftedPiece.foldEdge doc) -- see lib/types.ts's PleatType doc for the
+// same reasoning. "box" and "inverted-box" stay symmetric, and differ only
+// in which of the two marked lines (the press fold vs. where the folded
+// edge is placed) sits closer to the panel's own new outer edge -- see
+// pleatFoldPlacement below.
+export const PLEAT_FOLD_DEPTH_CM = 4;
+export const PLEAT_INTAKE_PER_SIDE_CM = PLEAT_FOLD_DEPTH_CM * 2;
+
+// One side's own fold + placement marks, from the panel's ORIGINAL
+// (pre-pleat) edge position at the waist/hem down to its new, widened outer
+// edge -- t=0 at the new outer edge, t=1 at the original position, for both
+// the waist (y=0) and hem (y=lengthCm) ends of this side's own edge.
+//
+// "box": the press fold sits nearer the ORIGINAL edge (t=2/3) and the
+// placement line nearer the new OUTER edge (t=1/3) -- the added strip's
+// outer portion folds inward, toward centre, so the visible crease on each
+// side opens AWAY from centre (a standard box pleat: two folds facing away
+// from each other).
+// "inverted-box": the reverse -- fold nearer the OUTER edge (t=1/3),
+// placement nearer the ORIGINAL edge (t=2/3) -- the two folds face TOWARD
+// each other and hide underneath, at centre (a standard inverted box
+// pleat).
+//
+// The press fold reuses the "foldLine" InternalCm kind (the same "a press
+// line, not a cut line" concept a dart's own fold line already uses); the
+// placement/stitch line is what the reserved "pleat" kind marks explicitly,
+// since no other existing kind names it.
+// #259: the waist edge's own y is a parameter rather than a hardcoded 0 --
+// a non-zero riseCm moves that edge off y=0 (see waistY/hemY below), and a
+// fold/placement line still has to span the panel it is drawn on. Passing
+// both ends beats passing a length: the caller already computes them, and a
+// pleat line that started at 0 while the panel's waist sat at -riseCm ran
+// outside the outline entirely (a containment failure, not a cosmetic one).
+export function pleatFoldPlacement(
+  pleatType: Exclude<PleatType, "none">,
+  origWaistX: number,
+  outerWaistX: number,
+  origHemX: number,
+  outerHemX: number,
+  waistYCm: number,
+  hemYCm: number,
+): InternalCm[] {
+  const lerp = (outer: number, orig: number, t: number) =>
+    outer + (orig - outer) * t;
+  const [foldT, placeT] = pleatType === "box" ? [2 / 3, 1 / 3] : [1 / 3, 2 / 3];
+  const at = (t: number): [Pt, Pt] => [
+    [lerp(outerWaistX, origWaistX, t), waistYCm],
+    [lerp(outerHemX, origHemX, t), hemYCm],
+  ];
+  const [foldA, foldB] = at(foldT);
+  const place = at(placeT);
+  return [
+    { kind: "foldLine", aCm: foldA, bCm: foldB },
+    { kind: "pleat", ptsCm: place },
+  ];
+}
 
 // #80: was `m.hip/4 + (style.seamAllowanceCm ?? 1)` -- the seam-allowance
 // spec field baked straight into finished geometry here, while every other
@@ -16,6 +104,12 @@ const cm = (v: number) => `${formatCm(v)} cm`;
 // design. Mirrors body.ts's own wearingEase constant; the skirt drafter
 // takes no BlockOpts, so a plain module constant is enough.
 const SKIRT_WEARING_EASE_CM = 2;
+
+// #249: `gradedSkirtLengthCm` (the explicit-length-vs-graded-sizes fix) now
+// lives in ./core, not here -- lib/draft/engine/freesewing/designs/skirt.ts
+// (a different, independently-scored engine) needs the identical formula
+// and must not import moldai's own drafter module to get it. Re-used below
+// unchanged; see core.ts's own doc comment for the fix's rationale.
 
 // Standalone skirt only (#177 left this untouched): a skirt with no bodice
 // to join sizes its own straight/a-line waist panel off the hip, same as
@@ -127,10 +221,21 @@ export function draftSkirt(
   // `spec.type === "dress"`, and only then do the waist-edge corners get the
   // "waist join" notches that mirror body.ts's own isDressHem ones.
   isDressWaist = false,
+  // #249: the reference row an explicit style.skirtLengthCm is normalized
+  // against before being re-expanded for `m`'s own skirtLength -- defaults
+  // to `m` itself, so every call site that doesn't grade across sizes (every
+  // one before #249) sees byte-identical behavior. garment.ts threads the
+  // pattern's actual base-size row through here only when `m` is a
+  // DIFFERENT size's row (see gradedSkirtLengthCm's own doc above).
+  baseRow: Measurements = m,
 ): DraftedPiece {
   const silhueta: SkirtSilhouette = style.skirt ?? "straight";
   const ease = style.seamAllowanceCm ?? 1;
-  const length = style.skirtLengthCm ?? m.skirtLength;
+  const length = gradedSkirtLengthCm(
+    style.skirtLengthCm,
+    m.skirtLength,
+    baseRow.skirtLength,
+  );
   // #259: a signed waist-RISE style offset -- raises/lowers the panel's own
   // waist edge, never the body waist/hip measurements those feed the panel
   // width from. Only meaningful for a STANDALONE skirt: a dress's skirt
@@ -247,6 +352,10 @@ export function draftSkirt(
       // when isDressWaist (paired against a bodice hem by garment.ts), but
       // exposed unconditionally like body.ts's own `hem` edge.
       seamEdges,
+      placementCm: { role: "skirt", ...NO_PLACEMENT_TRANSFORM },
+      // #249: garment.ts reads this instead of re-deriving it via a second
+      // gradedSkirtLengthCm call -- see core.ts's own doc on this field.
+      resolvedLengthCm: length,
     };
   }
 
@@ -261,9 +370,6 @@ export function draftSkirt(
     : skirtWaistHalfCm(m.hip);
   const flare = silhueta === "a-line" ? 12 : 0;
   const hemHalf = waistHalf + flare;
-  const waistLeftX = waistHalf === hemHalf ? 0 : hemHalf - waistHalf;
-  const waistRightX = waistLeftX + waistHalf * 2;
-  const hemRightX = hemHalf * 2;
   // #259: the waist edge's own y — raised (moved to negative y, extending
   // the panel upward past the natural waist) when riseCm > 0, retracted
   // (moved down toward the natural waist) when < 0. The hem's own y stays
@@ -273,6 +379,25 @@ export function draftSkirt(
   // length + riseCm.
   const waistY = -riseCm;
   const hemY = length;
+  // #244: a dress's own skirt panel never reads pleats (see this function's
+  // own isDressWaist param doc and lib/types.ts's GarmentStyle.pleats doc);
+  // undefined defaults to "none", same as every other optional style enum.
+  const pleatType: PleatType = isDressWaist ? "none" : (style.pleats ?? "none");
+  const pleatIntakeCm = pleatType === "none" ? 0 : PLEAT_INTAKE_PER_SIDE_CM;
+  // Original (pre-pleat) corner positions -- also the "placement"/"press
+  // fold" reference points pleatFoldPlacement below measures from.
+  const waistLeftX0 = waistHalf === hemHalf ? 0 : hemHalf - waistHalf;
+  const waistRightX0 = waistLeftX0 + waistHalf * 2;
+  const hemLeftX0 = 0;
+  const hemRightX0 = hemHalf * 2;
+  // Widened by pleatIntakeCm on EACH side (0 when unpleated, reproducing
+  // the original corners exactly) -- symmetric about x=hemHalf, so foldEdge
+  // below still names a real axis of symmetry (#244's own doc on why this
+  // panel never drafts a single lopsided fold).
+  const waistLeftX = waistLeftX0 - pleatIntakeCm;
+  const waistRightX = waistRightX0 + pleatIntakeCm;
+  const hemLeftX = hemLeftX0 - pleatIntakeCm;
+  const hemRightX = hemRightX0 + pleatIntakeCm;
   // #126: the waist and hem are each a single straight edge with no vertex
   // at their own midpoint -- (hemHalf, waistY) and (hemHalf, hemY) subdivide
   // those two edges exactly at their centres (collinear with their
@@ -284,12 +409,42 @@ export function draftSkirt(
     [waistRightX, waistY],
     [hemRightX, hemY],
     [hemHalf, hemY], // hem centre (fold bottom)
-    [0, hemY],
+    [hemLeftX, hemY],
   ];
+  // #244: the panel's own REAL (possibly pleat-widened) waist width -- never
+  // the pre-widen waistHalf*2, so this row and the mated waistband (sized
+  // off this same edge in garment.ts) always agree with what was actually
+  // drafted.
   detailRows.splice(1, 0, {
     label: t("rows.waistPanel"),
-    value: cm(waistHalf * 2),
+    value: cm(waistRightX - waistLeftX),
   });
+  let internalsCm: InternalCm[] | undefined;
+  if (pleatType !== "none") {
+    // One (origWaistX, outerWaistX, origHemX, outerHemX) tuple per side --
+    // left then right -- fed to pleatFoldPlacement in turn rather than two
+    // hand-duplicated call sites.
+    const sides: [number, number, number, number][] = [
+      [waistLeftX0, waistLeftX, hemLeftX0, hemLeftX],
+      [waistRightX0, waistRightX, hemRightX0, hemRightX],
+    ];
+    internalsCm = sides.flatMap(
+      ([origWaistX, outerWaistX, origHemX, outerHemX]) =>
+        pleatFoldPlacement(
+          pleatType,
+          origWaistX,
+          outerWaistX,
+          origHemX,
+          outerHemX,
+          waistY,
+          hemY,
+        ),
+    );
+    detailRows.splice(detailRows.length - 1, 0, {
+      label: t("rows.pleats"),
+      value: t("pleatType." + pleatType),
+    });
+  }
 
   const b = bbox(outlineCm);
   const insideRef: Pt = [b.minX + b.w / 2, b.minY + b.h / 2];
@@ -319,6 +474,10 @@ export function draftSkirt(
     foldEdge: [1, 4],
     notches,
     detailRows,
+    ...(internalsCm ? { internalsCm } : {}),
+    // #249: garment.ts reads this instead of re-deriving it via a second
+    // gradedSkirtLengthCm call -- see core.ts's own doc on this field.
+    resolvedLengthCm: length,
     // #134: the waist edge (index 0 to 2, straight -- see the outline
     // comment above), matching body.ts's own `hem` edge when this is a
     // dress's skirt panel. #188: `hem` (index 3 to 5, straight through the
@@ -328,5 +487,6 @@ export function draftSkirt(
     // (a skirt's own bottom is never sewn to anything), so it always
     // reports a real "hem" step regardless of silhouette or waistband.
     seamEdges: { waist: [0, 2], hem: [3, 5] },
+    placementCm: { role: "skirt", ...NO_PLACEMENT_TRANSFORM },
   };
 }

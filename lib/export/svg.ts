@@ -33,6 +33,21 @@ function pathD(start: ExPt, segs: ExSeg[], ox: number, oy: number): string {
   );
 }
 
+// #123/#243: a solid cut-line path + a dashed net-line path -- the piece's
+// own outer boundary and every internal loop (#243) draw this identical
+// pair, just centered on a different { outline, cutOutline }.
+function outlinePairPaths(
+  outline: { start: ExPt; segs: ExSeg[] },
+  cutOutline: { start: ExPt; segs: ExSeg[] },
+  ox: number,
+  oy: number,
+): string[] {
+  return [
+    `<path d="${pathD(cutOutline.start, cutOutline.segs, ox, oy)}" fill="none" stroke="#000" stroke-width="0.3"/>`,
+    `<path d="${pathD(outline.start, outline.segs, ox, oy)}" fill="none" stroke="#666" stroke-width="0.2" stroke-dasharray="3 2"/>`,
+  ];
+}
+
 export function toSvg(model: ExportModel): string {
   const w = model.sheetWidthCm * MM;
   const h = model.sheetHeightCm * MM;
@@ -48,12 +63,12 @@ export function toSvg(model: ExportModel): string {
     // boundary now; the net stitch line is a secondary dashed path, its own
     // dash pattern distinct from the grainline's (6 4) and the fold's (8 2 2
     // 2) so all three read apart on screen.
-    parts.push(
-      `<path d="${pathD(p.cutOutline.start, p.cutOutline.segs, ox, oy)}" fill="none" stroke="#000" stroke-width="0.3"/>`,
-    );
-    parts.push(
-      `<path d="${pathD(p.outline.start, p.outline.segs, ox, oy)}" fill="none" stroke="#666" stroke-width="0.2" stroke-dasharray="3 2"/>`,
-    );
+    parts.push(...outlinePairPaths(p.outline, p.cutOutline, ox, oy));
+    // #243: an internal loop (hole) draws exactly like the piece's own
+    // outer boundary above -- solid cut line first, dashed net line on top.
+    for (const loop of p.internalLoops ?? []) {
+      parts.push(...outlinePairPaths(loop.outline, loop.cutOutline, ox, oy));
+    }
     if (p.grainline) {
       const [a, b] = p.grainline;
       parts.push(
@@ -81,6 +96,19 @@ export function toSvg(model: ExportModel): string {
     for (const [a, b] of p.internalFoldLines ?? []) {
       parts.push(
         `<line x1="${X(a.x)}" y1="${Y(a.y)}" x2="${X(b.x)}" y2="${Y(b.y)}" stroke="#4a5a3a" stroke-width="0.15" stroke-dasharray="1 1.5"/>`,
+      );
+    }
+    // #244: a pleat's own placement/stitch line -- where the folded edge
+    // lays down once pressed, distinct from its own press fold (already
+    // drawn above via internalFoldLines): a dash pattern of its own so the
+    // two read apart.
+    for (const pleat of p.pleats ?? []) {
+      if (pleat.length < 2) continue;
+      const dd = pleat
+        .map((pt, i) => `${i === 0 ? "M" : "L"}${X(pt.x)} ${Y(pt.y)}`)
+        .join(" ");
+      parts.push(
+        `<path d="${dd}" fill="none" stroke="#4a5a3a" stroke-width="0.2" stroke-dasharray="2 2"/>`,
       );
     }
     // #127: a drill hole -- a small open circle, 1.0-1.5cm short of the

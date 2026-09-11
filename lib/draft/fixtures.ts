@@ -185,6 +185,34 @@ export const DECORATION_CASES: [string, GarmentSpec][] = [
     },
   ],
   [
+    // #244: exercises the box pleat (widened panel + its own fold/placement
+    // internals) across every DECORATION_CASES consumer -- containment (the
+    // pleat's fold/placement lines stay inside the panel), the seam graph
+    // (the waistband still matches the widened waist edge), and every
+    // export format's cut-line/nesting suite.
+    "skirt straight box pleat",
+    {
+      type: "skirt",
+      gender: "female",
+      measurementOverrides: {},
+      style: { skirt: "straight", pleats: "box" },
+    },
+  ],
+  [
+    // #244: the inverted-box variant, on the a-line (flared) silhouette --
+    // exercises the OTHER fold-direction geometry alongside the box case
+    // above, and the flare's non-vertical side edges (the straight
+    // silhouette's own side edges are vertical, a degenerate case the
+    // containment check handles differently -- see garment.test.ts).
+    "skirt a-line inverted box pleat",
+    {
+      type: "skirt",
+      gender: "female",
+      measurementOverrides: {},
+      style: { skirt: "a-line", pleats: "inverted-box" },
+    },
+  ],
+  [
     // #259: exercises the radial branch's own waist-rise offset (shrinks the
     // drafted waist radius, taller panel above the hem) across the same
     // matrix every other style field already gets exercised in.

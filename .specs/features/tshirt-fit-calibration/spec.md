@@ -1,5 +1,17 @@
 # T-Shirt Fit Calibration Specification
 
+> **Partially superseded by #242** (see `docs/architecture/drafting.md`/
+> `docs/decisions/drafting.md`'s drafting-engine entries): the "no fixed
+> numeric gate" decision below (Goals, Out of Scope, and the "Pass/fail
+> bar" row in Assumptions) held only until #242, which added an explicit
+> percentage-of-benchmark tolerance for three specific, well-understood
+> moldai deltas (back panel curvePerimeterCm, sleeve heightCm, front/back
+> heightCm) in `lib/draft/tshirtBenchmark.test.ts` — see that file's own
+> "gated deltas (#242)" comment block for the tolerances and their
+> rationale. Every other delta in the comparison report, and every
+> freesewing delta, is unchanged: still reported, never gated, for the
+> exact reasons this spec originally gave.
+
 ## Problem Statement
 
 MoldAI's `tshirt` drafting archetype (`lib/draft/body.ts` + `sleeve.ts` + `subpieces.ts` +

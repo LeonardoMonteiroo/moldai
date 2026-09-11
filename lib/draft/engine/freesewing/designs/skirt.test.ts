@@ -116,4 +116,53 @@ describe("draftSkirt", () => {
     expect(draft.armholeLenCm).toBeUndefined();
     expect(draft.sleeveArmholeCm).toBeUndefined();
   });
+
+  // #249: Sandy's own `lengthBonus` option is DEFINED as targetLengthCm /
+  // base.waistToFloor, so without a distinct reference row the drafted hem
+  // was solved to equal the SAME explicit targetLengthCm on every row (the
+  // freesewing-engine mirror of moldai's own flat-hem bug) -- fixed by
+  // resolving targetLengthCm through the shared gradedSkirtLengthCm first
+  // (see skirt.ts's own top-of-file import comment).
+  describe("skirtLengthCm grading across sizes (#249)", () => {
+    function height(drafted: ReturnType<typeof draftSkirt>["drafted"]) {
+      const skirt = drafted.find((p) => p.id === "skirt")!;
+      const ys = skirt.outlineCm.map(([, y]) => y);
+      return Math.max(...ys) - Math.min(...ys);
+    }
+
+    it("an explicit skirtLengthCm grades two sizes in the SAME ratio the chart's own skirtLength grades", () => {
+      const spec = skirtSpec({ skirtLengthCm: 70 });
+      const baseRow = SIZE_TABLE.M;
+      const p = draftSkirt(spec, SIZE_TABLE.P, t, baseRow);
+      const gg = draftSkirt(spec, SIZE_TABLE.GG, t, baseRow);
+      const lenP = height(p.drafted);
+      const lenGG = height(gg.drafted);
+      expect(lenP).not.toBeCloseTo(lenGG, 1);
+      // Sandy's own construction (waistband/hem additions on top of the
+      // pure lengthBonus*waistToFloor radius) isn't a perfectly linear
+      // function of targetLengthCm, so this is a looser bound than
+      // lib/draft/skirt.ts's own exact-formula assertion -- proving the
+      // ratio lands close to the chart's, not bit-identical to it.
+      expect(lenP / lenGG).toBeCloseTo(
+        SIZE_TABLE.P.skirtLength / SIZE_TABLE.GG.skirtLength,
+        1,
+      );
+    });
+
+    it("a fallback (no explicit) length still differs across two sizes, matching the chart directly", () => {
+      const spec = skirtSpec();
+      const p = draftSkirt(spec, SIZE_TABLE.P, t);
+      const gg = draftSkirt(spec, SIZE_TABLE.GG, t);
+      expect(height(p.drafted)).not.toBeCloseTo(height(gg.drafted), 1);
+    });
+
+    it("without a distinct reference row (the freesewing engine's own draft() before this fix wired one through), an explicit length is used exactly as before", () => {
+      const draft = draftSkirt(
+        skirtSpec({ skirtLengthCm: 70 }),
+        SIZE_TABLE.GG,
+        t,
+      );
+      expect(draft.garmentLengthCm).toBeCloseTo(70, 5);
+    });
+  });
 });

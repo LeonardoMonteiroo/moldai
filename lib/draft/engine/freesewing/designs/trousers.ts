@@ -9,7 +9,7 @@ import type { Measurements } from "@/lib/measurements";
 import type { GarmentSpec, Gender } from "@/lib/types";
 import type { Translate } from "@/lib/i18n/translate";
 import type { DraftedPiece } from "../../../core";
-import { curveArcLengthCm } from "../../../core";
+import { curveArcLengthCm, NO_PLACEMENT_TRANSFORM } from "../../../core";
 import type { SeamPairDecl } from "../../../seams";
 import type { EngineDraft } from "../../types";
 import { draftWaistband, WAISTBAND_OVERLAP_CM } from "../../../subpieces";
@@ -145,6 +145,13 @@ function trouserPanel(
       // only leg shape this design wrapper drafts today.
       { label: t("rows.trouserOtherLegs"), value: t("comingSoonBadge") },
     ],
+    // #254: the same Proof3DRole lib/draft/trousers.ts's own moldai panels
+    // declare, so lib/proof3d/mesh.ts's findByRole finds this engine's own
+    // leg panels too, regardless of which engine drafted the pattern.
+    placementCm: {
+      role: isFront ? "trouser-front" : "trouser-back",
+      ...NO_PLACEMENT_TRANSFORM,
+    },
   };
   return { piece, seamEdges };
 }

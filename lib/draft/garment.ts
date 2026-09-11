@@ -46,6 +46,7 @@ import {
   CUFFS,
   WAISTBANDS,
   FRONT_CLOSURES,
+  PLEATS,
   STYLE_LIMITS,
   FIT_CLASSES,
   STRETCH_CLASSES,
@@ -73,6 +74,7 @@ export {
   CUFFS,
   WAISTBANDS,
   FRONT_CLOSURES,
+  PLEATS,
   STYLE_LIMITS,
   FIT_CLASSES,
   STRETCH_CLASSES,
@@ -190,6 +192,10 @@ export function validateSpec(raw: unknown): GarmentSpec {
             STYLE_LIMITS.trouserLengthCm.max,
           )
         : undefined,
+    pleats:
+      style.pleats !== undefined
+        ? pick(style.pleats, PLEATS, "none")
+        : undefined,
     // #259: a signed waist-rise OFFSET (see vocabulary.ts's STYLE_LIMITS.
     // riseCm doc) -- num()'s own default (0) is the "no offset" value, same
     // shape darts/armholeDeepenCm already use for their own zero-default.
@@ -242,10 +248,30 @@ export function validateQuestions(raw: unknown): ClarifyQuestion[] {
 // whose actual gap misses their own intended ease by more than
 // SEAM_TOLERANCE_CM -- i.e. the real conflicts, in the same shape #138's own
 // sewing-order graph will consume (every pair, divergent or not).
+//
+// #253: also flags a pair whose TOTAL agrees (diffCm within tolerance) but
+// whose sub-segment distribution doesn't -- "a sleeve cap whose total
+// matches but whose front/back split is wrong measures as a perfect seam"
+// otherwise. ANY pair whose subSegmentDiffCm itself exceeds tolerance has
+// its own `fixable` downgraded to false, even when the pair declares
+// `fixable: true` and even when diffCm ALSO exceeds tolerance: refitSleeve
+// only ever changes which TOTAL the cap solves against (base vs. deepened
+// armhole), it cannot correct a front/back split imbalance, so a pair
+// diverging on both axes at once would still reappear as a conflict after
+// refitSleeve closes diffCm -- offering "Corrigir manga" as if it fully
+// resolves such a pair would be a fix button that silently leaves the real
+// (split) problem in place (see docs/architecture/seams-and-assembly.md).
 export function seamCheck(graph: SeamMeasurement[]): SeamMeasurement[] {
-  // diffCm is already a magnitude (lib/draft/seams.ts's walkSeamPairs) --
-  // no second Math.abs needed here.
-  return graph.filter((m) => m.diffCm > SEAM_TOLERANCE_CM);
+  // diffCm/subSegmentDiffCm are already magnitudes (lib/draft/seams.ts's
+  // walkSeamPairs) -- no second Math.abs needed here.
+  return graph
+    .filter(
+      (m) =>
+        m.diffCm > SEAM_TOLERANCE_CM || m.subSegmentDiffCm > SEAM_TOLERANCE_CM,
+    )
+    .map((m) =>
+      m.subSegmentDiffCm > SEAM_TOLERANCE_CM ? { ...m, fixable: false } : m,
+    );
 }
 
 const edgeRef = (
@@ -270,6 +296,16 @@ export function draftAll(
   spec: GarmentSpec,
   baseMeasurements: Measurements,
   t: Translate,
+  // #249: the pattern's own frozen base-size row -- read ONLY to normalize
+  // an explicit style.skirtLengthCm into a fraction of ITS skirtLength
+  // before re-expanding that fraction against `baseMeasurements`'s own
+  // skirtLength (see lib/draft/core.ts's gradedSkirtLengthCm). Optional,
+  // defaulting to `baseMeasurements` itself: every call site drafting the
+  // pattern's own base size (or that predates #249) sees byte-identical
+  // output. Only a caller drafting a GRADED size (facade.ts's
+  // draftGradedOverlays, lib/export/model.ts's buildExportModel exporting a
+  // non-base size) passes the actual base row here.
+  referenceMeasurements: Measurements = baseMeasurements,
 ): {
   drafted: DraftedPiece[];
   measurements: Measurements;
@@ -283,6 +319,26 @@ export function draftAll(
     baseMeasurements,
     spec.measurementOverrides,
   );
+  // #249: the SAME override transform applied to the reference row -- a
+  // chat-driven measurementOverrides.skirtLength (rare, but valid: it's a
+  // CORE key) has to move both rows together, or the fraction below would
+  // compare an overridden row against an un-overridden one. Applying the
+  // SAME override value to both rows means `measurements.skirtLength ===
+  // referenceRow.skirtLength` whenever skirtLength is overridden, which
+  // collapses gradedSkirtLengthCm's fraction back to 1 -- so an explicit
+  // style.skirtLengthCm prints flat across every graded size again in that
+  // one combination. This is deliberate, not a gap #249 left open:
+  // resolveMeasurements (lib/measurements.ts) already applies every
+  // override as one absolute, un-graded number to whichever row it's given
+  // (overriding waist/hip/bust already produces the identical flat-across-
+  // sizes shape) -- an overridden skirtLength is this wearer's own chosen
+  // number, not a size-chart proportion, so treating it as authoritative
+  // over the chart's own per-size progression is consistent with every
+  // other override, not a regression specific to this fix.
+  const referenceRow: Measurements =
+    referenceMeasurements === baseMeasurements
+      ? measurements
+      : resolveMeasurements(referenceMeasurements, spec.measurementOverrides);
   const drafted: DraftedPiece[] = [];
   let armholeLenCm: number | undefined;
   let sleeveArmholeCm: number | undefined;
@@ -448,6 +504,12 @@ export function draftAll(
           b: [edgeRef(sleeve.id, sleeve.seamEdges.cap)],
           easeCm: opts.knit ? CAP_EASE_CM.knit : CAP_EASE_CM.woven,
           fixable: true,
+          // #253: front+back armhole are drafted to be an EQUAL split of
+          // the cap's own total, unless a real backWidth divergence widens
+          // one side -- the only pair today drafted with that expectation
+          // (see lib/draft/seams.ts's own doc on why this isn't a blanket
+          // default).
+          expectEqualSplit: true,
         });
         // #134: the sleeve's own two side seams (underarm), sewn to each
         // other when the piece is folded into a tube -- equal by
@@ -638,24 +700,33 @@ export function draftAll(
       spec.style,
       t,
       spec.type === "dress",
+      referenceRow,
     );
     drafted.push(skirtPiece);
-    // #234: the skirt panel's own length -- the same formula draftSkirt
-    // itself resolves internally (style.skirtLengthCm, falling back to the
-    // chart's own skirtLength) but doesn't expose on the piece. A dress adds
-    // this on top of its bodice-to-waist length (set above); a standalone
-    // skirt has no bodice, so this IS the whole garment length.
+    // #234/#249: the skirt panel's own length -- draftSkirt already resolved
+    // this via gradedSkirtLengthCm (normalizing an explicit
+    // style.skirtLengthCm against referenceRow's own skirtLength before
+    // re-expanding it for THIS row) and exposes it as resolvedLengthCm
+    // (core.ts's own doc), so it's read off the piece rather than
+    // re-derived with a second call whose three arguments could silently
+    // drift from draftSkirt's own -- the non-null assertion is safe because
+    // draftSkirt (unlike every other drafter) always sets this field, on
+    // both of its own return paths. A dress adds this on top of its
+    // bodice-to-waist length (set above); a standalone skirt has no bodice,
+    // so this IS the whole garment length.
     // #259: a standalone skirt's own riseCm extends/retracts the panel's
     // drafted height by exactly that amount (draftSkirt's own waistY/hemY
-    // split above) -- unlike trousers.ts's own riseCm (an offset traded
-    // against leg length, total held fixed), a skirt has no second "length"
-    // field to trade against, so the reported garment length has to grow
-    // with it or this figure would silently stop matching the drafted
-    // piece. A dress's own skirt panel always resolves riseCm to 0
-    // (isDressWaist, draftSkirt) so this is a true no-op there.
+    // split) on TOP of that resolved length -- unlike trousers.ts's own
+    // riseCm (an offset traded against leg length, total held fixed), a
+    // skirt has no second "length" field to trade against, so the reported
+    // garment length has to grow with it or this figure would silently stop
+    // matching the drafted piece. resolvedLengthCm stays the panel's own
+    // graded length (core.ts's doc, and skirt.ts's own rows.length), so the
+    // rise is added here rather than folded into it. A dress's own skirt
+    // panel always resolves riseCm to 0 (isDressWaist, draftSkirt), so this
+    // is a true no-op there.
     const skirtRiseCm = spec.type === "dress" ? 0 : (spec.style.riseCm ?? 0);
-    const skirtLenCm =
-      (spec.style.skirtLengthCm ?? measurements.skirtLength) + skirtRiseCm;
+    const skirtLenCm = skirtPiece.resolvedLengthCm! + skirtRiseCm;
     garmentLengthCm =
       spec.type === "dress" ? (garmentLengthCm ?? 0) + skirtLenCm : skirtLenCm;
     // #134: the dress bodice's hem/waist-join edge vs the skirt panel's own

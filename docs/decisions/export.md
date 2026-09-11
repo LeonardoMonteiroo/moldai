@@ -28,3 +28,82 @@
 - **`User.exportPreset Json?`** (migration `20260827120000_add_user_export_preset`, additive/nullable) is "Salvar preset" — one preset per account, not per pattern and not multiple named presets, matching design 5h's single "remember my choices" affordance. `GET`/`PUT /api/account/export-preset` (`requireUser`-gated) are the round trip; `lib/db/exportPreset.ts` re-validates on **every** read and write through `lib/export/preset.ts`'s `validateExportPreset` (`ExportShell`'s pre-existing localStorage-era validator, unchanged — the same drop-unknown-field/clamp-out-of-range/never-throw contract `validateSizeChartPatch` has), so a hostile or stale body can never persist verbatim: an unknown format/page size/fabric width falls back to its default, an out-of-range custom roll width drops to `null` (no split). `PUT`'s route handler deliberately stays on `readJsonObject`, not `parseBody` — the `PATCH /api/size-charts/[id]` precedent (API routes, above): the validator already owns the whole trust boundary, so a zod schema here could only prove "this is an object," which `readJsonObject` already guarantees. `ExportShell` fetches the saved preset on mount (first paint is always `DEFAULT_EXPORT_PRESET`, matching the server render, so there is no hydration mismatch to reconcile) and applies it only if the visitor hasn't already started editing; a failed fetch shows a dismissible, retryable notice without blocking the rest of the screen (the default preset stays usable), and a failed save surfaces the same way rather than silently no-op'ing. **`localStorage` was dropped, not kept as a fallback**: a per-browser cache of an account-level fact is exactly the "second copy of a fact that already has an owner" mistake `Wallet.planLabel`/`EXPORT_FORMATS` duplication already document, and `ExportShell` had no code path that needed to keep working offline.
 
 ---
+
+## Nesting and fabric-consumption optimization: the literature has real, dated numbers this repo's own gap can be measured against — true no-fit-polygon nesting is judged worth scoping, not yet built (#248)
+
+**Decided: worth a future scoping issue on the strength of the literature found; nothing built
+here.** `planCutLayout` (`lib/export/cutplan.ts`, #8 above) nests each cut copy's _bounding
+box_, not its outline, and `CutPlanTab.layoutNoteAuto` already says so on screen — this entry
+is the promised follow-up research, not a reversal of that honest label.
+
+**Reported material-utilization figures, collected per method family, each with its actual
+publication year and an explicit note on source quality.** Industry-glossary sources (marker-
+making vendor/consultant blogs — `apexfashionlab.com`, `uphance.com`, and similar — not peer-
+reviewed, treated as informed-practitioner opinion rather than fact) converge on **80-90%
+marker efficiency as the normal range for real garment production**, lower for jackets/outerwear
+(72-80%, "many curved pieces") and higher for basics (82-90%). These are the numbers a
+bounding-box packer's own competitors are actually measured against in industry, not an
+academic construct. Academic no-fit-polygon (NFP) literature, checked independently: NFP-based
+heuristics report efficiency ratios **above 90% on the canonical apparel/industrial nesting
+benchmark set** (the ALBANO/DAGLI/MAO/MARQUES/MAN SHIRT datasets used across this literature —
+"MAN SHIRT" is itself a real apparel marker dataset, not a synthetic shape set); a 2024/2025
+flaw-avoidance NFP variant (FAINA, treating fabric flaws as prioritized obstacles) reports
+**2-13% utilization improvement** over non-flaw-aware nesting; other NFP work reports up to
+**5.89%/4.02% best/average utilization improvement** over its own baseline. Genetic-algorithm
+and hybrid GA-simulated-annealing (HGASA) methods report **~28% marker-length reduction** in one
+comparison found — the exact publication year for that specific figure could not be pinned down
+independently in this pass (found via secondary summary, not the primary paper itself), so it is
+recorded with that caveat rather than stated as a bare fact. A 2008 ScienceDirect paper
+("Genetic optimization of fabric utilization in apparel manufacturing") independently confirms
+GA-based cut-order-planning is a real, decades-old technique in this exact industry, not a
+speculative import from elsewhere.
+
+**RL/deep-RL nesting is real and current, but the numbers found are not apparel-specific — an
+honest gap, not a fabricated bridge.** "Nest smarter, not harder" (Journal of Intelligent
+Manufacturing, 2025) — a hybrid vision-based deep-RL agent for 2D irregular rotational
+placement — reports an **11% material-utilization improvement and 97% faster computation** vs.
+an open-source nesting tool, but its dataset is **sheet metal, not garment pieces**. The
+underlying problem (2D irregular nesting, NP-hard, no-rotation-limits aside) is the same
+mathematical shape apparel nesting is, so the result is suggestive, but claiming it transfers
+1:1 to fabric marker-making without a garment-specific benchmark would be exactly the kind of
+unverified claim this research pass exists to avoid making. Separately, deep-RL applied to the
+**one-dimensional** cutting-stock problem reports utilization "higher than 90% on large-scale
+datasets" — noted here only to flag that it answers a different (1D, not 2D irregular) problem
+than marker-making, and should not be cited as a 2D nesting result by a future reader skimming
+this entry.
+
+**Simulator-in-the-loop fit optimization: still no verified claims found** — this pass's
+searches turned up nothing pairing a fit/drape simulator with an optimization loop over pattern
+geometry, consistent with the issue's own framing. **Grading-rule inference is not actually a
+zero-coverage area, though** — a 2022 Emerald/Seoul National University paper, "Automatic
+generation of parametric patterns from grading patterns using artificial intelligence," trains a
+neural network on existing multi-size graded patterns to infer the body-size-to-geometry
+relationship and emit a parametric pattern. It doesn't touch nesting, but it directly
+contradicts the issue's blanket "no grading-rule inference" claim — recorded here (and cross-
+referenced from the #247 entry above) as a coverage gap in the original two research passes,
+not evidence the underlying research doesn't exist.
+
+**Judgement: true outline-based (no-fit-polygon) nesting is worth the scope it was previously
+denied, unlike #246's learned-geometry proposer.** The two questions are structurally opposite.
+Learned geometry's own literature (see #246 above) shows a near-perfect per-edge metric that
+does _not_ compound into a comparable whole-garment success rate — the win looks large on paper
+and evaporates at the object level. Nesting is the reverse: fabric consumption is "the one
+apparel problem with a dense, cheap, unambiguous objective" (the issue's own framing, confirmed
+rather than undercut by this research) — every method family surveyed reports a plain percentage
+area/length gain with no analogous compounding-failure mode, because nesting has no notion of
+"almost correct but unsewable." A bounding-box packer is a known, named, on-screen-disclosed
+simplification (`CutPlanTab.layoutNoteAuto`) against a technique (NFP) that is 20+ years mature,
+has multiple independent algorithm families (NFP-heuristic, GA/GA-SA, and now DRL) each reporting
+real single-digit-to-double-digit percentage gains, and — unlike a hypothetical geometry-
+generating model — degrades gracefully: a worse nesting result is still a valid, sewable, cut
+plan, just a less efficient one, so there is no seam-graph-style hard-reject mechanism to design
+around.
+
+**What this judgement does not claim.** None of the percentage gains above were measured against
+MoldAI's own piece shapes — every figure comes from a different dataset (industrial marker sets,
+sheet metal, or unnamed academic benchmark suites), so the real gain `planCutLayout` would see by
+adopting outline-based nesting over its current bounding-box packers is still unmeasured and
+would need to be the first thing a scoping issue establishes, not assumed from this survey.
+`packSkyline`'s own measured ~31% length reduction over `packShelf` alone (both bounding-box
+packers, see #8 above) is the only number in this area actually measured against this app's own
+patterns, and it is not directly comparable to any figure collected in this pass.

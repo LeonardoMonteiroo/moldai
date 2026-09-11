@@ -3,7 +3,7 @@ import { seamCheck } from "./garment";
 import { draftPiecesCm, measureSeamGraph } from "./engine/facade";
 import { engineFor } from "./engine/capability";
 import type { SeamMeasurement } from "./seams";
-import { DraftedPiece, dartsOf, curveArcLengthCm } from "./core";
+import { DraftedPiece, dartsOf, pleatsOf, curveArcLengthCm } from "./core";
 import type { Translate } from "@/lib/i18n/translate";
 
 // #138: sewing-order / assembly instructions -- derived, never persisted,
@@ -97,6 +97,16 @@ export interface AssemblyDartStep {
   count: number;
 }
 
+// #244: a pleat's own fold-and-press step -- same footing as a dart, sewn
+// (folded/pressed, in this case) before any seam that joins the piece to
+// another one.
+export interface AssemblyPleatStep {
+  kind: "pleat";
+  pieceId: string;
+  pieceName: string;
+  count: number;
+}
+
 export interface AssemblySeamStep {
   kind: "seam";
   // The pair's own stable identifier (e.g. "armhole-cap", "waist-join-front")
@@ -117,8 +127,24 @@ export interface AssemblySeamStep {
   aLenCm: number;
   bLenCm: number;
   easeCm: number; // intended ease to distribute -- 0 for a seam meant to close exactly
-  diffCm: number; // real divergence beyond easeCm, magnitude, 0 when the seam matches as designed
+  diffCm: number; // real divergence beyond easeCm/gatherRatio, magnitude, 0 when the seam matches as designed
+  // #253: a pair's TOTAL can close (diffCm 0) while its front/back split
+  // still doesn't project onto the mate side correctly -- 0 unless the pair
+  // opted into that check (lib/draft/seams.ts's expectEqualSplit). Exposed
+  // here (not folded into diffCm) so a `diverges: true` step whose diffCm
+  // happens to read near-0 still carries the real, non-zero magnitude of
+  // whatever actually triggered seamCheck.
+  subSegmentDiffCm: number;
   fixable: boolean;
+  // #255: the pair's own declared gather/ruffle ratio -- 1 (no ratio) for
+  // every pair that doesn't declare one, carried through unchanged from
+  // SeamMeasurement (lib/draft/seams.ts). A ratio other than 1 means side b
+  // is DELIBERATELY drafted longer/shorter than side a (a gathered waist, a
+  // puff sleeve) -- diffCm already nets this out (so a correctly-drafted
+  // gathered pair reports 0, not a false conflict), and a consumer phrasing
+  // this step can use aLenCm/bLenCm/gatherRatio to describe "distribute
+  // N cm of fullness" rather than a divergence.
+  gatherRatio: number;
   // True when this specific seam is a live conflict (from seamCheck, not a
   // second threshold of this module's own) -- the order still includes it
   // (still real, still useful to know the sequence), but a consumer must
@@ -134,7 +160,7 @@ export interface AssemblyHemStep {
 }
 
 export type AssemblyStep =
-  AssemblyDartStep | AssemblySeamStep | AssemblyHemStep;
+  AssemblyDartStep | AssemblyPleatStep | AssemblySeamStep | AssemblyHemStep;
 
 export interface AssemblyOrder {
   steps: AssemblyStep[];
@@ -197,7 +223,14 @@ export function buildAssemblyOrder(
     return null;
   }
 
-  const divergentKeys = new Set(seamCheck(seamGraph).map((m) => m.key));
+  // #253: seamCheck may downgrade `fixable` to false for a pair that
+  // diverges ONLY on its sub-segment split (refitSleeve can't correct a
+  // front/back split imbalance) -- read that corrected value back by key,
+  // rather than each seam step re-reading the RAW graph's own `fixable`,
+  // so this module never advertises a fix the conflict UI itself wouldn't.
+  const conflicts = seamCheck(seamGraph);
+  const divergentKeys = new Set(conflicts.map((m) => m.key));
+  const fixableByKey = new Map(conflicts.map((m) => [m.key, m.fixable]));
 
   const steps: AssemblyStep[] = [];
 
@@ -218,6 +251,22 @@ export function buildAssemblyOrder(
     }
   }
 
+  // #244: a pleat's own fold-and-press step, same "shapes the piece before
+  // any seam" priority as darts above -- a separate loop (not merged into
+  // the one above) so a piece with both darts and a pleat still gets one
+  // step per kind, never a single step conflating the two counts.
+  for (const piece of pieces) {
+    const pleats = pleatsOf(piece.internalsCm);
+    if (pleats.length > 0) {
+      steps.push({
+        kind: "pleat",
+        pieceId: piece.id,
+        pieceName: pieceDisplayName(pattern, piece.id),
+        count: pleats.length,
+      });
+    }
+  }
+
   // One step per graph entry, no more, no fewer -- what assembly.test.ts's
   // matrix test asserts. Order among them comes only from phaseRank, a
   // stable sort so ties fall back to walkSeamPairs' own declaration order.
@@ -232,7 +281,9 @@ export function buildAssemblyOrder(
     bLenCm: m.bLenCm,
     easeCm: m.easeCm,
     diffCm: m.diffCm,
-    fixable: m.fixable,
+    subSegmentDiffCm: m.subSegmentDiffCm,
+    fixable: fixableByKey.get(m.key) ?? m.fixable,
+    gatherRatio: m.gatherRatio,
     diverges: divergentKeys.has(m.key),
   }));
   seamSteps.sort((x, y) => phaseRank(x.key) - phaseRank(y.key));

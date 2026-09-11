@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import {
   MIN_PASSWORD_LENGTH,
   MAX_PASSWORD_LENGTH,
+  validateNewPassword,
 } from "@/lib/account/settings";
 
 // A blank token renders the request form (reached from "Esqueci minha
@@ -31,6 +32,9 @@ function RequestForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendError, setResendError] = useState("");
+  const [resendDone, setResendDone] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -48,6 +52,29 @@ function RequestForm() {
     setSent(true);
   }
 
+  // #239: re-issues the link for the address already typed above -- the card
+  // keeps it in state so the visitor never has to retype it. Hits the same
+  // route (and the same password_reset_request / password_reset_request_email
+  // buckets) as the form submit above, so it must stay just as generic:
+  // the button behaves identically whether or not the address is registered.
+  async function onResend() {
+    setResending(true);
+    setResendError("");
+    setResendDone(false);
+    try {
+      const result = await requestPasswordReset(email);
+      if (result.status === "error") {
+        setResendError(t(`errors.${result.error}`));
+        return;
+      }
+      setResendDone(true);
+    } catch {
+      setResendError(t("errors.bad_body"));
+    } finally {
+      setResending(false);
+    }
+  }
+
   if (sent) {
     return (
       <div className="mt-3">
@@ -55,6 +82,24 @@ function RequestForm() {
         <p className="text-ink text-ui mt-2 leading-[1.6]">
           {t("requestSentBody")}
         </p>
+        <p className="text-muted text-meta mt-3">{t("requestSentHint")}</p>
+        {resendError && (
+          <p className="text-alert text-meta mt-3">{resendError}</p>
+        )}
+        {resendDone && (
+          <p className="text-olive-dark text-ui mt-3">{t("resendDone")}</p>
+        )}
+        {/* w-full because this panel is a plain div, not the flex-col form
+            that stretches the request form's button for free. */}
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onResend}
+          disabled={resending}
+          className="mt-4 w-full"
+        >
+          {resending ? t("resendButtonLoading") : t("resendButton")}
+        </Button>
         {/* A quiet way back, not a solid CTA: nothing here needs pushing, and
             the design gives this screen the same muted centred link the
             signup confirmation uses. */}
@@ -117,8 +162,10 @@ function ConfirmForm({ token }: { token: string }) {
 
   const mismatch =
     password.length > 0 && confirm.length > 0 && password !== confirm;
-  const canSubmit =
-    password.length >= MIN_PASSWORD_LENGTH && password === confirm;
+  // #238: validateNewPassword mirrors the server's own rule (length +
+  // letters + digits) rather than length alone, so this button can't stay
+  // enabled for a password the server will reject as weak_password anyway.
+  const canSubmit = validateNewPassword(password) && password === confirm;
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
