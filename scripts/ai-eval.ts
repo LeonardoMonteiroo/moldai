@@ -41,7 +41,6 @@ import {
 } from "../lib/ai/eval/score";
 import { renderReport } from "../lib/ai/eval/report";
 import type { AiDecision } from "../lib/ai/decision";
-import { getProvider } from "../lib/ai/provider/registry";
 import type { PatternState, GarmentSpec } from "../lib/types";
 
 const REPORT_PATH = resolve(__dirname, "../docs/reference/ai-eval/report.md");
