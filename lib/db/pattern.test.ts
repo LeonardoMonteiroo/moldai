@@ -100,7 +100,12 @@ import {
 import { prisma } from "./prisma";
 import { seedPatternState, bumpVersion } from "@/lib/editor/state";
 import { t } from "@/lib/i18n/test-translate";
-import { MAX_PATTERNS_LISTED } from "@/lib/types";
+import {
+  MAX_PATTERNS_LISTED,
+  type Piece,
+  type PieceInternal,
+  type ConflictInfo,
+} from "@/lib/types";
 
 // Wires the fake tx to read/write `rows` by (id, userId), mimicking
 // `SELECT ... WHERE id = $1 AND userId = $2 FOR UPDATE` + the final UPDATE.
@@ -341,6 +346,143 @@ describe("withPattern", () => {
       pattern: { cutQuantities?: Record<string, number> };
     };
     expect(saved.pattern.cutQuantities).toEqual({ M: 2, G: 1 });
+  });
+
+  // #318: PieceSchema never named `internals`, so z.object's default strip
+  // mode deleted every dart, fold line, drill hole and pleat from a
+  // persisted pattern -- the identical trap FLAG_CASES/STYLE_FLAG_CASES
+  // above pin for ChatMessage and GarmentStyle, this time destroying
+  // drafted geometry instead of a chat flag. One case per kind for the same
+  // reason those two loop: a grouped assertion passes the moment any ONE
+  // member of the union is named.
+  //
+  // Keyed by kind rather than a plain array on purpose: the object literal
+  // becomes a missing-property COMPILE error the day lib/types.ts's
+  // PieceInternal gains a seventh variant, so a new kind cannot be added
+  // without this file forcing the schema to name it too (`npm run build`
+  // typechecks test files -- tsconfig's `include` is `**/*.ts`).
+  const INTERNALS_BY_KIND: Record<PieceInternal["kind"], PieceInternal> = {
+    dart: { kind: "dart", d: "M10 20 L14 40 L18 20" },
+    foldLine: { kind: "foldLine", x1: 14, y1: 20, x2: 14, y2: 40 },
+    drillHole: { kind: "drillHole", x: 14, y: 36, r: 1.4 },
+    pleat: { kind: "pleat", d: "M30 0 L30 60" },
+    styleLine: { kind: "styleLine", d: "M5 5 L25 25" },
+    placementMark: { kind: "placementMark", x: 50, y: 12 },
+  };
+
+  // Minimal piece carrying only PieceSchema's required keys -- a real
+  // drafted one would work identically, but this keeps the assertion about
+  // persistence rather than about whatever geometry the drafter emits
+  // today. lib/schemas/pattern.test.ts covers the real drafted shape.
+  const pieceWith = (internals: PieceInternal[]): Piece => ({
+    id: "p1",
+    name: "Frente",
+    qty: 1,
+    outline: { kind: "polygon", points: "0,0 60,0 60,80 0,80" },
+    label: { x: 6, y: 74 },
+    detailRows: [],
+    internals,
+  });
+
+  function seedWithPiece(internals: PieceInternal[]) {
+    const seeded = seedPatternState(t);
+    seeded.pattern.pieces = [pieceWith(internals)];
+    rows = [
+      {
+        id: "m1",
+        userId: "u1",
+        data: JSON.parse(JSON.stringify(seeded)),
+        updatedAt: new Date(),
+      },
+    ];
+  }
+
+  function savedInternals(): PieceInternal[] | undefined {
+    const saved = rows.find((r) => r.id === "m1")!.data as {
+      pattern: { pieces: { internals?: PieceInternal[] }[] };
+    };
+    return saved.pattern.pieces[0].internals;
+  }
+
+  for (const [kind, entry] of Object.entries(INTERNALS_BY_KIND)) {
+    it(`keeps a piece's ${kind} internal across a read-modify-write round trip`, async () => {
+      seedWithPiece([entry]);
+
+      await withPattern("m1", "u1", (state) => bumpVersion(state));
+
+      expect(savedInternals()).toEqual([entry]);
+    });
+  }
+
+  // The six cases above each pin one member of the union; this one pins
+  // what none of them can -- that the array is kept whole and in order,
+  // rather than filtered down to whichever kinds the schema happens to
+  // recognise.
+  it("keeps every internal on a piece, in order, across a read-modify-write round trip", async () => {
+    const all = Object.values(INTERNALS_BY_KIND);
+    seedWithPiece(all);
+
+    await withPattern("m1", "u1", (state) => bumpVersion(state));
+
+    expect(savedInternals()).toEqual(all);
+  });
+
+  // #324: ConflictInfo.entries (#134's multi-divergence list) was never
+  // named in ConflictInfoSchema, so it was stripped the same way -- one
+  // entry carries `sizes` (#241) to pin that nested field too.
+  it("keeps conflict.entries across a read-modify-write round trip", async () => {
+    const seeded = seedPatternState(t);
+    const conflict: ConflictInfo = {
+      id: "c1",
+      title: "Divergência de costura",
+      description: "A cava e a cabeça da manga não fecham.",
+      diffCm: 2.1,
+      suggestion: "Ajustar a cabeça da manga.",
+      pieceAId: "front",
+      pieceBId: "sleeve",
+      markers: [{ cx: 10, cy: 20, r: 3 }],
+      entries: [
+        {
+          key: "armhole-cap",
+          label: "Cava x cabeça da manga",
+          aLabel: "Cava",
+          bLabel: "Cabeça da manga",
+          aPieceId: "front",
+          bPieceId: "sleeve",
+          diffCm: 2.1,
+          fixable: true,
+          markers: [{ cx: 10, cy: 20, r: 3 }],
+        },
+        {
+          key: "side-seam",
+          label: "Lateral",
+          aLabel: "Frente",
+          bLabel: "Costas",
+          aPieceId: "front",
+          bPieceId: "back",
+          diffCm: 0.8,
+          fixable: false,
+          markers: [],
+          sizes: ["P", "G"],
+        },
+      ],
+    };
+    seeded.conflict = conflict;
+    rows = [
+      {
+        id: "m1",
+        userId: "u1",
+        data: JSON.parse(JSON.stringify(seeded)),
+        updatedAt: new Date(),
+      },
+    ];
+
+    await withPattern("m1", "u1", (state) => bumpVersion(state));
+
+    const saved = rows.find((r) => r.id === "m1")!.data as {
+      conflict?: ConflictInfo;
+    };
+    expect(saved.conflict?.entries).toEqual(conflict.entries);
   });
 
   // #72: every current caller only reaches savePattern after lockPattern has

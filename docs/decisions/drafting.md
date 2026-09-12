@@ -254,6 +254,16 @@ would otherwise describe fields that don't survive persistence (issue #268, clos
 `ConflictInfo.entries` (#134's multi-divergence list) — found, not fixed here, tracked
 separately.
 
+**#318 is a third instance of the same class, and the first to destroy geometry rather
+than metadata.** `lib/schemas/piece.ts`'s `PieceSchema` never named `Piece.internals`,
+so every dart, fold line, drill hole and pleat #127 introduced was stripped on every
+read and deleted from the row on the next mutating turn — for the entire life of the
+field. Fixing the schema cannot restore what is already gone; an affected pattern
+regains its marks the next time an `apply` turn redrafts its pieces from `spec`. A
+full audit of `PatternStateSchema` against `lib/types.ts` at that point found exactly
+one remaining gap in the persisted tree — `ConflictInfo.entries` above — which is now
+also fixed, closing #324 alongside #318.
+
 **A style-field capability gap is reachable for `"moldai"` itself, not only a
 hypothetical second engine.** `validateSpec` does not gate style fields by
 `spec.type` — it happily resolves `style.collar` on a `type: "trousers"` spec, which

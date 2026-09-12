@@ -270,9 +270,6 @@ export interface PieceNotch {
 // exist so a future style-line/buttonhole drafter can attach to this same
 // channel without a second one, but no drafter emits either yet -- #127
 // decision, settled, not reopened here.
-export type InternalKind =
-  "dart" | "foldLine" | "drillHole" | "pleat" | "styleLine" | "placementMark";
-
 export type PieceInternal =
   | { kind: "dart"; d: string }
   | { kind: "foldLine"; x1: number; y1: number; x2: number; y2: number }
