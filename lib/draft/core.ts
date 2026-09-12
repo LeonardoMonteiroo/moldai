@@ -47,6 +47,23 @@ export interface DraftedPiece {
   // gradedSkirtLengthCm a second time with the same three arguments, so the
   // two numbers cannot independently drift apart.
   resolvedLengthCm?: number;
+  // #319/#320: how much of this piece's own waist/hem edge a PLEAT folds
+  // back up, in cm, on top of whatever a dart already removes -- the same
+  // "drafter exposes a number it already computed so the caller reads it
+  // instead of re-deriving it" precedent resolvedLengthCm/armholeLenCm
+  // above already follow. Set ONLY by lib/draft/skirt.ts's draftSkirt, on
+  // the exact branch that widens the edge for a box/inverted-box pleat --
+  // never re-derived from `internalsCm` by a caller, since a pleat's own
+  // InternalCm entries are MARK lines (a fold, a placement/stitch line),
+  // not a polygon whose width equals the intake (contrast a dart's own
+  // ptsCm, which IS such a polygon -- see dartIntakeAtYCm below). Absent
+  // (not zero) on every unpleated piece, every dress skirt panel, and every
+  // radial (circle/gore/half-circle) silhouette, so `?? 0` at every read
+  // site is the correct default rather than a sentinel to check for.
+  // Constant across the whole panel height by construction (the pleat
+  // widens waist AND hem identically) -- a future PARTIAL-height pleat
+  // would need to express a real region instead of reusing this scalar.
+  pleatTakeUpCm?: number;
   // #134: named edge-index ranges (into this piece's OWN outlineCm, using
   // the same [from, to] convention curveArcLengthCm/curvedSpans already use
   // -- `to` may equal outlineCm.length to mean "wraps back to index 0", the
@@ -578,6 +595,104 @@ export function pleatsOf(internalsCm?: InternalCm[]): Pt[][] {
       (e): e is Extract<InternalCm, { kind: "pleat" }> => e.kind === "pleat",
     )
     .map((e) => e.ptsCm);
+}
+
+// Horizontal extent of a closed cm-space polygon at height `y`, treating
+// every edge as a straight chord -- the same approximation
+// lib/canvas/pieceLabel.ts's horizontalSpanAt already uses on a piece's own
+// outline in px space, for the identical reason (the drafters sample curves
+// densely enough, #86, that the deviation is a fraction of a millimetre).
+// Moved here (was private to lib/draft/easeReport.ts) so dartIntakeAtYCm
+// below and easeReport.ts's own widthAtCm share one copy: it is used on
+// BOTH a piece's own outline AND a dart's own leg polygon. `pieceLabel.ts`'s
+// own copy is a deliberate, separate one -- a different space (px) and a
+// different input shape (Piece.vertices, not a raw Pt[] polygon) -- not a
+// duplication this consolidation is meant to remove.
+export function polygonSpanAt(
+  pts: Pt[],
+  y: number,
+): { lo: number; hi: number } | null {
+  let lo = Infinity;
+  let hi = -Infinity;
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[i];
+    const b = pts[(i + 1) % pts.length];
+    if (a[1] === b[1]) continue;
+    if (y < Math.min(a[1], b[1]) || y > Math.max(a[1], b[1])) continue;
+    const x = a[0] + ((b[0] - a[0]) * (y - a[1])) / (b[1] - a[1]);
+    lo = Math.min(lo, x);
+    hi = Math.max(hi, x);
+  }
+  return hi >= lo ? { lo, hi } : null;
+}
+
+// #319/#320: the total fabric width every DART on this piece folds out at
+// height `y` -- full width where a dart's own open end meets a seam,
+// tapering to zero at its apex, zero at a height no dart reaches. Read
+// purely off the dart polygons a drafter already emitted (dartsOf above),
+// so no consumer has to know any drafter's own suppression formula. This is
+// the ONE copy of that arithmetic: lib/draft/easeReport.ts's widthAtCm (a
+// scanline question, "how wide is this piece at height y") and
+// presentedEdgeLenCm below (an edge-range question, "how long does this
+// declared seam edge measure") are both expressed in terms of it, instead
+// of each re-deriving it against a different dart shape.
+//
+// Deliberately dart-only -- a pleat's own InternalCm entry is a placement
+// MARK line (lib/draft/skirt.ts's pleatFoldPlacement), not a polygon whose
+// width equals its own intake, so a pleat's take-up cannot be read this
+// way. It is DECLARED instead (DraftedPiece.pleatTakeUpCm) and added
+// separately by both callers below.
+export function dartIntakeAtYCm(
+  internalsCm: InternalCm[] | undefined,
+  y: number,
+): number {
+  let intake = 0;
+  for (const dartPts of dartsOf(internalsCm)) {
+    const span = polygonSpanAt(dartPts, y);
+    if (span) intake += span.hi - span.lo;
+  }
+  return intake;
+}
+
+// #319/#320: the length this edge actually PRESENTS to whatever it is sewn
+// to, after the fabric its own darts and pleats fold away is taken up --
+// GarmentCode's own Interface.projecting_lengths()/projecting_fractions().
+// A thin edge-range adapter over dartIntakeAtYCm above: `garment.ts`'s
+// waistband sizing asks an edge-range question ("how long is
+// seamEdges.waist"), not a scanline one, so this is the one place that
+// converts between the two rather than either caller deriving `y` inline.
+//
+// A NON-horizontal edge is returned RAW, un-netted -- both dart intake and
+// pleat take-up are scanline facts at a single `y`, and a curved/diagonal
+// edge's own take-up is not a well-formed question at one height. This is
+// the conservative fallback (it reproduces today's pre-#319/#320 behaviour
+// exactly) and is safe here because both production callers
+// (lib/draft/trousers.ts's `waist`, lib/draft/skirt.ts's straight/a-line
+// `waist`) declare that edge as a plumb horizontal by construction, pinned
+// by their own drafter tests. `from`/`to` use the identical
+// wrap-to-outlineCm.length convention curveArcLengthCm/seamEdges already
+// use, and are resolved by COORDINATE (`% n`), never by assuming which
+// index is the "near" or "far" end -- #263's normalizeWinding can reverse
+// which literal index a piece's own `waist` edge maps to (the trousers
+// panel is one such piece), so this must not assume index 0 vs 1 means the
+// centre-front vs the outer-hip corner.
+export function presentedEdgeLenCm(
+  piece: DraftedPiece,
+  edge: [number, number],
+): number {
+  const raw = curveArcLengthCm(
+    piece.outlineCm,
+    piece.curvedSpans ?? [],
+    edge[0],
+    edge[1],
+  );
+  const n = piece.outlineCm.length;
+  const y0 = piece.outlineCm[edge[0] % n][1];
+  const y1 = piece.outlineCm[edge[1] % n][1];
+  if (Math.abs(y0 - y1) > 1e-6) return raw;
+  const takeUp =
+    dartIntakeAtYCm(piece.internalsCm, y0) + (piece.pleatTakeUpCm ?? 0);
+  return Math.max(0, raw - takeUp);
 }
 
 export function bbox(pts: Pt[]) {

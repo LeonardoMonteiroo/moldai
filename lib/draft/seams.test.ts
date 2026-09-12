@@ -117,6 +117,45 @@ describe("walkSeamPairs", () => {
       const [m] = walkSeamPairs([waistband, skirt], [pair]);
       expect(m.diffCm).toBe(0);
     });
+
+    // #319/#320: a ratio BELOW 1 is take-up (side a's own flat cut edge
+    // presents less once its own darts/pleats are folded away) -- the same
+    // field and formula as the gather case above, read in the other
+    // direction.
+    it("a ratio below 1 (take-up) also reports zero divergence, in the other direction", () => {
+      const cutPanel = rect("panel", 20); // the flat, un-netted cut edge
+      const band = rect("band", 15); // 20 * 0.75, the FOLDED length it's cut to
+      const pair: SeamPairDecl = {
+        key: "waistband-waist",
+        labelKey: "waistbandWaist",
+        a: [{ pieceId: "panel", from: 0, to: 1 }],
+        b: [{ pieceId: "band", from: 0, to: 1 }],
+        easeCm: 0,
+        fixable: false,
+        gatherRatio: 0.75,
+      };
+      const [m] = walkSeamPairs([cutPanel, band], [pair]);
+      expect(m.gatherRatio).toBe(0.75);
+      expect(m.diffCm).toBe(0);
+      expect(m.aLenCm).toBe(20);
+      expect(m.bLenCm).toBe(15);
+    });
+
+    it("a below-1 ratio also composes with a real easeCm", () => {
+      const cutPanel = rect("panel", 20);
+      const band = rect("band", 18); // 20 * 0.75 + 3 ease
+      const pair: SeamPairDecl = {
+        key: "waistband-waist",
+        labelKey: "waistbandWaist",
+        a: [{ pieceId: "panel", from: 0, to: 1 }],
+        b: [{ pieceId: "band", from: 0, to: 1 }],
+        easeCm: 3,
+        fixable: false,
+        gatherRatio: 0.75,
+      };
+      const [m] = walkSeamPairs([cutPanel, band], [pair]);
+      expect(m.diffCm).toBe(0);
+    });
   });
 
   // #253: per-edge fractions, and the sub-segment divergence they enable.

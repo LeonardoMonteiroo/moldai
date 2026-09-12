@@ -407,10 +407,12 @@ export function draftSkirt(
     [hemHalf, hemY], // hem centre (fold bottom)
     [hemLeftX, hemY],
   ];
-  // #244: the panel's own REAL (possibly pleat-widened) waist width -- never
-  // the pre-widen waistHalf*2, so this row and the mated waistband (sized
-  // off this same edge in garment.ts) always agree with what was actually
-  // drafted.
+  // #244: the panel's own REAL (possibly pleat-widened) CUT waist width --
+  // never the pre-widen waistHalf*2. #319/#320: this is deliberately the
+  // CUT edge, not the finished one the waistband is actually sized from
+  // (garment.ts nets pleatTakeUpCm back out via presentedEdgeLenCm) -- see
+  // the rows.waistFinished row below, added alongside rows.pleats, so the
+  // ficha técnica states both numbers rather than only the cut one.
   detailRows.splice(1, 0, {
     label: t("rows.waistPanel"),
     value: cm(waistRightX - waistLeftX),
@@ -439,6 +441,15 @@ export function draftSkirt(
     detailRows.splice(detailRows.length - 1, 0, {
       label: t("rows.pleats"),
       value: t("pleatType." + pleatType),
+    });
+    // #319/#320: the finished waist the pleat actually leaves once its own
+    // fold is taken up -- derived by subtraction from the two numbers
+    // already in scope (never a re-derivation of waistHalf*2), and only
+    // ever emitted alongside rows.pleats since an unpleated panel would
+    // otherwise print the identical number twice under two different rows.
+    detailRows.splice(detailRows.length - 1, 0, {
+      label: t("rows.waistFinished"),
+      value: cm(waistRightX - waistLeftX - pleatIntakeCm * 2),
     });
   }
 
@@ -474,6 +485,12 @@ export function draftSkirt(
     // #249: garment.ts reads this instead of re-deriving it via a second
     // gradedSkirtLengthCm call -- see core.ts's own doc on this field.
     resolvedLengthCm: length,
+    // #319/#320: declared here (not re-derived by garment.ts) on the exact
+    // branch that widened the edge -- see core.ts's DraftedPiece.pleatTakeUpCm
+    // doc for why a pleat's own take-up can't be scanned off internalsCm the
+    // way a dart's can. Conditional spread (never `pleatTakeUpCm: 0`) so an
+    // unpleated panel stays byte-identical to one with no pleats at all.
+    ...(pleatIntakeCm > 0 ? { pleatTakeUpCm: pleatIntakeCm * 2 } : {}),
     // #134: the waist edge (index 0 to 2, straight -- see the outline
     // comment above), matching body.ts's own `hem` edge when this is a
     // dress's skirt panel. #188: `hem` (index 3 to 5, straight through the

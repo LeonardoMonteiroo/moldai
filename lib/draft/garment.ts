@@ -11,7 +11,12 @@ import {
   Gender,
   PieceOutline,
 } from "@/lib/types";
-import { curveArcLengthCm, DraftedPiece, normalizeWinding } from "./core";
+import {
+  curveArcLengthCm,
+  DraftedPiece,
+  normalizeWinding,
+  presentedEdgeLenCm,
+} from "./core";
 import { BlockOpts, draftBody } from "./body";
 import { draftSleeve, CAP_EASE_CM, WRIST_EASE_CM } from "./sleeve";
 import { draftSkirt, dressWaistHalfCm } from "./skirt";
@@ -916,14 +921,25 @@ export function draftAll(
       (spec.style.waistband ?? "straight") !== "none" &&
       skirtPiece.seamEdges
     ) {
-      const waistLenCm =
+      // #319/#320: `rawWaistCm` is the panel's own flat CUT edge (unchanged
+      // arithmetic -- still what the pair's own `a` side declares, below);
+      // `nettedWaistCm` is what that edge actually PRESENTS once a pleat's
+      // own declared take-up (skirtPiece.pleatTakeUpCm) is folded back out
+      // -- see core.ts's presentedEdgeLenCm. The band is cut to the netted
+      // length; the pair still closes because it declares that shrinkage
+      // as its own gatherRatio, not because both sides measure the same
+      // (previously over-counted) raw number.
+      const rawWaistCm =
         curveArcLengthCm(
           skirtPiece.outlineCm,
           skirtPiece.curvedSpans ?? [],
           ...skirtPiece.seamEdges.waist,
         ) * skirtPiece.qty;
+      const nettedWaistCm =
+        presentedEdgeLenCm(skirtPiece, skirtPiece.seamEdges.waist) *
+        skirtPiece.qty;
       // #263: normalized before waistband.seamEdges is read below.
-      const waistband = normalizeWinding(draftWaistband(waistLenCm, t));
+      const waistband = normalizeWinding(draftWaistband(nettedWaistCm, t));
       drafted.push(waistband);
       if (waistband.seamEdges) {
         const waistRefs = Array.from({ length: skirtPiece.qty }, () =>
@@ -936,6 +952,7 @@ export function draftAll(
           b: [edgeRef(waistband.id, waistband.seamEdges.waist)],
           easeCm: WAISTBAND_OVERLAP_CM,
           fixable: false,
+          gatherRatio: rawWaistCm > 0 ? nettedWaistCm / rawWaistCm : 1,
         });
       }
     }
@@ -1013,7 +1030,15 @@ export function draftAll(
       tf.seamEdges &&
       tb.seamEdges
     ) {
-      const waistLenCm =
+      // #319: `rawWaistCm` is both panels' own flat CUT waist edge --
+      // unchanged arithmetic, still what the pair's own `a` side declares
+      // below. `nettedWaistCm` is what those edges actually PRESENT once
+      // each panel's own waist dart is folded back out (core.ts's
+      // presentedEdgeLenCm, reading trouserPanel's dartInternals). The
+      // band is cut to the netted length; the pair still closes because it
+      // declares that shrinkage as its own gatherRatio, not because both
+      // sides measure the same (previously over-counted, hip-wide) number.
+      const rawWaistCm =
         curveArcLengthCm(
           tf.outlineCm,
           tf.curvedSpans ?? [],
@@ -1026,8 +1051,11 @@ export function draftAll(
           ...tb.seamEdges.waist,
         ) *
           tb.qty;
+      const nettedWaistCm =
+        presentedEdgeLenCm(tf, tf.seamEdges.waist) * tf.qty +
+        presentedEdgeLenCm(tb, tb.seamEdges.waist) * tb.qty;
       // #263: normalized before waistband.seamEdges is read below.
-      const waistband = normalizeWinding(draftWaistband(waistLenCm, t));
+      const waistband = normalizeWinding(draftWaistband(nettedWaistCm, t));
       drafted.push(waistband);
       if (waistband.seamEdges) {
         const waistRefs = [
@@ -1045,6 +1073,7 @@ export function draftAll(
           b: [edgeRef(waistband.id, waistband.seamEdges.waist)],
           easeCm: WAISTBAND_OVERLAP_CM,
           fixable: false,
+          gatherRatio: rawWaistCm > 0 ? nettedWaistCm / rawWaistCm : 1,
         });
       }
     }
