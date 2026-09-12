@@ -188,8 +188,9 @@ export const DECORATION_CASES: [string, GarmentSpec][] = [
     // #244: exercises the box pleat (widened panel + its own fold/placement
     // internals) across every DECORATION_CASES consumer -- containment (the
     // pleat's fold/placement lines stay inside the panel), the seam graph
-    // (the waistband still matches the widened waist edge), and every
-    // export format's cut-line/nesting suite.
+    // (#319/#320: the waistband is sized off the panel's PRESENTED waist,
+    // netting the pleat's own declared take-up back out -- not the widened
+    // cut edge), and every export format's cut-line/nesting suite.
     "skirt straight box pleat",
     {
       type: "skirt",

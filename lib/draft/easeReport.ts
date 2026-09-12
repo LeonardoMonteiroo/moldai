@@ -1,7 +1,12 @@
 import { Pattern, Girth, FitClass } from "@/lib/types";
 import { draftPiecesCm, measureSeamGraph } from "./engine/facade";
 import { engineFor } from "./engine/capability";
-import { DraftedPiece, Pt, curveArcLengthCm, dartsOf } from "./core";
+import {
+  DraftedPiece,
+  dartIntakeAtYCm,
+  polygonSpanAt,
+  presentedEdgeLenCm,
+} from "./core";
 import { classifyGirthFit } from "./ease";
 import type { Translate } from "@/lib/i18n/translate";
 
@@ -62,65 +67,38 @@ const round1 = (n: number) => Math.round(n * 10) / 10;
 
 // ---- geometry helpers ----------------------------------------------------
 
-// Horizontal extent of a closed cm-space polygon at height `y`, treating
-// every edge as a straight chord -- the same approximation
-// lib/canvas/pieceLabel.ts's horizontalSpanAt already uses on a piece's own
-// outline for the identical reason (the drafters sample curves densely
-// enough, #86, that the deviation is a fraction of a millimetre). Reused
-// here for both a piece's own outline AND a dart's own leg polygon, see
-// widthAtCm below.
-function polygonSpanAt(
-  pts: Pt[],
-  y: number,
-): { lo: number; hi: number } | null {
-  let lo = Infinity;
-  let hi = -Infinity;
-  for (let i = 0; i < pts.length; i++) {
-    const a = pts[i];
-    const b = pts[(i + 1) % pts.length];
-    if (a[1] === b[1]) continue;
-    if (y < Math.min(a[1], b[1]) || y > Math.max(a[1], b[1])) continue;
-    const x = a[0] + ((b[0] - a[0]) * (y - a[1])) / (b[1] - a[1]);
-    lo = Math.min(lo, x);
-    hi = Math.max(hi, x);
-  }
-  return hi >= lo ? { lo, hi } : null;
-}
-
 // The piece's own FINISHED (post-suppression) width at height `y`: the raw
 // outline span there, minus whatever any internal dart removes at that same
-// height. A dart's own ptsCm polygon (public since #127's internalsCm
-// channel), scanned the identical way, gives exactly the fabric width its
-// own fold takes up -- full width at its open (seam) end, tapering to zero
-// at its apex, whether the dart's open end sits ON the piece's own boundary
-// (lib/draft/body.ts's dress-hem dart, lib/draft/trousers.ts's waist dart)
-// or is fully internal (lib/draft/body.ts's fisheye dart on a non-dress
-// piece). This is what lets ONE generic function report the sewn width for
-// a piece a drafter shaped with a dart without this module needing to know
-// either drafter's own suppression formula -- it only reads geometry the
-// drafter already emitted.
+// height, minus any pleat take-up the drafter declared (#319/#320) -- both
+// via lib/draft/core.ts's dartIntakeAtYCm/DraftedPiece.pleatTakeUpCm, the
+// same shared arithmetic presentedEdgeLenCm uses for an edge-range question
+// instead of this module's own scanline one. This is what lets ONE generic
+// function report the sewn width for a piece a drafter shaped with a dart
+// or a pleat, without this module needing to know either drafter's own
+// suppression formula -- it only reads geometry (or a number) the drafter
+// already emitted.
 //
-// `includeDarts: false` is the one deliberate opt-out (lib/draft/trousers.ts's
-// hip level, see buildEaseReport below): a waist dart shapes the WAIST, it
-// doesn't remove hip fabric, and the trousers block happens to draft both
-// hip and waist at the exact same height (the panel's own top edge) --
-// subtracting the dart there would collapse hip into waist instead of
-// reporting the two genuinely different numbers the drafter intends.
+// `includeSuppression: false` is the one deliberate opt-out
+// (lib/draft/trousers.ts's hip level, see buildEaseReport below): a waist
+// dart shapes the WAIST, it doesn't remove hip fabric, and the trousers
+// block happens to draft both hip and waist at the exact same height (the
+// panel's own top edge) -- subtracting the suppression there would collapse
+// hip into waist instead of reporting the two genuinely different numbers
+// the drafter intends. (A trousers panel never declares `pleatTakeUpCm`, so
+// this opt-out's behaviour is unchanged by #319/#320 -- it was always,
+// and remains, dart-only in practice.)
 function widthAtCm(
   piece: DraftedPiece,
   y: number,
-  includeDarts = true,
+  includeSuppression = true,
 ): number {
   const span = polygonSpanAt(piece.outlineCm, y);
   if (!span) return 0;
-  let width = span.hi - span.lo;
-  if (includeDarts) {
-    for (const dartPts of dartsOf(piece.internalsCm)) {
-      const dartSpan = polygonSpanAt(dartPts, y);
-      if (dartSpan) width -= dartSpan.hi - dartSpan.lo;
-    }
-  }
-  return Math.max(0, width);
+  const raw = span.hi - span.lo;
+  if (!includeSuppression) return Math.max(0, raw);
+  const suppression =
+    dartIntakeAtYCm(piece.internalsCm, y) + (piece.pleatTakeUpCm ?? 0);
+  return Math.max(0, raw - suppression);
 }
 
 function findPiece(
@@ -238,17 +216,16 @@ export function buildEaseReport(
       widthAtCm(trouserBack, 0) * trouserBack.qty;
     record("waist", waistCm, bodyRow.waist);
   } else if (skirt?.seamEdges?.waist) {
-    // A skirt panel has no dart -- its own waist seam's real arc length (any
+    // A skirt panel has no dart, but MAY have a declared pleat take-up
+    // (#319/#320) -- its own waist seam's real PRESENTED arc length (any
     // silhouette, including the radial circle/gore/half-circle ones a
     // height scan can't read, see HIP below) is exact and silhouette-
     // agnostic, the same edge lib/draft/garment.ts's own waistband sizing
-    // already measures off.
+    // already measures off, netted through the identical
+    // presentedEdgeLenCm so a pleated skirt's ease report and its actual
+    // waistband always agree on the same finished waist.
     const waistCm =
-      curveArcLengthCm(
-        skirt.outlineCm,
-        skirt.curvedSpans ?? [],
-        ...skirt.seamEdges.waist,
-      ) * skirt.qty;
+      presentedEdgeLenCm(skirt, skirt.seamEdges.waist) * skirt.qty;
     record("waist", waistCm, bodyRow.waist);
   } else {
     unavailable.push({ girth: "waist", reason: "noPanel" });
@@ -258,7 +235,10 @@ export function buildEaseReport(
   if (skirt) {
     // A dress's skirt panel shares this exact branch with a standalone
     // skirt -- both start their own outline at y=0 (waist), so hipHeight
-    // below that is hip level either way.
+    // below that is hip level either way. widthAtCm nets `pleatTakeUpCm`
+    // here too (#319/#320) -- a pleat widens waist AND hem by the same
+    // amount, so the hip scan would otherwise report the same inflated
+    // surplus the waist did before this fix.
     const silhouette = spec.style.skirt ?? "straight";
     if (silhouette === "straight" || silhouette === "a-line") {
       const hipCm = widthAtCm(skirt, bodyRow.hipHeight) * skirt.qty;

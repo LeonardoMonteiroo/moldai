@@ -29,6 +29,7 @@ import {
 import { t } from "@/lib/i18n/test-translate";
 import {
   curveArcLengthCm,
+  presentedEdgeLenCm,
   bbox,
   catmullRomSegments,
   type InternalCm,
@@ -41,6 +42,7 @@ import {
   buttonholeCentersCm,
   BUTTONHOLE_END_INSET_CM,
   BUTTONHOLE_TARGET_SPACING_CM,
+  WAISTBAND_OVERLAP_CM,
 } from "./subpieces";
 import { buildAssemblyOrder } from "./assembly";
 import type { GarmentSpec, Pattern } from "@/lib/types";
@@ -2481,13 +2483,17 @@ describe("seam graph (#134)", () => {
     }
   });
 
-  // #244: proves the widened panel isn't "free" fabric -- the waistband is
-  // DERIVED from the panel's own real (pleat-widened) waist edge
-  // (garment.ts's curveArcLengthCm call, unchanged by this feature), so it
-  // grows to match automatically and the seam graph stays closed exactly
-  // like the unpleated case just above.
+  // #244's own reading of this was wrong, and is reversed by #319/#320 --
+  // see docs/decisions/drafting.md's entry for the two issues. The widened
+  // CUT panel is real fabric (aLenCm genuinely grows -- pinned below), but
+  // that widened edge is NOT the waistband's own seam length: a pleat folds
+  // that extra width back up, and the band is cut to the FOLDED waist, not
+  // the flat one. The pair still closes -- not because both sides happen
+  // to measure the same inflated number, but because it now declares that
+  // fold-back as its own `gatherRatio` (below 1: the panel's own cut edge
+  // presents less than it measures flat, garment.ts's presentedEdgeLenCm).
   it.each(["box", "inverted-box"] as const)(
-    "#244: a %s pleat still matches its own waistband within 0.3cm, and the band grows to hold the extra fabric",
+    "#319/#320: a %s pleat widens the cut panel but NOT the waistband -- the band matches the plain skirt's, via a declared gatherRatio",
     (pleats) => {
       const plainSpec = {
         type: "skirt" as const,
@@ -2517,7 +2523,13 @@ describe("seam graph (#134)", () => {
       )!;
       expect(pleatedPair.diffCm).toBeLessThan(0.3);
       expect(seamCheck(pleatedGraph)).toEqual([]);
+      // The cut edge really is wider -- that fabric is real.
       expect(pleatedPair.aLenCm).toBeGreaterThan(plainPair.aLenCm);
+      // But the drafted BAND itself matches the unpleated skirt's -- pleats
+      // change the panel, never the cós.
+      expect(pleatedPair.bLenCm).toBeCloseTo(plainPair.bLenCm, 1);
+      expect(plainPair.gatherRatio).toBe(1);
+      expect(pleatedPair.gatherRatio).toBeLessThan(1);
     },
   );
 
@@ -2590,6 +2602,49 @@ describe("seam graph (#134)", () => {
       expect(pair.diffCm, pair.key).toBeLessThan(0.3);
     }
     expect(seamCheck(graph)).toEqual([]);
+  });
+
+  // #319 AC, verbatim: the drafted waistband length is within tolerance of
+  // the resolved body waist plus WAISTBAND_OVERLAP_CM, never of the hip.
+  // Before this fix the band measured m.hip + TROUSER_WEARING_EASE_CM
+  // (~106cm at size M); the correct target is m.waist + WAISTBAND_OVERLAP_CM
+  // (77cm), since the panel's own waist dart removes exactly the hip/waist
+  // difference before the seam is cut.
+  it("#319: the drafted trousers waistband is cut to the body waist plus overlap, never the hip", () => {
+    const spec = {
+      type: "trousers" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: {},
+    };
+    const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
+    const waistband = pieces.find((p) => p.id === "waistband")!;
+    const bandLenCm = curveArcLengthCm(
+      waistband.outlineCm,
+      waistband.curvedSpans ?? [],
+      ...waistband.seamEdges!.waist,
+    );
+    expect(bandLenCm).toBeCloseTo(SIZE_TABLE.M.waist + WAISTBAND_OVERLAP_CM, 1);
+    // Regression guard: a future re-inflation back to the raw hip-derived
+    // total must fail loudly here, not drift inside a tolerance.
+    expect(bandLenCm).toBeLessThan(SIZE_TABLE.M.hip);
+  });
+
+  it("#319: the trouser-waistband-waist pair closes via a declared take-up ratio, not equal raw totals", () => {
+    const spec = {
+      type: "trousers" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: {},
+    };
+    const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
+    const pair = graph.find((m) => m.key === "trouser-waistband-waist")!;
+    expect(pair.diffCm).toBeLessThan(0.3);
+    expect(pair.gatherRatio).toBeLessThan(1);
+    expect(pair.bLenCm).toBeCloseTo(
+      pair.aLenCm * pair.gatherRatio + WAISTBAND_OVERLAP_CM,
+      1,
+    );
   });
 
   it("#128: no waistband is drafted for trousers when style.waistband is 'none'", () => {
@@ -2686,6 +2741,19 @@ describe("seam graph (#134)", () => {
     ["waist far below hip", { hip: 150, waist: 55, rise: 36 }],
     // no chart-provided rise at all -- exercises the hip-derived fallback.
     ["no rise (fallback)", { hip: 100, waist: 74, rise: undefined }],
+    // #319: the two corners above never actually reach dartHalfWidth's own
+    // Math.max(0.6, ...) floor (waistSuppression stays above 1.2 at both).
+    // These two do: "waist equal to hip" gives a small but still-positive
+    // suppression (0.75) that the floor overrides, and "waist above hip"
+    // clamps suppression to exactly 0 (trousers.ts's own
+    // Math.max(0, hipQuarterCm - waistQuarterRawCm)) so the floor is the
+    // ENTIRE dart. At both, the netted waist the panel presents is a real
+    // number ABOVE `m.waist` -- a stated limitation of this single-dart
+    // block (a body whose waist isn't meaningfully narrower than its hip
+    // cannot be drafted from a hip-derived panel to its own exact waist),
+    // not a defect this fix is expected to paper over.
+    ["waist equal to hip", { hip: 100, waist: 100, rise: 28 }],
+    ["waist above hip", { hip: 90, waist: 100, rise: 28 }],
   ];
 
   describe("#128: trousers at the hip/waist/rise corners", () => {
@@ -2707,6 +2775,43 @@ describe("seam graph (#134)", () => {
         assertDecorationsContained(pieces);
       });
     }
+
+    // #319: at the dart floor's own corners, the waistband must match what
+    // the panels actually PRESENT after their own dart -- never `m.waist`
+    // itself, which the floor can legitimately exceed.
+    it.each([
+      ["waist equal to hip", { hip: 100, waist: 100, rise: 28 }],
+      ["waist above hip", { hip: 90, waist: 100, rise: 28 }],
+    ] as [string, Partial<Measurements>][])(
+      "%s: the waistband matches the panels' own presented waist, not m.waist",
+      (_cornerName, corner) => {
+        const spec = {
+          type: "trousers" as const,
+          gender: "female" as const,
+          measurementOverrides: {},
+          style: {},
+        };
+        const m: Measurements = { ...SIZE_TABLE.M, ...corner };
+        const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, m, t);
+        const tf = pieces.find((p) => p.id === "trouser-front")!;
+        const tb = pieces.find((p) => p.id === "trouser-back")!;
+        const waistband = pieces.find((p) => p.id === "waistband")!;
+        const presentedCm =
+          presentedEdgeLenCm(tf, tf.seamEdges!.waist) * tf.qty +
+          presentedEdgeLenCm(tb, tb.seamEdges!.waist) * tb.qty;
+        const bandLenCm = curveArcLengthCm(
+          waistband.outlineCm,
+          waistband.curvedSpans ?? [],
+          ...waistband.seamEdges!.waist,
+        );
+        expect(bandLenCm).toBeCloseTo(presentedCm + WAISTBAND_OVERLAP_CM, 1);
+        // The dart's own floor refuses a zero-width dart, so the presented
+        // waist can genuinely exceed the body's own waist measurement at
+        // this corner -- a stated geometric limitation, not a tolerance to
+        // widen.
+        expect(bandLenCm).not.toBeCloseTo(m.waist + WAISTBAND_OVERLAP_CM, 1);
+      },
+    );
   });
 
   // #259: the review that found the riseCm floor bug (fixed above -- see

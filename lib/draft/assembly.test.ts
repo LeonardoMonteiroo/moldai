@@ -167,6 +167,13 @@ describe("buildAssemblyOrder", () => {
       >;
       expect(pleatStep.pieceId).toBe("skirt");
       expect(pleatStep.count).toBe(2); // one per side (#244)
+      // #319/#320: the waistband step's own gatherRatio is what tells a
+      // consumer (lib/ai/prompt.ts) this is a fold-and-match step, not a
+      // mismatch -- and it must reflect the pleat's real take-up, not 1.
+      const waistbandStep = seamSteps(order.steps).find(
+        (s) => s.key === "waistband-waist",
+      )!;
+      expect(waistbandStep.gatherRatio).toBeLessThan(1);
     },
   );
 
@@ -248,6 +255,15 @@ describe("buildAssemblyOrder", () => {
       "trouser-back",
     ]);
     for (const s of hemSteps) expect(s.lengthCm).toBeGreaterThan(0);
+
+    // #319: the waistband step carries the take-up ratio the panels'
+    // own dart declares -- a consumer phrasing this step (lib/ai/prompt.ts)
+    // reads it to say "fold the dart first, then the two match" rather
+    // than describing a mismatch.
+    const waistbandStep = seamSteps(order.steps).find(
+      (s) => s.key === "trouser-waistband-waist",
+    )!;
+    expect(waistbandStep.gatherRatio).toBeLessThan(1);
   });
 
   it("a standalone skirt with waistband explicitly 'none' still hems its own bottom edge (#188) -- only the waistband pair is absent", () => {

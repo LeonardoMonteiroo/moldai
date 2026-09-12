@@ -479,12 +479,16 @@ describe("prompt-cache byte stability", () => {
     // model to fill garmentReading part-by-part before inferring the
     // GarmentSpec (ChatGarment's own two-stage chain of thought), and
     // "# Language" names garmentReading among the fields written in the
-    // user's own language. All deliberate, expected byte changes (see this
-    // describe block's own comment), not a bug -- the eval harness
-    // (npm run eval:ai) is what proves the behaviour is better, not this
-    // hash.
+    // user's own language.
+    // #319/#320: and once more -- "# Assembly / sewing order" now tells the
+    // model how to phrase a "seam" step whose gatherRatio is below 1 (a
+    // dart/pleat take-up, phrased as fold-then-match, never a mismatch) or
+    // above 1 (deliberate fullness to distribute). All deliberate, expected
+    // byte changes (see this describe block's own comment), not a bug -- the
+    // eval harness (npm run eval:ai) is what proves the behaviour is better,
+    // not this hash.
     expect(hash).toBe(
-      "1a576065185f177c0f2bbd6685027cd32888e4ab484248ff3d63b3a27851d985",
+      "51ded5dcdbe7cfd5d393411009c6583bc2f28dedc83764a6708c1a1ef3a624ef",
     );
   });
 });

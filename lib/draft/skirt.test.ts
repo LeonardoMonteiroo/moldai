@@ -465,4 +465,70 @@ describe("pleats (#244)", () => {
       expect(withPleats.outlineCm).toEqual(plain.outlineCm);
     },
   );
+
+  // #319/#320: the panel is the ONE declared owner of its own pleat
+  // take-up -- garment.ts reads this field, it never re-derives it.
+  describe("pleatTakeUpCm (#319, #320)", () => {
+    it.each(["box", "inverted-box"] as const)(
+      "%s declares exactly 2x the per-side intake",
+      (pleats) => {
+        const dp = draftSkirt(M, { skirt: "straight", pleats }, t);
+        expect(dp.pleatTakeUpCm).toBeCloseTo(2 * PLEAT_INTAKE_PER_SIDE_CM, 5);
+      },
+    );
+
+    it("is absent (not 0) when unpleated", () => {
+      const unset = draftSkirt(M, { skirt: "straight" }, t);
+      const none = draftSkirt(M, { skirt: "straight", pleats: "none" }, t);
+      expect(unset.pleatTakeUpCm).toBeUndefined();
+      expect(none.pleatTakeUpCm).toBeUndefined();
+    });
+
+    it("is absent on a dress-mode panel even when pleats is set", () => {
+      const dp = draftSkirt(M, { skirt: "straight", pleats: "box" }, t, true);
+      expect(dp.pleatTakeUpCm).toBeUndefined();
+    });
+
+    it.each(["circle", "gore", "half-circle"] as const)(
+      "is absent on the %s (radial) silhouette even when pleats is set",
+      (skirt) => {
+        const dp = draftSkirt(M, { skirt, pleats: "box" }, t);
+        expect(dp.pleatTakeUpCm).toBeUndefined();
+      },
+    );
+  });
+
+  // #319/#320: the finished waist a pleat actually leaves, alongside the
+  // (unchanged) cut-width row above.
+  describe("rows.waistFinished (#319, #320)", () => {
+    const rowValueCm = (
+      dp: ReturnType<typeof draftSkirt>,
+      label: string,
+    ): number =>
+      parseFloat(
+        dp.detailRows
+          .find((r) => r.label === label)!
+          .value.replace(",", ".")
+          .replace(" cm", ""),
+      );
+
+    it("is present only when pleated, and equal to the cut width minus the take-up", () => {
+      const plain = draftSkirt(M, { skirt: "straight" }, t);
+      const pleated = draftSkirt(M, { skirt: "straight", pleats: "box" }, t);
+      expect(
+        plain.detailRows.find((r) => r.label === "rows.waistFinished"),
+      ).toBeUndefined();
+      const cut = rowValueCm(pleated, "rows.waistPanel");
+      const finished = rowValueCm(pleated, "rows.waistFinished");
+      expect(cut - finished).toBeCloseTo(2 * PLEAT_INTAKE_PER_SIDE_CM, 1);
+    });
+
+    it("matches the plain skirt's own waist width -- pleats change the panel, never the finished waist", () => {
+      const plain = draftSkirt(M, { skirt: "straight" }, t);
+      const pleated = draftSkirt(M, { skirt: "straight", pleats: "box" }, t);
+      const plainWaist = rowValueCm(plain, "rows.waistPanel");
+      const pleatedFinished = rowValueCm(pleated, "rows.waistFinished");
+      expect(pleatedFinished).toBeCloseTo(plainWaist, 1);
+    });
+  });
 });
