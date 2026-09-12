@@ -175,6 +175,34 @@ describe("buildEaseReport", () => {
     expect(hip.finishedCm).toBeGreaterThan(0);
   });
 
+  // #319/#320: a pleated panel's waist AND hem edges are both widened by
+  // the pleat's own fold-back fabric -- before this fix the report netted
+  // neither, so a pleated skirt showed roughly +32cm of ease at BOTH waist
+  // and hip. Both readings must now agree with the identical unpleated
+  // skirt, since the finished garment (what the waistband is actually cut
+  // to, and what the panel actually measures at hip level) is the same
+  // either way -- only the cut panel is wider.
+  it("skirt: a pleated panel reports the SAME finished waist and hip as the identical unpleated skirt", () => {
+    const plainSpec: GarmentSpec = {
+      type: "skirt",
+      gender: "female",
+      measurementOverrides: {},
+      style: { skirt: "straight" },
+    };
+    const pleatedSpec: GarmentSpec = {
+      ...plainSpec,
+      style: { ...plainSpec.style, pleats: "box" },
+    };
+    const plainReport = buildEaseReport(fakePattern(plainSpec), t)!;
+    const pleatedReport = buildEaseReport(fakePattern(pleatedSpec), t)!;
+    const plainWaist = plainReport.girths.find((g) => g.girth === "waist")!;
+    const pleatedWaist = pleatedReport.girths.find((g) => g.girth === "waist")!;
+    const plainHip = plainReport.girths.find((g) => g.girth === "hip")!;
+    const pleatedHip = pleatedReport.girths.find((g) => g.girth === "hip")!;
+    expect(pleatedWaist.finishedCm).toBeCloseTo(plainWaist.finishedCm, 0);
+    expect(pleatedHip.finishedCm).toBeCloseTo(plainHip.finishedCm, 0);
+  });
+
   it("skirt: hip is unavailable (unsupportedSilhouette) for a circle skirt, but waist is still measured", () => {
     const spec: GarmentSpec = {
       type: "skirt",

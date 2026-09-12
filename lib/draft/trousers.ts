@@ -183,7 +183,18 @@ function trouserPanel(
       label: t("rows.trouserLengthGrading"),
       value: t("trouserLengthFixedNote"),
     },
-    { label: t("rows.waistPanel"), value: cm(waistQuarterRawCm * 2) },
+    // #319: `rows.waistPanel` used to print `waistQuarterRawCm * 2` -- a
+    // body-derived number that is neither this panel's own CUT waist edge
+    // (hipQuarterCm) nor its FINISHED one (hipQuarterCm minus the dart it
+    // draws) -- diverging from the drafted geometry whenever the dart's
+    // own Math.max(0.6, ...) floor engages. Now states both real numbers,
+    // the same cut/finished pairing skirt.ts's rows.waistPanel/waistFinished
+    // establish for a pleated panel.
+    { label: t("rows.waistPanel"), value: cm(hipQuarterCm) },
+    {
+      label: t("rows.waistFinished"),
+      value: cm(hipQuarterCm - dartHalfWidth * 2),
+    },
     { label: t("rows.dart"), value: cm(dartHalfWidth * 2) },
     { label: t("rows.grain"), value: t("grainValue") },
     // #128 (following the collar/cuff/waistband precedent, #129/#130/#131):

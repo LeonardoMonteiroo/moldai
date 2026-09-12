@@ -21,6 +21,11 @@ import {
   OutlineAnchors,
   WRAP,
   curveArcLengthCm,
+  polygonSpanAt,
+  dartIntakeAtYCm,
+  presentedEdgeLenCm,
+  type InternalCm,
+  type Pt,
 } from "./core";
 import { getEngine } from "./engine/registry";
 import { walkSeamPairs, SeamEdgeRef, SeamMeasurement } from "./seams";
@@ -798,5 +803,170 @@ describe("insertVertexAt (#251)", () => {
     expect(
       withoutEdgeIndices(walkSeamPairs(patchedDrafted, freshPairs)),
     ).toEqual(withoutEdgeIndices(walkSeamPairs(drafted, seamPairs)));
+  });
+});
+
+// #319/#320: dartIntakeAtYCm/presentedEdgeLenCm are the shared arithmetic
+// lib/draft/garment.ts's waistband sizing and lib/draft/easeReport.ts's
+// widthAtCm both ride -- see core.ts's own doc on each. polygonSpanAt moved
+// here from easeReport.ts verbatim (was private there); it needs its own
+// direct coverage now that it no longer gets it incidentally through
+// easeReport.test.ts alone.
+describe("polygonSpanAt/dartIntakeAtYCm/presentedEdgeLenCm (#319, #320)", () => {
+  // A trousers-shaped dart: [legL, apex, legR], the exact open-polyline
+  // shape lib/draft/trousers.ts's dartInternals draws (see core.ts's own
+  // InternalCm doc on why a dart is an open, not closed, point list).
+  const trouserDart = (
+    centerX: number,
+    halfWidth: number,
+    depth: number,
+  ): Pt[] => [
+    [centerX - halfWidth, 0],
+    [centerX, depth],
+    [centerX + halfWidth, 0],
+  ];
+
+  describe("polygonSpanAt", () => {
+    it("skips horizontal edges and reads the span off the two vertical ones", () => {
+      const pts = rect("r", 10, 20).outlineCm;
+      expect(polygonSpanAt(pts, 0)).toEqual({ lo: 0, hi: 10 });
+    });
+
+    it("returns null for a height outside the polygon", () => {
+      const pts = rect("r", 10, 20).outlineCm;
+      expect(polygonSpanAt(pts, 50)).toBeNull();
+    });
+  });
+
+  describe("dartIntakeAtYCm", () => {
+    it("is 0 for undefined internals", () => {
+      expect(dartIntakeAtYCm(undefined, 0)).toBe(0);
+    });
+
+    it("is 0 when internals hold only foldLine/pleat entries, never a dart", () => {
+      const internalsCm: InternalCm[] = [
+        { kind: "foldLine", aCm: [0, 0], bCm: [1, 1] },
+        {
+          kind: "pleat",
+          ptsCm: [
+            [0, 0],
+            [1, 1],
+          ],
+        },
+      ];
+      expect(dartIntakeAtYCm(internalsCm, 0)).toBe(0);
+    });
+
+    it("reports exactly 2x the dart's own half-width at the dart's open (seam) end", () => {
+      const internalsCm: InternalCm[] = [
+        { kind: "dart", ptsCm: trouserDart(10, 2, 3) },
+      ];
+      expect(dartIntakeAtYCm(internalsCm, 0)).toBeCloseTo(4, 5);
+    });
+
+    it("tapers to exactly 0 at the dart's own apex", () => {
+      const internalsCm: InternalCm[] = [
+        { kind: "dart", ptsCm: trouserDart(10, 2, 3) },
+      ];
+      expect(dartIntakeAtYCm(internalsCm, 3)).toBeCloseTo(0, 5);
+    });
+
+    it("is 0 above the apex, where no dart reaches", () => {
+      const internalsCm: InternalCm[] = [
+        { kind: "dart", ptsCm: trouserDart(10, 2, 3) },
+      ];
+      expect(dartIntakeAtYCm(internalsCm, 10)).toBe(0);
+    });
+
+    it("sums two darts on the same piece (body.ts's own two-dart bodice shape)", () => {
+      const internalsCm: InternalCm[] = [
+        { kind: "dart", ptsCm: trouserDart(5, 1, 3) },
+        { kind: "dart", ptsCm: trouserDart(15, 1.5, 3) },
+      ];
+      expect(dartIntakeAtYCm(internalsCm, 0)).toBeCloseTo(2 + 3, 5);
+    });
+  });
+
+  describe("presentedEdgeLenCm", () => {
+    // A trousers-shaped panel: waist at y=0 (edge 5->6, wrapping to vertex
+    // 0 -- the exact seamEdges.waist convention trousers.ts declares, and
+    // the shape #263's normalizeWinding can remap which literal index is
+    // which end of).
+    const trouserLikePiece = (dart?: InternalCm[]): DraftedPiece => ({
+      id: "p",
+      name: "p",
+      qty: 1,
+      outlineCm: [
+        [0, 0], // 0 waistCF
+        [2, 4], // 1 rise control point
+        [4, 8], // 2 crotchPt
+        [4, 30], // 3 hemInner
+        [20, 30], // 4 hemOuter
+        [20, 0], // 5 waistOuter
+      ],
+      curvedSpans: [[0, 2]],
+      detailRows: [],
+      ...(dart ? { internalsCm: dart } : {}),
+    });
+
+    it("nets a dart's own intake off a horizontal edge", () => {
+      const dart: InternalCm[] = [
+        { kind: "dart", ptsCm: trouserDart(10, 2, 3) },
+      ];
+      const piece = trouserLikePiece(dart);
+      const raw = curveArcLengthCm(piece.outlineCm, piece.curvedSpans!, 5, 6);
+      expect(raw).toBeCloseTo(20, 5);
+      expect(presentedEdgeLenCm(piece, [5, 6])).toBeCloseTo(raw - 4, 5);
+    });
+
+    it("resolves a wrapping edge (to === outlineCm.length) by coordinate, not by index", () => {
+      // #263: normalizeWinding can remap which literal index a piece's own
+      // `waist` edge maps to -- this must never assume index 0 vs 1 means
+      // a particular physical corner. Re-declaring the SAME edge as [5, 6]
+      // (6 === outlineCm.length, the wrap convention) must read the exact
+      // same two endpoint coordinates as any other expression of it.
+      const dart: InternalCm[] = [
+        { kind: "dart", ptsCm: trouserDart(10, 2, 3) },
+      ];
+      const piece = trouserLikePiece(dart);
+      expect(presentedEdgeLenCm(piece, [5, 6])).toBeCloseTo(16, 5);
+    });
+
+    it("returns the RAW length, un-netted, for a non-horizontal edge", () => {
+      const dart: InternalCm[] = [
+        { kind: "dart", ptsCm: trouserDart(10, 2, 3) },
+      ];
+      const piece = trouserLikePiece(dart);
+      // Edge 4->5 (hemOuter -> waistOuter): a vertical (non-horizontal)
+      // edge, nowhere near the dart -- but even a dart AT this height
+      // would not be netted, since take-up is only ever a same-y question.
+      const raw = curveArcLengthCm(piece.outlineCm, piece.curvedSpans!, 4, 5);
+      expect(presentedEdgeLenCm(piece, [4, 5])).toBeCloseTo(raw, 5);
+    });
+
+    it("nets a declared pleatTakeUpCm off a horizontal edge with no dart at all", () => {
+      const piece: DraftedPiece = { ...rect("p", 20, 10), pleatTakeUpCm: 6 };
+      expect(presentedEdgeLenCm(piece, [0, 1])).toBeCloseTo(20 - 6, 5);
+    });
+
+    it("nets BOTH a dart's intake and a declared pleatTakeUpCm together", () => {
+      const dart: InternalCm[] = [
+        { kind: "dart", ptsCm: trouserDart(10, 1, 3) },
+      ];
+      const piece: DraftedPiece = {
+        ...rect("p", 20, 10),
+        internalsCm: dart,
+        pleatTakeUpCm: 6,
+      };
+      expect(presentedEdgeLenCm(piece, [0, 1])).toBeCloseTo(20 - 2 - 6, 5);
+    });
+
+    it("clamps at 0 rather than going negative when the dart is wider than the edge", () => {
+      const dart: InternalCm[] = [
+        { kind: "dart", ptsCm: trouserDart(2.5, 3, 1) },
+      ];
+      const piece: DraftedPiece = { ...rect("p", 5, 10), internalsCm: dart };
+      expect(presentedEdgeLenCm(piece, [0, 1])).toBe(0);
+    });
   });
 });

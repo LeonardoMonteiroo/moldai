@@ -33,14 +33,21 @@ export interface SeamPairDecl {
   b: SeamEdgeRef[];
   easeCm: number;
   fixable: boolean;
-  // #255: an intentional, deliberate length ratio between the two sides of
-  // a stitch (GarmentCode's Interface(..., ruffle=1.)) -- side `b` is
-  // MEANT to measure `aLen * gatherRatio + easeCm`, not the pre-#255
-  // `aLen + easeCm`, so a gathered skirt waist or a puff sleeve (side b
-  // genuinely 1.2-1.5x side a) reports "distribute N cm of fullness" rather
-  // than a false conflict. Optional, defaulting to 1 (no ratio) in
-  // walkSeamPairs below -- every pair declared today leaves this unset, so
-  // diffCm's own formula collapses to the exact pre-#255 one, byte-for-byte.
+  // #255: a deliberate length ratio between the two sides of a stitch, in
+  // EITHER direction (GarmentCode's Interface(..., ruffle=1.)) -- side `b`
+  // is MEANT to measure `aLen * gatherRatio + easeCm`, not the pre-#255
+  // `aLen + easeCm`. A ratio ABOVE 1 is added fullness (a gathered skirt
+  // waist or a puff sleeve, side b genuinely longer than side a -- the
+  // original #255 framing); a ratio BELOW 1 is take-up (side a's own flat
+  // cut edge is longer than what it presents once its own darts/pleats are
+  // folded away -- #319/#320's lib/draft/core.ts's presentedEdgeLenCm).
+  // Either way this reports "the two sides are meant to differ by this
+  // much" rather than a false conflict. Optional, defaulting to 1 (no
+  // ratio) in walkSeamPairs below. Two production sites declare a ratio
+  // below 1 today (lib/draft/garment.ts's trouser-waistband-waist and a
+  // pleated skirt's waistband-waist); every other pair still leaves this
+  // unset, so diffCm's own formula collapses to the exact pre-#255 one,
+  // byte-for-byte.
   gatherRatio?: number;
   // #253: true only for a pair whose multi-edge side is drafted to be a
   // SYMMETRIC split -- i.e. every edge on that side is EXPECTED to carry an
