@@ -52,6 +52,48 @@ const ChatMessageSchema = z.object({
   changedFields: z.array(z.string()).optional(),
 });
 
+// Shared by ConflictInfo's own `markers` below and ConflictEntry's --
+// declared once rather than pasted twice. A DIFFERENT key spelling from
+// piece.ts's drillHole ({x,y,r}): these are SVG <circle> attributes
+// (cx/cy/r) PatternCanvas reads directly, and unifying the two would rename
+// a key already persisted in the database -- an expensive blob-shape
+// change (CLAUDE.md) for zero behavioural gain, not attempted here.
+const MarkerSchema = z.object({
+  cx: z.number(),
+  cy: z.number(),
+  r: z.number(),
+});
+
+// #134/#241: one divergent seam pair out of the full graph walkSeamPairs
+// measures. Mirrors lib/types.ts's ConflictEntry.
+const ConflictEntrySchema = z.object({
+  key: z.string(),
+  label: z.string(),
+  aLabel: z.string(),
+  bLabel: z.string(),
+  aPieceId: z.string(),
+  bPieceId: z.string(),
+  diffCm: z.number(),
+  fixable: z.boolean(),
+  markers: z.array(MarkerSchema),
+  // #241: graded sizes where this pair also misses tolerance. A plain
+  // string array, not z.enum(SizeLabel) -- a stale value would fail the
+  // WHOLE blob's safeParse rather than just this one entry, the same
+  // reason pattern.engine below stays a loose string.
+  sizes: z.array(z.string()).optional(),
+});
+
+// #318/#324: `entries` (#134's multi-divergence list) was never named
+// here, so z.object's default strip mode deleted it from the parsed state
+// on every read -- and lib/db/pattern.ts's withPattern writes that same
+// parsed object straight back via savePattern, so a generation with more
+// than one divergent seam showed the full list once, then collapsed to the
+// legacy single-panel card on the very next mutating turn or reload. Same
+// class as ChatMessageSchema's hasImage/assembly and PieceSchema's own
+// `internals` (lib/schemas/piece.ts) -- docs/decisions/drafting.md records
+// this instance. Stays optional: a conflict persisted before #134 (or the
+// legacy single-pair shape ConflictInfoCard/PatternCanvas still render off
+// the singular fields above) genuinely has none.
 const ConflictInfoSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -60,7 +102,8 @@ const ConflictInfoSchema = z.object({
   suggestion: z.string(),
   pieceAId: z.string(),
   pieceBId: z.string(),
-  markers: z.array(z.object({ cx: z.number(), cy: z.number(), r: z.number() })),
+  markers: z.array(MarkerSchema),
+  entries: z.array(ConflictEntrySchema).optional(),
 });
 
 // Mirrors lib/types.ts's Pattern interface. `sizeChartName` stays .optional()
