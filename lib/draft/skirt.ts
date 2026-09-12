@@ -163,6 +163,11 @@ function radialPanels(silhueta: SkirtSilhouette): number {
 // separately-worn waistband sitting at/below the natural waist, comfort
 // room a dress's own natural-waist SEAM (already sewn to an already-eased
 // bodice) doesn't carry the same way.
+//
+// #335: this is the width the two sides PRESENT once the bodice's own hem
+// darts are folded away -- not what the bodice hem is CUT to. Only the
+// bodice's own cut edge (body.ts's hemHalf) sums the dart intake back on
+// top of this value; the skirt panel this function feeds is untouched.
 export function dressWaistHalfCm(waistCm: number): number {
   return waistCm / 4;
 }

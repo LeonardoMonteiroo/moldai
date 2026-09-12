@@ -886,6 +886,25 @@ export function draftAll(
     const backWaistEdge = singlePanel
       ? skirtPiece.seamEdges?.waistBack
       : skirtPiece.seamEdges?.waist;
+    // #335: a fitted bodice's own hem is now CUT wider than the skirt's
+    // waist by exactly what its own two darts fold away
+    // (lib/draft/body.ts's dressHemDartIntakeCm) -- the same third instance
+    // of the #319/#320 class that entry's own decision named and deferred.
+    // Side `a` stays the raw CUT edge (what's really on the cutting table);
+    // the pair closes by declaring that take-up as its own gatherRatio,
+    // exactly like the two waistband sites above, rather than by both sides
+    // measuring the same (previously too-narrow) number. Called once per
+    // panel, not shared, since a real bust-cup delta widens the front's own
+    // dart -- and therefore its own hem -- more than the back's (see
+    // docs/decisions/drafting.md's #335 entry).
+    const hemGatherRatio = (piece: DraftedPiece, edge: [number, number]) => {
+      const raw = curveArcLengthCm(
+        piece.outlineCm,
+        piece.curvedSpans ?? [],
+        ...edge,
+      );
+      return raw > 0 ? presentedEdgeLenCm(piece, edge) / raw : 1;
+    };
     if (spec.type === "dress" && front?.seamEdges && frontWaistEdge) {
       seamPairs.push({
         key: "waist-join-front",
@@ -894,6 +913,7 @@ export function draftAll(
         b: [edgeRef(skirtPiece.id, frontWaistEdge)],
         easeCm: 0,
         fixable: false,
+        gatherRatio: hemGatherRatio(front, front.seamEdges.hem),
       });
     }
     if (spec.type === "dress" && back?.seamEdges && backWaistEdge) {
@@ -904,6 +924,7 @@ export function draftAll(
         b: [edgeRef(skirtPiece.id, backWaistEdge)],
         easeCm: 0,
         fixable: false,
+        gatherRatio: hemGatherRatio(back, back.seamEdges.hem),
       });
     }
     // #131: a straight waistband, drafted from the skirt panel's own
