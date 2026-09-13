@@ -50,6 +50,7 @@ import {
   BUTTONHOLE_END_INSET_CM,
   BUTTONHOLE_TARGET_SPACING_CM,
   WAISTBAND_OVERLAP_CM,
+  draftWaistband,
 } from "./subpieces";
 import { buildAssemblyOrder } from "./assembly";
 import type { GarmentSpec, Pattern } from "@/lib/types";
@@ -2464,6 +2465,74 @@ describe("seam graph (#134)", () => {
     });
   });
 
+  // #331: draftWaistband's own panel-seam marks, pinned directly against the
+  // primitive itself -- independent of the full drafting pipeline, the same
+  // "buttonholeCentersCm" precedent just above.
+  describe("draftWaistband panel-seam marks (#331)", () => {
+    it("places no notches, and reports the em-breve row, when panelSplitsCm is omitted", () => {
+      const wb = draftWaistband(100, t);
+      expect(wb.notches).toBeUndefined();
+      const row = wb.detailRows.find(
+        (r) => r.label === "rows.waistbandPanelMarks",
+      );
+      expect(row?.value).toBe("comingSoonBadge"); // t() is the identity in tests
+    });
+
+    it("reports a real zero, not em-breve, when the caller explicitly computed no interior split", () => {
+      // A single-panel (half-circle) skirt genuinely has no interior
+      // panel-seam boundary -- that's a correct zero, not a gap, so it must
+      // read differently from the "never computed" case just above.
+      const wb = draftWaistband(100, t, []);
+      expect(wb.notches).toBeUndefined();
+      const row = wb.detailRows.find(
+        (r) => r.label === "rows.waistbandPanelMarks",
+      );
+      expect(row?.value).toBe("0");
+    });
+
+    it("drops non-finite, out-of-range and duplicate splits, and reports the surviving count", () => {
+      const waistLenCm = 100;
+      const wb = draftWaistband(waistLenCm, t, [
+        40,
+        40, // duplicate
+        -5, // below range
+        0, // not interior (the panel's own start)
+        waistLenCm, // not interior (the panel's own end)
+        200, // past the overlap too
+        NaN,
+      ]);
+      expect(wb.notches).toHaveLength(1);
+      const row = wb.detailRows.find(
+        (r) => r.label === "rows.waistbandPanelMarks",
+      );
+      expect(row?.value).toBe("1");
+    });
+
+    it("places each mark exactly distCm from the band's own x=0 end, all `single`", () => {
+      const waistLenCm = 90;
+      const splits = [30, 60];
+      const wb = draftWaistband(waistLenCm, t, splits);
+      expect(wb.notches).toHaveLength(2);
+      for (const [i, notch] of wb.notches!.entries()) {
+        expect(notch.type).toBe("single");
+        expect(notch.outerCm[0]).toBeCloseTo(splits[i], 5);
+        expect(notch.outerCm[1]).toBeCloseTo(0, 5);
+      }
+    });
+
+    it("never marks inside the overlap region [waistLenCm, sewLenCm]", () => {
+      const waistLenCm = 50;
+      const wb = draftWaistband(waistLenCm, t, [
+        waistLenCm - 0.01,
+        waistLenCm,
+        waistLenCm + WAISTBAND_OVERLAP_CM / 2,
+      ]);
+      // Only the one strictly-interior value survives the drop filter.
+      expect(wb.notches).toHaveLength(1);
+      expect(wb.notches![0].outerCm[0]).toBeLessThan(waistLenCm);
+    });
+  });
+
   // #315: the button stand is the first real internalLoopsCm emitter -- at
   // least two buttonholes, each a genuinely closed 4-point rectangle sized
   // from BUTTONHOLE_LENGTH_CM/BUTTONHOLE_WIDTH_CM (lib/draft/subpieces.ts),
@@ -2598,6 +2667,94 @@ describe("seam graph (#134)", () => {
     }
   });
 
+  // #331: skirtPiece is ONE drafted panel repeated qty times, every copy
+  // identical, so its own interior panel-seam boundary is an exact even
+  // split -- straight/a-line is qty:2, so exactly one mark at the midpoint.
+  it("#331: a straight skirt's waistband gets exactly one panel-seam mark, at the midpoint of the NETTED waist", () => {
+    const spec = {
+      type: "skirt" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { skirt: "straight" as const },
+    };
+    const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
+    const skirtPiece = pieces.find((p) => p.id === "skirt")!;
+    const waistband = pieces.find((p) => p.id === "waistband")!;
+    const nettedWaistCm =
+      presentedEdgeLenCm(skirtPiece, skirtPiece.seamEdges!.waist) *
+      skirtPiece.qty;
+    expect(waistband.notches).toHaveLength(1);
+    // Euclidean distance from the band's own seam-edge start vertex --
+    // valid regardless of autoLayout's own placement of the piece (a rigid
+    // transform), since the band's sewn edge is straight/collinear
+    // start-to-end, so chord length === arc length here.
+    const p0 = waistband.outlineCm[waistband.seamEdges!.waist[0]];
+    const notch = waistband.notches![0];
+    const distCm = Math.hypot(
+      notch.outerCm[0] - p0[0],
+      notch.outerCm[1] - p0[1],
+    );
+    expect(distCm).toBeCloseTo(nettedWaistCm / 2, 1);
+  });
+
+  it("#331: a half-circle skirt's waistband reports a real zero marks, not em-breve -- qty:1 has no interior seam", () => {
+    const spec = {
+      type: "skirt" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { skirt: "half-circle" as const },
+    };
+    const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
+    const skirtPiece = pieces.find((p) => p.id === "skirt")!;
+    const waistband = pieces.find((p) => p.id === "waistband")!;
+    expect(skirtPiece.qty).toBe(1);
+    expect(waistband.notches).toBeUndefined();
+    const row = waistband.detailRows.find(
+      (r) => r.label === "rows.waistbandPanelMarks",
+    );
+    // A correct zero (nothing to mark), never the "em breve" this drafter
+    // also uses for a genuinely unbuilt gap (rows.waistbandClosureMark) --
+    // the two must not read the same on the card.
+    expect(row?.value).toBe("0");
+  });
+
+  it.each(["box", "inverted-box"] as const)(
+    "#331: a %s pleat's waistband mark follows the NETTED waist, not the wider raw cut edge",
+    (pleats) => {
+      const spec = {
+        type: "skirt" as const,
+        gender: "female" as const,
+        measurementOverrides: {},
+        style: { skirt: "straight" as const, pleats },
+      };
+      const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
+      const skirtPiece = pieces.find((p) => p.id === "skirt")!;
+      const waistband = pieces.find((p) => p.id === "waistband")!;
+      const rawWaistCm =
+        curveArcLengthCm(
+          skirtPiece.outlineCm,
+          skirtPiece.curvedSpans ?? [],
+          ...skirtPiece.seamEdges!.waist,
+        ) * skirtPiece.qty;
+      const nettedWaistCm =
+        presentedEdgeLenCm(skirtPiece, skirtPiece.seamEdges!.waist) *
+        skirtPiece.qty;
+      // The pleat genuinely widened the cut edge -- otherwise this test
+      // wouldn't distinguish "reads netted" from "reads raw, but they
+      // happen to be equal here".
+      expect(nettedWaistCm).toBeLessThan(rawWaistCm);
+      expect(waistband.notches).toHaveLength(1);
+      const p0 = waistband.outlineCm[waistband.seamEdges!.waist[0]];
+      const notch = waistband.notches![0];
+      const distCm = Math.hypot(
+        notch.outerCm[0] - p0[0],
+        notch.outerCm[1] - p0[1],
+      );
+      expect(distCm).toBeCloseTo(nettedWaistCm / 2, 1);
+      expect(distCm).not.toBeCloseTo(rawWaistCm / 2, 1);
+    },
+  );
+
   // #244's own reading of this was wrong, and is reversed by #319/#320 --
   // see docs/decisions/drafting.md's entry for the two issues. The widened
   // CUT panel is real fabric (aLenCm genuinely grows -- pinned below), but
@@ -2717,6 +2874,35 @@ describe("seam graph (#134)", () => {
       expect(pair.diffCm, pair.key).toBeLessThan(0.3);
     }
     expect(seamCheck(graph)).toEqual([]);
+  });
+
+  // #331: front and back happen to PRESENT the same waist length at every
+  // size (each side's own dart nets it back to the same quarter figure the
+  // panels were split from) -- so this doesn't distinguish the CF-opening
+  // physical order from plain declaration order by position alone, but it
+  // does pin down the actual formula the call site uses (front, front+back,
+  // front+back*2), which the docs/decisions entry documents as deliberate.
+  it("#331: the trousers' waistband gets 3 panel-seam marks at front/front+back/front+back*2 from CF", () => {
+    const spec = {
+      type: "trousers" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: {},
+    };
+    const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
+    const tf = pieces.find((p) => p.id === "trouser-front")!;
+    const tb = pieces.find((p) => p.id === "trouser-back")!;
+    const waistband = pieces.find((p) => p.id === "waistband")!;
+    const frontCm = presentedEdgeLenCm(tf, tf.seamEdges!.waist);
+    const backCm = presentedEdgeLenCm(tb, tb.seamEdges!.waist);
+    expect(waistband.notches).toHaveLength(3);
+    const p0 = waistband.outlineCm[waistband.seamEdges!.waist[0]];
+    const distsCm = waistband.notches!.map((n) =>
+      Math.hypot(n.outerCm[0] - p0[0], n.outerCm[1] - p0[1]),
+    );
+    expect(distsCm[0]).toBeCloseTo(frontCm, 1);
+    expect(distsCm[1]).toBeCloseTo(frontCm + backCm, 1);
+    expect(distsCm[2]).toBeCloseTo(frontCm + backCm * 2, 1);
   });
 
   // #319 AC, verbatim: the drafted waistband length is within tolerance of

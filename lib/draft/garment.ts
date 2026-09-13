@@ -983,8 +983,20 @@ export function draftAll(
       const nettedWaistCm =
         presentedEdgeLenCm(skirtPiece, skirtPiece.seamEdges.waist) *
         skirtPiece.qty;
+      // #331: skirtPiece is ONE drafted panel repeated qty times, every copy
+      // identical -- so the qty-1 interior panel-seam boundaries around the
+      // waist fall at an exact even split of the netted (presented, not raw
+      // cut) waist, regardless of silhouette (straight/a-line's qty:2,
+      // gore/circle's qty:panels, half-circle's qty:1 giving zero marks).
+      const perPanelCm = nettedWaistCm / skirtPiece.qty;
+      const panelSplitsCm = Array.from(
+        { length: skirtPiece.qty - 1 },
+        (_, i) => perPanelCm * (i + 1),
+      );
       // #263: normalized before waistband.seamEdges is read below.
-      const waistband = normalizeWinding(draftWaistband(nettedWaistCm, t));
+      const waistband = normalizeWinding(
+        draftWaistband(nettedWaistCm, t, panelSplitsCm),
+      );
       drafted.push(waistband);
       if (waistband.seamEdges) {
         const waistRefs = Array.from({ length: skirtPiece.qty }, () =>
@@ -1110,8 +1122,44 @@ export function draftAll(
       const nettedWaistCm =
         presentedEdgeLenCm(tf, tf.seamEdges.waist) * tf.qty +
         presentedEdgeLenCm(tb, tb.seamEdges.waist) * tb.qty;
+      const frontPanelCm = presentedEdgeLenCm(tf, tf.seamEdges.waist);
+      const backPanelCm = presentedEdgeLenCm(tb, tb.seamEdges.waist);
+      // #331: physical order around the body from the band's own x=0 end --
+      // front, back, back, front, closing at CF/the fly (#214's own
+      // decision, see docs/decisions/drafting.md) -- the only real shape
+      // this archetype drafts (`drafting.md`: front/back are each qty:2,
+      // "mirrored by flipping fabric, not folding"). Deliberately NOT
+      // `waistRefs`' own declaration order below (front,front,back,back) --
+      // that array is the seam-graph/`endFracOfSide`-affecting order #331's
+      // own AC forbids touching; this is a separate, physical-placement
+      // fact the marks need and the graph does not.
+      let panelSplitsCm: number[];
+      if (tf.qty === 2 && tb.qty === 2) {
+        panelSplitsCm = [
+          frontPanelCm,
+          frontPanelCm + backPanelCm,
+          frontPanelCm + backPanelCm * 2,
+        ];
+      } else {
+        // An unusual qty neither archetype actually drafts today -- fall
+        // back to plain declaration order rather than guessing a physical
+        // layout that doesn't correspond to any real body position for a
+        // shape this codebase doesn't draft.
+        const lensInDeclarationOrder = [
+          ...Array.from({ length: tf.qty }, () => frontPanelCm),
+          ...Array.from({ length: tb.qty }, () => backPanelCm),
+        ];
+        panelSplitsCm = [];
+        let cum = 0;
+        for (const len of lensInDeclarationOrder.slice(0, -1)) {
+          cum += len;
+          panelSplitsCm.push(cum);
+        }
+      }
       // #263: normalized before waistband.seamEdges is read below.
-      const waistband = normalizeWinding(draftWaistband(nettedWaistCm, t));
+      const waistband = normalizeWinding(
+        draftWaistband(nettedWaistCm, t, panelSplitsCm),
+      );
       drafted.push(waistband);
       if (waistband.seamEdges) {
         const waistRefs = [

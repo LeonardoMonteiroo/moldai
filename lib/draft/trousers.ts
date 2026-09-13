@@ -133,9 +133,12 @@ function trouserPanel(
   // FRONT_CROTCH_EXT_RATIO/BACK_CROTCH_EXT_RATIO, which disagree, so front
   // and back ended up with two different, undocumented relationships to the
   // same landmark. A corner where two seams meet is already the match
-  // point; industrial practice doesn't notch it, and the waistband
-  // (lib/draft/subpieces.ts) emits no notches of its own to mate against
-  // this one anyway. The outseam's OWN waist corner keeps its notch above,
+  // point; industrial practice doesn't notch it. #331: the waistband
+  // (lib/draft/subpieces.ts) now marks this exact position from ITS OWN
+  // side (a panel-seam boundary along the band's sewn edge, opening at
+  // this CF corner) -- but the panel side stays unnotched regardless, same
+  // decision as before, just no longer for lack of a reciprocal mark to
+  // mate against. The outseam's OWN waist corner keeps its notch above,
   // unlike this one -- that mark isn't standing in for an ambiguous corner,
   // it's there for symmetry with body.ts's dress-hem/skirt outer-corner
   // convention, which always marks that pairing regardless of whether the

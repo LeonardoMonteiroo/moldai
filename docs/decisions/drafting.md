@@ -1163,3 +1163,78 @@ The tech-sheet's own `rows.trouserLengthGrading` row states the grading rule dec
 (`trouserLengthGradedNote`, replacing the old `trouserLengthFixedNote`) rather than conditionally —
 it reads correctly whether or not the active chart's own measurement happens to grade, since the
 rule itself ("graded by the chart's own waist-to-floor") is what's true either way.
+
+## A waistband marks its own sewn edge at each panel-seam split its caller already computed (#331)
+
+`draftWaistband` (`lib/draft/subpieces.ts`) drafted a plain rectangle with no marks at all — a cós
+had to be distributed by tape measure at the machine, the most basic sewability aid a band can
+carry. The issue's own framing pointed at `lib/draft/seams.ts`'s `SeamEdgeMeasurement.endFracOfSide`
+(the per-edge cumulative fraction `walkSeamPairs` already computes for every seam pair, unconsumed
+in production beyond `sideSplitDevCm`'s own audit use) as the source of the split positions. That
+framing doesn't survive contact with the code: `endFracOfSide` is computed by `walkSeamPairs`, which
+the facade calls strictly **after** `draft()` returns (`lib/draft/engine/facade.ts`), while
+`draftWaistband` is called from inside `draftAll`, before any `SeamMeasurement` exists. Threading
+`endFracOfSide` back into the drafter would mean either drafting twice (once to measure, once to
+place marks) or growing a new draft → measure → re-draft cycle — exactly the kind of new cross-module
+coupling the issue's own AC 3 forbids. **`endFracOfSide` keeps zero production consumers beyond
+`sideSplitDevCm` after this issue** — that gap is not closed here, deliberately.
+
+**The fix instead computes the split at the call site**, from the same `presentedEdgeLenCm` figures
+`garment.ts` already has in hand two lines above each `draftWaistband` call (#319/#320) —
+information that exists at the right time, in the right place, with no new coupling. `draftWaistband`
+gained an optional `panelSplitsCm: number[]` (cumulative cm positions from the band's own `x = 0`
+end); each entry is dropped, never clamped, when non-finite or outside `(0, waistLenCm)` — the same
+drop-don't-throw trust-boundary discipline every other untrusted-input boundary in this repo follows,
+since `notchAtArcLengthCm`'s own clamp would otherwise silently stack a bad value on top of `x = 0`
+or `x = waistLenCm` with no signal anything was wrong. Marks are placed with the existing
+`notchAtArcLengthCm` primitive, all `single` — a band has no front/back side of its own to
+distinguish, unlike the pitch notches or dress-hem corners that convention serves.
+
+**An omitted `panelSplitsCm` and an explicitly-passed empty one are two different answers, not the
+same "zero."** `panelSplitsCm` is `number[] | undefined`, not `number[] = []` — the first review pass
+on this issue caught the collapsed version: a single-panel (half-circle) skirt computes a genuinely
+empty split (`qty - 1 === 0`, nothing to mark) and reported it through the identical `comingSoonBadge`
+row the freesewing wrappers use for "never computed a split at all." `CLAUDE.md`'s own rule is "'em
+breve' for planned work" — a half-circle skirt's zero interior seams is not planned work, it is the
+correct, permanent answer for that silhouette, and labelling it "em breve" tells a user marks are
+still coming when they never will be, for that shape. `undefined` (the parameter omitted, the three
+freesewing wrappers reusing `straightBand`) keeps the "em breve" row; an explicit `[]` (`garment.ts`'s
+skirt/trousers call sites always pass a real array, even when it comes out empty) reports a real
+`"0"`, the same way `rows.buttonholes` already prints a real count including zero rather than ever
+substituting a coming-soon badge for a legitimately empty result.
+
+**`WAISTBAND_OVERLAP_CM` occupies the band's right end, `x ∈ [waistLenCm, sewLenCm]`** — this was
+already true of the geometry (`draftWaistband` only ever widened the rectangle by the overlap, never
+moved a vertex to mark where it starts), just never written down. Documenting it is what lets a
+caller measure split positions from `x = 0` with no adjustment for the overlap at all.
+
+**The skirt call site's split is an even division** — `skirtPiece` is one drafted panel repeated
+`qty` times, every copy identical, so the `qty - 1` interior boundaries fall at an exact even split
+of the netted (presented) waist regardless of silhouette. This holds for every branch (straight/
+a-line's `qty: 2`, gore/circle's `qty: panels`, half-circle's `qty: 1`, which produces zero marks).
+
+**The trousers call site needs a real opening convention, not just a formula.** The marks are
+`[front, front+back, front+back*2]` — deliberately **not** `waistRefs`' own declaration order
+(front, front, back, back) a few lines below, which is the seam-graph/`endFracOfSide`-affecting order
+#331's own AC forbids touching. **The trousers open at CF/the fly**, so the physical order around the
+body from the band's `x = 0` end is front, back, back, front — the standard construction, not an
+arbitrary pick to match the skirt (which has no opening convention to match, since a skirt's marks
+are symmetric either way). **At every measured size, front and back happen to PRESENT the identical
+waist quarter** (each side's own dart nets it back to the same figure the panels were split from), so
+today this physical order is numerically indistinguishable from plain declaration order — the
+convention is still the right thing to encode explicitly, both because it's the actual construction
+and because nothing guarantees that equality holds for every future measurement table or style
+field. An unrecognized `qty` (neither archetype drafts one; both are fixed `qty: 2`) falls back to
+plain declaration order rather than guessing a physical layout that doesn't correspond to any real
+body
+position for a shape this codebase doesn't draft.
+
+**#214's own decision (the CF/CB waist corner on the panel side stays unnotched) is not reopened,
+and does not need to be.** One of that decision's supporting arguments — "the waistband emits no
+notches of its own to mate against this one anyway" — is now false: the waistband **does** mark this
+exact position, from its own side. The rest of the reasoning is untouched: the corner is a genuinely
+too-narrow wedge for a 0.6cm notch, the two crotch-extension ratios that disagree still disagree, and
+a corner where two seams meet is already the match point industrial practice doesn't notch. The
+panel side simply moves from "unnotched, and nothing marks this position anyway" to "unnotched, and
+the OTHER side of the pair now does" — the code comment in `lib/draft/trousers.ts` was updated to
+say so rather than left describing a waistband that no longer matches reality.
