@@ -129,7 +129,9 @@ export const DECORATION_CASES: [string, GarmentSpec][] = [
     // #177: a dress's bodice hem and its circle skirt's own waist edge now
     // derive from the same dressWaistHalfCm -- exercises that shared
     // derivation across containment/seam-graph/cut-line suites, alongside
-    // the pre-existing straight/a-line "dress a-line" case above.
+    // the pre-existing straight/a-line "dress a-line" case above. (#335:
+    // "derive from the same value" now means the same PRESENTED width --
+    // the bodice's own cut edge is wider by its dart intake.)
     "dress circle",
     {
       type: "dress",

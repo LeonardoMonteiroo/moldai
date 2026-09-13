@@ -956,7 +956,9 @@ un-suppressed edge, so a fitted dress's bodice presents noticeably less than the
 to and the graph says nothing. This needs its own drafter-level decision (widen the bodice hem to
 match, or shrink the skirt panel to match, rather than merely reporting a divergence) and is out
 of scope for this change — tracked as a follow-up issue of the same `priority: high` as the two
-this entry closes.
+this entry closes. **Fixed in #335 below:** the bodice hem is widened to match, the same direction
+this entry's own worked example (widening the cut panel, netting only the seam length) already
+takes for a pleat.
 
 **A body whose waist is not meaningfully narrower than its hip cannot be drafted from
 `trousers.ts`'s hip-derived panel at all.** `dartHalfWidth = Math.max(0.6, waistSuppression / 2)`
@@ -972,3 +974,67 @@ a piece's raw flat outline width for its 3D preview, so Prova 3D continues to sh
 at hip width and a pleated skirt waist at its pre-fold width even after this change — a narrower,
 already-existing gap (no 3D shell exists yet for the waistband piece itself either), not a
 regression this entry introduces.
+
+---
+
+## A dress bodice's hem is CUT wider than the waist by exactly what its own darts fold away (#335)
+
+**Decided and built.** The third instance of the #319/#320 class, named and deliberately deferred
+by that entry above. `lib/draft/body.ts`'s dress-hem dart opens directly onto the bodice's own hem
+edge — its wide end sits on the seam `garment.ts`'s `waist-join-front`/`waist-join-back` pairs
+measure — but `hemHalf` (`dressWaistHalfCm(waist)`, no allowance added back) was cut to exactly
+the width the skirt panel's own un-suppressed waist edge presents, with nothing left over for the
+two darts to fold away. At `SIZE_TABLE.M` (waist 74, hip 100) each dart floors at
+`dartHalfWidth = max(0.9, (hip−waist)/64) = 0.9`cm; two darts, two legs each, remove `4 × 0.9 = 3.6`cm
+per panel — 7.2cm across the closed waist — while `walkSeamPairs` measured both sides flat and
+reported `diffCm ≈ 0`. Independent corroboration already sat in the repo: `lib/draft/easeReport.ts`
+has netted dart intake at every girth since #319, so a fitted dress's own ease report already stated
+the finished waist ~7.2cm narrower than the body's `waist` measurement — a visibly wrong number on
+the ficha técnica, not only an invisible seam-graph gap.
+
+**Why (a) — widen the bodice hem — and not (b) — shrink the skirt panel.** `dressWaistHalfCm(waistCm)
+= waistCm/4` (`lib/draft/skirt.ts`) stays the one value #177/#185 established as what every
+silhouette's own already-correct waist construction agrees on, and it stays what both sides of the
+join are measured by — what changes is that it is now the **presented** width the bodice hem must
+equal after its own darts close, not the width it is cut to. Shrinking the skirt instead would leave
+the bodice hem's raw cut edge untouched (still wrong on its own terms — see the `easeReport` evidence
+above) and would make the dress's finished waist land narrower than the body's actual `waist`
+measurement, the wrong direction for a garment description to drift. Widening the bodice hem keeps
+`dressWaistHalfCm`'s own invariant intact ("front + back sum to exactly `waistCm`, for every
+silhouette") on the **presented** width, exactly parallel to how a pleated skirt's cut waist widens
+while its declared seam length stays the presented one.
+
+**The rule this establishes, applied rather than re-derived:** the dress-hem dart's wide end sits at
+`y = waistY === len` by construction (`isDressHem`'s own doc in `body.ts`) — precisely the horizontal
+edge `presentedEdgeLenCm` (`lib/draft/core.ts`, #319/#320) already handles, reading dart intake
+straight off the dart polygons `dartInternals` already emits (`dartsOf`). No new field is declared on
+`DraftedPiece`: unlike a pleat, whose `InternalCm` entries are mark lines with no region for a
+scanline to read (hence `pleatTakeUpCm`), a dart's own `ptsCm` **is** such a region, so nothing here
+needs a drafter to declare what the geometry already encodes. `body.ts` computes the same
+`dartHalfWidth` its own dart-drafting branch already computes — hoisted earlier in the function,
+never re-derived by a second formula — and adds `dartCount × 2 × dartHalfWidth` back onto `hemHalf`
+before the outline is built, so the panel's cut edge is wider by exactly what its own darts remove.
+`garment.ts`'s two `waist-join-*` pairs then declare `gatherRatio = presentedEdgeLenCm(...) / raw`,
+the third and fourth production declaration sites for the field #319/#320 introduced — the pair
+closes because the take-up is declared, not because both sides happen to measure the same number.
+
+**Each panel widens by its own darts' own total, including a real bust-cup delta — named
+consequence: the `side` pair can now genuinely diverge, and that is correct, not a regression to
+paper over.** `body.ts`'s dart width already carries `extraDartHalfWidthCm = bustCupDeltaCm / 4` on
+the front only (no anatomical bust apex on the back), so when `bustCupDeltaCm > 0` the front's own
+dart intake — and therefore its widened cut hem — exceeds the back's by `bustCupDeltaCm / 2`. The
+front and back panels are cut to different widths at the hem in that case, which is the correct
+consequence of a full-bust adjustment (the front genuinely needs more fabric), not a bug this change
+introduces. The `shoulder`/`side` pairs, sized off `waistHalf`/`halfChest` rather than `hemHalf`, are
+untouched in the general case; a real cup delta reaching all the way to the hem would widen the
+front's own `side` pair reading by the same `bustCupDeltaCm / 2`, well under `SEAM_TOLERANCE_CM`
+(1cm) at every delta either seeded chart produces, and exactly zero for both (`highBust = bust` in
+`SIZE_TABLE`/`SIZE_TABLE_MALE`, by the same deliberate-no-op-by-default precedent `riseCm`/`fit`
+already follow elsewhere in this file).
+
+**Also unfixed, and worth naming rather than leaving implicit — the same gap #319/#320 already
+named for the other two waistbands, now shared by a third:** `lib/proof3d/mesh.ts` still scans a
+piece's raw flat outline width for its 3D preview, so Prova 3D continues to show a dress bodice's
+waist at its wider cut width rather than its presented one. A pattern generated before this fix
+keeps its old (too-narrow) bodice hem until the next generation — there is no migration, since
+`Piece` stores drafted geometry and `buildExportModel` always redrafts from `spec`.

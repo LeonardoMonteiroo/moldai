@@ -240,6 +240,32 @@ describe("buildEaseReport", () => {
     expect(report.unavailable).toHaveLength(0);
   });
 
+  // #335: the bodice's own waist height (bodyRow.backLength) is exactly the
+  // dress-hem's own y=len edge -- the same edge body.ts now cuts wider by
+  // dressHemDartIntakeCm (4 * dartHalfWidth at SIZE_TABLE.M) so it can
+  // PRESENT waist/2 per panel once both darts fold away. widthAtCm nets the
+  // identical dartIntakeAtYCm off that same widened raw span, so the two
+  // corrections cancel and the finished number lands back at the body's own
+  // waist -- before this fix it read ~7.2cm narrower (the un-widened cut
+  // edge minus its own dart intake), a wrong number that was already
+  // visible on the ficha técnica, not merely an unreported seam-graph gap.
+  it("#335: a fitted dress's finished waist reads back at the body's own waist (it read ~7.2cm narrower before this fix)", () => {
+    const spec: GarmentSpec = {
+      type: "dress",
+      gender: "female",
+      measurementOverrides: {},
+      style: {
+        neckline: "round",
+        sleeve: "short",
+        darts: true,
+        skirt: "a-line",
+      },
+    };
+    const report = buildEaseReport(fakePattern(spec), t)!;
+    const waist = report.girths.find((g) => g.girth === "waist")!;
+    expect(waist.finishedCm).toBeCloseTo(SIZE_TABLE.M.waist, 0);
+  });
+
   // Every case in the shared drafting matrix must produce a report where
   // every girth is EITHER measured OR explicitly marked unavailable, never
   // both and never neither -- the report's own completeness invariant.

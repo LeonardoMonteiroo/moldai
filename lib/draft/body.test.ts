@@ -582,6 +582,16 @@ describe("bust-apex dart shaping (bust-dart-shaping feature)", () => {
   const EXPECTED_APEX: Pt = [17.25, 30.5];
   const UNCHANGED_APEX_TOP: Pt = [16, 41 - 12]; // [dx, waistY - dartRiseCm]
   const UNCHANGED_APEX_BOTTOM: Pt = [16, 41 + 12];
+  // #335: the dress-hem case below (dressHemHalfCm: 27, deliberately the
+  // same number the blouse hem's own hip-derived formula produces, per its
+  // own comment) now widens hemHalf -- and therefore cx, which the
+  // bust-facing apex reads off directly -- by dressHemDartIntakeCm/2:
+  //   dartHalfWidth (with the same +8cm HIGH_BUST_DELTA) = max(0.9, 3.25/8)
+  //     + 8/4 = 0.9 + 2 = 2.9
+  //   dressHemDartIntakeCm = dartCount(2) * 2 * 2.9 = 11.6
+  //   hemHalf = 27 + 11.6/2 = 32.8; cx = max(18.5, 25, 32.8) = 32.8
+  //   bust apex (side -1) = [32.8 - 9.75, 30.5] = [23.05, 30.5]
+  const EXPECTED_DRESS_APEX: Pt = [EXPECTED_APEX[0] + 5.8, EXPECTED_APEX[1]];
 
   it("BDART-04: highBust equal to bust (both system charts today) drafts an identical dart to highBust absent", () => {
     const withEqualHighBust = draftBody(
@@ -676,8 +686,8 @@ describe("bust-apex dart shaping (bust-dart-shaping feature)", () => {
     const [dart] = dartsOf(withDelta.front.internalsCm);
     // ptsCm = [leftLeg, apex, rightLeg] for the single-ended dress dart.
     const [, apex] = dart;
-    expect(apex[0]).toBeCloseTo(EXPECTED_APEX[0], 9);
-    expect(apex[1]).toBeCloseTo(EXPECTED_APEX[1], 9);
+    expect(apex[0]).toBeCloseTo(EXPECTED_DRESS_APEX[0], 9);
+    expect(apex[1]).toBeCloseTo(EXPECTED_DRESS_APEX[1], 9);
   });
 
   it("BDART-01/10: a real cup delta angles the front-closure half-panel's single dart the same way", () => {

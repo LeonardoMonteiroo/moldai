@@ -201,6 +201,30 @@ describe("buildAssemblyOrder", () => {
     expect(seamKeys).toContain("waist-join-back");
   });
 
+  // #335: the waist-join steps carry the take-up ratio the bodice's own two
+  // darts declare -- the same "a consumer reads this to say 'fold the dart
+  // first, then the two match'" precedent #319/#320 already established for
+  // the two waistband steps above.
+  it("a fitted dress's waist-join steps carry a below-1 gatherRatio, the bodice's own dart take-up", () => {
+    const spec: GarmentSpec = {
+      type: "dress",
+      gender: "female",
+      measurementOverrides: {},
+      style: {
+        neckline: "round",
+        sleeve: "short",
+        darts: true,
+        skirt: "a-line",
+      },
+    };
+    const p = fakePattern(spec);
+    const order = buildAssemblyOrder(p, t)!;
+    for (const key of ["waist-join-front", "waist-join-back"]) {
+      const step = seamSteps(order.steps).find((s) => s.key === key)!;
+      expect(step.gatherRatio, key).toBeLessThan(1);
+    }
+  });
+
   it("a cuffed sleeve's hem is NOT a free hem step -- it is consumed by the cuff-hem pair", () => {
     const spec: GarmentSpec = {
       type: "blouse",

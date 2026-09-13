@@ -216,14 +216,34 @@ describe("buildProofMesh", () => {
   // actually claim. The "waist" row already surfaces the natural-waist fit,
   // and now equals the skirt panel's own waist width by construction (the
   // #177 fix itself).
-  it("a dress's straight/a-line skirt panel is waist-derived (#177): no hip fit row, and its waist row matches the skirt panel's own waist girth", () => {
+  it("a dress's straight/a-line skirt panel is waist-derived (#177): no hip fit row", () => {
     const mesh = buildProofMesh(pattern(CASES[2][1], CASES[2][2]), t);
     expect(mesh.fit.some((r) => r.key === "hip")).toBe(false);
     const waistRow = mesh.fit.find((r) => r.key === "waist");
     expect(waistRow).toBeDefined();
+  });
 
+  // #335: this pair is a NAMED, pre-existing gap the #335 decision entry
+  // states explicitly, not a regression -- `mesh.ts`'s bodice waist ring
+  // still scans the panel's raw CUT width (scanHalfWidthAtY at waistYCm,
+  // pre-dart), while the skirt panel's own ring reads its PRESENTED waist
+  // (untouched by #335, since a dress's skirt panel never carries a dart).
+  // Before #335 those two numbers coincided (both were the un-widened,
+  // too-narrow value), so this pair used to assert equality; now the
+  // bodice ring is wider than the skirt ring by exactly the two hem darts'
+  // own intake (4 * dartHalfWidth at SIZE_TABLE.M = 3.6cm/panel, 7.2cm
+  // across front+back) -- Prova 3D shows the dress waist at its cut width,
+  // not its presented one, until `mesh.ts` itself nets dart intake the way
+  // `presentedEdgeLenCm`/`widthAtCm` (easeReport.ts) already do.
+  it("#335: a fitted dress's bodice waist ring (raw cut width) now exceeds the skirt's own waist ring (presented) by the hem darts' intake", () => {
+    const mesh = buildProofMesh(pattern(CASES[2][1], CASES[2][2]), t);
+    const waistRow = mesh.fit.find((r) => r.key === "waist")!;
     const skirtShell = mesh.garment.find((s) => s.id === "skirt")!;
-    expect(skirtShell.rings[0].girthCm).toBeCloseTo(waistRow!.garmentCm, 1);
+    expect(waistRow.garmentCm).toBeGreaterThan(skirtShell.rings[0].girthCm);
+    expect(waistRow.garmentCm - skirtShell.rings[0].girthCm).toBeCloseTo(
+      7.2,
+      1,
+    );
   });
 
   it("a blouse/tshirt/dress body shell exists, and its bust ring girth strictly exceeds the form's at the same height for a woven garment", () => {

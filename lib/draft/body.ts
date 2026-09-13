@@ -134,7 +134,82 @@ function bodice(
   const shoulderHalf = m.shoulder;
   const len = opts.lengthCm;
   const isDressHem = opts.dressHemHalfCm !== undefined;
-  const hemHalf = opts.dressHemHalfCm ?? m.hip / 4 + wearingEase;
+  const fitted = !!style.darts && !opts.knit;
+  // #223: a front-closure blouse front splits into a mirrored half-panel
+  // instead of the usual whole, cut-on-fold piece -- see docs/superpowers/
+  // specs/2026-08-28-front-button-stand-design.md. Gated on `!opts.knit`
+  // (excludes tshirt) and `opts.dressHemHalfCm === undefined` (excludes
+  // dress, whose bodice hem doubles as the waist-join seam and assumes the
+  // front's FULL hem width -- see the spec's Non-goals) rather than
+  // threading spec.type into this function.
+  const frontClosure =
+    frontish &&
+    style.frontClosure === "buttonStand" &&
+    !opts.knit &&
+    opts.dressHemHalfCm === undefined;
+  const waistY = m.backLength;
+  // #122: the panel's total waist suppression (bust/hip-driven, as before)
+  // is now split rather than applied in full twice over -- half narrows the
+  // side seam (waistHalf below), half is removed by the two darts together
+  // (dartsSuppression, used further down). The old formula put the FULL
+  // amount in waistHalf AND put it again, whole, in a single dart wedge.
+  const waistSuppression = Math.max(0, m.hip / 4 - m.waist / 4);
+  const sideSeamSuppression = waistSuppression * 0.5;
+  const dartsSuppression = waistSuppression * 0.5;
+  const waistHalf = Math.max(halfChest - sideSeamSuppression, halfChest - 3);
+  // #335: dart width has to be known BEFORE hemHalf below, on a dress -- the
+  // dress-hem dart (isDressHem's own branch of oneDart(), further down)
+  // opens directly onto the bodice's own hem/waist seam, so the hem must be
+  // CUT wider than dressWaistHalfCm(waist) by exactly what the dart folds
+  // away, or the bodice presents less than the skirt panel it's sewn to
+  // (docs/decisions/drafting.md's #335 entry). Hoisted out of the `if
+  // (fitted)` block below -- which still declares the actual dart geometry
+  // -- so there is exactly one formula for dartHalfWidth, not a second copy
+  // re-derived here.
+  //
+  // bust-dart-shaping feature: a real cup delta (bust wider than highBust)
+  // re-angles the dart's bust-facing apex toward the wearer's actual bust
+  // apex instead of straight up, and widens the dart -- but ONLY on the
+  // front panel (no anatomical apex exists on the back) and ONLY when
+  // there's a real, non-zero delta. Both system charts seed
+  // `highBust = bust` (delta 0) precisely so this stays a no-op for them
+  // and for every chart/pattern that predates these fields (highBust
+  // absent, `?? bust` collapses the delta to 0 the same way). Clamped to
+  // >= 0 so an inverted highBust>bust entry never inverts the dart -- the
+  // same "no class below the tightest, negative is real but bottomed-out"
+  // pattern lib/draft/ease.ts's classifyGirthFit already uses.
+  const bustCupDeltaCm = frontish
+    ? Math.max(0, m.bust - (m.highBust ?? m.bust))
+    : 0;
+  const hasBustApex = bustCupDeltaCm > 0;
+  // Cited FBA (full-bust-adjustment) convention: half the raw high-bust/
+  // full-bust delta is the amount added to a HALF-front pattern -- one side
+  // of this panel, i.e. one of the two darts oneDart() further down drafts.
+  // That whole half-front amount is routed into THIS dart's total width
+  // (the scope this feature chose over a full slash-and-spread FBA -- see
+  // design.md's Risks table), so half of it is the half-width this file
+  // already tracks.
+  const extraDartHalfWidthCm = bustCupDeltaCm / 4;
+  const dartHalfWidth =
+    Math.max(0.9, dartsSuppression / 8) + extraDartHalfWidthCm;
+  // #335: each dress-hem dart's own wide end sits exactly on the hem/waist
+  // seam (isDressHem's own oneDart() branch below) -- one free apex, one
+  // seam end -- so widening the CUT edge by dartCount * 2 * dartHalfWidth
+  // (2 legs per dart) is what makes the seam PRESENT
+  // dressWaistHalfCm(waist)*2 once both darts are folded away, matching the
+  // skirt panel's own waist edge exactly (garment.ts's waist-join pairs).
+  // frontClosure is always false when isDressHem (see its own doc above),
+  // so dartCount is 2 on every reachable dress panel -- kept as an
+  // expression, not a bare 2, so it can never silently drift from
+  // dartsStruct's own `frontClosure ? [oneDart(-1)] : [oneDart(-1),
+  // oneDart(1)]` further down. Zero whenever this panel isn't a dress hem,
+  // or has no darts at all -- a plain blouse/knit hem is unaffected, byte
+  // for byte.
+  const dartCount = frontClosure ? 1 : 2;
+  const dressHemDartIntakeCm =
+    isDressHem && fitted ? dartCount * 2 * dartHalfWidth : 0;
+  const hemHalf =
+    (opts.dressHemHalfCm ?? m.hip / 4 + wearingEase) + dressHemDartIntakeCm / 2;
 
   const backNeckDrop = 2.0;
   let frontNeckDrop: number;
@@ -167,30 +242,6 @@ function bodice(
   const shoulderNeckDropCm = usesStandNeckline
     ? BAND_COLLAR_SHOULDER_DROP_CM
     : 0;
-
-  const fitted = !!style.darts && !opts.knit;
-  // #223: a front-closure blouse front splits into a mirrored half-panel
-  // instead of the usual whole, cut-on-fold piece -- see docs/superpowers/
-  // specs/2026-08-28-front-button-stand-design.md. Gated on `!opts.knit`
-  // (excludes tshirt) and `opts.dressHemHalfCm === undefined` (excludes
-  // dress, whose bodice hem doubles as the waist-join seam and assumes the
-  // front's FULL hem width -- see the spec's Non-goals) rather than
-  // threading spec.type into this function.
-  const frontClosure =
-    frontish &&
-    style.frontClosure === "buttonStand" &&
-    !opts.knit &&
-    opts.dressHemHalfCm === undefined;
-  const waistY = m.backLength;
-  // #122: the panel's total waist suppression (bust/hip-driven, as before)
-  // is now split rather than applied in full twice over -- half narrows the
-  // side seam (waistHalf below), half is removed by the two darts together
-  // (dartsSuppression, used further down). The old formula put the FULL
-  // amount in waistHalf AND put it again, whole, in a single dart wedge.
-  const waistSuppression = Math.max(0, m.hip / 4 - m.waist / 4);
-  const sideSeamSuppression = waistSuppression * 0.5;
-  const dartsSuppression = waistSuppression * 0.5;
-  const waistHalf = Math.max(halfChest - sideSeamSuppression, halfChest - 3);
 
   const cx = Math.max(shoulderHalf, halfChest, hemHalf);
   const midArmY = shoulderSlope + (armholeDepth - shoulderSlope) * 0.55;
@@ -342,32 +393,6 @@ function bodice(
   if (fitted) {
     const dartOffset = waistHalf * 0.5;
     const dartRiseCm = 12;
-    // bust-dart-shaping feature: a real cup delta (bust wider than highBust)
-    // re-angles the dart's bust-facing apex toward the wearer's actual bust
-    // apex instead of straight up, and widens the dart -- but ONLY on the
-    // front panel (no anatomical apex exists on the back) and ONLY when
-    // there's a real, non-zero delta. Both system charts seed
-    // `highBust = bust` (delta 0) precisely so this stays a no-op for them
-    // and for every chart/pattern that predates these fields (highBust
-    // absent, `?? bust` collapses the delta to 0 the same way). Clamped to
-    // >= 0 so an inverted highBust>bust entry never inverts the dart --
-    // the same "no class below the tightest, negative is real but
-    // bottomed-out" pattern lib/draft/ease.ts's classifyGirthFit already
-    // uses.
-    const bustCupDeltaCm = frontish
-      ? Math.max(0, m.bust - (m.highBust ?? m.bust))
-      : 0;
-    const hasBustApex = bustCupDeltaCm > 0;
-    // Cited FBA (full-bust-adjustment) convention: half the raw high-bust/
-    // full-bust delta is the amount added to a HALF-front pattern -- one
-    // side of this panel, i.e. one of the two darts oneDart() below drafts.
-    // That whole half-front amount is routed into THIS dart's total width
-    // (the scope this feature chose over a full slash-and-spread FBA -- see
-    // design.md's Risks table), so half of it is the half-width this file
-    // already tracks.
-    const extraDartHalfWidthCm = bustCupDeltaCm / 4;
-    const dartHalfWidth =
-      Math.max(0.9, dartsSuppression / 8) + extraDartHalfWidthCm;
     // Bust-apex point, in this panel's own coordinate frame. #269 promoted
     // both to CORE (a FreeSewing design requires bustSpan outright), so
     // every base row carries a real value -- either a real per-chart tape
@@ -442,6 +467,24 @@ function bodice(
       label: t("rows.dart"),
       value: cm(dartHalfWidth * 2),
     });
+    // #335: a dress bodice's hem is CUT wider than what it PRESENTS once its
+    // own two darts fold away -- hemHalf above already includes
+    // dressHemDartIntakeCm, so both numbers are stated here by subtraction
+    // from values already in scope (never a re-derivation), the same
+    // cut/finished pairing skirt.ts's and trousers.ts's own
+    // rows.waistPanel/rows.waistFinished pairs already establish, rather
+    // than leaving the ficha técnica with only the cut number.
+    if (isDressHem) {
+      detailRows.splice(
+        4,
+        0,
+        { label: t("rows.waistPanel"), value: cm(hemHalf * 2) },
+        {
+          label: t("rows.waistFinished"),
+          value: cm(hemHalf * 2 - dressHemDartIntakeCm),
+        },
+      );
+    }
   }
 
   // Inset from the piece's OWN top edge at x=cx (the neckline base), not from

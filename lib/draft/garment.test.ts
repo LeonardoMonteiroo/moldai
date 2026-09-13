@@ -1763,7 +1763,7 @@ describe("drafted outlines have no retraced edge (#79)", () => {
     });
   }
 
-  it("a dress bodice's hem width equals the skirt panel's own waist width", () => {
+  it("#335: a dress bodice's hem PRESENTS the skirt panel's own waist width -- its CUT edge is wider, by the dart it folds away", () => {
     const spec: Parameters<typeof draftPiecesCm>[1] = {
       type: "dress",
       gender: "female",
@@ -1778,7 +1778,11 @@ describe("drafted outlines have no retraced edge (#79)", () => {
     const hemXs = front.outlineCm
       .filter(([, y]) => y === frontMaxY)
       .map(([x]) => x);
-    const bodiceHemWidth = Math.max(...hemXs) - Math.min(...hemXs);
+    const bodiceHemCutWidth = Math.max(...hemXs) - Math.min(...hemXs);
+    const bodiceHemPresentedWidth = presentedEdgeLenCm(
+      front,
+      front.seamEdges!.hem,
+    );
 
     const skirtMinY = Math.min(...skirt.outlineCm.map(([, y]) => y));
     const waistXs = skirt.outlineCm
@@ -1786,11 +1790,19 @@ describe("drafted outlines have no retraced edge (#79)", () => {
       .map(([x]) => x);
     const skirtWaistWidth = Math.max(...waistXs) - Math.min(...waistXs);
 
-    expect(bodiceHemWidth).toBeCloseTo(skirtWaistWidth, 5);
+    // #335: the CUT edge is what's really on the cutting table, wider than
+    // the skirt's own waist by exactly the fabric the two darts fold away
+    // -- before this fix it equalled the skirt's waist instead, which is
+    // what made the bodice present LESS than the skirt it's sewn to.
+    expect(bodiceHemCutWidth).toBeGreaterThan(skirtWaistWidth);
+    // What the hem actually PRESENTS once both darts are folded away is
+    // what the skirt's own waist edge has to match.
+    expect(bodiceHemPresentedWidth).toBeCloseTo(skirtWaistWidth, 5);
     // Exactly three hem-level vertices -- left hem, #126's fold-centre, and
     // right hem (not the old four-with-a-duplicate-fitted-waist-pair bug
     // this test guards, and not more than the one legitimate fold vertex
-    // #126 added).
+    // #126 added) -- widening the CUT edge moves these three points, it
+    // never adds a fourth.
     expect(hemXs).toHaveLength(3);
   });
 });
@@ -1961,12 +1973,27 @@ describe("seam graph (#134)", () => {
   // the review that produced #185 pointed out that "zero divergence" is
   // satisfiable by a WRONG value too (half-circle's first cut matched a
   // 74cm-wide bodice hem against a 74cm skirt edge and still reported
-  // zero), so this test also pins the actual measured aLen/bLen to the one
-  // shared value every silhouette must agree on at SIZE_TABLE.M (waist 74,
-  // so waistCm/4 = 18.5 half-width = 37 full width), not just their
-  // difference.
-  it("#177/#185: every dress silhouette's waist-join reports zero divergence AND the same bodice-hem value (waistCm/4 half-width)", () => {
-    const expectedWidthCm = SIZE_TABLE.M.waist / 2; // 2 * dressWaistHalfCm(waist)
+  // zero), so this test also pins the actual measured bLen (and, since
+  // #335, the presented aLen) to the one shared value every silhouette
+  // must agree on at SIZE_TABLE.M (waist 74, so waistCm/4 = 18.5 half-width
+  // = 37 full width), not just their difference.
+  //
+  // #335: the bodice hem's own two darts now widen its CUT edge above that
+  // shared value -- side `a`'s own aLenCm is that wider CUT number, closed
+  // against `b` via a declared gatherRatio < 1, not by both sides measuring
+  // the same total any more (the defect this whole entry exists to fix).
+  // None of these specs override highBust, so front and back consume
+  // identically -- hand-derived independently from the same formula
+  // body.ts's own comments already state (not read off the
+  // implementation): waistSuppression = hip/4 - waist/4 = 6.5,
+  // dartsSuppression = 3.25, dartHalfWidth = max(0.9, 3.25/8) = 0.9, two
+  // darts x two legs each = 4 * 0.9 = 3.6cm extra on the cut edge.
+  it("#177/#185/#335: every dress silhouette's waist-join reports zero divergence, presents the same bodice-hem value (waistCm/4 half-width), and cuts it wider by the dart", () => {
+    const expectedPresentedWidthCm = SIZE_TABLE.M.waist / 2; // 2 * dressWaistHalfCm(waist)
+    const dartsSuppression =
+      Math.max(0, SIZE_TABLE.M.hip / 4 - SIZE_TABLE.M.waist / 4) * 0.5;
+    const dartHalfWidth = Math.max(0.9, dartsSuppression / 8);
+    const expectedCutWidthCm = expectedPresentedWidthCm + 4 * dartHalfWidth;
     for (const skirt of [
       "straight",
       "a-line",
@@ -1985,12 +2012,13 @@ describe("seam graph (#134)", () => {
       expect(joins, skirt).toHaveLength(2);
       for (const j of joins) {
         expect(j.diffCm, `${skirt} ${j.key}`).toBe(0);
-        expect(j.aLenCm, `${skirt} ${j.key} aLen`).toBeCloseTo(
-          expectedWidthCm,
+        expect(j.gatherRatio, `${skirt} ${j.key} gatherRatio`).toBeLessThan(1);
+        expect(j.aLenCm, `${skirt} ${j.key} aLen (cut)`).toBeCloseTo(
+          expectedCutWidthCm,
           1,
         );
-        expect(j.bLenCm, `${skirt} ${j.key} bLen`).toBeCloseTo(
-          expectedWidthCm,
+        expect(j.bLenCm, `${skirt} ${j.key} bLen (presented)`).toBeCloseTo(
+          expectedPresentedWidthCm,
           1,
         );
       }
@@ -1998,6 +2026,69 @@ describe("seam graph (#134)", () => {
         seamCheck(graph).filter((c) => c.key.startsWith("waist-join")),
         skirt,
       ).toEqual([]);
+    }
+  });
+
+  // #335 AC, verbatim: a regression guard that a future re-narrowing back to
+  // the raw un-suppressed hem edge must fail loudly here, not drift inside
+  // a tolerance -- the exact "not equal at 1-decimal precision" shape #319
+  // itself used for its own regression guard. Before this fix aLenCm WAS
+  // bLenCm (both sides measured the same too-narrow number); this asserts
+  // that is no longer true.
+  it("#335: a fitted dress's waist-join would NOT have closed against the bodice's raw (un-widened) hem", () => {
+    const spec = {
+      type: "dress" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: {
+        sleeve: "none" as const,
+        darts: true,
+        skirt: "straight" as const,
+      },
+    };
+    const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
+    const front = graph.find((m) => m.key === "waist-join-front")!;
+    expect(front.aLenCm).not.toBeCloseTo(front.bLenCm, 1);
+    expect(front.aLenCm).toBeGreaterThan(front.bLenCm);
+  });
+
+  // #335: what the bodice hem PRESENTS (presentedEdgeLenCm, read straight
+  // off the drafted piece) equals the body's own waist measurement -- the
+  // number the easeReport now agrees with (see easeReport.test.ts), and
+  // anchors the #177/#185/#335 sweep above to something other than its own
+  // gatherRatio arithmetic.
+  it("#335: the dress bodice hem's presented (not cut) width equals the body's own waist measurement", () => {
+    const spec: Parameters<typeof draftPiecesCm>[1] = {
+      type: "dress",
+      gender: "female",
+      measurementOverrides: {},
+      style: { sleeve: "none", darts: true, skirt: "straight" },
+    };
+    const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
+    const front = pieces.find((p) => p.id === "body-front")!;
+    const presentedCm = presentedEdgeLenCm(front, front.seamEdges!.hem);
+    expect(presentedCm).toBeCloseTo(SIZE_TABLE.M.waist / 2, 1);
+  });
+
+  // A dress with no darts (style.darts: false) never widens its hem in the
+  // first place -- dressHemDartIntakeCm is 0 -- so the pair still closes on
+  // equal raw totals exactly as it did before #335, gatherRatio 1.
+  it("#335: an unfitted dress (no darts) keeps its waist-join closing on equal raw totals, gatherRatio 1", () => {
+    const spec = {
+      type: "dress" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: {
+        sleeve: "none" as const,
+        darts: false,
+        skirt: "straight" as const,
+      },
+    };
+    const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
+    for (const key of ["waist-join-front", "waist-join-back"]) {
+      const j = graph.find((m) => m.key === key)!;
+      expect(j.gatherRatio, key).toBe(1);
+      expect(j.aLenCm, key).toBeCloseTo(j.bLenCm, 5);
     }
   });
 
