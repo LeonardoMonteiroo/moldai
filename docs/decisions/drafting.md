@@ -857,6 +857,12 @@ bounded design-space limitation — both concrete, both fixable without a spec r
    `V`-specific maximum would need verifying against `body.ts`'s own construction before shipping a
    number, which this proposal does not attempt. **Worth its own follow-up issue.**
 
+   **#322 update:** `necklineDepthCm` now drives the drop identically on `round` and `straight`,
+   not only `V` (previously it was silently discarded on the other two, so this flat range only
+   ever reached one live shape). The same 0–15cm ceiling now reaches three genuinely different
+   constructions instead of one, which makes a per-shape range **more** worth doing, not less —
+   this follow-up is still open.
+
 ### Decision: decline the compositional replacement; file the two narrow fixes separately
 
 **Declined.** No concretely-named garment feature this issue or its own cited sources call for is
@@ -1038,3 +1044,48 @@ piece's raw flat outline width for its 3D preview, so Prova 3D continues to show
 waist at its wider cut width rather than its presented one. A pattern generated before this fix
 keeps its old (too-narrow) bodice hem until the next generation — there is no migration, since
 `Piece` stores drafted geometry and `buildExportModel` always redrafts from `spec`.
+
+## A "V" neckline is a straight line, not a scoop at a deeper drop; `necklineDepthCm` reaches every shape (#321, #322)
+
+**Decided and built.** `body.ts` drafted all three `neckline` shapes as the identical Catmull-Rom
+scoop, with only the _drop_ (`neckDrop`) varying — the interior control vertex was always
+`[cx ∓ neckHalf*0.6, neckDrop*0.55]`, a pure fraction of the same two numbers regardless of shape.
+So `V` rendered as a deeper `round`, not a V, and `style.necklineDepthCm` was read only in the `V`
+branch — `round`/`straight` silently discarded a value `validateSpec` had already accepted as
+in-range, a paid no-op with no on-screen trace (`describeSpecAdjustments`/`checkEngineSupport` both
+see a supported field with a legal value; neither is wired to notice a drafter ignoring it).
+
+**Why a collinear vertex, not removing the span.** `catmullRomSegments` (`core.ts`) _interpolates_
+every vertex inside a `curvedSpans` range — a Catmull-Rom vertex is never an off-curve Bézier
+handle. Placing the interior vertex exactly on the straight `cf→hps` chord (at the same
+`t = 0.6` fraction the scoop already used) makes every derived Bézier control point an affine
+combination of three collinear points, so the drawn curve comes out exactly straight — with zero
+change to vertex count, span layout, `OutlineAnchors`, `seamEdges`, notches or `foldEdge`. The
+alternative (dropping the neckline span so that edge renders as a straight `L`) would have worked
+too, but would have changed `curvedSpans.length`, which several tests read as a proxy for "this
+piece has a curved neckline" (`body.test.ts`'s own `"marks the neckline and armhole as
+curvedSpans"`) — the collinear-vertex approach needed touching none of that. Only the FRONT gets
+this treatment; the back is always a shallow round scoop regardless of `style.neckline` (#121,
+`backNeckDrop = 2.0` is a flat constant untouched by shape or depth), so it keeps curving.
+
+**Why `necklineDepthCm` now drives the drop on `round`/`straight` too, instead of being reported as
+an engine gap.** The other branch the issue allowed — report the combination instead of honoring
+it — doesn't exist as a mechanism today: `checkEngineSupport` (`capability.ts`) can only gate a
+field by `GarmentType`, never by another field's own value (the identical structural gap
+`#245`/`#333` already name for `cuff`+`sleeve`), and `spaceSampling.test.ts` asserts zero
+`EngineGap`s across its whole sampled spec space — teaching it a new coupling would mean building
+the cross-field-applicability mechanism #333 defers, not fixing a two-field interaction. Honoring
+the field is also the reading the cited prior art (GarmentCode's `collars.py`) uses: shape and
+depth are orthogonal parameters, not a shape-specific escape hatch. `necklineDepthCm` means the
+same cm-below-the-neckline's-own-base in all three shapes, so the same explicit depth gives the
+same drop on `V`/`round`/`straight` — only the curve in between differs. The per-shape constants
+(`neckHalf + 6` for V, `neckHalf + 1/2` for round, `neckHalf * 0.7` for straight) survive as
+defaults for the no-depth case only, keeping that path byte-identical to before this fix (pinned by
+`garment.test.ts`'s own "byte-identical" regression test and the `tshirtBenchmark.test.ts` gates,
+neither of which sends a depth).
+
+**Consequence worth naming, not a bug:** a straight V's apex is a sharper, un-smoothed point than
+the scoop it replaces (meaningfully so at `STYLE_LIMITS.necklineDepthCm.max`) — exactly the
+condition `lib/export/offset.ts`'s `removeSelfCrossingLoops` already exists to repair on a cut
+outline, and `model.test.ts`'s self-intersection/area-growth gate over `DECORATION_CASES` (which
+already includes `"blouse deep V long"` at max depth) still passes clean.

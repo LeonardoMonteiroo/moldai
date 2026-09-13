@@ -212,12 +212,21 @@ function bodice(
     (opts.dressHemHalfCm ?? m.hip / 4 + wearingEase) + dressHemDartIntakeCm / 2;
 
   const backNeckDrop = 2.0;
-  let frontNeckDrop: number;
-  if (style.neckline === "V")
-    frontNeckDrop = neckHalf + Math.max(0, style.necklineDepthCm ?? 6);
-  else if (style.neckline === "round")
-    frontNeckDrop = neckHalf + (opts.knit ? 2.0 : 1.0);
-  else frontNeckDrop = neckHalf * 0.7;
+  // #322: necklineDepthCm means the same thing in every shape -- cm below
+  // the neckline's own natural base -- so it's read once here, not only in
+  // the V branch. The per-shape expressions below are only the DEFAULT drop
+  // used when nothing was requested (keeping the no-depth case byte-for-byte
+  // identical to before this fix); an explicit depth overrides all three.
+  const defaultFrontNeckDrop =
+    style.neckline === "V"
+      ? neckHalf + 6
+      : style.neckline === "round"
+        ? neckHalf + (opts.knit ? 2.0 : 1.0)
+        : neckHalf * 0.7;
+  const frontNeckDrop =
+    style.necklineDepthCm !== undefined
+      ? neckHalf + Math.max(0, style.necklineDepthCm)
+      : defaultFrontNeckDrop;
   // #221/#222: a band (stand) collar -- or a shirt collar's own stand,
   // which is the SAME construction (dresspatternmaking.com's "Collars":
   // "the base is the Mandarin (or Band) Collar") -- sits close to the
@@ -263,6 +272,25 @@ function bodice(
       ? m.backWidth / 2 + wearingEase
       : (shoulderHalf + halfChest) / 2 - 1; // distance from center
 
+  // #321: the neckline's own interior control vertex. catmullRomSegments
+  // (core.ts) INTERPOLATES every vertex inside a span -- it is never an
+  // off-curve Bézier handle -- so placing it exactly on the straight
+  // cf->hps chord makes every derived Bézier control point an affine
+  // combination of three collinear points, and the drawn curve comes out
+  // exactly straight, with no change to vertex count, span layout, anchors,
+  // seamEdges or notches. Only a FRONT "V" gets this treatment: the back is
+  // always a shallow round scoop regardless of style.neckline (#121, see
+  // this piece's own tech-sheet row below), and round/straight keep today's
+  // scoop constant so their geometry stays byte-identical.
+  const NECK_CTRL_T = 0.6; // same fraction of neckHalf the scoop always used
+  const straightV = frontish && style.neckline === "V";
+  const neckCtrl = (sign: -1 | 1): Pt => [
+    cx + sign * neckHalf * NECK_CTRL_T,
+    straightV
+      ? neckDrop + (shoulderNeckDropCm - neckDrop) * NECK_CTRL_T
+      : neckDrop * 0.55,
+  ];
+
   const pts: Pt[] = [];
   const spans: [number, number][] = [];
   const push = (p: Pt) => (pts.push(p), pts.length - 1);
@@ -273,7 +301,7 @@ function bodice(
   const anchors = new OutlineAnchors();
 
   const cf = anchors.set("cf", push([cx, neckDrop])); // neckline center
-  push([cx - neckHalf * 0.6, neckDrop * 0.55]); // left neckline ctrl
+  push(neckCtrl(-1)); // left neckline ctrl
   const hpsL = anchors.set("hpsL", push([cx - neckHalf, shoulderNeckDropCm])); // left HPS
   spans.push([cf, hpsL]); // left neckline (curved)
   const shL = anchors.set("shL", push([cx - shoulderHalf, shoulderSlope])); // left shoulder (straight hpsL->shL)
@@ -309,7 +337,7 @@ function bodice(
     shR = anchors.set("shR", push([cx + shoulderHalf, shoulderSlope])); // right shoulder
     spans.push([uaR, shR]); // right armhole (curved)
     hpsR = anchors.set("hpsR", push([cx + neckHalf, shoulderNeckDropCm])); // right HPS (straight shR->hpsR)
-    push([cx + neckHalf * 0.6, neckDrop * 0.55]); // right neckline ctrl
+    push(neckCtrl(1)); // right neckline ctrl
     spans.push([hpsR, pts.length]); // right neckline + closing (curved)
   }
 
