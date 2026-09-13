@@ -80,10 +80,8 @@ export const PHASE_BY_KEY: Record<string, SeamPhase> = {
   // The hood's own 3-panel center seam: a component closed on itself before
   // it is ever joined to the body, same footing as a dart/pleat in spirit
   // but expressed here as a "primary" seam since it IS a real mated pair
-  // (hoodie-hood-center), not an internal fold. #341: this wrapper never
-  // declares a pair joining the hood to the body's own neckline (it needs a
-  // trim strip this wrapper doesn't draft) -- a real, adjacent gap, found
-  // by #323's audit but out of scope for a phase-table data fill.
+  // (hoodie-hood-center, #341: now BOTH of the hood's two physical seams),
+  // not an internal fold.
   "hoodie-hood-center": "primary",
   // The raglan seam REPLACES the shoulder seam -- it is the garment's first
   // structural closure between body and sleeve, not a set-in-sleeve
@@ -95,11 +93,21 @@ export const PHASE_BY_KEY: Record<string, SeamPhase> = {
   // Closes the sleeve into a tube, same role as moldai's sleeve-underarm.
   "hoodie-sleeve-underarm": "sleeve",
   "hoodie-side": "side",
+  // #341: the hood's own neck edge sewn onto the body's already-closed neck
+  // opening -- a sub-piece attached onto an already-shaped edge, the same
+  // "attach" footing as collar-neckline, and declared before the cuff in
+  // hoodie.ts's own array so the stable sort keeps this step first among
+  // hoodie's "attach" pairs.
+  "hoodie-hood-neckline": "attach",
   // A cuff pregado on an already-closed sleeve hem -- same phase as
   // moldai's own cuff-hem.
   "hoodie-cuff-wrist": "attach",
   // The waistband/ribana, sewn onto the already-finished hem last.
   "hoodie-waistband-hem": "band",
+  // #341: the neck-binding trim strip, applied over the neckline last --
+  // same "finishing strip over an already-closed seam" footing as the
+  // waistband above, just at the neck instead of the hem.
+  "hoodie-neck-binding": "band",
 
   // ---- freesewing: coat (Jett, lib/draft/engine/freesewing/designs/
   // jett.ts) -- a classic set-in-sleeve coat with a center-back seam. ----

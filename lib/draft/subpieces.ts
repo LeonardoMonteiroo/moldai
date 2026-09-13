@@ -155,13 +155,14 @@ const PLACKET_WIDTH_CM = 3;
 // straight edge's own midpoint" idiom body.ts/skirt.ts already use for their
 // hem/waist centres -- it changes no rendered shape.
 //
-// #269: exported so lib/draft/engine/freesewing/designs/hoodie.ts can build
-// its own hood-center and neck-binding trim strips from the SAME rectangle
-// primitive -- @freesewing/hugo's own hoodCenter/neckBinding parts are both
-// plain rectangles too (verified by reading their source), just hidden by
-// default behind an "expand" setting this app never needs to toggle, so
-// reusing this primitive directly (with the wrapper's own id/name/detail
-// rows) is simpler than fighting that setting for no geometric gain.
+// #269/#341: exported so lib/draft/engine/freesewing/designs/hoodie.ts can
+// build its own hood-center strip from the SAME rectangle primitive this
+// file's own draftNeckBinding (#341) reuses too -- @freesewing/hugo's own
+// hoodCenter/neckBinding parts are both plain rectangles too (verified by
+// reading their source), just hidden by default behind an "expand" setting
+// this app never needs to toggle, so reusing this primitive directly (with
+// each caller's own id/name/detail rows) is simpler than fighting that
+// setting for no geometric gain.
 export function straightBand(
   wCm: number,
   hCm: number,
@@ -378,6 +379,56 @@ export function draftWaistband(
     ...(notches.length > 0 ? { notches } : {}),
     detailRows,
     seamEdges: { waist: seamEdge },
+    placementCm: ACCESSORY_PLACEMENT_CM,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Neck binding (#341)
+// ---------------------------------------------------------------------------
+
+// #269 exported straightBand anticipating exactly this strip (see that
+// function's own comment); #341 is what finally draws it. A plain
+// rectangular band, same footing as the cuff/waistband above -- a bias/
+// binding strip that finishes a raw neck opening (and, on a hoodie, closes
+// the hood-to-body seam underneath it) is cut on the true bias in a real
+// garment, but its FLAT pattern shape is still the same straight strip
+// draftCuff/draftWaistband already draft; there is no separate "bias"
+// geometry to model. NECK_BINDING_HEIGHT_CM is this drafter's own
+// authored finished width -- NOT Hugo's own `length/44.2` formula (that
+// gives ~1cm, a cutting-width formula for an already-expanded strip, not a
+// usable band height), the same "measure the seam length, author the
+// band's own width" split draftCuff/draftWaistband already use.
+//
+// ringLenCm is the FULL measured neck-opening ring the caller already
+// summed (front+back neckline, both halves, plus both sleeves' own
+// raglan-top gap on a raglan design like Hugo's) -- never a proportion of
+// the bust. easeCm on the declared pair stays 0: the seam allowance is
+// applied at the cut line like every other piece, not folded into this
+// length.
+const NECK_BINDING_HEIGHT_CM = 4;
+
+export function draftNeckBinding(
+  ringLenCm: number,
+  t: Translate,
+): DraftedPiece {
+  const { pts, seamEdge } = straightBand(ringLenCm, NECK_BINDING_HEIGHT_CM);
+  const grainlineCm: [Pt, Pt] = [
+    [ringLenCm * 0.1, NECK_BINDING_HEIGHT_CM / 2],
+    [ringLenCm * 0.9, NECK_BINDING_HEIGHT_CM / 2],
+  ];
+  const detailRows: DetailRow[] = [
+    { label: t("rows.length"), value: cm(ringLenCm) },
+    { label: t("rows.grain"), value: t("grainValue") },
+  ];
+  return {
+    id: "neckBinding",
+    name: t("pieceNames.neckBinding"),
+    qty: 1,
+    outlineCm: pts,
+    grainlineCm,
+    detailRows,
+    seamEdges: { neck: seamEdge },
     placementCm: ACCESSORY_PLACEMENT_CM,
   };
 }

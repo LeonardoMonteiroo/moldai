@@ -397,7 +397,9 @@ latent, never reachable).
   `lib/draft/subpieces.ts`'s own `draftCuff`/`draftWaistband` (already the same "measured
   rectangle" shape) and a newly-exported `straightBand` primitive for `hoodCenter`, each sized
   from THIS design's own measured edges — the same "measure what was actually drafted"
-  discipline `skirt.ts`/`trousers.ts` already follow, not a competing formula.
+  discipline `skirt.ts`/`trousers.ts` already follow, not a competing formula. (`neckBinding`
+  itself stayed undrafted at this point in the registration — see #341, below, for when it
+  was finally built and why the wait was worth it.)
 - Front's/back's own raglan seam and the sleeve's own matching `raglanFront`/`raglanBack` edge
   measure a genuine (if small, 0.3–0.6 cm at size M) gap in both directions — unlike Titan's
   inseam/outseam (an internal fitting loop forces an exact match), Hugo's own
@@ -568,7 +570,9 @@ Sleeve plackets (a separate overlap/underlap strip binding the sleeve's own vert
 above the cuff) are a genuinely new construction concept this app has never modelled — moldai's
 own `draftPlacket` is a continuous-lap strip with no separate over/under pieces — and are
 deferred with an "em breve" note on the sleeve's own detail row, the same discipline every
-prior deferral (Hugo's pocket/neck-binding, Jett's lining) already establishes.
+prior deferral (Hugo's pocket, Jett's lining) already establishes. (Hugo's own neck-binding
+trim strip was the third item in that list at the time this shirt entry was written — #341,
+below, drafted it.)
 
 ## Fase 5: the engine becomes a real, user-facing choice, not just an internal registration (#269)
 
@@ -1238,3 +1242,97 @@ a corner where two seams meet is already the match point industrial practice doe
 panel side simply moves from "unnotched, and nothing marks this position anyway" to "unnotched, and
 the OTHER side of the pair now does" — the code comment in `lib/draft/trousers.ts` was updated to
 say so rather than left describing a waistband that no longer matches reality.
+
+## The hoodie's hood is sewn to the body, and its neck binding is finally drafted (#341)
+
+**The gap was real, and self-documented at the time it was found.** #323's own audit of the
+freesewing phase table found and recorded, in-line, that `hoodie-hood-center` closed the hood's own
+3-panel construction but nothing joined the finished hood to the body — the wrapper's own comment
+named the missing piece ("via a neck-binding trim strip this wrapper does not draft") and
+`lib/draft/subpieces.ts`'s `straightBand` had been exported since #269 anticipating exactly that
+strip. `buildAssemblyOrder` walks the declared seam graph only, with no reverse pass asking "is this
+edge sewn to anything," so a moletom's own sewing order silently never mentioned attaching the hood —
+for a feature (#138) whose entire premise is charging a real credit for a complete, derived
+construction sequence.
+
+**The topology was measured against Hugo's own upstream store before writing a single declaration —
+the same discipline that made Jett's own collar-to-neckline pair get written and then removed
+(above) rather than shipped implausible.** A hand reconstruction of "the body's own neck opening"
+using only the body panel's own drafted neckline edge (front + back, doubled for the fold) undercounts
+the real ring by roughly 11% — because Hugo's `front.mjs`/`back.mjs` each store
+`neckOpeningLenFront`/`neckOpeningLenBack` as the curve's FULL length, but the body panel's own
+drafted edge only carries **80%** of the front curve and **70%** of the back curve
+(`neckOpening.shiftFractionAlong(0.8)`/`(0.7)`, verified by reading the source, not assumed). The
+missing 20%/30% is exactly the portion of the neck opening that continues across the sleeve's own
+raglan top — `sleeve.ts`'s own `raglanTop` edge (`[0, raglanTipFront]`, between `raglanTipBack` and
+`raglanTipFront`), previously undeclared for the identical reason `body-front`/`body-back` had no
+`neckline` edge. Summed correctly (front neckline ×2 + back neckline ×2 + both sleeves' own
+raglan-top ×2 — front/back doubled because they're cut on fold, sleeve counted once per arm), the
+ring closes to exactly `2 · neckOpeningLenFront + 2 · neckOpeningLenBack` read directly off Hugo's
+own store, confirmed at four bodies (`SIZE_TABLE.PP/M/GG`, `SIZE_TABLE_MALE.M`) before any pair was
+written.
+
+**The hood's own matching ring needed the identical care.** `hoodSide`'s own neck edge (`neckEdge`
+back to `frontEdge`, wrapping through index 0 — the arc the pre-#341 wrapper had already located
+and named in a comment but never declared) doubled, plus `hoodCenter`'s own SHORT end
+(`hoodCenterWidthCm = head / 10`, the small connecting edge that closes the hood's own neck-opening
+loop at center-back) — omitting that short end (measuring only the two `hoodSide` edges) undercounts
+the hood's own ring by roughly 11% too, the same magnitude as the body-side mistake above and for the
+same underlying reason: a ring has more than the two "obvious" long edges.
+
+**With both rings measured correctly, they close with a small, stable, real residual — not noise.**
+At `SIZE_TABLE.PP/M/GG` and `SIZE_TABLE_MALE.M`: `hoodNeckRingCm / neckRingCm` = 1.0369 / 1.0337 /
+1.0355 / 1.0355 — the hood's own ring runs **~3.3–3.7% longer than the body's own opening, at every
+size checked**, the same "cross-body stability stands in for a correctness check" signature Jett's
+own `armholeCapEaseCm`/`shoulderEaseCm` established (`easeCm` is tautologically what makes `diffCm`
+zero once subtracted; the number that actually proves the pair is right is that it stays in a narrow
+band across bodies rather than swinging with body size). `hoodie-hood-neckline`'s own `easeCm` is
+this measured residual (`hoodNeckRingCm - neckRingCm`, computed from the drafted geometry, never a
+literal), not an assumed zero and not a guessed constant.
+
+**`hoodie-hood-center` now represents BOTH of the hood's two physical seams, not one.** The 3-panel
+hood has each `hoodSide` half meeting `hoodCenter` on its own side — `hoodCenter`'s two equal-length
+long edges (`straightBand`'s own `near`/`far`, the rectangle's bottom and top). Both are real seams;
+both stay equal by construction (the same synthetic rectangle on both sides), so `diffCm` stays
+exactly 0 with `a`/`b` each now carrying two edges instead of one — no test had to loosen anything to
+accommodate this.
+
+**The neck-binding strip is sized to the measured ring, not to Hugo's own upstream formula.** Hugo's
+own live-drafted `hugo.neckBinding` part (confirmed by drafting it with `expand: 1`) measures
+`2·neckOpeningLenFront + 2·neckOpeningLenBack + hoodCenterWidth` — 45.87cm at `cisFemaleAdult38`,
+50.32cm at `cisMaleAdult42` in the upstream model set. The `+ hoodCenterWidth` term is upstream's own
+cutting-width generosity (Hugo drafts a wider strip than the seam needs, presumably to allow trimming
+after construction), not seam geometry — carrying it into this repo's own pair would report a
+permanent, fabricated "ease" that has nothing to do with fit. `draftNeckBinding` (`lib/draft/
+subpieces.ts`) instead sizes the strip to the ring alone and declares `easeCm: 0` on
+`hoodie-neck-binding`; the seam allowance is applied at the cut line like every other piece, not
+folded into a length. Its own height (`NECK_BINDING_HEIGHT_CM = 4`) is an authored constant, the same
+"measure the seam length, author the band's own width" split `draftCuff`/`draftWaistband` already
+use — not Hugo's own `length / 44.2` formula, which yields roughly 1cm and is a cutting-width ratio
+for an already-expanded strip, not a usable finished band height.
+
+**The same six edges are named by TWO declared pairs, deliberately — the first case this codebase
+has that genuinely needs it.** The body's neck opening is sewn twice in the real garment: once to
+attach the hood underneath, once to apply the finishing binding on top. `hoodie-hood-neckline` and
+`hoodie-neck-binding` share an identical `a` side for exactly this reason. Nothing in the seam-graph
+machinery assumes an edge is claimed by at most one pair (`walkSeamPairs` has no uniqueness
+constraint; the #330 orphan-piece gate is per-piece, not per-edge; `hemEdgeIsConsumed` only ever
+inspects a piece's own `seamEdges.hem` key, and the binding's is `neck`) — so this shipped as a
+documented convention (`docs/architecture/seams-and-assembly.md`), not a code change to the graph
+itself.
+
+**`PHASE_BY_KEY` gained two entries.** `hoodie-hood-neckline` is `attach` (the hood, a sub-piece,
+sewn onto an already-shaped edge — same footing as `collar-neckline` — declared before
+`hoodie-cuff-wrist` in `hoodie.ts`'s own array so the stable sort keeps it first among the hoodie's
+`attach` pairs). `hoodie-neck-binding` is `band` (a finishing strip over an already-closed seam,
+same footing as `hoodie-waistband-hem`, just at the neck). The moletom's own assembly order grew
+from seven steps to nine: raglan-front, raglan-back, hood-center, sleeve-underarm, side,
+**hood-neckline**, cuff-wrist, waistband-hem, **neck-binding**.
+
+**A moletom persisted before #341 degrades gracefully, in exactly the one place expected.**
+`buildAssemblyOrder` always redrafts through the pattern's own frozen engine, so the two new steps
+appear the moment the order is next derived — no migration, no re-generation required. `pieceDisplayName`
+falls back to the bare piece id when a step names a piece the pattern's own persisted `pieces` list
+predates (`"neckBinding"` for a pattern drafted before this issue), the same fallback every other
+piece id on this path already relies on: never a crash, never a fabricated name, just a plainer
+label until the pattern is next regenerated.

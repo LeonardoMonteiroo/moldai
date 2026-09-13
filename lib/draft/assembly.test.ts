@@ -373,7 +373,7 @@ describe("buildAssemblyOrder", () => {
   // SOME phase" (the exhaustiveness guard above). Each `fakePattern` call
   // freezes `engine: "freesewing"` so buildAssemblyOrder actually redrafts
   // through that engine (lib/draft/engine/facade.ts), not moldai's default.
-  it("a hoodie (raglan, no shoulder seam) orders: both raglans, hood center, sleeve underarm, side, cuff, waistband -- no free hem (#323)", () => {
+  it("a hoodie (raglan, no shoulder seam) orders: both raglans, hood center, sleeve underarm, side, hood-neckline, cuff, waistband, neck binding -- no free hem (#323/#341)", () => {
     const spec: GarmentSpec = {
       type: "hoodie",
       gender: "female",
@@ -389,8 +389,13 @@ describe("buildAssemblyOrder", () => {
       "hoodie-hood-center",
       "hoodie-sleeve-underarm",
       "hoodie-side",
+      // #341: the hood is now sewn to the body's own neck opening (attach
+      // phase, declared before the cuff in hoodie.ts's own array) before
+      // the wrist cuff and the waistband/neck-binding finishing strips.
+      "hoodie-hood-neckline",
       "hoodie-cuff-wrist",
       "hoodie-waistband-hem",
+      "hoodie-neck-binding",
     ]);
     // The body panels' own hem edge and the cuff's own hem edge are both
     // consumed by hoodie-waistband-hem/hoodie-cuff-wrist -- nothing left
@@ -398,6 +403,8 @@ describe("buildAssemblyOrder", () => {
     // fix: the freesewing wrappers reuse moldai's "body-front"/"body-back"
     // ids, which the old hand-maintained HEM_CONSUMED_BY table mapped to
     // moldai's own waist-join keys -- pairs a hoodie graph never has).
+    // neckBinding's own seamEdges key is `neck`, never `hem`, so it can
+    // never mint one either.
     expect(order.steps.some((s) => s.kind === "hem")).toBe(false);
   });
 

@@ -178,6 +178,7 @@
       "collarFall": "Viradinha da gola",
       "hoodSide": "Lateral do capuz",
       "hoodCenter": "Centro do capuz",
+      "neckBinding": "Viés do decote",
       "collarRibbing": "Gola de ribana",
       "yoke": "Canesa",
       "frontRight": "Frente direita (carcela de botão)",
@@ -212,7 +213,7 @@
       "trouserLeg": "Modelagem da perna",
       "trouserOtherLegs": "Outras modelagens (afunilada, pantalona, cargo)",
       "trouserLengthGrading": "Comprimento por tamanho",
-      "hoodiePocket": "Bolso canguru e viés do decote",
+      "hoodiePocket": "Bolso canguru",
       "coatLining": "Forro completo (frente, costas e manga)",
       "sleevePlacket": "Abertura do punho (carcela)",
       "pleats": "Prega"
@@ -379,6 +380,16 @@
         "title": "Cós e barra",
         "aLabel": "Barra · corpo",
         "bLabel": "Cós"
+      },
+      "hoodNeckline": {
+        "title": "Capuz e decote",
+        "aLabel": "Decote · corpo",
+        "bLabel": "Capuz · decote"
+      },
+      "neckBinding": {
+        "title": "Viés do decote",
+        "aLabel": "Decote · corpo",
+        "bLabel": "Viés"
       },
       "hoodCenterSeam": {
         "title": "Capuz · centro",
