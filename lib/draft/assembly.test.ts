@@ -4,7 +4,12 @@ import { SIZE_TABLE, SIZE_TABLE_MALE } from "@/lib/measurements";
 import { t } from "@/lib/i18n/test-translate";
 import { DECORATION_CASES } from "./fixtures";
 import { measureSeamGraph } from "./engine/facade";
-import { DEFAULT_ENGINE_ID } from "./engine/capability";
+import {
+  DEFAULT_ENGINE_ID,
+  ENGINE_IDS,
+  checkEngineSupport,
+} from "./engine/capability";
+import { getEngine } from "./engine/registry";
 import {
   buildAssemblyOrder,
   PHASE_BY_KEY,
@@ -12,10 +17,23 @@ import {
   type AssemblySeamStep,
 } from "./assembly";
 
+// #323: the same baseRowFor lib/draft/engine/conformance.test.ts already
+// uses -- a spec's own gender picks which chart to measure it against.
+function baseRowFor(spec: GarmentSpec) {
+  return spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
+}
+
 // Minimal Pattern for buildAssemblyOrder -- the same fakePattern shape
 // lib/draft/easeReport.test.ts uses: only spec/sizeTable/baseSize/
-// pieces.length are ever read.
-function fakePattern(spec: GarmentSpec, baseSize = "M"): Pattern {
+// pieces.length are ever read. #323: takes an optional `engine` (frozen the
+// same way a real Pattern's own is, see lib/types.ts's doc comment) so a
+// test can build an order for a freesewing-only garment type -- omitted,
+// `engineFor(undefined)` resolves "moldai" exactly like before.
+function fakePattern(
+  spec: GarmentSpec,
+  baseSize = "M",
+  engine?: string,
+): Pattern {
   const table = spec.gender === "male" ? SIZE_TABLE_MALE : SIZE_TABLE;
   return {
     id: "p1",
@@ -38,6 +56,7 @@ function fakePattern(spec: GarmentSpec, baseSize = "M"): Pattern {
       },
     ],
     spec,
+    engine,
   };
 }
 
@@ -88,20 +107,70 @@ describe("buildAssemblyOrder", () => {
     }
   });
 
-  // Every key any DECORATION_CASES spec's own seam graph actually produces
+  // Every key any registered engine's own drafting matrix actually produces
   // must have a real phase -- never silently fall through to "other". A
-  // future new pair (a new archetype, a new sub-piece) that forgets to
-  // extend PHASE_BY_KEY would otherwise sew last with no signal at all.
-  it("has a real phase for every pair key the drafting matrix produces (no silent 'other')", () => {
-    const seen = new Set<string>();
-    for (const [, spec] of DECORATION_CASES) {
-      const base = spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
-      for (const m of measureSeamGraph(DEFAULT_ENGINE_ID, spec, base, t))
-        seen.add(m.key);
+  // future new pair (a new archetype, a new sub-piece, on EITHER engine)
+  // that forgets to extend PHASE_BY_KEY would otherwise sew last with no
+  // signal at all. #323: runs over ENGINE_IDS, not just DEFAULT_ENGINE_ID --
+  // a hand-picked engine here is exactly how the 25 freesewing-only keys
+  // (hoodie-*/coat-*/shirt-*) went unnoticed the first time.
+  //
+  // DECORATION_CASES has no case for a type a registered engine supports
+  // but no moldai drafter does (hoodie/coat/shirt today) -- a small style
+  // sweep over a plain spec for exactly those types reaches them without
+  // pushing freesewing-only types through DECORATION_CASES's other ~13
+  // moldai-only consumers (lib/draft/{core,easeReport,garment,skirt,
+  // spaceSampling}.test.ts, lib/export/*.test.ts, lib/proof3d/mesh.test.ts).
+  // Self-maintaining on both axes: a new engine is picked up via ENGINE_IDS,
+  // and a new type reaches this guard via `capability.types` whether or not
+  // DECORATION_CASES ever grows a case for it. The sleeve short/long split
+  // is what surfaces shirt's own three conditional keys (shirt-cuff-wrist,
+  // shirt-collar-neckline, shirt-collar-stand-fall --
+  // lib/draft/engine/freesewing/designs/shirt.ts).
+  it("has a real phase for every pair key any registered engine's drafting matrix can produce (no silent 'other')", () => {
+    const decorationTypes = new Set(DECORATION_CASES.map(([, s]) => s.type));
+    const styleSweep: GarmentSpec["style"][] = [
+      {},
+      { sleeve: "short" },
+      { sleeve: "long" },
+    ];
+    // key -> where it was first seen, so a failure names the offending
+    // engine/type rather than just the bare key.
+    const seenFrom = new Map<string, string>();
+
+    for (const engineId of ENGINE_IDS) {
+      const capability = getEngine(engineId).capability;
+
+      for (const [name, spec] of DECORATION_CASES) {
+        const supported = !checkEngineSupport(
+          capability,
+          spec,
+          baseRowFor(spec),
+        ).some((g) => g.kind === "type");
+        if (!supported) continue;
+        for (const m of measureSeamGraph(engineId, spec, baseRowFor(spec), t))
+          if (!seenFrom.has(m.key)) seenFrom.set(m.key, `${engineId}/${name}`);
+      }
+
+      for (const type of capability.types) {
+        if (decorationTypes.has(type)) continue;
+        for (const style of styleSweep) {
+          const spec: GarmentSpec = {
+            type,
+            gender: "female",
+            measurementOverrides: {},
+            style,
+          };
+          for (const m of measureSeamGraph(engineId, spec, baseRowFor(spec), t))
+            if (!seenFrom.has(m.key))
+              seenFrom.set(m.key, `${engineId}/${type}`);
+        }
+      }
     }
-    expect(seen.size).toBeGreaterThan(0);
-    for (const key of seen) {
-      expect(PHASE_BY_KEY[key], key).toBeDefined();
+
+    expect(seenFrom.size).toBeGreaterThan(0);
+    for (const [key, origin] of seenFrom) {
+      expect(PHASE_BY_KEY[key], `${key} (first seen: ${origin})`).toBeDefined();
     }
   });
 
@@ -243,6 +312,12 @@ describe("buildAssemblyOrder", () => {
       .filter((s) => s.kind === "hem")
       .map((s) => s.pieceId);
     expect(hemPieceIds).not.toContain("sleeve");
+    // #323: the cuff's OWN seamEdges.hem is the exact edge cuff-hem's b-side
+    // sews to the sleeve -- deriving hem-consumption from the seam graph
+    // (rather than a hand-maintained pieceId table that never named "cuff")
+    // is what stops that edge from also emitting a spurious "hem" step for
+    // the cuff piece itself, on top of the real cuff-hem seam step below.
+    expect(hemPieceIds).not.toContain("cuff");
     const seamKeys = seamSteps(order.steps).map((s) => s.key);
     expect(seamKeys).toContain("cuff-hem");
   });
@@ -288,6 +363,102 @@ describe("buildAssemblyOrder", () => {
       (s) => s.key === "trouser-waistband-waist",
     )!;
     expect(waistbandStep.gatherRatio).toBeLessThan(1);
+  });
+
+  // #323: the three freesewing-only garment types (hoodie/coat/shirt) each
+  // get a real, end-to-end order assertion -- the same proof-by-sequence
+  // the moldai blouse/trousers tests above give, not just "every key has
+  // SOME phase" (the exhaustiveness guard above). Each `fakePattern` call
+  // freezes `engine: "freesewing"` so buildAssemblyOrder actually redrafts
+  // through that engine (lib/draft/engine/facade.ts), not moldai's default.
+  it("a hoodie (raglan, no shoulder seam) orders: both raglans, hood center, sleeve underarm, side, cuff, waistband -- no free hem (#323)", () => {
+    const spec: GarmentSpec = {
+      type: "hoodie",
+      gender: "female",
+      measurementOverrides: {},
+      style: {},
+    };
+    const p = fakePattern(spec, "M", "freesewing");
+    const order = buildAssemblyOrder(p, t)!;
+    const kinds = order.steps.map((s) => (s.kind === "seam" ? s.key : s.kind));
+    expect(kinds).toEqual([
+      "hoodie-raglan-front",
+      "hoodie-raglan-back",
+      "hoodie-hood-center",
+      "hoodie-sleeve-underarm",
+      "hoodie-side",
+      "hoodie-cuff-wrist",
+      "hoodie-waistband-hem",
+    ]);
+    // The body panels' own hem edge and the cuff's own hem edge are both
+    // consumed by hoodie-waistband-hem/hoodie-cuff-wrist -- nothing left
+    // unclaimed, so no piece gets a spurious free "hem" step (#323's own
+    // fix: the freesewing wrappers reuse moldai's "body-front"/"body-back"
+    // ids, which the old hand-maintained HEM_CONSUMED_BY table mapped to
+    // moldai's own waist-join keys -- pairs a hoodie graph never has).
+    expect(order.steps.some((s) => s.kind === "hem")).toBe(false);
+  });
+
+  it("a coat (set-in sleeve, center-back seam) orders: center-back+shoulder, cap+underarm, side, cuff, waistband -- no free hem (#323)", () => {
+    const spec: GarmentSpec = {
+      type: "coat",
+      gender: "female",
+      measurementOverrides: {},
+      style: {},
+    };
+    const p = fakePattern(spec, "M", "freesewing");
+    const order = buildAssemblyOrder(p, t)!;
+    const kinds = order.steps.map((s) => (s.kind === "seam" ? s.key : s.kind));
+    expect(kinds).toEqual([
+      "coat-center-back",
+      "coat-shoulder",
+      "coat-armhole-cap",
+      "coat-sleeve-underarm",
+      "coat-side",
+      "coat-cuff-wrist",
+      "coat-waistband-hem",
+    ]);
+    expect(order.steps.some((s) => s.kind === "hem")).toBe(false);
+  });
+
+  it("a shirt (yoke-backed, split front, no waistband) orders: yoke+shoulders, sleeve, side, cuff, collar -- then each unhemmed front/back panel (#323)", () => {
+    const spec: GarmentSpec = {
+      type: "shirt",
+      gender: "female",
+      measurementOverrides: {},
+      style: {},
+    };
+    const p = fakePattern(spec, "M", "freesewing");
+    const order = buildAssemblyOrder(p, t)!;
+    const kinds = order.steps.map((s) => (s.kind === "seam" ? s.key : s.kind));
+    expect(kinds).toEqual([
+      "shirt-yoke-back",
+      "shirt-shoulder-right",
+      "shirt-shoulder-left",
+      "shirt-armhole-cap-right",
+      "shirt-armhole-cap-left",
+      "shirt-sleeve-underarm",
+      "shirt-side-right",
+      "shirt-side-left",
+      "shirt-cuff-wrist",
+      "shirt-collar-neckline",
+      "shirt-collar-stand-fall",
+      "hem", // body-back
+      "hem", // body-front-right
+      "hem", // body-front-left
+    ]);
+    // Unlike hoodie/coat, a shirt has no waistband pair -- its own
+    // back/front hems are genuinely free, unhemmed edges, same footing as
+    // trousers' own leg hems (#188) -- honest, not a bug.
+    const hemSteps = order.steps.filter(
+      (s): s is Extract<AssemblyStep, { kind: "hem" }> => s.kind === "hem",
+    );
+    expect(hemSteps.map((s) => s.pieceId)).toEqual([
+      "body-back",
+      "body-front-right",
+      "body-front-left",
+    ]);
+    for (const s of hemSteps) expect(s.lengthCm).toBeGreaterThan(0);
   });
 
   it("a standalone skirt with waistband explicitly 'none' still hems its own bottom edge (#188) -- only the waistband pair is absent", () => {

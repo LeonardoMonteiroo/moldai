@@ -40,7 +40,15 @@ type SeamPhase = (typeof SEAM_PHASE_ORDER)[number];
 // spec's seam graph actually produces has a real entry here (never silently
 // falls to "other") -- a regression guard the same shape prompt.test.ts's
 // "every rendered cost corresponds to a real debit site" already is.
+//
+// #323: covers BOTH registered engines (lib/draft/engine/registry.ts), not
+// just moldai -- a pair key is a property of the PAIR'S OWN IDENTITY
+// regardless of which engine's wrapper declared it (the comment above this
+// table already says so), and the cross-engine exhaustiveness guard in
+// assembly.test.ts now enforces that every key either engine's own
+// capability.types can produce has a real entry below.
 export const PHASE_BY_KEY: Record<string, SeamPhase> = {
+  // ---- moldai (lib/draft/garment.ts) ----
   shoulder: "primary",
   "trouser-front-rise": "primary",
   "trouser-back-rise": "primary",
@@ -63,6 +71,77 @@ export const PHASE_BY_KEY: Record<string, SeamPhase> = {
   "waist-join-back": "waistJoin",
   "waistband-waist": "band",
   "trouser-waistband-waist": "band",
+
+  // ---- freesewing: hoodie (Hugo, lib/draft/engine/freesewing/designs/
+  // hoodie.ts) -- a raglan design, no shoulder seam at all. ----
+  // The hood's own 3-panel center seam: a component closed on itself before
+  // it is ever joined to the body, same footing as a dart/pleat in spirit
+  // but expressed here as a "primary" seam since it IS a real mated pair
+  // (hoodie-hood-center), not an internal fold. #341: this wrapper never
+  // declares a pair joining the hood to the body's own neckline (it needs a
+  // trim strip this wrapper doesn't draft) -- a real, adjacent gap, found
+  // by #323's audit but out of scope for a phase-table data fill.
+  "hoodie-hood-center": "primary",
+  // The raglan seam REPLACES the shoulder seam -- it is the garment's first
+  // structural closure between body and sleeve, not a set-in-sleeve
+  // operation. Classifying it "sleeve" (like armhole-cap) would place it
+  // after a "primary" phase this design never has, and a raglan is sewn
+  // before the side seam, matching moldai's own shoulder-before-side order.
+  "hoodie-raglan-front": "primary",
+  "hoodie-raglan-back": "primary",
+  // Closes the sleeve into a tube, same role as moldai's sleeve-underarm.
+  "hoodie-sleeve-underarm": "sleeve",
+  "hoodie-side": "side",
+  // A cuff pregado on an already-closed sleeve hem -- same phase as
+  // moldai's own cuff-hem.
+  "hoodie-cuff-wrist": "attach",
+  // The waistband/ribana, sewn onto the already-finished hem last.
+  "hoodie-waistband-hem": "band",
+
+  // ---- freesewing: coat (Jett, lib/draft/engine/freesewing/designs/
+  // jett.ts) -- a classic set-in-sleeve coat with a center-back seam. ----
+  // The back's own center seam closes a component before any cross-piece
+  // join, same reasoning as hoodie-hood-center above.
+  "coat-center-back": "primary",
+  "coat-shoulder": "primary",
+  "coat-armhole-cap": "sleeve",
+  "coat-sleeve-underarm": "sleeve",
+  "coat-side": "side",
+  "coat-cuff-wrist": "attach",
+  "coat-waistband-hem": "band",
+
+  // ---- freesewing: shirt (Simon, lib/draft/engine/freesewing/designs/
+  // shirt.ts) -- yoke-backed, flat-set sleeves, split front. ----
+  // The yoke-to-back seam is this design's first structural closure --
+  // both front panels are sewn to the yoke's own shoulder edge next, the
+  // same "primary" footing as a plain shoulder seam.
+  "shirt-yoke-back": "primary",
+  "shirt-shoulder-right": "primary",
+  "shirt-shoulder-left": "primary",
+  "shirt-armhole-cap-right": "sleeve",
+  "shirt-armhole-cap-left": "sleeve",
+  "shirt-sleeve-underarm": "sleeve",
+  "shirt-side-right": "side",
+  "shirt-side-left": "side",
+  // The stand pregado at the neckline, then the fall pregado onto the
+  // stand's own already-attached upper seam -- the same collar-neckline /
+  // collar-stand-fall two-step moldai's own blouse collar already uses
+  // (#222's comment above). Declared in that order in shirt.ts, so the
+  // stable sort keeps stand-before-fall without a second phase.
+  "shirt-collar-neckline": "attach",
+  "shirt-collar-stand-fall": "attach",
+  // A cuff on an already-closed sleeve hem, same phase as coat/hoodie's own.
+  //
+  // Not perfectly ordered against the collar pair above: shirt.ts declares
+  // this BEFORE shirt-collar-neckline (both are "attach", so the stable
+  // sort cites the cuff first), even though a collar is conventionally set
+  // before a cuff. Neither finishing operation depends on the other having
+  // happened first, so this is a real but harmless imprecision -- fixing it
+  // would need either a new phase between "attach"'s two sub-cases or
+  // reordering shirt.ts's own seamPairs array, and #323's own audit found
+  // no garment where the two orders produce a wrong instruction, only an
+  // unconventional one.
+  "shirt-cuff-wrist": "attach",
 };
 
 function phaseRank(key: string): number {
@@ -72,21 +151,36 @@ function phaseRank(key: string): number {
 // A piece's own `seamEdges.hem`, if declared, is only a free edge needing a
 // finishing step when nothing ELSE in the graph already sews it to another
 // piece -- a dress's bodice hem is the body/skirt waist join, and a cuffed
-// sleeve's hem is the cuff seam. Keyed by pieceId -> the pair key(s) that,
-// if present in THIS pattern's own graph, mean that piece's `hem` edge is
-// already spoken for. #188: a standalone skirt panel's own bottom edge
-// (every silhouette, lib/draft/skirt.ts) and a trouser leg's own hem
-// (lib/draft/trousers.ts) now declare `seamEdges.hem` too, alongside
-// body.ts's/sleeve.ts's -- but neither is EVER claimed by another pair (a
-// skirt/trouser leg's own hem, unlike its waist, is never sewn to anything
-// -- not a bodice at a dress's waist join, not a waistband), so "skirt" and
-// "trouser-front"/"trouser-back" deliberately have no entry below and
-// always produce a real "hem" step once the piece is drafted.
-const HEM_CONSUMED_BY: Record<string, string[]> = {
-  "body-front": ["waist-join-front"],
-  "body-back": ["waist-join-back"],
-  sleeve: ["cuff-hem"],
-};
+// sleeve's hem is the cuff seam.
+//
+// #323: derived from the seam graph's own per-edge data
+// (SeamMeasurement.aEdges/bEdges, lib/draft/seams.ts), not a second,
+// hand-maintained table of pieceId -> consuming pair key. A hand-written
+// table only knew moldai's own three cases (body-front/body-back/sleeve)
+// and was silently wrong for the freesewing engine: hoodie and coat both
+// reuse the piece ids "body-front"/"body-back" (hoodie.ts, jett.ts) and
+// both declare seamEdges.hem, but their own waist is consumed by
+// hoodie-waistband-hem/coat-waistband-hem -- pair keys the old table didn't
+// know, so it silently minted two spurious "free hem" steps per garment
+// even though the waistband already sews those exact edges. Reading the
+// graph directly is exact for every engine at once: every pair declaration
+// references the piece's own seamEdges.hem object verbatim (garment.ts's
+// edgeRef(front.id, front.seamEdges.hem) for waist-join-front, hoodie.ts's/
+// jett.ts's identical pattern for the waistband pairs), so the indices
+// always match -- this is CLAUDE.md's "derive, don't store" rule, not a
+// simplification of the old table's intent.
+function hemEdgeIsConsumed(
+  pieceId: string,
+  hemEdge: [number, number],
+  seamGraph: SeamMeasurement[],
+): boolean {
+  return seamGraph.some((m) =>
+    [...m.aEdges, ...m.bEdges].some(
+      (e) =>
+        e.pieceId === pieceId && e.from === hemEdge[0] && e.to === hemEdge[1],
+    ),
+  );
+}
 
 // ---- structure -------------------------------------------------------------
 
@@ -290,15 +384,11 @@ export function buildAssemblyOrder(
   steps.push(...seamSteps);
 
   // Free hems last -- a finishing step on an edge nothing else in the graph
-  // already claimed (see HEM_CONSUMED_BY above).
+  // already claimed (see hemEdgeIsConsumed above).
   for (const piece of pieces) {
     const hemEdge = piece.seamEdges?.hem;
     if (!hemEdge) continue;
-    const consumers = HEM_CONSUMED_BY[piece.id] ?? [];
-    const consumed = consumers.some((key) =>
-      seamGraph.some((m) => m.key === key),
-    );
-    if (consumed) continue;
+    if (hemEdgeIsConsumed(piece.id, hemEdge, seamGraph)) continue;
     const lengthCm =
       Math.round(
         curveArcLengthCm(piece.outlineCm, piece.curvedSpans ?? [], ...hemEdge) *
