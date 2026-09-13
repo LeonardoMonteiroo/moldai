@@ -57,6 +57,9 @@ export const PHASE_BY_KEY: Record<string, SeamPhase> = {
   side: "side",
   "trouser-inseam": "side",
   "trouser-outseam": "side",
+  // #330: the skirt panel's own two straight side edges, sewn together --
+  // same phase as a bodice's plain side seam.
+  "skirt-side": "side",
   "collar-neckline": "attach",
   // #222: the fall sews onto the stand's own already-attached upper seam --
   // still the same "attach" phase as collar-neckline itself (a sub-piece

@@ -57,9 +57,14 @@ export default defineConfig({
         // their token/metadata branching, and `app/planos/page.test.tsx`
         // predates both.
         // Test-only modules that live beside the source they support:
-        // `lib/draft/fixtures.ts` is the shared DECORATION_CASES matrix and
-        // `components/test-utils.tsx` is the renderWithIntl wrapper.
+        // `lib/draft/fixtures.ts` is the shared DECORATION_CASES matrix,
+        // `lib/draft/geometryPredicates.ts` (#330) is the shared
+        // self-intersection/containment/degeneracy predicate module three
+        // test files (spaceSampling, garment, export/model) import instead
+        // of each re-deriving its own copy, and `components/test-utils.tsx`
+        // is the renderWithIntl wrapper.
         "lib/draft/fixtures.ts",
+        "lib/draft/geometryPredicates.ts",
         "components/test-utils.tsx",
       ],
 

@@ -214,9 +214,11 @@ describe("buildAssemblyOrder", () => {
 
   // #244: a standalone skirt's own pleat gets a real "pleat" step, ordered
   // before its waistband seam and its own hem -- the same "shapes the piece
-  // before any seam" priority a dart already gets.
+  // before any seam" priority a dart already gets. #330: "skirt-side" (the
+  // panel's own two side edges, closing it into a tube) is phase "side",
+  // between the dart/pleat and the waistband's own "band" phase.
   it.each(["box", "inverted-box"] as const)(
-    "a standalone %s-pleated skirt gets a 'pleat' step naming the skirt piece, before its waistband seam and hem",
+    "a standalone %s-pleated skirt gets a 'pleat' step naming the skirt piece, before its side seam, waistband seam and hem",
     (pleats) => {
       const spec: GarmentSpec = {
         type: "skirt",
@@ -229,7 +231,7 @@ describe("buildAssemblyOrder", () => {
       const kinds = order.steps.map((s) =>
         s.kind === "seam" ? s.key : s.kind,
       );
-      expect(kinds).toEqual(["pleat", "waistband-waist", "hem"]);
+      expect(kinds).toEqual(["pleat", "skirt-side", "waistband-waist", "hem"]);
       const pleatStep = order.steps[0] as Extract<
         AssemblyStep,
         { kind: "pleat" }
@@ -461,7 +463,7 @@ describe("buildAssemblyOrder", () => {
     for (const s of hemSteps) expect(s.lengthCm).toBeGreaterThan(0);
   });
 
-  it("a standalone skirt with waistband explicitly 'none' still hems its own bottom edge (#188) -- only the waistband pair is absent", () => {
+  it("a standalone skirt with waistband explicitly 'none' still sews its own side seam and hems its own bottom edge (#188/#330) -- only the waistband pair is absent", () => {
     const spec: GarmentSpec = {
       type: "skirt",
       gender: "female",
@@ -470,15 +472,22 @@ describe("buildAssemblyOrder", () => {
     };
     const p = fakePattern(spec);
     const order = buildAssemblyOrder(p, t)!;
-    // No darts, no waistband, no other mated pair -- but the skirt panel's
-    // own bottom hem is a free finishing edge regardless, so the order is
-    // one real hem step, not the empty array this exact spec derived before
+    // No darts, no waistband -- but #330's own skirt-side pair (the panel's
+    // own two side edges, equal by construction) is declared regardless of
+    // waistband, and the skirt panel's own bottom hem is a free finishing
+    // edge on top of that, so the order is a side-seam step then a hem
+    // step, never the empty array this exact spec derived before
     // seamEdges.hem existed for skirt panels.
-    expect(order.steps).toHaveLength(1);
-    const [step] = order.steps as [Extract<AssemblyStep, { kind: "hem" }>];
-    expect(step.kind).toBe("hem");
-    expect(step.pieceId).toBe("skirt");
-    expect(step.lengthCm).toBeGreaterThan(0);
+    expect(order.steps).toHaveLength(2);
+    const [sideStep, hemStep] = order.steps as [
+      Extract<AssemblyStep, { kind: "seam" }>,
+      Extract<AssemblyStep, { kind: "hem" }>,
+    ];
+    expect(sideStep.kind).toBe("seam");
+    expect(sideStep.key).toBe("skirt-side");
+    expect(hemStep.kind).toBe("hem");
+    expect(hemStep.pieceId).toBe("skirt");
+    expect(hemStep.lengthCm).toBeGreaterThan(0);
     expect(order.hasConflict).toBe(false);
   });
 

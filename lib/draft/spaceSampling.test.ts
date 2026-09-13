@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { validateSpec } from "./garment";
+import { describe, it, expect, beforeAll } from "vitest";
+import { validateSpec, seamCheck } from "./garment";
 import { draftPiecesCm, measureSeamGraph } from "./engine/facade";
 import {
   DEFAULT_ENGINE_ID,
@@ -10,10 +10,29 @@ import {
 import { buildEaseReport } from "./easeReport";
 import { buildAssemblyOrder } from "./assembly";
 import { offsetOutlineCm } from "@/lib/export/offset";
-import { SIZE_TABLE, SIZE_TABLE_MALE } from "@/lib/measurements";
+import { TOL_CM } from "@/lib/export/bezier";
+import {
+  SIZE_TABLE,
+  SIZE_TABLE_MALE,
+  CORE_MEASUREMENT_KEYS,
+  MEASUREMENT_RANGES,
+  type Measurements,
+} from "@/lib/measurements";
 import { t } from "@/lib/i18n/test-translate";
-import { catmullRomSegments, type DraftedPiece } from "./core";
+import { signedAreaCm, type DraftedPiece } from "./core";
+import { SEAM_TOLERANCE_CM, type SeamMeasurement } from "./seams";
 import { STYLE_LIMITS } from "./vocabulary";
+import {
+  hasSelfIntersection,
+  flattenedNetOutlineCm,
+  densifiedOutlineCm,
+  pointInPolygonCm,
+  decorationPointsCm,
+  notchTipsCm,
+  shortestEdgeCm,
+  fromXY,
+  CONTAINMENT_EPS_CM,
+} from "./geometryPredicates";
 import type {
   GarmentSpec,
   GarmentStyle,
@@ -34,6 +53,14 @@ import type {
 // pure and DB-free (no retry loop needed: every combination this sampler
 // can construct is, by construction, one checkEngineSupport already
 // declares supported -- see "known-unsupported combos" below).
+//
+// #330: gates a NAMED BUCKET per invariant (seam closure, net-outline
+// simplicity, positive area/no degenerate edge, no orphaned piece) over
+// TWO extra bodies besides the base row -- GarmentCodeData's own ladder
+// keeps a sample only once it survives on two different bodies. Geometric
+// predicates (self-intersection, containment, area, degeneracy) now live in
+// ./geometryPredicates, shared with lib/draft/garment.test.ts and
+// lib/export/model.test.ts rather than re-derived a third time here.
 
 // A fixed seed -- printed in every failure message below -- makes a CI
 // failure reproducible locally by rerunning this exact file; no test.only
@@ -182,9 +209,60 @@ function sampleSpec(rng: () => number): GarmentSpec {
   return validateSpec(raw);
 }
 
-function baseRowFor(spec: GarmentSpec) {
+// #330: the RAW (unresolved) base row for this spec's gender -- what
+// checkEngineSupport reads (it never inspects measurementOverrides, only
+// whether the row itself carries every required key) and what draftPiecesCm/
+// measureSeamGraph take as `baseMeasurements`, resolving+clamping a body's
+// own overrides internally via resolveMeasurements -- the exact pipeline a
+// real request goes through, never pre-resolved by this file.
+function baseRowFor(spec: GarmentSpec): Measurements {
   return spec.gender === "male" ? SIZE_TABLE_MALE.M : SIZE_TABLE.M;
 }
+
+// ---- the second and third bodies (#330 AC3) --------------------------------
+//
+// A uniform corner over every CORE_MEASUREMENT_KEYS key (all-min or all-max)
+// rather than a per-key random draw: a mixed draw produces a physiologically
+// incoherent body (bust at 140 with shoulder at 14) that can break geometry
+// for an illegitimate reason. "Every key at its floor" and "every key at its
+// ceiling" are both coherent shapes, and are exactly the two ends where the
+// degenerate-area/zero-edge gates below have any real chance of firing.
+// Expressed as measurementOverrides (never a hand-built row) so
+// resolveMeasurements' own clamp runs on the way through, satisfying AC3's
+// "ideally measurementOverrides not empty" with the same change. No RNG is
+// consumed building these -- sampleStyle's own draw order (and therefore
+// every one of the 250 style specs) is completely untouched by this axis.
+//
+// The four EXTENDED keys (highBust, shoulderSlope, backWidth, rise) are
+// deliberately never overridden here. backWidth in particular: it feeds the
+// back panel's armhole control point ONLY, so a real divergence there is
+// exactly what expectEqualSplit/subSegmentDiffCm is built to flag on
+// armhole-cap as a genuine, user-facing, UNFIXABLE conflict
+// (docs/architecture/seams-and-assembly.md). Overriding it here would force
+// a second carve-out whose predicate would just restate sideSplitDevCm,
+// making the seamSplitDivergence gate below vacuous -- the one gate most
+// likely to catch a real regression. That divergence path already has
+// dedicated coverage in lib/draft/garment.test.ts; sampling it is a
+// candidate for its own follow-up issue (an "activate an EXTENDED key" axis
+// is a different question from "how big is this body", which is all this
+// axis answers).
+interface SampledBody {
+  name: string;
+  overrides: Record<string, number>;
+}
+
+function cornerOverrides(edge: "min" | "max"): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const key of CORE_MEASUREMENT_KEYS)
+    out[key] = MEASUREMENT_RANGES[key][edge];
+  return out;
+}
+
+const BODIES: SampledBody[] = [
+  { name: "base", overrides: {} },
+  { name: "minCorner", overrides: cornerOverrides("min") },
+  { name: "maxCorner", overrides: cornerOverrides("max") },
+];
 
 // Minimal Pattern for buildEaseReport/buildAssemblyOrder -- the same
 // fakePattern shape lib/draft/garment.test.ts/assembly.test.ts/
@@ -215,238 +293,395 @@ function fakePattern(spec: GarmentSpec): Pattern {
   };
 }
 
-// ---- geometry helpers (self-intersection + containment) -------------------
-//
-// Deliberately duplicated rather than imported from garment.test.ts/
-// model.test.ts: this repo's own testing convention is that each test file
-// owns its assertion helpers over the shared DECORATION_CASES/drafted-piece
-// shape (model.test.ts re-derives the identical segmentsIntersect rather
-// than importing garment.test.ts's), not a shared-fixture-only rule.
+// ---- named failure buckets (#330 AC4) --------------------------------------
 
-interface XY {
-  x: number;
-  y: number;
+const BUCKETS = [
+  "draftThrew", // any gate threw -- never an unrelated red
+  "capabilityGap",
+  "seamDivergence", // seamCheck flagged a pair outside the proved armhole-deepen carve-out
+  "seamSplitDivergence", // subSegmentDiffCm > tolerance (#253) -- NEVER tolerated, not even inside the carve-out
+  "netSelfIntersection", // the DRAWN outline, before any offset -- #330's own point
+  "cutSelfIntersection", // the offset/repaired outline, as before #330
+  "degenerateArea",
+  "zeroLengthEdge",
+  "orphanPiece",
+  "decorationOutside",
+  "easeReportNaN",
+  "assemblyStepMismatch",
+] as const;
+type Bucket = (typeof BUCKETS)[number];
+
+interface Failure {
+  bucket: Bucket;
+  index: number;
+  detail: string;
 }
 
-function cross(o: XY, p: XY, q: XY): number {
-  return (p.x - o.x) * (q.y - o.y) - (p.y - o.y) * (q.x - o.x);
+interface GateReport {
+  bodyName: string;
+  total: number;
+  failures: Failure[];
 }
 
-function segmentsIntersect(a1: XY, a2: XY, b1: XY, b2: XY): boolean {
-  const d1 = cross(b1, b2, a1);
-  const d2 = cross(b1, b2, a2);
-  const d3 = cross(a1, a2, b1);
-  const d4 = cross(a1, a2, b2);
+function countByBucket(report: GateReport): Record<Bucket, number> {
+  const counts = Object.fromEntries(BUCKETS.map((b) => [b, 0])) as Record<
+    Bucket,
+    number
+  >;
+  for (const f of report.failures) counts[f.bucket]++;
+  return counts;
+}
+
+function failedSpecCount(report: GateReport): number {
+  return new Set(report.failures.map((f) => f.index)).size;
+}
+
+function formatReport(report: GateReport): string {
+  const counts = countByBucket(report);
+  const lines = BUCKETS.map((b) => `  ${b}: ${counts[b]}`).join("\n");
   return (
-    ((d1 > 1e-9 && d2 < -1e-9) || (d1 < -1e-9 && d2 > 1e-9)) &&
-    ((d3 > 1e-9 && d4 < -1e-9) || (d3 < -1e-9 && d4 > 1e-9))
+    `seed=0x${SEED.toString(16)} body=${report.bodyName} total=${report.total} ` +
+    `failedSpecs=${failedSpecCount(report)}\n${lines}`
   );
 }
 
-// Non-adjacent edges only -- adjacent edges legitimately share an endpoint,
-// which isn't a self-intersection (the same carve-out model.test.ts's own
-// hasSelfIntersection makes).
-function hasSelfIntersection(pts: XY[]): boolean {
-  const n = pts.length;
-  for (let i = 0; i < n; i++) {
-    for (let j = i + 1; j < n; j++) {
-      if (j === i + 1 || (i === 0 && j === n - 1)) continue;
-      if (segmentsIntersect(pts[i], pts[(i + 1) % n], pts[j], pts[(j + 1) % n]))
-        return true;
+// Capped at 5 detail lines so a fully-red run doesn't dump 250 lines into CI
+// -- the summary block above (formatReport) already gives the total count.
+function formatBucket(bucket: Bucket, report: GateReport): string {
+  const hits = report.failures.filter((f) => f.bucket === bucket);
+  const shown = hits
+    .slice(0, 5)
+    .map((f) => `  #${f.index} ${f.detail}`)
+    .join("\n");
+  const more = hits.length > 5 ? `\n  +${hits.length - 5} more` : "";
+  return (
+    `${bucket}: ${hits.length}/${report.total} specs failed ` +
+    `(seed=0x${SEED.toString(16)}, body=${report.bodyName})\n${shown}${more}`
+  );
+}
+
+// Not repairable in this issue: lib/draft/subpieces.ts's own doc on
+// draftPlacket -- "it binds into the sleeve's vertical opening above the
+// cuff... it has no distinct edge on the already-drafted sleeve piece to
+// mate against, so it declares no seamEdges." Declaring a real pair would
+// need sleeve.ts to draft the slit as boundary geometry, which does not
+// exist today -- a drafting change, not a declaration, and out of scope for
+// a test-quality issue. Filed as its own follow-up (#330's PR description).
+// Closed, asserted set: if a NEW piece ever goes undeclared, this gate must
+// fail rather than the allowlist silently growing to cover it.
+const ORPHAN_ALLOWLIST = new Set(["placket"]);
+
+// #330 4a: STYLE_LIMITS.armholeDeepenCm is {min:0,max:6} sampled uniformly,
+// and a deepen with no refit makes armhole-cap diverge BY DESIGN (the cap is
+// sized from the base armhole, never the deepened one --
+// docs/architecture/seams-and-assembly.md). But `armholeDeepenCm > 0` alone
+// is a near-vacuous guard (the uniform draw is essentially never exactly 0),
+// so this proves the carve-out instead of merely naming it: a divergent
+// entry is tolerated only if ALL of the following hold, each checked in
+// order so a failing clause names itself in the returned reason.
+function armholeCarveOutHolds(
+  spec: GarmentSpec,
+  baseRow: Measurements,
+  bad: SeamMeasurement[],
+): { holds: boolean; reason?: string } {
+  if (bad.length !== 1 || bad[0].key !== "armhole-cap") {
+    return {
+      holds: false,
+      reason: `divergent keys [${bad.map((m) => m.key).join(", ")}] are not exactly {armhole-cap}`,
+    };
+  }
+  const m = bad[0];
+  const deepen = spec.style.armholeDeepenCm ?? 0;
+  if (!(deepen > 0)) {
+    return {
+      holds: false,
+      reason: "armhole-cap diverges but style.armholeDeepenCm is 0/absent",
+    };
+  }
+  if (m.subSegmentDiffCm > SEAM_TOLERANCE_CM) {
+    return {
+      holds: false,
+      reason: `subSegmentDiffCm=${m.subSegmentDiffCm} exceeds tolerance -- a deepen must move front/back equally`,
+    };
+  }
+  // The twin spec with armholeDeepenCm zeroed -- built by spread, not
+  // validateSpec (spec already passed it), and NEVER via sleeveRefit, which
+  // is deliberately not accepted by validateSpec (seams-and-assembly.md)
+  // and must stay unreachable from a spec built the way a request is.
+  const twinSpec: GarmentSpec = {
+    ...spec,
+    style: { ...spec.style, armholeDeepenCm: 0 },
+  };
+  const twinGraph = measureSeamGraph(DEFAULT_ENGINE_ID, twinSpec, baseRow, t);
+  if (seamCheck(twinGraph).length !== 0) {
+    return {
+      holds: false,
+      reason: "twin spec (armholeDeepenCm=0) does not close on its own",
+    };
+  }
+  const twinPair = twinGraph.find((x) => x.key === "armhole-cap");
+  if (!twinPair) {
+    return { holds: false, reason: "twin graph has no armhole-cap pair" };
+  }
+  if (twinPair.bLenCm !== m.bLenCm) {
+    return {
+      holds: false,
+      reason: `cap length moved with the deepen: ${twinPair.bLenCm} -> ${m.bLenCm}`,
+    };
+  }
+  // Exact, no magic factor: with gatherRatio=1, diffCm = |bLen - aLen - ease|.
+  // The twin closes and the cap is unchanged, so diffCm must sit within one
+  // tolerance of exactly the armhole's own measured growth -- this is what
+  // makes the carve-out say "the divergence equals the deepening and
+  // nothing else", not merely "some divergence happened to co-occur with a
+  // nonzero deepen".
+  const armholeGrowthCm = Math.abs(m.aLenCm - twinPair.aLenCm);
+  if (Math.abs(m.diffCm - armholeGrowthCm) > SEAM_TOLERANCE_CM) {
+    return {
+      holds: false,
+      reason: `diffCm=${m.diffCm} is not within tolerance of the measured armhole growth (${armholeGrowthCm.toFixed(1)})`,
+    };
+  }
+  return { holds: true };
+}
+
+// ---- the gate walk ----------------------------------------------------------
+
+function runGatesForBody(body: SampledBody, specs: GarmentSpec[]): GateReport {
+  const failures: Failure[] = [];
+  const push = (index: number, bucket: Bucket, detail: string) =>
+    failures.push({ bucket, index, detail });
+
+  for (let index = 0; index < specs.length; index++) {
+    const spec = specs[index];
+    const rawBaseRow = baseRowFor(spec);
+    // The effective spec this body drafts -- style untouched, overrides
+    // swapped for this body's own. Safe to build by spread rather than a
+    // fresh validateSpec call: every override key/value here already comes
+    // from MEASUREMENT_RANGES itself, so nothing survives the validator's
+    // whitelist-and-clamp differently than it already is.
+    const effectiveSpec: GarmentSpec = {
+      ...spec,
+      measurementOverrides: body.overrides,
+    };
+
+    const gaps = checkEngineSupport(MOLDAI_CAPABILITY, spec, rawBaseRow);
+    if (gaps.length > 0) {
+      push(index, "capabilityGap", `gaps=${JSON.stringify(gaps)}`);
     }
-  }
-  return false;
-}
 
-function verticalSpanAt(pts: [number, number][], x: number) {
-  let top = Infinity;
-  let bottom = -Infinity;
-  for (let i = 0; i < pts.length; i++) {
-    const a = pts[i];
-    const b = pts[(i + 1) % pts.length];
-    if (a[0] === b[0]) continue;
-    if (x < Math.min(a[0], b[0]) || x > Math.max(a[0], b[0])) continue;
-    const y = a[1] + ((b[1] - a[1]) * (x - a[0])) / (b[0] - a[0]);
-    top = Math.min(top, y);
-    bottom = Math.max(bottom, y);
-  }
-  return { top, bottom };
-}
-
-// Densified against the real Catmull-Rom geometry, the same reason
-// garment.test.ts's own densifiedOutline exists: the coarse vertex polygon
-// UNDERCUTS a curved span (a Catmull-Rom cap bulges above the chord between
-// its own two vertices), so a notch tip placed ON that curve can read as
-// spuriously "outside" the cheap vertex-polygon span.
-function densifiedOutline(
-  ptsCm: [number, number][],
-  curvedSpans?: [number, number][],
-): [number, number][] {
-  const { start, segs } = catmullRomSegments(ptsCm, curvedSpans ?? []);
-  const out: [number, number][] = [start];
-  let cur = start;
-  const STEPS = 24;
-  for (const seg of segs) {
-    if (seg.kind === "line") {
-      out.push(seg.to);
-      cur = seg.to;
+    let pieces: DraftedPiece[];
+    let graph: SeamMeasurement[];
+    try {
+      pieces = draftPiecesCm(DEFAULT_ENGINE_ID, effectiveSpec, rawBaseRow, t);
+      graph = measureSeamGraph(DEFAULT_ENGINE_ID, effectiveSpec, rawBaseRow, t);
+    } catch (e) {
+      push(index, "draftThrew", (e as Error).message);
       continue;
     }
-    for (let i = 1; i <= STEPS; i++) {
-      const u = i / STEPS;
-      const v = 1 - u;
-      out.push([
-        v * v * v * cur[0] +
-          3 * v * v * u * seg.c1[0] +
-          3 * v * u * u * seg.c2[0] +
-          u * u * u * seg.to[0],
-        v * v * v * cur[1] +
-          3 * v * v * u * seg.c1[1] +
-          3 * v * u * u * seg.c2[1] +
-          u * u * u * seg.to[1],
-      ]);
-    }
-    cur = seg.to;
-  }
-  return out;
-}
 
-// A boundary-inclusive comparison needs a small float epsilon, not just
-// >=/<=: a decoration point that sits exactly ON the boundary (a dart's
-// open end on a seam, a hem vertex at the panel's own bottom edge -- both
-// legitimate per garment.test.ts's own containment suite) is frequently
-// computed via a DIFFERENT arithmetic path than the boundary vertex itself
-// (e.g. lengthCm derived from a randomly-sampled skirtLengthCm one way,
-// the vertex laid out from the same value another way), so the two values
-// can differ in the 14th-15th significant digit -- float64 rounding noise
-// nowhere near a real cm-scale defect. 1e-6 cm is far tighter than anything
-// a cutting machine resolves and far looser than IEEE 754 noise.
-const CONTAINMENT_EPS_CM = 1e-6;
-
-function assertDecorationsContained(
-  pieces: DraftedPiece[],
-  label: string,
-): void {
-  for (const piece of pieces) {
-    const points: [number, number][] = [...(piece.grainlineCm ?? [])];
-    for (const entry of piece.internalsCm ?? []) {
-      switch (entry.kind) {
-        case "dart":
-        case "pleat":
-        case "styleLine":
-          points.push(...entry.ptsCm);
-          break;
-        case "foldLine":
-          points.push(entry.aCm, entry.bCm);
-          break;
-        case "drillHole":
-        case "placementMark":
-          points.push(entry.atCm);
-          break;
+    const allowance = effectiveSpec.style.seamAllowanceCm ?? 1;
+    for (const piece of pieces) {
+      // The NET outline, before any offset -- #330's own complaint: only the
+      // repaired CUT outline (below) was ever checked before this issue.
+      // Flattened via the production path (outlineSegments + flattenOutlineCm
+      // at TOL_CM, lib/draft/geometryPredicates.ts's flattenedNetOutlineCm)
+      // rather than a separate fixed-step densifier, so a net-vs-cut
+      // discrepancy is attributable to the drafter, never to a difference in
+      // sampling density between the two checks.
+      const net = flattenedNetOutlineCm(piece.outlineCm, piece.curvedSpans);
+      if (hasSelfIntersection(net)) {
+        push(
+          index,
+          "netSelfIntersection",
+          `${piece.id}: net outline self-intersects (${net.length} flattened pts)`,
+        );
       }
-    }
-    if (piece.notches?.length) {
-      const dense = densifiedOutline(piece.outlineCm, piece.curvedSpans);
-      for (const notch of piece.notches) {
-        const [nx, ny] = notch.innerCm;
-        const span = verticalSpanAt(dense, nx);
-        expect(
-          ny,
-          `${label} / ${piece.id} notch tip (${nx.toFixed(1)}, ${ny.toFixed(1)}) vs [${span.top.toFixed(1)}, ${span.bottom.toFixed(1)}]`,
-        ).toBeGreaterThanOrEqual(span.top - CONTAINMENT_EPS_CM);
-        expect(ny).toBeLessThanOrEqual(span.bottom + CONTAINMENT_EPS_CM);
-      }
-    }
-    for (const [x, y] of points) {
-      const span = verticalSpanAt(piece.outlineCm, x);
-      expect(
-        y,
-        `${label} / ${piece.id} point (${x.toFixed(1)}, ${y.toFixed(1)}) vs [${span.top.toFixed(1)}, ${span.bottom.toFixed(1)}]`,
-      ).toBeGreaterThanOrEqual(span.top - CONTAINMENT_EPS_CM);
-      expect(y).toBeLessThanOrEqual(span.bottom + CONTAINMENT_EPS_CM);
-    }
-  }
-}
-
-// ---- the sampler itself -----------------------------------------------------
-
-describe(`#256: random spec-space sampling (seed=0x${SEED.toString(16)}, N=${N})`, () => {
-  const rng = mulberry32(SEED);
-  const specs: GarmentSpec[] = Array.from({ length: N }, () => sampleSpec(rng));
-
-  for (let i = 0; i < specs.length; i++) {
-    const spec = specs[i];
-    const label = `#${i} seed=0x${SEED.toString(16)} ${JSON.stringify(spec)}`;
-
-    it(`${label}: is inside MOLDAI_CAPABILITY's declared space`, () => {
-      const gaps = checkEngineSupport(
-        MOLDAI_CAPABILITY,
-        spec,
-        baseRowFor(spec),
-      );
-      expect(gaps, label).toEqual([]);
-    });
-
-    // Both geometry checks below need the SAME drafted pieces for this spec
-    // -- one shared draftPiecesCm call rather than one per `it` (draftGarment
-    // is pure/cheap, but there's no reason to redo it twice per spec when a
-    // single call already serves both assertions).
-    it(`${label}: every outline is non-self-intersecting once offset for the cut line, and every grainline/dart/notch stays inside it`, () => {
-      const pieces = draftPiecesCm(
-        DEFAULT_ENGINE_ID,
-        spec,
-        baseRowFor(spec),
-        t,
-      );
-      const allowance = spec.style.seamAllowanceCm ?? 1;
-      for (const piece of pieces) {
-        const cut = offsetOutlineCm(
+      const cut = fromXY(
+        offsetOutlineCm(
           piece.outlineCm,
           piece.curvedSpans ?? [],
           piece.foldEdge,
           allowance,
+        ),
+      );
+      if (hasSelfIntersection(cut)) {
+        push(
+          index,
+          "cutSelfIntersection",
+          `${piece.id}: cut outline self-intersects`,
         );
-        expect(
-          hasSelfIntersection(cut),
-          `${label} / ${piece.id} cut outline self-intersects`,
-        ).toBe(false);
       }
-      assertDecorationsContained(pieces, label);
-    });
+      // normalizeWinding already forces signedAreaCm >= 0 on every moldai
+      // piece (core.ts), so this pins sign AND magnitude in one comparison
+      // rather than a weaker "!== 0". 1 cm² sits ~46x below the smallest
+      // real piece this engine drafts (the placket, ~45.9 cm²) and many
+      // orders above float64 noise at cm scale.
+      const area = signedAreaCm(piece.outlineCm);
+      if (area < 1) {
+        push(
+          index,
+          "degenerateArea",
+          `${piece.id}: signed area ${area.toFixed(3)} cm² below the 1 cm² floor`,
+        );
+      }
+      // Measured on the COARSE outline, not the flattened one -- a flattened
+      // polyline legitimately has very short segments at a cubic/line
+      // junction; a duplicated/collapsed drafted VERTEX is the real defect.
+      // TOL_CM (0.02 cm) is what the export pipeline itself can represent.
+      // Ratchet check (a one-off run over this exact sampled space, base +
+      // both corner bodies): the shortest real drafted edge measured 0.13 cm
+      // (a radial skirt panel's own 12-step discretization, base body) --
+      // ~6.5x above this floor, comfortably clear of a false positive.
+      // Raise this floor, never lower it, and only after re-measuring.
+      const shortest = shortestEdgeCm(piece.outlineCm);
+      if (shortest.lenCm <= TOL_CM) {
+        push(
+          index,
+          "zeroLengthEdge",
+          `${piece.id}: edge ${shortest.index} is ${shortest.lenCm.toFixed(4)} cm`,
+        );
+      }
+      for (const { kind, ptCm } of decorationPointsCm(piece)) {
+        if (!pointInPolygonCm(ptCm, piece.outlineCm, CONTAINMENT_EPS_CM)) {
+          push(
+            index,
+            "decorationOutside",
+            `${piece.id}: ${kind} point (${ptCm[0].toFixed(1)}, ${ptCm[1].toFixed(1)}) outside its own outline`,
+          );
+        }
+      }
+      if (piece.notches?.length) {
+        const dense = densifiedOutlineCm(piece.outlineCm, piece.curvedSpans);
+        for (const tip of notchTipsCm(piece)) {
+          if (!pointInPolygonCm(tip, dense, CONTAINMENT_EPS_CM)) {
+            push(
+              index,
+              "decorationOutside",
+              `${piece.id}: notch tip (${tip[0].toFixed(1)}, ${tip[1].toFixed(1)}) outside its own outline`,
+            );
+          }
+        }
+      }
+    }
 
-    it(`${label}: buildEaseReport carries no NaN`, () => {
-      const report = buildEaseReport(fakePattern(spec), t);
-      expect(report, label).not.toBeNull();
-      for (const g of report!.girths) {
-        expect(Number.isFinite(g.finishedCm), `${label} finishedCm`).toBe(true);
-        expect(Number.isFinite(g.bodyCm), `${label} bodyCm`).toBe(true);
-        expect(Number.isFinite(g.diffCm), `${label} diffCm`).toBe(true);
-        expect(Number.isFinite(g.diffPct), `${label} diffPct`).toBe(true);
-      }
-      if (report!.cap) {
-        expect(Number.isFinite(report!.cap.armholeArcCm), label).toBe(true);
-        expect(Number.isFinite(report!.cap.capArcCm), label).toBe(true);
-        expect(Number.isFinite(report!.cap.easeCm), label).toBe(true);
-      }
-    });
+    // Every drafted piece.id must be named by some declared pair's own
+    // per-edge breakdown (#253's aEdges/bEdges) -- aPieceId/bPieceId alone
+    // under-count (armhole-cap's `a` side names front AND back, but
+    // aPieceId is only the first ref).
+    const paired = new Set(
+      graph.flatMap((m) => [...m.aEdges, ...m.bEdges].map((e) => e.pieceId)),
+    );
+    for (const piece of pieces) {
+      if (paired.has(piece.id) || ORPHAN_ALLOWLIST.has(piece.id)) continue;
+      push(
+        index,
+        "orphanPiece",
+        `${piece.id}: not referenced by any declared seam pair`,
+      );
+    }
 
-    it(`${label}: buildAssemblyOrder emits exactly one step per walked SeamMeasurement`, () => {
-      const seamGraph = measureSeamGraph(
-        DEFAULT_ENGINE_ID,
-        spec,
-        baseRowFor(spec),
-        t,
-      );
-      const order = buildAssemblyOrder(fakePattern(spec), t);
-      expect(order, label).not.toBeNull();
-      const seamSteps = order!.steps.filter((s) => s.kind === "seam");
-      expect(seamSteps.length, label).toBe(seamGraph.length);
-      expect(seamSteps.map((s) => s.key).sort(), label).toEqual(
-        seamGraph.map((m) => m.key).sort(),
-      );
-    });
+    // #253: checked independently of the armhole carve-out below, over
+    // EVERY pair in the graph (not only the ones seamCheck flags) -- a
+    // front/back split mismatch is never tolerated, not even alongside a
+    // legitimate armholeDeepenCm.
+    for (const m of graph) {
+      if (m.subSegmentDiffCm > SEAM_TOLERANCE_CM) {
+        push(
+          index,
+          "seamSplitDivergence",
+          `${m.key}: subSegmentDiffCm=${m.subSegmentDiffCm} exceeds ${SEAM_TOLERANCE_CM}`,
+        );
+      }
+    }
+
+    const bad = seamCheck(graph);
+    if (bad.length > 0) {
+      const verdict = armholeCarveOutHolds(effectiveSpec, rawBaseRow, bad);
+      if (!verdict.holds) {
+        push(index, "seamDivergence", verdict.reason!);
+      }
+    }
+
+    const pattern = fakePattern(effectiveSpec);
+    const easeReport = buildEaseReport(pattern, t);
+    if (!easeReport) {
+      push(index, "easeReportNaN", "buildEaseReport returned null");
+    } else {
+      for (const g of easeReport.girths) {
+        if (
+          !Number.isFinite(g.finishedCm) ||
+          !Number.isFinite(g.bodyCm) ||
+          !Number.isFinite(g.diffCm) ||
+          !Number.isFinite(g.diffPct)
+        ) {
+          push(
+            index,
+            "easeReportNaN",
+            `girth ${g.girth} has a non-finite value`,
+          );
+        }
+      }
+      if (
+        easeReport.cap &&
+        (!Number.isFinite(easeReport.cap.armholeArcCm) ||
+          !Number.isFinite(easeReport.cap.capArcCm) ||
+          !Number.isFinite(easeReport.cap.easeCm))
+      ) {
+        push(index, "easeReportNaN", "cap has a non-finite value");
+      }
+    }
+
+    const order = buildAssemblyOrder(pattern, t);
+    if (!order) {
+      push(index, "assemblyStepMismatch", "buildAssemblyOrder returned null");
+    } else {
+      const seamSteps = order.steps.filter((s) => s.kind === "seam");
+      if (seamSteps.length !== graph.length) {
+        push(
+          index,
+          "assemblyStepMismatch",
+          `seam steps=${seamSteps.length} vs graph=${graph.length}`,
+        );
+      } else {
+        const stepKeys = seamSteps.map((s) => s.key).sort();
+        const graphKeys = graph.map((m) => m.key).sort();
+        if (JSON.stringify(stepKeys) !== JSON.stringify(graphKeys)) {
+          push(
+            index,
+            "assemblyStepMismatch",
+            `key sets differ: steps=[${stepKeys.join(",")}] graph=[${graphKeys.join(",")}]`,
+          );
+        }
+      }
+    }
   }
-});
+
+  return { bodyName: body.name, total: specs.length, failures };
+}
+
+// ---- the sampler itself -----------------------------------------------------
+
+const rng = mulberry32(SEED);
+const specs: GarmentSpec[] = Array.from({ length: N }, () => sampleSpec(rng));
+
+for (const body of BODIES) {
+  describe(`#256/#330: sampled spec space (seed=0x${SEED.toString(16)}, N=${N}, body=${body.name})`, () => {
+    let report: GateReport;
+    beforeAll(() => {
+      report = runGatesForBody(body, specs);
+    });
+
+    it("no sampled spec fails any gate", () => {
+      expect(report.failures.length, formatReport(report)).toBe(0);
+    });
+
+    it.each(BUCKETS)("gate %s: zero failures", (bucket) => {
+      const hits = report.failures.filter((f) => f.bucket === bucket);
+      expect(hits.length, formatBucket(bucket, report)).toBe(0);
+    });
+  });
+}
 
 // Compile-time-only reference so `CapabilityStyleField` stays visibly tied
 // to sampleStyle's own switch above for a future reader (unused at runtime).

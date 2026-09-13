@@ -334,6 +334,11 @@
         "aLabel": "Cintura · saia",
         "bLabel": "Cós"
       },
+      "skirtSide": {
+        "title": "Lateral (saia)",
+        "aLabel": "Lateral · direita",
+        "bLabel": "Lateral · esquerda"
+      },
       "trouserFrontRise": {
         "title": "Gancho dianteiro",
         "aLabel": "Gancho · perna esquerda",
