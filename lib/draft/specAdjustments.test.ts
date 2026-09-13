@@ -60,6 +60,19 @@ describe("describeSpecAdjustments", () => {
     });
   });
 
+  it("reports an unrecognized pleat as substituted, defaulted to none", () => {
+    const raw = { type: "skirt", style: { pleats: "knife" } };
+    const validated = validateSpec(raw);
+    expect(validated.style.pleats).toBe("none");
+    const [entry] = describeSpecAdjustments(raw, validated);
+    expect(entry).toEqual({
+      kind: "substituted",
+      field: "pleats",
+      requested: "knife",
+      used: "none",
+    });
+  });
+
   it("reports an out-of-range necklineDepthCm as clamped, with the range", () => {
     const raw = { style: { necklineDepthCm: 999 } };
     const validated = validateSpec(raw);
