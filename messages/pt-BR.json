@@ -434,7 +434,9 @@
       "cuff": "punho",
       "waistband": "cós",
       "frontClosure": "fechamento frontal",
-      "trouserLengthCm": "comprimento da calça"
+      "trouserLengthCm": "comprimento da calça",
+      "pleats": "prega",
+      "riseCm": "altura da cintura"
     },
     "pdf": {
       "pageLabel": "Página {pageNumber} de {totalPages} · Linha {rowNumber} · Coluna {colNumber} de {totalRows}x{totalCols}",

@@ -9,6 +9,7 @@ import {
   CUFFS,
   WAISTBANDS,
   FRONT_CLOSURES,
+  PLEATS,
   FIT_CLASSES,
   STRETCH_CLASSES,
   STYLE_LIMITS,
@@ -70,6 +71,7 @@ const ENUM_VOCAB: Partial<Record<AdjustedField, readonly string[]>> = {
   cuff: CUFFS,
   waistband: WAISTBANDS,
   frontClosure: FRONT_CLOSURES,
+  pleats: PLEATS,
   fit: FIT_CLASSES,
   stretch: STRETCH_CLASSES,
 };
@@ -259,6 +261,15 @@ export function describeSpecAdjustments(
     validated.style.trouserLengthCm,
   );
   checkScalarToken("trouserLengthCm");
+  // #325: validateSpec's own last enum-valued style field (garment.ts:267-270,
+  // `pick(style.pleats, PLEATS, "none")`) -- placed here so this block's own
+  // "same field order validateSpec reads them in" comment stays literally
+  // true. Before this, ENUM_VOCAB had no `pleats` entry, so even a call here
+  // would have hit checkEnum's own `if (!vocab) return` early-out (see
+  // above) and stayed silent -- a request for an unrecognized pleat (e.g.
+  // "prega faca", PLEATS has no asymmetric knife value) became an unpleated
+  // panel with no chat notice at all.
+  checkEnum("pleats", rawStyle.pleats, validated.style.pleats);
   // #259's riseCm has no descriptive-token twin of its own (SCALAR_TOKEN_FIELDS
   // names the five #260 shipped), so it reports through the plain scalar check.
   checkScalar("riseCm", rawStyle.riseCm, validated.style.riseCm);
