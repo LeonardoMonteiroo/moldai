@@ -286,6 +286,32 @@ describe("toSvg", () => {
     expect(noPleats).not.toContain('stroke-dasharray="2 2"');
   });
 
+  // #344: a style line's own cut geometry (the sleeve's own placket
+  // opening) renders SOLID black, unlike every dashed olive mark above --
+  // it's a real cut, not a placement guide.
+  it("a style line's cut geometry renders as a solid black path, not dashed", () => {
+    const styleLineModel: ExportModel = {
+      ...model,
+      pieces: [
+        {
+          ...model.pieces[0],
+          styleLines: [
+            [
+              { x: 4, y: 0 },
+              { x: 5, y: 10 },
+            ],
+          ],
+        },
+      ],
+    };
+    const svg = toSvg(styleLineModel);
+    expect(svg).toContain('fill="none" stroke="#000" stroke-width="0.25"/>');
+    const noStyleLines = toSvg(model);
+    expect(noStyleLines).not.toContain(
+      'fill="none" stroke="#000" stroke-width="0.25"/>',
+    );
+  });
+
   // #126: rendered as a dashed <line> (distinct dasharray from the
   // grainline's) plus the pt-BR foldLabel text at its midpoint; absent when
   // the piece has no fold.

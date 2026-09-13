@@ -111,6 +111,19 @@ export function toSvg(model: ExportModel): string {
         `<path d="${dd}" fill="none" stroke="#4a5a3a" stroke-width="0.2" stroke-dasharray="2 2"/>`,
       );
     }
+    // #344: a style line's own cut geometry (the sleeve's own placket
+    // opening) -- SOLID black, like the piece's own cut line above, unlike
+    // every dashed olive mark above: this is fabric to actually cut
+    // through, not a placement/press guide.
+    for (const styleLine of p.styleLines ?? []) {
+      if (styleLine.length < 2) continue;
+      const dd = styleLine
+        .map((pt, i) => `${i === 0 ? "M" : "L"}${X(pt.x)} ${Y(pt.y)}`)
+        .join(" ");
+      parts.push(
+        `<path d="${dd}" fill="none" stroke="#000" stroke-width="0.25"/>`,
+      );
+    }
     // #127: a drill hole -- a small open circle, 1.0-1.5cm short of the
     // dart apex it marks (lib/draft/core.ts's DRILL_HOLE_SETBACK_CM).
     for (const hole of p.drillHoles ?? []) {

@@ -437,6 +437,56 @@ describe("buildExportModel", () => {
     });
   });
 
+  // #344: the reserved "styleLine" InternalCm kind's first real emitter --
+  // proves the sleeve's own placket-opening cut line reaches the export
+  // model, in the same local outline coordinates as every other internal
+  // mark.
+  describe("styleLines (#344)", () => {
+    function longSleeveCuffPattern(): Pattern {
+      return {
+        id: "p1",
+        name: "Teste",
+        version: 1,
+        baseSize: "M",
+        unit: "cm",
+        sizes: ["M"],
+        sizesApplied: [],
+        sizesPending: [],
+        sizeTable: { M: SIZE_TABLE.M },
+        pieces: [],
+        spec: {
+          type: "blouse",
+          gender: "female",
+          measurementOverrides: {},
+          style: { sleeve: "long", cuff: "straight" },
+        },
+      };
+    }
+
+    it("carries the sleeve's own placket-opening cut line into local outline coordinates", () => {
+      const model = buildExportModel(longSleeveCuffPattern(), t);
+      const sleeve = model.pieces.find((p) => p.id === "sleeve")!;
+      expect(sleeve.styleLines?.length).toBe(1);
+      for (const line of sleeve.styleLines!) {
+        expect(line.length).toBeGreaterThanOrEqual(2);
+        for (const pt of line) {
+          expect(pt.x).toBeGreaterThanOrEqual(-1e-6);
+          expect(pt.x).toBeLessThanOrEqual(sleeve.widthCm + 1e-6);
+          expect(pt.y).toBeGreaterThanOrEqual(-1e-6);
+          expect(pt.y).toBeLessThanOrEqual(sleeve.heightCm + 1e-6);
+        }
+      }
+    });
+
+    it("a short sleeve (or no cuff) carries no styleLines", () => {
+      const p = longSleeveCuffPattern();
+      p.spec!.style.cuff = "none";
+      const model = buildExportModel(p, t);
+      const sleeve = model.pieces.find((p) => p.id === "sleeve")!;
+      expect(sleeve.styleLines).toBeUndefined();
+    });
+  });
+
   // #123: turns the seam-allowance annotation into a real cut-line outline,
   // offset outward from the net `outline` -- verified against the actual
   // drafting matrix (lib/draft/fixtures.ts's DECORATION_CASES, the same set

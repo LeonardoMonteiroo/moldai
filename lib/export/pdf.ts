@@ -431,6 +431,19 @@ export async function toPdf(
           });
         }
       }
+      // #344: a style line's own cut geometry (the sleeve's own placket
+      // opening) -- SOLID, in INK (the same color/style the piece's own
+      // cut line above uses), unlike every dashed olive mark above: this is
+      // fabric a cutter must actually cut through, not a placement/press
+      // guide.
+      for (const styleLine of pc.styleLines ?? []) {
+        if (styleLine.length < 2) continue;
+        for (let i = 0; i < styleLine.length - 1; i++) {
+          const a = P(styleLine[i].x, styleLine[i].y);
+          const b = P(styleLine[i + 1].x, styleLine[i + 1].y);
+          page.drawLine({ start: a, end: b, thickness: 0.5, color: INK });
+        }
+      }
       // #127: a drill hole -- a small open circle, 1.0-1.5cm short of the
       // dart apex it marks.
       for (const hole of pc.drillHoles ?? []) {

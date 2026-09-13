@@ -292,6 +292,34 @@ describe("toDxfAama", () => {
     );
   });
 
+  // #344: a style line's own cut geometry (the sleeve's own placket
+  // opening) -> open POLYLINE, same layer 8 as the dart/pleat marks above --
+  // D6673's numbered-layer set has no reserved slot for an internal slit
+  // distinct from a placement mark.
+  it("a style line's cut geometry comes out as an open POLYLINE on layer 8", () => {
+    const styleLineModel: ExportModel = {
+      ...squareModel,
+      pieces: [
+        {
+          ...squareModel.pieces[0],
+          styleLines: [
+            [
+              { x: 4, y: 2 },
+              { x: 4, y: 6 },
+            ],
+          ],
+        },
+      ],
+    };
+    const withStyleLine = toDxfAama(styleLineModel);
+    expect(withStyleLine.match(/\nPOLYLINE\n/g)?.length).toBe(3); // cut + net + style line
+    expect(withStyleLine).toMatch(
+      /POLYLINE\n8\n8\n66\n1\n10\n0\n20\n0\n30\n0\n70\n0/,
+    );
+    const noStyleLine = toDxfAama(squareModel);
+    expect(noStyleLine.match(/\nPOLYLINE\n/g)?.length).toBe(2); // cut + net only
+  });
+
   it("one BLOCK and one INSERT per piece in multi-piece models", () => {
     const multi: ExportModel = {
       ...squareModel,

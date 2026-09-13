@@ -2398,6 +2398,52 @@ describe("seam graph (#134)", () => {
     expect(pair!.diffCm).toBeLessThan(0.3);
   });
 
+  // #344: the placket's own two long edges (overlapEdge/underlapEdge)
+  // together match the sleeve's own placket-opening cut edge counted TWICE
+  // (one lip each) -- the "sleeve-placket" pair's real closure.
+  it("#344: the placket's own seam matches the sleeve's measured placket-opening cut edge (counted twice) within 0.3cm", () => {
+    const spec = {
+      type: "blouse" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { sleeve: "long" as const, cuff: "straight" as const },
+    };
+    const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
+    const placket = pieces.find((p) => p.id === "placket")!;
+    expect(placket).toBeDefined();
+    expect(placket.seamEdges?.overlapEdge).toBeDefined();
+    expect(placket.seamEdges?.underlapEdge).toBeDefined();
+
+    const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
+    const pair = graph.find((m) => m.key === "sleeve-placket");
+    expect(pair).toBeDefined();
+    expect(pair!.fixable).toBe(false);
+    expect(pair!.diffCm).toBeLessThan(0.3);
+    // the "a" side (the sleeve's cut edge, listed twice) totals roughly
+    // double the "b" side's own PER-EDGE length -- proving both lips were
+    // counted, not silently collapsed to one.
+    expect(pair!.aEdges).toHaveLength(2);
+    expect(pair!.bEdges).toHaveLength(2);
+  });
+
+  it("#344: no placket (and no sleeve-placket pair) is drafted for a short sleeve, or a long sleeve with no straight cuff", () => {
+    for (const style of [
+      { sleeve: "short" as const, cuff: "straight" as const },
+      { sleeve: "long" as const },
+    ]) {
+      const spec = {
+        type: "blouse" as const,
+        gender: "female" as const,
+        measurementOverrides: {},
+        style,
+      };
+      const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
+      expect(pieces.map((p) => p.id)).not.toContain("placket");
+      const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
+      expect(graph.map((m) => m.key)).not.toContain("sleeve-placket");
+    }
+  });
+
   it("#223: the button stand's own seam matches the front's measured center-front edge within 0.3cm", () => {
     const spec = {
       type: "blouse" as const,

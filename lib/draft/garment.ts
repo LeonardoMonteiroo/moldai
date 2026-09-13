@@ -18,7 +18,12 @@ import {
   presentedEdgeLenCm,
 } from "./core";
 import { BlockOpts, draftBody } from "./body";
-import { draftSleeve, CAP_EASE_CM, WRIST_EASE_CM } from "./sleeve";
+import {
+  draftSleeve,
+  CAP_EASE_CM,
+  WRIST_EASE_CM,
+  hasPlacketOpening,
+} from "./sleeve";
 import { draftSkirt, dressWaistHalfCm } from "./skirt";
 import { draftTrousers } from "./trousers";
 import {
@@ -390,6 +395,22 @@ const edgeRef = (
   to,
 });
 
+// #344: the cutEdges analogue of edgeRef above -- a mated edge living on a
+// cut line (an internalsCm entry) rather than this piece's own outer
+// boundary. See DraftedPiece.cutEdges's own doc (lib/draft/core.ts).
+const cutEdgeRef = (
+  pieceId: string,
+  {
+    internalIdx,
+    range: [from, to],
+  }: { internalIdx: number; range: [number, number] },
+): SeamEdgeRef => ({
+  pieceId,
+  from,
+  to,
+  internalIdx,
+});
+
 // #267: the "moldai" engine's own raw draft implementation, wrapped by
 // lib/draft/engine/moldai.ts into the declared DraftingEngine contract --
 // exported for that wrapper alone, never imported by a consumer directly
@@ -642,16 +663,16 @@ export function draftAll(
           fixable: false,
         });
       }
-      // #130: a straight cuff (+ placket), drafted from the sleeve's own
-      // measured hem edge -- only meaningful with a long sleeve; a short or
-      // sleeveless garment simply never reaches this branch (`style.cuff` is
-      // otherwise unused, the same "type-mismatched style field is a no-op"
-      // precedent skirt-only fields already follow on a bodice-only spec).
-      if (
-        style.sleeve === "long" &&
-        style.cuff === "straight" &&
-        sleeve.seamEdges
-      ) {
+      // #130/#344: a straight cuff (+ placket), drafted from the sleeve's
+      // own measured hem edge and placket-opening cut edge --
+      // hasPlacketOpening is the SAME predicate sleeve.ts used to decide
+      // whether to cut the opening at all, so the two can never drift into
+      // "the sleeve has an opening but nothing is paired to it" or the
+      // reverse. A short or sleeveless garment simply never reaches this
+      // branch (`style.cuff` is otherwise unused, the same "type-mismatched
+      // style field is a no-op" precedent skirt-only fields already follow
+      // on a bodice-only spec).
+      if (hasPlacketOpening(style) && sleeve.seamEdges) {
         const hemArcCm = curveArcLengthCm(
           sleeve.outlineCm,
           sleeve.curvedSpans ?? [],
@@ -660,8 +681,56 @@ export function draftAll(
         const wristEase = opts.knit ? WRIST_EASE_CM.knit : WRIST_EASE_CM.woven;
         // #263: normalized before cuff.seamEdges is read below.
         const cuff = normalizeWinding(draftCuff(hemArcCm + wristEase, t));
-        const placket = normalizeWinding(draftPlacket(t));
-        drafted.push(cuff, placket);
+        drafted.push(cuff);
+
+        // #344: the placket, drafted from the sleeve's own MEASURED
+        // placket-opening cut edge (never a fixed literal) -- declared
+        // BEFORE cuff-hem below so the assembly's stable sort (both pairs
+        // are phase "attach") applies the placket to the opening before
+        // the cuff is pregado over the already-finished hem, the same
+        // "declare in real construction order" reasoning #341's own
+        // hoodie-hood-neckline/hoodie-cuff-wrist pair ordering established.
+        const openingCutEdge = sleeve.cutEdges?.placketOpening;
+        const openingEntry = openingCutEdge
+          ? sleeve.internalsCm?.[openingCutEdge.internalIdx]
+          : undefined;
+        if (openingCutEdge && openingEntry && "ptsCm" in openingEntry) {
+          const openingLenCm = curveArcLengthCm(
+            openingEntry.ptsCm,
+            [],
+            openingCutEdge.range[0],
+            openingCutEdge.range[1],
+          );
+          // #263: normalized before placket.seamEdges is read below.
+          const placket = normalizeWinding(draftPlacket(openingLenCm, t));
+          drafted.push(placket);
+          if (placket.seamEdges) {
+            seamPairs.push({
+              key: "sleeve-placket",
+              labelKey: "sleevePlacket",
+              // #344: the sleeve's own placket-opening cut edge, listed
+              // TWICE -- a single cut produces TWO lips (the slit's own
+              // left and right edge), and the placket strip binds both, so
+              // the "a" side's real sewn total is 2x the cut edge's own
+              // measured length. A deliberate exception to "one edge, one
+              // ref" -- here the SAME edge repeats (not two different
+              // pairs sharing an edge, #341's own exception) because the
+              // fabric on both sides of a slit is physically the same cut
+              // line. See docs/architecture/seams-and-assembly.md.
+              a: [
+                cutEdgeRef(sleeve.id, openingCutEdge),
+                cutEdgeRef(sleeve.id, openingCutEdge),
+              ],
+              b: [
+                edgeRef(placket.id, placket.seamEdges.overlapEdge),
+                edgeRef(placket.id, placket.seamEdges.underlapEdge),
+              ],
+              easeCm: 0,
+              fixable: false,
+            });
+          }
+        }
+
         if (cuff.seamEdges) {
           seamPairs.push({
             key: "cuff-hem",

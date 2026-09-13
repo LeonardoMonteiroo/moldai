@@ -1,6 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { SIZE_TABLE } from "@/lib/measurements";
-import { draftSleeve } from "./sleeve";
+import {
+  draftSleeve,
+  hasPlacketOpening,
+  SLEEVE_PLACKET_OPENING_CM,
+} from "./sleeve";
 import { curveArcLengthCm, bbox } from "./core";
 import type { BlockOpts } from "./body";
 import { t } from "@/lib/i18n/test-translate";
@@ -145,6 +149,101 @@ describe("draftSleeve bell cap", () => {
         sleeveOpts,
       )!;
       expect(bbox(wide.outlineCm).w).toBeGreaterThan(bbox(narrow.outlineCm).w);
+    });
+  });
+
+  // #344: the sleeve's own placket opening -- a cut line (internalsCm),
+  // never boundary geometry, cut only when hasPlacketOpening(style) holds
+  // (the SAME predicate garment.ts uses to gate the cuff+placket branch).
+  describe("#344: placket opening", () => {
+    it("hasPlacketOpening is true only for long sleeve + straight cuff", () => {
+      expect(hasPlacketOpening({ sleeve: "long", cuff: "straight" })).toBe(
+        true,
+      );
+      expect(hasPlacketOpening({ sleeve: "short", cuff: "straight" })).toBe(
+        false,
+      );
+      expect(hasPlacketOpening({ sleeve: "long", cuff: "none" })).toBe(false);
+      expect(hasPlacketOpening({ sleeve: "long" })).toBe(false);
+    });
+
+    it("cuts no opening for a short sleeve, or a long sleeve with no straight cuff", () => {
+      const short = draftSleeve(
+        M,
+        { sleeve: "short", cuff: "straight" },
+        39.3,
+        t,
+      )!;
+      expect(short.internalsCm).toBeUndefined();
+      expect(short.cutEdges).toBeUndefined();
+      const noCuff = draftSleeve(M, { sleeve: "long" }, 39.3, t)!;
+      expect(noCuff.internalsCm).toBeUndefined();
+      expect(noCuff.cutEdges).toBeUndefined();
+    });
+
+    it("cuts a real opening, exactly SLEEVE_PLACKET_OPENING_CM long, for a long sleeve with a straight cuff", () => {
+      const sleeve = draftSleeve(
+        M,
+        { sleeve: "long", cuff: "straight" },
+        39.3,
+        t,
+      )!;
+      expect(sleeve.cutEdges?.placketOpening).toBeDefined();
+      const { internalIdx, range } = sleeve.cutEdges!.placketOpening;
+      const entry = sleeve.internalsCm![internalIdx];
+      expect(entry.kind).toBe("styleLine");
+      const openingLenCm = curveArcLengthCm(
+        (entry as { ptsCm: [number, number][] }).ptsCm,
+        [],
+        range[0],
+        range[1],
+      );
+      expect(openingLenCm).toBeCloseTo(SLEEVE_PLACKET_OPENING_CM, 5);
+    });
+
+    it("the opening's own two points both sit on/inside the drafted outline, on the back half of the hem", () => {
+      const sleeve = draftSleeve(
+        M,
+        { sleeve: "long", cuff: "straight" },
+        39.3,
+        t,
+      )!;
+      const { internalIdx } = sleeve.cutEdges!.placketOpening;
+      const entry = sleeve.internalsCm![internalIdx] as {
+        ptsCm: [number, number][];
+      };
+      const [bottom, top] = entry.ptsCm;
+      const b = bbox(sleeve.outlineCm);
+      // both endpoints fall within the outline's own bounding box, and the
+      // bottom point sits exactly on the hem's own y (index 5/6).
+      for (const [x, y] of [bottom, top]) {
+        expect(x).toBeGreaterThanOrEqual(b.minX);
+        expect(x).toBeLessThanOrEqual(b.maxX);
+        expect(y).toBeGreaterThanOrEqual(b.minY);
+        expect(y).toBeLessThanOrEqual(b.maxY);
+      }
+      expect(bottom[1]).toBeCloseTo(b.maxY, 5); // on the hem
+      expect(top[1]).toBeLessThan(bottom[1]); // runs upward from the hem
+      // strictly on the back half (left of the sleeve's own vertical centre)
+      const [, , , , , hemRight, hemLeft] = sleeve.outlineCm;
+      expect(bottom[0]).toBeGreaterThan(hemLeft[0]);
+      expect(bottom[0]).toBeLessThan(hemRight[0]);
+    });
+
+    it("carries the rows.sleevePlacket detail row only when the opening is cut", () => {
+      const withOpening = draftSleeve(
+        M,
+        { sleeve: "long", cuff: "straight" },
+        39.3,
+        t,
+      )!;
+      expect(
+        withOpening.detailRows.some((r) => r.label === "rows.sleevePlacket"),
+      ).toBe(true);
+      const withoutOpening = draftSleeve(M, { sleeve: "long" }, 39.3, t)!;
+      expect(
+        withoutOpening.detailRows.some((r) => r.label === "rows.sleevePlacket"),
+      ).toBe(false);
     });
   });
 });

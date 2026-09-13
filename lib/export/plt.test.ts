@@ -136,6 +136,25 @@ describe("toPlt", () => {
     expect(dartPenIdx).toBeGreaterThanOrEqual(0);
   });
 
+  // #344: a style line's own cut geometry (the sleeve's own placket
+  // opening) draws on its OWN pen, distinguishable from the dart/pleat
+  // pen above -- it's a real slit to cut, not a placement/construction
+  // mark.
+  it("draws a style line's cut geometry on its own opening pen, distinct from the dart pen", () => {
+    const pat = patternFor({
+      type: "blouse",
+      gender: "female",
+      measurementOverrides: {},
+      style: { sleeve: "long", cuff: "straight" },
+    });
+    const model = buildExportModel(pat, t);
+    const sleeve = model.pieces.find((p) => p.id === "sleeve")!;
+    expect(sleeve.styleLines?.length).toBeGreaterThan(0);
+    const out = toPlt(model);
+    expect(out).toContain(`SP${PLT_PENS.opening};`);
+    expect(PLT_PENS.opening).not.toBe(PLT_PENS.dart);
+  });
+
   it("piece name label is present (LB) and quantity annotated", () => {
     const pat = patternFor({
       type: "tshirt",

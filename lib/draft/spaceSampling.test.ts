@@ -360,16 +360,19 @@ function formatBucket(bucket: Bucket, report: GateReport): string {
   );
 }
 
-// Not repairable in this issue: lib/draft/subpieces.ts's own doc on
-// draftPlacket -- "it binds into the sleeve's vertical opening above the
-// cuff... it has no distinct edge on the already-drafted sleeve piece to
-// mate against, so it declares no seamEdges." Declaring a real pair would
-// need sleeve.ts to draft the slit as boundary geometry, which does not
-// exist today -- a drafting change, not a declaration, and out of scope for
-// a test-quality issue. Filed as its own follow-up (#330's PR description).
-// Closed, asserted set: if a NEW piece ever goes undeclared, this gate must
-// fail rather than the allowlist silently growing to cover it.
-const ORPHAN_ALLOWLIST = new Set(["placket"]);
+// #344: was `new Set(["placket"])` -- the placket used to have no distinct
+// edge on the already-drafted sleeve piece to mate against, so it declared
+// no seamEdges (lib/draft/subpieces.ts's own prior doc on draftPlacket).
+// Closed by #344: the sleeve now cuts its own placket opening as a real,
+// measurable cut edge (lib/draft/sleeve.ts's cutEdges.placketOpening), and
+// garment.ts declares a real "sleeve-placket" pair against it -- so the
+// placket is paired like every other sub-piece now, and this set goes back
+// to empty. Kept as a closed, asserted set (not deleted outright) so a
+// FUTURE new orphan piece fails this gate loudly rather than silently
+// growing an allowlist again -- verified by emptying it and confirming the
+// gate stays green (the #330 precedent ran this check in reverse, emptying
+// a non-empty set and confirming red).
+const ORPHAN_ALLOWLIST = new Set<string>([]);
 
 // #330 4a: STYLE_LIMITS.armholeDeepenCm is {min:0,max:6} sampled uniformly,
 // and a deepen with no refit makes armhole-cap diverge BY DESIGN (the cap is

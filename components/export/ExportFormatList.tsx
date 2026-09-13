@@ -9,11 +9,13 @@ import { Badge } from "@/components/ui/badge";
 // Order and labels come from EXPORT_FORMATS/EXPORT_FORMAT_LABELS
 // (lib/export/formats.ts) so this menu and the public landing page's format
 // strip cannot disagree about what the app writes. The per-format caveats
-// live in the same table: formatDxfAamaNote (drill holes, layer 13, still
-// unemitted), formatPdfLayeredNote (the layered PDF omits the net sewing
-// line and the fold for legibility), formatPltNote (HPGL/2 written to spec
-// and verified structurally, never plotted on physical hardware, plus the
-// plotter-internal-font limit on the piece label).
+// live in the same table: formatDxfAamaNote (D6673's fixed numbered layers,
+// including drill holes on layer 13, and -- #344 -- that a real internal cut
+// like the sleeve placket opening shares layer 8 with non-cut placement
+// marks in this variant), formatPdfLayeredNote (the layered PDF omits the
+// net sewing line and the fold for legibility), formatPltNote (HPGL/2
+// written to spec and verified structurally, never plotted on physical
+// hardware, plus the plotter-internal-font limit on the piece label).
 const REAL_FORMATS: { id: ExportFormat; labelKey: string; noteKey?: string }[] =
   EXPORT_FORMATS.map((id) => ({ id, ...EXPORT_FORMAT_LABELS[id] }));
 

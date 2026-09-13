@@ -224,7 +224,7 @@ describe("toDxf", () => {
     );
   });
 
-  it("declares the seven named layers", () => {
+  it("declares the eight named layers", () => {
     const dxf = toDxf(squareModel);
     for (const layer of [
       "CONTORNO",
@@ -234,6 +234,7 @@ describe("toDxf", () => {
       "TEXTO",
       "DOBRA",
       "PIQUE",
+      "ABERTURA",
     ]) {
       expect(dxf).toContain(layer);
     }
@@ -345,6 +346,31 @@ describe("toDxf", () => {
     expect(dxf).toMatch(/LWPOLYLINE\n8\nINTERNO\n90\n2\n70\n0\n/);
     const noPleats = toDxf(squareModel);
     expect(noPleats.match(/\nLWPOLYLINE\n/g)?.length).toBe(2); // cut + net only
+  });
+
+  // #344: a style line's own cut geometry (the sleeve's own placket opening)
+  // -> an open LWPOLYLINE on its own ABERTURA layer, distinct from
+  // INTERNO -- unlike a dart/pleat mark, this is a real slit to cut.
+  it("a style line's cut geometry comes out as an OPEN LWPOLYLINE on ABERTURA", () => {
+    const styleLineModel: ExportModel = {
+      ...squareModel,
+      pieces: [
+        {
+          ...squareModel.pieces[0],
+          styleLines: [
+            [
+              { x: 4, y: 2 },
+              { x: 4, y: 6 },
+            ],
+          ],
+        },
+      ],
+    };
+    const dxf = toDxf(styleLineModel);
+    expect(dxf.match(/\nLWPOLYLINE\n/g)?.length).toBe(3); // cut + net + style line
+    expect(dxf).toMatch(/LWPOLYLINE\n8\nABERTURA\n90\n2\n70\n0\n/);
+    const noStyleLines = toDxf(squareModel);
+    expect(noStyleLines.match(/\nLWPOLYLINE\n/g)?.length).toBe(2); // cut + net only
   });
 
   it("1:1 scale: CONTORNO is the 12cm cut line, COSTURA the 10cm net line (mm)", () => {

@@ -316,6 +316,32 @@ export function toDxfAama(model: ExportModel): string {
       p(8, "8");
     }
 
+    // #344: a style line's own cut geometry (the sleeve's own placket
+    // opening) -> open POLYLINE, same layer 8 as the dart/fold/pleat marks
+    // above -- D6673's fixed numbered-layer set has no reserved slot for an
+    // internal SLIT distinct from a placement mark, so layer 8 ("internal
+    // lines (not cut)") is the closest documented fit, even though this one
+    // genuinely IS meant to be cut. A known simplification of this strict
+    // subset, not a claim this is D6673-verified for a real cut slit.
+    for (const styleLine of piece.styleLines ?? []) {
+      if (styleLine.length < 2) continue;
+      p(0, "POLYLINE");
+      p(8, "8");
+      p(66, 1);
+      p(10, 0); // dummy point, see the cut-line POLYLINE above
+      p(20, 0);
+      p(30, 0);
+      p(70, 0);
+      for (const pt of styleLine) {
+        p(0, "VERTEX");
+        p(8, "8");
+        p(10, X(pt.x));
+        p(20, Y(pt.y));
+      }
+      p(0, "SEQEND");
+      p(8, "8");
+    }
+
     // #127: a drill hole -> CIRCLE on layer 13, D6673's reserved semantics
     // for it — closes the drill-hole half of issue #2.
     for (const hole of piece.drillHoles ?? []) {

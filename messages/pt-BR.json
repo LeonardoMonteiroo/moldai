@@ -14,7 +14,7 @@
     "formatSvg": "SVG · 1:1 (plotter)",
     "formatDxf": "DXF · genérico 1:1 (CAD)",
     "formatDxfAama": "DXF · Audaces/AAMA-ASTM · beta",
-    "formatDxfAamaNote": "Camadas numeradas D6673, incluindo furos de marcação (camada 13). Verificado apenas de forma estrutural, nunca aberto em um leitor CAD real (Audaces/Gerber).",
+    "formatDxfAamaNote": "Camadas numeradas D6673, incluindo furos de marcação (camada 13). Um corte interno real (a abertura da carcela da manga) usa a mesma camada 8 das marcações internas não cortadas, sem separação nesta variante. Verificado apenas de forma estrutural, nunca aberto em um leitor CAD real (Audaces/Gerber).",
     "formatPdfA4": "PDF · A4 (colar em casa)",
     "formatPdfSingle": "PDF · folha única (plotter)",
     "formatPdfLayered": "PDF · tamanhos em camadas",
@@ -315,6 +315,11 @@
         "title": "Gola e decote",
         "aLabel": "Decote · corpo",
         "bLabel": "Gola · costura do pé"
+      },
+      "sleevePlacket": {
+        "title": "Carcela e abertura da manga",
+        "aLabel": "Manga · abertura",
+        "bLabel": "Carcela"
       },
       "cuffHem": {
         "title": "Punho e manga",

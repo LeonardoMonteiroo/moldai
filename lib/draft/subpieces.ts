@@ -144,7 +144,6 @@ export function draftCollar(necklineArcCm: number, t: Translate): DraftedPiece {
 // ---------------------------------------------------------------------------
 
 const CUFF_HEIGHT_CM = 5;
-const PLACKET_LENGTH_CM = 10;
 const PLACKET_WIDTH_CM = 3;
 
 // A plain rectangular band, seamed along its top edge -- shared shape
@@ -218,40 +217,53 @@ export function draftCuff(sewLenCm: number, t: Translate): DraftedPiece {
   };
 }
 
-// A simple continuous-lap placket strip -- fixed dimensions (not derived
-// from a measured edge; the issue's own AC only requires the CUFF's length
-// to be measured). Binds into the sleeve's vertical opening above the cuff;
-// it has no distinct edge on the already-drafted sleeve piece to mate
-// against, so it declares no seamEdges (lib/draft/core.ts: "a piece with
-// nothing to mate simply omits this").
+// A simple continuous-lap placket strip -- binds into the sleeve's vertical
+// opening above the cuff. #344: its own length is now DERIVED from that
+// opening's real measured cut edge (lib/draft/sleeve.ts's
+// SLEEVE_PLACKET_OPENING_CM/cutEdges.placketOpening), the inverse of
+// draftCuff's own "measure the seam, author the band" split -- there, the
+// sleeve's hem is measured and the cuff's width is authored; here, the
+// opening's own length is authored upstream (there's no body measurement to
+// derive it from) and THIS strip is what gets sized to match it, the same
+// "sub-piece sized from a measured edge on an already-drafted piece" rule
+// every other subpieces.ts drafter follows. It declares a real seamEdges
+// pair now (see garment.ts's own "sleeve-placket" SeamPairDecl) -- the
+// strip's own TWO long edges each bind to one lip of the slit, so BOTH are
+// declared, not one combined range (the two long edges of a plain rectangle
+// aren't a contiguous [from,to] walk).
 //
-// #225: the strip's two long edges (the vertical PLACKET_LENGTH_CM-long
-// sides) fold under by two DIFFERENT amounts rather than one symmetric
-// allowance -- a verified shirt-sleeve-placket construction detail
-// (so-sew-easy.com, "Placket Pattern Tutorial": "fold at 3/8" on one side
-// and 1/4" on the opposite side"). The wider fold becomes the visible
-// overlap edge once finished; the narrower one becomes the underlap that
-// sits beneath it. (A stronger claim -- that overlap/underlap are two
-// distinct mirror-paired pieces -- did not survive verification, so #225
-// scopes itself to this fold-width asymmetry on the existing single strip,
-// qty:2, unchanged.) PLACKET_WIDTH_CM stays the strip's own finished
-// (post-fold) width; the flat cut width below adds both raw-edge
-// turn-under allowances on top of it.
+// #225: the strip's two long edges fold under by two DIFFERENT amounts
+// rather than one symmetric allowance -- a verified shirt-sleeve-placket
+// construction detail (so-sew-easy.com, "Placket Pattern Tutorial": "fold at
+// 3/8" on one side and 1/4" on the opposite side"). The wider fold becomes
+// the visible overlap edge once finished; the narrower one becomes the
+// underlap that sits beneath it. (A stronger claim -- that overlap/underlap
+// are two distinct mirror-paired pieces -- did not survive verification, so
+// #225 scopes itself to this fold-width asymmetry on the existing single
+// strip, qty:2, unchanged.) PLACKET_WIDTH_CM stays the strip's own finished
+// (post-fold) width; the flat cut width below adds both raw-edge turn-under
+// allowances on top of it.
 export const PLACKET_FOLD_OVERLAP_CM = 0.9525; // 3/8"
 export const PLACKET_FOLD_UNDERLAP_CM = 0.635; // 1/4"
 
-export function draftPlacket(t: Translate): DraftedPiece {
+// lengthCm is the sleeve's own MEASURED placket-opening cut edge
+// (lib/draft/sleeve.ts's SLEEVE_PLACKET_OPENING_CM, read off
+// sleeve.cutEdges.placketOpening by the caller) -- never a fixed literal, so
+// the strip and the opening it binds match by construction, the same
+// "measure the geometry that was actually emitted" rule #78/#130 already
+// established.
+export function draftPlacket(lengthCm: number, t: Translate): DraftedPiece {
   const cutWidthCm =
     PLACKET_WIDTH_CM + PLACKET_FOLD_OVERLAP_CM + PLACKET_FOLD_UNDERLAP_CM;
   const pts: Pt[] = [
     [0, 0],
     [cutWidthCm, 0],
-    [cutWidthCm, PLACKET_LENGTH_CM],
-    [0, PLACKET_LENGTH_CM],
+    [cutWidthCm, lengthCm],
+    [0, lengthCm],
   ];
   const grainlineCm: [Pt, Pt] = [
-    [cutWidthCm / 2, PLACKET_LENGTH_CM * 0.1],
-    [cutWidthCm / 2, PLACKET_LENGTH_CM * 0.9],
+    [cutWidthCm / 2, lengthCm * 0.1],
+    [cutWidthCm / 2, lengthCm * 0.9],
   ];
   // The two fold lines themselves, inset from each long edge by that edge's
   // own fold allowance -- so the gap between a fold line and its edge is
@@ -260,16 +272,16 @@ export function draftPlacket(t: Translate): DraftedPiece {
     {
       kind: "foldLine",
       aCm: [PLACKET_FOLD_OVERLAP_CM, 0],
-      bCm: [PLACKET_FOLD_OVERLAP_CM, PLACKET_LENGTH_CM],
+      bCm: [PLACKET_FOLD_OVERLAP_CM, lengthCm],
     },
     {
       kind: "foldLine",
       aCm: [cutWidthCm - PLACKET_FOLD_UNDERLAP_CM, 0],
-      bCm: [cutWidthCm - PLACKET_FOLD_UNDERLAP_CM, PLACKET_LENGTH_CM],
+      bCm: [cutWidthCm - PLACKET_FOLD_UNDERLAP_CM, lengthCm],
     },
   ];
   const detailRows: DetailRow[] = [
-    { label: t("rows.length"), value: cm(PLACKET_LENGTH_CM) },
+    { label: t("rows.length"), value: cm(lengthCm) },
     {
       label: t("rows.placketFoldOverlap"),
       value: cm(PLACKET_FOLD_OVERLAP_CM),
@@ -288,6 +300,10 @@ export function draftPlacket(t: Translate): DraftedPiece {
     grainlineCm,
     internalsCm,
     detailRows,
+    // #344: the strip's own two long edges -- x=0 (nearest the overlap
+    // fold) and x=cutWidthCm (nearest the underlap fold), each walked as a
+    // plain forward range (the second wraps: 3 -> outlineCm.length).
+    seamEdges: { overlapEdge: [3, 4], underlapEdge: [1, 2] },
     placementCm: ACCESSORY_PLACEMENT_CM,
   };
 }
