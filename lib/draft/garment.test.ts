@@ -32,10 +32,16 @@ import {
   curveArcLengthCm,
   presentedEdgeLenCm,
   bbox,
-  catmullRomSegments,
   type InternalCm,
 } from "./core";
 import { DECORATION_CASES } from "./fixtures";
+import {
+  densifiedOutlineCm,
+  pointInPolygonCm,
+  decorationPointsCm,
+  notchTipsCm,
+  CONTAINMENT_EPS_CM,
+} from "./geometryPredicates";
 import {
   PLACKET_FOLD_OVERLAP_CM,
   PLACKET_FOLD_UNDERLAP_CM,
@@ -1257,92 +1263,42 @@ describe("validateQuestions", () => {
 
 // Every drafter decoration (grainline, dart) is a line drawn *inside* the
 // piece, and it reaches all five export formats — so containment is a
-// geometry invariant, not a rendering detail. The bounding box is a superset
-// of the piece: anywhere the outline is concave (the neckline scoop) an
-// offset measured from the bbox top lands outside the piece.
-function verticalSpanAt(pts: [number, number][], x: number) {
-  let top = Infinity,
-    bottom = -Infinity;
-  for (let i = 0; i < pts.length; i++) {
-    const a = pts[i],
-      b = pts[(i + 1) % pts.length];
-    if (a[0] === b[0]) continue;
-    if (x < Math.min(a[0], b[0]) || x > Math.max(a[0], b[0])) continue;
-    const y = a[1] + ((b[1] - a[1]) * (x - a[0])) / (b[0] - a[0]);
-    top = Math.min(top, y);
-    bottom = Math.max(bottom, y);
-  }
-  return { top, bottom };
-}
-
-// #2: the vertex polygon UNDERCUTS the real boundary wherever an edge range
-// is curved -- a Catmull-Rom cap bulges above the chord between its own two
-// vertices. Every other decoration kind is interior by construction, so the
-// cheap vertex-polygon span is fine for it; a notch, by contrast, is placed
-// ON the boundary and its tip sits one notch-depth inside, which puts it
-// squarely inside that chord-vs-curve gap. Measured: a sleeve-cap notch tip
-// reads 0.26cm "outside" a chord it is really inside. So notch tips are
-// checked against a densified outline sampled off the same Catmull-Rom
-// geometry the drafter placed them on.
-function densifiedOutline(
-  ptsCm: [number, number][],
-  curvedSpans?: [number, number][],
-): [number, number][] {
-  const { start, segs } = catmullRomSegments(ptsCm, curvedSpans ?? []);
-  const out: [number, number][] = [start];
-  let cur = start;
-  const STEPS = 24;
-  for (const seg of segs) {
-    if (seg.kind === "line") {
-      out.push(seg.to);
-      cur = seg.to;
-      continue;
-    }
-    for (let i = 1; i <= STEPS; i++) {
-      const u = i / STEPS;
-      const v = 1 - u;
-      out.push([
-        v * v * v * cur[0] +
-          3 * v * v * u * seg.c1[0] +
-          3 * v * u * u * seg.c2[0] +
-          u * u * u * seg.to[0],
-        v * v * v * cur[1] +
-          3 * v * v * u * seg.c1[1] +
-          3 * v * u * u * seg.c2[1] +
-          u * u * u * seg.to[1],
-      ]);
-    }
-    cur = seg.to;
-  }
-  return out;
-}
+// geometry invariant, not a rendering detail. #330: this used to be a
+// vertical min/max scanline band, which is strictly weaker than real
+// containment -- it can't see a point sitting in a concave void (the bottom
+// of a deep V-neck) or in a gap between an outline's own crossings. Migrated
+// to lib/draft/geometryPredicates.ts's pointInPolygonCm (even-odd ray cast,
+// boundary-inclusive) for exactly that reason.
+//
+// A float64 epsilon is still needed even for a boundary-inclusive test: a
+// decoration point sitting exactly ON the boundary (a dart's open end on a
+// seam, a hem vertex at the panel's own bottom edge) is frequently computed
+// via a DIFFERENT arithmetic path than the boundary vertex itself, so the
+// two values can differ in the 14th-15th significant digit. 1e-6 cm is far
+// tighter than anything a cutting machine resolves and far looser than IEEE
+// 754 noise. Imported from geometryPredicates.ts rather than re-declared --
+// lib/draft/spaceSampling.test.ts's own containment check uses the same
+// value for the same reason.
 
 function assertDecorationsContained(pieces: ReturnType<typeof draftPiecesCm>) {
   expect(pieces.length).toBeGreaterThan(0);
   for (const piece of pieces) {
-    const points: [number, number][] = [...(piece.grainlineCm ?? [])];
-    // #127: every internal-geometry kind's own point(s) -- dart legs,
-    // fold-line endpoints, drill-hole centres. Dart legs are the one
-    // exception the acceptance criterion carves out: a single-ended dart's
-    // wide end sits exactly ON the seam it opens onto, not strictly inside
-    // -- the boundary-inclusive check below (>=/<=) already accommodates
-    // that, the same way it always has for dartsCm.
-    for (const entry of piece.internalsCm ?? []) {
-      switch (entry.kind) {
-        case "dart":
-        case "pleat":
-        case "styleLine":
-          points.push(...entry.ptsCm);
-          break;
-        case "foldLine":
-          points.push(entry.aCm, entry.bCm);
-          break;
-        case "drillHole":
-        case "placementMark":
-          points.push(entry.atCm);
-          break;
-      }
+    // #127/#315: every internal-geometry kind's own point(s) -- dart legs,
+    // fold-line endpoints, drill-hole centres, internal-loop vertices. Dart
+    // legs are the one case the acceptance criterion carves out: a
+    // single-ended dart's wide end sits exactly ON the seam it opens onto,
+    // not strictly inside -- the boundary-inclusive check below already
+    // accommodates that, the same way it always has for dartsCm.
+    for (const {
+      kind,
+      ptCm: [x, y],
+    } of decorationPointsCm(piece)) {
+      expect(
+        pointInPolygonCm([x, y], piece.outlineCm, CONTAINMENT_EPS_CM),
+        `${piece.id} ${kind} point (${x.toFixed(1)}, ${y.toFixed(1)}) outside its own outline`,
+      ).toBe(true);
     }
+
     // #2: a notch's inward tip is decoration placed off the boundary just
     // like a grainline or a drill hole, and it was the one kind this sweep
     // never checked. #263: notchAt() derives its inward normal purely from
@@ -1350,42 +1306,19 @@ function assertDecorationsContained(pieces: ReturnType<typeof draftPiecesCm>) {
     // caller-supplied interior reference point -- but a drafter that got its
     // own winding wrong on a scooped or tapered edge could still send the
     // tip straight out of the piece, so this sweep keeps checking it. The
-    // outer point is asserted to sit ON the boundary elsewhere; here we only
-    // need the tip, and the check below is boundary-inclusive anyway.
+    // vertex polygon UNDERCUTS the real boundary wherever an edge range is
+    // curved (a Catmull-Rom cap bulges above the chord between its own two
+    // vertices), and a notch tip sits one notch-depth inside that gap --
+    // measured, a sleeve-cap notch tip read 0.26cm "outside" a chord it was
+    // really inside -- so notch tips are checked against a densified outline
+    // sampled off the same Catmull-Rom geometry the drafter placed them on.
     if (piece.notches?.length) {
-      const dense = densifiedOutline(piece.outlineCm, piece.curvedSpans);
-      for (const notch of piece.notches) {
-        const [nx, ny] = notch.innerCm;
-        const span = verticalSpanAt(dense, nx);
+      const dense = densifiedOutlineCm(piece.outlineCm, piece.curvedSpans);
+      for (const [nx, ny] of notchTipsCm(piece)) {
         expect(
-          ny,
-          `${piece.id} notch tip (${nx.toFixed(1)}, ${ny.toFixed(1)}) vs outline y-range [${span.top.toFixed(1)}, ${span.bottom.toFixed(1)}]`,
-        ).toBeGreaterThanOrEqual(span.top);
-        expect(ny).toBeLessThanOrEqual(span.bottom);
-      }
-    }
-
-    for (const [x, y] of points) {
-      const span = verticalSpanAt(piece.outlineCm, x);
-      expect(
-        y,
-        `${piece.id} point (${x.toFixed(1)}, ${y.toFixed(1)}) vs outline y-range [${span.top.toFixed(1)}, ${span.bottom.toFixed(1)}]`,
-      ).toBeGreaterThanOrEqual(span.top);
-      expect(y).toBeLessThanOrEqual(span.bottom);
-    }
-
-    // #315: an internal loop (hole) -- every vertex of every loop stays
-    // inside the piece's own outer boundary, the same check every other
-    // decoration kind above already gets, so a loop that escapes its own
-    // panel is caught exactly like a grainline or drill hole that would.
-    for (const loop of piece.internalLoopsCm ?? []) {
-      for (const [x, y] of loop.outlineCm) {
-        const span = verticalSpanAt(piece.outlineCm, x);
-        expect(
-          y,
-          `${piece.id} internal loop point (${x.toFixed(1)}, ${y.toFixed(1)}) vs outline y-range [${span.top.toFixed(1)}, ${span.bottom.toFixed(1)}]`,
-        ).toBeGreaterThanOrEqual(span.top);
-        expect(y).toBeLessThanOrEqual(span.bottom);
+          pointInPolygonCm([nx, ny], dense, CONTAINMENT_EPS_CM),
+          `${piece.id} notch tip (${nx.toFixed(1)}, ${ny.toFixed(1)}) outside its own outline`,
+        ).toBe(true);
       }
     }
   }

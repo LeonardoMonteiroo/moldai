@@ -835,6 +835,24 @@ export function draftAll(
       ),
     );
     drafted.push(skirtPiece);
+    // #330: the panel's own two side edges, sewn to each other -- equal by
+    // construction (the panel is symmetric about its own foldEdge/apex),
+    // the same self-pair shape sleeve.ts's own underarmRight/underarmLeft
+    // already uses. Declared unconditionally (dress and standalone alike,
+    // every silhouette): this is what was missing that left a standalone
+    // skirt with no waistband (`waistband: "none"`) with zero declared
+    // seams at all, and every skirt/dress with no side-seam step in its own
+    // assembly order regardless of waistband.
+    if (skirtPiece.seamEdges?.sideRight && skirtPiece.seamEdges?.sideLeft) {
+      seamPairs.push({
+        key: "skirt-side",
+        labelKey: "skirtSide",
+        a: [edgeRef(skirtPiece.id, skirtPiece.seamEdges.sideRight)],
+        b: [edgeRef(skirtPiece.id, skirtPiece.seamEdges.sideLeft)],
+        easeCm: 0,
+        fixable: false,
+      });
+    }
     // #234/#249: the skirt panel's own length -- draftSkirt already resolved
     // this via gradedLengthCm (normalizing an explicit
     // style.skirtLengthCm against referenceRow's own skirtLength before

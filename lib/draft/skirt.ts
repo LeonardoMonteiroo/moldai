@@ -326,6 +326,17 @@ export function draftSkirt(
       seamEdges.waistFront = [waistSpan[0], half];
       seamEdges.waistBack = [half, waistSpan[1]];
     }
+    // #330: the panel's own two straight radial (side) edges -- inner[steps]
+    // and outer.reverse()[0] share the same angle (+half), so they're
+    // adjacent at index steps/steps+1; inner[0] and outer.reverse()[steps]
+    // share -half, adjacent at the wraparound (2*steps+1 -> 0). Exposed the
+    // same way waist/hem already are: unconditionally, regardless of
+    // panels/qty -- garment.ts declares the self-pair sewing them together
+    // (like sleeve.ts's own underarmRight/underarmLeft), which is what
+    // closes this panel into a tube (panels===2, gore/circle) or into a
+    // full circle at centre-back (panels===1, half-circle).
+    seamEdges.sideRight = [steps, steps + 1];
+    seamEdges.sideLeft = [2 * steps + 1, outlineCm.length];
 
     return {
       id: "skirt",
@@ -505,7 +516,19 @@ export function draftSkirt(
     // unconditionally like `waist` above -- never claimed by another pair
     // (a skirt's own bottom is never sewn to anything), so it always
     // reports a real "hem" step regardless of silhouette or waistband.
-    seamEdges: { waist: [0, 2], hem: [3, 5] },
+    // #330: sideRight (waist-right corner (2) -> hem-right corner (3)) and
+    // sideLeft (hem-left corner (5) -> waist-left corner, wrapping) are this
+    // panel's own two straight side edges -- exposed unconditionally like
+    // waist/hem above. garment.ts declares the self-pair sewing them
+    // together (the same shape sleeve.ts's own underarmRight/underarmLeft
+    // self-pair already uses), closing this panel (front+back, qty:2) into
+    // a tube at both side seams.
+    seamEdges: {
+      waist: [0, 2],
+      hem: [3, 5],
+      sideRight: [2, 3],
+      sideLeft: [5, outlineCm.length],
+    },
     placementCm: { role: "skirt", ...NO_PLACEMENT_TRANSFORM },
   };
 }

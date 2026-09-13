@@ -6,7 +6,8 @@ import {
   type ExPt,
 } from "./model";
 import { flattenOutlineCm, TOL_CM } from "./dxf";
-import { outlinePath, SCALE, type Pt } from "@/lib/draft/core";
+import { outlinePath, SCALE, signedAreaCm, type Pt } from "@/lib/draft/core";
+import { hasSelfIntersection, fromXY } from "@/lib/draft/geometryPredicates";
 import type { Pattern } from "@/lib/types";
 import { SIZE_TABLE, SIZE_TABLE_MALE } from "@/lib/measurements";
 import { t } from "@/lib/i18n/test-translate";
@@ -460,15 +461,12 @@ describe("buildExportModel", () => {
       };
     }
 
+    // #330: shoelaceArea/cross/segmentsIntersect/hasSelfIntersection used to
+    // be re-derived here; they now come from lib/draft/core.ts's
+    // signedAreaCm and lib/draft/geometryPredicates.ts's hasSelfIntersection
+    // (fromXY adapts this suite's ExPt points into that module's Pt tuples).
     function shoelaceArea(pts: ExPt[]): number {
-      let a = 0;
-      const n = pts.length;
-      for (let i = 0; i < n; i++) {
-        const p = pts[i],
-          q = pts[(i + 1) % n];
-        a += p.x * q.y - q.x * p.y;
-      }
-      return Math.abs(a) / 2;
+      return Math.abs(signedAreaCm(fromXY(pts)));
     }
 
     function perimeter(pts: ExPt[]): number {
@@ -482,54 +480,13 @@ describe("buildExportModel", () => {
       return len;
     }
 
-    function cross(o: ExPt, p: ExPt, q: ExPt): number {
-      return (p.x - o.x) * (q.y - o.y) - (p.y - o.y) * (q.x - o.x);
-    }
-
-    function segmentsIntersect(
-      a1: ExPt,
-      a2: ExPt,
-      b1: ExPt,
-      b2: ExPt,
-    ): boolean {
-      const d1 = cross(b1, b2, a1);
-      const d2 = cross(b1, b2, a2);
-      const d3 = cross(a1, a2, b1);
-      const d4 = cross(a1, a2, b2);
-      return (
-        ((d1 > 1e-9 && d2 < -1e-9) || (d1 < -1e-9 && d2 > 1e-9)) &&
-        ((d3 > 1e-9 && d4 < -1e-9) || (d3 < -1e-9 && d4 > 1e-9))
-      );
-    }
-
-    // Non-adjacent edges only -- adjacent edges legitimately share an
-    // endpoint, which isn't a self-intersection.
-    function hasSelfIntersection(pts: ExPt[]): boolean {
-      const n = pts.length;
-      for (let i = 0; i < n; i++) {
-        for (let j = i + 1; j < n; j++) {
-          if (j === i + 1 || (i === 0 && j === n - 1)) continue;
-          if (
-            segmentsIntersect(
-              pts[i],
-              pts[(i + 1) % n],
-              pts[j],
-              pts[(j + 1) % n],
-            )
-          )
-            return true;
-        }
-      }
-      return false;
-    }
-
     for (const [name, spec] of DECORATION_CASES) {
       it(`${name}: cut line is larger than, and never self-intersects, the net line`, () => {
         const model = buildExportModel(patternFor(spec), t);
         for (const piece of model.pieces) {
           const net = flattenOutlineCm(piece.outline, TOL_CM);
           const cut = flattenOutlineCm(piece.cutOutline, TOL_CM);
-          expect(hasSelfIntersection(cut)).toBe(false);
+          expect(hasSelfIntersection(fromXY(cut))).toBe(false);
           expect(shoelaceArea(cut)).toBeGreaterThan(shoelaceArea(net));
         }
       });
@@ -636,7 +593,7 @@ describe("buildExportModel", () => {
       for (const loop of stand.internalLoops!) {
         const net = flattenOutlineCm(loop.outline, TOL_CM);
         const cut = flattenOutlineCm(loop.cutOutline, TOL_CM);
-        expect(hasSelfIntersection(cut)).toBe(false);
+        expect(hasSelfIntersection(fromXY(cut))).toBe(false);
         // A hole's own cut line shrinks INTO the opening (#243's "inward"
         // direction) -- the opposite of the outer boundary's own outward
         // growth asserted above.
