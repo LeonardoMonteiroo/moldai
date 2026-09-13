@@ -21,11 +21,12 @@ function baseRowFor(spec: GarmentSpec) {
 }
 
 // #269: an engine's `capability.types` may be a strict subset of every
-// archetype DECORATION_CASES covers (freesewing declares only "tshirt"
-// today) -- checked the same way tshirtBenchmark.test.ts already does,
-// via checkEngineSupport's own `type` gap, so an unsupported case is
-// skipped rather than failing on a "no design wired" throw that isn't
-// this suite's concern. A `spec` this rejects for a REGISTERED-and-
+// archetype DECORATION_CASES covers, and DECORATION_CASES in turn has no
+// case at all for a type only ONE engine supports (freesewing's own
+// hoodie/coat/shirt -- #323) -- checked the same way tshirtBenchmark.test.ts
+// already does, via checkEngineSupport's own `type` gap, so an unsupported
+// case is skipped rather than failing on a "no design wired" throw that
+// isn't this suite's concern. A `spec` this rejects for a REGISTERED-and-
 // supported type would still fail loudly (this only skips the type gap).
 function supports(engineId: (typeof ENGINE_IDS)[number], spec: GarmentSpec) {
   const capability = getEngine(engineId).capability;
