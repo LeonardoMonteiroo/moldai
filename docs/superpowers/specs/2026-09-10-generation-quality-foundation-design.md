@@ -346,10 +346,16 @@ fallback remains available only through the explicit no-profile path.
 
 ## Research basis
 
-The direction is based on the competitive report in
-`docs/research/2026-09-10-pattern-generation-competitive-research.md`, which
-reviewed MPattern, FreeSewing, Tailornova, Lekala, BootstrapFashion, Seamly2D,
-PatternMaker, CLO, Style3D, SewGrader, and Sewrio using current official
-materials. The central product conclusions were reusable measurement profiles,
-explicit fit/readiness inputs, deterministic snapshots, and a staged path toward
-simulation.
+The direction is based on a competitive review of MPattern, FreeSewing,
+Tailornova, Lekala, BootstrapFashion, Seamly2D, PatternMaker, CLO, Style3D,
+SewGrader, and Sewrio using current official materials. The central product
+conclusions were reusable measurement profiles, explicit fit/readiness inputs,
+deterministic snapshots, and a staged path toward simulation.
+
+**The report itself was never committed to this repo.** `docs/research/`
+exists but is empty in every branch's history — treat the conclusions above as
+this spec's own summary of that review, not as a citation you can open and
+re-check. If the original report resurfaces, commit it to
+`docs/research/2026-09-10-pattern-generation-competitive-research.md` and
+restore the direct citation; until then, don't add a new citation to a path
+that doesn't exist.

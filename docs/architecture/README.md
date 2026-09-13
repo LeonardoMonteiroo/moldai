@@ -20,6 +20,7 @@ Each file here has a matching file of the same name in [`../decisions/`](../deci
 | [billing.md](billing.md)                       | `Wallet`/`Transaction`, Stripe, the four wallet invariants                |
 | [api-routes.md](api-routes.md)                 | Route shape, body parsing, error codes                                    |
 | [generation-flow.md](generation-flow.md)       | The AI generation route, attachments, trust boundary                      |
+| [ai-provider.md](ai-provider.md)               | `lib/ai/provider/*`, the eval harness, `LLM_PROVIDER`                     |
 | [seams-and-assembly.md](seams-and-assembly.md) | The seam graph, conflict detection, sewing order                          |
 | [drafting.md](drafting.md)                     | `lib/draft/*`, the swappable engine, per-archetype rules                  |
 | [size-charts.md](size-charts.md)               | `/size-charts`, patch validation, snapshot-once                           |
