@@ -1185,6 +1185,14 @@ describe("POST /api/patterns/[id]/generate", () => {
   // never repeat verbatim on an unrelated follow-up for the rest of the
   // session.
   it("does not repeat chat.engineStyleUnsupported on a later, unrelated turn", async () => {
+    // #326: CHART's own progressionRule is `{}` (flat) by default, so
+    // turn 2's own trouserLengthCm change would otherwise also trigger
+    // chat.trouserLengthNotGraded, a real notice unrelated to what THIS
+    // test checks (chat.engineStyleUnsupported's own non-repetition).
+    // Grading waistToFloor here isolates the two concerns, the same
+    // "mutate CHART for one test, restore after" pattern the
+    // required-measurement test above already uses.
+    (CHART.chart.progressionRule as Record<string, number>).waistToFloor = 1.9;
     mockPropose.mockResolvedValueOnce({
       decision: "apply",
       spec: {
@@ -1219,6 +1227,92 @@ describe("POST /api/patterns/[id]/generate", () => {
 
     const turn2Messages = state.chat.slice(chatLengthBeforeTurn2);
     expect(turn2Messages.some((m) => m.tone === "notice")).toBe(false);
+    delete (CHART.chart.progressionRule as Record<string, number>).waistToFloor;
+  });
+
+  // #326: trouserLengthCm now grades across sizes via each row's own
+  // waistToFloor -- but a chart whose own waistToFloor doesn't itself vary
+  // by size (CHART's own progressionRule is `{}` by default -- the same
+  // shape a chart persisted before #269's CORE promotion, an imported
+  // chart, or one whose PATCH dropped the rule would have) degrades to the
+  // pre-#326 flat behavior instead of throwing. Said out loud rather than
+  // left for the user to discover.
+  it("adds chat.trouserLengthNotGraded on the first draft when the chart's own waistToFloor doesn't grade", async () => {
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "trousers",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Feito!",
+    });
+
+    const res = await POST(req({ message: "uma calça" }), ctx());
+    expect(res.status).toBe(200);
+    const notice = state.chat.find(
+      (m) => m.text === "chat.trouserLengthNotGraded",
+    );
+    expect(notice).toBeDefined();
+    expect(notice!.tone).toBe("notice");
+  });
+
+  it("does not add chat.trouserLengthNotGraded when the chart's own waistToFloor DOES grade", async () => {
+    (CHART.chart.progressionRule as Record<string, number>).waistToFloor = 1.9;
+    mockPropose.mockResolvedValue({
+      decision: "apply",
+      spec: {
+        type: "trousers",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Feito!",
+    });
+
+    await POST(req({ message: "uma calça" }), ctx());
+    expect(
+      state.chat.some((m) => m.text === "chat.trouserLengthNotGraded"),
+    ).toBe(false);
+    delete (CHART.chart.progressionRule as Record<string, number>).waistToFloor;
+  });
+
+  // #279-style turn-scoping (see chat.engineStyleUnsupported's own
+  // precedent above): the notice is about THIS turn's length, so it must
+  // not reprint on a later turn that never touched trouserLengthCm.
+  it("does not repeat chat.trouserLengthNotGraded on a later, unrelated turn", async () => {
+    mockPropose.mockResolvedValueOnce({
+      decision: "apply",
+      spec: {
+        type: "trousers",
+        gender: "female",
+        measurementOverrides: {},
+        style: {},
+      },
+      assistantMessage: "Feito!",
+    });
+    await POST(req({ message: "uma calça" }), ctx());
+    expect(
+      state.chat.some((m) => m.text === "chat.trouserLengthNotGraded"),
+    ).toBe(true);
+
+    mockPropose.mockResolvedValueOnce({
+      decision: "apply",
+      spec: {
+        type: "trousers",
+        gender: "female",
+        measurementOverrides: {},
+        style: { waistband: "none" },
+      },
+      assistantMessage: "Cós removido.",
+    });
+    const chatLengthBeforeTurn2 = state.chat.length;
+    await POST(req({ message: "sem cós" }), ctx());
+    const turn2Messages = state.chat.slice(chatLengthBeforeTurn2);
+    expect(
+      turn2Messages.some((m) => m.text === "chat.trouserLengthNotGraded"),
+    ).toBe(false);
   });
 
   // #250: validateSpec (inside the real proposeGarment) already substituted

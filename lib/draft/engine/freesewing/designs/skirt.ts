@@ -17,9 +17,11 @@ import type { DraftedPiece } from "../../../core";
 // in ./core (shared, engine-agnostic infrastructure both engines already
 // depend on), never in lib/draft/skirt.ts, so "freesewing" never has to
 // import moldai's own drafter module to get it -- see core.ts's own doc.
+// #326: the same function (renamed gradedLengthCm) now also grades
+// trouserLengthCm against waistToFloor -- see designs/trousers.ts.
 import {
   curveArcLengthCm,
-  gradedSkirtLengthCm,
+  gradedLengthCm,
   NO_PLACEMENT_TRANSFORM,
 } from "../../../core";
 import type { SeamPairDecl } from "../../../seams";
@@ -75,13 +77,13 @@ export function draftSkirt(
   t: Translate,
   // #249: the pattern's actual base-size row -- defaults to `base` itself,
   // so a caller drafting the base size (or predating #249) sees
-  // byte-identical output (gradedSkirtLengthCm collapses to the explicit
+  // byte-identical output (gradedLengthCm collapses to the explicit
   // value unchanged when both rows are the same one). Only
   // lib/draft/engine/freesewing/index.ts's own `draft()` passes a
   // genuinely different row, for a graded (non-base) size.
   referenceMeasurements: Measurements = base,
 ): EngineDraft {
-  const targetLengthCm = gradedSkirtLengthCm(
+  const targetLengthCm = gradedLengthCm(
     spec.style.skirtLengthCm,
     base.skirtLength,
     referenceMeasurements.skirtLength,

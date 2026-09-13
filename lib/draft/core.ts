@@ -36,16 +36,18 @@ export interface DraftedPiece {
   notches?: NotchCm[];
   detailRows: DetailRow[];
   armholeLenCm?: number;
-  // #249: the skirt panel's own resolved length (after gradedSkirtLengthCm
-  // normalizes an explicit style.skirtLengthCm against the reference row) --
-  // set ONLY by lib/draft/skirt.ts's draftSkirt, the same "drafter exposes a
+  // #249/#326: the panel's own resolved length (after gradedLengthCm
+  // normalizes an explicit length style field against the reference row) --
+  // set by lib/draft/skirt.ts's draftSkirt (style.skirtLengthCm vs.
+  // skirtLength) and lib/draft/trousers.ts's draftTrousers/trouserPanel
+  // (style.trouserLengthCm vs. waistToFloor), the same "drafter exposes a
   // number it already computed so the caller reads it instead of
   // re-deriving it" precedent armholeLenCm above already follows (there,
-  // body.ts's own armhole edge length; here, skirt.ts's own length variable
-  // feeding both its `rows.length` detail row and its outline). garment.ts's
-  // draftAll reads this off the returned piece rather than calling
-  // gradedSkirtLengthCm a second time with the same three arguments, so the
-  // two numbers cannot independently drift apart.
+  // body.ts's own armhole edge length; here, each drafter's own length
+  // variable feeding both its `rows.length` detail row and its outline).
+  // garment.ts's draftAll reads this off the returned piece rather than
+  // calling gradedLengthCm a second time with the same three arguments, so
+  // the two numbers cannot independently drift apart.
   resolvedLengthCm?: number;
   // #319/#320: how much of this piece's own waist/hem edge a PLEAT folds
   // back up, in cm, on top of whatever a dart already removes -- the same
@@ -1073,35 +1075,40 @@ export function autoLayout(
 // (see lib/measurements.ts's #118 note) -- so the moment a request set an
 // explicit length, every graded size printed the exact same hem, invisible
 // until two sizes are compared side by side (a graded layered PDF export,
-// #249's own reported bug).
+// #249's own reported bug). #326 generalizes the same fix to trousers: an
+// explicit or defaulted `trouserLengthCm` is normalized against `waistToFloor`
+// instead of `skirtLength` -- the two consumers share this one function
+// rather than each carrying its own copy of the arithmetic.
 //
 // The fix resolves the chosen length ONCE as a FRACTION of the reference
-// row's own skirtLength, then re-expands that same fraction against THIS
-// row's own skirtLength -- so an explicit length grades in exactly the same
-// ratio the chart's own skirtLength already does, without persisting
-// anything new (the fraction is recomputed at draft time, every time).
-// `rowSkirtLengthCm`/`referenceSkirtLengthCm` are two DIFFERENT rows' own
-// `skirtLength` only when a caller is drafting a size OTHER than the
-// pattern's frozen base size (facade.ts's draftGradedOverlays,
+// row's own reference measurement (skirtLength for a skirt, waistToFloor for
+// trousers), then re-expands that same fraction against THIS row's own
+// value of that same measurement -- so an explicit length grades in exactly
+// the same ratio the chart's own measurement already does, without
+// persisting anything new (the fraction is recomputed at draft time, every
+// time). `rowReferenceCm`/`baseReferenceCm` are two DIFFERENT rows' own
+// reference measurement only when a caller is drafting a size OTHER than
+// the pattern's frozen base size (facade.ts's draftGradedOverlays,
 // buildExportModel exporting a graded size) -- every other call site passes
-// the SAME row for both (draftSkirt's own default below), which collapses
-// the fraction back to `explicitCm / rowSkirtLengthCm * rowSkirtLengthCm ===
-// explicitCm`, byte-identical to the pre-#249 behavior.
+// the SAME row for both (draftSkirt's/draftTrousers's own default), which
+// collapses the fraction back to `explicitCm / rowReferenceCm *
+// rowReferenceCm === explicitCm`, byte-identical to the pre-#249 behavior.
 //
-// Lives here, not in lib/draft/skirt.ts, because lib/draft/engine/freesewing/
-// designs/skirt.ts (a DIFFERENT, independently-scored engine -- see
-// docs/architecture/drafting.md's "swappable choice, not the only code
-// path") needs the identical formula and must not import moldai's own
-// drafter module to get it -- core.ts is the shared, engine-agnostic
-// infrastructure both engines already depend on (this function included).
-export function gradedSkirtLengthCm(
+// Lives here, not in lib/draft/skirt.ts or lib/draft/trousers.ts, because
+// lib/draft/engine/freesewing/designs/{skirt,trousers}.ts (a DIFFERENT,
+// independently-scored engine -- see docs/architecture/drafting.md's
+// "swappable choice, not the only code path") need the identical formula
+// and must not import moldai's own drafter modules to get it -- core.ts is
+// the shared, engine-agnostic infrastructure both engines already depend on
+// (this function included).
+export function gradedLengthCm(
   explicitCm: number | undefined,
-  rowSkirtLengthCm: number,
-  referenceSkirtLengthCm: number,
+  rowReferenceCm: number,
+  baseReferenceCm: number,
 ): number {
-  if (explicitCm === undefined) return rowSkirtLengthCm;
-  if (!Number.isFinite(referenceSkirtLengthCm) || referenceSkirtLengthCm <= 0) {
+  if (explicitCm === undefined) return rowReferenceCm;
+  if (!Number.isFinite(baseReferenceCm) || baseReferenceCm <= 0) {
     return explicitCm;
   }
-  return (explicitCm / referenceSkirtLengthCm) * rowSkirtLengthCm;
+  return (explicitCm / baseReferenceCm) * rowReferenceCm;
 }

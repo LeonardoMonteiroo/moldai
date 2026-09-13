@@ -159,10 +159,28 @@ export const ARMHOLE_DEEPEN_TOKENS = {
   deep: 4.5,
 } as const;
 
+// #326: unlike the other four tables above, this one is anchored to a real
+// body measurement rather than a free-standing guess -- each figure is a
+// fraction of the seeded FEMALE system chart's own base-size (M)
+// waistToFloor (104.8cm, lib/measurements.ts), the tighter of the two
+// seeded charts (male M is 116.0cm). Anchoring to the tighter chart matters
+// because a token is projected to cm BEFORE gender is known here
+// (resolveScalarField/validateSpec runs before the route overrides
+// spec.gender with the chosen size chart's own gender, garment.ts) -- a
+// male-calibrated "full" would land below the floor on a female chart the
+// same way the pre-#326 flat 110cm figure did. cropped=0.72, ankle=0.91,
+// full=0.97 of that base -- "full" changed from 110 (above the female
+// floor at every seeded size) to 102 (updated for #326; a full-length
+// trouser genuinely stops short of a male M's own floor at 88%, the same
+// looseness TROUSER_DEFAULT_LENGTH_CM's own male default already accepts,
+// 104/116.0 = 89.7%). Every figure grades per size/gender exactly like any
+// other resolved trouserLengthCm, via gradedLengthCm against the row's own
+// waistToFloor (lib/draft/trousers.ts, lib/draft/engine/freesewing/designs/
+// trousers.ts) -- these are base-row anchors, not final drafted lengths.
 export const TROUSER_LENGTH_TOKENS = {
   cropped: 75,
   ankle: 95,
-  full: 110,
+  full: 102,
 } as const;
 
 // One entry per free numeric style scalar, pairing its token field name

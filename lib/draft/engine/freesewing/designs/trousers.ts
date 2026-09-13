@@ -9,7 +9,17 @@ import type { Measurements } from "@/lib/measurements";
 import type { GarmentSpec, Gender } from "@/lib/types";
 import type { Translate } from "@/lib/i18n/translate";
 import type { DraftedPiece } from "../../../core";
-import { curveArcLengthCm, NO_PLACEMENT_TRANSFORM } from "../../../core";
+// #326: the SAME fraction-of-reference-row math the moldai engine's
+// trousers drafter uses (lib/draft/trousers.ts) -- an explicit or defaulted
+// style.trouserLengthCm has no engine-specific meaning, so both engines
+// normalize it against the pattern's actual base-size row identically.
+// Reused, not re-derived -- see core.ts's own doc and designs/skirt.ts's
+// identical precedent (#249).
+import {
+  curveArcLengthCm,
+  gradedLengthCm,
+  NO_PLACEMENT_TRANSFORM,
+} from "../../../core";
 import type { SeamPairDecl } from "../../../seams";
 import type { EngineDraft } from "../../types";
 import { draftWaistband, WAISTBAND_OVERLAP_CM } from "../../../subpieces";
@@ -160,15 +170,29 @@ export function draftTrousers(
   spec: GarmentSpec,
   base: Measurements,
   t: Translate,
+  // #326: the pattern's actual base-size row -- defaults to `base` itself,
+  // so a caller drafting the base size (or predating #326) sees
+  // byte-identical output (gradedLengthCm collapses to the explicit value
+  // unchanged when both rows are the same one). Only
+  // lib/draft/engine/freesewing/index.ts's own `draft()` passes a
+  // genuinely different row, for a graded (non-base) size. Same contract as
+  // designs/skirt.ts's own referenceMeasurements param (#249).
+  referenceMeasurements: Measurements = base,
 ): EngineDraft {
   // Same default moldai's own drafter uses (TROUSER_DEFAULT_LENGTH_CM: a
-  // flat, per-gender ankle-length figure -- not base.waistToFloor, which
-  // is a real full-length-to-the-floor body measurement and would draft
-  // a noticeably longer trouser than moldai's own default for the exact
-  // same "no length specified" spec).
+  // per-gender ankle-length figure at the reference row -- not
+  // base.waistToFloor, which is a real full-length-to-the-floor body
+  // measurement and would draft a noticeably longer trouser than moldai's
+  // own default for the exact same "no length specified" spec). #326: the
+  // resolved value -- explicit or defaulted -- now grades against
+  // waistToFloor the same way an explicit skirtLengthCm already grades
+  // against skirtLength (#249), instead of printing flat across every size.
   const gender: Gender = spec.gender ?? "female";
-  const targetLengthCm =
-    spec.style.trouserLengthCm ?? TROUSER_DEFAULT_LENGTH_CM[gender];
+  const targetLengthCm = gradedLengthCm(
+    spec.style.trouserLengthCm ?? TROUSER_DEFAULT_LENGTH_CM[gender],
+    base.waistToFloor,
+    referenceMeasurements.waistToFloor,
+  );
   const measurements = toTrousersMeasurementsMm(base);
   const pattern = new TrousersDesign({
     measurements,

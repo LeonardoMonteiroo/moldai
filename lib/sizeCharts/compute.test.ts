@@ -3,6 +3,7 @@ import {
   resolveSizeChartSize,
   buildSizeTable,
   pickSizeChartForGeneration,
+  measurementGradesAcrossSizes,
 } from "./compute";
 import { MEASUREMENT_RANGES, SIZE_TABLE } from "@/lib/measurements";
 import type { SizeChartData, SizeChartRecord } from "@/lib/types";
@@ -59,6 +60,41 @@ describe("buildSizeTable", () => {
     expect(Object.keys(table)).toEqual(["PP", "P", "M", "G", "GG"]);
     expect(table.M.bust).toBe(92);
     expect(table.G.bust).toBe(96);
+  });
+});
+
+// #326: covers the four ways a chart's own waistToFloor (or any other
+// measurement) can fail to vary by size without needing to know which
+// applies -- a chart persisted before that field was promoted to CORE, an
+// imported chart with an unmapped column, a chart whose PATCH dropped the
+// progression rule, or simply a single-size table.
+describe("measurementGradesAcrossSizes", () => {
+  it("is true when a resolved size table actually varies the measurement", () => {
+    const table = buildSizeTable(baseChart());
+    expect(measurementGradesAcrossSizes(table, "bust")).toBe(true);
+  });
+
+  it("is false when every size resolves to the same value (no progression rule for this key)", () => {
+    const table = buildSizeTable(baseChart({ progressionRule: {} }));
+    expect(measurementGradesAcrossSizes(table, "bust")).toBe(false);
+  });
+
+  it("is false for a single-size table", () => {
+    expect(
+      measurementGradesAcrossSizes({ M: SIZE_TABLE.M }, "waistToFloor"),
+    ).toBe(false);
+  });
+
+  it("is false for an empty table", () => {
+    expect(measurementGradesAcrossSizes({}, "waistToFloor")).toBe(false);
+  });
+
+  it("ignores floating-point noise smaller than the epsilon", () => {
+    const table = {
+      M: SIZE_TABLE.M,
+      G: { ...SIZE_TABLE.M, waistToFloor: SIZE_TABLE.M.waistToFloor + 1e-9 },
+    };
+    expect(measurementGradesAcrossSizes(table, "waistToFloor")).toBe(false);
   });
 });
 

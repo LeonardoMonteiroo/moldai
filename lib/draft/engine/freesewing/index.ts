@@ -26,13 +26,14 @@ import { draftShirt } from "./designs/shirt";
 export const freesewingEngine: DraftingEngine = {
   id: "freesewing",
   capability: FREESEWING_CAPABILITY,
-  // #249: `referenceMeasurements` was previously accepted by
+  // #249/#326: `referenceMeasurements` was previously accepted by
   // DraftingEngine.draft's own declared signature but silently dropped
   // here -- every other design ignores it (no other archetype reads an
-  // absolute, chart-relative style length the way skirtLengthCm does), but
-  // "skirt" needs it forwarded to draftSkirt so an explicit
-  // style.skirtLengthCm grades correctly across sizes on THIS engine too,
-  // not only on "moldai" (lib/draft/engine/freesewing/designs/skirt.ts).
+  // absolute, chart-relative style length the way skirtLengthCm/
+  // trouserLengthCm do), but "skirt" and "trousers" both need it forwarded
+  // so an explicit (or defaulted) length grades correctly across sizes on
+  // THIS engine too, not only on "moldai"
+  // (lib/draft/engine/freesewing/designs/{skirt,trousers}.ts).
   draft(spec, base, t, referenceMeasurements): EngineDraft {
     switch (spec.type) {
       case "tshirt":
@@ -42,7 +43,7 @@ export const freesewingEngine: DraftingEngine = {
       case "skirt":
         return draftSkirt(spec, base, t, referenceMeasurements);
       case "trousers":
-        return draftTrousers(spec, base, t);
+        return draftTrousers(spec, base, t, referenceMeasurements);
       case "hoodie":
         return draftHoodie(spec, base, t);
       case "coat":

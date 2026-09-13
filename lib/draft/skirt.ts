@@ -7,7 +7,7 @@ import {
 } from "@/lib/types";
 import {
   DraftedPiece,
-  gradedSkirtLengthCm,
+  gradedLengthCm,
   InternalCm,
   NO_PLACEMENT_TRANSFORM,
   notchAtVertex,
@@ -104,11 +104,12 @@ export function pleatFoldPlacement(
 // takes no BlockOpts, so a plain module constant is enough.
 const SKIRT_WEARING_EASE_CM = 2;
 
-// #249: `gradedSkirtLengthCm` (the explicit-length-vs-graded-sizes fix) now
-// lives in ./core, not here -- lib/draft/engine/freesewing/designs/skirt.ts
-// (a different, independently-scored engine) needs the identical formula
-// and must not import moldai's own drafter module to get it. Re-used below
-// unchanged; see core.ts's own doc comment for the fix's rationale.
+// #249/#326: `gradedLengthCm` (the explicit-length-vs-graded-sizes fix,
+// shared with lib/draft/trousers.ts) lives in ./core, not here --
+// lib/draft/engine/freesewing/designs/skirt.ts (a different,
+// independently-scored engine) needs the identical formula and must not
+// import moldai's own drafter module to get it. Re-used below unchanged;
+// see core.ts's own doc comment for the fix's rationale.
 
 // Standalone skirt only (#177 left this untouched): a skirt with no bodice
 // to join sizes its own straight/a-line waist panel off the hip, same as
@@ -230,12 +231,12 @@ export function draftSkirt(
   // to `m` itself, so every call site that doesn't grade across sizes (every
   // one before #249) sees byte-identical behavior. garment.ts threads the
   // pattern's actual base-size row through here only when `m` is a
-  // DIFFERENT size's row (see gradedSkirtLengthCm's own doc above).
+  // DIFFERENT size's row (see gradedLengthCm's own doc above).
   baseRow: Measurements = m,
 ): DraftedPiece {
   const silhueta: SkirtSilhouette = style.skirt ?? "straight";
   const ease = style.seamAllowanceCm ?? 1;
-  const length = gradedSkirtLengthCm(
+  const length = gradedLengthCm(
     style.skirtLengthCm,
     m.skirtLength,
     baseRow.skirtLength,
@@ -355,7 +356,7 @@ export function draftSkirt(
       seamEdges,
       placementCm: { role: "skirt", ...NO_PLACEMENT_TRANSFORM },
       // #249: garment.ts reads this instead of re-deriving it via a second
-      // gradedSkirtLengthCm call -- see core.ts's own doc on this field.
+      // gradedLengthCm call -- see core.ts's own doc on this field.
       resolvedLengthCm: length,
     };
   }
@@ -488,7 +489,7 @@ export function draftSkirt(
     detailRows,
     ...(internalsCm ? { internalsCm } : {}),
     // #249: garment.ts reads this instead of re-deriving it via a second
-    // gradedSkirtLengthCm call -- see core.ts's own doc on this field.
+    // gradedLengthCm call -- see core.ts's own doc on this field.
     resolvedLengthCm: length,
     // #319/#320: declared here (not re-derived by garment.ts) on the exact
     // branch that widened the edge -- see core.ts's DraftedPiece.pleatTakeUpCm

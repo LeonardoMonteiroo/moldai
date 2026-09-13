@@ -191,4 +191,54 @@ describe("draftTrousers", () => {
     expect(draft.armholeLenCm).toBeUndefined();
     expect(draft.sleeveArmholeCm).toBeUndefined();
   });
+
+  // #326: Titan's own `lengthBonus` option is DEFINED as targetLengthCm /
+  // base.waistToFloor, so without a distinct reference row the drafted leg
+  // was solved to equal the SAME explicit/defaulted targetLengthCm on every
+  // row (the freesewing-engine mirror of moldai's own flat-leg bug) --
+  // fixed by resolving targetLengthCm through the shared gradedLengthCm
+  // first (see designs/trousers.ts's own top-of-file import comment, and
+  // designs/skirt.test.ts's identical precedent, #249).
+  describe("trouserLengthCm grading across sizes (#326)", () => {
+    function height(drafted: ReturnType<typeof draftTrousers>["drafted"]) {
+      const front = drafted.find((p) => p.id === "trouser-front")!;
+      const ys = front.outlineCm.map(([, y]) => y);
+      return Math.max(...ys) - Math.min(...ys);
+    }
+
+    it("an explicit trouserLengthCm grades two sizes in the SAME ratio the chart's own waistToFloor grades", () => {
+      const spec = trousersSpec({ trouserLengthCm: 95 });
+      const baseRow = SIZE_TABLE.M;
+      const pp = draftTrousers(spec, SIZE_TABLE.PP, t, baseRow);
+      const gg = draftTrousers(spec, SIZE_TABLE.GG, t, baseRow);
+      const lenPP = height(pp.drafted);
+      const lenGG = height(gg.drafted);
+      expect(lenPP).not.toBeCloseTo(lenGG, 1);
+      // Titan's own construction (waistband additions on top of the pure
+      // lengthBonus*waistToFloor leg) isn't a perfectly linear function of
+      // targetLengthCm, so this is a looser bound than lib/draft/
+      // trousers.test.ts's own exact-formula assertion -- proving the ratio
+      // lands close to the chart's, not bit-identical to it.
+      expect(lenPP / lenGG).toBeCloseTo(
+        SIZE_TABLE.PP.waistToFloor / SIZE_TABLE.GG.waistToFloor,
+        1,
+      );
+    });
+
+    it("a fallback (no explicit) length still differs across two sizes, matching the chart directly", () => {
+      const spec = trousersSpec();
+      const pp = draftTrousers(spec, SIZE_TABLE.PP, t);
+      const gg = draftTrousers(spec, SIZE_TABLE.GG, t);
+      expect(height(pp.drafted)).not.toBeCloseTo(height(gg.drafted), 1);
+    });
+
+    it("without a distinct reference row (the freesewing engine's own draft() before this fix wired one through for trousers), an explicit length is used exactly as before", () => {
+      const draft = draftTrousers(
+        trousersSpec({ trouserLengthCm: 95 }),
+        SIZE_TABLE.GG,
+        t,
+      );
+      expect(draft.garmentLengthCm).toBeCloseTo(95, 5);
+    });
+  });
 });
