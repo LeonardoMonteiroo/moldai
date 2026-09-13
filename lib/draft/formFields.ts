@@ -62,15 +62,27 @@ export type FormStyleField = (typeof FORM_STYLE_FIELDS)[number];
 // model can answer an impossible request with decline or ask; a form select
 // cannot, so offering it there would be a control that silently does
 // nothing, the same reason `cuff` is gated below.
+//
+// `fit` is listed for BLOUSE AND DRESS ONLY, for the identical reason
+// (#327). The single place any drafter reads `style.fit` is ease.ts's
+// wearingEaseCm (called from garment.ts), which branches on `knit`: a tshirt
+// reads `style.stretch` instead and never `fit`. skirt.ts/trousers.ts read
+// neither -- SKIRT_WEARING_EASE_CM is a fixed constant and neither drafter
+// takes a BlockOpts at all. Before #327 this table disagreed with the
+// ground-truth capability map (MOLDAI_CAPABILITY.styleFieldsByType in
+// lib/draft/engine/capability.ts, which only ever listed "fit" for blouse
+// and dress) in exactly these three cells -- formFields.test.ts's own
+// "STYLE_FIELDS_BY_TYPE agrees with MOLDAI_CAPABILITY" case is what now
+// keeps the two from drifting apart again.
 export const STYLE_FIELDS_BY_TYPE: Record<
   GarmentType,
   readonly FormStyleField[]
 > = {
   blouse: ["neckline", "sleeve", "cuff", "collar", "frontClosure", "fit"],
   dress: ["neckline", "sleeve", "cuff", "collar", "skirt", "fit"],
-  tshirt: ["neckline", "sleeve", "cuff", "collar", "fit"],
-  skirt: ["skirt", "waistband", "fit"],
-  trousers: ["waistband", "fit"],
+  tshirt: ["neckline", "sleeve", "cuff", "collar"],
+  skirt: ["skirt", "waistband"],
+  trousers: ["waistband"],
   // #269: freesewing-only (see lib/draft/vocabulary.ts's own TYPES comment)
   // -- Hugo's hood/cuff/waistband are all FIXED parts of the design, never
   // optional sub-pieces the way moldai's own collar/cuff/waistband are, so

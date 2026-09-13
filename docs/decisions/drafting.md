@@ -271,13 +271,26 @@ hypothetical second engine.** `validateSpec` does not gate style fields by
 reports this as a `styleField` gap today, drafts anyway with the field dropped
 (matching what silently happened before this issue), and now says so in a
 `tone: "notice"` chat bubble. `styleFieldsByType` was built as ground truth by reading
-every drafter directly, which surfaced a separate, adjacent, deliberately-unfixed
-finding: `lib/draft/formFields.ts`'s own `STYLE_FIELDS_BY_TYPE` offers a "fit" control
-for `tshirt`/`skirt`/`trousers` that no drafter reads for those types (`tshirt` reads
-`stretch` instead; `skirt`/`trousers` don't read `fit` or `stretch` at all — their own
-wearing ease is a fixed constant). `capability.test.ts` documents the three cases in a
-comment rather than "fixing" `NewPatternForm`'s rendered fields as a side effect of an
-unrelated issue.
+every drafter directly, which surfaced a separate, adjacent finding, left unfixed at
+the time: `lib/draft/formFields.ts`'s own `STYLE_FIELDS_BY_TYPE` offered a "fit"
+control for `tshirt`/`skirt`/`trousers` that no drafter read for those types (`tshirt`
+reads `stretch` instead; `skirt`/`trousers` don't read `fit` or `stretch` at all —
+their own wearing ease is a fixed constant). Left standing, a user could pick "solto"
+on a saia, be charged for the generation, and get back the exact geometry "justo"
+would have produced — a control that silently did nothing, the CLAUDE.md failure
+mode this whole audit exists to catch. The note above that `capability.test.ts`
+documents the three cases was itself inaccurate: that test only ever asserted `fit:
+FIT_CLASSES` as part of a generic enum-subset check; the three-case documentation
+lived solely in `capability.ts`'s own comment.
+
+**#327 closed this gap** by removing `fit` from `formFields.ts`'s `tshirt`/`skirt`/
+`trousers` entries, which is all that was needed: `NewPatternForm`'s rendering,
+`changeType`'s prune and `validateFormSpec`'s server-side narrowing all read the same
+map, so the control simply stops being offered (and a value already in state is
+pruned on a type change, the same as any other inapplicable field). `formFields.ts`'s
+own table and `MOLDAI_CAPABILITY.styleFieldsByType` now agree on every moldai type;
+`formFields.test.ts`'s "agrees with `MOLDAI_CAPABILITY.styleFieldsByType`" case pins
+that agreement so it cannot silently drift apart again.
 
 ---
 
