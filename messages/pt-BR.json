@@ -265,7 +265,7 @@
     "grainValue": "reto",
     "foldLabel": "dobra",
     "comingSoonBadge": "em breve",
-    "trouserLengthFixedNote": "mesmo em todos os tamanhos (ainda não há medida de perna por tamanho)",
+    "trouserLengthGradedNote": "graduado por tamanho, pela cintura ao chão da grade",
     "conflict": {
       "title": "Cava e manga não batem",
       "description": "A cava do corpo ficou {diffCm, number, ::.0} cm {direction, select, larger {maior} smaller {menor} other {}} que a copa da manga, então as costuras não vão fechar.",
@@ -412,7 +412,8 @@
       "specAdjusted": "Ajustei o pedido para o que a MoldAI consegue traçar: {items}.",
       "specAdjustmentSubstituted": "{field} “{requested}” não existe, usei o padrão",
       "specAdjustmentClamped": "{field} {requested} está fora do intervalo ({min}–{max}), usei {used}",
-      "referenceMismatch": "Ao comparar com a referência enviada, notei uma divergência: {note}"
+      "referenceMismatch": "Ao comparar com a referência enviada, notei uma divergência: {note}",
+      "trouserLengthNotGraded": "Sua grade não tem cintura ao chão graduada por tamanho, então o comprimento da calça saiu igual em todos os tamanhos. Para graduar, ajuste a regra de progressão dessa medida em Medidas e grades."
     },
     "specField": {
       "type": "tipo de peça",

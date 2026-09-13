@@ -179,13 +179,19 @@ export interface GarmentStyle {
   // actively request) rather than waistband's "defaults on".
   frontClosure?: FrontClosureType;
   // #128: total waist-to-hem length for the (straight-leg only) trousers
-  // block, AI/user-settable and clamped like skirtLengthCm. Unlike
-  // skirtLengthCm there is no per-size Measurements field to fall back to
-  // (no drafter has ever needed a trouser leg length before #128) -- absent,
-  // it defaults to a flat per-gender constant
-  // (lib/draft/trousers.ts's TROUSER_DEFAULT_LENGTH_CM), the same size, at
-  // every graded size, until a future measurement-vocabulary issue adds a
-  // real per-size leg-length field. Simply unread for any other garment
+  // block, AI/user-settable and clamped like skirtLengthCm. Absent, it
+  // defaults to a flat per-gender constant (lib/draft/trousers.ts's
+  // TROUSER_DEFAULT_LENGTH_CM) at the pattern's own reference/base-size
+  // row. #326: unlike the original #128 design, an explicit or defaulted
+  // value now GRADES across sizes -- normalized as a fraction of the
+  // reference row's own waistToFloor, then re-expanded against each graded
+  // row's own waistToFloor (lib/draft/core.ts's gradedLengthCm), the same
+  // fraction-of-reference-measurement grading skirtLengthCm already gets
+  // against skirtLength (#249). A chart whose own waistToFloor doesn't vary
+  // by size (predates #269's promotion, was imported with an unmapped
+  // column, or had its progression rule dropped by a PATCH) degrades to the
+  // pre-#326 flat behavior rather than throwing -- surfaced in chat at
+  // generation time, not silently. Simply unread for any other garment
   // type, the same "type-mismatched style field is a no-op" precedent
   // skirtLengthCm/waistband already follow.
   trouserLengthCm?: number;

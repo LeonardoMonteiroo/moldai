@@ -52,6 +52,33 @@ export function buildSizeTable(
   return table;
 }
 
+// #326: does a resolved size table actually vary a given measurement across
+// its own sizes? Reads the already-resolved `sizeTable` (a pattern's own
+// frozen snapshot, buildSizeTable's own return shape) rather than
+// `progressionRule` directly, which is what lets one check cover every
+// reason a measurement might fail to grade without needing to know which
+// applies: a chart persisted before that measurement was promoted to CORE
+// (the #269 backfill only ever wrote baseMeasurements, never
+// progressionRule -- scripts/backfill-freesewing-measurements.ts), an
+// imported chart (lib/sizeCharts/import.ts's unmapped-column branch writes
+// an explicit flat `progressionRule[key] = 0`), a chart whose PATCH body
+// dropped the rule for this key (validateSizeChartPatch replaces
+// progressionRule wholesale rather than merging it, lib/sizeCharts/
+// validate.ts), or simply a chart with only one size. Used to surface
+// trousers' own length-grading limitation (lib/draft/trousers.ts) rather
+// than let it degrade silently -- see the generate route's own
+// chat.trouserLengthNotGraded notice.
+export function measurementGradesAcrossSizes(
+  sizeTable: Record<string, Measurements>,
+  key: keyof Measurements,
+): boolean {
+  const values = Object.values(sizeTable)
+    .map((row) => row[key])
+    .filter((v): v is number => typeof v === "number" && Number.isFinite(v));
+  if (values.length < 2) return false;
+  return values.some((v) => Math.abs(v - values[0]) > 1e-6);
+}
+
 export interface SizeChartChoice {
   chart: SizeChartRecord;
   /**

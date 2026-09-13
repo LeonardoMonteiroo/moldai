@@ -4,6 +4,7 @@ import {
   canonicalTangent,
   dartInternals,
   DraftedPiece,
+  gradedLengthCm,
   NO_PLACEMENT_TRANSFORM,
   notchAt,
   NotchCm,
@@ -39,13 +40,15 @@ const DART_DEPTH_CM = 10; // same order of magnitude as body.ts's own dartRiseCm
 // #132: no per-size "leg length"/"inside leg" measurement exists in
 // Measurements yet (#128's own dependency, the measurement-vocabulary issue,
 // added only `rise`) -- style.trouserLengthCm (see lib/types.ts) is the
-// total waist-to-hem length, and this is its default when the request
-// doesn't set one. Unlike skirtLengthCm there is no per-size table value to
-// fall back to, so every graded size gets this SAME flat per-gender number
-// -- a documented simplification, the same "not graded across sizes" shape
-// shoulderSlope's own flat per-gender constant already uses for a different
-// field (see lib/draft/body.ts) -- not an oversight. Exported for
-// garment.test.ts.
+// total waist-to-hem length, and this is its value at the reference
+// (base-size) row when the request doesn't set one. #326: unlike the
+// pre-#326 behavior, this is no longer printed flat across every graded
+// size -- draftTrousers below resolves it through gradedLengthCm against
+// each row's own waistToFloor (the same "leg length correlates with
+// stature" measurement the freesewing engine's Titan design already reads
+// for the identical purpose, lib/draft/engine/freesewing/designs/
+// trousers.ts), the same fraction-of-reference-row grading skirtLengthCm
+// already gets against skirtLength (#249). Exported for garment.test.ts.
 export const TROUSER_DEFAULT_LENGTH_CM: Record<Gender, number> = {
   female: 100,
   male: 104,
@@ -169,19 +172,22 @@ function trouserPanel(
     { label: t("rows.seamAllowance"), value: cm(seamAllowanceCm) },
     { label: t("rows.rise"), value: cm(riseCm) },
     { label: t("rows.length"), value: cm(totalLengthCm) },
-    // #249: unlike skirtLengthCm (which now grades in the same ratio the
-    // chart's own skirtLength does -- see lib/draft/skirt.ts's
-    // gradedSkirtLengthCm), `trouserLengthCm` has no per-size measurement to
-    // grade against at all (no drafter-facing "leg length" field exists yet
-    // in lib/measurements.ts's Measurements -- see TROUSER_DEFAULT_LENGTH_CM's
-    // own doc above), so every graded size is drafted at this SAME length,
-    // on purpose. Restated here, on the piece itself, rather than left
-    // silently sharing #249's own bug shape with no acknowledgment --
-    // the same "surface the limitation where the user meets it" rule
-    // `rows.trouserOtherLegs` right below already follows.
+    // #326: `trouserLengthCm` (explicit or defaulted) now grades in the
+    // same ratio the chart's own waistToFloor does -- the same
+    // fraction-of-reference-row mechanism skirtLengthCm already gets
+    // against skirtLength (#249, lib/draft/core.ts's gradedLengthCm).
+    // Restated here, on the piece itself, rather than left for the user to
+    // infer -- the same "surface the limitation where the user meets it"
+    // rule `rows.trouserOtherLegs` right below already follows. This stays
+    // true even when a chart's own waistToFloor doesn't itself vary by
+    // size (a chart predating #269, an imported one, or one whose PATCH
+    // dropped the progression rule): the length is still resolved by this
+    // same rule, it just has nothing to grade against -- that degradation
+    // is reported separately, in chat, at generation time (see the
+    // generate route's own chat.trouserLengthNotGraded).
     {
       label: t("rows.trouserLengthGrading"),
-      value: t("trouserLengthFixedNote"),
+      value: t("trouserLengthGradedNote"),
     },
     // #319: `rows.waistPanel` used to print `waistQuarterRawCm * 2` -- a
     // body-derived number that is neither this panel's own CUT waist edge
@@ -235,6 +241,9 @@ function trouserPanel(
       role: isFront ? "trouser-front" : "trouser-back",
       ...NO_PLACEMENT_TRANSFORM,
     },
+    // #326: garment.ts reads this instead of re-deriving it via a second
+    // gradedLengthCm call -- see core.ts's own doc on this field.
+    resolvedLengthCm: totalLengthCm,
   };
 }
 
@@ -243,6 +252,14 @@ export function draftTrousers(
   style: GarmentStyle,
   gender: Gender,
   t: Translate,
+  // #326: the reference row an explicit (or defaulted) style.trouserLengthCm
+  // is normalized against before being re-expanded for `m`'s own
+  // waistToFloor -- defaults to `m` itself, so every call site that doesn't
+  // grade across sizes (every one before #326) sees byte-identical
+  // behavior. garment.ts threads the pattern's actual base-size row through
+  // here only when `m` is a DIFFERENT size's row (see gradedLengthCm's own
+  // doc above, and lib/draft/skirt.ts's identical baseRow param).
+  baseRow: Measurements = m,
 ): { front: DraftedPiece; back: DraftedPiece } {
   const seamAllowanceCm = style.seamAllowanceCm ?? 1;
   const hipQuarterCm = m.hip / 4 + TROUSER_WEARING_EASE_CM / 4;
@@ -284,8 +301,19 @@ export function draftTrousers(
   // rise room is ACTUALLY available (see its own comment) instead of the
   // rise being bent to fit a fixed dart.
   const riseCm = Math.max(1, bodyRiseCm + (style.riseCm ?? 0));
-  const totalLengthCm =
-    style.trouserLengthCm ?? TROUSER_DEFAULT_LENGTH_CM[gender];
+  // #326: an explicit or defaulted trouserLengthCm is resolved as a fraction
+  // of the reference row's own waistToFloor, then re-expanded against `m`'s
+  // own waistToFloor -- the same fraction-of-reference-measurement grading
+  // gradedLengthCm already gives skirtLengthCm against skirtLength (#249),
+  // now covering the default too (passed through as the "explicit" value,
+  // so it grades exactly like a genuinely requested length -- unlike
+  // skirtLengthCm, whose ungraded fallback is m.skirtLength itself, there
+  // is no per-size trouser-length table to fall back to instead).
+  const totalLengthCm = gradedLengthCm(
+    style.trouserLengthCm ?? TROUSER_DEFAULT_LENGTH_CM[gender],
+    m.waistToFloor,
+    baseRow.waistToFloor,
+  );
 
   const front = trouserPanel(
     "trouser-front",

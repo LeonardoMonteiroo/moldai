@@ -209,9 +209,9 @@ describe("buildExportModel", () => {
   // #249: an explicit style.skirtLengthCm used to freeze every graded size
   // at one identical hem -- buildExportModel is the "graded layered PDF"
   // money path #249's own issue reported (toPdfLayered redrafts one
-  // ExportModel per size). Fixed via lib/draft/skirt.ts's
-  // gradedSkirtLengthCm, threaded through here as buildExportModel's own
-  // `referenceMeasurements` (the pattern's frozen base-size row).
+  // ExportModel per size). Fixed via lib/draft/core.ts's gradedLengthCm,
+  // threaded through here as buildExportModel's own `referenceMeasurements`
+  // (the pattern's frozen base-size row).
   describe("skirt length grading across sizes (#249)", () => {
     function skirtPattern(): Pattern {
       const base = fakePattern();
@@ -237,6 +237,39 @@ describe("buildExportModel", () => {
       expect(gradedSkirt.heightCm).not.toBeCloseTo(baseSkirt.heightCm, 1);
       expect(gradedSkirt.heightCm / baseSkirt.heightCm).toBeCloseTo(
         SIZE_TABLE.GG.skirtLength / SIZE_TABLE.M.skirtLength,
+        2,
+      );
+    });
+  });
+
+  // #326: the same "graded layered PDF" money path, for trousers -- an
+  // explicit or defaulted style.trouserLengthCm now grades the same way,
+  // against each row's own waistToFloor instead of skirtLength.
+  describe("trouser length grading across sizes (#326)", () => {
+    function trousersPattern(): Pattern {
+      const base = fakePattern();
+      return {
+        ...base,
+        sizeTable: { M: SIZE_TABLE.M, GG: SIZE_TABLE.GG },
+        sizes: ["M", "GG"],
+        sizesApplied: ["GG"],
+        spec: {
+          type: "trousers",
+          gender: "female",
+          measurementOverrides: {},
+          style: { trouserLengthCm: 95 },
+        },
+      };
+    }
+
+    it("redrafts a graded size's trouser length in the same ratio the chart's own waistToFloor grades, not identical to the base", () => {
+      const base = buildExportModel(trousersPattern(), t, "M");
+      const graded = buildExportModel(trousersPattern(), t, "GG");
+      const baseFront = base.pieces.find((p) => p.id === "trouser-front")!;
+      const gradedFront = graded.pieces.find((p) => p.id === "trouser-front")!;
+      expect(gradedFront.heightCm).not.toBeCloseTo(baseFront.heightCm, 1);
+      expect(gradedFront.heightCm / baseFront.heightCm).toBeCloseTo(
+        SIZE_TABLE.GG.waistToFloor / SIZE_TABLE.M.waistToFloor,
         2,
       );
     });

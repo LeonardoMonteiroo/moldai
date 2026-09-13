@@ -121,7 +121,7 @@ describe("draftSkirt", () => {
   // base.waistToFloor, so without a distinct reference row the drafted hem
   // was solved to equal the SAME explicit targetLengthCm on every row (the
   // freesewing-engine mirror of moldai's own flat-hem bug) -- fixed by
-  // resolving targetLengthCm through the shared gradedSkirtLengthCm first
+  // resolving targetLengthCm through the shared gradedLengthCm first
   // (see skirt.ts's own top-of-file import comment).
   describe("skirtLengthCm grading across sizes (#249)", () => {
     function height(drafted: ReturnType<typeof draftSkirt>["drafted"]) {

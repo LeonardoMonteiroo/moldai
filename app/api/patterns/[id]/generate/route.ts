@@ -8,6 +8,7 @@ import {
   getSizeChartForGeneration,
   getSizeChartGenderForUser,
 } from "@/lib/db/sizeChart";
+import { measurementGradesAcrossSizes } from "@/lib/sizeCharts/compute";
 import { recordVersion } from "@/lib/db/patternVersion";
 import {
   addMessage,
@@ -674,6 +675,35 @@ export async function POST(request: Request, { params }: Ctx) {
                   text: t("chat.engineStyleUnsupported", {
                     fields: droppedStyleFields.join(", "),
                   }),
+                  tone: "notice",
+                  createdAt: Date.now(),
+                });
+              }
+              // #326: trouserLengthCm now grades across sizes via each
+              // row's own waistToFloor (lib/draft/trousers.ts) -- but a
+              // chart whose waistToFloor doesn't itself vary by size (one
+              // persisted before #269's promotion, one imported with an
+              // unmapped column, or one whose PATCH body dropped the rule)
+              // degrades to the pre-#326 flat behavior instead of throwing.
+              // Said out loud rather than left for the user to discover, the
+              // same "surface the limitation where the user meets it" rule
+              // chat.engineStyleUnsupported above already follows -- scoped
+              // to trousers turns only (isFirstDraft, or a turn that changed
+              // the length itself), the same #279 turn-scoping
+              // droppedStyleFields already uses, so an unrelated later turn
+              // doesn't re-print it forever.
+              if (
+                spec.type === "trousers" &&
+                (isFirstDraft || turnChangedFields.has("trouserLengthCm")) &&
+                !measurementGradesAcrossSizes(
+                  state.pattern.sizeTable,
+                  "waistToFloor",
+                )
+              ) {
+                addMessage(state, {
+                  id: `msg-${Date.now()}-length`,
+                  author: "ai",
+                  text: t("chat.trouserLengthNotGraded"),
                   tone: "notice",
                   createdAt: Date.now(),
                 });

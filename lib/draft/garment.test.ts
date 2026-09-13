@@ -12,6 +12,7 @@ import {
   ARMHOLE_DEEPEN_TOKENS,
   TROUSER_LENGTH_TOKENS,
 } from "./garment";
+import { TROUSER_DEFAULT_LENGTH_CM } from "./trousers";
 import {
   draftGarment,
   draftPiecesCm,
@@ -904,6 +905,73 @@ describe("measureSeams", () => {
       5,
     );
   });
+
+  // #326: the same fix, for trousers -- garmentLengthCm now grades against
+  // each row's own waistToFloor instead of printing the base row's own
+  // length at every graded size.
+  it("grades garmentLengthCm for an explicit trouserLengthCm the same way draftPiecesCm does, given a reference row", () => {
+    const spec = {
+      type: "trousers" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: { trouserLengthCm: 95 },
+    };
+    const base = measureSeams(
+      DEFAULT_ENGINE_ID,
+      spec,
+      SIZE_TABLE.M,
+      t,
+      SIZE_TABLE.M,
+    );
+    const graded = measureSeams(
+      DEFAULT_ENGINE_ID,
+      spec,
+      SIZE_TABLE.GG,
+      t,
+      SIZE_TABLE.M,
+    );
+    expect(graded.garmentLengthCm).not.toBeCloseTo(base.garmentLengthCm!, 1);
+    expect(graded.garmentLengthCm! / base.garmentLengthCm!).toBeCloseTo(
+      SIZE_TABLE.GG.waistToFloor / SIZE_TABLE.M.waistToFloor,
+      5,
+    );
+  });
+
+  // #326: the default length (no explicit trouserLengthCm) grades too --
+  // the resolved TROUSER_DEFAULT_LENGTH_CM value is fed through
+  // gradedLengthCm exactly like an explicit one, unlike skirtLengthCm's own
+  // fallback (m.skirtLength, already graded by the chart directly).
+  it("grades garmentLengthCm for the DEFAULTED trouser length too, not only an explicit one", () => {
+    const spec = {
+      type: "trousers" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: {},
+    };
+    const base = measureSeams(
+      DEFAULT_ENGINE_ID,
+      spec,
+      SIZE_TABLE.M,
+      t,
+      SIZE_TABLE.M,
+    );
+    const graded = measureSeams(
+      DEFAULT_ENGINE_ID,
+      spec,
+      SIZE_TABLE.GG,
+      t,
+      SIZE_TABLE.M,
+    );
+    expect(base.garmentLengthCm).toBeCloseTo(
+      TROUSER_DEFAULT_LENGTH_CM.female,
+      5,
+    );
+    expect(graded.garmentLengthCm).not.toBeCloseTo(base.garmentLengthCm!, 1);
+    expect(graded.garmentLengthCm! / base.garmentLengthCm!).toBeCloseTo(
+      SIZE_TABLE.GG.waistToFloor / SIZE_TABLE.M.waistToFloor,
+      5,
+    );
+  });
 });
 
 // #59: grading used to charge 6 credits for state-flag bookkeeping that
@@ -1044,7 +1112,7 @@ describe("draftGradedOverlays", () => {
   // graded against the chart's own (un-overridden) skirtLength. Overriding
   // skirtLength via measurementOverrides (a CORE key) applies the SAME
   // absolute number to every row resolveMeasurements touches -- the base
-  // row AND the reference row alike -- which collapses gradedSkirtLengthCm's
+  // row AND the reference row alike -- which collapses gradedLengthCm's
   // fraction back to 1, printing the explicit length flat across every
   // graded size again. Documented as deliberate (see draftAll's own
   // referenceRow comment): an overridden measurement is this wearer's own

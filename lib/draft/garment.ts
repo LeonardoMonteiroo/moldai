@@ -20,7 +20,7 @@ import {
 import { BlockOpts, draftBody } from "./body";
 import { draftSleeve, CAP_EASE_CM, WRIST_EASE_CM } from "./sleeve";
 import { draftSkirt, dressWaistHalfCm } from "./skirt";
-import { draftTrousers, TROUSER_DEFAULT_LENGTH_CM } from "./trousers";
+import { draftTrousers } from "./trousers";
 import {
   draftCollar,
   draftBandCollar,
@@ -182,8 +182,10 @@ const SCALAR_CM_FALLBACKS: Record<keyof typeof SCALAR_TOKEN_FIELDS, number> = {
 // every drafter's own real "field absent" default: e.g. body.ts falls back
 // to 6cm for necklineDepthCm on a V-neck, skirt.ts falls back to the active
 // size chart's own skirtLength measurement, trousers.ts falls back to
-// TROUSER_DEFAULT_LENGTH_CM[gender] (100 female / 104 male) -- none of which
-// this function can see or duplicate correctly. Leaving the field genuinely
+// TROUSER_DEFAULT_LENGTH_CM[gender] (100 female / 104 male, at the pattern's
+// reference/base-size row -- graded per size via waistToFloor same as any
+// other length, #326) -- none of which this function can see or duplicate
+// correctly. Leaving the field genuinely
 // undefined lets each of those real defaults apply, instead of silently
 // locking in a wrong number. describeSpecAdjustments is what surfaces an
 // unrecognized token to the user, via its own checkScalarToken.
@@ -401,15 +403,17 @@ export function draftAll(
   spec: GarmentSpec,
   baseMeasurements: Measurements,
   t: Translate,
-  // #249: the pattern's own frozen base-size row -- read ONLY to normalize
-  // an explicit style.skirtLengthCm into a fraction of ITS skirtLength
-  // before re-expanding that fraction against `baseMeasurements`'s own
-  // skirtLength (see lib/draft/core.ts's gradedSkirtLengthCm). Optional,
-  // defaulting to `baseMeasurements` itself: every call site drafting the
-  // pattern's own base size (or that predates #249) sees byte-identical
-  // output. Only a caller drafting a GRADED size (facade.ts's
-  // draftGradedOverlays, lib/export/model.ts's buildExportModel exporting a
-  // non-base size) passes the actual base row here.
+  // #249/#326: the pattern's own frozen base-size row -- read ONLY to
+  // normalize an explicit style.skirtLengthCm (or, since #326,
+  // style.trouserLengthCm) into a fraction of ITS reference measurement
+  // (skirtLength / waistToFloor respectively) before re-expanding that
+  // fraction against `baseMeasurements`'s own value of the same measurement
+  // (see lib/draft/core.ts's gradedLengthCm). Optional, defaulting to
+  // `baseMeasurements` itself: every call site drafting the pattern's own
+  // base size (or that predates #249/#326) sees byte-identical output. Only
+  // a caller drafting a GRADED size (facade.ts's draftGradedOverlays,
+  // lib/export/model.ts's buildExportModel exporting a non-base size)
+  // passes the actual base row here.
   referenceMeasurements: Measurements = baseMeasurements,
 ): {
   drafted: DraftedPiece[];
@@ -424,22 +428,24 @@ export function draftAll(
     baseMeasurements,
     spec.measurementOverrides,
   );
-  // #249: the SAME override transform applied to the reference row -- a
-  // chat-driven measurementOverrides.skirtLength (rare, but valid: it's a
-  // CORE key) has to move both rows together, or the fraction below would
-  // compare an overridden row against an un-overridden one. Applying the
-  // SAME override value to both rows means `measurements.skirtLength ===
-  // referenceRow.skirtLength` whenever skirtLength is overridden, which
-  // collapses gradedSkirtLengthCm's fraction back to 1 -- so an explicit
-  // style.skirtLengthCm prints flat across every graded size again in that
-  // one combination. This is deliberate, not a gap #249 left open:
-  // resolveMeasurements (lib/measurements.ts) already applies every
-  // override as one absolute, un-graded number to whichever row it's given
-  // (overriding waist/hip/bust already produces the identical flat-across-
-  // sizes shape) -- an overridden skirtLength is this wearer's own chosen
-  // number, not a size-chart proportion, so treating it as authoritative
-  // over the chart's own per-size progression is consistent with every
-  // other override, not a regression specific to this fix.
+  // #249/#326: the SAME override transform applied to the reference row --
+  // a chat-driven measurementOverrides.skirtLength or .waistToFloor (rare,
+  // but valid: both are CORE keys) has to move both rows together, or the
+  // fraction below would compare an overridden row against an un-overridden
+  // one. Applying the SAME override value to both rows means
+  // `measurements.skirtLength === referenceRow.skirtLength` (or the
+  // waistToFloor equivalent for trousers) whenever that field is
+  // overridden, which collapses gradedLengthCm's fraction back to 1 -- so
+  // an explicit style.skirtLengthCm/trouserLengthCm prints flat across
+  // every graded size again in that one combination. This is deliberate,
+  // not a gap #249/#326 left open: resolveMeasurements (lib/measurements.ts)
+  // already applies every override as one absolute, un-graded number to
+  // whichever row it's given (overriding waist/hip/bust already produces
+  // the identical flat-across-sizes shape) -- an overridden skirtLength/
+  // waistToFloor is this wearer's own chosen number, not a size-chart
+  // proportion, so treating it as authoritative over the chart's own
+  // per-size progression is consistent with every other override, not a
+  // regression specific to either fix.
   const referenceRow: Measurements =
     referenceMeasurements === baseMeasurements
       ? measurements
@@ -830,7 +836,7 @@ export function draftAll(
     );
     drafted.push(skirtPiece);
     // #234/#249: the skirt panel's own length -- draftSkirt already resolved
-    // this via gradedSkirtLengthCm (normalizing an explicit
+    // this via gradedLengthCm (normalizing an explicit
     // style.skirtLengthCm against referenceRow's own skirtLength before
     // re-expanding it for THIS row) and exposes it as resolvedLengthCm
     // (core.ts's own doc), so it's read off the piece rather than
@@ -993,19 +999,30 @@ export function draftAll(
   //    times its own qty), the same "closed circumference, not one panel's
   //    share of it" rule the skirt's own waistband already follows.
   if (spec.type === "trousers") {
-    // #234: the same waist-to-hem formula draftTrousers resolves internally.
-    garmentLengthCm =
-      spec.style.trouserLengthCm ?? TROUSER_DEFAULT_LENGTH_CM[gender];
     const { front: rawTf, back: rawTb } = draftTrousers(
       measurements,
       spec.style,
       gender,
       t,
+      referenceRow,
     );
     // #263: normalized before either's own seamEdges are read below.
     const tf = normalizeWinding(rawTf);
     const tb = normalizeWinding(rawTb);
     drafted.push(tf, tb);
+    // #234/#326: the trouser's own waist-to-hem length -- draftTrousers
+    // already resolved this via gradedLengthCm (normalizing the explicit or
+    // defaulted style.trouserLengthCm against referenceRow's own
+    // waistToFloor before re-expanding it for THIS row) and exposes it as
+    // resolvedLengthCm on both panels (core.ts's own doc), so it's read off
+    // the piece rather than re-derived with a second call whose three
+    // arguments could silently drift from draftTrousers's own -- the
+    // non-null assertion is safe because draftTrousers (like draftSkirt)
+    // always sets this field, on both panels it returns. Front and back
+    // share the same totalLengthCm by construction (trousers.ts's own
+    // top-of-file note), so either panel's own resolvedLengthCm is the
+    // whole garment length.
+    garmentLengthCm = tf.resolvedLengthCm!;
     if (tf.seamEdges) {
       seamPairs.push({
         key: "trouser-front-rise",

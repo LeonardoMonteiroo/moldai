@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { SIZE_TABLE } from "@/lib/measurements";
-import { curveArcLengthCm, gradedSkirtLengthCm } from "./core";
+import { curveArcLengthCm, gradedLengthCm } from "./core";
 import {
   draftSkirt,
   dressWaistHalfCm,
@@ -205,32 +205,39 @@ describe("notches (#124)", () => {
 // #249: an explicit style.skirtLengthCm used to be read as one absolute
 // number for EVERY graded size, freezing the hem identical across a graded
 // layered PDF export while the fallback path (m.skirtLength) already grades
-// +2.0cm/size. gradedSkirtLengthCm/draftSkirt's own `baseRow` param fix
+// +2.0cm/size. gradedLengthCm/draftSkirt's own `baseRow` param fix
 // that -- these are the acceptance-criteria regression tests: hem-length
 // inequality across two sizes, for BOTH an explicit and a fallback length.
-describe("gradedSkirtLengthCm / draftSkirt's baseRow (#249)", () => {
+describe("gradedLengthCm / draftSkirt's baseRow (#249)", () => {
   it("resolves an explicit length as a fraction of the reference row, re-expanded for the target row", () => {
     // base (M) skirtLength=60, explicit=70 -> fraction 7/6.
-    expect(gradedSkirtLengthCm(70, SIZE_TABLE.P.skirtLength, 60)).toBeCloseTo(
+    expect(gradedLengthCm(70, SIZE_TABLE.P.skirtLength, 60)).toBeCloseTo(
       (70 / 60) * SIZE_TABLE.P.skirtLength,
       5,
     );
   });
 
   it("falls back to the row's own skirtLength when no explicit length is set", () => {
-    expect(gradedSkirtLengthCm(undefined, SIZE_TABLE.GG.skirtLength, 60)).toBe(
+    expect(gradedLengthCm(undefined, SIZE_TABLE.GG.skirtLength, 60)).toBe(
       SIZE_TABLE.GG.skirtLength,
     );
   });
 
   it("collapses to the explicit value unchanged when the reference row IS the target row (every pre-#249 call site)", () => {
     expect(
-      gradedSkirtLengthCm(
-        70,
-        SIZE_TABLE.GG.skirtLength,
-        SIZE_TABLE.GG.skirtLength,
-      ),
+      gradedLengthCm(70, SIZE_TABLE.GG.skirtLength, SIZE_TABLE.GG.skirtLength),
     ).toBeCloseTo(70, 5);
+  });
+
+  // #326: shared by both consumers (skirt's own skirtLength, trousers' own
+  // waistToFloor) -- a degenerate reference measurement (a chart with a
+  // literal 0/negative/NaN value for whichever field is in play, never
+  // reachable through MEASUREMENT_RANGES today but not assumed away) must
+  // not divide by zero or propagate a NaN into the drafted outline.
+  it("returns the explicit value unchanged when the reference measurement is non-finite or non-positive", () => {
+    expect(gradedLengthCm(70, SIZE_TABLE.GG.skirtLength, 0)).toBe(70);
+    expect(gradedLengthCm(70, SIZE_TABLE.GG.skirtLength, -5)).toBe(70);
+    expect(gradedLengthCm(70, SIZE_TABLE.GG.skirtLength, NaN)).toBe(70);
   });
 
   it("an explicit skirtLengthCm grades two sizes in the SAME ratio the chart's own skirtLength grades", () => {
@@ -267,7 +274,7 @@ describe("gradedSkirtLengthCm / draftSkirt's baseRow (#249)", () => {
   });
 
   // #249: garment.ts reads resolvedLengthCm off the piece instead of calling
-  // gradedSkirtLengthCm a second time -- this pins the field to the SAME
+  // gradedLengthCm a second time -- this pins the field to the SAME
   // value the outline itself was drafted at, for both silhouette branches
   // (straight/a-line here; circle below covers the other `return` site).
   it("exposes the resolved length as resolvedLengthCm, matching the drafted outline", () => {

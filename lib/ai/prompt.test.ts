@@ -483,12 +483,15 @@ describe("prompt-cache byte stability", () => {
     // #319/#320: and once more -- "# Assembly / sewing order" now tells the
     // model how to phrase a "seam" step whose gatherRatio is below 1 (a
     // dart/pleat take-up, phrased as fold-then-match, never a mismatch) or
-    // above 1 (deliberate fullness to distribute). All deliberate, expected
-    // byte changes (see this describe block's own comment), not a bug -- the
-    // eval harness (npm run eval:ai) is what proves the behaviour is better,
-    // not this hash.
+    // above 1 (deliberate fullness to distribute).
+    // #326: and once more -- the trouserLengthCm bullet no longer claims the
+    // field is "not sized per body/height"; it now grades proportionally by
+    // waistToFloor across the pattern's other sizes, so the prose says so.
+    // All deliberate, expected byte changes (see this describe block's own
+    // comment), not a bug -- the eval harness (npm run eval:ai) is what
+    // proves the behaviour is better, not this hash.
     expect(hash).toBe(
-      "51ded5dcdbe7cfd5d393411009c6583bc2f28dedc83764a6708c1a1ef3a624ef",
+      "bcd59da9ce8de524f47ea9b3b3b09bd389aff093804dfdc0f36e1124857dbc4b",
     );
   });
 });

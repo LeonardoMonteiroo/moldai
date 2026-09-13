@@ -63,15 +63,16 @@ export interface EngineDraft {
 export interface DraftingEngine {
   id: EngineId;
   capability: EngineCapability;
-  // #249: `referenceMeasurements` is OPTIONAL and additive -- a caller
+  // #249/#326: `referenceMeasurements` is OPTIONAL and additive -- a caller
   // drafting the pattern's own base size (or written before #249) omits it
   // entirely, and every existing engine implementation keeps compiling
   // unchanged (a function with fewer declared parameters is still a valid
-  // implementer of a type with a trailing optional one). Only the "moldai"
-  // engine reads it today (lib/draft/garment.ts's draftAll, to normalize an
-  // explicit style.skirtLengthCm against the pattern's actual base-size row
-  // rather than the row currently being drafted -- see
-  // lib/draft/core.ts's gradedSkirtLengthCm).
+  // implementer of a type with a trailing optional one). Both engines read
+  // it today (lib/draft/garment.ts's draftAll and lib/draft/engine/
+  // freesewing/index.ts's own draft(), to normalize an explicit
+  // style.skirtLengthCm/trouserLengthCm against the pattern's actual
+  // base-size row rather than the row currently being drafted -- see
+  // lib/draft/core.ts's gradedLengthCm).
   draft(
     spec: GarmentSpec,
     base: Measurements,
