@@ -487,11 +487,14 @@ describe("prompt-cache byte stability", () => {
     // #326: and once more -- the trouserLengthCm bullet no longer claims the
     // field is "not sized per body/height"; it now grades proportionally by
     // waistToFloor across the pattern's other sizes, so the prose says so.
+    // #327: and once more -- the fit bullet no longer names "skirt bodice"
+    // (no drafter reads style.fit for a standalone skirt; the field is
+    // blouse/dress only, matching MOLDAI_CAPABILITY.styleFieldsByType).
     // All deliberate, expected byte changes (see this describe block's own
     // comment), not a bug -- the eval harness (npm run eval:ai) is what
     // proves the behaviour is better, not this hash.
     expect(hash).toBe(
-      "bcd59da9ce8de524f47ea9b3b3b09bd389aff093804dfdc0f36e1124857dbc4b",
+      "24e14fc0566c88ca74abf7254723f4f690aa2e9c75960104f7e8f523b6487937",
     );
   });
 });

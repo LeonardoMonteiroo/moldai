@@ -7,6 +7,7 @@ import {
   formStyleFieldsFor,
 } from "./formFields";
 import { TYPES, SLEEVES } from "@/lib/draft/garment";
+import { MOLDAI_CAPABILITY } from "@/lib/draft/engine/capability";
 
 // The design's own per-type table, asserted per type rather than as one
 // blob: which fields a garment type offers is derived from which drafter
@@ -38,13 +39,14 @@ describe("STYLE_FIELDS_BY_TYPE", () => {
     ]);
   });
 
-  it("tshirt offers the blouse set without the front closure", () => {
+  // #327: tshirt is the one knit archetype -- ease.ts's wearingEaseCm
+  // branches on `knit` and reads `style.stretch` for it, never `style.fit`.
+  it("tshirt offers the blouse set without the front closure or fit", () => {
     expect(STYLE_FIELDS_BY_TYPE.tshirt).toEqual([
       "neckline",
       "sleeve",
       "cuff",
       "collar",
-      "fit",
     ]);
   });
 
@@ -61,12 +63,33 @@ describe("STYLE_FIELDS_BY_TYPE", () => {
     expect(withClosure).toEqual(["blouse"]);
   });
 
-  it("skirt offers only skirt, waistband and fit", () => {
-    expect(STYLE_FIELDS_BY_TYPE.skirt).toEqual(["skirt", "waistband", "fit"]);
+  // #327: SKIRT_WEARING_EASE_CM (skirt.ts) is a fixed constant -- no
+  // drafter reads style.fit for a skirt.
+  it("skirt offers only skirt and waistband", () => {
+    expect(STYLE_FIELDS_BY_TYPE.skirt).toEqual(["skirt", "waistband"]);
   });
 
-  it("trousers offers only waistband and fit", () => {
-    expect(STYLE_FIELDS_BY_TYPE.trousers).toEqual(["waistband", "fit"]);
+  // #327: trousers.ts has no fit read at all, style-driven or otherwise.
+  it("trousers offers only waistband", () => {
+    expect(STYLE_FIELDS_BY_TYPE.trousers).toEqual(["waistband"]);
+  });
+
+  // #327: this table was built from which drafter actually reads each
+  // field, the same discipline MOLDAI_CAPABILITY.styleFieldsByType (the
+  // engine's own declared ground truth) was built from -- so the two must
+  // never disagree on what a moldai-supported type's form may offer.
+  // hoodie/coat/shirt are excluded: they are freesewing-only, so
+  // MOLDAI_CAPABILITY declares them unsupported (an empty entry) for a
+  // different, unrelated reason than "no field applies".
+  it("agrees with MOLDAI_CAPABILITY.styleFieldsByType for every moldai-supported type", () => {
+    for (const type of MOLDAI_CAPABILITY.types) {
+      const declared = MOLDAI_CAPABILITY.styleFieldsByType[
+        type
+      ] as readonly string[];
+      for (const field of STYLE_FIELDS_BY_TYPE[type]) {
+        expect(declared).toContain(field);
+      }
+    }
   });
 
   it("lists every field in FORM_STYLE_FIELDS, in that display order", () => {
@@ -104,12 +127,8 @@ describe("formStyleFieldsFor", () => {
       expect(formStyleFieldsFor("skirt", sleeve)).toEqual([
         "skirt",
         "waistband",
-        "fit",
       ]);
-      expect(formStyleFieldsFor("trousers", sleeve)).toEqual([
-        "waistband",
-        "fit",
-      ]);
+      expect(formStyleFieldsFor("trousers", sleeve)).toEqual(["waistband"]);
     }
   });
 

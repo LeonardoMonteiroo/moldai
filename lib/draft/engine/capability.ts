@@ -152,13 +152,15 @@ export interface EngineCapability {
   // Ground truth (derived from reading every drafter, not from what looks
   // plausible on a form): e.g. tshirt is the one knit archetype and reads
   // `stretch`, never `fit` -- wearingEaseCm (lib/draft/ease.ts) branches on
-  // `knit` to read one or the other. This DELIBERATELY disagrees with
-  // lib/draft/formFields.ts's own FORM_STYLE_FIELDS-derived map in three
-  // known, pre-existing places (tshirt/skirt/trousers each offer a "fit"
-  // form control today that no drafter reads for that type) -- that is an
-  // existing, separate defect this issue's audit surfaced but does not fix;
-  // capability.test.ts documents the three cases rather than silently
-  // "fixing" NewPatternForm's rendered fields as a side effect.
+  // `knit` to read one or the other. Until #327, this DELIBERATELY disagreed
+  // with lib/draft/formFields.ts's own FORM_STYLE_FIELDS-derived map in
+  // three known, pre-existing places (tshirt/skirt/trousers each offered a
+  // "fit" form control that no drafter read for that type, so a user's
+  // explicit "solto"/"justo" choice there was charged and silently ignored)
+  // -- #327 closed the divergence by removing those three cells from
+  // formFields.ts's own table; formFields.test.ts's own
+  // "agrees with MOLDAI_CAPABILITY.styleFieldsByType" case is what now pins
+  // the two maps together so they cannot drift apart again.
   styleFieldsByType: Record<GarmentType, readonly CapabilityStyleField[]>;
 }
 
