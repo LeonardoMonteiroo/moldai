@@ -5,6 +5,8 @@ import {
   InternalCm,
   InternalLoopCm,
   NO_PLACEMENT_TRANSFORM,
+  notchAtArcLengthCm,
+  NotchCm,
   Pt,
 } from "./core";
 import { formatCm } from "@/lib/format";
@@ -303,18 +305,63 @@ export const WAISTBAND_OVERLAP_CM = 3;
 // waistLenCm is the skirt panel's own MEASURED waist edge, already summed
 // across every cut panel (qty) by the caller -- the full closed waist
 // circumference, not one panel's share of it.
-export function draftWaistband(waistLenCm: number, t: Translate): DraftedPiece {
+//
+// #331: panelSplitsCm is the cumulative cm position of each interior
+// panel-seam boundary along the band's OWN sewn edge, measured from x=0 --
+// the LEFT end of straightBand's seamEdge ([0,2], the bottom edge walked
+// [0,0]->[w/2,0]->[w,0]). WAISTBAND_OVERLAP_CM lands entirely at the RIGHT
+// end (x in [waistLenCm, sewLenCm]), which is what makes "measured from
+// x=0" the same origin every caller's own presentedEdgeLenCm-derived split
+// already uses -- neither this function nor its caller has to account for
+// the overlap when placing a mark. (straightBand's own midpoint vertex at
+// x=sewLenCm/2 is NOT the panel midpoint waistLenCm/2 -- don't confuse the
+// two.) Each entry is a real trust boundary, not assumed clean: dropped
+// (never clamped) when non-finite or outside the open interval
+// (0, waistLenCm), since notchAtArcLengthCm's own clamp would otherwise
+// silently stack an out-of-range mark on top of x=0 or x=waistLenCm with
+// no signal anything was wrong.
+//
+// UNDEFINED (the default) means "the caller never computed a split" -- the
+// three freesewing wrappers reusing straightBand (draftCuff via this same
+// primitive, hoodie's/jett's own trim strips) don't pass anything, and the
+// card's own row honestly says the marks are "em breve". An EMPTY ARRAY is
+// a different, deliberate answer: "computed, and no interior boundary
+// applies" -- a single-panel (half-circle) skirt genuinely has none, and
+// that is a correct zero, not a gap, so it must not render identically to
+// the freesewing case. `garment.ts`'s skirt/trousers call sites always pass
+// a real array, even when it comes out empty.
+export function draftWaistband(
+  waistLenCm: number,
+  t: Translate,
+  panelSplitsCm?: number[],
+): DraftedPiece {
   const sewLenCm = waistLenCm + WAISTBAND_OVERLAP_CM;
   const { pts, seamEdge } = straightBand(sewLenCm, WAISTBAND_HEIGHT_CM);
   const grainlineCm: [Pt, Pt] = [
     [sewLenCm * 0.05, WAISTBAND_HEIGHT_CM / 2],
     [sewLenCm * 0.95, WAISTBAND_HEIGHT_CM / 2],
   ];
+  const splitsComputed = panelSplitsCm !== undefined;
+  const panelMarksCm = Array.from(new Set(panelSplitsCm ?? []))
+    .filter((d) => Number.isFinite(d) && d > 0 && d < waistLenCm)
+    .sort((a, b) => a - b);
+  const notches: NotchCm[] = panelMarksCm.map((d) =>
+    notchAtArcLengthCm(pts, [], seamEdge[0], seamEdge[1], d, "single"),
+  );
   const detailRows: DetailRow[] = [
     { label: t("rows.waistbandType"), value: t("waistbandType.straight") },
     { label: t("rows.length"), value: cm(sewLenCm) },
     { label: t("rows.overlap"), value: cm(WAISTBAND_OVERLAP_CM) },
     { label: t("rows.grain"), value: t("grainValue") },
+    // #331 AC: every panel-seam mark this drafter placed, surfaced on the
+    // card itself. A real (possibly zero) count when the caller computed a
+    // split -- "em breve" is reserved for the caller that never computed
+    // one at all, never for a correct zero (a single-panel skirt has no
+    // interior boundary to mark, which is not a pending capability).
+    {
+      label: t("rows.waistbandPanelMarks"),
+      value: splitsComputed ? `${panelMarksCm.length}` : t("comingSoonBadge"),
+    },
     // #131 decision: the closure (button/zip) position is a placement mark
     // that needs the internal-geometry channel -- #127 later added exactly
     // that channel (InternalCm's reserved "placementMark" kind), but #131's
@@ -328,6 +375,7 @@ export function draftWaistband(waistLenCm: number, t: Translate): DraftedPiece {
     qty: 1, // one continuous strip spanning the whole waist
     outlineCm: pts,
     grainlineCm,
+    ...(notches.length > 0 ? { notches } : {}),
     detailRows,
     seamEdges: { waist: seamEdge },
     placementCm: ACCESSORY_PLACEMENT_CM,
