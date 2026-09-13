@@ -2158,6 +2158,29 @@ describe("seam graph (#134)", () => {
     expect(pair!.diffCm).toBeLessThan(0.3);
   });
 
+  // #321 AC: a straight V neckline changes the front's own arc length (a
+  // straight chord is shorter than the scoop it replaces) -- the collar,
+  // derived from that measured arc (lib/draft/garment.ts's necklineArcCm),
+  // must still mate within the same 0.3cm bound, not merely be assumed to.
+  it("#321: the collar's neckline seam still matches a straight V's own arc within 0.3cm", () => {
+    const spec = {
+      type: "blouse" as const,
+      gender: "female" as const,
+      measurementOverrides: {},
+      style: {
+        neckline: "V" as const,
+        necklineDepthCm: 10,
+        sleeve: "none" as const,
+        collar: "convertible" as const,
+      },
+    };
+    const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
+    const pair = graph.find((m) => m.key === "collar-neckline");
+    expect(pair).toBeDefined();
+    expect(pair!.fixable).toBe(false);
+    expect(pair!.diffCm).toBeLessThan(0.3);
+  });
+
   // #221: same acceptance shape as #129's convertible test above, for the
   // new "band" (stand/mandarin) collar type -- its own seam pair carries a
   // non-zero easeCm (the front-edge closure extension), so a genuine match

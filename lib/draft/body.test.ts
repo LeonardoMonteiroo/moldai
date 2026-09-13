@@ -94,6 +94,64 @@ describe("draftBody sloper", () => {
     expect((front.curvedSpans ?? []).length).toBeGreaterThanOrEqual(2);
   });
 
+  // #321: a straight-line neckline is a real vertex placed on the cf->hps
+  // chord (see the collinearity check below), not a change to span layout --
+  // curvedSpans still marks the run, catmullRomSegments just interpolates
+  // three collinear points into a straight run.
+  const collinear = (p0: Pt, p1: Pt, p2: Pt) =>
+    (p1[0] - p0[0]) * (p2[1] - p0[1]) - (p1[1] - p0[1]) * (p2[0] - p0[0]);
+
+  it("#321: a V neckline is drafted as a straight line, front only", () => {
+    const { front, back } = draftBody(
+      M,
+      { neckline: "V", necklineDepthCm: 8 },
+      t,
+      optsM,
+    );
+    // outlineCm[0] = cf, [1] = neckline ctrl, [2] = hpsL (see body.ts's push
+    // order) -- the ctrl vertex sits exactly on the cf->hpsL chord.
+    const [cf, ctrl, hpsL] = front.outlineCm;
+    expect(collinear(cf, ctrl, hpsL)).toBeCloseTo(0, 6);
+    // the back is always a shallow scoop (#121), unaffected by neckline: "V"
+    const [cfBack, ctrlBack, hpsLBack] = back.outlineCm;
+    expect(Math.abs(collinear(cfBack, ctrlBack, hpsLBack))).toBeGreaterThan(
+      0.01,
+    );
+  });
+
+  it("#321: round and straight necklines stay curved (unchanged scoop)", () => {
+    const round = draftBody(M, { neckline: "round" }, t, optsM);
+    const straight = draftBody(M, { neckline: "straight" }, t, optsM);
+    for (const { front } of [round, straight]) {
+      const [cf, ctrl, hpsL] = front.outlineCm;
+      expect(Math.abs(collinear(cf, ctrl, hpsL))).toBeGreaterThan(0.01);
+    }
+  });
+
+  // #322: necklineDepthCm was previously read only in the V branch --
+  // round/straight discarded it silently. It must now drive the drop on
+  // every shape, with the same meaning (cm below the neckline's own base).
+  it("#322: necklineDepthCm changes the drop on round and straight, not only V", () => {
+    for (const neckline of ["round", "straight"] as const) {
+      const shallow = draftBody(M, { neckline, necklineDepthCm: 2 }, t, optsM);
+      const deep = draftBody(M, { neckline, necklineDepthCm: 10 }, t, optsM);
+      expect(neckDrop(deep.front.outlineCm)).toBeGreaterThan(
+        neckDrop(shallow.front.outlineCm),
+      );
+    }
+  });
+
+  it("#322: the same explicit necklineDepthCm gives the same drop in every shape", () => {
+    const drops = (["V", "round", "straight"] as const).map((neckline) =>
+      neckDrop(
+        draftBody(M, { neckline, necklineDepthCm: 9 }, t, optsM).front
+          .outlineCm,
+      ),
+    );
+    expect(drops[1]).toBeCloseTo(drops[0], 6);
+    expect(drops[2]).toBeCloseTo(drops[0], 6);
+  });
+
   it("exposes a sleeve-matchable armhole length", () => {
     expect(draftBody(M, {}, t, optsM).armholeLenCm).toBeGreaterThan(10);
   });
