@@ -141,73 +141,170 @@ describe("TechSheetTab", () => {
     ).toBeInTheDocument();
   });
 
-  // #125: a woven garment shows the fit class chip; the ease REPORT (#137)
-  // is a separate section, tested below.
-  it("shows the fit class for a woven garment", () => {
-    renderWithIntl(
-      <TechSheetTab
-        pattern={pattern({
-          sizeTable: { M: SIZE_TABLE.M },
-          spec: {
-            type: "blouse",
-            gender: "female",
-            measurementOverrides: {},
-            style: { fit: "loose" },
-          },
-        })}
-      />,
-    );
+  // #332: the "Parâmetros" panel. fit/stretch/seamAllowanceCm used to be
+  // three chips in the summary row; they are rows here now, so the panel is
+  // the single place the spec's style reaches the screen. The ease REPORT
+  // (#137) is still a separate section, tested below.
+  describe("the Parâmetros panel (#332)", () => {
+    it("lists each style field the spec carries, labelled and valued from the catalog", () => {
+      renderWithIntl(
+        <TechSheetTab
+          pattern={pattern({
+            sizeTable: { M: SIZE_TABLE.M },
+            spec: {
+              type: "blouse",
+              gender: "female",
+              measurementOverrides: {},
+              style: { fit: "loose", seamAllowanceCm: 1.5, darts: true },
+            },
+          })}
+        />,
+      );
 
-    expect(screen.getByText(ptBR.TechSheetTab.chipFit)).toBeInTheDocument();
-    expect(screen.getByText(ptBR.PatternData.fit.loose)).toBeInTheDocument();
-  });
+      expect(
+        screen.getByText(ptBR.TechSheetTab.params.title),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(ptBR.PatternData.styleField.fit),
+      ).toBeInTheDocument();
+      expect(screen.getByText(ptBR.PatternData.fit.loose)).toBeInTheDocument();
+      expect(
+        screen.getByText(ptBR.PatternData.styleField.seamAllowanceCm),
+      ).toBeInTheDocument();
+      expect(screen.getByText("1,5 cm")).toBeInTheDocument();
+      expect(
+        screen.getByText(ptBR.PatternData.styleField.darts),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(ptBR.TechSheetTab.params.yes),
+      ).toBeInTheDocument();
+    });
 
-  it("shows the fabric stretch class for a knit garment", () => {
-    renderWithIntl(
-      <TechSheetTab
-        pattern={pattern({
-          sizeTable: { M: SIZE_TABLE.M },
-          spec: {
-            type: "tshirt",
-            gender: "female",
-            measurementOverrides: {},
-            style: { stretch: "high" },
-          },
-        })}
-      />,
-    );
+    it("shows the fabric stretch class for a knit garment", () => {
+      renderWithIntl(
+        <TechSheetTab
+          pattern={pattern({
+            sizeTable: { M: SIZE_TABLE.M },
+            spec: {
+              type: "tshirt",
+              gender: "female",
+              measurementOverrides: {},
+              style: { stretch: "high" },
+            },
+          })}
+        />,
+      );
 
-    expect(screen.getByText(ptBR.TechSheetTab.chipFabric)).toBeInTheDocument();
-    expect(screen.getByText(ptBR.PatternData.stretch.high)).toBeInTheDocument();
-  });
+      expect(
+        screen.getByText(ptBR.PatternData.styleField.stretch),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(ptBR.PatternData.stretch.high),
+      ).toBeInTheDocument();
+    });
 
-  it("omits the fit/fabric chips for a pattern with no bodice (skirt only)", () => {
-    renderWithIntl(
-      <TechSheetTab
-        pattern={pattern({
-          sizeTable: { M: SIZE_TABLE.M },
-          spec: {
-            type: "skirt",
-            gender: "female",
-            measurementOverrides: {},
-            style: {},
-          },
-        })}
-      />,
-    );
+    // #125's rule, now enforced by MOLDAI_CAPABILITY.styleFieldsByType rather
+    // than a hand-written knit/hasBodice branch in the component: draftSkirt
+    // reads neither fit nor stretch, so neither is presented as if it had
+    // shaped the molde.
+    it("omits a field the engine does not read for this garment type", () => {
+      renderWithIntl(
+        <TechSheetTab
+          pattern={pattern({
+            sizeTable: { M: SIZE_TABLE.M },
+            spec: {
+              type: "skirt",
+              gender: "female",
+              measurementOverrides: {},
+              style: { fit: "loose", skirt: "a-line" },
+            },
+          })}
+        />,
+      );
 
-    expect(
-      screen.queryByText(ptBR.TechSheetTab.chipFit),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByText(ptBR.TechSheetTab.chipFabric),
-    ).not.toBeInTheDocument();
+      expect(
+        screen.getByText(ptBR.PatternData.skirtSilhouette["a-line"]),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText(ptBR.PatternData.styleField.fit),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(ptBR.PatternData.fit.loose),
+      ).not.toBeInTheDocument();
+    });
+
+    // A neutral value is a real answer ("this molde has no collar"), not an
+    // absent one -- the catalogs it resolves through shipped with #332.
+    it("names a neutral value rather than dropping the row", () => {
+      renderWithIntl(
+        <TechSheetTab
+          pattern={pattern({
+            sizeTable: { M: SIZE_TABLE.M },
+            spec: {
+              type: "blouse",
+              gender: "female",
+              measurementOverrides: {},
+              style: { collar: "none", darts: false },
+            },
+          })}
+        />,
+      );
+
+      expect(
+        screen.getByText(ptBR.PatternData.collarType.none),
+      ).toBeInTheDocument();
+      expect(screen.getByText(ptBR.TechSheetTab.params.no)).toBeInTheDocument();
+    });
+
+    it("does not render at all for a pattern whose style is still empty", () => {
+      renderWithIntl(
+        <TechSheetTab
+          pattern={pattern({
+            sizeTable: { M: SIZE_TABLE.M },
+            spec: {
+              type: "blouse",
+              gender: "female",
+              measurementOverrides: {},
+              style: {},
+            },
+          })}
+        />,
+      );
+
+      expect(
+        screen.queryByText(ptBR.TechSheetTab.params.title),
+      ).not.toBeInTheDocument();
+    });
+
+    // The frozen size chart and engine already have the chips above; the
+    // panel must not say either a second time.
+    it("does not repeat the size chart or engine the chips already state", () => {
+      renderWithIntl(
+        <TechSheetTab
+          pattern={pattern({
+            sizeTable: { M: SIZE_TABLE.M },
+            sizeChartName: "Grade da casa",
+            spec: {
+              type: "blouse",
+              gender: "female",
+              measurementOverrides: {},
+              style: { fit: "loose" },
+            },
+          })}
+        />,
+      );
+
+      expect(screen.getAllByText("Grade da casa")).toHaveLength(1);
+      expect(screen.getAllByText(ptBR.TechSheetTab.engine.moldai)).toHaveLength(
+        1,
+      );
+    });
   });
 
   // #137: the drafted-ease report -- geometry-measured, not the requested
   // fit/stretch style field. Renders bust/waist/hip rows with cm/% and the
   // implied fit class, reusing the same PatternData.fit.* catalog the
-  // chipFit chip above reads.
+  // Parâmetros panel above reads.
   describe("drafted-ease report (#137)", () => {
     it("renders bust/waist/hip rows with cm, %, and the implied fit class for a woven blouse", () => {
       renderWithIntl(
@@ -308,7 +405,7 @@ describe("TechSheetTab", () => {
         <TechSheetTab pattern={pattern({ pieces: [STUB_PIECE] })} />,
       );
 
-      expect(screen.getByText(ptBR.TechSheetTab.chipFit)).toBeInTheDocument();
+      expect(screen.getByText(ptBR.TechSheetTab.title)).toBeInTheDocument();
       expect(
         screen.queryByText(ptBR.TechSheetTab.easeReport.title),
       ).not.toBeInTheDocument();
