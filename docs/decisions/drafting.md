@@ -1391,3 +1391,42 @@ measurement to derive an opening length FROM, so the opening itself is the autho
 `draftPlacket`'s own strip length is what gets measured and derived from it (`garment.ts` reads the
 cut edge's real length before calling `draftPlacket`, the same "drafter exposes what it needs
 measured, caller measures the emitted geometry" rule #78 already established elsewhere).
+
+## `gore` is a label over the circle construction today, and that is temporary, not the design (#328)
+
+**The training corpus promised a construction the engine cannot draft.**
+`lib/ai/training/phrasings.ts`'s `skirt.gore` bank taught the model that a godê is "godê, com aquelas
+peças triangulares que dão rodado" — inserted triangular godets. No drafter in this repo produces
+one. `radialPanels` (`lib/draft/skirt.ts`) returns `half-circle ? 1 : 2`, and the radial branch hands
+`radialSkirt` the same `fullSweep = 2 * Math.PI` for `gore` as for `circle`, so the two silhouettes
+draft **byte-identical geometry**. That is the same class of mismatch #250 exists to prevent, but
+upstream of `validateSpec`, where no adjustment notice can catch it: a phrase in the corpus teaches
+the model to promise the triangles in `assistantMessage`, and the molde that comes back has none.
+
+**The two pt-BR fragments stay; the English "godet" mapping goes.** In pt-BR _godê_ names the roda the
+code actually drafts, so "saia godê"/"com godês" were never the wrong half — only the triangle clause
+was, and its replacement describes the same cone-shaped flare without reusing `circle`'s own wording
+(the eval fixtures still expect "Saia godê." → `gore` and "Saia em círculo completo" → `circle`, so
+the two banks must stay lexically distinct even while the geometry is not). `lib/ai/prompt.ts`'s
+"# Vocabulary mapping" was the more consequential half: it mapped the **English** `"godet"` to `gore`,
+and in English a godet IS the inserted wedge. It now maps `"godê"`/`"gored skirt"` and names the wedge
+insert as an unsupported request, the same way the clause already names a contoured waistband or a
+flare leg — with the matching `skirt-godet-insert` entry in `DECLINE_CASES`/`DECLINE_PROMPTS`, which
+are deliberately "named after the exact prose in `lib/ai/prompt.ts`" so the two never drift apart.
+
+**Decision (owner, on this issue): `gore` does NOT stay a permanent synonym for `circle`.** It is
+meant to become a real N-panel construction — wedge panels sewn to each other, `radialPanels`
+returning something other than `2`, and the seam graph gaining the interior panel seams that follow
+from it. Filed as its own issue. Until that ships, the collapse is **planned work, so it is declared
+rather than silent** (CLAUDE.md: "Surface feature limitations on-screen, never silently"): the gore
+branch of `draftSkirt` emits a `rows.skirtGorePanels` row valued `comingSoonBadge`, the same
+"em breve" shape `rows.collarOtherTypes`/`rows.trouserOtherLegs` already use for a real, named gap.
+A user who picks "Godê" still gets a correct, sewable molde — it is a full-sweep flared skirt — and
+now also gets told which part of the construction is not built yet.
+
+**Test coverage that read as more than it was:** `lib/draft/skirt.test.ts`'s
+"godet has a wider hem than straight" asserted on `skirt: "gore"`, i.e. the circle path, under a title
+claiming godet coverage that does not exist. Retitled; the assertion was always correct.
+
+Source: GarmentCode treats panel count and godet inserts as separate constructions (`SkirtManyPanels`
+vs `SkirtCircle` vs `GodetSkirt`) — the mismatch surfaced when comparing that catalogue against ours.

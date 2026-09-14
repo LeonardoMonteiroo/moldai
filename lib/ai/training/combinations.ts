@@ -57,8 +57,11 @@ export interface Combination {
  * own vocabulary (lib/draft/vocabulary.ts's TYPES) accepts as legitimate
  * requests but MOLDAI_CAPABILITY.types deliberately excludes (hoodie/coat/
  * shirt -- freesewing-only, no moldai drafter exists). `type: null` marks a
- * gap that isn't about the garment TYPE at all (a shape/silhouette the
- * capability doesn't have, on a type it otherwise drafts fine).
+ * gap no supported garment type covers at all (a jacket, a hoodie: there is
+ * no MOLDAI_CAPABILITY type to attach it to); a CONCRETE `type` marks a
+ * shape/silhouette gap on a type the capability otherwise drafts fine, which
+ * is why combinations.test.ts asserts every non-null `type` here IS
+ * supported.
  */
 export interface DeclineCase {
   key: string;
@@ -92,6 +95,12 @@ export const DECLINE_CASES: DeclineCase[] = [
     reasonTag: "elasticWaistband",
   },
   { key: "jacket-blazer", type: null, reasonTag: "tailoredJacket" },
+  // #328: a godet INSERT (a triangular wedge sewn into a straight panel) is
+  // not what `skirt: "gore"` drafts -- gore and circle both go through
+  // radialSkirt with the same full sweep and panel count, so no drafter
+  // produces a wedge insert at all. A shape gap on a type the capability
+  // otherwise drafts fine, hence `type: "skirt"`.
+  { key: "skirt-godet-insert", type: "skirt", reasonTag: "godetInsert" },
 ];
 
 // Representative sample points inside each numeric style field's declared

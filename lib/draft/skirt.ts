@@ -266,6 +266,23 @@ export function draftSkirt(
     const panels = radialPanels(silhueta);
     const { pts, r } = radialSkirt(m.waist, length, fullSweep, panels, riseCm);
     detailRows.splice(1, 0, { label: t("rows.waistRadius"), value: cm(r) });
+    if (silhueta === "gore") {
+      // #328: `gore` and `circle` reach radialSkirt above with the IDENTICAL
+      // fullSweep (2*PI) and panel count (radialPanels returns 2 for both),
+      // so the two catalog choices hand back the same molde today. The
+      // construction the "godê" label is meant to become -- N wedge panels
+      // sewn to each other, rather than one full-sweep cone cut in two -- is
+      // planned work, and CLAUDE.md's "surface feature limitations
+      // on-screen, never silently" makes it a stated "em breve" row, the
+      // same shape rows.collarOtherTypes/rows.trouserOtherLegs already use
+      // for a real, named gap. No drafter here produces an inserted
+      // triangular godet either; that gap is declared in lib/ai/prompt.ts's
+      // own vocabulary mapping instead, where the request arrives.
+      detailRows.splice(2, 0, {
+        label: t("rows.skirtGorePanels"),
+        value: t("comingSoonBadge"),
+      });
+    }
     // shift to x>=0
     const minX = Math.min(...pts.map((p) => p[0]));
     const outlineCm = pts.map(([x, y]) => [x - minX, y] as Pt);
