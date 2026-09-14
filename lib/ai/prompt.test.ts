@@ -490,11 +490,17 @@ describe("prompt-cache byte stability", () => {
     // #327: and once more -- the fit bullet no longer names "skirt bodice"
     // (no drafter reads style.fit for a standalone skirt; the field is
     // blouse/dress only, matching MOLDAI_CAPABILITY.styleFieldsByType).
+    // #328: and again -- the "# Vocabulary mapping" skirt clause no longer
+    // maps the English "godet" to `gore` (in English a godet IS the
+    // inserted triangular wedge, which no drafter here produces); it maps
+    // "godê"/"gored skirt" instead and names the wedge insert as an
+    // unsupported request, the same way the clause already names a
+    // contoured waistband or a flare leg.
     // All deliberate, expected byte changes (see this describe block's own
     // comment), not a bug -- the eval harness (npm run eval:ai) is what
     // proves the behaviour is better, not this hash.
     expect(hash).toBe(
-      "24e14fc0566c88ca74abf7254723f4f690aa2e9c75960104f7e8f523b6487937",
+      "ba6af358f8e3e72e8313c804c5aaf7b0bf93641395c9d72da1aa514c929ef7c9",
     );
   });
 });

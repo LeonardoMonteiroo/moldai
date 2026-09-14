@@ -92,6 +92,12 @@ export const DECLINE_CASES: DeclineCase[] = [
     reasonTag: "elasticWaistband",
   },
   { key: "jacket-blazer", type: null, reasonTag: "tailoredJacket" },
+  // #328: a godet INSERT (a triangular wedge sewn into a straight panel) is
+  // not what `skirt: "gore"` drafts -- gore and circle both go through
+  // radialSkirt with the same full sweep and panel count, so no drafter
+  // produces a wedge insert at all. A shape gap on a type the capability
+  // otherwise drafts fine, hence `type: "skirt"`.
+  { key: "skirt-godet-insert", type: "skirt", reasonTag: "godetInsert" },
 ];
 
 // Representative sample points inside each numeric style field's declared

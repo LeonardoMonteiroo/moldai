@@ -62,7 +62,11 @@ describe("draftSkirt", () => {
       expect(waistOpening).toBeCloseTo(M.waist, 0);
     },
   );
-  it("godet has a wider hem than straight", () => {
+  // #328: the title used to say "godet" while the body drafts `skirt: "gore"`
+  // -- which today takes the same full sweep and panel count as `circle`, and
+  // produces no godet (inserted triangular wedge) at all. Retitled to what it
+  // actually asserts; the assertion itself was always correct.
+  it("gore (drafted as a full-sweep cone today) has a wider hem than straight", () => {
     const reta = draftSkirt(M, { skirt: "straight", skirtLengthCm: 60 }, t);
     const gode = draftSkirt(M, { skirt: "gore", skirtLengthCm: 60 }, t);
     expect(bbox(gode.outlineCm).w).toBeGreaterThan(bbox(reta.outlineCm).w);

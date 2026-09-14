@@ -72,10 +72,23 @@ const FIELD_FRAGMENTS: Partial<
       "corte em A",
       "abrindo suave do quadril pra baixo, tipo sino leve",
     ],
+    // #328: the third fragment used to be "godê, com aquelas peças
+    // triangulares que dão rodado" -- a description of INSERTED TRIANGULAR
+    // GODETS, a construction no drafter in this repo produces: `radialPanels`
+    // (lib/draft/skirt.ts) returns 2 for both `gore` and `circle`, and both
+    // take the same `fullSweep = 2 * Math.PI` through the same radialSkirt()
+    // call, so the two silhouettes draft byte-identical geometry today. A
+    // training phrase for a construction the engine cannot draft teaches the
+    // model to promise it in `assistantMessage`, upstream of validateSpec
+    // where no adjustment notice can catch it. The two direct fragments stay:
+    // in pt-BR "godê" IS the roda the code drafts, not the triangle. The
+    // replacement indirect fragment describes that same cone-shaped flare
+    // without reusing `circle`'s own wording (the eval fixtures still expect
+    // "Saia godê." -> gore and "Saia em círculo completo" -> circle).
     gore: [
       "saia godê",
       "com godês",
-      "godê, com aquelas peças triangulares que dão rodado",
+      "aberta em leque da cintura até a barra, bem cheia embaixo",
     ],
     "half-circle": [
       "saia meio-círculo",
@@ -547,6 +560,15 @@ export const DECLINE_PROMPTS: Record<string, string[]> = {
   "jacket-blazer": [
     "Faz um blazer estruturado, com forro e lapela.",
     "Quero um paletó de alfaiataria, forrado, pra usar no trabalho.",
+  ],
+  // #328: the triangular godet INSERT -- not the same thing as this app's
+  // `skirt: "gore"`, which drafts a full-sweep radial panel (see the gore
+  // fragment bank above). A request that explicitly asks for wedges sewn
+  // into a straight panel is a real gap, named in lib/ai/prompt.ts's own
+  // "# Vocabulary mapping" prose like every other entry here.
+  "skirt-godet-insert": [
+    "Quero uma saia reta com godês triangulares costurados na barra.",
+    "Faz uma saia com nesgas em triângulo inseridas embaixo pra dar rodado só na barra.",
   ],
 };
 
