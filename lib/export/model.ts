@@ -58,6 +58,12 @@ export interface ExportPiece {
   // press line, same concept a dart's fold line already is); this is the
   // one new mark the reserved "pleat" InternalCm kind actually adds.
   pleats?: ExPt[][];
+  // #344: one entry per style line -- a CUT LINE living on this piece's own
+  // internalsCm rather than its outer boundary (the sleeve's own placket
+  // opening is the first real emitter; see DraftedPiece.cutEdges's own doc,
+  // lib/draft/core.ts, for why this stays off `outline`/`cutOutline`
+  // entirely). Same open-point-list shape `darts`/`pleats` above use.
+  styleLines?: ExPt[][];
   // #126: the piece's cut-on-fold line, both endpoints already real outline
   // vertices (see DraftedPiece.foldEdge) -- absent on a piece with no fold
   // (e.g. a sleeve) or drafted before this existed.
@@ -149,6 +155,17 @@ function pleatEntries(internalsCm?: InternalCm[]): Pt[][] {
   return (internalsCm ?? [])
     .filter(
       (e): e is Extract<InternalCm, { kind: "pleat" }> => e.kind === "pleat",
+    )
+    .map((e) => e.ptsCm);
+}
+// #344: a style line's own cut geometry -- the reserved "styleLine"
+// InternalCm kind's first real emitter (lib/draft/sleeve.ts's placket
+// opening).
+function styleLineEntries(internalsCm?: InternalCm[]): Pt[][] {
+  return (internalsCm ?? [])
+    .filter(
+      (e): e is Extract<InternalCm, { kind: "styleLine" }> =>
+        e.kind === "styleLine",
     )
     .map((e) => e.ptsCm);
 }
@@ -350,6 +367,11 @@ export function buildExportModel(
     );
     if (pleats.length)
       ep.pleats = pleats.map((pts) => pts.map((pt) => P(shift(pt))));
+    const styleLines = styleLineEntries(dp.internalsCm).filter(
+      (pts) => pts.length >= 2,
+    );
+    if (styleLines.length)
+      ep.styleLines = styleLines.map((pts) => pts.map((pt) => P(shift(pt))));
     if (dp.foldEdge) {
       const [a, b2] = dp.foldEdge;
       ep.fold = [P(shift(dp.outlineCm[a])), P(shift(dp.outlineCm[b2]))];

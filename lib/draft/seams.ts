@@ -7,10 +7,17 @@ import { DraftedPiece, curveArcLengthCm } from "./core";
 // 0" rather than 0 itself, so a wrapping edge (sleeve.ts's left underarm,
 // hem vertex 6 back to cap-start vertex 0) is still expressed as a plain
 // forward range ([6, 7]) instead of needing a second convention.
+//
+// #344: `internalIdx`, when present, redirects `from`/`to` onto that
+// piece's own `internalsCm[internalIdx].ptsCm` instead of `outlineCm` --
+// see DraftedPiece.cutEdges's own doc (lib/draft/core.ts) for why a mated
+// edge sometimes lives on a cut line rather than the outer boundary.
+// Absent (the default) is the pre-#344 behavior, unchanged.
 export interface SeamEdgeRef {
   pieceId: string;
   from: number;
   to: number;
+  internalIdx?: number;
 }
 
 // A mated pair garment.ts declares once it has drafted every piece and
@@ -135,6 +142,20 @@ function measureSide(
   for (const ref of refs) {
     const piece = pieces.find((p) => p.id === ref.pieceId);
     if (!piece) return null;
+    // #344: an edge on a CUT LINE (DraftedPiece.cutEdges) measures against
+    // that internalsCm entry's own ptsCm, in its own index space -- never
+    // outlineCm. Defensive, like the piece-lookup miss above: an entry
+    // that's missing or carries no ptsCm (a drillHole/placementMark, which
+    // this convention never targets) skips the whole side rather than
+    // measuring a wrong thing.
+    if (ref.internalIdx !== undefined) {
+      const entry = piece.internalsCm?.[ref.internalIdx];
+      if (!entry || !("ptsCm" in entry)) return null;
+      const lenCm = curveArcLengthCm(entry.ptsCm, [], ref.from, ref.to);
+      raw.push({ ref, lenCm });
+      total += lenCm;
+      continue;
+    }
     const lenCm = curveArcLengthCm(
       piece.outlineCm,
       piece.curvedSpans ?? [],

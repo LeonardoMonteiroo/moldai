@@ -74,8 +74,27 @@ export interface DraftedPiece {
   // one place that knows the WHOLE garment's topology -- which panel sews to
   // which -- so it is what pairs matching edges across pieces into the
   // SeamPairDecl entries lib/draft/seams.ts's walkSeamPairs measures. A
-  // piece with nothing to mate (there is none today) simply omits this.
+  // piece with nothing to mate simply omits this -- the sleeve's own
+  // placket opening is the one piece that used to have nothing here, closed
+  // by #344's cutEdges below rather than by adding a boundary edge.
   seamEdges?: Record<string, [number, number]>;
+  // #344: the same mated-seam declaration as seamEdges above, but for an
+  // edge that lives on a CUT LINE (an internalsCm entry carrying its own
+  // ptsCm -- dart/pleat/styleLine) rather than on this piece's own OUTER
+  // boundary. The sleeve's own placket opening is the motivating case: it
+  // is a real seam (two lips meet a placket strip once the garment is sewn)
+  // but must NOT be modelled as boundary geometry -- a zero-width slit cut
+  // into a closed outline makes offsetOutlineCm's own cut-line join
+  // degenerate (lib/export/offset.ts's lineLine returns null for the
+  // resulting antiparallel corner, silently papered over by the caller's
+  // `?? cur[0]` fallback rather than a real corner -- see
+  // docs/learnings/drafting.md). `internalIdx` is this piece's own
+  // internalsCm index (must be a kind carrying `ptsCm`); `range` walks that
+  // entry's own ptsCm with the exact same [from, to] convention seamEdges
+  // uses, in an index space entirely independent of outlineCm's own.
+  // lib/draft/seams.ts's measureSide is what resolves this against the
+  // entry's own ptsCm instead of outlineCm.
+  cutEdges?: Record<string, { internalIdx: number; range: [number, number] }>;
   // #223: this piece's own true axis of symmetry, when it is NOT the
   // bounding-box midpoint -- an asymmetric half-panel (a front-closure
   // bodice front, lib/draft/body.ts). Absent for every symmetric piece

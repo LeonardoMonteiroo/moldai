@@ -401,6 +401,35 @@ describe("toPdf", () => {
     expect(withPleatsContent).toMatch(/\[2 2\] 0 d/);
   });
 
+  // #344: a style line's own cut geometry (the sleeve's own placket
+  // opening) draws SOLID in ink, unlike the dashed dart-fold/pleat marks
+  // above -- it's a real cut, not a placement guide.
+  it("a style line's cut geometry draws solid in ink, not a dash pattern", async () => {
+    const base = modelOf(20, 30);
+    const model: ExportModel = {
+      ...base,
+      pieces: [
+        {
+          ...base.pieces[0],
+          styleLines: [
+            [
+              { x: 4, y: 0 },
+              { x: 5, y: 10 },
+            ],
+          ],
+        },
+      ],
+    };
+    const withStyleLinesContent = inflatedContent(
+      await toPdf(model, "single", t),
+    );
+    const baseContent = inflatedContent(await toPdf(base, "single", t));
+    const inkCount = (s: string) => (s.match(/0 0 0 RG/g) ?? []).length;
+    expect(inkCount(withStyleLinesContent)).toBeGreaterThan(
+      inkCount(baseContent),
+    );
+  });
+
   // #126: fold is drawn gray-dashed (reusing the usable-area rectangle's
   // GRAY) with the pt-BR "dobra" label at its midpoint; absent when the
   // piece has no fold.

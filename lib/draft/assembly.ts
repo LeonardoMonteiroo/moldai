@@ -68,6 +68,11 @@ export const PHASE_BY_KEY: Record<string, SeamPhase> = {
   // order (collar-neckline pushed before collar-stand-fall in garment.ts)
   // breaks the tie correctly without a second phase.
   "collar-stand-fall": "attach",
+  // #344: the placket bound onto the sleeve's own placket-opening cut edge
+  // -- same "attach" footing as cuff-hem below (declared before it in
+  // garment.ts so the stable sort keeps this step first, matching real
+  // construction order: bind the opening before the cuff is set).
+  "sleeve-placket": "attach",
   "cuff-hem": "attach",
   "button-stand-center-front": "attach",
   "waist-join-front": "waistJoin",

@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import messages from "@/messages/pt-BR.json";
 import type { GarmentSpec, Pattern, SkirtSilhouette } from "@/lib/types";
 import { SIZE_TABLE, SIZE_TABLE_MALE } from "@/lib/measurements";
 import { t } from "@/lib/i18n/test-translate";
@@ -174,6 +175,78 @@ describe("buildAssemblyOrder", () => {
     }
   });
 
+  // #344: no test previously asserted that every declared `labelKey` has a
+  // real pt-BR messages/pt-BR.json entry -- next-intl does not throw on a
+  // missing key (CLAUDE.md's own "assert against the imported messages
+  // object, never a pasted literal" rule), so a forgotten catalog entry
+  // ships silent until a user opens the one conflict card that names it.
+  // Mirrors the exact same matrix the "has a real phase..." test above
+  // walks (a shared helper was considered and skipped -- that test's own
+  // structure is delicate enough that duplicating the walk here, once, is
+  // safer than threading a second return shape through it).
+  it("has a real pt-BR seamPairs catalog entry for every labelKey any registered engine's drafting matrix can produce", () => {
+    const catalog = (
+      messages as {
+        PatternData: {
+          seamPairs: Record<
+            string,
+            { title?: string; aLabel?: string; bLabel?: string }
+          >;
+        };
+      }
+    ).PatternData.seamPairs;
+    const decorationTypes = new Set(DECORATION_CASES.map(([, s]) => s.type));
+    const styleSweep: GarmentSpec["style"][] = [
+      {},
+      { sleeve: "short" },
+      { sleeve: "long" },
+    ];
+    const seenFrom = new Map<string, string>();
+
+    for (const engineId of ENGINE_IDS) {
+      const capability = getEngine(engineId).capability;
+
+      for (const [name, spec] of DECORATION_CASES) {
+        const supported = !checkEngineSupport(
+          capability,
+          spec,
+          baseRowFor(spec),
+        ).some((g) => g.kind === "type");
+        if (!supported) continue;
+        for (const m of measureSeamGraph(engineId, spec, baseRowFor(spec), t))
+          if (!seenFrom.has(m.labelKey))
+            seenFrom.set(m.labelKey, `${engineId}/${name}`);
+      }
+
+      for (const type of capability.types) {
+        if (decorationTypes.has(type)) continue;
+        for (const style of styleSweep) {
+          const spec: GarmentSpec = {
+            type,
+            gender: "female",
+            measurementOverrides: {},
+            style,
+          };
+          for (const m of measureSeamGraph(engineId, spec, baseRowFor(spec), t))
+            if (!seenFrom.has(m.labelKey))
+              seenFrom.set(m.labelKey, `${engineId}/${type}`);
+        }
+      }
+    }
+
+    expect(seenFrom.size).toBeGreaterThan(0);
+    for (const [labelKey, origin] of seenFrom) {
+      const entry = catalog[labelKey];
+      expect(
+        entry,
+        `seamPairs.${labelKey} (first seen: ${origin})`,
+      ).toBeTruthy();
+      expect(entry?.title, `seamPairs.${labelKey}.title`).toBeTruthy();
+      expect(entry?.aLabel, `seamPairs.${labelKey}.aLabel`).toBeTruthy();
+      expect(entry?.bLabel, `seamPairs.${labelKey}.bLabel`).toBeTruthy();
+    }
+  });
+
   it("darts (when any) come before every seam and hem step", () => {
     for (const [name, spec] of DECORATION_CASES) {
       const p = fakePattern(spec);
@@ -322,6 +395,32 @@ describe("buildAssemblyOrder", () => {
     expect(hemPieceIds).not.toContain("cuff");
     const seamKeys = seamSteps(order.steps).map((s) => s.key);
     expect(seamKeys).toContain("cuff-hem");
+  });
+
+  // #344: the placket is bound to the opening before the cuff is pregado
+  // over the already-finished hem -- both pairs are phase "attach", so
+  // real construction order relies entirely on garment.ts's own declaration
+  // order (sleeve-placket pushed before cuff-hem) surviving the stable
+  // sort.
+  it("a long-sleeve, straight-cuff blouse orders sleeve-placket before cuff-hem", () => {
+    const spec: GarmentSpec = {
+      type: "blouse",
+      gender: "female",
+      measurementOverrides: {},
+      style: {
+        neckline: "round",
+        sleeve: "long",
+        darts: true,
+        cuff: "straight",
+      },
+    };
+    const p = fakePattern(spec);
+    const order = buildAssemblyOrder(p, t)!;
+    const seamKeys = seamSteps(order.steps).map((s) => s.key);
+    expect(seamKeys).toContain("sleeve-placket");
+    expect(seamKeys.indexOf("sleeve-placket")).toBeLessThan(
+      seamKeys.indexOf("cuff-hem"),
+    );
   });
 
   it("trousers always dart both panels, and order: darts, rise (self-pairs), inseam/outseam, waistband, then hems (#188)", () => {

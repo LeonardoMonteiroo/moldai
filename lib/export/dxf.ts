@@ -50,6 +50,7 @@ const LAYERS = [
   "TEXTO",
   "DOBRA",
   "PIQUE", // #124
+  "ABERTURA", // #344
 ] as const;
 
 export function toDxf(model: ExportModel): string {
@@ -204,6 +205,24 @@ export function toDxf(model: ExportModel): string {
       p(90, pleat.length);
       p(70, 0);
       for (const pt of pleat) {
+        p(10, X(pt.x));
+        p(20, Y(pt.y));
+      }
+    }
+
+    // #344: a style line's own cut geometry -- a REAL slit (the sleeve's
+    // own placket opening), unlike every other mark above: this is fabric a
+    // cutter must actually cut through, not a placement/press guide. Its
+    // own named layer (ABERTURA, "opening") rather than INTERNO, so a
+    // reader can tell the two apart even though this generic DXF export has
+    // no D6673-style reserved-number constraint to honour.
+    for (const styleLine of piece.styleLines ?? []) {
+      if (styleLine.length < 2) continue;
+      p(0, "LWPOLYLINE");
+      p(8, "ABERTURA");
+      p(90, styleLine.length);
+      p(70, 0);
+      for (const pt of styleLine) {
         p(10, X(pt.x));
         p(20, Y(pt.y));
       }

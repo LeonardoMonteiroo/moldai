@@ -1336,3 +1336,58 @@ falls back to the bare piece id when a step names a piece the pattern's own pers
 predates (`"neckBinding"` for a pattern drafted before this issue), the same fallback every other
 piece id on this path already relies on: never a crash, never a fabricated name, just a plainer
 label until the pattern is next regenerated.
+
+## The sleeve's own placket opening is drafted as a cut line, never as boundary geometry (#344)
+
+**The AC as originally filed asked for "real boundary geometry" — a slit cut into the sleeve's own
+outline. Drafted on paper first, before any code: this construction is geometrically unsound.** A
+slit has zero width. A zero-width notch cut into an already-closed `outlineCm` produces two
+coincident, antiparallel edges meeting at the slit's own tip — exactly the case
+`lib/export/offset.ts`'s own corner-join helper (`lineLine`) already detects and refuses
+(`Math.abs(denom) < 1e-9`, "parallel (or collinear) — no corner to join", returning `null`), and
+whose caller then silently substitutes a plausible-looking but wrong corner (`?? cur[0]`) rather than
+surfacing the failure. Confirmed against `lib/draft/spaceSampling.test.ts`'s own `cutSelfIntersection`
+gate (which measures `offsetOutlineCm`'s real output, not a hand-argued claim) before writing the
+real drafter: a boundary-modelled opening reads as the seam allowance self-intersecting at the
+slit's own tip on every sampled body. The full seam-graph mechanics of the fix that was shipped
+instead — a new `DraftedPiece.cutEdges`/`SeamEdgeRef.internalIdx` channel that mates an edge on a
+CUT LINE (`internalsCm`) rather than the outer boundary — are recorded in
+[`seams-and-assembly.md`](seams-and-assembly.md)'s own #344 entry; this entry covers the drafting
+side only.
+
+**`styleLine` (`InternalCm`, reserved since #127, "no drafter emits one yet") is the right existing
+channel for this, not a new one.** It is real geometry that lives INSIDE a panel rather than on its
+perimeter — precisely what a placket opening is. `lib/draft/sleeve.ts` emits it as a 2-point vertical
+line running up from the hem; `lib/draft/core.ts`'s `place()` already translated a `styleLine` into
+canvas geometry (the same open-path rendering `dart`/`pleat` use), so the ONE gap this issue actually
+had to close on the export side was `lib/export/model.ts`, which had no `styleLines` field at all —
+`pleats` (#244) is the precedent for "a reserved `InternalCm` kind's first real emitter needs one new
+export-model field, mirroring an existing one's shape."
+
+**Placement: the back half of the hem, a documented fraction in from the underarm seam, never
+exactly on it.** `PLACKET_BACK_INSET_FRACTION = 0.25` (no verified industry-standard fraction exists,
+the same footing `BUTTON_STAND_WIDTH_CM`/`COLLAR_HEIGHT_CM` already document) walks in from the
+sleeve's own back/left hem vertex. Verified geometrically before shipping, not assumed: the sleeve's
+own underarm-to-hem edges taper — the back edge moves TOWARD the vertical centre as height decreases
+from hem to underarm (long-sleeve `hemHalf` is narrower than the cap's own half-bicep width), so a
+vertical cut line anchored on the back half of the hem stays strictly interior for its whole
+`SLEEVE_PLACKET_OPENING_CM` run, on every sampled body — confirmed by the sampled-space gate's own
+`decorationOutside` bucket staying at zero with the opening's own two endpoints added to
+`decorationPointsCm`'s walk (`lib/draft/geometryPredicates.ts`), which already treats a `styleLine`'s
+points as decoration to contain. A direct unit-test guard (`PLACKET_OPENING_MIN_CLEARANCE_CM`) stops
+a pathologically short `lengthCm` from ever placing the opening's own top past the underarm — dead
+code through `draftAll` today (a long sleeve is never that short), kept because `draftSleeve` is
+called directly in tests with hand-picked, unrealistic arguments.
+
+**The opening's own length is AUTHORED (`SLEEVE_PLACKET_OPENING_CM = 10`), doubling the length the
+pre-#344 fixed-dimension strip implied.** A continuous-lap placket strip binds BOTH lips of the slit,
+so its own drafted length equals the opening's real length, one-to-one — not half of it. The
+pre-#344 `PLACKET_LENGTH_CM = 10` was the STRIP's own length with no opening to derive it from at
+all (drafted as a bare literal), which — read backward — implied an opening only 10cm long shared
+across both lips; a real sleeve-placket opening runs 10–15cm. Fixing this meant inverting which side
+of the collar/cuff/waistband "measure the seam, author the band" split the placket sits on: every
+other sub-piece measures a body-derived seam and authors its own band width; the placket has no body
+measurement to derive an opening length FROM, so the opening itself is the authored constant now, and
+`draftPlacket`'s own strip length is what gets measured and derived from it (`garment.ts` reads the
+cut edge's real length before calling `draftPlacket`, the same "drafter exposes what it needs
+measured, caller measures the emitted geometry" rule #78 already established elsewhere).

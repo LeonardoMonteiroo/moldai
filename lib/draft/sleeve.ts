@@ -3,6 +3,7 @@ import { DetailRow, GarmentStyle } from "@/lib/types";
 import {
   curveArcLengthCm,
   DraftedPiece,
+  InternalCm,
   NO_PLACEMENT_TRANSFORM,
   notchAtArcLengthCm,
   notchAtVertex,
@@ -49,6 +50,41 @@ export const CAP_EASE_CM = { knit: 1, woven: 2.5 };
 // the hem) was considered and kept as-is rather than inverted to a
 // cuff-first/wrist-based sleeve fit -- see draftCuff in subpieces.ts.
 export const WRIST_EASE_CM = { knit: 1.5, woven: 2.5 };
+
+// #344: the sleeve's own vertical placket opening, in cm -- an AUTHORED
+// length (a real sleeve-placket opening runs 10-15cm; no verified
+// industry-standard figure exists, the same "no citable multiplier"
+// footing BUTTON_STAND_WIDTH_CM/COLLAR_HEIGHT_CM already document). This is
+// the INVERSE of draftCuff/draftNeckBinding's own "measure the seam,
+// author the band" split: there is no body measurement for a placket
+// opening to derive from, so the opening is authored and
+// subpieces.ts's draftPlacket's own strip is what gets DERIVED from it
+// (garment.ts measures this cut edge and sizes the strip to match).
+export const SLEEVE_PLACKET_OPENING_CM = 10;
+
+// #344: keeps the opening's own top comfortably below the underarm (capH)
+// -- only matters for a direct unit-test call with an unrealistically short
+// lengthCm; every real request reaches hasPlacketOpening only via a long
+// sleeve (garment.ts), where m.longSleeveLength is always well clear of
+// this.
+const PLACKET_OPENING_MIN_CLEARANCE_CM = 2;
+
+// #344: how far in from the back (left) hem vertex the placket opening
+// sits, as a fraction of the hem's own half-width (0 would put it exactly
+// on the underarm seam, 1 exactly on the sleeve's own vertical centre) --
+// a real placket sits a little in from the underarm, not on top of it. No
+// verified industry-standard fraction exists, the same deliberate-constant
+// footing as SLEEVE_PLACKET_OPENING_CM above.
+const PLACKET_BACK_INSET_FRACTION = 0.25;
+
+// #344: true exactly when garment.ts's own cuff+placket branch fires -- the
+// SINGLE owner of the "long sleeve + straight cuff" condition, read by both
+// this file (whether to cut the opening) and garment.ts (whether to draft/
+// pair the placket), so the two can never drift into "the sleeve has an
+// opening but nothing is paired to it" or the reverse.
+export function hasPlacketOpening(style: GarmentStyle): boolean {
+  return style.sleeve === "long" && style.cuff === "straight";
+}
 
 // #226: this is ONE cap-curve family (a fixed 5-point profile: two low
 // underarm corners, two 0.3*capH control points, one apex), parameterized
@@ -212,12 +248,51 @@ export function draftSleeve(
     notchAtVertex(capPts, 2, "single"),
   ];
 
+  // #344: the placket opening -- a CUT LINE (internalsCm), never boundary
+  // geometry (see SLEEVE_PLACKET_OPENING_CM's and DraftedPiece.cutEdges's
+  // own doc for why). Sits on the BACK half of the hem, a fraction in from
+  // the left/back hem vertex (index 6) rather than exactly on the underarm
+  // seam. Guarded against a sleeve too short to carry it -- unreachable via
+  // hasPlacketOpening's own long-sleeve gate in practice, but a direct
+  // unit-test call with a tiny lengthCm must not draft a slit that pokes
+  // out past the underarm.
+  const internalsCm: InternalCm[] = [];
+  const cutEdges: Record<
+    string,
+    { internalIdx: number; range: [number, number] }
+  > = {};
+  const hemY = capH + len;
+  const backHemX = cxTop - hemHalf; // vertex 6
+  const frontHemX = cxTop + hemHalf; // vertex 5
+  if (
+    hasPlacketOpening(style) &&
+    len - SLEEVE_PLACKET_OPENING_CM >= PLACKET_OPENING_MIN_CLEARANCE_CM
+  ) {
+    const openingXCm =
+      backHemX + PLACKET_BACK_INSET_FRACTION * (frontHemX - backHemX);
+    const internalIdx =
+      internalsCm.push({
+        kind: "styleLine",
+        ptsCm: [
+          [openingXCm, hemY],
+          [openingXCm, hemY - SLEEVE_PLACKET_OPENING_CM],
+        ],
+      }) - 1;
+    cutEdges.placketOpening = { internalIdx, range: [0, 1] };
+  }
+
   const detailRows: DetailRow[] = [
     { label: t("rows.sleeveType"), value: t("sleeveType." + style.sleeve) },
     { label: t("rows.length"), value: cm(capH + len) },
     { label: t("rows.sleeveCap"), value: cm(measuredCapArcCm) },
     { label: t("rows.grain"), value: t("grainValue") },
   ];
+  if (cutEdges.placketOpening) {
+    detailRows.push({
+      label: t("rows.sleevePlacket"),
+      value: cm(SLEEVE_PLACKET_OPENING_CM),
+    });
+  }
   return {
     id: "sleeve",
     name: t("pieceNames.sleeve"),
@@ -242,6 +317,10 @@ export function draftSleeve(
       // seam edge is measured and mated against.
       hem: [5, 6],
     },
+    ...(internalsCm.length ? { internalsCm } : {}),
+    // #344: the placket opening's own cut edge, when drafted -- see
+    // DraftedPiece.cutEdges's own doc (lib/draft/core.ts).
+    ...(cutEdges.placketOpening ? { cutEdges } : {}),
     // #254: one drafted sleeve piece stands for BOTH physical sleeves
     // (qty: 2, flipping the fabric) -- lib/proof3d/mesh.ts still derives
     // each sleeve shell's own left/right lateral offset from the drafted

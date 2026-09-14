@@ -32,6 +32,7 @@ export const PLT_PENS = {
   notch: 6,
   text: 7,
   drillHole: 8, // #127
+  opening: 9, // #344 -- a real internal cut (a slit), never a placement mark
 } as const;
 
 const u = (cm: number) => Math.round(cm * UNITS_PER_CM);
@@ -171,6 +172,19 @@ export function toPlt(model: ExportModel, opts: PltOptions = {}): string {
         lines.push(`PU${X(pleat[0].x)},${Y(pleat[0].y)};`);
         for (let i = 1; i < pleat.length; i++) {
           lines.push(`PD${X(pleat[i].x)},${Y(pleat[i].y)};`);
+        }
+      }
+      // #344: a style line's own cut geometry (the sleeve's own placket
+      // opening) -- its own distinguishable pen (opening, not dart), since
+      // this is a real slit a cutter must actually cut through, not an
+      // internal construction/placement mark like the fold-line/pleat pens
+      // above share.
+      for (const styleLine of piece.styleLines ?? []) {
+        if (styleLine.length < 2) continue;
+        lines.push(`SP${PLT_PENS.opening};`);
+        lines.push(`PU${X(styleLine[0].x)},${Y(styleLine[0].y)};`);
+        for (let i = 1; i < styleLine.length; i++) {
+          lines.push(`PD${X(styleLine[i].x)},${Y(styleLine[i].y)};`);
         }
       }
       // #127: a drill hole -- HPGL/2's native CI (circle) command, centred

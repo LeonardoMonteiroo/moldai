@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import type { DraftedPiece } from "./core";
+import type { DraftedPiece, Pt } from "./core";
 import {
   walkSeamPairs,
   SEAM_TOLERANCE_CM,
@@ -286,6 +286,98 @@ describe("walkSeamPairs", () => {
       // even though side b's own split is perfectly even.
       expect(m.subSegmentDiffCm).toBeGreaterThan(SEAM_TOLERANCE_CM);
     });
+  });
+});
+
+// #344: a mated edge living on a cut line (a piece's own internalsCm entry)
+// rather than its outer boundary -- the sleeve's own placket-opening
+// motivating case.
+describe("measureSide via a cut-line edge (internalIdx, #344)", () => {
+  // A piece whose own outer boundary is a 10x5 rectangle, carrying one
+  // styleLine internal (a 2-point vertical line, unrelated in length to the
+  // outer boundary) at internalsCm index 0.
+  const pieceWithCutLine = (
+    id: string,
+    cutLineLenCm: number,
+  ): DraftedPiece => ({
+    ...rect(id, 10),
+    internalsCm: [
+      {
+        kind: "styleLine",
+        ptsCm: [
+          [3, 0],
+          [3, cutLineLenCm],
+        ] as Pt[],
+      },
+    ],
+  });
+
+  it("measures against the internalsCm entry's own ptsCm, not outlineCm", () => {
+    const pieces = [pieceWithCutLine("sleeve", 7), rect("placket", 7)];
+    const pair: SeamPairDecl = {
+      key: "sleeve-placket",
+      labelKey: "sleevePlacket",
+      a: [{ pieceId: "sleeve", from: 0, to: 1, internalIdx: 0 }],
+      b: [{ pieceId: "placket", from: 0, to: 1 }],
+      easeCm: 0,
+      fixable: false,
+    };
+    const [m] = walkSeamPairs(pieces, [pair]);
+    // 7cm, not the outer rectangle's own 10cm edge -- proves the cut-line
+    // entry was measured, not outlineCm.
+    expect(m.aLenCm).toBe(7);
+    expect(m.bLenCm).toBe(7);
+    expect(m.diffCm).toBe(0);
+  });
+
+  it("the same cut-line edge can be listed twice on one side (two lips of one slit)", () => {
+    const pieces = [pieceWithCutLine("sleeve", 5), rect("placket", 10)];
+    const cutEdge = { pieceId: "sleeve", from: 0, to: 1, internalIdx: 0 };
+    const pair: SeamPairDecl = {
+      key: "sleeve-placket",
+      labelKey: "sleevePlacket",
+      a: [cutEdge, cutEdge],
+      b: [{ pieceId: "placket", from: 0, to: 1 }],
+      easeCm: 0,
+      fixable: false,
+    };
+    const [m] = walkSeamPairs(pieces, [pair]);
+    expect(m.aLenCm).toBe(10); // 5cm counted twice
+    expect(m.diffCm).toBe(0);
+  });
+
+  it("is skipped (defensive, not thrown) when internalIdx names an entry with no ptsCm", () => {
+    const pieces = [
+      {
+        ...rect("sleeve", 10),
+        internalsCm: [
+          { kind: "drillHole" as const, atCm: [1, 1] as Pt, rCm: 0.15 },
+        ],
+      },
+      rect("placket", 5),
+    ];
+    const pair: SeamPairDecl = {
+      key: "sleeve-placket",
+      labelKey: "sleevePlacket",
+      a: [{ pieceId: "sleeve", from: 0, to: 1, internalIdx: 0 }],
+      b: [{ pieceId: "placket", from: 0, to: 1 }],
+      easeCm: 0,
+      fixable: false,
+    };
+    expect(walkSeamPairs(pieces, [pair])).toEqual([]);
+  });
+
+  it("is skipped (defensive, not thrown) when internalIdx is out of range", () => {
+    const pieces = [pieceWithCutLine("sleeve", 5), rect("placket", 5)];
+    const pair: SeamPairDecl = {
+      key: "sleeve-placket",
+      labelKey: "sleevePlacket",
+      a: [{ pieceId: "sleeve", from: 0, to: 1, internalIdx: 5 }],
+      b: [{ pieceId: "placket", from: 0, to: 1 }],
+      easeCm: 0,
+      fixable: false,
+    };
+    expect(walkSeamPairs(pieces, [pair])).toEqual([]);
   });
 });
 
