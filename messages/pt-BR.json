@@ -235,21 +235,30 @@
       "circle": "circulo"
     },
     "sleeveType": {
+      "none": "sem manga",
       "short": "curta",
       "long": "longa"
     },
     "collarType": {
+      "none": "sem gola",
       "convertible": "esporte (dobrável)",
       "band": "chinesa (em pé, sem virada)",
       "shirt": "camiseira (pé + viradinha)"
     },
     "cuffType": {
+      "none": "sem punho",
       "straight": "reto, com carcela"
     },
+    "frontClosure": {
+      "none": "sem abertura",
+      "buttonStand": "abotoamento frontal"
+    },
     "waistbandType": {
+      "none": "sem cós",
       "straight": "reto, com sobreposição"
     },
     "pleatType": {
+      "none": "sem prega",
       "box": "prega caixa (dobras abrindo para fora)",
       "inverted-box": "prega caixa invertida (dobras voltadas para dentro)"
     },
@@ -477,14 +486,17 @@
     "chipGender": "Modelagem",
     "chipPieces": "Peças",
     "chipCopies": "Cópias",
-    "chipSeamAllowance": "Folga de costura",
-    "chipFit": "Caimento",
-    "chipFabric": "Tecido",
     "chipSizeChart": "Grade usada",
     "chipEngine": "Motor de modelagem",
     "engine": {
       "moldai": "MoldAI",
       "freesewing": "FreeSewing"
+    },
+    "params": {
+      "title": "Parâmetros",
+      "subtitle": "O que foi pedido ao traçar este molde",
+      "yes": "sim",
+      "no": "não"
     },
     "dimensionsLabel": "Dimensões (larg × alt)",
     "noDetails": "Sem detalhes.",

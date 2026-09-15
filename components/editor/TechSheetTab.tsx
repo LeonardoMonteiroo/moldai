@@ -8,6 +8,11 @@ import {
 } from "@/lib/draft/easeReport";
 import { formatCm as cm, formatPct } from "@/lib/format";
 import { engineFor } from "@/lib/draft/engine/capability";
+import {
+  buildSpecParams,
+  STYLE_VALUE_CATALOG,
+  type SpecParam,
+} from "@/lib/draft/specParams";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Table,
@@ -39,17 +44,19 @@ export function TechSheetTab({ pattern }: { pattern: Pattern }) {
   // number.
   const pieceCount = pattern.pieces.length;
   const totalCopies = pattern.pieces.reduce((s, p) => s + p.qty, 0);
-  const folga = pattern.spec?.style.seamAllowanceCm ?? 1;
 
-  // #125: fit/stretch only apply to the bodice (blouse/dress/tshirt) --
-  // draftSkirt never reads either, so a pure skirt pattern shows neither
-  // chip rather than a number that doesn't correspond to anything drafted.
-  const knit = pattern.spec?.type === "tshirt";
-  const hasBodice =
-    pattern.spec &&
-    (pattern.spec.type === "blouse" ||
-      pattern.spec.type === "dress" ||
-      pattern.spec.type === "tshirt");
+  // #332: the style half of the spec, in the order the pattern's FROZEN
+  // engine declares it, filtered to the fields that engine actually reads for
+  // this garment type. This is where folga de costura, caimento and
+  // elasticidade now live -- they used to be three chips in the row below,
+  // which meant the summary row owned some style fields and nothing owned the
+  // rest. It also retires the hand-written knit/hasBodice branch that used to
+  // gate the caimento/tecido chip: styleFieldsByType already lists `fit` only
+  // for blouse/dress and `stretch` only for tshirt, so #125's rule is now
+  // structural rather than restated here.
+  const specParams = pattern.spec
+    ? buildSpecParams(pattern.spec, engineFor(pattern.engine))
+    : [];
 
   // #137: the drafted-ease report -- finished garment girth vs. the frozen
   // sizeTable row it was drafted from, measured off the actual geometry
@@ -88,19 +95,6 @@ export function TechSheetTab({ pattern }: { pattern: Pattern }) {
             />
             <Chip label={t("chipPieces")} value={`${pieceCount}`} />
             <Chip label={t("chipCopies")} value={`${totalCopies}`} />
-            <Chip label={t("chipSeamAllowance")} value={`${cm(folga)} cm`} />
-            {hasBodice && (
-              <Chip
-                label={knit ? t("chipFabric") : t("chipFit")}
-                value={
-                  knit
-                    ? tData(
-                        "stretch." + (pattern.spec!.style.stretch ?? "none"),
-                      )
-                    : tData("fit." + (pattern.spec!.style.fit ?? "fitted"))
-                }
-              />
-            )}
             {/* Absent on patterns drafted before the snapshot recorded it —
                 omitted rather than guessed at. */}
             {pattern.sizeChartName && (
@@ -118,6 +112,10 @@ export function TechSheetTab({ pattern }: { pattern: Pattern }) {
               value={t(`engine.${engineFor(pattern.engine)}`)}
             />
           </div>
+        )}
+
+        {specParams.length > 0 && (
+          <SpecParamsCard params={specParams} t={t} tData={tData} />
         )}
 
         {easeReport && (
@@ -178,6 +176,61 @@ export function TechSheetTab({ pattern }: { pattern: Pattern }) {
         </div>
       </div>
     </ScrollArea>
+  );
+}
+
+// #332: the "Parametros" panel -- the style half of the spec this pattern was
+// actually drafted from, read-only. Same card shell and two-column Table the
+// piece cards below already use, so it reads as one more section of the sheet
+// rather than a new kind of surface.
+//
+// Every string is a catalog lookup keyed by the EN code: the row label from
+// PatternData.styleField.* (the catalog #325 completed), an enum value from
+// whichever PatternData catalog STYLE_VALUE_CATALOG names for that field. A cm
+// field is formatted by the same formatCm the rest of the sheet uses, and
+// `darts` -- the only boolean GarmentStyle has -- resolves through
+// params.yes/no.
+//
+// The frozen size chart and engine are deliberately NOT repeated here: the
+// chipSizeChart/chipEngine chips above already state them, so the whole
+// "recipe" is on this one surface without saying either twice.
+function SpecParamsCard({
+  params,
+  t,
+  tData,
+}: {
+  params: SpecParam[];
+  t: ReturnType<typeof useTranslations>;
+  tData: ReturnType<typeof useTranslations>;
+}) {
+  const valueOf = (p: SpecParam): string => {
+    if (p.kind === "cm") return `${cm(p.value as number)} cm`;
+    if (p.kind === "boolean") return t(p.value ? "params.yes" : "params.no");
+    const catalog =
+      STYLE_VALUE_CATALOG[p.field as keyof typeof STYLE_VALUE_CATALOG];
+    return tData(`${catalog}.${p.value}`);
+  };
+  return (
+    <div className="border-border rounded-card bg-surface mb-4 overflow-hidden border">
+      <div className="bg-surface-alt border-line flex items-baseline gap-2 border-b px-3 py-[9px]">
+        <span className="text-control font-semibold">{t("params.title")}</span>
+        <span className="text-muted text-ui">{t("params.subtitle")}</span>
+      </div>
+      <Table>
+        <TableBody>
+          {params.map((p) => (
+            <TableRow key={p.field}>
+              <TableCell className="text-muted w-1/2 px-3 py-[7px] whitespace-normal">
+                {tData("styleField." + p.field)}
+              </TableCell>
+              <TableCell className="px-3 py-[7px] font-medium">
+                {valueOf(p)}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }
 

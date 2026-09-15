@@ -504,6 +504,17 @@ export const FREESEWING_CAPABILITY: EngineCapability = {
   },
 };
 
+// #332: every declared capability, keyed by the engine id a pattern freezes.
+// Deliberately NOT lib/draft/engine/registry.ts's own ENGINES map: that one
+// carries each engine's whole DraftingEngine (drafters included), so reading
+// it from a client component would pull both drafting engines into the
+// editor bundle -- exactly what this module's leaf-ness (see the header
+// comment) exists to avoid. Pure data; no drafter reachable from here.
+export const CAPABILITIES: Record<EngineId, EngineCapability> = {
+  moldai: MOLDAI_CAPABILITY,
+  freesewing: FREESEWING_CAPABILITY,
+};
+
 export type EngineGap =
   | { kind: "type"; type: GarmentType }
   | { kind: "measurements"; missing: (keyof Measurements)[] }
@@ -527,7 +538,11 @@ export const STYLE_ENUM_FIELDS = [
   "pleats",
 ] as const satisfies readonly CapabilityStyleField[];
 
-const STYLE_LIMIT_FIELDS = [
+// #332: exported alongside STYLE_ENUM_FIELDS so lib/draft/specParams.ts can
+// tell a cm-valued style field from an enum-valued one without a second
+// hand-typed list that could drift from the ranges checkEngineSupport
+// actually enforces below.
+export const STYLE_LIMIT_FIELDS = [
   "necklineDepthCm",
   "skirtLengthCm",
   "seamAllowanceCm",

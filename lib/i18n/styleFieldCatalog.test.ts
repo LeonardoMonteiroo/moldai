@@ -3,6 +3,18 @@ import messages from "@/messages/pt-BR.json";
 import type { GarmentStyle } from "@/lib/types";
 import type { CapabilityStyleField } from "@/lib/draft/engine/capability";
 import type { AdjustedField } from "@/lib/draft/specAdjustments";
+import { STYLE_VALUE_CATALOG } from "@/lib/draft/specParams";
+import {
+  NECKLINES,
+  SLEEVES,
+  SKIRTS,
+  COLLARS,
+  CUFFS,
+  WAISTBANDS,
+  FRONT_CLOSURES,
+  PLEATS,
+} from "@/lib/draft/vocabulary";
+import { FIT_CLASSES, STRETCH_CLASSES } from "@/lib/draft/ease";
 
 /**
  * #325: three call sites build a PatternData label key from a FIELD NAME at
@@ -123,6 +135,84 @@ describe("template-built PatternData.<catalog>.${field} coverage (#325)", () => 
     (catalog, fields) => {
       expect(Object.keys(patternDataCatalog(catalog)).sort()).toEqual(
         [...fields].sort(),
+      );
+    },
+  );
+});
+
+/**
+ * #332: one level below the guard above. The "Parâmetros" panel
+ * (components/editor/TechSheetTab.tsx's SpecParamsCard) builds a VALUE key at
+ * runtime too -- `tData(\`${STYLE_VALUE_CATALOG[field]}.${value}\`)` -- and the
+ * same MISSING_MESSAGE silence applies: an enum value with no entry renders
+ * its raw key path into the sheet instead of throwing.
+ *
+ * Five catalogs shipped without their neutral "none" (a sleeveless garment, a
+ * collarless one, a skirt with no pleat) and `frontClosure` had no value
+ * catalog at all, because until this panel every one of these values reached
+ * the screen only through a DRAFTER's own detailRow -- and a drafter that
+ * drafts no collar emits no collar row, so "none" was never asked for. A
+ * read-only view of the spec asks for all of them.
+ *
+ * Both directions again, and derived from lib/draft/vocabulary.ts / ease.ts
+ * -- the exact arrays validateSpec's own pick() checks membership against --
+ * never a pasted list, so a new enum value cannot ship unlabeled.
+ */
+const STYLE_VALUES: Record<
+  keyof typeof STYLE_VALUE_CATALOG,
+  readonly string[]
+> = {
+  neckline: NECKLINES,
+  sleeve: SLEEVES,
+  skirt: SKIRTS,
+  collar: COLLARS,
+  cuff: CUFFS,
+  waistband: WAISTBANDS,
+  frontClosure: FRONT_CLOSURES,
+  pleats: PLEATS,
+  fit: FIT_CLASSES,
+  stretch: STRETCH_CLASSES,
+};
+
+function valueCatalog(name: string): Labels {
+  const ns = (messages as Record<string, unknown>).PatternData;
+  const catalog =
+    ns && typeof ns === "object"
+      ? (ns as Record<string, unknown>)[name]
+      : undefined;
+  return catalog && typeof catalog === "object" ? (catalog as Labels) : {};
+}
+
+describe("template-built PatternData.<value catalog>.${value} coverage (#332)", () => {
+  it.each(
+    Object.entries(STYLE_VALUES) as [
+      keyof typeof STYLE_VALUE_CATALOG,
+      readonly string[],
+    ][],
+  )(
+    "every %s value the app can draft has a non-empty pt-BR label",
+    (field, values) => {
+      const name = STYLE_VALUE_CATALOG[field];
+      const labels = valueCatalog(name);
+      for (const value of values) {
+        expect(labels[value], `PatternData.${name}.${value}`).toBeTruthy();
+      }
+    },
+  );
+
+  // The reverse: a value left behind in the JSON after the vocabulary dropped
+  // it is dead weight the type system cannot see.
+  it.each(
+    Object.entries(STYLE_VALUES) as [
+      keyof typeof STYLE_VALUE_CATALOG,
+      readonly string[],
+    ][],
+  )(
+    "PatternData.%s carries no value the vocabulary no longer has",
+    (field, values) => {
+      const name = STYLE_VALUE_CATALOG[field];
+      expect(Object.keys(valueCatalog(name)).sort()).toEqual(
+        [...values].sort(),
       );
     },
   );
