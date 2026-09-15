@@ -141,10 +141,11 @@ describe("TechSheetTab", () => {
     ).toBeInTheDocument();
   });
 
-  // #332: the "Parâmetros" panel. fit/stretch/seamAllowanceCm used to be
-  // three chips in the summary row; they are rows here now, so the panel is
-  // the single place the spec's style reaches the screen. The ease REPORT
-  // (#137) is still a separate section, tested below.
+  // #332: the "Parâmetros" panel. fit/stretch used to be two chips in the
+  // summary row and are rows here now. #353: seamAllowanceCm is NOT -- it
+  // stays with the piece cards, which every drafter already gives a
+  // rows.seamAllowance row. The ease REPORT (#137) is still a separate
+  // section, tested below.
   describe("the Parâmetros panel (#332)", () => {
     it("lists each style field the spec carries, labelled and valued from the catalog", () => {
       renderWithIntl(
@@ -155,7 +156,7 @@ describe("TechSheetTab", () => {
               type: "blouse",
               gender: "female",
               measurementOverrides: {},
-              style: { fit: "loose", seamAllowanceCm: 1.5, darts: true },
+              style: { fit: "loose", necklineDepthCm: 4.5, darts: true },
             },
           })}
         />,
@@ -169,9 +170,9 @@ describe("TechSheetTab", () => {
       ).toBeInTheDocument();
       expect(screen.getByText(ptBR.PatternData.fit.loose)).toBeInTheDocument();
       expect(
-        screen.getByText(ptBR.PatternData.styleField.seamAllowanceCm),
+        screen.getByText(ptBR.PatternData.styleField.necklineDepthCm),
       ).toBeInTheDocument();
-      expect(screen.getByText("1,5 cm")).toBeInTheDocument();
+      expect(screen.getByText("4,5 cm")).toBeInTheDocument();
       expect(
         screen.getByText(ptBR.PatternData.styleField.darts),
       ).toBeInTheDocument();
@@ -254,6 +255,74 @@ describe("TechSheetTab", () => {
         screen.getByText(ptBR.PatternData.collarType.none),
       ).toBeInTheDocument();
       expect(screen.getByText(ptBR.TechSheetTab.params.no)).toBeInTheDocument();
+    });
+
+    // #353: the regression #332 shipped. Every drafter emits its own
+    // rows.seamAllowance detail row on every piece it cuts, so listing the
+    // field in the panel too printed the same number twice on one sheet --
+    // the exact duplication #332 removed the chipSeamAllowance chip to avoid.
+    // The fixture needs a real piece row, which is why #332's own tests
+    // (pieces: [] or detailRows: []) could not catch it.
+    it("leaves the seam allowance to the piece cards, stating it once", () => {
+      renderWithIntl(
+        <TechSheetTab
+          pattern={pattern({
+            sizeTable: { M: SIZE_TABLE.M },
+            pieces: [
+              {
+                ...STUB_PIECE,
+                name: "Frente",
+                detailRows: [
+                  { label: ptBR.PatternData.rows.seamAllowance, value: "1,5" },
+                ],
+              },
+            ],
+            spec: {
+              type: "blouse",
+              gender: "female",
+              measurementOverrides: {},
+              style: { seamAllowanceCm: 1.5, neckline: "round" },
+            },
+          })}
+        />,
+      );
+
+      expect(
+        screen.getAllByText(ptBR.PatternData.rows.seamAllowance),
+      ).toHaveLength(1);
+      expect(
+        screen.queryByText(ptBR.PatternData.styleField.seamAllowanceCm),
+      ).not.toBeInTheDocument();
+    });
+
+    // #353: the other regression. garment.ts drafts a cuff only when
+    // hasPlacketOpening(style) holds, so a short-sleeved blouse asking for a
+    // straight cuff is cut with NO punho -- and #332 printed the punho row
+    // anyway, beside piece cards that contain none.
+    it("omits a cuff a short sleeve means was never drafted", () => {
+      renderWithIntl(
+        <TechSheetTab
+          pattern={pattern({
+            sizeTable: { M: SIZE_TABLE.M },
+            spec: {
+              type: "blouse",
+              gender: "female",
+              measurementOverrides: {},
+              style: { sleeve: "short", cuff: "straight" },
+            },
+          })}
+        />,
+      );
+
+      expect(
+        screen.getByText(ptBR.PatternData.styleField.sleeve),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText(ptBR.PatternData.styleField.cuff),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(ptBR.PatternData.cuffType.straight),
+      ).not.toBeInTheDocument();
     });
 
     it("does not render at all for a pattern whose style is still empty", () => {

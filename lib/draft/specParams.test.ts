@@ -16,10 +16,39 @@ function spec(overrides: Partial<GarmentSpec> = {}): GarmentSpec {
 describe("buildSpecParams (#332)", () => {
   it("lists only the style fields the spec actually carries", () => {
     const params = buildSpecParams(
+      spec({ style: { neckline: "V", darts: true } }),
+      "moldai",
+    );
+    expect(params.map((p) => p.field)).toEqual(["neckline", "darts"]);
+  });
+
+  // #353: every drafter emits its own rows.seamAllowance detail row on every
+  // piece (body.ts/skirt.ts/trousers.ts), so listing it here printed the same
+  // number twice on one sheet -- the very duplication #332 removed the
+  // chipSeamAllowance chip to avoid, missed one copy deeper.
+  it("omits seamAllowanceCm, which the piece cards below already state", () => {
+    const params = buildSpecParams(
       spec({ style: { neckline: "V", seamAllowanceCm: 1.5 } }),
       "moldai",
     );
-    expect(params.map((p) => p.field)).toEqual(["neckline", "seamAllowanceCm"]);
+    expect(params.map((p) => p.field)).toEqual(["neckline"]);
+  });
+
+  // #353: garment.ts drafts a cuff only when hasPlacketOpening holds, so a
+  // short-sleeved blouse carrying cuff: "straight" is cut with no punho --
+  // and #332 listed the punho anyway.
+  it("omits a cuff that a short sleeve means was never drafted", () => {
+    const shortSleeve = buildSpecParams(
+      spec({ style: { sleeve: "short", cuff: "straight" } }),
+      "moldai",
+    );
+    expect(shortSleeve.map((p) => p.field)).toEqual(["sleeve"]);
+
+    const longSleeve = buildSpecParams(
+      spec({ style: { sleeve: "long", cuff: "straight" } }),
+      "moldai",
+    );
+    expect(longSleeve.map((p) => p.field)).toEqual(["sleeve", "cuff"]);
   });
 
   it("returns nothing for a spec whose style is still empty", () => {
@@ -65,8 +94,8 @@ describe("buildSpecParams (#332)", () => {
     expect(params.map((p) => p.field)).toEqual(["skirt"]);
   });
 
-  it("omits a field the engine reads for no type it drafts", () => {
-    // freesewing's blouse (Simon) reads only `sleeve` -- a neckline set on
+  it("omits a field the engine does not read for a type it does draft", () => {
+    // freesewing's blouse (Diana) reads only `sleeve` -- a neckline set on
     // that pattern shaped nothing, so it is not presented as if it had.
     const params = buildSpecParams(
       spec({ style: { neckline: "V", sleeve: "long" } }),

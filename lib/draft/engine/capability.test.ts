@@ -8,7 +8,10 @@ import {
   MOLDAI_CAPABILITY,
   FREESEWING_CAPABILITY,
   checkEngineSupport,
+  hasPlacketOpening,
+  CAPABILITIES,
 } from "./capability";
+import { getEngine } from "./registry";
 import type { StyleEnums } from "./capability";
 import {
   TYPES,
@@ -260,4 +263,34 @@ describe("checkEngineSupport", () => {
     );
     expect(gaps).toEqual([]);
   });
+});
+
+// #353: the one cross-field coupling the app declares, moved here from
+// sleeve.ts so a client component (TechSheetTab's Parâmetros panel) can read
+// it without importing a drafter. Its truth table travels with it.
+describe("hasPlacketOpening (#344/#353)", () => {
+  it("is true only for a long sleeve with a straight cuff", () => {
+    expect(hasPlacketOpening({ sleeve: "long", cuff: "straight" })).toBe(true);
+    expect(hasPlacketOpening({ sleeve: "short", cuff: "straight" })).toBe(
+      false,
+    );
+    expect(hasPlacketOpening({ sleeve: "long", cuff: "none" })).toBe(false);
+    expect(hasPlacketOpening({ sleeve: "long" })).toBe(false);
+  });
+});
+
+// #353: CAPABILITIES is a second map from engine id to capability, kept
+// separate from registry.ts's ENGINES so a client component can read a
+// capability without pulling both drafting engines into its bundle. The
+// Record<EngineId, …> type forces a new engine into both, but nothing else
+// stops the two from disagreeing about WHICH capability an id names -- and
+// buildSpecParams would then filter a pattern's panel by the wrong engine's
+// field list. This pins them together.
+describe("CAPABILITIES agrees with the engine registry (#353)", () => {
+  it.each(ENGINE_IDS)(
+    "%s resolves to the registered engine's own capability",
+    (id) => {
+      expect(CAPABILITIES[id]).toBe(getEngine(id).capability);
+    },
+  );
 });

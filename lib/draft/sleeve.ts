@@ -11,6 +11,10 @@ import {
   Pt,
 } from "./core";
 import { BlockOpts } from "./body";
+// #353: hasPlacketOpening moved to the leaf capability module so a client
+// component can read the coupling without importing this drafter. Still the
+// single owner of the condition; this file and garment.ts both read it there.
+import { hasPlacketOpening } from "./engine/capability";
 import { formatCm } from "@/lib/format";
 import type { Translate } from "@/lib/i18n/translate";
 
@@ -76,15 +80,6 @@ const PLACKET_OPENING_MIN_CLEARANCE_CM = 2;
 // verified industry-standard fraction exists, the same deliberate-constant
 // footing as SLEEVE_PLACKET_OPENING_CM above.
 const PLACKET_BACK_INSET_FRACTION = 0.25;
-
-// #344: true exactly when garment.ts's own cuff+placket branch fires -- the
-// SINGLE owner of the "long sleeve + straight cuff" condition, read by both
-// this file (whether to cut the opening) and garment.ts (whether to draft/
-// pair the placket), so the two can never drift into "the sleeve has an
-// opening but nothing is paired to it" or the reverse.
-export function hasPlacketOpening(style: GarmentStyle): boolean {
-  return style.sleeve === "long" && style.cuff === "straight";
-}
 
 // #226: this is ONE cap-curve family (a fixed 5-point profile: two low
 // underarm corners, two 0.3*capH control points, one apex), parameterized

@@ -3,6 +3,7 @@ import {
   CAPABILITIES,
   STYLE_ENUM_FIELDS,
   STYLE_LIMIT_FIELDS,
+  hasPlacketOpening,
   type CapabilityStyleField,
   type EngineId,
 } from "@/lib/draft/engine/capability";
@@ -88,6 +89,42 @@ export const STYLE_VALUE_CATALOG = {
   pleats: "pleatType",
 } as const satisfies Record<(typeof STYLE_ENUM_FIELDS)[number], string>;
 
+// #353: style fields that already have an owner further down the SAME tech
+// sheet, so listing them here would print one number twice on one screen.
+//
+// `seamAllowanceCm` is the only member: every drafter emits its own
+// `rows.seamAllowance` detail row on every piece it cuts (lib/draft/body.ts,
+// skirt.ts, trousers.ts), labelled "Folga de costura (na linha de corte)" --
+// which says strictly more than a bare number, since it names the line the
+// value applies to. That row is also honest when the field is UNSET: the
+// drafters, the export screen and the tech-sheet PDF all apply the effective
+// `?? 1`, where an absent-means-absent panel would show nothing at all.
+//
+// This is the piece-card row's fact, not the panel's. #332 removed the
+// `chipSeamAllowance` chip for exactly this reason and missed that the
+// drafters were a third copy.
+const PIECE_OWNED_FIELDS: ReadonlySet<string> = new Set<CapabilityStyleField>([
+  "seamAllowanceCm",
+]);
+
+// #353: a field the engine lists for this TYPE whose value only shapes the
+// garment when a SIBLING field holds a particular value. `cuff` is the one
+// declared case: garment.ts drafts a cuff and its placket only when
+// hasPlacketOpening(style) holds, so a blouse carrying `cuff: "straight"`
+// with a short sleeve is cut with no punho at all -- and #332 listed it
+// anyway, printing a row for a piece the molde does not contain.
+//
+// Everything else returns false: the per-type filter is the whole mechanism
+// for the rest, and inventing couplings the drafters do not actually enforce
+// would trade one dishonest row for another. #333 owns generalizing this into
+// a declared per-engine table with its own EngineGap.
+function shapedNothing(
+  field: CapabilityStyleField,
+  style: GarmentStyle,
+): boolean {
+  return field === "cuff" && !hasPlacketOpening(style);
+}
+
 /**
  * The style fields `spec` carries that `engineId` actually READS for
  * `spec.type`, in the order that engine declares them.
@@ -99,12 +136,15 @@ export const STYLE_VALUE_CATALOG = {
  *   `fit: "loose"` -- lib/draft/skirt.ts reads neither fit nor stretch -- and
  *   showing it would present a value that shaped nothing as if it had.
  *
- *   The filter is per TYPE, the only granularity any engine declares today.
- *   It is NOT cross-field: a blouse carrying `cuff` with a short sleeve still
- *   lists the punho, since garment.ts's "only for a long sleeve" rule lives in
- *   the drafter and is declared nowhere. Declaring it -- and reporting a
- *   violated coupling as an engine gap -- is #333's job; this panel inherits
- *   that gap until then.
+ * - A field whose value shaped nothing because a SIBLING field contradicts it
+ *   is omitted too (`shapedNothing` above). `cuff` on a short sleeve is the one
+ *   declared case -- #332 shipped listing it, which printed a punho row for a
+ *   molde cut with no punho. #333 owns generalizing this into a per-engine
+ *   table with its own EngineGap; today `hasPlacketOpening` is the whole
+ *   mechanism, and a coupling the drafters do not actually enforce is NOT
+ *   invented here.
+ * - A field the piece cards further down this same sheet already state is
+ *   omitted (`PIECE_OWNED_FIELDS` above) -- one number, one owner, one screen.
  * - A field the spec never set is omitted too: `undefined` means "the user left
  *   this to the AI", not "off".
  *
@@ -123,6 +163,8 @@ export function buildSpecParams(
   for (const field of fields) {
     const value = spec.style[field as keyof GarmentStyle];
     if (value === undefined) continue;
+    if (PIECE_OWNED_FIELDS.has(field)) continue;
+    if (shapedNothing(field, spec.style)) continue;
     out.push({ field, kind: kindOf(field), value });
   }
   return out;

@@ -61,7 +61,7 @@ export function TechSheetTab({ pattern }: { pattern: Pattern }) {
   // #137: the drafted-ease report -- finished garment girth vs. the frozen
   // sizeTable row it was drafted from, measured off the actual geometry
   // (never the wearingEaseCm the drafter was merely ASKED for, which the
-  // chipFit/chipFabric chips above already surface). Pure/null-safe -- no
+  // Parâmetros panel above already surfaces). Pure/null-safe -- no
   // try/catch needed, buildEaseReport returns null itself rather than
   // throwing when there's nothing to measure yet.
   const easeReport = pattern.spec ? buildEaseReport(pattern, tData) : null;
@@ -236,9 +236,9 @@ function SpecParamsCard({
 
 // #137: the drafted-ease report -- finished garment girth vs. the frozen
 // sizeTable row, cm and %, plus the fit class those numbers imply
-// (tData("fit." + …), the SAME PatternData.fit.* catalog the chipFit chip
-// above reads, per the catalog-lookup-keyed-by-EN-enum rule: never a second
-// label map). A girth with no matching panel (or, for a radial skirt
+// (tData("fit." + …), the SAME PatternData.fit.* catalog the Parâmetros
+// panel above reads, per the catalog-lookup-keyed-by-EN-enum rule: never a
+// second label map). A girth with no matching panel (or, for a radial skirt
 // silhouette, no reliable height scan) renders as an explicit note instead
 // of a row -- CLAUDE.md's "surface a scope boundary where the user meets
 // it," never a silent omission.
