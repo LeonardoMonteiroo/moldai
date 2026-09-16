@@ -18,12 +18,8 @@ import {
   presentedEdgeLenCm,
 } from "./core";
 import { BlockOpts, draftBody } from "./body";
-import {
-  draftSleeve,
-  CAP_EASE_CM,
-  WRIST_EASE_CM,
-  hasPlacketOpening,
-} from "./sleeve";
+import { draftSleeve, CAP_EASE_CM, WRIST_EASE_CM } from "./sleeve";
+import { hasPlacketOpening } from "./engine/capability";
 import { draftSkirt, dressWaistHalfCm } from "./skirt";
 import { draftTrousers } from "./trousers";
 import {
@@ -665,7 +661,7 @@ export function draftAll(
       }
       // #130/#344: a straight cuff (+ placket), drafted from the sleeve's
       // own measured hem edge and placket-opening cut edge --
-      // hasPlacketOpening is the SAME predicate sleeve.ts used to decide
+      // hasPlacketOpening is the SAME predicate sleeve.ts reads to decide
       // whether to cut the opening at all, so the two can never drift into
       // "the sleeve has an opening but nothing is paired to it" or the
       // reverse. A short or sleeveless garment simply never reaches this

@@ -551,6 +551,24 @@ export const STYLE_LIMIT_FIELDS = [
   "riseCm",
 ] as const satisfies readonly CapabilityStyleField[];
 
+// #344/#353: true exactly when garment.ts's own cuff+placket branch fires --
+// the SINGLE owner of the "long sleeve + straight cuff" condition, read by
+// lib/draft/sleeve.ts (whether to cut the opening), garment.ts (whether to
+// draft and pair the placket) and lib/draft/specParams.ts (whether a `cuff`
+// the user set actually shaped anything), so the three can never drift into
+// "the sleeve has an opening but nothing is paired to it" or the reverse.
+//
+// It lives HERE, in the leaf module, rather than in sleeve.ts where #344 first
+// wrote it: a client component must be able to ask the question without
+// pulling a drafter into its bundle. This is the one cross-field coupling the
+// app declares today -- #333 owns turning couplings into a general per-engine
+// declaration with its own EngineGap; until then this predicate is the whole
+// mechanism, and it is moldai's (no freesewing capability lists `cuff` at
+// all, so the predicate is never consulted for that engine).
+export function hasPlacketOpening(style: GarmentStyle): boolean {
+  return style.sleeve === "long" && style.cuff === "straight";
+}
+
 /**
  * Narrows an already-VALID spec (validateSpec has already run) to what
  * `capability` can honestly honor. Pure, never mutates `spec`. This is the

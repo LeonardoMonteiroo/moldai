@@ -1,10 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { SIZE_TABLE } from "@/lib/measurements";
-import {
-  draftSleeve,
-  hasPlacketOpening,
-  SLEEVE_PLACKET_OPENING_CM,
-} from "./sleeve";
+import { draftSleeve, SLEEVE_PLACKET_OPENING_CM } from "./sleeve";
 import { curveArcLengthCm, bbox } from "./core";
 import type { BlockOpts } from "./body";
 import { t } from "@/lib/i18n/test-translate";
@@ -155,18 +151,10 @@ describe("draftSleeve bell cap", () => {
   // #344: the sleeve's own placket opening -- a cut line (internalsCm),
   // never boundary geometry, cut only when hasPlacketOpening(style) holds
   // (the SAME predicate garment.ts uses to gate the cuff+placket branch).
+  // The predicate's own truth table lives with the predicate, in
+  // lib/draft/engine/capability.test.ts -- this block covers what the SLEEVE
+  // does with it.
   describe("#344: placket opening", () => {
-    it("hasPlacketOpening is true only for long sleeve + straight cuff", () => {
-      expect(hasPlacketOpening({ sleeve: "long", cuff: "straight" })).toBe(
-        true,
-      );
-      expect(hasPlacketOpening({ sleeve: "short", cuff: "straight" })).toBe(
-        false,
-      );
-      expect(hasPlacketOpening({ sleeve: "long", cuff: "none" })).toBe(false);
-      expect(hasPlacketOpening({ sleeve: "long" })).toBe(false);
-    });
-
     it("cuts no opening for a short sleeve, or a long sleeve with no straight cuff", () => {
       const short = draftSleeve(
         M,
