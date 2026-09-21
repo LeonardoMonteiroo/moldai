@@ -63,13 +63,6 @@ next-env.d.ts
 /.claude/worktrees/
 /.claude/scheduled_tasks.lock
 
-# playwright-skill — installed dependencies and its own per-run scratch
-# scripts, both generated locally by run.js; only SKILL.md/lib/run.js/
-# package.json are part of the skill itself.
-/.claude/skills/playwright-skill/node_modules/
-/.claude/skills/playwright-skill/package-lock.json
-/.claude/skills/playwright-skill/.temp-execution-*.js
-
 # #269 — scripts/distill-training-data.ts's and
 # scripts/generate-training-data.ts's own output: synthetic (prompt,
 # GarmentSpec) pairs, spending real Anthropic tokens each run. Local tooling
