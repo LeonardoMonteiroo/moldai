@@ -248,6 +248,99 @@ describe("checkEngineSupport", () => {
     ]);
   });
 
+  // #333: cross-field couplings -- MOLDAI_CAPABILITY.styleRequires.
+  it("reports a cuff on a short sleeve as a styleRequires gap", () => {
+    const gaps = checkEngineSupport(
+      MOLDAI_CAPABILITY,
+      spec({ style: { sleeve: "short", cuff: "straight" } }),
+      base,
+    );
+    expect(gaps).toEqual([
+      {
+        kind: "styleRequires",
+        field: "cuff",
+        requires: { field: "sleeve", values: ["long"], absent: "none" },
+      },
+    ]);
+  });
+
+  it("judges an unset sleeve as the none it drafts as", () => {
+    const gaps = checkEngineSupport(
+      MOLDAI_CAPABILITY,
+      spec({ style: { cuff: "straight" } }),
+      base,
+    );
+    expect(gaps.map((g) => g.kind)).toEqual(["styleRequires"]);
+  });
+
+  it("never reports the neutral value, whatever its sibling holds", () => {
+    for (const sleeve of SLEEVES) {
+      expect(
+        checkEngineSupport(
+          MOLDAI_CAPABILITY,
+          spec({ style: { sleeve, cuff: "none" } }),
+          base,
+        ),
+      ).toEqual([]);
+    }
+  });
+
+  it("reports pleats on a radial skirt, and not on a flat-panel one", () => {
+    for (const skirt of SKIRTS) {
+      const gaps = checkEngineSupport(
+        MOLDAI_CAPABILITY,
+        spec({ type: "skirt", style: { skirt, pleats: "box" } }),
+        base,
+      );
+      const flat = skirt === "straight" || skirt === "a-line";
+      expect(gaps.map((g) => g.kind)).toEqual(flat ? [] : ["styleRequires"]);
+    }
+    // An unset silhouette drafts as "straight" (skirt.ts), so pleats apply.
+    expect(
+      checkEngineSupport(
+        MOLDAI_CAPABILITY,
+        spec({ type: "skirt", style: { pleats: "inverted-box" } }),
+        base,
+      ),
+    ).toEqual([]);
+  });
+
+  // The declaration and the drafters' own predicate must never disagree:
+  // a non-neutral cuff is reportable exactly when no placket is drafted.
+  it("agrees with hasPlacketOpening on every sleeve x cuff pair", () => {
+    for (const sleeve of SLEEVES) {
+      for (const cuff of CUFFS) {
+        if (cuff === "none") continue;
+        const gaps = checkEngineSupport(
+          MOLDAI_CAPABILITY,
+          spec({ style: { sleeve, cuff } }),
+          base,
+        );
+        expect(gaps.length > 0).toBe(!hasPlacketOpening({ sleeve, cuff }));
+      }
+    }
+  });
+
+  it("every declared requirement names fields and values the type reads", () => {
+    for (const cap of [MOLDAI_CAPABILITY, FREESEWING_CAPABILITY]) {
+      for (const req of cap.styleRequires ?? []) {
+        for (const type of cap.types) {
+          const fields = cap.styleFieldsByType[type];
+          if (!fields.includes(req.field)) continue;
+          expect(fields).toContain(req.requires.field);
+          const enums = cap.styleEnumsByType[type] as unknown as Record<
+            string,
+            readonly string[]
+          >;
+          expect(enums[req.field]).toContain(req.neutral);
+          for (const v of [...req.requires.values, req.requires.absent]) {
+            expect(enums[req.requires.field]).toContain(v);
+          }
+        }
+      }
+    }
+  });
+
   it("never mutates the spec it's given", () => {
     const s = spec({ style: { collar: "band" } });
     const before = JSON.parse(JSON.stringify(s));

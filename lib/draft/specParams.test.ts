@@ -51,6 +51,22 @@ describe("buildSpecParams (#332)", () => {
     expect(longSleeve.map((p) => p.field)).toEqual(["sleeve", "cuff"]);
   });
 
+  // #333: the same declared coupling for pleats -- skirt.ts's circle/gore/
+  // half-circle branch never reads them.
+  it("omits pleats a circle skirt means were never drafted", () => {
+    const circle = buildSpecParams(
+      spec({ type: "skirt", style: { skirt: "circle", pleats: "box" } }),
+      "moldai",
+    );
+    expect(circle.map((p) => p.field)).toEqual(["skirt"]);
+
+    const aLine = buildSpecParams(
+      spec({ type: "skirt", style: { skirt: "a-line", pleats: "box" } }),
+      "moldai",
+    );
+    expect(aLine.map((p) => p.field)).toEqual(["skirt", "pleats"]);
+  });
+
   it("returns nothing for a spec whose style is still empty", () => {
     expect(buildSpecParams(spec(), "moldai")).toEqual([]);
   });
@@ -77,12 +93,8 @@ describe("buildSpecParams (#332)", () => {
     expect(fields).toEqual(["neckline", "sleeve", "fit", "collar"]);
   });
 
-  // The filter is per TYPE, which is the granularity any engine declares
-  // today. It is NOT cross-field: a blouse carrying `cuff` with a short
-  // sleeve still lists the punho, because garment.ts's "only draft a cuff for
-  // a long sleeve" rule is written in the drafter and declared nowhere --
-  // that declaration is #333's job, and this panel inherits its gap until
-  // then.
+  // The per-TYPE filter; the cross-field one (#333's styleRequires) is
+  // covered by the cuff and pleats cases above.
   it("omits a field the engine does not read for this garment type", () => {
     const params = buildSpecParams(
       // A skirt carries no `fit`: skirt.ts reads neither fit nor stretch

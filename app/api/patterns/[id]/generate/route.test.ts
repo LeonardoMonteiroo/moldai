@@ -1230,6 +1230,41 @@ describe("POST /api/patterns/[id]/generate", () => {
     delete (CHART.chart.progressionRule as Record<string, number>).waistToFloor;
   });
 
+  // #333: a cuff set on a long sleeve is fine; shortening the sleeve on a
+  // later turn is what stops the cuff shaping anything, so THAT turn must say
+  // so, even though `cuff` itself did not change.
+  it("names a cuff in chat.engineStyleUnsupported when a later turn shortens its sleeve", async () => {
+    mockPropose.mockResolvedValueOnce({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: { sleeve: "long", cuff: "straight" },
+      },
+      assistantMessage: "Feito!",
+    });
+    await POST(req({ message: "blusa de manga longa com punho" }), ctx());
+    expect(state.chat.some((m) => m.tone === "notice")).toBe(false);
+
+    mockPropose.mockResolvedValueOnce({
+      decision: "apply",
+      spec: {
+        type: "blouse",
+        gender: "female",
+        measurementOverrides: {},
+        style: { sleeve: "short", cuff: "straight" },
+      },
+      assistantMessage: "Manga encurtada.",
+    });
+    const before = state.chat.length;
+    const res = await POST(req({ message: "manga curta" }), ctx());
+    expect(res.status).toBe(200);
+
+    const notices = state.chat.slice(before).filter((m) => m.tone === "notice");
+    expect(notices.map((m) => m.text)).toEqual(["chat.engineStyleUnsupported"]);
+  });
+
   // #326: trouserLengthCm now grades across sizes via each row's own
   // waistToFloor -- but a chart whose own waistToFloor doesn't itself vary
   // by size (CHART's own progressionRule is `{}` by default -- the same
