@@ -229,10 +229,10 @@
     },
     "skirtSilhouette": {
       "straight": "reta",
-      "a-line": "evase",
-      "gore": "gode",
+      "a-line": "evasê",
+      "gore": "godê",
       "half-circle": "meia-roda",
-      "circle": "circulo"
+      "circle": "círculo"
     },
     "sleeveType": {
       "none": "sem manga",
