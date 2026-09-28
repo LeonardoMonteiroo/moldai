@@ -1,16 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import type { EditorTab } from "@/lib/store";
 import type { PatternRecord } from "@/lib/types";
 import { exportPattern, type ExportFormat } from "@/lib/export";
 import { EXPORT_FORMAT_LABELS } from "@/lib/export/formats";
-import { buildExportModel } from "@/lib/export/model";
-import { planCutLayout, FABRIC_WIDTHS_CM } from "@/lib/export/cutplan";
 import { toTechSheetPdf } from "@/lib/export/techSheetPdf";
 import { downloadFile, slug } from "@/lib/export/download";
 import { recordChecklistEvent } from "@/lib/api-client";
+import { useCutPlan } from "./useCutPlan";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -34,9 +33,8 @@ const FORMATS_CORTE: ExportFormat[] = ["pdf-a4", "pdf-single", "pdf-layered"];
 
 // The modal has no fabric-width picker of its own (Editor.dc.html's corte
 // panel shows the consumption estimate as static text, not a control) --
-// the dedicated /export screen's ExportChecklist already owns that
-// interactive choice. This is only for the estimate line here.
-const DEFAULT_FABRIC_WIDTH_CM: (typeof FABRIC_WIDTHS_CM)[number] = 150;
+// the estimate reads the same plan CutPlanTab shows (useCutPlan): the tab's
+// fabric width, cut quantities, nesting mode and placements.
 
 type ModalVariant = "2d" | "corte" | "ficha";
 
@@ -82,20 +80,9 @@ export function ExportModal({
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
 
-  // Same basis ExportChecklist uses: buildExportModel's base-size draft,
-  // the only one planCutLayout ever nests (it has no size parameter).
-  const consumptionCm = useMemo(() => {
-    if (variant !== "corte" || !pattern.spec || pattern.pieces.length === 0) {
-      return null;
-    }
-    try {
-      const model = buildExportModel(pattern, tData);
-      const plan = planCutLayout(pattern, DEFAULT_FABRIC_WIDTH_CM, tData);
-      return { lengthCm: plan.lengthCm, model };
-    } catch {
-      return null;
-    }
-  }, [variant, pattern, tData]);
+  const { plan: cutPlan, fabricWidthCm } = useCutPlan(
+    variant === "corte" ? pattern : null,
+  );
 
   function handleDownload() {
     setDownloadError(null);
@@ -212,14 +199,12 @@ export function ExportModal({
                 ✓
               </span>
               <span className="text-ui">
-                {consumptionCm
+                {cutPlan && cutPlan.instances.length > 0
                   ? t("consumptionValue", {
-                      length: (consumptionCm.lengthCm / 100)
+                      length: (cutPlan.lengthCm / 100)
                         .toFixed(2)
                         .replace(".", ","),
-                      width: (DEFAULT_FABRIC_WIDTH_CM / 100)
-                        .toFixed(2)
-                        .replace(".", ","),
+                      width: (fabricWidthCm / 100).toFixed(2).replace(".", ","),
                     })
                   : t("consumptionUnavailable")}
               </span>
