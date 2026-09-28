@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   renderWithIntl,
   screen,
@@ -8,6 +8,8 @@ import {
 import { seedPatternState, applyGarmentSpec } from "@/lib/editor/state";
 import { t } from "@/lib/i18n/test-translate";
 import type { GarmentSpec, PatternRecord } from "@/lib/types";
+import { planCutLayout } from "@/lib/export/cutplan";
+import { useEditorStore } from "@/lib/store";
 import { ExportModal } from "./ExportModal";
 
 const BLOUSE: GarmentSpec = {
@@ -30,6 +32,14 @@ vi.mock("@/lib/export/download", () => ({
   downloadFile: vi.fn(),
   slug: (s: string) => s.toLowerCase(),
 }));
+
+beforeEach(() => {
+  useEditorStore.setState({
+    cutFabricWidthCm: 150,
+    nestingMode: "auto",
+    cutPlacements: {},
+  });
+});
 
 describe("ExportModal", () => {
   it("renders the 2D title/format list on the pattern2d variant", () => {
@@ -62,6 +72,46 @@ describe("ExportModal", () => {
       screen.getByRole("dialog", { name: ptBR.ExportModal.titleCorte }),
     ).toBeInTheDocument();
     expect(screen.getByText(ptBR.Footer.formatPdfA4)).toBeInTheDocument();
+  });
+
+  // #355: the estimate used to hardcode 150cm and the base size only, so it
+  // could contradict the Plano de corte tab. It now reads the same inputs
+  // the tab plans with -- the store's fabric width and the pattern's
+  // cutQuantities -- so it must equal planCutLayout over those same inputs.
+  it("estimates consumption from the tab's fabric width and cut quantities", () => {
+    useEditorStore.setState({
+      cutFabricWidthCm: 160,
+      nestingMode: "auto",
+      cutPlacements: {},
+    });
+    const base = draftedPattern();
+    const pattern: PatternRecord = {
+      ...base,
+      cutQuantities: { [base.baseSize]: 3 },
+    };
+    const expected = planCutLayout(pattern, 160, t, {
+      mode: "auto",
+      cutQuantities: pattern.cutQuantities,
+    });
+    const fromDefaults = planCutLayout(pattern, 150, t);
+    expect(expected.lengthCm).not.toBe(fromDefaults.lengthCm);
+
+    renderWithIntl(
+      <ExportModal
+        pattern={pattern}
+        variant="corte"
+        conflictActive={false}
+        open={true}
+        onOpenChange={() => {}}
+      />,
+    );
+    const line = ptBR.ExportModal.consumptionValue
+      .replace(
+        "{length}",
+        (expected.lengthCm / 100).toFixed(2).replace(".", ","),
+      )
+      .replace("{width}", "1,60");
+    expect(screen.getByText(line)).toBeInTheDocument();
   });
 
   it("disables the download button while a conflict is active, on every variant", () => {

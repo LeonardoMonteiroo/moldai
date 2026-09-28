@@ -1,14 +1,14 @@
 "use client";
 
-import { useMemo, useState, type CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 import { useTranslations } from "next-intl";
 import { Pattern } from "@/lib/types";
-import { planCutLayout } from "@/lib/export/cutplan";
 import { useEditorStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { CutPlanPreview } from "./CutPlanPreview";
 import { CutPlanSizePanel } from "./CutPlanSizePanel";
 import { FLOAT_CHROME } from "./floatChrome";
+import { useCutPlan } from "./useCutPlan";
 
 export const meters = (cm: number) =>
   (cm / 100).toFixed(2).replace(".", ",") + " m";
@@ -25,56 +25,13 @@ const cmFmt = (cm: number) => cm.toFixed(1).replace(".", ",");
 // together but has no analog for efficiency %.
 export function CutPlanTab({ pattern }: { pattern: Pattern }) {
   const t = useTranslations("CutPlanTab");
-  const tData = useTranslations("PatternData");
-  const fabricWidthCm = useEditorStore((s) => s.cutFabricWidthCm);
-  const nestingMode = useEditorStore((s) => s.nestingMode);
+  const { autoPlan, plan, fabricWidthCm, nestingMode } = useCutPlan(pattern);
   const setNestingMode = useEditorStore((s) => s.setNestingMode);
-  const cutPlacements = useEditorStore((s) => s.cutPlacements);
   const setCutPlacement = useEditorStore((s) => s.setCutPlacement);
   const seedCutPlacements = useEditorStore((s) => s.seedCutPlacements);
   const resetCutPlacements = useEditorStore((s) => s.resetCutPlacements);
 
   const [announcement, setAnnouncement] = useState("");
-
-  // Real nesting: only recalculates when the pattern, width, mode or manual
-  // placements change. Auto mode is computed either way -- switching into
-  // manual seeds it from the auto layout so the user nudges from a good
-  // start rather than an empty sheet.
-  const cutQuantities = pattern.cutQuantities;
-
-  const autoPlan = useMemo(() => {
-    if (!pattern.spec || pattern.pieces.length === 0) return null;
-    try {
-      return planCutLayout(pattern, fabricWidthCm, tData, {
-        mode: "auto",
-        cutQuantities,
-      });
-    } catch {
-      return null;
-    }
-  }, [pattern, fabricWidthCm, tData, cutQuantities]);
-
-  const plan = useMemo(() => {
-    if (!autoPlan) return null;
-    if (nestingMode === "auto") return autoPlan;
-    try {
-      return planCutLayout(pattern, fabricWidthCm, tData, {
-        mode: "manual",
-        placements: cutPlacements,
-        cutQuantities,
-      });
-    } catch {
-      return autoPlan;
-    }
-  }, [
-    autoPlan,
-    nestingMode,
-    pattern,
-    fabricWidthCm,
-    tData,
-    cutPlacements,
-    cutQuantities,
-  ]);
 
   function labelFor(it: { name: string; widthCm: number; heightCm: number }) {
     return t("instanceLabel", {
