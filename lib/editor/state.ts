@@ -346,6 +346,43 @@ export function setGarmentReading(
   );
 }
 
+// #281 follow-up: the chat as it stood once version `version` finished
+// drafting, for restore. PatternVersion doesn't snapshot chat, so this is
+// derived from the live chat:
+//
+// - When the version was an "apply" turn, its primary reply carries
+//   draftVersion === version (#269). chat is append-only in turn order, so
+//   everything up to that reply belongs to turn <= version, plus the
+//   chipless notices generate appends right after it (chart substitution,
+//   spec adjustments, reference check). The walk stops at the next user
+//   turn or at the next chip-bearing bubble -- every other version-producing
+//   route (graduate, conflict fix, restore) opens with one.
+// - Otherwise (a graduate/conflict_fix/restore version, or a message
+//   persisted before draftVersion existed) it falls back to cutting at the
+//   version row's own createdAt, which never keeps a later version's
+//   message.
+export function chatAtVersion(
+  chat: ChatMessage[],
+  version: number,
+  versionCreatedAtMs: number,
+): ChatMessage[] {
+  const replyIdx = chat.findIndex(
+    (m) => m.decision === "apply" && m.draftVersion === version,
+  );
+  if (replyIdx === -1) {
+    return chat.filter((m) => m.createdAt <= versionCreatedAtMs);
+  }
+  let end = replyIdx + 1;
+  while (
+    end < chat.length &&
+    chat[end].author === "ai" &&
+    !chat[end].chips?.length
+  ) {
+    end++;
+  }
+  return chat.slice(0, end);
+}
+
 export function bumpVersion(state: PatternState): void {
   state.pattern = {
     ...state.pattern,

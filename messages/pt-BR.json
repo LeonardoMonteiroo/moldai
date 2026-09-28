@@ -1463,7 +1463,7 @@
     "currentVersionLabel": "Versão atual",
     "totalSpent": "Total gasto neste molde: {total, plural, one {# crédito} other {# créditos}}",
     "restoreModalTitle": "Restaurar v{version}?",
-    "restoreModalDescription": "Isso cria uma nova versão a partir da versão selecionada. O histórico do chat não é restaurado, e nada é apagado.",
+    "restoreModalDescription": "Isso cria uma nova versão a partir da versão selecionada, e o chat volta a como estava nela. Nenhuma versão é apagada.",
     "restoreModalConfirmButton": "Restaurar",
     "restoreModalCancelButton": "Cancelar",
     "fromBadge": "De",

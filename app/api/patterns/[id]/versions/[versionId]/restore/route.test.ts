@@ -183,9 +183,7 @@ describe("POST /api/patterns/[id]/versions/[versionId]/restore", () => {
   // user's own turn is written BEFORE recordVersion runs, and that same
   // turn's AI reply is written AFTER it -- so v1's own reply (msg-1-ai)
   // lands AFTER v1's createdAt, exactly like it would in production, and is
-  // cut alongside v2's messages. That's the documented trade-off: this
-  // cutoff guarantees no later-version message survives, at the cost of
-  // also losing the restored version's own trailing reply.
+  // still kept, found by its draftVersion rather than by timestamp.
   it("truncates chat to what existed at the restored version, dropping later-version-only messages", async () => {
     const v1CreatedAtMs = new Date("2026-08-17T09:00:00.000Z").getTime();
     state.chat = [
@@ -227,10 +225,60 @@ describe("POST /api/patterns/[id]/versions/[versionId]/restore", () => {
     const texts = state.chat.map((m) => m.text);
     expect(texts).not.toContain("ajusta a manga");
     expect(texts).not.toContain("aqui está a v2");
-    // The documented trade-off: v1's own trailing reply is cut too, since
-    // its createdAt lands after v1's own PatternVersion row was recorded.
-    expect(texts).not.toContain("aqui está a v1");
+    expect(texts).toContain("aqui está a v1");
     expect(texts).toContain("quero uma blusa com decote V");
+  });
+
+  // The restored turn's own trailing notices (chipless, appended right
+  // after its reply) stay; a later version's opening bubble -- here a
+  // conflict fix, which carries a chip and no preceding user turn -- ends
+  // the restored turn.
+  it("keeps the restored turn's trailing notices, drops a later chip-bearing version bubble", async () => {
+    const v1CreatedAtMs = new Date("2026-08-17T09:00:00.000Z").getTime();
+    state.chat = [
+      {
+        id: "msg-1-u",
+        author: "user",
+        text: "quero uma blusa",
+        createdAt: v1CreatedAtMs - 1000,
+      },
+      {
+        id: "msg-1-ai",
+        author: "ai",
+        text: "aqui está a v1",
+        chips: [{ label: "1 crédito", tone: "credit" }],
+        decision: "apply",
+        draftVersion: 1,
+        createdAt: v1CreatedAtMs + 500,
+      },
+      {
+        id: "msg-1-spec",
+        author: "ai",
+        text: "ajustei o decote",
+        tone: "notice",
+        createdAt: v1CreatedAtMs + 501,
+      },
+      {
+        id: "msg-2-ai",
+        author: "ai",
+        text: "manga reajustada",
+        chips: [{ label: "grátis", tone: "neutral" }],
+        createdAt: v1CreatedAtMs + 5000,
+      },
+    ];
+    getVersionResult = {
+      ...VERSION,
+      version: 1,
+      createdAt: "2026-08-17T09:00:00.000Z",
+    };
+    await POST(new Request("http://test"), ctx());
+    const texts = state.chat.map((m) => m.text);
+    expect(texts).toEqual([
+      "quero uma blusa",
+      "aqui está a v1",
+      "ajustei o decote",
+      "chat.restored",
+    ]);
   });
 
   // The `<=` boundary itself: a message stamped exactly at the restored
