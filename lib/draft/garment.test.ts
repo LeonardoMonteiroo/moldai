@@ -53,6 +53,7 @@ import {
   draftWaistband,
 } from "./subpieces";
 import { buildAssemblyOrder } from "./assembly";
+import { GORE_PANELS_DEFAULT } from "./vocabulary";
 import type { GarmentSpec, Pattern } from "@/lib/types";
 
 function isFoldLine(
@@ -2741,6 +2742,69 @@ describe("seam graph (#134)", () => {
       notch.outerCm[1] - p0[1],
     );
     expect(distCm).toBeCloseTo(nettedWaistCm / 2, 1);
+  });
+
+  // #351: a gore skirt is qty:N wedges, so its band carries N-1 marks.
+  it.each([4, 6, 8, 12])(
+    "#351: a %i-gore skirt's waistband gets one mark per interior gore seam",
+    (gorePanels) => {
+      const spec = {
+        type: "skirt" as const,
+        gender: "female" as const,
+        measurementOverrides: {},
+        style: { skirt: "gore" as const, gorePanels },
+      };
+      const pieces = draftPiecesCm(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
+      const skirtPiece = pieces.find((p) => p.id === "skirt")!;
+      const waistband = pieces.find((p) => p.id === "waistband")!;
+      expect(skirtPiece.qty).toBe(gorePanels);
+      expect(waistband.notches).toHaveLength(gorePanels - 1);
+    },
+  );
+
+  // #351: every gore seam and both dress waist joins close with N wedges --
+  // each bodice half sews to N/2 wedges side by side.
+  it.each([
+    ["skirt", 6],
+    ["skirt", 10],
+    ["dress", 4],
+    ["dress", 8],
+  ] as const)(
+    "#351: a %s with a %i-gore skirt closes every skirt seam",
+    (type, gorePanels) => {
+      const spec = {
+        type,
+        gender: "female" as const,
+        measurementOverrides: {},
+        style: { skirt: "gore" as const, gorePanels, sleeve: "none" as const },
+      };
+      const graph = measureSeamGraph(DEFAULT_ENGINE_ID, spec, SIZE_TABLE.M, t);
+      const keys =
+        type === "dress"
+          ? ["skirt-side", "waist-join-front", "waist-join-back"]
+          : ["skirt-side", "waistband-waist"];
+      for (const key of keys) {
+        const pair = graph.find((m) => m.key === key);
+        expect(pair, key).toBeDefined();
+        expect(pair!.diffCm, key).toBeLessThan(0.3);
+      }
+      expect(graph.find((m) => m.key === "skirt-side")!.labelKey).toBe(
+        "skirtGoreSeam",
+      );
+    },
+  );
+
+  it("#351: validateSpec snaps gorePanels to an even count inside its limits", () => {
+    const panelsOf = (gorePanels: unknown) =>
+      validateSpec({ type: "skirt", style: { skirt: "gore", gorePanels } })
+        .style.gorePanels;
+    expect(panelsOf(8)).toBe(8);
+    expect(panelsOf(5)).toBe(6);
+    expect(panelsOf(7.2)).toBe(8);
+    expect(panelsOf(1)).toBe(STYLE_LIMITS.gorePanels.min);
+    expect(panelsOf(99)).toBe(STYLE_LIMITS.gorePanels.max);
+    expect(panelsOf("oito")).toBe(GORE_PANELS_DEFAULT);
+    expect(panelsOf(undefined)).toBeUndefined();
   });
 
   it("#331: a half-circle skirt's waistband reports a real zero marks, not em-breve -- qty:1 has no interior seam", () => {

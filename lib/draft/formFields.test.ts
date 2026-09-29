@@ -35,6 +35,7 @@ describe("STYLE_FIELDS_BY_TYPE", () => {
       "cuff",
       "collar",
       "skirt",
+      "gorePanels",
       "fit",
     ]);
   });
@@ -65,8 +66,12 @@ describe("STYLE_FIELDS_BY_TYPE", () => {
 
   // #327: SKIRT_WEARING_EASE_CM (skirt.ts) is a fixed constant -- no
   // drafter reads style.fit for a skirt.
-  it("skirt offers only skirt and waistband", () => {
-    expect(STYLE_FIELDS_BY_TYPE.skirt).toEqual(["skirt", "waistband"]);
+  it("skirt offers only skirt, its gore count and waistband", () => {
+    expect(STYLE_FIELDS_BY_TYPE.skirt).toEqual([
+      "skirt",
+      "gorePanels",
+      "waistband",
+    ]);
   });
 
   // #327: trousers.ts has no fit read at all, style-driven or otherwise.
@@ -132,16 +137,30 @@ describe("formStyleFieldsFor", () => {
     }
   });
 
-  it("changes nothing but cuff relative to the type's own list", () => {
+  it("changes nothing but cuff and gorePanels relative to the type's own list", () => {
     for (const type of TYPES) {
-      expect(formStyleFieldsFor(type, "long")).toEqual(
+      expect(formStyleFieldsFor(type, "long", "gore")).toEqual(
         STYLE_FIELDS_BY_TYPE[type],
       );
-      expect(formStyleFieldsFor(type, "short")).toEqual(
+      expect(formStyleFieldsFor(type, "short", "gore")).toEqual(
         STYLE_FIELDS_BY_TYPE[type].filter((f) => f !== "cuff"),
       );
     }
   });
+
+  // #351: skirt.ts reads gorePanels for a gore silhouette only.
+  it.each(["straight", "a-line", "circle", "half-circle", undefined] as const)(
+    "drops gorePanels for skirt silhouette %s",
+    (skirt) => {
+      expect(formStyleFieldsFor("skirt", undefined, skirt)).toEqual([
+        "skirt",
+        "waistband",
+      ]);
+      expect(formStyleFieldsFor("dress", "long", skirt)).not.toContain(
+        "gorePanels",
+      );
+    },
+  );
 });
 
 // The leaf-module property is the whole reason this map does not live in

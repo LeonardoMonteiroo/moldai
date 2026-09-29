@@ -222,6 +222,16 @@ export interface GarmentStyle {
   // "type-mismatched style field is a no-op" precedent trouserLengthCm/
   // skirtLengthCm/waistband already follow.
   riseCm?: number;
+
+  // #351: how many wedge panels ("gomos") a `skirt: "gore"` silhouette is cut
+  // into, each sewn to its neighbours. A COUNT, not a cm value: validateSpec
+  // snaps it to an even number inside STYLE_LIMITS.gorePanels
+  // (lib/draft/vocabulary.ts's evenGorePanels), and undefined drafts
+  // GORE_PANELS_DEFAULT. Read by lib/draft/skirt.ts for a gore skirt only
+  // (standalone or a dress's skirt), and simply unread for any other
+  // silhouette -- the same "type-mismatched style field is a no-op"
+  // precedent riseCm/pleats already follow.
+  gorePanels?: number;
 }
 
 export interface GarmentSpec {

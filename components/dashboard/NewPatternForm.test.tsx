@@ -344,6 +344,31 @@ describe("NewPatternForm — style controls", () => {
     expect(submitted!.formSpec.style.sleeve).toBe("short");
   });
 
+  // #351: skirt.ts reads gorePanels for a gore skirt only, and the Select's
+  // string option must reach the wire as the number validateSpec keeps.
+  it("offers the gore count only for a gore skirt, and sends it as a number", async () => {
+    const user = setup();
+    await choose(user, F.type, tGarment("garmentType.skirt"));
+    expect(
+      screen.queryByRole("combobox", { name: F.gorePanels }),
+    ).not.toBeInTheDocument();
+
+    await choose(user, F.skirt, V.skirt.gore);
+    await choose(user, F.gorePanels, V.gorePanels["8"]);
+    await submit(user);
+    expect(submitted!.formSpec.style.gorePanels).toBe(8);
+  });
+
+  it("drops a chosen gore count once the skirt is no longer gore", async () => {
+    const user = setup();
+    await choose(user, F.type, tGarment("garmentType.skirt"));
+    await choose(user, F.skirt, V.skirt.gore);
+    await choose(user, F.gorePanels, V.gorePanels["10"]);
+    await choose(user, F.skirt, V.skirt.circle);
+    await submit(user);
+    expect(submitted!.formSpec.style.gorePanels).toBeUndefined();
+  });
+
   // PFORM-23: asserted on the submitted spec, since a value left in state
   // would be sent as an explicit choice the user can no longer see.
   it("clears a style value the newly chosen garment type does not apply", async () => {

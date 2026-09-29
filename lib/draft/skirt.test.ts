@@ -9,6 +9,8 @@ import {
 import { bbox } from "./core";
 import { t } from "@/lib/i18n/test-translate";
 import type { InternalCm } from "./core";
+import { GORE_PANELS_DEFAULT } from "./vocabulary";
+import ptBR from "@/messages/pt-BR.json";
 
 const M = SIZE_TABLE.M;
 
@@ -43,13 +45,16 @@ describe("draftSkirt", () => {
   // was drafted for. A 12-segment polyline chord-approximates the true arc
   // slightly short, so the tolerance below is not exact equality.
   it.each([
-    ["circle", 2],
-    ["gore", 2],
-    ["half-circle", 1],
+    ["circle", undefined, 2],
+    // #351: GORE_PANELS_DEFAULT when unset, the user's count otherwise.
+    ["gore", undefined, GORE_PANELS_DEFAULT],
+    ["gore", 4, 4],
+    ["gore", 12, 12],
+    ["half-circle", undefined, 1],
   ] as const)(
-    "%s: the assembled waist opening across all %i panel(s) equals the waist measurement",
-    (skirt, expectedPanels) => {
-      const dp = draftSkirt(M, { skirt, skirtLengthCm: 60 }, t);
+    "%s (gorePanels %s): the assembled waist opening across all %i panel(s) equals the waist measurement",
+    (skirt, gorePanels, expectedPanels) => {
+      const dp = draftSkirt(M, { skirt, gorePanels, skirtLengthCm: 60 }, t);
       expect(dp.qty).toBe(expectedPanels);
       const steps = 12; // waistSpan is [0, steps] in draftSkirt
       let panelArcLength = 0;
@@ -62,14 +67,62 @@ describe("draftSkirt", () => {
       expect(waistOpening).toBeCloseTo(M.waist, 0);
     },
   );
-  // #328: the title used to say "godet" while the body drafts `skirt: "gore"`
-  // -- which today takes the same full sweep and panel count as `circle`, and
-  // produces no godet (inserted triangular wedge) at all. Retitled to what it
-  // actually asserts; the assertion itself was always correct.
-  it("gore (drafted as a full-sweep cone today) has a wider hem than straight", () => {
-    const reta = draftSkirt(M, { skirt: "straight", skirtLengthCm: 60 }, t);
-    const gode = draftSkirt(M, { skirt: "gore", skirtLengthCm: 60 }, t);
-    expect(bbox(gode.outlineCm).w).toBeGreaterThan(bbox(reta.outlineCm).w);
+  // #351: gore and circle share the same full-sweep flare (same waist
+  // radius, same total hem), but gore cuts it into gorePanels narrow wedges
+  // -- so each gore panel is narrower than a circle's half, and the whole
+  // skirt's hem is the same length either way.
+  it("gore is the circle's flare cut into narrower wedges, not the circle's geometry", () => {
+    const circle = draftSkirt(M, { skirt: "circle", skirtLengthCm: 60 }, t);
+    const gore = draftSkirt(M, { skirt: "gore", skirtLengthCm: 60 }, t);
+    expect(bbox(gore.outlineCm).w).toBeLessThan(bbox(circle.outlineCm).w);
+    const hem = (dp: ReturnType<typeof draftSkirt>) =>
+      curveArcLengthCm(
+        dp.outlineCm,
+        dp.curvedSpans ?? [],
+        ...dp.seamEdges!.hem,
+      ) * dp.qty;
+    expect(hem(gore)).toBeCloseTo(hem(circle), 0);
+  });
+
+  it("odd or out-of-range gorePanels reaching the drafter directly is still drafted as an even count", () => {
+    expect(draftSkirt(M, { skirt: "gore", gorePanels: 5 }, t).qty).toBe(6);
+    expect(draftSkirt(M, { skirt: "gore", gorePanels: 2 }, t).qty).toBe(4);
+    expect(draftSkirt(M, { skirt: "gore", gorePanels: 40 }, t).qty).toBe(12);
+  });
+
+  it("gorePanels is inert for every other silhouette", () => {
+    for (const skirt of [
+      "circle",
+      "straight",
+      "a-line",
+      "half-circle",
+    ] as const) {
+      expect(draftSkirt(M, { skirt, gorePanels: 8 }, t)).toEqual(
+        draftSkirt(M, { skirt }, t),
+      );
+    }
+  });
+
+  // #351: closes #328's "em breve" row -- the card states the real count.
+  it("gore states its panel count on the card and no longer carries an em-breve row", () => {
+    // `t` here is the identity translator, so rows carry catalog keys --
+    // checked against the real catalog so a missing key can't pass.
+    const dp = draftSkirt(M, { skirt: "gore", gorePanels: 8 }, t);
+    expect(dp.detailRows.map((r) => r.value)).not.toContain("comingSoonBadge");
+    expect(dp.detailRows).toContainEqual({
+      label: "rows.gorePanels",
+      value: "8",
+    });
+    expect(ptBR.PatternData.rows.gorePanels).toBeTruthy();
+    expect(
+      (ptBR.PatternData.rows as Record<string, string>).skirtGorePanels,
+    ).toBeUndefined();
+  });
+
+  // #351: a gore is cut flat on its own grainline, never on a fold.
+  it("gore declares no foldEdge (circle still does)", () => {
+    expect(draftSkirt(M, { skirt: "gore" }, t).foldEdge).toBeUndefined();
+    expect(draftSkirt(M, { skirt: "circle" }, t).foldEdge).toBeDefined();
   });
   it("length respects skirtLengthCm", () => {
     const curta = draftSkirt(M, { skirt: "straight", skirtLengthCm: 40 }, t);
@@ -344,14 +397,15 @@ describe("dressWaistHalfCm (#177)", () => {
         expect(backLen).toBeCloseTo(expectedWidthCm, 1);
         expect(frontLen + backLen).toBeCloseTo(M.waist, 1);
       } else {
-        // circle/gore: panels=2, each cut copy is a whole panel matching
+        // circle: panels=2, each cut copy is a whole panel matching
         // dressWaistHalfCm(waist) * 2 on its own single `waist` edge.
+        // #351 gore: panels=N, so N/2 wedges together match one bodice half.
         const arc = curveArcLengthCm(
           dp.outlineCm,
           dp.curvedSpans ?? [],
           ...dp.seamEdges!.waist,
         );
-        expect(arc).toBeCloseTo(expectedWidthCm, 1);
+        expect(arc * (dp.qty / 2)).toBeCloseTo(expectedWidthCm, 1);
       }
     },
   );

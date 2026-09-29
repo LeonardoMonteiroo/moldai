@@ -84,6 +84,7 @@ const STYLE_FIELDS = [
   "trouserLengthCm",
   "pleats",
   "riseCm",
+  "gorePanels",
 ] as const satisfies readonly CapabilityStyleField[];
 type _StyleFieldsExhaustive =
   Exclude<CapabilityStyleField, (typeof STYLE_FIELDS)[number]> extends never

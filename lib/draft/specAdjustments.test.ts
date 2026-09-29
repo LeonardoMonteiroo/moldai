@@ -20,6 +20,30 @@ describe("describeSpecAdjustments", () => {
     expect(describeSpecAdjustments(raw, validateSpec(raw))).toEqual([]);
   });
 
+  // #351: gorePanels must be even -- an in-range odd count is "rounded",
+  // never mislabelled as clamped (out of range) or substituted (defaulted).
+  it("reports an odd in-range gorePanels as rounded to the even count used", () => {
+    const raw = { type: "skirt", style: { skirt: "gore", gorePanels: 7 } };
+    expect(describeSpecAdjustments(raw, validateSpec(raw))).toEqual([
+      { kind: "rounded", field: "gorePanels", requested: 7, used: 8 },
+    ]);
+  });
+
+  it("reports an out-of-range gorePanels as clamped, and an even one not at all", () => {
+    const high = { type: "skirt", style: { skirt: "gore", gorePanels: 30 } };
+    expect(describeSpecAdjustments(high, validateSpec(high))).toEqual([
+      {
+        kind: "clamped",
+        field: "gorePanels",
+        requested: 30,
+        used: STYLE_LIMITS.gorePanels.max,
+        range: STYLE_LIMITS.gorePanels,
+      },
+    ]);
+    const even = { type: "skirt", style: { skirt: "gore", gorePanels: 10 } };
+    expect(describeSpecAdjustments(even, validateSpec(even))).toEqual([]);
+  });
+
   it("returns nothing for a field the raw payload never named", () => {
     const raw = { type: "blouse" };
     expect(describeSpecAdjustments(raw, validateSpec(raw))).toEqual([]);

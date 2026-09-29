@@ -54,6 +54,7 @@ const STYLE_FIELD_MAP: Record<keyof GarmentStyle, true> = {
   trouserLengthCm: true,
   pleats: true,
   riseCm: true,
+  gorePanels: true,
 };
 const STYLE_FIELDS = Object.keys(STYLE_FIELD_MAP) as (keyof GarmentStyle)[];
 

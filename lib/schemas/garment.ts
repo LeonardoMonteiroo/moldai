@@ -51,6 +51,7 @@ export const GarmentStyleSchema = z.object({
   trouserLengthCm: z.number().optional(),
   pleats: z.enum(PLEATS).optional(),
   riseCm: z.number().optional(),
+  gorePanels: z.number().optional(),
 });
 
 export const GarmentSpecSchema = z.object({

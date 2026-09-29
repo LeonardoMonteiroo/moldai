@@ -1414,6 +1414,9 @@ insert as an unsupported request, the same way the clause already names a contou
 flare leg — with the matching `skirt-godet-insert` entry in `DECLINE_CASES`/`DECLINE_PROMPTS`, which
 are deliberately "named after the exact prose in `lib/ai/prompt.ts`" so the two never drift apart.
 
+**Closed by #351** (see the entry below): the temporary collapse this entry declared is gone, and so
+are the `rows.skirtGorePanels` row and its pt-BR key. What follows is kept as the record of why.
+
 **Decision (owner, on this issue): `gore` does NOT stay a permanent synonym for `circle`.** It is
 meant to become a real N-panel construction — wedge panels sewn to each other, `radialPanels`
 returning something other than `2`, and the seam graph gaining the interior panel seams that follow
@@ -1430,3 +1433,44 @@ claiming godet coverage that does not exist. Retitled; the assertion was always 
 
 Source: GarmentCode treats panel count and godet inserts as separate constructions (`SkirtManyPanels`
 vs `SkirtCircle` vs `GodetSkirt`) — the mismatch surfaced when comparing that catalogue against ours.
+
+## `gore` is N wedge panels the user chooses, not circle's two halves (#351)
+
+**The construction.** A gored skirt is cut as N wedge panels sewn to each other. The geometry the
+issue asked for stays polar: `radialSkirt` is unchanged, `gore` enters it with the same
+`fullSweep = 2π` as `circle`, and only `panels` differs (`style.gorePanels`, default 6). So
+`r * sweep * panels === waist` still holds by construction, the total hem equals the circle's, and
+every consumer that reads waist + sweep instead of `qty` (the 3D proof's radial path, the ease
+report's `unsupportedSilhouette` carve-out) was re-checked and needed no change. A fitted-hip gored
+skirt (flat through the hip, flaring below) was the alternative considered; it is a different, non-polar
+block and would have reopened the ease report and 3D proof, so it stays a possible later silhouette,
+not what `gore` means.
+
+**Decision (owner, on this issue's thread): the user picks N.** Offered choices were a fixed 6, a
+fixed 8, the fitted-hip block, or a user-chosen count; Leonardo picked the user-chosen count. It is an
+optional `GarmentStyle.gorePanels`, 4–12, even only. Additive and optional, so no migration: a spec
+saved without it drafts the default 6 the next time the pattern is redrafted (stored pieces are
+redrawn only then, as with any drafter change).
+
+**Why even.** `dressWaistHalfCm` fixes each bodice half's hem at waist/2. With circle's `qty: 2` each
+half sewed to one whole panel; with N wedges each half sews to N/2 of them, which only divides evenly
+for an even N — an odd count would leave one wedge straddling the side seam. `validateSpec` snaps with
+`evenGorePanels` (nearest even, then clamp), and `draftSkirt` snaps again so a direct caller can't
+bypass it.
+
+**Why a new adjustment kind.** An odd in-range count (7) is moved to 8, but it was never out of range
+("clamped" would say so falsely) and the default was not used ("substituted" would say so falsely).
+`describeSpecAdjustments` reports it as `"rounded"`, with its own chat string.
+
+**Why a count kind, not a cm field.** `STYLE_LIMIT_FIELDS` doubles as `specParams`' "render with a cm
+unit" list; adding `gorePanels` there would print "8 cm" on the Parâmetros panel. `STYLE_COUNT_FIELDS`
+shares the range check in `checkEngineSupport` and gets its own `"count"` param kind.
+
+**Why the seam pair was relabelled, not re-keyed.** The `skirt-side` self-pair on a `qty: N` piece
+already declares "right edge of one copy to left edge of the next", which is exactly a gore seam, and
+`spaceSampling.test.ts`'s closure gate passed on it unchanged. Its key drives the assembly phase, so
+it stays; only the label (`skirtGoreSeam`) changes for a gore.
+
+**Why the training combinator doesn't sample it.** `combinations.ts` samples each style field
+independently, so it would pair "8 gomos" with a straight skirt as often as with a gore one and teach
+the model a coupling the drafter ignores. Its sample list is deliberately empty.

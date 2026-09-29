@@ -205,6 +205,7 @@ function SpecParamsCard({
 }) {
   const valueOf = (p: SpecParam): string => {
     if (p.kind === "cm") return `${cm(p.value as number)} cm`;
+    if (p.kind === "count") return String(p.value);
     if (p.kind === "boolean") return t(p.value ? "params.yes" : "params.no");
     const catalog =
       STYLE_VALUE_CATALOG[p.field as keyof typeof STYLE_VALUE_CATALOG];

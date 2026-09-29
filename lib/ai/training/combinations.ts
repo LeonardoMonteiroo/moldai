@@ -96,9 +96,9 @@ export const DECLINE_CASES: DeclineCase[] = [
   },
   { key: "jacket-blazer", type: null, reasonTag: "tailoredJacket" },
   // #328: a godet INSERT (a triangular wedge sewn into a straight panel) is
-  // not what `skirt: "gore"` drafts -- gore and circle both go through
-  // radialSkirt with the same full sweep and panel count, so no drafter
-  // produces a wedge insert at all. A shape gap on a type the capability
+  // not what `skirt: "gore"` drafts -- gore cuts the full-sweep flare into
+  // whole wedge PANELS sewn to each other (#351), so no drafter produces a
+  // wedge insert at all. A shape gap on a type the capability
   // otherwise drafts fine, hence `type: "skirt"`.
   { key: "skirt-godet-insert", type: "skirt", reasonTag: "godetInsert" },
 ];
@@ -125,6 +125,12 @@ const NUMERIC_SAMPLE_VALUES: Record<
   // (negative) sample, plus a small positive value, inside STYLE_LIMITS.
   // riseCm's own [-10, 15] range.
   riseCm: [-6, 5, 10],
+  // #351: deliberately empty -- gorePanels only shapes a `skirt: "gore"`
+  // panel, and this combinator samples each field independently, so it
+  // would pair "8 gomos" with a straight skirt as often as with a gore one
+  // and teach the model a coupling the drafter ignores. buildFieldPool
+  // skips an empty list, the same way it skips an empty enum.
+  gorePanels: [],
 };
 
 interface FieldSpec {
@@ -156,7 +162,9 @@ function buildFieldPool(
     capability.styleLimits,
   ) as (keyof EngineCapability["styleLimits"])[]) {
     if (!supported.has(field)) continue;
-    pool.push({ field, kind: "numeric", values: NUMERIC_SAMPLE_VALUES[field] });
+    const values = NUMERIC_SAMPLE_VALUES[field];
+    if (values.length === 0) continue;
+    pool.push({ field, kind: "numeric", values });
   }
   if (supported.has("darts")) {
     pool.push({ field: "darts", kind: "boolean", values: [true, false] });

@@ -193,7 +193,7 @@
       "grain": "Fio",
       "dart": "Pence",
       "silhouette": "Silhueta",
-      "skirtGorePanels": "Godê em painéis múltiplos (costurados entre si)",
+      "gorePanels": "Gomos (painéis costurados entre si)",
       "waistRadius": "Raio da cintura",
       "waistPanel": "Cintura (painel)",
       "waistFinished": "Cintura acabada (após pences/pregas)",
@@ -356,6 +356,11 @@
         "aLabel": "Lateral · direita",
         "bLabel": "Lateral · esquerda"
       },
+      "skirtGoreSeam": {
+        "title": "Costura entre gomos",
+        "aLabel": "Gomo · lateral direita",
+        "bLabel": "Gomo · lateral esquerda"
+      },
       "trouserFrontRise": {
         "title": "Gancho dianteiro",
         "aLabel": "Gancho · perna esquerda",
@@ -444,6 +449,7 @@
       "specAdjusted": "Ajustei o pedido para o que a MoldAI consegue traçar: {items}.",
       "specAdjustmentSubstituted": "{field} “{requested}” não existe, usei o padrão",
       "specAdjustmentClamped": "{field} {requested} está fora do intervalo ({min}–{max}), usei {used}",
+      "specAdjustmentRounded": "{field} precisa ser um número par, usei {used} em vez de {requested}",
       "referenceMismatch": "Ao comparar com a referência enviada, notei uma divergência: {note}",
       "trouserLengthNotGraded": "Sua grade não tem cintura ao chão graduada por tamanho, então o comprimento da calça saiu igual em todos os tamanhos. Para graduar, ajuste a regra de progressão dessa medida em Medidas e grades."
     },
@@ -468,7 +474,8 @@
       "frontClosure": "fechamento frontal",
       "trouserLengthCm": "comprimento da calça",
       "pleats": "prega",
-      "riseCm": "altura da cintura"
+      "riseCm": "altura da cintura",
+      "gorePanels": "número de gomos"
     },
     "pdf": {
       "pageLabel": "Página {pageNumber} de {totalPages} · Linha {rowNumber} · Coluna {colNumber} de {totalRows}x{totalCols}",
@@ -1148,6 +1155,7 @@
       "collar": "Gola",
       "frontClosure": "Fechamento frontal",
       "skirt": "Silhueta da saia",
+      "gorePanels": "Número de gomos",
       "waistband": "Cós",
       "fit": "Caimento",
       "photos": "Fotos e croquis (opcional)",
@@ -1184,6 +1192,13 @@
         "gore": "Godê",
         "half-circle": "Meia-roda",
         "circle": "Círculo"
+      },
+      "gorePanels": {
+        "4": "4 gomos",
+        "6": "6 gomos",
+        "8": "8 gomos",
+        "10": "10 gomos",
+        "12": "12 gomos"
       },
       "waistband": {
         "none": "Sem cós",

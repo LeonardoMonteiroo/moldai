@@ -218,6 +218,12 @@ function buildTool(capability: EngineCapability): LlmTool {
                   enum: styleEnumUnion(capability, "pleats"),
                 },
                 riseCm: bounded(capability.styleLimits.riseCm),
+                // #351: a count, not cm -- the model may still send an
+                // odd number; validateSpec snaps it to an even one.
+                gorePanels: {
+                  ...bounded(capability.styleLimits.gorePanels),
+                  type: "integer" as const,
+                },
               },
             },
           },

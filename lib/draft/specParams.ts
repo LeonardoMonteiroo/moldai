@@ -3,6 +3,7 @@ import {
   CAPABILITIES,
   STYLE_ENUM_FIELDS,
   STYLE_LIMIT_FIELDS,
+  STYLE_COUNT_FIELDS,
   hasPlacketOpening,
   type CapabilityStyleField,
   type EngineId,
@@ -26,19 +27,19 @@ import {
  * without pulling a drafting engine into its bundle.
  */
 
-export type SpecParamKind = "enum" | "cm" | "boolean";
+export type SpecParamKind = "enum" | "cm" | "count" | "boolean";
 
 export interface SpecParam {
   field: CapabilityStyleField;
   kind: SpecParamKind;
-  // The EN code for "enum", the raw number for "cm", the flag for "boolean" --
-  // never display text.
+  // The EN code for "enum", the raw number for "cm"/"count", the flag for
+  // "boolean" -- never display text.
   value: string | number | boolean;
 }
 
-// The three kinds partition CapabilityStyleField exactly: the ten enum fields
-// and six cm fields capability.ts already declares, plus `darts`, the only
-// boolean GarmentStyle has. The sentinel below makes a new style field a TYPE
+// The four kinds partition CapabilityStyleField exactly: the ten enum fields,
+// six cm fields and one count field (#351's gorePanels) capability.ts already
+// declares, plus `darts`, the only boolean GarmentStyle has. The sentinel below makes a new style field a TYPE
 // ERROR here (at `npm run build`) rather than a field that silently renders as
 // nothing -- the styleFieldCatalog.test.ts sentinel shape.
 const BOOLEAN_STYLE_FIELDS = [
@@ -49,6 +50,7 @@ type _KindsExhaustive =
     CapabilityStyleField,
     | (typeof STYLE_ENUM_FIELDS)[number]
     | (typeof STYLE_LIMIT_FIELDS)[number]
+    | (typeof STYLE_COUNT_FIELDS)[number]
     | (typeof BOOLEAN_STYLE_FIELDS)[number]
   > extends never
     ? true
@@ -58,12 +60,14 @@ void _kindsExhaustive;
 
 const BOOLEAN_FIELDS: ReadonlySet<string> = new Set(BOOLEAN_STYLE_FIELDS);
 const CM_FIELDS: ReadonlySet<string> = new Set(STYLE_LIMIT_FIELDS);
+const COUNT_FIELDS: ReadonlySet<string> = new Set(STYLE_COUNT_FIELDS);
 
 function kindOf(field: CapabilityStyleField): SpecParamKind {
   if (BOOLEAN_FIELDS.has(field)) return "boolean";
   if (CM_FIELDS.has(field)) return "cm";
-  // Everything left is enum-valued -- _KindsExhaustive above proves the three
-  // groups partition CapabilityStyleField, so this needs no fourth branch.
+  if (COUNT_FIELDS.has(field)) return "count";
+  // Everything left is enum-valued -- _KindsExhaustive above proves the four
+  // groups partition CapabilityStyleField, so this needs no fifth branch.
   return "enum";
 }
 
@@ -108,11 +112,12 @@ const PIECE_OWNED_FIELDS: ReadonlySet<string> = new Set<CapabilityStyleField>([
 ]);
 
 // #353: a field the engine lists for this TYPE whose value only shapes the
-// garment when a SIBLING field holds a particular value. `cuff` is the one
+// garment when a SIBLING field holds a particular value. `cuff` was the first
 // declared case: garment.ts drafts a cuff and its placket only when
 // hasPlacketOpening(style) holds, so a blouse carrying `cuff: "straight"`
 // with a short sleeve is cut with no punho at all -- and #332 listed it
-// anyway, printing a row for a piece the molde does not contain.
+// anyway, printing a row for a piece the molde does not contain. #351's
+// `gorePanels` is the second: skirt.ts reads it for `skirt: "gore"` only.
 //
 // Everything else returns false: the per-type filter is the whole mechanism
 // for the rest, and inventing couplings the drafters do not actually enforce
@@ -122,7 +127,10 @@ function shapedNothing(
   field: CapabilityStyleField,
   style: GarmentStyle,
 ): boolean {
-  return field === "cuff" && !hasPlacketOpening(style);
+  if (field === "cuff") return !hasPlacketOpening(style);
+  // #351: skirt.ts reads gorePanels for a gore silhouette only.
+  if (field === "gorePanels") return style.skirt !== "gore";
+  return false;
 }
 
 /**
@@ -137,8 +145,8 @@ function shapedNothing(
  *   showing it would present a value that shaped nothing as if it had.
  *
  * - A field whose value shaped nothing because a SIBLING field contradicts it
- *   is omitted too (`shapedNothing` above). `cuff` on a short sleeve is the one
- *   declared case -- #332 shipped listing it, which printed a punho row for a
+ *   is omitted too (`shapedNothing` above). `cuff` on a short sleeve is the
+ *   first declared case (`gorePanels` off a gore skirt, #351, the second) -- #332 shipped listing it, which printed a punho row for a
  *   molde cut with no punho. #333 owns generalizing this into a per-engine
  *   table with its own EngineGap; today `hasPlacketOpening` is the whole
  *   mechanism, and a coupling the drafters do not actually enforce is NOT

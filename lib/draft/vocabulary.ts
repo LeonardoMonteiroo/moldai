@@ -118,7 +118,38 @@ export const STYLE_LIMITS = {
   // measurement/natural waist already resolves to (lib/draft/trousers.ts,
   // lib/draft/skirt.ts) -- never a replacement for either.
   riseCm: { min: -10, max: 15 },
+  // #351: how many wedge panels ("gomos") a `skirt: "gore"` silhouette is
+  // cut into -- a COUNT, not a cm value, and always even (see
+  // evenGorePanels below). 4 is the fewest that still reads as a gored
+  // skirt rather than circle's own two halves; past 12 each wedge gets too
+  // narrow at the waist to sew accurately for a small size.
+  gorePanels: { min: 4, max: 12 },
 } as const;
+
+// #351: the panel count a `gore` skirt drafts when style.gorePanels is
+// unset -- the common "saia de 6 gomos". Every godê saved before #351 has no
+// gorePanels at all, so this is also what those patterns redraw as.
+export const GORE_PANELS_DEFAULT = 6;
+
+// #351: snaps a requested gore count onto the even numbers inside
+// STYLE_LIMITS.gorePanels. It has to be even because a dress splits the
+// skirt's panels evenly between the front and back bodice halves
+// (garment.ts's waist-join pairs), and an odd count would leave one wedge
+// straddling a side seam. Rounds to the NEAREST even number (5 -> 6,
+// 7 -> 8), then clamps.
+export function evenGorePanels(n: number): number {
+  const { min, max } = STYLE_LIMITS.gorePanels;
+  return Math.min(max, Math.max(min, Math.round(n / 2) * 2));
+}
+
+// #351: every count evenGorePanels keeps unchanged, as the new-pattern
+// form's own option strings ("4", "6", ... "12").
+export const GORE_PANEL_OPTIONS: readonly string[] = Array.from(
+  {
+    length: (STYLE_LIMITS.gorePanels.max - STYLE_LIMITS.gorePanels.min) / 2 + 1,
+  },
+  (_, i) => String(STYLE_LIMITS.gorePanels.min + i * 2),
+);
 
 // #260: Design2GarmentCode found the multimodal agent "performed
 // significantly better on multiple-choice questions compared to numerical

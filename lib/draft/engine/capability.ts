@@ -145,7 +145,8 @@ export interface EngineCapability {
     | "seamAllowanceCm"
     | "armholeDeepenCm"
     | "trouserLengthCm"
-    | "riseCm",
+    | "riseCm"
+    | "gorePanels",
     Range
   >;
   // Which style fields each supported GarmentType's drafters actually read.
@@ -296,6 +297,9 @@ export const MOLDAI_CAPABILITY: EngineCapability = {
       "cuff",
       "skirt",
       "skirtLengthCm",
+      // #351: a dress's skirt can be a gore skirt too -- its panels split
+      // evenly between the front and back waist-join pairs (garment.ts).
+      "gorePanels",
     ],
     tshirt: [
       "neckline",
@@ -318,6 +322,7 @@ export const MOLDAI_CAPABILITY: EngineCapability = {
       "seamAllowanceCm",
       "pleats",
       "riseCm",
+      "gorePanels",
     ],
     trousers: ["trouserLengthCm", "waistband", "seamAllowanceCm", "riseCm"],
     // #269: moldai drafts neither hoodie nor coat nor shirt at all (see
@@ -551,6 +556,14 @@ export const STYLE_LIMIT_FIELDS = [
   "riseCm",
 ] as const satisfies readonly CapabilityStyleField[];
 
+// #351: range-checked like STYLE_LIMIT_FIELDS above (each has its own
+// styleLimits entry), but a plain COUNT rather than a cm value -- kept as a
+// separate list so lib/draft/specParams.ts never renders one with a "cm"
+// unit.
+export const STYLE_COUNT_FIELDS = [
+  "gorePanels",
+] as const satisfies readonly CapabilityStyleField[];
+
 // #344/#353: true exactly when garment.ts's own cuff+placket branch fires --
 // the SINGLE owner of the "long sleeve + straight cuff" condition, read by
 // lib/draft/sleeve.ts (whether to cut the opening), garment.ts (whether to
@@ -626,7 +639,10 @@ export function checkEngineSupport(
       if (!allowed.includes(value as string)) {
         gaps.push({ kind: "styleValue", field, value: String(value) });
       }
-    } else if ((STYLE_LIMIT_FIELDS as readonly string[]).includes(field)) {
+    } else if (
+      (STYLE_LIMIT_FIELDS as readonly string[]).includes(field) ||
+      (STYLE_COUNT_FIELDS as readonly string[]).includes(field)
+    ) {
       const range =
         capability.styleLimits[field as keyof EngineCapability["styleLimits"]];
       if (

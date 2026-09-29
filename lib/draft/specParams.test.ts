@@ -175,6 +175,25 @@ describe("buildSpecParams (#332)", () => {
     ).toEqual(["sleeve"]);
   });
 
+  // #351: a count, never rendered with a cm unit, and only for a gore skirt.
+  it("lists gorePanels as a count on a gore skirt, and omits it on any other silhouette", () => {
+    expect(
+      buildSpecParams(
+        spec({ type: "skirt", style: { skirt: "gore", gorePanels: 8 } }),
+        "moldai",
+      ),
+    ).toEqual([
+      { field: "skirt", kind: "enum", value: "gore" },
+      { field: "gorePanels", kind: "count", value: 8 },
+    ]);
+    expect(
+      buildSpecParams(
+        spec({ type: "dress", style: { skirt: "circle", gorePanels: 8 } }),
+        "moldai",
+      ).map((p) => p.field),
+    ).toEqual(["skirt"]);
+  });
+
   it("does not mutate the spec it was given", () => {
     const s = spec({ style: { neckline: "V" } });
     const before = JSON.stringify(s);

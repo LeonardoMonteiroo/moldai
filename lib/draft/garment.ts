@@ -68,6 +68,8 @@ import {
   SCALAR_TOKEN_FIELDS,
   isValueSent,
   resolveScalarToken,
+  evenGorePanels,
+  GORE_PANELS_DEFAULT,
 } from "./vocabulary";
 import {
   SeamEdgeRef,
@@ -279,6 +281,15 @@ export function validateSpec(raw: unknown): GarmentSpec {
             STYLE_LIMITS.riseCm.min,
             STYLE_LIMITS.riseCm.max,
           )
+        : undefined,
+    // #351: a gore skirt's panel count, snapped to an even number inside
+    // STYLE_LIMITS.gorePanels (see vocabulary.ts's evenGorePanels for why
+    // it must be even). Garbage falls back to the drafted default rather
+    // than to a limit, so a nonsense value draws the same skirt an unset
+    // field would.
+    gorePanels:
+      style.gorePanels !== undefined
+        ? evenGorePanels(num(style.gorePanels, GORE_PANELS_DEFAULT))
         : undefined,
   };
   return {
@@ -908,10 +919,15 @@ export function draftAll(
     // skirt with no waistband (`waistband: "none"`) with zero declared
     // seams at all, and every skirt/dress with no side-seam step in its own
     // assembly order regardless of waistband.
+    //
+    // #351: for a gore skirt the same pair is the seam BETWEEN gores -- each
+    // of the N cut wedges' right edge sewn to the next one's left, which is
+    // what the self-pair on a qty:N piece already says -- so only its label
+    // changes; the key (and so its assembly-order kind) stays "skirt-side".
     if (skirtPiece.seamEdges?.sideRight && skirtPiece.seamEdges?.sideLeft) {
       seamPairs.push({
         key: "skirt-side",
-        labelKey: "skirtSide",
+        labelKey: spec.style.skirt === "gore" ? "skirtGoreSeam" : "skirtSide",
         a: [edgeRef(skirtPiece.id, skirtPiece.seamEdges.sideRight)],
         b: [edgeRef(skirtPiece.id, skirtPiece.seamEdges.sideLeft)],
         easeCm: 0,
@@ -958,7 +974,7 @@ export function draftAll(
     // #185 (found while implementing #177, fixed in the same PR): equal
     // VALUES aren't enough on their own -- the TOPOLOGY of what each pair
     // compares also has to match how many physical copies the skirt piece
-    // actually is. When `skirtPiece.qty > 1` (straight/a-line, circle/gore),
+    // actually is. When `skirtPiece.qty === 2` (straight/a-line, circle),
     // each bodice half sews to its own WHOLE, identical cut copy, so both
     // pairs compare against the same declared `waist` edge, unchanged from
     // before #185 -- this is #79's own original topology and #185 didn't
@@ -968,6 +984,11 @@ export function draftAll(
     // each individually -- `waistFront`/`waistBack` (lib/draft/skirt.ts) are
     // the two halves of that same arc, split at the panel's own centre
     // vertex, and are what each pair compares against instead.
+    //
+    // #351: a gore skirt is qty:N (N even), so each bodice half sews to N/2
+    // wedges side by side -- one ref per wedge, summed by the pair exactly
+    // like the waistband's own `waistRefs` below. For qty:2 that is one ref
+    // per side, #79's original topology unchanged.
     const singlePanel = skirtPiece.qty === 1;
     const frontWaistEdge = singlePanel
       ? skirtPiece.seamEdges?.waistFront
@@ -975,6 +996,9 @@ export function draftAll(
     const backWaistEdge = singlePanel
       ? skirtPiece.seamEdges?.waistBack
       : skirtPiece.seamEdges?.waist;
+    const panelsPerHalf = singlePanel ? 1 : skirtPiece.qty / 2;
+    const waistJoinRefs = (edge: [number, number]) =>
+      Array.from({ length: panelsPerHalf }, () => edgeRef(skirtPiece.id, edge));
     // #335: a fitted bodice's own hem is now CUT wider than the skirt's
     // waist by exactly what its own two darts fold away
     // (lib/draft/body.ts's dressHemDartIntakeCm) -- the same third instance
@@ -999,7 +1023,7 @@ export function draftAll(
         key: "waist-join-front",
         labelKey: "waistJoinFront",
         a: [edgeRef(front.id, front.seamEdges.hem)],
-        b: [edgeRef(skirtPiece.id, frontWaistEdge)],
+        b: waistJoinRefs(frontWaistEdge),
         easeCm: 0,
         fixable: false,
         gatherRatio: hemGatherRatio(front, front.seamEdges.hem),
@@ -1010,7 +1034,7 @@ export function draftAll(
         key: "waist-join-back",
         labelKey: "waistJoinBack",
         a: [edgeRef(back.id, back.seamEdges.hem)],
-        b: [edgeRef(skirtPiece.id, backWaistEdge)],
+        b: waistJoinRefs(backWaistEdge),
         easeCm: 0,
         fixable: false,
         gatherRatio: hemGatherRatio(back, back.seamEdges.hem),

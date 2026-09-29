@@ -478,7 +478,8 @@ export async function POST(request: Request, { params }: Ctx) {
               const specAdjustments = (decision.adjustments ?? []).filter(
                 (a) => {
                   const current = finalOf(a);
-                  if (a.kind === "clamped") return current === a.used;
+                  if (a.kind === "clamped" || a.kind === "rounded")
+                    return current === a.used;
                   return a.used === undefined
                     ? current === undefined
                     : String(current) === a.used;
@@ -655,10 +656,16 @@ export async function POST(request: Request, { params }: Ctx) {
                         max: a.range.max,
                         used: a.used,
                       })
-                    : t("chat.specAdjustmentSubstituted", {
-                        field: fieldLabel(a.field),
-                        requested: a.requested,
-                      }),
+                    : a.kind === "rounded"
+                      ? t("chat.specAdjustmentRounded", {
+                          field: fieldLabel(a.field),
+                          requested: a.requested,
+                          used: a.used,
+                        })
+                      : t("chat.specAdjustmentSubstituted", {
+                          field: fieldLabel(a.field),
+                          requested: a.requested,
+                        }),
                 );
                 addMessage(state, {
                   id: `msg-${Date.now()}-spec`,

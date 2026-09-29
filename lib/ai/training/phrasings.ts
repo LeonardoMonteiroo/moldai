@@ -74,11 +74,10 @@ const FIELD_FRAGMENTS: Partial<
     ],
     // #328: the third fragment used to be "godê, com aquelas peças
     // triangulares que dão rodado" -- a description of INSERTED TRIANGULAR
-    // GODETS, a construction no drafter in this repo produces: `radialPanels`
-    // (lib/draft/skirt.ts) returns 2 for both `gore` and `circle`, and both
-    // take the same `fullSweep = 2 * Math.PI` through the same radialSkirt()
-    // call, so the two silhouettes draft byte-identical geometry today. A
-    // training phrase for a construction the engine cannot draft teaches the
+    // GODETS, a construction no drafter in this repo produces: `gore` cuts
+    // the same full-sweep flare as `circle` into whole wedge panels sewn to
+    // each other (#351's gorePanels), never a triangle inserted into a
+    // straight panel. A training phrase for a construction the engine cannot draft teaches the
     // model to promise it in `assistantMessage`, upstream of validateSpec
     // where no adjustment notice can catch it. The two direct fragments stay:
     // in pt-BR "godê" IS the roda the code drafts, not the triangle. The
@@ -562,7 +561,7 @@ export const DECLINE_PROMPTS: Record<string, string[]> = {
     "Quero um paletó de alfaiataria, forrado, pra usar no trabalho.",
   ],
   // #328: the triangular godet INSERT -- not the same thing as this app's
-  // `skirt: "gore"`, which drafts a full-sweep radial panel (see the gore
+  // `skirt: "gore"`, which drafts full-sweep radial wedge panels (see the gore
   // fragment bank above). A request that explicitly asks for wedges sewn
   // into a straight panel is a real gap, named in lib/ai/prompt.ts's own
   // "# Vocabulary mapping" prose like every other entry here.

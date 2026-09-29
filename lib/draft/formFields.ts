@@ -9,7 +9,12 @@
 // .test.ts pins that structurally, since an accidental drafter import would
 // only show up as a bundle-size or environment failure much later.
 
-import type { GarmentStyle, GarmentType, SleeveLength } from "@/lib/types";
+import type {
+  GarmentStyle,
+  GarmentType,
+  SkirtSilhouette,
+  SleeveLength,
+} from "@/lib/types";
 
 // Every GarmentStyle key the type declares as optional -- i.e. one
 // validateSpec leaves `undefined` when nothing set it, which is exactly the
@@ -32,7 +37,11 @@ type OptionalGarmentStyleField = NonNullable<
 // deliberately absent: a cm value with a STYLE_LIMITS range is not something
 // a select can express honestly, and stretch is a fabric property the user
 // picks after the molde exists. The details textarea reaches all of them
-// through the model. `sleeveRefit` is absent because it is internal --
+// through the model. #351's `gorePanels` is the one number that IS here: a
+// count restricted to five even values (4-12) is exactly what a select can
+// express, and unlike a cm range it has no in-between values to hide. Its
+// options are strings on the form and become numbers only at submit.
+// `sleeveRefit` is absent because it is internal --
 // validateSpec discards it, and a form must never be able to fake a sleeve
 // refit.
 export const FORM_STYLE_FIELDS = [
@@ -42,6 +51,7 @@ export const FORM_STYLE_FIELDS = [
   "collar",
   "frontClosure",
   "skirt",
+  "gorePanels",
   "waistband",
   "fit",
 ] as const satisfies readonly OptionalGarmentStyleField[];
@@ -79,9 +89,9 @@ export const STYLE_FIELDS_BY_TYPE: Record<
   readonly FormStyleField[]
 > = {
   blouse: ["neckline", "sleeve", "cuff", "collar", "frontClosure", "fit"],
-  dress: ["neckline", "sleeve", "cuff", "collar", "skirt", "fit"],
+  dress: ["neckline", "sleeve", "cuff", "collar", "skirt", "gorePanels", "fit"],
   tshirt: ["neckline", "sleeve", "cuff", "collar"],
-  skirt: ["skirt", "waistband"],
+  skirt: ["skirt", "gorePanels", "waistband"],
   trousers: ["waistband"],
   // #269: freesewing-only (see lib/draft/vocabulary.ts's own TYPES comment)
   // -- Hugo's hood/cuff/waistband are all FIXED parts of the design, never
@@ -110,12 +120,17 @@ export const STYLE_FIELDS_BY_TYPE: Record<
  * `cuff` is dropped unless the sleeve is `"long"`: no drafter reads
  * `style.cuff` for a short or sleeveless garment (lib/draft/sleeve.ts), so
  * offering the control there would be a field that silently does nothing.
+ * #351: `gorePanels` is dropped unless the skirt silhouette is `"gore"`, for
+ * the same reason -- lib/draft/skirt.ts reads it for no other silhouette.
  */
 export function formStyleFieldsFor(
   type: GarmentType,
   sleeve: SleeveLength | undefined,
+  skirt?: SkirtSilhouette,
 ): readonly FormStyleField[] {
-  const fields = STYLE_FIELDS_BY_TYPE[type];
-  if (sleeve === "long") return fields;
-  return fields.filter((f) => f !== "cuff");
+  return STYLE_FIELDS_BY_TYPE[type].filter(
+    (f) =>
+      (f !== "cuff" || sleeve === "long") &&
+      (f !== "gorePanels" || skirt === "gore"),
+  );
 }

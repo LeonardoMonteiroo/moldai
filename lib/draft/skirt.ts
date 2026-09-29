@@ -15,6 +15,7 @@ import {
   Pt,
 } from "./core";
 import { formatCm } from "@/lib/format";
+import { evenGorePanels, GORE_PANELS_DEFAULT } from "./vocabulary";
 import type { Translate } from "@/lib/i18n/translate";
 
 const cm = (v: number) => `${formatCm(v)} cm`;
@@ -122,8 +123,20 @@ export function skirtWaistHalfCm(hipCm: number): number {
 // cuts the waist opening into -- pulled out of draftSkirt/radialSkirt below
 // so dressWaistHalfCm can reuse the exact same mapping rather than a second
 // copy of it drifting alongside.
-function radialPanels(silhueta: SkirtSilhouette): number {
-  return silhueta === "half-circle" ? 1 : 2;
+//
+// #351: `gore` is no longer a second label for `circle`'s two halves -- it
+// cuts the same full-sweep flare into style.gorePanels wedges (the user's
+// choice, GORE_PANELS_DEFAULT when unset), each sewn to its neighbours.
+// Snapped through evenGorePanels again here even though validateSpec already
+// did: a dress splits these panels evenly between its front and back
+// waist-join pairs (garment.ts), and a direct caller that skipped
+// validateSpec must not be able to hand it an odd count.
+function radialPanels(silhueta: SkirtSilhouette, style: GarmentStyle): number {
+  if (silhueta === "half-circle") return 1;
+  if (silhueta === "gore") {
+    return evenGorePanels(style.gorePanels ?? GORE_PANELS_DEFAULT);
+  }
+  return 2;
 }
 
 // #177 (owner decision on #177's own issue thread, refined after a
@@ -142,13 +155,15 @@ function radialPanels(silhueta: SkirtSilhouette): number {
 // The value is waistCm/4, with NO added design ease -- not an arbitrary
 // choice, but the one value every silhouette's own already-correct
 // construction can meet exactly:
-//  - circle/gore (panels=2, untouched by this issue): each drafted panel is
+//  - circle (panels=2, untouched by this issue): each drafted panel is
 //    a whole, self-contained piece (like a bodice front/back), and its own
 //    waist arc is `r * sweep` = waistCm/panels = waistCm/2 -- exactly TWO
 //    quarters. A bodice hem of waistCm/4 half-width (waistCm/2 full width)
 //    matches that panel's own arc exactly, with no ease term available to
 //    add without changing radialSkirt's own math (out of scope, and #185
 //    said not to touch it).
+//  - gore (#351, panels=N, always even): each bodice half sews to N/2
+//    wedges together, whose waist arcs sum to the same waistCm/2.
 //  - half-circle (panels=1): the single undivided panel's own waist arc is
 //    the full waistCm: it is split in half between the two waist-join pairs
 //    (see draftSkirt's waistFront/waistBack below and garment.ts's
@@ -263,24 +278,20 @@ export function draftSkirt(
     silhueta === "half-circle"
   ) {
     const fullSweep = silhueta === "half-circle" ? Math.PI : 2 * Math.PI;
-    const panels = radialPanels(silhueta);
+    const panels = radialPanels(silhueta, style);
     const { pts, r } = radialSkirt(m.waist, length, fullSweep, panels, riseCm);
     detailRows.splice(1, 0, { label: t("rows.waistRadius"), value: cm(r) });
-    if (silhueta === "gore") {
-      // #328: `gore` and `circle` reach radialSkirt above with the IDENTICAL
-      // fullSweep (2*PI) and panel count (radialPanels returns 2 for both),
-      // so the two catalog choices hand back the same molde today. The
-      // construction the "godê" label is meant to become -- N wedge panels
-      // sewn to each other, rather than one full-sweep cone cut in two -- is
-      // planned work, and CLAUDE.md's "surface feature limitations
-      // on-screen, never silently" makes it a stated "em breve" row, the
-      // same shape rows.collarOtherTypes/rows.trouserOtherLegs already use
-      // for a real, named gap. No drafter here produces an inserted
-      // triangular godet either; that gap is declared in lib/ai/prompt.ts's
-      // own vocabulary mapping instead, where the request arrives.
+    const isGore = silhueta === "gore";
+    if (isGore) {
+      // #351 (closing #328's "em breve" row): the same full-sweep flare as
+      // circle, cut into `panels` wedges instead of two halves -- stated on
+      // the card so the count the cutting table needs is not left to
+      // reading `qty`. No drafter here produces an inserted triangular
+      // godet; that gap is declared in lib/ai/prompt.ts's own vocabulary
+      // mapping instead, where the request arrives.
       detailRows.splice(2, 0, {
-        label: t("rows.skirtGorePanels"),
-        value: t("comingSoonBadge"),
+        label: t("rows.gorePanels"),
+        value: String(panels),
       });
     }
     // shift to x>=0
@@ -301,7 +312,8 @@ export function draftSkirt(
     // #263: notchAtVertex derives the inward tick from outlineCm's own
     // winding now -- no more caller-supplied interior reference.
     const notches: NotchCm[] = [
-      // hem-fold notch: centre front/back at the hem.
+      // hem-centre notch: centre front/back at the hem (circle/half-circle),
+      // or each gore's own centre, lined up with its grainline.
       notchAtVertex(outlineCm, foldEdge[1], "single"),
     ];
     if (isDressWaist) {
@@ -322,9 +334,9 @@ export function draftSkirt(
     // `waistBack` split the arc at its own centre vertex (`steps/2`, the
     // same vertex `foldEdge` already anchors on for exactly this reason --
     // it's the panel's own axis of symmetry). For panels===2
-    // (circle/gore), each cut copy is already a WHOLE panel matching one
-    // bodice half entirely (like circle/gore always has), so these extra
-    // fields are simply unused -- garment.ts picks `waist` vs.
+    // (circle), each cut copy is already a WHOLE panel matching one bodice
+    // half entirely, and for a gore (#351) N/2 copies together match one
+    // half, so these extra fields are simply unused -- garment.ts picks `waist` vs.
     // `waistFront`/`waistBack` off `skirtPiece.qty`, not off the
     // silhouette's name.
     const half = panels === 1 ? steps / 2 : undefined;
@@ -350,8 +362,9 @@ export function draftSkirt(
     // same way waist/hem already are: unconditionally, regardless of
     // panels/qty -- garment.ts declares the self-pair sewing them together
     // (like sleeve.ts's own underarmRight/underarmLeft), which is what
-    // closes this panel into a tube (panels===2, gore/circle) or into a
-    // full circle at centre-back (panels===1, half-circle).
+    // closes this panel into a tube (panels===2 circle, panels===N gore --
+    // each wedge's right edge to the next wedge's left) or into a full
+    // circle at centre-back (panels===1, half-circle).
     seamEdges.sideRight = [steps, steps + 1];
     seamEdges.sideLeft = [2 * steps + 1, outlineCm.length];
 
@@ -375,7 +388,11 @@ export function draftSkirt(
         [cxTop, 4],
         [cxTop, outlineCm[steps / 2][1]],
       ],
-      foldEdge,
+      // #351: a gore is cut flat on its own centre grainline, never on a
+      // fold -- declaring foldEdge would make the export draw a "cut on
+      // fold" line down the middle of every wedge. The axis is still the
+      // wedge's own centre, so the hem notch and grainline above keep it.
+      ...(isGore ? {} : { foldEdge }),
       notches,
       detailRows,
       // #134: the waist arc (whole edge, `waistSpan`) -- only meaningful

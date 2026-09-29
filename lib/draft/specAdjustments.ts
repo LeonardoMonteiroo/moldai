@@ -57,6 +57,16 @@ export type SpecAdjustment =
       requested: number;
       used: number;
       range: Range;
+    }
+  | {
+      // #351: an in-range number validateSpec still had to move -- today
+      // only gorePanels, which must be even (vocabulary.ts's
+      // evenGorePanels). A "clamped" report would falsely call 5 out of
+      // range; a "substituted" one would falsely say the default was used.
+      kind: "rounded";
+      field: AdjustedField;
+      requested: number;
+      used: number;
     };
 
 // One vocabulary array per enum-valued field -- the exact catalogs
@@ -273,6 +283,25 @@ export function describeSpecAdjustments(
   // #259's riseCm has no descriptive-token twin of its own (SCALAR_TOKEN_FIELDS
   // names the five #260 shipped), so it reports through the plain scalar check.
   checkScalar("riseCm", rawStyle.riseCm, validated.style.riseCm);
+  // #351: a count with its own range, reported through checkScalar for a
+  // garbage/out-of-range value; an in-range value that still moved (odd or
+  // fractional, snapped to the nearest even number) is reported as
+  // "rounded" instead, since checkScalar only sees the range.
+  checkScalar("gorePanels", rawStyle.gorePanels, validated.style.gorePanels);
+  if (isValueSent(rawStyle.gorePanels)) {
+    const n = Number(rawStyle.gorePanels);
+    const { min, max } = STYLE_LIMITS.gorePanels;
+    const used = validated.style.gorePanels;
+    if (
+      Number.isFinite(n) &&
+      n >= min &&
+      n <= max &&
+      used !== undefined &&
+      used !== n
+    ) {
+      out.push({ kind: "rounded", field: "gorePanels", requested: n, used });
+    }
+  }
 
   return out;
 }

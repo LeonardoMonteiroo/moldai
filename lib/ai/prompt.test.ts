@@ -496,11 +496,14 @@ describe("prompt-cache byte stability", () => {
     // "godê"/"gored skirt" instead and names the wedge insert as an
     // unsupported request, the same way the clause already names a
     // contoured waistband or a flare leg.
+    // #351: and again -- a new gorePanels style field (its bullet, the tool
+    // schema's integer property) and the "# Vocabulary mapping" skirt clause
+    // now describe gore as wedge panels rather than circle's own cone.
     // All deliberate, expected byte changes (see this describe block's own
     // comment), not a bug -- the eval harness (npm run eval:ai) is what
     // proves the behaviour is better, not this hash.
     expect(hash).toBe(
-      "ba6af358f8e3e72e8313c804c5aaf7b0bf93641395c9d72da1aa514c929ef7c9",
+      "94db0beeea4b2128494ca67f0dea49c715b87d3a576d6a488b672e34c75e6409",
     );
   });
 });

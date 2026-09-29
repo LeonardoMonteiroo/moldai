@@ -41,7 +41,12 @@ import {
 import type { NewPatternFormInput } from "@/lib/dashboardStore";
 import * as api from "@/lib/api-client";
 import type { GarmentSpec, GarmentStyle, GarmentType } from "@/lib/types";
-import type { SizeChartListEntry, SleeveLength } from "@/lib/types";
+import type {
+  SizeChartListEntry,
+  SkirtSilhouette,
+  SleeveLength,
+} from "@/lib/types";
+import { GORE_PANEL_OPTIONS } from "@/lib/draft/vocabulary";
 import {
   COSTS,
   MAX_CHAT_MESSAGE_LENGTH,
@@ -114,6 +119,9 @@ const STYLE_OPTIONS: Record<FormStyleField, readonly string[]> = {
   collar: COLLARS,
   frontClosure: FRONT_CLOSURES,
   skirt: SKIRTS,
+  // #351: every even count inside STYLE_LIMITS.gorePanels, the only values
+  // validateSpec keeps as-is.
+  gorePanels: GORE_PANEL_OPTIONS,
   waistband: WAISTBANDS,
   fit: FIT_CLASSES,
 };
@@ -196,6 +204,7 @@ export function NewPatternForm({
   const fields = formStyleFieldsFor(
     type,
     style.sleeve as SleeveLength | undefined,
+    style.skirt as SkirtSilhouette | undefined,
   );
 
   function changeType(next: string) {
@@ -252,8 +261,11 @@ export function NewPatternForm({
     // Cast once, here: `style` is keyed by FormStyleField, every one of which
     // formFields.ts proves at compile time to be an optional GarmentStyle key,
     // but that proof does not survive an index write.
+    // #351: gorePanels is the one numeric option -- a string in the Select,
+    // a number on the wire, or formSpec.ts would drop it as not matching
+    // validateSpec's own (numeric) value.
     const styleOut = Object.fromEntries(
-      chosen.map((f) => [f, style[f]]),
+      chosen.map((f) => [f, f === "gorePanels" ? Number(style[f]) : style[f]]),
     ) as GarmentStyle;
     const formSpec: GarmentSpec = {
       type,

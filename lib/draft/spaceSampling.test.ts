@@ -180,6 +180,12 @@ function sampleStyle(rng: () => number, type: GarmentType): GarmentStyle {
       case "riseCm":
         style.riseCm = randRange(rng, STYLE_LIMITS.riseCm);
         break;
+      // #351: any number in range -- validateSpec (sampleSpec below) snaps
+      // it to an even count, so odd and fractional draws exercise that too.
+      // Only a gore skirt reads it; for every other silhouette it is inert.
+      case "gorePanels":
+        style.gorePanels = randRange(rng, STYLE_LIMITS.gorePanels);
+        break;
       default: {
         // Exhaustiveness guard: CapabilityStyleField gains a member only
         // when GarmentStyle itself does, and this switch must be extended
