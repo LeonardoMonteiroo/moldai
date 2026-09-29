@@ -5,6 +5,7 @@ import {
   DEFAULT_ENGINE_ID,
   MOLDAI_CAPABILITY,
   checkEngineSupport,
+  unmetStyleRequirement,
   type CapabilityStyleField,
 } from "./engine/capability";
 import { buildEaseReport } from "./easeReport";
@@ -111,8 +112,11 @@ function randRange(rng: () => number, range: { min: number; max: number }) {
 //    module comment) of which fields a given type's drafter actually reads
 //    -- sampling a style only from that per-type list is what keeps every
 //    sampled spec inside the declared, supported space.
+// 3. CROSS-FIELD (#333): MOLDAI_CAPABILITY.styleRequires -- a cuff needs a
+//    long sleeve, pleats need a straight/a-line skirt. sampleStyle resets a
+//    field its sampled sibling rules out to that field's neutral value.
 //
-// Both exclusions are asserted below, not just assumed: every sampled spec
+// All three exclusions are asserted below, not just assumed: every sampled spec
 // is round-tripped through checkEngineSupport(MOLDAI_CAPABILITY, ...) and
 // required to come back with zero gaps -- if this sampler or
 // MOLDAI_CAPABILITY's own declaration ever drift apart, that assertion
@@ -188,6 +192,16 @@ function sampleStyle(rng: () => number, type: GarmentType): GarmentStyle {
         const exhaustive: never = field;
         throw new Error(`sampleStyle: unhandled style field ${exhaustive}`);
       }
+    }
+  }
+  // #333: a field whose sibling rules it out (a straight cuff on a short
+  // sleeve, box pleats on a circle skirt) is a declared styleRequires gap --
+  // put back to its own neutral value here, so the zero-gap assertion below
+  // keeps meaning "every sampled spec is inside the supported space" instead
+  // of this sampler generating a combination it then reports.
+  for (const req of MOLDAI_CAPABILITY.styleRequires ?? []) {
+    if (unmetStyleRequirement(MOLDAI_CAPABILITY, style, req.field)) {
+      (style as Record<string, unknown>)[req.field] = req.neutral;
     }
   }
   return style;

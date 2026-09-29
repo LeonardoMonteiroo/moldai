@@ -3,7 +3,7 @@ import {
   CAPABILITIES,
   STYLE_ENUM_FIELDS,
   STYLE_LIMIT_FIELDS,
-  hasPlacketOpening,
+  unmetStyleRequirement,
   type CapabilityStyleField,
   type EngineId,
 } from "@/lib/draft/engine/capability";
@@ -107,24 +107,13 @@ const PIECE_OWNED_FIELDS: ReadonlySet<string> = new Set<CapabilityStyleField>([
   "seamAllowanceCm",
 ]);
 
-// #353: a field the engine lists for this TYPE whose value only shapes the
-// garment when a SIBLING field holds a particular value. `cuff` is the one
-// declared case: garment.ts drafts a cuff and its placket only when
-// hasPlacketOpening(style) holds, so a blouse carrying `cuff: "straight"`
-// with a short sleeve is cut with no punho at all -- and #332 listed it
-// anyway, printing a row for a piece the molde does not contain.
-//
-// Everything else returns false: the per-type filter is the whole mechanism
-// for the rest, and inventing couplings the drafters do not actually enforce
-// would trade one dishonest row for another. #333 owns generalizing this into
-// a declared per-engine table with its own EngineGap.
-function shapedNothing(
-  field: CapabilityStyleField,
-  style: GarmentStyle,
-): boolean {
-  return field === "cuff" && !hasPlacketOpening(style);
-}
-
+// #353/#333: a field the engine lists for this TYPE whose value only shapes
+// the garment when a SIBLING field holds a particular value -- a blouse
+// carrying `cuff: "straight"` with a short sleeve is cut with no punho at all,
+// and #332 shipped listing it anyway. The engine's own `styleRequires`
+// declaration is the whole mechanism, read through the same
+// unmetStyleRequirement checkEngineSupport reports with, so the panel and the
+// chat notice can never disagree about what shaped nothing.
 /**
  * The style fields `spec` carries that `engineId` actually READS for
  * `spec.type`, in the order that engine declares them.
@@ -137,12 +126,9 @@ function shapedNothing(
  *   showing it would present a value that shaped nothing as if it had.
  *
  * - A field whose value shaped nothing because a SIBLING field contradicts it
- *   is omitted too (`shapedNothing` above). `cuff` on a short sleeve is the one
- *   declared case -- #332 shipped listing it, which printed a punho row for a
- *   molde cut with no punho. #333 owns generalizing this into a per-engine
- *   table with its own EngineGap; today `hasPlacketOpening` is the whole
- *   mechanism, and a coupling the drafters do not actually enforce is NOT
- *   invented here.
+ *   is omitted too (the engine's `styleRequires`, see above) -- #332 shipped
+ *   listing `cuff` on a short sleeve, which printed a punho row for a molde
+ *   cut with no punho.
  * - A field the piece cards further down this same sheet already state is
  *   omitted (`PIECE_OWNED_FIELDS` above) -- one number, one owner, one screen.
  * - A field the spec never set is omitted too: `undefined` means "the user left
@@ -158,13 +144,14 @@ export function buildSpecParams(
   spec: GarmentSpec,
   engineId: EngineId,
 ): SpecParam[] {
-  const fields = CAPABILITIES[engineId].styleFieldsByType[spec.type];
+  const capability = CAPABILITIES[engineId];
+  const fields = capability.styleFieldsByType[spec.type];
   const out: SpecParam[] = [];
   for (const field of fields) {
     const value = spec.style[field as keyof GarmentStyle];
     if (value === undefined) continue;
     if (PIECE_OWNED_FIELDS.has(field)) continue;
-    if (shapedNothing(field, spec.style)) continue;
+    if (unmetStyleRequirement(capability, spec.style, field)) continue;
     out.push({ field, kind: kindOf(field), value });
   }
   return out;

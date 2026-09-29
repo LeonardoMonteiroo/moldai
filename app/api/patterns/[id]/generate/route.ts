@@ -569,16 +569,31 @@ export async function POST(request: Request, { params }: Ctx) {
                 g: EngineGap,
               ): g is Extract<
                 EngineGap,
-                { kind: "styleField" | "styleValue" | "styleLimit" }
+                {
+                  kind:
+                    | "styleField"
+                    | "styleValue"
+                    | "styleLimit"
+                    | "styleRequires";
+                }
               > =>
                 g.kind === "styleField" ||
                 g.kind === "styleValue" ||
-                g.kind === "styleLimit";
+                g.kind === "styleLimit" ||
+                g.kind === "styleRequires";
               const droppedStyleFields = engineGaps
                 .filter(isStyleGap)
                 // #279: only a field that changed/was newly set THIS turn --
-                // see the comment above `turnChangedFields`.
-                .filter((g) => turnChangedFields.has(g.field))
+                // see the comment above `turnChangedFields`. #333: a
+                // styleRequires gap also counts when the SIBLING changed
+                // (a cuff set long ago, the sleeve shortened now), since
+                // that is the turn that stopped the field shaping anything.
+                .filter(
+                  (g) =>
+                    turnChangedFields.has(g.field) ||
+                    (g.kind === "styleRequires" &&
+                      turnChangedFields.has(g.requires.field)),
+                )
                 .map((g) => t(`styleField.${g.field}`));
               // #257: diffed against the pattern's OWN previous spec, read
               // here (before applyGarmentSpec below overwrites

@@ -865,6 +865,29 @@ bounded design-space limitation — both concrete, both fixable without a spec r
    under `sleeve` (present only when `sleeve.length === "long"`) — a small, genuinely hierarchical
    change, not a wholesale one — would make the invalid combination unrepresentable at the schema
    level instead of silently accepted. **Worth its own follow-up issue.**
+
+   **#333 update: closed, as a declaration rather than nesting.** `EngineCapability` gained an
+   optional `styleRequires` list ("field X shapes anything only while field Y is one of these
+   values"), `checkEngineSupport` reports a violated entry as a `styleRequires` `EngineGap`, and
+   the generate route shows it through the existing `chat.engineStyleUnsupported` notice (no new
+   branch, no new catalog string). Nesting `cuff` under `sleeve` was not taken: it would have
+   changed the persisted `GarmentStyle` blob shape, the AI tool schema and both producers for a
+   rule a flat declaration states just as well. Three details were deliberate:
+   - **Seeded with two couplings, each cited to its drafter line** — `cuff` needs a long sleeve
+     (`garment.ts`'s `hasPlacketOpening` branch), and `pleats` need a `straight`/`a-line` skirt
+     (`skirt.ts`'s radial branch returns before `pleatType` is read). The second was found while
+     doing this; the prompt already told the model, but nothing enforced it. Every other pair
+     checked (neckline depth, armhole deepening, front closure) really is independent.
+   - **Each entry carries a `neutral` value and the sibling's `absent` reading.** `cuff: "none"`
+     on a short sleeve is never a gap, and an unset sibling is judged as what the drafter reads
+     it as (`sleeve` → `"none"`, `skirt` → `"straight"`), not waved through.
+   - **The notice also fires when the SIBLING changed this turn.** #279 scopes the notice to
+     fields changed this turn; a cuff set long ago stops shaping anything on the turn the sleeve
+     is shortened, so that turn says so (Leonardo's call).
+     `hasPlacketOpening` stays the drafters' predicate; `capability.test.ts` pins it to agree with
+     the declaration on every sleeve × cuff pair, and `specParams.ts`'s own cuff special case now
+     reads the declaration through the same `unmetStyleRequirement` helper.
+
 2. **`STYLE_LIMITS.necklineDepthCm` is one flat 0–15cm range for all three neckline shapes.** A
    `V` neckline plausibly has room for a deeper plunge before its own construction breaks down than
    a `round` or `straight` (bateau) neckline does — today one shared range must be conservative
@@ -1091,7 +1114,9 @@ it — doesn't exist as a mechanism today: `checkEngineSupport` (`capability.ts`
 field by `GarmentType`, never by another field's own value (the identical structural gap
 `#245`/`#333` already name for `cuff`+`sleeve`), and `spaceSampling.test.ts` asserts zero
 `EngineGap`s across its whole sampled spec space — teaching it a new coupling would mean building
-the cross-field-applicability mechanism #333 defers, not fixing a two-field interaction. Honoring
+the cross-field-applicability mechanism #333 defers, not fixing a two-field interaction (#333 has
+since built that mechanism; neckline depth was deliberately not declared in it, because this fix
+made depth apply to every shape). Honoring
 the field is also the reading the cited prior art (GarmentCode's `collars.py`) uses: shape and
 depth are orthogonal parameters, not a shape-specific escape hatch. `necklineDepthCm` means the
 same cm-below-the-neckline's-own-base in all three shapes, so the same explicit depth gives the

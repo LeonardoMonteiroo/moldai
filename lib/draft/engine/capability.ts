@@ -162,6 +162,29 @@ export interface EngineCapability {
   // "agrees with MOLDAI_CAPABILITY.styleFieldsByType" case is what now pins
   // the two maps together so they cannot drift apart again.
   styleFieldsByType: Record<GarmentType, readonly CapabilityStyleField[]>;
+  // #333: the cross-field half of styleFieldsByType -- "this field only
+  // shapes anything when a sibling field holds one of these values". Optional
+  // (an engine that couples nothing declares nothing), and seeded only with
+  // couplings a drafter line actually enforces, never a plausible-looking one.
+  styleRequires?: readonly StyleRequirement[];
+}
+
+/**
+ * #333: `field` shapes the garment only while `requires.field` reads as one
+ * of `requires.values`. `neutral` is `field`'s own "off" value -- setting it
+ * never needs anything, so `cuff: "none"` on a short sleeve is not a gap.
+ * `requires.absent` is what the drafter reads an UNSET `requires.field` as
+ * (garment.ts/skirt.ts's own `pick(..., default)`), so an unset sleeve is
+ * judged as the "none" it drafts as, not waved through.
+ */
+export interface StyleRequirement {
+  field: CapabilityStyleField;
+  neutral: string;
+  requires: {
+    field: CapabilityStyleField;
+    values: readonly string[];
+    absent: string;
+  };
 }
 
 // Ground truth per drafter, verified by reading body.ts/sleeve.ts/skirt.ts/
@@ -327,6 +350,29 @@ export const MOLDAI_CAPABILITY: EngineCapability = {
     coat: [],
     shirt: [],
   },
+  // #333: each entry cites the drafter line that makes it true.
+  // - cuff: garment.ts drafts the cuff and its placket only when
+  //   hasPlacketOpening (below) holds, i.e. a LONG sleeve; sleeve.ts drafts no
+  //   sleeve at all for an unset one (`!style.sleeve`).
+  // - pleats: skirt.ts's circle/gore/half-circle branch returns before
+  //   `pleatType` is ever read, so only the two flat-panel silhouettes pleat;
+  //   an unset silhouette drafts as "straight" (`style.skirt ?? "straight"`).
+  styleRequires: [
+    {
+      field: "cuff",
+      neutral: "none",
+      requires: { field: "sleeve", values: ["long"], absent: "none" },
+    },
+    {
+      field: "pleats",
+      neutral: "none",
+      requires: {
+        field: "skirt",
+        values: ["straight", "a-line"],
+        absent: "straight",
+      },
+    },
+  ],
 };
 
 // #269: the freesewing engine's declared capability. `tshirt`
@@ -520,7 +566,12 @@ export type EngineGap =
   | { kind: "measurements"; missing: (keyof Measurements)[] }
   | { kind: "styleField"; field: CapabilityStyleField }
   | { kind: "styleValue"; field: CapabilityStyleField; value: string }
-  | { kind: "styleLimit"; field: CapabilityStyleField; range: Range };
+  | { kind: "styleLimit"; field: CapabilityStyleField; range: Range }
+  | {
+      kind: "styleRequires";
+      field: CapabilityStyleField;
+      requires: StyleRequirement["requires"];
+    };
 
 // #258: exported so lib/ai/prompt.ts's garmentReading instruction can name
 // the same part vocabulary checkEngineSupport enumerates here, rather than a
@@ -560,13 +611,36 @@ export const STYLE_LIMIT_FIELDS = [
 //
 // It lives HERE, in the leaf module, rather than in sleeve.ts where #344 first
 // wrote it: a client component must be able to ask the question without
-// pulling a drafter into its bundle. This is the one cross-field coupling the
-// app declares today -- #333 owns turning couplings into a general per-engine
-// declaration with its own EngineGap; until then this predicate is the whole
-// mechanism, and it is moldai's (no freesewing capability lists `cuff` at
-// all, so the predicate is never consulted for that engine).
+// pulling a drafter into its bundle. It stays the DRAFTERS' predicate; #333's
+// MOLDAI_CAPABILITY.styleRequires "cuff" entry is the declared, reportable
+// form of the same rule, and capability.test.ts pins the two to agree on
+// every sleeve x cuff pair.
 export function hasPlacketOpening(style: GarmentStyle): boolean {
   return style.sleeve === "long" && style.cuff === "straight";
+}
+
+/**
+ * #333: the requirement `capability` declares for `field` that `style`
+ * fails, or `undefined` when there is none (no requirement declared, the
+ * field is unset or neutral, or its sibling holds an allowed value). The one
+ * reading of `styleRequires`, shared by checkEngineSupport (which reports
+ * it) and lib/draft/specParams.ts (which leaves the field off the
+ * "Parâmetros" panel), so the two can never disagree about what shaped
+ * nothing.
+ */
+export function unmetStyleRequirement(
+  capability: EngineCapability,
+  style: GarmentStyle,
+  field: CapabilityStyleField,
+): StyleRequirement | undefined {
+  const value = style[field];
+  if (value === undefined) return undefined;
+  return capability.styleRequires?.find((r) => {
+    if (r.field !== field || String(value) === r.neutral) return false;
+    const sibling = style[r.requires.field];
+    const read = sibling === undefined ? r.requires.absent : String(sibling);
+    return !r.requires.values.includes(read);
+  });
 }
 
 /**
@@ -585,7 +659,10 @@ export function hasPlacketOpening(style: GarmentStyle): boolean {
  * spec actually sets is checked in order (field support, then its enum
  * value or numeric range) -- an unsupported field short-circuits its own
  * value/range check, since checking a value for a field the engine doesn't
- * read at all would be reporting a problem that doesn't exist.
+ * read at all would be reporting a problem that doesn't exist. #333: a field
+ * that passes both is then checked against `capability.styleRequires` -- a
+ * valid value whose sibling rules it out (a straight cuff on a short sleeve)
+ * is one `styleRequires` gap.
  */
 export function checkEngineSupport(
   capability: EngineCapability,
@@ -625,6 +702,7 @@ export function checkEngineSupport(
       ] as readonly string[];
       if (!allowed.includes(value as string)) {
         gaps.push({ kind: "styleValue", field, value: String(value) });
+        continue;
       }
     } else if ((STYLE_LIMIT_FIELDS as readonly string[]).includes(field)) {
       const range =
@@ -634,7 +712,12 @@ export function checkEngineSupport(
         (value < range.min || value > range.max)
       ) {
         gaps.push({ kind: "styleLimit", field, range });
+        continue;
       }
+    }
+    const unmet = unmetStyleRequirement(capability, spec.style, field);
+    if (unmet) {
+      gaps.push({ kind: "styleRequires", field, requires: unmet.requires });
     }
   }
 
